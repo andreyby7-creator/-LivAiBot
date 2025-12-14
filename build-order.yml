@@ -1,0 +1,47 @@
+foundation:
+  - core-contracts
+  - packages/fp/core
+  - packages/fp/pure-functions
+  - packages/fp/immutable-models
+  - packages/fp/utils
+  - packages/fp/ai-effects
+  - packages/shared
+  - packages/validation
+  - packages/data
+  - packages/tools/zod-generator
+  - packages/security
+experience:
+  - packages/ui
+  - packages/mobile
+  - packages/feature-flags
+domains:
+  - packages/domains/domains-ai
+  - packages/domains/domains-subscriptions
+  - packages/domains/domains-billing
+  - packages/domains/domains-integrations
+  - packages/domains/domains-conversations
+  - packages/domains/domains-webhooks
+app-layer:
+  - packages/application-core
+  - packages/read-models/ai-analytics
+  - packages/read-models/token-usage
+  - packages/read-models/user-activity
+infrastructure:
+  - packages/infrastructure-core
+  - packages/infrastructure-tenant
+  - packages/infrastructure-ai
+  - packages/infrastructure-external-api
+  - packages/infrastructure-graphql-api
+  - packages/infrastructure-graphql-client
+  - packages/infrastructure-graphql-server
+sdk:
+  - packages/sdk/analytics
+  - packages/sdk/observability
+  - packages/sdk/resilience
+  - packages/sdk/rum
+apps:
+  - api
+  - apps/shared-ui
+  - apps/admin-panel
+  - apps/web
+  - apps/mobile

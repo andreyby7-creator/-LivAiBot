@@ -1,0 +1,94 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build outputs
+dist/
+.next/
+.nuxt/
+.vercel/
+.netlify/
+
+# Environment variables
+.env*
+!.env.example
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage
+coverage/
+.nyc_output/
+
+# Temporary folders
+tmp/
+temp/
+
+# Cache
+.cache/
+.turbo/
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# LivAI specific
+# Core contracts builds
+core-contracts/dist/
+core-contracts/**/*.tsbuildinfo
+core-contracts/coverage/
+
+# Apps builds and outputs
+apps/*/dist/
+apps/*/.next/
+apps/*/.nuxt/
+apps/*/.vercel/
+apps/*/.netlify/
+apps/*/out/
+
+# Infrastructure
+infrastructure/**/dist/
+infrastructure/**/*.log
+infrastructure/**/.terraform/
+
+# Test results
+test-results/
+playwright-report/
+test-results.xml
+
+# Lock files (keep in repo for monorepo)
+# pnpm-lock.yaml is kept for workspace consistency
+
+# Backup files
+*.backup
+*.bak
+*.tmp
+
+# Archive files
+*.zip
+*.tar.gz
+*.rar
+
+# Image optimization
+.next/cache/images/
+
+# Sentry
+.sentryclirc

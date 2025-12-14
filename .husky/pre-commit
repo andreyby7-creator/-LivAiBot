@@ -1,0 +1,94 @@
+#!/usr/bin/env bash
+# Pre-commit hook for FAANG-level quality checks
+# Runs on staged files only for fast feedback
+
+set -e
+
+echo "🔍 Running pre-commit checks..."
+
+# 1. Lint staged files
+echo "  📝 Running lint-staged..."
+pnpm exec lint-staged
+
+# 2. Type check changed packages
+echo "  🔍 Type checking changed packages..."
+CHANGED_PACKAGES=$(git diff --cached --name-only | grep -E '^(packages|apps)/' | cut -d'/' -f1-2 | sort -u || true)
+CHANGED_FILES=$(git diff --cached --name-only || true)
+
+if [ -n "$CHANGED_PACKAGES" ]; then
+  for PKG in $CHANGED_PACKAGES; do
+    if [ -f "$PKG/package.json" ]; then
+      PKG_NAME=$(node -p "require('./$PKG/package.json').name || ''")
+      if [ -n "$PKG_NAME" ]; then
+        echo "    ✓ Type checking $PKG_NAME..."
+        pnpm --filter="$PKG_NAME" run type-check || {
+          echo "    ❌ Type check failed for $PKG_NAME"
+          exit 1
+        }
+      fi
+    fi
+  done
+fi
+
+# 3. Run fast tests on changed packages
+echo "  ⚡ Running fast tests on changed packages..."
+if [ -n "$CHANGED_PACKAGES" ]; then
+  for PKG in $CHANGED_PACKAGES; do
+    if [ -f "$PKG/package.json" ]; then
+      PKG_NAME=$(node -p "require('./$PKG/package.json').name || ''")
+      if [ -n "$PKG_NAME" ]; then
+        # Check if package has test:fast script
+        HAS_TEST=$(node -p "require('./$PKG/package.json').scripts?.['test:fast'] ? 'yes' : 'no'")
+        if [ "$HAS_TEST" = "yes" ]; then
+          echo "    ✓ Testing $PKG_NAME..."
+          pnpm --filter="$PKG_NAME" run test:fast || {
+            echo "    ❌ Tests failed for $PKG_NAME"
+            exit 1
+          }
+        fi
+      fi
+    fi
+  done
+fi
+
+SHOULD_VERIFY="false"
+
+if echo "$CHANGED_PACKAGES" | grep -Eq '^packages/infrastructure-core$|^packages/contracts$|^packages/tools$'; then
+  SHOULD_VERIFY="true"
+fi
+
+if echo "$CHANGED_FILES" | grep -q '^packages/infrastructure-core/test/'; then
+  SHOULD_VERIFY="true"
+fi
+
+if echo "$CHANGED_FILES" | grep -q '^reports/_snapshots/'; then
+  SHOULD_VERIFY="true"
+fi
+
+if [ "$SHOULD_VERIFY" = "true" ]; then
+  echo "  🧱 Running infra verify suite..."
+  pnpm run verify:infra || {
+    echo "    ❌ Infra verification failed"
+    exit 1
+  }
+fi
+
+# 4. Build changed packages (optional, can be slow)
+# Uncomment if you want to ensure packages build before commit
+# echo "  🔨 Building changed packages..."
+# if [ -n "$CHANGED_PACKAGES" ]; then
+#   for PKG in $CHANGED_PACKAGES; do
+#     if [ -f "$PKG/package.json" ]; then
+#       PKG_NAME=$(node -p "require('./$PKG/package.json').name || ''")
+#       if [ -n "$PKG_NAME" ]; then
+#         echo "    ✓ Building $PKG_NAME..."
+#         pnpm --filter="$PKG_NAME" run build || {
+#           echo "    ❌ Build failed for $PKG_NAME"
+#           exit 1
+#         }
+#       fi
+#     fi
+#   done
+# fi
+
+echo "✅ Pre-commit checks passed!"

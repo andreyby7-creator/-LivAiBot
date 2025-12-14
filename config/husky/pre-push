@@ -1,0 +1,50 @@
+#!/usr/bin/env bash
+# Pre-push hook for comprehensive quality checks
+# Runs more expensive checks before pushing to remote
+
+set -e
+
+echo "🚀 Running pre-push checks..."
+
+# 1. Run full type check on all packages
+echo "  🔍 Type checking all packages..."
+pnpm run type-check || {
+  echo "  ❌ Type check failed"
+  exit 1
+}
+
+# 2. Run full lint on changed files
+echo "  📝 Linting changed files..."
+pnpm run lint || {
+  echo "  ❌ Lint failed"
+  exit 1
+}
+
+# 3. Run tests on changed packages
+echo "  🧪 Running tests on changed packages..."
+pnpm run test || {
+  echo "  ❌ Tests failed"
+  exit 1
+}
+
+# 4. Validate architecture boundaries
+echo "  🏛️  Validating architecture boundaries..."
+pnpm run architecture:validate || {
+  echo "  ❌ Architecture validation failed"
+  exit 1
+}
+
+echo "  🧱 Verifying infrastructure core..."
+pnpm run verify:infra || {
+  echo "  ❌ Infra verification failed"
+  exit 1
+}
+
+# 5. Check for security issues (optional)
+# echo "  🔒 Checking for security issues..."
+# pnpm run security:audit || {
+#   echo "  ⚠️  Security issues found (continuing)"
+# }
+
+echo "✅ Pre-push checks passed!"
+

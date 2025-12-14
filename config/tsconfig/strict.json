@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "extends": "./base.json",
+  "compilerOptions": {
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "verbatimModuleSyntax": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noPropertyAccessFromIndexSignature": true
+  },
+  "include": [
+    "../../packages/**/*",
+    "../../core-contracts/**/*",
+    "../../api/src/**/*",
+    "../../apps/web/src/**/*",
+    "../../apps/mobile/src/**/*"
+  ],
+  "exclude": [
+    "../../node_modules",
+    "**/dist/**",
+    "**/*.test.ts",
+    "**/*.spec.ts",
+    "**/*.test.tsx",
+    "**/*.spec.tsx",
+    "**/*.stories.ts",
+    "**/*.stories.tsx",
+    "**/coverage/**",
+    "**/.turbo/**",
+    "**/.cache/**",
+    "**/test-results/**",
+    "**/integration-tests/**",
+    "**/playwright/**",
+    "**/cypress/**",
+    "**/jest/**",
+    "**/vitest/**",
+    "**/stryker/**",
+    "**/reports/**",
+    "**/backups/**",
+    "**/docs/**",
+    "**/templates/**",
+    "**/scripts/**",
+    "**/test/**",
+    "**/__tests__/**",
+    "**/__mocks__/**"
+  ]
+}

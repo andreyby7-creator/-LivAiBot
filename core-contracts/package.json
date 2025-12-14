@@ -1,0 +1,158 @@
+{
+  "name": "@livai/core-contracts",
+  "version": "1.0.0",
+  "description": "Core Contracts - Foundation layer for effects, auth, domain, errors, and infrastructure contracts",
+  "main": "./dist/esm/index.js",
+  "module": "./dist/esm/index.js",
+  "types": "./dist/esm/index.d.ts",
+  "sideEffects": false,
+  "license": "MIT",
+  "type": "module",
+  "engines": {
+    "node": ">=24.0.0",
+    "pnpm": ">=10.0.0"
+  },
+  "files": [
+    "dist"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/esm/index.d.ts",
+      "import": "./dist/esm/index.js",
+      "default": "./dist/esm/index.js"
+    },
+    "./effect": {
+      "types": "./dist/esm/effect/index.d.ts",
+      "import": "./dist/esm/effect/index.js",
+      "default": "./dist/esm/effect/index.js"
+    },
+    "./auth": {
+      "types": "./dist/esm/auth/index.d.ts",
+      "import": "./dist/esm/auth/index.js",
+      "default": "./dist/esm/auth/index.js"
+    },
+    "./ci": {
+      "types": "./dist/esm/ci/index.d.ts",
+      "import": "./dist/esm/ci/index.js",
+      "default": "./dist/esm/ci/index.js"
+    },
+    "./config": {
+      "types": "./dist/esm/config/index.d.ts",
+      "import": "./dist/esm/config/index.js",
+      "default": "./dist/esm/config/index.js"
+    },
+    "./context": {
+      "types": "./dist/esm/context/index.d.ts",
+      "import": "./dist/esm/context/index.js",
+      "default": "./dist/esm/context/index.js"
+    },
+    "./domain": {
+      "types": "./dist/esm/domain/index.d.ts",
+      "import": "./dist/esm/domain/index.js",
+      "default": "./dist/esm/domain/index.js"
+    },
+    "./errors": {
+      "types": "./dist/esm/errors/index.d.ts",
+      "import": "./dist/esm/errors/index.js",
+      "default": "./dist/esm/errors/index.js"
+    },
+    "./fn": {
+      "types": "./dist/esm/fn/index.d.ts",
+      "import": "./dist/esm/fn/index.js",
+      "default": "./dist/esm/fn/index.js"
+    },
+    "./infrastructure": {
+      "types": "./dist/esm/infrastructure/index.d.ts",
+      "import": "./dist/esm/infrastructure/index.js",
+      "default": "./dist/esm/infrastructure/index.js"
+    },
+    "./react": {
+      "types": "./dist/esm/react/index.d.ts",
+      "import": "./dist/esm/react/index.js",
+      "default": "./dist/esm/react/index.js"
+    },
+    "./targets/browser": {
+      "types": "./dist/esm/targets/browser.d.ts",
+      "import": "./dist/esm/targets/browser.js",
+      "default": "./dist/esm/targets/browser.js"
+    },
+    "./targets/node": {
+      "types": "./dist/esm/targets/node.d.ts",
+      "import": "./dist/esm/targets/node.js",
+      "default": "./dist/esm/targets/node.js"
+    },
+    "./targets/mobile": {
+      "types": "./dist/esm/targets/mobile.d.ts",
+      "import": "./dist/esm/targets/mobile.js",
+      "default": "./dist/esm/targets/mobile.js"
+    },
+    "./targets/server": {
+      "types": "./dist/esm/targets/server.d.ts",
+      "import": "./dist/esm/targets/server.js",
+      "default": "./dist/esm/targets/server.js"
+    },
+    "./targets/shared": {
+      "types": "./dist/esm/targets/shared.d.ts",
+      "import": "./dist/esm/targets/shared.js",
+      "default": "./dist/esm/targets/shared.js"
+    }
+  },
+  "scripts": {
+    "build": "pnpm run build:types && pnpm run build:js",
+    "build:js": "tsup",
+    "build:types": "rm -f *.tsbuildinfo && tsc -b tsconfig.build.json",
+    "build:watch": "tsup --watch",
+    "dev": "tsup --watch",
+    "lint": "eslint . --ext .ts,.tsx,.js,.jsx --cache --cache-location=.eslintcache",
+    "type-check": "tsc --noEmit",
+    "test": "NODE_OPTIONS='--no-warnings' vitest",
+    "test:watch": "vitest --watch",
+    "test:coverage": "NODE_OPTIONS='--no-warnings' vitest run --coverage",
+    "test:ci": "NODE_OPTIONS='--no-warnings' vitest run --coverage --coverage.thresholds.statements=85 --coverage.thresholds.branches=80 --coverage.thresholds.functions=85 --coverage.thresholds.lines=85",
+    "clean": "rm -rf dist *.tsbuildinfo .eslintcache",
+    "lint:dev": "cross-env ESLINT_MODE=dev pnpm lint",
+    "lint:canary": "cross-env ESLINT_MODE=canary pnpm lint",
+    "lint:fix": "cross-env ESLINT_MODE=dev pnpm lint --fix",
+    "lint:ci": "cross-env ESLINT_MODE=canary pnpm lint --max-warnings 0"
+  },
+  "keywords": [
+    "typescript",
+    "fp",
+    "effect",
+    "domain-driven-design",
+    "contracts",
+    "core",
+    "foundation"
+  ],
+  "author": "LivAI",
+  "peerDependencies": {
+    "react": "19.2.0",
+    "typescript": "5.9.3"
+  },
+  "peerDependenciesMeta": {
+    "react": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@types/node": "^24.10.1",
+    "@types/react": "^19.2.2",
+    "@vitest/coverage-v8": "4.0.15",
+    "cross-env": "^7.0.3",
+    "eslint": "9.39.2",
+    "tsup": "8.5.1",
+    "typescript": "5.9.3",
+    "vitest": "4.0.15"
+  },
+  "tags": [
+    "node",
+    "critical"
+  ],
+  "dependencies": {
+    "effect": "3.19.8",
+    "ulidx": "2.4.1"
+  },
+  "optionalDependencies": {
+    "lru-cache": "10.2.0"
+  }
+}

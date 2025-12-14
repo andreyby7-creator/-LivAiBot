@@ -1,0 +1,20 @@
+# Глобальные владельцы
+* @andreyby7-creator
+
+# Core contracts
+core-contracts/ @andreyby7-creator
+
+# API слой
+api/ @andreyby7-creator
+
+# Приложения
+apps/ @andreyby7-creator
+
+# Инфраструктура
+infrastructure/ @andreyby7-creator
+
+# Конфигурации
+config/ @andreyby7-creator
+
+# Документация
+docs/ @andreyby7-creator

@@ -1,0 +1,82 @@
+📦 Найдено пакетов: 20
+
+FOUNDATION ZONE (priority: 100, MAX):
+  ✅ core-contracts
+  ⚠️  packages/fp/core (не найден в packages/)
+  ⚠️  packages/fp/pure-functions (не найден в packages/)
+  ⚠️  packages/fp/immutable-models (не найден в packages/)
+  ⚠️  packages/fp/utils (не найден в packages/)
+  ⚠️  packages/fp/ai-effects (не найден в packages/)
+  ✅ packages/shared
+  ✅ packages/validation
+  ✅ packages/data
+  ⚠️  packages/data/client (не найден в packages/)
+  ⚠️  packages/data/generated (не найден в packages/)
+  ⚠️  packages/data/prisma (не найден в packages/)
+  ⚠️  packages/tools/zod-generator (не найден в packages/)
+  ✅ packages/security
+
+DOMAINSAI ZONE (priority: 100, MAX):
+  ⚠️  packages/domains/domains-ai (не найден в packages/)
+
+INFRASTRUCTURE ZONE (priority: 95, MAX):
+  ⚠️  packages/infrastructure-core (не найден в packages/)
+  ⚠️  packages/infrastructure-core/cache (не найден в packages/)
+  ⚠️  packages/infrastructure-core/database (не найден в packages/)
+  ⚠️  packages/infrastructure-core/messaging (не найден в packages/)
+  ⚠️  packages/infrastructure-core/adapters (не найден в packages/)
+  ✅ packages/infrastructure-tenant
+  ✅ packages/infrastructure-ai
+  ✅ packages/infrastructure-external-api
+  ✅ packages/infrastructure-graphql-api
+  ✅ packages/infrastructure-graphql-client
+  ✅ packages/infrastructure-graphql-server
+
+APPLICATION ZONE (priority: 90, MAX):
+  ✅ packages/application-core
+  ⚠️  packages/read-models/ai-analytics (не найден в packages/)
+  ⚠️  packages/read-models/token-usage (не найден в packages/)
+  ⚠️  packages/read-models/user-activity (не найден в packages/)
+
+SDK ZONE (priority: 80, MAX):
+  ⚠️  packages/sdk/analytics (не найден в packages/)
+  ⚠️  packages/sdk/observability (не найден в packages/)
+  ⚠️  packages/sdk/resilience (не найден в packages/)
+  ⚠️  packages/sdk/rum (не найден в packages/)
+
+DOMAINS ZONE (priority: 80, MEDIUM):
+  ⚠️  packages/domains/domains-billing (не найден в packages/)
+  ⚠️  packages/domains/domains-subscriptions (не найден в packages/)
+  ⚠️  packages/domains/domains-conversations (не найден в packages/)
+  ⚠️  packages/domains/domains-integrations (не найден в packages/)
+  ⚠️  packages/domains/domains-webhooks (не найден в packages/)
+
+EXPERIENCE ZONE (priority: 70, MEDIUM):
+  ✅ packages/ui
+  ✅ packages/mobile
+  ✅ packages/feature-flags
+
+APPS ZONE (priority: 50, LOW):
+  ✅ api
+  ✅ apps/shared-ui
+  ✅ apps/admin-panel
+  ✅ apps/web
+  ✅ apps/mobile
+
+🚀 APPS COVERAGE:
+
+  ✅ apps/admin-panel → UNKNOWN zone
+  ✅ apps/mobile → UI zone
+  ✅ apps/shared-ui → UNKNOWN zone
+  ✅ apps/web → UI zone
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📊 Итоговый отчет
+
+✅ Назначено зон: 20 пакетов
+❌ Неназначено: 0 пакетов
+📊 Coverage: 100%
+
+🎉 Все пакеты правильно распределены по зонам!
+✅ Zone validation PASSED
+

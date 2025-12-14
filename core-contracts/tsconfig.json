@@ -1,0 +1,15 @@
+{
+  "extends": "../config/tsconfig/strict.json",
+  "compilerOptions": {
+    "target": "ES2024",
+    "lib": ["ES2024", "DOM", "DOM.Iterable"],
+    "outDir": "dist",
+    "composite": true,
+    "types": ["node"],
+    "incremental": true,
+    "allowJs": false,
+    "checkJs": false
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist", "**/*.test.ts", "**/*.spec.ts", "test/**/*"]
+}

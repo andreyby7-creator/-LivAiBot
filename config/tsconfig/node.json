@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "extends": "./base.json",
+  "compilerOptions": {
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "verbatimModuleSyntax": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noPropertyAccessFromIndexSignature": true
+  },
+  "include": ["../../packages/**/*", "../../core-contracts/**/*", "../../api/src/**/*"],
+  "exclude": ["../../node_modules", "../../**/dist/**", "../../**/coverage/**", "../../**/test-results/**"]
+}
