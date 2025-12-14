@@ -22,7 +22,7 @@ echo "  📝 Linting core-contracts..."
 
 # 3. Test core-contracts
 echo "  🧪 Testing core-contracts..."
-(cd core-contracts && pnpm run test:run) || {
+(cd core-contracts && pnpm run test) || {
   echo "  ❌ Tests failed"
   exit 1
 }
