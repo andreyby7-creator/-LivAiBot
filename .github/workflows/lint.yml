@@ -2,7 +2,7 @@ name: Lint
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [main, develop]
     paths:
       - '**.ts'
       - '**.tsx'
@@ -11,7 +11,7 @@ on:
       - 'eslint.config.mjs'
       - 'config/eslint/**'
   pull_request:
-    branches: [ main, develop ]
+    branches: [main, develop]
     paths:
       - '**.ts'
       - '**.tsx'
@@ -26,20 +26,20 @@ jobs:
     timeout-minutes: 10
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '20'
-        cache: 'pnpm'
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
 
-    - name: Install dependencies
-      run: pnpm install --frozen-lockfile
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
 
-    - name: ESLint check
-      run: pnpm lint:canary
+      - name: ESLint check
+        run: pnpm lint:canary
 
-    - name: Prettier check
-      run: pnpm format:check
+      - name: Prettier check
+        run: pnpm format:check

@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [main, develop]
   pull_request:
-    branches: [ main, develop ]
+    branches: [main, develop]
 
 jobs:
   test:
@@ -12,33 +12,33 @@ jobs:
     timeout-minutes: 15
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '20'
-        cache: 'pnpm'
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
 
-    - name: Install dependencies
-      run: pnpm install --frozen-lockfile
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
 
-    - name: Type check
-      run: pnpm type-check
+      - name: Type check
+        run: pnpm type-check
 
-    - name: Lint
-      run: pnpm lint:canary
+      - name: Lint
+        run: pnpm lint:canary
 
-    - name: Test
-      run: pnpm test:ci
+      - name: Test
+        run: pnpm test:ci
 
-    - name: Build
-      run: pnpm build
+      - name: Build
+        run: pnpm build
 
-    - name: Upload coverage reports
-      uses: codecov/codecov-action@v4
-      if: success()
-      with:
-        file: ./coverage/lcov.info
-        fail_ci_if_error: false
+      - name: Upload coverage reports
+        uses: codecov/codecov-action@v4
+        if: success()
+        with:
+          file: ./coverage/lcov.info
+          fail_ci_if_error: false

@@ -1,59 +1,59 @@
 version: 2
 updates:
   # Enable version updates for pnpm
-  - package-ecosystem: "npm"
-    directory: "/"
+  - package-ecosystem: 'npm'
+    directory: '/'
     schedule:
-      interval: "weekly"
-      day: "monday"
-      time: "09:00"
+      interval: 'weekly'
+      day: 'monday'
+      time: '09:00'
     open-pull-requests-limit: 10
     reviewers:
-      - "andreyby7-creator"
+      - 'andreyby7-creator'
     assignees:
-      - "andreyby7-creator"
+      - 'andreyby7-creator'
     commit-message:
-      prefix: "chore"
-      prefix-development: "chore"
-      include: "scope"
+      prefix: 'chore'
+      prefix-development: 'chore'
+      include: 'scope'
     labels:
-      - "dependencies"
-      - "automated"
+      - 'dependencies'
+      - 'automated'
     groups:
       typescript:
         patterns:
-          - "typescript"
-          - "@types/*"
+          - 'typescript'
+          - '@types/*'
       eslint:
         patterns:
-          - "eslint*"
-          - "@typescript-eslint/*"
+          - 'eslint*'
+          - '@typescript-eslint/*'
       testing:
         patterns:
-          - "vitest"
-          - "@vitest/*"
-          - "jsdom"
+          - 'vitest'
+          - '@vitest/*'
+          - 'jsdom'
       build-tools:
         patterns:
-          - "tsup"
-          - "rollup"
-          - "vite"
+          - 'tsup'
+          - 'rollup'
+          - 'vite'
 
   # GitHub Actions
-  - package-ecosystem: "github-actions"
-    directory: "/"
+  - package-ecosystem: 'github-actions'
+    directory: '/'
     schedule:
-      interval: "weekly"
-      day: "monday"
-      time: "09:00"
+      interval: 'weekly'
+      day: 'monday'
+      time: '09:00'
     open-pull-requests-limit: 5
     reviewers:
-      - "andreyby7-creator"
+      - 'andreyby7-creator'
     assignees:
-      - "andreyby7-creator"
+      - 'andreyby7-creator'
     commit-message:
-      prefix: "ci"
-      include: "scope"
+      prefix: 'ci'
+      include: 'scope'
     labels:
-      - "github-actions"
-      - "automated"
+      - 'github-actions'
+      - 'automated'
