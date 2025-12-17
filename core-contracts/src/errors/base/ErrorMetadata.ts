@@ -8,9 +8,8 @@
  * ✅ Используется как опциональный параметр при createError / wrapUnknownError
  */
 
-import { isErrorSeverity, isErrorCategory, isErrorOrigin } from "./ErrorConstants.js"
+import { isErrorSeverity, isErrorCategory, isErrorOrigin, type ErrorSeverity, type ErrorCategory, type ErrorOrigin } from "./ErrorConstants.js"
 
-import type { ErrorSeverity, ErrorCategory, ErrorOrigin } from "./ErrorConstants.js"
 import type { ReadonlyDeep } from "type-fest"
 
 /* -------------------------------------------------------------------------------------------------
@@ -57,34 +56,34 @@ export const createErrorMetadata = (
   // Создаем immutable объект с только определенными полями (без undefined)
   // Безопасное извлечение значений из Partial<ErrorMetadata> с использованием type guards
   const result: Readonly<Record<string, unknown>> = Object.freeze({
-    ...(metadata?.correlationId !== undefined && typeof metadata.correlationId === "string" && { 
+    ...(metadata?.correlationId !== undefined && typeof metadata.correlationId === "string" && {
       correlationId: metadata.correlationId
     }),
-    ...(metadata?.context !== undefined && { 
+    ...(metadata?.context !== undefined && {
       context: metadata.context
     }),
-    ...(metadata?.localizedMessage !== undefined && typeof metadata.localizedMessage === "string" && { 
+    ...(metadata?.localizedMessage !== undefined && typeof metadata.localizedMessage === "string" && {
       localizedMessage: metadata.localizedMessage
     }),
-    ...(metadata?.cause !== undefined && { 
+    ...(metadata?.cause !== undefined && {
       cause: metadata.cause
     }),
-    ...(metadata?.severity !== undefined && isErrorSeverity(metadata.severity) && { 
+    ...(metadata?.severity !== undefined && isErrorSeverity(metadata.severity) && {
       severity: metadata.severity
     }),
-    ...(metadata?.category !== undefined && isErrorCategory(metadata.category) && { 
+    ...(metadata?.category !== undefined && isErrorCategory(metadata.category) && {
       category: metadata.category
     }),
-    ...(metadata?.tenantId !== undefined && typeof metadata.tenantId === "string" && { 
+    ...(metadata?.tenantId !== undefined && typeof metadata.tenantId === "string" && {
       tenantId: metadata.tenantId
     }),
-    ...(metadata?.retryable !== undefined && typeof metadata.retryable === "boolean" && { 
+    ...(metadata?.retryable !== undefined && typeof metadata.retryable === "boolean" && {
       retryable: metadata.retryable
     }),
-    ...(metadata?.origin !== undefined && isErrorOrigin(metadata.origin) && { 
+    ...(metadata?.origin !== undefined && isErrorOrigin(metadata.origin) && {
       origin: metadata.origin
     }),
-    ...(metadata?.extra !== undefined && typeof metadata.extra === "object" && { 
+    ...(metadata?.extra !== undefined && typeof metadata.extra === "object" && {
       extra: metadata.extra as Record<string, unknown>
     }),
   })

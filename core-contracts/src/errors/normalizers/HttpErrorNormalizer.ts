@@ -22,13 +22,11 @@
  *  - Расширение поддержки новых клиентов не требует изменения API нормализатора
  */
 // Runtime imports (value imports для tree-shaking)
-import { wrapUnknownError } from "../base/BaseError.js"
-import { ERROR_CODE } from "../base/ErrorCode.js"
+import { wrapUnknownError, type BaseError } from "../base/BaseError.js"
+import { ERROR_CODE, type ErrorCode } from "../base/ErrorCode.js"
 import { createExternalServiceError } from "../infrastructure/InfrastructureError.js"
 
 // Type-only imports (оптимизация для tree-shaking в ESM)
-import type { BaseError } from "../base/BaseError.js"
-import type { ErrorCode } from "../base/ErrorCode.js"
 import type { HttpStatusCode } from "../base/ErrorCodeMeta.js"
 import type { ReadonlyDeep } from "type-fest"
 /* -------------------------------------------------------------------------------------------------
@@ -36,7 +34,7 @@ import type { ReadonlyDeep } from "type-fest"
  * ------------------------------------------------------------------------------------------------- */
 /** Абстракция HTTP-заголовков. Работает с fetch Headers и Axios headers. Строгая типизация для compile-time безопасности. */
 export type HttpHeaders =
-  | Readonly<Record<string, string | string[] | undefined>>
+  | Readonly<Record<string, string | readonly string[] | undefined>>
   | Headers
 /** Контекст для нормализации HTTP-ошибок */
 export type HttpErrorContext = Readonly<{
@@ -67,31 +65,36 @@ export const extractCorrelationId = (headers: ReadonlyDeep<HttpHeaders>): string
   const normalizedHeaders: ReadonlyDeep<HttpHeaders> = headers instanceof Headers
     ? headers
     : ((): ReadonlyDeep<Record<string, string | string[] | undefined>> => {
-        const normalized: ReadonlyDeep<Record<string, string | string[] | undefined>> = {} as ReadonlyDeep<Record<string, string | string[] | undefined>>
         const recordHeaders = headers as ReadonlyDeep<Record<string, string | string[] | undefined>>
-        for (const [key, value] of Object.entries(recordHeaders)) {
-          const normalizedValue: ReadonlyDeep<string | string[] | undefined> = Array.isArray(value)
-            ? (value as readonly string[]).slice() as ReadonlyDeep<string[]>
-            : (value as ReadonlyDeep<string | undefined>)
-          ;(normalized as Record<string, string | string[] | undefined>)[key.toLowerCase()] = normalizedValue as string | string[] | undefined
+        // Функциональный подход без циклов: используем Object.entries и Object.fromEntries
+        const normalizeEntry = (entry: ReadonlyDeep<readonly [string, string | string[] | undefined]>): readonly [string, string | string[] | undefined] => {
+          const [key, value] = entry
+          const normalizedValue: string | string[] | undefined = Array.isArray(value)
+            ? [...(value as readonly string[])] as string[]
+            : (value as string | undefined)
+          return [key.toLowerCase(), normalizedValue]
         }
-        return normalized
+        return Object.fromEntries(
+          (Object.entries(recordHeaders) as ReadonlyArray<ReadonlyDeep<readonly [string, string | string[] | undefined]>>).map(normalizeEntry)
+        ) as ReadonlyDeep<Record<string, string | string[] | undefined>>
       })()
   /**
    * @internal
    * Внутренний helper для безопасного извлечения значения заголовка.
    */
+  const EMPTY_STRING_LENGTH = 0
+  const FIRST_ARRAY_ELEMENT = 0
   const getHeaderValue = (value: unknown): string | undefined =>
     value === undefined
       ? undefined
       : Array.isArray(value)
-        ? value[0] as string
+        ? value[FIRST_ARRAY_ELEMENT] as string
         : typeof value === "string"
           ? value
           : typeof value === "object" && value !== null
             ? ((): string | undefined => {
                 const stringValue = String(value)
-                return stringValue.length > 0 ? stringValue : undefined
+                return stringValue.length > EMPTY_STRING_LENGTH ? stringValue : undefined
               })()
             : undefined
   const getHeader = (name: string): string | undefined => {
@@ -202,7 +205,9 @@ export const fromAxiosError = (error: unknown): HttpErrorLike | undefined => {
             : headers instanceof Headers
               ? ((): Readonly<Record<string, string | string[] | undefined>> => {
                   const entries: ReadonlyArray<readonly [string, string]> = Array.from(headers.entries())
-                  const record: Readonly<Record<string, string | string[] | undefined>> = Object.fromEntries(entries)
+                  // Преобразуем readonly массивы в обычные для совместимости типов
+                  const mutableEntries: Array<[string, string]> = entries.map(([key, value]) => [key, value] as [string, string])
+                  const record: Readonly<Record<string, string | string[] | undefined>> = Object.fromEntries(mutableEntries) as Readonly<Record<string, string | string[] | undefined>>
                   return record
                 })()
               : ((): Readonly<Record<string, string | string[] | undefined>> => {

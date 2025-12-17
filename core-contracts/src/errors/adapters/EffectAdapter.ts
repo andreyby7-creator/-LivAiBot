@@ -19,10 +19,9 @@
 import { Cause } from "effect"
 import type { Cause as EffectCause } from "effect/Cause"
 
-import { createError } from "../base/BaseError.js"
+import { createError, type BaseError } from "../base/BaseError.js"
 import { ERROR_CODE } from "../base/ErrorCode.js"
 
-import type { BaseError } from "../base/BaseError.js"
 import type { ReadonlyDeep } from "type-fest"
 
 /* -------------------------------------------------------------------------------------------------

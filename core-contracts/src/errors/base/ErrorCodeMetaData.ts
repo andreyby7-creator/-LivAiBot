@@ -3,14 +3,11 @@
  * Единый источник истины для метаданных всех error codes. Обеспечивает автоматическое заполнение метаданных в BaseError и других слоях.
  * 🎯 Полное покрытие всех кодов из ERROR_CODE | 🔄 Runtime валидация полноты реестра | 📊 Стандартизированные метаданные для observability и operational guidance
  */
-import { ERROR_CODE } from './ErrorCode.js'
-import { createErrorCodeMetaWithDefaults, generateMetricName } from './ErrorCodeMeta.js'
-import { ERROR_CATEGORY, ERROR_ORIGIN, ERROR_SEVERITY } from './ErrorConstants.js'
+import { ERROR_CODE, type ErrorCode } from './ErrorCode.js'
+import { createErrorCodeMetaWithDefaults, generateMetricName, type ErrorCodeMeta } from './ErrorCodeMeta.js'
+import { ERROR_CATEGORY, ERROR_ORIGIN, ERROR_SEVERITY, type ErrorCategory, type ErrorOrigin, type ErrorSeverity } from './ErrorConstants.js'
 import { deepFreeze } from './ErrorUtils.js'
 
-import type { ErrorCode } from './ErrorCode.js'
-import type { ErrorCodeMeta } from './ErrorCodeMeta.js'
-import type { ErrorCategory, ErrorOrigin, ErrorSeverity } from './ErrorConstants.js'
 import type { ReadonlyDeep } from 'type-fest'
 /* -------------------------------------------------------------------------------------------------
  * 🔹 Централизованный реестр метаданных

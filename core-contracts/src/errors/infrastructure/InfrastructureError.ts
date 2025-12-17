@@ -9,11 +9,9 @@
  * Может интерпретировать operational metadata (retry, timeout, circuit breaker),
  * но НЕ должен знать business логику или domain правила.
  */
-import { createError } from "../base/BaseError.js"
-import { ERROR_CODE } from "../base/ErrorCode.js"
+import { createError, type BaseError } from "../base/BaseError.js"
+import { ERROR_CODE, type ErrorCode } from "../base/ErrorCode.js"
 
-import type { BaseError } from "../base/BaseError.js"
-import type { ErrorCode } from "../base/ErrorCode.js"
 import type { ReadonlyDeep } from "type-fest"
 // Минимальный локальный Either (без зависимостей от fp библиотек)
 export type EitherTag = 'Left' | 'Right'

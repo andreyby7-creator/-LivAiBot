@@ -11,10 +11,11 @@
  * Конфигурация: ENV флаги вынесены в константы для легкого расширения.
  */
 
-import { beforeAll, afterAll, beforeEach, afterEach } from 'vitest';
 import { promises as fs } from 'fs';
 import { tmpdir } from 'os';
 import { join } from 'path';
+
+import { beforeAll, afterAll, beforeEach, afterEach } from 'vitest';
 
 // Расширение глобального типа для тестового состояния
 declare global {

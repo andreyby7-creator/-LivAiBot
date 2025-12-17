@@ -30,7 +30,7 @@
  */
 
 import { getErrorCodeMeta } from "../base/ErrorCodeMetaData.js"
-import { isErrorCategory, isErrorOrigin } from "../base/ErrorConstants.js"
+import { isErrorCategory, isErrorOrigin, type ErrorSeverity, type ErrorCategory, type ErrorOrigin } from "../base/ErrorConstants.js"
 import {
   // severity
   getErrorSeverity,
@@ -40,7 +40,6 @@ import {
 
 import type { BaseError } from "../base/BaseError.js"
 import type { HttpStatusCode, GrpcStatusCode } from "../base/ErrorCodeMeta.js"
-import type { ErrorSeverity, ErrorCategory, ErrorOrigin } from "../base/ErrorConstants.js"
 import type { ReadonlyDeep } from "type-fest"
 
 /* -------------------------------------------------------------------------------------------------
@@ -55,14 +54,14 @@ const getErrorOriginSafe = (error: ReadonlyDeep<BaseError>): ErrorOrigin | undef
   error.origin !== undefined && isErrorOrigin(error.origin) ? error.origin : undefined
 /** Безопасно извлекает correlationId из ошибки */
 const getCorrelationIdSafe = (error: ReadonlyDeep<BaseError>): string | undefined => {
-  return typeof error.correlationId === "string" && error.correlationId.length > 0 
-    ? error.correlationId 
+  return typeof error.correlationId === "string" && error.correlationId.length > 0
+    ? error.correlationId
     : undefined
 }
 /** Безопасно извлекает tenantId из ошибки */
 const getTenantIdSafe = (error: ReadonlyDeep<BaseError>): string | undefined => {
-  return typeof error.tenantId === "string" && error.tenantId.length > 0 
-    ? error.tenantId 
+  return typeof error.tenantId === "string" && error.tenantId.length > 0
+    ? error.tenantId
     : undefined
 }
 

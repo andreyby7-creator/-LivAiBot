@@ -5,16 +5,12 @@
  * ✅ Pattern matching через discriminated union (паттерн матчинг через discriminated union)
  * ✅ Стабильный ErrorCode (стабильный ABI)
  */
-import { ERROR_CODE } from "./ErrorCode.js"
-import { createErrorCodeMetaWithDefaults, generateMetricName } from "./ErrorCodeMeta.js"
+import { ERROR_CODE, type ErrorCode } from "./ErrorCode.js"
+import { createErrorCodeMetaWithDefaults, generateMetricName, type ErrorCodeMeta } from "./ErrorCodeMeta.js"
 import { getErrorCodeMeta } from "./ErrorCodeMetaData.js"
-import { ERROR_CATEGORY, ERROR_ORIGIN } from "./ErrorConstants.js"
-import { deepFreeze } from "./ErrorUtils.js"
-import { isBaseError } from "./ErrorUtils.js"
+import { ERROR_CATEGORY, ERROR_ORIGIN, type ErrorOrigin, type ErrorCategory } from "./ErrorConstants.js"
+import { deepFreeze, isBaseError } from "./ErrorUtils.js"
 
-import type { ErrorCode } from "./ErrorCode.js"
-import type { ErrorCodeMeta } from "./ErrorCodeMeta.js"
-import type { ErrorOrigin, ErrorCategory } from "./ErrorConstants.js"
 import type { ErrorMetadata } from "./ErrorMetadata.js"
 import type { ReadonlyDeep } from "type-fest"
 /* -------------------------------------------------------------------------------------------------
@@ -111,15 +107,36 @@ const deepMergeObjects = (
         ? base
         : base === undefined
           ? override
-          : Object.keys(override).reduce((acc: ReadonlyDeep<Record<string, unknown>>, key: string) => {
-              const baseValue = base[key]
-              const overrideValue = override[key]
-              const isBothPOJO = isPOJO(baseValue) && isPOJO(overrideValue)
-              const mergedValue = isBothPOJO
-                ? deepMergeObjects(baseValue as ReadonlyDeep<Record<string, unknown>>, overrideValue as ReadonlyDeep<Record<string, unknown>>)
-                : overrideValue
-              return mergedValue !== undefined ? { ...acc, [key]: mergedValue } : acc
-            }, base)
+          : ((): ReadonlyDeep<Record<string, unknown>> => {
+              // Функциональный подход без reduce: используем рекурсивное построение объекта
+              const mergeEntries = (
+                entries: ReadonlyArray<readonly [string, unknown]>,
+                currentBase: ReadonlyDeep<Record<string, unknown>>
+              ): ReadonlyDeep<Record<string, unknown>> => {
+                const EMPTY_ARRAY_LENGTH = 0
+                const SLICE_START_INDEX = 1
+                return entries.length === EMPTY_ARRAY_LENGTH
+                  ? currentBase
+                  : ((): ReadonlyDeep<Record<string, unknown>> => {
+                      const firstEntry = entries[EMPTY_ARRAY_LENGTH]
+                      return firstEntry === undefined
+                        ? currentBase
+                        : ((): ReadonlyDeep<Record<string, unknown>> => {
+                            const [key, overrideValue] = firstEntry
+                            const baseValue = currentBase[key]
+                            const isBothPOJO = isPOJO(baseValue) && isPOJO(overrideValue)
+                            const mergedValue = isBothPOJO
+                              ? deepMergeObjects(baseValue as ReadonlyDeep<Record<string, unknown>>, overrideValue as ReadonlyDeep<Record<string, unknown>>)
+                              : overrideValue
+                            const updatedBase = mergedValue !== undefined
+                              ? { ...currentBase, [key]: mergedValue }
+                              : currentBase
+                            return mergeEntries(entries.slice(SLICE_START_INDEX), updatedBase)
+                          })()
+                    })()
+              }
+              return mergeEntries(Object.entries(override) as ReadonlyArray<readonly [string, unknown]>, base)
+            })()
 }
 /** Извлекает метаданные из ErrorCodeMeta и преобразует их в ErrorMetadata */
 const extractMetadataFromMeta = (

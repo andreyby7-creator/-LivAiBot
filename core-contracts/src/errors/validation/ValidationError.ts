@@ -10,11 +10,9 @@
  * Может интерпретировать operational metadata (recoverable для исправления пользователем),
  * но НЕ должен знать transport/UI представления (HTTP, gRPC, UI messages).
  */
-import { createError } from "../base/BaseError.js"
-import { ERROR_CODE } from "../base/ErrorCode.js"
+import { createError, type BaseError } from "../base/BaseError.js"
+import { ERROR_CODE, type ErrorCode } from "../base/ErrorCode.js"
 
-import type { BaseError } from "../base/BaseError.js"
-import type { ErrorCode } from "../base/ErrorCode.js"
 import type { ReadonlyDeep } from "type-fest"
 // Minimal local Either (no dependency on fp libs)
 export type EitherTag = 'Left' | 'Right'

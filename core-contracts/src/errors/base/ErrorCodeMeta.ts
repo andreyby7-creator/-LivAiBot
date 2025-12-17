@@ -8,10 +8,9 @@
  * 📊 Стандартизированные метрики для observability.
  * 🔒 SemVer политика для стабильности ABI.
  */
-import { ERROR_SEVERITY, isErrorSeverity, isErrorCategory, isErrorOrigin } from './ErrorConstants.js'
+import { ERROR_SEVERITY, isErrorSeverity, isErrorCategory, isErrorOrigin, type ErrorSeverity, type ErrorCategory, type ErrorOrigin } from './ErrorConstants.js'
 
 import type { ErrorCode } from './ErrorCode.js'
-import type { ErrorSeverity, ErrorCategory, ErrorOrigin } from './ErrorConstants.js'
 import type { ReadonlyDeep } from 'type-fest'
 
 /* -------------------------------------------------------------------------------------------------
@@ -197,10 +196,10 @@ export const createErrorCodeMetaWithDefaults = (
     : Object.freeze({
         ...DEFAULT_ERROR_CODE_META,
         ...meta,
-        severity: meta.severity ?? DEFAULT_ERROR_CODE_META.severity!,
-        retryable: meta.retryable ?? DEFAULT_ERROR_CODE_META.retryable!,
-        recoverable: meta.recoverable ?? DEFAULT_ERROR_CODE_META.recoverable!,
-        semver: meta.semver ?? DEFAULT_ERROR_CODE_META.semver!
+        severity: meta.severity ?? (DEFAULT_ERROR_CODE_META.severity as ErrorSeverity),
+        retryable: meta.retryable ?? (DEFAULT_ERROR_CODE_META.retryable as boolean),
+        recoverable: meta.recoverable ?? (DEFAULT_ERROR_CODE_META.recoverable as boolean),
+        semver: meta.semver ?? (DEFAULT_ERROR_CODE_META.semver as SemVerPolicy)
       } as ReadonlyDeep<ErrorCodeMeta>)
 }
 

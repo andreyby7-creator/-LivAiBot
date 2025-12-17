@@ -7,12 +7,10 @@
  * ✅ Consistent: единая архитектура с BaseError, ErrorMetadata и ErrorConstants
  */
 // Enum-like frozen constants objects (NOT TypeScript enums) - see ErrorConstants.ts for details
-import { ERROR_CODE } from "./ErrorCode.js"
-import { ERROR_ORIGIN, ERROR_SEVERITY, ERROR_CATEGORY, isErrorSeverity, isErrorCategory, isErrorOrigin } from "./ErrorConstants.js"
+import { ERROR_CODE, type ErrorCode } from "./ErrorCode.js"
+import { ERROR_ORIGIN, ERROR_SEVERITY, ERROR_CATEGORY, isErrorSeverity, isErrorCategory, isErrorOrigin, type ErrorSeverity, type ErrorCategory, type ErrorOrigin } from "./ErrorConstants.js"
 
 import type { BaseError } from "./BaseError.js"
-import type { ErrorCode } from "./ErrorCode.js"
-import type { ErrorSeverity, ErrorCategory, ErrorOrigin } from "./ErrorConstants.js"
 import type { ErrorMetadata } from "./ErrorMetadata.js"
 import type { ReadonlyDeep } from "type-fest"
 /* -------------------------------------------------------------------------------------------------
@@ -114,8 +112,8 @@ export const hasCause = (error: ReadonlyDeep<BaseError>): boolean =>
   error.cause != null
 /** Получает уровень серьезности ошибки с fallback на 'medium' */
 export const getErrorSeverity = (error: ReadonlyDeep<BaseError>): ErrorSeverity =>
-  error.severity !== undefined && isErrorSeverity(error.severity) 
-    ? error.severity 
+  error.severity !== undefined && isErrorSeverity(error.severity)
+    ? error.severity
     : ('medium' as ErrorSeverity)
 /** Получает категорию ошибки с fallback на 'unknown' */
 export const getErrorCategory = (error: ReadonlyDeep<BaseError>): ErrorCategory =>
