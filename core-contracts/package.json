@@ -21,30 +21,15 @@
       "import": "./dist/esm/index.js",
       "default": "./dist/esm/index.js"
     },
-    "./effect": {
-      "types": "./dist/esm/effect/index.d.ts",
-      "import": "./dist/esm/effect/index.js",
-      "default": "./dist/esm/effect/index.js"
+    "./io": {
+      "types": "./dist/esm/io/index.d.ts",
+      "import": "./dist/esm/io/index.js",
+      "default": "./dist/esm/io/index.js"
     },
-    "./auth": {
-      "types": "./dist/esm/auth/index.d.ts",
-      "import": "./dist/esm/auth/index.js",
-      "default": "./dist/esm/auth/index.js"
-    },
-    "./ci": {
-      "types": "./dist/esm/ci/index.d.ts",
-      "import": "./dist/esm/ci/index.js",
-      "default": "./dist/esm/ci/index.js"
-    },
-    "./config": {
-      "types": "./dist/esm/config/index.d.ts",
-      "import": "./dist/esm/config/index.js",
-      "default": "./dist/esm/config/index.js"
-    },
-    "./context": {
-      "types": "./dist/esm/context/index.d.ts",
-      "import": "./dist/esm/context/index.js",
-      "default": "./dist/esm/context/index.js"
+    "./fp": {
+      "types": "./dist/esm/fp/index.d.ts",
+      "import": "./dist/esm/fp/index.js",
+      "default": "./dist/esm/fp/index.js"
     },
     "./domain": {
       "types": "./dist/esm/domain/index.d.ts",
@@ -56,45 +41,25 @@
       "import": "./dist/esm/errors/index.js",
       "default": "./dist/esm/errors/index.js"
     },
-    "./fn": {
-      "types": "./dist/esm/fn/index.d.ts",
-      "import": "./dist/esm/fn/index.js",
-      "default": "./dist/esm/fn/index.js"
+    "./context": {
+      "types": "./dist/esm/context/index.d.ts",
+      "import": "./dist/esm/context/index.js",
+      "default": "./dist/esm/context/index.js"
     },
-    "./infrastructure": {
-      "types": "./dist/esm/infrastructure/index.d.ts",
-      "import": "./dist/esm/infrastructure/index.js",
-      "default": "./dist/esm/infrastructure/index.js"
-    },
-    "./react": {
-      "types": "./dist/esm/react/index.d.ts",
-      "import": "./dist/esm/react/index.js",
-      "default": "./dist/esm/react/index.js"
-    },
-    "./targets/browser": {
-      "types": "./dist/esm/targets/browser.d.ts",
-      "import": "./dist/esm/targets/browser.js",
-      "default": "./dist/esm/targets/browser.js"
+    "./targets/shared": {
+      "types": "./dist/esm/targets/shared.d.ts",
+      "import": "./dist/esm/targets/shared.js",
+      "default": "./dist/esm/targets/shared.js"
     },
     "./targets/node": {
       "types": "./dist/esm/targets/node.d.ts",
       "import": "./dist/esm/targets/node.js",
       "default": "./dist/esm/targets/node.js"
     },
-    "./targets/mobile": {
-      "types": "./dist/esm/targets/mobile.d.ts",
-      "import": "./dist/esm/targets/mobile.js",
-      "default": "./dist/esm/targets/mobile.js"
-    },
-    "./targets/server": {
-      "types": "./dist/esm/targets/server.d.ts",
-      "import": "./dist/esm/targets/server.js",
-      "default": "./dist/esm/targets/server.js"
-    },
-    "./targets/shared": {
-      "types": "./dist/esm/targets/shared.d.ts",
-      "import": "./dist/esm/targets/shared.js",
-      "default": "./dist/esm/targets/shared.js"
+    "./targets/browser": {
+      "types": "./dist/esm/targets/browser.d.ts",
+      "import": "./dist/esm/targets/browser.js",
+      "default": "./dist/esm/targets/browser.js"
     }
   },
   "scripts": {
@@ -124,35 +89,41 @@
     "core",
     "foundation"
   ],
-  "author": "LivAI",
   "peerDependencies": {
-    "react": "19.2.0",
+    "effect": "^3.19.12",
+    "react": "19.2.3",
     "typescript": "5.9.3"
   },
   "peerDependenciesMeta": {
     "react": {
       "optional": true
+    },
+    "effect": {
+      "optional": true
     }
   },
   "devDependencies": {
-    "@types/node": "^24.10.1",
-    "@types/react": "^19.2.2",
-    "@vitest/coverage-v8": "4.0.15",
-    "cross-env": "^7.0.3",
+    "@vitest/coverage-v8": "4.0.16",
+    "cross-env": "^10.1.0",
     "eslint": "9.39.2",
     "tsup": "8.5.1",
     "typescript": "5.9.3",
-    "vitest": "4.0.15"
+    "vitest": "4.0.16"
   },
   "tags": [
     "node",
     "critical"
   ],
   "dependencies": {
-    "effect": "3.19.8",
-    "ulidx": "2.4.1"
+    "@effect/platform": "^0.93.8",
+    "@effect/printer-ansi": "^0.47.0",
+    "@effect/typeclass": "^0.38.0",
+    "effect": "^3.19.12",
+    "fp-ts": "^2.16.11",
+    "monocle-ts": "^2.3.13",
+    "newtype-ts": "^0.3.5"
   },
   "optionalDependencies": {
-    "lru-cache": "10.2.0"
+    "lru-cache": "11.2.4"
   }
 }

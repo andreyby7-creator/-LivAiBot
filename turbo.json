@@ -1,0 +1,33 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "tasks": {
+    "build": {
+      "dependsOn": ["^build"],
+      "outputs": ["dist/**", "*.tsbuildinfo"],
+      "inputs": ["src/**", "package.json", "tsconfig*.json", "tsup.config.ts"]
+    },
+    "lint": {
+      "inputs": ["src/**", "**/*.config.*", ".eslintrc*"]
+    },
+    "lint:fix": {
+      "inputs": ["src/**", "**/*.config.*", ".eslintrc*"]
+    },
+    "type-check": {
+      "inputs": ["src/**", "tsconfig*.json"]
+    },
+    "test": {
+      "inputs": ["src/**", "tests/**", "**/*.config.*"],
+      "outputs": ["coverage/**"]
+    },
+    "test:ci": {
+      "inputs": ["src/**", "tests/**", "**/*.config.*"],
+      "outputs": ["coverage/**"]
+    },
+    "clean": {}
+  },
+  "globalDependencies": [
+    "package.json",
+    "tsconfig.json",
+    "turbo.json"
+  ]
+}

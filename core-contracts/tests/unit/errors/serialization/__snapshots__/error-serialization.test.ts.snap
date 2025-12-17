@@ -1,0 +1,542 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Error Serialization - Golden ABI Tests > HTTP Serialization (toHttpErrorResponse) > should have stable HTTP response format - all severity levels 1`] = `
+[
+  {
+    "body": {
+      "error": {
+        "category": "business",
+        "code": "DOMAIN_INVARIANT_BROKEN",
+        "message": "Invariant broken",
+        "origin": "domain",
+        "severity": "critical",
+        "timestamp": "2025-01-01T12:00:00.000Z",
+      },
+    },
+    "status": 500,
+  },
+  {
+    "body": {
+      "error": {
+        "category": "business",
+        "code": "DOMAIN_INVARIANT_BROKEN",
+        "message": "Invariant broken",
+        "origin": "domain",
+        "severity": "high",
+        "timestamp": "2025-01-01T12:00:00.000Z",
+      },
+    },
+    "status": 500,
+  },
+  {
+    "body": {
+      "error": {
+        "category": "business",
+        "code": "DOMAIN_INVARIANT_BROKEN",
+        "message": "Invariant broken",
+        "origin": "domain",
+        "severity": "medium",
+        "timestamp": "2025-01-01T12:00:00.000Z",
+      },
+    },
+    "status": 500,
+  },
+  {
+    "body": {
+      "error": {
+        "category": "business",
+        "code": "DOMAIN_INVARIANT_BROKEN",
+        "message": "Invariant broken",
+        "origin": "domain",
+        "severity": "low",
+        "timestamp": "2025-01-01T12:00:00.000Z",
+      },
+    },
+    "status": 500,
+  },
+]
+`;
+
+exports[`Error Serialization - Golden ABI Tests > HTTP Serialization (toHttpErrorResponse) > should have stable HTTP response format - different error codes 1`] = `
+{
+  "body": {
+    "error": {
+      "category": "authorization",
+      "code": "SECURITY_UNAUTHORIZED",
+      "message": "Unauthorized",
+      "origin": "security",
+      "severity": "high",
+      "timestamp": "2025-01-01T12:00:00.000Z",
+    },
+  },
+  "status": 401,
+}
+`;
+
+exports[`Error Serialization - Golden ABI Tests > HTTP Serialization (toHttpErrorResponse) > should have stable HTTP response format - different error codes 2`] = `
+{
+  "body": {
+    "error": {
+      "category": "authorization",
+      "code": "SECURITY_FORBIDDEN",
+      "message": "Forbidden",
+      "origin": "security",
+      "severity": "high",
+      "timestamp": "2025-01-01T12:00:00.000Z",
+    },
+  },
+  "status": 403,
+}
+`;
+
+exports[`Error Serialization - Golden ABI Tests > HTTP Serialization (toHttpErrorResponse) > should have stable HTTP response format - full metadata 1`] = `
+{
+  "body": {
+    "error": {
+      "category": "validation",
+      "code": "APPLICATION_COMMAND_REJECTED",
+      "correlationId": "req-123",
+      "message": "Command rejected",
+      "origin": "application",
+      "severity": "high",
+      "tenantId": "tenant-456",
+      "timestamp": "2025-01-01T12:00:00.000Z",
+    },
+  },
+  "status": 400,
+}
+`;
+
+exports[`Error Serialization - Golden ABI Tests > HTTP Serialization (toHttpErrorResponse) > should have stable HTTP response format - minimal error 1`] = `
+{
+  "body": {
+    "error": {
+      "category": "business",
+      "code": "DOMAIN_ENTITY_NOT_FOUND",
+      "message": "User not found",
+      "origin": "domain",
+      "severity": "high",
+      "timestamp": "2025-01-01T12:00:00.000Z",
+    },
+  },
+  "status": 404,
+}
+`;
+
+exports[`Error Serialization - Golden ABI Tests > HTTP Serialization (toHttpErrorResponse) > should have stable HTTP response format - with cause 1`] = `
+{
+  "body": {
+    "error": {
+      "category": "business",
+      "code": "APPLICATION_QUERY_FAILED",
+      "correlationId": "req-999",
+      "message": "Query failed",
+      "origin": "application",
+      "severity": "medium",
+      "timestamp": "2025-01-01T12:00:00.000Z",
+    },
+    "hasCause": true,
+  },
+  "status": 500,
+}
+`;
+
+exports[`Error Serialization - Golden ABI Tests > Log Serialization (toLogErrorFormat) > should have stable log format - minimal error 1`] = `
+{
+  "error": {
+    "category": "business",
+    "code": "DOMAIN_ENTITY_NOT_FOUND",
+    "message": "User not found",
+    "origin": "domain",
+    "severity": "high",
+    "timestamp": "2025-01-01T12:00:00.000Z",
+  },
+}
+`;
+
+exports[`Error Serialization - Golden ABI Tests > Log Serialization (toLogErrorFormat) > should have stable log format - with cause chain 1`] = `
+{
+  "error": {
+    "category": "business",
+    "code": "APPLICATION_QUERY_FAILED",
+    "correlationId": "req-333",
+    "message": "Query failed",
+    "origin": "application",
+    "severity": "medium",
+    "timestamp": "2025-01-01T12:00:00.000Z",
+  },
+  "hasCause": true,
+}
+`;
+
+exports[`Error Serialization - Golden ABI Tests > Log Serialization (toLogErrorFormat) > should have stable log format - with context 1`] = `
+{
+  "context": {
+    "details": {
+      "field": "email",
+    },
+    "operation": "update",
+    "userId": "user-123",
+  },
+  "error": {
+    "category": "business",
+    "code": "APPLICATION_COMMAND_REJECTED",
+    "correlationId": "req-456",
+    "message": "Command rejected",
+    "origin": "application",
+    "severity": "high",
+    "timestamp": "2025-01-01T12:00:00.000Z",
+  },
+}
+`;
+
+exports[`Error Serialization - Golden ABI Tests > Log Serialization (toLogErrorFormat) > should have stable log format - with context and stack 1`] = `
+{
+  "context": {
+    "query": "SELECT * FROM users",
+    "timeout": 5000,
+  },
+  "error": {
+    "category": "business",
+    "code": "APPLICATION_QUERY_FAILED",
+    "correlationId": "req-111",
+    "message": "Query failed",
+    "origin": "application",
+    "severity": "medium",
+    "timestamp": "2025-01-01T12:00:00.000Z",
+  },
+  "hasCause": true,
+  "stack": "Error: Root cause
+    at /home/boss/Projects/livai/core-contracts/tests/unit/errors/serialization/error-serialization.test.ts:167:24
+    at file:///home/boss/Projects/livai/core-contracts/node_modules/.pnpm/@vitest+runner@4.0.15/node_modules/@vitest/runner/dist/index.js:145:11
+    at file:///home/boss/Projects/livai/core-contracts/node_modules/.pnpm/@vitest+runner@4.0.15/node_modules/@vitest/runner/dist/index.js:915:26
+    at file:///home/boss/Projects/livai/core-contracts/node_modules/.pnpm/@vitest+runner@4.0.15/node_modules/@vitest/runner/dist/index.js:1240:20
+    at new Promise (<anonymous>)
+    at runWithTimeout (file:///home/boss/Projects/livai/core-contracts/node_modules/.pnpm/@vitest+runner@4.0.15/node_modules/@vitest/runner/dist/index.js:1206:10)
+    at file:///home/boss/Projects/livai/core-contracts/node_modules/.pnpm/@vitest+runner@4.0.15/node_modules/@vitest/runner/dist/index.js:1650:37
+    at Traces.$ (file:///home/boss/Projects/livai/core-contracts/node_modules/.pnpm/vitest@4.0.15_@types+node@24.10.4/node_modules/vitest/dist/chunks/traces.U4xDYhzZ.js:115:27)
+    at trace (file:///home/boss/Projects/livai/core-contracts/node_modules/.pnpm/vitest@4.0.15_@types+node@24.10.4/node_modules/vitest/dist/chunks/test.BT8LKgU9.js:239:21)
+    at runTest (file:///home/boss/Projects/livai/core-contracts/node_modules/.pnpm/@vitest+runner@4.0.15/node_modules/@vitest/runner/dist/index.js:1650:12)",
+}
+`;
+
+exports[`Error Serialization - Golden ABI Tests > Log Serialization (toLogErrorFormat) > should have stable log format - with stack 1`] = `
+{
+  "error": {
+    "category": "infrastructure",
+    "code": "INFRA_NETWORK_ERROR",
+    "correlationId": "req-789",
+    "message": "Network error",
+    "origin": "infrastructure",
+    "severity": "high",
+    "timestamp": "2025-01-01T12:00:00.000Z",
+  },
+  "hasCause": true,
+  "stack": "Error: Original error
+    at /home/boss/Projects/livai/core-contracts/tests/unit/errors/serialization/error-serialization.test.ts:146:24
+    at file:///home/boss/Projects/livai/core-contracts/node_modules/.pnpm/@vitest+runner@4.0.15/node_modules/@vitest/runner/dist/index.js:145:11
+    at file:///home/boss/Projects/livai/core-contracts/node_modules/.pnpm/@vitest+runner@4.0.15/node_modules/@vitest/runner/dist/index.js:915:26
+    at file:///home/boss/Projects/livai/core-contracts/node_modules/.pnpm/@vitest+runner@4.0.15/node_modules/@vitest/runner/dist/index.js:1240:20
+    at new Promise (<anonymous>)
+    at runWithTimeout (file:///home/boss/Projects/livai/core-contracts/node_modules/.pnpm/@vitest+runner@4.0.15/node_modules/@vitest/runner/dist/index.js:1206:10)
+    at file:///home/boss/Projects/livai/core-contracts/node_modules/.pnpm/@vitest+runner@4.0.15/node_modules/@vitest/runner/dist/index.js:1650:37
+    at Traces.$ (file:///home/boss/Projects/livai/core-contracts/node_modules/.pnpm/vitest@4.0.15_@types+node@24.10.4/node_modules/vitest/dist/chunks/traces.U4xDYhzZ.js:115:27)
+    at trace (file:///home/boss/Projects/livai/core-contracts/node_modules/.pnpm/vitest@4.0.15_@types+node@24.10.4/node_modules/vitest/dist/chunks/test.BT8LKgU9.js:239:21)
+    at runTest (file:///home/boss/Projects/livai/core-contracts/node_modules/.pnpm/@vitest+runner@4.0.15/node_modules/@vitest/runner/dist/index.js:1650:12)",
+}
+`;
+
+exports[`Error Serialization - Golden ABI Tests > Log Serialization (toLogErrorFormat) > should have stable log format - without context and stack options 1`] = `
+{
+  "error": {
+    "category": "business",
+    "code": "DOMAIN_INVALID_STATE",
+    "correlationId": "req-222",
+    "message": "Invalid state",
+    "origin": "domain",
+    "severity": "high",
+    "timestamp": "2025-01-01T12:00:00.000Z",
+  },
+}
+`;
+
+exports[`Error Serialization - Golden ABI Tests > Telemetry Serialization (toTelemetryErrorFormat) > should have stable telemetry format - all categories 1`] = `
+[
+  {
+    "category": "validation",
+    "code": "DOMAIN_RULE_VIOLATION",
+    "correlationId": "req-validation",
+    "counter": "domain_rule_domain_rule_violation_total",
+    "hasCause": false,
+    "histogram": "domain_rule_domain_rule_violation_duration_seconds",
+    "metrics": {
+      "counter": "domain_rule_domain_rule_violation_total",
+      "histogram": "domain_rule_domain_rule_violation_duration_seconds",
+    },
+    "origin": "domain",
+    "severity": "high",
+  },
+  {
+    "category": "business",
+    "code": "DOMAIN_RULE_VIOLATION",
+    "correlationId": "req-undefined",
+    "counter": "domain_rule_domain_rule_violation_total",
+    "hasCause": false,
+    "histogram": "domain_rule_domain_rule_violation_duration_seconds",
+    "metrics": {
+      "counter": "domain_rule_domain_rule_violation_total",
+      "histogram": "domain_rule_domain_rule_violation_duration_seconds",
+    },
+    "origin": "domain",
+    "severity": "high",
+  },
+  {
+    "category": "authorization",
+    "code": "DOMAIN_RULE_VIOLATION",
+    "correlationId": "req-authorization",
+    "counter": "domain_rule_domain_rule_violation_total",
+    "hasCause": false,
+    "histogram": "domain_rule_domain_rule_violation_duration_seconds",
+    "metrics": {
+      "counter": "domain_rule_domain_rule_violation_total",
+      "histogram": "domain_rule_domain_rule_violation_duration_seconds",
+    },
+    "origin": "domain",
+    "severity": "high",
+  },
+  {
+    "category": "business",
+    "code": "DOMAIN_RULE_VIOLATION",
+    "correlationId": "req-undefined",
+    "counter": "domain_rule_domain_rule_violation_total",
+    "hasCause": false,
+    "histogram": "domain_rule_domain_rule_violation_duration_seconds",
+    "metrics": {
+      "counter": "domain_rule_domain_rule_violation_total",
+      "histogram": "domain_rule_domain_rule_violation_duration_seconds",
+    },
+    "origin": "domain",
+    "severity": "high",
+  },
+  {
+    "category": "business",
+    "code": "DOMAIN_RULE_VIOLATION",
+    "correlationId": "req-undefined",
+    "counter": "domain_rule_domain_rule_violation_total",
+    "hasCause": false,
+    "histogram": "domain_rule_domain_rule_violation_duration_seconds",
+    "metrics": {
+      "counter": "domain_rule_domain_rule_violation_total",
+      "histogram": "domain_rule_domain_rule_violation_duration_seconds",
+    },
+    "origin": "domain",
+    "severity": "high",
+  },
+]
+`;
+
+exports[`Error Serialization - Golden ABI Tests > Telemetry Serialization (toTelemetryErrorFormat) > should have stable telemetry format - all origins 1`] = `
+[
+  {
+    "category": "business",
+    "code": "DOMAIN_CONFLICT",
+    "correlationId": "req-domain",
+    "counter": "domain_conflict_domain_conflict_total",
+    "hasCause": false,
+    "histogram": "domain_conflict_domain_conflict_duration_seconds",
+    "metrics": {
+      "counter": "domain_conflict_domain_conflict_total",
+      "histogram": "domain_conflict_domain_conflict_duration_seconds",
+    },
+    "origin": "domain",
+    "severity": "high",
+  },
+  {
+    "category": "business",
+    "code": "DOMAIN_CONFLICT",
+    "correlationId": "req-application",
+    "counter": "domain_conflict_domain_conflict_total",
+    "hasCause": false,
+    "histogram": "domain_conflict_domain_conflict_duration_seconds",
+    "metrics": {
+      "counter": "domain_conflict_domain_conflict_total",
+      "histogram": "domain_conflict_domain_conflict_duration_seconds",
+    },
+    "origin": "application",
+    "severity": "high",
+  },
+  {
+    "category": "business",
+    "code": "DOMAIN_CONFLICT",
+    "correlationId": "req-infrastructure",
+    "counter": "domain_conflict_domain_conflict_total",
+    "hasCause": false,
+    "histogram": "domain_conflict_domain_conflict_duration_seconds",
+    "metrics": {
+      "counter": "domain_conflict_domain_conflict_total",
+      "histogram": "domain_conflict_domain_conflict_duration_seconds",
+    },
+    "origin": "infrastructure",
+    "severity": "high",
+  },
+  {
+    "category": "business",
+    "code": "DOMAIN_CONFLICT",
+    "correlationId": "req-security",
+    "counter": "domain_conflict_domain_conflict_total",
+    "hasCause": false,
+    "histogram": "domain_conflict_domain_conflict_duration_seconds",
+    "metrics": {
+      "counter": "domain_conflict_domain_conflict_total",
+      "histogram": "domain_conflict_domain_conflict_duration_seconds",
+    },
+    "origin": "security",
+    "severity": "high",
+  },
+]
+`;
+
+exports[`Error Serialization - Golden ABI Tests > Telemetry Serialization (toTelemetryErrorFormat) > should have stable telemetry format - all severity levels 1`] = `
+[
+  {
+    "category": "business",
+    "code": "DOMAIN_INVARIANT_BROKEN",
+    "correlationId": "req-critical",
+    "counter": "domain_invariant_domain_invariant_broken_total",
+    "hasCause": false,
+    "histogram": "domain_invariant_domain_invariant_broken_duration_seconds",
+    "metrics": {
+      "counter": "domain_invariant_domain_invariant_broken_total",
+      "histogram": "domain_invariant_domain_invariant_broken_duration_seconds",
+    },
+    "origin": "domain",
+    "severity": "critical",
+  },
+  {
+    "category": "business",
+    "code": "DOMAIN_INVARIANT_BROKEN",
+    "correlationId": "req-high",
+    "counter": "domain_invariant_domain_invariant_broken_total",
+    "hasCause": false,
+    "histogram": "domain_invariant_domain_invariant_broken_duration_seconds",
+    "metrics": {
+      "counter": "domain_invariant_domain_invariant_broken_total",
+      "histogram": "domain_invariant_domain_invariant_broken_duration_seconds",
+    },
+    "origin": "domain",
+    "severity": "high",
+  },
+  {
+    "category": "business",
+    "code": "DOMAIN_INVARIANT_BROKEN",
+    "correlationId": "req-medium",
+    "counter": "domain_invariant_domain_invariant_broken_total",
+    "hasCause": false,
+    "histogram": "domain_invariant_domain_invariant_broken_duration_seconds",
+    "metrics": {
+      "counter": "domain_invariant_domain_invariant_broken_total",
+      "histogram": "domain_invariant_domain_invariant_broken_duration_seconds",
+    },
+    "origin": "domain",
+    "severity": "medium",
+  },
+  {
+    "category": "business",
+    "code": "DOMAIN_INVARIANT_BROKEN",
+    "correlationId": "req-low",
+    "counter": "domain_invariant_domain_invariant_broken_total",
+    "hasCause": false,
+    "histogram": "domain_invariant_domain_invariant_broken_duration_seconds",
+    "metrics": {
+      "counter": "domain_invariant_domain_invariant_broken_total",
+      "histogram": "domain_invariant_domain_invariant_broken_duration_seconds",
+    },
+    "origin": "domain",
+    "severity": "low",
+  },
+]
+`;
+
+exports[`Error Serialization - Golden ABI Tests > Telemetry Serialization (toTelemetryErrorFormat) > should have stable telemetry format - full metadata 1`] = `
+{
+  "category": "business",
+  "code": "APPLICATION_COMMAND_REJECTED",
+  "correlationId": "req-123",
+  "counter": "application_command_application_command_rejected_total",
+  "hasCause": false,
+  "histogram": "application_command_application_command_rejected_duration_seconds",
+  "metrics": {
+    "counter": "application_command_application_command_rejected_total",
+    "histogram": "application_command_application_command_rejected_duration_seconds",
+  },
+  "origin": "security",
+  "severity": "critical",
+  "tenantId": "tenant-456",
+}
+`;
+
+exports[`Error Serialization - Golden ABI Tests > Telemetry Serialization (toTelemetryErrorFormat) > should have stable telemetry format - message intentionally omitted 1`] = `
+{
+  "category": "business",
+  "code": "DOMAIN_ENTITY_NOT_FOUND",
+  "counter": "domain_entity_domain_entity_not_found_total",
+  "hasCause": false,
+  "histogram": "domain_entity_domain_entity_not_found_duration_seconds",
+  "metrics": {
+    "counter": "domain_entity_domain_entity_not_found_total",
+    "histogram": "domain_entity_domain_entity_not_found_duration_seconds",
+  },
+  "origin": "domain",
+  "severity": "high",
+}
+`;
+
+exports[`Error Serialization - Golden ABI Tests > Telemetry Serialization (toTelemetryErrorFormat) > should have stable telemetry format - minimal error 1`] = `
+{
+  "category": "business",
+  "code": "DOMAIN_ENTITY_NOT_FOUND",
+  "counter": "domain_entity_domain_entity_not_found_total",
+  "hasCause": false,
+  "histogram": "domain_entity_domain_entity_not_found_duration_seconds",
+  "metrics": {
+    "counter": "domain_entity_domain_entity_not_found_total",
+    "histogram": "domain_entity_domain_entity_not_found_duration_seconds",
+  },
+  "origin": "domain",
+  "severity": "high",
+}
+`;
+
+exports[`Error Serialization - Golden ABI Tests > Telemetry Serialization (toTelemetryErrorFormat) > should have stable telemetry format - with cause 1`] = `
+{
+  "category": "business",
+  "code": "APPLICATION_QUERY_FAILED",
+  "correlationId": "req-444",
+  "counter": "application_query_application_query_failed_total",
+  "hasCause": true,
+  "histogram": "application_query_application_query_failed_duration_seconds",
+  "metrics": {
+    "counter": "application_query_application_query_failed_total",
+    "histogram": "application_query_application_query_failed_duration_seconds",
+  },
+  "origin": "application",
+  "severity": "medium",
+  "tenantId": "tenant-555",
+}
+`;
+
+exports[`Error Serialization - Golden ABI Tests > Telemetry Serialization (toTelemetryErrorFormat) > should have stable telemetry format - without optional fields 1`] = `
+{
+  "category": "infrastructure",
+  "code": "INFRA_RESOURCE_UNAVAILABLE",
+  "counter": "infrastructure_resource_infra_resource_unavailable_total",
+  "hasCause": false,
+  "histogram": "infrastructure_resource_infra_resource_unavailable_duration_seconds",
+  "metrics": {
+    "counter": "infrastructure_resource_infra_resource_unavailable_total",
+    "histogram": "infrastructure_resource_infra_resource_unavailable_duration_seconds",
+  },
+  "origin": "infrastructure",
+  "severity": "critical",
+}
+`;

@@ -1,1 +1,4 @@
-export const LIVAI_CORE_VERSION = '1.0.0' as const;
+// Core Contracts - Foundation layer
+
+// Error System - единая точка входа для всей системы ошибок
+export * from './errors/index.js'

@@ -4,6 +4,15 @@
   "description": "LivAiBot Monorepo ESLint Configuration",
   "type": "module",
   "private": true,
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/livai/livai.git"
+  },
+  "homepage": "https://github.com/livai/livai#readme",
+  "bugs": {
+    "url": "https://github.com/livai/livai/issues"
+  },
+  "author": "LivAI",
   "prettier": "./config/prettier/prettier.config.js",
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [
@@ -15,23 +24,32 @@
     ]
   },
   "scripts": {
-    "lint": "cross-env ESLINT_MODE=dev eslint . --ext .ts,.tsx,.js,.jsx --config eslint.config.mjs --max-warnings 50",
-    "lint:dev": "cross-env ESLINT_MODE=dev eslint . --ext .ts,.tsx,.js,.jsx --config eslint.config.mjs --max-warnings 50",
-    "lint:canary": "cross-env ESLINT_MODE=canary eslint . --ext .ts,.tsx,.js,.jsx --config eslint.config.mjs --max-warnings 0",
-    "lint:fix": "cross-env ESLINT_MODE=dev eslint . --ext .ts,.tsx,.js,.jsx --config eslint.config.mjs --fix",
-    "lint:package": "cross-env ESLINT_MODE=dev eslint packages/$PACKAGE_NAME --ext .ts,.tsx,.js,.jsx --config eslint.config.mjs --max-warnings 10",
-    "lint:test": "cd config/eslint && node test/run-all-tests.js",
+    "build": "turbo build",
+    "build:types": "turbo type-check",
+    "clean": "turbo clean",
+    "dev": "turbo dev",
+    "lint": "turbo lint",
+    "lint:fix": "turbo lint:fix",
+    "test": "turbo test",
+    "test:ci": "turbo test:ci",
+    "type-check": "turbo type-check",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "prepare": "husky",
     "architecture:validate": "echo 'Architecture validation not implemented yet'",
     "verify:infra": "echo 'Infrastructure verification not implemented yet'"
   },
+  "volta": {
+    "node": "24.12.0"
+  },
+  "packageManager": "pnpm@10.26.0",
   "devDependencies": {
-    "@effect/eslint-plugin": "^0.3.2",
+    "@effect/eslint-plugin": "0.3.2",
     "@next/eslint-plugin-next": "^16.0.10",
-    "@typescript-eslint/eslint-plugin": "^8.49.0",
-    "@typescript-eslint/parser": "^8.49.0",
+    "@types/node": "^25.0.3",
+    "@types/react": "^19.2.7",
+    "@typescript-eslint/eslint-plugin": "^8.50.0",
+    "@typescript-eslint/parser": "^8.50.0",
     "cross-env": "^10.1.0",
     "eslint": "^9.39.2",
     "eslint-config-prettier": "^10.1.8",
@@ -50,13 +68,15 @@
     "eslint-plugin-security": "^3.0.1",
     "eslint-plugin-security-node": "^1.1.4",
     "eslint-plugin-sonarjs": "^3.0.5",
-    "eslint-plugin-testing-library": "^7.13.6",
+    "eslint-plugin-testing-library": "^7.15.1",
     "eslint-plugin-tsdoc": "^0.5.0",
     "fast-glob": "^3.3.3",
     "globals": "^16.5.0",
     "husky": "^9.1.7",
     "lint-staged": "^16.2.7",
     "prettier": "^3.7.4",
+    "turbo": "^2.6.3",
+    "type-fest": "^5.3.1",
     "typescript": "^5.9.3"
   }
 }

@@ -548,10 +548,10 @@
 │       ├── dto/                    # 🔹 API DTO (внешний контракт)
 │       ├── mappers/                # 🔹 API ↔ Application мапперы
 │       └── middleware/             # 🔹 HTTP/GraphQL middleware (auth, tenant, validation)
-├── core-contracts/                 # FP-Core контракты (Effect-TS основа)
+├── core-contracts/                 # FP-Core контракты (IO типы + FP инфраструктура)
 ├── packages/
 │   ├── fp/                         # ✅ ЕДИНЫЙ FP-слой (shared + pure functions)
-│   │   ├── core/                   # Расширение core-contracts/effect
+│   │   ├── core/                   # Расширение core-contracts/io + fp
 │   │   ├── ai-effects/             # AI-специфичные эффекты
 │   │   ├── immutable-models/       # Иммутабельные модели данных
 │   │   ├── pure-functions/         # Чистые функции

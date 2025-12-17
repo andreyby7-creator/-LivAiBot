@@ -10,19 +10,19 @@ export default defineConfig({
       },
     },
     setupFiles: ['../config/vitest/test.setup.ts', './vitest.setup.ts'],
-    include: ['src/**/*.{test,spec}.ts', 'test/**/*.{test,spec}.ts'],
+    include: ['src/**/*.{test,spec}.ts', 'tests/**/*.{test,spec}.ts'],
     exclude: ['dist/**', 'node_modules/**'],
     testTimeout: 10000,
     coverage: {
       enabled: true, // Explicitly enable coverage for consistent behavior in CI/local
       provider: 'v8',
-      reporter: ['text', 'json', 'html'],
+      reporter: ['text', 'json'], // Removed 'html' to avoid linting issues with generated files
       reportsDirectory: './coverage',
       include: ['src/**/*.ts'],
       exclude: [
         'src/**/*.test.ts',
         'src/**/*.spec.ts',
-        'test/**/*',
+        'tests/**/*',
         'src/**/index.ts',
         'src/**/types.ts',
         'src/**/interfaces/**/*.ts',

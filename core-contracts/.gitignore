@@ -13,9 +13,7 @@ packages/fp/**/*.js
 packages/fp/**/*.d.ts
 !packages/fp/**/index.d.ts
 
-# Cache directories
-.cache/
-.turbo/
+# Cache directories (managed globally)
 .nx/cache/
 
 # Test coverage
