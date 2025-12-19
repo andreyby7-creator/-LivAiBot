@@ -277,7 +277,7 @@ errors/
 - **🛠️ Стек**: TypeScript
 Обязательно русские: @file и компактные jsdoc
 
-**ErrorMetadata.ts**
+**ErrorMetadata.ts** ✅ **ГОТОВ К ПРОДАКШЕНУ**
 - **Содержимое**: Enterprise-grade система метаданных LivAiBot с deterministic генерацией, chain-aware merging, typed contexts и tracing support. `CorrelationId`, `context`, `timestamp`, `MetadataClock` interface для DI, `mergeMetadata()` helper, typed contexts (UserContext, BotContext, IntegrationContext, AIProcessingContext, AdminContext), `TracingMetadata` для distributed debugging, validation helpers. Полностью тестируемая и production-ready.
 - **Зависимости**: нет (но использует Effect Context для clock DI)
 - **Используется в**: BaseError.ts, ErrorBuilders.ts, ErrorTransformers.ts, ErrorSanitizers.ts
@@ -286,10 +286,11 @@ errors/
 - **🔧 Typed contexts**: Специфичные типы контекстов для каждого домена LivAiBot (пользователи, боты, интеграции, AI, админ)
 - **🔧 Tracing support**: `TracingMetadata` для distributed debugging в сложной экосистеме
 - **🔧 Validation**: `validateMetadata()`, `withTracing()` helpers для production safety
-- **🛠️ Стек**: TypeScript + type-fest + Effect
+- **🛠️ Стек**: TypeScript + Effect
+- **⚠️ Архитектурное исключение**: `prefer-readonly-parameter-types: off` для functional-first подхода (immutable паттерны Effect)
 Обязательно русские: @file и компактные jsdoc
 
-**ErrorSanitizers.ts** ✅
+**ErrorSanitizers.ts** ✅ **ГОТОВ К ПРОДАКШЕНУ**
 - **Содержимое**: Security sanitization для предотвращения information disclosure. `sanitizeError()` для удаления sensitive data, `sanitizeStackTrace()` для фильтрации internal paths, `sanitizeContext()` для очистки sensitive context fields. Configurable sanitization levels (strict/production/dev).
 - **Зависимости**: BaseErrorTypes.ts, ErrorMetadata.ts
 - **Используется в**: BaseError.ts (toJSON method), ErrorTransformers.ts (serialization), external consumers
