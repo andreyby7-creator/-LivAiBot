@@ -231,27 +231,28 @@ errors/
 - **Минимизировать поверхность API**: Экспортировать только необходимые типы и функции
 - **Обеспечить immutable by default**: Все структуры должны быть иммутабельными из коробки
 
-**BaseErrorTypes.ts** ✅
+**BaseErrorTypes.ts** ✅ **ГОТОВ К ПРОДАКШЕНУ**
 - **Содержимое**: Полная система базовых типов ошибок для LivAiBot платформы. `OptionalCause<E>`, `SafeCause<E>`, `ErrorTag<C>`, `TaggedError<T, Tag>`, `ErrorMatcher<E, R>`, `ExhaustiveMatcher<E, A>`, `PatternMap<E, A>`, `ErrorChain<E>`, `AggregatedError<E>`. Специализированные типы: `IntegrationError<T>`, `AIProcessingError`, `UserContextError`, `AdminOperationError`, `MobilePlatformError`. Type guards: `isTaggedError`, `isIntegrationError`, etc. Hierarchical pattern matching для performance.
 - **Зависимости**: нет
 - **Используется в**: ErrorBuilders.ts, ErrorUtilsCore.ts, ErrorTransformers.ts, ErrorValidators.ts, ErrorStrategies.ts
 - **🔧 Hierarchical pattern matching**: `matchByCategory()` вместо 100+ individual cases - massive performance improvement
 - **🔧 Полная система pattern matching**: ExhaustiveMatcher для гарантии покрытия всех кейсов, IntegrationError для внешних API, AIProcessingError для ML операций, context-aware типы для разных ролей пользователей
-- **🔧 Точечное отключение ESLint**: `fp/no-throw` отключено для `matchByCategory()` - используется `throw` для compile-time safety при pattern matching
+- **🔧 Точечное отключение ESLint**: `fp/no-throw` отключено для `matchByCategory()` в `BaseErrorTypes.ts` - используется `throw` для compile-time safety при pattern matching
 - **Экспортирует**: OptionalCause<E>, SafeCause<E>, ErrorTag<C>, TaggedError<T, Tag>, ErrorMatcher<E, R>, ExhaustiveMatcher<E, A>, PatternMap<E, A>, ErrorChain<E>, AggregatedError<E>, IntegrationError<T>, AIProcessingError, UserContextError, AdminOperationError, MobilePlatformError, isTaggedError, isIntegrationError, isAIProcessingError, isUserContextError, isAdminOperationError, isMobilePlatformError, matchByCategory
 - **🛠️ Стек**: TypeScript
 Обязательно русские: @file и компактные jsdoc
 
-**ErrorCode.ts**
+**ErrorCode.ts** ✅ **ГОТОВ К ПРОДАКШЕНУ**
 - **Содержимое**: Полная иерархия кодов ошибок LivAiBot с семантическими префиксами. Структура: `PREFIX_CATEGORY_INCREMENT` (DOMAIN_AUTH_001). Группы: Domain (бизнес-логика), Infra (инфраструктура), Service (сервисы), Admin (админ-панель). Подгруппы: AUTH, USER, SUBSCRIPTION, BOT, INTEGRATION, TOKEN, DB, CACHE, NETWORK, EXTERNAL, AI, BILLING, MOBILE, TENANT, FEATURE, FINANCE, AUDIT. ABI-safe с validation helpers.
 - **Зависимости**: нет
 - **Используется в**: BaseError.ts, ErrorCodeMeta.ts, ErrorCodeMetaData.ts, ErrorValidators.ts, ErrorStrategies.ts
 - **🔧 Расширенная иерархия**: `DOMAIN_SUBSCRIPTION_001`, `DOMAIN_INTEGRATION_001`, `DOMAIN_BOT_001`, `ADMIN_USER_001`, `MOBILE_*` с полным покрытием LivAiBot доменов
 - **🔧 Validation helpers**: `validateErrorCodeUniqueness()`, `createErrorCode<T>()`, `ServiceErrorCodeMapping` для type-safe валидации
+- **🔧 Точечное отключение ESLint**: `fp/no-throw` отключено для `ErrorCode.ts` - используется `throw` для compile-time safety в error system
 - **🛠️ Стек**: TypeScript
 Обязательно русские: @file и компактные jsdoc
 
-**ErrorConstants.ts**
+**ErrorConstants.ts** ✅ **ГОТОВ К ПРОДАКШЕНУ**
 - **Содержимое**: Полная система констант ошибок LivAiBot с расширенной классификацией. `Severity` (Critical/Fatal, Error, Warning, Info), `Category` (Business, Technical, Security, Performance), `Origin` (Domain, Infrastructure, Service, External, Admin). Дополнительно: `Impact` (User, System, Data), `Scope` (Request, Session, Global), `Layer` (Presentation, Application, Domain, Infrastructure), `Priority` (Low, Medium, High, Critical), `RetryPolicy` (None, Immediate, ExponentialBackoff, Scheduled). Immutable, чисто declarative.
 - **Зависимости**: нет
 - **Используется в**: BaseError.ts, ErrorCodeMeta.ts, ErrorValidators.ts, ErrorStrategies.ts
@@ -259,10 +260,11 @@ errors/
 - **🛠️ Стек**: TypeScript
 Обязательно русские: @file и компактные jsdoc
 
-**ErrorCodeMeta.ts**
+**ErrorCodeMeta.ts** ✅ **ГОТОВ К ПРОДАКШЕНУ**
 - **Содержимое**: Типы метаданных для кодов ошибок (`description`, `severity`, `category`); добавить `defaultSeverity` и `defaultOrigin` для упрощения фабрик. Без runtime зависимостей.
 - **Зависимости**: ErrorCode.ts, ErrorConstants.ts
 - **Используется в**: ErrorCodeMetaData.ts, BaseError.ts
+- **🔧 Точечное отключение ESLint**: `fp/no-throw` отключено для файлов `*ErrorCode*.ts` - используется `throw` для compile-time safety в error system
 - **🛠️ Стек**: TypeScript
 Обязательно русские: @file и компактные jsdoc
 
