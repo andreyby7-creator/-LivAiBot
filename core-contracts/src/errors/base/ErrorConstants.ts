@@ -1,151 +1,292 @@
 /**
- * @file ErrorConstants — стабильные константы для error handling
+ * @file ErrorConstants.ts - Полная система констант ошибок LivAiBot с расширенной классификацией
  *
- * ✅ FP-совместимо: immutable константы
- * ✅ Type-safe: typed constants вместо магических строк
- * ✅ Extensible: новые значения добавляются без изменения существующих
- * ✅ Runtime mutation возможна, но discouraged (developer discipline required)
- * ✅ Используется в ErrorMetadata, ErrorShape, UI mapping, logging
- *
- * ❗ ВАЖНО: Это НЕ TypeScript enums, а frozen constant objects
- * - Используем Object.freeze() + as const для runtime immutability
- * - TypeScript enums имеют проблемы с tree-shaking и ABI стабильностью
- * - Frozen objects лучше для FP подхода (нет reverse mapping, чище типы)
- * - Не пытайтесь "оптимизировать" это в enum - это архитектурное решение
+ * Immutable, чисто declarative константы для классификации ошибок:
+ * - Severity: уровни критичности ошибок
+ * - Category: категории ошибок по типу
+ * - Origin: источник возникновения ошибки
+ * - Impact: влияние на систему/пользователя
+ * - Scope: область действия ошибки
+ * - Layer: слой архитектуры где произошла ошибка
+ * - Priority: приоритет обработки ошибки
+ * - RetryPolicy: политика повторных попыток
  */
 
-import type { ReadonlyDeep } from "type-fest"
-
-/* -------------------------------------------------------------------------------------------------
- * 🔹 Error Severity Constants (Уровни серьезности ошибок)
- * ------------------------------------------------------------------------------------------------- */
+// ==================== SEVERITY CONSTANTS ====================
 
 /**
- * Стабильные константы уровней серьезности ошибок
- *
- * ⚠️ Enum-like frozen constants object, NOT TypeScript enum
- * - Использует Object.freeze() + as const для immutability
- * - Не имеет reverse mapping (как в enum)
- * - Лучше для tree-shaking и ABI стабильности
- *
- * Используются для:
- * - Логирования (debug/info/warn/error/fatal)
- * - Мониторинга и алертинга
- * - UI индикации серьезности
- * - Приоритизации обработки
+ * Уровни критичности ошибок
+ * Определяет влияние ошибки на работу системы
  */
-export const ERROR_SEVERITY: ReadonlyDeep<Record<string, string>> = Object.freeze({
-  /** Отладочная информация (не показывать пользователям) */
-  LOW: "low",
+export const ERROR_SEVERITY = {
+  CRITICAL: "CRITICAL" as const,
+  FATAL: "FATAL" as const,
+  ERROR: "ERROR" as const,
+  WARNING: "WARNING" as const,
+  INFO: "INFO" as const,
+} as const;
 
-  /** Информационное сообщение (показывать в логах) */
-  MEDIUM: "medium",
+export type ErrorSeverity = typeof ERROR_SEVERITY[keyof typeof ERROR_SEVERITY];
 
-  /** Предупреждение (показывать пользователям, но не блокировать) */
-  HIGH: "high",
-
-  /** Критическая ошибка (блокировать операцию, алерт) */
-  CRITICAL: "critical",
-} as const)
+// ==================== CATEGORY CONSTANTS ====================
 
 /**
- * Union type всех допустимых уровней серьезности
+ * Категории ошибок по типу проблемы
+ * Классифицирует ошибки по их природе
  */
-export type ErrorSeverity = typeof ERROR_SEVERITY[keyof typeof ERROR_SEVERITY]
+export const ERROR_CATEGORY = {
+  BUSINESS: "BUSINESS" as const,
+  TECHNICAL: "TECHNICAL" as const,
+  SECURITY: "SECURITY" as const,
+  PERFORMANCE: "PERFORMANCE" as const,
+} as const;
+
+export type ErrorCategory = typeof ERROR_CATEGORY[keyof typeof ERROR_CATEGORY];
+
+// ==================== ORIGIN CONSTANTS ====================
 
 /**
- * Type guard для проверки корректности ErrorSeverity
+ * Источник возникновения ошибки
+ * Определяет компонент системы где произошла ошибка
  */
-export const isErrorSeverity = (value: unknown): value is ErrorSeverity =>
-  typeof value === "string" &&
-  (Object.values(ERROR_SEVERITY) as ReadonlyArray<string>).includes(value)
+export const ERROR_ORIGIN = {
+  DOMAIN: "DOMAIN" as const,
+  INFRASTRUCTURE: "INFRASTRUCTURE" as const,
+  SERVICE: "SERVICE" as const,
+  EXTERNAL: "EXTERNAL" as const,
+  ADMIN: "ADMIN" as const,
+} as const;
 
-/* -------------------------------------------------------------------------------------------------
- * 🔹 Error Category Constants (Категории ошибок)
- * ------------------------------------------------------------------------------------------------- */
+export type ErrorOrigin = typeof ERROR_ORIGIN[keyof typeof ERROR_ORIGIN];
+
+// ==================== IMPACT CONSTANTS ====================
 
 /**
- * Стабильные константы категорий ошибок
- *
- * ⚠️ Enum-like frozen constants object, NOT TypeScript enum
- * - Использует Object.freeze() + as const для immutability
- * - Не имеет reverse mapping (как в enum)
- * - Лучше для tree-shaking и ABI стабильности
- *
- * Используются для:
- * - UI mapping (цвета, иконки, стили)
- * - Группировки в логах и мониторинге
- * - Определения стратегии обработки
- * - Локализации сообщений
+ * Влияние ошибки на систему и пользователей
+ * Определяет масштаб последствий ошибки
  */
-export const ERROR_CATEGORY: ReadonlyDeep<Record<string, string>> = Object.freeze({
-  /** Ошибки валидации входных данных */
-  VALIDATION: "validation",
+export const ERROR_IMPACT = {
+  USER: "USER" as const,
+  SYSTEM: "SYSTEM" as const,
+  DATA: "DATA" as const,
+} as const;
 
-  /** Ошибки авторизации и доступа */
-  AUTHORIZATION: "authorization",
+export type ErrorImpact = typeof ERROR_IMPACT[keyof typeof ERROR_IMPACT];
 
-  /** Бизнес-логика нарушения (domain rules) */
-  BUSINESS: "business",
-
-  /** Инфраструктурные ошибки (IO, network, DB) */
-  INFRASTRUCTURE: "infrastructure",
-
-  /** Неизвестные/неопределенные ошибки */
-  UNKNOWN: "unknown",
-} as const)
+// ==================== SCOPE CONSTANTS ====================
 
 /**
- * Union type всех допустимых категорий ошибок
+ * Область действия ошибки
+ * Определяет охват проблемы
  */
-export type ErrorCategory = typeof ERROR_CATEGORY[keyof typeof ERROR_CATEGORY]
+export const ERROR_SCOPE = {
+  REQUEST: "REQUEST" as const,
+  SESSION: "SESSION" as const,
+  GLOBAL: "GLOBAL" as const,
+} as const;
+
+export type ErrorScope = typeof ERROR_SCOPE[keyof typeof ERROR_SCOPE];
+
+// ==================== LAYER CONSTANTS ====================
 
 /**
- * Type guard для проверки корректности ErrorCategory
+ * Слой архитектуры где произошла ошибка
+ * Clean Architecture / Hexagonal Architecture слои
  */
-export const isErrorCategory = (value: unknown): value is ErrorCategory =>
-  typeof value === "string" &&
-  (Object.values(ERROR_CATEGORY) as ReadonlyArray<string>).includes(value)
+export const ERROR_LAYER = {
+  PRESENTATION: "PRESENTATION" as const,
+  APPLICATION: "APPLICATION" as const,
+  DOMAIN: "DOMAIN" as const,
+  INFRASTRUCTURE: "INFRASTRUCTURE" as const,
+} as const;
 
-/* -------------------------------------------------------------------------------------------------
- * 🔹 Error Origin Constants (Происхождение ошибок)
- * ------------------------------------------------------------------------------------------------- */
+export type ErrorLayer = typeof ERROR_LAYER[keyof typeof ERROR_LAYER];
+
+// ==================== PRIORITY CONSTANTS ====================
 
 /**
- * Стабильные константы происхождения ошибок
- *
- * ⚠️ Enum-like frozen constants object, NOT TypeScript enum
- * - Использует Object.freeze() + as const для immutability
- * - Не имеет reverse mapping (как в enum)
- * - Лучше для tree-shaking и ABI стабильности
- *
- * Используются для:
- * - Трассировки источника ошибки
- * - Определения стратегии обработки
- * - Мониторинга по слоям приложения
+ * Приоритет обработки ошибки
+ * Определяет срочность реакции на ошибку
  */
-export const ERROR_ORIGIN: ReadonlyDeep<Record<string, string>> = Object.freeze({
-  /** Domain слой (чистый бизнес) */
-  DOMAIN: "domain",
+export const ERROR_PRIORITY = {
+  LOW: "LOW" as const,
+  MEDIUM: "MEDIUM" as const,
+  HIGH: "HIGH" as const,
+  CRITICAL: "CRITICAL" as const,
+} as const;
 
-  /** Application слой (оркестрация use-case) */
-  APPLICATION: "application",
+export type ErrorPriority = typeof ERROR_PRIORITY[keyof typeof ERROR_PRIORITY];
 
-  /** Infrastructure слой (IO, network, DB) */
-  INFRASTRUCTURE: "infrastructure",
-
-  /** Security слой (auth, permissions) */
-  SECURITY: "security",
-} as const)
+// ==================== RETRY POLICY CONSTANTS ====================
 
 /**
- * Union type всех допустимых происхождений ошибок
+ * Политика повторных попыток
+ * Определяет стратегию повторения неудачных операций
  */
-export type ErrorOrigin = typeof ERROR_ORIGIN[keyof typeof ERROR_ORIGIN]
+export const ERROR_RETRY_POLICY = {
+  NONE: "NONE" as const,
+  IMMEDIATE: "IMMEDIATE" as const,
+  EXPONENTIAL_BACKOFF: "EXPONENTIAL_BACKOFF" as const,
+  SCHEDULED: "SCHEDULED" as const,
+} as const;
+
+export type ErrorRetryPolicy = typeof ERROR_RETRY_POLICY[keyof typeof ERROR_RETRY_POLICY];
+
+// ==================== COMBINED ERROR CLASSIFICATION ====================
 
 /**
- * Type guard для проверки корректности ErrorOrigin
+ * Полная классификация ошибки
+ * Комбинирует все аспекты для комплексного описания ошибки
  */
-export const isErrorOrigin = (value: unknown): value is ErrorOrigin =>
-  typeof value === "string" &&
-  (Object.values(ERROR_ORIGIN) as ReadonlyArray<string>).includes(value)
+export type ErrorClassification = {
+  readonly severity: ErrorSeverity;
+  readonly category: ErrorCategory;
+  readonly origin: ErrorOrigin;
+  readonly impact: ErrorImpact;
+  readonly scope: ErrorScope;
+  readonly layer: ErrorLayer;
+  readonly priority: ErrorPriority;
+  readonly retryPolicy: ErrorRetryPolicy;
+};
+
+// ==================== PREDEFINED CLASSIFICATIONS ====================
+
+/**
+ * Предопределенные классификации для распространенных типов ошибок
+ * Immutable константы для быстрого использования
+ */
+export const ERROR_CLASSIFICATIONS = {
+  SYSTEM_CRASH: {
+    severity: ERROR_SEVERITY.CRITICAL,
+    category: ERROR_CATEGORY.TECHNICAL,
+    origin: ERROR_ORIGIN.INFRASTRUCTURE,
+    impact: ERROR_IMPACT.SYSTEM,
+    scope: ERROR_SCOPE.GLOBAL,
+    layer: ERROR_LAYER.INFRASTRUCTURE,
+    priority: ERROR_PRIORITY.CRITICAL,
+    retryPolicy: ERROR_RETRY_POLICY.NONE,
+  } as const,
+
+  DATABASE_CONNECTION_LOST: {
+    severity: ERROR_SEVERITY.ERROR,
+    category: ERROR_CATEGORY.TECHNICAL,
+    origin: ERROR_ORIGIN.INFRASTRUCTURE,
+    impact: ERROR_IMPACT.SYSTEM,
+    scope: ERROR_SCOPE.GLOBAL,
+    layer: ERROR_LAYER.INFRASTRUCTURE,
+    priority: ERROR_PRIORITY.HIGH,
+    retryPolicy: ERROR_RETRY_POLICY.EXPONENTIAL_BACKOFF,
+  } as const,
+
+  AUTH_INVALID_CREDENTIALS: {
+    severity: ERROR_SEVERITY.WARNING,
+    category: ERROR_CATEGORY.SECURITY,
+    origin: ERROR_ORIGIN.DOMAIN,
+    impact: ERROR_IMPACT.USER,
+    scope: ERROR_SCOPE.REQUEST,
+    layer: ERROR_LAYER.DOMAIN,
+    priority: ERROR_PRIORITY.MEDIUM,
+    retryPolicy: ERROR_RETRY_POLICY.NONE,
+  } as const,
+
+  EXTERNAL_API_TIMEOUT: {
+    severity: ERROR_SEVERITY.ERROR,
+    category: ERROR_CATEGORY.TECHNICAL,
+    origin: ERROR_ORIGIN.EXTERNAL,
+    impact: ERROR_IMPACT.USER,
+    scope: ERROR_SCOPE.REQUEST,
+    layer: ERROR_LAYER.INFRASTRUCTURE,
+    priority: ERROR_PRIORITY.MEDIUM,
+    retryPolicy: ERROR_RETRY_POLICY.EXPONENTIAL_BACKOFF,
+  } as const,
+
+  // Ошибки бизнес-логики
+  BUSINESS_RULE_VIOLATION: {
+    severity: ERROR_SEVERITY.WARNING,
+    category: ERROR_CATEGORY.BUSINESS,
+    origin: ERROR_ORIGIN.DOMAIN,
+    impact: ERROR_IMPACT.USER,
+    scope: ERROR_SCOPE.REQUEST,
+    layer: ERROR_LAYER.DOMAIN,
+    priority: ERROR_PRIORITY.LOW,
+    retryPolicy: ERROR_RETRY_POLICY.NONE,
+  } as const,
+
+  PERFORMANCE_DEGRADATION: {
+    severity: ERROR_SEVERITY.WARNING,
+    category: ERROR_CATEGORY.PERFORMANCE,
+    origin: ERROR_ORIGIN.INFRASTRUCTURE,
+    impact: ERROR_IMPACT.SYSTEM,
+    scope: ERROR_SCOPE.GLOBAL,
+    layer: ERROR_LAYER.INFRASTRUCTURE,
+    priority: ERROR_PRIORITY.MEDIUM,
+    retryPolicy: ERROR_RETRY_POLICY.SCHEDULED,
+  } as const,
+} as const;
+
+// ==================== UTILITY FUNCTIONS ====================
+
+/**
+ * Создание пользовательской классификации ошибки
+ * @param classification - параметры классификации
+ * @returns полная классификация ошибки
+ */
+export function createErrorClassification(
+  classification: Partial<ErrorClassification>,
+): ErrorClassification {
+  // Значения по умолчанию для обязательных полей
+  const defaults: ErrorClassification = {
+    severity: ERROR_SEVERITY.ERROR,
+    category: ERROR_CATEGORY.TECHNICAL,
+    origin: ERROR_ORIGIN.INFRASTRUCTURE,
+    impact: ERROR_IMPACT.USER,
+    scope: ERROR_SCOPE.REQUEST,
+    layer: ERROR_LAYER.APPLICATION,
+    priority: ERROR_PRIORITY.MEDIUM,
+    retryPolicy: ERROR_RETRY_POLICY.NONE,
+  };
+
+  return { ...defaults, ...classification };
+}
+
+/**
+ * Проверка совместимости классификаций
+ * @param classification1 - первая классификация
+ * @param classification2 - вторая классификация
+ * @returns true если классификации совместимы
+ */
+export function areClassificationsCompatible(
+  classification1: ErrorClassification,
+  classification2: ErrorClassification,
+): boolean {
+  // Критические ошибки не совместимы с низким приоритетом
+  if (
+    classification1.severity === ERROR_SEVERITY.CRITICAL
+    && classification2.priority === ERROR_PRIORITY.LOW
+  ) {
+    return false;
+  }
+
+  // Глобальные ошибки требуют высокого приоритета
+  if (
+    classification1.scope === ERROR_SCOPE.GLOBAL
+    && classification2.priority === ERROR_PRIORITY.LOW
+  ) {
+    return false;
+  }
+
+  return true;
+}
+
+// ==================== CONSTANTS VALIDATION ====================
+
+// Валидация что все константы определены
+Object.freeze(ERROR_SEVERITY);
+Object.freeze(ERROR_CATEGORY);
+Object.freeze(ERROR_ORIGIN);
+Object.freeze(ERROR_IMPACT);
+Object.freeze(ERROR_SCOPE);
+Object.freeze(ERROR_LAYER);
+Object.freeze(ERROR_PRIORITY);
+Object.freeze(ERROR_RETRY_POLICY);
+Object.freeze(ERROR_CLASSIFICATIONS);
