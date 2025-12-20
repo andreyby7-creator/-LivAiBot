@@ -13,14 +13,10 @@
     "url": "https://github.com/livai/livai/issues"
   },
   "author": "LivAI",
-  "prettier": "./config/prettier/prettier.config.js",
   "lint-staged": {
-    "*.{js,jsx,ts,tsx}": [
+    "*.{js,jsx,ts,tsx,json,md,yml,yaml}": [
       "eslint --fix",
-      "prettier --write"
-    ],
-    "*.{json,yml,yaml}": [
-      "prettier --write"
+      "dprint fmt"
     ]
   },
   "scripts": {
@@ -33,8 +29,8 @@
     "test": "turbo test",
     "test:ci": "turbo test:ci",
     "type-check": "turbo type-check",
-    "format": "prettier --write .",
-    "format:check": "prettier --check .",
+    "format": "dprint fmt",
+    "format:check": "dprint check",
     "prepare": "husky",
     "architecture:validate": "echo 'Architecture validation not implemented yet'",
     "verify:infra": "echo 'Infrastructure verification not implemented yet'"
@@ -51,8 +47,11 @@
     "@typescript-eslint/eslint-plugin": "^8.50.0",
     "@typescript-eslint/parser": "^8.50.0",
     "cross-env": "^10.1.0",
+    "dprint": "^0.50.2",
     "eslint": "^9.39.2",
     "eslint-config-prettier": "^10.1.8",
+    "eslint-formatter-compact": "^9.0.1",
+    "eslint-import-resolver-typescript": "^4.4.4",
     "eslint-plugin-boundaries": "^5.3.1",
     "eslint-plugin-fp": "^2.3.0",
     "eslint-plugin-functional": "9.0.2",
@@ -78,5 +77,10 @@
     "turbo": "^2.6.3",
     "type-fest": "^5.3.1",
     "typescript": "^5.9.3"
+  },
+  "overrides": {
+    "@effect/rpc": "$@effect/rpc",
+    "@effect/rpc-http": "$@effect/rpc-http",
+    "@effect/vitest": "$@effect/vitest"
   }
 }

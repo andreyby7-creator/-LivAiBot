@@ -35,7 +35,7 @@ const AI_PROVIDERS: AIProviderConfig[] = [
 
 /** Мапа тарифов для быстрого доступа (генерируется из AI_PROVIDERS) */
 const AI_PROVIDER_RATES: Partial<Record<string, number>> = Object.fromEntries(
-  AI_PROVIDERS.map(p => [p.name, p.rate])
+  AI_PROVIDERS.map((p) => [p.name, p.rate]),
 );
 
 /** Таймаут для AI вызовов по умолчанию */
@@ -69,7 +69,7 @@ function getAICountersReport() {
 
 /** Проверка доступности ключа для конкретного провайдера */
 function isProviderKeyAvailable(providerName: string): boolean {
-  const provider = AI_PROVIDERS.find(p => p.name === providerName);
+  const provider = AI_PROVIDERS.find((p) => p.name === providerName);
   if (!provider) return false;
 
   const apiKey = provider.key;
@@ -83,7 +83,7 @@ function isProviderKeyAvailable(providerName: string): boolean {
 function logAICountersSummary() {
   const { calls, cost, averageCostPerCall } = getAICountersReport();
   console.log(
-    `🤖 AI Calls Summary: ${calls} calls, estimated cost $${cost}, avg $${averageCostPerCall}/call`
+    `🤖 AI Calls Summary: ${calls} calls, estimated cost $${cost}, avg $${averageCostPerCall}/call`,
   );
 }
 
@@ -96,11 +96,11 @@ function logCIReport() {
   console.log(`   - Test timeout: 30s (API calls)`);
   console.log(`   - Retry attempts: 3 (for API failures)`);
   console.log(
-    `   - AI API Keys (${available.length}/${available.length + missing.length} provided):`
+    `   - AI API Keys (${available.length}/${available.length + missing.length} provided):`,
   );
 
-  available.forEach(key => console.log(`     ✅ ${key}`));
-  missing.forEach(key => console.log(`     ⚠️  ${key} (missing)`));
+  available.forEach((key) => console.log(`     ✅ ${key}`));
+  missing.forEach((key) => console.log(`     ⚠️  ${key} (missing)`));
 
   if (!hasRequired) {
     console.warn(`⚠️  No required AI API keys found!`);
@@ -116,7 +116,7 @@ async function callAI<T>(
   provider: string,
   tokens: number,
   fn: () => Promise<T>,
-  timeoutMs: number = DEFAULT_AI_TIMEOUT
+  timeoutMs: number = DEFAULT_AI_TIMEOUT,
 ): Promise<T> {
   try {
     const result = await withTimeout(fn(), timeoutMs);
@@ -143,7 +143,7 @@ function checkAIKeysAvailability() {
   const available: string[] = [];
   const missing: string[] = [];
 
-  AI_PROVIDERS.forEach(provider => {
+  AI_PROVIDERS.forEach((provider) => {
     if (isProviderKeyAvailable(provider.name)) {
       available.push(provider.name);
     } else {
@@ -151,8 +151,8 @@ function checkAIKeysAvailability() {
     }
   });
 
-  const requiredProviders = AI_PROVIDERS.filter(p => p.required).map(p => p.name);
-  const hasRequired = requiredProviders.every(p => available.includes(p));
+  const requiredProviders = AI_PROVIDERS.filter((p) => p.required).map((p) => p.name);
+  const hasRequired = requiredProviders.every((p) => available.includes(p));
 
   return { available, missing, hasRequired };
 }
@@ -197,7 +197,7 @@ export default defineConfig({
 
     // Env переменные для AI тестов (автоматически из AI_PROVIDERS)
     env: Object.fromEntries(
-      AI_PROVIDERS.map(p => [p.key, process.env[p.key]]).filter(([_, value]) => value) // Только если переменная установлена
+      AI_PROVIDERS.map((p) => [p.key, process.env[p.key]]).filter(([_, value]) => value), // Только если переменная установлена
     ),
   },
 
@@ -226,16 +226,16 @@ export default defineConfig({
 
 // Экспорт для использования в тестах
 export {
-  recordAICall,
-  checkAIKeysAvailability,
-  resetAICounters,
-  getAICountersReport,
-  isProviderKeyAvailable,
-  callAI,
-  withTimeout,
-  logAICountersSummary,
-  logCIReport,
+  AI_PROVIDERS,
   aiCallCount,
   aiCostEstimate,
-  AI_PROVIDERS,
+  callAI,
+  checkAIKeysAvailability,
+  getAICountersReport,
+  isProviderKeyAvailable,
+  logAICountersSummary,
+  logCIReport,
+  recordAICall,
+  resetAICounters,
+  withTimeout,
 };

@@ -38,16 +38,15 @@ const nodeVersion = process.versions.node || '24.0.0';
 const nodeMajorVersion = parseInt((nodeVersion as string).split('.')[0] || '24', 10);
 
 // Fallback target: Node24 → Node22 → Node20 (минимум Node 20)
-const esbuildTarget =
-  nodeMajorVersion >= 24
-    ? 'node24'
-    : nodeMajorVersion >= 22
-      ? 'node22'
-      : nodeMajorVersion >= 20
-        ? 'node20'
-        : (() => {
-            throw new Error(`Node.js ${nodeVersion} не поддерживается. Требуется Node.js 20+`);
-          })();
+const esbuildTarget = nodeMajorVersion >= 24
+  ? 'node24'
+  : nodeMajorVersion >= 22
+  ? 'node22'
+  : nodeMajorVersion >= 20
+  ? 'node20'
+  : (() => {
+    throw new Error(`Node.js ${nodeVersion} не поддерживается. Требуется Node.js 20+`);
+  })();
 
 // Оптимизация: один вызов buildVitestEnv для логирования и конфигурации
 const env = buildVitestEnv();
@@ -61,7 +60,7 @@ function logVitestConfiguration(
   nodeVersion: string,
   esbuildTarget: string,
   testConfig: typeof TEST_CONFIG,
-  env: Record<string, string>
+  env: Record<string, string>,
 ) {
   // Логируем только в CI или при явном запросе (VITEST_ENV_DEBUG=true)
   if (process.env.CI === 'true' || process.env.VITEST_ENV_DEBUG === 'true') {
@@ -71,7 +70,7 @@ function logVitestConfiguration(
     console.log(`   - Watch mode: ${testConfig.WATCH_MODE ? 'enabled' : 'disabled'}`);
     console.log(`   - Max concurrency: ${testConfig.MAX_CONCURRENCY}`);
     console.log(
-      `   - Threading: ${process.env.CI === 'true' ? 'multi-threaded (CI)' : 'auto (dev)'}`
+      `   - Threading: ${process.env.CI === 'true' ? 'multi-threaded (CI)' : 'auto (dev)'}`,
     );
     console.log(`   - Test isolation: ${testConfig.ISOLATE_TESTS ? 'enabled' : 'disabled'}`);
     console.log(`   - allowOnly: ${testConfig.WATCH_MODE ? 'enabled (dev)' : 'disabled (CI)'}`);
@@ -79,8 +78,9 @@ function logVitestConfiguration(
     // Логируем загруженные env переменные
     console.log(`   - Environment variables (${Object.keys(env).length} total):`);
     Object.entries(env).forEach(([key, value]) => {
-      const displayValue =
-        key.includes('SECRET') || key.includes('KEY') || key.includes('TOKEN') ? '[HIDDEN]' : value;
+      const displayValue = key.includes('SECRET') || key.includes('KEY') || key.includes('TOKEN')
+        ? '[HIDDEN]'
+        : value;
       console.log(`     ${key}: ${displayValue}`);
     });
   }
@@ -94,7 +94,7 @@ function logVitestConfiguration(
  * Создает базовую конфигурацию Vitest для unit-тестов
  * @param overrides - Переопределения для специфических нужд
  */
-function createBaseVitestConfig(overrides: { test?: Record<string, any> } = {}) {
+function createBaseVitestConfig(overrides: { test?: Record<string, any>; } = {}) {
   return defineConfig({
     test: {
       /** Глобальные переменные Vitest (describe, it, expect) */

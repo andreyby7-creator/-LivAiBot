@@ -11,12 +11,12 @@ afterEach(async () => {
 });
 
 // Глобальный safeguard для отлова отложенных reject'ов
-process.on('unhandledRejection', reason => {
+process.on('unhandledRejection', (reason) => {
   if (
-    reason instanceof Error &&
-    (reason.message.includes('timed out') ||
-      reason.message.includes('fail') ||
-      reason.message.includes('Custom timeout'))
+    reason instanceof Error
+    && (reason.message.includes('timed out')
+      || reason.message.includes('fail')
+      || reason.message.includes('Custom timeout'))
   ) {
     // Поглощаем timeout и retry ошибки в тестах
     return;

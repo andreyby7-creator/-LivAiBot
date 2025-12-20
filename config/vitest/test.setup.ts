@@ -15,7 +15,7 @@ import { promises as fs } from 'fs';
 import { tmpdir } from 'os';
 import { join } from 'path';
 
-import { beforeAll, afterAll, beforeEach, afterEach } from 'vitest';
+import { afterAll, afterEach, beforeAll, beforeEach } from 'vitest';
 
 // Расширение глобального типа для тестового состояния
 declare global {
@@ -75,7 +75,7 @@ function saveOriginalProcessListeners(): void {
     'warning',
   ];
 
-  eventsToSave.forEach(event => {
+  eventsToSave.forEach((event) => {
     const listeners = process.listeners(event as NodeJS.Signals);
     if (listeners.length > 0) {
       originalProcessListeners.set(event, [...listeners] as ((...args: readonly any[]) => void)[]);
@@ -94,7 +94,7 @@ function restoreOriginalProcessListeners(): void {
     // Сначала удаляем все текущие listeners
     process.removeAllListeners(event as NodeJS.Signals);
     // Затем восстанавливаем оригинальные
-    listeners.forEach(listener => {
+    listeners.forEach((listener) => {
       process.on(event as NodeJS.Signals, listener);
     });
   });
@@ -160,7 +160,7 @@ async function withTimeoutAndRetries<T>(
   operation: () => Promise<T> | T,
   name: string,
   timeoutMs: number,
-  retries: number
+  retries: number,
 ): Promise<T> {
   for (let attempt = 0; attempt <= retries; attempt++) {
     try {
@@ -178,7 +178,7 @@ async function withTimeoutAndRetries<T>(
       const isLastAttempt = attempt === retries;
       if (isLastAttempt) throw error;
       logDebug(`⚠️  ${name} failed (attempt ${attempt + 1}/${retries + 1}), retrying...`);
-      await new Promise(resolve => setTimeout(resolve, 1000 * (attempt + 1))); // экспоненциальная задержка
+      await new Promise((resolve) => setTimeout(resolve, 1000 * (attempt + 1))); // экспоненциальная задержка
     }
   }
   throw new Error(`All ${retries + 1} attempts failed for ${name}`);
@@ -204,7 +204,7 @@ beforeAll(async () => {
         const retries = service.retries ?? 0;
 
         logDebug(
-          `📦 Initializing ${service.name} service (timeout: ${timeout}ms, retries: ${retries})`
+          `📦 Initializing ${service.name} service (timeout: ${timeout}ms, retries: ${retries})`,
         );
         await withTimeoutAndRetries(service.init, `${service.name} init`, timeout, retries);
       }
@@ -237,7 +237,7 @@ afterAll(async () => {
           service.cleanup,
           `${service.name} cleanup`,
           timeout,
-          0 // cleanup без ретраев
+          0, // cleanup без ретраев
         );
       }
     }
@@ -269,7 +269,7 @@ beforeEach(async () => {
           service.reset,
           `${service.name} reset`,
           timeout,
-          0 // reset без ретраев
+          0, // reset без ретраев
         );
       }
     }
@@ -347,7 +347,7 @@ function resetTestState(): void {
   if (testState) {
     // Сброс счетчиков
     if (testState.counters) {
-      Object.keys(testState.counters).forEach(key => {
+      Object.keys(testState.counters).forEach((key) => {
         testState.counters![key] = 0;
       });
     }
@@ -359,7 +359,7 @@ function resetTestState(): void {
 
     // Сброс таймстампов
     if (testState.timestamps) {
-      Object.keys(testState.timestamps).forEach(key => {
+      Object.keys(testState.timestamps).forEach((key) => {
         delete testState.timestamps![key];
       });
     }
@@ -384,7 +384,7 @@ function resetTestState(): void {
   if (currentListeners.length > originalListeners.length) {
     // Удаляем только добавленные во время тестов listeners
     const testListeners = currentListeners.slice(originalListeners.length);
-    testListeners.forEach(listener => {
+    testListeners.forEach((listener) => {
       process.removeListener('unhandledRejection' as NodeJS.Signals, listener);
     });
   }
@@ -398,13 +398,13 @@ function resetTestState(): void {
  */
 function resetGlobalMocks(): void {
   // Vitest mocks
-  const vi = global.vi as { clearAllMocks?: () => void } | undefined;
+  const vi = global.vi as { clearAllMocks?: () => void; } | undefined;
   if (vi && typeof vi.clearAllMocks === 'function') {
     vi.clearAllMocks();
   }
 
   // Jest compatibility
-  const jest = global.jest as { clearAllMocks?: () => void } | undefined;
+  const jest = global.jest as { clearAllMocks?: () => void; } | undefined;
   if (jest && typeof jest.clearAllMocks === 'function') {
     jest.clearAllMocks();
   }
@@ -422,7 +422,7 @@ function clearRequireCache(pattern: RegExp): void {
   const keysToDelete = new Set<string>();
 
   // Собираем ключи для удаления
-  cacheKeys.forEach(key => {
+  cacheKeys.forEach((key) => {
     if (pattern.test(key)) {
       keysToDelete.add(key);
     }
@@ -430,7 +430,7 @@ function clearRequireCache(pattern: RegExp): void {
 
   // Удаляем с подсчетом
   let clearedCount = 0;
-  keysToDelete.forEach(key => {
+  keysToDelete.forEach((key) => {
     delete require.cache[key];
     clearedCount++;
   });
@@ -450,9 +450,9 @@ function clearTestEnvironmentVariables(): void {
   const envKeys = Object.keys(process.env);
   let clearedCount = 0;
 
-  envKeys.forEach(key => {
+  envKeys.forEach((key) => {
     const shouldClear = TEST_ENV_KEYS.some(
-      prefix => key.startsWith(prefix) || key.includes('_TEST_') || key.includes('TEST_')
+      (prefix) => key.startsWith(prefix) || key.includes('_TEST_') || key.includes('TEST_'),
     );
 
     if (shouldClear) {
@@ -477,7 +477,7 @@ async function cleanupTempFiles(): Promise<void> {
 
   try {
     // Параллельная очистка стандартных временных директорий
-    const tempDirPromises = TEMP_DIRS.map(async tempDir => {
+    const tempDirPromises = TEMP_DIRS.map(async (tempDir) => {
       try {
         await fs.access(tempDir);
         await cleanupDirectory(tempDir);
@@ -488,7 +488,7 @@ async function cleanupTempFiles(): Promise<void> {
     });
 
     const tempResults = await Promise.allSettled(tempDirPromises);
-    tempResults.forEach(result => {
+    tempResults.forEach((result) => {
       if (result.status === 'fulfilled' && result.value.success) {
         cleanedDirs++;
         logDebug(`🗂️  Cleaned temp directory: ${result.value.path}`);
@@ -500,12 +500,12 @@ async function cleanupTempFiles(): Promise<void> {
     try {
       const files = await fs.readdir(tmpDir);
       const testFiles = files.filter(
-        file =>
-          file.startsWith('livai-test-') || file.startsWith('vitest-') || file.includes('-test-')
+        (file) =>
+          file.startsWith('livai-test-') || file.startsWith('vitest-') || file.includes('-test-'),
       );
 
       // Параллельная обработка файлов
-      const filePromises = testFiles.map(async file => {
+      const filePromises = testFiles.map(async (file) => {
         const filePath = join(tmpDir, file);
         try {
           const stat = await fs.stat(filePath);
@@ -523,7 +523,7 @@ async function cleanupTempFiles(): Promise<void> {
       });
 
       const fileResults = await Promise.allSettled(filePromises);
-      fileResults.forEach(result => {
+      fileResults.forEach((result) => {
         if (result.status === 'fulfilled' && result.value.success) {
           if (result.value.type === 'dir') cleanedDirs++;
           else cleanedFiles++;
@@ -545,7 +545,7 @@ async function cleanupTempFiles(): Promise<void> {
 
     const duration = Date.now() - startTime;
     logDebug(
-      `🗂️  Temp cleanup completed: ${cleanedFiles} files, ${cleanedDirs} dirs (${duration}ms)`
+      `🗂️  Temp cleanup completed: ${cleanedFiles} files, ${cleanedDirs} dirs (${duration}ms)`,
     );
   } catch (error) {
     logError('Error during temp files cleanup', error);
@@ -657,21 +657,21 @@ function logInfo(message: string): void {
 // =============================================================================
 
 export {
+  cleanupDirectory,
+  cleanupTempFiles,
   cleanupTestEnvironment,
-  resetTestState,
   clearRequireCache,
   clearTestEnvironmentVariables,
-  cleanupTempFiles,
-  resetGlobalMocks,
-  withTimeoutAndRetries,
-  cleanupDirectory,
-  registerTestService,
   getTestConfig,
+  type GlobalTestState,
   logDebug,
   logError,
   logInfo,
+  registerTestService,
+  resetGlobalMocks,
+  resetTestState,
+  type TestConfig,
   // Типы для использования в тестах
   type TestService,
-  type TestConfig,
-  type GlobalTestState,
+  withTimeoutAndRetries,
 };

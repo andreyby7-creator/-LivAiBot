@@ -312,7 +312,7 @@ canaryConfig.push({
 // ==================== ASSERT NEVER И ВАЛИДАЦИЯ ====================
 // assertNever и валидация — compile-time safety guards, throw допустим ТОЛЬКО здесь
 canaryConfig.push({
-  files: ['**/*ErrorCode.ts', '**/ErrorCodeMeta.ts', '**/ErrorCodeMetaData.ts', '**/BaseErrorTypes.ts'],
+  files: ['**/*ErrorCode.ts', '**/ErrorCodeMeta.ts', '**/ErrorCodeMetaData.ts', '**/BaseErrorTypes.ts', '**/ErrorCode.ts'],
   plugins: PLUGINS,
   languageOptions: {
     parser: typescriptParser,
@@ -353,6 +353,33 @@ canaryConfig.push({
         allow: ['ErrorMetadataInput'], // Input boundary type с readonly полями (tooling-aware компромисс)
       },
     ],
+  },
+});
+
+// ==================== UNIFIED ERROR REGISTRY ====================
+// Отключаем security/detect-object-injection для UnifiedErrorRegistry.ts
+// Все доступы к объектам через динамические ключи контролируемы и безопасны:
+// - namespaceKey из Object.keys(namespaceMap) с фиксированной структурой
+// - code типизирован как ErrorCode
+// - namespace.toLowerCase() с type assertion
+canaryConfig.push({
+  files: ['**/UnifiedErrorRegistry.ts'],
+  rules: {
+    'security/detect-object-injection': 'off', // Безопасные контролируемые доступы к объектам
+  },
+});
+
+// ==================== ERROR METADATA ====================
+// Отключаем prefer-readonly-parameter-types для ErrorMetadata.ts
+// АРХИТЕКТУРНОЕ РЕШЕНИЕ: functional-first подход с immutable паттернами
+// - Входные параметры: обычные (безопасно, exactOptionalPropertyTypes не ломается)
+// - Выходные данные: readonly/as const (повышает safety и immutability)
+// - Функциональная иммутабельность: immutable паттерны Effect + spread операторы
+// - Type safety: Readonly<T> на уровне экспортов для линтера
+canaryConfig.push({
+  files: ['**/ErrorMetadata.ts'],
+  rules: {
+    '@typescript-eslint/prefer-readonly-parameter-types': 'off', // Functional-first архитектура
   },
 });
 

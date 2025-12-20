@@ -73,16 +73,19 @@ api/
 ## Принципы
 
 ### Hexagonal Architecture
+
 - **Controllers** = Ports для внешнего мира (HTTP/GraphQL)
 - **Routes** = Адаптеры для HTTP фреймворков (Fastify)
 - **Middleware** = Cross-cutting concerns (аутентификация, логирование, валидация)
 
 ### Тонкий слой
+
 - **Нет бизнес-логики** - только преобразование данных и маршрутизация
 - **Делегирование** - все вызовы уходят в application-core
 - **Валидация** - проверка входных данных (Zod schemas)
 
 ### TypeScript + Functional Programming
+
 - **Строгая типизация** - все DTO и контракты типизированы
 - **FP подход** - чистые функции, иммутабельность
 - **Effect** - для side effects и error handling
@@ -90,11 +93,13 @@ api/
 ## Зависимости
 
 ### External
+
 - **Fastify** - HTTP server framework
 - **GraphQL** - query language для API
 - **Zod** - schema validation
 
 ### Internal
+
 - **application-core** - бизнес-логика
 - **shared/dto** - общие DTO
 - **infrastructure** - внешние сервисы

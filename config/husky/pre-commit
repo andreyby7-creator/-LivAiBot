@@ -10,6 +10,13 @@ echo "🔍 Running pre-commit checks..."
 echo "  📝 Running lint-staged..."
 pnpm exec lint-staged
 
+# 2. Check dprint formatting
+echo "  🎨 Checking dprint formatting..."
+pnpm format:check || {
+  echo "  ❌ Dprint formatting check failed. Run 'pnpm format' to fix."
+  exit 1
+}
+
 # 2. Type check changed packages
 echo "  🔍 Type checking changed packages..."
 CHANGED_PACKAGES=$(git diff --cached --name-only | grep -E '^(packages|apps)/' | cut -d'/' -f1-2 | sort -u || true)

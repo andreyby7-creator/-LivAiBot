@@ -130,16 +130,16 @@ function generateDefineMapping(app: string, env: AppEnv) {
   if (framework === 'next') {
     return {
       'process.env.NEXT_PUBLIC_API_URL': JSON.stringify(
-        env[ENV_VARS.NEXT_PUBLIC.API_URL] || 'http://localhost:3001'
+        env[ENV_VARS.NEXT_PUBLIC.API_URL] || 'http://localhost:3001',
       ),
       'process.env.NEXT_PUBLIC_APP_ENV': JSON.stringify(
-        env[ENV_VARS.NEXT_PUBLIC.APP_ENV] || 'development'
+        env[ENV_VARS.NEXT_PUBLIC.APP_ENV] || 'development',
       ),
     };
   } else {
     return {
       'process.env.VITE_API_URL': JSON.stringify(
-        env[ENV_VARS.VITE.API_URL] || 'http://localhost:3001'
+        env[ENV_VARS.VITE.API_URL] || 'http://localhost:3001',
       ),
       'process.env.VITE_APP_ENV': JSON.stringify(env[ENV_VARS.VITE.APP_ENV] || 'development'),
     };
@@ -268,14 +268,20 @@ export default defineConfig(({ mode }) => {
   const { errors, warnings, updatedEnv } = validateEnv(env, app);
   Object.assign(env, updatedEnv);
 
-  if (errors.length)
+  if (errors.length) {
     throw new Error(
-      `❌ Environment validation failed for ${app} app:\n${errors.map(err => `   - ${err}`).join('\n')}`
+      `❌ Environment validation failed for ${app} app:\n${
+        errors.map((err) => `   - ${err}`).join('\n')
+      }`,
     );
-  if (warnings.length)
+  }
+  if (warnings.length) {
     console.warn(
-      `⚠️  Missing environment variables for ${app} app:\n${warnings.map(w => `   - ${w}`).join('\n')}\n   Using fallback values - consider setting these in production`
+      `⚠️  Missing environment variables for ${app} app:\n${
+        warnings.map((w) => `   - ${w}`).join('\n')
+      }\n   Using fallback values - consider setting these in production`,
     );
+  }
 
   // -------------------- БАЗОВАЯ КОНФИГУРАЦИЯ + ПЛАГИНЫ --------------------
   const base = createBaseViteConfig({ app, mode, env, appFramework });

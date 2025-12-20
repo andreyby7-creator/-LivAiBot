@@ -73,7 +73,7 @@ import { useTenant } from '@shared/hooks';
 
 ```typescript
 // apps/admin-panel/components/UserTable.tsx
-import { Table, Button } from '../../shared/ui/atoms';
+import { Button, Table } from '../../shared/ui/atoms';
 import { UserApiDTO, UserMapper } from '../../shared/dto';
 import { useTenant } from '../../shared/hooks';
 ```
@@ -192,10 +192,10 @@ mv apps/admin-panel/dto/UserApiDTO.ts apps/shared-ui/dto/
 
 **apps/shared-ui/ = Идеальный баланс для LivAiBot**
 
-✅ **Startup-friendly** - быстрый старт без npm overhead  
-✅ **Enterprise-ready** - подготовка к масштабированию  
-✅ **DRY principle** - нет дублирования кода  
-✅ **Type safety** - общие контракты и типы  
+✅ **Startup-friendly** - быстрый старт без npm overhead\
+✅ **Enterprise-ready** - подготовка к масштабированию\
+✅ **DRY principle** - нет дублирования кода\
+✅ **Type safety** - общие контракты и типы\
 ✅ **Maintainability** - легко поддерживать и рефакторить
 
 **Это оптимальное решение для multi-app frontend архитектуры!** 🚀

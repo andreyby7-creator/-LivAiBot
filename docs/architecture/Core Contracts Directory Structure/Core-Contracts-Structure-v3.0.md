@@ -305,6 +305,7 @@ core-contracts/
 **Repository metadata, author, общие devDependencies** находятся в корневом `package.json` монопепозитория.
 
 ### Core Effect Ecosystem:
+
 - **@effect/schema** - Runtime validation & codecs
 - **@effect/platform** - Cross-platform utilities (FileSystem, Clock, Console)
 - **@effect/printer-ansi** - ANSI terminal output for logging
@@ -313,6 +314,7 @@ core-contracts/
 - **effect** - Core FP library with Effects, Either, Option
 
 ### Functional Programming:
+
 - **fp-ts** - TypeScript FP library (HKTs, type classes, optics)
 - **monocle-ts** - Lenses for immutable data structures
 - **newtype-ts** - Branded types for domain modeling

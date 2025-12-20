@@ -137,13 +137,13 @@ function validateUrl(
   key: string,
   pattern: RegExp,
   expectedFormat: string,
-  exampleUrl: string
+  exampleUrl: string,
 ): void {
   if (url && !pattern.test(url)) {
     throw new Error(
-      `${key} должен быть корректным URL (${expectedFormat}).\n` +
-        `Пример: ${exampleUrl}\n` +
-        `Получено: ${url}`
+      `${key} должен быть корректным URL (${expectedFormat}).\n`
+        + `Пример: ${exampleUrl}\n`
+        + `Получено: ${url}`,
     );
   }
 }
@@ -162,9 +162,9 @@ function validateApiWebUrl(url: string, key: string): void {
   // Проверить на пробелы и специальные символы, которые часто вызывают проблемы
   if (/[\s<>'"\[\]{}|\\^`]/u.test(url)) {
     throw new Error(
-      `${key} содержит недопустимые символы (пробелы, < > ' " [ ] { } | \\ ^ \`). Эти символы могут ломать URL.\n` +
-        `Пример: http://localhost:3000\n` +
-        `Получено: "${url}"`
+      `${key} содержит недопустимые символы (пробелы, < > ' " [ ] { } | \\ ^ \`). Эти символы могут ломать URL.\n`
+        + `Пример: http://localhost:3000\n`
+        + `Получено: "${url}"`,
     );
   }
 
@@ -175,9 +175,9 @@ function validateApiWebUrl(url: string, key: string): void {
       const port = parseInt(portMatch[1], 10);
       if (port < 1 || port > 65535) {
         throw new Error(
-          `${key} содержит недопустимый порт ${port}. Порт должен быть от 1 до 65535.\n` +
-            `Пример: http://localhost:3000\n` +
-            `Получено: "${url}"`
+          `${key} содержит недопустимый порт ${port}. Порт должен быть от 1 до 65535.\n`
+            + `Пример: http://localhost:3000\n`
+            + `Получено: "${url}"`,
         );
       }
     }
@@ -199,16 +199,16 @@ function validateApiWebUrl(url: string, key: string): void {
  * @throws Error если отсутствуют обязательные переменные, они пустые или некорректные значения
  */
 function validateTestEnv(env: EnvRecord): void {
-  const missingKeys = REQUIRED_TEST_ENV_KEYS.filter(key => {
+  const missingKeys = REQUIRED_TEST_ENV_KEYS.filter((key) => {
     const val = String(env[key] ?? '');
     return !val || val.trim() === '';
   });
 
   if (missingKeys.length > 0) {
     throw new Error(
-      `Отсутствуют обязательные переменные окружения для тестов: ${missingKeys.join(', ')}\n` +
-        'Укажите эти переменные в overrides или установите их в окружении.\n' +
-        'Пустые строки не допускаются для обязательных переменных.'
+      `Отсутствуют обязательные переменные окружения для тестов: ${missingKeys.join(', ')}\n`
+        + 'Укажите эти переменные в overrides или установите их в окружении.\n'
+        + 'Пустые строки не допускаются для обязательных переменных.',
     );
   }
 
@@ -218,7 +218,7 @@ function validateTestEnv(env: EnvRecord): void {
     'DATABASE_URL',
     /^postgres(ql)?:\/\/.+/,
     'начинается с postgres:// или postgresql://',
-    'postgres://user:password@localhost:5432/database_name'
+    'postgres://user:password@localhost:5432/database_name',
   );
 
   validateUrl(
@@ -226,7 +226,7 @@ function validateTestEnv(env: EnvRecord): void {
     'REDIS_URL',
     /^redis:\/\/.+/,
     'начинается с redis://',
-    'redis://localhost:6379'
+    'redis://localhost:6379',
   );
 
   const apiUrl = String(env[TestEnvKeys.API_BASE_URL] ?? '');
@@ -235,7 +235,7 @@ function validateTestEnv(env: EnvRecord): void {
     'API_BASE_URL',
     /^https?:\/\/.+/,
     'начинается с http:// или https://',
-    'http://localhost:3001'
+    'http://localhost:3001',
   );
   validateApiWebUrl(apiUrl, 'API_BASE_URL');
 
@@ -245,7 +245,7 @@ function validateTestEnv(env: EnvRecord): void {
     'WEB_BASE_URL',
     /^https?:\/\/.+/,
     'начинается с http:// или https://',
-    'http://localhost:3000'
+    'http://localhost:3000',
   );
   validateApiWebUrl(webUrl, 'WEB_BASE_URL');
 }
@@ -265,19 +265,19 @@ export function buildVitestEnv(overrides: EnvOverrides = {}): Readonly<EnvRecord
   // Проверяем на опечатки в названиях ключей
   const allowedKeys = Object.values(TestEnvKeys).sort();
   const unknownKeys = Object.keys(overrides).filter(
-    key => !allowedKeys.includes(key as TestEnvKeys)
+    (key) => !allowedKeys.includes(key as TestEnvKeys),
   );
 
   if (unknownKeys.length > 0) {
     throw new Error(
-      `Неизвестные ключи в overrides (возможные опечатки): ${unknownKeys.join(', ')}\n` +
-        `Доступные ключи: ${allowedKeys.join(', ')}`
+      `Неизвестные ключи в overrides (возможные опечатки): ${unknownKeys.join(', ')}\n`
+        + `Доступные ключи: ${allowedKeys.join(', ')}`,
     );
   }
 
   // Фильтруем переопределения, оставляя только определенные значения
   const filteredOverrides: Partial<EnvRecord> = Object.fromEntries(
-    Object.entries(overrides).filter(([_, value]) => value !== undefined)
+    Object.entries(overrides).filter(([_, value]) => value !== undefined),
   );
 
   // Создаем окружение с дефолтными значениями и переопределениями
@@ -293,7 +293,7 @@ export function buildVitestEnv(overrides: EnvOverrides = {}): Readonly<EnvRecord
 
   if (process.env.VITEST_ENV_DEBUG === 'true') {
     console.log(
-      `🔧 Building test environment: ${totalKeys} keys (${defaultKeys} defaults, ${overriddenKeys} overrides)`
+      `🔧 Building test environment: ${totalKeys} keys (${defaultKeys} defaults, ${overriddenKeys} overrides)`,
     );
   }
 

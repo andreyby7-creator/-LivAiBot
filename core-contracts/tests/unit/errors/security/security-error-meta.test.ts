@@ -2,74 +2,74 @@
  * Unit tests для SecurityErrorMeta
  */
 
-import { describe, it, expect } from 'vitest'
+import { describe, expect, it } from 'vitest';
 
-import { ERROR_SEVERITY, ERROR_CATEGORY } from '../../../../src/errors/base/ErrorConstants.js'
+import { ERROR_CATEGORY, ERROR_SEVERITY } from '../../../../src/errors/base/ErrorConstants.js';
 import {
-  createUnauthorizedError,
+  createRateLimitedError,
   createTokenExpiredError,
-  createRateLimitedError
-} from '../../../../src/errors/security/SecurityError.js'
+  createUnauthorizedError,
+} from '../../../../src/errors/security/SecurityError.js';
 import {
+  getSecurityErrorCategory,
   getSecurityErrorMeta,
   getSecurityErrorMetaOrThrow,
-  isSecurityErrorRetryable,
-  isSecurityErrorRecoverable,
   getSecurityErrorSeverity,
-  getSecurityErrorCategory
-} from '../../../../src/errors/security/SecurityErrorMeta.js'
+  isSecurityErrorRecoverable,
+  isSecurityErrorRetryable,
+} from '../../../../src/errors/security/SecurityErrorMeta.js';
 
 describe('SecurityErrorMeta', () => {
   describe('getSecurityErrorMeta', () => {
     it('should return metadata for security errors', () => {
-      const error = createUnauthorizedError({})
-      const meta = getSecurityErrorMeta(error)
-      expect(meta).toBeDefined()
-      expect(meta?.layer).toBe('security')
-    })
-  })
+      const error = createUnauthorizedError({});
+      const meta = getSecurityErrorMeta(error);
+      expect(meta).toBeDefined();
+      expect(meta?.layer).toBe('security');
+    });
+  });
 
   describe('isSecurityErrorRetryable', () => {
     it('should return false for UnauthorizedError', () => {
-      const error = createUnauthorizedError({})
-      expect(isSecurityErrorRetryable(error)).toBe(false)
-    })
+      const error = createUnauthorizedError({});
+      expect(isSecurityErrorRetryable(error)).toBe(false);
+    });
 
     it('should return true for RateLimitedError', () => {
-      const error = createRateLimitedError({ limit: 10, windowMs: 1000 })
-      expect(isSecurityErrorRetryable(error)).toBe(true)
-    })
-  })
+      const error = createRateLimitedError({ limit: 10, windowMs: 1000 });
+      expect(isSecurityErrorRetryable(error)).toBe(true);
+    });
+  });
 
   describe('isSecurityErrorRecoverable', () => {
     it('should return true for TokenExpiredError', () => {
-      const error = createTokenExpiredError({})
-      expect(isSecurityErrorRecoverable(error)).toBe(true)
-    })
-  })
+      const error = createTokenExpiredError({});
+      expect(isSecurityErrorRecoverable(error)).toBe(true);
+    });
+  });
 
   describe('getSecurityErrorSeverity', () => {
     it('should return HIGH severity for UnauthorizedError', () => {
-      const error = createUnauthorizedError({})
-      const severity = getSecurityErrorSeverity(error)
-      expect(severity).toBe(ERROR_SEVERITY.HIGH)
-    })
-  })
+      const error = createUnauthorizedError({});
+      const severity = getSecurityErrorSeverity(error);
+      expect(severity).toBe(ERROR_SEVERITY.HIGH);
+    });
+  });
 
   describe('getSecurityErrorCategory', () => {
     it('should return AUTHORIZATION category', () => {
-      const error = createUnauthorizedError({})
-      const category = getSecurityErrorCategory(error)
-      expect(category).toBe(ERROR_CATEGORY.AUTHORIZATION)
-    })
-  })
+      const error = createUnauthorizedError({});
+      const category = getSecurityErrorCategory(error);
+      expect(category).toBe(ERROR_CATEGORY.AUTHORIZATION);
+    });
+  });
 
   describe('getSecurityErrorMetaOrThrow', () => {
     it('should return metadata for valid errors', () => {
-      const error = createUnauthorizedError({})
-      const meta = getSecurityErrorMetaOrThrow(error)
-      expect(meta).toBeDefined()
-      expect(meta.layer).toBe('security')
-    })
-  })
-})
+      const error = createUnauthorizedError({});
+      const meta = getSecurityErrorMetaOrThrow(error);
+      expect(meta).toBeDefined();
+      expect(meta.layer).toBe('security');
+    });
+  });
+});

@@ -47,6 +47,7 @@
 **Обоснование:** IO реализует domain ports (Adapters), но domain services не зависят от конкретных IO реализаций.
 
 **📌 Ports & Adapters:**
+
 - `domain/ports/` - интерфейсы (Repository, Gateway)
 - `io/adapters/` - реализации интерфейсов
 
@@ -137,6 +138,7 @@
 ### 📦 Import/Export Rules
 
 **ESM + TypeScript strict mode:**
+
 - ✅ `import { Effect } from 'effect'` - только named imports
 - ❌ `import Effect from 'effect'` - запрещены default imports
 - ✅ `import { User } from './domain/User.ts'` - explicit extensions
@@ -148,6 +150,7 @@
 ### 🚨 Error Handling Rules
 
 **Строгая типизация ошибок:**
+
 - ✅ Async функции: `Effect<A, Error, B>`
 - ✅ Domain operations: `Either<A, DomainError>`
 - ✅ Infrastructure: `Effect<A, InfrastructureError, B>`
@@ -156,18 +159,19 @@
 - ✅ Exhaustive checking в switch statements
 
 **Error Category Tagging:**
+
 ```typescript
 type ErrorCategory =
-  | "domain"
-  | "infrastructure"
-  | "security"
-  | "rate-limit"
-  | "timeout"
+  | 'domain'
+  | 'infrastructure'
+  | 'security'
+  | 'rate-limit'
+  | 'timeout';
 
 interface TaggedError {
-  readonly _tag: string           // Discriminated union tag
-  readonly category: ErrorCategory // Error category
-  readonly retryable: boolean     // Can operation be retried?
+  readonly _tag: string; // Discriminated union tag
+  readonly category: ErrorCategory; // Error category
+  readonly retryable: boolean; // Can operation be retried?
 }
 ```
 
@@ -176,6 +180,7 @@ interface TaggedError {
 ### 🧪 Testing Rules
 
 **Многоуровневое тестирование:**
+
 - ✅ Domain: pure functions + unit tests (100% coverage)
 - ✅ IO: integration tests с controlled mocking
 - ✅ Context: property-based testing
@@ -185,6 +190,7 @@ interface TaggedError {
 - 📊 100% coverage для domain logic
 
 **Contract Tests:**
+
 - ✅ Проверяют соответствие IO adapters domain ports
 - ✅ Валидируют targets не ломают контракты
 - ✅ Обеспечивают multi-runtime compatibility
@@ -198,24 +204,29 @@ interface TaggedError {
 ### 🏷️ TypeScript Naming
 
 **Types & Interfaces:**
+
 - ✅ `PascalCase` для типов: `User`, `Either`, `Effect`
 - ✅ `Port` suffix для interfaces: `UserRepositoryPort` (вместо `IUserRepository`)
 - ✅ `T` prefix для generic types: `TUser`
 
 **Values & Functions:**
+
 - ✅ `camelCase` для функций: `createUser`, `validateEmail`
 - ✅ `PascalCase` для classes: `UserEntity`, `DomainService`
 
 **Constants:**
+
 - ✅ `SCREAMING_SNAKE_CASE`: `MAX_RETRY_ATTEMPTS`
 
 ### 📁 File/Folder Naming
 
 **Folders:**
+
 - ✅ `kebab-case` для папок: `domain-events`, `error-normalizers`
 - ✅ `camelCase` для технических: `ioAdapters`, `fpUtils`
 
 **Files:**
+
 - ✅ `PascalCase` для типов: `DomainEvent.ts`, `User.ts`
 - ✅ `camelCase` для реализации: `createUser.ts`, `validateEmail.ts`
 - ✅ `kebab-case` для индексов: `index.ts`
@@ -225,18 +236,21 @@ interface TaggedError {
 ## 🎭 Runtime-Specific Rules
 
 ### 🌐 Browser Target
+
 ```
 ✅ Доступно: DOM APIs, Web APIs, localStorage
 ❌ Запрещено: Node.js APIs, fs, process, Buffer
 ```
 
 ### 🟢 Node.js Target
+
 ```
 ✅ Доступно: fs, path, crypto, process, Buffer
 ❌ Запрещено: DOM APIs, window, document
 ```
 
 ### 🔄 Shared Target
+
 ```
 ✅ Доступно: Universal APIs (Date, Math, JSON, etc.)
 ❌ Запрещено: DOM APIs, Node.js APIs, runtime-specific
@@ -247,12 +261,14 @@ interface TaggedError {
 ## ⚡ Performance Rules
 
 ### 📦 Bundle Optimization
+
 - ✅ Tree-shakable exports
 - ✅ Lazy loading для больших модулей
 - ✅ Minimal bundle size в targets
 - ❌ No unused dependencies
 
 ### 🧵 Concurrency Rules
+
 - ✅ Effect для async operations
 - ✅ Controlled parallelism в IO layer
 - ✅ No race conditions в context propagation
@@ -262,12 +278,14 @@ interface TaggedError {
 ## 🛡️ Code Quality Rules
 
 ### 🔍 Linting & Formatting
+
 - ✅ ESLint с custom rules для архитектуры
 - ✅ Prettier для consistent formatting
 - ✅ TypeScript strict mode
 - ✅ No any types
 
 ### 📚 Documentation
+
 - ✅ TSDoc для public APIs
 - ✅ README для каждого модуля
 - ✅ Architecture decision records
@@ -278,12 +296,14 @@ interface TaggedError {
 ## 🚨 Нарушения границ
 
 **Любое нарушение этих правил - blocking issue:**
+
 1. ❌ Domain imports IO → **Critical Bug**
 2. ❌ FP with side effects → **Critical Bug**
 3. ❌ Context with business logic → **Major Bug**
 4. ❌ Default exports → **Minor Issue**
 
 **Code Review Checklist:**
+
 - [ ] Dependencies follow boundaries
 - [ ] Error types are correct
 - [ ] Naming conventions followed
@@ -292,4 +312,4 @@ interface TaggedError {
 
 ---
 
-*Эти правила - фундамент архитектуры. Все код должен им подчиняться. Изменения только через ADR (Architecture Decision Record).* 🚀
+_Эти правила - фундамент архитектуры. Все код должен им подчиняться. Изменения только через ADR (Architecture Decision Record)._ 🚀
