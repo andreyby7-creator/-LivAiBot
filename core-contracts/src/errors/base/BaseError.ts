@@ -1,310 +1,609 @@
 /**
- * @file Функциональный BaseError — полностью FP-совместимое ядро ошибок
- * ✅ Immutable (неизменяемый)
- * ✅ No classes, no this (без классов и this)
- * ✅ Pattern matching через discriminated union (паттерн матчинг через discriminated union)
- * ✅ Стабильный ErrorCode (стабильный ABI)
+ * @file BaseError.ts - Enterprise-grade discriminated union тип ошибки LivAiBot
+ *
+ * Максимальная безопасность и оптимизации производительности. Чистый immutable тип с deep immutability guarantee.
+ * Методы: withCause() (deep chain immutability), withMetadata() (configurable merge strategies),
+ * asPlainObject() (basic plain object), sanitizeForExternal() (additional sanitization), toSerializableObject() (safe object for serialization), toExternalJSON() (external serialization), stringifyExternal() (complete serialization).
+ * Манипуляция цепочками: prependCause(), withoutCause(), withCauseChain().
+ * Вспомогательные функции метаданных: withCorrelationId(), withUserContext().
+ * Производительность: lazy evaluation для complex chains, circular reference protection.
  */
-import { ERROR_CODE, type ErrorCode } from "./ErrorCode.js"
-import { createErrorCodeMetaWithDefaults, generateMetricName, type ErrorCodeMeta } from "./ErrorCodeMeta.js"
-import { getErrorCodeMeta } from "./ErrorCodeMetaData.js"
-import { ERROR_CATEGORY, ERROR_ORIGIN, type ErrorOrigin, type ErrorCategory } from "./ErrorConstants.js"
-import { deepFreeze, isBaseError } from "./ErrorUtils.js"
 
-import type { ErrorMetadata } from "./ErrorMetadata.js"
-import type { ReadonlyDeep } from "type-fest"
-/* -------------------------------------------------------------------------------------------------
- * 🔹 Тип BaseError
- * ------------------------------------------------------------------------------------------------- */
-/**
- * Базовый тип ошибки для всей платформы
- * Полностью immutable структура, совместимая с функциональным программированием.
- * Используется во всех слоях: Domain / Application / IO / Context / Targets.
- * Состоит из обязательных полей (code, message, timestamp) и опциональных метаданных.
- * Поле cause строго типизировано для type-safe цепочки ошибок.
- */
-export type BaseError = ReadonlyDeep<{
-  /** Стабильный код ошибки (из ERROR_CODE) */
-  code: ErrorCode
-  /** Человеко-читаемое сообщение об ошибке */
-  message: string
-  /** Временная метка создания ошибки (ISO string) */
-  timestamp: string
-  /** Цепочка причин ошибки. Строго типизированная для type-safe обработки. */
-  cause?: BaseError | Error
-} & Omit<ErrorMetadata, 'cause'>>
-/* -------------------------------------------------------------------------------------------------
- * 🔹 Helper для получения метаданных из реестра
- * ------------------------------------------------------------------------------------------------- */
-/** Определяет layer и category по префиксу кода ошибки для fallback метаданных */
-const inferLayerAndCategoryFromCode = (code: ErrorCode): ReadonlyDeep<{ layer: ErrorOrigin; category: ErrorCategory }> | undefined =>
-  code.startsWith("DOMAIN_")
-    ? { layer: ERROR_ORIGIN['DOMAIN'] as ErrorOrigin, category: ERROR_CATEGORY['BUSINESS'] as ErrorCategory }
-    : code.startsWith("APPLICATION_")
-      ? { layer: ERROR_ORIGIN['APPLICATION'] as ErrorOrigin, category: ERROR_CATEGORY['BUSINESS'] as ErrorCategory }
-      : code.startsWith("INFRA_")
-        ? { layer: ERROR_ORIGIN['INFRASTRUCTURE'] as ErrorOrigin, category: ERROR_CATEGORY['INFRASTRUCTURE'] as ErrorCategory }
-        : code.startsWith("SECURITY_")
-          ? { layer: ERROR_ORIGIN['SECURITY'] as ErrorOrigin, category: ERROR_CATEGORY['AUTHORIZATION'] as ErrorCategory }
-          : code.startsWith("VALIDATION_")
-            ? { layer: ERROR_ORIGIN['APPLICATION'] as ErrorOrigin, category: ERROR_CATEGORY['VALIDATION'] as ErrorCategory }
-            : code === "UNKNOWN_ERROR"
-              ? { layer: ERROR_ORIGIN['APPLICATION'] as ErrorOrigin, category: ERROR_CATEGORY['UNKNOWN'] as ErrorCategory }
-              : undefined
-/**
- * Получает метаданные для кода ошибки из реестра ERROR_CODE_META
- * @param code - код ошибки
- * @returns метаданные из реестра или fallback метаданные на основе префикса кода
- */
-const getErrorMetaFromCode = (code: ErrorCode): ReadonlyDeep<ErrorCodeMeta> | undefined => {
-  // Используем статический реестр из ErrorCodeMetaData.ts
-  const metaFromRegistry = getErrorCodeMeta(code)
-  // Fallback логика для graceful degradation (на случай если код отсутствует в реестре)
-  return metaFromRegistry ?? ((): ReadonlyDeep<ErrorCodeMeta> | undefined => {
-    const inferred = inferLayerAndCategoryFromCode(code)
-    return inferred
-      ? createErrorCodeMetaWithDefaults({
-          layer: inferred.layer,
-          kind: "error",
-          category: inferred.category,
-          httpStatus: 500,
-          grpcStatus: 13,
-          metrics: generateMetricName(inferred.layer, "error", code)
-        })
-      : undefined
-  })()
+// ==================== ИМПОРТЫ ====================
+
+import { SEVERITY_WEIGHTS } from './ErrorConstants.js';
+
+import type { TaggedError } from './BaseErrorTypes.js';
+import type { ErrorCode } from './ErrorCode.js';
+import type { ErrorCodeMetadata } from './ErrorCodeMeta.js';
+import type { ErrorCategory, ErrorOrigin, ErrorSeverity } from './ErrorConstants.js';
+import type { CorrelationId, ErrorMetadataContext } from './ErrorMetadata.js';
+
+// Объявляем structuredClone для TypeScript (доступен в современных средах)
+declare const structuredClone: <T>(value: T) => T;
+
+/** Тип logger для замены console в production */
+type Logger = {
+  warn: (message: string, ...args: unknown[]) => void;
+  error: (message: string, ...args: unknown[]) => void;
+};
+
+/** Дефолтный logger (console-based) */
+const defaultLogger: Logger = {
+  warn: console.warn,
+  error: console.error,
+};
+
+/** Текущий logger (можно переопределить для production) */
+let currentLogger: Logger = defaultLogger;
+
+/** Функция для установки кастомного logger */
+export function setLogger(logger: Logger): void {
+  currentLogger = logger;
 }
-/** Фильтрует undefined поля из объекта метаданных для компактного merge */
-const filterUndefinedFields = <T extends ReadonlyDeep<Record<string, unknown>>>(obj: T): ReadonlyDeep<Record<string, unknown>> =>
-  Object.fromEntries(
-    Object.entries(obj).filter(([, value]: ReadonlyDeep<[string, unknown]>) => value !== undefined)
-  ) as ReadonlyDeep<Record<string, unknown>>
-/** Проверяет, что значение является POJO (Plain Old JavaScript Object) для безопасного merge */
-const isPOJO = (value: unknown): value is Record<string, unknown> =>
-  typeof value === 'object' &&
-  value !== null &&
-  !Array.isArray(value) &&
-  Object.getPrototypeOf(value) === Object.prototype
-/** Глубоко объединяет два объекта Record<string, unknown> в функциональном стиле. ⚠️ Требует, чтобы объекты были POJO для корректного merge */
-const deepMergeObjects = (
-  base: ReadonlyDeep<Record<string, unknown>> | undefined,
-  override: ReadonlyDeep<Record<string, unknown>> | undefined
-): ReadonlyDeep<Record<string, unknown>> | undefined => {
-  // Валидация: проверяем, что override является POJO
-  const overrideValid = override === undefined || isPOJO(override)
-  const baseValid = base === undefined || isPOJO(base)
-  return !overrideValid
-    ? ((): ReadonlyDeep<Record<string, unknown>> | undefined => {
-        console.warn('Warning: override object is not a POJO, skipping merge. Use plain objects for context/extra.')
-        return base
-      })()
-    : !baseValid
-      ? ((): ReadonlyDeep<Record<string, unknown>> | undefined => {
-          console.warn('Warning: base object is not a POJO, skipping merge. Use plain objects for context/extra.')
-          return override
-        })()
-      : override === undefined
-        ? base
-        : base === undefined
-          ? override
-          : ((): ReadonlyDeep<Record<string, unknown>> => {
-              // Функциональный подход без reduce: используем рекурсивное построение объекта
-              const mergeEntries = (
-                entries: ReadonlyArray<readonly [string, unknown]>,
-                currentBase: ReadonlyDeep<Record<string, unknown>>
-              ): ReadonlyDeep<Record<string, unknown>> => {
-                const EMPTY_ARRAY_LENGTH = 0
-                const SLICE_START_INDEX = 1
-                return entries.length === EMPTY_ARRAY_LENGTH
-                  ? currentBase
-                  : ((): ReadonlyDeep<Record<string, unknown>> => {
-                      const firstEntry = entries[EMPTY_ARRAY_LENGTH]
-                      return firstEntry === undefined
-                        ? currentBase
-                        : ((): ReadonlyDeep<Record<string, unknown>> => {
-                            const [key, overrideValue] = firstEntry
-                            const baseValue = currentBase[key]
-                            const isBothPOJO = isPOJO(baseValue) && isPOJO(overrideValue)
-                            const mergedValue = isBothPOJO
-                              ? deepMergeObjects(baseValue as ReadonlyDeep<Record<string, unknown>>, overrideValue as ReadonlyDeep<Record<string, unknown>>)
-                              : overrideValue
-                            const updatedBase = mergedValue !== undefined
-                              ? { ...currentBase, [key]: mergedValue }
-                              : currentBase
-                            return mergeEntries(entries.slice(SLICE_START_INDEX), updatedBase)
-                          })()
-                    })()
-              }
-              return mergeEntries(Object.entries(override) as ReadonlyArray<readonly [string, unknown]>, base)
-            })()
+
+/** Deep readonly тип для полной immutable защиты */
+type DeepReadonly<T> = T extends (...args: readonly unknown[]) => unknown ? T
+  : T extends object ? { readonly [K in keyof T]: DeepReadonly<T[K]>; }
+  : T;
+
+// ==================== КОНСТАНТЫ ====================
+
+/** Размер случайной части correlation ID */
+const CORRELATION_ID_RANDOM_LENGTH = 9;
+/** Начальный индекс для substring */
+const CORRELATION_ID_SUBSTRING_START = 2;
+/** Radix для base36 encoding */
+const base36Radix = 36;
+/** Максимальная глубина цепочки причин для DoS защиты */
+const MAX_CAUSE_DEPTH = 10;
+
+/** Минимальная длина цепочки для валидации консистентности */
+const MIN_CHAIN_LENGTH_FOR_VALIDATION = 2;
+
+// ==================== HELPER FUNCTIONS ====================
+
+/** Создает MetadataTimestamp из number */
+function createMetadataTimestamp(
+  timestamp: number,
+): number & { readonly __brand: 'MetadataTimestamp'; } {
+  return timestamp as number & { readonly __brand: 'MetadataTimestamp'; };
 }
-/** Извлекает метаданные из ErrorCodeMeta и преобразует их в ErrorMetadata */
-const extractMetadataFromMeta = (
-  meta: ReadonlyDeep<ErrorCodeMeta>,
-  override?: ErrorMetadata
-): Omit<ErrorMetadata, 'cause'> => {
-  // Преобразуем ErrorCodeMeta в ErrorMetadata для единообразного объединения
-  const baseMetadata: ReadonlyDeep<Omit<ErrorMetadata, 'cause'>> = {
-    severity: meta.severity,
-    category: meta.category,
-    origin: meta.layer,
-    retryable: meta.retryable
+
+// ==================== ОСНОВНЫЕ ТИПЫ ====================
+
+/** User context для metadata - информация о пользователе */
+export type UserContext = {
+  readonly userId?: string;
+  readonly tenantId?: string;
+  readonly sessionId?: string;
+  readonly ipAddress?: string;
+  readonly userAgent?: string;
+};
+
+/** Полная цепочка причин ошибки - immutable linked list */
+export type ErrorCauseChain = readonly Readonly<BaseError>[];
+
+/** Метаданные ошибки - immutable record */
+export type ErrorMetadata = {
+  readonly context: ErrorMetadataContext;
+  readonly userContext?: UserContext;
+  readonly customFields?: DeepReadonly<Record<string, unknown>>;
+};
+
+/** Enterprise-grade discriminated union тип ошибки LivAiBot. Максимальная type safety с discriminated unions.
+ * Инвариант: cause === causeChain[0] || cause === undefined (гарантируется makeBaseErrorWithChain)
+ */
+export type BaseError = {
+  readonly _tag: 'BaseError';
+  readonly code: ErrorCode;
+  readonly message: string;
+  readonly severity: ErrorSeverity;
+  readonly category: ErrorCategory;
+  readonly origin: ErrorOrigin;
+  readonly timestamp: number;
+  readonly cause?: BaseError | undefined;
+  readonly causeChain: readonly Readonly<BaseError>[];
+  readonly metadata: ErrorMetadata;
+  readonly codeMetadata: ErrorCodeMetadata;
+  readonly stack?: string;
+  readonly toJSON?: () => Record<string, unknown>;
+};
+
+// ==================== CORE API - МЕТОДЫ ОБЪЕКТА ====================
+
+/** Централизованный конструктор для гарантии консистентности cause и causeChain */
+function makeBaseErrorWithChain(baseError: BaseError, causeChain: ErrorCauseChain): BaseError {
+  // Инвариант: cause === causeChain[0] || cause === undefined если chain пустая
+  const cause = causeChain.length > 0 ? causeChain[0] : undefined;
+  const result = {
+    ...baseError,
+    cause,
+    causeChain,
+  } as BaseError;
+
+  return attachToJSON(result);
+}
+
+/** Универсальная функция для добавления причины с configurable поведением */
+function addCause(
+  baseError: BaseError,
+  cause: BaseError,
+  options: { prepend?: boolean; } = {},
+): BaseError {
+  // Предотвращаем circular references
+  if (hasCircularReference(baseError, cause)) {
+    // Для production-safe behavior возвращаем оригинальную ошибку
+    return baseError;
   }
-  // Объединяем через deepMergeObjects для единообразной обработки всех полей (включая context и extra)
-  return deepMergeObjects(baseMetadata, filterUndefinedFields(override ?? {})) as ReadonlyDeep<Omit<ErrorMetadata, 'cause'>>
-}
-/* -------------------------------------------------------------------------------------------------
- * 🔹 Создание ошибок
- * ------------------------------------------------------------------------------------------------- */
-/**
- * Создание новой ошибки BaseError
- * Автоматически заполняет метаданные из реестра ERROR_CODE_META, если он доступен.
- * Переданные метаданные имеют приоритет над значениями из реестра.
- * @param code - стабильный код ошибки из ERROR_CODE
- * @param message - человеко-читаемое сообщение
- * @param metadata - дополнительные метаданные ошибки (correlationId, context, severity и т.д.)
- * @returns полностью immutable ошибка
- */
-export const createError = (
-  code: ErrorCode,
-  message: string,
-  metadata?: ErrorMetadata
-): BaseError =>
-  !Object.prototype.hasOwnProperty.call(ERROR_CODE, code)
-    ? ((): never => { throw new Error(`Invalid ErrorCode: ${code}`) })()
-    : ((): BaseError => {
-        const metaFromRegistry = getErrorMetaFromCode(code)
-        const safeMetadata = metadata ?? {}
-        // Объединяем метаданные из реестра и переданные метаданные через extractMetadataFromMeta
-        const baseMetadata: ReadonlyDeep<Omit<ErrorMetadata, 'cause'>> = metaFromRegistry
-          ? extractMetadataFromMeta(metaFromRegistry, safeMetadata)
-          : filterUndefinedFields(safeMetadata) as ReadonlyDeep<Omit<ErrorMetadata, 'cause'>>
-        // Преобразуем cause в строго типизированный формат
-        const causeValue = metadata?.cause
-        const typedCause: ReadonlyDeep<BaseError | Error> | undefined = causeValue instanceof Error || (typeof causeValue === 'object' && causeValue !== null && 'code' in causeValue && 'message' in causeValue && 'timestamp' in causeValue)
-          ? causeValue as ReadonlyDeep<BaseError | Error>
-          : undefined
-        return deepFreeze({
-          code,
-          message,
-          timestamp: new Date().toISOString(),
-          ...baseMetadata,
-          ...(typedCause !== undefined && { cause: typedCause })
-        })
-      })()
-/** Рекурсивно ищет BaseError в цепочке cause ошибки */
-const findBaseErrorInChain = (error: unknown): ReadonlyDeep<BaseError> | undefined =>
-  isBaseError(error)
-    ? error
-    : error instanceof Error && 'cause' in error && error.cause !== undefined
-      ? findBaseErrorInChain(error.cause)
-      : undefined
-/**
- * Обертывание неизвестной ошибки в BaseError
- * Автоматически заполняет метаданные из реестра ERROR_CODE_META для fallbackCode.
- * Переданные метаданные имеют приоритет над значениями из реестра.
- * ⚠️ Если переданная ошибка уже является BaseError или содержит BaseError в цепочке cause, возвращает найденный BaseError без двойного оборачивания.
- * @param error - неизвестная ошибка (unknown)
- * @param fallbackCode - код ошибки по умолчанию
- * @param fallbackMessage - сообщение по умолчанию
- * @param additionalMetadata - дополнительные метаданные для ошибки
- * @returns обертка BaseError с cause chaining и метаданными
- */
-export const wrapUnknownError = (
-  error: unknown,
-  fallbackCode: ErrorCode = ERROR_CODE['UNKNOWN_ERROR'] as ErrorCode,
-  fallbackMessage = "Неизвестная ошибка",
-  additionalMetadata?: ErrorMetadata
-): BaseError => {
-  // Избегаем двойного оборачивания BaseError (проверяем саму ошибку и цепочку cause)
-  const baseErrorInChain = findBaseErrorInChain(error)
-  return baseErrorInChain ?? ((): BaseError => {
-    const message: ReadonlyDeep<string> = error instanceof Error ? error.message || fallbackMessage : String(error) || fallbackMessage
-    const typedCause: ReadonlyDeep<BaseError | Error> | undefined = error instanceof Error
-      ? error as ReadonlyDeep<BaseError | Error>
-      : undefined
-    return createError(fallbackCode, message, {
-      ...additionalMetadata,
-      ...(typedCause !== undefined && { cause: typedCause })
-    })
-  })()
-}
-/* -------------------------------------------------------------------------------------------------
- * 🔹 Pattern matching
- * ------------------------------------------------------------------------------------------------- */
-/** Type-safe pattern matching для обработки ошибок по ErrorCode */
-export const matchError = <T>(
-  error: ReadonlyDeep<BaseError>,
-  handlers: ReadonlyDeep<{ [K in ErrorCode]?: (e: ReadonlyDeep<BaseError>) => T } & { fallback: (e: ReadonlyDeep<BaseError>) => T }>
-): T => {
-  return handlers[error.code] ? handlers[error.code]!(error) : handlers.fallback(error)
-}
-/* -------------------------------------------------------------------------------------------------
- * 🔹 Утилиты
- * ------------------------------------------------------------------------------------------------- */
 
-/** Проверка, что ошибка имеет конкретный ErrorCode */
-export const isErrorCodeValid = (value: unknown): value is ErrorCode =>
-  typeof value === "string" && Object.prototype.hasOwnProperty.call(ERROR_CODE, value)
-export const isErrorCode = (value: unknown, code: ErrorCode): value is ReadonlyDeep<BaseError> =>
-  isBaseError(value) && value.code === code
-/* -------------------------------------------------------------------------------------------------
- * 🔹 Экспорт helpers для метаданных
- * ------------------------------------------------------------------------------------------------- */
-/** Получает метаданные для кода ошибки из реестра ERROR_CODE_META. Экспортируется для использования в других слоях. */
-export { getErrorMetaFromCode }
-/* -------------------------------------------------------------------------------------------------
- * 🔹 Специфические конструкторы ошибок по слоям
- * ------------------------------------------------------------------------------------------------- */
-/** Создание ошибки Domain слоя с runtime проверкой layer */
-export const createDomainError = (
-  code: ErrorCode,
-  message: string,
-  metadata?: ErrorMetadata
-): BaseError => {
-  const meta = getErrorMetaFromCode(code)
-  const inferred = inferLayerAndCategoryFromCode(code)
-  const layer = meta?.layer ?? inferred?.layer
-  return layer === ERROR_ORIGIN['DOMAIN']
-    ? createError(code, message, metadata)
-    : ((): never => { throw new Error(`ErrorCode ${code} does not belong to domain layer (actual: ${layer ?? 'unknown'})`) })()
+  let newCauseChain: ErrorCauseChain;
+
+  if (options.prepend === true) {
+    // prepend: добавляем cause в начало, сохраняя всю существующую цепочку
+    newCauseChain = [cause, ...baseError.causeChain];
+  } else {
+    // replace: заменяем непосредственную причину, сохраняя остальную цепочку
+    newCauseChain = [cause, ...baseError.causeChain.slice(1)];
+  }
+
+  // DoS защита: ограничиваем максимальную глубину цепочки причин
+  if (newCauseChain.length > MAX_CAUSE_DEPTH) {
+    currentLogger.warn(
+      `Cause chain depth ${newCauseChain.length} exceeds MAX_CAUSE_DEPTH ${MAX_CAUSE_DEPTH}, truncating chain`,
+    );
+    // Обрезаем цепочку до максимальной глубины
+    const truncatedChain = newCauseChain.slice(0, MAX_CAUSE_DEPTH);
+    return makeBaseErrorWithChain(baseError, truncatedChain);
+  }
+
+  return makeBaseErrorWithChain(baseError, newCauseChain);
 }
-/** Создание ошибки Application слоя с runtime проверкой layer */
-export const createApplicationError = (
-  code: ErrorCode,
-  message: string,
-  metadata?: ErrorMetadata
-): BaseError => {
-  const meta = getErrorMetaFromCode(code)
-  const inferred = inferLayerAndCategoryFromCode(code)
-  const layer = meta?.layer ?? inferred?.layer
-  return layer === ERROR_ORIGIN['APPLICATION']
-    ? createError(code, message, metadata)
-    : ((): never => { throw new Error(`ErrorCode ${code} does not belong to application layer (actual: ${layer ?? 'unknown'})`) })()
+
+/** Создает новый BaseError с новой причиной (deep chain immutability). Полностью immutable - создает новый объект с новой цепочкой причин */
+export function withCause(baseError: BaseError, cause: BaseError): BaseError {
+  return addCause(baseError, cause, { prepend: false });
 }
-/** Создание ошибки Infrastructure слоя с runtime проверкой layer */
-export const createInfrastructureError = (
-  code: ErrorCode,
-  message: string,
-  metadata?: ErrorMetadata
-): BaseError => {
-  const meta = getErrorMetaFromCode(code)
-  const inferred = inferLayerAndCategoryFromCode(code)
-  const layer = meta?.layer ?? inferred?.layer
-  return layer === ERROR_ORIGIN['INFRASTRUCTURE']
-    ? createError(code, message, metadata)
-    : ((): never => { throw new Error(`ErrorCode ${code} does not belong to infrastructure layer (actual: ${layer ?? 'unknown'})`) })()
+
+/** Создает новый BaseError с обновленными метаданными (configurable merge strategies). Полностью immutable - создает новый объект с merged метаданными */
+/** Стратегии слияния метаданных */
+export type MergeStrategy = 'replace' | 'shallowMerge' | 'deepMerge';
+
+export function withMetadata(
+  baseError: BaseError,
+  metadata: Partial<ErrorMetadata>,
+  mergeStrategy: MergeStrategy = 'deepMerge',
+): BaseError {
+  let mergedMetadata: ErrorMetadata;
+
+  if (mergeStrategy === 'replace') {
+    mergedMetadata = { ...baseError.metadata, ...metadata };
+  } else {
+    mergedMetadata = mergeMetadata(baseError.metadata, metadata, mergeStrategy);
+  }
+
+  return {
+    ...baseError,
+    metadata: mergedMetadata,
+  };
 }
-/** Создание ошибки Security слоя с runtime проверкой layer */
-export const createSecurityError = (
-  code: ErrorCode,
-  message: string,
-  metadata?: ErrorMetadata
-): BaseError => {
-  const meta = getErrorMetaFromCode(code)
-  const inferred = inferLayerAndCategoryFromCode(code)
-  const layer = meta?.layer ?? inferred?.layer
-  return layer === ERROR_ORIGIN['SECURITY']
-    ? createError(code, message, metadata)
-    : ((): never => { throw new Error(`ErrorCode ${code} does not belong to security layer (actual: ${layer ?? 'unknown'})`) })()
+
+/** Преобразует в plain object для internal использования. Безопасная сериализация без sensitive data */
+export function asPlainObject(baseError: BaseError): Record<string, unknown> {
+  let result: Record<string, unknown> = {
+    _tag: baseError._tag,
+    code: baseError.code,
+    message: baseError.message,
+    severity: baseError.severity,
+    category: baseError.category,
+    origin: baseError.origin,
+    timestamp: baseError.timestamp,
+    codeMetadata: {
+      code: baseError.codeMetadata.code,
+      description: baseError.codeMetadata.description,
+      severity: baseError.codeMetadata.severity,
+      category: baseError.codeMetadata.category,
+    },
+    metadata: {
+      context: {
+        correlationId: baseError.metadata.context.correlationId,
+        timestamp: baseError.metadata.context.timestamp,
+      },
+    },
+  };
+
+  // Добавляем userContext без sensitive полей
+  if (baseError.metadata.userContext) {
+    const metadataWithUserContext = {
+      ...(result['metadata'] as Record<string, unknown>),
+      userContext: {
+        userId: baseError.metadata.userContext.userId,
+        tenantId: baseError.metadata.userContext.tenantId,
+        sessionId: baseError.metadata.userContext.sessionId,
+        // ipAddress и userAgent - sensitive, не включаем
+      },
+    };
+    result = { ...result, metadata: metadataWithUserContext };
+  }
+
+  // Добавляем causeChain как plain objects
+  if (baseError.causeChain.length > 0) {
+    result = { ...result, causeChain: baseError.causeChain.map(asPlainObject) };
+  }
+
+  return result;
+}
+
+/** Дополнительная sanitization для external использования. Удаляет stack trace и sanitizes custom fields */
+function sanitizeForExternal(plainObject: Record<string, unknown>): Record<string, unknown> {
+  // Удаляем stack trace для external usage (immutable)
+  const withoutStack = Object.fromEntries(
+    Object.entries(plainObject).filter(([key]) => key !== 'stack'),
+  );
+
+  // Sanitize custom fields
+  const metadataValue = withoutStack['metadata'];
+  let metadataResult = metadataValue;
+  if (metadataValue !== undefined && metadataValue !== null && typeof metadataValue === 'object') {
+    const metadata = metadataValue as Record<string, unknown>;
+    const customFieldsValue = metadata['customFields'];
+    if (
+      customFieldsValue !== undefined
+      && customFieldsValue !== null
+      && typeof customFieldsValue === 'object'
+    ) {
+      const customFields = customFieldsValue as Record<string, unknown>;
+      const sanitizedCustomFields = Object.fromEntries(
+        Object.entries(customFields).map(([key, value]) => [
+          key,
+          key.toLowerCase().includes('password')
+            || key.toLowerCase().includes('token')
+            || key.toLowerCase().includes('secret')
+            ? '[REDACTED]'
+            : value,
+        ]),
+      );
+      metadataResult = { ...metadata, customFields: sanitizedCustomFields };
+    }
+  }
+
+  return metadataResult !== metadataValue
+    ? { ...withoutStack, metadata: metadataResult as Record<string, unknown> }
+    : withoutStack;
+}
+
+/** Преобразует в JSON для external сериализации с sanitization. Без sensitive data, отфильтрованные stack traces. Для удобства используйте stringifyExternal() */
+export function toExternalJSON(baseError: BaseError): string {
+  const serializable = toSerializableObject(baseError);
+  return JSON.stringify(serializable);
+}
+
+/**
+ * Полная сериализация BaseError в JSON строку (рекомендуемый способ)
+ * Включает все sanitization: sensitive data removal, stack trace filtering, custom fields sanitization
+ */
+export function stringifyExternal(baseError: BaseError): string {
+  return toExternalJSON(baseError);
+}
+
+/** Возвращает объект, безопасный для сериализации. Включает sanitization sensitive данных (stack traces, custom fields) */
+export function toSerializableObject(baseError: BaseError): Record<string, unknown> {
+  const plain = asPlainObject(baseError);
+  return sanitizeForExternal(plain);
+}
+
+// ==================== CHAIN MANIPULATION ====================
+
+/** Создает новый BaseError с причиной в начале цепочки */
+export function prependCause(baseError: BaseError, cause: BaseError): BaseError {
+  return addCause(baseError, cause, { prepend: true });
+}
+
+/** Создает новый BaseError без причины (корневая ошибка) */
+export function withoutCause(baseError: BaseError): BaseError {
+  return makeBaseErrorWithChain(baseError, []);
+}
+
+/** Создает новый BaseError с полной заменой цепочки причин */
+export function withCauseChain(
+  baseError: BaseError,
+  causeChain: ErrorCauseChain,
+  strict: boolean = false,
+): BaseError {
+  // В strict mode проверяем консистентность цепочки
+  if (strict) {
+    assertValidChain(causeChain);
+    // Если assertValidChain нашла проблемы, она залогирует их
+    // В strict mode мы просто продолжаем выполнение (функциональный подход)
+  }
+
+  // Проверяем circular references в новой цепочке
+  for (const cause of causeChain) {
+    if (hasCircularReference(baseError, cause)) {
+      // Для production-safe behavior возвращаем оригинальную ошибку
+      return baseError;
+    }
+  }
+
+  // DoS защита: ограничиваем максимальную глубину цепочки причин
+  if (causeChain.length > MAX_CAUSE_DEPTH) {
+    currentLogger.warn(
+      `Cause chain depth ${causeChain.length} exceeds MAX_CAUSE_DEPTH ${MAX_CAUSE_DEPTH}, truncating chain`,
+    );
+    const truncatedChain = causeChain.slice(0, MAX_CAUSE_DEPTH);
+    return makeBaseErrorWithChain(baseError, truncatedChain);
+  }
+
+  return makeBaseErrorWithChain(baseError, causeChain);
+}
+
+// ==================== METADATA HELPERS ====================
+
+/** Создает новый BaseError с correlation ID */
+export function withCorrelationId(baseError: BaseError, correlationId: CorrelationId): BaseError {
+  return withMetadata(baseError, {
+    context: {
+      ...baseError.metadata.context,
+      correlationId,
+    },
+  });
+}
+
+/** Создает новый BaseError с user context */
+export function withUserContext(baseError: BaseError, userContext: UserContext): BaseError {
+  return withMetadata(baseError, {
+    userContext,
+  });
+}
+
+// ==================== TAGGED ERROR CONVERSION ====================
+
+/** Преобразует TaggedError в финальный BaseError. Конвертация промежуточных типов в финальные.
+ * @param onInvalidCause - callback для обработки случаев, когда cause не является BaseError
+ */
+export function toBaseError<E, Tag extends string>(
+  taggedError: TaggedError<E, Tag>,
+  codeMetadata: ErrorCodeMetadata,
+  onInvalidCause?: (cause: unknown) => void,
+): BaseError {
+  // Создаем базовую структуру BaseError из TaggedError
+  const baseError: BaseError = {
+    _tag: 'BaseError',
+    code: codeMetadata.code,
+    message: taggedError instanceof Error ? taggedError.message : 'Unknown error',
+    severity: codeMetadata.severity,
+    category: codeMetadata.category,
+    origin: codeMetadata.origin,
+    timestamp: Date.now(),
+    causeChain: [],
+    metadata: {
+      context: {
+        correlationId: `corr_${Date.now()}_${
+          Math.random().toString(base36Radix).substring(
+            CORRELATION_ID_SUBSTRING_START,
+            CORRELATION_ID_SUBSTRING_START + CORRELATION_ID_RANDOM_LENGTH,
+          )
+        }` as CorrelationId,
+        timestamp: createMetadataTimestamp(Date.now()),
+      },
+    },
+    codeMetadata,
+  };
+
+  // Если TaggedError имеет причину, добавляем её (с type-safe проверкой)
+  if ('cause' in taggedError && taggedError.cause !== undefined) {
+    const cause = taggedError.cause;
+
+    // Type guard: проверяем, что cause является BaseError
+    if (isBaseError(cause)) {
+      const errorWithCause = withCause(baseError, cause);
+      // Добавляем stack только если он есть
+      const stack = taggedError instanceof Error ? taggedError.stack : undefined;
+      const result = stack !== undefined ? { ...errorWithCause, stack } : errorWithCause;
+      return attachToJSON(result);
+    } else {
+      // Если cause не является BaseError, вызываем callback для обработки
+      // По умолчанию игнорируем, но caller может логировать или обрабатывать
+      onInvalidCause?.(cause);
+    }
+  }
+
+  // Добавляем stack только если он есть
+  const stack = taggedError instanceof Error ? taggedError.stack : undefined;
+  const result = stack !== undefined ? { ...baseError, stack } : baseError;
+  return attachToJSON(result);
+}
+
+// ==================== TYPE GUARDS ====================
+
+/** Type guard для проверки, что объект является BaseError */
+export function isBaseError(value: unknown): value is BaseError {
+  return (
+    typeof value === 'object'
+    && value !== null
+    && '_tag' in value
+    && (value as Record<string, unknown>)['_tag'] === 'BaseError'
+    && 'code' in value
+    && 'message' in value
+    && 'severity' in value
+    && 'category' in value
+    && 'origin' in value
+    && 'timestamp' in value
+    && 'causeChain' in value
+    && 'metadata' in value
+    && 'codeMetadata' in value
+  );
+}
+
+// ==================== CAUSE/CHAIN CONSISTENCY ====================
+
+/** Helper для добавления toJSON метода к BaseError объектам */
+function attachToJSON(baseError: BaseError): BaseError {
+  return {
+    ...baseError,
+    toJSON: () => toSerializableObject(baseError),
+  } as BaseError;
+}
+
+/** Проверяет консистентность цепочки ошибок (strict mode validation) */
+function assertValidChain(chain: ErrorCauseChain): void {
+  if (chain.length < MIN_CHAIN_LENGTH_FOR_VALIDATION) return;
+
+  // Используем функциональный подход с forEach по парам
+  const chainArray = Array.from(chain);
+  chainArray.slice(0, -1).forEach((current, index) => {
+    const next = chainArray[index + 1];
+    if (!next) return; // TypeScript guard
+
+    // Каждый элемент должен содержать следующий в своей causeChain
+    const nextInCurrentChain = current.causeChain.includes(next);
+    if (!nextInCurrentChain) {
+      currentLogger.error(
+        `Invalid cause chain: BaseError does not contain next BaseError in its causeChain. `
+          + `Chain consistency violated at index ${index}.`,
+      );
+    }
+  });
+}
+
+/** Геттер для cause с гарантией консистентности (cause === causeChain[0] || undefined) */
+export function getCause(baseError: BaseError): BaseError | undefined {
+  // Инвариант: cause всегда должен быть равен causeChain[0] или undefined
+  if (baseError.causeChain.length > 0) {
+    return baseError.causeChain[0];
+  }
+  return undefined;
+}
+
+// ==================== PERFORMANCE OPTIMIZATIONS ====================
+
+/** WeakMap кэш для максимальной severity в цепочке */
+const maxSeverityCache = new WeakMap<BaseError, ErrorSeverity>();
+
+/** Возвращает длину цепочки причин (O(1) операция) */
+export function getChainDepth(baseError: BaseError): number {
+  return baseError.causeChain.length;
+}
+
+/** Memoized evaluation для error severity propagation (lazy evaluation с WeakMap кэшем) */
+export function getMemoizedMaxSeverity(baseError: BaseError): ErrorSeverity {
+  // Проверяем кэш сначала (lazy evaluation)
+  const cached = maxSeverityCache.get(baseError);
+  if (cached !== undefined) {
+    return cached;
+  }
+
+  // Вычисляем максимальную severity в цепочке (expensive operation)
+  const severities = [baseError.severity, ...baseError.causeChain.map((e) => e.severity)];
+  const maxSeverity = severities.reduce((max, current) =>
+    getSeverityWeight(current) > getSeverityWeight(max) ? current : max
+  );
+
+  // Кэшируем результат
+  maxSeverityCache.set(baseError, maxSeverity);
+  return maxSeverity;
+}
+
+// ==================== HELPER FUNCTIONS ====================
+
+/** Проверяет circular references в цепочке ошибок. Использует WeakSet для корректного обнаружения циклов любой глубины */
+function hasCircularReference(baseError: BaseError, potentialCause: BaseError): boolean {
+  // Быстрая проверка: не является ли potentialCause тем же самым объектом
+  if (baseError === potentialCause) {
+    return true;
+  }
+
+  // Алгоритм: используем WeakSet для отслеживания посещенных ошибок
+  // Рекурсивно проходим всю цепочку potentialCause, ищем baseError
+  const visited = new WeakSet<BaseError>();
+
+  function checkChain(error: BaseError): boolean {
+    // Если уже посещали - пропускаем (предотвращает зацикливание в сложных графах)
+    if (visited.has(error)) {
+      return false;
+    }
+
+    visited.add(error);
+
+    // Если нашли baseError в цепочке - будет цикл
+    if (error === baseError) {
+      return true;
+    }
+
+    // Рекурсивно проверяем всю causeChain
+    for (const cause of error.causeChain) {
+      if (checkChain(cause)) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  return checkChain(potentialCause);
+}
+
+/** Deep merge для метаданных с configurable стратегией */
+/** Shallow merge метаданных (1 уровень) */
+/** Универсальная функция merge метаданных с configurable стратегией */
+function mergeMetadata(
+  existing: ErrorMetadata,
+  updates: Partial<ErrorMetadata>,
+  strategy: MergeStrategy = 'deepMerge',
+): ErrorMetadata {
+  const context = updates.context
+    ? { ...existing.context, ...updates.context }
+    : existing.context;
+
+  const userContext = updates.userContext
+    ? { ...existing.userContext, ...updates.userContext }
+    : existing.userContext;
+
+  let customFields = existing.customFields;
+  if (updates.customFields) {
+    if (strategy === 'deepMerge') {
+      customFields = deepMergeCustomFields(existing.customFields, updates.customFields);
+    } else {
+      customFields = { ...existing.customFields, ...updates.customFields };
+    }
+  }
+
+  return { context, userContext, customFields } as ErrorMetadata;
+}
+
+/** Deep merge для custom fields (structuredClone - оптимальная производительность) */
+function deepMergeCustomFields(
+  existing: DeepReadonly<Record<string, unknown>> | undefined,
+  updates: DeepReadonly<Record<string, unknown>>,
+): DeepReadonly<Record<string, unknown>> | undefined {
+  if (!existing) return updates;
+  if (Object.keys(updates).length === 0) return existing;
+
+  // structuredClone доступен в современных средах (Node.js 18+, современные браузеры)
+  if (typeof structuredClone === 'function') {
+    return {
+      ...structuredClone(existing),
+      ...structuredClone(updates),
+    } as DeepReadonly<Record<string, unknown>>;
+  }
+
+  // Fallback для сред без structuredClone (крайне редкий случай)
+  return {
+    ...JSON.parse(JSON.stringify(existing)),
+    ...JSON.parse(JSON.stringify(updates)),
+  } as DeepReadonly<Record<string, unknown>>;
+}
+
+/** Получает вес severity для сравнения */
+function getSeverityWeight(severity: ErrorSeverity): number {
+  switch (severity) {
+    case 'critical':
+      return SEVERITY_WEIGHTS.critical;
+    case 'high':
+      return SEVERITY_WEIGHTS.high;
+    case 'medium':
+      return SEVERITY_WEIGHTS.medium;
+    case 'low':
+      return SEVERITY_WEIGHTS.low;
+  }
 }
