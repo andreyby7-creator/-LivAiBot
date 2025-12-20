@@ -241,8 +241,9 @@ export function analyzeErrorChainMemoized<E extends object>(
   }
 
   // Используем rootError напрямую как ключ WeakMap
-  if (analysisCache.has(rootError)) {
-    return analysisCache.get(rootError)!;
+  const cached = analysisCache.get(rootError);
+  if (cached !== undefined) {
+    return cached;
   }
 
   const result = analyzeErrorChain(rootError, config);
@@ -252,7 +253,7 @@ export function analyzeErrorChainMemoized<E extends object>(
 }
 
 /** Memoized версия traversal цепочки с WeakMap кешированием для больших цепочек */
-const traversalCache = new WeakMap<object, ChainTraversalResult<any>>();
+const traversalCache = new WeakMap<object, ChainTraversalResult<unknown>>();
 
 export function safeTraverseCausesMemoized<E extends object>(
   rootError: E,
@@ -263,8 +264,9 @@ export function safeTraverseCausesMemoized<E extends object>(
   }
 
   // Используем rootError напрямую как ключ WeakMap
-  if (traversalCache.has(rootError)) {
-    return traversalCache.get(rootError)!;
+  const cached = traversalCache.get(rootError);
+  if (cached !== undefined) {
+    return cached as ChainTraversalResult<E>;
   }
 
   const result = safeTraverseCauses(rootError, config);

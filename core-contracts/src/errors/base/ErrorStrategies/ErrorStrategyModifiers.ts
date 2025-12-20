@@ -8,11 +8,12 @@ import { CIRCUIT_BREAKER, RETRY } from './ErrorStrategyTypes.js';
 
 import type { LivAiErrorCode } from '../ErrorCode.js';
 import type { ErrorStrategy, StrategyModifier, StrategyResult } from './ErrorStrategyTypes.js';
+import type { ErrorSeverity } from '../ErrorConstants.js';
 
 // ==================== ALERT TYPES ====================
 
 /** Уровень важности alert сообщения */
-export type AlertLevel = 'info' | 'warning' | 'error' | 'critical';
+export type AlertLevel = ErrorSeverity;
 
 /** Alert сообщение */
 export type AlertMessage = Readonly<{
@@ -63,7 +64,7 @@ export function withAlert(
 ): StrategyModifier<unknown>;
 export function withAlert(
   threshold: number,
-  level: AlertLevel = 'warning',
+  level: AlertLevel = 'medium',
   alertService?: Effect.Effect<AlertService, never, never>,
 ): StrategyModifier<unknown> {
   return (strategy: ErrorStrategy<unknown>) => ({
@@ -176,10 +177,10 @@ export const makeConsoleAlertService = Effect.succeed<AlertService>({
 
       switch (alert.level) {
         case 'critical':
-        case 'error':
+        case 'high':
           console.error(message, alert);
           break;
-        case 'warning':
+        case 'medium':
           console.warn(message, alert);
           break;
         default:

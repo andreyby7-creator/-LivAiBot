@@ -15,12 +15,12 @@ import type { Context } from 'effect';
  * Correlation ID для tracing distributed операций
  * Уникальный идентификатор для связывания всех операций в цепочке
  */
-export type CorrelationId = string & { readonly __brand: 'CorrelationId' };
+export type CorrelationId = string & { readonly __brand: 'CorrelationId'; };
 
 /**
  * Timestamp с гарантией monotonicности для deterministic генерации
  */
-export type MetadataTimestamp = number & { readonly __brand: 'MetadataTimestamp' };
+export type MetadataTimestamp = number & { readonly __brand: 'MetadataTimestamp'; };
 
 /**
  * Базовый контекст метаданных ошибки
@@ -94,7 +94,7 @@ export interface MetadataMergeResult {
 export function mergeMetadata(
   primary: Readonly<ErrorMetadataContext>,
   secondary: Readonly<ErrorMetadataContext>,
-  strategy: MetadataMergeStrategy = 'merge-contexts'
+  strategy: MetadataMergeStrategy = 'merge-contexts',
 ): MetadataMergeResult {
   switch (strategy) {
     case 'first-wins':
@@ -105,10 +105,12 @@ export function mergeMetadata(
       return { merged: primary, strategy, conflicts: [] } as const;
     case 'merge-contexts':
     default: {
-      const conflicts =
-        primary.correlationId !== secondary.correlationId ? ['correlationId conflict'] : [];
-      const latestTimestamp =
-        primary.timestamp > secondary.timestamp ? primary.timestamp : secondary.timestamp;
+      const conflicts = primary.correlationId !== secondary.correlationId
+        ? ['correlationId conflict']
+        : [];
+      const latestTimestamp = primary.timestamp > secondary.timestamp
+        ? primary.timestamp
+        : secondary.timestamp;
       const mergedContext = mergeDomainContexts(primary.context, secondary.context);
 
       return {
@@ -129,7 +131,7 @@ export function mergeMetadata(
  */
 function mergeDomainContexts(
   primary?: Readonly<ErrorMetadataDomainContext>,
-  secondary?: Readonly<ErrorMetadataDomainContext>
+  secondary?: Readonly<ErrorMetadataDomainContext>,
 ): ErrorMetadataDomainContext | undefined {
   if (!primary && !secondary) return undefined;
   if (!primary) return secondary;
@@ -242,7 +244,7 @@ export interface ErrorMetadataWithTracing extends ErrorMetadataContext {
  * Валидирует метаданные на корректность
  */
 export function validateMetadata(
-  metadata: Readonly<ErrorMetadataContext>
+  metadata: Readonly<ErrorMetadataContext>,
 ): MetadataValidationResult {
   let errors: readonly string[] = [];
   let warnings: readonly string[] = [];
@@ -275,43 +277,57 @@ export function validateMetadata(
  * Валидирует domain context
  */
 function validateDomainContext(
-  context: Readonly<ErrorMetadataDomainContext>
+  context: Readonly<ErrorMetadataDomainContext>,
 ): MetadataValidationResult {
-  const validators: Record<DomainContextType, (ctx: any) => readonly string[]> = {
-    user: (ctx: UserContext) => [!ctx.userId.trim() ? 'userId required' : ''].filter(err => err),
+  const validators: Record<
+    DomainContextType,
+    (ctx: ErrorMetadataDomainContext) => readonly string[]
+  > = {
+    user: (ctx) => {
+      if (ctx.type !== 'user') return [];
+      return [!ctx.userId.trim() ? 'userId required' : ''].filter((err) => err);
+    },
 
-    bot: (ctx: BotContext) =>
-      [
+    bot: (ctx) => {
+      if (ctx.type !== 'bot') return [];
+      return [
         !ctx.botId.trim() ? 'botId required' : '',
         !['assistant', 'moderator', 'analyzer', 'executor'].includes(ctx.botType)
           ? 'invalid botType'
           : '',
-      ].filter(err => err),
+      ].filter((err) => err);
+    },
 
-    integration: (ctx: IntegrationContext) =>
-      [
+    integration: (ctx) => {
+      if (ctx.type !== 'integration') return [];
+      return [
         !ctx.integrationId.trim() ? 'integrationId required' : '',
         !['api', 'webhook', 'database', 'queue', 'external-service'].includes(ctx.integrationType)
           ? 'invalid integrationType'
           : '',
-      ].filter(err => err),
+      ].filter((err) => err);
+    },
 
-    aiProcessing: (ctx: AIProcessingContext) =>
-      [
+    aiProcessing: (ctx) => {
+      if (ctx.type !== 'aiProcessing') return [];
+      return [
         !ctx.modelId.trim() ? 'modelId required' : '',
         !['text-generation', 'image-processing', 'data-analysis', 'classification'].includes(
-          ctx.processingType
-        )
+            ctx.processingType,
+          )
           ? 'invalid processingType'
           : '',
-      ].filter(err => err),
+      ].filter((err) => err);
+    },
 
-    admin: (ctx: AdminContext) =>
-      [
+    admin: (ctx) => {
+      if (ctx.type !== 'admin') return [];
+      return [
         !ctx.adminId.trim() ? 'adminId required' : '',
         !['super-admin', 'admin', 'moderator', 'auditor'].includes(ctx.role) ? 'invalid role' : '',
         !ctx.action.trim() ? 'action required' : '',
-      ].filter(err => err),
+      ].filter((err) => err);
+    },
   };
 
   const validator = validators[context.type];
@@ -329,7 +345,7 @@ function validateDomainContext(
  */
 export function withTracing(
   metadata: ErrorMetadataContext,
-  tracing: TracingMetadata
+  tracing: TracingMetadata,
 ): ErrorMetadataWithTracing {
   return {
     ...metadata,

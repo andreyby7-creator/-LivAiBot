@@ -396,7 +396,7 @@ errors/
 - **🛠️ Стек**: TypeScript + Effect/OpenTelemetry
   Обязательно русские: @file и компактные jsdoc
 
-**BaseError.ts** ✅
+**BaseError.ts** ✅ **ГОТОВ К ПРОДАКШЕНУ**
 
 - **Содержимое**: Enterprise-grade discriminated union тип ошибки LivAiBot с максимальной safety и performance optimizations. Чистый immutable тип с deep immutability guarantee. Методы: `withCause()` (deep chain immutability), `withMetadata()` (configurable merge strategies), `asPlainObject()` (internal use), `toJSON()` (external serialization with sanitization). Chain manipulation: `prependCause()`, `withoutCause()`, `withCauseChain()`. Metadata helpers: `withCorrelationId()`, `withUserContext()`. Performance: lazy evaluation для complex chains, circular reference protection.
 - **Зависимости**: BaseErrorTypes.ts, ErrorCode.ts, ErrorConstants.ts, ErrorCodeMeta.ts, ErrorCodeMetaData.ts, ErrorMetadata.ts (ТОЛЬКО типы, 6 зависимостей)
@@ -412,15 +412,13 @@ errors/
 
 **index.ts**
 
-- **Содержимое**: Versioned selective exports ядра системы ошибок LivAiBot. Экспортирует ТОЛЬКО публичный API: 5 групп (Types, Builders, Utils, Validators, Strategies). НЕ экспортирует внутренние модули (ErrorCode, ErrorConstants, ErrorCodeMeta, etc.). Versioned API для backward compatibility.
+- **Содержимое**: Selective exports ядра системы ошибок LivAiBot. Экспортирует ТОЛЬКО публичный API: 5 групп (Types, Builders, Utils, Validators, Strategies). НЕ экспортирует внутренние модули (ErrorCode, ErrorConstants, ErrorCodeMeta, etc.).
 - **Зависимости**: BaseError.ts (ТОЛЬКО публичные типы), ErrorBuilders.ts, ErrorUtilsCore.ts, ErrorTransformers.ts, ErrorValidators.ts, ErrorStrategies.ts
 - **Используется в**: shared layer, сервисах, контрактах, extensions
 - **🔧 Selective exports**: `export * as Types from './BaseError'`, `export * as Builders from './ErrorBuilders'`, `export * as Utils from './ErrorUtilsCore'`, etc. - контролируемый API без внутренних деталей
-- **🔧 Versioning**: `export * as v2 from './current'`, `export * as v1 from './v1'`, `export * as latest from './current'`
-- **🔧 Migration helpers**: `export { migrateErrorV1toV2 } from './migrations'`
 - **🔧 НЕ экспортируется**: ErrorCode.ts, ErrorConstants.ts, ErrorCodeMeta.ts, ErrorCodeMetaData.ts, ErrorMetadata.ts, ErrorMetrics.ts, ErrorInstrumentation.ts (internal/implementation)
-- **🔧 Developer guidance**: JSDoc с usage examples, но без перегрузки файла. Отдельная документация в /docs
-- **🔧 API stability**: Semantic versioning для публичных exports, clear migration guides, deprecation warnings
+- **🔧 Developer guidance**: Отдельная документация в /docs. Минимальные JSDoc комментарии для каждой группы.
+- **🔧 API stability**: Semantic versioning для публичных exports. Versioning и migration helpers будут добавлены при необходимости в будущем.
 - **🛠️ Стек**: TypeScript
   Обязательно русские: @file и компактные jsdoc
 

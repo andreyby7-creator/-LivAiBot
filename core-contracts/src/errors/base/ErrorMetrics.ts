@@ -10,6 +10,8 @@
 
 import { Context, Effect } from 'effect';
 
+import type { ErrorSeverity } from './ErrorConstants.js';
+
 // ==================== ТИПЫ МЕТРИК ====================
 
 /** Базовый интерфейс метрик системы */
@@ -66,7 +68,7 @@ export const METRIC_NAMES = {
  */
 export function incrementErrorCounter(
   errorType: string,
-  severity: 'low' | 'medium' | 'high' | 'critical' = 'medium',
+  severity: ErrorSeverity = 'medium',
   additionalLabels?: Record<string, string | number>,
 ): Effect.Effect<void, never, MetricsSystemTag> {
   return Effect.flatMap(MetricsSystemTag, (metrics) =>

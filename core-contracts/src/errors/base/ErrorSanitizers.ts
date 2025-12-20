@@ -60,7 +60,7 @@ const SENSITIVE_PATTERNS = [
 function isSensitiveField(fieldName: string, customSensitiveFields?: readonly string[]): boolean {
   const safeCustomFields = customSensitiveFields ?? [];
   const allPatterns = [...SENSITIVE_PATTERNS, ...safeCustomFields];
-  return allPatterns.some(pattern => {
+  return allPatterns.some((pattern) => {
     if (typeof pattern === 'string') {
       return fieldName.includes(pattern);
     }
@@ -144,7 +144,7 @@ export const DEFAULT_SANITIZATION_CONFIGS = {
  */
 export function sanitizeError(
   error: unknown,
-  config: SanitizationConfig = DEFAULT_SANITIZATION_CONFIGS.production
+  config: SanitizationConfig = DEFAULT_SANITIZATION_CONFIGS.production,
 ): SanitizationResult<unknown> {
   if (error === null || error === undefined || typeof error !== 'object') {
     return { sanitized: error, removedFields: [], sanitizationLevel: config.level };
@@ -194,7 +194,7 @@ export function sanitizeError(
  */
 export function sanitizeStackTrace(
   stackTrace: string | undefined,
-  config: SanitizationConfig = DEFAULT_SANITIZATION_CONFIGS.production
+  config: SanitizationConfig = DEFAULT_SANITIZATION_CONFIGS.production,
 ): string | undefined {
   if (stackTrace == null || stackTrace === '' || !config.removeInternalPaths) {
     return stackTrace;
@@ -226,7 +226,7 @@ export function sanitizeStackTrace(
  */
 export function sanitizeContext(
   context: ErrorMetadataContext | undefined,
-  config: SanitizationConfig = DEFAULT_SANITIZATION_CONFIGS.production
+  config: SanitizationConfig = DEFAULT_SANITIZATION_CONFIGS.production,
 ): ErrorMetadataContext | undefined {
   if (!context || !config.removeSensitiveContext) {
     return context;
@@ -245,7 +245,7 @@ export function sanitizeContext(
  */
 function sanitizeDomainContext(
   domainContext: ErrorMetadataDomainContext,
-  config: SanitizationConfig
+  config: SanitizationConfig,
 ): ErrorMetadataDomainContext {
   // Для всех типов контекста применяем generic sanitization
   const sanitized = { ...domainContext } as Record<string, unknown>;
@@ -260,10 +260,10 @@ function sanitizeDomainContext(
       }
 
       if (
-        value !== null &&
-        value !== undefined &&
-        typeof value === 'object' &&
-        !Array.isArray(value)
+        value !== null
+        && value !== undefined
+        && typeof value === 'object'
+        && !Array.isArray(value)
       ) {
         // Рекурсивная очистка вложенных объектов
         return { ...acc, [key]: sanitizeNestedObject(value as Record<string, unknown>, config) };
@@ -272,7 +272,7 @@ function sanitizeDomainContext(
       // Копируем обычные поля
       return { ...acc, [key]: value };
     },
-    {} as Record<string, unknown>
+    {} as Record<string, unknown>,
   );
 
   return finalSanitized as unknown as ErrorMetadataDomainContext;
@@ -283,7 +283,7 @@ function sanitizeDomainContext(
  */
 function sanitizeNestedObject(
   obj: Record<string, unknown>,
-  config: SanitizationConfig
+  config: SanitizationConfig,
 ): Record<string, unknown> {
   return Object.entries(obj).reduce(
     (acc, [key, value]) => {
@@ -296,7 +296,7 @@ function sanitizeNestedObject(
       // Копируем обычные поля
       return { ...acc, [key]: value };
     },
-    {} as Record<string, unknown>
+    {} as Record<string, unknown>,
   );
 }
 
@@ -308,7 +308,7 @@ function sanitizeNestedObject(
 export function sanitizeErrorWithLevel(
   error: unknown,
   level: SanitizationLevel,
-  overrides?: Partial<Omit<SanitizationConfig, 'level'>>
+  overrides?: Partial<Omit<SanitizationConfig, 'level'>>,
 ): SanitizationResult<unknown> {
   let baseConfig: SanitizationConfig;
   switch (level) {

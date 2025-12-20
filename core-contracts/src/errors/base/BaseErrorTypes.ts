@@ -61,7 +61,7 @@ export type ExhaustiveMatcher<E, A> =
  */
 export type PatternMap<E, A> = E extends TaggedError<unknown, string> ?
     & {
-      readonly [Tag in E["_tag"]]?: (value: Extract<E, { _tag: Tag }>) => A;
+      readonly [Tag in E['_tag']]?: (value: Extract<E, { _tag: Tag; }>) => A;
     }
     & {
       readonly default?: (value: E) => A;
@@ -100,7 +100,7 @@ export type IntegrationError<T extends string> = TaggedError<{
   readonly service: T;
   readonly operation: string;
   readonly details: Record<string, unknown>;
-}, "IntegrationError">;
+}, 'IntegrationError'>;
 
 /**
  * Ошибка обработки ИИ/ML операций
@@ -108,9 +108,9 @@ export type IntegrationError<T extends string> = TaggedError<{
  */
 export type AIProcessingError = TaggedError<{
   readonly model: string;
-  readonly operation: "inference" | "training" | "validation";
+  readonly operation: 'inference' | 'training' | 'validation';
   readonly input: unknown;
-}, "AIProcessingError">;
+}, 'AIProcessingError'>;
 
 /**
  * Ошибка контекста пользователя
@@ -120,7 +120,7 @@ export type UserContextError = TaggedError<{
   readonly userId: string;
   readonly operation: string;
   readonly context: Record<string, unknown>;
-}, "UserContextError">;
+}, 'UserContextError'>;
 
 /**
  * Ошибка административных операций
@@ -131,18 +131,18 @@ export type AdminOperationError = TaggedError<{
   readonly operation: string;
   readonly target: string;
   readonly permissions: readonly string[];
-}, "AdminOperationError">;
+}, 'AdminOperationError'>;
 
 /**
  * Ошибка мобильной платформы
  * Специфична для iOS/Android приложений с учетом версий и устройств
  */
 export type MobilePlatformError = TaggedError<{
-  readonly platform: "ios" | "android";
+  readonly platform: 'ios' | 'android';
   readonly version: string;
   readonly device: string;
   readonly operation: string;
-}, "MobilePlatformError">;
+}, 'MobilePlatformError'>;
 
 /**
  * Проверяет, является ли объект tagged error с указанным тегом
@@ -155,10 +155,10 @@ export function isTaggedError<T extends string>(
   tag: T,
 ): value is TaggedError<unknown, T> {
   return (
-    typeof value === "object"
+    typeof value === 'object'
     && value !== null
-    && "_tag" in value
-    && (value as Record<string, unknown>)["_tag"] === tag
+    && '_tag' in value
+    && (value as Record<string, unknown>)['_tag'] === tag
   );
 }
 
@@ -170,7 +170,7 @@ export function isTaggedError<T extends string>(
 export function isIntegrationError(
   value: unknown,
 ): value is IntegrationError<string> {
-  return isTaggedError(value, "IntegrationError");
+  return isTaggedError(value, 'IntegrationError');
 }
 
 /**
@@ -181,7 +181,7 @@ export function isIntegrationError(
 export function isAIProcessingError(
   value: unknown,
 ): value is AIProcessingError {
-  return isTaggedError(value, "AIProcessingError");
+  return isTaggedError(value, 'AIProcessingError');
 }
 
 /**
@@ -192,7 +192,7 @@ export function isAIProcessingError(
 export function isUserContextError(
   value: unknown,
 ): value is UserContextError {
-  return isTaggedError(value, "UserContextError");
+  return isTaggedError(value, 'UserContextError');
 }
 
 /**
@@ -203,7 +203,7 @@ export function isUserContextError(
 export function isAdminOperationError(
   value: unknown,
 ): value is AdminOperationError {
-  return isTaggedError(value, "AdminOperationError");
+  return isTaggedError(value, 'AdminOperationError');
 }
 
 /**
@@ -214,7 +214,7 @@ export function isAdminOperationError(
 export function isMobilePlatformError(
   value: unknown,
 ): value is MobilePlatformError {
-  return isTaggedError(value, "MobilePlatformError");
+  return isTaggedError(value, 'MobilePlatformError');
 }
 
 /**

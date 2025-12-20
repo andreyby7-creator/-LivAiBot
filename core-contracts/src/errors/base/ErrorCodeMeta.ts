@@ -8,8 +8,8 @@
 
 // ==================== ИМПОРТЫ ====================
 
-import type { ErrorCode } from "./ErrorCode.js";
-import type { ErrorCategory, ErrorOrigin, ErrorSeverity } from "./ErrorConstants.js";
+import type { ErrorCode } from './ErrorCode.js';
+import type { ErrorCategory, ErrorOrigin, ErrorSeverity } from './ErrorConstants.js';
 
 // ==================== ОСНОВНЫЕ ТИПЫ МЕТАДАННЫХ ====================
 
@@ -95,10 +95,10 @@ export type ErrorCodeGroupMetadata = {
  * Упрощает создание фабрик и обеспечивает консистентность
  */
 export const DEFAULT_SEVERITY_BY_CATEGORY: Record<ErrorCategory, ErrorSeverity> = {
-  BUSINESS: "WARNING" as const,
-  TECHNICAL: "ERROR" as const,
-  SECURITY: "CRITICAL" as const,
-  PERFORMANCE: "WARNING" as const,
+  BUSINESS: 'medium' as const,
+  TECHNICAL: 'high' as const,
+  SECURITY: 'critical' as const,
+  PERFORMANCE: 'medium' as const,
 } as const;
 
 /**
@@ -106,23 +106,24 @@ export const DEFAULT_SEVERITY_BY_CATEGORY: Record<ErrorCategory, ErrorSeverity> 
  * Определяет наиболее вероятный источник ошибки по категории
  */
 export const DEFAULT_ORIGIN_BY_CATEGORY: Record<ErrorCategory, ErrorOrigin> = {
-  BUSINESS: "DOMAIN" as const,
-  TECHNICAL: "INFRASTRUCTURE" as const,
-  SECURITY: "DOMAIN" as const,
-  PERFORMANCE: "INFRASTRUCTURE" as const,
+  BUSINESS: 'DOMAIN' as const,
+  TECHNICAL: 'INFRASTRUCTURE' as const,
+  SECURITY: 'DOMAIN' as const,
+  PERFORMANCE: 'INFRASTRUCTURE' as const,
 } as const;
 
 /**
  * Default metadata для быстрого создания error code metadata
  * Содержит наиболее распространенные значения
  */
-export const DEFAULT_ERROR_CODE_METADATA: Omit<ExtendedErrorCodeMetadata, "code" | "description"> = {
-  severity: "ERROR" as const,
-  category: "TECHNICAL" as const,
-  origin: "INFRASTRUCTURE" as const,
-  loggable: true,
-  userVisible: false,
-} as const;
+export const DEFAULT_ERROR_CODE_METADATA: Omit<ExtendedErrorCodeMetadata, 'code' | 'description'> =
+  {
+    severity: 'high' as const,
+    category: 'TECHNICAL' as const,
+    origin: 'INFRASTRUCTURE' as const,
+    loggable: true,
+    userVisible: false,
+  } as const;
 
 // ==================== UTILITY ТИПЫ ====================
 

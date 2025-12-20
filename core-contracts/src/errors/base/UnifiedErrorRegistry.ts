@@ -117,10 +117,10 @@ class UnifiedErrorRegistryImpl implements UnifiedErrorRegistry {
               metadata,
             },
           }),
-          cache
+          cache,
         );
       },
-      {} as Record<string, RegistryLookupResult>
+      {} as Record<string, RegistryLookupResult>,
     );
   }
 
@@ -190,7 +190,7 @@ class UnifiedErrorRegistryImpl implements UnifiedErrorRegistry {
  */
 export function createNamespacedErrorCode(
   namespace: ErrorNamespace,
-  code: ErrorCode
+  code: ErrorCode,
 ): NamespacedErrorCode {
   return {
     namespace,
@@ -213,11 +213,11 @@ export function parseNamespacedErrorCode(fullCode: string): NamespacedErrorCode 
   const code = parts[1];
 
   if (
-    namespace === undefined ||
-    namespace === '' ||
-    code === undefined ||
-    code === '' ||
-    !isValidErrorNamespace(namespace)
+    namespace === undefined
+    || namespace === ''
+    || code === undefined
+    || code === ''
+    || !isValidErrorNamespace(namespace)
   ) {
     return null;
   }
@@ -230,7 +230,7 @@ export function parseNamespacedErrorCode(fullCode: string): NamespacedErrorCode 
  */
 export function isValidErrorNamespace(namespace: string): namespace is ErrorNamespace {
   return ['BASE', 'SHARED', 'SERVICES', 'CONTRACTS', 'EXTENSIONS'].includes(
-    namespace as ErrorNamespace
+    namespace as ErrorNamespace,
   );
 }
 
@@ -251,7 +251,7 @@ export function createEmptyRegistry(): UnifiedErrorRegistry {
  * Создает registry с начальными данными
  */
 export function createRegistry(
-  initialData: Partial<UnifiedErrorRegistry> = {}
+  initialData: Partial<UnifiedErrorRegistry> = {},
 ): UnifiedErrorRegistry {
   return {
     base: { ...initialData.base },
@@ -266,7 +266,7 @@ export function createRegistry(
  * Создает registry instance с pre-compiled cache
  */
 export function createRegistryInstance(
-  initialData: Partial<UnifiedErrorRegistry> = {}
+  initialData: Partial<UnifiedErrorRegistry> = {},
 ): UnifiedErrorRegistryImpl {
   const registry = createRegistry(initialData);
   return new UnifiedErrorRegistryImpl(registry);

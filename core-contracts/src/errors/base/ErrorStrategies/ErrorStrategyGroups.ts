@@ -150,7 +150,7 @@ export const GROUP_STRATEGIES: readonly ErrorCodeGroup[] = [
     'Ошибки аутентификации пользователей',
     DOMAIN_AUTH_CODES,
     LOG_AND_RETURN_STRATEGY,
-    [withRetry(RETRY.DEFAULT_MAX), withAlert(ALERT_THRESHOLDS.DEFAULT, 'warning')],
+    [withRetry(RETRY.DEFAULT_MAX), withAlert(ALERT_THRESHOLDS.DEFAULT, 'medium')],
   ),
   createGroupStrategy(
     'DOMAIN_USER',
@@ -178,7 +178,7 @@ export const GROUP_STRATEGIES: readonly ErrorCodeGroup[] = [
     'Ошибки токенов и авторизации',
     DOMAIN_TOKEN_CODES,
     LOG_AND_RETURN_STRATEGY,
-    [withRetry(RETRY.MEDIUM), withAlert(ALERT_THRESHOLDS.MEDIUM, 'warning')],
+    [withRetry(RETRY.MEDIUM), withAlert(ALERT_THRESHOLDS.MEDIUM, 'medium')],
   ),
   createGroupStrategy(
     'DOMAIN_INTEGRATION',
@@ -228,7 +228,7 @@ export const GROUP_STRATEGIES: readonly ErrorCodeGroup[] = [
     'Ошибки биллинга и платежей',
     SERVICE_BILLING_CODES,
     LOG_AND_RETURN_STRATEGY,
-    [withRetry(RETRY.DEFAULT_MAX), withAlert(CIRCUIT_BREAKER.DEFAULT_THRESHOLD, 'error')],
+    [withRetry(RETRY.DEFAULT_MAX), withAlert(CIRCUIT_BREAKER.DEFAULT_THRESHOLD, 'high')],
   ),
   createGroupStrategy(
     'SERVICE_MOBILE',
@@ -265,20 +265,20 @@ export const GROUP_STRATEGIES: readonly ErrorCodeGroup[] = [
     'Ошибки финансового администрирования',
     ADMIN_FINANCE_CODES,
     LOG_AND_RETURN_STRATEGY,
-    [withRetry(RETRY.LOW), withAlert(ALERT_THRESHOLDS.DEFAULT, 'error')],
+    [withRetry(RETRY.LOW), withAlert(ALERT_THRESHOLDS.DEFAULT, 'high')],
   ),
   createGroupStrategy(
     'ADMIN_AUDIT',
     'Ошибки системы аудита',
     ADMIN_AUDIT_CODES,
     LOG_AND_RETURN_STRATEGY,
-    [withAlert(ALERT_THRESHOLDS.MEDIUM, 'warning')],
+    [withAlert(ALERT_THRESHOLDS.MEDIUM, 'medium')],
   ),
   createGroupStrategy(
     'ADMIN_INTEGRATION',
     'Ошибки администрирования интеграций',
     ADMIN_INTEGRATION_CODES,
     LOG_AND_RETURN_STRATEGY,
-    [withRetry(RETRY.MEDIUM), withAlert(ALERT_THRESHOLDS.LOW, 'info')],
+    [withRetry(RETRY.MEDIUM), withAlert(ALERT_THRESHOLDS.LOW, 'low')],
   ),
 ] as const;

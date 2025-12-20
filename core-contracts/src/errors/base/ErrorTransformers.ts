@@ -14,6 +14,7 @@ import { Effect } from 'effect';
 import { mergeMetadata } from './ErrorMetadata.js';
 
 import type { ErrorChain } from './BaseErrorTypes.js';
+import type { ErrorSeverity } from './ErrorConstants.js';
 import type { ErrorMetadataContext } from './ErrorMetadata.js';
 import type { ChainTraversalResult } from './ErrorUtilsCore.js';
 
@@ -24,7 +25,7 @@ export type ErrorLike = {
   readonly message?: string;
   readonly cause?: ErrorChain<ErrorLike>;
   readonly metadata?: ErrorMetadataContext;
-  readonly severity?: 'low' | 'medium' | 'high' | 'critical';
+  readonly severity?: ErrorSeverity;
 };
 
 /** Функция-маппер для трансформации ошибок */
@@ -59,8 +60,14 @@ export const ERROR_AGGREGATION_STRATEGIES = {
   /** Ошибка с наивысшей severity */
   bySeverity: (): ErrorAggregationStrategy<ErrorLike> => ({
     name: 'bySeverity',
-    aggregator: (errors) => {
-      const severityOrder = { low: 0, medium: 1, high: 2, critical: 3 };
+    aggregator: (errors): ErrorLike => {
+      if (errors.length === 0) return {} as ErrorLike;
+      const severityOrder: Record<ErrorSeverity, number> = {
+        low: 0,
+        medium: 1,
+        high: 2,
+        critical: 3,
+      };
       return errors.reduce((highest, current) => {
         const currentSeverity = severityOrder[current.severity ?? 'low'];
         const highestSeverity = severityOrder[highest.severity ?? 'low'];
@@ -129,14 +136,55 @@ export function aggregateErrors(
   errors: readonly ErrorLike[],
   strategy: ErrorAggregationStrategy<ErrorLike>,
 ): ErrorLike {
-  if (errors.length === 0) {
-    throw new Error('Cannot aggregate empty error array');
-  }
-
   return strategy.aggregator(errors);
 }
 
 // ==================== ЦЕПОЧКИ ОШИБОК ====================
+
+/**
+ * Вычисляет объединенные метаданные из массива ошибок с chunked processing для производительности
+ */
+function getMergedMetadata(
+  allErrors: readonly ErrorLike[],
+  primaryMetadata: ErrorMetadataContext | undefined,
+): ErrorMetadataContext | undefined {
+  const CHUNK_SIZE = 1000;
+
+  if (allErrors.length <= CHUNK_SIZE) {
+    // Для маленьких цепочек - обычный reduce
+    return allErrors.reduce((mergedMeta: ErrorMetadataContext | undefined, error) => {
+      if (!error.metadata) return mergedMeta;
+      if (!mergedMeta) return error.metadata;
+
+      const mergeResult = mergeMetadata(mergedMeta, error.metadata, 'merge-contexts');
+      return mergeResult.merged;
+    }, primaryMetadata);
+  } else {
+    // Для больших цепочек - chunked processing
+    const chunks = Array.from(
+      { length: Math.ceil(allErrors.length / CHUNK_SIZE) },
+      (_, chunkIndex) => {
+        const start = chunkIndex * CHUNK_SIZE;
+        const chunk = allErrors.slice(start, start + CHUNK_SIZE);
+        return chunk.reduce((mergedMeta: ErrorMetadataContext | undefined, error) => {
+          if (!error.metadata) return mergedMeta;
+          if (!mergedMeta) return error.metadata;
+
+          const mergeResult = mergeMetadata(mergedMeta, error.metadata, 'merge-contexts');
+          return mergeResult.merged;
+        }, undefined as ErrorMetadataContext | undefined);
+      },
+    ).filter((chunkMetadata): chunkMetadata is ErrorMetadataContext => chunkMetadata !== undefined);
+
+    // Merge всех chunk результатов
+    return chunks.reduce((mergedMeta, chunkMeta) => {
+      if (!mergedMeta) return chunkMeta;
+
+      const mergeResult = mergeMetadata(mergedMeta, chunkMeta, 'merge-contexts');
+      return mergeResult.merged;
+    }, primaryMetadata);
+  }
+}
 
 /** Объединение нескольких цепочек ошибок в одну с intelligent metadata merging */
 export function chainErrors(
@@ -144,7 +192,12 @@ export function chainErrors(
   primaryStrategy: ErrorAggregationStrategy<ErrorLike> = ERROR_AGGREGATION_STRATEGIES.first(),
 ): ChainTraversalResult<ErrorLike> {
   if (errorChains.length === 0) {
-    throw new Error('Cannot chain empty error chains array');
+    return {
+      chain: [],
+      hasCycles: false,
+      maxDepth: 0,
+      truncated: false,
+    };
   }
 
   // Собираем все ошибки из всех цепочек
@@ -161,45 +214,7 @@ export function chainErrors(
   const primaryError = primaryStrategy.aggregator(allErrors);
 
   // Intelligent metadata merging: объединяем metadata из всех ошибок (chunked для больших цепочек)
-  const CHUNK_SIZE = 1000;
-  const mergedMetadata = (() => {
-    if (allErrors.length <= CHUNK_SIZE) {
-      // Для маленьких цепочек - обычный reduce
-      return allErrors.reduce((mergedMeta: ErrorMetadataContext | undefined, error) => {
-        if (!error.metadata) return mergedMeta;
-        if (!mergedMeta) return error.metadata;
-
-        const mergeResult = mergeMetadata(mergedMeta, error.metadata, 'merge-contexts');
-        return mergeResult.merged;
-      }, primaryError.metadata);
-    } else {
-      // Для больших цепочек - chunked processing
-      const chunks = Array.from(
-        { length: Math.ceil(allErrors.length / CHUNK_SIZE) },
-        (_, chunkIndex) => {
-          const start = chunkIndex * CHUNK_SIZE;
-          const chunk = allErrors.slice(start, start + CHUNK_SIZE);
-          return chunk.reduce((mergedMeta: ErrorMetadataContext | undefined, error) => {
-            if (!error.metadata) return mergedMeta;
-            if (!mergedMeta) return error.metadata;
-
-            const mergeResult = mergeMetadata(mergedMeta, error.metadata, 'merge-contexts');
-            return mergeResult.merged;
-          }, undefined as ErrorMetadataContext | undefined);
-        },
-      ).filter((chunkMetadata): chunkMetadata is ErrorMetadataContext =>
-        chunkMetadata !== undefined
-      );
-
-      // Merge всех chunk результатов
-      return chunks.reduce((mergedMeta, chunkMeta) => {
-        if (!mergedMeta) return chunkMeta;
-
-        const mergeResult = mergeMetadata(mergedMeta, chunkMeta, 'merge-contexts');
-        return mergeResult.merged;
-      }, primaryError.metadata);
-    }
-  })();
+  const mergedMetadata = getMergedMetadata(allErrors, primaryError.metadata);
 
   const mergedError: ErrorLike = {
     ...primaryError,
@@ -222,16 +237,7 @@ export function transformErrorChain<E, F>(
   const transformedChain = chainResult.chain.map(transformer);
 
   // Пытаемся выполнить трансформацию и собираем ошибки
-  const errorsEncountered = (() => {
-    try {
-      for (const error of chainResult.chain) {
-        transformer(error); // Проверяем, что трансформер работает
-      }
-      return [];
-    } catch (error) {
-      return [String(error)];
-    }
-  })();
+  const errorsEncountered = getErrorsEncountered(chainResult, transformer);
 
   return {
     originalChain: chainResult,
@@ -306,6 +312,23 @@ export function transformErrorChainEffect<E, F>(
   );
 }
 
+/**
+ * Выполняет тестовую трансформацию цепочки ошибок и собирает ошибки трансформации
+ */
+function getErrorsEncountered<E, F>(
+  chainResult: ChainTraversalResult<E>,
+  transformer: ErrorMapper<E, F>,
+): readonly string[] {
+  try {
+    for (const error of chainResult.chain) {
+      transformer(error); // Проверяем, что трансформер работает
+    }
+    return [];
+  } catch (error) {
+    return [String(error)];
+  }
+}
+
 // ==================== UTILITY FUNCTIONS ====================
 
 /** Создание кастомной стратегии агрегации */
@@ -323,7 +346,7 @@ export function combineAggregationStrategies(
 ): ErrorAggregationStrategy<ErrorLike> {
   return {
     name: `combined(${strategies.map((s) => s.name).join(',')})`,
-    aggregator: (errors) => {
+    aggregator: (errors): ErrorLike => {
       const results = strategies.map((strategy) => strategy.aggregator(errors));
       return combiner(results);
     },

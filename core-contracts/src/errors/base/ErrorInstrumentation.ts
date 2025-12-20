@@ -10,13 +10,15 @@
 
 import { Context, Effect } from 'effect';
 
+import type { ErrorSeverity } from './ErrorConstants.js';
+
 // ==================== ТИПЫ INSTRUMENTATION ====================
 
-/** Уровни severity для ошибок */
-export type ErrorSeverity = 'low' | 'medium' | 'high' | 'critical';
-
-/** Типы telemetry событий */
-export type TelemetryEvent = 'error_occurred' | 'error_handled' | 'error_escalated';
+/** Типы telemetry событий с discriminated union для extensibility */
+export type TelemetryEvent =
+  | { readonly _tag: 'error_occurred'; readonly errorName: string; }
+  | { readonly _tag: 'error_handled'; readonly strategy: string; }
+  | { readonly _tag: 'error_escalated'; readonly severity: ErrorSeverity; };
 
 /** Базовый интерфейс instrumentation системы */
 export type InstrumentationSystem = {
@@ -45,7 +47,7 @@ export class InstrumentationSystemTag extends Context.Tag('InstrumentationSystem
 >() {}
 
 /** Type helper для работы с InstrumentationSystem в Effect */
-export type InstrumentationEffect<A, E = never> = Effect.Effect<A, E, InstrumentationSystem>;
+export type InstrumentationEffect<A, E = never> = Effect.Effect<A, E, InstrumentationSystemTag>;
 
 // ==================== HELPER ФУНКЦИИ ====================
 

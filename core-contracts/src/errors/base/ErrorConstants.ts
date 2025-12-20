@@ -15,18 +15,25 @@
 // ==================== SEVERITY CONSTANTS ====================
 
 /**
- * Уровни критичности ошибок
- * Определяет влияние ошибки на работу системы
+ * Единая шкала severity для всей error system
+ * Определяет уровень критичности ошибки
  */
 export const ERROR_SEVERITY = {
-  CRITICAL: "CRITICAL" as const,
-  FATAL: "FATAL" as const,
-  ERROR: "ERROR" as const,
-  WARNING: "WARNING" as const,
-  INFO: "INFO" as const,
+  LOW: 'low' as const,
+  MEDIUM: 'medium' as const,
+  HIGH: 'high' as const,
+  CRITICAL: 'critical' as const,
 } as const;
 
 export type ErrorSeverity = typeof ERROR_SEVERITY[keyof typeof ERROR_SEVERITY];
+
+/** Весовые коэффициенты для severity уровней (используются для сравнения и приоритетов) */
+export const SEVERITY_WEIGHTS: Record<ErrorSeverity, number> = {
+  [ERROR_SEVERITY.CRITICAL]: 4,
+  [ERROR_SEVERITY.HIGH]: 3,
+  [ERROR_SEVERITY.MEDIUM]: 2,
+  [ERROR_SEVERITY.LOW]: 1,
+} as const;
 
 // ==================== CATEGORY CONSTANTS ====================
 
@@ -35,10 +42,10 @@ export type ErrorSeverity = typeof ERROR_SEVERITY[keyof typeof ERROR_SEVERITY];
  * Классифицирует ошибки по их природе
  */
 export const ERROR_CATEGORY = {
-  BUSINESS: "BUSINESS" as const,
-  TECHNICAL: "TECHNICAL" as const,
-  SECURITY: "SECURITY" as const,
-  PERFORMANCE: "PERFORMANCE" as const,
+  BUSINESS: 'BUSINESS' as const,
+  TECHNICAL: 'TECHNICAL' as const,
+  SECURITY: 'SECURITY' as const,
+  PERFORMANCE: 'PERFORMANCE' as const,
 } as const;
 
 export type ErrorCategory = typeof ERROR_CATEGORY[keyof typeof ERROR_CATEGORY];
@@ -50,11 +57,11 @@ export type ErrorCategory = typeof ERROR_CATEGORY[keyof typeof ERROR_CATEGORY];
  * Определяет компонент системы где произошла ошибка
  */
 export const ERROR_ORIGIN = {
-  DOMAIN: "DOMAIN" as const,
-  INFRASTRUCTURE: "INFRASTRUCTURE" as const,
-  SERVICE: "SERVICE" as const,
-  EXTERNAL: "EXTERNAL" as const,
-  ADMIN: "ADMIN" as const,
+  DOMAIN: 'DOMAIN' as const,
+  INFRASTRUCTURE: 'INFRASTRUCTURE' as const,
+  SERVICE: 'SERVICE' as const,
+  EXTERNAL: 'EXTERNAL' as const,
+  ADMIN: 'ADMIN' as const,
 } as const;
 
 export type ErrorOrigin = typeof ERROR_ORIGIN[keyof typeof ERROR_ORIGIN];
@@ -66,9 +73,9 @@ export type ErrorOrigin = typeof ERROR_ORIGIN[keyof typeof ERROR_ORIGIN];
  * Определяет масштаб последствий ошибки
  */
 export const ERROR_IMPACT = {
-  USER: "USER" as const,
-  SYSTEM: "SYSTEM" as const,
-  DATA: "DATA" as const,
+  USER: 'USER' as const,
+  SYSTEM: 'SYSTEM' as const,
+  DATA: 'DATA' as const,
 } as const;
 
 export type ErrorImpact = typeof ERROR_IMPACT[keyof typeof ERROR_IMPACT];
@@ -80,9 +87,9 @@ export type ErrorImpact = typeof ERROR_IMPACT[keyof typeof ERROR_IMPACT];
  * Определяет охват проблемы
  */
 export const ERROR_SCOPE = {
-  REQUEST: "REQUEST" as const,
-  SESSION: "SESSION" as const,
-  GLOBAL: "GLOBAL" as const,
+  REQUEST: 'REQUEST' as const,
+  SESSION: 'SESSION' as const,
+  GLOBAL: 'GLOBAL' as const,
 } as const;
 
 export type ErrorScope = typeof ERROR_SCOPE[keyof typeof ERROR_SCOPE];
@@ -94,10 +101,10 @@ export type ErrorScope = typeof ERROR_SCOPE[keyof typeof ERROR_SCOPE];
  * Clean Architecture / Hexagonal Architecture слои
  */
 export const ERROR_LAYER = {
-  PRESENTATION: "PRESENTATION" as const,
-  APPLICATION: "APPLICATION" as const,
-  DOMAIN: "DOMAIN" as const,
-  INFRASTRUCTURE: "INFRASTRUCTURE" as const,
+  PRESENTATION: 'PRESENTATION' as const,
+  APPLICATION: 'APPLICATION' as const,
+  DOMAIN: 'DOMAIN' as const,
+  INFRASTRUCTURE: 'INFRASTRUCTURE' as const,
 } as const;
 
 export type ErrorLayer = typeof ERROR_LAYER[keyof typeof ERROR_LAYER];
@@ -109,10 +116,10 @@ export type ErrorLayer = typeof ERROR_LAYER[keyof typeof ERROR_LAYER];
  * Определяет срочность реакции на ошибку
  */
 export const ERROR_PRIORITY = {
-  LOW: "LOW" as const,
-  MEDIUM: "MEDIUM" as const,
-  HIGH: "HIGH" as const,
-  CRITICAL: "CRITICAL" as const,
+  LOW: 'LOW' as const,
+  MEDIUM: 'MEDIUM' as const,
+  HIGH: 'HIGH' as const,
+  CRITICAL: 'CRITICAL' as const,
 } as const;
 
 export type ErrorPriority = typeof ERROR_PRIORITY[keyof typeof ERROR_PRIORITY];
@@ -124,10 +131,10 @@ export type ErrorPriority = typeof ERROR_PRIORITY[keyof typeof ERROR_PRIORITY];
  * Определяет стратегию повторения неудачных операций
  */
 export const ERROR_RETRY_POLICY = {
-  NONE: "NONE" as const,
-  IMMEDIATE: "IMMEDIATE" as const,
-  EXPONENTIAL_BACKOFF: "EXPONENTIAL_BACKOFF" as const,
-  SCHEDULED: "SCHEDULED" as const,
+  NONE: 'NONE' as const,
+  IMMEDIATE: 'IMMEDIATE' as const,
+  EXPONENTIAL_BACKOFF: 'EXPONENTIAL_BACKOFF' as const,
+  SCHEDULED: 'SCHEDULED' as const,
 } as const;
 
 export type ErrorRetryPolicy = typeof ERROR_RETRY_POLICY[keyof typeof ERROR_RETRY_POLICY];
@@ -168,7 +175,7 @@ export const ERROR_CLASSIFICATIONS = {
   } as const,
 
   DATABASE_CONNECTION_LOST: {
-    severity: ERROR_SEVERITY.ERROR,
+    severity: ERROR_SEVERITY.HIGH,
     category: ERROR_CATEGORY.TECHNICAL,
     origin: ERROR_ORIGIN.INFRASTRUCTURE,
     impact: ERROR_IMPACT.SYSTEM,
@@ -179,7 +186,7 @@ export const ERROR_CLASSIFICATIONS = {
   } as const,
 
   AUTH_INVALID_CREDENTIALS: {
-    severity: ERROR_SEVERITY.WARNING,
+    severity: ERROR_SEVERITY.MEDIUM,
     category: ERROR_CATEGORY.SECURITY,
     origin: ERROR_ORIGIN.DOMAIN,
     impact: ERROR_IMPACT.USER,
@@ -190,7 +197,7 @@ export const ERROR_CLASSIFICATIONS = {
   } as const,
 
   EXTERNAL_API_TIMEOUT: {
-    severity: ERROR_SEVERITY.ERROR,
+    severity: ERROR_SEVERITY.HIGH,
     category: ERROR_CATEGORY.TECHNICAL,
     origin: ERROR_ORIGIN.EXTERNAL,
     impact: ERROR_IMPACT.USER,
@@ -202,7 +209,7 @@ export const ERROR_CLASSIFICATIONS = {
 
   // Ошибки бизнес-логики
   BUSINESS_RULE_VIOLATION: {
-    severity: ERROR_SEVERITY.WARNING,
+    severity: ERROR_SEVERITY.MEDIUM,
     category: ERROR_CATEGORY.BUSINESS,
     origin: ERROR_ORIGIN.DOMAIN,
     impact: ERROR_IMPACT.USER,
@@ -213,7 +220,7 @@ export const ERROR_CLASSIFICATIONS = {
   } as const,
 
   PERFORMANCE_DEGRADATION: {
-    severity: ERROR_SEVERITY.WARNING,
+    severity: ERROR_SEVERITY.MEDIUM,
     category: ERROR_CATEGORY.PERFORMANCE,
     origin: ERROR_ORIGIN.INFRASTRUCTURE,
     impact: ERROR_IMPACT.SYSTEM,
@@ -236,7 +243,7 @@ export function createErrorClassification(
 ): ErrorClassification {
   // Значения по умолчанию для обязательных полей
   const defaults: ErrorClassification = {
-    severity: ERROR_SEVERITY.ERROR,
+    severity: ERROR_SEVERITY.HIGH,
     category: ERROR_CATEGORY.TECHNICAL,
     origin: ERROR_ORIGIN.INFRASTRUCTURE,
     impact: ERROR_IMPACT.USER,
