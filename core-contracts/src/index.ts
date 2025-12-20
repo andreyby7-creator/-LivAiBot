@@ -1,61 +1,61 @@
 /**
- * @file index.ts - Main entry point for @livai/core-contracts
+ * @file index.ts - Entry point всего пакета @livai/core-contracts
  *
- * Core Contracts - Foundation layer for effects, auth, domain, errors, and infrastructure contracts.
- * This package provides the fundamental building blocks for LivAiBot platform.
+ * Core Contracts - фундаментальный слой для эффектов, аутентификации,
+ * домена, ошибок и инфраструктурных контрактов.
+ * Объединяет крупные модули в единый пакетный API.
  */
 
-// ==================== ERRORS MODULE ====================
+// ==================== МОДУЛЬ ОШИБОК ====================
 
 /**
- * Enterprise-grade error system for LivAiBot
- * - Discriminated union types with deep immutability
- * - Chain manipulation with circular reference protection
- * - Builders for all business domains (Domain, Infra, Service, Admin)
- * - Comprehensive validation and sanitization
- * - Performance optimizations with lazy evaluation and memoization
+ * Errors: enterprise-grade система ошибок с discriminated union архитектурой
+ * - 5 групп API: Types, Builders, Utils, Validators, Strategies
+ * - Deep immutability guarantee, circular reference protection
+ * - Performance optimizations с lazy evaluation и memoization
  */
-export * as Errors from './errors/base/index.js';
+export * as Errors from './errors/index.js';
 
-// ==================== PLACEHOLDERS FOR FUTURE MODULES ====================
+// ==================== БУДУЩИЕ МОДУЛИ ====================
 
 /**
- * IO contracts and utilities (TBD)
- * Network, filesystem, database abstractions
+ * Metrics: система метрик и мониторинга (будет реализовано)
+ * - Интерфейсы для метрик, incrementErrorCounter, observeLatency
+ * - Абстракция над конкретными системами метрик
+ */
+// export * as Metrics from './metrics/index.js';
+
+/**
+ * Observability: инструменты наблюдаемости (будет реализовано)
+ * - logError, sendToTelemetry, mapErrorToSeverityMetric
+ * - Tracing и distributed debugging support
+ */
+// export * as Observability from './observability/index.js';
+
+/**
+ * IO: контракты ввода-вывода (будет реализовано)
+ * - Network, filesystem, database abstractions
+ * - Effect-native IO operations
  */
 // export * as IO from './io/index.js';
 
 /**
- * Functional programming utilities (TBD)
- * Pure functions, immutable data structures, composition helpers
+ * FP: функциональное программирование утилиты (будет реализовано)
+ * - Pure functions, immutable data structures
+ * - Composition helpers для functional-first подхода
  */
 // export * as FP from './fp/index.js';
 
 /**
- * Domain contracts and business logic (TBD)
- * Core business entities, value objects, domain services
+ * Domain: доменные контракты (будет реализовано)
+ * - Core business entities, value objects
+ * - Domain services и business logic contracts
  */
 // export * as Domain from './domain/index.js';
 
 /**
- * Context and dependency injection (TBD)
- * Effect context, service locator, configuration management
+ * Context: dependency injection и контекст (будет реализовано)
+ * - Effect context, service locator
+ * - Configuration management и runtime context
  */
 // export * as Context from './context/index.js';
-
-// ==================== UTILITY EXPORTS ====================
-
-/**
- * Re-export commonly used types for convenience
- * These are safe to import without pulling in implementation details
- */
-export type {
-  BaseError,
-  UserContext,
-  ErrorMetadata,
-} from './errors/base/BaseError.js';
-
-export {
-  isBaseError,
-  toBaseError,
-} from './errors/base/BaseError.js';
