@@ -322,7 +322,7 @@ errors/
 - **🛠️ Стек**: TypeScript + Effect
   Обязательно русские: @file и компактные jsdoc
 
-**ErrorBuilders.ts** ✅
+**ErrorBuilders.ts** ✅ **ГОТОВ К ПРОДАКШЕНУ**
 
 - **Содержимое**: Enterprise-grade фабрики ошибок LivAiBot с полным coverage всех доменов. Возвращает промежуточные TaggedError<T, Tag> типы для каждого домена: Domain (Auth, User, Subscription, Bot, Token, Integration), Infra (Database, Cache, Network, External), Service (AI, Billing, Mobile, Tenant, Feature), Admin (User, Finance, Audit, Integration). Fluent API, Effect-native builders для async операций, automatic metadata generation, validation. Полностью устраняет циклические зависимости.
 - **Зависимости**: BaseErrorTypes.ts, ErrorMetadata.ts, ErrorCode.ts, ErrorConstants.ts, ErrorValidators.ts
@@ -336,7 +336,7 @@ errors/
 - **🛠️ Стек**: TypeScript + Effect
   Обязательно русские: @file и компактные jsdoc
 
-**ErrorUtilsCore.ts** ✅
+**ErrorUtilsCore.ts** ✅ **ГОТОВ К ПРОДАКШЕНУ**
 
 - **Содержимое**: Enterprise-grade утилиты для работы с цепочками ошибок с полной защитой от edge cases и performance optimizations. `flattenCauses()` с детекцией циклов, `getErrorChain()` с safe traversal, `findRootCause()` с cycle protection, `safeTraverseCauses()` с configurable depth limit, `analyzeErrorChain()` для комплексного анализа. Lazy evaluation, caching, memoization для expensive operations.
 - **Зависимости**: BaseErrorTypes.ts
@@ -348,7 +348,7 @@ errors/
 - **🛠️ Стек**: TypeScript
   Обязательно русские: @file и компактные jsdoc
 
-**ErrorTransformers.ts** ✅
+**ErrorTransformers.ts** ✅ **ГОТОВ К ПРОДАКШЕНУ**
 
 - **Содержимое**: Полная система generic трансформеров ошибок LivAiBot с intelligent metadata merging. `mapError<E,F>()` generic mapping, `chainErrors<E>()` с configurable strategies, `aggregateErrors<E>()` с custom aggregators, `filterErrors<E>()`, `groupErrors<E>()`, `transformErrorChain<E>()`. Полностью generic - не зависит от BaseError, работает с любыми error-like объектами.
 - **Зависимости**: BaseErrorTypes.ts, ErrorMetadata.ts, ErrorUtilsCore.ts, ErrorValidators.ts
@@ -361,7 +361,7 @@ errors/
 - **🛠️ Стек**: TypeScript + Effect
   Обязательно русские: @file и компактные jsdoc
 
-**ErrorStrategies.ts** ✅
+**ErrorStrategies.ts** ✅ **ГОТОВ К ПРОДАКШЕНУ**
 
 - **Содержимое**: Enterprise-grade стратегии обработки ошибок LivAiBot с grouping по префиксам. 19 групповых стратегий (DOMAIN_AUTH__, INFRA_DB__, SERVICE_AI_* etc.) вместо individual codes. Composition-based архитектура с BaseStrategies + modifiers. Pure функции без side-effects, deterministic behavior. Effect integration для stateful операций (circuit breaker). Strategy resolution pipeline: custom → grouped → severity-based fallback.
 - **Зависимости**: BaseErrorTypes.ts, ErrorCode.ts, ErrorConstants.ts
@@ -374,7 +374,11 @@ errors/
 - **🛠️ Стек**: TypeScript + Effect
   Обязательно русские: @file и компактные jsdoc
 
-**ErrorMetrics.ts** ✅
+- **🔄 Рефакторинг**: Файл разделен на 7 модулей (ErrorStrategyTypes, ErrorStrategyBase, ErrorStrategyModifiers, ErrorStrategyFactories, ErrorStrategyGroups, ErrorStrategyCore, index) для enterprise maintainability
+- **🛡️ Совместимость**: Полная backward compatibility, все API сохранены
+- **🧪 Качество**: Улучшена тестируемость, читаемость, type safety
+
+**ErrorMetrics.ts** ✅ **ГОТОВ К ПРОДАКШЕНУ**
 
 - **Содержимое**: Интерфейсы для метрик с helpers `incrementErrorCounter()`, `observeLatency()`. Абстракция над конкретными метриками системами.
 - **Зависимости**: Effect (или Event integration) - НЕ BaseError
@@ -383,7 +387,7 @@ errors/
 - **🛠️ Стек**: TypeScript + Effect
   Обязательно русские: @file и компактные jsdoc
 
-**ErrorInstrumentation.ts** ✅
+**ErrorInstrumentation.ts** ✅ **ГОТОВ К ПРОДАКШЕНУ**
 
 - **Содержимое**: Абстрактные интерфейсы для observability: `logError()`, `sendToTelemetry()`, `mapErrorToSeverityMetric()`.
 - **Зависимости**: Effect/OpenTelemetry - НЕ BaseError
