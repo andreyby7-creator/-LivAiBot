@@ -410,7 +410,7 @@ errors/
 - **🛠️ Стек**: TypeScript
   Обязательно русские: @file и компактные jsdoc
 
-**index.ts**
+**index.ts** ✅ **ГОТОВ К ПРОДАКШЕНУ**
 
 - **Содержимое**: Selective exports ядра системы ошибок LivAiBot. Экспортирует ТОЛЬКО публичный API: 5 групп (Types, Builders, Utils, Validators, Strategies). НЕ экспортирует внутренние модули (ErrorCode, ErrorConstants, ErrorCodeMeta, etc.).
 - **Зависимости**: BaseError.ts (ТОЛЬКО публичные типы), ErrorBuilders.ts, ErrorUtilsCore.ts, ErrorTransformers.ts, ErrorValidators.ts, ErrorStrategies.ts
@@ -422,19 +422,16 @@ errors/
 - **🛠️ Стек**: TypeScript
   Обязательно русские: @file и компактные jsdoc
 
-**💡 Комментарий:** разработку ядра лучше делать полностью immutable и test-first, чтобы остальные слои могли безопасно использовать его.
-
-**💡 Комментарий:** shared layer имеет полную аналогию базовых компонентов (Types, Registry, Validators, Instrumentation) + специализированные модули (domain, infra, adapters, etc.) для максимальной reusability.
-
-**💡 Комментарий:** services layer имеет enterprise-grade структуру: каждый сервис имеет полную аналогию базовых компонентов (Types, Registry, Validators, Instrumentation) + domain/infra/policies/serialization/adapters/normalizers для complete service isolation.
-
-**💡 Комментарий:** contracts layer обеспечивает distributed error handling: error translation/transformation, service mesh integration, circuit breaker coordination, distributed tracing contracts для enterprise-grade межсервисного взаимодействия.
-
-**💡 Комментарий:** extensions layer предоставляет ecosystem integrations: каждый extension имеет полную аналогию базовых компонентов (Types, Registry, Validators, Instrumentation) + domain-specific error types для seamless integration с external frameworks и protocols.
-
 ### 2️⃣ **Общий слой (shared/)**
 
 **Приоритет: Высокий** - Зависит только от base/. Разрабатывается после ядра.
+
+**🔧 Архитектурные рекомендации для слоев:**
+
+- **Shared Layer**: имеет полную аналогию базовых компонентов (Types, Registry, Validators, Instrumentation) + специализированные модули (domain, infra, adapters, etc.) для максимальной reusability
+- **Services Layer**: имеет enterprise-grade структуру: каждый сервис имеет полную аналогию базовых компонентов (Types, Registry, Validators, Instrumentation) + domain/infra/policies/serialization/adapters/normalizers для complete service isolation
+- **Contracts Layer**: обеспечивает distributed error handling: error translation/transformation, service mesh integration, circuit breaker coordination, distributed tracing contracts для enterprise-grade межсервисного взаимодействия
+- **Extensions Layer**: предоставляет ecosystem integrations: каждый extension имеет полную аналогию базовых компонентов (Types, Registry, Validators, Instrumentation) + domain-specific error types для seamless integration с external frameworks и protocols
 
 **SharedErrorTypes.ts** – Shared-specific типы ошибок: `SharedDomainError<T>`, `SharedInfraError<T>`, `SharedPolicyError<T>`, `SharedAdapterError<T>`. TaggedError discriminated unions для общих доменов. Type guards и pattern matching helpers.
 

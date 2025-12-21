@@ -4,8 +4,8 @@
  * Поддержка мульти-приложений, алиасов, простой валидации env и разных портов.
  */
 
-import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
+import { defineConfig, loadEnv } from 'vite';
 
 // =============================================================================
 // ПРОСТАЯ ВАЛИДАЦИЯ ENV
@@ -49,7 +49,10 @@ function validateUrl(url: string): boolean {
 }
 
 /** Расширенная валидация env переменных с типизацией */
-function validateEnv(env: AppEnv, app: string) {
+function validateEnv(
+  env: AppEnv,
+  app: string,
+): { errors: string[]; warnings: string[]; updatedEnv: AppEnv; } {
   const errors: string[] = [];
   const warnings: string[] = [];
   const updatedEnv = { ...env } as AppEnv;
@@ -124,7 +127,7 @@ function getEnvPrefixes(framework: string): string[] {
 }
 
 /** Генерация define маппинга для фреймворка */
-function generateDefineMapping(app: string, env: AppEnv) {
+function generateDefineMapping(app: string, env: AppEnv): Record<string, string> {
   const framework = getAppFramework(app);
 
   if (framework === 'next') {
@@ -197,11 +200,15 @@ const getAppPort = (app: string, env: AppEnv): number => {
 function createBaseViteConfig({
   app,
   mode,
+  port,
+  base,
   env,
   appFramework,
 }: {
   app: string;
   mode: string;
+  port: number;
+  base: string;
   env: AppEnv;
   appFramework?: string;
 }) {

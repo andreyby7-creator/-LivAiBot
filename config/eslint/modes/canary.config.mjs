@@ -13,9 +13,8 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import masterConfig from '../master.config.mjs';
 // TEZ: Type Exemption Zone - импортируем из shared для single source of truth
-import { FLATTENED_TYPE_EXEMPTIONS } from '../shared/tez.config.mjs';
 import { PLUGINS } from '../constants.mjs';
-import { applySeverity, COMMON_IGNORES } from '../shared/rules.mjs';
+import { applySeverity, applySeverityAwareRules, QUALITY_WITH_SEVERITY, CANARY_EXTRA_RULES, COMMON_IGNORES } from '../shared/rules.mjs';
 import { effectFpNamingRules } from '../rules/naming-conventions.mjs';
 import architecturalBoundariesConfig from '../rules/architectural-boundaries.mjs';
 
@@ -126,13 +125,18 @@ const FULL_TYPE_AWARE_RULES = {
 
 /**
  * Преобразование правил для canary режима
- * Все правила (кроме off) становятся error
- * CANARY_EXTRA_RULES автоматически подтягиваются через параметр mode='canary'
+ * Новая архитектура: BASE_QUALITY_RULES + severity-aware + CANARY_EXTRA_RULES + severity трансформация
  */
 function transformRulesForCanary(rules) {
   // Для CANARY: пустой severityMap (все правила по умолчанию 'error')
-  // mode='canary' автоматически подтягивает CANARY_EXTRA_RULES
-  return applySeverity(rules, {}, 'error', 'canary');
+  const transformedRules = applySeverity(rules, {}, 'error');
+
+  // Композиция слоёв: severity-aware правила + трансформация + canary-specific правила
+  return {
+    ...applySeverityAwareRules(QUALITY_WITH_SEVERITY, 'canary'), // Severity-aware правила (canary: error)
+    ...transformedRules,                            // Трансформированные правила из master config
+    ...CANARY_EXTRA_RULES,                          // Дополнительные canary-specific правила
+  };
 }
 
 // ==================== КОНСТАНТЫ ДЛЯ ФИЛЬТРАЦИИ ПРАВИЛ ====================
@@ -143,17 +147,26 @@ function transformRulesForCanary(rules) {
 // ==================== CANARY КОНФИГУРАЦИЯ ====================
 
 const canaryConfig = [
-  // Глобальные ignores должны быть на верхнем уровне
+  // Глобальные ignores - применяются первыми ко ВСЕМ файлам
   {
     ignores: [
-      ...COMMON_IGNORES,
-      // Исключаем все .d.ts файлы из dist (они генерируются автоматически)
-      '**/dist/**/*.d.ts',
-      // Исключаем .d.ts файлы из seed (они генерируются автоматически)
-      '**/seed/**/*.d.ts',
+      '**/*.d.ts', // Игнорируем ВСЕ .d.ts файлы в проекте
+      'config/**/*.ts', // Конфигурационные файлы могут использовать dynamic imports
+      'config/**/*.js', // Тестовые скрипты могут использовать fs, child_process
     ],
   },
   ...masterConfig.map(config => {
+    // Последний элемент = testFilesOverrides, не конвертируем его
+    // Тесты должны оставаться с warn/off как задумано
+    const isTestOverride = config.files?.some?.(
+      f => f.includes('*.test.') || f.includes('*.spec.') || f.includes('__tests__')
+    );
+
+    if (isTestOverride) {
+      // Тестовые файлы оставляем без изменений - их правила будут переопределены в testFilesOverrides ниже
+      return config;
+    }
+
     // Преобразуем правила в error режим
     return {
       ...config,
@@ -380,6 +393,38 @@ canaryConfig.push({
   files: ['**/ErrorMetadata.ts'],
   rules: {
     '@typescript-eslint/prefer-readonly-parameter-types': 'off', // Functional-first архитектура
+  },
+});
+
+// Игнорирование автогенерированных .d.ts файлов
+canaryConfig.unshift({
+  ignores: ['dist/**/*.d.ts', 'seed/**/*.d.ts'],
+});
+
+// Отключение строгих правил для тестовых файлов
+// Тесты часто используют анонимные функции, типы которых выводятся автоматически
+canaryConfig.push({
+  files: ['**/*.test.ts', '**/*.spec.ts'],
+  rules: {
+    'import/order': 'off', // Тестовые файлы могут иметь свободный порядок импортов
+    'fp/no-throw': 'off', // Тесты могут использовать throw в описаниях и коде
+    ...applySeverityAwareRules(QUALITY_WITH_SEVERITY, 'test'), // explicit-function-return-type: off
+  },
+});
+
+// Файлы с валидацией могут использовать throw для error handling
+canaryConfig.push({
+  files: ['**/ErrorCode.ts', '**/ErrorCodeMeta.ts'],
+  rules: {
+    'fp/no-throw': 'off', // Валидационные функции могут бросать ошибки
+  },
+});
+
+// Setup файлы могут использовать throw для обработки ошибок
+canaryConfig.push({
+  files: ['**/vitest.setup.ts', '**/test.setup.ts'],
+  rules: {
+    'fp/no-throw': 'off', // Setup файлы могут использовать throw
   },
 });
 

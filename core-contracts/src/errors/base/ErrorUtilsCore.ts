@@ -83,6 +83,11 @@ export function safeGetCause<E>(
   visited?: Set<E>,
   config: ChainTraversalConfig = DEFAULT_TRAVERSAL_CONFIG,
 ): SafeCauseResult<E> {
+  // Проверяем на null/undefined
+  if (error === null || error === undefined) {
+    return { success: false, reason: 'no_cause' };
+  }
+
   // Проверяем на цикл только если передан visited Set
   if (config.detectCycles && visited?.has(error) === true) {
     return { success: false, reason: 'cycle_detected' };
@@ -109,7 +114,7 @@ export function safeTraverseCauses<E>(
 ): ChainTraversalResult<E> {
   function traverse(
     current: E,
-    visited: readonly E[],
+    visited: Set<E>,
     chain: readonly E[],
     depth: number,
   ): ChainTraversalResult<E> {
@@ -123,8 +128,8 @@ export function safeTraverseCauses<E>(
       };
     }
 
-    // Проверяем на цикл с O(n) поиском (менее эффективно, но иммутабельно)
-    const hasBeenVisited = config.detectCycles && visited.includes(current);
+    // Проверяем на цикл
+    const hasBeenVisited = config.detectCycles && visited.has(current);
     if (hasBeenVisited) {
       return {
         chain,
@@ -134,11 +139,10 @@ export function safeTraverseCauses<E>(
       };
     }
 
-    const newVisited = [...visited, current];
     const newChain = [...chain, current];
 
-    // Получаем следующую причину
-    const causeResult: SafeCauseResult<E> = safeGetCause(current, undefined, config);
+    // Получаем следующую причину (перед добавлением current в visited)
+    const causeResult: SafeCauseResult<E> = safeGetCause(current, visited, config);
     if (!causeResult.success) {
       const hasCycleDetected = causeResult.reason === 'cycle_detected';
       return {
@@ -149,11 +153,14 @@ export function safeTraverseCauses<E>(
       };
     }
 
+    // Теперь добавляем current в visited перед рекурсией
+    const newVisited = new Set([...visited, current]);
+
     // Рекурсивно продолжаем с причиной
     return traverse(causeResult.cause, newVisited, newChain, depth + 1);
   }
 
-  return traverse(rootError, [], [], 0);
+  return traverse(rootError, new Set(), [], 0);
 }
 
 // ==================== ОСНОВНЫЕ УТИЛИТЫ ====================
@@ -309,14 +316,8 @@ export function isLeafError<E>(error: E): boolean {
   return !causeResult.success && causeResult.reason === 'no_cause';
 }
 
-/** Проверяет, является ли ошибка корнем (нет причины у ее причины) */
+/** Проверяет, является ли ошибка корнем (нет причины) */
 export function isRootError<E>(error: E): boolean {
   const causeResult: SafeCauseResult<E> = safeGetCause(error);
-  if (!causeResult.success) {
-    return causeResult.reason === 'no_cause'; // Это корень только если нет причины вообще
-  }
-
-  // Проверяем, есть ли причина у причины
-  const nestedCauseResult: SafeCauseResult<E> = safeGetCause(causeResult.cause);
-  return !nestedCauseResult.success && nestedCauseResult.reason === 'no_cause';
+  return !causeResult.success && causeResult.reason === 'no_cause';
 }

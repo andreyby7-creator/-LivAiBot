@@ -6,6 +6,7 @@
  */
 
 import { defineConfig } from 'vitest/config';
+
 import { buildVitestEnv } from './vitest.shared.config';
 
 // =============================================================================
@@ -46,20 +47,20 @@ let aiCallCount = 0;
 let aiCostEstimate = 0;
 
 /** Запись AI вызова для учета стоимости */
-function recordAICall(provider: string, tokens: number) {
+function recordAICall(provider: string, tokens: number): void {
   aiCallCount++;
   const rate = AI_PROVIDER_RATES[provider] || 0.001;
   aiCostEstimate += (tokens * rate) / 1000;
 }
 
 /** Сброс счетчиков AI для тестов */
-function resetAICounters() {
+function resetAICounters(): void {
   aiCallCount = 0;
   aiCostEstimate = 0;
 }
 
 /** Получение отчета по AI вызовам */
-function getAICountersReport() {
+function getAICountersReport(): { calls: number; cost: string; averageCostPerCall: string; } {
   return {
     calls: aiCallCount,
     cost: aiCostEstimate.toFixed(4),
@@ -80,7 +81,7 @@ function isProviderKeyAvailable(providerName: string): boolean {
 }
 
 /** Логирование суммарной статистики AI вызовов */
-function logAICountersSummary() {
+function logAICountersSummary(): void {
   const { calls, cost, averageCostPerCall } = getAICountersReport();
   console.log(
     `🤖 AI Calls Summary: ${calls} calls, estimated cost $${cost}, avg $${averageCostPerCall}/call`,
@@ -88,7 +89,7 @@ function logAICountersSummary() {
 }
 
 /** Логирование отчета для CI/debug режимов */
-function logCIReport() {
+function logCIReport(): void {
   const { available, missing, hasRequired } = checkAIKeysAvailability();
 
   console.log(`🤖 AI Integration Tests configuration loaded:`);

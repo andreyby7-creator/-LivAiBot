@@ -18,6 +18,9 @@ import type { ErrorSeverity } from './ErrorConstants.js';
 import type { ErrorMetadataContext } from './ErrorMetadata.js';
 import type { ChainTraversalResult } from './ErrorUtilsCore.js';
 
+// Re-export for convenience
+export type { ChainTraversalResult };
+
 // ==================== ТИПЫ ДЛЯ ГЕНЕРИКОВ ====================
 
 /** Базовый интерфейс для объектов, которые можно рассматривать как ошибки */
@@ -69,9 +72,13 @@ export const ERROR_AGGREGATION_STRATEGIES = {
         critical: 3,
       };
       return errors.reduce((highest, current) => {
-        const currentSeverity = severityOrder[current.severity ?? 'low'];
-        const highestSeverity = severityOrder[highest.severity ?? 'low'];
-        return currentSeverity > highestSeverity ? current : highest;
+        const currentSeverity = current.severity && severityOrder[current.severity]
+          ? severityOrder[current.severity]
+          : severityOrder.low;
+        const highestSeverity = highest.severity && severityOrder[highest.severity]
+          ? severityOrder[highest.severity]
+          : severityOrder.low;
+        return currentSeverity >= highestSeverity ? current : highest;
       });
     },
   }),
@@ -204,7 +211,7 @@ export function chainErrors(
   const { allErrors, maxDepth, hasCycles } = errorChains.reduce(
     (acc, chain) => ({
       allErrors: [...acc.allErrors, ...chain.chain],
-      maxDepth: Math.max(acc.maxDepth, chain.maxDepth),
+      maxDepth: acc.maxDepth + chain.maxDepth,
       hasCycles: acc.hasCycles || chain.hasCycles,
     }),
     { allErrors: [] as ErrorLike[], maxDepth: 0, hasCycles: false },
@@ -234,10 +241,37 @@ export function transformErrorChain<E, F>(
   chainResult: ChainTraversalResult<E>,
   transformer: ErrorMapper<E, F>,
 ): ErrorChainTransformationResult<E, F> {
-  const transformedChain = chainResult.chain.map(transformer);
+  // Выполняем трансформацию с обработкой ошибок
+  const transformationResults = chainResult.chain.map(
+    (error): { success: boolean; result?: F; error?: string; } => {
+      try {
+        const result = transformer(error);
+        return { success: true, result };
+      } catch (error) {
+        return { success: false, error: String(error) };
+      }
+    },
+  );
 
-  // Пытаемся выполнить трансформацию и собираем ошибки
-  const errorsEncountered = getErrorsEncountered(chainResult, transformer);
+  // Разделяем успешные трансформации и ошибки с immutable подходом
+  const { transformedChain, errorsEncountered } = transformationResults.reduce(
+    (acc, result) => {
+      if (result.success && result.result !== undefined) {
+        return {
+          transformedChain: [...acc.transformedChain, result.result],
+          errorsEncountered: acc.errorsEncountered,
+        };
+      } else {
+        return {
+          transformedChain: [...acc.transformedChain, {} as F], // placeholder для неудачных трансформаций
+          errorsEncountered: result.error != null
+            ? [...acc.errorsEncountered, result.error]
+            : acc.errorsEncountered,
+        };
+      }
+    },
+    { transformedChain: [] as F[], errorsEncountered: [] as string[] },
+  );
 
   return {
     originalChain: chainResult,
@@ -252,10 +286,10 @@ export function transformErrorChain<E, F>(
 // ==================== EFFECT INTEGRATION ====================
 
 /** Async mapping ошибок через Effect */
-export function mapErrorEffect<E, F>(
+export function mapErrorEffect<E, F, E2 = unknown>(
   error: E,
-  mapper: (error: E) => Effect.Effect<F, never, never>,
-): Effect.Effect<F, never, never> {
+  mapper: (error: E) => Effect.Effect<F, E2, never>,
+): Effect.Effect<F, E2, never> {
   return mapper(error);
 }
 
@@ -268,9 +302,9 @@ export function chainErrorsEffect(
 }
 
 /** Async трансформация цепочки ошибок через Effect */
-export function transformErrorChainEffect<E, F>(
+export function transformErrorChainEffect<E, F, E2 = unknown>(
   chainResult: ChainTraversalResult<E>,
-  transformer: (error: E) => Effect.Effect<F, never, never>,
+  transformer: (error: E) => Effect.Effect<F, E2, never>,
 ): Effect.Effect<ErrorChainTransformationResult<E, F>, never, never> {
   // Трансформируем каждую ошибку и обрабатываем возможные ошибки
   const transformationResults = chainResult.chain.map((error) =>
@@ -310,23 +344,6 @@ export function transformErrorChainEffect<E, F>(
       };
     }),
   );
-}
-
-/**
- * Выполняет тестовую трансформацию цепочки ошибок и собирает ошибки трансформации
- */
-function getErrorsEncountered<E, F>(
-  chainResult: ChainTraversalResult<E>,
-  transformer: ErrorMapper<E, F>,
-): readonly string[] {
-  try {
-    for (const error of chainResult.chain) {
-      transformer(error); // Проверяем, что трансформер работает
-    }
-    return [];
-  } catch (error) {
-    return [String(error)];
-  }
 }
 
 // ==================== UTILITY FUNCTIONS ====================

@@ -9,7 +9,7 @@ import { GROUP_STRATEGIES } from './ErrorStrategyGroups.js';
 import { CircuitBreakerServiceTag, makeCircuitBreakerService } from './ErrorStrategyModifiers.js';
 
 import type { LivAiErrorCode } from '../ErrorCode.js';
-import type { ErrorStrategy, StrategyResult } from './ErrorStrategyTypes.js';
+import type { ErrorCodeGroup, ErrorStrategy, StrategyResult } from './ErrorStrategyTypes.js';
 
 // ==================== STRATEGY RESOLUTION ====================
 
@@ -78,7 +78,7 @@ export function resolveAndExecuteWithCircuitBreaker(
 }
 
 /** Получение всех доступных групповых стратегий */
-export function getAllGroupStrategies() {
+export function getAllGroupStrategies(): readonly ErrorCodeGroup[] {
   return GROUP_STRATEGIES;
 }
 
@@ -89,7 +89,7 @@ export function getStrategyByPrefix(prefix: string): ErrorStrategy<unknown> | nu
 }
 
 /** Статистика использования стратегий */
-export function getStrategyStats() {
+export function getStrategyStats(): Record<string, number> {
   return GROUP_STRATEGIES.reduce((acc, group) => ({
     ...acc,
     [group.prefix]: group.codes.length,

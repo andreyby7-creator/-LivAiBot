@@ -212,8 +212,8 @@ export function assertImmutable<T>(
   }
 
   if (mode === 'deep' && config.deepImmutabilityChecks) {
-    const checkDeepImmutability = (obj: unknown, path: string = ''): void => {
-      if (context && context.depth >= context.maxDepth) {
+    const checkDeepImmutability = (obj: unknown, path: string = '', currentDepth = 0): void => {
+      if (context && currentDepth >= context.maxDepth) {
         warnings = [...warnings, {
           code: 'IMMUTABLE_DEPTH_LIMIT_EXCEEDED',
           message: `Deep immutability check stopped at depth ${context.maxDepth}`,
@@ -234,13 +234,13 @@ export function assertImmutable<T>(
         for (const key in obj) {
           if (key in obj && obj.hasOwnProperty(key)) {
             const value = obj[key as keyof typeof obj];
-            checkDeepImmutability(value, path ? `${path}.${key}` : key);
+            checkDeepImmutability(value, path ? `${path}.${key}` : key, currentDepth + 1);
           }
         }
       }
     };
 
-    checkDeepImmutability(value);
+    checkDeepImmutability(value, '', context?.depth ?? 0);
   }
 
   return createValidationResult({ errors, warnings, strictness, startTime });

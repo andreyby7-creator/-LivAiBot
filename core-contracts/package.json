@@ -65,10 +65,10 @@
   "scripts": {
     "build": "pnpm run build:types && pnpm run build:js",
     "build:js": "tsup",
-    "build:types": "rm -f *.tsbuildinfo && tsc -b tsconfig.build.json",
+    "build:types": "rm -f *.tsbuildinfo && tsc -b tsconfig.build.json && dprint fmt 'dist/**/*.d.ts'",
     "build:watch": "tsup --watch",
     "dev": "tsup --watch",
-    "lint": "eslint . --ext .ts,.tsx,.js,.jsx --cache --cache-location=.eslintcache",
+    "lint": "eslint . --config ../eslint.config.mjs --ext .ts,.tsx,.js,.jsx --cache --cache-location=.eslintcache",
     "type-check": "tsc --noEmit",
     "test": "NODE_OPTIONS='--no-warnings' vitest",
     "test:watch": "vitest --watch",

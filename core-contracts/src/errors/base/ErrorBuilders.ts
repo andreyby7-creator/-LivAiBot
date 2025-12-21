@@ -48,7 +48,7 @@ type InfraContext = {
 /** Конфигурация для создания ошибки */
 export type ErrorConfig = {
   /** Код ошибки LivAi */
-  code: LivAiErrorCode;
+  code: string;
   /** Сообщение ошибки */
   message: string;
   /** Метаданные ошибки (опционально) */
@@ -109,7 +109,7 @@ export class ErrorBuilder<T = unknown, Tag extends string = string> {
   }
 
   /** Устанавливает код ошибки LivAi с префиксом (DOMAIN_AUTH_001, INFRA_DB_002, etc.) */
-  code(code: LivAiErrorCode): ErrorBuilder<T, Tag> {
+  code(code: string): ErrorBuilder<T, Tag> {
     const newConfig = { ...this.config, code };
     return new ErrorBuilder<T, Tag>(newConfig, this.clock, this.domainContext);
   }
@@ -140,7 +140,12 @@ export class ErrorBuilder<T = unknown, Tag extends string = string> {
 
   /** Создает TaggedError с тегом, выполняет валидацию и возвращает результат с ошибкой и валидацией */
   buildWithTag(tag: Tag): ErrorBuildResult<T, Tag> {
-    if (this.config.code === undefined || this.config.message === undefined) {
+    if (
+      this.config.code === undefined
+      || this.config.message === undefined
+      || (typeof this.config.code === 'string' && this.config.code === '')
+      || (typeof this.config.message === 'string' && this.config.message === '')
+    ) {
       // Return error result instead of throwing
       const error = {
         _tag: tag,
@@ -182,7 +187,10 @@ export class ErrorBuilder<T = unknown, Tag extends string = string> {
     } as unknown as TaggedError<T, Tag>;
 
     // Validate error code
-    const validation = assertValidErrorCode(this.config.code, createValidationContext('dev'));
+    const validation = assertValidErrorCode(
+      this.config.code as LivAiErrorCode,
+      createValidationContext('dev'),
+    );
 
     return { error, validation };
   }

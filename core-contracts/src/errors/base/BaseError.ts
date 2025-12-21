@@ -188,6 +188,22 @@ export function withMetadata(
   };
 }
 
+/** Deep copy helper для plain object */
+function deepCopyPlain(obj: unknown): unknown {
+  if (obj === null || obj === undefined || typeof obj !== 'object') {
+    return obj;
+  }
+
+  // Для сложных объектов используем JSON сериализацию
+  // Это безопасно для plain objects без функций или специальных типов
+  try {
+    return JSON.parse(JSON.stringify(obj));
+  } catch {
+    // Если сериализация не удалась (циклические ссылки, etc), возвращаем пустой объект
+    return {};
+  }
+}
+
 /** Преобразует в plain object для internal использования. Безопасная сериализация без sensitive data */
 export function asPlainObject(baseError: BaseError): Record<string, unknown> {
   let result: Record<string, unknown> = {
@@ -226,6 +242,15 @@ export function asPlainObject(baseError: BaseError): Record<string, unknown> {
     result = { ...result, metadata: metadataWithUserContext };
   }
 
+  // Добавляем customFields как deep copy
+  if (baseError.metadata.customFields) {
+    const metadataWithCustomFields = {
+      ...(result['metadata'] as Record<string, unknown>),
+      customFields: deepCopyPlain(baseError.metadata.customFields),
+    };
+    result = { ...result, metadata: metadataWithCustomFields };
+  }
+
   // Добавляем causeChain как plain objects
   if (baseError.causeChain.length > 0) {
     result = { ...result, causeChain: baseError.causeChain.map(asPlainObject) };
@@ -234,8 +259,29 @@ export function asPlainObject(baseError: BaseError): Record<string, unknown> {
   return result;
 }
 
+/** Helper для обработки значений в sanitization */
+function handleValue(value: unknown): unknown {
+  return value !== null && typeof value === 'object' && !Array.isArray(value)
+    ? sanitizeObject(value as Record<string, unknown>)
+    : value;
+}
+
+/** Рекурсивная функция для sanitization объектов */
+function sanitizeObject(obj: Record<string, unknown>): Record<string, unknown> {
+  return Object.fromEntries(
+    Object.entries(obj).map(([key, value]) => [
+      key,
+      key.toLowerCase().includes('password')
+        || key.toLowerCase().includes('token')
+        || key.toLowerCase().includes('secret')
+        ? '[REDACTED]'
+        : handleValue(value),
+    ]),
+  );
+}
+
 /** Дополнительная sanitization для external использования. Удаляет stack trace и sanitizes custom fields */
-function sanitizeForExternal(plainObject: Record<string, unknown>): Record<string, unknown> {
+export function sanitizeForExternal(plainObject: Record<string, unknown>): Record<string, unknown> {
   // Удаляем stack trace для external usage (immutable)
   const withoutStack = Object.fromEntries(
     Object.entries(plainObject).filter(([key]) => key !== 'stack'),
@@ -251,18 +297,9 @@ function sanitizeForExternal(plainObject: Record<string, unknown>): Record<strin
       customFieldsValue !== undefined
       && customFieldsValue !== null
       && typeof customFieldsValue === 'object'
+      && !Array.isArray(customFieldsValue)
     ) {
-      const customFields = customFieldsValue as Record<string, unknown>;
-      const sanitizedCustomFields = Object.fromEntries(
-        Object.entries(customFields).map(([key, value]) => [
-          key,
-          key.toLowerCase().includes('password')
-            || key.toLowerCase().includes('token')
-            || key.toLowerCase().includes('secret')
-            ? '[REDACTED]'
-            : value,
-        ]),
-      );
+      const sanitizedCustomFields = sanitizeObject(customFieldsValue as Record<string, unknown>);
       metadataResult = { ...metadata, customFields: sanitizedCustomFields };
     }
   }
@@ -581,13 +618,21 @@ function deepMergeCustomFields(
 
   // structuredClone доступен в современных средах (Node.js 18+, современные браузеры)
   if (typeof structuredClone === 'function') {
-    return {
-      ...structuredClone(existing),
-      ...structuredClone(updates),
-    } as DeepReadonly<Record<string, unknown>>;
+    try {
+      return {
+        ...structuredClone(existing),
+        ...structuredClone(updates),
+      } as DeepReadonly<Record<string, unknown>>;
+    } catch {
+      // Fallback если structuredClone не работает
+      return {
+        ...JSON.parse(JSON.stringify(existing)),
+        ...JSON.parse(JSON.stringify(updates)),
+      } as DeepReadonly<Record<string, unknown>>;
+    }
   }
 
-  // Fallback для сред без structuredClone (крайне редкий случай)
+  // Fallback для сред без structuredClone
   return {
     ...JSON.parse(JSON.stringify(existing)),
     ...JSON.parse(JSON.stringify(updates)),
