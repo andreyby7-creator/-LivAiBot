@@ -50,6 +50,7 @@ export default [
   // Глобальные ignores для всех режимов (включая lint-staged)
   {
     ignores: [
+      '**/dist/**',     // Скомпилированные файлы во всех пакетах монорепо
       'config/**/*.ts', // Конфигурационные файлы (vitest, vite) могут использовать dynamic imports
       'config/**/*.js', // Тестовые скрипты могут использовать fs, child_process
     ],
