@@ -48,12 +48,16 @@ export type UnifiedErrorRegistry = {
 /**
  * Результат поиска в registry
  */
-export type RegistryLookupResult = {
-  readonly found: boolean;
-  readonly namespace?: ErrorNamespace;
-  readonly metadata?: ErrorCodeMetadata;
-  readonly error?: string;
-};
+export type RegistryLookupResult =
+  | {
+    readonly found: true;
+    readonly namespace: ErrorNamespace;
+    readonly metadata: ErrorCodeMetadata;
+  }
+  | {
+    readonly found: false;
+    readonly error: string;
+  };
 
 /**
  * Групповые результаты по namespace
