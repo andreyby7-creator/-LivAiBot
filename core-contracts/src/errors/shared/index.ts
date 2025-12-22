@@ -89,10 +89,23 @@ export { REGISTRY_NAMESPACES } from './SharedErrorRegistry.js';
 
 export type { RegistryNamespace } from './SharedErrorRegistry.js';
 
-// ==================== FUTURE EXPORTS ====================
+// ==================== CONTRACTS ====================
 
-// Domain-specific errors (будут добавлены)
-// export * from './domain/index.js';
+/**
+ * Внутренние контракты shared слоя для HTTP, gRPC и внутренних ошибок.
+ * Упрощают миграцию к services/contracts layer и убирают implicit agreements.
+ */
+export * from './contracts/index.js';
+
+// ==================== DOMAIN ERRORS ====================
+
+/**
+ * Общие доменные ошибки LivAiBot: ValidationError, AuthError, PermissionError.
+ * Builders: createValidationError(), createAuthError(), createPermissionError().
+ * Используют BaseError + ErrorBuilders для TaggedError типов.
+ * Независимы от инфраструктуры и сервисов.
+ */
+export * from './domain/index.js';
 
 // Infrastructure errors (будут добавлены)
 // export * from './infrastructure/index.js';

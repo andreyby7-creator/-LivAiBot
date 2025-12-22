@@ -48,3 +48,22 @@ export * as Validators from './base/ErrorValidators.js';
  * - Composition-based architecture
  */
 export * as Strategies from './base/ErrorStrategies.js';
+
+/**
+ * Domain: доменные ошибки бизнес-логики
+ * - ValidationError: ошибки валидации данных
+ * - AuthError: ошибки аутентификации и авторизации
+ * - PermissionError: ошибки прав доступа
+ * - DomainError: union тип всех доменных ошибок
+ */
+export * as Domain from './shared/domain/index.js';
+
+/**
+ * Infrastructure: инфраструктурные ошибки для внешних систем
+ * - DatabaseError: ошибки баз данных
+ * - CacheError: ошибки кеширования
+ * - NetworkError: сетевые ошибки
+ * - ExternalAPIError: ошибки внешних API
+ * - InfrastructureError: union тип всех инфраструктурных ошибок
+ */
+export * as Infrastructure from './shared/infrastructure/index.js';

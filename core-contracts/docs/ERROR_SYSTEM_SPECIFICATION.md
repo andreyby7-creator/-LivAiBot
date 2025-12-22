@@ -460,23 +460,69 @@ errors/
 - **🛠️ Стек**: TypeScript
   Обязательно русские: @file и компактные jsdoc
 
-**shared/contracts/** – Внутренние контракты shared слоя: `HttpErrorContract`, `GrpcErrorContract`, `InternalErrorDTO`. Упрощает migration к services/contracts layer, убирает implicit agreements.
+**shared/contracts/** ✅ **ГОТОВ К ПРОДАКШЕНУ**
 
-**domain/** – Общие доменные ошибки LivAiBot: `ValidationError`, `AuthError`, `PermissionError`. Builders: `createValidationError()`, `createAuthError()`. Используют BaseError + ErrorBuilders для TaggedError типов. Независимы от инфраструктуры и сервисов.
+- **Содержимое**: Внутренние контракты shared слоя для стандартизации обработки ошибок. HttpErrorContract для HTTP API, GrpcErrorContract для gRPC сервисов, InternalErrorDTO для внутренней коммуникации компонентов
+- **Зависимости**: SharedErrorTypes.ts, BaseError types, Effect Either
+- **Используется в**: HTTP адаптеры, gRPC сервисы, внутренние компоненты shared слоя, миграция к services/contracts layer
+- **🔧 HttpErrorContract**: Type-safe HTTP ошибки (400-599) с автоматической валидацией кодов, Content-Type и SHARED_ префиксом
+- **🔧 GrpcErrorContract**: Полная поддержка gRPC статус кодов (0-16) с метаданными, correlation ID и timestamp
+- **🔧 InternalErrorDTO**: Рекурсивные цепочки ошибок с категориями (domain/infrastructure/policy/adapter) и ExecutionContext
+- **Экспортирует**: create* функции, is* type guards, get* утилиты, Either типы, ErrorDetails, ContractValidationError
 
-**infrastructure/** – Общие инфраструктурные ошибки: `DatabaseError`, `CacheError`, `NetworkError`, `ExternalAPIError`. Builders: `createDatabaseError()`, `createNetworkError()`. Pure mapping от внешних ошибок к BaseError через ErrorBuilders. ErrorTransformers для обработки цепочек.
+- **🛠️ Стек**: TypeScript
+  Обязательно русские: @file и компактные jsdoc
+
+**domain/** ✅ **ГОТОВ К ПРОДАКШЕНУ** – Общие доменные ошибки LivAiBot: `ValidationError`, `AuthError`, `PermissionError`. Builders: `createValidationError()`, `createAuthError()`, `createPermissionError()`. Используют BaseError + ErrorBuilders для TaggedError типов. Независимы от инфраструктуры и сервисов.
+
+- **Содержимое**: Общие доменные ошибки LivAiBot для бизнес-логики. ValidationError для ошибок валидации данных, AuthError для аутентификации и авторизации, PermissionError для детального контроля прав доступа
+- **Зависимости**: BaseError types, ErrorBuilders, LivAi error codes
+- **Используется в**: Доменная логика, контроллеры API, middleware аутентификации, сервисы пользователей, валидация данных
+- **🔧 ValidationError**: Type-safe ошибки валидации с полями, правилами и типами данных. Автоматическая генерация и валидация контекста с isValidValidationErrorContext
+- **🔧 AuthError**: Комплексные ошибки аутентификации с AuthErrorReason union, MFA статусом, геолокацией, device info, rate limiting, строгим type guard и расширенными утилитами
+- **🔧 PermissionError**: Детализированные ошибки прав с ролями, ресурсами, политиками и условиями доступа. Строгая валидация контекста с isValidPermissionErrorContext
+- **Экспортирует**: create* функции, is* type guards (строгие, с валидацией details), isValidValidationErrorContext, isValidPermissionErrorContext, get* утилиты (включая getValidationField, getValidationRule, getValidationValue, getExpectedType, getActualType, getValidationConstraints, getRequiredPermissions, getUserPermissions, getPermissionResource, hasMissingPermissions, getAuthRequiredPermissions, getAuthUserPermissions, getAuthDeviceInfo, getRateLimitInfo), ValidationError/AuthError/PermissionError типы, AuthErrorReason union, DomainError union, isMFARequiredError, isRateLimitedError, isPermissionDeniedError, isPolicyViolationError, isResourceAccessError guards
+
+- **🛠️ Стек**: TypeScript + Effect
+  Обязательно русские: @file и компактные jsdoc
+
+**infrastructure/** ✅ **ГОТОВ К ПРОДАКШЕНУ** – Общие инфраструктурные ошибки: `DatabaseError`, `CacheError`, `NetworkError`, `ExternalAPIError`. Builders: `createDatabaseError()`, `createNetworkError()`. Pure mapping от внешних ошибок к BaseError через ErrorBuilders. ErrorTransformers для обработки цепочек.
+
+- **Содержимое**: Общие инфраструктурные ошибки LivAiBot для работы с внешними системами. DatabaseError для ошибок баз данных, CacheError для ошибок кеширования, NetworkError для сетевых ошибок, ExternalAPIError для ошибок внешних API
+- **Зависимости**: BaseError types, ErrorBuilders, LivAi error codes
+- **Используется в**: Репозитории, кеш-сервисы, HTTP клиенты, API интеграции, инфраструктурные адаптеры
+- **🔧 DatabaseError**: Ошибки баз данных с типом БД, таблицами, операциями и соединениями. Runtime валидация контекста с isValidDatabaseErrorContext
+- **🔧 CacheError**: Ошибки кеширования с ключами, операциями и соединениями. Runtime валидация контекста с isValidCacheErrorContext
+- **🔧 NetworkError**: Сетевые ошибки с URL, HTTP статусами и соединениями. Runtime валидация контекста с isValidNetworkErrorContext
+- **🔧 ExternalAPIError**: Ошибки внешних API с rate limiting, retry и endpoint информацией. Runtime валидация контекста с isValidExternalAPIErrorContext
+- **Экспортирует**: create* функции, is* type guards (строгие, с валидацией details), isValid_ErrorContext функции, get_ утилиты (включая getDatabaseType, getTableName, getDatabaseOperation, getDatabaseConnection, isDatabaseConnectionError, getCacheKey, getCacheConnection, getCacheOperation, isCacheConnectionError, getNetworkUrl, getHttpRequestInfo, getNetworkConnection, isTimeoutError, isHttpError, getAPIServiceInfo, getAPIRateLimit, getAPIRetryInfo, getAPIConnection, isRateLimitError, isRetryableError), DatabaseError/DatabaseErrorContext/CacheError/CacheErrorContext/NetworkError/NetworkErrorContext/ExternalAPIError/ExternalAPIErrorContext типы, InfrastructureError union
+
+- **🛠️ Стек**: TypeScript + Effect
+  Обязательно русские: @file и компактные jsdoc
 
 **serialization/** – HTTP/log сериализаторы: `JsonSerializer`, `GrpcSerializer`, `GraphqlSerializer`. Чистые функции преобразования BaseError.toJSON()/asPlainObject(). Error serialization strategies с metadata preservation.
 
+- **🛠️ Стек**: TypeScript + Effect
+  Обязательно русские: @file и компактные jsdoc
+
 **normalizers/** – **ТОЛЬКО pure mapping**: `HttpNormalizer`, `DatabaseNormalizer`. `unknown → TaggedError`. Чистые функции без side-effects, без DI, без Effect.
 
+- **🛠️ Стек**: TypeScript
+  Обязательно русские: @file и компактные jsdoc
+
 **adapters/** – **Side-effects + DI**: `HttpAdapter`, `DatabaseAdapter`, `CacheAdapter`. Effect/IO/retry/breaker integration. Error handling: BaseError, ErrorStrategies, ErrorValidators. Circuit breaker coordination.
+
+- **🛠️ Стек**: TypeScript + Effect
+  Обязательно русские: @file и компактные jsdoc
 
 **policies/** – **Явно разделенные стратегии**:
 
 - `RetryPolicy` → повтор операции (timing, backoff strategies)
 - `Recovery/FallbackPolicy` → graceful degradation (cache, defaults)
 - `CircuitBreakerPolicy` → system health (failure thresholds, state management)
+
+- **🛠️ Стек**: TypeScript + Effect
+  Обязательно русские: @file и компактные jsdoc
 
 **SharedErrorBoundary.ts** – Error boundary helpers для shared операций:
 
@@ -488,6 +534,9 @@ withSharedErrorBoundary(
 ```
 
 Мощный модуль для 80% error handling в adapters/services.
+
+- **🛠️ Стек**: TypeScript + Effect
+  Обязательно русские: @file и компактные jsdoc
 
 **SharedValidators.ts** – Валидаторы shared инвариантов + **явные architectural invariants**:
 
@@ -506,6 +555,9 @@ withSharedErrorBoundary(
   Обязательно русские: @file и компактные jsdoc
 
 **index.ts** – Selective exports: `export * as Types from './SharedErrorTypes'`, `export * as Domain from './domain'`, `export * as Infra from './infrastructure'`, `export * as Adapters from './adapters'`, `export * as Contracts from './contracts'`, `export * as ErrorBoundary from './SharedErrorBoundary'`, etc.
+
+- **🛠️ Стек**: TypeScript
+  Обязательно русские: @file и компактные jsdoc
 
 **README.md** – Правила shared vs service layers. Usage examples: SharedErrorTypes для typed errors, ErrorBuilders для domain ошибок, ErrorTransformers для infra chains, ErrorStrategies для policies, SharedValidators для validation, SharedErrorBoundary для adapters.
 
