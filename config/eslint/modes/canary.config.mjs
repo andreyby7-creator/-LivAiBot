@@ -17,6 +17,7 @@ import { PLUGINS } from '../constants.mjs';
 import { applySeverity, applySeverityAwareRules, QUALITY_WITH_SEVERITY, CANARY_EXTRA_RULES, COMMON_IGNORES } from '../shared/rules.mjs';
 import { effectFpNamingRules } from '../rules/naming-conventions.mjs';
 import architecturalBoundariesConfig from '../rules/architectural-boundaries.mjs';
+import { integrationTestRules } from '../rules/integration-tests.rules.mjs';
 
 // ==================== УТИЛИТЫ ДЛЯ МОНОРЕПО ====================
 
@@ -426,6 +427,12 @@ canaryConfig.push({
   rules: {
     'fp/no-throw': 'off', // Setup файлы могут использовать throw
   },
+});
+
+// Правила для integration тестов (runtime testing, console output, error validation)
+canaryConfig.push({
+  files: ['**/tests/integration/**/*.{ts,tsx,js,jsx}'],
+  rules: integrationTestRules,
 });
 
 export default canaryConfig;
