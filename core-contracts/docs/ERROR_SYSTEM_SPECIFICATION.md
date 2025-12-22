@@ -428,20 +428,31 @@ errors/
 
 **🔧 Архитектурные рекомендации для слоев:**
 
-- **Shared Layer**: имеет полную аналогию базовых компонентов (Types, Registry, Validators, Instrumentation) + специализированные модули (domain, infra, adapters, etc.) для максимальной reusability
+- **Shared Layer**: имеет полную аналогию базовых компонентов (Types, Registry, Validators, Instrumentation) + специализированные модули (domain, infra, adapters, contracts, etc.) для максимальной reusability
 - **Services Layer**: имеет enterprise-grade структуру: каждый сервис имеет полную аналогию базовых компонентов (Types, Registry, Validators, Instrumentation) + domain/infra/policies/serialization/adapters/normalizers для complete service isolation
 - **Contracts Layer**: обеспечивает distributed error handling: error translation/transformation, service mesh integration, circuit breaker coordination, distributed tracing contracts для enterprise-grade межсервисного взаимодействия
 - **Extensions Layer**: предоставляет ecosystem integrations: каждый extension имеет полную аналогию базовых компонентов (Types, Registry, Validators, Instrumentation) + domain-specific error types для seamless integration с external frameworks и protocols
 
-**SharedErrorTypes.ts** – Shared-specific типы ошибок: `SharedDomainError<T>`, `SharedInfraError<T>`, `SharedPolicyError<T>`, `SharedAdapterError<T>`. TaggedError discriminated unions для общих доменов. Type guards и pattern matching helpers.
+**SharedErrorTypes.ts** ✅ **ГОТОВ К ПРОДАКШЕНУ**
+
+- **Содержимое**: Shared-specific типы ошибок: `SharedDomainError<T>`, `SharedInfraError<T>`, `SharedPolicyError<T>`, `SharedAdapterError<T>`. TaggedError discriminated unions для общих доменов. Type guards и pattern matching helpers. Namespace protection (SHARED_*), category union types, SharedErrorKind для routing, assert helpers для development.
+- **Зависимости**: BaseErrorTypes.ts
+- **Используется в**: Все компоненты shared слоя, adapters, policies, error boundaries
+- **🔧 Namespace protection**: Автоматическая валидация SHARED_ префиксов в runtime и compile-time
+- **🔧 Type-safe routing**: SharedErrorKind enum для observability/metrics/contracts/tracing
+- **🔧 Structural safety**: Усиленные type guards с проверкой namespace и структуры
+- **🔧 Assert helpers**: Development-only assertion functions для boundary validation
+- **Экспортирует**: SharedDomainError, SharedInfraError, SharedPolicyError, SharedAdapterError, SharedError, type guards, pattern matching, SharedErrorKind utilities, assert helpers
 
 - **🛠️ Стек**: TypeScript
   Обязательно русские: @file и компактные jsdoc
 
-**SharedErrorRegistry.ts** – Реестр общих ошибок LivAiBot: коды SHARED_DOMAIN__, SHARED_INFRA__, etc. с метаданными. Integration с base ErrorCode registry. Safe lookup функции.
+**SharedErrorRegistry.ts** – **Layered registry resolution**, НЕ отдельный реестр. Регистрирует SHARED_* коды в UnifiedErrorRegistry. Resolution pipeline: SharedRegistry → BaseRegistry → fallback. Единый lookup без дублирования.
 
 - **🛠️ Стек**: TypeScript + Effect
   Обязательно русские: @file и компактные jsdoc
+
+**shared/contracts/** – Внутренние контракты shared слоя: `HttpErrorContract`, `GrpcErrorContract`, `InternalErrorDTO`. Упрощает migration к services/contracts layer, убирает implicit agreements.
 
 **domain/** – Общие доменные ошибки LivAiBot: `ValidationError`, `AuthError`, `PermissionError`. Builders: `createValidationError()`, `createAuthError()`. Используют BaseError + ErrorBuilders для TaggedError типов. Независимы от инфраструктуры и сервисов.
 
@@ -449,13 +460,30 @@ errors/
 
 **serialization/** – HTTP/log сериализаторы: `JsonSerializer`, `GrpcSerializer`, `GraphqlSerializer`. Чистые функции преобразования BaseError.toJSON()/asPlainObject(). Error serialization strategies с metadata preservation.
 
-**adapters/** – Effect/HTTP/DB адаптеры: `HttpAdapter`, `DatabaseAdapter`, `CacheAdapter`. Изоляция через DI. Error handling: BaseError, ErrorStrategies, ErrorValidators. Circuit breaker integration.
+**normalizers/** – **ТОЛЬКО pure mapping**: `HttpNormalizer`, `DatabaseNormalizer`. `unknown → TaggedError`. Чистые функции без side-effects, без DI, без Effect.
 
-**normalizers/** – HTTP/DB нормализаторы: `HttpNormalizer`, `DatabaseNormalizer`. Перевод внешних ошибок в BaseError через ErrorBuilders. Runtime validation с ErrorValidators.
+**adapters/** – **Side-effects + DI**: `HttpAdapter`, `DatabaseAdapter`, `CacheAdapter`. Effect/IO/retry/breaker integration. Error handling: BaseError, ErrorStrategies, ErrorValidators. Circuit breaker coordination.
 
-**policies/** – Общие стратегии: `RetryPolicy`, `CircuitBreakerPolicy`, `FallbackPolicy`. Declarative ErrorStrategies с группировкой. Custom policies без привязки к сервисам.
+**policies/** – **Явно разделенные стратегии**:
+  - `RetryPolicy` → повтор операции (timing, backoff strategies)
+  - `Recovery/FallbackPolicy` → graceful degradation (cache, defaults)
+  - `CircuitBreakerPolicy` → system health (failure thresholds, state management)
 
-**SharedValidators.ts** – Валидаторы shared инвариантов: `validateSharedDomain()`, `validateSharedInfra()`. Integration с base ErrorValidators. Custom validation rules для shared contexts.
+**SharedErrorBoundary.ts** – Error boundary helpers для shared операций:
+```typescript
+withSharedErrorBoundary(
+  effect,
+  { normalize, strategy, serialize }
+)
+```
+Мощный модуль для 80% error handling в adapters/services.
+
+**SharedValidators.ts** – Валидаторы shared инвариантов + **явные architectural invariants**:
+- ❌ domain error с infra code
+- ❌ shared error без namespace SHARED_
+- ❌ утечка service-specific metadata
+- ✅ `validateSharedDomain()`, `validateSharedInfra()`
+- Integration с base ErrorValidators
 
 - **🛠️ Стек**: TypeScript + Effect
   Обязательно русские: @file и компактные jsdoc
@@ -465,9 +493,9 @@ errors/
 - **🛠️ Стек**: TypeScript + Effect/OpenTelemetry
   Обязательно русские: @file и компактные jsdoc
 
-**index.ts** – Selective exports: `export * as Types from './SharedErrorTypes'`, `export * as Domain from './domain'`, `export * as Infra from './infrastructure'`, `export * as Adapters from './adapters'`, etc.
+**index.ts** – Selective exports: `export * as Types from './SharedErrorTypes'`, `export * as Domain from './domain'`, `export * as Infra from './infrastructure'`, `export * as Adapters from './adapters'`, `export * as Contracts from './contracts'`, `export * as ErrorBoundary from './SharedErrorBoundary'`, etc.
 
-**README.md** – Правила shared vs service layers. Usage examples: SharedErrorTypes для typed errors, ErrorBuilders для domain ошибок, ErrorTransformers для infra chains, ErrorStrategies для policies, SharedValidators для validation.
+**README.md** – Правила shared vs service layers. Usage examples: SharedErrorTypes для typed errors, ErrorBuilders для domain ошибок, ErrorTransformers для infra chains, ErrorStrategies для policies, SharedValidators для validation, SharedErrorBoundary для adapters.
 
 ### 3️⃣ **Сервисный слой (services/)**
 
