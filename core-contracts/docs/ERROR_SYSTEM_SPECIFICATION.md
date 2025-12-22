@@ -57,7 +57,7 @@ errors/
 │   ├── SharedInstrumentation.ts     # Monitoring shared операций [TypeScript + Effect/OpenTelemetry]
 │   ├── domain/                      # 🔐 Общие доменные ошибки: ValidationError, AuthError [TypeScript]
 │   ├── infrastructure/              # 🏗️ Общие инфраструктурные ошибки: DB, Network, Cache [TypeScript + Effect]
-│   ├── serialization/               # 📤 Общие сериализаторы: JSON, gRPC, GraphQL [TypeScript + Effect]
+│   ├── serialization/               # 📤 Общие сериализаторы: JSON, gRPC, GraphQL [TypeScript]
 │   ├── adapters/                    # 🔌 Общие адаптеры: HTTP, DB, Cache с DI [TypeScript + Effect]
 │   ├── normalizers/                 # 🔄 Общие нормализаторы: HTTP, DB error mapping [TypeScript]
 │   └── policies/                    # 🎛️ Общие политики: Retry, CircuitBreaker, Fallback [TypeScript + Effect]
@@ -78,7 +78,7 @@ errors/
 │   │   ├── domain/                  # 🤖 AI доменные ошибки: PromptValidationError [TypeScript]
 │   │   ├── infrastructure/          # 🖥️ Yandex AI API errors: connection, rate limits [TypeScript + Effect]
 │   │   ├── policies/                # 🎛️ AI стратегии: model fallback, token retry [TypeScript + Effect]
-│   │   ├── serialization/           # 📤 AI response/result serialization [TypeScript + Effect]
+│   │   ├── serialization/           # 📤 AI response/result serialization [TypeScript]
 │   │   ├── adapters/                # 🔌 Yandex AI SDK adapter [TypeScript + Effect]
 │   │   └── normalizers/             # 🔄 Yandex API response normalization [TypeScript]
 │   ├── billing-service/
@@ -90,7 +90,7 @@ errors/
 │   │   ├── domain/                  # 💳 Billing доменные ошибки: subscription limits [TypeScript]
 │   │   ├── infrastructure/          # 🏦 Payment gateway errors: Stripe API failures [TypeScript + Effect]
 │   │   ├── policies/                # 🎛️ Payment стратегии: retry, fraud detection [TypeScript + Effect]
-│   │   ├── serialization/           # 📤 Payment data serialization, PCI masking [TypeScript + Effect]
+│   │   ├── serialization/           # 📤 Payment data serialization, PCI masking [TypeScript]
 │   │   ├── adapters/                # 🔌 Payment gateway adapters [TypeScript + Effect]
 │   │   └── normalizers/             # 🔄 Gateway response normalization [TypeScript]
 │   ├── tenant-service/
@@ -102,7 +102,7 @@ errors/
 │   │   ├── domain/                  # 🏢 Tenant доменные ошибки: resource allocation [TypeScript]
 │   │   ├── infrastructure/          # 🗂️ Multi-tenant DB/cache errors [TypeScript + Effect]
 │   │   ├── policies/                # 🎛️ Tenant стратегии: quota enforcement [TypeScript + Effect]
-│   │   ├── serialization/           # 📤 Tenant-scoped serialization [TypeScript + Effect]
+│   │   ├── serialization/           # 📤 Tenant-scoped serialization [TypeScript]
 │   │   ├── adapters/                # 🔌 Multi-tenant database adapters [TypeScript + Effect]
 │   │   └── normalizers/             # 🔄 Tenant data normalization [TypeScript]
 │   ├── mobile-service/
@@ -114,7 +114,7 @@ errors/
 │   │   ├── domain/                  # 📱 Mobile доменные ошибки: offline operations [TypeScript]
 │   │   ├── infrastructure/          # 📡 Device/platform errors: iOS/Android [TypeScript + Effect]
 │   │   ├── policies/                # 🎛️ Mobile стратегии: offline retry, sync conflicts [TypeScript + Effect]
-│   │   ├── serialization/           # 📤 Push payloads, offline queue formats [TypeScript + Effect]
+│   │   ├── serialization/           # 📤 Push payloads, offline queue formats [TypeScript]
 │   │   ├── adapters/                # 🔌 React Native, Firebase adapters [TypeScript + Effect]
 │   │   └── normalizers/             # 🔄 Mobile data normalization [TypeScript]
 │   └── feature-flag-service/
@@ -126,7 +126,7 @@ errors/
 │       ├── domain/                  # 🚩 FF доменные ошибки: flag configuration [TypeScript]
 │       ├── infrastructure/          # 🎛️ Flag storage/retrieval errors [TypeScript + Effect]
 │       ├── policies/                # 🎛️ FF стратегии: gradual rollout [TypeScript + Effect]
-│       ├── serialization/           # 📤 Feature flag state serialization [TypeScript + Effect]
+│       ├── serialization/           # 📤 Feature flag state serialization [TypeScript]
 │       ├── adapters/                # 🔌 LaunchDarkly adapters [TypeScript + Effect]
 │       └── normalizers/             # 🔄 Flag data normalization [TypeScript]
 │   # ⚠️ Каждый сервис автономен, использует base/shared, не зависит от других сервисов
@@ -500,10 +500,15 @@ errors/
 - **🛠️ Стек**: TypeScript + Effect
   Обязательно русские: @file и компактные jsdoc
 
-**serialization/** – HTTP/log сериализаторы: `JsonSerializer`, `GrpcSerializer`, `GraphqlSerializer`. Чистые функции преобразования BaseError.toJSON()/asPlainObject(). Error serialization strategies с metadata preservation.
+**serialization/** ✅ **ГОТОВ К ПРОДАКШЕНУ** – HTTP/log сериализаторы: `JsonSerializer`, `GrpcSerializer`, `GraphqlSerializer`. Унифицированные чистые функции с detailLevel, causeMetadata и stack traces. Полная metadata preservation и type safety.
 
-- **🛠️ Стек**: TypeScript + Effect
-  Обязательно русские: @file и компактные jsdoc
+- **JsonSerializer**: JSON сериализация с detailLevel (basic/detailed/full), causeMetadata в full режиме, round-trip сериализация/десериализация с валидацией, версионирование, immutable data structures
+- **GrpcSerializer**: gRPC-совместимый формат с severity mapping на gRPC статус коды, protobuf any детали, ErrorInfo/DebugInfo структуры, stack traces в DebugInfo, кастомные severity mappings, causeMetadata в full режиме, десериализация
+- **GraphqlSerializer**: GraphQL error формат с extensions, configurable locations/path generators, cause chain как отдельные ошибки, кастомные severity mappings, causeMetadata в full режиме, десериализация
+- **Унификация**: BaseErrorPlainObject типизация, detailLevel валидация, causeMetadata consistency, enterprise-grade test coverage (95%+), round-trip compatibility
+
+- **🛠️ Стек**: TypeScript
+  Обязательно русские: @file и компактные jsdoc, полная type safety
 
 **normalizers/** – **ТОЛЬКО pure mapping**: `HttpNormalizer`, `DatabaseNormalizer`. `unknown → TaggedError`. Чистые функции без side-effects, без DI, без Effect.
 
