@@ -135,15 +135,17 @@ export function createJsonSerializer(
     }
 
     // Удаляем causeChain если не нужно
-    if (!finalConfig.includeCauseChain && 'causeChain' in errorObject) {
-      const { causeChain, ...withoutChain } = errorObject;
-      errorObject = withoutChain;
+    if (!finalConfig.includeCauseChain) {
+      errorObject = Object.fromEntries(
+        Object.entries(errorObject).filter(([key]) => key !== 'causeChain'),
+      );
     }
 
     // Удаляем метаданные если не нужно
-    if (!finalConfig.includeMetadata && 'metadata' in errorObject) {
-      const { metadata, ...withoutMetadata } = errorObject;
-      errorObject = withoutMetadata;
+    if (!finalConfig.includeMetadata) {
+      errorObject = Object.fromEntries(
+        Object.entries(errorObject).filter(([key]) => key !== 'metadata'),
+      );
     }
 
     // В full режиме добавляем causeMetadata для унификации с другими сериализаторами
@@ -194,9 +196,11 @@ export function serializeToJson(error: BaseError): JsonSerializationResult {
  * @param pretty - форматировать с отступами
  * @returns JSON строка
  */
+const PRETTY_PRINT_INDENT = 2;
+
 export function serializeToJsonString(error: BaseError, pretty: boolean = false): string {
   const result = serializeToJson(error);
-  return JSON.stringify(result, null, pretty ? 2 : 0);
+  return JSON.stringify(result, null, pretty ? PRETTY_PRINT_INDENT : 0);
 }
 
 /**

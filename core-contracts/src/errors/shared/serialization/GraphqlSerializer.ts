@@ -132,7 +132,10 @@ function mapSeverityToGraphqlCode(
   customMapping?: Partial<Record<string, string>>,
 ): string {
   // Используем кастомный маппинг если предоставлен
-  const customCode = customMapping?.[severity];
+  // Проверяем что severity является валидным ключом для безопасности
+  const customCode = customMapping && Object.hasOwn(customMapping, severity)
+    ? Reflect.get(customMapping, severity)
+    : undefined;
   if (customCode != null && customCode !== '') {
     return customCode;
   }
@@ -253,9 +256,11 @@ export function serializeToGraphql(error: BaseError): GraphqlSerializationResult
  * @param pretty - форматировать с отступами
  * @returns JSON строка в GraphQL формате
  */
+const PRETTY_PRINT_INDENT = 2;
+
 export function serializeToGraphqlString(error: BaseError, pretty: boolean = false): string {
   const result = serializeToGraphql(error);
-  const indent = pretty ? 2 : 0;
+  const indent = pretty ? PRETTY_PRINT_INDENT : 0;
   return JSON.stringify(result, null, indent);
 }
 

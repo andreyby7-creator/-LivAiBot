@@ -410,14 +410,13 @@ canaryConfig.push({
   files: ['**/*.test.ts', '**/*.spec.ts'],
   rules: {
     'import/order': 'off', // Тестовые файлы могут иметь свободный порядок импортов
-    'fp/no-throw': 'off', // Тесты могут использовать throw в описаниях и коде
     ...applySeverityAwareRules(QUALITY_WITH_SEVERITY, 'test'), // explicit-function-return-type: off
   },
 });
 
 // Файлы с валидацией могут использовать throw для error handling
 canaryConfig.push({
-  files: ['**/ErrorCode.ts', '**/ErrorCodeMeta.ts'],
+  files: ['**/errors/**/*.ts'],
   rules: {
     'fp/no-throw': 'off', // Валидационные функции могут бросать ошибки
   },

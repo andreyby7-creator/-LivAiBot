@@ -10,15 +10,10 @@
 
 // ==================== ОСНОВНЫЕ ТИПЫ ДЛЯ ERROR CODES ====================
 
-/**
- * Базовый тип для error code - строка с семантической структурой
- * Формат: PREFIX_CATEGORY_INCREMENT (DOMAIN_AUTH_001)
- */
+/** Базовый тип для error code - строка с семантической структурой. Формат: PREFIX_CATEGORY_INCREMENT (DOMAIN_AUTH_001) */
 export type ErrorCode = string;
 
-/**
- * Структура error code для валидации
- */
+/** Структура error code для валидации */
 export type ErrorCodeStructure = {
   readonly prefix: ErrorCodePrefix;
   readonly category: string;
@@ -26,18 +21,31 @@ export type ErrorCodeStructure = {
   readonly fullCode: ErrorCode;
 };
 
-/**
- * Префиксы для группировки error codes
- */
+/** Префиксы для группировки error codes */
 export type ErrorCodePrefix =
   | 'DOMAIN' // Бизнес-логика (Domain слой)
   | 'INFRA' // Инфраструктура (Infra слой)
   | 'SERVICE' // Сервисы (Service слой)
   | 'ADMIN'; // Админ-панель (Admin слой)
 
-/**
- * Категории внутри каждой группы
- */
+// ==================== ВАЛИДАЦИОННЫЕ ТИПЫ ====================
+
+/** Результат валидации - discriminated union для type-safe обработки */
+export type ValidationResult<T = void> =
+  | { readonly success: true; readonly data: T; }
+  | { readonly success: false; readonly error: string; };
+
+/** Результат создания error code - discriminated union */
+export type CreateErrorCodeResult<T extends ErrorCode> =
+  | { readonly success: true; readonly code: T; }
+  | { readonly success: false; readonly error: string; };
+
+/** Результат проверки уникальности error codes */
+export type UniquenessValidationResult =
+  | { readonly success: true; }
+  | { readonly success: false; readonly duplicates: readonly string[]; };
+
+/** Категории внутри каждой группы */
 export type ErrorCodeCategory =
   // Domain категории
   | 'AUTH' // Аутентификация
@@ -65,9 +73,7 @@ export type ErrorCodeCategory =
 
 // ==================== DOMAIN ГРУППА (Бизнес-логика) ====================
 
-/**
- * Domain error codes - бизнес-логика LivAiBot
- */
+/** Domain error codes - бизнес-логика LivAiBot */
 export const DOMAIN_ERROR_CODES = {
   // Authentication (001-099)
   AUTH_INVALID_CREDENTIALS: 'DOMAIN_AUTH_001' as const,
@@ -141,9 +147,7 @@ export const DOMAIN_ERROR_CODES = {
 
 // ==================== INFRA ГРУППА (Инфраструктура) ====================
 
-/**
- * Infra error codes - инфраструктурные проблемы
- */
+/** Infra error codes - инфраструктурные проблемы */
 export const INFRA_ERROR_CODES = {
   // Database (001-099)
   INFRA_DB_CONNECTION_FAILED: 'INFRA_DB_001' as const,
@@ -169,13 +173,18 @@ export const INFRA_ERROR_CODES = {
   INFRA_EXTERNAL_API_TIMEOUT: 'INFRA_EXTERNAL_301' as const,
   INFRA_EXTERNAL_API_RATE_LIMIT: 'INFRA_EXTERNAL_302' as const,
   INFRA_EXTERNAL_API_AUTH_FAILED: 'INFRA_EXTERNAL_303' as const,
+  INFRA_EXTERNAL_API_VALIDATION_FAILED: 'INFRA_EXTERNAL_304' as const,
+  INFRA_EXTERNAL_API_CONFLICT: 'INFRA_EXTERNAL_305' as const,
+  INFRA_EXTERNAL_API_BAD_REQUEST: 'INFRA_EXTERNAL_306' as const,
+  INFRA_EXTERNAL_API_NOT_FOUND: 'INFRA_EXTERNAL_307' as const,
+  INFRA_EXTERNAL_API_METHOD_NOT_ALLOWED: 'INFRA_EXTERNAL_308' as const,
+  INFRA_EXTERNAL_API_PAYLOAD_TOO_LARGE: 'INFRA_EXTERNAL_309' as const,
+  INFRA_EXTERNAL_API_UNSUPPORTED_MEDIA_TYPE: 'INFRA_EXTERNAL_310' as const,
 } as const;
 
 // ==================== SERVICE ГРУППА (Сервисы) ====================
 
-/**
- * Service error codes - проблемы сервисов
- */
+/** Service error codes - проблемы сервисов */
 export const SERVICE_ERROR_CODES = {
   // AI Services (001-099)
   SERVICE_AI_MODEL_UNAVAILABLE: 'SERVICE_AI_001' as const,
@@ -187,9 +196,7 @@ export const SERVICE_ERROR_CODES = {
 
 // ==================== ADMIN ГРУППА (Админ-панель) ====================
 
-/**
- * Admin error codes - проблемы админ-панели
- */
+/** Admin error codes - проблемы админ-панели */
 export const ADMIN_ERROR_CODES = {
   // User Management (001-099)
   ADMIN_USER_NOT_FOUND: 'ADMIN_USER_001' as const,
@@ -209,9 +216,7 @@ export const ADMIN_ERROR_CODES = {
 
 // ==================== ОБЪЕДИНЕННЫЕ ERROR CODES ====================
 
-/**
- * Все error codes LivAiBot в едином объекте
- */
+/** Все error codes LivAiBot в едином объекте */
 export const LIVAI_ERROR_CODES = {
   ...DOMAIN_ERROR_CODES,
   ...INFRA_ERROR_CODES,
@@ -219,16 +224,12 @@ export const LIVAI_ERROR_CODES = {
   ...ADMIN_ERROR_CODES,
 } as const;
 
-/**
- * Тип для всех возможных error codes LivAiBot
- */
+/** Тип для всех возможных error codes LivAiBot */
 export type LivAiErrorCode = typeof LIVAI_ERROR_CODES[keyof typeof LIVAI_ERROR_CODES];
 
 // ==================== VALIDATION HELPERS ====================
 
-/**
- * Маппинг сервисов к их error code диапазонам для type-safe валидации
- */
+/** Маппинг сервисов к их error code диапазонам для type-safe валидации */
 export type ServiceErrorCodeMapping = {
   readonly [serviceName: string]: {
     readonly prefix: ErrorCodePrefix;
@@ -239,9 +240,13 @@ export type ServiceErrorCodeMapping = {
 };
 
 /**
- * Валидация уникальности error codes
+ * Валидация уникальности error codes (pure функция)
+ * @param codes - объект с error codes для проверки
+ * @returns результат валидации с найденными дубликатами или успех
  */
-export function validateErrorCodeUniqueness(codes: Record<string, ErrorCode>): void {
+export function validateErrorCodeUniqueness(
+  codes: Record<string, ErrorCode>,
+): UniquenessValidationResult {
   const codeValues = Object.values(codes);
   const uniqueCodes = Array.from(new Set(codeValues));
   const duplicates = uniqueCodes.filter((code) =>
@@ -249,35 +254,35 @@ export function validateErrorCodeUniqueness(codes: Record<string, ErrorCode>): v
   );
 
   if (duplicates.length > 0) {
-    throw new Error(`Duplicate error codes found: ${duplicates.join(', ')}`);
+    return { success: false, duplicates: duplicates as readonly string[] };
   }
+
+  return { success: true };
 }
 
-/**
- * Создание type-safe error code с валидацией
- */
-export function createErrorCode<T extends ErrorCode>(code: T): T {
+/** Создание type-safe error code с валидацией (pure функция). code - error code для валидации. returns discriminated union с результатом валидации */
+export function createErrorCode<T extends ErrorCode>(code: T): CreateErrorCodeResult<T> {
   const pattern = /^(DOMAIN|INFRA|SERVICE|ADMIN)_[A-Z]+_\d{3}$/;
   if (!pattern.test(code)) {
-    throw new Error(`Invalid error code format: ${code}. Expected: PREFIX_CATEGORY_XXX`);
+    return {
+      success: false,
+      error: `Invalid error code format: ${code}. Expected: PREFIX_CATEGORY_XXX`,
+    };
   }
-  return code;
+  return { success: true, code };
 }
 
-/**
- * Парсинг error code в структуру
- * @param code - error code для парсинга
- * @returns структура error code
- */
+/** Парсинг error code в структуру (pure функция). code - error code для парсинга. returns результат валидации с распарсенной структурой или ошибкой */
 const ERROR_CODE_CONFIG = { MIN_INCREMENT: 1, MAX_INCREMENT: 9999, PARTS_COUNT: 3 } as const;
 
-/**
- * Парсинг error code в структуру
- */
-export function parseErrorCode(code: ErrorCode): ErrorCodeStructure {
+/** Парсинг error code в структуру (pure функция). code - error code для парсинга. returns результат валидации с распарсенной структурой или ошибкой */
+export function parseErrorCode(code: ErrorCode): ValidationResult<ErrorCodeStructure> {
   const parts = code.split('_');
   if (parts.length !== ERROR_CODE_CONFIG.PARTS_COUNT) {
-    throw new Error(`Invalid error code format: ${code}`);
+    return {
+      success: false,
+      error: `Invalid error code format: ${code}. Expected format: PREFIX_CATEGORY_XXX`,
+    };
   }
 
   const [prefix, category, incrementStr] = parts;
@@ -290,7 +295,10 @@ export function parseErrorCode(code: ErrorCode): ErrorCodeStructure {
     || incrementStr === undefined
     || incrementStr === ''
   ) {
-    throw new Error(`Invalid error code format: ${code}`);
+    return {
+      success: false,
+      error: `Invalid error code format: ${code}. Missing required parts`,
+    };
   }
 
   const increment = parseInt(incrementStr, 10);
@@ -300,22 +308,53 @@ export function parseErrorCode(code: ErrorCode): ErrorCodeStructure {
     || increment < ERROR_CODE_CONFIG.MIN_INCREMENT
     || increment > ERROR_CODE_CONFIG.MAX_INCREMENT
   ) {
-    throw new Error(
-      `Invalid increment in error code: ${code} (must be between ${ERROR_CODE_CONFIG.MIN_INCREMENT} and ${ERROR_CODE_CONFIG.MAX_INCREMENT})`,
-    );
+    return {
+      success: false,
+      error:
+        `Invalid increment in error code: ${code} (must be between ${ERROR_CODE_CONFIG.MIN_INCREMENT} and ${ERROR_CODE_CONFIG.MAX_INCREMENT})`,
+    };
   }
 
   return {
-    prefix: prefix as ErrorCodePrefix,
-    category,
-    increment,
-    fullCode: code,
+    success: true,
+    data: {
+      prefix: prefix as ErrorCodePrefix,
+      category,
+      increment,
+      fullCode: code,
+    },
   };
 }
 
-/**
- * Маппинг сервисов для валидации error codes
- */
+// ==================== BOUNDARY ОБЁРТКИ (FAIL-FAST) ====================
+
+/** Boundary обёртка для validateErrorCodeUniqueness (fail-fast для dev/tests). throws Error если найдены дубликаты */
+export function validateErrorCodeUniquenessOrThrow(codes: Record<string, ErrorCode>): void {
+  const result = validateErrorCodeUniqueness(codes);
+  if (!result.success) {
+    throw new Error(`Duplicate error codes found: ${result.duplicates.join(', ')}`);
+  }
+}
+
+/** Boundary обёртка для createErrorCode (fail-fast для dev/tests). throws Error если код невалиден */
+export function createErrorCodeOrThrow<T extends ErrorCode>(code: T): T {
+  const result = createErrorCode(code);
+  if (!result.success) {
+    throw new Error(result.error);
+  }
+  return result.code;
+}
+
+/** Boundary обёртка для parseErrorCode (fail-fast для dev/tests). throws Error если код невозможно распарсить */
+export function parseErrorCodeOrThrow(code: ErrorCode): ErrorCodeStructure {
+  const result = parseErrorCode(code);
+  if (!result.success) {
+    throw new Error(result.error);
+  }
+  return result.data;
+}
+
+/** Маппинг сервисов для валидации error codes */
 export const SERVICE_ERROR_CODE_MAPPING: ServiceErrorCodeMapping = {
   auth: { prefix: 'DOMAIN', categories: ['AUTH'], rangeStart: 1, rangeEnd: 99 },
   user: { prefix: 'DOMAIN', categories: ['USER'], rangeStart: 100, rangeEnd: 199 },

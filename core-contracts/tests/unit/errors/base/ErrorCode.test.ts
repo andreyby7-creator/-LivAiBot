@@ -1,22 +1,28 @@
 import { describe, expect, it } from 'vitest';
 
 import type {
+  CreateErrorCodeResult,
   ErrorCode,
   ErrorCodeCategory,
   ErrorCodePrefix,
   ErrorCodeStructure,
   LivAiErrorCode,
+  UniquenessValidationResult,
+  ValidationResult,
 } from '../../../../src/errors/base/ErrorCode';
 import {
   ADMIN_ERROR_CODES,
   createErrorCode,
+  createErrorCodeOrThrow,
   DOMAIN_ERROR_CODES,
   INFRA_ERROR_CODES,
   LIVAI_ERROR_CODES,
   parseErrorCode,
+  parseErrorCodeOrThrow,
   SERVICE_ERROR_CODE_MAPPING,
   SERVICE_ERROR_CODES,
   validateErrorCodeUniqueness,
+  validateErrorCodeUniquenessOrThrow,
 } from '../../../../src/errors/base/ErrorCode';
 
 describe('ErrorCode', () => {
@@ -315,54 +321,59 @@ describe('ErrorCode', () => {
 
   describe('Функции валидации', () => {
     describe('validateErrorCodeUniqueness', () => {
-      it('должен проходить валидацию для уникальных кодов', () => {
+      it('должен возвращать success для уникальных кодов', () => {
         const uniqueCodes = {
           CODE1: 'DOMAIN_TEST_001',
           CODE2: 'DOMAIN_TEST_002',
         };
 
-        expect(() => validateErrorCodeUniqueness(uniqueCodes)).not.toThrow();
+        const result = validateErrorCodeUniqueness(uniqueCodes);
+        expect(result.success).toBe(true);
       });
 
-      it('должен выбрасывать ошибку при дублированных кодах', () => {
+      it('должен возвращать failure с дубликатами при дублированных кодах', () => {
         const duplicateCodes = {
           CODE1: 'DOMAIN_TEST_001',
           CODE2: 'DOMAIN_TEST_001', // дубликат
         };
 
-        expect(() => validateErrorCodeUniqueness(duplicateCodes)).toThrow(
-          'Duplicate error codes found: DOMAIN_TEST_001',
-        );
+        const result = validateErrorCodeUniqueness(duplicateCodes);
+        expect(result.success).toBe(false);
+        expect(result.duplicates).toEqual(['DOMAIN_TEST_001']);
       });
     });
 
     describe('createErrorCode', () => {
-      it('должен создавать валидный error code', () => {
-        const code = createErrorCode('DOMAIN_AUTH_001');
-        expect(code).toBe('DOMAIN_AUTH_001');
+      it('должен возвращать success с кодом для валидного error code', () => {
+        const result = createErrorCode('DOMAIN_AUTH_001');
+        expect(result.success).toBe(true);
+        expect(result.code).toBe('DOMAIN_AUTH_001');
       });
 
-      it('должен выбрасывать ошибку для невалидного формата', () => {
-        expect(() => createErrorCode('INVALID')).toThrow(
-          'Invalid error code format: INVALID. Expected: PREFIX_CATEGORY_XXX',
-        );
-        expect(() => createErrorCode('DOMAIN_AUTH_ABC')).toThrow(
-          'Invalid error code format: DOMAIN_AUTH_ABC. Expected: PREFIX_CATEGORY_XXX',
-        );
-        expect(() => createErrorCode('DOMAIN_AUTH_1')).toThrow(
-          'Invalid error code format: DOMAIN_AUTH_1. Expected: PREFIX_CATEGORY_XXX',
-        );
+      it('должен возвращать failure для невалидного формата', () => {
+        const invalidResults = [
+          createErrorCode('INVALID'),
+          createErrorCode('DOMAIN_AUTH_ABC'),
+          createErrorCode('DOMAIN_AUTH_1'),
+        ];
+
+        invalidResults.forEach((result) => {
+          expect(result.success).toBe(false);
+          expect(result.error).toContain('Invalid error code format');
+        });
       });
 
       it('должен поддерживать все валидные префиксы', () => {
-        const validCodes = [
+        const validResults = [
           createErrorCode('DOMAIN_AUTH_001'),
           createErrorCode('INFRA_DB_001'),
           createErrorCode('SERVICE_AI_001'),
           createErrorCode('ADMIN_USER_001'),
         ];
 
-        expect(validCodes).toHaveLength(4);
+        validResults.forEach((result) => {
+          expect(result.success).toBe(true);
+        });
       });
     });
   });
@@ -371,7 +382,8 @@ describe('ErrorCode', () => {
     it('должен корректно парсить валидный error code', () => {
       const result = parseErrorCode('DOMAIN_AUTH_001');
 
-      expect(result).toEqual({
+      expect(result.success).toBe(true);
+      expect(result.data).toEqual({
         prefix: 'DOMAIN',
         category: 'AUTH',
         increment: 1,
@@ -389,12 +401,13 @@ describe('ErrorCode', () => {
 
       testCases.forEach(({ code, increment }) => {
         const result = parseErrorCode(code);
-        expect(result.increment).toBe(increment);
-        expect(result.fullCode).toBe(code);
+        expect(result.success).toBe(true);
+        expect(result.data.increment).toBe(increment);
+        expect(result.data.fullCode).toBe(code);
       });
     });
 
-    it('должен выбрасывать ошибку для невалидного формата', () => {
+    it('должен возвращать failure для невалидного формата', () => {
       const invalidCodes = [
         'INVALID',
         'DOMAIN',
@@ -406,28 +419,85 @@ describe('ErrorCode', () => {
       ];
 
       invalidCodes.forEach((code) => {
-        expect(() => parseErrorCode(code)).toThrow();
+        const result = parseErrorCode(code);
+        expect(result.success).toBe(false);
+        expect(result.error).toBeDefined();
       });
     });
 
     it('должен обрабатывать граничные значения инкрементов', () => {
       // Валидные граничные значения
-      expect(() => parseErrorCode('DOMAIN_TEST_001')).not.toThrow();
-      expect(() => parseErrorCode('DOMAIN_TEST_999')).not.toThrow();
-      expect(() => parseErrorCode('DOMAIN_TEST_1000')).not.toThrow();
+      expect(parseErrorCode('DOMAIN_TEST_001').success).toBe(true);
+      expect(parseErrorCode('DOMAIN_TEST_999').success).toBe(true);
+      expect(parseErrorCode('DOMAIN_TEST_1000').success).toBe(true);
 
       // Невалидные граничные значения
-      expect(() => parseErrorCode('DOMAIN_TEST_000')).toThrow();
-      expect(() => parseErrorCode('DOMAIN_TEST_10000')).toThrow();
+      expect(parseErrorCode('DOMAIN_TEST_000').success).toBe(false);
+      expect(parseErrorCode('DOMAIN_TEST_10000').success).toBe(false);
     });
 
-    it('должен возвращать ErrorCodeStructure тип', () => {
+    it('должен возвращать ValidationResult с ErrorCodeStructure данными', () => {
       const result = parseErrorCode('DOMAIN_AUTH_001');
-      expect(result).toBeInstanceOf(Object);
-      expect(result).toHaveProperty('prefix');
-      expect(result).toHaveProperty('category');
-      expect(result).toHaveProperty('increment');
-      expect(result).toHaveProperty('fullCode');
+      expect(result.success).toBe(true);
+      expect(result.data).toBeInstanceOf(Object);
+      expect(result.data).toHaveProperty('prefix');
+      expect(result.data).toHaveProperty('category');
+      expect(result.data).toHaveProperty('increment');
+      expect(result.data).toHaveProperty('fullCode');
+    });
+
+    describe('Boundary обёртки (fail-fast)', () => {
+      describe('validateErrorCodeUniquenessOrThrow', () => {
+        it('должен проходить валидацию для уникальных кодов', () => {
+          const uniqueCodes = {
+            CODE1: 'DOMAIN_TEST_001',
+            CODE2: 'DOMAIN_TEST_002',
+          };
+
+          expect(() => validateErrorCodeUniquenessOrThrow(uniqueCodes)).not.toThrow();
+        });
+
+        it('должен выбрасывать ошибку при дублированных кодах', () => {
+          const duplicateCodes = {
+            CODE1: 'DOMAIN_TEST_001',
+            CODE2: 'DOMAIN_TEST_001', // дубликат
+          };
+
+          expect(() => validateErrorCodeUniquenessOrThrow(duplicateCodes)).toThrow(
+            'Duplicate error codes found: DOMAIN_TEST_001',
+          );
+        });
+      });
+
+      describe('createErrorCodeOrThrow', () => {
+        it('должен создавать валидный error code', () => {
+          const code = createErrorCodeOrThrow('DOMAIN_AUTH_001');
+          expect(code).toBe('DOMAIN_AUTH_001');
+        });
+
+        it('должен выбрасывать ошибку для невалидного формата', () => {
+          expect(() => createErrorCodeOrThrow('INVALID')).toThrow(
+            'Invalid error code format: INVALID. Expected: PREFIX_CATEGORY_XXX',
+          );
+        });
+      });
+
+      describe('parseErrorCodeOrThrow', () => {
+        it('должен корректно парсить валидный error code', () => {
+          const result = parseErrorCodeOrThrow('DOMAIN_AUTH_001');
+
+          expect(result).toEqual({
+            prefix: 'DOMAIN',
+            category: 'AUTH',
+            increment: 1,
+            fullCode: 'DOMAIN_AUTH_001',
+          });
+        });
+
+        it('должен выбрасывать ошибку для невалидного формата', () => {
+          expect(() => parseErrorCodeOrThrow('INVALID')).toThrow();
+        });
+      });
     });
   });
 
@@ -494,14 +564,16 @@ describe('ErrorCode', () => {
 
     it('все error codes из LIVAI_ERROR_CODES должны быть парсибельны', () => {
       Object.values(LIVAI_ERROR_CODES).forEach((code) => {
-        expect(() => parseErrorCode(code)).not.toThrow();
+        const result = parseErrorCode(code);
+        expect(result.success).toBe(true);
       });
     });
 
     it('парсинг должен быть обратимым для всех error codes', () => {
       Object.values(LIVAI_ERROR_CODES).forEach((code) => {
         const parsed = parseErrorCode(code);
-        expect(parsed.fullCode).toBe(code);
+        expect(parsed.success).toBe(true);
+        expect(parsed.data.fullCode).toBe(code);
       });
     });
   });

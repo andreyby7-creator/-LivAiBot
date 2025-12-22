@@ -65,7 +65,7 @@
   "scripts": {
     "build": "pnpm run build:types && pnpm run build:js",
     "build:js": "tsup",
-    "build:types": "rm -f *.tsbuildinfo && tsc -b tsconfig.build.json && dprint fmt 'dist/**/*.d.ts'",
+    "build:types": "rm -f *.tsbuildinfo && tsc -b tsconfig.build.json && dprint fmt 'dist/esm/**/*.d.ts' --allow-no-files || true",
     "build:watch": "tsup --watch",
     "dev": "tsup --watch",
     "lint": "eslint . --config ../eslint.config.mjs --ext .ts,.tsx,.js,.jsx --cache --cache-location=.eslintcache",

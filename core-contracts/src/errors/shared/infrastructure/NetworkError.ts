@@ -24,8 +24,12 @@ export type NetworkErrorContext = {
   readonly timeout?: number;
   /** Размер ответа в байтах */
   readonly responseSize?: number;
+  /** Тело ответа */
+  readonly responseBody?: unknown;
   /** User-Agent */
   readonly userAgent?: string;
+  /** HTTP headers */
+  readonly headers?: Record<string, string>;
   /** IP адрес назначения */
   readonly remoteAddress?: string;
   /** Порт назначения */

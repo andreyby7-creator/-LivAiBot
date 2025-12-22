@@ -309,8 +309,10 @@ export function serializeToGrpc(error: BaseError): GrpcSerializationResult {
  * @param pretty - форматировать с отступами
  * @returns JSON строка в gRPC формате
  */
+const PRETTY_PRINT_INDENT = 2;
+
 export function serializeToGrpcString(error: BaseError, pretty: boolean = false): string {
   const result = serializeToGrpc(error);
-  const indent = pretty ? 2 : 0;
+  const indent = pretty ? PRETTY_PRINT_INDENT : 0;
   return JSON.stringify(result, null, indent);
 }
