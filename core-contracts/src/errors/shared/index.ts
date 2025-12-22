@@ -63,6 +63,32 @@ export {
   validateSharedErrorKind,
 } from './SharedErrorTypes.js';
 
+// ==================== REGISTRY ====================
+
+/**
+ * Shared error registry с layered resolution (SharedRegistry → BaseRegistry → fallback)
+ * Регистрация SHARED_* кодов в UnifiedErrorRegistry
+ */
+export {
+  checkSharedCodesConsistency,
+  getAllSharedErrorCodes,
+  getFromBaseRegistry,
+  getFromNamespaceRegistry,
+  getFromSharedRegistry,
+  getRegistryStats,
+  getSharedRegistryStats,
+  isSharedErrorCode,
+  registerSharedErrorsInRegistry,
+  registerSharedLayer,
+  resolveSharedErrorMeta,
+  SHARED_ERROR_CODES,
+  SHARED_ERROR_METADATA,
+} from './SharedErrorRegistry.js';
+
+export { REGISTRY_NAMESPACES } from './SharedErrorRegistry.js';
+
+export type { RegistryNamespace } from './SharedErrorRegistry.js';
+
 // ==================== FUTURE EXPORTS ====================
 
 // Domain-specific errors (будут добавлены)

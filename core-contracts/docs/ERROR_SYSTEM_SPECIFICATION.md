@@ -447,9 +447,17 @@ errors/
 - **🛠️ Стек**: TypeScript
   Обязательно русские: @file и компактные jsdoc
 
-**SharedErrorRegistry.ts** – **Layered registry resolution**, НЕ отдельный реестр. Регистрирует SHARED_* коды в UnifiedErrorRegistry. Resolution pipeline: SharedRegistry → BaseRegistry → fallback. Единый lookup без дублирования.
+**SharedErrorRegistry.ts** ✅ **ГОТОВ К ПРОДАКШЕНУ**
 
-- **🛠️ Стек**: TypeScript + Effect
+- **Содержимое**: Layered registry resolution для SHARED_* кодов. Регистрация в UnifiedErrorRegistry.shared без создания отдельного реестра. Type-safe namespace константы и API. Проверка консистентности источников истины (SHARED_ERROR_CODES ↔ registry.shared).
+- **Зависимости**: UnifiedErrorRegistry.ts, ErrorCodeMeta.ts
+- **Используется в**: Инициализация registry, проверка консистентности кодов, layered error resolution
+- **🔧 Layered resolution**: Pipeline SharedRegistry → BaseRegistry → fallback с контролируемым порядком
+- **🔧 Registry API**: getFromSharedRegistry, getFromBaseRegistry, getFromNamespaceRegistry для type-safe доступа
+- **🔧 Consistency checks**: checkSharedCodesConsistency предотвращает расхождения между константами и runtime данными
+- **Экспортирует**: registerSharedLayer, resolveSharedErrorMeta, getFrom*Registry функции, REGISTRY_NAMESPACES константы, checkSharedCodesConsistency
+
+- **🛠️ Стек**: TypeScript
   Обязательно русские: @file и компактные jsdoc
 
 **shared/contracts/** – Внутренние контракты shared слоя: `HttpErrorContract`, `GrpcErrorContract`, `InternalErrorDTO`. Упрощает migration к services/contracts layer, убирает implicit agreements.
