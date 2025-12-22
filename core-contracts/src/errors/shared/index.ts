@@ -10,18 +10,18 @@
  * Основные типы shared ошибок и утилиты
  */
 export type {
-  SharedErrorCodeString,
-  SharedErrorCategory,
-  SharedErrorKind,
+  SharedAdapterError,
   SharedDomainError,
+  SharedError,
+  SharedErrorCategory,
+  SharedErrorCode,
+  SharedErrorCodeString,
+  SharedErrorDetails,
+  SharedErrorInput,
+  SharedErrorKind,
+  SharedErrorMatcher,
   SharedInfraError,
   SharedPolicyError,
-  SharedAdapterError,
-  SharedError,
-  SharedErrorDetails,
-  SharedErrorCode,
-  SharedErrorInput,
-  SharedErrorMatcher,
 } from './SharedErrorTypes.js';
 
 // ==================== TYPE GUARDS ====================
@@ -30,11 +30,11 @@ export type {
  * Функции проверки типов shared ошибок
  */
 export {
+  isSharedAdapterError,
   isSharedDomainError,
+  isSharedError,
   isSharedInfraError,
   isSharedPolicyError,
-  isSharedAdapterError,
-  isSharedError,
 } from './SharedErrorTypes.js';
 
 // ==================== PATTERN MATCHING ====================
@@ -42,18 +42,15 @@ export {
 /**
  * Утилиты для pattern matching shared ошибок
  */
-export {
-  matchSharedError,
-  safeMatchSharedError,
-} from './SharedErrorTypes.js';
+export { matchSharedError, safeMatchSharedError } from './SharedErrorTypes.js';
 
 /**
  * Утилиты для работы с SharedErrorKind (observability, metrics, contracts, tracing)
  */
 export {
   getSharedErrorKind,
-  isSharedErrorKind,
   groupSharedErrorsByKind,
+  isSharedErrorKind,
 } from './SharedErrorTypes.js';
 
 /**
@@ -61,9 +58,9 @@ export {
  */
 export {
   validateSharedError,
-  validateSharedErrorKind,
   validateSharedErrorCategory,
   validateSharedErrorCode,
+  validateSharedErrorKind,
 } from './SharedErrorTypes.js';
 
 // ==================== FUTURE EXPORTS ====================

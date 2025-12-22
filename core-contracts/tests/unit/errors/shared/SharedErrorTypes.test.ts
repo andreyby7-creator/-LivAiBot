@@ -35,7 +35,7 @@ import type {
 function createMockSharedDomainError(
   code: SharedErrorCodeString = 'SHARED_DOMAIN_USER_NOT_FOUND',
   message = 'User not found',
-  details?: unknown
+  details?: unknown,
 ): SharedDomainError {
   const error: SharedDomainError = {
     _tag: 'SharedDomainError',
@@ -55,7 +55,7 @@ function createMockSharedDomainError(
 function createMockSharedInfraError(
   code: SharedErrorCodeString = 'SHARED_INFRA_DB_CONNECTION_FAILED',
   message = 'Database connection failed',
-  details?: unknown
+  details?: unknown,
 ): SharedInfraError {
   const error: SharedInfraError = {
     _tag: 'SharedInfraError',
@@ -75,7 +75,7 @@ function createMockSharedInfraError(
 function createMockSharedPolicyError(
   code: SharedErrorCodeString = 'SHARED_POLICY_RETRY_EXHAUSTED',
   message = 'Retry attempts exhausted',
-  details?: unknown
+  details?: unknown,
 ): SharedPolicyError {
   const error: SharedPolicyError = {
     _tag: 'SharedPolicyError',
@@ -95,7 +95,7 @@ function createMockSharedPolicyError(
 function createMockSharedAdapterError(
   code: SharedErrorCodeString = 'SHARED_ADAPTER_HTTP_TIMEOUT',
   message = 'HTTP request timeout',
-  details?: unknown
+  details?: unknown,
 ): SharedAdapterError {
   const error: SharedAdapterError = {
     _tag: 'SharedAdapterError',
@@ -187,7 +187,7 @@ describe('SharedErrorTypes', () => {
         const error = createMockSharedDomainError(
           'SHARED_DOMAIN_VALIDATION_FAILED',
           'Validation failed',
-          { field: 'email', reason: 'invalid format' }
+          { field: 'email', reason: 'invalid format' },
         );
         expect(error.details).toEqual({
           field: 'email',
@@ -235,7 +235,7 @@ describe('SharedErrorTypes', () => {
           createMockSharedAdapterError(),
         ];
 
-        errors.forEach(error => {
+        errors.forEach((error) => {
           expect(error.code).toMatch(/^SHARED_/);
           expect(['domain', 'infrastructure', 'policy', 'adapter']).toContain(error.category);
         });
@@ -409,12 +409,17 @@ describe('SharedErrorTypes', () => {
       it('должен проверять SHARED_ префикс во всех типах', () => {
         const invalidErrors = [
           { _tag: 'SharedDomainError', category: 'domain', code: 'INVALID', message: 'test' },
-          { _tag: 'SharedInfraError', category: 'infrastructure', code: 'INVALID', message: 'test' },
+          {
+            _tag: 'SharedInfraError',
+            category: 'infrastructure',
+            code: 'INVALID',
+            message: 'test',
+          },
           { _tag: 'SharedPolicyError', category: 'policy', code: 'INVALID', message: 'test' },
           { _tag: 'SharedAdapterError', category: 'adapter', code: 'INVALID', message: 'test' },
         ];
 
-        invalidErrors.forEach(error => {
+        invalidErrors.forEach((error) => {
           expect(isSharedError(error)).toBe(false);
         });
       });
@@ -695,12 +700,12 @@ describe('SharedErrorTypes', () => {
         ];
 
         // Проверка типов
-        errors.forEach(error => {
+        errors.forEach((error) => {
           expect(isSharedError(error)).toBe(true);
         });
 
         // Pattern matching
-        const results = errors.map(error =>
+        const results = errors.map((error) =>
           matchSharedError(error, {
             sharedDomainError: () => 'domain',
             sharedInfraError: () => 'infra',
@@ -751,7 +756,7 @@ describe('SharedErrorTypes', () => {
         expect(validSharedErrors).toHaveLength(2);
 
         // Все прошедшие фильтр ошибки должны быть валидными
-        validSharedErrors.forEach(error => {
+        validSharedErrors.forEach((error) => {
           const validation = validateSharedError(error);
           expect(validation.isValid).toBe(true);
           expect(error.code).toMatch(/^SHARED_/);

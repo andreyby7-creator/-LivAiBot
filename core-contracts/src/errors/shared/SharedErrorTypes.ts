@@ -80,13 +80,13 @@ export function isSharedDomainError<T = unknown>(
   error: unknown,
 ): error is SharedDomainError<T> {
   return (
-    typeof error === 'object' &&
-    error !== null &&
-    '_tag' in error &&
-    (error as Record<string, unknown>)['_tag'] === 'SharedDomainError' &&
-    'code' in error &&
-    typeof (error as Record<string, unknown>)['code'] === 'string' &&
-    ((error as Record<string, unknown>)['code'] as string).startsWith('SHARED_')
+    typeof error === 'object'
+    && error !== null
+    && '_tag' in error
+    && (error as Record<string, unknown>)['_tag'] === 'SharedDomainError'
+    && 'code' in error
+    && typeof (error as Record<string, unknown>)['code'] === 'string'
+    && ((error as Record<string, unknown>)['code'] as string).startsWith('SHARED_')
   );
 }
 
@@ -99,13 +99,13 @@ export function isSharedInfraError<T = unknown>(
   error: unknown,
 ): error is SharedInfraError<T> {
   return (
-    typeof error === 'object' &&
-    error !== null &&
-    '_tag' in error &&
-    (error as Record<string, unknown>)['_tag'] === 'SharedInfraError' &&
-    'code' in error &&
-    typeof (error as Record<string, unknown>)['code'] === 'string' &&
-    ((error as Record<string, unknown>)['code'] as string).startsWith('SHARED_')
+    typeof error === 'object'
+    && error !== null
+    && '_tag' in error
+    && (error as Record<string, unknown>)['_tag'] === 'SharedInfraError'
+    && 'code' in error
+    && typeof (error as Record<string, unknown>)['code'] === 'string'
+    && ((error as Record<string, unknown>)['code'] as string).startsWith('SHARED_')
   );
 }
 
@@ -118,13 +118,13 @@ export function isSharedPolicyError<T = unknown>(
   error: unknown,
 ): error is SharedPolicyError<T> {
   return (
-    typeof error === 'object' &&
-    error !== null &&
-    '_tag' in error &&
-    (error as Record<string, unknown>)['_tag'] === 'SharedPolicyError' &&
-    'code' in error &&
-    typeof (error as Record<string, unknown>)['code'] === 'string' &&
-    ((error as Record<string, unknown>)['code'] as string).startsWith('SHARED_')
+    typeof error === 'object'
+    && error !== null
+    && '_tag' in error
+    && (error as Record<string, unknown>)['_tag'] === 'SharedPolicyError'
+    && 'code' in error
+    && typeof (error as Record<string, unknown>)['code'] === 'string'
+    && ((error as Record<string, unknown>)['code'] as string).startsWith('SHARED_')
   );
 }
 
@@ -137,13 +137,13 @@ export function isSharedAdapterError<T = unknown>(
   error: unknown,
 ): error is SharedAdapterError<T> {
   return (
-    typeof error === 'object' &&
-    error !== null &&
-    '_tag' in error &&
-    (error as Record<string, unknown>)['_tag'] === 'SharedAdapterError' &&
-    'code' in error &&
-    typeof (error as Record<string, unknown>)['code'] === 'string' &&
-    ((error as Record<string, unknown>)['code'] as string).startsWith('SHARED_')
+    typeof error === 'object'
+    && error !== null
+    && '_tag' in error
+    && (error as Record<string, unknown>)['_tag'] === 'SharedAdapterError'
+    && 'code' in error
+    && typeof (error as Record<string, unknown>)['code'] === 'string'
+    && ((error as Record<string, unknown>)['code'] as string).startsWith('SHARED_')
   );
 }
 
@@ -156,10 +156,10 @@ export function isSharedError<T = unknown>(
   error: unknown,
 ): error is SharedError<T> {
   return (
-    isSharedDomainError(error) ||
-    isSharedInfraError(error) ||
-    isSharedPolicyError(error) ||
-    isSharedAdapterError(error)
+    isSharedDomainError(error)
+    || isSharedInfraError(error)
+    || isSharedPolicyError(error)
+    || isSharedAdapterError(error)
   );
 }
 
@@ -218,14 +218,13 @@ export function safeMatchSharedError<R>(
 // ==================== UTILITY TYPES ====================
 
 /** Извлекает детали из SharedError типа. */
-export type SharedErrorDetails<E extends SharedError> = E extends SharedError<infer T>
-  ? T
+export type SharedErrorDetails<E extends SharedError> = E extends SharedError<infer T> ? T
   : never;
 
 /** Создает union тип кодов для конкретной категории shared ошибок. */
 export type SharedErrorCode<
-  C extends SharedError['category']
-> = Extract<SharedError, { category: C }>['code'];
+  C extends SharedError['category'],
+> = Extract<SharedError, { category: C; }>['code'];
 
 /** Тип для создания новых shared ошибок. */
 export type SharedErrorInput<T = unknown> = {
@@ -247,14 +246,14 @@ export function getSharedErrorKind(error: SharedError): SharedErrorKind {
 /** Проверяет, соответствует ли ошибка определенному виду. Type-safe проверка для routing и категоризации. */
 export function isSharedErrorKind<E extends SharedError>(
   error: SharedError,
-  kind: SharedErrorKind
+  kind: SharedErrorKind,
 ): error is E {
   return error._tag === kind;
 }
 
 /** Группирует ошибки по их виду для observability. Возвращает Map<SharedErrorKind, SharedError[]>. */
 export function groupSharedErrorsByKind(
-  errors: readonly SharedError[]
+  errors: readonly SharedError[],
 ): Map<SharedErrorKind, SharedError[]> {
   return errors.reduce((groups, error) => {
     const kind = getSharedErrorKind(error);
@@ -286,7 +285,7 @@ export function validateSharedError(error: unknown): {
  */
 export function validateSharedErrorKind<E extends SharedError>(
   error: SharedError,
-  kind: SharedErrorKind
+  kind: SharedErrorKind,
 ): {
   isValid: boolean;
   error?: string;
@@ -304,7 +303,7 @@ export function validateSharedErrorKind<E extends SharedError>(
  */
 export function validateSharedErrorCategory(
   error: SharedError,
-  category: SharedErrorCategory
+  category: SharedErrorCategory,
 ): {
   isValid: boolean;
   error?: string;
@@ -312,7 +311,10 @@ export function validateSharedErrorCategory(
   if (error.category === category) {
     return { isValid: true };
   }
-  return { isValid: false, error: `Expected SharedError with category ${category}: got ${error.category}` };
+  return {
+    isValid: false,
+    error: `Expected SharedError with category ${category}: got ${error.category}`,
+  };
 }
 
 /**

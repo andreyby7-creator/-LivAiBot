@@ -465,20 +465,24 @@ errors/
 **adapters/** – **Side-effects + DI**: `HttpAdapter`, `DatabaseAdapter`, `CacheAdapter`. Effect/IO/retry/breaker integration. Error handling: BaseError, ErrorStrategies, ErrorValidators. Circuit breaker coordination.
 
 **policies/** – **Явно разделенные стратегии**:
-  - `RetryPolicy` → повтор операции (timing, backoff strategies)
-  - `Recovery/FallbackPolicy` → graceful degradation (cache, defaults)
-  - `CircuitBreakerPolicy` → system health (failure thresholds, state management)
+
+- `RetryPolicy` → повтор операции (timing, backoff strategies)
+- `Recovery/FallbackPolicy` → graceful degradation (cache, defaults)
+- `CircuitBreakerPolicy` → system health (failure thresholds, state management)
 
 **SharedErrorBoundary.ts** – Error boundary helpers для shared операций:
+
 ```typescript
 withSharedErrorBoundary(
   effect,
-  { normalize, strategy, serialize }
-)
+  { normalize, strategy, serialize },
+);
 ```
+
 Мощный модуль для 80% error handling в adapters/services.
 
 **SharedValidators.ts** – Валидаторы shared инвариантов + **явные architectural invariants**:
+
 - ❌ domain error с infra code
 - ❌ shared error без namespace SHARED_
 - ❌ утечка service-specific metadata
