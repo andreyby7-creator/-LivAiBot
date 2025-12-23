@@ -30,21 +30,23 @@ function extractImports(filePath: string, srcDir: string): string[] {
     const importRegex = /import\s+.*?from\s+['\"]([^'\"]+)['\"]/g;
     let match;
     while ((match = importRegex.exec(content)) !== null) {
-      let importPath = match[1];
+      const importPath = match[1];
+      if (!importPath) continue;
+
+      let resolvedPath = importPath;
 
       // Преобразуем относительные пути
-      if (importPath.startsWith('.')) {
+      if (resolvedPath.startsWith('.')) {
         const dir = path.dirname(filePath);
-        importPath = path.resolve(dir, importPath);
+        resolvedPath = path.resolve(dir, resolvedPath);
         // Относительно src директории
-        importPath = path.relative(srcDir, importPath).replace(/\\./g, '/');
-        importPath = path.relative(srcDir, importPath).replace(/\\./g, '/');
+        resolvedPath = path.relative(srcDir, resolvedPath).replace(/\\./g, '/');
       }
 
       // Убираем расширения
-      importPath = importPath.replace(/(\.js|\.ts)$/, '');
+      resolvedPath = resolvedPath.replace(/(\.js|\.ts)$/, '');
 
-      imports.push(importPath);
+      imports.push(resolvedPath);
     }
 
     return imports;
