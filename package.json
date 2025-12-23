@@ -36,7 +36,12 @@
     "format:check": "dprint check",
     "prepare": "husky",
     "architecture:validate": "echo 'Architecture validation not implemented yet'",
-    "verify:infra": "echo 'Infrastructure verification not implemented yet'"
+    "verify:infra": "echo 'Infrastructure verification not implemented yet'",
+    "type-coverage": "type-coverage --detail",
+    "deps:check": "depcheck --skip-missing",
+    "deps:unused": "depcheck --skip-missing | grep \"Unused\" || echo \"No unused dependencies found\"",
+    "quality": "pnpm run type-coverage && pnpm run deps:unused",
+    "quality:ci": "pnpm run type-coverage && pnpm run deps:unused"
   },
   "volta": {
     "node": "24.12.0"
@@ -50,6 +55,7 @@
     "@typescript-eslint/eslint-plugin": "^8.50.0",
     "@typescript-eslint/parser": "^8.50.0",
     "cross-env": "^10.1.0",
+    "depcheck": "^1.4.7",
     "dprint": "^0.50.2",
     "eslint": "^9.39.2",
     "eslint-config-prettier": "^10.1.8",
@@ -77,7 +83,9 @@
     "husky": "^9.1.7",
     "lint-staged": "^16.2.7",
     "prettier": "^3.7.4",
+    "tsx": "^4.21.0",
     "turbo": "^2.6.3",
+    "type-coverage": "^2.29.7",
     "type-fest": "^5.3.1",
     "typescript": "^5.9.3"
   },
