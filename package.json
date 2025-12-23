@@ -16,7 +16,7 @@
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [
       "dprint fmt",
-      "cross-env ESLINT_MODE=canary eslint --max-warnings 0"
+      "cross-env ESLINT_MODE=canary eslint --config eslint.config.mjs --max-warnings 0"
     ],
     "*.{json,md,yml,yaml}": [
       "dprint fmt"

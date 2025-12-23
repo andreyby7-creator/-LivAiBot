@@ -76,7 +76,7 @@
     "test:ci": "NODE_OPTIONS='--no-warnings' vitest run --coverage --coverage.thresholds.statements=85 --coverage.thresholds.branches=80 --coverage.thresholds.functions=85 --coverage.thresholds.lines=85",
     "clean": "rm -rf dist *.tsbuildinfo .eslintcache",
     "lint:dev": "cross-env ESLINT_MODE=dev pnpm lint",
-    "lint:canary": "cross-env ESLINT_MODE=canary pnpm lint",
+    "lint:canary": "cross-env ESLINT_MODE=canary eslint --config ../eslint.config.mjs --max-warnings 0",
     "check:deps": "tsx scripts/check-circular-deps-core-contracts.ts",
     "ci:check": "pnpm run type-check && pnpm run lint && pnpm run test:ci && pnpm run check:deps",
     "lint:fix": "cross-env ESLINT_MODE=dev pnpm lint --fix",

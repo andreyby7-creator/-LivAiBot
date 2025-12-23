@@ -1,7 +1,5 @@
 #!/usr/bin/env tsx
 
-/* eslint-disable @typescript-eslint/no-unused-vars, no-console, security/detect-non-literal-fs-filename, functional/immutable-data, @typescript-eslint/array-type, security/detect-object-injection, @typescript-eslint/prefer-nullish-coalescing, @typescript-eslint/explicit-function-return-type, @typescript-eslint/require-await, security-node/detect-crlf, no-magic-numbers */
-
 /**
  * @file check-circular-deps-core-contracts.ts
  * Проверка циклических зависимостей в core-contracts
@@ -19,10 +17,11 @@ const __dirname = path.dirname(__filename);
 
 type DependencyGraph = {
   [file: string]: string[];
-}
+};
 
 function extractImports(filePath: string, srcDir: string): string[] {
   try {
+    // eslint-disable-next-line security/detect-non-literal-fs-filename
     const content = fs.readFileSync(filePath, 'utf8');
     const imports: string[] = [];
 
@@ -31,7 +30,7 @@ function extractImports(filePath: string, srcDir: string): string[] {
     let match;
     while ((match = importRegex.exec(content)) !== null) {
       const importPath = match[1];
-      if (!importPath) continue;
+      if (importPath == null) continue;
 
       let resolvedPath = importPath;
 
@@ -46,40 +45,47 @@ function extractImports(filePath: string, srcDir: string): string[] {
       // Убираем расширения
       resolvedPath = resolvedPath.replace(/(\.js|\.ts)$/, '');
 
+      // eslint-disable-next-line functional/immutable-data
       imports.push(resolvedPath);
     }
 
     return imports;
-  } catch (e) {
+  } catch {
     return [];
   }
 }
 
 function findTsFiles(dir: string, files: string[] = []): string[] {
+  const result = [...files];
+  // eslint-disable-next-line security/detect-non-literal-fs-filename
   const items = fs.readdirSync(dir);
 
   for (const item of items) {
     const fullPath = path.join(dir, item);
+    // eslint-disable-next-line security/detect-non-literal-fs-filename
     const stat = fs.statSync(fullPath);
 
     if (stat.isDirectory() && !item.startsWith('.') && item !== 'node_modules') {
       findTsFiles(fullPath, files);
     } else if (stat.isFile() && (item.endsWith('.ts') || item.endsWith('.js'))) {
-      files.push(fullPath);
+      // eslint-disable-next-line functional/immutable-data
+      result.push(fullPath);
     }
   }
 
-  return files;
+  return result;
 }
 
-function detectCircularDependencies(graph: DependencyGraph): Array<[string, string]> {
-  const cycles: Array<[string, string]> = [];
+function detectCircularDependencies(graph: DependencyGraph): [string, string][] {
+  const cycles: [string, string][] = [];
 
   for (const [file, deps] of Object.entries(graph)) {
     for (const dep of deps) {
       // Проверяем обратную зависимость
-      const reverseDeps = graph[dep] || [];
+      // eslint-disable-next-line security/detect-object-injection
+      const reverseDeps = graph[dep] ?? [];
       if (reverseDeps.includes(file)) {
+        // eslint-disable-next-line functional/immutable-data
         cycles.push([file, dep]);
       }
     }
@@ -88,7 +94,9 @@ function detectCircularDependencies(graph: DependencyGraph): Array<[string, stri
   return cycles;
 }
 
-async function main() {
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+function main() {
+  // eslint-disable-next-line no-console
   console.log('🔄 Проверка циклических зависимостей в core-contracts...\n');
 
   // Скрипт находится в core-contracts/scripts, поэтому src находится на уровень выше
@@ -97,12 +105,14 @@ async function main() {
   const files = findTsFiles(srcDir);
   const graph: DependencyGraph = {};
 
+  // eslint-disable-next-line no-console, security-node/detect-crlf
   console.log(`📁 Найдено ${files.length} файлов для анализа`);
 
   // Строим граф зависимостей
   for (const file of files) {
     const relativePath = path.relative(srcDir, file).replace(/(\.js|\.ts)$/, '');
     const imports = extractImports(file, srcDir);
+    // eslint-disable-next-line functional/immutable-data, security/detect-object-injection
     graph[relativePath] = imports;
   }
 
@@ -110,6 +120,7 @@ async function main() {
   const cycles = detectCircularDependencies(graph);
 
   if (cycles.length === 0) {
+    // eslint-disable-next-line no-console
     console.log('✅ Циклических зависимостей не найдено');
 
     // Выводим статистику
@@ -118,9 +129,13 @@ async function main() {
       totalDeps += deps.length;
     }
 
+    // eslint-disable-next-line no-console, security-node/detect-crlf
     console.log(`📊 Статистика:`);
+    // eslint-disable-next-line no-console, security-node/detect-crlf
     console.log(`   Файлов: ${Object.keys(graph).length}`);
+    // eslint-disable-next-line no-console, security-node/detect-crlf
     console.log(`   Зависимостей: ${totalDeps}`);
+    // eslint-disable-next-line no-console, no-magic-numbers, security-node/detect-crlf
     console.log(`   Среднее на файл: ${(totalDeps / Object.keys(graph).length).toFixed(2)}`);
 
     process.exit(0);
@@ -137,7 +152,9 @@ async function main() {
   }
 }
 
-main().catch((error) => {
+try {
+  main();
+} catch (error) {
   console.error('❌ Ошибка при проверке зависимостей:', error);
   process.exit(1);
-});
+}
