@@ -1,7 +1,7 @@
 /**
  * @file Cache нормализатор ошибок для LivAiBot
  *
- * Чистая функция нормализации cache ошибок. Преобразует неизвестные cache ошибки
+ * Чистая функция нормализации cache ошибок. Преобразует неизвестные ошибки
  * в стандартизированные TaggedError типы с извлечением метаданных.
  *
  * Поддерживает Redis, Memcached, In-memory cache и другие cache системы.
@@ -17,7 +17,7 @@
  * Пример для добавления DynamoDB cache:
  * 1. Добавить тип: cacheType?: 'redis' | 'memcached' | 'dynamodb' | 'other'
  * 2. Создать константу: const DYNAMODB_ERROR_CODES = { THROTTLING_EXCEPTION: 'THROTTLING_EXCEPTION' } as const
- * 3. Добавить extract функцию с проверкой Object.values(DYNAMODB_ERROR_CODES).includes(upperCode as keyof typeof DYNAMODB_ERROR_CODES)
+ * 3. Добавить extract функцию с проверкой на наличие кода в списке ошибок
  * 4. Обновить extractFromCacheCode() аналогичной проверкой для нового типа кеша
  */
 

@@ -190,13 +190,25 @@ const withErrorStrategies = <T>(
       const taggedError = normalizeCacheError(error);
 
       const tagged = taggedError as TaggedError;
-      const errorCode: LivAiErrorCode = isCacheError(tagged)
-        ? (tagged.code as LivAiErrorCode)
-        : operation === 'GET'
-          ? INFRA_ERROR_CODES.INFRA_CACHE_GET_FAILED
-          : operation === 'SET'
-            ? INFRA_ERROR_CODES.INFRA_CACHE_SET_FAILED
-            : INFRA_ERROR_CODES.INFRA_CACHE_DELETE_FAILED;
+      let errorCode: LivAiErrorCode;
+
+      if (isCacheError(tagged)) {
+        errorCode = tagged.code as LivAiErrorCode;
+      } else {
+        switch (operation) {
+          case 'GET':
+            errorCode = INFRA_ERROR_CODES.INFRA_CACHE_GET_FAILED;
+            break;
+          case 'SET':
+            errorCode = INFRA_ERROR_CODES.INFRA_CACHE_SET_FAILED;
+            break;
+          case 'DELETE':
+            errorCode = INFRA_ERROR_CODES.INFRA_CACHE_DELETE_FAILED;
+            break;
+          default:
+            errorCode = INFRA_ERROR_CODES.INFRA_CACHE_GET_FAILED; // fallback
+        }
+      }
 
       logger.info('Применение cache error strategies', {
         errorCode,

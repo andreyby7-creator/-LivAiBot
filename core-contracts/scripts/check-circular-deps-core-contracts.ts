@@ -1,5 +1,7 @@
 #!/usr/bin/env tsx
 
+/* eslint-disable @typescript-eslint/no-unused-vars, no-console, security/detect-non-literal-fs-filename, functional/immutable-data, @typescript-eslint/array-type, security/detect-object-injection, @typescript-eslint/prefer-nullish-coalescing, @typescript-eslint/explicit-function-return-type, @typescript-eslint/require-await, security-node/detect-crlf, no-magic-numbers */
+
 /**
  * @file check-circular-deps-core-contracts.ts
  * Проверка циклических зависимостей в core-contracts
@@ -15,7 +17,7 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-interface DependencyGraph {
+type DependencyGraph = {
   [file: string]: string[];
 }
 
