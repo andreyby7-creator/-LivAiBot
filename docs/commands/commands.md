@@ -31,6 +31,31 @@ pnpm run clean      # Очистка кэша и временных файлов
 pnpm run lint:dev                  # Линт в dev режиме (с исправлениями)
 pnpm run lint:canary               # Строгий линтинг (canary)
 pnpm run lint:ci                   # Линтинг для CI
+
+# Canary режим - проверка директории
+ESLINT_MODE=canary npm run lint
+
+# Canary режим - проверка отдельного файла
+ESLINT_MODE=canary npx eslint "src/path/to/file.ts"
+
+# Canary режим - проверка отдельной директории
+ESLINT_MODE=canary npx eslint "src/path/to/dir/"
+
+# Canary режим - автоисправление всего проекта
+ESLINT_MODE=canary npm run lint:fix
+
+# Canary режим - исправление отдельного файла
+ESLINT_MODE=canary npx eslint --fix "src/path/to/file.ts"
+
+# Canary режим - интерактивная проверка с контекстом
+ESLINT_MODE=canary npx eslint --format=codeframe "src/path/to/dir/"
+
+# Canary режим - JSON вывод для интеграции
+ESLINT_MODE=canary npx eslint --format=json "src/path/to/dir/" > results.json
+
+# Canary режим - проверка измененных файлов (Git)
+ESLINT_MODE=canary npx eslint $(git diff --name-only HEAD~1 | grep '\.ts$')
+
 npx dprint check                   # Проверка форматирования перед коммитом
 npx dprint fmt                     # Форматирование всего проекта
 npx dprint fmt "src/**/*.{ts,tsx}" # Форматирование только исходного кода (без тестов)

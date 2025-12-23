@@ -229,9 +229,8 @@ export const makeHttpHeaders = (headers: unknown): HttpHeaders => {
 
   // Проверяем что все ключи - непустые строки и все значения - строки
   const headersRecord = headers as Record<string, unknown>;
-  for (const key in headersRecord) {
-    if (!Object.prototype.hasOwnProperty.call(headersRecord, key)) continue;
-    const value = headersRecord[key];
+  const entries = Object.entries(headersRecord);
+  for (const [key, value] of entries) {
     if (typeof key !== 'string' || key === '' || typeof value !== 'string') {
       throw new HttpAdapterValidationError(
         'HttpHeaders keys and values must be strings',
