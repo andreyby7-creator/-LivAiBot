@@ -332,7 +332,11 @@ export function parseErrorCode(code: ErrorCode): ValidationResult<ErrorCodeStruc
 export function validateErrorCodeUniquenessOrThrow(codes: Record<string, ErrorCode>): void {
   const result = validateErrorCodeUniqueness(codes);
   if (!result.success) {
-    throw new Error(`Duplicate error codes found: ${result.duplicates.join(', ')}`);
+    throw new Error(
+      `Duplicate error codes found: ${
+        (result as { success: false; duplicates: readonly string[]; }).duplicates.join(', ')
+      }`,
+    );
   }
 }
 
@@ -340,7 +344,7 @@ export function validateErrorCodeUniquenessOrThrow(codes: Record<string, ErrorCo
 export function createErrorCodeOrThrow<T extends ErrorCode>(code: T): T {
   const result = createErrorCode(code);
   if (!result.success) {
-    throw new Error(result.error);
+    throw new Error((result as { success: false; error: string; }).error);
   }
   return result.code;
 }
@@ -349,7 +353,7 @@ export function createErrorCodeOrThrow<T extends ErrorCode>(code: T): T {
 export function parseErrorCodeOrThrow(code: ErrorCode): ErrorCodeStructure {
   const result = parseErrorCode(code);
   if (!result.success) {
-    throw new Error(result.error);
+    throw new Error((result as { success: false; error: string; }).error);
   }
   return result.data;
 }

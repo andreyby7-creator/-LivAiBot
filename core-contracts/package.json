@@ -63,9 +63,9 @@
     }
   },
   "scripts": {
-    "build": "pnpm run build:types && pnpm run build:js",
+    "build": "pnpm run build:types & pnpm run build:js & wait",
     "build:js": "tsup",
-    "build:types": "rm -f *.tsbuildinfo && tsc -b tsconfig.build.json && dprint fmt 'dist/esm/**/*.d.ts' --allow-no-files || true",
+    "build:types": "rm -f *.tsbuildinfo && tsc -b tsconfig.build.json",
     "build:watch": "tsup --watch",
     "dev": "tsup --watch",
     "lint": "eslint . --config ../eslint.config.mjs --ext .ts,.tsx,.js,.jsx --cache --cache-location=.eslintcache",
@@ -77,6 +77,8 @@
     "clean": "rm -rf dist *.tsbuildinfo .eslintcache",
     "lint:dev": "cross-env ESLINT_MODE=dev pnpm lint",
     "lint:canary": "cross-env ESLINT_MODE=canary pnpm lint",
+    "check:deps": "tsx scripts/check-circular-deps-core-contracts.ts",
+    "ci:check": "pnpm run type-check && pnpm run lint && pnpm run test:ci && pnpm run check:deps",
     "lint:fix": "cross-env ESLINT_MODE=dev pnpm lint --fix",
     "lint:ci": "cross-env ESLINT_MODE=canary pnpm lint --max-warnings 0"
   },

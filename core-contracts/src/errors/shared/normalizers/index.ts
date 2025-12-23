@@ -5,6 +5,7 @@
  * Все нормализаторы - чистые функции без side effects, без DI, без Effect.
  */
 
+import type { CacheNormalizationResult } from './CacheNormalizer.js';
 import type { DatabaseNormalizationResult } from './DatabaseNormalizer.js';
 import type { HttpNormalizationResult } from './HttpNormalizer.js';
 
@@ -40,9 +41,32 @@ export {
   normalizeDatabaseError,
 } from './DatabaseNormalizer.js';
 
+// ==================== CACHE NORMALIZER ====================
+
+/**
+ * Cache нормализатор - преобразует неизвестные cache ошибки в TaggedError с
+ * поддержкой Redis, Memcached, кластерных конфигураций и serialization ошибок
+ */
+export {
+  type CacheErrorInput,
+  type CacheNormalizationResult,
+  type CacheNormalizerLogger,
+  type CacheOperationContext,
+  isCacheClusterError,
+  isCacheConnectionError,
+  isCacheGenericError,
+  isCacheSerializationError,
+  isCacheTimeoutError,
+  isCacheUnknownError,
+  normalizeCacheError,
+} from './CacheNormalizer.js';
+
 // ==================== TYPE EXPORTS ====================
 
 /**
  * Общий тип для всех нормализаторов
  */
-export type NormalizerResult = HttpNormalizationResult | DatabaseNormalizationResult;
+export type NormalizerResult =
+  | HttpNormalizationResult
+  | DatabaseNormalizationResult
+  | CacheNormalizationResult;

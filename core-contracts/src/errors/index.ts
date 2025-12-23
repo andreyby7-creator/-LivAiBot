@@ -67,3 +67,19 @@ export * as Domain from './shared/domain/index.js';
  * - InfrastructureError: union тип всех инфраструктурных ошибок
  */
 export * as Infrastructure from './shared/infrastructure/index.js';
+
+/**
+ * Adapters: адаптеры для внешних систем с resilience паттернами
+ * - HttpAdapter: HTTP клиент с timeout, retry, circuit breaker
+ * - DatabaseAdapter: БД клиент с transaction management, connection pooling
+ * - CacheAdapter: Cache клиент с serialization, clustering support
+ */
+export * as Adapters from './shared/adapters/index.js';
+
+/**
+ * Normalizers: нормализаторы ошибок из внешних систем
+ * - HttpNormalizer: HTTP ошибки -> TaggedError
+ * - DatabaseNormalizer: SQL ошибки -> TaggedError с constraint mapping
+ * - CacheNormalizer: Cache ошибки -> TaggedError с cluster support
+ */
+export * as Normalizers from './shared/normalizers/index.js';

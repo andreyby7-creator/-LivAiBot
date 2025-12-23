@@ -10,8 +10,9 @@ export default defineConfig({
   outDir: 'dist/esm',
   dts: false, // tsc handles .d.ts via tsconfig.build.json
   splitting: false,
-  sourcemap: true,
+  sourcemap: false, // Отключаем sourcemaps для скорости продакшена
   clean: false, // Don't delete .d.ts from tsc
-  treeshake: true,
+  treeshake: false, // Отключаем treeshake для скорости
+  minify: false, // Не минифицируем для скорости
   external: ['effect', 'ulidx'], // Foundation dependencies must remain external
 });

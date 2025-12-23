@@ -5,13 +5,13 @@
     "lib": ["ES2024", "DOM", "DOM.Iterable"],
     "outDir": "dist/esm",
     "composite": false,
-    "incremental": false,
+    "incremental": true,
     "rootDir": "src",
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
     "resolveJsonModule": false,
     "declaration": true,
-    "declarationMap": true,
+    "declarationMap": false, // Отключаем .d.ts.map для скорости
     "emitDeclarationOnly": false,
     "allowJs": false,
     "checkJs": false

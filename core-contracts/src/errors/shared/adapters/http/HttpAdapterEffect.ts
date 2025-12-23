@@ -327,7 +327,10 @@ export function httpAdapterEffect(
           },
         ) as Effect.Effect<StrategyResult, unknown, never>;
 
-        if (!strategyResult.success && strategyResult.shouldRetry) {
+        if (
+          !strategyResult.success
+          && (strategyResult as { success: false; shouldRetry: boolean; }).shouldRetry
+        ) {
           return yield* createRequestWithPolicies(
             request,
             config,

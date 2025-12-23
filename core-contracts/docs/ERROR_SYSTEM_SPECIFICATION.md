@@ -510,20 +510,21 @@ errors/
 - **🛠️ Стек**: TypeScript
   Обязательно русские: @file и компактные jsdoc, полная type safety
 
-**normalizers/** ✅ **ГОТОВ К ПРОДАКШЕНУ** – **ТОЛЬКО pure mapping**: `HttpNormalizer`, `DatabaseNormalizer`. `unknown → TaggedError`. Чистые функции без side-effects, без DI, без Effect.
+**normalizers/** ✅ **ГОТОВ К ПРОДАКШЕНУ** – **ТОЛЬКО pure mapping**: `HttpNormalizer`, `DatabaseNormalizer`, `CacheNormalizer`. `unknown → TaggedError`. Чистые функции без side-effects, без DI, без Effect.
 
 - **HttpNormalizer**: HTTP error normalization с mapping на TaggedError типы, validation HTTP статус кодов (100-599), extraction metadata из headers/response body, processing array/string/number headers, user-agent extraction, timeout/URL/method extraction, comprehensive status code mapping (400-504)
 - **DatabaseNormalizer**: Database error normalization с mapping SQL ошибок на TaggedError, extraction constraint violations (PostgreSQL/MySQL/SQLite/MongoDB), transaction state analysis (deadlock/timeout), regex patterns для SQLite, MongoDB writeErrors processing, multi-DB support с databaseType detection
+- **CacheNormalizer**: Cache error normalization с mapping на TaggedError типы, Redis/Memcached error code processing (ECONNREFUSED, NOAUTH, LOADING, CLUSTERDOWN), keyword-based error classification (connection/timeout/serialization/cluster), context-aware error details extraction, multi-cache support с extensible error patterns, runtime cache type detection
 - **Унификация**: Pure function composition, immutable input/output, type-safe TaggedError generation, comprehensive test coverage (94%+ statements, 89%+ branches, 100% functions/lines), property-based testing, snapshot stability, edge case handling
 
 - **🛠️ Стек**: TypeScript
   Обязательно русские: @file и компактные jsdoc
 
-**adapters/** – **Side-effects + DI**: `HttpAdapter`, `DatabaseAdapter`, `CacheAdapter`. Effect/IO/retry/breaker integration. Error handling: BaseError, ErrorStrategies, ErrorValidators. Circuit breaker coordination.
+**adapters/** ✅ **ГОТОВ К ПРОДАКШЕНУ** – **Side-effects + DI**: `HttpAdapter`, `DatabaseAdapter`, `CacheAdapter`. Effect/IO/retry/breaker integration. Error handling: BaseError, ErrorStrategies, ErrorValidators. Circuit breaker coordination.
 
 - **HttpAdapter**: HTTP client/server адаптер с configurable retry strategies (exponential backoff + jitter), timeout handling, circuit breaker integration, branded types для runtime validation, discriminated unions для type-safe error handling, DRY centralized HTTP metrics helpers, pure functional DI architecture, Effect-based composition, BaseError transformation, ErrorStrategies application
-- **DatabaseAdapter**: Database адаптер с connection pooling, transaction management, query retry logic, constraint violation handling, ErrorValidators integration
-- **CacheAdapter**: Cache адаптер с TTL management, cache miss handling, distributed cache coordination, circuit breaker для cache failures, ErrorStrategies для degradation
+- **DatabaseAdapter**: Database адаптер с configurable retry strategies (exponential backoff), timeout handling, circuit breaker integration, branded types для runtime validation, discriminated unions для type-safe error handling, DRY centralized database metrics helpers, pure functional DI architecture, Effect-based composition, BaseError transformation, ErrorStrategies application, transaction isolation levels, connection pooling management, constraint violation handling, PostgreSQL error code mapping, query builder utilities
+- **CacheAdapter**: Cache адаптер с configurable retry strategies (exponential backoff), timeout handling, circuit breaker integration, branded types для runtime validation, discriminated unions для type-safe error handling, DRY centralized cache metrics helpers, pure functional DI architecture, Effect-based composition, BaseError transformation, ErrorStrategies application, TTL management, cache miss handling, distributed cache coordination, @experimental bulk operations (mget/mset), Redis/Memcached error mapping, cluster failure handling
 - **Унификация**: Effect-based composition, dependency injection pattern, unified error handling pipeline, circuit breaker coordination, enterprise-grade test coverage (95%+)
 
 - **🛠️ Стек**: TypeScript + Effect

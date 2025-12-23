@@ -8,8 +8,9 @@
     "types": ["node"],
     "incremental": false,
     "allowJs": false,
-    "checkJs": false
+    "checkJs": false,
+    "downlevelIteration": true
   },
-  "include": ["src/**/*", "src/**/*.ts"],
+  "include": ["src/**/*", "src/**/*.ts", "scripts/**/*.ts"],
   "exclude": ["node_modules", "dist", "**/*.test.ts", "**/*.spec.ts", "test/**/*"]
 }

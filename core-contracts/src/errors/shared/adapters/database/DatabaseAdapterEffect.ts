@@ -174,7 +174,10 @@ const withErrorStrategies = <T>(
         { query, taggedError, env: { logger, circuitBreaker } },
       ) as Effect.Effect<StrategyResult, unknown, never>;
 
-      if (!strategyResult.success && strategyResult.shouldRetry) {
+      if (
+        !strategyResult.success
+        && (strategyResult as { success: false; shouldRetry: boolean; }).shouldRetry
+      ) {
         // Circuit breaker failure recording
         circuitBreaker.recordFailure?.(query); // Используем query как временный key
         logger.warn('Database operation failed, will retry', { errorCode, query, databaseId });

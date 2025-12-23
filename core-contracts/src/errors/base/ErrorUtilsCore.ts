@@ -144,7 +144,8 @@ export function safeTraverseCauses<E>(
     // Получаем следующую причину (перед добавлением current в visited)
     const causeResult: SafeCauseResult<E> = safeGetCause(current, visited, config);
     if (!causeResult.success) {
-      const hasCycleDetected = causeResult.reason === 'cycle_detected';
+      const hasCycleDetected =
+        (causeResult as { success: false; reason: string; }).reason === 'cycle_detected';
       return {
         chain: newChain,
         hasCycles: hasCycleDetected,
@@ -154,7 +155,7 @@ export function safeTraverseCauses<E>(
     }
 
     // Теперь добавляем current в visited перед рекурсией
-    const newVisited = new Set([...visited, current]);
+    const newVisited = new Set(Array.from(visited).concat(current));
 
     // Рекурсивно продолжаем с причиной
     return traverse(causeResult.cause, newVisited, newChain, depth + 1);
@@ -313,11 +314,13 @@ export function getChainDepth<E>(
 /** Проверяет, является ли ошибка листом (нет причины) */
 export function isLeafError<E>(error: E): boolean {
   const causeResult: SafeCauseResult<E> = safeGetCause(error);
-  return !causeResult.success && causeResult.reason === 'no_cause';
+  return !causeResult.success
+    && (causeResult as { success: false; reason: string; }).reason === 'no_cause';
 }
 
 /** Проверяет, является ли ошибка корнем (нет причины) */
 export function isRootError<E>(error: E): boolean {
   const causeResult: SafeCauseResult<E> = safeGetCause(error);
-  return !causeResult.success && causeResult.reason === 'no_cause';
+  return !causeResult.success
+    && (causeResult as { success: false; reason: string; }).reason === 'no_cause';
 }

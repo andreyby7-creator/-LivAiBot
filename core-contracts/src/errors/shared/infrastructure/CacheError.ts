@@ -9,19 +9,21 @@ import { ERROR_CATEGORY, ERROR_ORIGIN, ERROR_SEVERITY } from '../../base/ErrorCo
 
 import type { TaggedError } from '../../base/BaseErrorTypes.js';
 import type { ErrorCode } from '../../base/ErrorCode.js';
+import type { CacheInstanceId, CacheKey, CacheTtlMs } from '../adapters/cache/CacheAdapterTypes.js';
 
 /**
  * Контекст ошибки кеша с дополнительными полями
  */
+
 export type CacheErrorContext = {
   /** Тип кеша (redis, memcached, memory, etc.) */
   readonly cacheType?: string;
   /** Ключ кеша */
-  readonly key?: string;
+  readonly key?: CacheKey;
   /** Операция (get, set, delete, expire) */
   readonly operation?: string;
-  /** TTL (время жизни) */
-  readonly ttl?: number;
+  /** TTL (время жизни) в миллисекундах */
+  readonly ttlMs?: CacheTtlMs;
   /** Cache namespace */
   readonly namespace?: string;
   /** Cache host */
@@ -29,7 +31,9 @@ export type CacheErrorContext = {
   /** Cache port */
   readonly port?: number;
   /** Connection ID */
-  readonly connectionId?: string;
+  readonly connectionId?: CacheInstanceId;
+  /** Instance ID */
+  readonly instanceId?: CacheInstanceId;
 };
 
 /**
