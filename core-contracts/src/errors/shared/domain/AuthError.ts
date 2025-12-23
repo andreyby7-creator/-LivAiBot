@@ -119,7 +119,7 @@ export function createAuthError(
  * @param context - объект для проверки
  * @returns true если соответствует AuthErrorContext
  */
-function isValidAuthErrorContext(
+export function isValidAuthErrorContext(
   context: unknown,
 ): context is AuthErrorContext {
   if (context == null || typeof context !== 'object') return false;
@@ -131,6 +131,20 @@ function isValidAuthErrorContext(
 
   // Проверяем опциональные поля AuthErrorContext
   if (ctx['userId'] !== undefined && typeof ctx['userId'] !== 'string') {
+    return false;
+  }
+
+  // Проверяем опциональные строковые поля
+  if (ctx['resource'] !== undefined && typeof ctx['resource'] !== 'string') {
+    return false;
+  }
+  if (ctx['action'] !== undefined && typeof ctx['action'] !== 'string') {
+    return false;
+  }
+  if (ctx['ipAddress'] !== undefined && typeof ctx['ipAddress'] !== 'string') {
+    return false;
+  }
+  if (ctx['userAgent'] !== undefined && typeof ctx['userAgent'] !== 'string') {
     return false;
   }
 
@@ -166,6 +180,32 @@ function isValidAuthErrorContext(
     && typeof ctx['mfaVerified'] !== 'boolean'
   ) {
     return false;
+  }
+
+  // Проверяем массивы
+  if (ctx['requiredPermissions'] !== undefined) {
+    if (!Array.isArray(ctx['requiredPermissions'])) return false;
+    if (!ctx['requiredPermissions'].every((item: unknown) => typeof item === 'string')) {
+      return false;
+    }
+  }
+
+  if (ctx['userPermissions'] !== undefined) {
+    if (!Array.isArray(ctx['userPermissions'])) return false;
+    if (!ctx['userPermissions'].every((item: unknown) => typeof item === 'string')) return false;
+  }
+
+  // Проверяем rateLimitInfo
+  if (ctx['rateLimitInfo'] !== undefined) {
+    if (ctx['rateLimitInfo'] === null || typeof ctx['rateLimitInfo'] !== 'object') return false;
+    const rateLimit = ctx['rateLimitInfo'] as Record<string, unknown>;
+    if (
+      typeof rateLimit['attempts'] !== 'number'
+      || typeof rateLimit['limit'] !== 'number'
+      || typeof rateLimit['resetTime'] !== 'number'
+    ) {
+      return false;
+    }
   }
 
   return true;

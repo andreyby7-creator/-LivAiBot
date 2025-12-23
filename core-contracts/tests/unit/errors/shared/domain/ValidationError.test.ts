@@ -16,6 +16,7 @@ import {
   getValidationRule,
   getValidationValue,
   isValidationError,
+  isValidValidationErrorContext,
 } from '../../../../../src/errors/shared/domain/ValidationError';
 import type {
   ValidationError,
@@ -42,6 +43,17 @@ function createMockValidationContext(): ValidationErrorContext {
     correlationId: 'corr-123',
     requestId: 'req-abc',
   } as unknown as ValidationErrorContext;
+}
+
+/** Создает базовый mock ValidationErrorContext без опциональных полей для тестирования валидации */
+function createBaseMockValidationContext(): ValidationErrorContext {
+  return {
+    type: 'user',
+    userId: 'user-456',
+    sessionId: 'session-789',
+    correlationId: 'corr-123',
+    requestId: 'req-abc',
+  } as ValidationErrorContext;
 }
 
 /** Создает mock ValidationError для тестов */
@@ -583,6 +595,129 @@ describe('ValidationError', () => {
       expect(context).toHaveProperty('userId');
       expect(context).toHaveProperty('sessionId');
       expect(context).toHaveProperty('requestId');
+    });
+  });
+
+  // ==================== INTERNAL VALIDATION FUNCTIONS ====================
+
+  describe('isValidValidationErrorContext', () => {
+    it('должен возвращать true для валидного ValidationErrorContext', () => {
+      const validContext = createMockValidationContext();
+
+      expect(isValidValidationErrorContext(validContext)).toBe(true);
+    });
+
+    it('должен возвращать false для null или undefined', () => {
+      expect(isValidValidationErrorContext(null)).toBe(false);
+      expect(isValidValidationErrorContext(undefined)).toBe(false);
+    });
+
+    it('должен возвращать false для не-объектов', () => {
+      expect(isValidValidationErrorContext('string')).toBe(false);
+      expect(isValidValidationErrorContext(123)).toBe(false);
+      expect(isValidValidationErrorContext(true)).toBe(false);
+    });
+
+    it('должен проверять обязательное поле type', () => {
+      const invalidContext = { ...createMockValidationContext() };
+      delete (invalidContext as any).type;
+
+      expect(isValidValidationErrorContext(invalidContext)).toBe(false);
+
+      const invalidType = { ...createMockValidationContext(), type: 123 };
+      expect(isValidValidationErrorContext(invalidType)).toBe(false);
+    });
+
+    describe('optional string fields validation', () => {
+      const optionalStringFields: Array<keyof ValidationErrorContext> = [
+        'field',
+        'rule',
+        'expectedType',
+        'actualType',
+      ];
+
+      it.each(optionalStringFields)(
+        'должен принимать валидные строковые значения для %s',
+        (field) => {
+          const context = { ...createBaseMockValidationContext(), [field]: 'test_value' };
+          expect(isValidValidationErrorContext(context)).toBe(true);
+        },
+      );
+
+      it.each(optionalStringFields)('должен отклонять не-строковые значения для %s', (field) => {
+        const invalidValues = [123, true, {}, []];
+
+        invalidValues.forEach((value) => {
+          const context = { ...createBaseMockValidationContext(), [field]: value as any };
+          expect(isValidValidationErrorContext(context)).toBe(false);
+        });
+      });
+
+      it.each(optionalStringFields)('должен принимать undefined для %s', (field) => {
+        const context = { ...createBaseMockValidationContext() };
+        expect(isValidValidationErrorContext(context)).toBe(true);
+      });
+    });
+
+    describe('value field validation', () => {
+      it('должен принимать любые значения для value поля', () => {
+        const testValues = [
+          'string',
+          123,
+          true,
+          null,
+          undefined,
+          { nested: 'object' },
+          ['array'],
+        ];
+
+        testValues.forEach((value) => {
+          const context = { ...createBaseMockValidationContext(), value };
+          expect(isValidValidationErrorContext(context)).toBe(true);
+        });
+      });
+
+      it('должен принимать undefined для value', () => {
+        const context = { ...createBaseMockValidationContext() };
+        expect(isValidValidationErrorContext(context)).toBe(true);
+      });
+    });
+
+    describe('constraints validation', () => {
+      it('должен принимать объект для constraints', () => {
+        const context = {
+          ...createBaseMockValidationContext(),
+          constraints: { minLength: 5, maxLength: 100 },
+        };
+
+        expect(isValidValidationErrorContext(context)).toBe(true);
+      });
+
+      it('должен принимать пустой объект для constraints', () => {
+        const context = {
+          ...createBaseMockValidationContext(),
+          constraints: {},
+        };
+
+        expect(isValidValidationErrorContext(context)).toBe(true);
+      });
+
+      it('должен отклонять не-объекты для constraints', () => {
+        const invalidValues = ['string', 123, true, null, []];
+
+        invalidValues.forEach((invalidConstraints) => {
+          const context = {
+            ...createBaseMockValidationContext(),
+            constraints: invalidConstraints as any,
+          };
+          expect(isValidValidationErrorContext(context)).toBe(false);
+        });
+      });
+
+      it('должен принимать undefined для constraints', () => {
+        const context = { ...createBaseMockValidationContext() };
+        expect(isValidValidationErrorContext(context)).toBe(true);
+      });
     });
   });
 });

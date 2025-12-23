@@ -104,7 +104,9 @@ export function isValidValidationErrorContext(
   }
   if (
     ctx['constraints'] !== undefined
-    && (typeof ctx['constraints'] !== 'object' || ctx['constraints'] === null)
+    && (ctx['constraints'] === null
+      || typeof ctx['constraints'] !== 'object'
+      || Array.isArray(ctx['constraints']))
   ) {
     return false;
   }

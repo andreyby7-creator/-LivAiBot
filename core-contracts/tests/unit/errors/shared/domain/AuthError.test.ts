@@ -22,6 +22,7 @@ import {
   isRateLimitedError,
   isRateLimitError,
   isTokenRelatedError,
+  isValidAuthErrorContext,
   requiresMFA,
 } from '../../../../../src/errors/shared/domain/AuthError';
 import type {
@@ -46,6 +47,17 @@ function createMockAuthContext(): AuthErrorContext {
     action: 'write',
     ipAddress: '192.168.1.1',
     userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+    requestId: 'req-def',
+  } as AuthErrorContext;
+}
+
+/** Создает базовый mock AuthErrorContext без опциональных полей для тестирования валидации */
+function createBaseMockAuthContext(): AuthErrorContext {
+  return {
+    type: 'user',
+    userId: 'user-123',
+    sessionId: 'session-789',
+    correlationId: 'corr-456',
     requestId: 'req-def',
   } as AuthErrorContext;
 }
@@ -946,6 +958,260 @@ describe('AuthError', () => {
       expect(context).toHaveProperty('correlationId');
       expect(context).toHaveProperty('sessionId');
       expect(context).toHaveProperty('requestId');
+    });
+  });
+
+  // ==================== INTERNAL VALIDATION FUNCTIONS ====================
+
+  describe('isValidAuthErrorContext', () => {
+    it('должен возвращать true для валидного AuthErrorContext', () => {
+      const validContext = createMockAuthContext();
+
+      expect(isValidAuthErrorContext(validContext)).toBe(true);
+    });
+
+    it('должен возвращать false для null или undefined', () => {
+      expect(isValidAuthErrorContext(null)).toBe(false);
+      expect(isValidAuthErrorContext(undefined)).toBe(false);
+    });
+
+    it('должен возвращать false для не-объектов', () => {
+      expect(isValidAuthErrorContext('string')).toBe(false);
+      expect(isValidAuthErrorContext(123)).toBe(false);
+      expect(isValidAuthErrorContext(true)).toBe(false);
+    });
+
+    it('должен проверять обязательное поле type', () => {
+      const invalidContext = { ...createMockAuthContext() };
+      delete (invalidContext as any).type;
+
+      expect(isValidAuthErrorContext(invalidContext)).toBe(false);
+
+      const invalidType = { ...createMockAuthContext(), type: 123 };
+      expect(isValidAuthErrorContext(invalidType)).toBe(false);
+    });
+
+    describe('authType validation', () => {
+      it('должен принимать валидные значения authType', () => {
+        const validAuthTypes: Array<NonNullable<AuthErrorContext['authType']>> = [
+          'password',
+          'token',
+          'oauth',
+          'sso',
+          'api_key',
+          'certificate',
+        ];
+
+        validAuthTypes.forEach((authType) => {
+          const context = { ...createBaseMockAuthContext(), authType };
+          expect(isValidAuthErrorContext(context)).toBe(true);
+        });
+      });
+
+      it('должен отклонять невалидные значения authType', () => {
+        const invalidAuthTypes = ['invalid_type', '', 'PASSWORD'];
+
+        invalidAuthTypes.forEach((authType) => {
+          const context = { ...createBaseMockAuthContext(), authType: authType as any };
+          expect(isValidAuthErrorContext(context)).toBe(false);
+        });
+
+        // Test non-string values
+        const nonStringValues = [123, null, {}, []];
+        nonStringValues.forEach((authType) => {
+          const context = { ...createBaseMockAuthContext(), authType: authType as any };
+          expect(isValidAuthErrorContext(context)).toBe(false);
+        });
+      });
+
+      it('должен принимать undefined для authType', () => {
+        const context = { ...createBaseMockAuthContext() };
+        expect(isValidAuthErrorContext(context)).toBe(true);
+      });
+    });
+
+    describe('reason validation', () => {
+      it('должен принимать валидные строковые значения reason', () => {
+        const validReasons = ['invalid_credentials', 'token_expired', 'rate_limit_exceeded'];
+
+        validReasons.forEach((reason) => {
+          const context = { ...createBaseMockAuthContext(), reason: reason as any };
+          expect(isValidAuthErrorContext(context)).toBe(true);
+        });
+      });
+
+      it('должен принимать undefined для reason', () => {
+        const context = { ...createMockAuthContext() };
+        delete (context as any).reason;
+
+        expect(isValidAuthErrorContext(context)).toBe(true);
+      });
+
+      it('должен отклонять не-строковые значения reason', () => {
+        const invalidReasons = [123, true, {}, []];
+
+        invalidReasons.forEach((reason) => {
+          const context = { ...createBaseMockAuthContext(), reason: reason as any };
+          expect(isValidAuthErrorContext(context)).toBe(false);
+        });
+      });
+    });
+
+    describe('boolean fields validation', () => {
+      it('должен принимать валидные boolean значения для mfaRequired', () => {
+        const contextTrue = { ...createBaseMockAuthContext(), mfaRequired: true };
+        const contextFalse = { ...createBaseMockAuthContext(), mfaRequired: false };
+
+        expect(isValidAuthErrorContext(contextTrue)).toBe(true);
+        expect(isValidAuthErrorContext(contextFalse)).toBe(true);
+      });
+
+      it('должен отклонять не-boolean значения для mfaRequired', () => {
+        const invalidValues = ['true', 1, null, {}];
+
+        invalidValues.forEach((value) => {
+          const context = { ...createBaseMockAuthContext(), mfaRequired: value as any };
+          expect(isValidAuthErrorContext(context)).toBe(false);
+        });
+      });
+
+      it('должен принимать undefined для boolean полей', () => {
+        const context = { ...createBaseMockAuthContext() };
+        expect(isValidAuthErrorContext(context)).toBe(true);
+      });
+    });
+
+    describe('optional string fields validation', () => {
+      const optionalStringFields: Array<keyof AuthErrorContext> = [
+        'userId',
+        'resource',
+        'action',
+        'ipAddress',
+        'userAgent',
+      ];
+
+      it.each(optionalStringFields)(
+        'должен принимать валидные строковые значения для %s',
+        (field) => {
+          const context = { ...createBaseMockAuthContext(), [field]: 'test_value' };
+          expect(isValidAuthErrorContext(context)).toBe(true);
+        },
+      );
+
+      it.each(optionalStringFields)('должен отклонять не-строковые значения для %s', (field) => {
+        const invalidValues = [123, true, {}, []];
+
+        invalidValues.forEach((value) => {
+          const context = { ...createBaseMockAuthContext(), [field]: value as any };
+          expect(isValidAuthErrorContext(context)).toBe(false);
+        });
+      });
+
+      it.each(optionalStringFields)('должен принимать undefined для %s', (field) => {
+        const context = { ...createBaseMockAuthContext() };
+        expect(isValidAuthErrorContext(context)).toBe(true);
+      });
+    });
+
+    describe('nested objects validation', () => {
+      it('должен принимать валидный geoLocation объект', () => {
+        const context = {
+          ...createMockAuthContext(),
+          geoLocation: {
+            country: 'US',
+            region: 'CA',
+            city: 'San Francisco',
+          },
+        };
+
+        expect(isValidAuthErrorContext(context)).toBe(true);
+      });
+
+      it('должен принимать частично заполненный geoLocation', () => {
+        const context = {
+          ...createMockAuthContext(),
+          geoLocation: {
+            country: 'US',
+          },
+        };
+
+        expect(isValidAuthErrorContext(context)).toBe(true);
+      });
+
+      it('должен принимать валидный deviceInfo объект', () => {
+        const context = {
+          ...createMockAuthContext(),
+          deviceInfo: {
+            fingerprint: 'abc123',
+            platform: 'web',
+            browser: 'chrome',
+          },
+        };
+
+        expect(isValidAuthErrorContext(context)).toBe(true);
+      });
+
+      it('должен принимать валидный rateLimitInfo объект', () => {
+        const context = {
+          ...createMockAuthContext(),
+          rateLimitInfo: {
+            attempts: 5,
+            limit: 10,
+            resetTime: Date.now(),
+          },
+        };
+
+        expect(isValidAuthErrorContext(context)).toBe(true);
+      });
+
+      it('должен отклонять rateLimitInfo с невалидными numeric полями', () => {
+        const invalidContexts = [
+          {
+            ...createMockAuthContext(),
+            rateLimitInfo: { attempts: '5', limit: 10, resetTime: 123 },
+          },
+          {
+            ...createMockAuthContext(),
+            rateLimitInfo: { attempts: 5, limit: '10', resetTime: 123 },
+          },
+          {
+            ...createMockAuthContext(),
+            rateLimitInfo: { attempts: 5, limit: 10, resetTime: '123' },
+          },
+        ];
+
+        invalidContexts.forEach((context) => {
+          expect(isValidAuthErrorContext(context)).toBe(false);
+        });
+      });
+    });
+
+    describe('arrays validation', () => {
+      it('должен принимать валидные массивы строк для requiredPermissions', () => {
+        const context = {
+          ...createBaseMockAuthContext(),
+          requiredPermissions: ['read:user', 'write:user'],
+          userPermissions: ['read:user'],
+        };
+
+        expect(isValidAuthErrorContext(context)).toBe(true);
+      });
+
+      it('должен отклонять массивы с не-строковыми значениями', () => {
+        const invalidContexts = [
+          { ...createMockAuthContext(), requiredPermissions: [123, 'valid'] },
+          { ...createMockAuthContext(), userPermissions: ['valid', true] },
+        ];
+
+        invalidContexts.forEach((context) => {
+          expect(isValidAuthErrorContext(context)).toBe(false);
+        });
+      });
+
+      it('должен принимать undefined для массивов', () => {
+        const context = { ...createBaseMockAuthContext() };
+        expect(isValidAuthErrorContext(context)).toBe(true);
+      });
     });
   });
 });

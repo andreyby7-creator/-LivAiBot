@@ -17,6 +17,7 @@ import {
   isPermissionError,
   isPolicyViolationError,
   isResourceAccessError,
+  isValidPermissionErrorContext,
 } from '../../../../../src/errors/shared/domain/PermissionError';
 import type {
   PermissionError,
@@ -52,6 +53,17 @@ function createMockPermissionContext(): PermissionErrorContext {
     correlationId: 'corr-789',
     requestId: 'req-xyz',
   } as unknown as PermissionErrorContext;
+}
+
+/** Создает базовый mock PermissionErrorContext без опциональных полей для тестирования валидации */
+function createBaseMockPermissionContext(): PermissionErrorContext {
+  return {
+    type: 'user',
+    userId: 'user-123',
+    sessionId: 'session-abc',
+    correlationId: 'corr-789',
+    requestId: 'req-xyz',
+  } as PermissionErrorContext;
 }
 
 /** Создает mock PermissionError для тестов */
@@ -737,6 +749,96 @@ describe('PermissionError', () => {
       expect(context).toHaveProperty('correlationId');
       expect(context).toHaveProperty('sessionId');
       expect(context).toHaveProperty('requestId');
+    });
+  });
+
+  // ==================== INTERNAL VALIDATION FUNCTIONS ====================
+
+  describe('isValidPermissionErrorContext', () => {
+    it('должен возвращать true для валидного PermissionErrorContext', () => {
+      const validContext = createMockPermissionContext();
+
+      expect(isValidPermissionErrorContext(validContext)).toBe(true);
+    });
+
+    it('должен возвращать false для null или undefined', () => {
+      expect(isValidPermissionErrorContext(null)).toBe(false);
+      expect(isValidPermissionErrorContext(undefined)).toBe(false);
+    });
+
+    it('должен возвращать false для не-объектов', () => {
+      expect(isValidPermissionErrorContext('string')).toBe(false);
+      expect(isValidPermissionErrorContext(123)).toBe(false);
+      expect(isValidPermissionErrorContext(true)).toBe(false);
+    });
+
+    it('должен проверять обязательное поле type', () => {
+      const invalidContext = { ...createMockPermissionContext() };
+      delete (invalidContext as any).type;
+
+      expect(isValidPermissionErrorContext(invalidContext)).toBe(false);
+
+      const invalidType = { ...createMockPermissionContext(), type: 123 };
+      expect(isValidPermissionErrorContext(invalidType)).toBe(false);
+    });
+
+    describe('optional string fields validation', () => {
+      const optionalStringFields: Array<keyof PermissionErrorContext> = [
+        'userId',
+        'resource',
+        'action',
+        'policy',
+      ];
+
+      it.each(optionalStringFields)(
+        'должен принимать валидные строковые значения для %s',
+        (field) => {
+          const context = { ...createBaseMockPermissionContext(), [field]: 'test_value' };
+          expect(isValidPermissionErrorContext(context)).toBe(true);
+        },
+      );
+
+      it.each(optionalStringFields)('должен отклонять не-строковые значения для %s', (field) => {
+        const invalidValues = [123, true, {}, []];
+
+        invalidValues.forEach((value) => {
+          const context = { ...createBaseMockPermissionContext(), [field]: value as any };
+          expect(isValidPermissionErrorContext(context)).toBe(false);
+        });
+      });
+
+      it.each(optionalStringFields)('должен принимать undefined для %s', (field) => {
+        const context = { ...createBaseMockPermissionContext() };
+        expect(isValidPermissionErrorContext(context)).toBe(true);
+      });
+    });
+
+    describe('arrays validation', () => {
+      it('должен принимать валидные массивы строк для requiredPermissions', () => {
+        const context = {
+          ...createBaseMockPermissionContext(),
+          requiredPermissions: ['read:user', 'write:user'],
+          userPermissions: ['read:user'],
+        };
+
+        expect(isValidPermissionErrorContext(context)).toBe(true);
+      });
+
+      it('должен отклонять массивы с не-строковыми значениями', () => {
+        const invalidContexts = [
+          { ...createBaseMockPermissionContext(), requiredPermissions: [123, 'valid'] },
+          { ...createBaseMockPermissionContext(), userPermissions: ['valid', true] },
+        ];
+
+        invalidContexts.forEach((context) => {
+          expect(isValidPermissionErrorContext(context)).toBe(false);
+        });
+      });
+
+      it('должен принимать undefined для массивов', () => {
+        const context = { ...createBaseMockPermissionContext() };
+        expect(isValidPermissionErrorContext(context)).toBe(true);
+      });
     });
   });
 });

@@ -521,7 +521,7 @@ errors/
 
 **adapters/** – **Side-effects + DI**: `HttpAdapter`, `DatabaseAdapter`, `CacheAdapter`. Effect/IO/retry/breaker integration. Error handling: BaseError, ErrorStrategies, ErrorValidators. Circuit breaker coordination.
 
-- **HttpAdapter**: HTTP client/server адаптер с retry policies, timeout handling, circuit breaker integration, BaseError transformation, ErrorStrategies application
+- **HttpAdapter**: HTTP client/server адаптер с configurable retry strategies (exponential backoff + jitter), timeout handling, circuit breaker integration, branded types для runtime validation, discriminated unions для type-safe error handling, DRY centralized HTTP metrics helpers, pure functional DI architecture, Effect-based composition, BaseError transformation, ErrorStrategies application
 - **DatabaseAdapter**: Database адаптер с connection pooling, transaction management, query retry logic, constraint violation handling, ErrorValidators integration
 - **CacheAdapter**: Cache адаптер с TTL management, cache miss handling, distributed cache coordination, circuit breaker для cache failures, ErrorStrategies для degradation
 - **Унификация**: Effect-based composition, dependency injection pattern, unified error handling pipeline, circuit breaker coordination, enterprise-grade test coverage (95%+)
