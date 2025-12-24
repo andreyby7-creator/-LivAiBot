@@ -642,7 +642,12 @@ export function isTokenRetryPolicyError(error: unknown): error is TokenRetryPoli
 }
 
 // Функциональный менеджер кеша результатов token retry policy
-const createTokenRetryCacheManager = () => {
+const createTokenRetryCacheManager = (): {
+  get: (context: TokenRetryPolicyContext) => Promise<TokenRetryPolicyResult>;
+  set: (context: TokenRetryPolicyContext, result: TokenRetryPolicyResult) => void;
+  clear: () => void;
+  size: () => number;
+} => {
   let cache = new Map<string, TokenRetryPolicyResult>();
 
   // Создает композитный ключ для кеширования на основе значимых полей контекста
@@ -685,7 +690,20 @@ const createTokenRetryCacheManager = () => {
     return result;
   };
 
-  return { get };
+  const set = (context: TokenRetryPolicyContext, result: TokenRetryPolicyResult): void => {
+    const cacheKey = createCacheKey(context);
+    cache = new Map([...cache, [cacheKey, result]]);
+  };
+
+  const clear = (): void => {
+    cache = new Map();
+  };
+
+  const size = (): number => {
+    return cache.size;
+  };
+
+  return { get, set, clear, size };
 };
 
 /** Singleton instance кеш-менеджера */

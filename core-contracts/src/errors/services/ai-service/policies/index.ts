@@ -33,8 +33,9 @@ export type {
   IModelAlternativesService,
   ModelAlternativeChain,
   ModelAlternativeOption,
-  ILogger,
 } from './tokenRetryPolicy.js';
+
+export type { ILogger as TokenRetryLogger } from './tokenRetryPolicy.js';
 
 export {
   TokenType,
@@ -64,6 +65,8 @@ export {
   CircuitBreakerState,
   CircuitBreakerTrigger,
 } from './apiCircuitBreakerPolicy.js';
+
+export type { ILogger } from './apiCircuitBreakerPolicy.js';
 
 export {
   shouldAllowRequest,

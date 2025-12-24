@@ -259,7 +259,7 @@ export function calculateOptimalChunkSize(
   totalTokens: number,
   maxChunkTokens: number,
   overlapTokens = 100,
-) {
+): { chunkSize: number; overlap: number; chunksCount: number } {
   if (totalTokens <= maxChunkTokens) return { chunkSize: totalTokens, overlap: 0, chunksCount: 1 };
   const effective = maxChunkTokens - overlapTokens;
   return {
