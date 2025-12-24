@@ -277,3 +277,23 @@ export {
   validateSharedDomain,
   validateSharedInfra,
 } from './SharedValidators.js';
+
+// ==================== INSTRUMENTATION ====================
+
+/**
+ * Shared instrumentation для мониторинга операций.
+ * Tracing, metrics, logging с Strategy pattern для разных observability систем.
+ */
+export type {
+  SharedInstrumentationContext,
+  SharedInstrumentationOptions,
+  TracingStrategy,
+  MetricsStrategy,
+  LoggingStrategy,
+} from './SharedInstrumentation.js';
+export {
+  withSharedInstrumentation,
+  withTracing,
+  withMetrics,
+  withLogging,
+} from './SharedInstrumentation.js';

@@ -14,9 +14,12 @@
   },
   "author": "LivAI",
   "lint-staged": {
-    "*.{js,jsx,ts,tsx}": [
-      "dprint fmt",
-      "cross-env ESLINT_MODE=canary eslint --config eslint.config.mjs --max-warnings 0"
+    "*.{ts,tsx,js,jsx}": [
+      "cross-env ESLINT_MODE=canary eslint --config eslint.config.mjs --max-warnings 0",
+      "dprint fmt"
+    ],
+    "**/scripts/**/*.js": [
+      "dprint fmt"
     ],
     "*.{json,md,yml,yaml}": [
       "dprint fmt"
