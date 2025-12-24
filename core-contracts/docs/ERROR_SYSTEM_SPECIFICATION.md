@@ -570,12 +570,34 @@ withSharedErrorBoundary(
 - **🛠️ Стек**: TypeScript + Effect/OpenTelemetry
   Обязательно русские: @file и компактные jsdoc
 
-**index.ts** – Selective exports: `export * as Types from './SharedErrorTypes'`, `export * as Domain from './domain'`, `export * as Infra from './infrastructure'`, `export * as Adapters from './adapters'`, `export * as Contracts from './contracts'`, `export * as ErrorBoundary from './SharedErrorBoundary'`, etc.
+**index.ts** – Selective exports по категориям:
+
+- **Core Types**: `SharedError`, `SharedErrorCategory`, `SharedErrorCode`, `SharedErrorDetails`, etc. + type guards и pattern matching
+- **Registry**: `SHARED_ERROR_CODES`, `SHARED_ERROR_METADATA`, `registerSharedErrorsInRegistry()`, `resolveSharedErrorMeta()`
+- **Contracts**: `HttpErrorContract`, `GrpcErrorContract`, `InternalErrorDTO` + builders и getters
+- **Domain**: `ValidationError`, `AuthError`, `PermissionError` + builders
+- **Infrastructure**: `DatabaseError`, `CacheError`, `NetworkError`, `ExternalAPIError` + builders
+- **Adapters**: Boundary operations с Effect-based retry/timeout/circuit breaker
+- **Normalizers**: Error normalization из различных источников
+- **Serialization**: Protocol-specific serializers (GraphQL, gRPC, JSON)
+- **ErrorBoundary**: `SharedErrorBoundary` helpers для 80% случаев error handling
+- **Validators**: `validateSharedDomain()`, `validateSharedInfra()`, `effectValidateSharedDomain()`
+- **Instrumentation**: `withSharedInstrumentation()`, `withTracing()`, `withMetrics()`, `withLogging()`
 
 - **🛠️ Стек**: TypeScript
   Обязательно русские: @file и компактные jsdoc
 
-**README.md** – Правила shared vs service layers. Usage examples: SharedErrorTypes для typed errors, ErrorBuilders для domain ошибок, ErrorTransformers для infra chains, ErrorStrategies для policies, SharedValidators для validation, SharedErrorBoundary для adapters.
+**README.md** – Правила shared vs service layers. Usage examples:
+
+- **SharedErrorTypes**: Для typed errors и pattern matching
+- **Domain/Infrastructure**: Builders для типизированных ошибок
+- **Contracts**: Internal DTOs для межслойного взаимодействия
+- **Adapters**: Boundary operations с Effect-based resilience
+- **Normalizers**: Error normalization из внешних источников
+- **Serialization**: Protocol-specific error formatting
+- **ErrorBoundary**: 80% случаев error handling в adapters/services
+- **Validators**: Architectural invariants validation
+- **Instrumentation**: Observability с Strategy pattern
 
 ### 3️⃣ **Сервисный слой (services/)**
 
