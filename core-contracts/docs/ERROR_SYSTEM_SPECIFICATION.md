@@ -635,21 +635,36 @@ withSharedErrorBoundary(
 - **RateLimitError.ts** – Ошибки превышения лимитов Yandex AI API: per-minute/hour/day limits, burst limits, retry strategies. Специфическая логика для разных типов rate limits с intelligent backoff
 - **ModelUnavailableError.ts** ✅ **ГОТОВ К ПРОДАКШЕНУ** – Ошибки недоступности моделей Yandex AI: model not found, temporarily unavailable, region restrictions, GPU/memory constraints. Fallback стратегии и альтернативные модели. Union типы ModelUnavailableReason/ModelRecoveryStrategy для типобезопасности
 
-**policies/** – AI-specific стратегии: model fallback, token retry, API circuit breaker
+**policies/** ✅ **ГОТОВ К ПРОДАКШЕНУ** – AI-specific стратегии: model fallback, token retry, API circuit breaker
 
 - **🛠️ Стек**: TypeScript + Effect
   Обязательно русские: @file и компактные jsdoc
+- **modelFallbackPolicy.ts** ✅ **ГОТОВ К ПРОДАКШЕНУ** – Стратегия fallback для недоступных моделей: приоритетные альтернативы, региональные переключения, GPU-constrained модели. Умная логика выбора моделей с учетом task compatibility, user constraints, plan restrictions
+- **tokenRetryPolicy.ts** ✅ **ГОТОВ К ПРОДАКШЕНУ** – Умная логика повторных попыток при исчерпании токенов: exponential backoff, quota-aware delays, модельные альтернативы
+  - **Технологический стек**: TypeScript strict, TaggedError, ML-semantic токенов, async/await, WeakMap caching, centralized logging, enum-based типизация
+  - **Поддерживаемые типы**: TokenRetryPolicyContext, UserQuotaContext, TokenRetryPolicyResult, RetryStrategy, TokenRetryPolicyError, IModelAlternativesService, ModelAlternativeChain, ModelAlternativeOption, ILogger, TokenType (enum), TokenAlternativeReason (enum)
+  - **Ключевые компоненты**: shouldRetryOnTokenExhaustion, evaluateTokenRetryPolicy (кеширующая функция), createTokenRetryPolicyError, isTokenRetryPolicyError, getOptimalRetryDelay, canRetryWithTokens
+  - **Особенности**: Service layer для динамической загрузки альтернатив с compatibility scoring, quota-aware стратегии с унифицированными порогами, exponential backoff с адаптивными задержками пропорциональными степени исчерпания квот, интеллектуальный выбор альтернативных моделей, immutable кеширование через WeakMap, централизованное логирование, enum-based типизация для предотвращения рассинхронизации
+- ✅ **ГОТОВ К ПРОДАКШЕНУ** – **apiCircuitBreakerPolicy.ts** – Circuit breaker для Yandex AI API: failure thresholds, recovery timeouts, graceful degradation при перегрузках
+  - **Технологический стек**: TypeScript strict, TaggedError, immutable Record state management, circuit breaker pattern, centralized logging
+  - **Поддерживаемые типы**: CircuitBreakerContext, CircuitBreakerConfig, CircuitBreakerResult, CircuitBreakerStateData, CircuitBreakerError, ILogger, CircuitBreakerState (enum), CircuitBreakerTrigger (enum)
+  - **Ключевые компоненты**: shouldAllowRequest, recordSuccess/recordFailure, createCircuitBreakerError, isCircuitBreakerError
+  - **Особенности**: Три состояния (CLOSED/OPEN/HALF_OPEN), configurable thresholds, recovery timeouts, immutable state management с TTL cleanup, observability callbacks, graceful degradation с рекомендациями
 
 **serialization/** – AI response/result serialization для HTTP/gRPC
 
 - **🛠️ Стек**: TypeScript
   Обязательно русские: @file и компактные jsdoc
+- **AIResponseSerializer.ts** – Сериализация ответов Yandex AI API: JSON schema validation, error normalization, HTTP status mapping для REST/gRPC
+- **AIResultSerializer.ts** – Сериализация результатов обработки: token usage stats, model metadata, confidence scores, structured output formatting
 
 **adapters/** – Yandex AI SDK adapter с error mapping
 
 - **🛠️ Стек**: TypeScript + Effect
   Обязательно русские: @file и компактные jsdoc
-  **index.ts** ✅ **ГОТОВ К ПРОДАКШЕНУ** – Selective exports по категориям: Types, Guards, Pattern Matching, Registry, Utilities. Единая точка входа для AI service error system.
+- **YandexAISDKAdapter.ts** – Адаптер для Yandex AI SDK: mapping SDK errors to typed errors, request/response transformation, connection pooling, timeout handling
+
+  **index.ts** – Selective exports по категориям: Types, Guards, Pattern Matching, Registry, Utilities. Единая точка входа для AI service error system.
   Обязательно русские: @file и компактные jsdoc
 
 **billing-service/** – Платежный сервис: subscriptions, payments, billing.
