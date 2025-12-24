@@ -1,0 +1,15 @@
+{
+  "timestamp": "2025-12-24T20:00:00.000Z",
+  "packages": [
+    {
+      "package": "core-contracts",
+      "entry": "core-contracts/dist/esm/index.js",
+      "sizes": {
+        "raw": 220000,
+        "gzip": 42000,
+        "brotli": 32000
+      }
+    }
+  ],
+  "budgetExceeded": false
+}
