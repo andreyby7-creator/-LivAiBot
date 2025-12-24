@@ -255,3 +255,11 @@ export * from './normalizers/index.js';
  * Преобразуют TaggedError в форматы для внешних систем с sanitization и external contracts.
  */
 export * from './serialization/index.js';
+
+// ==================== ERROR BOUNDARY ====================
+
+/**
+ * Shared error boundary helpers для обработки ошибок в adapters/services.
+ * Мощный модуль для 80% случаев error handling с нормализацией, стратегиями и сериализацией.
+ */
+export * as ErrorBoundary from './SharedErrorBoundary.js';

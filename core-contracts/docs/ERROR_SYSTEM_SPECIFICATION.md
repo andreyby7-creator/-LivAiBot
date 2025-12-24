@@ -540,7 +540,7 @@ errors/
 - **🛠️ Стек**: TypeScript + Effect
   Обязательно русские: @file и компактные jsdoc
 
-**SharedErrorBoundary.ts** – Error boundary helpers для shared операций:
+**SharedErrorBoundary.ts** ✅ **ГОТОВ К ПРОДАКШЕНУ** – Error boundary helpers для shared операций (100% test coverage):
 
 ```typescript
 withSharedErrorBoundary(
