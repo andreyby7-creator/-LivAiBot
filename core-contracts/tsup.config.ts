@@ -2,7 +2,7 @@ import { defineConfig } from 'tsup';
 
 export default defineConfig({
   target: 'es2024', // Match tsconfig target to avoid unnecessary transformations
-  platform: 'neutral', // Core contracts are platform-agnostic, work in any environment
+  platform: 'node', // Core contracts use Node.js crypto module for correlation IDs
   entry: {
     index: 'src/index.ts',
   },

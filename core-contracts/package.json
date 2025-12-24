@@ -77,7 +77,7 @@
     "clean": "rm -rf dist *.tsbuildinfo .eslintcache",
     "lint:dev": "cross-env ESLINT_MODE=dev pnpm lint",
     "lint:canary": "cross-env ESLINT_MODE=canary eslint --config ../eslint.config.mjs --max-warnings 0",
-    "check:deps": "tsx scripts/check-circular-deps-core-contracts.ts",
+    "check:deps": "node scripts/check-circular-deps-core-contracts.js",
     "ci:check": "pnpm run type-check && pnpm run lint && pnpm run test:ci && pnpm run check:deps",
     "lint:fix": "cross-env ESLINT_MODE=dev pnpm lint --fix",
     "lint:ci": "cross-env ESLINT_MODE=canary pnpm lint --max-warnings 0"

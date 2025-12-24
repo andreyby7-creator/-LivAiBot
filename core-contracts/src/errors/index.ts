@@ -83,3 +83,27 @@ export * as Adapters from './shared/adapters/index.js';
  * - CacheNormalizer: Cache ошибки -> TaggedError с cluster support
  */
 export * as Normalizers from './shared/normalizers/index.js';
+
+/**
+ * Serialization: сериализаторы ошибок для разных протоколов
+ * - JsonSerializer: JSON сериализация с metadata preservation
+ * - GrpcSerializer: gRPC-совместимый формат
+ * - GraphqlSerializer: GraphQL error format
+ */
+export * as Serialization from './shared/serialization/index.js';
+
+/**
+ * Contracts: межсервисные контракты обработки ошибок
+ * - HttpErrorContract: HTTP error contracts с validation
+ * - GrpcErrorContract: gRPC error contracts с correlation
+ * - InternalErrorDTO: internal error contracts для компонентов
+ */
+export * as Contracts from './shared/contracts/index.js';
+
+/**
+ * Policies: foundation политики для resilience patterns
+ * - RetryPolicy: повтор операций с backoff strategies
+ * - RecoveryPolicy: graceful degradation с fallback values
+ * - CircuitBreakerPolicy: system health protection
+ */
+export * as Policies from './shared/policies/index.js';
