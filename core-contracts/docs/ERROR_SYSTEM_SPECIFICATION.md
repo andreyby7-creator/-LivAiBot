@@ -554,7 +554,7 @@ withSharedErrorBoundary(
 - **🛠️ Стек**: TypeScript + Effect
   Обязательно русские: @file и компактные jsdoc
 
-**SharedValidators.ts** – Валидаторы shared инвариантов + **явные architectural invariants**:
+**SharedValidators.ts** ✅ **ГОТОВ К ПРОДАКШЕНУ** – Валидаторы shared инвариантов + **явные architectural invariants**:
 
 - ❌ domain error с infra code
 - ❌ shared error без namespace SHARED_

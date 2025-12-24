@@ -263,3 +263,17 @@ export * from './serialization/index.js';
  * Мощный модуль для 80% случаев error handling с нормализацией, стратегиями и сериализацией.
  */
 export * as ErrorBoundary from './SharedErrorBoundary.js';
+
+// ==================== VALIDATORS ====================
+
+/**
+ * Валидаторы shared-инвариантов и архитектурные invariants.
+ * Проверка domain и infra ошибок, контроль namespace SHARED_.
+ */
+export type { SharedValidationError } from './SharedValidators.js';
+export {
+  effectValidateSharedDomain,
+  effectValidateSharedInfra,
+  validateSharedDomain,
+  validateSharedInfra,
+} from './SharedValidators.js';

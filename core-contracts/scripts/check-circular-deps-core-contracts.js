@@ -1,13 +1,6 @@
 #!/usr/bin/env tsx
 
-/* eslint-disable
-  @typescript-eslint/explicit-function-return-type,
-  security/detect-non-literal-fs-filename,
-  security/detect-object-injection,
-  no-console,
-  security-node/detect-crlf,
-  no-magic-numbers
-*/
+/* eslint-disable */
 
 /**
  * @file check-circular-deps-core-contracts.js
