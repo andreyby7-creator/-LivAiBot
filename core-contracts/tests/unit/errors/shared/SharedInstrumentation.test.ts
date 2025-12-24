@@ -6,16 +6,16 @@
 import { describe, expect, it, vi } from 'vitest';
 import { Effect } from 'effect';
 import type {
-  TracingStrategy,
-  MetricsStrategy,
   LoggingStrategy,
+  MetricsStrategy,
   SharedInstrumentationContext,
+  TracingStrategy,
 } from '../../../../src/errors/shared/SharedInstrumentation.js';
 import {
+  withLogging,
+  withMetrics,
   withSharedInstrumentation,
   withTracing,
-  withMetrics,
-  withLogging,
 } from '../../../../src/errors/shared/SharedInstrumentation.js';
 
 // Mock стратегии для тестирования
@@ -44,7 +44,7 @@ describe('SharedInstrumentation', () => {
       const context = mockContext;
 
       const result = await Effect.runPromise(
-        withSharedInstrumentation(effect, options, context)
+        withSharedInstrumentation(effect, options, context),
       );
 
       expect(result).toBe('success');
@@ -56,14 +56,14 @@ describe('SharedInstrumentation', () => {
       const context = mockContext;
 
       const result = await Effect.runPromise(
-        withSharedInstrumentation(effect, options, context)
+        withSharedInstrumentation(effect, options, context),
       );
 
       expect(result).toBe('traced');
       expect(mockTracingStrategy.startSpan).toHaveBeenCalledWith(
         'testOperation',
         effect,
-        context
+        context,
       );
     });
 
@@ -73,14 +73,14 @@ describe('SharedInstrumentation', () => {
       const context = mockContext;
 
       const result = await Effect.runPromise(
-        withSharedInstrumentation(effect, options, context)
+        withSharedInstrumentation(effect, options, context),
       );
 
       expect(result).toBe('measured');
       expect(mockMetricsStrategy.record).toHaveBeenCalledWith(
         'testOperation',
         effect,
-        context
+        context,
       );
     });
 
@@ -90,14 +90,14 @@ describe('SharedInstrumentation', () => {
       const context = mockContext;
 
       const result = await Effect.runPromise(
-        withSharedInstrumentation(effect, options, context)
+        withSharedInstrumentation(effect, options, context),
       );
 
       expect(result).toBe('logged');
       expect(mockLoggingStrategy.log).toHaveBeenCalledWith(
         'testOperation',
         effect,
-        context
+        context,
       );
     });
 
@@ -111,7 +111,7 @@ describe('SharedInstrumentation', () => {
       const context = mockContext;
 
       const result = await Effect.runPromise(
-        withSharedInstrumentation(effect, options, context)
+        withSharedInstrumentation(effect, options, context),
       );
 
       expect(result).toBe('fully instrumented');
@@ -128,29 +128,29 @@ describe('SharedInstrumentation', () => {
       const context: SharedInstrumentationContext = { operation: 'noTagsOp' };
 
       const result = await Effect.runPromise(
-        withSharedInstrumentation(effect, options, context)
+        withSharedInstrumentation(effect, options, context),
       );
 
       expect(result).toBe('no tags');
       expect(mockTracingStrategy.startSpan).toHaveBeenCalledWith(
         'noTagsOp',
         effect,
-        context
+        context,
       );
     });
 
     it('должен сохранять порядок применения стратегий', async () => {
       // Создаем стратегии, которые добавляют эффекты
       const tracingStrategy: TracingStrategy = {
-        startSpan: (name, effect) => effect.pipe(Effect.map(x => `${x}-traced`)) as any,
+        startSpan: (name, effect) => effect.pipe(Effect.map((x) => `${x}-traced`)) as any,
       };
 
       const metricsStrategy: MetricsStrategy = {
-        record: (name, effect) => effect.pipe(Effect.map(x => `${x}-measured`)) as any,
+        record: (name, effect) => effect.pipe(Effect.map((x) => `${x}-measured`)) as any,
       };
 
       const loggingStrategy: LoggingStrategy = {
-        log: (message, effect) => effect.pipe(Effect.map(x => `${x}-logged`)) as any,
+        log: (message, effect) => effect.pipe(Effect.map((x) => `${x}-logged`)) as any,
       };
 
       const effect = Effect.succeed('base');
@@ -162,7 +162,7 @@ describe('SharedInstrumentation', () => {
       const context = mockContext;
 
       const result = await Effect.runPromise(
-        withSharedInstrumentation(effect, options, context)
+        withSharedInstrumentation(effect, options, context),
       );
 
       // Порядок применения: tracing -> metrics -> logging
@@ -176,14 +176,14 @@ describe('SharedInstrumentation', () => {
       const context = mockContext;
 
       const result = await Effect.runPromise(
-        withTracing(effect, mockTracingStrategy, context)
+        withTracing(effect, mockTracingStrategy, context),
       );
 
       expect(result).toBe('traced only');
       expect(mockTracingStrategy.startSpan).toHaveBeenCalledWith(
         'testOperation',
         effect,
-        context
+        context,
       );
     });
   });
@@ -194,14 +194,14 @@ describe('SharedInstrumentation', () => {
       const context = mockContext;
 
       const result = await Effect.runPromise(
-        withMetrics(effect, mockMetricsStrategy, context)
+        withMetrics(effect, mockMetricsStrategy, context),
       );
 
       expect(result).toBe('measured only');
       expect(mockMetricsStrategy.record).toHaveBeenCalledWith(
         'testOperation',
         effect,
-        context
+        context,
       );
     });
   });
@@ -212,14 +212,14 @@ describe('SharedInstrumentation', () => {
       const context = mockContext;
 
       const result = await Effect.runPromise(
-        withLogging(effect, mockLoggingStrategy, context)
+        withLogging(effect, mockLoggingStrategy, context),
       );
 
       expect(result).toBe('logged only');
       expect(mockLoggingStrategy.log).toHaveBeenCalledWith(
         'testOperation',
         effect,
-        context
+        context,
       );
     });
   });
@@ -278,7 +278,7 @@ describe('SharedInstrumentation', () => {
           tracing: mockTracingStrategy,
           metrics: mockMetricsStrategy,
         },
-        mockContext
+        mockContext,
       );
 
       const result = await Effect.runPromise(instrumented);
@@ -291,9 +291,10 @@ describe('SharedInstrumentation', () => {
     it('должен обрабатывать ошибки корректно', async () => {
       const failingEffect = Effect.fail('test error');
       const errorHandlingStrategy: TracingStrategy = {
-        startSpan: (name, effect) => effect.pipe(
-          Effect.catchAll(error => Effect.succeed(`handled: ${error}`))
-        ) as any,
+        startSpan: (name, effect) =>
+          effect.pipe(
+            Effect.catchAll((error) => Effect.succeed(`handled: ${error}`)),
+          ) as any,
       };
 
       const instrumented = withTracing(failingEffect, errorHandlingStrategy, mockContext);

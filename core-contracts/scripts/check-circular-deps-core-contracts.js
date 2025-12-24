@@ -51,7 +51,7 @@ function extractImports(filePath, srcDir) {
   try {
     // Создаем whitelist разрешенных путей для fs.readFileSync
     const allowedPaths = [resolvedFilePath];
-    const safePath = allowedPaths.find(p => p === resolvedFilePath);
+    const safePath = allowedPaths.find((p) => p === resolvedFilePath);
 
     if (!safePath) {
       return [];
@@ -112,7 +112,7 @@ function findTsFiles(dir) {
   const result = [];
   // Создаем whitelist для fs.readdirSync
   const allowedDirs = [resolvedDir];
-  const safeDir = allowedDirs.find(d => d === resolvedDir);
+  const safeDir = allowedDirs.find((d) => d === resolvedDir);
 
   if (!safeDir) {
     return [];
@@ -130,7 +130,7 @@ function findTsFiles(dir) {
 
     // Создаем whitelist для fs.statSync
     const allowedStatPaths = [fullPath];
-    const safeStatPath = allowedStatPaths.find(p => p === fullPath);
+    const safeStatPath = allowedStatPaths.find((p) => p === fullPath);
 
     if (!safeStatPath) {
       continue;
@@ -177,7 +177,11 @@ function detectCircularDependencies(graph) {
 
       // Проверяем обратную зависимость с безопасным доступом
       const reverseDeps = Object.prototype.hasOwnProperty.call(graph, dep) ? graph[dep] : undefined;
-      if (Array.isArray(reverseDeps) && reverseDeps.includes(file) && !processedFiles.has(`${file}-${dep}`)) {
+      if (
+        Array.isArray(reverseDeps)
+        && reverseDeps.includes(file)
+        && !processedFiles.has(`${file}-${dep}`)
+      ) {
         cycles.push([file, dep]);
         processedFiles.add(`${file}-${dep}`);
       }
@@ -207,13 +211,19 @@ function main() {
     const relativePath = path.relative(srcDir, file).replace(/(\.js|\.ts)$/, '');
 
     // Валидация relativePath
-    if (!relativePath || typeof relativePath !== 'string' || !/^[a-zA-Z0-9\-_.\/]+$/.test(relativePath)) {
+    if (
+      !relativePath
+      || typeof relativePath !== 'string'
+      || !/^[a-zA-Z0-9\-_.\/]+$/.test(relativePath)
+    ) {
       continue;
     }
 
     const imports = extractImports(file, srcDir);
     // Безопасное присваивание с дополнительной валидацией
-    if (typeof relativePath === 'string' && relativePath.length > 0 && !relativePath.includes('..')) {
+    if (
+      typeof relativePath === 'string' && relativePath.length > 0 && !relativePath.includes('..')
+    ) {
       graph[relativePath] = imports;
     }
   }
@@ -236,7 +246,9 @@ function main() {
     process.stdout.write(`📊 Статистика:\n`);
     process.stdout.write(`   Файлов: ${fileCount}\n`);
     process.stdout.write(`   Зависимостей: ${totalDeps}\n`);
-    process.stdout.write(`   Среднее на файл: ${(totalDeps / fileCount).toFixed(DECIMAL_PLACES)}\n`);
+    process.stdout.write(
+      `   Среднее на файл: ${(totalDeps / fileCount).toFixed(DECIMAL_PLACES)}\n`,
+    );
 
     process.exit(0);
   } else {

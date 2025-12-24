@@ -27,7 +27,7 @@ export type TracingStrategy = {
   startSpan<A>(
     name: string,
     effect: Effect.Effect<A, unknown>,
-    context?: SharedInstrumentationContext
+    context?: SharedInstrumentationContext,
   ): Effect.Effect<A, unknown>;
 };
 
@@ -36,7 +36,7 @@ export type MetricsStrategy = {
   record<A>(
     metricName: string,
     effect: Effect.Effect<A, unknown>,
-    context?: SharedInstrumentationContext
+    context?: SharedInstrumentationContext,
   ): Effect.Effect<A, unknown>;
 };
 
@@ -45,7 +45,7 @@ export type LoggingStrategy = {
   log<A>(
     message: string,
     effect: Effect.Effect<A, unknown>,
-    context?: SharedInstrumentationContext
+    context?: SharedInstrumentationContext,
   ): Effect.Effect<A, unknown>;
 };
 
@@ -68,7 +68,7 @@ export type SharedInstrumentationOptions = {
 export function withSharedInstrumentation<A>(
   effect: Effect.Effect<A, unknown>,
   options: SharedInstrumentationOptions,
-  context: SharedInstrumentationContext
+  context: SharedInstrumentationContext,
 ): Effect.Effect<A, unknown> {
   let wrapped = effect;
 
@@ -94,7 +94,7 @@ export function withSharedInstrumentation<A>(
 export function withTracing<A>(
   effect: Effect.Effect<A, unknown>,
   strategy: TracingStrategy,
-  context: SharedInstrumentationContext
+  context: SharedInstrumentationContext,
 ): Effect.Effect<A, unknown> {
   return strategy.startSpan(context.operation, effect, context);
 }
@@ -103,7 +103,7 @@ export function withTracing<A>(
 export function withMetrics<A>(
   effect: Effect.Effect<A, unknown>,
   strategy: MetricsStrategy,
-  context: SharedInstrumentationContext
+  context: SharedInstrumentationContext,
 ): Effect.Effect<A, unknown> {
   return strategy.record(context.operation, effect, context);
 }
@@ -112,7 +112,7 @@ export function withMetrics<A>(
 export function withLogging<A>(
   effect: Effect.Effect<A, unknown>,
   strategy: LoggingStrategy,
-  context: SharedInstrumentationContext
+  context: SharedInstrumentationContext,
 ): Effect.Effect<A, unknown> {
   return strategy.log(context.operation, effect, context);
 }

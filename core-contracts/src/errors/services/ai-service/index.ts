@@ -80,3 +80,56 @@ export {
   validateAIServiceErrorCode,
   validateAIServiceErrorKind,
 } from './AIServiceErrorTypes.js';
+
+// ==================== DOMAIN ERRORS ====================
+
+export type {
+  ContextLimitRule,
+  ContextOverflowErrorContext,
+  ModelSelectionError,
+  ModelSelectionErrorContext,
+  PromptValidationErrorContext,
+} from './domain/index.js';
+
+export {
+  createPromptForbiddenContentError,
+  createPromptFormatError,
+  createPromptTooLongError,
+  createPromptValidationError,
+  isPromptForbiddenContentError,
+  isPromptFormatError,
+  isPromptLengthError,
+  isValidPromptValidationErrorContext,
+} from './domain/index.js';
+
+export {
+  createModelNotFoundError,
+  createModelSelectionError,
+  createModelTaskMismatchError,
+  createModelUnavailableInRegionError,
+  createTechnicalConstraintError,
+  createUserTierLimitError,
+  isModelNotFoundError,
+  isRegionUnavailableError,
+  isTaskIncompatibleError,
+  isTechnicalConstraintError,
+  isTierLimitError,
+  isValidModelSelectionErrorContext,
+} from './domain/index.js';
+
+export {
+  createContextOverflowError,
+  createConversationHistoryOverflowError,
+  createDocumentOverflowError,
+  createStreamingContextOverflowError,
+  createSystemPromptOverflowError,
+  createTokenLimitExceededError,
+  getOverflowPercentage,
+  getRecommendedTruncationStrategy,
+  isConversationHistoryError,
+  isCriticalOverflow,
+  isDocumentOverflowError,
+  isStreamingOverflowError,
+  isSystemPromptError,
+  isValidContextOverflowErrorContext,
+} from './domain/index.js';

@@ -285,15 +285,15 @@ export {
  * Tracing, metrics, logging с Strategy pattern для разных observability систем.
  */
 export type {
+  LoggingStrategy,
+  MetricsStrategy,
   SharedInstrumentationContext,
   SharedInstrumentationOptions,
   TracingStrategy,
-  MetricsStrategy,
-  LoggingStrategy,
 } from './SharedInstrumentation.js';
 export {
+  withLogging,
+  withMetrics,
   withSharedInstrumentation,
   withTracing,
-  withMetrics,
-  withLogging,
 } from './SharedInstrumentation.js';

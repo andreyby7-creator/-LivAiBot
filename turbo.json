@@ -12,6 +12,12 @@
     "lint:fix": {
       "inputs": ["src/**", "**/*.config.*", ".eslintrc*"]
     },
+    "lint:canary": {
+      "inputs": ["src/**", "**/*.config.*", ".eslintrc*"]
+    },
+    "lint:canary:fix": {
+      "inputs": ["src/**", "**/*.config.*", ".eslintrc*"]
+    },
     "type-check": {
       "inputs": ["src/**", "tsconfig*.json"]
     },

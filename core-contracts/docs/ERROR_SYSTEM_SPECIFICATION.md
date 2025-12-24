@@ -605,26 +605,30 @@ withSharedErrorBoundary(
 
 **ai-service/** – AI сервис LivAiBot: Yandex Cloud integration, ML operations.
 
-- **AIServiceErrorTypes.ts** – AI-specific типы: `ModelLoadError`, `InferenceError`, `TokenLimitError`, `APIRateLimitError`
+- **AIServiceErrorTypes.ts** ✅ **ГОТОВ К ПРОДАКШЕНУ** – AI-specific типы ошибок: `ModelLoadError`, `InferenceError`, `TokenLimitError`, `APIRateLimitError`, `PromptValidationError`, `ContextOverflowError`. Type guards, pattern matching, factory functions для создания type-safe ошибок.
+- **AIServiceErrorRegistry.ts** ✅ **ГОТОВ К ПРОДАКШЕНУ** – Реестр AI ошибок: SERVICE_AI_* коды с ML-specific метаданными. Utility functions для фильтрации по operationType, modelType, GPU requirements, streaming capabilities.
   - **🛠️ Стек**: TypeScript
     Обязательно русские: @file и компактные jsdoc
-- **AIServiceErrorRegistry.ts** – Реестр AI ошибок: SERVICE_AI_* коды с ML-specific метаданными
-  - **🛠️ Стек**: TypeScript + Effect
-    Обязательно русские: @file и компактные jsdoc
+
 - **AIServiceValidators.ts** – Валидаторы AI операций: model validation, token limits, API responses
-  - **🛠️ Стек**: TypeScript + Effect
-    Обязательно русские: @file и компактные jsdoc
 - **AIServiceInstrumentation.ts** – ML monitoring: model performance, inference latency, token usage
   - **🛠️ Стек**: TypeScript + Effect/OpenTelemetry
     Обязательно русские: @file и компактные jsdoc
-- **domain/** – AI доменные ошибки: `PromptValidationError`, `ModelSelectionError`, `ContextOverflowError`
+
+**domain/** ✅ **ГОТОВ К ПРОДАКШЕНУ** – AI доменные ошибки: `PromptValidationError`, `ModelSelectionError`, `ContextOverflowError`
+
+- **🛠️ Стек**: TypeScript
+  Обязательно русские: @file и компактные jsdoc
+- **PromptValidationError.ts** ✅ **ГОТОВ К ПРОДАКШЕНУ** – Доменные ошибки валидации промптов: правила безопасности, контент-фильтры, форматные ограничения. Factory functions для разных типов валидационных ошибок
+- **ModelSelectionError.ts** ✅ **ГОТОВ К ПРОДАКШЕНУ** – Доменные ошибки выбора модели AI: проверка доступности, совместимости задач, региональных ограничений, пользовательских лимитов. Fallback стратегии и альтернативные модели
+- **ContextOverflowError.ts** ✅ **ГОТОВ К ПРОДАКШЕНУ** – Доменные ошибки переполнения контекста: превышение лимитов токенов, истории чата, системных промптов. Стратегии усечения, восстановления и оптимизации контекста. Union тип ContextLimitRule для типобезопасности
+
 - **infrastructure/** – Yandex AI API errors: connection, rate limits, model availability
 - **policies/** – AI-specific стратегии: model fallback, token retry, API circuit breaker
 - **serialization/** – AI response/result serialization для HTTP/gRPC
 - **adapters/** – Yandex AI SDK adapter с error mapping
-- **index.ts** – Exports: `AI`, `Types`, `Validators`, etc.
-  - **🛠️ Стек**: TypeScript
-    Обязательно русские: @file и компактные jsdoc
+  **index.ts** ✅ **ГОТОВ К ПРОДАКШЕНУ** – Selective exports по категориям: Types, Guards, Pattern Matching, Registry, Utilities. Единая точка входа для AI service error system.
+  Обязательно русские: @file и компактные jsdoc
 
 **billing-service/** – Платежный сервис: subscriptions, payments, billing.
 

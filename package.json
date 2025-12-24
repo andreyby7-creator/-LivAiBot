@@ -32,6 +32,8 @@
     "dev": "turbo dev",
     "lint": "turbo lint",
     "lint:fix": "turbo lint:fix",
+    "lint:canary": "turbo run lint:canary --continue",
+    "lint:canary:fix": "turbo run lint:canary:fix --continue",
     "test": "turbo test",
     "test:ci": "turbo test:ci",
     "type-check": "turbo type-check",
