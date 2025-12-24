@@ -193,3 +193,34 @@ export {
   isYandexAIRetriableError,
   shouldTriggerCircuitBreaker,
 } from './infrastructure/index.js';
+
+// ==================== VALIDATORS ====================
+
+export type {
+  AggregatedNormalizedErrors,
+  AIModelFamily,
+  AITaskType,
+  AIValidationConfig,
+  AIValidationContext,
+  AIValidationResult,
+  APIResponseType,
+  APIResponseValidationContext,
+  APIResponseValidationResult,
+  APIValidationConfig,
+  ModelValidationConfig,
+  ModelValidationContext,
+  ModelValidationResult,
+  TaskModelCompatibility,
+  TokenValidationConfig,
+  TokenValidationContext,
+  TokenValidationResult,
+} from './AIServiceValidators.js';
+
+export {
+  calculateOptimalChunkSize,
+  validateAIModel,
+  validateAIOperation,
+  validateAPIResponse,
+  validateModelTaskCompatibility,
+  validateTokenLimits,
+} from './AIServiceValidators.js';

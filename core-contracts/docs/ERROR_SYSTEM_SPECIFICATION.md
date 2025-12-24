@@ -610,7 +610,10 @@ withSharedErrorBoundary(
   - **🛠️ Стек**: TypeScript
     Обязательно русские: @file и компактные jsdoc
 
-- **AIServiceValidators.ts** – Валидаторы AI операций: model validation, token limits, API responses
+- **AIServiceValidators.ts** ✅ **ГОТОВ К ПРОДАКШЕНУ** – Комплексная система валидации AI операций: `validateAIModel` (проверка доступности моделей, совместимости задач), `validateTokenLimits` (лимиты токенов с safety buffer), `validateAPIResponse` (HTTP статусы, JSON валидация, таймауты), `validateAIOperation` (комплексная валидация всех компонентов). Поддержка `AIModelFamily`, `AITaskType`, конфигурационные интерфейсы для ML-specific валидации.
+  - **🛠️ Стек**: TypeScript
+    Обязательно русские: @file и компактные jsdoc
+    
 - **AIServiceInstrumentation.ts** – ML monitoring: model performance, inference latency, token usage
   - **🛠️ Стек**: TypeScript + Effect/OpenTelemetry
     Обязательно русские: @file и компактные jsdoc
