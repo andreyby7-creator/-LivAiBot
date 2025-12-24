@@ -623,10 +623,29 @@ withSharedErrorBoundary(
 - **ModelSelectionError.ts** ✅ **ГОТОВ К ПРОДАКШЕНУ** – Доменные ошибки выбора модели AI: проверка доступности, совместимости задач, региональных ограничений, пользовательских лимитов. Fallback стратегии и альтернативные модели
 - **ContextOverflowError.ts** ✅ **ГОТОВ К ПРОДАКШЕНУ** – Доменные ошибки переполнения контекста: превышение лимитов токенов, истории чата, системных промптов. Стратегии усечения, восстановления и оптимизации контекста. Union тип ContextLimitRule для типобезопасности
 
-- **infrastructure/** – Yandex AI API errors: connection, rate limits, model availability
-- **policies/** – AI-specific стратегии: model fallback, token retry, API circuit breaker
-- **serialization/** – AI response/result serialization для HTTP/gRPC
-- **adapters/** – Yandex AI SDK adapter с error mapping
+**infrastructure/** ✅ **ГОТОВ К ПРОДАКШЕНУ** – Yandex AI API errors: connection, rate limits, model availability
+
+- **🛠️ Стек**: TypeScript + Effect
+  Обязательно русские: @file и компактные jsdoc
+- **YandexAIConnectionError.ts** ✅ **ГОТОВ К ПРОДАКШЕНУ** – Специализированные ошибки подключения к Yandex AI API: network timeouts, authentication failures, SSL/TLS errors, connection refused. Расширяет ExternalAPIError с Yandex-специфичными полями. Policy helpers для retry/circuit breaker стратегий
+- **RateLimitError.ts** ✅ **ГОТОВ К ПРОДАКШЕНУ** – Ошибки превышения лимитов Yandex AI API: per-minute/hour/day limits, burst limits, quota exhaustion. Инфраструктурные ограничения провайдера с категорией TECHNICAL. Discriminator hardLimit для различения soft/hard limits. Recovery strategies и usage analytics
+- **RateLimitError.ts** – Ошибки превышения лимитов Yandex AI API: per-minute/hour/day limits, burst limits, retry strategies. Специфическая логика для разных типов rate limits с intelligent backoff
+- **ModelUnavailableError.ts** ✅ **ГОТОВ К ПРОДАКШЕНУ** – Ошибки недоступности моделей Yandex AI: model not found, temporarily unavailable, region restrictions, GPU/memory constraints. Fallback стратегии и альтернативные модели. Union типы ModelUnavailableReason/ModelRecoveryStrategy для типобезопасности
+
+**policies/** – AI-specific стратегии: model fallback, token retry, API circuit breaker
+
+- **🛠️ Стек**: TypeScript + Effect
+  Обязательно русские: @file и компактные jsdoc
+
+**serialization/** – AI response/result serialization для HTTP/gRPC
+
+- **🛠️ Стек**: TypeScript
+  Обязательно русские: @file и компактные jsdoc
+
+**adapters/** – Yandex AI SDK adapter с error mapping
+
+- **🛠️ Стек**: TypeScript + Effect
+  Обязательно русские: @file и компактные jsdoc
   **index.ts** ✅ **ГОТОВ К ПРОДАКШЕНУ** – Selective exports по категориям: Types, Guards, Pattern Matching, Registry, Utilities. Единая точка входа для AI service error system.
   Обязательно русские: @file и компактные jsdoc
 
