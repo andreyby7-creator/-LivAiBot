@@ -28,6 +28,7 @@
     "**/dist/**",
     "**/build/**",
     "**/coverage/**",
+    "**/coverage.json",
     "**/.eslintcache",
     "**/tsconfig.tsbuildinfo",
     "**/*.tsbuildinfo",

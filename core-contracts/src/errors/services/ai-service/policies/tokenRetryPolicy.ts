@@ -25,11 +25,73 @@ const BACKOFF_MULTIPLIER = 2; // Множитель для exponential backoff
 
 const QUOTA_APPROACH_DELAY_FACTOR = 1.5; // Дополнительная задержка при приближении к квоте (%)
 
+const TOKEN_TYPE_COMPATIBILITY_BONUS = 0.05; // Бонус совместимости для токенов
+
+const HIGH_TOKEN_EFFICIENCY_THRESHOLD = 15; // Порог высокой эффективности токенов (%)
+
+const COST_OPTIMIZATION_THRESHOLD = -10; // Порог оптимизации стоимости (%)
+
+// Константы совместимости моделей
+const COMPATIBILITY_PRO_TO_LITE_INPUT = 0.9;
+const COMPATIBILITY_PRO_TO_LITE_OUTPUT = 0.7;
+const COMPATIBILITY_PRO_TO_STANDARD = 0.85;
+
+const COMPATIBILITY_STANDARD_TO_LITE_INPUT = 0.8;
+const COMPATIBILITY_STANDARD_TO_LITE_OUTPUT = 0.6;
+const COMPATIBILITY_STANDARD_TO_PRO_OUTPUT = 0.75;
+const COMPATIBILITY_STANDARD_TO_PRO_INPUT = 0.5;
+
+const COMPATIBILITY_LITE_TO_STANDARD = 0.9;
+const COMPATIBILITY_LITE_TO_PRO_OUTPUT = 0.7;
+const COMPATIBILITY_LITE_TO_PRO_INPUT = 0.4;
+
+const COMPATIBILITY_ART_TO_LITE = 0.8;
+const COMPATIBILITY_ART_TO_STANDARD = 0.75;
+
+const DEFAULT_MODEL_COMPATIBILITY = 0.7; // Дефолтная совместимость моделей
+
+const MILLISECONDS_PER_SECOND = 1000; // Количество миллисекунд в секунде
+
+const PERCENT_BASE = 100; // Базовое значение для процентов
+
+const FIRST_ATTEMPT_NUMBER = 0; // Номер первой попытки
+
+const MODEL_FALLBACK_ATTEMPT_THRESHOLD = 2; // Порог попыток для переключения на model fallback
+
+// Константы для уровней исчерпания квот
+const LOW_EXHAUSTION_THRESHOLD = 0.7;
+const MEDIUM_EXHAUSTION_THRESHOLD = 0.85;
+const HIGH_EXHAUSTION_THRESHOLD = 0.95;
+
+const LOW_EXHAUSTION_MULTIPLIER = 1.2;
+const MEDIUM_EXHAUSTION_MULTIPLIER = 1.8;
+const HIGH_EXHAUSTION_MULTIPLIER = 2.5;
+const CRITICAL_EXHAUSTION_MULTIPLIER = 3.0;
+
+/** Определяет причину выбора альтернативной модели на основе экономии токенов */
+function getTokenAlternativeReason(savings: number): TokenAlternativeReason {
+  if (savings > HIGH_TOKEN_EFFICIENCY_THRESHOLD) {
+    return TokenAlternativeReason.TOKEN_EFFICIENCY;
+  }
+  if (savings < COST_OPTIMIZATION_THRESHOLD) {
+    return TokenAlternativeReason.COST_OPTIMIZATION;
+  }
+  return TokenAlternativeReason.SIMILAR_CAPABILITIES;
+}
+
 /** Тип токенов для единообразия типизации */
 export enum TokenType {
   INPUT = 'input',
   OUTPUT = 'output',
   TOTAL = 'total',
+}
+
+/** Стратегия повторных попыток */
+export enum RetryStrategy {
+  IMMEDIATE = 'immediate',
+  EXPONENTIAL_BACKOFF = 'exponential_backoff',
+  QUOTA_AWARE = 'quota_aware',
+  MODEL_FALLBACK = 'model_fallback',
 }
 
 /** Причины выбора альтернативной модели для токенов */
@@ -103,14 +165,14 @@ export class DefaultModelAlternativesService implements IModelAlternativesServic
     })).sort((a, b) => b.compatibilityScore - a.compatibilityScore);
   }
 
-  private getCandidates(primary: string, tokenType: TokenType): Array<{
+  private getCandidates(primary: string, tokenType: TokenType): {
     modelId: string;
     score: number;
     reason: TokenAlternativeReason;
     savings: number;
-  }> {
+  }[] {
     // Быстрый маппинг альтернатив с умными оценками
-    const mapping: Record<string, Array<{ modelId: string; savings: number; }>> = {
+    const mapping: Record<string, { modelId: string; savings: number; }[]> = {
       'yandexgpt-pro': [
         { modelId: 'yandexgpt-lite', savings: 30 },
         { modelId: 'yandexgpt', savings: 15 },
@@ -129,19 +191,16 @@ export class DefaultModelAlternativesService implements IModelAlternativesServic
       ],
     };
 
-    return (mapping[primary] ?? [{ modelId: DEFAULT_MODEL_FALLBACK, savings: 0 }])
+    return ((Reflect.get(mapping, primary) as { modelId: string; savings: number; }[] | undefined)
+      ?? [{ modelId: DEFAULT_MODEL_FALLBACK, savings: 0 }])
       .map(({ modelId, savings }) => ({
         modelId,
         score: Math.min(
           1.0,
           this.calculateBaseScore(primary, modelId, tokenType)
-            + (tokenType === TokenType.TOTAL ? 0.05 : 0),
+            + (tokenType === TokenType.TOTAL ? TOKEN_TYPE_COMPATIBILITY_BONUS : 0),
         ),
-        reason: savings > 15
-          ? TokenAlternativeReason.TOKEN_EFFICIENCY
-          : savings < -10
-          ? TokenAlternativeReason.COST_OPTIMIZATION
-          : TokenAlternativeReason.SIMILAR_CAPABILITIES,
+        reason: getTokenAlternativeReason(savings),
         savings,
       }));
   }
@@ -151,24 +210,37 @@ export class DefaultModelAlternativesService implements IModelAlternativesServic
     // Матрица совместимости моделей
     const compatibilityMatrix: Record<string, Record<string, number>> = {
       'yandexgpt-pro': {
-        'yandexgpt-lite': tokenType === TokenType.INPUT ? 0.9 : 0.7, // Pro -> Lite: лучше для input
-        'yandexgpt': 0.85, // Pro -> Standard: хорошая совместимость
+        'yandexgpt-lite': tokenType === TokenType.INPUT
+          ? COMPATIBILITY_PRO_TO_LITE_INPUT
+          : COMPATIBILITY_PRO_TO_LITE_OUTPUT,
+        'yandexgpt': COMPATIBILITY_PRO_TO_STANDARD,
       },
       'yandexgpt': {
-        'yandexgpt-lite': tokenType === TokenType.INPUT ? 0.8 : 0.6, // Standard -> Lite: лучше для input
-        'yandexgpt-pro': tokenType === TokenType.OUTPUT ? 0.75 : 0.5, // Standard -> Pro: лучше для output
+        'yandexgpt-lite': tokenType === TokenType.INPUT
+          ? COMPATIBILITY_STANDARD_TO_LITE_INPUT
+          : COMPATIBILITY_STANDARD_TO_LITE_OUTPUT,
+        'yandexgpt-pro': tokenType === TokenType.OUTPUT
+          ? COMPATIBILITY_STANDARD_TO_PRO_OUTPUT
+          : COMPATIBILITY_STANDARD_TO_PRO_INPUT,
       },
       'yandexgpt-lite': {
-        'yandexgpt': 0.9, // Lite -> Standard: высокая совместимость
-        'yandexgpt-pro': tokenType === TokenType.OUTPUT ? 0.7 : 0.4, // Lite -> Pro: лучше для output
+        'yandexgpt': COMPATIBILITY_LITE_TO_STANDARD,
+        'yandexgpt-pro': tokenType === TokenType.OUTPUT
+          ? COMPATIBILITY_LITE_TO_PRO_OUTPUT
+          : COMPATIBILITY_LITE_TO_PRO_INPUT,
       },
       'yandexart': {
-        'yandexgpt-lite': 0.8, // Art -> Lite: хорошая альтернатива
-        'yandexgpt': 0.75, // Art -> Standard: базовая совместимость
+        'yandexgpt-lite': COMPATIBILITY_ART_TO_LITE,
+        'yandexgpt': COMPATIBILITY_ART_TO_STANDARD,
       },
     };
 
-    return compatibilityMatrix[primary]?.[alternative] ?? 0.7; // Дефолтная совместимость
+    const primaryMatrix = Reflect.get(compatibilityMatrix, primary) as
+      | Record<string, number>
+      | undefined;
+    if (!primaryMatrix) return DEFAULT_MODEL_COMPATIBILITY;
+    return (Reflect.get(primaryMatrix, alternative) as number | undefined)
+      ?? DEFAULT_MODEL_COMPATIBILITY;
   }
 }
 
@@ -189,36 +261,36 @@ const defaultLogger: ILogger = {
 };
 
 /** Сервис для загрузки конфигурации альтернатив моделей */
-export interface IModelAlternativesService {
+export type IModelAlternativesService = {
   /** Загружает конфигурацию альтернатив для модели */
   loadAlternatives(modelId: string, tokenType: TokenType): Promise<ModelAlternativeChain>;
-}
+};
 
 /** Цепочка альтернативных моделей с оценками совместимости */
-export interface ModelAlternativeChain {
+export type ModelAlternativeChain = {
   readonly primaryModel: string; // Основная модель
   readonly alternatives: readonly ModelAlternativeOption[]; // Цепочка альтернатив в порядке приоритета
-}
+};
 
 /** Интерфейс для логирования */
-export interface ILogger {
+export type ILogger = {
   warn(message: string, context?: Record<string, unknown>): void;
   error(message: string, context?: Record<string, unknown>): void;
   info(message: string, context?: Record<string, unknown>): void;
-}
+};
 
 /** Альтернативная модель с оценкой совместимости */
-export interface ModelAlternativeOption {
+export type ModelAlternativeOption = {
   readonly modelId: string; // Идентификатор модели
   readonly compatibilityScore: number; // Оценка совместимости (0-1, где 1 - полная совместимость)
   readonly reason: TokenAlternativeReason; // Причина выбора этой альтернативы
   readonly tokenSavingsPercent?: number; // Ожидаемая экономия токенов (%)
-}
+};
 
 /* ========================== TYPES ========================== */
 
 /** Контекст политики повторных попыток для токенов */
-export interface TokenRetryPolicyContext {
+export type TokenRetryPolicyContext = {
   readonly type: 'token_retry_policy'; // Тип контекста домена
   readonly modelId: string; // Идентификатор модели
   readonly currentTokens: number; // Текущий счетчик токенов
@@ -232,10 +304,10 @@ export interface TokenRetryPolicyContext {
   readonly modelAlternativesConfig?: Record<string, string>; // Конфигурация альтернативных моделей для токенов
   readonly alternativesService?: IModelAlternativesService; // Сервис для загрузки конфигурации альтернатив
   readonly logger?: ILogger; // Сервис логирования
-}
+};
 
 /** Контекст квот пользователя */
-export interface UserQuotaContext {
+export type UserQuotaContext = {
   readonly planTier: string; // Текущий план пользователя
   readonly dailyQuota?: number; // Дневная квота токенов
   readonly dailyUsed?: number; // Использовано за день
@@ -243,10 +315,10 @@ export interface UserQuotaContext {
   readonly hourlyUsed?: number; // Использовано за час
   readonly monthlyQuota?: number; // Месячная квота
   readonly monthlyUsed?: number; // Использовано за месяц
-}
+};
 
 /** Результат применения политики повторных попыток */
-export interface TokenRetryPolicyResult {
+export type TokenRetryPolicyResult = {
   readonly shouldRetry: boolean; // Следует ли повторять попытку
   readonly delayMs?: number; // Расчетная задержка перед следующей попыткой (мс)
   readonly alternativeModel?: string; // Рекомендуемая альтернативная модель
@@ -257,10 +329,7 @@ export interface TokenRetryPolicyResult {
     | 'insufficient_tokens'
     | 'backoff_timeout'; // Причина решения о повторной попытке
   readonly recommendations?: readonly string[]; // Рекомендации для пользователя
-}
-
-/** Стратегия повторных попыток */
-export type RetryStrategy = 'immediate' | 'exponential_backoff' | 'quota_aware' | 'model_fallback';
+};
 
 /* ========================== ERROR ========================== */
 
@@ -302,39 +371,41 @@ const STRATEGY_HANDLERS: Record<
   RetryStrategy,
   (context: TokenRetryPolicyContext) => Promise<TokenRetryPolicyResult>
 > = {
-  immediate: (_context) =>
-    Promise.resolve(createRetryResult({
+  [RetryStrategy.IMMEDIATE]: (_context) => {
+    void _context; // immediate strategy doesn't need context
+    return Promise.resolve(createRetryResult({
       shouldRetry: true,
       reason: 'success',
       delayMs: 0,
-    })),
+    }));
+  },
 
-  exponential_backoff: (context) => {
+  [RetryStrategy.EXPONENTIAL_BACKOFF]: (context) => {
     const delayMs = calculateExponentialBackoffDelay(context.attemptNumber);
     return Promise.resolve(createRetryResult({
       shouldRetry: true,
       reason: 'success',
       delayMs,
       recommendations: [
-        DELAY_MESSAGES.exponentialBackoff(Math.round(delayMs / 1000)),
+        DELAY_MESSAGES.exponentialBackoff(Math.round(delayMs / MILLISECONDS_PER_SECOND)),
       ],
     }));
   },
 
-  quota_aware: (context) => {
+  [RetryStrategy.QUOTA_AWARE]: (context) => {
     const quotaDelayMs = calculateQuotaAwareDelay(context, context.userQuotaContext);
     return Promise.resolve(createRetryResult({
       shouldRetry: true,
       reason: 'success',
       delayMs: quotaDelayMs,
       recommendations: [
-        DELAY_MESSAGES.quotaAware(Math.round(quotaDelayMs / 1000)),
+        DELAY_MESSAGES.quotaAware(Math.round(quotaDelayMs / MILLISECONDS_PER_SECOND)),
         ...RETRY_RECOMMENDATIONS.quotaApproaching,
       ],
     }));
   },
 
-  model_fallback: async (context) => {
+  [RetryStrategy.MODEL_FALLBACK]: async (context) => {
     const alternativeModel = await suggestAlternativeModel(context);
     return createRetryResult({
       shouldRetry: true,
@@ -410,7 +481,7 @@ export async function shouldRetryOnTokenExhaustion(
 
   // Определяем и выполняем стратегию повторной попытки
   const strategy = determineRetryStrategy(context);
-  const handler = STRATEGY_HANDLERS[strategy];
+  const handler = Reflect.get(STRATEGY_HANDLERS, strategy);
 
   return handler(context);
 }
@@ -465,11 +536,11 @@ function checkQuotaStatus(userQuotaContext?: UserQuotaContext): {
 
   // Прерываем проверку на первом критическом превышении квоты (early exit)
   for (const check of QUOTA_CHECKS) {
-    const quota = userQuotaContext[check.quotaKey];
-    const used = userQuotaContext[check.usedKey];
+    const quota = Reflect.get(userQuotaContext, check.quotaKey);
+    const used = Reflect.get(userQuotaContext, check.usedKey);
 
     if (quota !== undefined && used !== undefined) {
-      const usagePercent = (used / quota) * 100;
+      const usagePercent = (used / quota) * PERCENT_BASE;
 
       // Проверяем приближение к лимиту (для стратегии)
       if (usagePercent >= check.strategyThresholdPercent) {
@@ -513,22 +584,22 @@ function determineRetryStrategy(context: TokenRetryPolicyContext): RetryStrategy
   const { attemptNumber, userQuotaContext } = context;
 
   // Если первая попытка - immediate retry
-  if (attemptNumber === 0) {
-    return 'immediate';
+  if (attemptNumber === FIRST_ATTEMPT_NUMBER) {
+    return RetryStrategy.IMMEDIATE;
   }
 
   // Если приближаемся к квотам - quota-aware стратегия
   if (isApproachingQuotaLimit(userQuotaContext)) {
-    return 'quota_aware';
+    return RetryStrategy.QUOTA_AWARE;
   }
 
   // Если много неудачных попыток - пробуем альтернативную модель
-  if (attemptNumber >= 2) {
-    return 'model_fallback';
+  if (attemptNumber >= MODEL_FALLBACK_ATTEMPT_THRESHOLD) {
+    return RetryStrategy.MODEL_FALLBACK;
   }
 
   // По умолчанию - exponential backoff
-  return 'exponential_backoff';
+  return RetryStrategy.EXPONENTIAL_BACKOFF;
 }
 
 // Рассчитывает задержку с exponential backoff
@@ -552,13 +623,16 @@ function calculateQuotaAwareDelay(
   const maxExhaustion = calculateExhaustionLevels(userQuotaContext);
 
   // Простые множители на основе уровня исчерпания
-  const multiplier = maxExhaustion < 0.7
-    ? 1.2 // Низкий уровень
-    : maxExhaustion < 0.85
-    ? 1.8 // Средний уровень
-    : maxExhaustion < 0.95
-    ? 2.5 // Высокий уровень
-    : 3.0; // Критический уровень
+  let multiplier: number;
+  if (maxExhaustion < LOW_EXHAUSTION_THRESHOLD) {
+    multiplier = LOW_EXHAUSTION_MULTIPLIER; // Низкий уровень
+  } else if (maxExhaustion < MEDIUM_EXHAUSTION_THRESHOLD) {
+    multiplier = MEDIUM_EXHAUSTION_MULTIPLIER; // Средний уровень
+  } else if (maxExhaustion < HIGH_EXHAUSTION_THRESHOLD) {
+    multiplier = HIGH_EXHAUSTION_MULTIPLIER; // Высокий уровень
+  } else {
+    multiplier = CRITICAL_EXHAUSTION_MULTIPLIER; // Критический уровень
+  }
 
   return Math.round(baseDelay * multiplier);
 }
@@ -590,8 +664,9 @@ async function suggestAlternativeModel(context: TokenRetryPolicyContext): Promis
         tokenType: tokenType.toString(),
         error: error instanceof Error ? error.message : String(error),
       });
-    } catch (logError) {
+    } catch (_logError) {
       // Игнорируем ошибки логирования - они не должны ломать основную логику
+      void _logError;
     }
   }
 
@@ -599,7 +674,8 @@ async function suggestAlternativeModel(context: TokenRetryPolicyContext): Promis
   const alternatives = modelAlternativesConfig ?? DEFAULT_MODEL_ALTERNATIVES;
 
   // Возвращаем альтернативу из конфига или дефолтную
-  return alternatives[modelId] ?? DEFAULT_MODEL_FALLBACK;
+  const value = Reflect.get(alternatives, modelId) as string | undefined;
+  return value ?? DEFAULT_MODEL_FALLBACK;
 }
 
 // Создает ошибку политики повторных попыток

@@ -224,3 +224,32 @@ export {
   validateModelTaskCompatibility,
   validateTokenLimits,
 } from './AIServiceValidators.js';
+
+// ==================== SERIALIZATION ====================
+
+export {
+  createAIResponseSerializer,
+  serializeAIResponseGrpc,
+  serializeAIResponseHttp,
+  serializeGrpcToJsonString,
+  serializeGrpcWithMetadataToJsonString,
+  serializeHttpToJsonString,
+  serializeHttpWithMetadataToJsonString,
+} from './serialization/index.js';
+
+export type {
+  AIErrorDetails,
+  AIResponse,
+  AIResponseError,
+  AIResponseSerializationOutcome,
+  AIResponseSerializerConfig,
+  AIResponseSerializerRequestConfig,
+  AIResponseSuccess,
+  AIUsage,
+  BaseErrorPlainObject,
+  GrpcAISerializationResult,
+  GrpcDetailsFormatter,
+  HttpAISerializationResult,
+} from './serialization/index.js';
+
+export { GRPC_STATUS, HTTP_STATUS } from './serialization/index.js';

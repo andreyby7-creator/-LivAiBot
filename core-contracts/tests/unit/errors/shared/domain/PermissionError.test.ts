@@ -783,7 +783,7 @@ describe('PermissionError', () => {
     });
 
     describe('optional string fields validation', () => {
-      const optionalStringFields: Array<keyof PermissionErrorContext> = [
+      const optionalStringFields: (keyof PermissionErrorContext)[] = [
         'userId',
         'resource',
         'action',

@@ -425,7 +425,7 @@ describe('YandexAIConnectionError', () => {
     });
 
     it('должен корректно обрабатывать все типы транспорта', () => {
-      const transports: Array<'http' | 'grpc' | 'sdk'> = ['http', 'grpc', 'sdk'];
+      const transports: ('http' | 'grpc' | 'sdk')[] = ['http', 'grpc', 'sdk'];
 
       transports.forEach((transport) => {
         const error = createYandexAIConnectionError(

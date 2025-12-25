@@ -2,42 +2,42 @@
  * @file tokenRetryPolicy.test.ts - Полное тестирование политики повторных попыток токенов
  */
 
-import { describe, it, expect, beforeEach } from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
 
 import type {
   TokenRetryPolicyContext,
+  TokenRetryPolicyResult,
   UserQuotaContext,
 } from '../../../../../../src/errors/services/ai-service/policies/tokenRetryPolicy.js';
 
 import {
-  shouldRetryOnTokenExhaustion,
-  evaluateTokenRetryPolicy,
-  getOptimalRetryDelay,
-  canRetryWithTokens,
-  createTokenRetryPolicyError,
-  isTokenRetryPolicyError,
-  checkQuotaStatus,
-  checkUserQuotas,
-  isApproachingQuotaLimit,
-  determineRetryStrategy,
+  BACKOFF_MULTIPLIER,
+  BASE_RETRY_DELAY_MS,
   calculateExponentialBackoffDelay,
   calculateQuotaAwareDelay,
+  canRetryWithTokens,
+  checkQuotaStatus,
+  checkUserQuotas,
   createRetryResult,
-  formatDelayMessage,
-  suggestAlternativeModel,
-  TokenType,
-  TokenAlternativeReason,
-  RETRY_RECOMMENDATIONS,
-  DELAY_MESSAGES,
+  createTokenRetryPolicyError,
   DEFAULT_MODEL_ALTERNATIVES,
-  QUOTA_CHECKS,
-  BASE_RETRY_DELAY_MS,
-  BACKOFF_MULTIPLIER,
-  MAX_RETRY_DELAY_MS,
-  QUOTA_APPROACH_DELAY_FACTOR,
   DEFAULT_MODEL_FALLBACK,
   DefaultModelAlternativesService,
-  type TokenRetryPolicyResult,
+  DELAY_MESSAGES,
+  determineRetryStrategy,
+  evaluateTokenRetryPolicy,
+  formatDelayMessage,
+  getOptimalRetryDelay,
+  isApproachingQuotaLimit,
+  isTokenRetryPolicyError,
+  MAX_RETRY_DELAY_MS,
+  QUOTA_APPROACH_DELAY_FACTOR,
+  QUOTA_CHECKS,
+  RETRY_RECOMMENDATIONS,
+  shouldRetryOnTokenExhaustion,
+  suggestAlternativeModel,
+  TokenAlternativeReason,
+  TokenType,
 } from '../../../../../../src/errors/services/ai-service/policies/tokenRetryPolicy.js';
 
 /* ========================== MOCKS ========================== */
@@ -522,7 +522,9 @@ describe('TokenRetryPolicy', () => {
       const context: TokenRetryPolicyContext = {
         ...mockTokenRetryContext,
         alternativesService: {
-          loadAlternatives: async () => { throw new Error('Service error'); },
+          loadAlternatives: async () => {
+            throw new Error('Service error');
+          },
         },
       };
 
@@ -538,7 +540,9 @@ describe('TokenRetryPolicy', () => {
           'yandexgpt-pro': 'custom-model',
         },
         alternativesService: {
-          loadAlternatives: async () => { throw new Error('Service unavailable'); },
+          loadAlternatives: async () => {
+            throw new Error('Service unavailable');
+          },
         },
       };
 
@@ -552,7 +556,9 @@ describe('TokenRetryPolicy', () => {
         ...mockTokenRetryContext,
         // No modelAlternativesConfig
         alternativesService: {
-          loadAlternatives: async () => { throw new Error('Service unavailable'); },
+          loadAlternatives: async () => {
+            throw new Error('Service unavailable');
+          },
         },
       };
 
@@ -670,7 +676,7 @@ describe('TokenRetryPolicy', () => {
 
       expect(result.primaryModel).toBe('yandexgpt');
       expect(result.alternatives).toHaveLength(2);
-      expect(result.alternatives.some(alt => alt.modelId === 'yandexgpt-lite')).toBe(true);
+      expect(result.alternatives.some((alt) => alt.modelId === 'yandexgpt-lite')).toBe(true);
     });
 
     it('should load alternatives for unknown model', async () => {
@@ -683,14 +689,30 @@ describe('TokenRetryPolicy', () => {
 
     it('should calculate base compatibility scores correctly', () => {
       // Test INPUT token type boosts for pro->lite
-      const inputScore = service.calculateBaseScore('yandexgpt-pro', 'yandexgpt-lite', TokenType.INPUT);
-      const outputScore = service.calculateBaseScore('yandexgpt-pro', 'yandexgpt-lite', TokenType.OUTPUT);
+      const inputScore = service.calculateBaseScore(
+        'yandexgpt-pro',
+        'yandexgpt-lite',
+        TokenType.INPUT,
+      );
+      const outputScore = service.calculateBaseScore(
+        'yandexgpt-pro',
+        'yandexgpt-lite',
+        TokenType.OUTPUT,
+      );
 
       expect(inputScore).toBeGreaterThan(outputScore); // INPUT should have higher score for pro->lite
 
       // Test OUTPUT boost for lite->pro
-      const outputScore2 = service.calculateBaseScore('yandexgpt-lite', 'yandexgpt-pro', TokenType.OUTPUT);
-      const inputScore2 = service.calculateBaseScore('yandexgpt-lite', 'yandexgpt-pro', TokenType.INPUT);
+      const outputScore2 = service.calculateBaseScore(
+        'yandexgpt-lite',
+        'yandexgpt-pro',
+        TokenType.OUTPUT,
+      );
+      const inputScore2 = service.calculateBaseScore(
+        'yandexgpt-lite',
+        'yandexgpt-pro',
+        TokenType.INPUT,
+      );
 
       expect(outputScore2).toBeGreaterThan(inputScore2); // OUTPUT should have higher score for lite->pro
     });
@@ -705,11 +727,11 @@ describe('TokenRetryPolicy', () => {
       const result = await service.loadAlternatives('yandexgpt-pro', TokenType.INPUT);
 
       // Should be sorted in descending order
-      for (let i = 0; i < result.alternatives.length - 1; i++) {
-        expect(result.alternatives[i].compatibilityScore).toBeGreaterThanOrEqual(
-          result.alternatives[i + 1].compatibilityScore
-        );
-      }
+      const scores = result.alternatives.map((alt) => alt.compatibilityScore);
+      const isSortedDescending = scores.every((score, index) =>
+        index === 0 || score <= scores[index - 1]
+      );
+      expect(isSortedDescending).toBe(true);
     });
   });
 
@@ -729,7 +751,9 @@ describe('TokenRetryPolicy', () => {
 
       expect(result.shouldRetry).toBe(true);
       expect(result.delayMs).toBeGreaterThan(1000); // Higher delay due to quota awareness
-      expect((result.recommendations ?? []).some(rec => rec.includes('quota-aware delay'))).toBe(true);
+      expect((result.recommendations ?? []).some((rec) => rec.includes('quota-aware delay'))).toBe(
+        true,
+      );
     });
 
     it('should handle quota-aware delay with multiple quota types', async () => {
@@ -739,7 +763,7 @@ describe('TokenRetryPolicy', () => {
         userQuotaContext: {
           ...mockUserQuotaContext,
           dailyUsed: 8800, // 88% - should trigger quota-aware
-          hourlyUsed: 800,  // 80% - also high
+          hourlyUsed: 800, // 80% - also high
         },
       };
 
@@ -747,7 +771,9 @@ describe('TokenRetryPolicy', () => {
 
       expect(result.shouldRetry).toBe(true);
       expect(result.delayMs).toBeGreaterThan(2000); // Higher delay due to quota awareness
-      expect((result.recommendations ?? []).some(rec => rec.includes('quota-aware delay'))).toBe(true);
+      expect((result.recommendations ?? []).some((rec) => rec.includes('quota-aware delay'))).toBe(
+        true,
+      );
     });
 
     it('should prevent retry when both token and quota limits exceeded', async () => {
@@ -819,9 +845,9 @@ describe('TokenRetryPolicy', () => {
       const criticalQuota: UserQuotaContext = {
         planTier: 'premium',
         dailyQuota: 10000,
-        dailyUsed: 9500,    // 95% - block
+        dailyUsed: 9500, // 95% - block
         hourlyQuota: 1000,
-        hourlyUsed: 900,    // 90% - block
+        hourlyUsed: 900, // 90% - block
         monthlyQuota: 300000,
         monthlyUsed: 297000, // 99% - block
       };
@@ -847,7 +873,7 @@ describe('TokenRetryPolicy', () => {
 
       expect(result.canRetry).toBe(false);
       expect(result.isApproachingLimit).toBe(true);
-      expect(result.recommendations.some(rec => rec.includes('95.1% used'))).toBe(true);
+      expect(result.recommendations.some((rec) => rec.includes('95.1% used'))).toBe(true);
     });
 
     it('should block retry when hourly quota exceeds threshold', () => {
@@ -865,7 +891,7 @@ describe('TokenRetryPolicy', () => {
 
       expect(result.canRetry).toBe(false);
       expect(result.isApproachingLimit).toBe(true);
-      expect(result.recommendations.some(rec => rec.includes('91.0% used'))).toBe(true);
+      expect(result.recommendations.some((rec) => rec.includes('91.0% used'))).toBe(true);
     });
 
     it('should block retry when monthly quota exceeds threshold', () => {
@@ -883,7 +909,7 @@ describe('TokenRetryPolicy', () => {
 
       expect(result.canRetry).toBe(false);
       expect(result.isApproachingLimit).toBe(true);
-      expect(result.recommendations.some(rec => rec.includes('99.0% used'))).toBe(true);
+      expect(result.recommendations.some((rec) => rec.includes('99.0% used'))).toBe(true);
     });
 
     it('should handle partial quota data (some quotas undefined)', () => {
@@ -901,7 +927,7 @@ describe('TokenRetryPolicy', () => {
 
       expect(result.canRetry).toBe(false); // Daily quota exceeded
       expect(result.isApproachingLimit).toBe(true);
-      expect((result.recommendations ?? []).some(rec => rec.includes('95.0% used'))).toBe(true);
+      expect((result.recommendations ?? []).some((rec) => rec.includes('95.0% used'))).toBe(true);
     });
 
     it('should handle zero quota values gracefully', () => {
@@ -964,7 +990,7 @@ describe('TokenRetryPolicy', () => {
       const context: TokenRetryPolicyContext = {
         ...mockTokenRetryContext,
         attemptNumber: 2, // Below MAX_RETRY_ATTEMPTS = 5
-        maxAttempts: 2,   // But at maxAttempts limit
+        maxAttempts: 2, // But at maxAttempts limit
       };
 
       const result = await shouldRetryOnTokenExhaustion(context);
@@ -977,7 +1003,7 @@ describe('TokenRetryPolicy', () => {
       const context: TokenRetryPolicyContext = {
         ...mockTokenRetryContext,
         attemptNumber: 5, // Exactly MAX_RETRY_ATTEMPTS = 5
-        maxAttempts: 10,  // Higher than MAX_RETRY_ATTEMPTS
+        maxAttempts: 10, // Higher than MAX_RETRY_ATTEMPTS
       };
 
       const result = await shouldRetryOnTokenExhaustion(context);
@@ -1034,7 +1060,8 @@ describe('TokenRetryPolicy', () => {
 
       expect(result.shouldRetry).toBe(true);
       expect(result.delayMs).toBeGreaterThan(1000);
-      expect((result.recommendations ?? []).some(rec => rec.includes('exponential backoff'))).toBe(true);
+      expect((result.recommendations ?? []).some((rec) => rec.includes('exponential backoff')))
+        .toBe(true);
     });
 
     it('should execute quota_aware strategy', async () => {
@@ -1048,7 +1075,9 @@ describe('TokenRetryPolicy', () => {
 
       expect(result.shouldRetry).toBe(true);
       expect(result.delayMs).toBeGreaterThan(1000);
-      expect((result.recommendations ?? []).some(rec => rec.includes('quota-aware delay'))).toBe(true);
+      expect((result.recommendations ?? []).some((rec) => rec.includes('quota-aware delay'))).toBe(
+        true,
+      );
     });
 
     it('should execute model_fallback strategy', async () => {
@@ -1072,7 +1101,9 @@ describe('TokenRetryPolicy', () => {
 
       expect(result.shouldRetry).toBe(true);
       expect(result.alternativeModel).toBeDefined();
-      expect((result.recommendations ?? []).some(rec => rec.includes('alternative model'))).toBe(true);
+      expect((result.recommendations ?? []).some((rec) => rec.includes('alternative model'))).toBe(
+        true,
+      );
     });
   });
 
@@ -1193,7 +1224,9 @@ describe('TokenRetryPolicy', () => {
         ...mockTokenRetryContext,
         modelId: 'unknown-model',
         alternativesService: {
-          loadAlternatives: async () => { throw new Error('Unknown model'); },
+          loadAlternatives: async () => {
+            throw new Error('Unknown model');
+          },
         },
       };
 
@@ -1230,12 +1263,16 @@ describe('TokenRetryPolicy', () => {
       const context: TokenRetryPolicyContext = {
         ...mockTokenRetryContext,
         logger: {
-          warn: () => { throw new Error('Logger error'); },
+          warn: () => {
+            throw new Error('Logger error');
+          },
           error: () => {},
           info: () => {},
         },
         alternativesService: {
-          loadAlternatives: async () => { throw new Error('Service error'); },
+          loadAlternatives: async () => {
+            throw new Error('Service error');
+          },
         },
       };
 
@@ -1264,7 +1301,9 @@ describe('TokenRetryPolicy', () => {
         ...mockTokenRetryContext,
         // No logger provided - should use defaultLogger
         alternativesService: {
-          loadAlternatives: async () => { throw new Error('Service error'); },
+          loadAlternatives: async () => {
+            throw new Error('Service error');
+          },
         },
       };
 

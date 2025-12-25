@@ -993,7 +993,7 @@ describe('AuthError', () => {
 
     describe('authType validation', () => {
       it('должен принимать валидные значения authType', () => {
-        const validAuthTypes: Array<NonNullable<AuthErrorContext['authType']>> = [
+        const validAuthTypes: NonNullable<AuthErrorContext['authType']>[] = [
           'password',
           'token',
           'oauth',
@@ -1082,7 +1082,7 @@ describe('AuthError', () => {
     });
 
     describe('optional string fields validation', () => {
-      const optionalStringFields: Array<keyof AuthErrorContext> = [
+      const optionalStringFields: (keyof AuthErrorContext)[] = [
         'userId',
         'resource',
         'action',

@@ -13,6 +13,67 @@ import type { ErrorCode } from '../../../base/ErrorCode.js';
 /** Максимальное количество сохраненных частей контекста */
 const MAX_RECOVERABLE_PARTS = 5;
 
+/** Создает базовый контекст документа без восстановимых частей */
+function createBasicDocumentContext(): DocumentContext {
+  return {
+    contextType: 'document',
+    truncationStrategy: 'middle',
+    optimizationSuggestions: [
+      'Сожмите документ',
+      'Разделите на части',
+      'Удалите неважные разделы',
+      'Используйте summary документа',
+    ],
+  };
+}
+
+/** Создает контекст документа с восстановимыми частями */
+function createDocumentContextWithRecovery(content: string, documentType: string): DocumentContext {
+  return {
+    contextType: 'document',
+    truncationStrategy: 'middle',
+    recoverableParts: [{
+      content,
+      priority: 1,
+      metadata: { documentType },
+    }],
+    optimizationSuggestions: [
+      'Сожмите документ',
+      'Разделите на части',
+      'Удалите неважные разделы',
+      'Используйте summary документа',
+    ],
+  };
+}
+
+/** Создает контекст документа на основе доступного контента */
+function createDocumentContext(documentType: string, recoverableContent?: string): DocumentContext {
+  // Ранний возврат: если контент не предоставлен (null/undefined), возвращаем базовый контекст
+  if (recoverableContent == null) {
+    return createBasicDocumentContext();
+  }
+
+  // Проверяем, пустой ли контент после удаления пробелов
+  if (recoverableContent.trim().length === 0) {
+    return createBasicDocumentContext();
+  }
+
+  // Если контент валидный, создаем контекст с возможностью восстановления
+  return createDocumentContextWithRecovery(recoverableContent.trim(), documentType);
+}
+
+/** База для процентных расчетов */
+const PERCENT_BASE = 100;
+
+/** Критический порог превышения в процентах */
+const CRITICAL_OVERFLOW_THRESHOLD = 50;
+
+/** Тип контекста для создания ошибок переполнения документов */
+type DocumentContext = Omit<
+  ContextOverflowErrorContext,
+  'type' | 'limitRule' | 'contextLength' | 'maxAllowedLength' | 'overflowAmount'
+>;
+
 /** Типы правил лимитов контекста */
 export type ContextLimitRule =
   | 'token_limit_exceeded'
@@ -22,7 +83,7 @@ export type ContextLimitRule =
   | 'streaming_context_overflow';
 
 /** Контекст ошибки переполнения контекста с AI-специфичными полями */
-export interface ContextOverflowErrorContext {
+export type ContextOverflowErrorContext = {
   /** Тип контекста домена */
   readonly type: 'context_overflow';
   /** Правило лимита, которое было нарушено */
@@ -55,7 +116,7 @@ export interface ContextOverflowErrorContext {
   readonly processingTimeMs?: number;
   /** Модель, для которой рассчитывался контекст */
   readonly targetModel?: string;
-}
+};
 
 /** TaggedError тип для ошибок переполнения контекста */
 export type ContextOverflowError = TaggedError<
@@ -174,7 +235,10 @@ export function createTokenLimitExceededError(
     readonly metadata?: Record<string, unknown>;
   }[],
 ): ContextOverflowError {
-  const baseContext = {
+  const baseContext: Pick<
+    ContextOverflowErrorContext,
+    'contextType' | 'truncationStrategy' | 'optimizationSuggestions' | 'targetModel'
+  > = {
     contextType: 'conversation' as const,
     truncationStrategy: 'sliding_window' as const,
     optimizationSuggestions: [
@@ -185,9 +249,14 @@ export function createTokenLimitExceededError(
     ] as const,
   };
 
-  const contextWithModel = Boolean(targetModel?.trim())
-    ? { ...baseContext, targetModel: targetModel!.trim() }
-    : baseContext;
+  let contextWithModel = baseContext;
+  // Process targetModel if provided
+  if (targetModel != null) {
+    const trimmedModel = targetModel.trim();
+    if (trimmedModel.length > 0) {
+      contextWithModel = { ...baseContext, targetModel: trimmedModel };
+    }
+  }
 
   return createContextOverflowError(
     'SERVICE_AI_TOKEN_LIMIT_EXCEEDED' as ErrorCode,
@@ -278,32 +347,7 @@ export function createDocumentOverflowError(
     'document_size_overflow',
     documentSize,
     maxAllowedSize,
-    Boolean(recoverableContent?.trim())
-      ? {
-        contextType: 'document',
-        truncationStrategy: 'middle',
-        recoverableParts: [{
-          content: recoverableContent!.trim(),
-          priority: 1,
-          metadata: { documentType },
-        }],
-        optimizationSuggestions: [
-          'Сожмите документ',
-          'Разделите на части',
-          'Удалите неважные разделы',
-          'Используйте summary документа',
-        ],
-      }
-      : {
-        contextType: 'document',
-        truncationStrategy: 'middle',
-        optimizationSuggestions: [
-          'Сожмите документ',
-          'Разделите на части',
-          'Удалите неважные разделы',
-          'Используйте summary документа',
-        ],
-      },
+    createDocumentContext(documentType, recoverableContent),
   );
 }
 
@@ -360,12 +404,12 @@ export function isStreamingOverflowError(error: ContextOverflowError): boolean {
 /** Вычисляет процент превышения лимита */
 export function getOverflowPercentage(error: ContextOverflowError): number {
   const { contextLength, maxAllowedLength } = error.details;
-  return Math.round(((contextLength - maxAllowedLength) / maxAllowedLength) * 100);
+  return Math.round(((contextLength - maxAllowedLength) / maxAllowedLength) * PERCENT_BASE);
 }
 
 /** Проверяет, является ли ошибка критичной (превышение > 50%) */
 export function isCriticalOverflow(error: ContextOverflowError): boolean {
-  return getOverflowPercentage(error) > 50;
+  return getOverflowPercentage(error) > CRITICAL_OVERFLOW_THRESHOLD;
 }
 
 /** Получает рекомендуемую стратегию усечения */

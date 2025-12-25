@@ -2,30 +2,35 @@
  * @file apiCircuitBreakerPolicy.test.ts - Полное тестирование circuit breaker политики
  */
 
-import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type {
-  CircuitBreakerContext,
   CircuitBreakerConfig,
+  CircuitBreakerContext,
+  CircuitBreakerError,
   CircuitBreakerResult,
+  CircuitBreakerStateData,
   ILogger,
 } from '../../../../../../src/errors/services/ai-service/policies/apiCircuitBreakerPolicy.js';
 
 // Экспортируем для использования в тестах
-export type { CircuitBreakerError } from '../../../../../../src/errors/services/ai-service/policies/apiCircuitBreakerPolicy.js';
+export type { CircuitBreakerError };
 
 import {
-  shouldAllowRequest,
-  recordSuccess,
-  recordFailure,
-  createCircuitBreakerError,
-  isCircuitBreakerError,
   CircuitBreakerState,
   CircuitBreakerTrigger,
-  type CircuitBreakerStateData,
+  createCircuitBreakerError,
+  isCircuitBreakerError,
+  recordFailure,
+  recordSuccess,
+  shouldAllowRequest,
 } from '../../../../../../src/errors/services/ai-service/policies/apiCircuitBreakerPolicy.js';
 
-import { ERROR_CATEGORY, ERROR_ORIGIN, ERROR_SEVERITY } from '../../../../../../src/errors/base/ErrorConstants.js';
+import {
+  ERROR_CATEGORY,
+  ERROR_ORIGIN,
+  ERROR_SEVERITY,
+} from '../../../../../../src/errors/base/ErrorConstants.js';
 
 /* ========================== MOCKS ========================== */
 
@@ -46,7 +51,7 @@ const mockConfig: CircuitBreakerConfig = {
 const createMockContext = (
   serviceId: string = 'test-service',
   config?: CircuitBreakerConfig,
-  logger?: ILogger
+  logger?: ILogger,
 ): CircuitBreakerContext => ({
   type: 'circuit_breaker_policy',
   serviceId,
@@ -400,14 +405,14 @@ describe('CircuitBreakerPolicy', () => {
         expect.objectContaining({
           serviceId: 'service-warn-log',
           from: 'half_open',
-          to: 'open'
-        })
+          to: 'open',
+        }),
       );
     });
 
     it('должен использовать fallback logger при отсутствии переданного', () => {
       // Логика fallback logger покрыта другими тестами
-      expect(typeof console.log).toBe('function');
+      expect(typeof console.warn).toBe('function');
     });
   });
 
@@ -558,7 +563,7 @@ describe('CircuitBreakerPolicy', () => {
         ttlMs: 300_000,
       };
 
-      const uniqueServiceId = 'service-max-test-' + Date.now();
+      const uniqueServiceId = `service-max-test-${Date.now()}`;
 
       // Перейти в OPEN
       for (let i = 0; i < customConfig.failureThreshold!; i++) {
@@ -579,12 +584,13 @@ describe('CircuitBreakerPolicy', () => {
       };
 
       // Проверить состояние перед первым запросом
-      const beforeResult = shouldAllowRequest({ ...context, currentTime: now + customConfig.recoveryTimeoutMs! + 50 });
-      console.log('Before:', beforeResult);
+      const beforeResult = shouldAllowRequest({
+        ...context,
+        currentTime: now + customConfig.recoveryTimeoutMs! + 50,
+      });
 
       // Сделать 1 запрос - должен разрешиться (testRequestCount станет 1)
       const result1 = shouldAllowRequest(context);
-      console.log('Result1:', result1); // отладка
       expect(result1.shouldAllow).toBe(true);
       expect(result1.state).toBe(CircuitBreakerState.HALF_OPEN);
       expect(result1.testRequestCount).toBe(1);
@@ -607,13 +613,15 @@ describe('CircuitBreakerPolicy', () => {
         ttlMs: 30000,
       };
 
-      const uniqueServiceId = 'service-success-open-' + Date.now();
+      const uniqueServiceId = `service-success-open-${Date.now()}`;
 
       // Перейти в OPEN через 1 failure
       recordFailure(uniqueServiceId, customConfig, mockLogger);
 
       // Проверить, что в OPEN и failureCount >= threshold
-      const openResult = shouldAllowRequest(createMockContext(uniqueServiceId, customConfig, mockLogger));
+      const openResult = shouldAllowRequest(
+        createMockContext(uniqueServiceId, customConfig, mockLogger),
+      );
       expect(openResult.state).toBe(CircuitBreakerState.OPEN);
       expect(openResult.failureCount).toBe(1);
 
@@ -621,7 +629,9 @@ describe('CircuitBreakerPolicy', () => {
       recordSuccess(uniqueServiceId, customConfig, mockLogger);
 
       // Проверить, что failureCount сбросился (строки 204-205)
-      const result = shouldAllowRequest(createMockContext(uniqueServiceId, customConfig, mockLogger));
+      const result = shouldAllowRequest(
+        createMockContext(uniqueServiceId, customConfig, mockLogger),
+      );
       expect(result.failureCount).toBe(0); // должен сброситься
     });
 
@@ -631,7 +641,7 @@ describe('CircuitBreakerPolicy', () => {
         // другие поля undefined - должны использовать defaults
       };
 
-      const uniqueServiceId = 'service-partial-config-' + Date.now();
+      const uniqueServiceId = `service-partial-config-${Date.now()}`;
 
       // Перейти в OPEN
       for (let i = 0; i < 2; i++) {
@@ -639,12 +649,14 @@ describe('CircuitBreakerPolicy', () => {
       }
 
       // Проверить, что работает с частичной конфигурацией
-      const result = shouldAllowRequest(createMockContext(uniqueServiceId, partialConfig as CircuitBreakerConfig, mockLogger));
+      const result = shouldAllowRequest(
+        createMockContext(uniqueServiceId, partialConfig as CircuitBreakerConfig, mockLogger),
+      );
       expect(result.state).toBe(CircuitBreakerState.OPEN);
     });
 
     it('должен работать с пустой конфигурацией и undefined logger', () => {
-      const uniqueServiceId = 'service-empty-config-' + Date.now();
+      const uniqueServiceId = `service-empty-config-${Date.now()}`;
 
       // Перейти в OPEN с пустой конфигурацией и undefined logger
       for (let i = 0; i < 5; i++) { // default threshold = 5
@@ -652,7 +664,9 @@ describe('CircuitBreakerPolicy', () => {
       }
 
       // Проверить, что работает с пустой конфигурацией и undefined logger
-      const result = shouldAllowRequest(createMockContext(uniqueServiceId, {} as CircuitBreakerConfig, undefined));
+      const result = shouldAllowRequest(
+        createMockContext(uniqueServiceId, {} as CircuitBreakerConfig, undefined),
+      );
       expect(result.state).toBe(CircuitBreakerState.OPEN);
     });
 
@@ -665,7 +679,7 @@ describe('CircuitBreakerPolicy', () => {
         ttlMs: 1000,
       };
 
-      const uniqueServiceId = 'service-timeout-' + Date.now();
+      const uniqueServiceId = `service-timeout-${Date.now()}`;
 
       // Перейти в OPEN
       recordFailure(uniqueServiceId, customConfig, mockLogger);
@@ -674,10 +688,11 @@ describe('CircuitBreakerPolicy', () => {
       vi.setSystemTime(Date.now() + 10);
 
       // Запрос должен перейти в HALF_OPEN
-      const result = shouldAllowRequest(createMockContext(uniqueServiceId, customConfig, mockLogger));
+      const result = shouldAllowRequest(
+        createMockContext(uniqueServiceId, customConfig, mockLogger),
+      );
       expect(result.state).toBe(CircuitBreakerState.HALF_OPEN);
       expect(result.lastTrigger).toBe(CircuitBreakerTrigger.RECOVERY_TIMEOUT);
     });
   });
-
 });

@@ -44,25 +44,25 @@ enum TransitionType {
 /* ========================== TYPES ========================== */
 
 /** Конфигурация circuit breaker */
-export interface CircuitBreakerConfig {
+export type CircuitBreakerConfig = {
   readonly failureThreshold?: number;
   readonly recoveryTimeoutMs?: number;
   readonly successThreshold?: number;
   readonly maxTestRequests?: number;
   readonly ttlMs?: number;
-}
+};
 
 /** Контекст проверки */
-export interface CircuitBreakerContext {
+export type CircuitBreakerContext = {
   readonly type: 'circuit_breaker_policy';
   readonly serviceId: string;
   readonly currentTime: number;
   readonly config?: CircuitBreakerConfig;
   readonly logger?: ILogger;
-}
+};
 
 /** Состояние circuit breaker */
-export interface CircuitBreakerStateData {
+export type CircuitBreakerStateData = {
   readonly state: CircuitBreakerState;
   readonly failureCount: number;
   readonly successCount: number;
@@ -70,10 +70,10 @@ export interface CircuitBreakerStateData {
   readonly lastFailureTime?: number;
   readonly lastUpdateTime: number;
   readonly lastTrigger?: CircuitBreakerTrigger;
-}
+};
 
 /** Результат проверки */
-export interface CircuitBreakerResult {
+export type CircuitBreakerResult = {
   readonly shouldAllow: boolean;
   readonly state: CircuitBreakerState;
   readonly nextRetryTime?: number;
@@ -83,14 +83,14 @@ export interface CircuitBreakerResult {
   readonly reason?: string;
   readonly recommendations?: readonly string[];
   readonly lastTrigger?: CircuitBreakerTrigger | undefined;
-}
+};
 
 /** Логгер */
-export interface ILogger {
+export type ILogger = {
   info(message: string, context?: unknown): void;
   warn(message: string, context?: unknown): void;
   error(message: string, context?: unknown): void;
-}
+};
 
 /** Ошибка circuit breaker */
 export type CircuitBreakerError = TaggedError<{
@@ -109,11 +109,11 @@ export type CircuitBreakerError = TaggedError<{
 /* ========================== STORAGE ========================== */
 
 /** Интерфейс хранилища состояний */
-interface CircuitBreakerStorage {
+type CircuitBreakerStorage = {
   get(serviceId: string): CircuitBreakerStateData | undefined;
   set(serviceId: string, state: CircuitBreakerStateData): void;
   delete(serviceId: string): void;
-}
+};
 
 /** In-memory storage с иммутабельностью */
 const createInMemoryCircuitBreakerStorage = (): CircuitBreakerStorage => {
@@ -121,7 +121,10 @@ const createInMemoryCircuitBreakerStorage = (): CircuitBreakerStorage => {
 
   return {
     get(serviceId: string): CircuitBreakerStateData | undefined {
-      const value = state[serviceId];
+      if (!Object.hasOwn(state, serviceId)) return undefined;
+      const keys = Object.keys(state);
+      if (!keys.includes(serviceId)) return undefined;
+      const value = Reflect.get(state, serviceId) as CircuitBreakerStateData | undefined;
       return value ? { ...value } : undefined;
     },
 
@@ -130,7 +133,9 @@ const createInMemoryCircuitBreakerStorage = (): CircuitBreakerStorage => {
     },
 
     delete(serviceId: string): void {
-      const { [serviceId]: deleted, ...rest } = state;
+      const { [serviceId]: deletedItem, ...rest } = state;
+      // deletedItem is intentionally unused - we just want to remove it
+      void deletedItem;
       state = rest;
     },
   };
@@ -138,11 +143,15 @@ const createInMemoryCircuitBreakerStorage = (): CircuitBreakerStorage => {
 
 /* ========================== MANAGER ========================== */
 
-interface CircuitBreakerServices {
+type CircuitBreakerServices = {
   readonly storage: CircuitBreakerStorage;
   readonly logger: ILogger;
-  readonly onTransition?: (from: CircuitBreakerState, to: CircuitBreakerState, trigger?: CircuitBreakerTrigger) => void;
-}
+  readonly onTransition?: (
+    from: CircuitBreakerState,
+    to: CircuitBreakerState,
+    trigger?: CircuitBreakerTrigger,
+  ) => void;
+};
 
 /** Менеджер circuit breaker */
 class CircuitBreakerManager {
@@ -190,17 +199,16 @@ class CircuitBreakerManager {
     if (type === TransitionType.SUCCESS) {
       if (state.state === CircuitBreakerState.HALF_OPEN) {
         const successCount = state.successCount + 1;
-        next =
-          successCount >= successThreshold
-            ? {
-                state: CircuitBreakerState.CLOSED,
-                failureCount: 0,
-                successCount: 0,
-                testRequestCount: 0,
-                lastUpdateTime: now,
-                lastTrigger: CircuitBreakerTrigger.RECOVERY_TIMEOUT,
-              }
-            : { ...state, successCount, lastUpdateTime: now };
+        next = successCount >= successThreshold
+          ? {
+            state: CircuitBreakerState.CLOSED,
+            failureCount: 0,
+            successCount: 0,
+            testRequestCount: 0,
+            lastUpdateTime: now,
+            lastTrigger: CircuitBreakerTrigger.RECOVERY_TIMEOUT,
+          }
+          : { ...state, successCount, lastUpdateTime: now };
       } else if (state.failureCount > 0) {
         next = { ...state, failureCount: 0, lastUpdateTime: now };
       }
@@ -208,8 +216,8 @@ class CircuitBreakerManager {
       const failureCount = state.failureCount + 1;
 
       if (
-        state.state === CircuitBreakerState.CLOSED &&
-        failureCount >= failureThreshold
+        state.state === CircuitBreakerState.CLOSED
+        && failureCount >= failureThreshold
       ) {
         next = {
           ...state,
@@ -247,11 +255,13 @@ class CircuitBreakerManager {
     if (state.state === CircuitBreakerState.CLOSED && next.state === CircuitBreakerState.OPEN) {
       log.error('Circuit breaker transition: service failure detected', transitionLog);
     } else if (
-      (state.state === CircuitBreakerState.OPEN && next.state === CircuitBreakerState.HALF_OPEN) ||
-      (state.state === CircuitBreakerState.HALF_OPEN && next.state === CircuitBreakerState.OPEN)
+      (state.state === CircuitBreakerState.OPEN && next.state === CircuitBreakerState.HALF_OPEN)
+      || (state.state === CircuitBreakerState.HALF_OPEN && next.state === CircuitBreakerState.OPEN)
     ) {
       log.warn('Circuit breaker transition: recovery attempt', transitionLog);
-    } else if (state.state === CircuitBreakerState.HALF_OPEN && next.state === CircuitBreakerState.CLOSED) {
+    } else if (
+      state.state === CircuitBreakerState.HALF_OPEN && next.state === CircuitBreakerState.CLOSED
+    ) {
       log.info('Circuit breaker transition: service recovered successfully', transitionLog);
     } else {
       log.info('Circuit breaker transition', transitionLog);
@@ -415,9 +425,9 @@ export function createCircuitBreakerError(
 /** Type guard для circuit breaker ошибки */
 export function isCircuitBreakerError(error: unknown): error is CircuitBreakerError {
   return (
-    typeof error === 'object' &&
-    error !== null &&
-    '_tag' in error &&
-    (error as Record<string, unknown>)['_tag'] === 'CircuitBreakerError'
+    typeof error === 'object'
+    && error !== null
+    && '_tag' in error
+    && (error as Record<string, unknown>)['_tag'] === 'CircuitBreakerError'
   );
 }

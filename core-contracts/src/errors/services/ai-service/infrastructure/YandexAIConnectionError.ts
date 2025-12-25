@@ -41,7 +41,7 @@ export type InfrastructureFailureKind =
 /* ========================== CONTEXT ========================== */
 
 /** Контекст инфраструктурной ошибки подключения к Yandex AI */
-export interface YandexAIConnectionErrorContext {
+export type YandexAIConnectionErrorContext = {
   /** Тип доменного контекста */
   readonly type: 'yandex_ai_connection';
 
@@ -77,7 +77,7 @@ export interface YandexAIConnectionErrorContext {
 
   /** Время ожидания (ms), если применимо */
   readonly timeoutMs?: number;
-}
+};
 
 /* ========================== ERROR TYPE ========================== */
 

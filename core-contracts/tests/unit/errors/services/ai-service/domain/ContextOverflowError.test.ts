@@ -564,12 +564,12 @@ describe('ContextOverflowError', () => {
     });
 
     it('должен корректно обрабатывать все типы limitRule', () => {
-      const testCases: Array<{
+      const testCases: {
         factory: (...args: any[]) => ContextOverflowError;
         args: any[];
         expectedRule: ContextLimitRule;
         guard: (error: ContextOverflowError) => boolean;
-      }> = [
+      }[] = [
         {
           factory: createTokenLimitExceededError,
           args: [100, 80],

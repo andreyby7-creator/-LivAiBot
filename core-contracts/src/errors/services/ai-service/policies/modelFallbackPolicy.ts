@@ -13,15 +13,24 @@ import { ERROR_CATEGORY, ERROR_ORIGIN, ERROR_SEVERITY } from '../../../base/Erro
 import type { TaggedError } from '../../../base/BaseErrorTypes.js';
 import type { ErrorCode } from '../../../base/ErrorCode.js';
 import type {
-  ModelUnavailableReason,
-  ModelRecoveryStrategy,
   ModelFallbackPriority,
+  ModelRecoveryStrategy,
+  ModelUnavailableReason,
 } from '../infrastructure/ModelUnavailableError.js';
 
 /* ========================== CONSTANTS ========================== */
 
 /** Максимальное количество альтернатив для перебора */
 const MAX_FALLBACK_ATTEMPTS = 3;
+
+/** Минимальный порог различия в совместимости для сравнения */
+const COMPATIBILITY_DIFF_THRESHOLD = 0.1;
+
+/** Минимальный порог совместимости модели с задачей для предупреждений */
+const MIN_TASK_COMPATIBILITY_WARNING_THRESHOLD = 0.8;
+
+/** Базовое значение для процентов (100%) */
+const PERCENT_BASE = 100;
 
 /** Приоритеты моделей по умолчанию */
 const DEFAULT_MODEL_PRIORITIES: Record<string, ModelFallbackPriority> = {
@@ -34,7 +43,7 @@ const DEFAULT_MODEL_PRIORITIES: Record<string, ModelFallbackPriority> = {
 /* ========================== TYPES ========================== */
 
 /** Контекст fallback стратегии модели */
-export interface ModelFallbackPolicyContext {
+export type ModelFallbackPolicyContext = {
   /** Тип контекста домена */
   readonly type: 'model_fallback_policy';
   /** Оригинальная запрашиваемая модель */
@@ -53,10 +62,10 @@ export interface ModelFallbackPolicyContext {
   readonly constraints?: ModelSelectionConstraints;
   /** Контекст пользователя (tier, region, etc.) */
   readonly userContext?: UserContext;
-}
+};
 
 /** Альтернативная модель с метаданными */
-export interface ModelAlternative {
+export type ModelAlternative = {
   /** Идентификатор модели */
   readonly modelId: string;
   /** Приоритет модели для fallback */
@@ -71,10 +80,10 @@ export interface ModelAlternative {
   readonly availableRegions?: readonly string[];
   /** Ограничения по плану пользователя */
   readonly planRestrictions?: readonly string[];
-}
+};
 
 /** Ограничения на выбор модели */
-export interface ModelSelectionConstraints {
+export type ModelSelectionConstraints = {
   /** Максимальная стоимость токена */
   readonly maxTokenCost?: number;
   /** Требуемый уровень качества */
@@ -85,10 +94,10 @@ export interface ModelSelectionConstraints {
   readonly requiredCapabilities?: readonly string[];
   /** Ограничения по региону */
   readonly regionConstraints?: readonly string[];
-}
+};
 
 /** Контекст пользователя */
-export interface UserContext {
+export type UserContext = {
   /** Текущий план пользователя */
   readonly planTier?: string;
   /** Регион пользователя */
@@ -97,10 +106,10 @@ export interface UserContext {
   readonly availableModels?: readonly string[];
   /** GPU доступен */
   readonly gpuAvailable?: boolean;
-}
+};
 
 /** Результат применения fallback политики */
-export interface ModelFallbackPolicyResult {
+export type ModelFallbackPolicyResult = {
   /** Выбранная модель (может быть оригинальной) */
   readonly selectedModel: string;
   /** Причина выбора этой модели */
@@ -115,7 +124,7 @@ export interface ModelFallbackPolicyResult {
   readonly degradationWarnings?: readonly string[];
   /** Рекомендации для пользователя */
   readonly recommendations?: readonly string[];
-}
+};
 
 /* ========================== ERROR ========================== */
 
@@ -151,7 +160,7 @@ export function selectFallbackModel(
 
   // Фильтруем альтернативы по ограничениям
   const viableAlternatives = availableAlternatives
-    .filter(alt => isViableAlternative(alt, constraints, userContext))
+    .filter((alt) => isViableAlternative(alt, constraints, userContext))
     .sort((a, b) => compareAlternatives(a, b, context.unavailableReason));
 
   if (viableAlternatives.length === 0) {
@@ -161,14 +170,18 @@ export function selectFallbackModel(
       appliedStrategy: {
         type: 'fail_fast',
         attemptNumber: context.attemptNumber,
-        alternativesTried: availableAlternatives.map(a => a.modelId),
+        alternativesTried: availableAlternatives.map((a) => a.modelId),
       },
       recommendations: generateRecommendations(context),
     };
   }
 
-  // Выбираем лучшую альтернативу
-  const selectedAlternative = viableAlternatives[0]!;
+  // Выбираем лучшую альтернативу (гарантированно существует, т.к. viableAlternatives.length > 0)
+  const selectedAlternative = viableAlternatives[0];
+  if (!selectedAlternative) {
+    // Этот случай не должен произойти, но для type safety
+    throw new Error('No viable alternative found despite length check');
+  }
   const degradationWarnings = generateDegradationWarnings(requestedModel, selectedAlternative);
 
   return {
@@ -180,7 +193,9 @@ export function selectFallbackModel(
       alternativesTried: [selectedAlternative.modelId],
     },
     degradationWarnings,
-    recommendations: selectedAlternative.priority === 'low' ? ['Consider upgrading your plan for better models'] : [],
+    recommendations: selectedAlternative.priority === 'low'
+      ? ['Consider upgrading your plan for better models']
+      : [],
   };
 }
 
@@ -236,7 +251,7 @@ function compareAlternatives(
 
   // Затем по совместимости с задачей
   const compatibilityDiff = b.taskCompatibility - a.taskCompatibility;
-  if (Math.abs(compatibilityDiff) > 0.1) return compatibilityDiff;
+  if (Math.abs(compatibilityDiff) > COMPATIBILITY_DIFF_THRESHOLD) return compatibilityDiff;
 
   // Наконец, по типу причины недоступности
   const reasonPriority = getReasonPriority(unavailableReason);
@@ -267,15 +282,28 @@ function generateDegradationWarnings(
 ): string[] {
   let warnings: string[] = [];
 
-  const originalPriority = DEFAULT_MODEL_PRIORITIES[originalModel] ?? 'medium';
+  const originalPriority =
+    (Reflect.get(DEFAULT_MODEL_PRIORITIES, originalModel) as ModelFallbackPriority | undefined)
+      ?? 'medium';
   const priorityOrder = { high: 3, medium: 2, low: 1 };
 
-  if (priorityOrder[selectedAlternative.priority] < priorityOrder[originalPriority]) {
-    warnings = [...warnings, `Model quality degraded from ${originalPriority} to ${selectedAlternative.priority} priority`];
+  if (
+    Reflect.get(priorityOrder, selectedAlternative.priority)
+      < Reflect.get(priorityOrder, originalPriority)
+  ) {
+    warnings = [
+      ...warnings,
+      `Model quality degraded from ${originalPriority} to ${selectedAlternative.priority} priority`,
+    ];
   }
 
-  if (selectedAlternative.taskCompatibility < 0.8) {
-    warnings = [...warnings, `Selected model has ${Math.round(selectedAlternative.taskCompatibility * 100)}% compatibility with your task`];
+  if (selectedAlternative.taskCompatibility < MIN_TASK_COMPATIBILITY_WARNING_THRESHOLD) {
+    warnings = [
+      ...warnings,
+      `Selected model has ${
+        Math.round(selectedAlternative.taskCompatibility * PERCENT_BASE)
+      }% compatibility with your task`,
+    ];
   }
 
   if (selectedAlternative.requiresGpu === true) {
@@ -291,16 +319,30 @@ function generateRecommendations(context: ModelFallbackPolicyContext): string[] 
 
   switch (context.unavailableReason) {
     case 'gpu_constraint':
-      recommendations = [...recommendations, 'Consider upgrading to a plan with GPU support', 'Try using lighter models for your task'];
+      recommendations = [
+        ...recommendations,
+        'Consider upgrading to a plan with GPU support',
+        'Try using lighter models for your task',
+      ];
       break;
     case 'region_restricted':
-      recommendations = [...recommendations, 'Model may be available in other regions', 'Contact support for regional access'];
+      recommendations = [
+        ...recommendations,
+        'Model may be available in other regions',
+        'Contact support for regional access',
+      ];
       break;
     case 'deprecated':
-      recommendations = [...recommendations, 'The requested model is deprecated, consider migrating to newer models'];
+      recommendations = [
+        ...recommendations,
+        'The requested model is deprecated, consider migrating to newer models',
+      ];
       break;
     default:
-      recommendations = [...recommendations, 'Try again later or contact support if the issue persists'];
+      recommendations = [
+        ...recommendations,
+        'Try again later or contact support if the issue persists',
+      ];
   }
 
   if (context.attemptNumber >= MAX_FALLBACK_ATTEMPTS) {
@@ -335,18 +377,19 @@ export function createModelFallbackPolicyError(
 /** Проверяет, является ли ошибка ошибкой fallback политики */
 export function isModelFallbackPolicyError(error: unknown): error is ModelFallbackPolicyError {
   return (
-    typeof error === 'object' &&
-    error !== null &&
-    '_tag' in error &&
-    error._tag === 'ModelFallbackPolicyError' &&
-    'type' in error &&
-    error.type === 'model_fallback_policy_error'
+    typeof error === 'object'
+    && error !== null
+    && Object.prototype.hasOwnProperty.call(error, '_tag')
+    && (error as { _tag: unknown; })._tag === 'ModelFallbackPolicyError'
+    && Object.prototype.hasOwnProperty.call(error, 'type')
+    && (error as { type: unknown; }).type === 'model_fallback_policy_error'
   );
 }
 
 /** Получает приоритет модели по умолчанию */
 export function getModelFallbackPriority(modelId: string): ModelFallbackPriority {
-  return DEFAULT_MODEL_PRIORITIES[modelId] ?? 'medium';
+  return (Reflect.get(DEFAULT_MODEL_PRIORITIES, modelId) as ModelFallbackPriority | undefined)
+    ?? 'medium';
 }
 
 /** Проверяет, можно ли использовать модель как fallback */

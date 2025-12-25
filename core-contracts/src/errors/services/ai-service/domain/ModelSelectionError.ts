@@ -13,8 +13,11 @@ import type { ErrorCode } from '../../../base/ErrorCode.js';
 /** Максимальное количество fallback моделей в предложениях */
 const MAX_FALLBACK_MODELS = 3;
 
+/** Максимальное количество моделей в fallback предложениях */
+const MAX_FALLBACK_SUGGESTIONS = 2;
+
 /** Контекст ошибки выбора модели с AI-специфичными полями */
-export interface ModelSelectionErrorContext {
+export type ModelSelectionErrorContext = {
   /** Тип контекста домена */
   readonly type: 'model_selection';
   /** Правило выбора, которое было нарушено */
@@ -37,7 +40,7 @@ export interface ModelSelectionErrorContext {
   readonly technicalConstraints?: Record<string, unknown>;
   /** Время выполнения выбора (ms) */
   readonly selectionTimeMs?: number;
-}
+};
 
 /** TaggedError тип для ошибок выбора модели */
 export type ModelSelectionError = TaggedError<
@@ -194,7 +197,7 @@ export function createModelTaskMismatchError(
       taskType,
       availableModels,
       rejectionReason: `Model incompatible with task type: ${taskType}`,
-      fallbackSuggestions: availableModels.slice(0, 2),
+      fallbackSuggestions: availableModels.slice(0, MAX_FALLBACK_SUGGESTIONS),
       technicalConstraints: { taskType },
     },
   );
@@ -237,7 +240,7 @@ export function createTechnicalConstraintError(
     {
       availableModels,
       rejectionReason: 'Model does not meet technical requirements',
-      fallbackSuggestions: availableModels.slice(0, 2),
+      fallbackSuggestions: availableModels.slice(0, MAX_FALLBACK_SUGGESTIONS),
       technicalConstraints: constraints,
     },
   );

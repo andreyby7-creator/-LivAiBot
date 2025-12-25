@@ -29,8 +29,8 @@ import type {
 } from '../../../../../../src/errors/shared/adapters/http/HttpAdapterTypes';
 
 // Mock external functions with controlled behavior
-let mockNormalizeHttpError: any = vi.fn((err) => err); // Default: return error as-is
-let mockResolveAndExecuteWithCircuitBreaker: any = vi.fn(() => ({
+const mockNormalizeHttpError: any = vi.fn((err) => err); // Default: return error as-is
+const mockResolveAndExecuteWithCircuitBreaker: any = vi.fn(() => ({
   success: true,
   shouldRetry: false,
   result: null,

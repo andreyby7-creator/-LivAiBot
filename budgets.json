@@ -1,0 +1,7 @@
+{
+  "core-contracts": {
+    "brotli": 40000,
+    "gzip": 50000,
+    "raw": 280000
+  }
+}

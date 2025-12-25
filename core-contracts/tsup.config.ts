@@ -1,3 +1,4 @@
+import { visualizer } from 'rollup-plugin-visualizer';
 import { defineConfig } from 'tsup';
 
 export default defineConfig({
@@ -15,4 +16,14 @@ export default defineConfig({
   treeshake: false, // Отключаем treeshake для скорости
   minify: false, // Не минифицируем для скорости
   external: ['effect', 'ulidx'], // Foundation dependencies must remain external
+  plugins: process.env.ANALYZE
+    ? [
+      visualizer({
+        filename: 'dist/bundle-analysis.html',
+        open: true,
+        gzipSize: true,
+        brotliSize: true,
+      }),
+    ]
+    : [],
 });

@@ -19,6 +19,20 @@ import { AI_VENDOR } from './YandexAIConnectionError.js';
 import type { TaggedError } from '../../../base/BaseErrorTypes.js';
 import type { ErrorCode } from '../../../base/ErrorCode.js';
 
+/** Базовые временные константы */
+const SECONDS_PER_MINUTE = 60;
+const MINUTES_PER_HOUR = 60;
+const MILLISECONDS_PER_SECOND = 1000;
+
+/** Временные интервалы для retry стратегий (в миллисекундах) */
+const MILLISECONDS_PER_MINUTE = SECONDS_PER_MINUTE * MILLISECONDS_PER_SECOND;
+const MILLISECONDS_PER_HOUR = MINUTES_PER_HOUR * MILLISECONDS_PER_MINUTE;
+
+const RETRY_TIME_SHORT_MINUTES = 5;
+const RETRY_TIME_SHORT = RETRY_TIME_SHORT_MINUTES * MILLISECONDS_PER_MINUTE; // 5 минут
+const RETRY_TIME_LONG = MILLISECONDS_PER_HOUR; // 1 час
+const RETRY_TIME_DEFAULT = MILLISECONDS_PER_MINUTE; // 1 минута
+
 /* ========================== CONSTANTS ========================== */
 
 /** Типы недоступности моделей */
@@ -45,7 +59,7 @@ export type ModelFallbackPriority = 'high' | 'medium' | 'low';
 /* ========================== CONTEXT ========================== */
 
 /** Контекст ошибки недоступности модели Yandex AI */
-export interface ModelUnavailableErrorContext {
+export type ModelUnavailableErrorContext = {
   /** Тип доменного контекста */
   readonly type: 'yandex_ai_model_unavailable';
 
@@ -101,7 +115,7 @@ export interface ModelUnavailableErrorContext {
 
   /** Оригинальная ошибка SDK / API */
   readonly originalError?: unknown;
-}
+};
 
 /* ========================== ERROR TYPE ========================== */
 
@@ -191,7 +205,7 @@ export function createModelTemporarilyUnavailableError(
       unavailableReason: 'temporarily_unavailable',
       recoveryStrategy: (estimatedRecoveryTimeMs !== undefined
           && estimatedRecoveryTimeMs > 0
-          && estimatedRecoveryTimeMs < 300000)
+          && estimatedRecoveryTimeMs < RETRY_TIME_SHORT)
         ? 'wait_retry'
         : 'fallback_model',
       requestedModel,
@@ -342,7 +356,7 @@ export function createModelMaintenanceError(
       unavailableReason: 'maintenance',
       recoveryStrategy: (estimatedRecoveryTimeMs !== undefined
           && estimatedRecoveryTimeMs > 0
-          && estimatedRecoveryTimeMs < 3600000)
+          && estimatedRecoveryTimeMs < RETRY_TIME_LONG)
         ? 'wait_retry'
         : 'fallback_model',
       requestedModel,
@@ -401,18 +415,18 @@ export function isModelRetryable(
 
   // Для maintenance retry только если время восстановления разумное
   if (unavailableReason === 'maintenance') {
-    return estimatedRecoveryTimeMs === undefined || estimatedRecoveryTimeMs < 3600000;
+    return estimatedRecoveryTimeMs === undefined || estimatedRecoveryTimeMs < RETRY_TIME_LONG;
   }
 
   // Для других случаев retry если время восстановления короткое
-  return estimatedRecoveryTimeMs !== undefined && estimatedRecoveryTimeMs < 300000;
+  return estimatedRecoveryTimeMs !== undefined && estimatedRecoveryTimeMs < RETRY_TIME_SHORT;
 }
 
 /** Получает время ожидания перед повторной попыткой */
 export function getModelRetryDelay(
   error: ModelUnavailableError,
 ): number {
-  return error.details.estimatedRecoveryTimeMs ?? 60000; // Default 1 minute
+  return error.details.estimatedRecoveryTimeMs ?? RETRY_TIME_DEFAULT; // Default 1 minute
 }
 
 /** Проверяет, доступна ли модель в альтернативных регионах */

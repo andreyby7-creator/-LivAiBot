@@ -10,8 +10,14 @@ import { ERROR_CATEGORY, ERROR_ORIGIN, ERROR_SEVERITY } from '../../../base/Erro
 import type { TaggedError } from '../../../base/BaseErrorTypes.js';
 import type { ErrorCode } from '../../../base/ErrorCode.js';
 
+/** Дефолтная уверенность для запрещенного контента */
+const DEFAULT_FORBIDDEN_CONTENT_CONFIDENCE = 0.8;
+
+/** Максимальное количество частей промпта в превью */
+const MAX_PROMPT_PREVIEW_PARTS = 3;
+
 /** Контекст ошибки валидации промпта с ML-специфичными полями */
-export interface PromptValidationErrorContext {
+export type PromptValidationErrorContext = {
   /** Тип контекста домена */
   readonly type: 'prompt_validation';
   /** Правило валидации, которое было нарушено */
@@ -32,7 +38,7 @@ export interface PromptValidationErrorContext {
   readonly confidence?: number;
   /** Модель, которая выполняла валидацию */
   readonly validationModel?: string;
-}
+};
 
 /** TaggedError тип для ошибок валидации промптов */
 export type PromptValidationError = TaggedError<
@@ -137,7 +143,7 @@ export function createPromptTooLongError(
 export function createPromptForbiddenContentError(
   invalidParts: readonly string[],
   validationRule: string,
-  confidence: number = 0.8,
+  confidence: number = DEFAULT_FORBIDDEN_CONTENT_CONFIDENCE,
 ): PromptValidationError {
   return createPromptValidationError(
     'SERVICE_AI_009' as ErrorCode, // SERVICE_AI_PROMPT_VALIDATION_FAILED
@@ -153,7 +159,7 @@ export function createPromptForbiddenContentError(
         'Перефразируйте запрос',
         'Используйте более безопасные формулировки',
       ],
-      promptPreview: invalidParts.slice(0, 3).join('...'), // Показываем первые 3 части
+      promptPreview: invalidParts.slice(0, MAX_PROMPT_PREVIEW_PARTS).join('...'), // Показываем первые части
     },
   );
 }

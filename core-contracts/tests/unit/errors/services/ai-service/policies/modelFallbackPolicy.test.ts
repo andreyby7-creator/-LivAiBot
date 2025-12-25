@@ -1,20 +1,24 @@
 import { describe, expect, it } from 'vitest';
 
 import {
-  selectFallbackModel,
-  createModelFallbackPolicyError,
-  isModelFallbackPolicyError,
-  getModelFallbackPriority,
   canUseAsFallback,
+  createModelFallbackPolicyError,
+  getModelFallbackPriority,
+  isModelFallbackPolicyError,
+  selectFallbackModel,
 } from '../../../../../../src/errors/services/ai-service/policies/index';
 import type {
-  ModelFallbackPolicyContext,
   ModelAlternative,
+  ModelFallbackPolicyContext,
+  ModelFallbackPolicyResult,
   ModelSelectionConstraints,
   UserContext,
-  ModelFallbackPolicyResult,
 } from '../../../../../../src/errors/services/ai-service/policies/index';
-import { ERROR_CATEGORY, ERROR_ORIGIN, ERROR_SEVERITY } from '../../../../../../src/errors/base/ErrorConstants';
+import {
+  ERROR_CATEGORY,
+  ERROR_ORIGIN,
+  ERROR_SEVERITY,
+} from '../../../../../../src/errors/base/ErrorConstants';
 
 // ==================== MOCK DATA ====================
 
@@ -152,7 +156,9 @@ describe('selectFallbackModel', () => {
 
       const result = selectFallbackModel(context);
 
-      expect(result.degradationWarnings).toContain('Model quality degraded from high to medium priority');
+      expect(result.degradationWarnings).toContain(
+        'Model quality degraded from high to medium priority',
+      );
     });
 
     it('should not generate degradation warnings for same or higher priority', () => {
@@ -220,7 +226,11 @@ describe('selectFallbackModel', () => {
         ],
         attemptNumber: 0,
         maxAttempts: 3,
-        userContext: { ...mockUserContext, gpuAvailable: true, availableModels: ['gpu-required-model'] }, // User has GPU and access to GPU model
+        userContext: {
+          ...mockUserContext,
+          gpuAvailable: true,
+          availableModels: ['gpu-required-model'],
+        }, // User has GPU and access to GPU model
       };
 
       const result = selectFallbackModel(context);
@@ -251,7 +261,9 @@ describe('selectFallbackModel', () => {
       const result = selectFallbackModel(context);
 
       expect(result.selectedModel).toBe('general-model');
-      expect(result.degradationWarnings).toContain('Selected model has 30% compatibility with your task');
+      expect(result.degradationWarnings).toContain(
+        'Selected model has 30% compatibility with your task',
+      );
     });
   });
 
@@ -390,7 +402,9 @@ describe('isModelFallbackPolicyError', () => {
     expect(isModelFallbackPolicyError(null)).toBe(false);
     expect(isModelFallbackPolicyError({})).toBe(false);
     expect(isModelFallbackPolicyError({ _tag: 'OtherError' })).toBe(false);
-    expect(isModelFallbackPolicyError({ _tag: 'ModelFallbackPolicyError', type: 'other' })).toBe(false);
+    expect(isModelFallbackPolicyError({ _tag: 'ModelFallbackPolicyError', type: 'other' })).toBe(
+      false,
+    );
   });
 });
 
@@ -563,7 +577,9 @@ describe('Integration scenarios', () => {
 
     const result = selectFallbackModel(memoryContext);
 
-    expect(result.recommendations).toContain('Try again later or contact support if the issue persists');
+    expect(result.recommendations).toContain(
+      'Try again later or contact support if the issue persists',
+    );
   });
 
   it('should provide model not found recommendations', () => {
@@ -596,7 +612,9 @@ describe('Integration scenarios', () => {
 
     const result = selectFallbackModel(deprecatedContext);
 
-    expect(result.recommendations).toContain('The requested model is deprecated, consider migrating to newer models');
+    expect(result.recommendations).toContain(
+      'The requested model is deprecated, consider migrating to newer models',
+    );
   });
 
   it('should provide maintenance mode recommendations', () => {
@@ -612,7 +630,9 @@ describe('Integration scenarios', () => {
 
     const result = selectFallbackModel(maintenanceContext);
 
-    expect(result.recommendations).toContain('Try again later or contact support if the issue persists');
+    expect(result.recommendations).toContain(
+      'Try again later or contact support if the issue persists',
+    );
   });
 
   it('should provide max attempts exceeded recommendations', () => {
@@ -629,7 +649,9 @@ describe('Integration scenarios', () => {
     const result = selectFallbackModel(maxAttemptsContext);
 
     expect(result.recommendations).toContain('Maximum fallback attempts reached, operation failed');
-    expect(result.recommendations).toContain('Try again later or contact support if the issue persists');
+    expect(result.recommendations).toContain(
+      'Try again later or contact support if the issue persists',
+    );
   });
 
   it('should provide default recommendations for unknown failure reasons', () => {
@@ -646,7 +668,9 @@ describe('Integration scenarios', () => {
 
     const result = selectFallbackModel(context);
 
-    expect(result.recommendations).toContain('Try again later or contact support if the issue persists');
+    expect(result.recommendations).toContain(
+      'Try again later or contact support if the issue persists',
+    );
   });
 
   it('should add max attempts warning when attempt limit exceeded', () => {
@@ -1017,7 +1041,7 @@ describe('Edge cases', () => {
       maxAttempts: 3,
       userContext: {
         planTier: 'free', // User is on free plan
-        availableModels: ['premium-only-model', 'available-model']
+        availableModels: ['premium-only-model', 'available-model'],
       },
     };
 

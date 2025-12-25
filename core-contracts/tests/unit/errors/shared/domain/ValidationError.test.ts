@@ -629,7 +629,7 @@ describe('ValidationError', () => {
     });
 
     describe('optional string fields validation', () => {
-      const optionalStringFields: Array<keyof ValidationErrorContext> = [
+      const optionalStringFields: (keyof ValidationErrorContext)[] = [
         'field',
         'rule',
         'expectedType',

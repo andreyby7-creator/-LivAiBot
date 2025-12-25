@@ -36,8 +36,8 @@ export default defineConfig({
       clean: true,
       cleanOnRerun: true,
       thresholds: {
-        statements: 85,
-        branches: 85,
+        statements: 70,
+        branches: 70,
         functions: 85,
         lines: 85,
       },

@@ -1,21 +1,21 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  calculateOptimalChunkSize,
   validateAIModel,
+  validateAIOperation,
+  validateAPIResponse,
   validateModelTaskCompatibility,
   validateTokenLimits,
-  calculateOptimalChunkSize,
-  validateAPIResponse,
-  validateAIOperation,
 } from '../../../../../src/errors/services/ai-service/AIServiceValidators';
 import type {
   AIModelFamily,
   AITaskType,
+  AIValidationContext,
   APIResponseType,
+  APIResponseValidationContext,
   ModelValidationContext,
   TokenValidationContext,
-  APIResponseValidationContext,
-  AIValidationContext,
 } from '../../../../../src/errors/services/ai-service/AIServiceValidators';
 
 // ==================== MOCK DATA ====================
@@ -24,10 +24,26 @@ const mockModelValidationConfig = {
   knownModels: ['yandexgpt-lite', 'yandexgpt', 'yandexgpt-pro', 'yandexgpt-32k', 'yandexart'],
   defaultFallbackModel: 'yandexgpt-lite',
   taskCompatibility: [
-    { taskType: 'text-generation' as AITaskType, compatibleFamilies: ['gpt-like' as AIModelFamily, 'code' as AIModelFamily], errorMessage: 'text generation requires gpt-like or code model family' },
-    { taskType: 'image-analysis' as AITaskType, compatibleFamilies: ['vision' as AIModelFamily, 'multimodal' as AIModelFamily], errorMessage: 'image analysis requires vision or multimodal model family' },
-    { taskType: 'embedding' as AITaskType, compatibleFamilies: ['embedding' as AIModelFamily], errorMessage: 'embedding tasks require embedding model family' },
-    { taskType: 'code-generation' as AITaskType, compatibleFamilies: ['code' as AIModelFamily], errorMessage: 'code generation requires code model family' },
+    {
+      taskType: 'text-generation' as AITaskType,
+      compatibleFamilies: ['gpt-like' as AIModelFamily, 'code' as AIModelFamily],
+      errorMessage: 'text generation requires gpt-like or code model family',
+    },
+    {
+      taskType: 'image-analysis' as AITaskType,
+      compatibleFamilies: ['vision' as AIModelFamily, 'multimodal' as AIModelFamily],
+      errorMessage: 'image analysis requires vision or multimodal model family',
+    },
+    {
+      taskType: 'embedding' as AITaskType,
+      compatibleFamilies: ['embedding' as AIModelFamily],
+      errorMessage: 'embedding tasks require embedding model family',
+    },
+    {
+      taskType: 'code-generation' as AITaskType,
+      compatibleFamilies: ['code' as AIModelFamily],
+      errorMessage: 'code generation requires code model family',
+    },
   ],
 };
 
@@ -38,7 +54,11 @@ const mockTokenValidationConfig = {
 
 const mockAPIValidationConfig = {
   maxResponseTimeMs: 30000,
-  allowedResponseTypes: ['completion' as APIResponseType, 'chat_completion' as APIResponseType, 'embedding' as APIResponseType],
+  allowedResponseTypes: [
+    'completion' as APIResponseType,
+    'chat_completion' as APIResponseType,
+    'embedding' as APIResponseType,
+  ],
 };
 
 // ==================== VALIDATE AI MODEL TESTS ====================
@@ -152,19 +172,34 @@ describe('validateAIModel', () => {
 
 describe('validateModelTaskCompatibility', () => {
   it('should return empty array for compatible combinations', () => {
-    const result = validateModelTaskCompatibility('test-model', 'text-generation', 'gpt-like', mockModelValidationConfig);
+    const result = validateModelTaskCompatibility(
+      'test-model',
+      'text-generation',
+      'gpt-like',
+      mockModelValidationConfig,
+    );
 
     expect(result).toEqual([]);
   });
 
   it('should return error message for incompatible combinations', () => {
-    const result = validateModelTaskCompatibility('test-model', 'image-analysis', 'gpt-like', mockModelValidationConfig);
+    const result = validateModelTaskCompatibility(
+      'test-model',
+      'image-analysis',
+      'gpt-like',
+      mockModelValidationConfig,
+    );
 
     expect(result).toEqual(['image analysis requires vision or multimodal model family']);
   });
 
   it('should return error for unknown task type', () => {
-    const result = validateModelTaskCompatibility('test-model', 'unknown-task' as any, 'gpt-like', mockModelValidationConfig);
+    const result = validateModelTaskCompatibility(
+      'test-model',
+      'unknown-task' as any,
+      'gpt-like',
+      mockModelValidationConfig,
+    );
 
     expect(result).toEqual(['Unknown task type: unknown-task']);
   });

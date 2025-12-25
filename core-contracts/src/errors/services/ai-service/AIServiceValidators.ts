@@ -9,6 +9,27 @@
 
 import type { ModelUnavailableReason } from './infrastructure/ModelUnavailableError.js';
 
+/* ========================== CONSTANTS ========================== */
+
+const DEFAULT_SAFETY_BUFFER_PERCENT = 10;
+const DEFAULT_OVERLAP_TOKENS = 100;
+const DEFAULT_MAX_RESPONSE_TIME_MS = 30000;
+const RESPONSE_TIME_WARNING_RATIO = 0.33;
+const PERCENT_BASE = 100;
+
+const HTTP_STATUS_CODES = {
+  OK: 200,
+  BAD_REQUEST: 400,
+  UNAUTHORIZED: 401,
+  FORBIDDEN: 403,
+  NOT_FOUND: 404,
+  TOO_MANY_REQUESTS: 429,
+  INTERNAL_SERVER_ERROR: 500,
+  BAD_GATEWAY: 502,
+  SERVICE_UNAVAILABLE: 503,
+  GATEWAY_TIMEOUT: 504,
+} as const;
+
 /* ========================== TYPES & CONFIG ========================== */
 
 /** Семейство модели AI */
@@ -35,37 +56,37 @@ export type APIResponseType =
   | 'error';
 
 /** Конфигурация совместимости задач и моделей */
-export interface TaskModelCompatibility {
+export type TaskModelCompatibility = {
   readonly taskType: AITaskType;
   readonly compatibleFamilies: readonly AIModelFamily[];
   readonly errorMessage: string;
-}
+};
 
 /** Конфигурация валидации моделей */
-export interface ModelValidationConfig {
+export type ModelValidationConfig = {
   readonly knownModels: readonly string[];
   readonly defaultFallbackModel?: string;
   readonly taskCompatibility?: readonly TaskModelCompatibility[];
-}
+};
 
 /** Конфигурация валидации токенов */
-export interface TokenValidationConfig {
+export type TokenValidationConfig = {
   readonly safetyBufferPercent?: number;
   readonly maxTotalTokens?: number;
-}
+};
 
 /** Конфигурация валидации API */
-export interface APIValidationConfig {
+export type APIValidationConfig = {
   readonly maxResponseTimeMs?: number;
   readonly allowedResponseTypes?: readonly APIResponseType[];
-}
+};
 
 /** Унифицированная конфигурация AI валидации */
-export interface AIValidationConfig {
+export type AIValidationConfig = {
   readonly models?: ModelValidationConfig;
   readonly tokens?: TokenValidationConfig;
   readonly api?: APIValidationConfig;
-}
+};
 
 /* ========================== UTILS ========================== */
 
@@ -79,14 +100,14 @@ function isPositiveNumber(v: unknown): v is number {
 }
 /** Проверяет и возвращает массив из поля объекта, или undefined */
 function ensureArrayField(obj: Record<string, unknown>, field: string): unknown[] | undefined {
-  const val = obj[field];
+  const val = Reflect.get(obj, field);
   return Array.isArray(val) ? val : undefined;
 }
 
 /* ========================== MODEL VALIDATION ========================== */
 
 /** Контекст валидации модели */
-export interface ModelValidationContext {
+export type ModelValidationContext = {
   readonly modelId: string;
   readonly modelFamily?: AIModelFamily;
   readonly taskType?: AITaskType;
@@ -94,16 +115,16 @@ export interface ModelValidationContext {
   readonly maxOutputTokens?: number;
   readonly supportedModalities?: readonly string[];
   readonly config?: AIValidationConfig;
-}
+};
 
 /** Результат валидации модели */
-export interface ModelValidationResult {
+export type ModelValidationResult = {
   readonly isValid: boolean;
   readonly error?: string;
   readonly suggestedAlternative?: string;
   readonly reason?: ModelUnavailableReason | 'incompatible_task';
   readonly normalizedError?: { readonly code: string; readonly message: string; };
-}
+};
 
 /** Валидирует модель на известность и совместимость */
 export function validateAIModel(
@@ -192,28 +213,30 @@ export function validateModelTaskCompatibility(
 /* ========================== TOKEN VALIDATION ========================== */
 
 /** Контекст валидации токенов */
-export interface TokenValidationContext {
+export type TokenValidationContext = {
   readonly currentTokens: number;
   readonly maxAllowedTokens: number;
   readonly contentType: 'input' | 'output' | 'total';
   readonly modelId?: string;
   readonly safetyBufferPercent?: number;
   readonly config?: AIValidationConfig;
-}
+};
 
 /** Результат валидации токенов */
-export interface TokenValidationResult {
+export type TokenValidationResult = {
   readonly isValid: boolean;
   readonly error?: string;
   readonly excessTokens?: number;
   readonly usagePercent?: number;
   readonly effectiveLimit?: number;
   readonly normalizedError?: { readonly code: string; readonly message: string; };
-}
+};
 
 /** Валидирует лимиты токенов с учётом буфера безопасности */
 export function validateTokenLimits(ctx: TokenValidationContext): TokenValidationResult {
-  const safety = ctx.config?.tokens?.safetyBufferPercent ?? ctx.safetyBufferPercent ?? 10;
+  const safety = ctx.config?.tokens?.safetyBufferPercent
+    ?? ctx.safetyBufferPercent
+    ?? DEFAULT_SAFETY_BUFFER_PERCENT;
   const { currentTokens, maxAllowedTokens } = ctx;
 
   if (currentTokens < 0) {
@@ -234,9 +257,9 @@ export function validateTokenLimits(ctx: TokenValidationContext): TokenValidatio
     };
   }
 
-  const effectiveLimit = maxAllowedTokens - Math.floor(maxAllowedTokens * (safety / 100));
+  const effectiveLimit = maxAllowedTokens - Math.floor(maxAllowedTokens * (safety / PERCENT_BASE));
   const excess = Math.max(0, currentTokens - effectiveLimit);
-  const usagePercent = Math.round((currentTokens / maxAllowedTokens) * 100);
+  const usagePercent = Math.round((currentTokens / maxAllowedTokens) * PERCENT_BASE);
 
   return currentTokens > effectiveLimit
     ? {
@@ -258,8 +281,8 @@ export function validateTokenLimits(ctx: TokenValidationContext): TokenValidatio
 export function calculateOptimalChunkSize(
   totalTokens: number,
   maxChunkTokens: number,
-  overlapTokens = 100,
-): { chunkSize: number; overlap: number; chunksCount: number } {
+  overlapTokens = DEFAULT_OVERLAP_TOKENS,
+): { chunkSize: number; overlap: number; chunksCount: number; } {
   if (totalTokens <= maxChunkTokens) return { chunkSize: totalTokens, overlap: 0, chunksCount: 1 };
   const effective = maxChunkTokens - overlapTokens;
   return {
@@ -272,7 +295,7 @@ export function calculateOptimalChunkSize(
 /* ========================== API RESPONSE VALIDATION ========================== */
 
 /** Контекст валидации API ответа */
-export interface APIResponseValidationContext {
+export type APIResponseValidationContext = {
   readonly responseType: APIResponseType;
   readonly statusCode: number;
   readonly headers?: Record<string, string>;
@@ -280,17 +303,17 @@ export interface APIResponseValidationContext {
   readonly responseTimeMs?: number;
   readonly expectedFormat?: 'json' | 'text' | 'binary';
   readonly config?: AIValidationConfig;
-}
+};
 
 /** Результат валидации API ответа */
-export interface APIResponseValidationResult {
+export type APIResponseValidationResult = {
   readonly isValid: boolean;
   readonly error?: string;
   readonly warnings?: readonly string[];
   readonly responseTimeValid?: boolean;
   readonly apiErrorCode?: string;
   readonly normalizedError?: { readonly code: string; readonly message: string; };
-}
+};
 
 /** Валидирует API ответ по статусу, формату и таймауту */
 export function validateAPIResponse(
@@ -298,13 +321,13 @@ export function validateAPIResponse(
 ): APIResponseValidationResult {
   const { statusCode, responseType, responseTimeMs, expectedFormat = 'json' } = ctx;
   const conf = ctx.config?.api;
-  const maxTime = conf?.maxResponseTimeMs ?? 30000;
+  const maxTime = conf?.maxResponseTimeMs ?? DEFAULT_MAX_RESPONSE_TIME_MS;
   const allowedTypes = conf?.allowedResponseTypes;
   const warnings: string[] = [];
 
-  if (statusCode < 200 || statusCode >= 300) {
+  if (statusCode < HTTP_STATUS_CODES.OK || statusCode >= HTTP_STATUS_CODES.BAD_REQUEST) {
     const msg = `HTTP ${statusCode}: ${getHttpStatusDescription(statusCode)}`;
-    if (statusCode >= 400) {
+    if (statusCode >= HTTP_STATUS_CODES.BAD_REQUEST) {
       const norm = extractAPINormalizedError(ctx.body);
       return {
         isValid: false,
@@ -321,7 +344,7 @@ export function validateAPIResponse(
     if (responseTimeMs > maxTime) {
       responseTimeValid = false;
       updatedWarnings = [...updatedWarnings, `Response time too slow: ${responseTimeMs}ms`];
-    } else if (responseTimeMs > maxTime * 0.33) {
+    } else if (responseTimeMs > maxTime * RESPONSE_TIME_WARNING_RATIO) {
       updatedWarnings = [...updatedWarnings, `Response time slow: ${responseTimeMs}ms`];
     }
   }
@@ -378,18 +401,28 @@ function validateResponseTypeSpecific(
 }
 
 function getHttpStatusDescription(status: number): string {
-  const desc: Record<number, string> = {
-    400: 'Bad Request',
-    401: 'Unauthorized',
-    403: 'Forbidden',
-    404: 'Not Found',
-    429: 'Too Many Requests',
-    500: 'Internal Server Error',
-    502: 'Bad Gateway',
-    503: 'Service Unavailable',
-    504: 'Gateway Timeout',
-  };
-  return desc[status] ?? 'Unknown Error';
+  switch (status) {
+    case HTTP_STATUS_CODES.BAD_REQUEST:
+      return 'Bad Request';
+    case HTTP_STATUS_CODES.UNAUTHORIZED:
+      return 'Unauthorized';
+    case HTTP_STATUS_CODES.FORBIDDEN:
+      return 'Forbidden';
+    case HTTP_STATUS_CODES.NOT_FOUND:
+      return 'Not Found';
+    case HTTP_STATUS_CODES.TOO_MANY_REQUESTS:
+      return 'Too Many Requests';
+    case HTTP_STATUS_CODES.INTERNAL_SERVER_ERROR:
+      return 'Internal Server Error';
+    case HTTP_STATUS_CODES.BAD_GATEWAY:
+      return 'Bad Gateway';
+    case HTTP_STATUS_CODES.SERVICE_UNAVAILABLE:
+      return 'Service Unavailable';
+    case HTTP_STATUS_CODES.GATEWAY_TIMEOUT:
+      return 'Gateway Timeout';
+    default:
+      return 'Unknown Error';
+  }
 }
 function extractAPINormalizedError(body: unknown): { code: string; message: string; } | undefined {
   if (body === null || body === undefined || typeof body !== 'object') return undefined;
@@ -403,15 +436,15 @@ function extractAPINormalizedError(body: unknown): { code: string; message: stri
 
 /* ========================== COMPOSITE VALIDATION ========================== */
 
-export interface AIValidationContext {
+export type AIValidationContext = {
   readonly model: ModelValidationContext;
   readonly inputTokens?: TokenValidationContext;
   readonly outputTokens?: TokenValidationContext;
   readonly apiResponse?: APIResponseValidationContext;
   readonly config?: AIValidationConfig;
-}
+};
 
-export interface AggregatedNormalizedErrors {
+export type AggregatedNormalizedErrors = {
   readonly primary: { readonly code: string; readonly message: string; } | undefined;
   readonly byComponent: {
     readonly model?: { readonly code: string; readonly message: string; };
@@ -419,9 +452,9 @@ export interface AggregatedNormalizedErrors {
     readonly outputTokens?: { readonly code: string; readonly message: string; };
     readonly apiResponse?: { readonly code: string; readonly message: string; };
   };
-}
+};
 
-export interface AIValidationResult {
+export type AIValidationResult = {
   readonly isValid: boolean;
   readonly errors: readonly string[];
   readonly warnings: readonly string[];
@@ -432,7 +465,7 @@ export interface AIValidationResult {
     readonly apiResponse?: APIResponseValidationResult;
   };
   readonly normalizedErrors?: AggregatedNormalizedErrors;
-}
+};
 
 /** Комплексная валидация AI операции (модель+токены+API) */
 export function validateAIOperation(ctx: AIValidationContext): AIValidationResult {

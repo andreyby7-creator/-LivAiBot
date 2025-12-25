@@ -18,6 +18,34 @@ import type { ErrorCode } from '../../../base/ErrorCode.js';
 
 /* ========================== CONSTANTS ========================== */
 
+/** Базовые временные константы */
+const MILLISECONDS_PER_SECOND = 1000;
+const SECONDS_PER_MINUTE = 60;
+const MINUTES_PER_HOUR = 60;
+const HOURS_PER_DAY = 24;
+
+/** Производные временные интервалы */
+const MILLISECONDS_PER_MINUTE = SECONDS_PER_MINUTE * MILLISECONDS_PER_SECOND;
+const MILLISECONDS_PER_HOUR = MINUTES_PER_HOUR * MILLISECONDS_PER_MINUTE;
+const MILLISECONDS_PER_DAY = HOURS_PER_DAY * MILLISECONDS_PER_HOUR;
+
+/** Rate limit константы */
+const DEFAULT_RETRY_DELAY_SECONDS = 30;
+const SHORT_RETRY_WINDOW_MINUTES = 5;
+
+const DEFAULT_RETRY_DELAY_MS = DEFAULT_RETRY_DELAY_SECONDS * MILLISECONDS_PER_SECOND;
+const SHORT_RETRY_WINDOW_MS = SHORT_RETRY_WINDOW_MINUTES * MILLISECONDS_PER_MINUTE;
+const LONG_RETRY_WINDOW_MS = MILLISECONDS_PER_HOUR;
+
+/** Процентные константы */
+const PERCENT_BASE = 100;
+const BURST_THRESHOLD_PERCENT = 90;
+const HIGH_LOAD_THRESHOLD = 10;
+
+/** Максимальная задержка для burst limit */
+const MAX_BURST_DELAY_SECONDS = 10;
+const MAX_BURST_DELAY_MS = MAX_BURST_DELAY_SECONDS * MILLISECONDS_PER_SECOND;
+
 /** Вендор AI-платформы */
 export const AI_VENDOR = 'yandex_cloud' as const;
 
@@ -42,7 +70,7 @@ export type RateLimitUnit = 'requests' | 'tokens' | 'bytes';
 /* ========================== CONTEXT ========================== */
 
 /** Контекст ошибки rate limit Yandex AI */
-export interface RateLimitErrorContext {
+export type RateLimitErrorContext = {
   /** Тип доменного контекста */
   readonly type: 'yandex_ai_rate_limit';
 
@@ -90,7 +118,7 @@ export interface RateLimitErrorContext {
 
   /** Максимальное количество retry */
   readonly maxRetries?: number;
-}
+};
 
 /* ========================== ERROR TYPE ========================== */
 
@@ -145,8 +173,8 @@ export function createPerMinuteLimitError(
   endpoint?: string,
   modelType?: string,
 ): RateLimitError {
-  const resetTimeMs = 60 * 1000; // 1 minute
-  const recommendedDelayMs = Math.min(resetTimeMs, 30000); // Max 30 seconds
+  const resetTimeMs = MILLISECONDS_PER_MINUTE;
+  const recommendedDelayMs = Math.min(resetTimeMs, DEFAULT_RETRY_DELAY_MS);
 
   return createRateLimitError(
     'INFRA_AI_RATE_LIMIT_PER_MINUTE' as ErrorCode,
@@ -176,8 +204,8 @@ export function createPerHourLimitError(
   endpoint?: string,
   modelType?: string,
 ): RateLimitError {
-  const resetTimeMs = 60 * 60 * 1000; // 1 hour
-  const recommendedDelayMs = Math.min(resetTimeMs / 60, 300000); // Max 5 minutes
+  const resetTimeMs = MILLISECONDS_PER_HOUR;
+  const recommendedDelayMs = Math.min(resetTimeMs / SECONDS_PER_MINUTE, SHORT_RETRY_WINDOW_MS);
 
   return createRateLimitError(
     'INFRA_AI_RATE_LIMIT_PER_HOUR' as ErrorCode,
@@ -205,8 +233,8 @@ export function createPerDayLimitError(
   endpoint?: string,
   modelType?: string,
 ): RateLimitError {
-  const resetTimeMs = 24 * 60 * 60 * 1000; // 24 hours
-  const recommendedDelayMs = Math.min(resetTimeMs / 24, 3600000); // Max 1 hour
+  const resetTimeMs = MILLISECONDS_PER_DAY;
+  const recommendedDelayMs = Math.min(resetTimeMs / HOURS_PER_DAY, LONG_RETRY_WINDOW_MS);
 
   return createRateLimitError(
     'INFRA_AI_RATE_LIMIT_PER_DAY' as ErrorCode,
@@ -237,7 +265,7 @@ export function createBurstLimitError(
   endpoint?: string,
   modelType?: string,
 ): RateLimitError {
-  const recommendedDelayMs = Math.min(windowMs / 10, 10000); // Max 10 seconds
+  const recommendedDelayMs = Math.min(windowMs / HIGH_LOAD_THRESHOLD, MAX_BURST_DELAY_MS);
 
   return createRateLimitError(
     'INFRA_AI_RATE_LIMIT_BURST' as ErrorCode,
@@ -276,8 +304,8 @@ export function createQuotaExhaustionError(
       unit: 'tokens',
       currentUsage,
       limit,
-      windowMs: 24 * 60 * 60 * 1000, // Daily quota
-      resetTimeMs: 24 * 60 * 60 * 1000,
+      windowMs: MILLISECONDS_PER_DAY,
+      resetTimeMs: MILLISECONDS_PER_DAY,
       hardLimit: true,
       ...(modelType !== undefined && { modelType }),
       ...(endpoint !== undefined && { endpoint }),
@@ -305,7 +333,7 @@ export function isRateLimitRetriable(
 export function getRecommendedRetryDelay(
   error: RateLimitError,
 ): number {
-  return error.details.recommendedDelayMs ?? 1000; // Default 1 second
+  return error.details.recommendedDelayMs ?? MILLISECONDS_PER_SECOND; // Default 1 second
 }
 
 /** Вычисляет процент использования лимита */
@@ -313,14 +341,14 @@ export function getRateLimitUsagePercentage(
   error: RateLimitError,
 ): number {
   const { currentUsage, limit } = error.details;
-  return Math.round((currentUsage / limit) * 100);
+  return Math.round((currentUsage / limit) * PERCENT_BASE);
 }
 
 /** Проверяет, является ли ошибка критической (более 90% использования) */
 export function isRateLimitCritical(
   error: RateLimitError,
 ): boolean {
-  return getRateLimitUsagePercentage(error) > 90;
+  return getRateLimitUsagePercentage(error) > BURST_THRESHOLD_PERCENT;
 }
 
 /** Проверяет, является ли ограничение жестким (quota) */
@@ -337,14 +365,14 @@ export function getTimeUntilReset(
   const resetTimeMs = error.details.resetTimeMs;
   if (resetTimeMs <= 0) return 'Немедленно';
 
-  const seconds = Math.floor(resetTimeMs / 1000);
-  const minutes = Math.floor(seconds / 60);
-  const hours = Math.floor(minutes / 60);
+  const seconds = Math.floor(resetTimeMs / MILLISECONDS_PER_SECOND);
+  const minutes = Math.floor(seconds / SECONDS_PER_MINUTE);
+  const hours = Math.floor(minutes / MINUTES_PER_HOUR);
 
   if (hours > 0) {
-    return `${hours}ч ${minutes % 60}м`;
+    return `${hours}ч ${minutes % MINUTES_PER_HOUR}м`;
   } else if (minutes > 0) {
-    return `${minutes}м ${seconds % 60}с`;
+    return `${minutes}м ${seconds % SECONDS_PER_MINUTE}с`;
   } else {
     return `${seconds}с`;
   }

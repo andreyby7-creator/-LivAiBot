@@ -6,11 +6,15 @@
       "outputs": ["dist/**", "*.tsbuildinfo"],
       "inputs": ["src/**", "package.json", "tsconfig*.json", "tsup.config.ts"]
     },
-    "lint": {
-      "inputs": ["src/**", "**/*.config.*", ".eslintrc*"]
+    "build:js": {
+      "dependsOn": [],
+      "outputs": ["dist/**"],
+      "inputs": ["src/**", "package.json", "tsconfig*.json", "tsup.config.ts"]
     },
-    "lint:fix": {
-      "inputs": ["src/**", "**/*.config.*", ".eslintrc*"]
+    "build:watch": {
+      "dependsOn": [],
+      "outputs": ["dist/**"],
+      "cache": false
     },
     "lint:canary": {
       "inputs": ["src/**", "**/*.config.*", ".eslintrc*"]
@@ -29,7 +33,12 @@
       "inputs": ["src/**", "tests/**", "**/*.config.*"],
       "outputs": ["coverage/**"]
     },
-    "clean": {}
+    "clean": {},
+    "dev": {
+      "dependsOn": [],
+      "outputs": ["dist/**"],
+      "cache": false
+    }
   },
   "globalDependencies": [
     "package.json",

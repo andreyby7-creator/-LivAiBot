@@ -25,7 +25,11 @@ import type {
   ModelUnavailableErrorContext,
   ModelUnavailableReason,
 } from '../../../../../../src/errors/services/ai-service/infrastructure/index.js';
-import { ERROR_CATEGORY, ERROR_ORIGIN, ERROR_SEVERITY } from '../../../../../../src/errors/base/ErrorConstants.js';
+import {
+  ERROR_CATEGORY,
+  ERROR_ORIGIN,
+  ERROR_SEVERITY,
+} from '../../../../../../src/errors/base/ErrorConstants.js';
 
 // ==================== MOCKS И HELPER FUNCTIONS ====================
 
@@ -58,7 +62,7 @@ function createMockModelUnavailableContext(
 /** Создает mock ModelUnavailableError для тестов */
 function createMockModelUnavailableError(
   contextOverrides: Partial<ModelUnavailableErrorContext> = {},
-  messageOverrides: Partial<{ code: string; message: string; timestamp: string }> = {},
+  messageOverrides: Partial<{ code: string; message: string; timestamp: string; }> = {},
 ): ModelUnavailableError {
   return createModelUnavailableError(
     (messageOverrides.code ?? 'INFRA_AI_MODEL_NOT_FOUND') as any,
@@ -84,7 +88,7 @@ describe('ModelUnavailableError', () => {
       ];
 
       expect(validReasons).toHaveLength(7);
-      validReasons.forEach(reason => {
+      validReasons.forEach((reason) => {
         expect(typeof reason).toBe('string');
       });
     });
@@ -99,7 +103,7 @@ describe('ModelUnavailableError', () => {
       ];
 
       expect(validStrategies).toHaveLength(5);
-      validStrategies.forEach(strategy => {
+      validStrategies.forEach((strategy) => {
         expect(typeof strategy).toBe('string');
       });
     });
@@ -112,7 +116,7 @@ describe('ModelUnavailableError', () => {
       ];
 
       expect(validPriorities).toHaveLength(3);
-      validPriorities.forEach(priority => {
+      validPriorities.forEach((priority) => {
         expect(typeof priority).toBe('string');
       });
     });
@@ -251,7 +255,13 @@ describe('ModelUnavailableError', () => {
     });
 
     it('должен создавать ошибку без опциональных параметров', () => {
-      const error = createModelNotFoundInfraError('gpt-4', undefined, undefined, undefined, undefined);
+      const error = createModelNotFoundInfraError(
+        'gpt-4',
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+      );
 
       expect(error.details.availableAlternatives).toBeUndefined();
       expect(error.details.modelFamily).toBeUndefined();
@@ -375,7 +385,9 @@ describe('ModelUnavailableError', () => {
       const error = createModelMemoryConstraintError('gpt-4');
 
       expect(error.code).toBe('INFRA_AI_MODEL_MEMORY_CONSTRAINT');
-      expect(error.message).toBe('Недостаточно памяти для модели "gpt-4" (unknown GB требуется, unknown GB доступно)');
+      expect(error.message).toBe(
+        'Недостаточно памяти для модели "gpt-4" (unknown GB требуется, unknown GB доступно)',
+      );
       expect(error.details.unavailableReason).toBe('memory_constraint');
       expect(error.details.recoveryStrategy).toBe('fallback_model');
       expect(error.details.requestedModel).toBe('gpt-4');
@@ -404,7 +416,9 @@ describe('ModelUnavailableError', () => {
     it('должен правильно форматировать сообщение с памятью', () => {
       const error = createModelMemoryConstraintError('gpt-4', 32, 16);
 
-      expect(error.message).toBe('Недостаточно памяти для модели "gpt-4" (32 GB требуется, 16 GB доступно)');
+      expect(error.message).toBe(
+        'Недостаточно памяти для модели "gpt-4" (32 GB требуется, 16 GB доступно)',
+      );
     });
   });
 
@@ -492,16 +506,24 @@ describe('ModelUnavailableError', () => {
     });
 
     it('getAvailableModelAlternatives должен возвращать альтернативы', () => {
-      const errorWithAlternatives = createModelNotFoundInfraError('gpt-4', ['gpt-3.5-turbo', 'claude-3']);
+      const errorWithAlternatives = createModelNotFoundInfraError('gpt-4', [
+        'gpt-3.5-turbo',
+        'claude-3',
+      ]);
       const errorWithoutAlternatives = createModelNotFoundInfraError('gpt-4');
 
-      expect(getAvailableModelAlternatives(errorWithAlternatives)).toEqual(['gpt-3.5-turbo', 'claude-3']);
+      expect(getAvailableModelAlternatives(errorWithAlternatives)).toEqual([
+        'gpt-3.5-turbo',
+        'claude-3',
+      ]);
       expect(getAvailableModelAlternatives(errorWithoutAlternatives)).toEqual([]);
     });
 
     it('hasHighPriorityFallback должен определять high priority', () => {
       const highPriorityError = createModelNotFoundInfraError('gpt-4', ['gpt-3.5-turbo']);
-      const mediumPriorityError = createModelTemporarilyUnavailableError('gpt-4', undefined, ['gpt-3.5-turbo']);
+      const mediumPriorityError = createModelTemporarilyUnavailableError('gpt-4', undefined, [
+        'gpt-3.5-turbo',
+      ]);
       const noAlternativesError = createModelNotFoundInfraError('gpt-4');
 
       expect(hasHighPriorityFallback(highPriorityError)).toBe(true);
@@ -510,7 +532,10 @@ describe('ModelUnavailableError', () => {
     });
 
     it('getRecommendedFallbackModel должен возвращать первую альтернативу', () => {
-      const errorWithAlternatives = createModelNotFoundInfraError('gpt-4', ['gpt-3.5-turbo', 'claude-3']);
+      const errorWithAlternatives = createModelNotFoundInfraError('gpt-4', [
+        'gpt-3.5-turbo',
+        'claude-3',
+      ]);
       const errorWithoutAlternatives = createModelNotFoundInfraError('gpt-4');
 
       expect(getRecommendedFallbackModel(errorWithAlternatives)).toBe('gpt-3.5-turbo');
@@ -553,7 +578,9 @@ describe('ModelUnavailableError', () => {
     });
 
     it('hasRegionalAlternatives должен определять наличие регионов', () => {
-      const errorWithRegions = createModelRegionRestrictedError('gpt-4', 'us-central1', ['eu-central1']);
+      const errorWithRegions = createModelRegionRestrictedError('gpt-4', 'us-central1', [
+        'eu-central1',
+      ]);
       const errorWithoutRegions = createModelRegionRestrictedError('gpt-4', 'us-central1');
       const nonRegionError = createModelNotFoundInfraError('gpt-4');
 
@@ -563,7 +590,10 @@ describe('ModelUnavailableError', () => {
     });
 
     it('getAvailableRegions должен возвращать регионы', () => {
-      const errorWithRegions = createModelRegionRestrictedError('gpt-4', 'us-central1', ['eu-central1', 'asia-east1']);
+      const errorWithRegions = createModelRegionRestrictedError('gpt-4', 'us-central1', [
+        'eu-central1',
+        'asia-east1',
+      ]);
       const errorWithoutRegions = createModelRegionRestrictedError('gpt-4', 'us-central1');
 
       expect(getAvailableRegions(errorWithRegions)).toEqual(['eu-central1', 'asia-east1']);
@@ -646,7 +676,7 @@ describe('ModelUnavailableError', () => {
         'fail_fast',
       ];
 
-      strategies.forEach(strategy => {
+      strategies.forEach((strategy) => {
         const error = createModelUnavailableError(
           'TEST_CODE' as any,
           'Test',
@@ -664,7 +694,7 @@ describe('ModelUnavailableError', () => {
     it('должен корректно обрабатывать все приоритеты fallback', () => {
       const priorities: ModelFallbackPriority[] = ['high', 'medium', 'low'];
 
-      priorities.forEach(priority => {
+      priorities.forEach((priority) => {
         const error = createModelUnavailableError(
           'TEST_CODE' as any,
           'Test',

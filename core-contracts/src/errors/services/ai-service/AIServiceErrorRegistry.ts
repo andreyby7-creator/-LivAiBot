@@ -328,6 +328,9 @@ export function getAllAIServiceErrorMeta(): Record<ErrorCode, AIServiceErrorMeta
 
 // ==================== AI-SPECIFIC UTILITIES ====================
 
+/** Дефолтное значение circuit breaker threshold */
+const DEFAULT_CIRCUIT_BREAKER_THRESHOLD = 5;
+
 /** Проверяет GPU требования для ошибки - используется для выбора инфраструктуры */
 export function requiresGpuForError(code: ErrorCode): boolean {
   const metadata = getAIServiceErrorMeta(code);
@@ -342,7 +345,7 @@ export function getRetryStrategyForError(code: ErrorCode): {
   const metadata = getAIServiceErrorMeta(code);
   return {
     shouldRetry: metadata?.retryRecommended ?? false,
-    circuitBreakerThreshold: metadata?.circuitBreakerThreshold ?? 5,
+    circuitBreakerThreshold: metadata?.circuitBreakerThreshold ?? DEFAULT_CIRCUIT_BREAKER_THRESHOLD,
   };
 }
 
@@ -356,18 +359,16 @@ export function getTokenCostForError(code: ErrorCode): number {
 export function groupErrorsByModelType(
   codes: readonly ErrorCode[],
 ): Partial<Record<AIMetadata['modelType'], ErrorCode[]>> {
-  return codes.reduce((groups, code) => {
+  let groups = new Map<AIMetadata['modelType'], ErrorCode[]>();
+  for (const code of codes) {
     const metadata = getAIServiceErrorMeta(code);
     if (metadata) {
       const modelType = metadata.modelType;
-      const existing = groups[modelType] ?? [];
-      return {
-        ...groups,
-        [modelType]: [...existing, code],
-      };
+      const current = groups.get(modelType) ?? [];
+      groups = new Map(groups).set(modelType, [...current, code]);
     }
-    return groups;
-  }, {} as Partial<Record<AIMetadata['modelType'], ErrorCode[]>>);
+  }
+  return Object.fromEntries(groups) as Partial<Record<AIMetadata['modelType'], ErrorCode[]>>;
 }
 
 /** Получает ошибки с streaming поддержкой - для выбора протокола ответа */

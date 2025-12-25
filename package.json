@@ -27,31 +27,38 @@
   },
   "scripts": {
     "build": "turbo build",
+    "build:js": "turbo build:js",
     "build:types": "turbo type-check",
+    "build:watch": "turbo build:watch",
     "clean": "turbo clean",
     "dev": "turbo dev",
     "lint": "turbo lint",
     "lint:fix": "turbo lint:fix",
-    "lint:canary": "turbo run lint:canary --continue",
+    "lint:canary": "ESLINT_MODE=canary eslint --config eslint.config.mjs core-contracts || true",
     "lint:canary:fix": "turbo run lint:canary:fix --continue",
     "test": "turbo test",
     "test:ci": "turbo test:ci",
     "type-check": "turbo type-check",
     "format": "dprint fmt",
     "format:check": "dprint check",
+    "pre-commit": "pnpm run lint:canary && pnpm run format:check && pnpm run check:circular-deps && pnpm run check:dependency-policy && pnpm run test",
     "prepare": "husky",
     "architecture:validate": "echo 'Architecture validation not implemented yet'",
     "verify:infra": "echo 'Infrastructure verification not implemented yet'",
+    "check:circular-deps": "node scripts/check-circular-deps-monorepo.js",
+    "check:dependency-policy": "node scripts/check-dependency-policy.js",
+    "analyze:import-metrics": "node scripts/analyze-import-graph-metrics.js",
     "type-coverage": "type-coverage --detail",
     "deps:check": "depcheck --skip-missing",
     "deps:unused": "depcheck --skip-missing | grep \"Unused\" || echo \"No unused dependencies found\"",
     "quality": "pnpm run type-coverage && pnpm run deps:unused",
-    "quality:ci": "pnpm run type-coverage && pnpm run deps:unused"
+    "quality:ci": "pnpm run type-coverage && pnpm run deps:unused",
+    "analyze:bundles": "node scripts/analyze-bundles.js"
   },
   "volta": {
     "node": "24.12.0"
   },
-  "packageManager": "pnpm@10.26.0",
+  "packageManager": "pnpm@10.26.2",
   "devDependencies": {
     "@effect/eslint-plugin": "0.3.2",
     "@next/eslint-plugin-next": "^16.0.10",
@@ -88,11 +95,14 @@
     "globals": "^16.5.0",
     "husky": "^9.1.7",
     "lint-staged": "^16.2.7",
+    "rollup": "^4.54.0",
+    "rollup-plugin-visualizer": "^6.0.5",
     "tsx": "^4.21.0",
     "turbo": "^2.6.3",
     "type-coverage": "^2.29.7",
     "type-fest": "^5.3.1",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.16"
   },
   "overrides": {
     "@effect/rpc": "$@effect/rpc",

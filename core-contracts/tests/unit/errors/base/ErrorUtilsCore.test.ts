@@ -217,9 +217,8 @@ describe('ErrorUtilsCore', () => {
 
     it('должен обнаруживать циклы в цепочке', () => {
       // Создаем цикл: cyclicError1 -> cyclicError2 -> cyclicError1
-      let cyclicError1: MockError;
       const cyclicError2 = createMockError('error2', 'Middle error');
-      cyclicError1 = createMockError('error1', 'Root error', cyclicError2);
+      const cyclicError1 = createMockError('error1', 'Root error', cyclicError2);
 
       // Создаем цикл: cyclicError2.cause = cyclicError1
       (cyclicError2 as any).cause = { error: cyclicError1 };
@@ -242,9 +241,8 @@ describe('ErrorUtilsCore', () => {
 
     it('должен игнорировать циклы если detectCycles отключен', () => {
       // Создаем цикл: cyclicError1 -> cyclicError2 -> cyclicError1
-      let cyclicError1: MockError;
       const cyclicError2 = createMockError('error2', 'Middle error');
-      cyclicError1 = createMockError('error1', 'Root error', cyclicError2);
+      const cyclicError1 = createMockError('error1', 'Root error', cyclicError2);
 
       // Создаем цикл: cyclicError2.cause = cyclicError1
       (cyclicError2 as any).cause = { error: cyclicError1 };
@@ -329,9 +327,8 @@ describe('ErrorUtilsCore', () => {
 
       it('должен обнаруживать циклы в анализе', () => {
         // Создаем цикл: cyclicError1 -> cyclicError2 -> cyclicError1
-        let cyclicError1: MockError;
         const cyclicError2 = createMockError('error2', 'Middle error');
-        cyclicError1 = createMockError('error1', 'Root error', cyclicError2);
+        const cyclicError1 = createMockError('error1', 'Root error', cyclicError2);
 
         // Создаем цикл: cyclicError2.cause = cyclicError1
         (cyclicError2 as any).cause = { error: cyclicError1 };
@@ -427,9 +424,8 @@ describe('ErrorUtilsCore', () => {
 
       it('должен возвращать true для цепочки с циклами', () => {
         // Создаем цикл: cyclicError1 -> cyclicError2 -> cyclicError1
-        let cyclicError1: MockError;
         const cyclicError2 = createMockError('error2', 'Middle error');
-        cyclicError1 = createMockError('error1', 'Root error', cyclicError2);
+        const cyclicError1 = createMockError('error1', 'Root error', cyclicError2);
 
         // Создаем цикл: cyclicError2.cause = cyclicError1
         (cyclicError2 as any).cause = { error: cyclicError1 };
@@ -597,9 +593,8 @@ describe('ErrorUtilsCore', () => {
 
       it('должен корректно анализировать цепочки с циклами', () => {
         // Создаем цикл: cyclicError1 -> cyclicError2 -> cyclicError1
-        let cyclicError1: MockError;
         const cyclicError2 = createMockError('error2', 'Middle error');
-        cyclicError1 = createMockError('error1', 'Root error', cyclicError2);
+        const cyclicError1 = createMockError('error1', 'Root error', cyclicError2);
 
         // Создаем цикл: cyclicError2.cause = cyclicError1
         (cyclicError2 as any).cause = { error: cyclicError1 };
@@ -700,9 +695,8 @@ describe('ErrorUtilsCore', () => {
 
       it('analyzeErrorChain должен корректно работать с отключенной детекцией циклов', () => {
         // Создаем цикл: cyclicError1 -> cyclicError2 -> cyclicError1
-        let cyclicError1: MockError;
         const cyclicError2 = createMockError('error2', 'Middle error');
-        cyclicError1 = createMockError('error1', 'Root error', cyclicError2);
+        const cyclicError1 = createMockError('error1', 'Root error', cyclicError2);
 
         // Создаем цикл: cyclicError2.cause = cyclicError1
         (cyclicError2 as any).cause = { error: cyclicError1 };

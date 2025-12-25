@@ -455,7 +455,7 @@ describe('AIServiceErrorTypes - Utility Functions', () => {
       ];
 
       errors.forEach((error, index) => {
-        expect(getAIServiceErrorKind(error)).toBe(expectedKinds[index]);
+        expect(getAIServiceErrorKind(error)).toBe(Reflect.get(expectedKinds, index));
       });
     });
   });
@@ -552,7 +552,7 @@ describe('AIServiceErrorTypes - Pattern Matching', () => {
           fallback: () => 'fallback',
         });
 
-        expect(result).toBe(expectedResults[index]);
+        expect(result).toBe(Reflect.get(expectedResults, index));
       });
     });
   });

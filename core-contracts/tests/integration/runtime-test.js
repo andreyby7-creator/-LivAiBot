@@ -110,7 +110,7 @@ async function testModule() {
     const validation = validateMetadata(testMeta);
 
     if (!validation.isValid) {
-      throw new Error('validateMetadata failed: ' + validation.errors.join(', '));
+      throw new Error(`validateMetadata failed: ${validation.errors.join(', ')}`);
     }
 
     const mergeResult = mergeMetadata(testMeta, testMeta, 'shallowMerge');
@@ -256,7 +256,7 @@ async function testModule() {
 
     // Test createBaseMetadata function with mock clock
     const mockClock = {
-      generateCorrelationId: () => 'test-correlation-id-' + Date.now(),
+      generateCorrelationId: () => `test-correlation-id-${Date.now()}`,
       getCurrentTimestamp: () => Date.now(),
     };
     const metadata = createBaseMetadata(mockClock);

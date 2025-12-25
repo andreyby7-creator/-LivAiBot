@@ -507,16 +507,15 @@ export function isAIServiceErrorKind<E extends AIServiceError>(
 export function groupAIServiceErrorsByKind(
   errors: readonly AIServiceError[],
 ): Map<AIServiceErrorKind, AIServiceError[]> {
-  const groups = errors.reduce<Record<string, AIServiceError[]>>((acc, error) => {
+  let groups = new Map<AIServiceErrorKind, AIServiceError[]>();
+  for (const error of errors) {
     const kind = getAIServiceErrorKind(error);
-    const kindKey = kind as string;
-    return {
-      ...acc,
-      [kindKey]: [...(acc[kindKey] ?? []), error],
-    };
-  }, {});
+    const current = groups.get(kind) ?? [];
+    // Создаем новый Map для immutable подхода
+    groups = new Map(groups).set(kind, [...current, error]);
+  }
 
-  return new Map(Object.entries(groups) as Array<[AIServiceErrorKind, AIServiceError[]]>);
+  return groups;
 }
 
 // ==================== VALIDATION HELPERS ====================
