@@ -107,3 +107,13 @@ export * as Contracts from './shared/contracts/index.js';
  * - CircuitBreakerPolicy: system health protection
  */
 export * as Policies from './shared/policies/index.js';
+
+/**
+ * AI Service: специализированные ошибки и инструменты для AI/ML сервисов
+ * - AIServiceError: discriminated union для AI операций
+ * - AI adapters: Yandex SDK, model providers
+ * - AI instrumentation: metrics, tracing, observability
+ * - AI policies: circuit breaker, fallback, token management
+ * - AI serialization: response/result formatters
+ */
+export * as AIService from './services/ai-service/index.js';

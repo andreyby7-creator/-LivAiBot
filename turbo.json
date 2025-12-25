@@ -33,6 +33,18 @@
       "inputs": ["src/**", "tests/**", "**/*.config.*"],
       "outputs": ["coverage/**"]
     },
+    "test:ui": {
+      "inputs": ["src/**", "tests/**", "**/*.config.*"],
+      "cache": false
+    },
+    "test:coverage:html": {
+      "inputs": ["src/**", "tests/**", "**/*.config.*"],
+      "outputs": ["coverage/**"]
+    },
+    "test:coverage:watch": {
+      "inputs": ["src/**", "tests/**", "**/*.config.*"],
+      "cache": false
+    },
     "clean": {},
     "dev": {
       "dependsOn": [],

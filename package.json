@@ -37,6 +37,10 @@
     "lint:canary": "ESLINT_MODE=canary eslint --config eslint.config.mjs core-contracts || true",
     "lint:canary:fix": "turbo run lint:canary:fix --continue",
     "test": "turbo test",
+    "test:ui": "turbo test:ui --parallel",
+    "test:coverage:html": "turbo test:coverage:html --parallel",
+    "test:coverage:watch": "turbo test:coverage:watch --parallel",
+    "coverage:open": "find . -name 'index.html' -path '*/coverage/*' -exec xdg-open {} \\; || find . -name 'index.html' -path '*/coverage/*' -exec open {} \\; || find . -name 'index.html' -path '*/coverage/*' -exec start {} \\;",
     "test:ci": "turbo test:ci",
     "type-check": "turbo type-check",
     "format": "dprint fmt",
@@ -67,6 +71,8 @@
     "@types/react": "^19.2.7",
     "@typescript-eslint/eslint-plugin": "^8.50.0",
     "@typescript-eslint/parser": "^8.50.0",
+    "@vitest/ui": "^4.0.16",
+    "c8": "^10.1.3",
     "cross-env": "^10.1.0",
     "depcheck": "^1.4.7",
     "detective-postcss": "^7.0.1",
@@ -94,6 +100,7 @@
     "fast-glob": "^3.3.3",
     "globals": "^16.5.0",
     "husky": "^9.1.7",
+    "istanbul-reports": "^3.2.0",
     "lint-staged": "^16.2.7",
     "rollup": "^4.54.0",
     "rollup-plugin-visualizer": "^6.0.5",
@@ -108,5 +115,9 @@
     "@effect/rpc": "$@effect/rpc",
     "@effect/rpc-http": "$@effect/rpc-http",
     "@effect/vitest": "$@effect/vitest"
+  },
+  "dependencies": {
+    "@opentelemetry/api": "^1.9.0",
+    "@opentelemetry/sdk-node": "^0.208.0"
   }
 }

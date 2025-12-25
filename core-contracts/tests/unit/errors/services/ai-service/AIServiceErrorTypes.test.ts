@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
+import { AIProvider } from '../../../../../src/errors/services/ai-service/AIServiceInstrumentation.js';
+
 import {
   getAIServiceErrorKind,
   groupAIServiceErrorsByKind,
@@ -38,7 +40,7 @@ function createMockModelLoadError(
   code: AIServiceError['code'] = 'SERVICE_AI_006' as AIServiceError['code'],
   message = 'Model load failed',
   modelId = 'yandex-gpt-lite',
-  provider: 'yandex' | 'local' | 'external' = 'yandex',
+  provider: AIProvider = AIProvider.YANDEX,
   loadAttempt = 1,
   details?: ModelLoadError['details'],
 ): ModelLoadError {
@@ -283,7 +285,7 @@ describe('AIServiceErrorTypes - Error Creation', () => {
         'SERVICE_AI_006',
         'Model load failed',
         'yandex-gpt-lite',
-        'yandex',
+        AIProvider.YANDEX,
         3,
       );
 
@@ -292,7 +294,7 @@ describe('AIServiceErrorTypes - Error Creation', () => {
       expect(error.code).toBe('SERVICE_AI_006');
       expect(error.message).toBe('Model load failed');
       expect(error.modelId).toBe('yandex-gpt-lite');
-      expect(error.provider).toBe('yandex');
+      expect(error.provider).toBe(AIProvider.YANDEX);
       expect(error.loadAttempt).toBe(3);
       expect(error.details).toBeUndefined();
     });
@@ -304,7 +306,7 @@ describe('AIServiceErrorTypes - Error Creation', () => {
         'SERVICE_AI_006',
         'Model load failed',
         'yandex-gpt-lite',
-        'yandex',
+        AIProvider.YANDEX,
         1,
         details,
       );

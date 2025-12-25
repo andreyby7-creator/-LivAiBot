@@ -13,6 +13,8 @@ export {
   serializeAIResponseHttp,
 } from './AIResponseSerializer.js';
 
+export { createAIResultSerializer, serializeAIResult } from './AIResultSerializer.js';
+
 // ==================== JSON SERIALIZATION ====================
 
 export {
@@ -26,23 +28,28 @@ export {
 
 export type {
   AIErrorDetails,
+  AIResponse,
+  AIResponseError,
   AIResponseSerializationOutcome,
   AIResponseSerializerConfig,
   AIResponseSerializerRequestConfig,
+  AIResponseSuccess,
+  AIUsage,
+  BaseErrorPlainObject,
   GrpcAISerializationResult,
   GrpcDetailsFormatter,
   HttpAISerializationResult,
 } from './AIResponseSerializer.js';
 
-// ==================== DOMAIN TYPES ====================
-
 export type {
-  AIResponse,
-  AIResponseError,
-  AIResponseSuccess,
-  AIUsage,
-  BaseErrorPlainObject,
-} from './AIResponseSerializer.js';
+  AIResult,
+  AIResultSerializationOutcome,
+  AIResultSerializerConfig,
+  ConfidenceScore,
+  ModelMetadata,
+  SerializedAIResult,
+  TokenUsageStats,
+} from './AIResultSerializer.js';
 
 // ==================== CONSTANTS ====================
 

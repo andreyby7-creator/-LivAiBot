@@ -73,9 +73,18 @@ npx dprint fmt "packages/**/*.src/**/*.{ts,tsx}"   # Только исходни
 
 ```bash
 pnpm run test                          # Все тесты (Turbo)
+pnpm run test:ui                       # Веб-интерфейс для тестов (Turbo)
 pnpm run test:coverage                 # Тесты с coverage (Turbo)
-pnpm exec vitest run                   # Обычный запуск тестов
-pnpm exec vitest run --typecheck       # Проверка типов
+pnpm run test:coverage:watch           # Тесты с coverage в watch режиме (Turbo)
+pnpm run test:coverage:html            # Тесты с HTML отчетом покрытия (Turbo)
+pnpm run coverage:open                 # Открыть HTML отчет покрытия в браузере
+pnpm exec vitest run                   # Обычный запуск тестов (в пакете)
+pnpm exec vitest run --typecheck       # Проверка типов (в пакете)
+
+# Coverage провайдеры (настраиваются в vitest.config.ts):
+# - v8: Современный, быстрый (рекомендуется)
+# - istanbul: Альтернативный, иногда лучше для edge cases
+# - c8: ESM-friendly, полезен для сложных модулей
 ```
 
 ## 🔍 Pre-commit команды

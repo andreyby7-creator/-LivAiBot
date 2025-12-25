@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
+import { AIProvider } from '../../../../../src/errors/services/ai-service/AIServiceInstrumentation.js';
+
 import {
   AI_SERVICE_ERROR_CODE_LIST,
   AI_SERVICE_ERROR_CODES,
@@ -373,7 +375,9 @@ describe('AIServiceErrorRegistry - Integration', () => {
 
         // AI-specific required fields
         expect(['text', 'vision', 'multimodal', 'embedding']).toContain(metadata.modelType);
-        expect(['yandex', 'local', 'external']).toContain(metadata.provider);
+        expect([AIProvider.YANDEX, AIProvider.LOCAL, AIProvider.EXTERNAL]).toContain(
+          metadata.provider,
+        );
         expect(['generation', 'classification', 'embedding', 'translation', 'analysis']).toContain(
           metadata.operationType,
         );

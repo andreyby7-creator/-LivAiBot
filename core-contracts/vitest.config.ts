@@ -16,7 +16,7 @@ export default defineConfig({
     coverage: {
       enabled: true, // Explicitly enable coverage for consistent behavior in CI/local
       provider: 'v8',
-      reporter: ['text', 'json'], // Removed 'html' to avoid linting issues with generated files
+      reporter: ['text', 'json'], // HTML reports generated via root commands
       reportsDirectory: './coverage',
       include: ['src/**/*.ts'],
       exclude: [

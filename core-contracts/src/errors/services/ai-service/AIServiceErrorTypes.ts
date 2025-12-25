@@ -14,6 +14,7 @@
  * Полностью type-safe с discriminated unions для pattern matching.
  */
 
+import type { AIProvider } from './AIServiceInstrumentation.js';
 import type { TaggedError } from '../../base/BaseErrorTypes.js';
 import type { SharedError } from '../../shared/SharedErrorTypes.js';
 
@@ -48,7 +49,7 @@ export type ModelLoadError = TaggedError<{
   readonly message: string;
   readonly modelId: string;
   readonly modelVersion?: string;
-  readonly provider: 'yandex' | 'local' | 'external';
+  readonly provider: AIProvider;
   readonly loadAttempt: number;
   readonly details?: {
     readonly modelPath?: string;

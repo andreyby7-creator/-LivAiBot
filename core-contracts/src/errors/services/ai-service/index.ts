@@ -253,3 +253,19 @@ export type {
 } from './serialization/index.js';
 
 export { GRPC_STATUS, HTTP_STATUS } from './serialization/index.js';
+
+// ==================== INSTRUMENTATION ====================
+
+export {
+  aiServiceInstrumentationLayer,
+  aiServiceTracerContext,
+  instrumentAIInference,
+} from './AIServiceInstrumentation.js';
+
+export { AIProvider } from './AIServiceInstrumentation.js';
+
+export type {
+  AIInferenceResult,
+  AIInstrumentationContext,
+  AIMetricAttributes,
+} from './AIServiceInstrumentation.js';

@@ -13,6 +13,8 @@
 import { SERVICE_ERROR_CODES } from '../../base/ErrorCode.js';
 import { ERROR_CATEGORY, ERROR_ORIGIN, ERROR_SEVERITY } from '../../base/ErrorConstants.js';
 
+import { AIProvider } from './AIServiceInstrumentation.js';
+
 import type { ErrorCode } from '../../base/ErrorCode.js';
 import type { ExtendedErrorCodeMetadata } from '../../base/ErrorCodeMeta.js';
 
@@ -24,7 +26,7 @@ export type AIMetadata = {
   readonly modelType: 'text' | 'vision' | 'multimodal' | 'embedding';
 
   /** Провайдер модели */
-  readonly provider: 'yandex' | 'local' | 'external';
+  readonly provider: AIProvider;
 
   /** Тип AI операции */
   readonly operationType:
@@ -79,7 +81,7 @@ export const AI_SERVICE_ERROR_CODES = {
 
     // AI-specific metadata
     modelType: 'text' as const,
-    provider: 'yandex' as const,
+    provider: AIProvider.YANDEX,
     operationType: 'generation' as const,
     timeoutMs: 30000,
     memoryRequiredMb: 1024,
@@ -103,7 +105,7 @@ export const AI_SERVICE_ERROR_CODES = {
     docsUrl: 'https://docs.livaibot.ai/errors/processing-failed',
 
     modelType: 'text' as const,
-    provider: 'yandex' as const,
+    provider: AIProvider.YANDEX,
     operationType: 'generation' as const,
     estimatedTokens: 100,
     timeoutMs: 60000,
@@ -128,7 +130,7 @@ export const AI_SERVICE_ERROR_CODES = {
     docsUrl: 'https://docs.livaibot.ai/errors/invalid-input',
 
     modelType: 'text' as const,
-    provider: 'yandex' as const,
+    provider: AIProvider.YANDEX,
     operationType: 'generation' as const,
     estimatedTokens: 50,
     timeoutMs: 5000,
@@ -153,7 +155,7 @@ export const AI_SERVICE_ERROR_CODES = {
     docsUrl: 'https://docs.livaibot.ai/errors/rate-limit',
 
     modelType: 'text' as const,
-    provider: 'yandex' as const,
+    provider: AIProvider.YANDEX,
     operationType: 'generation' as const,
     estimatedTokens: 0,
     timeoutMs: 1000,
@@ -178,7 +180,7 @@ export const AI_SERVICE_ERROR_CODES = {
     docsUrl: 'https://docs.livaibot.ai/errors/model-timeout',
 
     modelType: 'text' as const,
-    provider: 'yandex' as const,
+    provider: AIProvider.YANDEX,
     operationType: 'generation' as const,
     estimatedTokens: 500,
     timeoutMs: 120000,
@@ -203,7 +205,7 @@ export const AI_SERVICE_ERROR_CODES = {
     docsUrl: 'https://docs.livaibot.ai/errors/model-load-failed',
 
     modelType: 'text' as const,
-    provider: 'yandex' as const,
+    provider: AIProvider.YANDEX,
     operationType: 'generation' as const,
     timeoutMs: 300000,
     memoryRequiredMb: 8192,
@@ -227,7 +229,7 @@ export const AI_SERVICE_ERROR_CODES = {
     docsUrl: 'https://docs.livaibot.ai/errors/inference-error',
 
     modelType: 'text' as const,
-    provider: 'yandex' as const,
+    provider: AIProvider.YANDEX,
     operationType: 'generation' as const,
     estimatedTokens: 200,
     timeoutMs: 45000,
@@ -252,7 +254,7 @@ export const AI_SERVICE_ERROR_CODES = {
     docsUrl: 'https://docs.livaibot.ai/errors/token-limit',
 
     modelType: 'text' as const,
-    provider: 'yandex' as const,
+    provider: AIProvider.YANDEX,
     operationType: 'generation' as const,
     estimatedTokens: 8000,
     timeoutMs: 10000,
@@ -277,7 +279,7 @@ export const AI_SERVICE_ERROR_CODES = {
     docsUrl: 'https://docs.livaibot.ai/errors/prompt-validation',
 
     modelType: 'text' as const,
-    provider: 'yandex' as const,
+    provider: AIProvider.YANDEX,
     operationType: 'generation' as const,
     estimatedTokens: 100,
     timeoutMs: 5000,
@@ -302,7 +304,7 @@ export const AI_SERVICE_ERROR_CODES = {
     docsUrl: 'https://docs.livaibot.ai/errors/context-overflow',
 
     modelType: 'text' as const,
-    provider: 'yandex' as const,
+    provider: AIProvider.YANDEX,
     operationType: 'generation' as const,
     estimatedTokens: 32000,
     timeoutMs: 15000,
