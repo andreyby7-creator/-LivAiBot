@@ -73,7 +73,7 @@ describe('ErrorCodeMeta', () => {
           httpStatus: 401,
           internalCode: 'AUTH_001',
           loggable: true,
-          userVisible: true,
+          visibility: 'public',
           remediation: 'Please check your credentials and try again',
           docsUrl: 'https://docs.example.com/auth-errors',
         };
@@ -81,7 +81,7 @@ describe('ErrorCodeMeta', () => {
         expect(extendedMetadata.httpStatus).toBe(401);
         expect(extendedMetadata.internalCode).toBe('AUTH_001');
         expect(extendedMetadata.loggable).toBe(true);
-        expect(extendedMetadata.userVisible).toBe(true);
+        expect(extendedMetadata.visibility).toBe('public');
         expect(extendedMetadata.remediation).toBe('Please check your credentials and try again');
         expect(extendedMetadata.docsUrl).toBe('https://docs.example.com/auth-errors');
       });
@@ -95,14 +95,14 @@ describe('ErrorCodeMeta', () => {
           origin: ERROR_ORIGIN.DOMAIN,
           // обязательные поля
           loggable: true,
-          userVisible: false,
+          visibility: 'internal',
           // опциональные поля
           httpStatus: 401,
           remediation: 'Please check your credentials',
         };
 
         expect(extendedMetadata.loggable).toBe(true);
-        expect(extendedMetadata.userVisible).toBe(false);
+        expect(extendedMetadata.visibility).toBe('internal');
         expect(extendedMetadata.httpStatus).toBe(401);
         expect(extendedMetadata.remediation).toBe('Please check your credentials');
       });
@@ -183,7 +183,7 @@ describe('ErrorCodeMeta', () => {
         expect(DEFAULT_ERROR_CODE_METADATA.category).toBe('TECHNICAL');
         expect(DEFAULT_ERROR_CODE_METADATA.origin).toBe('INFRASTRUCTURE');
         expect(DEFAULT_ERROR_CODE_METADATA.loggable).toBe(true);
-        expect(DEFAULT_ERROR_CODE_METADATA.userVisible).toBe(false);
+        expect(DEFAULT_ERROR_CODE_METADATA.visibility).toBe('internal');
       });
 
       it('должен быть определен', () => {
@@ -205,7 +205,7 @@ describe('ErrorCodeMeta', () => {
         // Логируется по умолчанию
         expect(DEFAULT_ERROR_CODE_METADATA.loggable).toBe(true);
         // Не показывается пользователю по умолчанию
-        expect(DEFAULT_ERROR_CODE_METADATA.userVisible).toBe(false);
+        expect(DEFAULT_ERROR_CODE_METADATA.visibility).toBe('internal');
       });
     });
   });
@@ -246,12 +246,12 @@ describe('ErrorCodeMeta', () => {
             origin: ERROR_ORIGIN.DOMAIN,
             httpStatus: 401,
             loggable: true,
-            userVisible: true,
+            visibility: 'public',
           },
         };
 
         expect(extendedMap['DOMAIN_AUTH_001'].httpStatus).toBe(401);
-        expect(extendedMap['DOMAIN_AUTH_001'].userVisible).toBe(true);
+        expect(extendedMap['DOMAIN_AUTH_001'].visibility).toBe('public');
       });
     });
 
@@ -569,7 +569,7 @@ describe('ErrorCodeMeta', () => {
       expect(Object.values(ERROR_CATEGORY)).toContain(DEFAULT_ERROR_CODE_METADATA.category);
       expect(Object.values(ERROR_ORIGIN)).toContain(DEFAULT_ERROR_CODE_METADATA.origin);
       expect(typeof DEFAULT_ERROR_CODE_METADATA.loggable).toBe('boolean');
-      expect(typeof DEFAULT_ERROR_CODE_METADATA.userVisible).toBe('boolean');
+      expect(DEFAULT_ERROR_CODE_METADATA.visibility).toBe('internal');
     });
 
     it('все маппинги должны покрывать все категории', () => {

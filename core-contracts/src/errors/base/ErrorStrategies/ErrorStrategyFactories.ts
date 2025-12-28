@@ -28,6 +28,11 @@ export function createStrategyForPrefix<E>(
   baseStrategy: ErrorStrategy<E>,
   prefix: string,
 ): ErrorStrategy<E> {
+  // Пустой префикс - не фильтруем, возвращаем пустой массив
+  if (prefix === '') {
+    return createStrategyWithCodes(baseStrategy, []);
+  }
+
   // Находим все коды с данным префиксом в групповых стратегиях
   const applicableCodes = GROUP_STRATEGIES
     .flatMap((group) => group.codes)

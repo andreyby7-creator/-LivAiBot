@@ -52,6 +52,7 @@ export default [
     ignores: [
       '**/dist/**',        // Скомпилированные файлы во всех пакетах монорепо
       '**/build/**',       // Папки сборки
+      '**/html/**',        // Сгенерированные HTML assets и бандлы (webpack/vite output)
       '**/.turbo/**',      // Кеш Turborepo
       '**/.cache/**',      // Различные кеши (webpack, babel, etc.)
       '**/coverage/**',    // Отчеты о покрытии тестами

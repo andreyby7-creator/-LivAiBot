@@ -74,12 +74,33 @@ npx dprint fmt "packages/**/*.src/**/*.{ts,tsx}"   # Только исходни
 ```bash
 pnpm run test                          # Все тесты (Turbo)
 pnpm run test:ui                       # Веб-интерфейс для тестов (Turbo)
-pnpm run test:coverage                 # Тесты с coverage (Turbo)
-pnpm run test:coverage:watch           # Тесты с coverage в watch режиме (Turbo)
+pnpm run coverage:check                # Анализ проблем покрытия кода
 pnpm run test:coverage:html            # Тесты с HTML отчетом покрытия (Turbo)
+pnpm run test:coverage:watch           # Тесты с coverage в watch режиме (Turbo)
 pnpm run coverage:open                 # Открыть HTML отчет покрытия в браузере
 pnpm exec vitest run                   # Обычный запуск тестов (в пакете)
 pnpm exec vitest run --typecheck       # Проверка типов (в пакете)
+pnpm exec vitest run --coverage        # Тесты с coverage (в пакете)
+pnpm exec vitest run --coverage --coverage.reporter=json # Тесты с coverage в JSON формате
+
+# Проверка покрытия конкретного файла:
+# Быстрый способ проверить покрытие любого файла
+pnpm run coverage:file <filename>
+
+# Примеры использования:
+pnpm run coverage:file ErrorCode.ts
+pnpm run coverage:file BillingServiceErrorTypes.ts
+pnpm run coverage:file BaseError.ts
+
+# Скрипт ищет файл в coverage/coverage-final.json и показывает:
+# - Statements: процент покрытых выражений
+# - Functions: процент покрытых функций
+# - Branches: процент покрытых веток условий
+# - Lines: процент покрытых строк
+
+# Анализ всех файлов с проблемами покрытия (используйте pnpm run coverage:check):
+# Автоматический анализ с помощью Node.js скрипта в package.json
+pnpm run coverage:check
 
 # Coverage провайдеры (настраиваются в vitest.config.ts):
 # - v8: Современный, быстрый (рекомендуется)
@@ -92,11 +113,11 @@ pnpm exec vitest run --typecheck       # Проверка типов (в пак�
 ### Проверка перед коммитом
 
 ```bash
-pnpm run pre-commit                    # Полная проверка перед коммитом (lint + format + circular deps + dep policy + test)
-pnpm run format:check                  # Быстрая проверка форматирования
-pnpm run check:circular-deps           # Проверка циклических зависимостей в монорепо
-pnpm run check:dependency-policy       # Проверка архитектурных ограничений на зависимости
-pnpm run analyze:import-metrics        # Анализ метрик сложности графа импортов
+pnpm run pre-commit                     # Полная проверка перед коммитом (lint + format + circular deps + dep policy + test)
+pnpm run format:check                   # Быстрая проверка форматирования
+pnpm run check:circular-deps            # Проверка циклических зависимостей в монорепо
+pnpm run check:dependency-policy        # Проверка архитектурных ограничений на зависимости
+pnpm run analyze:import-metrics         # Анализ метрик сложности графа импортов
 ```
 
 ## 🧽 Clean команды
@@ -104,8 +125,8 @@ pnpm run analyze:import-metrics        # Анализ метрик сложно�
 ### Очистка
 
 ```bash
-pnpm run clean                         # Очистка кэша и временных файлов (Turbo)
-pnpm store prune                       # Очистка неиспользуемого кэша pnpm
+pnpm run clean                          # Очистка кэша и временных файлов (Turbo)
+pnpm store prune                        # Очистка неиспользуемого кэша pnpm
 ```
 
 ## 📦 Dependency команды

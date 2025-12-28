@@ -339,7 +339,9 @@ describe('ErrorCode', () => {
 
         const result = validateErrorCodeUniqueness(duplicateCodes);
         expect(result.success).toBe(false);
-        expect(result.duplicates).toEqual(['DOMAIN_TEST_001']);
+        if (!result.success) {
+          expect(result.duplicates).toEqual(['DOMAIN_TEST_001']);
+        }
       });
     });
 
@@ -347,7 +349,9 @@ describe('ErrorCode', () => {
       it('должен возвращать success с кодом для валидного error code', () => {
         const result = createErrorCode('DOMAIN_AUTH_001');
         expect(result.success).toBe(true);
-        expect(result.code).toBe('DOMAIN_AUTH_001');
+        if (result.success) {
+          expect(result.code).toBe('DOMAIN_AUTH_001');
+        }
       });
 
       it('должен возвращать failure для невалидного формата', () => {
@@ -359,7 +363,9 @@ describe('ErrorCode', () => {
 
         invalidResults.forEach((result) => {
           expect(result.success).toBe(false);
-          expect(result.error).toContain('Invalid error code format');
+          if (!result.success) {
+            expect(result.error).toContain('Invalid error code format');
+          }
         });
       });
 
@@ -383,12 +389,14 @@ describe('ErrorCode', () => {
       const result = parseErrorCode('DOMAIN_AUTH_001');
 
       expect(result.success).toBe(true);
-      expect(result.data).toEqual({
-        prefix: 'DOMAIN',
-        category: 'AUTH',
-        increment: 1,
-        fullCode: 'DOMAIN_AUTH_001',
-      });
+      if (result.success) {
+        expect(result.data).toEqual({
+          prefix: 'DOMAIN',
+          category: 'AUTH',
+          increment: 1,
+          fullCode: 'DOMAIN_AUTH_001',
+        });
+      }
     });
 
     it('должен корректно парсить error codes с разными инкрементами', () => {
@@ -402,8 +410,10 @@ describe('ErrorCode', () => {
       testCases.forEach(({ code, increment }) => {
         const result = parseErrorCode(code);
         expect(result.success).toBe(true);
-        expect(result.data.increment).toBe(increment);
-        expect(result.data.fullCode).toBe(code);
+        if (result.success) {
+          expect(result.data.increment).toBe(increment);
+          expect(result.data.fullCode).toBe(code);
+        }
       });
     });
 
@@ -421,7 +431,9 @@ describe('ErrorCode', () => {
       invalidCodes.forEach((code) => {
         const result = parseErrorCode(code);
         expect(result.success).toBe(false);
-        expect(result.error).toBeDefined();
+        if (!result.success) {
+          expect(result.error).toBeDefined();
+        }
       });
     });
 
@@ -439,11 +451,13 @@ describe('ErrorCode', () => {
     it('должен возвращать ValidationResult с ErrorCodeStructure данными', () => {
       const result = parseErrorCode('DOMAIN_AUTH_001');
       expect(result.success).toBe(true);
-      expect(result.data).toBeInstanceOf(Object);
-      expect(result.data).toHaveProperty('prefix');
-      expect(result.data).toHaveProperty('category');
-      expect(result.data).toHaveProperty('increment');
-      expect(result.data).toHaveProperty('fullCode');
+      if (result.success) {
+        expect(result.data).toBeInstanceOf(Object);
+        expect(result.data).toHaveProperty('prefix');
+        expect(result.data).toHaveProperty('category');
+        expect(result.data).toHaveProperty('increment');
+        expect(result.data).toHaveProperty('fullCode');
+      }
     });
 
     describe('Boundary обёртки (fail-fast)', () => {
@@ -467,6 +481,38 @@ describe('ErrorCode', () => {
             'Duplicate error codes found: DOMAIN_TEST_001',
           );
         });
+
+        it('должен покрывать все ветки условий в validateErrorCodeUniquenessOrThrow', () => {
+          // Пустой объект - не должен выбрасывать ошибку
+          expect(() => validateErrorCodeUniquenessOrThrow({})).not.toThrow();
+
+          // Объект с одним кодом - не должен выбрасывать ошибку
+          expect(() => validateErrorCodeUniquenessOrThrow({ CODE1: 'DOMAIN_TEST_001' })).not.toThrow();
+
+          // Объект с уникальными кодами - не должен выбрасывать ошибку
+          const uniqueCodes = {
+            CODE1: 'DOMAIN_TEST_001',
+            CODE2: 'DOMAIN_TEST_002',
+            CODE3: 'INFRA_DB_001',
+          };
+          expect(() => validateErrorCodeUniquenessOrThrow(uniqueCodes)).not.toThrow();
+
+          // Объект с дубликатами - должен выбрасывать ошибку
+          const duplicateCodes1 = {
+            CODE1: 'DOMAIN_TEST_001',
+            CODE2: 'DOMAIN_TEST_001', // дубликат
+          };
+          expect(() => validateErrorCodeUniquenessOrThrow(duplicateCodes1)).toThrow('Duplicate error codes found: DOMAIN_TEST_001');
+
+          // Объект с несколькими дубликатами
+          const duplicateCodes2 = {
+            CODE1: 'DOMAIN_TEST_001',
+            CODE2: 'DOMAIN_TEST_001',
+            CODE3: 'INFRA_DB_001',
+            CODE4: 'INFRA_DB_001',
+          };
+          expect(() => validateErrorCodeUniquenessOrThrow(duplicateCodes2)).toThrow();
+        });
       });
 
       describe('createErrorCodeOrThrow', () => {
@@ -479,6 +525,31 @@ describe('ErrorCode', () => {
           expect(() => createErrorCodeOrThrow('INVALID')).toThrow(
             'Invalid error code format: INVALID. Expected: PREFIX_CATEGORY_XXX',
           );
+        });
+
+        it('должен покрывать все ветки условий в createErrorCodeOrThrow', () => {
+          // Валидные коды - не должны выбрасывать ошибку
+          expect(() => createErrorCodeOrThrow('DOMAIN_AUTH_001')).not.toThrow();
+          expect(() => createErrorCodeOrThrow('INFRA_DB_999')).not.toThrow();
+          expect(() => createErrorCodeOrThrow('SERVICE_AI_100')).not.toThrow();
+          expect(() => createErrorCodeOrThrow('ADMIN_USER_050')).not.toThrow();
+
+          // Невалидные коды - должны выбрасывать ошибку
+          const invalidCodes = [
+            'DOMAIN_AUTH_ABC',
+            'DOMAIN_AUTH_',
+            'DOMAIN_AUTH',
+            'DOMAIN_001',
+            'AUTH_001',
+            'INVALID_FORMAT',
+            'domain_auth_001',
+            'DOMAIN_auth_001',
+            '',
+          ];
+
+          invalidCodes.forEach(code => {
+            expect(() => createErrorCodeOrThrow(code)).toThrow();
+          });
         });
       });
 
@@ -496,6 +567,32 @@ describe('ErrorCode', () => {
 
         it('должен выбрасывать ошибку для невалидного формата', () => {
           expect(() => parseErrorCodeOrThrow('INVALID')).toThrow();
+        });
+
+        it('должен покрывать все ветки условий в parseErrorCodeOrThrow', () => {
+          // Валидные коды - не должны выбрасывать ошибку
+          expect(() => parseErrorCodeOrThrow('DOMAIN_AUTH_001')).not.toThrow();
+          expect(() => parseErrorCodeOrThrow('INFRA_DB_999')).not.toThrow();
+          expect(() => parseErrorCodeOrThrow('SERVICE_AI_1000')).not.toThrow();
+          expect(() => parseErrorCodeOrThrow('ADMIN_SYSTEM_9999')).not.toThrow();
+
+          // Невалидные коды - должны выбрасывать ошибку
+          const invalidCodes = [
+            'INVALID',
+            'DOMAIN',
+            'DOMAIN_AUTH',
+            'DOMAIN_AUTH_ABC',
+            'DOMAIN_AUTH_0',
+            'DOMAIN_AUTH_10000',
+            'DOMAIN__001',
+            '_AUTH_001',
+            'DOMAIN_AUTH_',
+            'DOMAIN_AUTH_001_EXTRA',
+          ];
+
+          invalidCodes.forEach(code => {
+            expect(() => parseErrorCodeOrThrow(code)).toThrow();
+          });
         });
       });
     });
@@ -573,7 +670,9 @@ describe('ErrorCode', () => {
       Object.values(LIVAI_ERROR_CODES).forEach((code) => {
         const parsed = parseErrorCode(code);
         expect(parsed.success).toBe(true);
-        expect(parsed.data.fullCode).toBe(code);
+        if (parsed.success) {
+          expect(parsed.data.fullCode).toBe(code);
+        }
       });
     });
   });
@@ -618,6 +717,107 @@ describe('ErrorCode', () => {
             || code.startsWith('ADMIN_'),
         ).toBe(true);
       });
+    });
+
+    it('должен покрывать все ветки условий в createErrorCode', () => {
+      // Валидные коды
+      expect(createErrorCode('DOMAIN_AUTH_001').success).toBe(true);
+      expect(createErrorCode('INFRA_DB_999').success).toBe(true);
+      expect(createErrorCode('SERVICE_AI_100').success).toBe(true);
+      expect(createErrorCode('ADMIN_USER_050').success).toBe(true);
+
+      // Невалидные коды - проверяем все ветки условий
+      const invalidCodes = [
+        'DOMAIN_AUTH_ABC',     // невалидный инкремент
+        'DOMAIN_AUTH_',        // пустой инкремент
+        'DOMAIN_AUTH',         // отсутствует инкремент
+        'DOMAIN_001',          // отсутствует категория
+        'AUTH_001',            // отсутствует префикс
+        'INVALID_FORMAT',      // полностью неправильный формат
+        'domain_auth_001',     // неправильный регистр префикса
+        'DOMAIN_auth_001',     // неправильный регистр категории
+        '',                    // пустая строка
+      ];
+
+      invalidCodes.forEach(code => {
+        const result = createErrorCode(code);
+        expect(result.success).toBe(false);
+        if (!result.success) {
+          expect(result.error).toContain('Invalid error code format');
+        }
+      });
+    });
+
+    it('должен покрывать все ветки условий в parseErrorCode', () => {
+      // Валидные коды
+      expect(parseErrorCode('DOMAIN_AUTH_001').success).toBe(true);
+      expect(parseErrorCode('INFRA_DB_999').success).toBe(true);
+      expect(parseErrorCode('SERVICE_AI_1000').success).toBe(true);
+      expect(parseErrorCode('ADMIN_SYSTEM_9999').success).toBe(true);
+
+      // Невалидные коды - проверяем все ветки условий
+      const invalidCases = [
+        { code: 'INVALID', error: 'Invalid error code format' },
+        { code: 'DOMAIN', error: 'Invalid error code format' },
+        { code: 'DOMAIN_AUTH', error: 'Invalid error code format' },
+        { code: 'DOMAIN_AUTH_ABC', error: 'Invalid increment' },
+        { code: 'DOMAIN_AUTH_0', error: 'Invalid increment' },
+        { code: 'DOMAIN_AUTH_10000', error: 'Invalid increment' },
+        { code: 'DOMAIN__001', error: 'Missing required parts' },
+        { code: '_AUTH_001', error: 'Missing required parts' },
+        { code: 'DOMAIN_AUTH_', error: 'Missing required parts' },
+        { code: 'DOMAIN_AUTH_001_EXTRA', error: 'Invalid error code format' },
+      ];
+
+      invalidCases.forEach(({ code, error }) => {
+        const result = parseErrorCode(code);
+        expect(result.success).toBe(false);
+        if (!result.success) {
+          expect(result.error).toContain(error);
+        }
+      });
+    });
+
+    it('должен покрывать все ветки условий в validateErrorCodeUniqueness', () => {
+      // Пустой объект - должен вернуть success
+      expect(validateErrorCodeUniqueness({}).success).toBe(true);
+
+      // Объект с одним кодом - должен вернуть success
+      expect(validateErrorCodeUniqueness({ CODE1: 'DOMAIN_TEST_001' }).success).toBe(true);
+
+      // Объект с уникальными кодами - должен вернуть success
+      const uniqueCodes = {
+        CODE1: 'DOMAIN_TEST_001',
+        CODE2: 'DOMAIN_TEST_002',
+        CODE3: 'INFRA_DB_001',
+      };
+      expect(validateErrorCodeUniqueness(uniqueCodes).success).toBe(true);
+
+      // Объект с дубликатами - должен вернуть failure с дубликатами
+      const duplicateCodes = {
+        CODE1: 'DOMAIN_TEST_001',
+        CODE2: 'DOMAIN_TEST_001', // дубликат
+        CODE3: 'DOMAIN_TEST_001', // еще один дубликат
+      };
+      const duplicateResult = validateErrorCodeUniqueness(duplicateCodes);
+      expect(duplicateResult.success).toBe(false);
+      if (!duplicateResult.success) {
+        expect(duplicateResult.duplicates).toEqual(['DOMAIN_TEST_001']);
+      }
+
+      // Объект с несколькими дубликатами
+      const multipleDuplicates = {
+        CODE1: 'DOMAIN_TEST_001',
+        CODE2: 'DOMAIN_TEST_001',
+        CODE3: 'INFRA_DB_001',
+        CODE4: 'INFRA_DB_001',
+      };
+      const multipleResult = validateErrorCodeUniqueness(multipleDuplicates);
+      expect(multipleResult.success).toBe(false);
+      if (!multipleResult.success) {
+        expect(multipleResult.duplicates).toContain('DOMAIN_TEST_001');
+        expect(multipleResult.duplicates).toContain('INFRA_DB_001');
+      }
     });
 
     it('должен корректно обрабатывать optional поля в extended metadata', () => {

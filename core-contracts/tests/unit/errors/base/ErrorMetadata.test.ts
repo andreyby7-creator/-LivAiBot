@@ -799,6 +799,80 @@ describe('ErrorMetadata', () => {
         expect(result.errors).toContain('action required');
       });
 
+      // Тесты для покрытия веток "неправильный тип контекста"
+      it('должен возвращать пустой массив ошибок для IntegrationContext с неправильным типом', () => {
+        const userContext: UserContext = {
+          type: 'user',
+          userId: 'user-123',
+        };
+
+        const result = validateMetadata({
+          correlationId: 'test' as CorrelationId,
+          timestamp: 1000 as MetadataTimestamp,
+          context: userContext,
+        });
+
+        // Integration валидатор должен вернуть пустой массив, так как тип не 'integration'
+        expect(result.isValid).toBe(true);
+        expect(result.errors).not.toContain('integrationId required');
+        expect(result.errors).not.toContain('invalid integrationType');
+      });
+
+      it('должен возвращать пустой массив ошибок для AIProcessingContext с неправильным типом', () => {
+        const userContext: UserContext = {
+          type: 'user',
+          userId: 'user-123',
+        };
+
+        const result = validateMetadata({
+          correlationId: 'test' as CorrelationId,
+          timestamp: 1000 as MetadataTimestamp,
+          context: userContext,
+        });
+
+        // AIProcessing валидатор должен вернуть пустой массив, так как тип не 'aiProcessing'
+        expect(result.isValid).toBe(true);
+        expect(result.errors).not.toContain('modelId required');
+        expect(result.errors).not.toContain('invalid processingType');
+      });
+
+      it('должен возвращать пустой массив ошибок для AdminContext с неправильным типом', () => {
+        const userContext: UserContext = {
+          type: 'user',
+          userId: 'user-123',
+        };
+
+        const result = validateMetadata({
+          correlationId: 'test' as CorrelationId,
+          timestamp: 1000 as MetadataTimestamp,
+          context: userContext,
+        });
+
+        // Admin валидатор должен вернуть пустой массив, так как тип не 'admin'
+        expect(result.isValid).toBe(true);
+        expect(result.errors).not.toContain('adminId required');
+        expect(result.errors).not.toContain('invalid role');
+        expect(result.errors).not.toContain('action required');
+      });
+
+      it('должен возвращать пустой массив ошибок для BotContext с неправильным типом', () => {
+        const userContext: UserContext = {
+          type: 'user',
+          userId: 'user-123',
+        };
+
+        const result = validateMetadata({
+          correlationId: 'test' as CorrelationId,
+          timestamp: 1000 as MetadataTimestamp,
+          context: userContext,
+        });
+
+        // Bot валидатор должен вернуть пустой массив, так как тип не 'bot'
+        expect(result.isValid).toBe(true);
+        expect(result.errors).not.toContain('botId required');
+        expect(result.errors).not.toContain('invalid botType');
+      });
+
       it('должен выявлять ошибки в BotContext', () => {
         const invalidContext: BotContext = {
           type: 'bot',

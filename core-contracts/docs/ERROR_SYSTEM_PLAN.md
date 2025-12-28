@@ -689,14 +689,21 @@ withSharedErrorBoundary(
 - **BillingServiceInstrumentation.ts** – Payment monitoring: transaction success rates, fraud detection
   - **🛠️ Стек**: TypeScript + Effect/OpenTelemetry
     Обязательно русские: @file и компактные jsdoc
-- **domain/** – Billing доменные ошибки: subscription limits, payment validation
-- **infrastructure/** – Payment gateway errors: Stripe, PayPal API failures
-- **policies/** – Payment стратегии: retry failed payments, fraud detection, refund handling
-- **serialization/** – Payment data serialization, PCI-compliant error masking
-- **adapters/** – Payment gateway adapters с error normalization
-- **index.ts** – Exports: `Billing`, `Payments`, `Validators`, etc.
-  - **🛠️ Стек**: TypeScript
-    Обязательно русские: @file и компактные jsdoc
+
+**domain/** – Billing доменные ошибки: subscription limits, payment validation
+
+**infrastructure/** – Payment gateway errors: Stripe, PayPal API failures
+
+**policies/** – Payment стратегии: retry failed payments, fraud detection, refund handling
+
+**serialization/** – Payment data serialization, PCI-compliant error masking
+
+**adapters/** – Payment gateway adapters с error normalization
+
+**index.ts** – Exports: `Billing`, `Payments`, `Validators`, etc.
+
+- **🛠️ Стек**: TypeScript
+  Обязательно русские: @file и компактные jsdoc
 
 **mobile-service/** – Мобильное приложение: iOS/Android, offline sync.
 
@@ -712,14 +719,21 @@ withSharedErrorBoundary(
 - **MobileServiceInstrumentation.ts** – Mobile monitoring: crash reports, offline usage, platform-specific metrics
   - **🛠️ Стек**: TypeScript + Effect/OpenTelemetry
     Обязательно русские: @file и компактные jsdoc
-- **domain/** – Mobile доменные ошибки: offline operations, sync conflicts, user permissions
-- **infrastructure/** – Device/platform errors: iOS/Android specific failures
-- **policies/** – Mobile стратегии: offline retry, conflict resolution, push notification errors
-- **serialization/** – Mobile-specific serialization: push payloads, offline queue formats
-- **adapters/** – React Native adapters, Firebase integration
-- **index.ts** – Exports: `Mobile`, `Sync`, `Platform`, etc.
-  - **🛠️ Стек**: TypeScript
-    Обязательно русские: @file и компактные jsdoc
+
+**domain/** – Mobile доменные ошибки: offline operations, sync conflicts, user permissions
+
+**infrastructure/** – Device/platform errors: iOS/Android specific failures
+
+**policies/** – Mobile стратегии: offline retry, conflict resolution, push notification errors
+
+**serialization/** – Mobile-specific serialization: push payloads, offline queue formats
+
+**adapters/** – React Native adapters, Firebase integration
+
+**index.ts** – Exports: `Mobile`, `Sync`, `Platform`, etc.
+
+- **🛠️ Стек**: TypeScript
+  Обязательно русские: @file и компактные jsdoc
 
 **tenant-service/** – Мульти-тенант сервис: isolation, quotas, tenant management.
 
@@ -735,14 +749,21 @@ withSharedErrorBoundary(
 - **TenantServiceInstrumentation.ts** – Tenant monitoring: usage metrics, isolation violations, resource consumption
   - **🛠️ Стек**: TypeScript + Effect/OpenTelemetry
     Обязательно русские: @file и компактные jsdoc
-- **domain/** – Tenant доменные ошибки: quota management, tenant permissions, resource allocation
-- **infrastructure/** – Multi-tenant DB/cache errors, isolation failures
-- **policies/** – Tenant стратегии: quota enforcement, resource limiting, tenant isolation
-- **serialization/** – Tenant-scoped serialization, data isolation
-- **adapters/** – Multi-tenant database adapters, cache isolation
-- **index.ts** – Exports: `Tenant`, `Quota`, `Isolation`, etc.
-  - **🛠️ Стек**: TypeScript
-    Обязательно русские: @file и компактные jsdoc
+
+**domain/** – Tenant доменные ошибки: quota management, tenant permissions, resource allocation
+
+**infrastructure/** – Multi-tenant DB/cache errors, isolation failures
+
+**policies/** – Tenant стратегии: quota enforcement, resource limiting, tenant isolation
+
+**serialization/** – Tenant-scoped serialization, data isolation
+
+**adapters/** – Multi-tenant database adapters, cache isolation
+
+**index.ts** – Exports: `Tenant`, `Quota`, `Isolation`, etc.
+
+- **🛠️ Стек**: TypeScript
+  Обязательно русские: @file и компактные jsdoc
 
 **feature-flag-service/** – Feature flags: rollout management, targeting.
 
@@ -758,34 +779,34 @@ withSharedErrorBoundary(
 - **FeatureFlagServiceInstrumentation.ts** – FF monitoring: rollout metrics, flag usage, A/B test results
   - **🛠️ Стек**: TypeScript + Effect/OpenTelemetry
     Обязательно русские: @file и компактные jsdoc
-- **domain/** – Feature flag доменные ошибки: flag configuration, user targeting, rollout rules
-- **infrastructure/** – Flag storage/retrieval errors, cache inconsistencies
-- **policies/** – Feature flag стратегии: gradual rollout, emergency disable, A/B test errors
-- **serialization/** – Feature flag state serialization, targeting rule formats
-- **adapters/** – LaunchDarkly/other FF service adapters
-- **index.ts** – Exports: `FeatureFlags`, `Rollout`, `Targeting`, etc.
-  - **🛠️ Стек**: TypeScript
-    Обязательно русские: @file и компактные jsdoc
 
-**ServiceErrorTypes.ts** – Common service типы: `ServiceUnavailableError`, `TimeoutError`, `ConfigurationError`
+**domain/** – Feature flag доменные ошибки: flag configuration, user targeting, rollout rules
+
+**infrastructure/** – Flag storage/retrieval errors, cache inconsistencies
+
+**policies/** – Feature flag стратегии: gradual rollout, emergency disable, A/B test errors
+
+**serialization/** – Feature flag state serialization, targeting rule formats
+
+**adapters/** – LaunchDarkly/other FF service adapters
+
+**index.ts** – Exports: `FeatureFlags`, `Rollout`, `Targeting`, etc.
 
 - **🛠️ Стек**: TypeScript
   Обязательно русские: @file и компактные jsdoc
 
-**ServiceErrorRegistry.ts** – Cross-service реестр ошибок, integration с base registry
-
-- **🛠️ Стек**: TypeScript + Effect
-  Обязательно русские: @file и компактные jsdoc
-
-**ServiceValidators.ts** – Cross-service валидаторы: service health checks, inter-service communication
-
-- **🛠️ Стек**: TypeScript + Effect
-  Обязательно русские: @file и компактные jsdoc
-
-**ServiceInstrumentation.ts** – Cross-service monitoring: service mesh tracing, dependency health
-
-- **🛠️ Стек**: TypeScript + Effect/OpenTelemetry
-  Обязательно русские: @file и компактные jsdoc
+- **ServiceErrorTypes.ts** – Common service типы: `ServiceUnavailableError`, `TimeoutError`, `ConfigurationError`
+  - **🛠️ Стек**: TypeScript
+    Обязательно русские: @file и компактные jsdoc
+- **ServiceErrorRegistry.ts** – Cross-service реестр ошибок, integration с base registry
+  - **🛠️ Стек**: TypeScript + Effect
+    Обязательно русские: @file и компактные jsdoc
+- **ServiceValidators.ts** – Cross-service валидаторы: service health checks, inter-service communication
+  - **🛠️ Стек**: TypeScript + Effect
+    Обязательно русские: @file и компактные jsdoc
+- **ServiceInstrumentation.ts** – Cross-service monitoring: service mesh tracing, dependency health
+  - **🛠️ Стек**: TypeScript + Effect/OpenTelemetry
+    Обязательно русские: @file и компактные jsdoc
 
 **index.ts** – Selective exports по сервисам: `export * as AI from './ai-service'`, `export * as Billing from './billing-service'`, etc.
 

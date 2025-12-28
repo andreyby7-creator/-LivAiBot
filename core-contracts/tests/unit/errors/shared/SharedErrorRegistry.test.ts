@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 import {
   checkSharedCodesConsistency,
@@ -165,6 +165,58 @@ describe('SharedErrorRegistry', () => {
       expect(result.found).toBe(false);
       expect((result as any).error).toContain('layered resolution');
     });
+
+    it('находит код в BASE registry при отсутствии в SHARED', () => {
+      const registry = createRegistryInstance(registerSharedLayer(createEmptyRegistry()));
+      // Добавляем код в BASE registry
+      registry.base['BASE_TEST_CODE'] = {
+        code: 'BASE_TEST_CODE',
+        description: 'Base test code',
+        severity: 'medium' as const,
+        category: 'TECHNICAL' as const,
+        origin: 'DOMAIN' as const,
+      };
+
+      const result = resolveSharedErrorMeta('BASE_TEST_CODE' as any, registry);
+
+      expect(result.found).toBe(true);
+      if (result.found) {
+        expect(result.namespace).toBe('BASE');
+        expect(result.metadata.code).toBe('BASE_TEST_CODE');
+      }
+    });
+
+    it('отдает приоритет SHARED над BASE при конфликте', () => {
+      const registry = createRegistryInstance(registerSharedLayer(createEmptyRegistry()));
+      // Добавляем один и тот же код в оба registry с разными данными
+      const sharedCode = 'SHARED_BASE_CONFLICT';
+      const sharedMetadata = {
+        code: sharedCode,
+        description: 'Shared version',
+        severity: 'high' as const,
+        category: 'BUSINESS' as const,
+        origin: 'DOMAIN' as const,
+      };
+      const baseMetadata = {
+        code: sharedCode,
+        description: 'Base version',
+        severity: 'low' as const,
+        category: 'TECHNICAL' as const,
+        origin: 'DOMAIN' as const,
+      };
+
+      // Безопасное присваивание - используем фиксированную строку как ключ
+      registry.shared['SHARED_BASE_CONFLICT'] = sharedMetadata;
+      registry.base['SHARED_BASE_CONFLICT'] = baseMetadata;
+
+      const result = resolveSharedErrorMeta(sharedCode, registry);
+
+      expect(result.found).toBe(true);
+      if (result.found) {
+        expect(result.namespace).toBe('SHARED'); // Должен выбрать SHARED
+        expect(result.metadata.description).toBe('Shared version');
+      }
+    });
   });
 
   describe('isSharedErrorCode', () => {
@@ -294,6 +346,69 @@ describe('SharedErrorRegistry', () => {
         ),
       ).toBe(true);
     });
+
+    it('обнаруживает одновременно отсутствующие и лишние коды', () => {
+      const registry = createRegistryInstance(createEmptyRegistry());
+      // Добавляем только один код из констант
+      registry.shared[SHARED_ERROR_CODES.DOMAIN_USER_NOT_FOUND] =
+        SHARED_ERROR_METADATA[SHARED_ERROR_CODES.DOMAIN_USER_NOT_FOUND];
+      // Добавляем лишний код
+      registry.shared['EXTRA_CODE'] = {
+        code: 'EXTRA_CODE',
+        description: 'Extra code',
+        severity: 'low',
+        category: 'TECHNICAL',
+        origin: 'DOMAIN',
+      };
+
+      const result = checkSharedCodesConsistency(registry);
+
+      expect(result.isConsistent).toBe(false);
+      expect(result.errors.length).toBeGreaterThan(1); // Должно быть несколько ошибок
+      expect(
+        result.errors.some((error) =>
+          error.includes('есть в константах, но отсутствует в registry.shared')
+        ),
+      ).toBe(true);
+      expect(
+        result.errors.some((error) =>
+          error.includes('есть в registry.shared, но отсутствует в константах')
+        ),
+      ).toBe(true);
+    });
+
+    it('обнаруживает только отсутствующие коды (registry пустой)', () => {
+      const registry = createRegistryInstance(createEmptyRegistry());
+      // Registry полностью пустой
+
+      const result = checkSharedCodesConsistency(registry);
+
+      expect(result.isConsistent).toBe(false);
+      expect(result.errors.length).toBeGreaterThan(0);
+      expect(
+        result.errors.every((error) =>
+          error.includes('есть в константах, но отсутствует в registry.shared')
+        ),
+      ).toBe(true);
+    });
+
+    it('обнаруживает только лишние коды', () => {
+      const registry = createRegistryInstance(registerSharedLayer(createEmptyRegistry()));
+      // Добавляем лишний код к полному registry
+      registry.shared['EXTRA_CODE'] = {
+        code: 'EXTRA_CODE',
+        description: 'Extra code',
+        severity: 'low',
+        category: 'TECHNICAL',
+        origin: 'DOMAIN',
+      };
+
+      const result = checkSharedCodesConsistency(registry);
+
+      expect(result.isConsistent).toBe(false);
+      expect(result.errors.length).toBe(1);
+      expect(result.errors[0]).toContain('есть в registry.shared, но отсутствует в константах');
+    });
   });
 
   describe('Integration с UnifiedErrorRegistry', () => {
@@ -410,6 +525,52 @@ describe('SharedErrorRegistry', () => {
       expect(result.found).toBe(false);
       if (!result.found) {
         expect(result.error).toContain('not found in EXTENSIONS namespace');
+      }
+    });
+
+    it('getFromNamespaceRegistry находит код в fallback namespace при совпадении namespace', () => {
+      const registry = createRegistryInstance(registerSharedLayer(createEmptyRegistry()));
+      // Добавляем код в registry с namespace 'SERVICES'
+      registry.getMeta = vi.fn().mockReturnValue({
+        found: true,
+        namespace: 'SERVICES',
+        code: 'SOME_SERVICES_CODE',
+        metadata: {
+          code: 'SOME_SERVICES_CODE',
+          description: 'Test code',
+          severity: 'low' as const,
+          category: 'TECHNICAL' as const,
+          origin: 'DOMAIN' as const,
+        },
+      });
+
+      const result = getFromNamespaceRegistry('SERVICES', 'SOME_SERVICES_CODE' as any, registry);
+      expect(result.found).toBe(true);
+      if (result.found) {
+        expect(result.namespace).toBe('SERVICES');
+      }
+    });
+
+    it('getFromNamespaceRegistry возвращает not found при несовпадении namespace в fallback', () => {
+      const registry = createRegistryInstance(registerSharedLayer(createEmptyRegistry()));
+      // Добавляем код в registry с namespace 'SERVICES', но ищем в 'CONTRACTS'
+      registry.getMeta = vi.fn().mockReturnValue({
+        found: true,
+        namespace: 'SERVICES',
+        code: 'SOME_SERVICES_CODE',
+        metadata: {
+          code: 'SOME_SERVICES_CODE',
+          description: 'Test code',
+          severity: 'low' as const,
+          category: 'TECHNICAL' as const,
+          origin: 'DOMAIN' as const,
+        },
+      });
+
+      const result = getFromNamespaceRegistry('CONTRACTS', 'SOME_SERVICES_CODE' as any, registry);
+      expect(result.found).toBe(false);
+      if (!result.found) {
+        expect(result.error).toContain('not found in CONTRACTS namespace');
       }
     });
   });

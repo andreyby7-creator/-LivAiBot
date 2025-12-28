@@ -121,6 +121,70 @@ describe('ErrorSanitizers', () => {
       expect(result.removedFields).toEqual(['message', 'code (was: DB_CONNECTION_FAILED)']);
     });
 
+    it('should abstract unknown error codes to INTERNAL_ERROR', () => {
+      const config = {
+        ...DEFAULT_SANITIZATION_CONFIGS.strict,
+        abstractErrorCodes: true,
+      };
+      const error = {
+        code: 'UNKNOWN_ERROR_CODE',
+        message: 'Unknown error',
+      };
+
+      const result = sanitizeError(error, config);
+
+      // Неизвестный код должен абстрагироваться в INTERNAL_ERROR
+      expect(result.sanitized).toEqual({
+        code: 'INTERNAL_ERROR',
+        message: 'An error occurred',
+      });
+      expect(result.removedFields).toEqual(['message', 'code (was: UNKNOWN_ERROR_CODE)']);
+    });
+
+    it('should not sanitize nested objects when removeSensitiveContext is false', () => {
+      const config = {
+        ...DEFAULT_SANITIZATION_CONFIGS.production,
+        removeSensitiveContext: false,
+      };
+      const error = {
+        user: {
+          password: 'secret123',
+          username: 'user@example.com',
+        },
+      };
+
+      const result = sanitizeError(error, config);
+
+      // Чувствительные поля не должны маскироваться
+      expect(result.sanitized).toEqual({
+        user: {
+          password: 'secret123',
+          username: 'user@example.com',
+        },
+      });
+      expect(result.removedFields).toEqual([]);
+    });
+
+    it('should not abstract error codes when abstractErrorCodes is false', () => {
+      const config = {
+        ...DEFAULT_SANITIZATION_CONFIGS.production,
+        abstractErrorCodes: false,
+      };
+      const error = {
+        code: 'DB_CONNECTION_FAILED',
+        message: 'Database error',
+      };
+
+      const result = sanitizeError(error, config);
+
+      // Код не должен абстрагироваться
+      expect(result.sanitized).toEqual({
+        code: 'DB_CONNECTION_FAILED',
+        message: 'Database error',
+      });
+      expect(result.removedFields).toEqual([]);
+    });
+
     it('should mask sensitive fields in objects', () => {
       const config = DEFAULT_SANITIZATION_CONFIGS.production;
       const error = {
@@ -652,6 +716,75 @@ describe('ErrorSanitizers', () => {
         'config.database.password',
         'config.api.token',
       ]);
+    });
+
+    it('should not abstract error codes when code is not a string or empty', () => {
+      const config = {
+        ...DEFAULT_SANITIZATION_CONFIGS.production,
+        abstractErrorCodes: true,
+      };
+
+      const errorWithNumberCode = {
+        code: 123,
+        message: 'Error',
+      };
+
+      const errorWithEmptyCode = {
+        code: '',
+        message: 'Error',
+      };
+
+      const result1 = sanitizeError(errorWithNumberCode, config);
+      const result2 = sanitizeError(errorWithEmptyCode, config);
+
+      // Код не должен абстрагироваться
+      expect(result1.sanitized).toEqual({
+        code: 123,
+        message: 'Error',
+      });
+      expect(result2.sanitized).toEqual({
+        code: '',
+        message: 'Error',
+      });
+    });
+
+    it('should handle custom sensitive fields with invalid regex patterns', () => {
+      const config = {
+        ...DEFAULT_SANITIZATION_CONFIGS.production,
+        customSensitiveFields: [
+          '[invalid regex', // Это вызовет исключение в RegExp.test
+          'custom_secret',
+        ],
+      };
+
+      const error = {
+        'valid_field': 'should not crash',
+        custom_secret: 'should be redacted',
+        normal_field: 'should remain',
+      };
+
+      const result = sanitizeError(error, config);
+
+      expect(result.sanitized).toEqual({
+        'valid_field': 'should not crash',
+        custom_secret: '[REDACTED]',
+        normal_field: 'should remain',
+      });
+      expect(result.removedFields).toEqual(['custom_secret']);
+    });
+
+    it('should handle arrays with null and undefined values', () => {
+      const config = DEFAULT_SANITIZATION_CONFIGS.production;
+      const error = {
+        items: [null, undefined, 'valid item', { password: 'secret' }],
+      };
+
+      const result = sanitizeError(error, config);
+
+      expect(result.sanitized).toEqual({
+        items: [null, undefined, 'valid item', { password: '[REDACTED]' }],
+      });
+      expect(result.removedFields).toEqual(['items[3].password']);
     });
   });
 });

@@ -75,7 +75,7 @@ export const AI_SERVICE_ERROR_CODES = {
     httpStatus: 503,
     internalCode: 'AI_MODEL_UNAVAILABLE',
     loggable: true,
-    userVisible: true,
+    visibility: 'public',
     remediation: 'Проверьте доступность модели или выберите альтернативную',
     docsUrl: 'https://docs.livaibot.ai/errors/model-unavailable',
 
@@ -100,7 +100,7 @@ export const AI_SERVICE_ERROR_CODES = {
     httpStatus: 500,
     internalCode: 'AI_PROCESSING_FAILED',
     loggable: true,
-    userVisible: false,
+    visibility: 'internal',
     remediation: 'Повторите запрос или обратитесь в поддержку',
     docsUrl: 'https://docs.livaibot.ai/errors/processing-failed',
 
@@ -125,7 +125,7 @@ export const AI_SERVICE_ERROR_CODES = {
     httpStatus: 400,
     internalCode: 'AI_INVALID_INPUT',
     loggable: false,
-    userVisible: true,
+    visibility: 'public',
     remediation: 'Проверьте формат входных данных согласно документации',
     docsUrl: 'https://docs.livaibot.ai/errors/invalid-input',
 
@@ -150,7 +150,7 @@ export const AI_SERVICE_ERROR_CODES = {
     httpStatus: 429,
     internalCode: 'AI_RATE_LIMIT_EXCEEDED',
     loggable: true,
-    userVisible: true,
+    visibility: 'public',
     remediation: 'Дождитесь сброса лимита или увеличьте план',
     docsUrl: 'https://docs.livaibot.ai/errors/rate-limit',
 
@@ -175,7 +175,7 @@ export const AI_SERVICE_ERROR_CODES = {
     httpStatus: 504,
     internalCode: 'AI_MODEL_TIMEOUT',
     loggable: true,
-    userVisible: true,
+    visibility: 'public',
     remediation: 'Попробуйте упростить запрос или использовать другую модель',
     docsUrl: 'https://docs.livaibot.ai/errors/model-timeout',
 
@@ -200,7 +200,7 @@ export const AI_SERVICE_ERROR_CODES = {
     httpStatus: 503,
     internalCode: 'AI_MODEL_LOAD_FAILED',
     loggable: true,
-    userVisible: false,
+    visibility: 'internal',
     remediation: 'Требуется вмешательство DevOps для проверки инфраструктуры',
     docsUrl: 'https://docs.livaibot.ai/errors/model-load-failed',
 
@@ -224,7 +224,7 @@ export const AI_SERVICE_ERROR_CODES = {
     httpStatus: 502,
     internalCode: 'AI_INFERENCE_ERROR',
     loggable: true,
-    userVisible: false,
+    visibility: 'internal',
     remediation: 'Модель может быть повреждена, требуется перезагрузка',
     docsUrl: 'https://docs.livaibot.ai/errors/inference-error',
 
@@ -249,7 +249,7 @@ export const AI_SERVICE_ERROR_CODES = {
     httpStatus: 413,
     internalCode: 'AI_TOKEN_LIMIT_EXCEEDED',
     loggable: true,
-    userVisible: true,
+    visibility: 'public',
     remediation: 'Уменьшите размер запроса или используйте модель с большим контекстом',
     docsUrl: 'https://docs.livaibot.ai/errors/token-limit',
 
@@ -274,7 +274,7 @@ export const AI_SERVICE_ERROR_CODES = {
     httpStatus: 400,
     internalCode: 'AI_PROMPT_VALIDATION_FAILED',
     loggable: true,
-    userVisible: true,
+    visibility: 'public',
     remediation: 'Исправьте содержимое промпта согласно правилам использования',
     docsUrl: 'https://docs.livaibot.ai/errors/prompt-validation',
 
@@ -299,7 +299,7 @@ export const AI_SERVICE_ERROR_CODES = {
     httpStatus: 413,
     internalCode: 'AI_CONTEXT_OVERFLOW',
     loggable: true,
-    userVisible: true,
+    visibility: 'public',
     remediation: 'Сократите контекст или используйте модель с большим контекстом',
     docsUrl: 'https://docs.livaibot.ai/errors/context-overflow',
 

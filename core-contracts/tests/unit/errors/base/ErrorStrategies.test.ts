@@ -227,6 +227,19 @@ describe('ErrorStrategies - Complete System Test', () => {
             .shouldRetry,
         ).toBe(false);
       });
+
+      it('должен возвращать retry = false при attemptCount > maxRetries', async () => {
+        const context = { attemptCount: RETRY.DEFAULT_MAX + 1 };
+        const result = await Effect.runPromise(
+          RETRY_STRATEGY.execute(mockError, context) as Effect.Effect<StrategyResult, never, never>,
+        );
+
+        expect(result.success).toBe(false);
+        expect(
+          (result as { success: false; error: Error; strategy: string; shouldRetry: boolean; })
+            .shouldRetry,
+        ).toBe(false);
+      });
     });
 
     describe('FALLBACK_STRATEGY', () => {
@@ -244,6 +257,79 @@ describe('ErrorStrategies - Complete System Test', () => {
         expect((result as { success: true; data: unknown; strategy: string; }).data).toBe(
           'fallback_value',
         );
+        expect(result.strategy).toBe('fallback');
+      });
+
+      it('должен возвращать null когда defaultValue не указан', async () => {
+        const result = await Effect.runPromise(
+          FALLBACK_STRATEGY.execute(mockError) as Effect.Effect<
+            StrategyResult,
+            never,
+            never
+          >,
+        );
+
+        expect(result.success).toBe(true);
+        expect((result as { success: true; data: unknown; strategy: string; }).data).toBe(null);
+        expect(result.strategy).toBe('fallback');
+      });
+
+      it('должен возвращать null когда context существует но defaultValue undefined', async () => {
+        const context = { otherProperty: 'value' }; // context существует, но defaultValue undefined
+        const result = await Effect.runPromise(
+          FALLBACK_STRATEGY.execute(mockError, context) as Effect.Effect<
+            StrategyResult,
+            never,
+            never
+          >,
+        );
+
+        expect(result.success).toBe(true);
+        expect((result as { success: true; data: unknown; strategy: string; }).data).toBe(null);
+        expect(result.strategy).toBe('fallback');
+      });
+
+      it('должен возвращать null когда context undefined', async () => {
+        const result = await Effect.runPromise(
+          FALLBACK_STRATEGY.execute(mockError, undefined) as Effect.Effect<
+            StrategyResult,
+            never,
+            never
+          >,
+        );
+
+        expect(result.success).toBe(true);
+        expect((result as { success: true; data: unknown; strategy: string; }).data).toBe(null);
+        expect(result.strategy).toBe('fallback');
+      });
+
+      it('должен возвращать null когда defaultValue равен null', async () => {
+        const context = { defaultValue: null };
+        const result = await Effect.runPromise(
+          FALLBACK_STRATEGY.execute(mockError, context) as Effect.Effect<
+            StrategyResult,
+            never,
+            never
+          >,
+        );
+
+        expect(result.success).toBe(true);
+        expect((result as { success: true; data: unknown; strategy: string; }).data).toBe(null);
+        expect(result.strategy).toBe('fallback');
+      });
+
+      it('должен возвращать null когда defaultValue равен undefined', async () => {
+        const context = { defaultValue: undefined };
+        const result = await Effect.runPromise(
+          FALLBACK_STRATEGY.execute(mockError, context) as Effect.Effect<
+            StrategyResult,
+            never,
+            never
+          >,
+        );
+
+        expect(result.success).toBe(true);
+        expect((result as { success: true; data: unknown; strategy: string; }).data).toBe(null);
         expect(result.strategy).toBe('fallback');
       });
     });
@@ -330,6 +416,48 @@ describe('ErrorStrategies - Complete System Test', () => {
 
         expect(result.success).toBe(true);
         expect(mockSendAlert).toHaveBeenCalled();
+      });
+
+      it('withAlert должен работать с одним параметром (threshold)', async () => {
+        const baseStrategy = createMockStrategy();
+        const alertStrategy = withAlert(2)(baseStrategy);
+
+        expect(alertStrategy.name).toBe('mock_strategy_with_alert');
+
+        // Выполняем стратегию - должен использовать console alert service по умолчанию
+        const result = await Effect.runPromise(
+          alertStrategy.execute(mockError, { errorCount: 3 }) as Effect.Effect<
+            StrategyResult,
+            never,
+            never
+          >,
+        );
+
+        expect(result.success).toBe(true);
+        expect((result as { success: true; data: unknown; strategy: string; }).data).toBe(
+          'mock_result',
+        );
+      });
+
+      it('withAlert должен работать с двумя параметрами (threshold, level)', async () => {
+        const baseStrategy = createMockStrategy();
+        const alertStrategy = withAlert(2, 'high')(baseStrategy);
+
+        expect(alertStrategy.name).toBe('mock_strategy_with_alert');
+
+        // Выполняем стратегию - должен использовать console alert service по умолчанию
+        const result = await Effect.runPromise(
+          alertStrategy.execute(mockError, { errorCount: 3 }) as Effect.Effect<
+            StrategyResult,
+            never,
+            never
+          >,
+        );
+
+        expect(result.success).toBe(true);
+        expect((result as { success: true; data: unknown; strategy: string; }).data).toBe(
+          'mock_result',
+        );
       });
 
       it('withAlert должен игнорировать disabled alert service', async () => {
@@ -566,6 +694,24 @@ describe('ErrorStrategies - Complete System Test', () => {
 
         expect(strategy.name).toBe('async_strategy');
         expect(strategy.applicableCodes).toContain(LIVAI_ERROR_CODES.DOMAIN_USER_NOT_FOUND);
+      });
+
+      it('должен создавать стратегию без applicableCodes', async () => {
+        const asyncFn = vi.fn().mockResolvedValue({
+          success: true,
+          data: 'async_result',
+          strategy: 'async_strategy_no_codes',
+        } as StrategyResult);
+
+        const strategy = createAsyncStrategy(
+          'async_strategy_no_codes',
+          'Async strategy without codes',
+          1,
+          asyncFn,
+        );
+
+        expect(strategy.name).toBe('async_strategy_no_codes');
+        expect(strategy.applicableCodes).toBeUndefined();
 
         const result = await Effect.runPromise(
           strategy.execute('test_error') as Effect.Effect<StrategyResult, never, never>,
@@ -588,6 +734,26 @@ describe('ErrorStrategies - Complete System Test', () => {
           1,
           effectFn,
         );
+
+        const result = await Effect.runPromise(
+          strategy.execute('test_error') as Effect.Effect<StrategyResult, never, never>,
+        );
+        expect(result.success).toBe(true);
+      });
+
+      it('должен создавать стратегию из Effect-based функции с applicableCodes', async () => {
+        const effectFn = vi.fn().mockReturnValue(Effect.succeed('effect_result'));
+
+        const strategy = createEffectStrategy(
+          'effect_strategy_with_codes',
+          'Effect strategy with codes',
+          1,
+          effectFn,
+          [LIVAI_ERROR_CODES.DOMAIN_USER_NOT_FOUND],
+        );
+
+        expect(strategy.name).toBe('effect_strategy_with_codes');
+        expect(strategy.applicableCodes).toContain(LIVAI_ERROR_CODES.DOMAIN_USER_NOT_FOUND);
 
         const result = await Effect.runPromise(
           strategy.execute('test_error') as Effect.Effect<StrategyResult, never, never>,
@@ -621,6 +787,59 @@ describe('ErrorStrategies - Complete System Test', () => {
           'callback_result',
         );
         expect(callbackFn).toHaveBeenCalledWith('test_error', undefined, expect.any(Function));
+      });
+
+      it('должен создавать стратегию из callback-based функции с applicableCodes', async () => {
+        const callbackFn = vi.fn((error, context, callback) => {
+          callback(null, 'callback_result_with_codes');
+        });
+
+        const strategy = createCallbackStrategy(
+          'callback_strategy_with_codes',
+          'Callback strategy with codes',
+          1,
+          callbackFn,
+          [LIVAI_ERROR_CODES.DOMAIN_USER_NOT_FOUND],
+        );
+
+        expect(strategy.name).toBe('callback_strategy_with_codes');
+        expect(strategy.applicableCodes).toContain(LIVAI_ERROR_CODES.DOMAIN_USER_NOT_FOUND);
+
+        const result = await Effect.runPromise(
+          strategy.execute('test_error') as Effect.Effect<StrategyResult, never, never>,
+        );
+        expect(result.success).toBe(true);
+        expect((result as { success: true; data: unknown; strategy: string; }).data).toBe(
+          'callback_result_with_codes',
+        );
+      });
+
+      it('createCallbackStrategy должен обрабатывать ошибки в callback функциях', async () => {
+        const failingCallbackFn = vi.fn((error, context, callback) => {
+          callback(new Error('Callback function failed'), null);
+        });
+
+        const strategy = createCallbackStrategy(
+          'failing_callback_strategy',
+          'Failing callback strategy',
+          1,
+          failingCallbackFn,
+        );
+
+        const result = await Effect.runPromise(
+          strategy.execute('test_error') as Effect.Effect<StrategyResult, never, never>,
+        );
+
+        expect(result.success).toBe(false);
+        expect(
+          (result as { success: false; error: Error; strategy: string; shouldRetry: boolean; })
+            .error,
+        ).toBeInstanceOf(Error);
+        expect(
+          (result as { success: false; error: Error; strategy: string; shouldRetry: boolean; })
+            .error.message,
+        ).toBe('Callback function failed');
+        expect(result.strategy).toBe('failing_callback_strategy');
       });
 
       it('createAsyncStrategy должен обрабатывать ошибки в async функциях', async () => {

@@ -194,7 +194,7 @@ describe('RecoveryPolicy', () => {
         expect(policy(ctx)).toEqual({ _tag: 'Recover', value: 'success1' });
       });
 
-      it('должен возвращать результат первой успешной политики (RecoverEffect)', () => {
+      it('должен возвращать результат первой успешной политики (RecoverEffect)', async () => {
         const policy1: RecoveryPolicy<string> = () => ({ _tag: 'Fail' });
         const policy2: RecoveryPolicy<string> = () => ({
           _tag: 'RecoverEffect',
@@ -208,7 +208,7 @@ describe('RecoveryPolicy', () => {
 
         expect(result._tag).toBe('RecoverEffect');
         if (result._tag === 'RecoverEffect') {
-          expect(Effect.runPromise(result.effect)).resolves.toBe('effect1');
+          await expect(Effect.runPromise(result.effect)).resolves.toBe('effect1');
         }
       });
 

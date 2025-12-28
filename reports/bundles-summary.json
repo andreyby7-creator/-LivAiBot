@@ -1,13 +1,13 @@
 {
-  "timestamp": "2025-12-24T22:42:03.060Z",
+  "timestamp": "2025-12-27T14:49:38.682Z",
   "packages": [
     {
       "package": "core-contracts",
-      "entry": "core-contracts/dist/esm/index.js",
+      "entry": "core-contracts/dist/esm/errors/base/ErrorStrategies/index.js",
       "sizes": {
-        "raw": 254406,
-        "gzip": 47608,
-        "brotli": 37201
+        "raw": 605,
+        "gzip": 322,
+        "brotli": 262
       }
     },
     {

@@ -567,9 +567,14 @@ describe('DatabaseNormalizer', () => {
 
       const results = Array.from({ length: 5 }, () => normalizeDatabaseError(input));
 
-      // All results should be identical
+      // All results should be identical (excluding timestamps which are generated dynamically)
       results.forEach((result) => {
-        expect(result).toEqual(results[0]);
+        const { timestamp: _, ...resultWithoutTs } = result as any;
+        const { timestamp: __, ...firstResultWithoutTs } = results[0] as any;
+        expect(resultWithoutTs).toEqual(firstResultWithoutTs);
+        expect(result._tag).toBe(results[0]._tag);
+        expect(result.code).toBe(results[0].code);
+        expect(result.message).toBe(results[0].message);
       });
     });
   });

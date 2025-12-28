@@ -39,10 +39,17 @@ export enum AIProvider {
 }
 
 /** Атрибуты для метрик и спанов. */
-export type AIMetricAttributes = Record<string, string | number> & {
+export type AIMetricAttributes = Record<string, string | number | boolean | undefined> & {
   readonly model: string;
   readonly provider: string;
   readonly operation: string;
+  readonly errorTag?: string;
+  readonly retryCount?: number;
+  readonly customErrorCode?: number;
+  readonly gpuRequired?: boolean;
+  readonly modelType?: string;
+  readonly tokenCount?: number;
+  readonly latencyMs?: number;
 };
 
 /** Контекст AI операции для инструментирования. */

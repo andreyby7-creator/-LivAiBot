@@ -29,7 +29,7 @@ describe('CacheAdapterConfig', () => {
 
       expect(config).toBeDefined();
       expect(config.instanceId).toBe(CACHE_ADAPTER_DEFAULTS.INSTANCE_ID);
-      expect(config.timeout).toBe(CACHE_ADAPTER_DEFAULTS.TIMEOUT_MS);
+      expect(config.timeoutMs).toBeUndefined(); // timeout по умолчанию undefined
       expect(config.maxRetries).toBe(CACHE_ADAPTER_DEFAULTS.MAX_RETRIES);
       expect(config.retryDelay).toBe(CACHE_ADAPTER_DEFAULTS.RETRY_DELAY_MS);
       expect(config.circuitBreakerThreshold).toBe(CACHE_ADAPTER_DEFAULTS.CIRCUIT_BREAKER_THRESHOLD);
@@ -51,7 +51,7 @@ describe('CacheAdapterConfig', () => {
       const config = createDefaultConfig(customInstanceId);
 
       expect(config.instanceId).toBe('my-cache');
-      expect(config.timeout).toBe(CACHE_ADAPTER_DEFAULTS.TIMEOUT_MS);
+      expect(config.timeoutMs).toBeUndefined(); // timeout по умолчанию undefined
     });
   });
 

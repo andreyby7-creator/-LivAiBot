@@ -15,6 +15,7 @@ import {
   getTableName,
   isDatabaseConnectionError,
   isDatabaseError,
+  isValidDatabaseErrorContext,
 } from '../../../../../src/errors/shared/infrastructure/DatabaseError';
 import type {
   DatabaseError,
@@ -26,6 +27,7 @@ import type {
 /** Создает mock DatabaseErrorContext для тестов */
 function createMockDatabaseContext(): DatabaseErrorContext {
   return {
+    type: 'database',
     databaseType: 'postgresql',
     tableName: 'users',
     operation: 'select',
@@ -503,6 +505,161 @@ describe('DatabaseError', () => {
 
       const connection = getDatabaseConnection(error);
       expect(connection).toBeUndefined();
+    });
+  });
+
+  describe('isValidDatabaseErrorContext', () => {
+    it('возвращает true для валидного DatabaseErrorContext', () => {
+      const context = createMockDatabaseContext();
+      expect(isValidDatabaseErrorContext(context)).toBe(true);
+    });
+
+    it('возвращает false для null или undefined', () => {
+      expect(isValidDatabaseErrorContext(null)).toBe(false);
+      expect(isValidDatabaseErrorContext(undefined)).toBe(false);
+    });
+
+    it('возвращает false для не-объектов', () => {
+      expect(isValidDatabaseErrorContext('string')).toBe(false);
+      expect(isValidDatabaseErrorContext(42)).toBe(false);
+      expect(isValidDatabaseErrorContext(true)).toBe(false);
+    });
+
+    it('возвращает false для пустого объекта', () => {
+      expect(isValidDatabaseErrorContext({})).toBe(false);
+    });
+
+    it('проверяет databaseType типа string', () => {
+      expect(isValidDatabaseErrorContext({ type: 'database', databaseType: 'postgresql' })).toBe(
+        true,
+      );
+      expect(isValidDatabaseErrorContext({ type: 'database', databaseType: 123 })).toBe(false);
+      expect(isValidDatabaseErrorContext({ type: 'database', databaseType: {} })).toBe(false);
+    });
+
+    it('проверяет tableName типа string', () => {
+      expect(isValidDatabaseErrorContext({ type: 'database', tableName: 'users' })).toBe(true);
+      expect(isValidDatabaseErrorContext({ type: 'database', tableName: 123 })).toBe(false);
+      expect(isValidDatabaseErrorContext({ type: 'database', tableName: [] })).toBe(false);
+    });
+
+    it('проверяет operation типа string', () => {
+      expect(isValidDatabaseErrorContext({ type: 'database', operation: 'select' })).toBe(true);
+      expect(isValidDatabaseErrorContext({ type: 'database', operation: 123 })).toBe(false);
+      expect(isValidDatabaseErrorContext({ type: 'database', operation: true })).toBe(false);
+    });
+
+    it('проверяет recordId типа string', () => {
+      expect(isValidDatabaseErrorContext({ type: 'database', recordId: 'user-123' })).toBe(true);
+      expect(isValidDatabaseErrorContext({ type: 'database', recordId: 123 })).toBe(false);
+      expect(isValidDatabaseErrorContext({ type: 'database', recordId: null })).toBe(false);
+    });
+
+    it('проверяет query типа string', () => {
+      expect(isValidDatabaseErrorContext({ type: 'database', query: 'SELECT * FROM users' })).toBe(
+        true,
+      );
+      expect(isValidDatabaseErrorContext({ type: 'database', query: 123 })).toBe(false);
+      expect(isValidDatabaseErrorContext({ type: 'database', query: undefined })).toBe(true);
+    });
+
+    it('проверяет connectionId типа string', () => {
+      expect(isValidDatabaseErrorContext({ type: 'database', connectionId: 'conn-123' })).toBe(
+        true,
+      );
+      expect(isValidDatabaseErrorContext({ type: 'database', connectionId: 123 })).toBe(false);
+      expect(isValidDatabaseErrorContext({ type: 'database', connectionId: Symbol('test') })).toBe(
+        false,
+      );
+    });
+
+    it('проверяет host типа string', () => {
+      expect(isValidDatabaseErrorContext({ type: 'database', host: 'localhost' })).toBe(true);
+      expect(isValidDatabaseErrorContext({ type: 'database', host: 123 })).toBe(false);
+    });
+
+    it('проверяет port как целое число', () => {
+      expect(isValidDatabaseErrorContext({ type: 'database', port: 5432 })).toBe(true);
+      expect(isValidDatabaseErrorContext({ type: 'database', port: 5432.5 })).toBe(false);
+      expect(isValidDatabaseErrorContext({ type: 'database', port: -1 })).toBe(true); // отрицательные целые числа допустимы
+      expect(isValidDatabaseErrorContext({ type: 'database', port: '5432' })).toBe(false);
+      expect(isValidDatabaseErrorContext({ type: 'database', port: [] })).toBe(false);
+      expect(isValidDatabaseErrorContext({ type: 'database', port: 0 })).toBe(true); // zero is integer
+      expect(isValidDatabaseErrorContext({ type: 'database', port: 65535 })).toBe(true); // max port
+      expect(isValidDatabaseErrorContext({ type: 'database', port: NaN })).toBe(false); // NaN is not integer
+      expect(isValidDatabaseErrorContext({ type: 'database', port: Infinity })).toBe(false); // Infinity is not integer
+      expect(isValidDatabaseErrorContext({ type: 'database', port: -Infinity })).toBe(false); // -Infinity is not integer
+    });
+
+    // Дополнительные тесты для улучшения покрытия веток с неправильными типами
+    it('проверяет databaseType с неправильным типом', () => {
+      expect(isValidDatabaseErrorContext({ type: 'database', databaseType: 123 })).toBe(false);
+      expect(isValidDatabaseErrorContext({ type: 'database', databaseType: {} })).toBe(false);
+      expect(isValidDatabaseErrorContext({ type: 'database', databaseType: null })).toBe(false);
+    });
+
+    it('проверяет tableName с неправильным типом', () => {
+      expect(isValidDatabaseErrorContext({ type: 'database', tableName: 123 })).toBe(false);
+      expect(isValidDatabaseErrorContext({ type: 'database', tableName: [] })).toBe(false);
+      expect(isValidDatabaseErrorContext({ type: 'database', tableName: true })).toBe(false);
+    });
+
+    it('проверяет operation с неправильным типом', () => {
+      expect(isValidDatabaseErrorContext({ type: 'database', operation: 123 })).toBe(false);
+      expect(isValidDatabaseErrorContext({ type: 'database', operation: {} })).toBe(false);
+      expect(isValidDatabaseErrorContext({ type: 'database', operation: Symbol('test') })).toBe(
+        false,
+      );
+    });
+
+    it('проверяет recordId с неправильным типом', () => {
+      expect(isValidDatabaseErrorContext({ type: 'database', recordId: 123 })).toBe(false);
+      expect(isValidDatabaseErrorContext({ type: 'database', recordId: [] })).toBe(false);
+      expect(isValidDatabaseErrorContext({ type: 'database', recordId: false })).toBe(false);
+    });
+
+    it('проверяет query с неправильным типом', () => {
+      expect(isValidDatabaseErrorContext({ type: 'database', query: 123 })).toBe(false);
+      expect(isValidDatabaseErrorContext({ type: 'database', query: {} })).toBe(false);
+      expect(isValidDatabaseErrorContext({ type: 'database', query: true })).toBe(false);
+    });
+
+    it('проверяет connectionId с неправильным типом', () => {
+      expect(isValidDatabaseErrorContext({ type: 'database', connectionId: 123 })).toBe(false);
+      expect(isValidDatabaseErrorContext({ type: 'database', connectionId: [] })).toBe(false);
+      expect(isValidDatabaseErrorContext({ type: 'database', connectionId: Symbol('test') })).toBe(
+        false,
+      );
+    });
+
+    it('проверяет host с неправильным типом', () => {
+      expect(isValidDatabaseErrorContext({ type: 'database', host: 123 })).toBe(false);
+      expect(isValidDatabaseErrorContext({ type: 'database', host: [] })).toBe(false);
+      expect(isValidDatabaseErrorContext({ type: 'database', host: false })).toBe(false);
+    });
+
+    it('возвращает true для полного валидного контекста', () => {
+      const fullContext = {
+        type: 'database',
+        databaseType: 'postgresql',
+        tableName: 'users',
+        operation: 'select',
+        recordId: 'user-123',
+        query: 'SELECT * FROM users',
+        connectionId: 'conn-123',
+        host: 'localhost',
+        port: 5432,
+      };
+      expect(isValidDatabaseErrorContext(fullContext)).toBe(true);
+    });
+
+    it('возвращает true для частично заполненного контекста', () => {
+      const partialContext = {
+        type: 'database',
+        databaseType: 'postgresql',
+        operation: 'select',
+      };
+      expect(isValidDatabaseErrorContext(partialContext)).toBe(true);
     });
   });
 

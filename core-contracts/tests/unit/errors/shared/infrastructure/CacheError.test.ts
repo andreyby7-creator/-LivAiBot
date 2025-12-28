@@ -14,6 +14,7 @@ import {
   getCacheOperation,
   isCacheConnectionError,
   isCacheError,
+  isValidCacheErrorContext,
 } from '../../../../../src/errors/shared/infrastructure/CacheError';
 import type {
   CacheError,
@@ -231,7 +232,6 @@ describe('CacheError', () => {
         message: 'Cache operation failed',
         timestamp: '2024-01-01T00:00:00.000Z',
         details: {
-          type: 'user',
           cacheType: 'redis',
           key: 'user:123',
           operation: 'get',
@@ -240,6 +240,147 @@ describe('CacheError', () => {
       } as unknown as CacheError;
 
       expect(isCacheError(validError)).toBe(true);
+    });
+  });
+
+  describe('isValidCacheErrorContext', () => {
+    it('возвращает true для валидного CacheErrorContext', () => {
+      const context = createMockCacheContext();
+      expect(isValidCacheErrorContext(context)).toBe(true);
+    });
+
+    it('возвращает false для null или undefined', () => {
+      expect(isValidCacheErrorContext(null)).toBe(false);
+      expect(isValidCacheErrorContext(undefined)).toBe(false);
+    });
+
+    it('возвращает false для не-объектов', () => {
+      expect(isValidCacheErrorContext('string')).toBe(false);
+      expect(isValidCacheErrorContext(42)).toBe(false);
+      expect(isValidCacheErrorContext(true)).toBe(false);
+    });
+
+    it('возвращает true для пустого объекта', () => {
+      expect(isValidCacheErrorContext({})).toBe(true);
+    });
+
+    it('проверяет cacheType типа string', () => {
+      expect(isValidCacheErrorContext({ cacheType: 'redis' })).toBe(true);
+      expect(isValidCacheErrorContext({ cacheType: 123 })).toBe(false);
+      expect(isValidCacheErrorContext({ cacheType: {} })).toBe(false); // объект не является строкой
+    });
+
+    it('проверяет key типа string', () => {
+      expect(isValidCacheErrorContext({ key: 'user:123' })).toBe(true);
+      expect(isValidCacheErrorContext({ key: 123 })).toBe(false);
+      expect(isValidCacheErrorContext({ key: [] })).toBe(false); // массив не является строкой
+    });
+
+    it('проверяет operation типа string', () => {
+      expect(isValidCacheErrorContext({ operation: 'get' })).toBe(true);
+      expect(isValidCacheErrorContext({ operation: 123 })).toBe(false);
+      expect(isValidCacheErrorContext({ operation: true })).toBe(false); // булево не является строкой
+    });
+
+    it('проверяет ttl как целое число', () => {
+      expect(isValidCacheErrorContext({ ttl: 3600 })).toBe(true);
+      expect(isValidCacheErrorContext({ ttl: 3600.5 })).toBe(false);
+      expect(isValidCacheErrorContext({ ttl: -1 })).toBe(true); // отрицательные целые числа допустимы
+      expect(isValidCacheErrorContext({ ttl: '3600' })).toBe(false);
+      expect(isValidCacheErrorContext({ ttl: {} })).toBe(false); // объект не является числом
+    });
+
+    it('проверяет namespace типа string', () => {
+      expect(isValidCacheErrorContext({ namespace: 'users' })).toBe(true);
+      expect(isValidCacheErrorContext({ namespace: 123 })).toBe(false);
+      expect(isValidCacheErrorContext({ namespace: null })).toBe(false); // null не является строкой
+    });
+
+    it('проверяет host типа string', () => {
+      expect(isValidCacheErrorContext({ host: 'localhost' })).toBe(true);
+      expect(isValidCacheErrorContext({ host: 123 })).toBe(false);
+      expect(isValidCacheErrorContext({ host: undefined })).toBe(true); // undefined проходит проверку (поле undefined)
+    });
+
+    it('проверяет port как целое число', () => {
+      expect(isValidCacheErrorContext({ port: 6379 })).toBe(true);
+      expect(isValidCacheErrorContext({ port: 6379.5 })).toBe(false);
+      expect(isValidCacheErrorContext({ port: -1 })).toBe(true); // отрицательные целые числа допустимы
+      expect(isValidCacheErrorContext({ port: '6379' })).toBe(false);
+      expect(isValidCacheErrorContext({ port: [] })).toBe(false); // массив не является числом
+      expect(isValidCacheErrorContext({ port: 0 })).toBe(true); // zero is integer
+      expect(isValidCacheErrorContext({ port: 65535 })).toBe(true); // max port
+      expect(isValidCacheErrorContext({ port: NaN })).toBe(false); // NaN is not integer
+      expect(isValidCacheErrorContext({ port: Infinity })).toBe(false); // Infinity is not integer
+      expect(isValidCacheErrorContext({ port: -Infinity })).toBe(false); // -Infinity is not integer
+    });
+
+    it('проверяет ttl с неправильным типом', () => {
+      expect(isValidCacheErrorContext({ ttl: 3600 })).toBe(true);
+      expect(isValidCacheErrorContext({ ttl: 3600.5 })).toBe(false);
+      expect(isValidCacheErrorContext({ ttl: -1 })).toBe(true); // отрицательные целые числа допустимы
+      expect(isValidCacheErrorContext({ ttl: '3600' })).toBe(false);
+      expect(isValidCacheErrorContext({ ttl: {} })).toBe(false); // объект не является числом
+      expect(isValidCacheErrorContext({ ttl: 0 })).toBe(true); // zero is integer
+      expect(isValidCacheErrorContext({ ttl: NaN })).toBe(false); // NaN is not integer
+      expect(isValidCacheErrorContext({ ttl: Infinity })).toBe(false); // Infinity is not integer
+    });
+
+    it('проверяет connectionId типа string', () => {
+      expect(isValidCacheErrorContext({ connectionId: 'conn-123' })).toBe(true);
+      expect(isValidCacheErrorContext({ connectionId: 123 })).toBe(false);
+      expect(isValidCacheErrorContext({ connectionId: Symbol('test') })).toBe(false); // Symbol не является строкой
+    });
+
+    // Дополнительные тесты для улучшения покрытия веток с неправильными типами
+    it('проверяет cacheType с неправильным типом', () => {
+      expect(isValidCacheErrorContext({ cacheType: 'redis' })).toBe(true);
+      expect(isValidCacheErrorContext({ cacheType: 123 })).toBe(false);
+      expect(isValidCacheErrorContext({ cacheType: {} })).toBe(false);
+      expect(isValidCacheErrorContext({ cacheType: null })).toBe(false);
+    });
+
+    it('проверяет key с неправильным типом', () => {
+      expect(isValidCacheErrorContext({ key: 'user:123' })).toBe(true);
+      expect(isValidCacheErrorContext({ key: 123 })).toBe(false);
+      expect(isValidCacheErrorContext({ key: [] })).toBe(false);
+      expect(isValidCacheErrorContext({ key: true })).toBe(false);
+    });
+
+    it('проверяет namespace с неправильным типом', () => {
+      expect(isValidCacheErrorContext({ namespace: 'users' })).toBe(true);
+      expect(isValidCacheErrorContext({ namespace: 123 })).toBe(false);
+      expect(isValidCacheErrorContext({ namespace: [] })).toBe(false);
+      expect(isValidCacheErrorContext({ namespace: false })).toBe(false);
+    });
+
+    it('проверяет host с неправильным типом', () => {
+      expect(isValidCacheErrorContext({ host: 'localhost' })).toBe(true);
+      expect(isValidCacheErrorContext({ host: 123 })).toBe(false);
+      expect(isValidCacheErrorContext({ host: [] })).toBe(false);
+      expect(isValidCacheErrorContext({ host: true })).toBe(false);
+    });
+
+    it('возвращает true для полного валидного контекста', () => {
+      const fullContext = {
+        cacheType: 'redis',
+        key: 'user:123',
+        operation: 'get',
+        ttl: 3600,
+        namespace: 'users',
+        host: 'localhost',
+        port: 6379,
+        connectionId: 'conn-123',
+      };
+      expect(isValidCacheErrorContext(fullContext)).toBe(true);
+    });
+
+    it('возвращает true для частично заполненного контекста', () => {
+      const partialContext = {
+        cacheType: 'redis',
+        operation: 'get',
+      };
+      expect(isValidCacheErrorContext(partialContext)).toBe(true);
     });
   });
 

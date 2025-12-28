@@ -114,9 +114,12 @@ describe('UnifiedErrorRegistry', () => {
         };
 
         expect(foundResult.found).toBe(true);
-        expect(foundResult.namespace).toBe('BASE');
-        expect(foundResult.metadata).toBeDefined();
-        expect(foundResult.error).toBeUndefined();
+        if (foundResult.found) {
+          expect(foundResult.namespace).toBe('BASE');
+          expect(foundResult.metadata).toBeDefined();
+        }
+        // error property doesn't exist on found results
+        expect('error' in foundResult).toBe(false);
       });
 
       it('должен определять структуру результата поиска (не найден)', () => {
@@ -126,9 +129,12 @@ describe('UnifiedErrorRegistry', () => {
         };
 
         expect(notFoundResult.found).toBe(false);
-        expect(notFoundResult.namespace).toBeUndefined();
-        expect(notFoundResult.metadata).toBeUndefined();
-        expect(notFoundResult.error).toBe('Error code not found');
+        if (!notFoundResult.found) {
+          expect(notFoundResult.error).toBe('Error code not found');
+        }
+        // namespace and metadata properties don't exist on not found results
+        expect('namespace' in notFoundResult).toBe(false);
+        expect('metadata' in notFoundResult).toBe(false);
       });
     });
 
@@ -445,20 +451,26 @@ describe('UnifiedErrorRegistry', () => {
         const result = registryInstance.getMeta('DOMAIN_AUTH_001');
 
         expect(result.found).toBe(true);
-        expect(result.namespace).toBe('BASE');
-        expect(result.metadata).toBeDefined();
-        expect(result.metadata!.code).toBe('DOMAIN_AUTH_001');
-        expect(result.metadata!.description).toBe('Authentication failed');
-        expect(result.error).toBeUndefined();
+        if (result.found) {
+          expect(result.namespace).toBe('BASE');
+          expect(result.metadata).toBeDefined();
+          expect(result.metadata.code).toBe('DOMAIN_AUTH_001');
+          expect(result.metadata.description).toBe('Authentication failed');
+        }
+        // error property doesn't exist on found results
+        expect('error' in result).toBe(false);
       });
 
       it('должен возвращать not found для отсутствующего error code', () => {
         const result = registryInstance.getMeta('NON_EXISTENT_CODE');
 
         expect(result.found).toBe(false);
-        expect(result.namespace).toBeUndefined();
-        expect(result.metadata).toBeUndefined();
-        expect(result.error).toBe("Error code 'NON_EXISTENT_CODE' not found in registry");
+        if (!result.found) {
+          expect(result.error).toBe("Error code 'NON_EXISTENT_CODE' not found in registry");
+        }
+        // namespace and metadata properties don't exist on not found results
+        expect('namespace' in result).toBe(false);
+        expect('metadata' in result).toBe(false);
       });
 
       it('должен работать с кодами из разных namespaces', () => {
@@ -466,10 +478,14 @@ describe('UnifiedErrorRegistry', () => {
         const sharedResult = registryInstance.getMeta('SHARED_VALIDATION_001');
 
         expect(baseResult.found).toBe(true);
-        expect(baseResult.namespace).toBe('BASE');
+        if (baseResult.found) {
+          expect(baseResult.namespace).toBe('BASE');
+        }
 
         expect(sharedResult.found).toBe(true);
-        expect(sharedResult.namespace).toBe('SHARED');
+        if (sharedResult.found) {
+          expect(sharedResult.namespace).toBe('SHARED');
+        }
       });
     });
 
@@ -580,7 +596,9 @@ describe('UnifiedErrorRegistry', () => {
       it('getMeta должен возвращать not found для любого кода', () => {
         const result = DEFAULT_ERROR_REGISTRY.getMeta('ANY_CODE');
         expect(result.found).toBe(false);
-        expect(result.error).toContain('not found in registry');
+        if (!result.found) {
+          expect(result.error).toContain('not found in registry');
+        }
       });
 
       it('hasMeta должен возвращать false для любого кода', () => {
@@ -636,7 +654,9 @@ describe('UnifiedErrorRegistry', () => {
       // 5. Получение metadata
       const metaResult = registry.getMeta('DOMAIN_AUTH_001');
       expect(metaResult.found).toBe(true);
-      expect(metaResult.metadata!.severity).toBe('high');
+      if (metaResult.found) {
+        expect(metaResult.metadata.severity).toBe('high');
+      }
 
       // 6. Создание namespaced кодов
       const namespacedCode = createNamespacedErrorCode('BASE', 'DOMAIN_AUTH_001');
@@ -696,7 +716,9 @@ describe('UnifiedErrorRegistry', () => {
 
       expect(result2.found).toBe(true);
       expect(result3.found).toBe(true);
-      expect(result2.metadata).toBe(result1.metadata); // Тот же объект из cache
+      if (result1.found && result2.found) {
+        expect(result2.metadata).toBe(result1.metadata); // Тот же объект из cache
+      }
     });
   });
 

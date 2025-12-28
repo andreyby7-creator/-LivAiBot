@@ -48,8 +48,8 @@ export type ExtendedErrorCodeMetadata = ErrorCodeMetadata & {
   /** Признак того, что ошибка логируется */
   readonly loggable: boolean;
 
-  /** Признак того, что ошибка отправляется пользователю */
-  readonly userVisible: boolean;
+  /** Видимость ошибки для пользователей */
+  readonly visibility: 'public' | 'internal';
 
   /** Рекомендации по исправлению */
   readonly remediation?: string;
@@ -122,7 +122,7 @@ export const DEFAULT_ERROR_CODE_METADATA: Omit<ExtendedErrorCodeMetadata, 'code'
     category: 'TECHNICAL' as const,
     origin: 'INFRASTRUCTURE' as const,
     loggable: true,
-    userVisible: false,
+    visibility: 'internal',
   } as const;
 
 // ==================== UTILITY ТИПЫ ====================
