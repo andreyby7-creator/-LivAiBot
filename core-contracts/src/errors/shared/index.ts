@@ -37,6 +37,18 @@ export {
   isSharedPolicyError,
 } from './SharedErrorTypes.js';
 
+// ==================== PAYMENT PROVIDER TYPES ====================
+
+/**
+ * Типы для работы с payment providers (WebPay, BePaid, банки)
+ */
+export type { PaymentProviderId } from './PaymentProviderId.js';
+
+/**
+ * Валидаторы для payment provider типов
+ */
+export { isPaymentProviderId, MAX_PROVIDER_ID_LENGTH } from './PaymentProviderId.js';
+
 // ==================== PATTERN MATCHING ====================
 
 /**

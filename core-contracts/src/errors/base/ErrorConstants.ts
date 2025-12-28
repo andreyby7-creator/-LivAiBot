@@ -46,6 +46,7 @@ export const ERROR_CATEGORY = {
   TECHNICAL: 'TECHNICAL' as const,
   SECURITY: 'SECURITY' as const,
   PERFORMANCE: 'PERFORMANCE' as const,
+  SYSTEM: 'SYSTEM' as const,
 } as const;
 
 export type ErrorCategory = typeof ERROR_CATEGORY[keyof typeof ERROR_CATEGORY];

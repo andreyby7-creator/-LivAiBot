@@ -7,8 +7,8 @@
  * Пример: node scripts/coverage-file.js ErrorCode.ts
  */
 
-import { readFileSync, existsSync } from 'fs';
-import { join, dirname } from 'path';
+import { existsSync, readFileSync } from 'fs';
+import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -24,7 +24,7 @@ if (!fileName) {
 }
 
 // Путь к файлу покрытия
-const coveragePath = join(__dirname, '..', 'core-contracts', 'coverage', 'coverage-final.json');
+const coveragePath = join(__dirname, '..', 'coverage', 'coverage-final.json');
 
 if (!existsSync(coveragePath)) {
   console.log('❌ Файл coverage/coverage-final.json не найден');
@@ -45,9 +45,9 @@ try {
     console.log(`❌ Файл "${fileName}" не найден в отчете покрытия`);
     console.log('📋 Доступные файлы:');
     Object.keys(coverage)
-      .filter(key => key.includes('src/'))
+      .filter((key) => key.includes('src/'))
       .slice(0, 10)
-      .forEach(key => console.log(`   - ${key.replace(/.*\/src\//, 'src/')}`));
+      .forEach((key) => console.log(`   - ${key.replace(/.*\/src\//, 'src/')}`));
     if (Object.keys(coverage).length > 10) {
       console.log(`   ... и еще ${Object.keys(coverage).length - 10} файлов`);
     }
@@ -64,23 +64,23 @@ try {
 
   // Рассчитываем покрытие для каждого типа
   const statements = calcPercent(
-    data.s ? Object.values(data.s).filter(x => x > 0).length : 0,
-    data.s ? Object.keys(data.s).length : 0
+    data.s ? Object.values(data.s).filter((x) => x > 0).length : 0,
+    data.s ? Object.keys(data.s).length : 0,
   );
 
   const functions = calcPercent(
-    data.f ? Object.values(data.f).filter(x => x > 0).length : 0,
-    data.f ? Object.keys(data.f).length : 0
+    data.f ? Object.values(data.f).filter((x) => x > 0).length : 0,
+    data.f ? Object.keys(data.f).length : 0,
   );
 
   const branches = calcPercent(
     data.b ? Object.values(data.b).filter(([taken, total]) => taken > 0).length : 0,
-    data.b ? Object.keys(data.b).length : 0
+    data.b ? Object.keys(data.b).length : 0,
   );
 
   const lines = calcPercent(
-    data.l ? Object.values(data.l).filter(x => x > 0).length : 0,
-    data.l ? Object.keys(data.l).length : 0
+    data.l ? Object.values(data.l).filter((x) => x > 0).length : 0,
+    data.l ? Object.keys(data.l).length : 0,
   );
 
   // Выводим результат
@@ -97,7 +97,6 @@ try {
   } else {
     console.log(`✅ Хорошее покрытие (${Math.floor(avgCoverage)}%)`);
   }
-
 } catch (error) {
   console.error('❌ Ошибка при обработке файла покрытия:', error.message);
   process.exit(1);

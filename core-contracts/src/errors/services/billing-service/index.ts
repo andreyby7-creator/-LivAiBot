@@ -26,10 +26,10 @@ export {
   getCurrencyType,
   getPaymentSessionId,
   getPaymentUserId,
+  getPaymentValidationErrorSeverity,
   getPaymentValidationReason,
   getPaymentValidationRule,
   getPaymentValidationSuggestions,
-  getPaymentValidationErrorSeverity,
   isCurrencySupported,
   isPaymentAmountValid,
   isPaymentMethodSupported,
@@ -140,23 +140,85 @@ export {
 
 // ==================== VALIDATORS ====================
 
-export type {
-  BillingOperation,
-  ValidatedBillingOperation,
-} from './BillingServiceValidators.js';
+export type { BillingOperation, ValidatedBillingOperation } from './BillingServiceValidators.js';
 
 export {
   validateAmount,
+  validateBillingOperation,
   validateCurrency,
   validatePaymentMethod,
-  validateBillingOperation,
 } from './BillingServiceValidators.js';
+
+// ==================== INFRASTRUCTURE ERRORS ====================
+
+export type {
+  BePaidAPIError,
+  BePaidAPIErrorContext,
+  BePaidErrorCode,
+  GatewayUnavailableReason,
+  GenericAPIError,
+  GenericAPIErrorContext,
+  PaymentGatewayUnavailableError,
+  PaymentGatewayUnavailableErrorContext,
+  WebPayAPIError,
+  WebPayAPIErrorContext,
+  WebPayErrorCode,
+  WebPayHttpStatus,
+} from './infrastructure/index.js';
+
+// PaymentProviderId from shared layer
+export type { PaymentProviderId } from '../../shared/index.js';
+
+export {
+  BEPAID_ERROR_CODES,
+  BEPAID_HTTP_STATUSES,
+  createBePaidAPIError,
+  createFromProviderAPIError,
+  createGenericAPIError,
+  createPaymentGatewayUnavailableError,
+  createWebPayAPIError,
+  getEstimatedRecoveryTimeMin,
+  getGenericAPIErrorCorrelationId,
+  getGenericAPIErrorHttpStatus,
+  getGenericAPIErrorMessage,
+  getGenericAPIErrorProvider,
+  getGenericAPIErrorRawResponse,
+  getRetryAfterMs,
+  getSourceErrorTag,
+  getSuggestedAlternatives,
+  getUnavailableProvider,
+  getUnavailableReason,
+  getWebPayErrorCode,
+  getWebPayHttpStatus,
+  getWebPayOrderId,
+  getWebPayRawPayload,
+  getWebPayTransactionId,
+  getWebPayTransactionStatus,
+  hasSuggestedAlternatives,
+  isBePaidAPIError,
+  isBePaidCardError,
+  isBePaidRetryableError,
+  isGatewayUnavailableRetryable,
+  isGenericAPIError,
+  isPaymentGatewayUnavailableError,
+  isValidBePaidAPIErrorContext,
+  isValidGenericAPIErrorContext,
+  isValidPaymentGatewayUnavailableErrorContext,
+  isValidWebPayAPIErrorContext,
+  isWebPayAPIError,
+  isWebPayCardError,
+  isWebPayRetryableError,
+  shouldConsiderAlternatives,
+  WEBPAY_ERROR_CODES,
+  WEBPAY_HTTP_STATUSES,
+} from './infrastructure/index.js';
+
+// PaymentProviderId utilities from shared layer
+export { isPaymentProviderId, MAX_PROVIDER_ID_LENGTH } from '../../shared/index.js';
 
 // ==================== FUTURE EXPORTS (PLACEHOLDERS) ====================
 
 // These will be added as we implement the remaining layers:
-// export { validateAmount, validateCurrency, validatePaymentMethod, validateBillingOperation } from './BillingServiceValidators.js';
-// export type { StripeAPIError, PayPalAPIError, PaymentGatewayUnavailableError } from './infrastructure/index.js';
 // export { evaluatePaymentRetryPolicy, evaluateFraudRisk, evaluateRefundPolicy } from './policies/index.js';
 // export { instrumentBillingOperation } from './BillingServiceInstrumentation.js';
 // export { serializePaymentError, serializePaymentResult } from './serialization/index.js';

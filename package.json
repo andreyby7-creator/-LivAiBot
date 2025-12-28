@@ -15,7 +15,7 @@
   "author": "LivAI",
   "lint-staged": {
     "*.{ts,tsx,js,jsx}": [
-      "cross-env ESLINT_MODE=canary eslint --config eslint.config.mjs --max-warnings 0",
+      "cross-env ESLINT_MODE=canary eslint --config eslint.config.mjs --max-warnings 0 --no-warn-ignored",
       "dprint fmt"
     ],
     "**/scripts/**/*.js": [

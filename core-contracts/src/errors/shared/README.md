@@ -6,6 +6,25 @@
 
 Shared слой предоставляет высокоуровневые компоненты для типовых сценариев обработки ошибок. Компоненты протестированы, production-ready и оптимизированы для повторного использования в сервисах.
 
+## 🏗️ Core Types
+
+### PaymentProviderId
+
+Брендированный тип для идентификаторов платежных провайдеров (WebPay, BePaid, банки).
+
+```typescript
+import { isPaymentProviderId, PaymentProviderId } from '@livai/core-contracts/errors/shared';
+
+// Type-safe payment provider IDs
+const webpayId = 'webpay' as PaymentProviderId;
+const bepaidId = 'bepaid' as PaymentProviderId;
+
+// Runtime validation
+if (isPaymentProviderId(providerId)) {
+  // TypeScript знает что providerId: PaymentProviderId
+}
+```
+
 ## 🎨 Domain Errors
 
 Типизированные ошибки бизнес-логики, независимые от инфраструктуры.

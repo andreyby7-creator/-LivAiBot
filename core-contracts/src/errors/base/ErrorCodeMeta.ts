@@ -99,6 +99,7 @@ export const DEFAULT_SEVERITY_BY_CATEGORY: Record<ErrorCategory, ErrorSeverity> 
   TECHNICAL: 'high' as const,
   SECURITY: 'critical' as const,
   PERFORMANCE: 'medium' as const,
+  SYSTEM: 'critical' as const,
 } as const;
 
 /**
@@ -110,6 +111,7 @@ export const DEFAULT_ORIGIN_BY_CATEGORY: Record<ErrorCategory, ErrorOrigin> = {
   TECHNICAL: 'INFRASTRUCTURE' as const,
   SECURITY: 'DOMAIN' as const,
   PERFORMANCE: 'INFRASTRUCTURE' as const,
+  SYSTEM: 'INFRASTRUCTURE' as const,
 } as const;
 
 /**
