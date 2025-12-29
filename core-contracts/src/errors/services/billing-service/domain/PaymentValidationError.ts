@@ -59,10 +59,14 @@ export function getCurrencyLimit(
   currency: SupportedCurrency,
 ): number {
   switch (currency) {
-    case 'BYN': return limits.BYN;
-    case 'RUB': return limits.RUB;
-    case 'USD': return limits.USD;
-    case 'EUR': return limits.EUR;
+    case 'BYN':
+      return limits.BYN;
+    case 'RUB':
+      return limits.RUB;
+    case 'USD':
+      return limits.USD;
+    case 'EUR':
+      return limits.EUR;
     default: {
       const exhaustiveCheck: never = currency;
       return exhaustiveCheck;
@@ -115,7 +119,6 @@ const MAXIMUM_PAYMENT_AMOUNTS = {
   USD: 1_000_000, // 10,000 USD = 10k USD (международные лимиты)
   EUR: 1_000_000, // 10,000 EUR = 10k EUR (международные лимиты)
 } as const;
-
 
 /** Количество минимальных единиц в основных (cents в долларе, kopeks в рубле) */
 const UNITS_PER_MAJOR = 100;
@@ -197,7 +200,8 @@ export type PaymentValidationError = TaggedError<{
 /** Получает severity ошибки валидации платежа */
 export const getPaymentValidationErrorSeverity = (
   error: PaymentValidationError,
-): typeof ERROR_SEVERITY.HIGH | typeof ERROR_SEVERITY.CRITICAL => getPaymentValidationSeverity(error.details.reason);
+): typeof ERROR_SEVERITY.HIGH | typeof ERROR_SEVERITY.CRITICAL =>
+  getPaymentValidationSeverity(error.details.reason);
 
 /** Определяет severity ошибки на основе причины валидации */
 function getPaymentValidationSeverity(

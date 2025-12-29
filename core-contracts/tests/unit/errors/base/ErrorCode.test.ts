@@ -487,7 +487,8 @@ describe('ErrorCode', () => {
           expect(() => validateErrorCodeUniquenessOrThrow({})).not.toThrow();
 
           // Объект с одним кодом - не должен выбрасывать ошибку
-          expect(() => validateErrorCodeUniquenessOrThrow({ CODE1: 'DOMAIN_TEST_001' })).not.toThrow();
+          expect(() => validateErrorCodeUniquenessOrThrow({ CODE1: 'DOMAIN_TEST_001' })).not
+            .toThrow();
 
           // Объект с уникальными кодами - не должен выбрасывать ошибку
           const uniqueCodes = {
@@ -502,7 +503,9 @@ describe('ErrorCode', () => {
             CODE1: 'DOMAIN_TEST_001',
             CODE2: 'DOMAIN_TEST_001', // дубликат
           };
-          expect(() => validateErrorCodeUniquenessOrThrow(duplicateCodes1)).toThrow('Duplicate error codes found: DOMAIN_TEST_001');
+          expect(() => validateErrorCodeUniquenessOrThrow(duplicateCodes1)).toThrow(
+            'Duplicate error codes found: DOMAIN_TEST_001',
+          );
 
           // Объект с несколькими дубликатами
           const duplicateCodes2 = {
@@ -547,7 +550,7 @@ describe('ErrorCode', () => {
             '',
           ];
 
-          invalidCodes.forEach(code => {
+          invalidCodes.forEach((code) => {
             expect(() => createErrorCodeOrThrow(code)).toThrow();
           });
         });
@@ -590,7 +593,7 @@ describe('ErrorCode', () => {
             'DOMAIN_AUTH_001_EXTRA',
           ];
 
-          invalidCodes.forEach(code => {
+          invalidCodes.forEach((code) => {
             expect(() => parseErrorCodeOrThrow(code)).toThrow();
           });
         });
@@ -728,18 +731,18 @@ describe('ErrorCode', () => {
 
       // Невалидные коды - проверяем все ветки условий
       const invalidCodes = [
-        'DOMAIN_AUTH_ABC',     // невалидный инкремент
-        'DOMAIN_AUTH_',        // пустой инкремент
-        'DOMAIN_AUTH',         // отсутствует инкремент
-        'DOMAIN_001',          // отсутствует категория
-        'AUTH_001',            // отсутствует префикс
-        'INVALID_FORMAT',      // полностью неправильный формат
-        'domain_auth_001',     // неправильный регистр префикса
-        'DOMAIN_auth_001',     // неправильный регистр категории
-        '',                    // пустая строка
+        'DOMAIN_AUTH_ABC', // невалидный инкремент
+        'DOMAIN_AUTH_', // пустой инкремент
+        'DOMAIN_AUTH', // отсутствует инкремент
+        'DOMAIN_001', // отсутствует категория
+        'AUTH_001', // отсутствует префикс
+        'INVALID_FORMAT', // полностью неправильный формат
+        'domain_auth_001', // неправильный регистр префикса
+        'DOMAIN_auth_001', // неправильный регистр категории
+        '', // пустая строка
       ];
 
-      invalidCodes.forEach(code => {
+      invalidCodes.forEach((code) => {
         const result = createErrorCode(code);
         expect(result.success).toBe(false);
         if (!result.success) {

@@ -84,13 +84,19 @@ pnpm exec vitest run --coverage        # Тесты с coverage (в пакете
 pnpm exec vitest run --coverage --coverage.reporter=json # Тесты с coverage в JSON формате
 
 # Проверка покрытия конкретного файла:
-# Быстрый способ проверить покрытие любого файла
+# Автоматически парсит HTML отчеты и показывает метрики в консоли
 pnpm run coverage:file <filename>
 
 # Примеры использования:
-pnpm run coverage:file ErrorCode.ts
-pnpm run coverage:file BillingServiceErrorTypes.ts
-pnpm run coverage:file BaseError.ts
+pnpm run coverage:file fraudDetectionInterfaces.ts    # 100% покрытие
+pnpm run coverage:file PaymentProviderId.ts           # Метрики из HTML
+pnpm run coverage:file SharedValidators.ts            # Рекурсивный поиск
+pnpm run coverage:file unknown-file.ts                # Показывает общий отчет
+
+# Особенности:
+# - Автоматически определяет пакет по имени файла
+# - Показывает Statements, Branches, Functions, Lines
+# - Для неизвестных файлов - ссылка на HTML отчет
 
 # Скрипт ищет файл в coverage/coverage-final.json и показывает:
 # - Statements: процент покрытых выражений
@@ -151,14 +157,4 @@ pnpm run analyze:bundles --graph-only   # Только анализ графа �
 pnpm run analyze:bundles --compare=main # Сравнить с main branch
 pnpm run analyze:bundles --compare=none # Без сравнения
 pnpm run dev:inspect                    # Dev режим с инспектором Node.js
-```
-
-## 📊 Output команды
-
-### Вывод результатов
-
-```bash
-pnpm exec vitest run --reporter=default                            # Обычный вывод
-pnpm exec vitest run --reporter=verbose | tail -10                 # Подробный вывод
-pnpm exec vitest run --reporter=verbose --coverage=false | tail -5 # Все тесты без coverage
 ```

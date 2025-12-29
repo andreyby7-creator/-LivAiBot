@@ -31,7 +31,13 @@ describe('ErrorStrategyModifiers', () => {
     it('должен возвращать retry=true при attemptCount < maxRetries', async () => {
       const modifiedStrategy = withRetry(3)(LOG_AND_RETURN_STRATEGY);
 
-      const result = await Effect.runPromise(modifiedStrategy.execute(new Error('test'), { attemptCount: 1 }) as Effect.Effect<StrategyResult, unknown, never>);
+      const result = await Effect.runPromise(
+        modifiedStrategy.execute(new Error('test'), { attemptCount: 1 }) as Effect.Effect<
+          StrategyResult,
+          unknown,
+          never
+        >,
+      );
 
       expect(result.success).toBe(false);
       if (!result.success) {
@@ -43,7 +49,13 @@ describe('ErrorStrategyModifiers', () => {
     it('должен возвращать retry=false при attemptCount >= maxRetries', async () => {
       const modifiedStrategy = withRetry(2)(LOG_AND_RETURN_STRATEGY);
 
-      const result = await Effect.runPromise(modifiedStrategy.execute(new Error('test'), { attemptCount: 2 }) as Effect.Effect<StrategyResult, unknown, never>);
+      const result = await Effect.runPromise(
+        modifiedStrategy.execute(new Error('test'), { attemptCount: 2 }) as Effect.Effect<
+          StrategyResult,
+          unknown,
+          never
+        >,
+      );
 
       expect(result.success).toBe(false);
       if (!result.success) {
@@ -54,7 +66,13 @@ describe('ErrorStrategyModifiers', () => {
     it('должен обрабатывать отсутствие attemptCount', async () => {
       const modifiedStrategy = withRetry(3)(LOG_AND_RETURN_STRATEGY);
 
-      const result = await Effect.runPromise(modifiedStrategy.execute(new Error('test')) as Effect.Effect<StrategyResult, unknown, never>);
+      const result = await Effect.runPromise(
+        modifiedStrategy.execute(new Error('test')) as Effect.Effect<
+          StrategyResult,
+          unknown,
+          never
+        >,
+      );
 
       expect(result.success).toBe(false);
       if (!result.success) {
@@ -100,7 +118,10 @@ describe('ErrorStrategyModifiers', () => {
       let alertSent = false;
       const mockAlertService: AlertService = {
         isEnabled: true,
-        sendAlert: () => Effect.sync(() => { alertSent = true; }),
+        sendAlert: () =>
+          Effect.sync(() => {
+            alertSent = true;
+          }),
       };
 
       const modifiedStrategy = withAlert(5, 'high')(LOG_AND_RETURN_STRATEGY);
@@ -129,7 +150,13 @@ describe('ErrorStrategyModifiers', () => {
     it('должен возвращать fallback при ошибке стратегии', async () => {
       const modifiedStrategy = withFallback('fallback-result')(LOG_AND_RETURN_STRATEGY);
 
-      const result = await Effect.runPromise(modifiedStrategy.execute(new Error('test')) as Effect.Effect<StrategyResult, unknown, never>);
+      const result = await Effect.runPromise(
+        modifiedStrategy.execute(new Error('test')) as Effect.Effect<
+          StrategyResult,
+          unknown,
+          never
+        >,
+      );
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -215,9 +242,15 @@ describe('ErrorStrategyModifiers', () => {
         const originalInfo = console.info;
 
         let loggedMessage = '';
-        console.error = (message: string) => { loggedMessage = message; };
-        console.warn = (message: string) => { loggedMessage = message; };
-        console.info = (message: string) => { loggedMessage = message; };
+        console.error = (message: string) => {
+          loggedMessage = message;
+        };
+        console.warn = (message: string) => {
+          loggedMessage = message;
+        };
+        console.info = (message: string) => {
+          loggedMessage = message;
+        };
 
         try {
           await Effect.runPromise(service.sendAlert({

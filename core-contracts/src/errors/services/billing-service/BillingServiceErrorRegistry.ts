@@ -59,6 +59,8 @@ export type BillingBehaviorMetadata = {
   readonly retryable: boolean;
   /** Стратегия повторов для retryable ошибок */
   readonly retryPolicy?: 'immediate' | 'delayed' | 'manual';
+  /** Версия retry метаданных для future-proofing и совместимости */
+  readonly retryMetadataVersion: 'v1';
 };
 /** Метаданные комплаенса и безопасности */
 export type BillingComplianceMetadata = {
@@ -72,8 +74,10 @@ export type BillingComplianceMetadata = {
   readonly complianceLevel: 'pci' | 'gdpr' | 'standard';
 };
 /** Полные метаданные для billing service ошибок */
-export type BillingMetadata = BillingBehaviorMetadata &
-  BillingComplianceMetadata & {
+export type BillingMetadata =
+  & BillingBehaviorMetadata
+  & BillingComplianceMetadata
+  & {
     /**
      * Метод оплаты (если специфичен для ошибки)
      *
@@ -116,7 +120,8 @@ export const BILLING_SERVICE_ERROR_REGISTRY = {
     httpStatus: 422, // Unprocessable Entity - семантическая ошибка валидации платежа
     internalCode: 'PAYMENT_FAILED',
     loggable: true,
-    remediation: `${BILLING_REMEDIATION_COMMON.CHECK_PAYMENT_DATA} и ${BILLING_REMEDIATION_COMMON.RETRY_ATTEMPT}`,
+    remediation:
+      `${BILLING_REMEDIATION_COMMON.CHECK_PAYMENT_DATA} и ${BILLING_REMEDIATION_COMMON.RETRY_ATTEMPT}`,
     docsUrl: `${BILLING_DOCS_BASE_URL}payment-failed`,
     // Behavior metadata
     refundable: false,
@@ -124,6 +129,7 @@ export const BILLING_SERVICE_ERROR_REGISTRY = {
     visibility: 'public',
     retryable: true, // Сбои платежей могут быть временными
     retryPolicy: 'delayed', // Сбои платежей должны повторяться с задержкой
+    retryMetadataVersion: 'v1',
     // Compliance metadata
     amountSensitive: true,
     fraudRisk: 'medium',
@@ -144,7 +150,8 @@ export const BILLING_SERVICE_ERROR_REGISTRY = {
     httpStatus: 403,
     internalCode: 'SUBSCRIPTION_ERROR',
     loggable: true,
-    remediation: `${BILLING_REMEDIATION_COMMON.CHECK_SUBSCRIPTION_STATUS} или ${BILLING_REMEDIATION_COMMON.CONTACT_SUPPORT}`,
+    remediation:
+      `${BILLING_REMEDIATION_COMMON.CHECK_SUBSCRIPTION_STATUS} или ${BILLING_REMEDIATION_COMMON.CONTACT_SUPPORT}`,
     docsUrl: `${BILLING_DOCS_BASE_URL}subscription-error`,
     // Behavior metadata
     refundable: false,
@@ -152,6 +159,7 @@ export const BILLING_SERVICE_ERROR_REGISTRY = {
     visibility: 'public',
     retryable: true, // Операции с подписками могут быть повторены
     retryPolicy: 'manual', // Ошибки подписок требуют ручной проверки
+    retryMetadataVersion: 'v1',
     // Compliance metadata
     amountSensitive: false,
     fraudRisk: 'low',
@@ -172,13 +180,15 @@ export const BILLING_SERVICE_ERROR_REGISTRY = {
     httpStatus: 400,
     internalCode: 'REFUND_ERROR',
     loggable: true,
-    remediation: `${BILLING_REMEDIATION_COMMON.CHECK_REFUND_TERMS} или ${BILLING_REMEDIATION_COMMON.CONTACT_SUPPORT}`,
+    remediation:
+      `${BILLING_REMEDIATION_COMMON.CHECK_REFUND_TERMS} или ${BILLING_REMEDIATION_COMMON.CONTACT_SUPPORT}`,
     docsUrl: `${BILLING_DOCS_BASE_URL}refund-error`,
     // Behavior metadata
     refundable: true,
     subscriptionRequired: false,
     visibility: 'public',
     retryable: false, // Возвраты не должны повторяться для избежания дубликатов
+    retryMetadataVersion: 'v1',
     // Compliance metadata
     amountSensitive: true,
     fraudRisk: 'medium',

@@ -13,7 +13,10 @@ import {
   resolveStrategy,
 } from '../../../../src/errors/base/ErrorStrategies/ErrorStrategyCore.js';
 import { LOG_AND_RETURN_STRATEGY } from '../../../../src/errors/base/ErrorStrategies/ErrorStrategyBase.js';
-import type { ErrorStrategy, StrategyResult } from '../../../../src/errors/base/ErrorStrategies/ErrorStrategyTypes.js';
+import type {
+  ErrorStrategy,
+  StrategyResult,
+} from '../../../../src/errors/base/ErrorStrategies/ErrorStrategyTypes.js';
 
 describe('ErrorStrategyCore', () => {
   describe('resolveStrategy', () => {
@@ -23,7 +26,14 @@ describe('ErrorStrategyCore', () => {
         description: 'Test strategy for unit tests',
         priority: 1,
         applicableCodes: [LIVAI_ERROR_CODES.AUTH_INVALID_CREDENTIALS],
-        execute: () => Effect.succeed({ success: true, data: { handled: true, action: 'test' }, strategy: 'test-strategy' } as StrategyResult),
+        execute: () =>
+          Effect.succeed(
+            {
+              success: true,
+              data: { handled: true, action: 'test' },
+              strategy: 'test-strategy',
+            } as StrategyResult,
+          ),
       };
 
       const result = resolveStrategy(
@@ -53,7 +63,14 @@ describe('ErrorStrategyCore', () => {
         name: 'test-strategy',
         description: 'Test strategy without applicable codes',
         priority: 1,
-        execute: () => Effect.succeed({ success: true, data: { handled: true, action: 'test' }, strategy: 'test-strategy' } as StrategyResult),
+        execute: () =>
+          Effect.succeed(
+            {
+              success: true,
+              data: { handled: true, action: 'test' },
+              strategy: 'test-strategy',
+            } as StrategyResult,
+          ),
       };
 
       const result = resolveStrategy(LIVAI_ERROR_CODES.AUTH_INVALID_CREDENTIALS, [mockStrategy]);
@@ -75,10 +92,23 @@ describe('ErrorStrategyCore', () => {
         name: 'test-strategy',
         description: 'Test strategy for circuit breaker',
         priority: 1,
-        execute: () => Effect.succeed({ success: true, data: { handled: true, action: 'circuit-breaker-test' }, strategy: 'test-strategy' } as StrategyResult),
+        execute: () =>
+          Effect.succeed(
+            {
+              success: true,
+              data: { handled: true, action: 'circuit-breaker-test' },
+              strategy: 'test-strategy',
+            } as StrategyResult,
+          ),
       };
 
-      const result = await Effect.runPromise(executeWithCircuitBreaker(mockStrategy, new Error('test')) as Effect.Effect<StrategyResult, unknown, never>);
+      const result = await Effect.runPromise(
+        executeWithCircuitBreaker(mockStrategy, new Error('test')) as Effect.Effect<
+          StrategyResult,
+          unknown,
+          never
+        >,
+      );
       expect(result.success).toBe(true);
       if (result.success) {
         expect(result.data).toEqual({ handled: true, action: 'circuit-breaker-test' });
@@ -90,15 +120,18 @@ describe('ErrorStrategyCore', () => {
         name: 'test-strategy',
         description: 'Test strategy with context',
         priority: 1,
-        execute: (error, context) => Effect.succeed({
-          success: true,
-          data: { handled: true, action: `context-test-${context?.testValue}` },
-          strategy: 'test-strategy'
-        } as StrategyResult),
+        execute: (error, context) =>
+          Effect.succeed({
+            success: true,
+            data: { handled: true, action: `context-test-${context?.testValue}` },
+            strategy: 'test-strategy',
+          } as StrategyResult),
       };
 
       const result = await Effect.runPromise(
-        executeWithCircuitBreaker(mockStrategy, new Error('test'), { testValue: 'passed' }) as Effect.Effect<StrategyResult, unknown, never>,
+        executeWithCircuitBreaker(mockStrategy, new Error('test'), {
+          testValue: 'passed',
+        }) as Effect.Effect<StrategyResult, unknown, never>,
       );
       expect(result.success).toBe(true);
       if (result.success) {
@@ -109,10 +142,14 @@ describe('ErrorStrategyCore', () => {
 
   describe('resolveAndExecuteWithCircuitBreaker', () => {
     it('должен разрешить и выполнить стратегию для известного кода ошибки', async () => {
-      const effect = resolveAndExecuteWithCircuitBreaker(LIVAI_ERROR_CODES.AUTH_INVALID_CREDENTIALS, new Error('test'));
+      const effect = resolveAndExecuteWithCircuitBreaker(
+        LIVAI_ERROR_CODES.AUTH_INVALID_CREDENTIALS,
+        new Error('test'),
+      );
       expect(effect).toBeDefined();
       // Effect должен выполняться без ошибок
-      await expect(Effect.runPromise(effect as Effect.Effect<StrategyResult, unknown, never>)).resolves.toBeDefined();
+      await expect(Effect.runPromise(effect as Effect.Effect<StrategyResult, unknown, never>))
+        .resolves.toBeDefined();
     });
 
     it('должен использовать custom стратегии при разрешении', async () => {
@@ -121,7 +158,14 @@ describe('ErrorStrategyCore', () => {
         description: 'Custom test strategy',
         priority: 1,
         applicableCodes: [LIVAI_ERROR_CODES.AUTH_INVALID_CREDENTIALS],
-        execute: () => Effect.succeed({ success: true, data: { handled: true, action: 'custom-executed' }, strategy: 'custom-test-strategy' } as StrategyResult),
+        execute: () =>
+          Effect.succeed(
+            {
+              success: true,
+              data: { handled: true, action: 'custom-executed' },
+              strategy: 'custom-test-strategy',
+            } as StrategyResult,
+          ),
       };
 
       const result = await Effect.runPromise(

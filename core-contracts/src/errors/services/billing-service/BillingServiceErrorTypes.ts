@@ -12,10 +12,7 @@ import { Effect } from 'effect';
 import { SERVICE_ERROR_CODES } from '../../base/ErrorCode.js';
 import { ERROR_CATEGORY, ERROR_ORIGIN, ERROR_SEVERITY } from '../../base/ErrorConstants.js';
 
-import {
-  isCurrencySupported,
-  isPaymentMethodSupported,
-} from './domain/index.js';
+import { isCurrencySupported, isPaymentMethodSupported } from './domain/index.js';
 
 import type {
   BillingDomainError,
@@ -116,7 +113,11 @@ export function createPaymentFailedError(
   transactionId: string,
   amount: number,
   currency: string,
-  context?: { provider?: SupportedPaymentMethod; operation?: string; retryPolicy?: 'immediate' | 'delayed' | 'manual'; },
+  context?: {
+    provider?: SupportedPaymentMethod;
+    operation?: string;
+    retryPolicy?: 'immediate' | 'delayed' | 'manual';
+  },
 ): Effect.Effect<PaymentFailedError, never, never> {
   // createPaymentFailedError теперь принимает любые значения для гибкости,
   // валидация происходит на уровне сервиса

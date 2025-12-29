@@ -1,16 +1,107 @@
-// ==================== INFRASTRUCTURE ERRORS ====================
+/**
+ * @file index.ts - Экспорт инфраструктурных ошибок billing service
+ *
+ * Ошибки взаимодействия с платежными провайдерами (WebPay, BePaid) и системные
+ * ошибки инфраструктуры платежей. Включает API ошибки, недоступность шлюзов
+ * и универсальные fallback ошибки.
+ */
 
-// WebPay API Errors
-export * from './WebPayAPIError.js';
+// ==================== WEBPAY API ERRORS ====================
 
-// BePaid API Errors
-export * from './BePaidAPIError.js';
+export type {
+  WebPayAPIError,
+  WebPayAPIErrorContext,
+  WebPayErrorCategory,
+  WebPayErrorCode,
+  WebPayHttpStatus,
+  WebPayTransactionStatus,
+} from './WebPayAPIError.js';
 
-// Payment Gateway Unavailable Error (system-level)
-export * from './PaymentGatewayUnavailableError.js';
+export {
+  createWebPayAPIError,
+  filterWebPayErrorsByCategory,
+  getWebPayErrorCategory,
+  getWebPayErrorCode,
+  getWebPayHttpStatus,
+  getWebPayLogger,
+  getWebPayOrderId,
+  getWebPayRawPayload,
+  getWebPayTransactionId,
+  getWebPayTransactionStatus,
+  isValidWebPayAPIErrorContext,
+  isWebPayAPIError,
+  isWebPayCardError,
+  isWebPayErrorInCategory,
+  isWebPayRetryableError,
+  setWebPayLogger,
+  WEBPAY_ERROR_CATEGORIES,
+  WEBPAY_ERROR_CODES,
+  WEBPAY_HTTP_STATUSES,
+} from './WebPayAPIError.js';
 
-// Generic API Error (fallback for unknown responses)
-export * from './GenericAPIError.js';
+// ==================== BEPAID API ERRORS ====================
 
-// Future infrastructure errors will be added here:
-// export * from './BankAPIError.js';
+export type {
+  BePaidAPIError,
+  BePaidAPIErrorContext,
+  BePaidErrorCategory,
+  BePaidErrorCode,
+  BePaidHttpStatus,
+} from './BePaidAPIError.js';
+
+export {
+  BEPAID_ERROR_CATEGORIES,
+  BEPAID_ERROR_CODES,
+  BEPAID_HTTP_STATUSES,
+  createBePaidAPIError,
+  filterBePaidErrorsByCategory,
+  getBePaidErrorCategory,
+  getBePaidErrorCode,
+  getBePaidHttpStatus,
+  getBePaidLogger,
+  getBePaidTransactionId,
+  isBePaidAPIError,
+  isBePaidCardError,
+  isBePaidErrorInCategory,
+  isBePaidRetryableError,
+  isValidBePaidAPIErrorContext,
+  setBePaidLogger,
+} from './BePaidAPIError.js';
+
+// ==================== SYSTEM INFRASTRUCTURE ERRORS ====================
+
+export type {
+  GatewayUnavailableReason,
+  PaymentGatewayUnavailableError,
+  PaymentGatewayUnavailableErrorContext,
+} from './PaymentGatewayUnavailableError.js';
+
+export type { GenericAPIError, GenericAPIErrorContext } from './GenericAPIError.js';
+
+export {
+  createFromProviderAPIError,
+  createPaymentGatewayUnavailableError,
+  getEstimatedRecoveryTimeMin,
+  getRetryAfterMs,
+  getSourceErrorTag,
+  getSuggestedAlternatives,
+  getUnavailableProvider,
+  getUnavailableReason,
+  hasSuggestedAlternatives,
+  isGatewayUnavailableRetryable,
+  isPaymentGatewayUnavailableError,
+  isValidPaymentGatewayUnavailableErrorContext,
+  shouldConsiderAlternatives,
+} from './PaymentGatewayUnavailableError.js';
+
+export {
+  createGenericAPIError,
+  createGenericAPIErrorFromResponse,
+  getGenericAPIErrorCorrelationId,
+  getGenericAPIErrorHttpStatus,
+  getGenericAPIErrorMessage,
+  getGenericAPIErrorProvider,
+  getGenericAPIErrorRawResponse,
+  isGenericAPIError,
+  isValidGenericAPIErrorContext,
+} from './GenericAPIError.js';

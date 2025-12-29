@@ -15,7 +15,11 @@ import type {
   BillingServiceErrorMetadata,
 } from '../../../../../src/errors/services/billing-service/BillingServiceErrorRegistry.js';
 import { SERVICE_ERROR_CODES } from '../../../../../src/errors/base/ErrorCode.js';
-import { ERROR_CATEGORY, ERROR_ORIGIN, ERROR_SEVERITY } from '../../../../../src/errors/base/ErrorConstants.js';
+import {
+  ERROR_CATEGORY,
+  ERROR_ORIGIN,
+  ERROR_SEVERITY,
+} from '../../../../../src/errors/base/ErrorConstants.js';
 import type { BillingServiceError } from '../../../../../src/errors/services/billing-service/BillingServiceErrorTypes.js';
 
 // ==================== CONSTANTS TESTS ====================
@@ -31,7 +35,8 @@ describe('BillingServiceErrorRegistry - Constants', () => {
 
       expectedCodes.forEach((code) => {
         expect(BILLING_SERVICE_ERROR_REGISTRY).toHaveProperty(code);
-        expect(BILLING_SERVICE_ERROR_REGISTRY[code as keyof typeof BILLING_SERVICE_ERROR_REGISTRY]).toBeDefined();
+        expect(BILLING_SERVICE_ERROR_REGISTRY[code as keyof typeof BILLING_SERVICE_ERROR_REGISTRY])
+          .toBeDefined();
       });
     });
 
@@ -75,7 +80,8 @@ describe('BillingServiceErrorRegistry - Constants', () => {
     });
 
     describe('SERVICE_BILLING_PAYMENT_FAILED metadata', () => {
-      const metadata = BILLING_SERVICE_ERROR_REGISTRY[SERVICE_ERROR_CODES.SERVICE_BILLING_PAYMENT_FAILED];
+      const metadata =
+        BILLING_SERVICE_ERROR_REGISTRY[SERVICE_ERROR_CODES.SERVICE_BILLING_PAYMENT_FAILED];
 
       it('should have correct base properties', () => {
         expect(metadata.code).toBe(SERVICE_ERROR_CODES.SERVICE_BILLING_PAYMENT_FAILED);
@@ -102,7 +108,8 @@ describe('BillingServiceErrorRegistry - Constants', () => {
     });
 
     describe('SERVICE_BILLING_SUBSCRIPTION_ERROR metadata', () => {
-      const metadata = BILLING_SERVICE_ERROR_REGISTRY[SERVICE_ERROR_CODES.SERVICE_BILLING_SUBSCRIPTION_ERROR];
+      const metadata =
+        BILLING_SERVICE_ERROR_REGISTRY[SERVICE_ERROR_CODES.SERVICE_BILLING_SUBSCRIPTION_ERROR];
 
       it('should have correct base properties', () => {
         expect(metadata.code).toBe(SERVICE_ERROR_CODES.SERVICE_BILLING_SUBSCRIPTION_ERROR);
@@ -129,7 +136,8 @@ describe('BillingServiceErrorRegistry - Constants', () => {
     });
 
     describe('SERVICE_BILLING_REFUND_ERROR metadata', () => {
-      const metadata = BILLING_SERVICE_ERROR_REGISTRY[SERVICE_ERROR_CODES.SERVICE_BILLING_REFUND_ERROR];
+      const metadata =
+        BILLING_SERVICE_ERROR_REGISTRY[SERVICE_ERROR_CODES.SERVICE_BILLING_REFUND_ERROR];
 
       it('should have correct base properties', () => {
         expect(metadata.code).toBe(SERVICE_ERROR_CODES.SERVICE_BILLING_REFUND_ERROR);
@@ -162,16 +170,24 @@ describe('BillingServiceErrorRegistry - Constants', () => {
 describe('BillingServiceErrorRegistry - Metadata Functions', () => {
   describe('getBillingErrorMetadata', () => {
     it('should return metadata for valid error codes', () => {
-      const paymentFailedMeta = getBillingErrorMetadata(SERVICE_ERROR_CODES.SERVICE_BILLING_PAYMENT_FAILED);
+      const paymentFailedMeta = getBillingErrorMetadata(
+        SERVICE_ERROR_CODES.SERVICE_BILLING_PAYMENT_FAILED,
+      );
       expect(paymentFailedMeta).toBeDefined();
       expect(paymentFailedMeta?.code).toBe(SERVICE_ERROR_CODES.SERVICE_BILLING_PAYMENT_FAILED);
       expect(paymentFailedMeta?.description).toContain('Обработка платежа');
 
-      const subscriptionErrorMeta = getBillingErrorMetadata(SERVICE_ERROR_CODES.SERVICE_BILLING_SUBSCRIPTION_ERROR);
+      const subscriptionErrorMeta = getBillingErrorMetadata(
+        SERVICE_ERROR_CODES.SERVICE_BILLING_SUBSCRIPTION_ERROR,
+      );
       expect(subscriptionErrorMeta).toBeDefined();
-      expect(subscriptionErrorMeta?.code).toBe(SERVICE_ERROR_CODES.SERVICE_BILLING_SUBSCRIPTION_ERROR);
+      expect(subscriptionErrorMeta?.code).toBe(
+        SERVICE_ERROR_CODES.SERVICE_BILLING_SUBSCRIPTION_ERROR,
+      );
 
-      const refundErrorMeta = getBillingErrorMetadata(SERVICE_ERROR_CODES.SERVICE_BILLING_REFUND_ERROR);
+      const refundErrorMeta = getBillingErrorMetadata(
+        SERVICE_ERROR_CODES.SERVICE_BILLING_REFUND_ERROR,
+      );
       expect(refundErrorMeta).toBeDefined();
       expect(refundErrorMeta?.code).toBe(SERVICE_ERROR_CODES.SERVICE_BILLING_REFUND_ERROR);
     });
@@ -212,8 +228,11 @@ describe('BillingServiceErrorRegistry - Metadata Functions', () => {
     });
 
     it('should return same metadata as direct registry access', () => {
-      const directAccess = BILLING_SERVICE_ERROR_REGISTRY[SERVICE_ERROR_CODES.SERVICE_BILLING_PAYMENT_FAILED];
-      const functionAccess = getBillingErrorMetadata(SERVICE_ERROR_CODES.SERVICE_BILLING_PAYMENT_FAILED);
+      const directAccess =
+        BILLING_SERVICE_ERROR_REGISTRY[SERVICE_ERROR_CODES.SERVICE_BILLING_PAYMENT_FAILED];
+      const functionAccess = getBillingErrorMetadata(
+        SERVICE_ERROR_CODES.SERVICE_BILLING_PAYMENT_FAILED,
+      );
 
       expect(functionAccess).toEqual(directAccess);
     });
@@ -224,7 +243,8 @@ describe('BillingServiceErrorRegistry - Metadata Functions', () => {
 
 describe('BillingServiceErrorRegistry - Type Safety', () => {
   it('should have correct BillingServiceErrorMetadata type structure', () => {
-    const metadata: BillingServiceErrorMetadata = BILLING_SERVICE_ERROR_REGISTRY[SERVICE_ERROR_CODES.SERVICE_BILLING_PAYMENT_FAILED];
+    const metadata: BillingServiceErrorMetadata =
+      BILLING_SERVICE_ERROR_REGISTRY[SERVICE_ERROR_CODES.SERVICE_BILLING_PAYMENT_FAILED];
 
     // Type assertion for extended metadata
     expect(metadata).toHaveProperty('fraudRisk');
@@ -294,7 +314,9 @@ describe('BillingServiceErrorRegistry - Exhaustiveness', () => {
   });
 
   it('should have registry keys matching BillingServiceError codes', () => {
-    const registryKeys = Object.keys(BILLING_SERVICE_ERROR_REGISTRY) as BillingServiceError['code'][];
+    const registryKeys = Object.keys(
+      BILLING_SERVICE_ERROR_REGISTRY,
+    ) as BillingServiceError['code'][];
 
     // All registry keys should be valid BillingServiceError codes
     registryKeys.forEach((key) => {
@@ -325,7 +347,8 @@ describe('BillingServiceErrorRegistry - Integration', () => {
   it('should provide consistent metadata across different access methods', () => {
     const code = SERVICE_ERROR_CODES.SERVICE_BILLING_PAYMENT_FAILED;
 
-    const directMetadata = BILLING_SERVICE_ERROR_REGISTRY[code as keyof typeof BILLING_SERVICE_ERROR_REGISTRY];
+    const directMetadata =
+      BILLING_SERVICE_ERROR_REGISTRY[code as keyof typeof BILLING_SERVICE_ERROR_REGISTRY];
     const functionMetadata = getBillingErrorMetadata(code);
 
     expect(functionMetadata).toEqual(directMetadata);
@@ -334,7 +357,9 @@ describe('BillingServiceErrorRegistry - Integration', () => {
 
   it('should handle all registry keys safely', () => {
     // Test that all registry keys can be safely accessed
-    const registryKeys = Object.keys(BILLING_SERVICE_ERROR_REGISTRY) as (keyof typeof BILLING_SERVICE_ERROR_REGISTRY)[];
+    const registryKeys = Object.keys(
+      BILLING_SERVICE_ERROR_REGISTRY,
+    ) as (keyof typeof BILLING_SERVICE_ERROR_REGISTRY)[];
 
     registryKeys.forEach((key) => {
       const metadata = getBillingErrorMetadata(key);

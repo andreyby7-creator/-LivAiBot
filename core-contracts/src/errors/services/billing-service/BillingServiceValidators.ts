@@ -25,10 +25,7 @@ import {
 } from './domain/index.js';
 
 import type { PaymentFailedError } from './BillingServiceErrorTypes.js';
-import type {
-  SupportedCurrency,
-  SupportedPaymentMethod,
-} from './domain/index.js';
+import type { SupportedCurrency, SupportedPaymentMethod } from './domain/index.js';
 
 // ==================== RETRY POLICY CONSTANTS ====================
 
@@ -42,7 +39,8 @@ export const VALIDATION_RETRY_POLICIES = {
   MANUAL: 'manual',
 } as const;
 
-export type ValidationRetryPolicy = typeof VALIDATION_RETRY_POLICIES[keyof typeof VALIDATION_RETRY_POLICIES];
+export type ValidationRetryPolicy =
+  typeof VALIDATION_RETRY_POLICIES[keyof typeof VALIDATION_RETRY_POLICIES];
 
 // ==================== OBSERVABILITY CONTEXT ====================
 
@@ -117,7 +115,14 @@ const createValidationFailure = (
   retryPolicy?: ValidationRetryPolicy,
   observabilityContext?: ObservabilityContext,
 ): Effect.Effect<never, PaymentFailedError, never> =>
-  createValidationError(transactionId, amount, currency, operation, retryPolicy, observabilityContext);
+  createValidationError(
+    transactionId,
+    amount,
+    currency,
+    operation,
+    retryPolicy,
+    observabilityContext,
+  );
 
 // ==================== ТИПЫ ====================
 
@@ -157,13 +162,27 @@ export const validateAmount = (
 ): Effect.Effect<number, PaymentFailedError> => {
   // Базовая валидация суммы
   if (!Number.isFinite(amount) || amount <= 0) {
-    return createValidationFailure(amount, currency, 'amount-validation', `amount-invalid-${amount}-${currency}`, VALIDATION_RETRY_POLICIES.MANUAL, observabilityContext);
+    return createValidationFailure(
+      amount,
+      currency,
+      'amount-validation',
+      `amount-invalid-${amount}-${currency}`,
+      VALIDATION_RETRY_POLICIES.MANUAL,
+      observabilityContext,
+    );
   }
 
   // Проверяем соответствие бизнес-правилам для указанной валюты
   // Используем domain helper для комплексной валидации
   if (!isPaymentAmountValid(amount, currency)) {
-    return createValidationFailure(amount, currency, 'amount-validation', `amount-limits-${amount}-${currency}`, VALIDATION_RETRY_POLICIES.MANUAL, observabilityContext);
+    return createValidationFailure(
+      amount,
+      currency,
+      'amount-validation',
+      `amount-limits-${amount}-${currency}`,
+      VALIDATION_RETRY_POLICIES.MANUAL,
+      observabilityContext,
+    );
   }
 
   return Effect.succeed(amount);
@@ -181,7 +200,14 @@ export const validateCurrency = (
 ): Effect.Effect<SupportedCurrency, PaymentFailedError> => {
   // Проверяем поддержку валюты через domain helper
   if (!isCurrencySupported(currency)) {
-    return createValidationFailure(0, currency, 'currency-validation', `currency-unsupported-${currency}`, VALIDATION_RETRY_POLICIES.MANUAL, observabilityContext);
+    return createValidationFailure(
+      0,
+      currency,
+      'currency-validation',
+      `currency-unsupported-${currency}`,
+      VALIDATION_RETRY_POLICIES.MANUAL,
+      observabilityContext,
+    );
   }
 
   // Type guard isCurrencySupported гарантирует, что currency имеет тип SupportedCurrency
@@ -206,7 +232,14 @@ export const validatePaymentMethod = (
 
   // Проверяем поддержку метода через domain helper
   if (!isPaymentMethodSupported(method)) {
-    return createValidationFailure(0, 'N/A', 'payment-method-validation', `payment-method-unsupported-${method}`, VALIDATION_RETRY_POLICIES.MANUAL, observabilityContext);
+    return createValidationFailure(
+      0,
+      'N/A',
+      'payment-method-validation',
+      `payment-method-unsupported-${method}`,
+      VALIDATION_RETRY_POLICIES.MANUAL,
+      observabilityContext,
+    );
   }
 
   // Type guard isPaymentMethodSupported гарантирует, что method имеет тип SupportedPaymentMethod
@@ -239,10 +272,10 @@ export const validateBillingOperation = (
               amount: validatedAmount,
               currency,
               paymentMethod,
-            }))
+            })),
           )
-        )
+        ),
       )
-    )
+    ),
   );
 };

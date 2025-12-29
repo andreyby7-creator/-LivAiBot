@@ -3,12 +3,16 @@ import { Effect } from 'effect';
 
 import {
   validateAmount,
+  validateBillingOperation,
   validateCurrency,
   validatePaymentMethod,
-  validateBillingOperation,
 } from '../../../../../src/errors/services/billing-service/BillingServiceValidators.js';
 import { SERVICE_ERROR_CODES } from '../../../../../src/errors/base/ErrorCode.js';
-import { ERROR_CATEGORY, ERROR_ORIGIN, ERROR_SEVERITY } from '../../../../../src/errors/base/ErrorConstants.js';
+import {
+  ERROR_CATEGORY,
+  ERROR_ORIGIN,
+  ERROR_SEVERITY,
+} from '../../../../../src/errors/base/ErrorConstants.js';
 import type { PaymentFailedError } from '../../../../../src/errors/services/billing-service/BillingServiceErrorTypes.js';
 
 // ==================== HELPERS ====================
@@ -73,8 +77,8 @@ describe('validateAmount', () => {
       expect(result._tag).toBe('Left');
       if (result._tag === 'Left') {
         if (result._tag === 'Left') {
-        expectPaymentFailedError(result.left, SERVICE_ERROR_CODES.SERVICE_BILLING_PAYMENT_FAILED);
-      }
+          expectPaymentFailedError(result.left, SERVICE_ERROR_CODES.SERVICE_BILLING_PAYMENT_FAILED);
+        }
         expect(result.left.details.amount).toBe(0);
         expect(result.left.details.currency).toBe('BYN');
       }
@@ -85,8 +89,8 @@ describe('validateAmount', () => {
       expect(result._tag).toBe('Left');
       if (result._tag === 'Left') {
         if (result._tag === 'Left') {
-        expectPaymentFailedError(result.left, SERVICE_ERROR_CODES.SERVICE_BILLING_PAYMENT_FAILED);
-      }
+          expectPaymentFailedError(result.left, SERVICE_ERROR_CODES.SERVICE_BILLING_PAYMENT_FAILED);
+        }
         expect(result.left.details.amount).toBe(-100);
       }
     });
@@ -96,8 +100,8 @@ describe('validateAmount', () => {
       expect(result._tag).toBe('Left');
       if (result._tag === 'Left') {
         if (result._tag === 'Left') {
-        expectPaymentFailedError(result.left, SERVICE_ERROR_CODES.SERVICE_BILLING_PAYMENT_FAILED);
-      }
+          expectPaymentFailedError(result.left, SERVICE_ERROR_CODES.SERVICE_BILLING_PAYMENT_FAILED);
+        }
         expect(result.left.details.amount).toBe(NaN);
       }
     });
@@ -107,8 +111,8 @@ describe('validateAmount', () => {
       expect(result._tag).toBe('Left');
       if (result._tag === 'Left') {
         if (result._tag === 'Left') {
-        expectPaymentFailedError(result.left, SERVICE_ERROR_CODES.SERVICE_BILLING_PAYMENT_FAILED);
-      }
+          expectPaymentFailedError(result.left, SERVICE_ERROR_CODES.SERVICE_BILLING_PAYMENT_FAILED);
+        }
         expect(result.left.details.amount).toBe(Infinity);
       }
     });
@@ -119,8 +123,8 @@ describe('validateAmount', () => {
       expect(result._tag).toBe('Left');
       if (result._tag === 'Left') {
         if (result._tag === 'Left') {
-        expectPaymentFailedError(result.left, SERVICE_ERROR_CODES.SERVICE_BILLING_PAYMENT_FAILED);
-      }
+          expectPaymentFailedError(result.left, SERVICE_ERROR_CODES.SERVICE_BILLING_PAYMENT_FAILED);
+        }
         expect(result.left.details.amount).toBe(6000000);
       }
     });
@@ -168,8 +172,8 @@ describe('validateCurrency', () => {
       expect(result._tag).toBe('Left');
       if (result._tag === 'Left') {
         if (result._tag === 'Left') {
-        expectPaymentFailedError(result.left, SERVICE_ERROR_CODES.SERVICE_BILLING_PAYMENT_FAILED);
-      }
+          expectPaymentFailedError(result.left, SERVICE_ERROR_CODES.SERVICE_BILLING_PAYMENT_FAILED);
+        }
       }
     });
   });
@@ -180,8 +184,8 @@ describe('validateCurrency', () => {
       expect(result._tag).toBe('Left');
       if (result._tag === 'Left') {
         if (result._tag === 'Left') {
-        expectPaymentFailedError(result.left, SERVICE_ERROR_CODES.SERVICE_BILLING_PAYMENT_FAILED);
-      }
+          expectPaymentFailedError(result.left, SERVICE_ERROR_CODES.SERVICE_BILLING_PAYMENT_FAILED);
+        }
         expect(result.left.details.amount).toBe(0);
         expect(result.left.details.currency).toBe('JPY');
       }
@@ -192,8 +196,8 @@ describe('validateCurrency', () => {
       expect(result._tag).toBe('Left');
       if (result._tag === 'Left') {
         if (result._tag === 'Left') {
-        expectPaymentFailedError(result.left, SERVICE_ERROR_CODES.SERVICE_BILLING_PAYMENT_FAILED);
-      }
+          expectPaymentFailedError(result.left, SERVICE_ERROR_CODES.SERVICE_BILLING_PAYMENT_FAILED);
+        }
         expect(result.left.details.currency).toBe('');
       }
     });

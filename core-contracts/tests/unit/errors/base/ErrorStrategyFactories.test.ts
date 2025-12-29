@@ -12,7 +12,10 @@ import {
 } from '../../../../src/errors/base/ErrorStrategies/ErrorStrategyFactories.js';
 import { LOG_AND_RETURN_STRATEGY } from '../../../../src/errors/base/ErrorStrategies/ErrorStrategyBase.js';
 
-import type { ErrorStrategy, StrategyResult } from '../../../../src/errors/base/ErrorStrategies/ErrorStrategyTypes.js';
+import type {
+  ErrorStrategy,
+  StrategyResult,
+} from '../../../../src/errors/base/ErrorStrategies/ErrorStrategyTypes.js';
 
 describe('ErrorStrategyFactories', () => {
   describe('createStrategyWithCodes', () => {
@@ -44,7 +47,7 @@ describe('ErrorStrategyFactories', () => {
 
       expect(strategy.applicableCodes).toBeDefined();
       expect(strategy.applicableCodes!.length).toBeGreaterThan(0);
-      expect(strategy.applicableCodes!.every(code => code.startsWith('DOMAIN_AUTH'))).toBe(true);
+      expect(strategy.applicableCodes!.every((code) => code.startsWith('DOMAIN_AUTH'))).toBe(true);
     });
 
     it('должен создавать стратегию с пустым массивом кодов для несуществующего префикса', () => {
@@ -62,12 +65,12 @@ describe('ErrorStrategyFactories', () => {
         'ADMIN_USER',
       ];
 
-      existingPrefixes.forEach(prefix => {
+      existingPrefixes.forEach((prefix) => {
         const strategy = createStrategyForPrefix(LOG_AND_RETURN_STRATEGY, prefix);
         expect(strategy.applicableCodes).toBeDefined();
         expect(Array.isArray(strategy.applicableCodes)).toBe(true);
         expect(strategy.applicableCodes!.length).toBeGreaterThan(0);
-        expect(strategy.applicableCodes!.every(code => code.startsWith(prefix))).toBe(true);
+        expect(strategy.applicableCodes!.every((code) => code.startsWith(prefix))).toBe(true);
       });
 
       // Частичные префиксы - должны найти коды
@@ -78,12 +81,12 @@ describe('ErrorStrategyFactories', () => {
         'ADMIN',
       ];
 
-      partialPrefixes.forEach(prefix => {
+      partialPrefixes.forEach((prefix) => {
         const strategy = createStrategyForPrefix(LOG_AND_RETURN_STRATEGY, prefix);
         expect(strategy.applicableCodes).toBeDefined();
         expect(Array.isArray(strategy.applicableCodes)).toBe(true);
         expect(strategy.applicableCodes!.length).toBeGreaterThan(0);
-        expect(strategy.applicableCodes!.every(code => code.startsWith(prefix))).toBe(true);
+        expect(strategy.applicableCodes!.every((code) => code.startsWith(prefix))).toBe(true);
       });
 
       // Несуществующие префиксы - должны вернуть пустой массив
@@ -94,7 +97,7 @@ describe('ErrorStrategyFactories', () => {
         'XYZ_', // не существует в error codes
       ];
 
-      nonExistentPrefixes.forEach(prefix => {
+      nonExistentPrefixes.forEach((prefix) => {
         const strategy = createStrategyForPrefix(LOG_AND_RETURN_STRATEGY, prefix);
         expect(strategy.applicableCodes).toEqual([]);
       });
@@ -107,7 +110,10 @@ describe('ErrorStrategyFactories', () => {
 
   describe('createAsyncStrategy', () => {
     it('должен создавать асинхронную стратегию без applicableCodes', () => {
-      const asyncFn = async (error: unknown, context?: Record<string, unknown>): Promise<StrategyResult> => ({
+      const asyncFn = async (
+        error: unknown,
+        context?: Record<string, unknown>,
+      ): Promise<StrategyResult> => ({
         success: true,
         data: 'test-result',
         strategy: 'test-async',
@@ -122,27 +128,41 @@ describe('ErrorStrategyFactories', () => {
     });
 
     it('должен создавать асинхронную стратегию с applicableCodes', () => {
-      const asyncFn = async (error: unknown, context?: Record<string, unknown>): Promise<StrategyResult> => ({
+      const asyncFn = async (
+        error: unknown,
+        context?: Record<string, unknown>,
+      ): Promise<StrategyResult> => ({
         success: true,
         data: 'test-result',
         strategy: 'test-async',
       });
 
       const applicableCodes = [LIVAI_ERROR_CODES.AUTH_INVALID_CREDENTIALS];
-      const strategy = createAsyncStrategy('test-async', 'Test async strategy', 1, asyncFn, applicableCodes);
+      const strategy = createAsyncStrategy(
+        'test-async',
+        'Test async strategy',
+        1,
+        asyncFn,
+        applicableCodes,
+      );
 
       expect(strategy.applicableCodes).toEqual(applicableCodes);
     });
 
     it('должен корректно выполнять асинхронную функцию при успехе', async () => {
-      const asyncFn = async (error: unknown, context?: Record<string, unknown>): Promise<StrategyResult> => ({
+      const asyncFn = async (
+        error: unknown,
+        context?: Record<string, unknown>,
+      ): Promise<StrategyResult> => ({
         success: true,
         data: 'async-success',
         strategy: 'test-async',
       });
 
       const strategy = createAsyncStrategy('test-async', 'Test', 1, asyncFn);
-      const result = await Effect.runPromise(strategy.execute(new Error('test')) as Effect.Effect<StrategyResult, unknown, never>);
+      const result = await Effect.runPromise(
+        strategy.execute(new Error('test')) as Effect.Effect<StrategyResult, unknown, never>,
+      );
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -151,12 +171,17 @@ describe('ErrorStrategyFactories', () => {
     });
 
     it('должен обрабатывать ошибки в асинхронной функции', async () => {
-      const asyncFn = async (error: unknown, context?: Record<string, unknown>): Promise<StrategyResult> => {
+      const asyncFn = async (
+        error: unknown,
+        context?: Record<string, unknown>,
+      ): Promise<StrategyResult> => {
         throw new Error('async-error');
       };
 
       const strategy = createAsyncStrategy('test-async', 'Test', 1, asyncFn);
-      const result = await Effect.runPromise(strategy.execute(new Error('test')) as Effect.Effect<StrategyResult, unknown, never>);
+      const result = await Effect.runPromise(
+        strategy.execute(new Error('test')) as Effect.Effect<StrategyResult, unknown, never>,
+      );
 
       expect(result.success).toBe(false);
       if (!result.success) {
@@ -167,14 +192,23 @@ describe('ErrorStrategyFactories', () => {
     });
 
     it('должен передавать context в асинхронную функцию', async () => {
-      const asyncFn = async (error: unknown, context?: Record<string, unknown>): Promise<StrategyResult> => ({
+      const asyncFn = async (
+        error: unknown,
+        context?: Record<string, unknown>,
+      ): Promise<StrategyResult> => ({
         success: true,
         data: context?.testValue,
         strategy: 'test-async',
       });
 
       const strategy = createAsyncStrategy('test-async', 'Test', 1, asyncFn);
-      const result = await Effect.runPromise(strategy.execute(new Error('test'), { testValue: 'passed' }) as Effect.Effect<StrategyResult, unknown, never>);
+      const result = await Effect.runPromise(
+        strategy.execute(new Error('test'), { testValue: 'passed' }) as Effect.Effect<
+          StrategyResult,
+          unknown,
+          never
+        >,
+      );
 
       if (result.success) {
         expect(result.data).toBe('passed');
@@ -210,7 +244,9 @@ describe('ErrorStrategyFactories', () => {
         Effect.succeed('effect-success');
 
       const strategy = createEffectStrategy('test-effect', 'Test', 2, effectFn);
-      const result = await Effect.runPromise(strategy.execute(new Error('test')) as Effect.Effect<StrategyResult, unknown, never>);
+      const result = await Effect.runPromise(
+        strategy.execute(new Error('test')) as Effect.Effect<StrategyResult, unknown, never>,
+      );
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -224,7 +260,9 @@ describe('ErrorStrategyFactories', () => {
         Effect.fail('effect-error');
 
       const strategy = createEffectStrategy('test-effect', 'Test', 2, effectFn);
-      const result = await Effect.runPromise(strategy.execute(new Error('test')) as Effect.Effect<StrategyResult, unknown, never>);
+      const result = await Effect.runPromise(
+        strategy.execute(new Error('test')) as Effect.Effect<StrategyResult, unknown, never>,
+      );
 
       expect(result.success).toBe(false);
       if (!result.success) {
@@ -246,7 +284,12 @@ describe('ErrorStrategyFactories', () => {
         callback(null, 'callback-result');
       };
 
-      const strategy = createCallbackStrategy('test-callback', 'Test callback strategy', 3, callbackFn);
+      const strategy = createCallbackStrategy(
+        'test-callback',
+        'Test callback strategy',
+        3,
+        callbackFn,
+      );
 
       expect(strategy.name).toBe('test-callback');
       expect(strategy.description).toBe('Test callback strategy');
@@ -264,7 +307,13 @@ describe('ErrorStrategyFactories', () => {
       };
 
       const applicableCodes = [LIVAI_ERROR_CODES.INFRA_DB_CONNECTION_FAILED];
-      const strategy = createCallbackStrategy('test-callback', 'Test', 3, callbackFn, applicableCodes);
+      const strategy = createCallbackStrategy(
+        'test-callback',
+        'Test',
+        3,
+        callbackFn,
+        applicableCodes,
+      );
 
       expect(strategy.applicableCodes).toEqual(applicableCodes);
     });
@@ -279,7 +328,9 @@ describe('ErrorStrategyFactories', () => {
       };
 
       const strategy = createCallbackStrategy('test-callback', 'Test', 3, callbackFn);
-      const result = await Effect.runPromise(strategy.execute(new Error('test')) as Effect.Effect<StrategyResult, unknown, never>);
+      const result = await Effect.runPromise(
+        strategy.execute(new Error('test')) as Effect.Effect<StrategyResult, unknown, never>,
+      );
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -298,7 +349,9 @@ describe('ErrorStrategyFactories', () => {
       };
 
       const strategy = createCallbackStrategy('test-callback', 'Test', 3, callbackFn);
-      const result = await Effect.runPromise(strategy.execute(new Error('test')) as Effect.Effect<StrategyResult, unknown, never>);
+      const result = await Effect.runPromise(
+        strategy.execute(new Error('test')) as Effect.Effect<StrategyResult, unknown, never>,
+      );
 
       expect(result.success).toBe(false);
       if (!result.success) {
@@ -311,13 +364,19 @@ describe('ErrorStrategyFactories', () => {
 
     it('должен покрывать edge cases в фабричных функциях', () => {
       // createAsyncStrategy с различными типами функций
-      const asyncFnSuccess = async (error: unknown, context?: Record<string, unknown>): Promise<StrategyResult> => ({
+      const asyncFnSuccess = async (
+        error: unknown,
+        context?: Record<string, unknown>,
+      ): Promise<StrategyResult> => ({
         success: true,
         data: { result: 'success' },
         strategy: 'async-success',
       });
 
-      const asyncFnError = async (error: unknown, context?: Record<string, unknown>): Promise<StrategyResult> => ({
+      const asyncFnError = async (
+        error: unknown,
+        context?: Record<string, unknown>,
+      ): Promise<StrategyResult> => ({
         success: false,
         error: new Error('async error'),
         strategy: 'async-error',
@@ -332,33 +391,60 @@ describe('ErrorStrategyFactories', () => {
 
       // createEffectStrategy с различными эффектами
       const effectFnSuccess = (error: unknown, context?: Record<string, unknown>) =>
-        Effect.succeed({ success: true, data: { result: 'effect success' }, strategy: 'effect-success' } as StrategyResult);
+        Effect.succeed(
+          {
+            success: true,
+            data: { result: 'effect success' },
+            strategy: 'effect-success',
+          } as StrategyResult,
+        );
 
       const effectFnError = (error: unknown, context?: Record<string, unknown>) =>
         Effect.fail(new Error('effect error'));
 
-      const strategyEffectSuccess = createEffectStrategy('effect-success', 'Test', 2, effectFnSuccess);
+      const strategyEffectSuccess = createEffectStrategy(
+        'effect-success',
+        'Test',
+        2,
+        effectFnSuccess,
+      );
       const strategyEffectError = createEffectStrategy('effect-error', 'Test', 2, effectFnError);
 
       expect(strategyEffectSuccess.name).toBe('effect-success');
       expect(strategyEffectError.name).toBe('effect-error');
 
       // createCallbackStrategy с различными функциями
-      const callbackFnSuccess = (error: unknown, context?: Record<string, unknown>): StrategyResult => ({
+      const callbackFnSuccess = (
+        error: unknown,
+        context?: Record<string, unknown>,
+      ): StrategyResult => ({
         success: true,
         data: { result: 'callback success' },
         strategy: 'callback-success',
       });
 
-      const callbackFnError = (error: unknown, context?: Record<string, unknown>): StrategyResult => ({
+      const callbackFnError = (
+        error: unknown,
+        context?: Record<string, unknown>,
+      ): StrategyResult => ({
         success: false,
         error: new Error('callback error'),
         strategy: 'callback-error',
         shouldRetry: false,
       });
 
-      const strategyCallbackSuccess = createCallbackStrategy('callback-success', 'Test', 3, callbackFnSuccess);
-      const strategyCallbackError = createCallbackStrategy('callback-error', 'Test', 3, callbackFnError);
+      const strategyCallbackSuccess = createCallbackStrategy(
+        'callback-success',
+        'Test',
+        3,
+        callbackFnSuccess,
+      );
+      const strategyCallbackError = createCallbackStrategy(
+        'callback-error',
+        'Test',
+        3,
+        callbackFnError,
+      );
 
       expect(strategyCallbackSuccess.name).toBe('callback-success');
       expect(strategyCallbackError.name).toBe('callback-error');

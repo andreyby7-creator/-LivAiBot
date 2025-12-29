@@ -4,7 +4,6 @@ import {
   convertToMajorUnits,
   convertToMinorUnits,
   createPaymentValidationError,
-  getPaymentValidationErrorSeverity,
   formatPaymentAmount,
   getCurrencyLimit,
   getCurrencyType,
@@ -13,6 +12,7 @@ import {
   getPaymentSessionId,
   getPaymentTransactionId,
   getPaymentUserId,
+  getPaymentValidationErrorSeverity,
   getPaymentValidationReason,
   getPaymentValidationRule,
   getPaymentValidationSuggestions,
@@ -130,7 +130,6 @@ describe('PaymentValidationError Domain', () => {
         planId: 'plan_123',
       });
     });
-
 
     it('should create CRITICAL severity error for PCI violations', () => {
       const error = createPaymentValidationError(
@@ -368,7 +367,6 @@ describe('PaymentValidationError Domain', () => {
         expect(isPaymentAmountValid(0, 'BYN')).toBe(false); // Too low
         expect(isPaymentAmountValid(100_000_000, 'BYN')).toBe(false); // Too high
       });
-
     });
 
     describe('getCurrencyType', () => {
@@ -382,7 +380,6 @@ describe('PaymentValidationError Domain', () => {
         expect(getCurrencyType('XYZ')).toBe('unsupported');
       });
     });
-
 
     describe('getCurrencyLimit', () => {
       it('should return correct limits for all supported currencies', () => {
@@ -414,7 +411,6 @@ describe('PaymentValidationError Domain', () => {
         USD: 1_000_000,
         EUR: 1_000_000,
       });
-
     });
   });
 
@@ -546,7 +542,6 @@ describe('PaymentValidationError Domain', () => {
       });
       expect(isValidPaymentValidationErrorContext(context)).toBe(false);
     });
-
 
     it('should reject invalid transactionId types', () => {
       const context = createMockPaymentValidationContext({

@@ -15,7 +15,7 @@ async function testModule() {
       ERROR_ORIGIN,
       SEVERITY_WEIGHTS,
       createErrorClassification,
-    } = await import('../../dist/esm/errors/base/ErrorConstants.js');
+    } = await import('../../src/errors/base/ErrorConstants.js');
 
     // Проверяем базовые константы
     if (!ERROR_SEVERITY.CRITICAL || !ERROR_CATEGORY.BUSINESS || !ERROR_ORIGIN.DOMAIN) {
@@ -47,7 +47,7 @@ async function testModule() {
 
     // ========== ERROR CODE ==========
     console.log('📋 Тестирование ErrorCode...');
-    const { LIVAI_ERROR_CODES } = await import('../../dist/esm/errors/base/ErrorCode.js');
+    const { LIVAI_ERROR_CODES } = await import('../../src/errors/base/ErrorCode.js');
 
     // Проверка существования кодов ошибок
     if (!LIVAI_ERROR_CODES.DOMAIN_USER_NOT_FOUND) throw new Error('LIVAI_ERROR_CODES not loaded');
@@ -60,7 +60,7 @@ async function testModule() {
     // ========== ERROR CODE META ==========
     console.log('📋 Тестирование ErrorCodeMeta...');
     const { DEFAULT_SEVERITY_BY_CATEGORY, DEFAULT_ORIGIN_BY_CATEGORY } = await import(
-      '../../dist/esm/errors/base/ErrorCodeMeta.js'
+      '../../src/errors/base/ErrorCodeMeta.js'
     );
 
     // Проверка существования констант
@@ -79,7 +79,7 @@ async function testModule() {
     // ========== BASE ERROR TYPES ==========
     console.log('📋 Тестирование BaseErrorTypes...');
     const { isTaggedError, matchByCategory } = await import(
-      '../../dist/esm/errors/base/BaseErrorTypes.js'
+      '../../src/errors/base/BaseErrorTypes.js'
     );
 
     // Test tagged error
@@ -103,7 +103,7 @@ async function testModule() {
     // ========== ERROR METADATA ==========
     console.log('📋 Тестирование ErrorMetadata...');
     const { validateMetadata, mergeMetadata } = await import(
-      '../../dist/esm/errors/base/ErrorMetadata.js'
+      '../../src/errors/base/ErrorMetadata.js'
     );
 
     const testMeta = { correlationId: 'test-123', timestamp: Date.now() };
@@ -123,7 +123,7 @@ async function testModule() {
     // ========== ERROR INSTRUMENTATION ==========
     console.log('📋 Тестирование ErrorInstrumentation...');
     const { makeConsoleInstrumentation } = await import(
-      '../../dist/esm/errors/base/ErrorInstrumentation.js'
+      '../../src/errors/base/ErrorInstrumentation.js'
     );
 
     // Test that makeConsoleInstrumentation is available (it's an Effect)
@@ -143,7 +143,7 @@ async function testModule() {
     // ========== ERROR METRICS ==========
     console.log('📋 Тестирование ErrorMetrics...');
     const { makeConsoleMetrics, incrementErrorCounter } = await import(
-      '../../dist/esm/errors/base/ErrorMetrics.js'
+      '../../src/errors/base/ErrorMetrics.js'
     );
 
     // Test that functions exist
@@ -163,7 +163,7 @@ async function testModule() {
     // ========== ERROR SANITIZERS ==========
     console.log('📋 Тестирование ErrorSanitizers...');
     const { sanitizeError, sanitizeStackTrace, DEFAULT_SANITIZATION_CONFIGS } = await import(
-      '../../dist/esm/errors/base/ErrorSanitizers.js'
+      '../../src/errors/base/ErrorSanitizers.js'
     );
 
     // Тестирование базовой санитизации
@@ -197,7 +197,7 @@ async function testModule() {
     // ========== ERROR UTILS CORE ==========
     console.log('📋 Тестирование ErrorUtilsCore...');
     const { getChainDepth, hasCycles, safeGetCause } = await import(
-      '../../dist/esm/errors/base/ErrorUtilsCore.js'
+      '../../src/errors/base/ErrorUtilsCore.js'
     );
 
     const testErrorObj = { message: 'test' };
@@ -222,7 +222,7 @@ async function testModule() {
       assertImmutable,
       assertValidErrorCode,
       validateErrorStructure,
-    } = await import('../../dist/esm/errors/base/ErrorValidators.js');
+    } = await import('../../src/errors/base/ErrorValidators.js');
 
     const context = createValidationContext('dev');
     if (context.strictness !== 'dev') {
@@ -246,7 +246,7 @@ async function testModule() {
     // ========== ERROR BUILDERS ==========
     console.log('📋 Тестирование ErrorBuilders...');
     const { errorBuilder, createBaseMetadata } = await import(
-      '../../dist/esm/errors/base/ErrorBuilders.js'
+      '../../src/errors/base/ErrorBuilders.js'
     );
 
     // Test that errorBuilder exists and has expected structure
@@ -268,7 +268,7 @@ async function testModule() {
 
     // ========== ERROR TRANSFORMERS ==========
     console.log('📋 Тестирование ErrorTransformers...');
-    const { aggregateErrors } = await import('../../dist/esm/errors/base/ErrorTransformers.js');
+    const { aggregateErrors } = await import('../../src/errors/base/ErrorTransformers.js');
 
     const errors = [{ message: 'test1' }, { message: 'test2' }];
     const aggregated = aggregateErrors(errors, { aggregator: () => errors[0] });
@@ -282,7 +282,7 @@ async function testModule() {
     // ========== UNIFIED ERROR REGISTRY ==========
     console.log('📋 Тестирование UnifiedErrorRegistry...');
     const { createEmptyRegistry } = await import(
-      '../../dist/esm/errors/base/UnifiedErrorRegistry.js'
+      '../../src/errors/base/UnifiedErrorRegistry.js'
     );
 
     const registry = createEmptyRegistry();
@@ -295,7 +295,7 @@ async function testModule() {
     // ========== ERROR STRATEGIES ==========
     console.log('📋 Тестирование ErrorStrategies...');
     const { createStrategyWithCodes, resolveStrategy } = await import(
-      '../../dist/esm/errors/base/ErrorStrategies.js'
+      '../../src/errors/base/ErrorStrategies.js'
     );
 
     const strategy = createStrategyWithCodes(
@@ -317,7 +317,7 @@ async function testModule() {
     // ========== BASE ERROR ==========
     console.log('📋 Тестирование BaseError...');
     const { isBaseError, withMetadata, setLogger } = await import(
-      '../../dist/esm/errors/base/BaseError.js'
+      '../../src/errors/base/BaseError.js'
     );
 
     // Test that functions exist and basic checks work
