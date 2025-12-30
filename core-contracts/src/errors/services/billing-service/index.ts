@@ -167,6 +167,7 @@ export type {
   BePaidAPIError,
   BePaidAPIErrorContext,
   BePaidErrorCode,
+  BePaidHttpStatus,
   GatewayUnavailableReason,
   GenericAPIError,
   GenericAPIErrorContext,
@@ -273,7 +274,9 @@ export {
 
 export type {
   BaseErrorPlainObject,
+  GrpcPaymentResultSerializationResult,
   GrpcPaymentSerializationResult,
+  HttpPaymentResultSerializationResult,
   HttpPaymentSerializationResult,
   PaymentError,
   PaymentErrorDetails,
@@ -282,12 +285,57 @@ export type {
   PaymentErrorSerializerRequestConfig,
   PaymentGrpcDetailsFormatter,
   PaymentResult,
+  PaymentResultSerializationOutcome,
+  PaymentResultSerializerConfig,
+  PaymentResultSerializerRequestConfig,
   PaymentSuccess,
 } from './serialization/index.js';
 
-export { PAYMENT_GRPC_STATUS, PAYMENT_HTTP_STATUS } from './serialization/index.js';
+export {
+  PAYMENT_GRPC_STATUS,
+  PAYMENT_HTTP_STATUS,
+  PAYMENT_RESULT_GRPC_STATUS,
+  PAYMENT_RESULT_HTTP_STATUS,
+} from './serialization/index.js';
 
-// ==================== FUTURE EXPORTS (PLACEHOLDERS) ====================
+// ==================== PAYMENT RESULT SERIALIZATION ====================
 
-// export { createPaymentResultSerializer, serializePaymentResult } from './serialization/index.js';
-// export { createStripeAdapter, createPayPalAdapter } from './adapters/index.js';
+export {
+  createPaymentResultSerializer,
+  serializePaymentResultGrpc,
+  serializePaymentResultHttp,
+} from './serialization/index.js';
+
+// ==================== ADAPTERS ====================
+
+export type {
+  BePaidAdapterConfig,
+  BePaidAdapterError,
+  BePaidPaymentRequest,
+  BePaidPaymentResponse,
+  BePaidSDK,
+  WebPayAdapterConfig,
+  WebPayAdapterError,
+  WebPayPaymentRequest,
+  WebPayPaymentResponse,
+  WebPaySDK,
+} from './adapters/index.js';
+
+export {
+  bePaidAdapter,
+  bePaidCircuitBreakerContext,
+  bePaidConfigContext,
+  bePaidSDKContext,
+  createBePaidAdapterClient,
+  createBePaidCircuitLayer,
+  createBePaidConfigLayer,
+  createBePaidSDKLayer,
+  createWebPayAdapterClient,
+  createWebPayConfigLayer,
+  createWebPaySDKLayer,
+  mapBePaidError,
+  mapWebPayError,
+  webPayAdapter,
+  webPayConfigContext,
+  webPaySDKContext,
+} from './adapters/index.js';

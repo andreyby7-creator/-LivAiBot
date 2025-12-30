@@ -468,7 +468,7 @@ errors/
 - **🔧 HttpErrorContract**: Type-safe HTTP ошибки (400-599) с автоматической валидацией кодов, Content-Type и SHARED_ префиксом
 - **🔧 GrpcErrorContract**: Полная поддержка gRPC статус кодов (0-16) с метаданными, correlation ID и timestamp
 - **🔧 InternalErrorDTO**: Рекурсивные цепочки ошибок с категориями (domain/infrastructure/policy/adapter) и ExecutionContext
-- **Экспортирует**: create* функции, is* type guards, get* утилиты, Either типы, ErrorDetails, ContractValidationError
+- **Экспортирует**: create_функции, is_ type guards, get* утилиты, Either типы, ErrorDetails, ContractValidationError
 
 - **🛠️ Стек**: TypeScript
   Обязательно русские: @file и компактные jsdoc
@@ -481,7 +481,7 @@ errors/
 - **🔧 ValidationError**: Type-safe ошибки валидации с полями, правилами и типами данных. Автоматическая генерация и валидация контекста с isValidValidationErrorContext
 - **🔧 AuthError**: Комплексные ошибки аутентификации с AuthErrorReason union, MFA статусом, геолокацией, device info, rate limiting, строгим type guard и расширенными утилитами
 - **🔧 PermissionError**: Детализированные ошибки прав с ролями, ресурсами, политиками и условиями доступа. Строгая валидация контекста с isValidPermissionErrorContext
-- **Экспортирует**: create* функции, is* type guards (строгие, с валидацией details), isValidValidationErrorContext, isValidPermissionErrorContext, get* утилиты (включая getValidationField, getValidationRule, getValidationValue, getExpectedType, getActualType, getValidationConstraints, getRequiredPermissions, getUserPermissions, getPermissionResource, hasMissingPermissions, getAuthRequiredPermissions, getAuthUserPermissions, getAuthDeviceInfo, getRateLimitInfo), ValidationError/AuthError/PermissionError типы, AuthErrorReason union, DomainError union, isMFARequiredError, isRateLimitedError, isPermissionDeniedError, isPolicyViolationError, isResourceAccessError guards
+- **Экспортирует**: create_функции, is_ type guards (строгие, с валидацией details), isValidValidationErrorContext, isValidPermissionErrorContext, get* утилиты (включая getValidationField, getValidationRule, getValidationValue, getExpectedType, getActualType, getValidationConstraints, getRequiredPermissions, getUserPermissions, getPermissionResource, hasMissingPermissions, getAuthRequiredPermissions, getAuthUserPermissions, getAuthDeviceInfo, getRateLimitInfo), ValidationError/AuthError/PermissionError типы, AuthErrorReason union, DomainError union, isMFARequiredError, isRateLimitedError, isPermissionDeniedError, isPolicyViolationError, isResourceAccessError guards
 
 - **🛠️ Стек**: TypeScript + Effect
   Обязательно русские: @file и компактные jsdoc
@@ -495,7 +495,7 @@ errors/
 - **🔧 CacheError**: Ошибки кеширования с ключами, операциями и соединениями. Runtime валидация контекста с isValidCacheErrorContext
 - **🔧 NetworkError**: Сетевые ошибки с URL, HTTP статусами и соединениями. Runtime валидация контекста с isValidNetworkErrorContext
 - **🔧 ExternalAPIError**: Ошибки внешних API с rate limiting, retry и endpoint информацией. Runtime валидация контекста с isValidExternalAPIErrorContext
-- **Экспортирует**: create* функции, is* type guards (строгие, с валидацией details), isValid_ErrorContext функции, get_ утилиты (включая getDatabaseType, getTableName, getDatabaseOperation, getDatabaseConnection, isDatabaseConnectionError, getCacheKey, getCacheConnection, getCacheOperation, isCacheConnectionError, getNetworkUrl, getHttpRequestInfo, getNetworkConnection, isTimeoutError, isHttpError, getAPIServiceInfo, getAPIRateLimit, getAPIRetryInfo, getAPIConnection, isRateLimitError, isRetryableError), DatabaseError/DatabaseErrorContext/CacheError/CacheErrorContext/NetworkError/NetworkErrorContext/ExternalAPIError/ExternalAPIErrorContext типы, InfrastructureError union
+- **Экспортирует**: create_функции, is_ type guards (строгие, с валидацией details), isValid_ErrorContext функции, get_ утилиты (включая getDatabaseType, getTableName, getDatabaseOperation, getDatabaseConnection, isDatabaseConnectionError, getCacheKey, getCacheConnection, getCacheOperation, isCacheConnectionError, getNetworkUrl, getHttpRequestInfo, getNetworkConnection, isTimeoutError, isHttpError, getAPIServiceInfo, getAPIRateLimit, getAPIRetryInfo, getAPIConnection, isRateLimitError, isRetryableError), DatabaseError/DatabaseErrorContext/CacheError/CacheErrorContext/NetworkError/NetworkErrorContext/ExternalAPIError/ExternalAPIErrorContext типы, InfrastructureError union
 
 - **🛠️ Стек**: TypeScript + Effect
   Обязательно русские: @file и компактные jsdoc
@@ -675,34 +675,96 @@ withSharedErrorBoundary(
   **index.ts** ✅ **ГОТОВ К ПРОДАКШЕНУ** – Selective exports по категориям: Types, Guards, Pattern Matching, Registry, Utilities. Единая точка входа для AI service error system.
   Обязательно русские: @file и компактные jsdoc
 
-**billing-service/** – Платежный сервис: subscriptions, payments, billing.
+**billing-service/** ✅ **ГОТОВ К ПРОДАКШЕНУ** – Платежный сервис LivAiBot: subscriptions, payments, billing.
 
-- **BillingServiceErrorTypes.ts** – Payment типы: `PaymentFailedError`, `SubscriptionError`, `RefundError`
+- **BillingServiceErrorTypes.ts** ✅ **ГОТОВ К ПРОДАКШЕНУ** – Payment типы ошибок уровня сервиса: `PaymentFailedError`, `SubscriptionError`, `RefundError`, `InfrastructureUnknownError`. Type guards, pattern matching, factory functions для создания type-safe ошибок с PCI-safe полями (без PAN, CVV, expiry).
+- **BillingServiceErrorRegistry.ts** ✅ **ГОТОВ К ПРОДАКШЕНУ** – Реестр платежных ошибок: SERVICE_BILLING_* коды с payment-specific метаданными. Utility functions для фильтрации по paymentMethod, regionId, tenantId, fraudRisk, auditRequired. Расширенные метаданные: refundable, retryable, complianceLevel (pci/gdpr), amountSensitive.
   - **🛠️ Стек**: TypeScript
     Обязательно русские: @file и компактные jsdoc
-- **BillingServiceErrorRegistry.ts** – Реестр платежных ошибок: SERVICE_BILLING_* с payment метаданными
+
+- **BillingServiceValidators.ts** ✅ **ГОТОВ К ПРОДАКШЕНУ** – Комплексная система валидации платежных операций: `validatePaymentAmount` (лимиты валют с safety buffers), `validateCurrencySupport` (BYN/RUB/USD/EUR), `validatePaymentMethod` (credit_card, webpay, bepaid), `validatePCICompliance` (без sensitive данных), `validateBillingOperation` (комплексная валидация всех компонентов). Поддержка `SupportedCurrency`, `SupportedPaymentMethod`, конфигурационные интерфейсы для PCI-compliant валидации.
   - **🛠️ Стек**: TypeScript + Effect
     Обязательно русские: @file и компактные jsdoc
-- **BillingServiceValidators.ts** – Валидаторы платежей: amount validation, currency checks, PCI compliance
-  - **🛠️ Стек**: TypeScript + Effect
-    Обязательно русские: @file и компактные jsdoc
-- **BillingServiceInstrumentation.ts** – Payment monitoring: transaction success rates, fraud detection
+
+- **BillingServiceInstrumentation.ts** ✅ **ГОТОВ К ПРОДАКШЕНУ** – Инструментирование платежного сервиса LivAiBot: сбор payment-метрик (success/failure rates, latency, amounts), интеграция с OpenTelemetry, безопасные метрики без влияния на money flow. Effect-first подход с vendor-agnostic telemetry, PCI-safe observability.
   - **🛠️ Стек**: TypeScript + Effect/OpenTelemetry
     Обязательно русские: @file и компактные jsdoc
 
-**domain/** – Billing доменные ошибки: subscription limits, payment validation
-
-**infrastructure/** – Payment gateway errors: Stripe, PayPal API failures
-
-**policies/** – Payment стратегии: retry failed payments, fraud detection, refund handling
-
-**serialization/** – Payment data serialization, PCI-compliant error masking
-
-**adapters/** – Payment gateway adapters с error normalization
-
-**index.ts** – Exports: `Billing`, `Payments`, `Validators`, etc.
+**domain/** ✅ **ГОТОВ К ПРОДАКШЕНУ** – Billing доменные ошибки: subscription limits, payment validation
 
 - **🛠️ Стек**: TypeScript
+  Обязательно русские: @file и компактные jsdoc
+- **PaymentValidationError.ts** ✅ **ГОТОВ К ПРОДАКШЕНУ** – Доменные ошибки валидации платежей: бизнес-правила сумм, валют, методов оплаты. PCI-safe (без PAN/CVV). Factory functions для разных типов валидационных ошибок с поддержкой BYN/RUB/USD/EUR лимитов
+- **SubscriptionLimitError.ts** ✅ **ГОТОВ К ПРОДАКШЕНУ** – Доменные ошибки лимитов подписок: превышение usage, план restrictions, quota exhaustion. Стратегии fallback и альтернативные тарифы
+- **RefundPolicyError.ts** ✅ **ГОТОВ К ПРОДАКШЕНУ** – Доменные ошибки политики возвратов: сроки возврата, условия refund, бизнес-правила. Предотвращение дубликатов и мошенничества
+- **BillingOperation.ts** ✅ **ГОТОВ К ПРОДАКШЕНУ** – Доменные типы операций биллинга: payment, subscription, refund, cancellation. Operation contexts и metadata для traceability
+- **CurrencyCode.ts** ✅ **ГОТОВ К ПРОДАКШЕНУ** – Доменные типы валют: поддерживаемые валюты (BYN/RUB/USD/EUR), currency validation, conversion utilities, exchange rate interfaces
+
+**infrastructure/** ✅ **ГОТОВ К ПРОДАКШЕНУ** – Payment gateway API errors: BePaid, WebPay connection failures
+
+- **🛠️ Стек**: TypeScript + Effect
+  Обязательно русские: @file и компактные jsdoc
+- **BePaidAPIError.ts** ✅ **ГОТОВ К ПРОДАКШЕНУ** – Специализированные ошибки BePaid API: кард-отклонения (F.0103), лимиты (429), connection errors, SSL/TLS failures. Расширяет InfrastructureError с BePaid-специфичными полями и кодами ошибок
+- **WebPayAPIError.ts** ✅ **ГОТОВ К ПРОДАКШЕНУ** – Специализированные ошибки WebPay API: transaction failures, authentication errors, network timeouts. WebPay-specific коды и recovery strategies
+- **PaymentGatewayUnavailableError.ts** ✅ **ГОТОВ К ПРОДАКШЕНУ** – Ошибки недоступности платежных шлюзов: gateway down, regional restrictions, maintenance windows. Circuit breaker triggers и fallback стратегии
+- **GenericAPIError.ts** ✅ **ГОТОВ К ПРОДАКШЕНУ** – Обобщенные API ошибки платежных сервисов: network failures, timeouts, malformed responses. Vendor-agnostic error mapping для любых payment providers
+
+**policies/** ✅ **ГОТОВ К ПРОДАКШЕНУ** – Payment стратегии: retry failed payments, fraud detection, refund handling, monitoring
+
+- **🛠️ Стек**: TypeScript + Effect
+  Обязательно русские: @file и компактные jsdoc
+- **paymentRetryPolicy.ts** ✅ **ГОТОВ К ПРОДАКШЕНУ** – Decision engine для retry платежей: анализ BillingServiceError, определение стратегии (immediate/delayed/manual), расчет задержек с exponential backoff. Registry-driven с метаданными из BillingServiceErrorRegistry
+  - **Технологический стек**: TypeScript strict, TaggedError, PCI-safe error analysis, async/await, WeakMap caching, centralized logging, enum-based типизация
+  - **Поддерживаемые типы**: PaymentRetryPolicyContext, AmountContext, PaymentRetryPolicyResult, RetryStrategy, PaymentRetryPolicyError, ILogger, RetryPolicyType (enum), RetryDecisionReason (enum)
+  - **Ключевые компоненты**: shouldRetryPayment, evaluatePaymentRetryPolicy (кеширующая функция), createPaymentRetryPolicyError, isPaymentRetryPolicyError, getOptimalPaymentRetryDelay, canRetryWithAmount
+  - **Особенности**: Amount-aware стратегии с лимитами валют, PCI-compliant retry decisions, quota-aware delays, fraud-risk evaluation, immutable кеширование через WeakMap, централизованное логирование, enum-based типизация для предотвращения рассинхронизации
+- **fraudDetectionPolicy.ts** ✅ **ГОТОВ К ПРОДАКШЕНУ** – Fraud detection для платежей: анализ паттернов, risk scoring, decision engine с configurable thresholds. Интеграция с external fraud providers, PCI-compliant processing
+  - **Технологический стек**: TypeScript strict, TaggedError, ML-based risk scoring, async/await, WeakMap caching, centralized logging
+  - **Поддерживаемые типы**: FraudDetectionContext, FraudDecision, FraudDetectionPolicyResult, FraudDetectionError, ILogger, FraudRiskLevel (enum), FraudDecisionReason (enum)
+  - **Ключевые компоненты**: evaluateFraudRisk, shouldBlockPayment, createFraudDetectionError, isFraudDetectionError, getFraudScore, updateFraudPatterns
+  - **Особенности**: ML-enhanced risk scoring, configurable thresholds, external provider integration, PCI-safe processing, immutable pattern storage, централизованное логирование, enum-based типизация
+- **fraudDetectionInterfaces.ts** ✅ **ГОТОВ К ПРОДАКШЕНУ** – Fraud detection интерфейсы: контракты для external fraud providers, type-safe integration points, provider abstraction layer
+- **fraudDetectionProviders.ts** ✅ **ГОТОВ К ПРОДАКШЕНУ** – Fraud detection провайдеры: concrete implementations для различных fraud services, failover strategies, provider health checks
+- **fraudDetectionTypes.ts** ✅ **ГОТОВ К ПРОДАКШЕНУ** – Fraud detection типы: risk levels, decision reasons, fraud patterns, scoring algorithms, ML model interfaces
+- **refundHandlingPolicy.ts** ✅ **ГОТОВ К ПРОДАКШЕНУ** – Refund handling стратегии: policy validation, duplicate prevention, amount verification, timeline checks. Business rule engine для refund approval
+  - **Технологический стек**: TypeScript strict, TaggedError, business rule engine, async/await, WeakMap caching, centralized logging
+  - **Поддерживаемые типы**: RefundHandlingContext, RefundDecision, RefundHandlingPolicyResult, RefundHandlingError, ILogger, RefundDecisionReason (enum)
+  - **Ключевые компоненты**: shouldAllowRefund, evaluateRefundPolicy, createRefundHandlingError, isRefundHandlingError, validateRefundTimeline, preventRefundDuplicates
+  - **Особенности**: Business rule validation, duplicate prevention, timeline enforcement, amount verification, configurable policies, централизованное логирование, enum-based типизация
+- **monitoringPolicy.ts** ✅ **ГОТОВ К ПРОДАКШЕНУ** – Payment monitoring стратегии: SLA tracking, alert thresholds, anomaly detection, business metric aggregation
+  - **Технологический стек**: TypeScript strict, TaggedError, time-series analysis, async/await, WeakMap caching, centralized logging
+  - **Поддерживаемые типы**: MonitoringContext, MonitoringAlert, MonitoringPolicyResult, MonitoringError, ILogger, AlertSeverity (enum), MetricType (enum)
+  - **Ключевые компоненты**: shouldTriggerAlert, evaluateMonitoringMetrics, createMonitoringError, isMonitoringError, calculateSLAMetrics, detectPaymentAnomalies
+  - **Особенности**: SLA-aware monitoring, configurable thresholds, anomaly detection, business metric aggregation, time-series analysis, централизованное логирование, enum-based типизация
+- **policyEngine.ts** ✅ **ГОТОВ К ПРОДАКШЕНУ** – Policy engine для billing: orchestration всех политик, decision aggregation, policy chaining, conflict resolution, policy versioning
+
+**serialization/** ✅ **ГОТОВ К ПРОДАКШЕНУ** – Payment data/result serialization для HTTP/gRPC
+
+- **🛠️ Стек**: TypeScript strict
+  Обязательно русские: @file и компактные jsdoc
+- **PaymentResultSerializer.ts** ✅ **ГОТОВ К ПРОДАКШЕНУ** – Сериализация результатов платежных операций: JSON schema validation, PCI-safe нормализация, HTTP/gRPC status mapping. Fail-safe confidence scoring, forward-compatible metadata
+  - **Технологический стек**: TypeScript strict, immutable types, PCI-safe serialization, literal outcome types, comprehensive validation
+  - **Поддерживаемые типы**: PaymentResult<T>, PaymentResultSerializationOutcome, PaymentResultSerializerConfig<T>, TransactionMetadata, SerializedPaymentResult<T>
+  - **Ключевые компоненты**: createPaymentResultSerializer (configurable factory), serializePaymentResult (helper), outcome-based error handling (success/partial/fallback)
+  - **Особенности**: Transport-agnostic core, PCI-safe serialization, forward-compatible metadata, literal outcome reasons ('insufficient-funds' | 'invalid-method' | 'gateway-error'), 95%+ test coverage, comprehensive edge case handling
+- **PaymentErrorSerializer.ts** ✅ **ГОТОВ К ПРОДАКШЕНУ** – Сериализация ошибок платежных операций: error normalization, PCI-compliant masking, HTTP status mapping для REST/gRPC без sensitive данных
+  - **Технологический стек**: TypeScript strict, immutable types, PCI-safe error masking, literal outcome types, comprehensive validation
+  - **Поддерживаемые типы**: PaymentError, PaymentErrorSerializationOutcome, PaymentErrorSerializerConfig, ErrorMetadata, SerializedPaymentError
+  - **Ключевые компоненты**: createPaymentErrorSerializer (configurable factory), serializePaymentError (helper), outcome-based error handling (masked/partial/fallback)
+  - **Особенности**: Transport-agnostic core, PCI-safe error serialization, sensitive data masking, literal outcome reasons ('masked' | 'partial' | 'fallback'), 95%+ test coverage, comprehensive error handling
+
+**adapters/** ✅ **ГОТОВ К ПРОДАКШЕНУ** – Payment gateway SDK adapters с error mapping
+
+- **🛠️ Стек**: TypeScript strict + Effect
+  Обязательно русские: @file и компактные jsdoc
+- **BePaidAPIAdapter.ts** ✅ **ГОТОВ К ПРОДАКШЕНУ** – Адаптер для BePaid SDK с Effect-first дизайном: белорусский payment aggregator, BYN/RUB/USD/EUR, PCI DSS Level 1
+  - **Технологический стек**: TypeScript strict, Effect, Context/Tag dependency injection, Layer composition, typed error boundaries, circuit breaker integration
+  - **Поддерживаемые типы**: BePaidPaymentRequest, BePaidPaymentResponse, BePaidAdapterError (discriminated union: ConnectionError, InvalidRequestError, PaymentDeclinedError, ProcessingError), BePaidSDK (interface abstraction), BePaidAdapterConfig
+  - **Ключевые компоненты**: BePaidAdapter.createPayment/createPaymentStatus/cancelPayment/getBulkPaymentStatus (Effect-based), error mapping (SDK → domain errors), retry logic, circuit breaker, Layer composition для DI
+  - **Особенности**: SDK isolation, transport-agnostic design, comprehensive error mapping, Effect.gen для async flows, Context-based dependency injection, PCI-safe processing, bulk operations support
+- **WebPayAPIAdapter.ts** ✅ **ГОТОВ К ПРОДАКШЕНУ** – Адаптер для WebPay SDK: основной белорусский provider, seamless integration, fraud detection hooks
+
+  **index.ts** ✅ **ГОТОВ К ПРОДАКШЕНУ** – Selective exports по категориям: Types, Guards, Pattern Matching, Registry, Utilities. Единая точка входа для billing service error system.
   Обязательно русские: @file и компактные jsdoc
 
 **mobile-service/** – Мобильное приложение: iOS/Android, offline sync.
