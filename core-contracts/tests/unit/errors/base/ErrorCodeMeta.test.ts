@@ -473,7 +473,7 @@ describe('ErrorCodeMeta', () => {
         ...baseMetadata,
         httpStatus: 401,
         loggable: true,
-        userVisible: true,
+        visibility: 'public',
         remediation: 'Please check your username and password',
       };
 
@@ -524,7 +524,7 @@ describe('ErrorCodeMeta', () => {
         origin: ERROR_ORIGIN.DOMAIN,
         httpStatus: 401,
         loggable: true,
-        userVisible: false,
+        visibility: 'internal',
       };
 
       // Extended должен быть совместим с базовым типом

@@ -8,6 +8,8 @@
 // ==================== DOMAIN ERRORS ====================
 
 export type {
+  BillingOperation,
+  CurrencyCode,
   ISO4217CurrencyCode,
   PaymentValidationError,
   PaymentValidationErrorContext,
@@ -18,9 +20,14 @@ export type {
 } from './domain/index.js';
 
 export {
+  BILLING_OPERATION_COUNT,
+  BILLING_OPERATION_VALUES,
+  BILLING_OPERATIONS,
   convertToMajorUnits,
   convertToMinorUnits,
   createPaymentValidationError,
+  CURRENCY_CODE_COUNT,
+  CURRENCY_CODE_VALUES,
   formatPaymentAmount,
   getCurrencyLimit,
   getCurrencyType,
@@ -30,14 +37,19 @@ export {
   getPaymentValidationReason,
   getPaymentValidationRule,
   getPaymentValidationSuggestions,
+  isBillingOperation,
+  isCurrencyCode,
   isCurrencySupported,
   isPaymentAmountValid,
   isPaymentMethodSupported,
   isPaymentValidationError,
   isValidPaymentValidationErrorContext,
+  makeBillingOperation,
+  makeCurrencyCode,
   PAYMENT_MAXIMUM_AMOUNTS,
   PAYMENT_MINIMUM_AMOUNTS,
   SUPPORTED_CURRENCIES,
+  SUPPORTED_CURRENCY_CODES,
   SUPPORTED_PAYMENT_METHODS,
   VALID_PAYMENT_VALIDATION_REASONS,
 } from './domain/index.js';
@@ -140,7 +152,7 @@ export {
 
 // ==================== VALIDATORS ====================
 
-export type { BillingOperation, ValidatedBillingOperation } from './BillingServiceValidators.js';
+export type { ValidatedBillingOperation } from './BillingServiceValidators.js';
 
 export {
   validateAmount,
@@ -173,7 +185,6 @@ export {
   BEPAID_ERROR_CODES,
   BEPAID_HTTP_STATUSES,
   createBePaidAPIError,
-  createFromProviderAPIError,
   createGenericAPIError,
   createPaymentGatewayUnavailableError,
   createWebPayAPIError,
@@ -216,10 +227,39 @@ export {
 // PaymentProviderId utilities from shared layer
 export { isPaymentProviderId, MAX_PROVIDER_ID_LENGTH } from '../../shared/index.js';
 
+// ==================== INSTRUMENTATION ====================
+
+export type {
+  BillingInstrumentationContext,
+  BillingMetricAttributes,
+  FraudRisk,
+  MeterFactory,
+  OperationResult,
+  TracerFactory,
+} from './BillingServiceInstrumentation.js';
+
+export {
+  BILLING_PROVIDERS,
+  billingInstrumentationLayer,
+  billingServiceMetricsLayer,
+  billingServiceTracerLayer,
+  instrumentBillingOperation,
+  instrumentPayment,
+  instrumentRefund,
+  makeBillingServiceConfig,
+} from './BillingServiceInstrumentation.js';
+
+export type { BillingServiceConfig } from './BillingServiceInstrumentation.js';
+
+// ==================== POLICIES ====================
+
+export {
+  evaluateFraudDetectionPolicy,
+  evaluatePaymentRetryPolicy,
+  evaluateRefundPolicy,
+} from './policies/index.js';
+
 // ==================== FUTURE EXPORTS (PLACEHOLDERS) ====================
 
-// These will be added as we implement the remaining layers:
-// export { evaluatePaymentRetryPolicy, evaluateFraudRisk, evaluateRefundPolicy } from './policies/index.js';
-// export { instrumentBillingOperation } from './BillingServiceInstrumentation.js';
 // export { serializePaymentError, serializePaymentResult } from './serialization/index.js';
 // export { createStripeAdapter, createPayPalAdapter } from './adapters/index.js';

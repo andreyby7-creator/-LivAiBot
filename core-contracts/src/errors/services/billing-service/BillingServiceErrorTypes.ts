@@ -222,11 +222,40 @@ export function createRefundError(
 
 // ==================== UNION TYPE ====================
 
+export type InfrastructureUnknownError = TaggedError<{
+  readonly code: typeof SERVICE_ERROR_CODES.SERVICE_BILLING_GENERIC_API_ERROR;
+  readonly origin: typeof ERROR_ORIGIN.INFRASTRUCTURE;
+  readonly category: typeof ERROR_CATEGORY.TECHNICAL;
+  readonly severity: typeof ERROR_SEVERITY.HIGH;
+  readonly message: string;
+  readonly details: {
+    readonly originalError: unknown;
+  };
+  readonly timestamp: string;
+}, 'InfrastructureUnknownError'>;
+
+/** Создает InfrastructureUnknownError для неизвестных инфраструктурных ошибок */
+export function createInfrastructureUnknownError(
+  originalError: unknown,
+): Effect.Effect<InfrastructureUnknownError, never, never> {
+  return createBillingServiceEffect({
+    _tag: 'InfrastructureUnknownError',
+    code: SERVICE_ERROR_CODES.SERVICE_BILLING_GENERIC_API_ERROR,
+    origin: ERROR_ORIGIN.INFRASTRUCTURE,
+    category: ERROR_CATEGORY.TECHNICAL,
+    severity: ERROR_SEVERITY.HIGH,
+    message: `Unknown infrastructure error: ${String(originalError)}`,
+    details: { originalError },
+    timestamp: new Date().toISOString(),
+  } as InfrastructureUnknownError);
+}
+
 /** Union всех ошибок billing service. */
 export type BillingServiceError =
   | PaymentFailedError
   | SubscriptionError
-  | RefundError;
+  | RefundError
+  | InfrastructureUnknownError;
 
 // ==================== TYPE GUARDS ====================
 
@@ -267,12 +296,18 @@ export const isSubscriptionError = isTaggedError<SubscriptionError>('Subscriptio
 /** Type guard для RefundError (error) */
 export const isRefundError = isTaggedError<RefundError>('RefundError');
 
+/** Type guard для InfrastructureUnknownError (error) */
+export const isInfrastructureUnknownError = isTaggedError<InfrastructureUnknownError>(
+  'InfrastructureUnknownError',
+);
+
 /** Type guard для любой BillingServiceError (error) */
 export function isBillingServiceError(error: unknown): error is BillingServiceError {
   return (
     isPaymentFailedError(error)
     || isSubscriptionError(error)
     || isRefundError(error)
+    || isInfrastructureUnknownError(error)
   );
 }
 
@@ -285,6 +320,7 @@ export function matchBillingServiceError<T>(
     paymentFailedError: (error: PaymentFailedError) => T;
     subscriptionError: (error: SubscriptionError) => T;
     refundError: (error: RefundError) => T;
+    infrastructureUnknownError: (error: InfrastructureUnknownError) => T;
   },
 ): T {
   switch (error._tag) {
@@ -294,6 +330,8 @@ export function matchBillingServiceError<T>(
       return patterns.subscriptionError(error);
     case 'RefundError':
       return patterns.refundError(error);
+    case 'InfrastructureUnknownError':
+      return patterns.infrastructureUnknownError(error);
     default:
       // Exhaustive check - если добавится новый тип ошибки, будет ошибка компиляции
       const exhaustiveCheck: never = error;
@@ -308,13 +346,19 @@ export function safeMatchBillingServiceError<T>(
     paymentFailedError: (error: PaymentFailedError) => T;
     subscriptionError: (error: SubscriptionError) => T;
     refundError: (error: RefundError) => T;
+    infrastructureUnknownError: (error: InfrastructureUnknownError) => T;
     fallback: () => T;
   },
 ): T {
   if (!isBillingServiceError(error)) {
     return patterns.fallback();
   }
-  return matchBillingServiceError(error, patterns);
+  return matchBillingServiceError(error, {
+    paymentFailedError: patterns.paymentFailedError,
+    subscriptionError: patterns.subscriptionError,
+    refundError: patterns.refundError,
+    infrastructureUnknownError: patterns.infrastructureUnknownError,
+  });
 }
 
 // ==================== ACCESSOR FUNCTIONS ====================
@@ -503,5 +547,6 @@ export function getBillingServiceErrorSummary(error: BillingServiceError): strin
     subscriptionError: (e) =>
       `Subscription error for ${getSubscriptionId(e)}: ${getSubscriptionErrorReason(e)}`,
     refundError: (e) => `Refund error for ${getRefundTransactionId(e)}: ${getRefundErrorReason(e)}`,
+    infrastructureUnknownError: (e) => `Infrastructure unknown error: ${e.message}`,
   });
 }

@@ -130,6 +130,32 @@ const error = createCacheError({
 // → CacheError с ключом и операцией
 ```
 
+### Security Utils
+
+PCI DSS compliance helpers для защиты чувствительных данных.
+
+```typescript
+import {
+  detectPCISensitiveFields,
+  isPCISensitiveField,
+  PCI_SENSITIVE_FIELDS,
+  sanitizePCISensitiveData,
+} from '@livai/core-contracts/errors/shared';
+
+// Проверка объекта на PCI-sensitive поля
+const sensitiveFields = detectPCISensitiveFields(metricsData);
+// → ['cardNumber', 'cvv'] или []
+
+// Валидация поля
+if (isPCISensitiveField(fieldName)) {
+  // TypeScript знает что fieldName: PCISensitiveField
+}
+
+// Очистка объекта для логирования
+const safeMetrics = sanitizePCISensitiveData(paymentData);
+// → Объект без cardNumber, cvv, expiry и т.д.
+```
+
 ## 🌐 Boundary Adapters
 
 Effect-based адаптеры с встроенной resilience.

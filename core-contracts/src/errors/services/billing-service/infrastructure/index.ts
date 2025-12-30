@@ -79,7 +79,6 @@ export type {
 export type { GenericAPIError, GenericAPIErrorContext } from './GenericAPIError.js';
 
 export {
-  createFromProviderAPIError,
   createPaymentGatewayUnavailableError,
   getEstimatedRecoveryTimeMin,
   getRetryAfterMs,

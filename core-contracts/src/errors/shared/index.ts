@@ -309,3 +309,20 @@ export {
   withSharedInstrumentation,
   withTracing,
 } from './SharedInstrumentation.js';
+
+// ==================== SECURITY ====================
+
+/**
+ * PCI DSS compliance utilities and security helpers
+ * - Sensitive field detection
+ * - Data sanitization
+ * - Security validation
+ */
+export {
+  detectPCISensitiveFields,
+  isPCISensitiveField,
+  PCI_SENSITIVE_FIELDS,
+  sanitizePCISensitiveData,
+} from './security.js';
+
+export type { PCISensitiveField } from './security.js';

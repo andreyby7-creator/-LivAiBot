@@ -640,6 +640,7 @@ describe('BillingServiceErrorTypes', () => {
           paymentFailedError: (e) => `Payment failed: ${getPaymentTransactionId(e)}`,
           subscriptionError: (e) => `Subscription error: ${getSubscriptionId(e)}`,
           refundError: (e) => `Refund error: ${getRefundTransactionId(e)}`,
+          infrastructureUnknownError: () => 'Infrastructure error',
         });
 
         expect(result).toBe('Payment failed: txn_123456');
@@ -651,6 +652,7 @@ describe('BillingServiceErrorTypes', () => {
           paymentFailedError: (e) => `Payment failed: ${getPaymentTransactionId(e)}`,
           subscriptionError: (e) => `Subscription error: ${getSubscriptionId(e)}`,
           refundError: (e) => `Refund error: ${getRefundTransactionId(e)}`,
+          infrastructureUnknownError: () => 'Infrastructure error',
         });
 
         expect(result).toBe('Subscription error: sub_123456');
@@ -662,6 +664,7 @@ describe('BillingServiceErrorTypes', () => {
           paymentFailedError: (e) => `Payment failed: ${getPaymentTransactionId(e)}`,
           subscriptionError: (e) => `Subscription error: ${getSubscriptionId(e)}`,
           refundError: (e) => `Refund error: ${getRefundTransactionId(e)}`,
+          infrastructureUnknownError: () => 'Infrastructure error',
         });
 
         expect(result).toBe('Refund error: txn_123456');
@@ -679,16 +682,19 @@ describe('BillingServiceErrorTypes', () => {
             paymentFailedError: () => 'PAYMENT',
             subscriptionError: () => 'SUBSCRIPTION',
             refundError: () => 'REFUND',
+            infrastructureUnknownError: () => 'INFRASTRUCTURE',
           }),
           matchBillingServiceError(subscriptionError, {
             paymentFailedError: () => 'PAYMENT',
             subscriptionError: () => 'SUBSCRIPTION',
             refundError: () => 'REFUND',
+            infrastructureUnknownError: () => 'INFRASTRUCTURE',
           }),
           matchBillingServiceError(refundError, {
             paymentFailedError: () => 'PAYMENT',
             subscriptionError: () => 'SUBSCRIPTION',
             refundError: () => 'REFUND',
+            infrastructureUnknownError: () => 'INFRASTRUCTURE',
           }),
         ];
 
@@ -705,16 +711,19 @@ describe('BillingServiceErrorTypes', () => {
             paymentFailedError: (e) => `PAYMENT: ${e.details.transactionId}`,
             subscriptionError: () => 'SUBSCRIPTION',
             refundError: () => 'REFUND',
+            infrastructureUnknownError: () => 'INFRASTRUCTURE',
           }),
           matchBillingServiceError(subscriptionError, {
             paymentFailedError: () => 'PAYMENT',
             subscriptionError: (e) => `SUBSCRIPTION: ${e.details.subscriptionId}`,
             refundError: () => 'REFUND',
+            infrastructureUnknownError: () => 'INFRASTRUCTURE',
           }),
           matchBillingServiceError(refundError, {
             paymentFailedError: () => 'PAYMENT',
             subscriptionError: () => 'SUBSCRIPTION',
             refundError: (e) => `REFUND: ${e.details.transactionId}`,
+            infrastructureUnknownError: () => 'INFRASTRUCTURE',
           }),
         ];
 
@@ -733,6 +742,7 @@ describe('BillingServiceErrorTypes', () => {
           paymentFailedError: (e) => `Payment failed: ${getPaymentTransactionId(e)}`,
           subscriptionError: (e) => `Subscription error: ${getSubscriptionId(e)}`,
           refundError: (e) => `Refund error: ${getRefundTransactionId(e)}`,
+          infrastructureUnknownError: () => 'Infrastructure error',
           fallback: () => 'Unknown error',
         });
 
@@ -745,6 +755,7 @@ describe('BillingServiceErrorTypes', () => {
           paymentFailedError: (e) => `Payment failed: ${getPaymentTransactionId(e)}`,
           subscriptionError: (e) => `Subscription error: ${getSubscriptionId(e)}`,
           refundError: (e) => `Refund error: ${getRefundTransactionId(e)}`,
+          infrastructureUnknownError: () => 'Infrastructure error',
           fallback: () => 'Unknown error',
         });
 
@@ -757,6 +768,7 @@ describe('BillingServiceErrorTypes', () => {
           paymentFailedError: (e) => `Payment failed: ${getPaymentTransactionId(e)}`,
           subscriptionError: (e) => `Subscription error: ${getSubscriptionId(e)}`,
           refundError: (e) => `Refund error: ${getRefundTransactionId(e)}`,
+          infrastructureUnknownError: () => 'Infrastructure error',
           fallback: () => 'Unknown error',
         });
 
@@ -779,6 +791,7 @@ describe('BillingServiceErrorTypes', () => {
           paymentFailedError: () => 'PAYMENT',
           subscriptionError: () => 'SUBSCRIPTION',
           refundError: () => 'REFUND',
+          infrastructureUnknownError: () => 'INFRASTRUCTURE',
           fallback: () => 'FALLBACK',
         });
 
@@ -790,6 +803,7 @@ describe('BillingServiceErrorTypes', () => {
           paymentFailedError: () => 'PAYMENT',
           subscriptionError: () => 'SUBSCRIPTION',
           refundError: () => 'REFUND',
+          infrastructureUnknownError: () => 'INFRASTRUCTURE',
           fallback: () => 'FALLBACK',
         });
 
@@ -801,6 +815,7 @@ describe('BillingServiceErrorTypes', () => {
           paymentFailedError: () => 'PAYMENT',
           subscriptionError: () => 'SUBSCRIPTION',
           refundError: () => 'REFUND',
+          infrastructureUnknownError: () => 'INFRASTRUCTURE',
           fallback: () => 'FALLBACK',
         });
 
@@ -814,6 +829,7 @@ describe('BillingServiceErrorTypes', () => {
           paymentFailedError: () => 'PAYMENT',
           subscriptionError: () => 'SUBSCRIPTION',
           refundError: () => 'REFUND',
+          infrastructureUnknownError: () => 'INFRASTRUCTURE',
           fallback: () => `Fallback: ${(unknownError as any).message || 'unknown'}`,
         });
 
@@ -832,6 +848,7 @@ describe('BillingServiceErrorTypes', () => {
             paymentFailedError: (e) => `PAYMENT_${e.details.transactionId}`,
             subscriptionError: (e) => `SUBSCRIPTION_${e.details.subscriptionId}`,
             refundError: (e) => `REFUND_${e.details.transactionId}`,
+            infrastructureUnknownError: () => 'INFRASTRUCTURE',
             fallback: () => 'UNKNOWN',
           })
         );
@@ -1447,6 +1464,7 @@ describe('BillingServiceErrorTypes', () => {
           paymentFailedError: (e) => `PAYMENT: ${getPaymentTransactionId(e)}`,
           subscriptionError: () => 'SUBSCRIPTION',
           refundError: () => 'REFUND',
+          infrastructureUnknownError: () => 'INFRASTRUCTURE',
           fallback: () => 'UNKNOWN',
         });
 
@@ -1469,6 +1487,7 @@ describe('BillingServiceErrorTypes', () => {
           paymentFailedError: () => 'PAYMENT',
           subscriptionError: () => 'SUBSCRIPTION',
           refundError: () => 'REFUND',
+          infrastructureUnknownError: () => 'INFRASTRUCTURE',
           fallback: () => 'FALLBACK_TRIGGERED',
         });
 

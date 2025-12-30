@@ -31,6 +31,7 @@ describe('BillingServiceErrorRegistry - Constants', () => {
         SERVICE_ERROR_CODES.SERVICE_BILLING_PAYMENT_FAILED,
         SERVICE_ERROR_CODES.SERVICE_BILLING_SUBSCRIPTION_ERROR,
         SERVICE_ERROR_CODES.SERVICE_BILLING_REFUND_ERROR,
+        SERVICE_ERROR_CODES.SERVICE_BILLING_GENERIC_API_ERROR,
       ];
 
       expectedCodes.forEach((code) => {
@@ -41,7 +42,7 @@ describe('BillingServiceErrorRegistry - Constants', () => {
     });
 
     it('should have correct count of error codes', () => {
-      expect(Object.keys(BILLING_SERVICE_ERROR_REGISTRY)).toHaveLength(3);
+      expect(Object.keys(BILLING_SERVICE_ERROR_REGISTRY)).toHaveLength(4);
     });
 
     it('should have correct metadata structure for each error', () => {
@@ -261,10 +262,15 @@ describe('BillingServiceErrorRegistry - Type Safety', () => {
       refundable: false,
       subscriptionRequired: false,
       visibility: 'public',
+      retryable: false,
+      retryMetadataVersion: 'v1',
       amountSensitive: true,
       fraudRisk: 'medium',
       auditRequired: true,
       complianceLevel: 'pci',
+      paymentMethod: 'credit_card',
+      regionId: 'us-east-1',
+      tenantId: 'tenant-123',
     };
 
     expect(metadata.fraudRisk).toBe('medium');
@@ -275,6 +281,8 @@ describe('BillingServiceErrorRegistry - Type Safety', () => {
       refundable: false,
       subscriptionRequired: false,
       visibility: 'public',
+      retryable: false,
+      retryMetadataVersion: 'v1',
     };
 
     expect(behavior.visibility).toBe('public');
@@ -304,6 +312,7 @@ describe('BillingServiceErrorRegistry - Exhaustiveness', () => {
       SERVICE_ERROR_CODES.SERVICE_BILLING_PAYMENT_FAILED,
       SERVICE_ERROR_CODES.SERVICE_BILLING_SUBSCRIPTION_ERROR,
       SERVICE_ERROR_CODES.SERVICE_BILLING_REFUND_ERROR,
+      SERVICE_ERROR_CODES.SERVICE_BILLING_GENERIC_API_ERROR,
     ];
 
     mockErrorCodes.forEach((code) => {
@@ -324,7 +333,7 @@ describe('BillingServiceErrorRegistry - Exhaustiveness', () => {
         SERVICE_ERROR_CODES.SERVICE_BILLING_PAYMENT_FAILED,
         SERVICE_ERROR_CODES.SERVICE_BILLING_SUBSCRIPTION_ERROR,
         SERVICE_ERROR_CODES.SERVICE_BILLING_REFUND_ERROR,
-        SERVICE_ERROR_CODES.SERVICE_BILLING_WEBPAY_API_ERROR,
+        SERVICE_ERROR_CODES.SERVICE_BILLING_GENERIC_API_ERROR,
       ]).toContain(key);
     });
   });

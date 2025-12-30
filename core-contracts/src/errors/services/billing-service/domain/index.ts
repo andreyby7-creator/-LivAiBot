@@ -5,9 +5,16 @@
  * Включает валидацию платежей, лимиты подписок и политику возвратов.
  */
 
+// Type-only imports for re-export - used in export declarations below
+import type { BillingOperation } from './BillingOperation.js';
+import type { CurrencyCode } from './CurrencyCode.js';
 import type { PaymentValidationError } from './PaymentValidationError.js';
 import type { RefundPolicyError } from './RefundPolicyError.js';
 import type { SubscriptionLimitError } from './SubscriptionLimitError.js';
+
+// Ensure types are used in exports (TypeScript requirement for re-exports)
+void ({} as BillingOperation);
+void ({} as CurrencyCode);
 
 // ==================== PAYMENT ERRORS ====================
 
@@ -112,3 +119,27 @@ export type BillingDomainError =
   | PaymentValidationError
   | SubscriptionLimitError
   | RefundPolicyError;
+
+// ==================== BILLING OPERATIONS ====================
+
+export type { BillingOperation } from './BillingOperation.js';
+
+export {
+  BILLING_OPERATION_COUNT,
+  BILLING_OPERATION_VALUES,
+  BILLING_OPERATIONS,
+  isBillingOperation,
+  makeBillingOperation,
+} from './BillingOperation.js';
+
+// ==================== CURRENCY CODES ====================
+
+export type { CurrencyCode } from './CurrencyCode.js';
+
+export {
+  CURRENCY_CODE_COUNT,
+  CURRENCY_CODE_VALUES,
+  isCurrencyCode,
+  makeCurrencyCode,
+  SUPPORTED_CURRENCY_CODES,
+} from './CurrencyCode.js';

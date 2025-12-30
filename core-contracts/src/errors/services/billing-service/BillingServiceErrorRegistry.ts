@@ -198,6 +198,35 @@ export const BILLING_SERVICE_ERROR_REGISTRY = {
     regionId: BILLING_DEFAULTS.REGION,
     tenantId: BILLING_DEFAULTS.TENANT,
   } satisfies BillingServiceErrorMetadata,
+
+  // Generic API Error (SERVICE_BILLING_109)
+  [SERVICE_ERROR_CODES.SERVICE_BILLING_GENERIC_API_ERROR]: {
+    code: SERVICE_ERROR_CODES.SERVICE_BILLING_GENERIC_API_ERROR,
+    description: 'Неспецифицированная ошибка API платежного сервиса',
+    severity: 'high',
+    category: 'TECHNICAL',
+    origin: ERROR_ORIGIN.SERVICE,
+    httpStatus: 500,
+    internalCode: 'GENERIC_API_ERROR',
+    loggable: true,
+    remediation: BILLING_REMEDIATION_COMMON.CONTACT_SUPPORT,
+    docsUrl: `${BILLING_DOCS_BASE_URL}generic-api-error`,
+    // Behavior metadata
+    refundable: false,
+    subscriptionRequired: false,
+    visibility: 'public',
+    retryable: true, // Общие API ошибки могут быть повторены
+    retryPolicy: 'delayed',
+    retryMetadataVersion: 'v1',
+    // Compliance metadata
+    amountSensitive: false,
+    fraudRisk: 'low',
+    auditRequired: true,
+    complianceLevel: 'standard',
+    // Multi-region/multi-tenant tracking
+    regionId: BILLING_DEFAULTS.REGION,
+    tenantId: BILLING_DEFAULTS.TENANT,
+  } satisfies BillingServiceErrorMetadata,
 } as const;
 
 // ==================== COMPILE-TIME EXHAUSTIVENESS GUARD ====================

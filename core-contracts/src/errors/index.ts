@@ -117,3 +117,13 @@ export * as Policies from './shared/policies/index.js';
  * - AI serialization: response/result formatters
  */
 export * as AIService from './services/ai-service/index.js';
+
+/**
+ * Billing Service: специализированные ошибки и инструменты для платежных операций
+ * - BillingServiceError: discriminated union для billing операций
+ * - Billing adapters: payment providers (WebPay, BePaid)
+ * - Billing instrumentation: fraud detection, latency monitoring
+ * - Billing policies: payment retry, refund policy, fraud detection
+ * - Billing serialization: payment data formatters
+ */
+export * as BillingService from './services/billing-service/index.js';

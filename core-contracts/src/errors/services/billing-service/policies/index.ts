@@ -177,6 +177,15 @@ export {
 // Functions
 export { evaluateRefundPolicy } from './refundHandlingPolicy.js';
 
+// ==================== MONITORING POLICY ====================
+
+// Functions
+export {
+  calculateBusinessImpact,
+  calculateMonitoringAttributes,
+  calculateMonitoringPriority,
+} from './monitoringPolicy.js';
+
 // ==================== UNIFIED POLICY ENGINE ====================
 
 // Types
