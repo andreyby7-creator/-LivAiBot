@@ -259,7 +259,35 @@ export {
   evaluateRefundPolicy,
 } from './policies/index.js';
 
+// ==================== SERIALIZATION ====================
+
+export {
+  createPaymentErrorSerializer,
+  serializeGrpcToJsonString,
+  serializeGrpcWithMetadataToJsonString,
+  serializeHttpToJsonString,
+  serializeHttpWithMetadataToJsonString,
+  serializePaymentErrorGrpc,
+  serializePaymentErrorHttp,
+} from './serialization/index.js';
+
+export type {
+  BaseErrorPlainObject,
+  GrpcPaymentSerializationResult,
+  HttpPaymentSerializationResult,
+  PaymentError,
+  PaymentErrorDetails,
+  PaymentErrorSerializationOutcome,
+  PaymentErrorSerializerConfig,
+  PaymentErrorSerializerRequestConfig,
+  PaymentGrpcDetailsFormatter,
+  PaymentResult,
+  PaymentSuccess,
+} from './serialization/index.js';
+
+export { PAYMENT_GRPC_STATUS, PAYMENT_HTTP_STATUS } from './serialization/index.js';
+
 // ==================== FUTURE EXPORTS (PLACEHOLDERS) ====================
 
-// export { serializePaymentError, serializePaymentResult } from './serialization/index.js';
+// export { createPaymentResultSerializer, serializePaymentResult } from './serialization/index.js';
 // export { createStripeAdapter, createPayPalAdapter } from './adapters/index.js';

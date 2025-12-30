@@ -5,12 +5,12 @@
 ### Основные команды для ежедневной работы
 
 ```bash
-pnpm run type-check                    # Строгая проверка TS (Turbo)
-pnpm run build                         # Полная сборка (JS + типы) (Turbo)
-pnpm run dev                           # Dev режим (tsup watch, Turbo)
-pnpm run lint:canary                   # Строгий canary линтинг (Turbo)
-npx dprint fmt                         # Форматирование всего проекта (npx)
-pnpm run test                          # Все тесты (Turbo)
+pnpm run type-check                     # Строгая проверка TS (Turbo)
+pnpm run build                          # Полная сборка (JS + типы) (Turbo)
+pnpm run dev                            # Dev режим (tsup watch, Turbo)
+pnpm run lint:canary                    # Строгий canary линтинг (Turbo)
+npx dprint fmt                          # Форматирование всего проекта (npx)
+pnpm run test                           # Все тесты (Turbo)
 ```
 
 ## 📦 Install команды
@@ -18,9 +18,9 @@ pnpm run test                          # Все тесты (Turbo)
 ### Установка зависимостей
 
 ```bash
-pnpm install                           # Установка всех зависимостей
-pnpm install --prod                    # Установка только production-зависимостей
-pnpm install --frozen-lockfile         # Установка с frozen lockfile (CI)
+pnpm install                            # Установка всех зависимостей
+pnpm install --prod                     # Установка только production-зависимостей
+pnpm install --frozen-lockfile          # Установка с frozen lockfile (CI)
 ```
 
 ## 🔨 Build команды
@@ -28,11 +28,11 @@ pnpm install --frozen-lockfile         # Установка с frozen lockfile (
 ### Сборка проекта
 
 ```bash
-pnpm run build                         # Полная сборка (JS + типы)
-pnpm run build:js                      # Только JS
-pnpm run build:types                   # Только типы + dprint
-pnpm run build:watch                   # Watch режим
-pnpm run dev                           # Dev режим (tsup watch)
+pnpm run build                          # Полная сборка (JS + типы)
+pnpm run build:js                       # Только JS
+pnpm run build:types                    # Только типы + dprint
+pnpm run build:watch                    # Watch режим
+pnpm run dev                            # Dev режим (tsup watch)
 ```
 
 ## ✅ Quality команды
@@ -40,10 +40,10 @@ pnpm run dev                           # Dev режим (tsup watch)
 ### Проверка качества кода
 
 ```bash
-pnpm run quality                       # Комплексная проверка качества (types + deps)
-pnpm run type-coverage                 # Покрытие типами
-pnpm run deps:unused                   # Проверка неиспользуемых зависимостей
-pnpm run type-check                    # Строгая проверка TS
+pnpm run quality                        # Комплексная проверка качества (types + deps)
+pnpm run type-coverage                  # Покрытие типами
+pnpm run deps:unused                    # Проверка неиспользуемых зависимостей
+pnpm run type-check                     # Строгая проверка TS
 ```
 
 ## 🧹 Lint команды
@@ -51,10 +51,10 @@ pnpm run type-check                    # Строгая проверка TS
 ### Линтинг
 
 ```bash
-pnpm run lint                          # Линтинг (turbo)
-pnpm run lint:fix                      # Автоисправление
-pnpm run lint:canary                   # Строгий canary линтинг
-pnpm run lint:canary:fix               # Строгий + автофикс
+pnpm run lint                           # Линтинг (turbo)
+pnpm run lint:fix                       # Автоисправление
+pnpm run lint:canary                    # Строгий canary линтинг
+pnpm run lint:canary:fix                # Строгий + автофикс
 ```
 
 ## 🎨 Format команды
@@ -62,8 +62,8 @@ pnpm run lint:canary:fix               # Строгий + автофикс
 ### Форматирование
 
 ```bash
-npx dprint check                       # Проверка форматирования
-npx dprint fmt                         # Форматирование всего проекта
+npx dprint check                        # Проверка форматирования
+npx dprint fmt                          # Форматирование всего проекта
 npx dprint fmt "packages/**/*.src/**/*.{ts,tsx}"   # Только исходники
 ```
 
@@ -74,25 +74,25 @@ npx dprint fmt "packages/**/*.src/**/*.{ts,tsx}"   # Только исходни
 #### Основные команды
 
 ```bash
-pnpm run test                          # Все тесты (Turbo)
-pnpm run test:ui                       # Веб-интерфейс для тестов
-pnpm run test:coverage:html            # Тесты с HTML отчетом покрытия
-pnpm run test:coverage:watch           # Тесты с coverage в watch режиме
-pnpm run coverage:open                 # Открыть HTML отчет в браузере
+pnpm run test                            # Все тесты (Turbo)
+pnpm run test:ui                         # Веб-интерфейс для тестов
+pnpm run test:coverage:html              # Тесты с HTML отчетом покрытия
+pnpm run test:coverage:watch             # Тесты с coverage в watch режиме
+pnpm run coverage:open                   # Открыть HTML отчет в браузере
 ```
 
 #### Coverage анализ
 
 ```bash
-pnpm run coverage:check                # Анализ проблем покрытия кода
-pnpm run coverage:file <filename>      # Покрытие конкретного файла
+pnpm run coverage:check                  # Анализ проблем покрытия кода
+pnpm run coverage:file <filename>        # Покрытие конкретного файла
 ```
 
 #### Примеры
 
 ```bash
-pnpm run coverage:file CurrencyCode.ts    # Проверить покрытие файла
-pnpm run coverage:file unknown.ts         # Общий отчет при ошибке
+pnpm run coverage:file CurrencyCode.ts   # Проверить покрытие файла
+pnpm run coverage:file unknown.ts        # Общий отчет при ошибке
 ```
 
 #### Ключевые особенности
@@ -107,12 +107,12 @@ pnpm run coverage:file unknown.ts         # Общий отчет при оши�
 ### Проверка перед коммитом
 
 ```bash
-pnpm run pre-commit                     # Полная проверка перед коммитом (lint + format + circular deps + dep policy + test)
-pnpm run format:check                   # Быстрая проверка форматирования
-pnpm run check:circular-deps            # Проверка циклических зависимостей в монорепо
-pnpm run deps:unused                    # Проверка неиспользуемых зависимостей в проекте
-pnpm run check:dependency-policy        # Проверка архитектурных ограничений на зависимости
-pnpm run analyze:import-metrics         # Анализ метрик сложности графа импортов
+pnpm run pre-commit                      # Полная проверка перед коммитом (lint + format + circular deps + dep policy + test)
+pnpm run format:check                    # Быстрая проверка форматирования
+pnpm run check:circular-deps             # Проверка циклических зависимостей в монорепо
+pnpm run deps:unused                     # Проверка неиспользуемых зависимостей в проекте
+pnpm run check:dependency-policy         # Проверка архитектурных ограничений на зависимости
+pnpm run analyze:import-metrics          # Анализ метрик сложности графа импортов
 ```
 
 ## 🧽 Clean команды
@@ -120,8 +120,8 @@ pnpm run analyze:import-metrics         # Анализ метрик сложно
 ### Очистка
 
 ```bash
-pnpm run clean                          # Очистка кэша и временных файлов (Turbo)
-pnpm store prune                        # Очистка неиспользуемого кэша pnpm
+pnpm run clean                           # Очистка кэша и временных файлов (Turbo)
+pnpm store prune                         # Очистка неиспользуемого кэша pnpm
 ```
 
 ## 📦 Dependency команды
@@ -129,12 +129,12 @@ pnpm store prune                        # Очистка неиспользуе�
 ### Управление зависимостями
 
 ```bash
-pnpm outdated                           # Проверка устаревших версий пакетов в монорепо
-pnpm audit                              # Проверка уязвимостей безопасности в зависимостях
-pnpm update --interactive               # Интерактивное обновление пакетов
-pnpm add -D <package>                   # Добавление dev зависимости
-pnpm add <package>                      # Добавление runtime зависимости
-npx npm-check-updates -u                # Обновление всех зависимостей до последних версий (в конкретном пакете)
+pnpm outdated                            # Проверка устаревших версий пакетов в монорепо
+pnpm audit                               # Проверка уязвимостей безопасности в зависимостях
+pnpm update --interactive                # Интерактивное обновление пакетов
+pnpm add -D <package>                    # Добавление dev зависимости
+pnpm add <package>                       # Добавление runtime зависимости
+npx npm-check-updates -u                 # Обновление всех зависимостей до последних версий (в конкретном пакете)
 ```
 
 ## 🔧 Debug / Анализ команды
@@ -142,10 +142,10 @@ npx npm-check-updates -u                # Обновление всех зави
 ### Отладка и анализ
 
 ```bash
-pnpm run analyze:bundles                # Анализ бандлов всех пакетов (размеры + dependency graph)
-pnpm run analyze:bundles --size-only    # Только анализ размеров (быстрее)
-pnpm run analyze:bundles --graph-only   # Только анализ графа зависимостей
-pnpm run analyze:bundles --compare=main # Сравнить с main branch
-pnpm run analyze:bundles --compare=none # Без сравнения
-pnpm run dev:inspect                    # Dev режим с инспектором Node.js
+pnpm run analyze:bundles                 # Анализ бандлов всех пакетов (размеры + dependency graph)
+pnpm run analyze:bundles --size-only     # Только анализ размеров (быстрее)
+pnpm run analyze:bundles --graph-only    # Только анализ графа зависимостей
+pnpm run analyze:bundles --compare=main  # Сравнить с main branch
+pnpm run analyze:bundles --compare=none  # Без сравнения
+pnpm run dev:inspect                     # Dev режим с инспектором Node.js
 ```

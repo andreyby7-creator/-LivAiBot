@@ -26,6 +26,11 @@ import {
 
 import type { PaymentFailedError } from './BillingServiceErrorTypes.js';
 import type { SupportedCurrency, SupportedPaymentMethod } from './domain/index.js';
+import type {
+  PaymentErrorDetails,
+  PaymentResult,
+  PaymentSuccess,
+} from './serialization/PaymentErrorSerializer.js';
 
 // ==================== RETRY POLICY CONSTANTS ====================
 
@@ -279,3 +284,81 @@ export const validateBillingOperation = (
     ),
   );
 };
+
+// ==================== PAYMENT RESULT VALIDATION ====================
+
+/** Проверяет валидность структуры PaymentErrorDetails */
+export function isValidPaymentErrorDetails(value: unknown): value is PaymentErrorDetails {
+  if (value === null || value === undefined) return true; // details опциональны
+  if (typeof value !== 'object') return false; // не объект - невалидно
+  const d = value as Record<string, unknown>;
+
+  // Проверяем известные поля на корректность типов
+  const isValidString = (val: unknown): val is string =>
+    typeof val === 'string' && val.trim().length > 0;
+
+  return (
+    (d['type'] === undefined || isValidString(d['type']))
+    && (d['code'] === undefined || isValidString(d['code']))
+    && (d['retryable'] === undefined || typeof d['retryable'] === 'boolean')
+    && (d['provider'] === undefined || isValidString(d['provider']))
+    && (d['operation'] === undefined || isValidString(d['operation']))
+    && (d['transactionId'] === undefined || isValidString(d['transactionId']))
+  );
+}
+
+/** Проверяет валидность структуры PaymentResult с глубокой валидацией */
+export function isValidPaymentResult<T = unknown>(value: unknown): value is PaymentResult<T> {
+  if (typeof value !== 'object' || value === null) return false;
+  const r = value as Record<string, unknown>;
+
+  if (r['type'] === 'success') {
+    // Проверяем обязательные поля success результата
+    if (typeof r['operation'] !== 'string' || !r['operation'].trim()) return false;
+    if (!('result' in r)) return false;
+    if (typeof r['transactionId'] !== 'string' || !r['transactionId'].trim()) return false;
+
+    // PCI-safe проверки для amount/currency
+    if ('amount' in r && (typeof r['amount'] !== 'number' || r['amount'] < 0)) return false;
+    if ('currency' in r && typeof r['currency'] !== 'string') return false;
+
+    return true;
+  }
+
+  if (r['type'] === 'error') {
+    const error = r['error'];
+    if (typeof error !== 'object' || error === null) return false;
+
+    const e = error as Record<string, unknown>;
+    return (
+      typeof e['code'] === 'string'
+      && e['code'].trim().length > 0
+      && typeof e['message'] === 'string'
+      && e['message'].trim().length > 0
+      && (e['details'] === undefined || isValidPaymentErrorDetails(e['details']))
+    );
+  }
+
+  return false;
+}
+
+/** Проверяет и валидирует PaymentSuccess с типизированным result */
+export function isValidPaymentSuccess<T>(
+  value: unknown,
+  resultValidator?: (result: unknown) => result is T,
+): value is PaymentSuccess<T> {
+  if (!isValidPaymentResult(value)) return false;
+  const r = value as Record<string, unknown>;
+
+  if (r['type'] !== 'success') return false;
+
+  const result = r['result'];
+
+  // Если предоставлен валидатор result, используем его
+  if (resultValidator) {
+    return resultValidator(result);
+  }
+
+  // Базовая валидация result: не должен быть null/undefined
+  return result !== null && result !== undefined;
+}
