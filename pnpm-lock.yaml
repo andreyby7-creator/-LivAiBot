@@ -114,8 +114,8 @@ importers:
   core-contracts:
     dependencies:
       '@effect/platform':
-        specifier: ^0.93.8
-        version: 0.93.8(effect@3.19.12)
+        specifier: ^0.94.1
+        version: 0.94.1(effect@3.19.12)
       '@effect/printer-ansi':
         specifier: ^0.47.0
         version: 0.47.0(@effect/typeclass@0.38.0(effect@3.19.12))(effect@3.19.12)
@@ -247,10 +247,10 @@ packages:
   '@effect/eslint-plugin@0.3.2':
     resolution: {integrity: sha512-c4Vs9t3r54A4Zpl+wo8+PGzZz3JWYsip41H+UrebRLjQ2Hk/ap63IeCgN/HWcYtxtyhRopjp7gW9nOQ2Snbl+g==}
 
-  '@effect/platform@0.93.8':
-    resolution: {integrity: sha512-xTEy6fyTy4ijmFC3afKgtvYtn/JyPoIov4ZSUWJZUv3VeOcUPNGrrqG6IJlWkXs3NhvSywKv7wc1kw3epCQVZw==}
+  '@effect/platform@0.94.1':
+    resolution: {integrity: sha512-SlL8OMTogHmMNnFLnPAHHo3ua1yrB1LNQOVQMiZsqYu9g3216xjr0gn5WoDgCxUyOdZcseegMjWJ7dhm/2vnfg==}
     peerDependencies:
-      effect: ^3.19.12
+      effect: ^3.19.14
 
   '@effect/printer-ansi@0.47.0':
     resolution: {integrity: sha512-tDEQ9XJpXDNYoWMQJHFRMxKGmEOu6z32x3Kb8YLOV5nkauEKnKmWNs7NBp8iio/pqoJbaSwqDwUg9jXVquxfWQ==}
@@ -2746,7 +2746,7 @@ snapshots:
       '@dprint/typescript': 0.91.8
       prettier-linter-helpers: 1.0.0
 
-  '@effect/platform@0.93.8(effect@3.19.12)':
+  '@effect/platform@0.94.1(effect@3.19.12)':
     dependencies:
       effect: 3.19.12
       find-my-way-ts: 0.1.6
