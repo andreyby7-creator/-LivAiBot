@@ -1010,6 +1010,15 @@ livai/
 │               ├── publisher.ts
 │               ├── consumer.ts
 │               └── dlq.ts
+│   ├── 🔧 shared/
+│   │   ├── src/
+│   │   │   ├── index.ts                      # main entry point - re-exports
+│   │   │   ├── types/                        # additional shared types
+│   │   │   ├── utils/                        # additional shared utilities
+│   │   │   ├── constants/                    # global constants
+│   │   │   └── config/                       # shared configuration
+│   │   ├── package.json
+│   │   └── README.md
 │   ├── 📋 core-contracts/
 │   │   ├── src/
 │   │   │   ├── index.ts             # public exports всего пакета
