@@ -73,7 +73,8 @@ adapters/ → shared/ (запрещено - нарушает dependency inversio
 
 ```
 livai/
-├── 📦 services/                          
+├── packages/
+│   ├── 📦 services/                          
 │   ├── 🚪 api-gateway/                   
 │   │   ├── Dockerfile
 │   │   ├── pyproject.toml
@@ -653,8 +654,8 @@ livai/
 │       │   └── tests/{unit/,integration/}
 │       └── Makefile
 │
-├── 🎨 frontend/
-│   ├── shared/
+│   ├── 🎨 frontend/
+│   ├── ui-shared/
 │   │   ├── ui-components/         # общий UI слой для web/admin/mobile (если нужен)
 │   │   ├── ui-icons/
 │   │   └── ui-utils/
@@ -846,19 +847,7 @@ livai/
 │           ├── offline-cache.ts         # offline read-only minimum
 │           └── install-prompt.ts
 │
-├── 🔧 shared/
-│   ├── core-contracts/
-│   │   ├── src/
-│   │   │   ├── index.ts             # public exports всего пакета
-│   │   │   ├── common/
-│   │   │   │   ├── index.ts
-│   │   │   │   ├── ids.ts           # TenantId, UserId, BotId, SourceId, ConversationId (брендинг типов)
-│   │   │   │   ├── pagination.ts    # PageRequest/PageResponse
-│   │   │   │   ├── datetime.ts      # ISODateTime, DateRange
-│   │   │   │   ├── money.ts         # Money, CurrencyCode (для биллинга)
-│   │   │   │   ├── errors.ts        # ErrorCode + AppError shape (для API и UI)
-│   │   │   │   ├── rateLimits.ts    # quota/rate limit shapes (для U13/A6)
-│   │   │   │   └── audit.ts         # AuditActor, AuditMeta (для A7)
+│   ├── 🔧 shared/
 │   │   │   │
 │   │   │   ├── access/              # U14 + A7
 │   │   │   │   ├── index.ts
@@ -1021,8 +1010,181 @@ livai/
 │               ├── publisher.ts
 │               ├── consumer.ts
 │               └── dlq.ts
+│   ├── 📋 core-contracts/
+│   │   ├── src/
+│   │   │   ├── index.ts             # public exports всего пакета
+│   │   │   ├── common/
+│   │   │   │   ├── index.ts
+│   │   │   │   ├── ids.ts           # TenantId, UserId, BotId, SourceId, ConversationId (брендинг типов)
+│   │   │   │   ├── pagination.ts    # PageRequest/PageResponse
+│   │   │   │   ├── datetime.ts      # ISODateTime, DateRange
+│   │   │   │   ├── money.ts         # Money, CurrencyCode (для биллинга)
+│   │   │   │   ├── errors.ts        # ErrorCode + AppError shape (для API и UI)
+│   │   │   │   ├── rateLimits.ts    # quota/rate limit shapes (для U13/A6)
+│   │   │   │   └── audit.ts         # AuditActor, AuditMeta (для A7)
+│   │   │   │
+│   │   │   ├── access/              # U14 + A7
+│   │   │   │   ├── index.ts
+│   │   │   │   ├── roles.ts         # owner/admin/editor/viewer/support
+│   │   │   │   ├── permissions.ts   # permission enums + matrices
+│   │   │   │   ├── apiKeys.ts       # API key create/list/revoke DTO
+│   │   │   │   └── schemas.ts       # Zod schemas
+│   │   │   │
+│   │   │   ├── auth/                # U1
+│   │   │   │   ├── index.ts
+│   │   │   │   ├── dto.ts           # Register/Login/Token/Session
+│   │   │   │   └── schemas.ts
+│   │   │   │
+│   │   │   ├── workspace/           # U1 + A1
+│   │   │   │   ├── index.ts
+│   │   │   │   ├── dto.ts           # CreateWorkspace, WorkspaceView, MemberInvite
+│   │   │   │   └── schemas.ts
+│   │   │   │
+│   │   │   ├── bots/                # U3–U5
+│   │   │   │   ├── index.ts
+│   │   │   │   ├── bot.ts           # Bot, BotStatus, ChannelBinding summary
+│   │   │   │   ├── templates.ts     # PersonaTemplate, TemplateCatalog
+│   │   │   │   ├── instruction.ts   # Prompt blocks model (U5)
+│   │   │   │   ├── dto.ts
+│   │   │   │   └── schemas.ts
+│   │   │   │
+│   │   │   ├── ai/                  # U5.1 + execution contracts
+│   │   │   │   ├── index.ts
+│   │   │   │   ├── multiAgent.ts    # agent graph/switch rules/call rules
+│   │   │   │   ├── actions.ts       # ActionDefinition, ActionRunRequest/Result (U9.1)
+│   │   │   │   ├── inference.ts     # RunTurnRequest/Response, TokenUsage
+│   │   │   │   └── schemas.ts
+│   │   │   │
+│   │   │   ├── knowledge/           # U6
+│   │   │   │   ├── index.ts
+│   │   │   │   ├── sources.ts       # SourceType: url/file/sheets/image/qa + settings
+│   │   │   │   ├── ingestion.ts     # IngestionJob, statuses, errors
+│   │   │   │   ├── chunks.ts        # Chunk metadata + citations
+│   │   │   │   ├── indexVersions.ts # versioning for reindex (Specs 4.3)
+│   │   │   │   ├── quality.ts       # QualityReport, not-found queries, examples
+│   │   │   │   ├── dto.ts
+│   │   │   │   └── schemas.ts
+│   │   │   │
+│   │   │   ├── integrations/        # U7–U9
+│   │   │   │   ├── index.ts
+│   │   │   │   ├── connectors.ts    # ConnectorType, capabilities, status model
+│   │   │   │   ├── oauth.ts         # OAuthState, tokens (where applicable)
+│   │   │   │   ├── webhooks.ts      # WebhookContract, retries, idempotency keys (Specs 4.2)
+│   │   │   │   ├── mappings.ts      # field mappings (CRM/helpdesk/booking)
+│   │   │   │   ├── dto.ts
+│   │   │   │   └── schemas.ts
+│   │   │   │
+│   │   │   ├── conversations/       # U10–U11
+│   │   │   │   ├── index.ts
+│   │   │   │   ├── conversation.ts  # Conversation, Session, tags
+│   │   │   │   ├── messages.ts      # Message, attachments, sources (RAG cites)
+│   │   │   │   ├── handoff.ts       # HandoffRequest/Status (U5/U11)
+│   │   │   │   ├── feedback.ts      # thumbs up/down + comment (U11)
+│   │   │   │   ├── dto.ts
+│   │   │   │   └── schemas.ts
+│   │   │   │
+│   │   │   ├── notifications/       # U12–U12.1
+│   │   │   │   ├── index.ts
+│   │   │   │   ├── templates.ts     # template model + variables
+│   │   │   │   ├── triggers.ts      # follow-up triggers, broadcast schedule
+│   │   │   │   ├── delivery.ts      # delivery status + provider codes
+│   │   │   │   ├── dto.ts
+│   │   │   │   └── schemas.ts
+│   │   │   │
+│   │   │   ├── billing/             # U2/U13 + A3/A4
+│   │   │   │   ├── index.ts
+│   │   │   │   ├── plans.ts         # тарифы/лимиты/пакеты
+│   │   │   │   ├── usage.ts         # usage events model + aggregation windows
+│   │   │   │   ├── invoices.ts      # invoice/act DTO
+│   │   │   │   ├── payments.ts      # payment status (WebPay/bePaid/ЕРИП)
+│   │   │   │   ├── quotas.ts        # token/dialog quotas + alerts
+│   │   │   │   ├── dto.ts
+│   │   │   │   └── schemas.ts
+│   │   │   │
+│   │   │   ├── analytics/           # U11.1 + A6
+│   │   │   │   ├── index.ts
+│   │   │   │   ├── metrics.ts       # metrics schema (dialogs, latency, tokens)
+│   │   │   │   ├── dashboards.ts    # dashboard view models
+│   │   │   │   ├── exports.ts       # export request DTO
+│   │   │   │   └── schemas.ts
+│   │   │   │
+│   │   │   ├── admin/               # A1–A8 (глобальные модели админки)
+│   │   │   │   ├── index.ts
+│   │   │   │   ├── tenants.ts
+│   │   │   │   ├── connectorCatalog.ts
+│   │   │   │   ├── incidents.ts         # incident model (A6)
+│   │   │   │   ├── securityPolicies.ts  # A7
+│   │   │   │   └── schemas.ts
+│   │   │   │
+│   │   │   └── docgen/              # U15–U16 (из Specs 4.4)
+│   │   │       ├── index.ts
+│   │   │       ├── documents.ts     # DocumentTemplate, DocumentJob, versions
+│   │   │       ├── proposals.ts     # КП: inputs/outputs
+│   │   │       └── schemas.ts
+│   │   ├── validation/
+│   │   │   ├── README.md            # правила: Zod-only, naming, versioning
+│   │   │   └── zod/
+│   │   │       └── index.ts         # re-export helpers/guards
+│   │   ├── tests/
+│   │   │   ├── schemas.spec.ts      # быстрые тесты на валидацию DTO
+│   │   │   └── compatibility.spec.ts    # "не ломаем контракты" (публичные поля)
+│   │   ├── docs/
+│   │   ├── targets
+│   │   ├── .gitignore
+│   │   ├── package.json
+│   │   ├── README.md
+│   │   ├── tsconfig.build.json
+│   │   ├── tsconfig.json
+│   │   ├── tsup.config.ts
+│   │   └── vitest.config.ts
+│   ├── ⚙️ core/
+│   │   └── src/
+│   ├── 📊 observability/
+│   │   └── src/
+│   ├── 🎨 ui-tokens/
+│   │   └── src/
+│   └── 📨 events/
+│       ├── index.ts
+│       ├── README.md
+│       ├── schemas/
+│       │   ├── envelope.v1.json       # общий envelope: eventId, occurredAt, tenantId, correlationId, type, version, payload
+│       │   └── v1/
+│       │       ├── auth.user_registered.json
+│       │       ├── workspace.created.json
+│       │       ├── bots.bot_created.json
+│       │       ├── bots.bot_published.json
+│       │       ├── knowledge.source_created.json
+│       │       ├── knowledge.ingestion_requested.json
+│       │       ├── knowledge.ingestion_completed.json
+│       │       ├── integrations.connector_connected.json
+│       │       ├── integrations.webhook_received.json
+│       │       ├── conversations.message_received.json
+│       │       ├── conversations.handoff_requested.json
+│       │       ├── billing.usage_recorded.json
+│       │       ├── billing.payment_succeeded.json
+│       │       ├── billing.payment_failed.json
+│       │       ├── notifications.send_requested.json
+│       │       └── analytics.metric_ingested.json
+│       │
+│       ├── utils/
+│       │   ├── eventTypes.ts           # string literals / enum
+│       │   ├── envelope.ts             # TS типы envelope + builders
+│       │   ├── serializer.ts           # json encode/decode + validation against schema
+│       │   ├── versioning.ts           # schema version routing
+│       │   └── idempotency.ts          # idempotencyKey helpers (Specs 4.2)
+│       │
+│       └── adapters/
+│           ├── redis-streams/
+│           │   ├── publisher.ts
+│           │   ├── consumer.ts
+│           │   ├── dlq.ts
+│           │   └── retryPolicy.ts      # backoff/jitter/circuit breaker hooks
+│           └── kafka/
+│               ├── publisher.ts
+│               ├── consumer.ts
+│               └── dlq.ts
 │
-├── platform-tests/                        
+├── tests-platform/                        
 │   ├── README.md                         # как запускать pact/smoke/chaos + env requirements
 │   ├── pact/                             # contract tests (frontend ↔ gateway/service)
 │   │   ├── README.md
@@ -1070,7 +1232,7 @@ livai/
 │           ├── fault_injector.ts
 │           └── chaos.config.ts
 │
-├── 🔌 adapters/                           
+│   ├── 🔌 adapters/                           
 │   ├── 🗄️ database/                       
 │   │   ├── README.md
 │   │   ├── migrations/                        # Alembic migrations (PostgreSQL)
@@ -1238,7 +1400,7 @@ livai/
 │       │   └── ranking.py
 │       └── tests/
 │
-├── 🏭 infrastructure/                     
+│   ├── 🏭 infrastructure/                     
 │   ├── ☸️ kubernetes/
 │   │   ├── README.md
 │   │   ├── base/
