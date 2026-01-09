@@ -1,7 +1,7 @@
 import asyncio
 import os
-import sys
-from urllib.parse import urlparse
+from collections.abc import Awaitable
+from typing import cast
 
 import asyncpg
 import httpx
@@ -11,7 +11,8 @@ from redis import asyncio as redis_async
 
 def _load_env() -> None:
     # Предпочитаем локальный `.env` (пользователь создаёт его из `env.example`).
-    # Если `.env` нет — читаем `env.example`, чтобы проверки были повторяемыми из коробки.
+    # Если `.env` нет — читаем `env.example`, чтобы проверки были повторяемыми
+    # из коробки.
     load_dotenv(".env", override=False)
     if not os.getenv("DATABASE_URL") and os.path.exists("env.example"):
         load_dotenv("env.example", override=False)
@@ -41,7 +42,9 @@ async def check_redis() -> None:
     redis_url = os.getenv("REDIS_URL", "redis://localhost:6379/0")
     r = redis_async.from_url(redis_url)
     try:
-        ok = await r.ping()
+        # r.ping() returns a coroutine that resolves to bool
+        ping_coro = cast(Awaitable[bool], r.ping())
+        ok = await ping_coro
         if ok is not True:
             raise RuntimeError(f"Unexpected ping response: {ok!r}")
     finally:
@@ -84,16 +87,17 @@ def check_qdrant() -> None:
 async def main() -> int:
     _load_env()
 
-    checks: list[tuple[str, object]] = [
+    failures: list[str] = []
+
+    # Run async checks concurrently
+    async_checks = [
         ("postgres", check_postgres()),
         ("redis", check_redis()),
     ]
-
-    failures: list[str] = []
-
-    # Run async checks concurrently, sync checks after.
-    results = await asyncio.gather(*[coro for _, coro in checks], return_exceptions=True)
-    for (name, _), result in zip(checks, results):
+    async_results = await asyncio.gather(
+        *[coro for _, coro in async_checks], return_exceptions=True
+    )
+    for (name, _), result in zip(async_checks, async_results, strict=False):
         if isinstance(result, Exception):
             failures.append(f"{name}: {result}")
         else:

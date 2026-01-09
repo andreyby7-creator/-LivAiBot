@@ -4,9 +4,9 @@ import uuid
 
 from fastapi.testclient import TestClient
 
-from src.config.settings import Settings
-from src.main import create_app
-from src.security.jwt import issue_access_token
+from api_src.config.settings import Settings
+from api_src.main import create_app
+from api_src.security.jwt import issue_access_token
 
 
 def test_healthz() -> None:
@@ -74,7 +74,12 @@ def test_v1_auth_routes_are_public() -> None:
 
 
 def test_auth_injects_workspace_context_headers() -> None:
-    settings = Settings(readiness_strict=False, proxy_enabled=False, jwt_secret="test", jwt_issuer="issuer")
+    settings = Settings(
+        readiness_strict=False,
+        proxy_enabled=False,
+        jwt_secret="test",
+        jwt_issuer="issuer",
+    )
     app = create_app(settings)
     client = TestClient(app)
 

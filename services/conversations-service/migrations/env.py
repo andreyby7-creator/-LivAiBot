@@ -10,9 +10,8 @@ from sqlalchemy import pool
 from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
 
-from src.adapters.db.base import Base
-from src.adapters.db import models  # noqa: F401
-
+from conversations_src.adapters.db import models  # noqa: F401
+from conversations_src.adapters.db.base import Base
 
 config = context.config
 
@@ -97,4 +96,3 @@ if context.is_offline_mode():
     run_migrations_offline()
 else:
     asyncio.run(run_migrations_online())
-

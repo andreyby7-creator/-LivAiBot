@@ -10,5 +10,5 @@ ignore = [
 ]
 
 [lint.isort]
-known-first-party = ["src"]
+known-first-party = ["auth_src", "bots_src", "conversations_src", "api_src"]
 

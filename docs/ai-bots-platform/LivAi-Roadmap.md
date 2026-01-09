@@ -35,7 +35,7 @@
 
 ---
 
-## Фаза 1 — “Вертикальный срез” MVP API (U1 + U3/U5 + U10)
+## Фаза 1 — “Вертикальный срез” MVP API (U1 + U3/U5 + U10) ✅
 
 **Цель:** иметь работающий backend-контур, к которому можно подключать UI без последующего переписывания.
 
@@ -79,11 +79,13 @@
 - users ✅
 - bots + bot_versions (instruction/settings) ✅
 - conversations: threads/messages (для тест-чата) ✅
-- audit_log (минимум: кто/что/когда менял конфигурацию)
+- audit_log (минимум: кто/что/когда менял конфигурацию) ✅
+- llm_turns (для дедупликации LLM запросов) ✅
+- webhook_events + job_queue + dead_letter_queue (для надежности интеграций) ✅
 
 Минимальные поля для “устойчивости” в потоках обработки:
 
-- `command_id`/`operation_id` (см. 1.0) — в местах, где есть retry/dedupe.
+- `command_id`/`operation_id` (см. 1.0) — в местах, где есть retry/dedupe. ✅
 
 ### 1.3 Контракты API
 
@@ -91,7 +93,7 @@
 
 - `/v1/*` роутинг через gateway; ✅ (каркас)
 - единая форма ошибки (`code`, `message`, `trace_id`, `details`); ✅ (каркас)
-- DTO для auth/workspace/bots/conversations.
+- DTO для auth/workspace/bots/conversations. ✅
 
 ### Критерии готовности
 

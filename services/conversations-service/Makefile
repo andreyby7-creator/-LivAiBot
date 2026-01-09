@@ -17,19 +17,19 @@ help:
 
 run:
 	@echo "Запуск: http://localhost:$(PORT)"
-	$(PY) -m uvicorn src.main:app --reload --host $(HOST) --port $(PORT)
+	$(PY) -m uvicorn conversations_src.main:app --reload --host $(HOST) --port $(PORT)
 
 migrate:
 	$(PY) -m alembic -c alembic.ini upgrade head
 
 lint:
-	$(PY) -m ruff check --config $(ROOT_DIR)/config/python/ruff.toml src
+	$(PY) -m ruff check --config $(ROOT_DIR)/config/python/ruff.toml conversations_src
 
 format:
-	$(PY) -m ruff format --config $(ROOT_DIR)/config/python/ruff.toml src
+	$(PY) -m ruff format --config $(ROOT_DIR)/config/python/ruff.toml conversations_src
 
 type:
-	$(PY) -m mypy --config-file $(ROOT_DIR)/config/python/mypy.ini src
+	$(PY) -m mypy --config-file $(ROOT_DIR)/config/python/mypy.ini conversations_src
 
 test:
 	$(PY) -m pytest -c $(ROOT_DIR)/config/python/pytest.ini tests

@@ -1,0 +1,23 @@
+[tool.ruff]
+exclude = [
+  "get-pip.py",
+  "tools/vendor/",
+  "services/**/get-pip.py",
+  "venv/",
+  "services/**/venv/",
+  "**/__pycache__/",
+]
+
+[tool.ruff.format]
+quote-style = "double"
+line-ending = "lf"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP"]
+ignore = [
+  # Подключим постепенно при росте кода
+  "B008", # function-call-in-default-argument
+]
+
+[tool.ruff.lint.isort]
+known-first-party = ["api_src", "bots_src", "conversations_src", "auth_src"]

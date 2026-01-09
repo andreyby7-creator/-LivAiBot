@@ -6,26 +6,69 @@ set -e
 
 echo "🚀 Running pre-push checks..."
 
-# 1. Type check core-contracts
-echo "  🔍 Type checking core-contracts..."
-(cd core-contracts && pnpm run type-check) || {
-  echo "  ❌ Type check failed"
-  exit 1
-}
+# Determine changed files and packages
+CHANGED_PACKAGES=$(git diff origin/main..HEAD --name-only | grep -E '^(packages|apps)/' | cut -d'/' -f1-2 | sort -u || true)
+CHANGED_FILES=$(git diff origin/main..HEAD --name-only || true)
 
-# 2. Lint core-contracts
-echo "  📝 Linting core-contracts..."
-(cd core-contracts && pnpm run lint:canary) || {
-  echo "  ❌ Lint failed"
-  exit 1
-}
+echo "  📋 Changed packages: ${CHANGED_PACKAGES:-none}"
+echo "  📄 Changed files: $(echo "$CHANGED_FILES" | wc -l) files"
 
-# 3. Test core-contracts
-echo "  🧪 Testing core-contracts..."
-(cd core-contracts && pnpm run test) || {
-  echo "  ❌ Tests failed"
-  exit 1
-}
+# 1. Type check changed packages
+if [ -n "$CHANGED_PACKAGES" ]; then
+  echo "  🔍 Type checking changed packages..."
+  for PKG in $CHANGED_PACKAGES; do
+    if [ -f "$PKG/package.json" ]; then
+      PKG_NAME=$(node -p "require('./$PKG/package.json').name || ''")
+      if [ -n "$PKG_NAME" ]; then
+        echo "    ✓ Type checking $PKG_NAME..."
+        pnpm --filter="$PKG_NAME" run type-check || {
+          echo "    ❌ Type check failed for $PKG_NAME"
+          exit 1
+        }
+      fi
+    fi
+  done
+else
+  echo "  🔍 No packages changed - skipping type check"
+fi
+
+# 2. Lint changed packages
+if [ -n "$CHANGED_PACKAGES" ]; then
+  echo "  📝 Linting changed packages..."
+  for PKG in $CHANGED_PACKAGES; do
+    if [ -f "$PKG/package.json" ]; then
+      PKG_NAME=$(node -p "require('./$PKG/package.json').name || ''")
+      if [ -n "$PKG_NAME" ]; then
+        echo "    ✓ Linting $PKG_NAME..."
+        pnpm --filter="$PKG_NAME" run lint:canary || {
+          echo "    ❌ Lint failed for $PKG_NAME"
+          exit 1
+        }
+      fi
+    fi
+  done
+else
+  echo "  📝 No packages changed - skipping lint"
+fi
+
+# 3. Test changed packages
+if [ -n "$CHANGED_PACKAGES" ]; then
+  echo "  🧪 Testing changed packages..."
+  for PKG in $CHANGED_PACKAGES; do
+    if [ -f "$PKG/package.json" ]; then
+      PKG_NAME=$(node -p "require('./$PKG/package.json').name || ''")
+      if [ -n "$PKG_NAME" ]; then
+        echo "    ✓ Testing $PKG_NAME..."
+        pnpm --filter="$PKG_NAME" run test || {
+          echo "    ❌ Tests failed for $PKG_NAME"
+          exit 1
+        }
+      fi
+    fi
+  done
+else
+  echo "  🧪 No packages changed - skipping tests"
+fi
 
 # 4. Placeholder for architecture validation
 echo "  🏛️  Architecture validation..."
