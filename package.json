@@ -35,7 +35,6 @@
     "type-coverage": "type-coverage packages --detail",
     "quality:ci": "pnpm run type-check:ci && pnpm run lint:canary:ci",
     "ci": "pnpm run quality:ci && pnpm run test:ci",
-    "pre-commit": "pnpm run lint:canary:local && pnpm run format:check && node scripts/check-circular-deps-monorepo.js && node scripts/check-dependency-policy.js",
     "check:circular-deps": "node scripts/check-circular-deps-monorepo.js",
     "deps:unused": "node scripts/check-deps-unused.js",
     "check:dependency-policy": "node scripts/check-dependency-policy.js",
@@ -108,5 +107,13 @@
   "dependencies": {
     "@opentelemetry/api": "^1.9.0",
     "@opentelemetry/sdk-node": "^0.209.0"
+  },
+  "lint-staged": {
+    "*.{js,ts,tsx,json,md}": [
+      "dprint fmt"
+    ],
+    "*.{js,ts,tsx}": [
+      "eslint --fix"
+    ]
   }
 }
