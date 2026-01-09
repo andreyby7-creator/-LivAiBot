@@ -11,7 +11,7 @@
  * core-contracts НЕ должен зависеть от firebase / react / supabase
  */
 
-import { existsSync, readFileSync } from 'fs';
+import { existsSync, readdirSync, readFileSync, statSync } from 'fs';
 import { join } from 'path';
 
 const POLICY_FILE = 'dependency-policy.json';
@@ -24,12 +24,47 @@ if (!existsSync(POLICY_FILE)) {
 const policy = JSON.parse(readFileSync(POLICY_FILE, 'utf8'));
 
 /**
- * Загружает package.json пакета
- * @param {string} pkgPath путь к пакету
+ * Находит все пакеты в монорепо
+ * @returns {Array<{name: string, path: string, packageJson: any}>}
  */
-function loadPackageJson(pkgPath) {
-  const file = join(pkgPath, 'package.json');
-  return JSON.parse(readFileSync(file, 'utf8'));
+function findPackages() {
+  const packages = [];
+
+  function findPackageDirs(dir) {
+    try {
+      const items = readdirSync(dir);
+
+      for (const item of items) {
+        const fullPath = join(dir, item);
+
+        if (statSync(fullPath).isDirectory() && !item.startsWith('.') && item !== 'node_modules') {
+          const packageJsonPath = join(fullPath, 'package.json');
+          if (existsSync(packageJsonPath)) {
+            try {
+              const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf8'));
+              if (packageJson.name) {
+                packages.push({
+                  name: packageJson.name,
+                  path: fullPath,
+                  packageJson,
+                });
+              }
+            } catch (error) {
+              // Игнорируем невалидные package.json
+            }
+          } else {
+            // Рекурсивно ищем в поддиректориях
+            findPackageDirs(fullPath);
+          }
+        }
+      }
+    } catch (error) {
+      // Игнорируем ошибки чтения
+    }
+  }
+
+  findPackageDirs('.');
+  return packages;
 }
 
 /**
@@ -58,26 +93,22 @@ function checkPolicy(pkgName, pkgJson) {
   return violations;
 }
 
-console.log('🔍 Проверка dependency policy...\n');
+console.log('🔍 Проверка dependency policy...');
 
+const packages = findPackages();
 let hasErrors = false;
 
-for (const pkgName of Object.keys(policy)) {
-  const pkgPath = existsSync(pkgName) ? pkgName : join('.', pkgName);
-
-  if (!existsSync(pkgPath)) continue;
-
-  const pkgJson = loadPackageJson(pkgPath);
-  const violations = checkPolicy(pkgName, pkgJson);
+for (const pkg of packages) {
+  const violations = checkPolicy(pkg.name, pkg.packageJson);
 
   if (violations.length > 0) {
     hasErrors = true;
-    console.error(`❌ ${pkgName} нарушает dependency policy:`);
+    console.error(`❌ ${pkg.name} нарушает dependency policy:`);
     violations.forEach((dep) => {
       console.error(`   - запрещённая зависимость: ${dep}`);
     });
   } else {
-    console.log(`✅ ${pkgName}: policy соблюдена`);
+    console.log(`✅ ${pkg.name}: policy соблюдена`);
   }
 }
 

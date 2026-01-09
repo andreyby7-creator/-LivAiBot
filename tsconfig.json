@@ -64,5 +64,13 @@
     "core-contracts/src/**/*",
     "packages/**/*"
   ],
-  "exclude": ["node_modules", "**/dist/**", "**/coverage/**", "**/test-results/**"]
+  "exclude": [
+    "node_modules",
+    "**/dist/**",
+    "**/coverage/**",
+    "**/test-results/**",
+    "**/*.config.*",
+    "**/*.setup.*",
+    "**/tsup.config.*"
+  ]
 }

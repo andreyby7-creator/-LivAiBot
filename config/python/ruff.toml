@@ -1,0 +1,14 @@
+[format]
+quote-style = "double"
+line-ending = "lf"
+
+[lint]
+select = ["E", "F", "I", "B", "UP"]
+ignore = [
+  # Подключим постепенно при росте кода
+  "B008", # function-call-in-default-argument
+]
+
+[lint.isort]
+known-first-party = ["src"]
+

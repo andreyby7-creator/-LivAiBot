@@ -9,8 +9,97 @@ pnpm run type-check                     # Строгая проверка TS (Tu
 pnpm run build                          # Полная сборка (JS + типы) (Turbo)
 pnpm run dev                            # Dev режим (tsup watch, Turbo)
 pnpm run lint:canary                    # Строгий canary линтинг (Turbo)
-npx dprint fmt                          # Форматирование всего проекта (npx)
+npx dprint fmt                          # Форматирование всего проекта
 pnpm run test                           # Все тесты (Turbo)
+```
+
+## 🚀 CI/CD команды
+
+### Для использования в GitHub Actions / GitLab CI
+
+```bash
+pnpm run build:ci                       # Сборка для CI (без remote cache)
+pnpm run type-check:ci                  # TypeScript проверка для CI (без cache)
+pnpm run lint:canary:ci                 # Строгий линтинг для CI (без cache)
+pnpm run test:ci                        # Тесты для CI (без cache)
+pnpm run quality:ci                     # Комплексная проверка качества (CI)
+pnpm run ci                             # Полная CI pipeline (quality + tests)
+```
+
+### Отличия CI команд:
+
+- **`TURBO_FORCE=true`** - принудительное использование Turbo (даже при ошибках)
+- **`TURBO_REMOTE_CACHE_DISABLED=true`** - отключение remote cache для надежности
+- **`cache: false`** в `turbo.json` для test:ci задачи
+
+### Когда использовать:
+
+- **Локально:** обычные команды (`pnpm run build`, `pnpm run test`)
+- **CI:** команды с суффиксом `:ci` (`pnpm run build:ci`, `pnpm run test:ci`)
+
+---
+
+## 🐍 Python / Backend команды
+
+### Virtualenv + зависимости (один раз)
+
+В проекте используем venv в корне: **`.venv/`**.
+
+```bash
+python3 -m venv .venv
+.venv/bin/python -m pip install -r requirements.txt -r requirements-dev.txt
+```
+
+### Инфраструктура (Docker Compose) + проверка
+
+```bash
+docker compose -f infrastructure/compose/docker-compose.yml up -d
+.venv/bin/python scripts/infra_check.py
+```
+
+### Локальный запуск всех backend-сервисов “одной командой”
+
+Поднимает `api-gateway`/`auth-service`/`bots-service`/`conversations-service` на фиксированных портах `8000–8003`
+и включает проксирование `/v1/*` в gateway.
+
+```bash
+bash scripts/dev_up.sh
+bash scripts/dev_status.sh
+bash scripts/dev_down.sh
+```
+
+### Запуск конкретного сервиса
+
+```bash
+cd services/api-gateway && make run
+cd services/auth-service && make run
+cd services/bots-service && make run
+cd services/conversations-service && make run
+```
+
+### Миграции (Alembic)
+
+Важно: у каждого сервиса **своя таблица версий Alembic**, поэтому миграции не конфликтуют.
+
+```bash
+cd services/auth-service && make migrate
+cd services/bots-service && make migrate
+cd services/conversations-service && make migrate
+```
+
+### Качество кода (Python)
+
+```bash
+cd services/api-gateway && make lint && make format && make type && make test
+cd services/auth-service && make lint && make format && make type && make test
+cd services/bots-service && make lint && make format && make type && make test
+cd services/conversations-service && make lint && make format && make type && make test
+```
+
+### Качество всего backend “одной командой” (без cd-ошибок)
+
+```bash
+bash scripts/backend_check.sh
 ```
 
 ## 📦 Install команды
@@ -41,8 +130,8 @@ pnpm run dev                            # Dev режим (tsup watch)
 
 ```bash
 pnpm run quality                        # Комплексная проверка качества (types + deps)
-pnpm run type-coverage                  # Покрытие типами
-pnpm run deps:unused                    # Проверка неиспользуемых зависимостей
+pnpm -w run type-coverage               # Покрытие типами
+pnpm -w run deps:unused                 # Проверка неиспользуемых зависимостей
 pnpm run type-check                     # Строгая проверка TS
 ```
 
@@ -86,13 +175,6 @@ pnpm run coverage:open                   # Открыть HTML отчет в б�
 ```bash
 pnpm run coverage:check                  # Анализ проблем покрытия кода
 pnpm run coverage:file <filename>        # Покрытие конкретного файла
-```
-
-#### Примеры
-
-```bash
-pnpm run coverage:file CurrencyCode.ts   # Проверить покрытие файла
-pnpm run coverage:file unknown.ts        # Общий отчет при ошибке
 ```
 
 #### Ключевые особенности

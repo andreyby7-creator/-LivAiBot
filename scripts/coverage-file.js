@@ -61,305 +61,158 @@ function getAllPackages() {
   return packages;
 }
 
-// Функция для определения пакета по пути файла
-function findPackageForFile(filePath) {
+// Функция для поиска coverage файлов
+function findCoverageFiles(packageName) {
+  const coverageFiles = [];
   const projectRoot = join(__dirname, '..');
 
-  // Если путь содержит имя пакета, используем его
-  if (filePath.includes('/')) {
-    const packages = getAllPackages();
-    for (const pkg of packages) {
-      if (filePath.startsWith(pkg + '/')) {
-        return pkg;
-      }
-    }
-  }
+  // Ищем coverage файлы в разных местах
+  const possiblePaths = [
+    join(projectRoot, 'coverage'),
+    join(projectRoot, 'packages', packageName.replace('packages/', ''), 'coverage'),
+    join(projectRoot, 'reports', 'coverage'),
+  ];
 
-  // Для простоты - если файл содержит ключевые слова, определяем пакет
-  const actualFileName = filePath.includes('/') ? filePath.split('/').pop() : filePath;
-
-  // Определяем пакет по имени файла или содержимому пути
-  if (
-    actualFileName.includes('fraudDetection')
-    || actualFileName.includes('billing')
-    || actualFileName.includes('BillingService')
-    || filePath.includes('billing-service')
-  ) {
-    return 'core-contracts';
-  }
-
-  if (actualFileName.includes('PaymentProvider') || actualFileName.includes('shared')) {
-    return 'core-contracts';
-  }
-
-  // По умолчанию возвращаем core-contracts, так как там большинство тестов
-  return 'core-contracts';
-}
-
-// Определяем пакет для файла
-const packageName = findPackageForFile(fileName);
-const actualFileName = fileName.includes('/') ? fileName.split('/').pop() : fileName;
-
-if (!packageName) {
-  console.log(`❌ Не удалось определить пакет для файла "${fileName}"`);
-  console.log('💡 Убедитесь, что запущены тесты с покрытием: pnpm run test:coverage:html');
-  console.log('📦 Доступные пакеты:', getAllPackages().join(', '));
-  process.exit(1);
-}
-
-try {
-  // Проверяем наличие отчетов покрытия (HTML или JSON)
-  const coverageDir = join(__dirname, '..', packageName, 'coverage');
-  const indexHtmlPath = join(coverageDir, 'index.html');
-  const coverageJsonPath = join(coverageDir, 'coverage-final.json');
-
-  const hasHtmlReport = existsSync(indexHtmlPath);
-  const hasJsonReport = existsSync(coverageJsonPath);
-
-  if (!hasHtmlReport && !hasJsonReport) {
-    console.log(`❌ Отчеты покрытия не найдены в пакете ${packageName}`);
-    console.log('💡 Запустите один из вариантов:');
-    console.log('   - pnpm run test:coverage:html (для полного HTML отчета)');
-    console.log('   - pnpm exec vitest run --coverage (для JSON отчета конкретного теста)');
-    process.exit(1);
-  }
-
-  // Функция для парсинга метрик покрытия из JSON файла
-  function parseCoverageMetricsFromJson(jsonContent, fileName) {
-    try {
-      const coverageData = JSON.parse(jsonContent);
-      const metrics = {};
-
-      // Ищем файл в отчете покрытия
-      for (const [filePath, fileData] of Object.entries(coverageData)) {
-        if (filePath.includes(fileName.replace('.ts', ''))) {
-          // Вычисляем метрики из массивов s, f, b
-          const statementsCovered = Object.values(fileData.s).filter((count) => count > 0).length;
-          const statementsTotal = Object.keys(fileData.s).length;
-
-          const functionsCovered = Object.values(fileData.f).filter((count) => count > 0).length;
-          const functionsTotal = Object.keys(fileData.f).length;
-
-          const branchesCovered = Object.values(fileData.b).flat().filter((count) =>
-            count > 0
-          ).length;
-          const branchesTotal = Object.values(fileData.b).flat().length;
-
-          // Для lines используем statements (приближенно)
-          const linesCovered = statementsCovered;
-          const linesTotal = statementsTotal;
-
-          metrics.statements = {
-            percentage: statementsTotal > 0
-              ? Math.round((statementsCovered / statementsTotal) * 100)
-              : 0,
-            fraction: `${statementsCovered}/${statementsTotal}`,
-          };
-          metrics.functions = {
-            percentage: functionsTotal > 0
-              ? Math.round((functionsCovered / functionsTotal) * 100)
-              : 0,
-            fraction: `${functionsCovered}/${functionsTotal}`,
-          };
-          metrics.branches = {
-            percentage: branchesTotal > 0 ? Math.round((branchesCovered / branchesTotal) * 100) : 0,
-            fraction: `${branchesCovered}/${branchesTotal}`,
-          };
-          metrics.lines = {
-            percentage: linesTotal > 0 ? Math.round((linesCovered / linesTotal) * 100) : 0,
-            fraction: `${linesCovered}/${linesTotal}`,
-          };
-          break;
-        }
-      }
-
-      return metrics;
-    } catch (error) {
-      console.log(`⚠️  Не удалось распарсить JSON отчет покрытия: ${error.message}`);
-      return {};
-    }
-  }
-
-  // Функция для парсинга метрик покрытия из HTML файла
-  function parseCoverageMetricsFromHtml(htmlContent) {
-    const metrics = {};
-
-    // Найдем все блоки с метриками
-    const blockMatches = htmlContent.match(/<div class='fl pad1y space-right2'>([\s\S]*?)<\/div>/g);
-
-    if (blockMatches) {
-      const metricTypes = ['statements', 'branches', 'functions', 'lines'];
-
-      blockMatches.forEach((block, index) => {
-        if (index < metricTypes.length) {
-          const metricType = metricTypes[index];
-          const percentageMatch = block.match(/<span class="strong">(\d+(?:\.\d+)?)% <\/span>/);
-          const fractionMatch = block.match(/<span class='fraction'>(\d+\/\d+)<\/span>/);
-
-          if (percentageMatch && fractionMatch) {
-            metrics[metricType] = {
-              percentage: parseFloat(percentageMatch[1]),
-              fraction: fractionMatch[1],
-            };
-          }
-        }
-      });
-    }
-
-    return metrics;
-  }
-
-  // Функция для поиска HTML файла покрытия
-  function findCoverageFile(fileName) {
-    // Известные пути для файлов
-    const knownFiles = {
-      'fraudDetectionInterfaces': {
-        path: join(
-          coverageDir,
-          'services',
-          'billing-service',
-          'policies',
-          'fraudDetectionInterfaces.ts.html',
-        ),
-        displayName: 'services/billing-service/policies/fraudDetectionInterfaces.ts',
-      },
-      'PaymentProviderId': {
-        path: join(coverageDir, 'shared', 'PaymentProviderId.ts.html'),
-        displayName: 'shared/PaymentProviderId.ts',
-      },
-    };
-
-    // Ищем точное совпадение
-    for (const [key, info] of Object.entries(knownFiles)) {
-      if (fileName.includes(key) && existsSync(info.path)) {
-        return info;
-      }
-    }
-
-    // Ищем по всем HTML файлам в coverage директории
-    const findFileRecursively = (dir, targetName) => {
+  for (const path of possiblePaths) {
+    if (existsSync(path)) {
       try {
-        const items = readdirSync(dir, { withFileTypes: true });
-
-        for (const item of items) {
-          if (item.isDirectory()) {
-            const result = findFileRecursively(join(dir, item.name), targetName);
-            if (result) return result;
-          } else if (
-            item.isFile() && item.name.endsWith('.html') && item.name.includes(targetName)
-          ) {
-            return {
-              path: join(dir, item.name),
-              displayName: item.name.replace('.html', ''),
-            };
+        const files = readdirSync(path);
+        for (const file of files) {
+          if (file.includes('coverage') && (file.endsWith('.json') || file.endsWith('.html'))) {
+            coverageFiles.push(join(path, file));
           }
         }
       } catch (error) {
         // Игнорируем ошибки чтения
       }
-      return null;
-    };
-
-    return findFileRecursively(coverageDir, fileName.replace('.ts', ''));
-  }
-
-  // Проверяем JSON отчет покрытия первым (более свежий)
-  let metrics = {};
-  let reportType = '';
-  let reportPath = '';
-
-  if (hasJsonReport) {
-    try {
-      const jsonContent = readFileSync(coverageJsonPath, 'utf8');
-      metrics = parseCoverageMetricsFromJson(jsonContent, actualFileName);
-      reportType = 'JSON';
-      reportPath = coverageJsonPath;
-
-      // Если метрики найдены, используем их
-      if (Object.keys(metrics).length > 0) {
-        console.log(`📊 Покрытие кода из JSON отчета для файла: ${actualFileName}`);
-      }
-    } catch (error) {
-      console.log(`⚠️  Ошибка чтения JSON отчета: ${error.message}`);
     }
   }
 
-  // Если JSON не дал результатов, пробуем HTML отчет
-  if (Object.keys(metrics).length === 0 && hasHtmlReport) {
-    const fileInfo = findCoverageFile(actualFileName);
+  return coverageFiles;
+}
 
-    if (fileInfo && existsSync(fileInfo.path)) {
+// Функция для чтения JSON coverage отчета
+function readJsonCoverage(filePath, targetFile) {
+  try {
+    const data = JSON.parse(readFileSync(filePath, 'utf8'));
+    const fileKey = Object.keys(data).find((key) => key.includes(targetFile));
+
+    if (fileKey && data[fileKey]) {
+      const coverage = data[fileKey];
+      return {
+        statements: calculatePercentage(coverage.s),
+        branches: Object.keys(coverage.b || {}).length === 0
+          ? 100
+          : calculatePercentage(coverage.b),
+        functions: Object.keys(coverage.f || {}).length === 0
+          ? 100
+          : calculatePercentage(coverage.f),
+      };
+    }
+  } catch (error) {
+    // Игнорируем ошибки парсинга
+  }
+  return null;
+}
+
+// Вспомогательная функция для расчета процента
+function calculatePercentage(obj) {
+  if (!obj || typeof obj !== 'object') return 0;
+  const values = Object.values(obj);
+  if (values.length === 0) return 0;
+  const covered = values.filter((v) => v > 0).length;
+  return Math.round((covered / values.length) * 100);
+}
+
+// Функция для определения пакета по имени файла
+function determinePackage(fileName) {
+  const packages = getAllPackages();
+
+  // Если файл уже содержит путь к пакету
+  for (const pkg of packages) {
+    if (fileName.startsWith(pkg + '/')) {
+      return pkg;
+    }
+  }
+
+  // Ищем файл во всех пакетах
+  const projectRoot = join(__dirname, '..');
+  for (const pkg of packages) {
+    const packagePath = join(projectRoot, pkg.replace('packages/', 'packages/'));
+    const srcPath = join(packagePath, 'src');
+
+    if (existsSync(srcPath)) {
       try {
-        const htmlContent = readFileSync(fileInfo.path, 'utf8');
-        metrics = parseCoverageMetricsFromHtml(htmlContent);
-        reportType = 'HTML';
-        reportPath = fileInfo.path;
-
-        console.log(`📊 Покрытие кода из HTML отчета для файла: ${fileInfo.displayName}`);
+        const result = searchFileInDirectory(srcPath, fileName);
+        if (result) {
+          return pkg;
+        }
       } catch (error) {
-        console.log(`⚠️  Ошибка чтения HTML отчета: ${error.message}`);
+        // Игнорируем ошибки
       }
     }
   }
 
-  // Выводим результаты
-  if (Object.keys(metrics).length > 0) {
-    console.log(
-      `   📝 Statements: ${metrics.statements?.percentage || 0}% (${
-        metrics.statements?.fraction || '0/0'
-      })`,
-    );
-    console.log(
-      `   🌿 Branches: ${metrics.branches?.percentage || 0}% (${
-        metrics.branches?.fraction || '0/0'
-      })`,
-    );
-    console.log(
-      `   🔧 Functions: ${metrics.functions?.percentage || 0}% (${
-        metrics.functions?.fraction || '0/0'
-      })`,
-    );
-    console.log(
-      `   📏 Lines: ${metrics.lines?.percentage || 0}% (${metrics.lines?.fraction || '0/0'})`,
-    );
+  return 'core-contracts'; // По умолчанию
+}
 
-    // Вычисляем среднее покрытие
-    const avgCoverage = Object.values(metrics).reduce((sum, metric) =>
-      sum + (metric.percentage || 0), 0) / Object.keys(metrics).length;
+// Функция для поиска файла в директории
+function searchFileInDirectory(dir, fileName) {
+  try {
+    const items = readdirSync(dir, { withFileTypes: true });
 
-    if (avgCoverage >= 95) {
-      console.log(`✅ Отличное покрытие (${Math.round(avgCoverage)}%)!`);
-    } else if (avgCoverage >= 80) {
-      console.log(`👍 Хорошее покрытие (${Math.round(avgCoverage)}%)`);
-    } else if (avgCoverage >= 70) {
-      console.log(
-        `⚠️  Среднее покрытие (${Math.round(avgCoverage)}%) - рекомендуется добавить тесты`,
-      );
-    } else {
-      console.log(`❌ Низкое покрытие (${Math.round(avgCoverage)}%) - требуется добавить тесты`);
+    for (const item of items) {
+      if (item.isDirectory()) {
+        const result = searchFileInDirectory(join(dir, item.name), fileName);
+        if (result) return result;
+      } else if (item.name === fileName) {
+        return join(dir, item.name);
+      }
     }
-
-    console.log(`\n🔗 Полный ${reportType} отчет: file://${reportPath}`);
-  } else {
-    console.log(`❌ Метрики покрытия для "${actualFileName}" не найдены`);
-    console.log(`📁 Доступные отчеты в пакете ${packageName}:`);
-
-    if (hasJsonReport) {
-      console.log(`   JSON отчет: file://${coverageJsonPath}`);
-      console.log(`   💡 Создан командой: pnpm exec vitest run --coverage`);
-    }
-
-    if (hasHtmlReport) {
-      console.log(`   Главный HTML отчет: file://${indexHtmlPath}`);
-      console.log(`   💡 Создан командой: pnpm run test:coverage:html`);
-      console.log(`   💡 Откройте в браузере для просмотра всех файлов покрытия`);
-    }
-
-    if (!hasJsonReport && !hasHtmlReport) {
-      console.log('   Нет доступных отчетов покрытия');
-    }
+  } catch (error) {
+    // Игнорируем ошибки
   }
-} catch (error) {
-  console.error('❌ Ошибка при обработке файла покрытия:', error.message);
+  return null;
+}
+
+// Основная логика
+const targetPackage = determinePackage(fileName);
+console.log(`🔍 Анализ покрытия файла: ${fileName}`);
+console.log(`📦 Определен пакет: ${targetPackage}`);
+
+const coverageFiles = findCoverageFiles(targetPackage);
+
+if (coverageFiles.length === 0) {
+  console.log('❌ Coverage файлы не найдены');
+  console.log('💡 Сначала запустите: pnpm run test:coverage:html');
   process.exit(1);
 }
+
+console.log(`📄 Найдено ${coverageFiles.length} coverage файла(ов)`);
+
+// Ищем данные о файле в coverage отчетах
+let found = false;
+
+for (const coverageFile of coverageFiles) {
+  if (coverageFile.endsWith('.json')) {
+    const coverage = readJsonCoverage(coverageFile, fileName);
+    if (coverage) {
+      console.log(`\n✅ Покрытие файла ${fileName}:`);
+      console.log(`   Statements: ${coverage.statements}%`);
+      console.log(`   Branches: ${coverage.branches}%`);
+      console.log(`   Functions: ${coverage.functions}%`);
+      console.log(`📊 Из файла: ${coverageFile}`);
+      found = true;
+      break;
+    }
+  }
+}
+
+if (!found) {
+  console.log(`\n❌ Данные о файле ${fileName} не найдены в coverage отчетах`);
+  console.log('📋 Доступные coverage файлы:');
+  coverageFiles.forEach((file) => console.log(`   - ${file}`));
+  console.log('\n💡 Убедитесь, что файл тестируется и покрытие собрано');
+}
+
+console.log('\n🎯 Для обновления coverage запустите: pnpm run test:coverage:html');

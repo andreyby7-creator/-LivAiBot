@@ -1,0 +1,36 @@
+{
+  // Конфигурация для Pyright/BasedPyright.
+  // Нужна, чтобы IDE точно видела зависимости из локального venv `.venv/`.
+  "venvPath": ".",
+  "venv": ".venv",
+  "pythonVersion": "3.13",
+  "typeCheckingMode": "basic",
+  "reportMissingImports": true,
+  "ignore": ["tools/vendor/get-pip.py"],
+  "executionEnvironments": [
+    {
+      "root": "services/api-gateway",
+      "extraPaths": ["services/api-gateway"]
+    },
+    {
+      "root": "services/auth-service",
+      "extraPaths": ["services/auth-service"]
+    },
+    {
+      "root": "services/bots-service",
+      "extraPaths": ["services/bots-service"]
+    },
+    {
+      "root": "services/conversations-service",
+      "extraPaths": ["services/conversations-service"]
+    }
+  ],
+  "include": ["services", "scripts"],
+  "exclude": [
+    "**/__pycache__",
+    "**/.venv",
+    "**/node_modules",
+    "**/.turbo",
+    "tools/vendor/get-pip.py"
+  ]
+}

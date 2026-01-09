@@ -1,0 +1,1 @@
+"""HTTP entrypoints (FastAPI роуты)."""

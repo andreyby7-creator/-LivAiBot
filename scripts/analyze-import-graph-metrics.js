@@ -281,7 +281,7 @@ function findPackages() {
   return packages;
 }
 
-console.log('📐 Анализ метрик графа импортов...\n');
+console.log('📐 Анализ метрик графа импортов...');
 
 const packages = findPackages();
 

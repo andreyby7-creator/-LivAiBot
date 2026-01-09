@@ -468,7 +468,7 @@ function printSummary(results) {
  * Основная функция скрипта
  */
 async function main() {
-  console.log('🔍 Анализируем бандлы в LivAiBot монорепо...\n');
+  console.log('🔍 Анализируем бандлы в LivAiBot монорепо...');
 
   const packages = await findPackages();
   console.log(`Найдено ${packages.length} пакетов\n`);
@@ -503,6 +503,7 @@ async function main() {
 
   // Сохраняем сводку в JSON
   const fs = await import('fs');
+  mkdirSync('reports', { recursive: true });
   await fs.writeFileSync(
     SUMMARY_FILE,
     JSON.stringify(

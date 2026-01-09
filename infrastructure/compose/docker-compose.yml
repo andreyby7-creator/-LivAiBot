@@ -1,0 +1,122 @@
+services:
+  postgres:
+    image: postgres:17
+    environment:
+      POSTGRES_USER: livai
+      POSTGRES_PASSWORD: livai
+      POSTGRES_DB: livai
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U livai -d livai"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  redis:
+    # NOTE: если тег `redis:8.4` существует у вас — можете заменить на него.
+    image: redis:7
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  clickhouse:
+    # NOTE: у ClickHouse нет тега `:25` (нужен конкретный 25.x или `latest`)
+    image: clickhouse/clickhouse-server:25.12
+    environment:
+      CLICKHOUSE_DB: livai
+      CLICKHOUSE_USER: livai
+      CLICKHOUSE_PASSWORD: livai
+      # позволяет управлять пользователями/ролями через SQL
+      CLICKHOUSE_DEFAULT_ACCESS_MANAGEMENT: "1"
+    ports:
+      - "8123:8123"
+      # 9000 конфликтует с MinIO, поэтому маппим на другой host-port
+      - "9002:9000"
+    volumes:
+      - clickhouse_data:/var/lib/clickhouse
+
+  minio:
+    image: minio/minio
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: livai
+      # MinIO требует пароль минимум 8 символов
+      MINIO_ROOT_PASSWORD: livaiadmin123
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_data:/data
+
+  qdrant:
+    image: qdrant/qdrant:v1.16.1
+    ports:
+      - "6333:6333"
+    volumes:
+      - qdrant_data:/qdrant/storage
+
+  # One-shot init jobs (idempotent)
+  clickhouse-init:
+    image: clickhouse/clickhouse-server:25.12
+    depends_on:
+      - clickhouse
+    entrypoint: ["/bin/sh", "-lc"]
+    command: >
+      echo "Ожидаем ClickHouse..." &&
+      for i in $(seq 1 60); do
+        clickhouse-client --host clickhouse --port 9000 --query "SELECT 1" >/dev/null 2>&1 && break;
+        sleep 1;
+      done &&
+      echo "Инициализация ClickHouse..." &&
+      clickhouse-client --host clickhouse --port 9000 --query "CREATE DATABASE IF NOT EXISTS livai"
+    restart: "no"
+
+  minio-init:
+    image: minio/mc
+    depends_on:
+      - minio
+    entrypoint: ["/bin/sh", "-lc"]
+    command: >
+      echo "Ожидаем MinIO..." &&
+      for i in $(seq 1 60); do
+        mc alias set local http://minio:9000 livai livaiadmin123 >/dev/null 2>&1 && break;
+        sleep 1;
+      done &&
+      echo "Инициализация MinIO (bucket'ы)..." &&
+      mc mb -p local/livai-files || true &&
+      mc mb -p local/livai-knowledge || true
+    restart: "no"
+
+  qdrant-init:
+    image: curlimages/curl:8.11.1
+    depends_on:
+      - qdrant
+    entrypoint: ["/bin/sh", "-lc"]
+    command: >
+      echo "Ожидаем Qdrant..." &&
+      for i in $(seq 1 60); do
+        curl -fsS "http://qdrant:6333/collections" >/dev/null 2>&1 && break;
+        sleep 1;
+      done &&
+      echo "Инициализация Qdrant (коллекция)..." &&
+      (curl -fsS "http://qdrant:6333/collections/knowledge_chunks" >/dev/null 2>&1 || \
+        curl -fsS -X PUT "http://qdrant:6333/collections/knowledge_chunks" \
+          -H "Content-Type: application/json" \
+          -d '{"vectors":{"size":1024,"distance":"Cosine"}}') || true
+    restart: "no"
+
+volumes:
+  postgres_data:
+  redis_data:
+  clickhouse_data:
+  minio_data:
+  qdrant_data:

@@ -1,0 +1,12 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`ErrorResponse type > снапшот структуры ErrorResponse 1`] = `
+{
+  "code": "UNAUTHORIZED",
+  "details": {
+    "reason": "missing_token",
+  },
+  "message": "Authentication required",
+  "trace_id": "trace-456",
+}
+`;

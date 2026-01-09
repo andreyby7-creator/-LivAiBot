@@ -1,0 +1,116 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`BotListResponse > снапшот структуры 1`] = `
+{
+  "items": [
+    {
+      "created_at": "2026-01-09T10:00:00.000Z",
+      "current_version": 5,
+      "id": "550e8400-e29b-41d4-a716-446655440000",
+      "name": "Customer Support Bot",
+      "status": "active",
+      "workspace_id": "123e4567-e89b-12d3-a456-426614174000",
+    },
+    {
+      "created_at": "2026-01-09T11:00:00.000Z",
+      "current_version": 1,
+      "id": "6ba7b810-9dad-11d1-80b4-00c04fd430c8",
+      "name": "Sales Assistant",
+      "status": "draft",
+      "workspace_id": "123e4567-e89b-12d3-a456-426614174000",
+    },
+  ],
+}
+`;
+
+exports[`BotResponse > снапшот структуры 1`] = `
+{
+  "created_at": "2026-01-09T21:34:12.123Z",
+  "current_version": 3,
+  "id": "550e8400-e29b-41d4-a716-446655440000",
+  "name": "Assistant Bot",
+  "status": "active",
+  "workspace_id": "123e4567-e89b-12d3-a456-426614174000",
+}
+`;
+
+exports[`CreateBotRequest > снапшот структуры 1`] = `
+{
+  "instruction": "You are a customer support assistant for our company.",
+  "name": "Customer Support Bot",
+  "settings": {
+    "max_tokens": 500,
+    "model": "gpt-4",
+    "system_prompt": "Be helpful and polite.",
+    "temperature": 0.3,
+  },
+}
+`;
+
+exports[`UpdateInstructionRequest > снапшот структуры 1`] = `
+{
+  "instruction": "You are an AI assistant specialized in customer service. Always be polite, helpful, and provide accurate information.",
+  "settings": {
+    "frequency_penalty": 0.1,
+    "max_tokens": 1000,
+    "model": "gpt-4-turbo",
+    "presence_penalty": 0.1,
+    "temperature": 0.7,
+  },
+}
+`;
+
+exports[`Интеграционные тесты bot lifecycle > снапшот полного bot workflow 1`] = `
+{
+  "create": {
+    "request": {
+      "instruction": "You are a helpful AI assistant.",
+      "name": "AI Assistant",
+      "settings": {
+        "model": "gpt-4",
+        "temperature": 0.7,
+      },
+    },
+    "response": {
+      "created_at": "2024-01-01T10:00:00Z",
+      "current_version": 1,
+      "id": "bot-uuid-123",
+      "name": "AI Assistant",
+      "status": "draft",
+      "workspace_id": "workspace-uuid-456",
+    },
+  },
+  "list": {
+    "response": {
+      "items": [
+        {
+          "created_at": "2024-01-01T10:00:00Z",
+          "current_version": 2,
+          "id": "bot-uuid-123",
+          "name": "AI Assistant",
+          "status": "active",
+          "workspace_id": "workspace-uuid-456",
+        },
+      ],
+    },
+  },
+  "update": {
+    "request": {
+      "instruction": "You are an advanced AI assistant with expertise in customer service.",
+      "settings": {
+        "max_tokens": 1000,
+        "model": "gpt-4-turbo",
+        "temperature": 0.6,
+      },
+    },
+    "response": {
+      "created_at": "2024-01-01T10:00:00Z",
+      "current_version": 2,
+      "id": "bot-uuid-123",
+      "name": "AI Assistant",
+      "status": "active",
+      "workspace_id": "workspace-uuid-456",
+    },
+  },
+}
+`;

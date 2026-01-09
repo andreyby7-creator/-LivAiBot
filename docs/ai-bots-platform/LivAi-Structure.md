@@ -13,10 +13,10 @@
 #### Допустимые импорты:
 
 ```
-services/ → shared/ (core-contracts, core, observability, ui-tokens)
+services/ → packages/ (core-contracts, core, events, observability, ui-tokens)
 services/ → adapters/ (database, storage, vector-db, queue, etc.)
-shared/ → adapters/ (только через ports/adapters интерфейсы)
-adapters/ → shared/ (запрещено - нарушает dependency inversion)
+packages/ → adapters/ (только через ports/adapters интерфейсы)
+adapters/ → packages/ (запрещено - нарушает dependency inversion)
 ```
 
 #### Service-local adapters (важное уточнение)
@@ -35,7 +35,7 @@ adapters/ → shared/ (запрещено - нарушает dependency inversio
 
 - **Services не могут импортировать другие services напрямую**
 - **Adapters не могут импортировать business logic**
-- **Frontend не может импортировать services напрямую**
+- **Apps не могут импортировать services напрямую**
 - **Shared libraries не могут зависеть от конкретных сервисов**
 
 #### Слои зависимостей (сверху вниз):
@@ -43,7 +43,7 @@ adapters/ → shared/ (запрещено - нарушает dependency inversio
 1. **Services** - бизнес-логика, use cases, domain models
 2. **Shared** - contracts, core utilities, observability
 3. **Adapters** - infrastructure, external APIs, databases
-4. **Frontend** - UI components, client-side logic
+4. **Apps** - UI components, client-side logic
 
 ### 🛡️ Инструменты контроля зависимостей
 
@@ -68,13 +68,12 @@ adapters/ → shared/ (запрещено - нарушает dependency inversio
 ### 🏭 Infrastructure (уточнение неймспейса)
 
 - Текущая структура `infrastructure/{kubernetes,terraform,ansible,...}` корректна.
-- Если захотим более строгую консистентность по "ops", можно вынести в `infrastructure/ops/{kubernetes,terraform,ansible}` (или `ops/`), сохранив остальные подпапки (`monitoring`, `security`, `networking`, `ci-cd`) как есть.
-- На текущем этапе **не закрепляем** перенос физически, но поддерживаем единый "ops namespace" на уровне документации/терминов: _kubernetes/terraform/ansible = ops_.
+- Если захотим более строгую консистентность по “ops”, можно вынести в `infrastructure/ops/{kubernetes,terraform,ansible}` (или `ops/`), сохранив остальные подпапки (`monitoring`, `security`, `networking`, `ci-cd`) как есть.
+- На текущем этапе **не закрепляем** перенос физически, но поддерживаем единый “ops namespace” на уровне документации/терминов: _kubernetes/terraform/ansible = ops_.
 
 ```
 livai/
-├── packages/
-│   ├── 📦 services/                          
+├── 📦 services/                          
 │   ├── 🚪 api-gateway/                   
 │   │   ├── Dockerfile
 │   │   ├── pyproject.toml
@@ -140,7 +139,7 @@ livai/
 │   │   │   │   └── generate_document.py          # U15
 │   │   │   ├── rag/
 │   │   │   │   ├── chunk_selector.py
-│   │   │   │   ├── citation_formatter.py         # "источники ответа" (U10)
+│   │   │   │   ├── citation_formatter.py         # “источники ответа” (U10)
 │   │   │   │   ├── cache.py                      # cost control (Specs 4.3)
 │   │   │   │   └── limits.py                     # token/doc limits (Specs 4.3)
 │   │   │   ├── actions/
@@ -243,7 +242,7 @@ livai/
 │   │   │   │   ├── run_indexation.py            # background job
 │   │   │   │   ├── schedule_sync.py             # Specs 4.3 (reindex)
 │   │   │   │   ├── delete_source.py             # retention/delete (Specs 4.3)
-│   │   │   │   └── build_quality_report.py      # "качество" UI
+│   │   │   │   └── build_quality_report.py      # “качество” UI
 │   │   │   ├── connectors/
 │   │   │   │   ├── website.py                   # URL crawl/scrape
 │   │   │   │   ├── documents.py                 # PDF/DOCX/TXT parse
@@ -365,7 +364,7 @@ livai/
 │   │   │   │   │   └── max.py
 │   │   │   │   ├── social/
 │   │   │   │   │   ├── instagram.py
-│   │   │   │   └── vk.py
+│   │   │   │   │   └── vk.py
 │   │   │   │   ├── marketplaces/
 │   │   │   │   │   ├── wildberries.py
 │   │   │   │   │   ├── ozon.py
@@ -447,14 +446,14 @@ livai/
 │   │   │   │   │   ├── webhooks.py        # провайдеры платежей
 │   │   │   │   │   └── admin_routes.py    # A3/A4 (tariffs/payments)
 │   │   │   │   └── tasks/
-│   │   │   │       ├── metering_consumer.py   # consume shared/events billing.usage_recorded
+│   │   │   │       ├── metering_consumer.py   # consume packages/events billing.usage_recorded
 │   │   │   │       └── reconciliation.py
 │   │   │   ├── adapters/                 # service-local (реализуют ports/)
 │   │   │   │   ├── persistence/          # repos on Postgres
 │   │   │   │   ├── payments/
 │   │   │   │   │   ├── webpay.py
 │   │   │   │   │   ├── bepaid.py
-│   │   │   │   └── erip.py
+│   │   │   │   │   └── erip.py
 │   │   │   │   └── events/producer.py
 │   │   │   ├── policies/
 │   │   │   │   ├── pricing.py            # price rules
@@ -609,7 +608,7 @@ livai/
 │   │   │   │   └── alerts.py                # SLA/usage alerts (A6/U13)
 │   │   │   ├── ports/
 │   │   │   │   ├── analytics_store.py       # ClickHouse
-│   │   │   │   ├── events_bus.py            # shared/events consumer
+│   │   │   │   ├── events_bus.py            # packages/events consumer
 │   │   │   │   ├── notifications.py         # alert delivery
 │   │   │   │   └── clock.py
 │   │   │   ├── use_cases/
@@ -646,16 +645,34 @@ livai/
 │       │   │   ├── delivery.py             # delivery status
 │       │   │   └── unsubscribe.py          # edge case U12.1
 │       │   ├── ports/
+│       │   │   ├── notifications_repo.py
+│       │   │   ├── templates_repo.py
+│       │   │   ├── provider_gateway.py     # uses adapters/notifications
+│       │   │   ├── segments_provider.py    # from CRM/DB (U12.1)
+│       │   │   ├── idempotency_store.py    # dedupe sends
+│       │   │   ├── events_bus.py
+│       │   │   └── clock.py
 │       │   ├── use_cases/
+│       │   │   ├── send_follow_up.py       # U12
+│       │   │   ├── schedule_broadcast.py   # U12.1
+│       │   │   ├── send_test_message.py
+│       │   │   ├── handle_unsubscribe.py
+│       │   │   └── push_limit_alert.py     # U13 alerts
 │       │   ├── entrypoints/
+│       │   │   ├── http/routes.py
+│       │   │   ├── events/consumer.py      # consume events → notifications
+│       │   │   └── tasks/worker.py         # celery scheduler/sender
 │       │   ├── adapters/
+│       │   │   ├── persistence/
+│       │   │   ├── providers/              # service-local wrappers over adapters/notifications
+│       │   │   └── events/producer.py
 │       │   ├── templates/                  # local template assets (optional)
 │       │   ├── observability/
 │       │   └── tests/{unit/,integration/}
 │       └── Makefile
 │
-│   ├── 🎨 frontend/
-│   ├── ui-shared/
+├── 🎨 apps/
+│   ├── shared/
 │   │   ├── ui-components/         # общий UI слой для web/admin/mobile (если нужен)
 │   │   ├── ui-icons/
 │   │   └── ui-utils/
@@ -685,132 +702,133 @@ livai/
 │   │       │   │   │   └── [botId]/test/page.tsx
 │   │       │   │   ├── knowledge/            # Specs 1.1 Knowledge (U6)
 │   │       │   │   │   ├── page.tsx
-│       │       │   │   └── sources/[sourceId]/page.tsx
-│       │       │   │   ├── channels/             # Specs 1.1 Channels (U7–U9)
-│       │       │   │   │   ├── page.tsx
-│       │       │   │   │   └── connectors/[connectorId]/page.tsx
-│       │       │   │   ├── actions/              # Specs 1.1 Actions (U9.1)
-│       │       │   │   │   ├── page.tsx
-│       │       │   │   │   └── [actionId]/page.tsx
-│       │       │   │   ├── marketing/            # Specs 1.1 Рассылки (U12.1)
-│       │       │   │   │   ├── page.tsx
-│       │       │   │   ├── campaigns/page.tsx
-│       │       │   │   └── segments/page.tsx
-│       │       │   │   ├── analytics/            # Specs 1.1 Analytics (U11.1)
-│       │       │   │   │   ├── page.tsx
-│       │       │   │   │   └── exports/page.tsx
-│       │       │   │   ├── dialogs/              # Specs 1.1 Dialogs (U11)
-│       │       │   │   │   ├── page.tsx
-│       │       │   │   │   └── [conversationId]/page.tsx
-│       │       │   │   ├── billing/              # Specs 1.1 Billing (U2/U13)
-│       │       │   │   │   ├── page.tsx
-│       │       │   │   │   ├── plans/page.tsx
-│       │       │   │   │   └── invoices/page.tsx
-│       │       │   │   ├── team/                 # Specs 1.1 Team (U14)
-│       │       │   │   │   ├── page.tsx
-│       │       │   │   │   └── api-keys/page.tsx
-│       │       │   │   └── settings/page.tsx     # Specs 1.1 Settings
-│       │       │   ├── api/
-│       │       │   │   └── auth/[...nextauth]/route.ts   # NextAuth v5
-│       │       │   └── manifest.ts                # Next PWA manifest builder (optional)
-│       │       ├── modules/                       # feature modules (domain-level UI)
-│       │       │   # Модули = доменная логика UI (api/query/state/components/forms) для конкретного раздела.
-│       │       │   # В app/* лежат роуты/страницы, а модули дают переиспользуемые "кирпичи" для этих страниц.
-│       │       │   # В features/* лежат кросс-модульные фичи/визарды (onboarding, bot-wizard, test-chat и т.п.).
-│       │       │   ├── dashboard/
-│       │       │   │   ├── index.ts
-│       │       │   │   ├── api.ts                  # вызовы gateway для метрик/summary
-│       │       │   │   ├── queries.ts              # TanStack Query hooks
-│       │       │   │   ├── components/
-│       │       │   │   └── types.ts
-│       │       │   ├── bots/
-│       │       │   │   ├── index.ts
-│       │       │   │   ├── api.ts                  # CRUD bots/templates/instructions
-│       │       │   │   ├── queries.ts
-│       │       │   │   ├── forms/                  # create/update bot, prompt blocks
-│       │       │   │   ├── components/
-│       │       │   │   └── types.ts
-│       │       │   ├── knowledge/
-│       │       │   │   ├── index.ts
-│       │       │   │   ├── api.ts                  # sources/ingestion/quality
-│       │       │   │   ├── queries.ts
-│       │       │   │   ├── components/
-│       │       │   │   └── types.ts
-│       │       │   ├── channels/
-│       │       │   │   ├── index.ts
-│       │       │   │   ├── api.ts            # connectors/connections/webhook contracts
-│       │       │   │   ├── queries.ts
-│       │       │   │   ├── forms/
-│       │       │   │   ├── components/
-│       │       │   │   └── types.ts
-│       │       │   ├── actions/
-│       │       │   │   ├── index.ts
-│       │       │   │   ├── api.ts            # actions registry + bind to bots/scenarios
-│       │       │   │   ├── queries.ts
-│       │       │   │   ├── forms/
-│       │       │   │   ├── components/
-│       │       │   │   └── types.ts
-│       │       │   ├── marketing/
-│       │       │   │   ├── index.ts
-│       │       │   │   ├── api.ts                  # campaigns/segments/schedules
-│       │       │   │   ├── queries.ts
-│       │       │   │   ├── forms/
-│       │       │   │   ├── components/
-│       │       │   │   └── types.ts
-│       │       │   ├── analytics/
-│       │       │   │   ├── index.ts
-│       │       │   │   ├── api.ts                  # dashboards/exports
-│       │       │   │   ├── queries.ts
-│       │       │   │   ├── components/
-│       │       │   │   └── types.ts
-│       │       │   ├── dialogs/
-│       │       │   │   ├── index.ts
-│       │       │   │   ├── api.ts        # list dialogs, thread detail, feedback, handoff
-│       │       │   │   ├── queries.ts
-│       │       │   │   ├── components/
-│       │       │   │   └── types.ts
-│       │       │   ├── billing/
-│       │       │   │   ├── index.ts
-│       │       │   │   ├── api.ts                  # plans/checkout/invoices/usage
-│       │       │   │   ├── queries.ts
-│       │       │   │   ├── components/
-│       │       │   │   └── types.ts
-│       │       │   ├── team/
-│       │       │   │   ├── index.ts
-│       │       │   │   ├── api.ts                  # members/invites/roles/api-keys
-│       │       │   │   ├── queries.ts
-│       │       │   │   ├── forms/
-│       │       │   │   ├── components/
-│       │       │   │   └── types.ts
-│       │       │   └── settings/
-│       │       │       ├── index.ts
-│       │       │       ├── api.ts           # profile/security/notifications/preferences
-│       │       │       ├── queries.ts
-│       │       │       ├── components/
-│       │       │       └── types.ts
-│       │       ├── features/
-│       │       │   ├── onboarding/                # U1 wizard
-│       │       │   ├── bot-wizard/                # U3/U4 wizard
-│       │       │   ├── prompt-editor/             # U5 blocks editor
-│       │       │   ├── multi-agent-designer/      # U5.1 graph UI
-│       │       │   ├── rag-quality/               # U6 quality UI
-│       │       │   ├── test-chat/                 # U10 simulator
-│       │       │   └── notifications-center/      # U12
-│       │       ├── shared/
-│       │       │   ├── ui/                        # shadcn/ui wrappers + design tokens
-│       │       │   ├── hooks/
-│       │       │   ├── lib/
-│       │       │   │   ├── api-client.ts          # gateway client
-│       │       │   │   ├── auth.ts
-│       │       │   │   └── errors.ts
-│       │       │   ├── state/
-│       │       │   │   ├── query/                     # TanStack Query config
-│       │       │   │   ├── stores/                    # Zustand stores
-│       │       │   │   └── store.ts
-│       │       │   ├── service-worker/                # PWA service worker sources
-│       │       │   │   ├── sw.ts
-│       │       │   │   └── push.ts
-│       │       │   └── tests/{unit,e2e}/
+│   │       │   │   │   └── sources/[sourceId]/page.tsx
+│   │       │   │   ├── channels/             # Specs 1.1 Channels (U7–U9)
+│   │       │   │   │   ├── page.tsx
+│   │       │   │   │   └── connectors/[connectorId]/page.tsx
+│   │       │   │   ├── actions/              # Specs 1.1 Actions (U9.1)
+│   │       │   │   │   ├── page.tsx
+│   │       │   │   │   └── [actionId]/page.tsx
+│   │       │   │   ├── marketing/            # Specs 1.1 Рассылки (U12.1)
+│   │       │   │   │   ├── page.tsx
+│   │       │   │   │   ├── campaigns/page.tsx
+│   │       │   │   │   └── segments/page.tsx
+│   │       │   │   ├── analytics/            # Specs 1.1 Analytics (U11.1)
+│   │       │   │   │   ├── page.tsx
+│   │       │   │   │   └── exports/page.tsx
+│   │       │   │   ├── dialogs/              # Specs 1.1 Dialogs (U11)
+│   │       │   │   │   ├── page.tsx
+│   │       │   │   │   └── [conversationId]/page.tsx
+│   │       │   │   ├── billing/              # Specs 1.1 Billing (U2/U13)
+│   │       │   │   │   ├── page.tsx
+│   │       │   │   │   ├── plans/page.tsx
+│   │       │   │   │   └── invoices/page.tsx
+│   │       │   │   ├── team/                 # Specs 1.1 Team (U14)
+│   │       │   │   │   ├── page.tsx
+│   │       │   │   │   └── api-keys/page.tsx
+│   │       │   │   └── settings/page.tsx     # Specs 1.1 Settings
+│   │       │   ├── api/
+│   │       │   │   └── auth/[...nextauth]/route.ts   # NextAuth v5
+│   │       │   └── manifest.ts                # Next PWA manifest builder (optional)
+│   │       ├── modules/                       # feature modules (domain-level UI)
+│   │       │   # Модули = доменная логика UI (api/query/state/components/forms) для конкретного раздела.
+│   │       │   # В app/* лежат роуты/страницы, а модули дают переиспользуемые “кирпичи” для этих страниц.
+│   │       │   # В features/* лежат кросс-модульные фичи/визарды (onboarding, bot-wizard, test-chat и т.п.).
+│   │       │   ├── dashboard/
+│   │       │   │   ├── index.ts
+│   │       │   │   ├── api.ts                  # вызовы gateway для метрик/summary
+│   │       │   │   ├── queries.ts              # TanStack Query hooks
+│   │       │   │   ├── components/
+│   │       │   │   └── types.ts
+│   │       │   ├── bots/
+│   │       │   │   ├── index.ts
+│   │       │   │   ├── api.ts                  # CRUD bots/templates/instructions
+│   │       │   │   ├── queries.ts
+│   │       │   │   ├── forms/                  # create/update bot, prompt blocks
+│   │       │   │   ├── components/
+│   │       │   │   └── types.ts
+│   │       │   ├── knowledge/
+│   │       │   │   ├── index.ts
+│   │       │   │   ├── api.ts                  # sources/ingestion/quality
+│   │       │   │   ├── queries.ts
+│   │       │   │   ├── components/
+│   │       │   │   └── types.ts
+│   │       │   ├── channels/
+│   │       │   │   ├── index.ts
+│   │       │   │   ├── api.ts            # connectors/connections/webhook contracts
+│   │       │   │   ├── queries.ts
+│   │       │   │   ├── forms/
+│   │       │   │   ├── components/
+│   │       │   │   └── types.ts
+│   │       │   ├── actions/
+│   │       │   │   ├── index.ts
+│   │       │   │   ├── api.ts            # actions registry + bind to bots/scenarios
+│   │       │   │   ├── queries.ts
+│   │       │   │   ├── forms/
+│   │       │   │   ├── components/
+│   │       │   │   └── types.ts
+│   │       │   ├── marketing/
+│   │       │   │   ├── index.ts
+│   │       │   │   ├── api.ts                  # campaigns/segments/schedules
+│   │       │   │   ├── queries.ts
+│   │       │   │   ├── forms/
+│   │       │   │   ├── components/
+│   │       │   │   └── types.ts
+│   │       │   ├── analytics/
+│   │       │   │   ├── index.ts
+│   │       │   │   ├── api.ts                  # dashboards/exports
+│   │       │   │   ├── queries.ts
+│   │       │   │   ├── components/
+│   │       │   │   └── types.ts
+│   │       │   ├── dialogs/
+│   │       │   │   ├── index.ts
+│   │       │   │   ├── api.ts        # list dialogs, thread detail, feedback, handoff
+│   │       │   │   ├── queries.ts
+│   │       │   │   ├── components/
+│   │       │   │   └── types.ts
+│   │       │   ├── billing/
+│   │       │   │   ├── index.ts
+│   │       │   │   ├── api.ts                  # plans/checkout/invoices/usage
+│   │       │   │   ├── queries.ts
+│   │       │   │   ├── components/
+│   │       │   │   └── types.ts
+│   │       │   ├── team/
+│   │       │   │   ├── index.ts
+│   │       │   │   ├── api.ts                  # members/invites/roles/api-keys
+│   │       │   │   ├── queries.ts
+│   │       │   │   ├── forms/
+│   │       │   │   ├── components/
+│   │       │   │   └── types.ts
+│   │       │   └── settings/
+│   │       │       ├── index.ts
+│   │       │       ├── api.ts           # profile/security/notifications/preferences
+│   │       │       ├── queries.ts
+│   │       │       ├── components/
+│   │       │       └── types.ts
+│   │       ├── features/
+│   │       │   ├── onboarding/                # U1 wizard
+│   │       │   ├── bot-wizard/                # U3/U4 wizard
+│   │       │   ├── prompt-editor/             # U5 blocks editor
+│   │       │   ├── multi-agent-designer/      # U5.1 graph UI
+│   │       │   ├── rag-quality/               # U6 quality UI
+│   │       │   ├── test-chat/                 # U10 simulator
+│   │       │   └── notifications-center/      # U12
+│   │       ├── shared/
+│   │       │   ├── ui/                        # shadcn/ui wrappers + design tokens
+│   │       │   ├── hooks/
+│   │       │   ├── lib/
+│   │       │   │   ├── api-client.ts          # gateway client
+│   │       │   │   ├── auth.ts
+│   │       │   │   └── errors.ts
+│   │       │   └── utils/
+│   │       ├── state/
+│   │       │   ├── query/                     # TanStack Query config
+│   │       │   ├── stores/                    # Zustand stores
+│   │       │   └── store.ts
+│   │       ├── service-worker/                # PWA service worker sources
+│   │       │   ├── sw.ts
+│   │       │   └── push.ts
+│   │       └── tests/{unit,e2e}/
 │   ├── 📱 mobile/
 │   │   ├── package.json
 │   │   ├── app.json
@@ -826,19 +844,19 @@ livai/
 │   │       ├── app/
 │   │       │   ├── layout.tsx
 │   │       │   └── page.tsx
-│       │   ├── modules/
-│       │   │   ├── tenants/            # A1
-│       │   │   ├── users/              # A2
-│       │   │   ├── tariffs/            # A3
-│       │   │   ├── payments/           # A4
-│       │   │   ├── connectors/         # A5
-│       │   │   ├── monitoring/         # A6
-│       │   │   ├── security/           # A7
-│       │   │   └── support/            # A8
-│       │   ├── features/
-│       │   │   └── audit-log/
-│       │   ├── shared/{ui/,hooks/,lib/}
-│       │   └── tests/
+│   │       ├── modules/
+│   │       │   ├── tenants/            # A1
+│   │       │   ├── users/              # A2
+│   │       │   ├── tariffs/            # A3
+│   │       │   ├── payments/           # A4
+│   │       │   ├── connectors/         # A5
+│   │       │   ├── monitoring/         # A6
+│   │       │   ├── security/           # A7
+│   │       │   └── support/            # A8
+│   │       ├── features/
+│   │       │   └── audit-log/
+│   │       ├── shared/{ui/,hooks/,lib/}
+│   │       └── tests/
 │   └── 📱 pwa/
 │       ├── package.json
 │       └── src/
@@ -847,13 +865,26 @@ livai/
 │           ├── offline-cache.ts         # offline read-only minimum
 │           └── install-prompt.ts
 │
-│   ├── 🔧 shared/
+├── 🔧 packages/
+│   ├── core-contracts/
+│   │   ├── src/
+│   │   │   ├── index.ts             # public exports всего пакета
+│   │   │   ├── common/
+│   │   │   │   ├── index.ts
+│   │   │   │   ├── ids.ts           # TenantId, UserId, BotId, SourceId, ConversationId (брендинг типов)
+│   │   │   │   ├── pagination.ts    # PageRequest/PageResponse
+│   │   │   │   ├── datetime.ts      # ISODateTime, DateRange
+│   │   │   │   ├── money.ts         # Money, CurrencyCode (для биллинга)
+│   │   │   │   ├── errors.ts        # ErrorCode + AppError shape (для API и UI)
+│   │   │   │   ├── rateLimits.ts    # quota/rate limit shapes (для U13/A6)
+│   │   │   │   └── audit.ts         # AuditActor, AuditMeta (для A7)
 │   │   │   │
 │   │   │   ├── access/              # U14 + A7
 │   │   │   │   ├── index.ts
 │   │   │   │   ├── roles.ts         # owner/admin/editor/viewer/support
 │   │   │   │   ├── permissions.ts   # permission enums + matrices
 │   │   │   │   ├── apiKeys.ts       # API key create/list/revoke DTO
+│   │   │   │   ├── dto.ts
 │   │   │   │   └── schemas.ts       # Zod schemas
 │   │   │   │
 │   │   │   ├── auth/                # U1
@@ -953,7 +984,7 @@ livai/
 │   │   │       └── index.ts         # re-export helpers/guards
 │   │   ├── tests/
 │   │   │   ├── schemas.spec.ts      # быстрые тесты на валидацию DTO
-│   │   │   └── compatibility.spec.ts    # "не ломаем контракты" (публичные поля)
+│   │   │   └── compatibility.spec.ts    # “не ломаем контракты” (публичные поля)
 │   │   ├── docs/
 │   │   ├── targets
 │   │   ├── .gitignore
@@ -1010,197 +1041,15 @@ livai/
 │               ├── publisher.ts
 │               ├── consumer.ts
 │               └── dlq.ts
-│   ├── 🔧 shared/
-│   │   ├── src/
-│   │   │   ├── index.ts                      # main entry point - re-exports
-│   │   │   ├── types/                        # additional shared types
-│   │   │   ├── utils/                        # additional shared utilities
-│   │   │   ├── constants/                    # global constants
-│   │   │   └── config/                       # shared configuration
-│   │   ├── package.json
-│   │   └── README.md
-│   ├── 📋 core-contracts/
-│   │   ├── src/
-│   │   │   ├── index.ts             # public exports всего пакета
-│   │   │   ├── common/
-│   │   │   │   ├── index.ts
-│   │   │   │   ├── ids.ts           # TenantId, UserId, BotId, SourceId, ConversationId (брендинг типов)
-│   │   │   │   ├── pagination.ts    # PageRequest/PageResponse
-│   │   │   │   ├── datetime.ts      # ISODateTime, DateRange
-│   │   │   │   ├── money.ts         # Money, CurrencyCode (для биллинга)
-│   │   │   │   ├── errors.ts        # ErrorCode + AppError shape (для API и UI)
-│   │   │   │   ├── rateLimits.ts    # quota/rate limit shapes (для U13/A6)
-│   │   │   │   └── audit.ts         # AuditActor, AuditMeta (для A7)
-│   │   │   │
-│   │   │   ├── access/              # U14 + A7
-│   │   │   │   ├── index.ts
-│   │   │   │   ├── roles.ts         # owner/admin/editor/viewer/support
-│   │   │   │   ├── permissions.ts   # permission enums + matrices
-│   │   │   │   ├── apiKeys.ts       # API key create/list/revoke DTO
-│   │   │   │   └── schemas.ts       # Zod schemas
-│   │   │   │
-│   │   │   ├── auth/                # U1
-│   │   │   │   ├── index.ts
-│   │   │   │   ├── dto.ts           # Register/Login/Token/Session
-│   │   │   │   └── schemas.ts
-│   │   │   │
-│   │   │   ├── workspace/           # U1 + A1
-│   │   │   │   ├── index.ts
-│   │   │   │   ├── dto.ts           # CreateWorkspace, WorkspaceView, MemberInvite
-│   │   │   │   └── schemas.ts
-│   │   │   │
-│   │   │   ├── bots/                # U3–U5
-│   │   │   │   ├── index.ts
-│   │   │   │   ├── bot.ts           # Bot, BotStatus, ChannelBinding summary
-│   │   │   │   ├── templates.ts     # PersonaTemplate, TemplateCatalog
-│   │   │   │   ├── instruction.ts   # Prompt blocks model (U5)
-│   │   │   │   ├── dto.ts
-│   │   │   │   └── schemas.ts
-│   │   │   │
-│   │   │   ├── ai/                  # U5.1 + execution contracts
-│   │   │   │   ├── index.ts
-│   │   │   │   ├── multiAgent.ts    # agent graph/switch rules/call rules
-│   │   │   │   ├── actions.ts       # ActionDefinition, ActionRunRequest/Result (U9.1)
-│   │   │   │   ├── inference.ts     # RunTurnRequest/Response, TokenUsage
-│   │   │   │   └── schemas.ts
-│   │   │   │
-│   │   │   ├── knowledge/           # U6
-│   │   │   │   ├── index.ts
-│   │   │   │   ├── sources.ts       # SourceType: url/file/sheets/image/qa + settings
-│   │   │   │   ├── ingestion.ts     # IngestionJob, statuses, errors
-│   │   │   │   ├── chunks.ts        # Chunk metadata + citations
-│   │   │   │   ├── indexVersions.ts # versioning for reindex (Specs 4.3)
-│   │   │   │   ├── quality.ts       # QualityReport, not-found queries, examples
-│   │   │   │   ├── dto.ts
-│   │   │   │   └── schemas.ts
-│   │   │   │
-│   │   │   ├── integrations/        # U7–U9
-│   │   │   │   ├── index.ts
-│   │   │   │   ├── connectors.ts    # ConnectorType, capabilities, status model
-│   │   │   │   ├── oauth.ts         # OAuthState, tokens (where applicable)
-│   │   │   │   ├── webhooks.ts      # WebhookContract, retries, idempotency keys (Specs 4.2)
-│   │   │   │   ├── mappings.ts      # field mappings (CRM/helpdesk/booking)
-│   │   │   │   ├── dto.ts
-│   │   │   │   └── schemas.ts
-│   │   │   │
-│   │   │   ├── conversations/       # U10–U11
-│   │   │   │   ├── index.ts
-│   │   │   │   ├── conversation.ts  # Conversation, Session, tags
-│   │   │   │   ├── messages.ts      # Message, attachments, sources (RAG cites)
-│   │   │   │   ├── handoff.ts       # HandoffRequest/Status (U5/U11)
-│   │   │   │   ├── feedback.ts      # thumbs up/down + comment (U11)
-│   │   │   │   ├── dto.ts
-│   │   │   │   └── schemas.ts
-│   │   │   │
-│   │   │   ├── notifications/       # U12–U12.1
-│   │   │   │   ├── index.ts
-│   │   │   │   ├── templates.ts     # template model + variables
-│   │   │   │   ├── triggers.ts      # follow-up triggers, broadcast schedule
-│   │   │   │   ├── delivery.ts      # delivery status + provider codes
-│   │   │   │   ├── dto.ts
-│   │   │   │   └── schemas.ts
-│   │   │   │
-│   │   │   ├── billing/             # U2/U13 + A3/A4
-│   │   │   │   ├── index.ts
-│   │   │   │   ├── plans.ts         # тарифы/лимиты/пакеты
-│   │   │   │   ├── usage.ts         # usage events model + aggregation windows
-│   │   │   │   ├── invoices.ts      # invoice/act DTO
-│   │   │   │   ├── payments.ts      # payment status (WebPay/bePaid/ЕРИП)
-│   │   │   │   ├── quotas.ts        # token/dialog quotas + alerts
-│   │   │   │   ├── dto.ts
-│   │   │   │   └── schemas.ts
-│   │   │   │
-│   │   │   ├── analytics/           # U11.1 + A6
-│   │   │   │   ├── index.ts
-│   │   │   │   ├── metrics.ts       # metrics schema (dialogs, latency, tokens)
-│   │   │   │   ├── dashboards.ts    # dashboard view models
-│   │   │   │   ├── exports.ts       # export request DTO
-│   │   │   │   └── schemas.ts
-│   │   │   │
-│   │   │   ├── admin/               # A1–A8 (глобальные модели админки)
-│   │   │   │   ├── index.ts
-│   │   │   │   ├── tenants.ts
-│   │   │   │   ├── connectorCatalog.ts
-│   │   │   │   ├── incidents.ts         # incident model (A6)
-│   │   │   │   ├── securityPolicies.ts  # A7
-│   │   │   │   └── schemas.ts
-│   │   │   │
-│   │   │   └── docgen/              # U15–U16 (из Specs 4.4)
-│   │   │       ├── index.ts
-│   │   │       ├── documents.ts     # DocumentTemplate, DocumentJob, versions
-│   │   │       ├── proposals.ts     # КП: inputs/outputs
-│   │   │       └── schemas.ts
-│   │   ├── validation/
-│   │   │   ├── README.md            # правила: Zod-only, naming, versioning
-│   │   │   └── zod/
-│   │   │       └── index.ts         # re-export helpers/guards
-│   │   ├── tests/
-│   │   │   ├── schemas.spec.ts      # быстрые тесты на валидацию DTO
-│   │   │   └── compatibility.spec.ts    # "не ломаем контракты" (публичные поля)
-│   │   ├── docs/
-│   │   ├── targets
-│   │   ├── .gitignore
-│   │   ├── package.json
-│   │   ├── README.md
-│   │   ├── tsconfig.build.json
-│   │   ├── tsconfig.json
-│   │   ├── tsup.config.ts
-│   │   └── vitest.config.ts
-│   ├── ⚙️ core/
-│   │   └── src/
-│   ├── 📊 observability/
-│   │   └── src/
-│   ├── 🎨 ui-tokens/
-│   │   └── src/
-│   └── 📨 events/
-│       ├── index.ts
-│       ├── README.md
-│       ├── schemas/
-│       │   ├── envelope.v1.json       # общий envelope: eventId, occurredAt, tenantId, correlationId, type, version, payload
-│       │   └── v1/
-│       │       ├── auth.user_registered.json
-│       │       ├── workspace.created.json
-│       │       ├── bots.bot_created.json
-│       │       ├── bots.bot_published.json
-│       │       ├── knowledge.source_created.json
-│       │       ├── knowledge.ingestion_requested.json
-│       │       ├── knowledge.ingestion_completed.json
-│       │       ├── integrations.connector_connected.json
-│       │       ├── integrations.webhook_received.json
-│       │       ├── conversations.message_received.json
-│       │       ├── conversations.handoff_requested.json
-│       │       ├── billing.usage_recorded.json
-│       │       ├── billing.payment_succeeded.json
-│       │       ├── billing.payment_failed.json
-│       │       ├── notifications.send_requested.json
-│       │       └── analytics.metric_ingested.json
-│       │
-│       ├── utils/
-│       │   ├── eventTypes.ts           # string literals / enum
-│       │   ├── envelope.ts             # TS типы envelope + builders
-│       │   ├── serializer.ts           # json encode/decode + validation against schema
-│       │   ├── versioning.ts           # schema version routing
-│       │   └── idempotency.ts          # idempotencyKey helpers (Specs 4.2)
-│       │
-│       └── adapters/
-│           ├── redis-streams/
-│           │   ├── publisher.ts
-│           │   ├── consumer.ts
-│           │   ├── dlq.ts
-│           │   └── retryPolicy.ts      # backoff/jitter/circuit breaker hooks
-│           └── kafka/
-│               ├── publisher.ts
-│               ├── consumer.ts
-│               └── dlq.ts
 │
-├── tests-platform/                        
+├── platform-tests/                        
 │   ├── README.md                         # как запускать pact/smoke/chaos + env requirements
-│   ├── pact/                             # contract tests (frontend ↔ gateway/service)
+│   ├── pact/                             # contract tests (apps ↔ gateway/service)
 │   │   ├── README.md
 │   │   ├── pacts/
-│   │   │   ├── web-api-gateway.pact.ts           # web ↔ api-gateway
-│   │   │   ├── admin-admin-service.pact.ts       # admin ↔ admin-service
-│   │   │   ├── bots-bots-service.pact.ts         # bots UI ↔ bots-service
+│   │   │   ├── web-api-gateway.pact.ts           # apps/web ↔ api-gateway
+│   │   │   ├── admin-admin-service.pact.ts       # apps/admin ↔ admin-service
+│   │   │   ├── bots-bots-service.pact.ts         # apps/bots UI ↔ bots-service
 │   │   │   ├── knowledge-knowledge-service.pact.ts
 │   │   │   ├── billing-billing-service.pact.ts
 │   │   │   └── integrations-integrations-service.pact.ts
@@ -1236,12 +1085,12 @@ livai/
 │       │   ├── dlq_replay.spec.ts                       # DLQ replay (A6/A8)
 │       │   ├── connector_rate_limit.spec.ts             # rate limits / CB
 │       │   ├── vector_db_unavailable.spec.ts            # fallback behavior
-│       │   ├── storage_outage.spec.ts                   # object storage outage
+│       │   └── storage_outage.spec.ts                   # object storage outage
 │       └── tooling/
 │           ├── fault_injector.ts
 │           └── chaos.config.ts
 │
-│   ├── 🔌 adapters/                           
+├── 🔌 adapters/                           
 │   ├── 🗄️ database/                       
 │   │   ├── README.md
 │   │   ├── migrations/                        # Alembic migrations (PostgreSQL)
@@ -1287,7 +1136,7 @@ livai/
 │   │   ├── seed/
 │   │   │   ├── seed_dev.py                     # dev seed (templates, тарифы)
 │   │   │   └── fixtures/
-│   │   └── tests/
+│   └── tests/
 │   ├── 📦 storage/                        
 │   │   ├── README.md
 │   │   ├── client/
@@ -1304,7 +1153,7 @@ livai/
 │   │   │   └── stream.py
 │   │   ├── presign/
 │   │   │   ├── generate_put_url.py
-│   │   │   └── generate_get_url_url.py
+│   │   │   └── generate_get_url.py
 │   │   ├── lifecycle/
 │   │   │   ├── retention_policy.py # Specs 4.3: retention/удаление
 │   │   │   └── purge_job.py
@@ -1344,7 +1193,7 @@ livai/
 │   │   ├── dead-letter/
 │   │   │   ├── dlq_writer.py       # Specs 4.2: DLQ запись
 │   │   │   ├── dlq_reader.py       # UI/admin разбор
-│   │   │   └── retry_from_dlq.py   # кнопка "retry" (A6/A8)
+│   │   │   └── retry_from_dlq.py   # кнопка “retry” (A6/A8)
 │   │   ├── reliability/
 │   │   │   ├── idempotency.py      # Specs 4.2: idempotency key + dedupe window
 │   │   │   ├── dedupe_store.py     # Redis-based dedupe store
@@ -1396,7 +1245,7 @@ livai/
 │       │   ├── meilisearch_client.py          # fast search (FAQ/knowledge index)
 │       │   ├── elastic_client.py              # optional heavy search
 │       │   ├── settings.py
-│       │   │   └── errors.py
+│       │   └── errors.py
 │       ├── indexing/
 │       │   ├── index_knowledge.py             # index sources/chunks metadata
 │       │   ├── index_conversations.py         # index conversation threads/tags
@@ -1409,7 +1258,7 @@ livai/
 │       │   └── ranking.py
 │       └── tests/
 │
-│   ├── 🏭 infrastructure/                     
+├── 🏭 infrastructure/                     
 │   ├── ☸️ kubernetes/
 │   │   ├── README.md
 │   │   ├── base/
@@ -1475,8 +1324,8 @@ livai/
 │   │       ├── network-policies.yaml          # tenant isolation at network level
 │   │       ├── opa-gatekeeper/
 │   │       │   ├── constraints/
-│       │   │   └── templates/
-│       │       └── rate-limits.yaml               # ingress/gateway limits
+│   │       │   └── templates/
+│   │       └── rate-limits.yaml               # ingress/gateway limits
 │   ├── 🐳 docker/
 │   │   ├── services/
 │   │   ├── compose/
@@ -1510,11 +1359,11 @@ livai/
 │   │   │   ├── service_slo.yaml
 │   │   │   └── customer_journeys_slo.yaml       # U1/U3/U6/U7/U13
 │   │   └── runbooks/
-│       │   ├── incident_webhooks.md            # A6: webhook failures, retries, DLQ
-│       │   ├── incident_payments.md            # A6: billing provider issues
-│       │   ├── incident_rag_indexing.md        # A6: ingestion/index issues
-│       │   ├── incident_vector_db.md
-│       │   └── incident_storage.md
+│   │       ├── incident_webhooks.md            # A6: webhook failures, retries, DLQ
+│   │       ├── incident_payments.md            # A6: billing provider issues
+│   │       ├── incident_rag_indexing.md        # A6: ingestion/index issues
+│   │       ├── incident_vector_db.md
+│   │       └── incident_storage.md
 │   ├── 🔐 security/
 │   │   ├── README.md
 │   │   ├── policies/
@@ -1538,8 +1387,8 @@ livai/
 │   │   │       ├── rotate_connector_tokens.md
 │   │   │       └── rotate_jwt_keys.md
 │   │   └── compliance/
-│       │   ├── rb_personal_data_law.md         # №99-З mapping
-│       │   └── retention_and_delete.md         # delete/export requests
+│   │       ├── rb_personal_data_law.md         # №99-З mapping
+│   │       └── retention_and_delete.md         # delete/export requests
 │   ├── 🌐 networking/
 │   │   ├── istio/
 │   │   ├── nginx/
@@ -1565,24 +1414,24 @@ livai/
 │   │       │   └── backend.tf
 │   │       ├── stage/
 │   │       │   ├── main.tf
-│       │   │   ├── variables.tf
-│       │   │   ├── outputs.tf
-│       │   │   ├── terraform.tfvars.example
-│       │   │   └── backend.tf
-│       │   └── prod/
-│       │       ├── main.tf
-│       │       ├── variables.tf
-│       │       ├── outputs.tf
-│       │       ├── terraform.tfvars.example
-│       │       ├── backend.tf
+│   │       │   ├── variables.tf
+│   │       │   ├── outputs.tf
+│   │       │   ├── terraform.tfvars.example
+│   │       │   └── backend.tf
+│   │       └── prod/
+│   │           ├── main.tf
+│   │           ├── variables.tf
+│   │           ├── outputs.tf
+│   │           ├── terraform.tfvars.example
+│   │           └── backend.tf
 │   └── 📝 ansible/
 │       ├── README.md
 │       ├── playbooks/
 │       │   ├── bootstrap.yml              # базовая подготовка (ops runners/bastion)
 │       │   ├── deploy.yml                     # (опц.) k8s apply wrappers
 │       │   ├── rotate-secrets.yml             # ключи/токены (A7)
-│       │   ├── maintenance.yml                # cleanup/log rotate
-│       │   └── roles/
+│       │   └── maintenance.yml                # cleanup/log rotate
+│       └── roles/
 │           ├── bastion/
 │           ├── runner/
 │           └── monitoring-agent/
@@ -1636,8 +1485,8 @@ livai/
 │   │   ├── dependency-check/
 │   │   │   └── policy.xml                 # (опц.) SCA policy
 │   │   └── scripts/
-│       │   ├── scan-repo.sh
-│       │   └── scan-images.sh
+│   │       ├── scan-repo.sh
+│   │       └── scan-images.sh
 │   ├── tsconfig/
 │   │   ├── base.json
 │   │   ├── node.json
@@ -1645,6 +1494,13 @@ livai/
 │   │   ├── root.json
 │   │   ├── strict.json
 │   │   └── test-configs.json
+│   ├── vitest/
+│   │   ├── README.md
+│   │   ├── test.setup.ts
+│   │   ├── vite.config.ts
+│   │   ├── vitest.ai.config.ts
+│   │   ├── vitest.config.ts
+│   │   └── vitest.shared.config.ts
 │   └── python/
 │       ├── README.md
 │       ├── pyproject.template.toml      # базовый шаблон для сервисов на FastAPI

@@ -436,4 +436,24 @@ canaryConfig.push({
   rules: integrationTestRules,
 });
 
+// ==================== CORE-CONTRACTS: NO ANY В КОНТРАКТАХ ====================
+// Фиксируем принцип: any только на границе/в инфре, в домене/DTO запрещён.
+canaryConfig.push({
+  files: ['packages/core-contracts/src/**/*.{ts,tsx}'],
+  rules: {
+    '@typescript-eslint/no-explicit-any': 'error',
+  },
+});
+canaryConfig.push({
+  files: [
+    'packages/core-contracts/src/**/entrypoints/**/*.{ts,tsx}',
+    'packages/core-contracts/src/**/infra/**/*.{ts,tsx}',
+    'packages/core-contracts/src/**/adapters/**/*.{ts,tsx}',
+    'packages/core-contracts/src/**/serialization/**/*.{ts,tsx}',
+  ],
+  rules: {
+    '@typescript-eslint/no-explicit-any': 'off',
+  },
+});
+
 export default canaryConfig;

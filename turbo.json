@@ -11,9 +11,13 @@
       "outputs": ["dist/**"],
       "inputs": ["src/**", "package.json", "tsconfig*.json", "tsup.config.ts"]
     },
+    "build:types": {
+      "dependsOn": [],
+      "cache": false,
+      "inputs": ["src/**", "package.json", "tsconfig*.json"]
+    },
     "build:watch": {
       "dependsOn": [],
-      "outputs": ["dist/**"],
       "cache": false
     },
     "lint:canary": {
@@ -31,7 +35,8 @@
     },
     "test:ci": {
       "inputs": ["src/**", "tests/**", "**/*.config.*"],
-      "outputs": ["coverage/**"]
+      "outputs": ["coverage/**"],
+      "cache": false
     },
     "test:ui": {
       "inputs": ["src/**", "tests/**", "**/*.config.*"],

@@ -1,0 +1,66 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`LoginRequest > снапшот структуры 1`] = `
+{
+  "email": "jane.smith@example.com",
+  "password": "SecurePass456!",
+}
+`;
+
+exports[`MeResponse > снапшот структуры 1`] = `
+{
+  "email": "john.doe@example.com",
+  "user_id": "550e8400-e29b-41d4-a716-446655440000",
+  "workspace_id": "123e4567-e89b-12d3-a456-426614174000",
+}
+`;
+
+exports[`RefreshRequest > снапшот структуры 1`] = `
+{
+  "refresh_token": "refresh_token_xyz789",
+}
+`;
+
+exports[`RegisterRequest > снапшот структуры 1`] = `
+{
+  "email": "john.doe@example.com",
+  "password": "MySecurePass123!",
+  "workspace_name": "John's Company",
+}
+`;
+
+exports[`TokenPairResponse > снапшот структуры 1`] = `
+{
+  "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c",
+  "refresh_token": "refresh_token_abc123def456",
+  "token_type": "bearer",
+}
+`;
+
+exports[`Интеграционные тесты auth flow > снапшот полного auth flow 1`] = `
+{
+  "login": {
+    "request": {
+      "email": "user@example.com",
+      "password": "password123",
+    },
+    "response": {
+      "email": "user@example.com",
+      "user_id": "user-123",
+      "workspace_id": "workspace-456",
+    },
+  },
+  "register": {
+    "request": {
+      "email": "user@example.com",
+      "password": "password123",
+      "workspace_name": "Workspace",
+    },
+    "response": {
+      "access_token": "token123",
+      "refresh_token": "refresh456",
+      "token_type": "bearer",
+    },
+  },
+}
+`;

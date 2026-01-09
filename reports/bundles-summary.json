@@ -1,22 +1,13 @@
 {
-  "timestamp": "2025-12-30T19:36:17.309Z",
+  "timestamp": "2026-01-09T15:55:11.967Z",
   "packages": [
     {
       "package": "core-contracts",
-      "entry": "core-contracts/dist/esm/errors/base/ErrorStrategies/index.js",
+      "entry": "packages/core-contracts/dist/esm/context/index.js",
       "sizes": {
-        "raw": 605,
-        "gzip": 322,
-        "brotli": 262
-      }
-    },
-    {
-      "package": "lru-cache",
-      "entry": "core-contracts/node_modules/.ignored/lru-cache/dist/commonjs/index.js",
-      "sizes": {
-        "raw": 57186,
-        "gzip": 12100,
-        "brotli": 10368
+        "raw": 149,
+        "gzip": 159,
+        "brotli": 131
       }
     }
   ],

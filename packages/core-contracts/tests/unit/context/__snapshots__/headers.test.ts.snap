@@ -1,0 +1,19 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`ServiceRequestHeaders > снапшот полной структуры 1`] = `
+{
+  "X-Operation-Id": "operation-101",
+  "X-Trace-Id": "trace-789",
+  "X-User-Id": "user-456",
+  "X-Workspace-Id": "workspace-123",
+}
+`;
+
+exports[`Интеграционные тесты > снапшот всех констант HEADERS 1`] = `
+{
+  "OPERATION_ID": "X-Operation-Id",
+  "TRACE_ID": "X-Trace-Id",
+  "USER_ID": "X-User-Id",
+  "WORKSPACE_ID": "X-Workspace-Id",
+}
+`;

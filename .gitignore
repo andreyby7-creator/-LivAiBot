@@ -10,7 +10,8 @@ dist/
 .netlify/
 
 # Environment variables
-.env*
+.env
+.env.*
 !.env.example
 
 # IDE
@@ -76,6 +77,7 @@ test-results.xml
 
 # Lock files (keep in repo for monorepo)
 # pnpm-lock.yaml is kept for workspace consistency
+package-lock.json
 
 # Backup files
 *.backup

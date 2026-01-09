@@ -289,16 +289,16 @@ function checkPackageCycles(pkg) {
  * Основная функция
  */
 function main() {
-  process.stdout.write('🔄 Проверка циклических зависимостей в монорепо...\n');
+  console.log('🔄 Проверка циклических зависимостей в монорепо...');
 
   const packages = findPackages();
-  process.stdout.write(`📦 Найдено ${packages.length} пакетов\n`);
+  console.log(`📦 Найдено ${packages.length} пакетов`);
 
   let totalCycles = 0;
   let hasErrors = false;
 
   // 1. Проверяем внутрипакетные циклы
-  process.stdout.write('\n🔍 Проверка внутрипакетных зависимостей...\n');
+  console.log('\n🔍 Проверка внутрипакетных зависимостей...');
 
   for (const pkg of packages) {
     const result = checkPackageCycles(pkg);
@@ -306,19 +306,19 @@ function main() {
     if (result.cycles.length > 0) {
       hasErrors = true;
       totalCycles += result.cycles.length;
-      process.stderr.write(`❌ Циклы в пакете ${pkg.name}:\n`);
+      console.error(`❌ Циклы в пакете ${pkg.name}:`);
       for (const [file, dep] of result.cycles) {
-        process.stderr.write(`   ${file} ↔ ${dep}\n`);
+        console.error(`   ${file} ↔ ${dep}`);
       }
     } else if (result.stats.files > 0) {
-      process.stdout.write(
-        `✅ ${pkg.name}: ${result.stats.files} файлов, ${result.stats.deps} зависимостей\n`,
+      console.log(
+        `✅ ${pkg.name}: ${result.stats.files} файлов, ${result.stats.deps} зависимостей`,
       );
     }
   }
 
   // 2. Проверяем межпакетные циклы
-  process.stdout.write('\n🔗 Проверка межпакетных зависимостей...\n');
+  console.log('\n🔗 Проверка межпакетных зависимостей...');
 
   const packageGraph = buildPackageGraph(packages);
   const packageCycles = detectCircularDependencies(packageGraph);
@@ -326,17 +326,17 @@ function main() {
   if (packageCycles.length > 0) {
     hasErrors = true;
     totalCycles += packageCycles.length;
-    process.stderr.write('❌ Межпакетные циклы:\n');
+    console.error('❌ Межпакетные циклы:');
     for (const [pkgA, pkgB] of packageCycles) {
-      process.stderr.write(`   ${pkgA} ↔ ${pkgB}\n`);
+      console.error(`   ${pkgA} ↔ ${pkgB}`);
     }
   } else {
-    process.stdout.write('✅ Межпакетных циклов не найдено\n');
+    console.log('✅ Межпакетных циклов не найдено');
   }
 
   // Результат
   if (!hasErrors) {
-    process.stdout.write('\n✅ Циклических зависимостей не найдено!\n');
+    console.log('\n✅ Циклических зависимостей не найдено!');
 
     // Выводим статистику
     let totalFiles = 0;
@@ -348,18 +348,18 @@ function main() {
       totalDeps += result.stats.deps;
     }
 
-    process.stdout.write(`📊 Статистика монорепо:\n`);
-    process.stdout.write(`   Пакетов: ${packages.length}\n`);
-    process.stdout.write(`   Файлов: ${totalFiles}\n`);
-    process.stdout.write(`   Зависимостей: ${totalDeps}\n`);
+    console.log(`📊 Статистика монорепо:`);
+    console.log(`   Пакетов: ${packages.length}`);
+    console.log(`   Файлов: ${totalFiles}`);
+    console.log(`   Зависимостей: ${totalDeps}`);
     if (totalFiles > 0) {
-      process.stdout.write(`   Среднее на файл: ${(totalDeps / totalFiles).toFixed(2)}\n`);
+      console.log(`   Среднее на файл: ${(totalDeps / totalFiles).toFixed(2)}`);
     }
 
     process.exit(0);
   } else {
-    process.stderr.write(`\n🚨 Найдено ${totalCycles} цикл(ов) зависимостей!\n`);
-    process.stderr.write('🔧 Исправьте циклы перед коммитом.\n');
+    console.error(`\n🚨 Найдено ${totalCycles} цикл(ов) зависимостей!`);
+    console.error('🔧 Исправьте циклы перед коммитом.');
     process.exit(1);
   }
 }
@@ -367,6 +367,6 @@ function main() {
 try {
   main();
 } catch (error) {
-  process.stderr.write(`❌ Ошибка при проверке зависимостей: ${error}\n`);
+  console.error(`❌ Ошибка при проверке зависимостей: ${error}`);
   process.exit(1);
 }

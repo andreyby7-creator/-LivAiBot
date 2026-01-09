@@ -1,0 +1,83 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`MessageListResponse > снапшот структуры 1`] = `
+{
+  "items": [
+    {
+      "content": "Can you help me with my account settings?",
+      "created_at": "2026-01-09T21:34:10.000Z",
+      "id": "550e8400-e29b-41d4-a716-446655440001",
+      "role": "user",
+      "thread_id": "550e8400-e29b-41d4-a716-446655440000",
+    },
+    {
+      "content": "Of course! I'd be happy to help you with your account settings. What specific settings would you like to modify?",
+      "created_at": "2026-01-09T21:34:12.123Z",
+      "id": "550e8400-e29b-41d4-a716-446655440002",
+      "role": "assistant",
+      "thread_id": "550e8400-e29b-41d4-a716-446655440000",
+    },
+  ],
+}
+`;
+
+exports[`MessageResponse > снапшот структуры 1`] = `
+{
+  "content": "Hello! I'm an AI assistant. How can I help you today?",
+  "created_at": "2026-01-09T21:34:12.123Z",
+  "id": "550e8400-e29b-41d4-a716-446655440001",
+  "role": "assistant",
+  "thread_id": "550e8400-e29b-41d4-a716-446655440000",
+}
+`;
+
+exports[`ThreadResponse > снапшот структуры 1`] = `
+{
+  "bot_id": "6ba7b810-9dad-11d1-80b4-00c04fd430c8",
+  "created_at": "2026-01-09T21:34:12.123Z",
+  "id": "550e8400-e29b-41d4-a716-446655440000",
+  "status": "active",
+  "workspace_id": "123e4567-e89b-12d3-a456-426614174000",
+}
+`;
+
+exports[`Интеграционные тесты conversation flow > снапшот полного conversation workflow 1`] = `
+{
+  "messages": {
+    "response": {
+      "items": [
+        {
+          "content": "You are a helpful customer support assistant.",
+          "created_at": "2026-01-09T21:30:00.100Z",
+          "id": "550e8400-e29b-41d4-a716-446655440001",
+          "role": "system",
+          "thread_id": "550e8400-e29b-41d4-a716-446655440000",
+        },
+        {
+          "content": "I need help with my order.",
+          "created_at": "2026-01-09T21:34:00.000Z",
+          "id": "550e8400-e29b-41d4-a716-446655440002",
+          "role": "user",
+          "thread_id": "550e8400-e29b-41d4-a716-446655440000",
+        },
+        {
+          "content": "I'd be happy to help you with your order. Could you please provide your order number?",
+          "created_at": "2026-01-09T21:34:02.000Z",
+          "id": "550e8400-e29b-41d4-a716-446655440003",
+          "role": "assistant",
+          "thread_id": "550e8400-e29b-41d4-a716-446655440000",
+        },
+      ],
+    },
+  },
+  "thread": {
+    "response": {
+      "bot_id": "6ba7b810-9dad-11d1-80b4-00c04fd430c8",
+      "created_at": "2026-01-09T21:30:00.000Z",
+      "id": "550e8400-e29b-41d4-a716-446655440000",
+      "status": "active",
+      "workspace_id": "123e4567-e89b-12d3-a456-426614174000",
+    },
+  },
+}
+`;
