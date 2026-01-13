@@ -114,6 +114,9 @@ describe('TokenPairResponse', () => {
       access_token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
       refresh_token: 'refresh_token_123',
       token_type: 'bearer',
+      expires_in: 3600,
+      user_id: 'user_123' as UUID,
+      workspace_id: 'workspace_456' as UUID,
     };
 
     expect(response).toMatchObject({
@@ -128,6 +131,9 @@ describe('TokenPairResponse', () => {
       access_token: 'token123',
       refresh_token: 'refresh123',
       token_type: 'bearer',
+      expires_in: 3600,
+      user_id: 'user_123' as UUID,
+      workspace_id: 'workspace_456' as UUID,
     };
 
     expect(response.token_type).toBe('bearer');
@@ -150,6 +156,9 @@ describe('TokenPairResponse', () => {
     const invalid1: TokenPairResponse = {
       refresh_token: 'refresh123',
       token_type: 'bearer',
+      expires_in: 3600,
+      user_id: 'user_123' as UUID,
+      workspace_id: 'workspace_456' as UUID,
     };
     expect(invalid1).toBeDefined();
 
@@ -157,6 +166,9 @@ describe('TokenPairResponse', () => {
     const invalid2: TokenPairResponse = {
       access_token: 'token123',
       token_type: 'bearer',
+      expires_in: 3600,
+      user_id: 'user_123' as UUID,
+      workspace_id: 'workspace_456' as UUID,
     };
     expect(invalid2).toBeDefined();
 
@@ -174,6 +186,9 @@ describe('TokenPairResponse', () => {
         'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c',
       refresh_token: 'refresh_token_abc123def456',
       token_type: 'bearer',
+      expires_in: 3600,
+      user_id: 'user_123' as UUID,
+      workspace_id: 'workspace_456' as UUID,
     };
 
     expect(response).toMatchSnapshot();
@@ -294,6 +309,9 @@ describe('Интеграционные тесты auth flow', () => {
       access_token: 'access_token_from_registration',
       refresh_token: 'refresh_token_from_registration',
       token_type: 'bearer',
+      expires_in: 3600,
+      user_id: 'user_123' as UUID,
+      workspace_id: 'workspace_456' as UUID,
     };
 
     expect(registerRequest.email).toBe('newuser@example.com');
@@ -312,6 +330,9 @@ describe('Интеграционные тесты auth flow', () => {
       access_token: 'access_token_123',
       refresh_token: 'refresh_token_456',
       token_type: 'bearer',
+      expires_in: 3600,
+      user_id: 'user_123' as UUID,
+      workspace_id: 'workspace_456' as UUID,
     };
 
     // Получение информации о пользователе
@@ -334,6 +355,9 @@ describe('Интеграционные тесты auth flow', () => {
       access_token: 'new_access_token',
       refresh_token: 'new_refresh_token',
       token_type: 'bearer',
+      expires_in: 3600,
+      user_id: 'user_123' as UUID,
+      workspace_id: 'workspace_456' as UUID,
     };
 
     expect(refreshRequest.refresh_token).not.toBe(newTokenResponse.refresh_token);

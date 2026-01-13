@@ -17,6 +17,42 @@ JSONObject = dict[str, JSONValue]
 StatsDict = dict[str, JSONValue]
 
 
+class ExponentialBackoff:
+    """Экспоненциальный backoff для retry механизма."""
+
+    def __init__(
+        self,
+        base_delay_minutes: int = 1,
+        max_delay_minutes: int = 60 * 24,  # 24 часа максимум
+        multiplier: float = 2.0,
+        jitter: bool = True,
+    ):
+        self.base_delay_minutes = base_delay_minutes
+        self.max_delay_minutes = max_delay_minutes
+        self.multiplier = multiplier
+        self.jitter = jitter
+
+    def calculate_delay(self, attempt: int) -> int:
+        """Рассчитать задержку для заданной попытки (в минутах)."""
+        if attempt <= 0:
+            return 0
+
+        # Экспоненциальная задержка: base_delay * (multiplier ^ (attempt - 1))
+        delay = self.base_delay_minutes * (self.multiplier ** (attempt - 1))
+
+        # Ограничиваем максимальной задержкой
+        delay = min(delay, self.max_delay_minutes)
+
+        # Добавляем jitter (±25% случайной вариации)
+        if self.jitter:
+            import random
+
+            jitter_factor = random.uniform(0.75, 1.25)
+            delay = int(delay * jitter_factor)
+
+        return max(1, int(delay))  # Минимум 1 минута
+
+
 class DLQService:
     """Сервис для работы с Dead Letter Queue (DLQ).
 
@@ -27,6 +63,7 @@ class DLQService:
     def __init__(self, db_session: AsyncSession, settings: Settings):
         self.db_session = db_session
         self.settings = settings
+        self.backoff = ExponentialBackoff()
 
     async def add_to_dlq(
         self,
@@ -86,7 +123,7 @@ class DLQService:
         dlq_id: uuid.UUID,
         success: bool,
         error_message: str | None = None,
-        next_retry_delay_minutes: int = 5,
+        next_retry_delay_minutes: int | None = None,
     ) -> None:
         """Отметить попытку retry для DLQ записи."""
 
@@ -106,6 +143,12 @@ class DLQService:
         else:
             # Неудача - планируем следующий retry
             if dlq_entry.retry_count < dlq_entry.max_retries:
+                # Используем экспоненциальный backoff если задержка не указана явно
+                if next_retry_delay_minutes is None:
+                    next_retry_delay_minutes = self.backoff.calculate_delay(
+                        dlq_entry.retry_count
+                    )
+
                 dlq_entry.next_retry_at = datetime.now(timezone.utc) + timedelta(
                     minutes=next_retry_delay_minutes
                 )

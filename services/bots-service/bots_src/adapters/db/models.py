@@ -73,3 +73,6 @@ class BotVersion(Base):
             unique=True,
         ),
     )
+
+
+__all__ = ["Bot", "BotVersion"]

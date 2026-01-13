@@ -7,11 +7,7 @@
 
 import { defineConfig } from 'vitest/config';
 
-import { buildVitestEnv } from './vitest.shared.config';
-
-// =============================================================================
-// ПРОСТОЙ УЧЕТ AI ЗАПРОСОВ
-// =============================================================================
+// ------------------ ПРОСТОЙ УЧЕТ AI ЗАПРОСОВ -----------------------------
 
 /** Конфигурация AI провайдера */
 interface AIProviderConfig {
@@ -42,21 +38,101 @@ const AI_PROVIDER_RATES: Partial<Record<string, number>> = Object.fromEntries(
 /** Таймаут для AI вызовов по умолчанию */
 const DEFAULT_AI_TIMEOUT = 30000;
 
+/** Бюджет для AI тестов */
+const AI_BUDGET = {
+  /** Максимальная стоимость на CI ($), чтобы не превышать лимиты */
+  maxCostCI: 2.0,
+  /** Максимальная стоимость в dev режиме ($) */
+  maxCostDev: 0.5,
+  /** Максимальное количество AI вызовов на один тест */
+  maxCallsPerTest: 3,
+  /** Максимальное количество токенов на один вызов */
+  maxTokensPerCall: 4000,
+};
+
+/** Глобальные счетчики AI использования */
+// ГЛОБАЛЬНЫЕ СЧЕТЧИКИ AI (внимание: сохраняются между тестами!)
+// Для чистого старта каждого теста используйте resetAICounters() в beforeEach
+let globalAICallCount = 0;
+let globalAICostEstimate = 0.0;
+
 /** Простой счетчик AI вызовов */
 let aiCallCount = 0;
 let aiCostEstimate = 0;
 
-/** Запись AI вызова для учета стоимости */
+/** Запись AI вызова для учета стоимости с проверкой бюджета */
 function recordAICall(provider: string, tokens: number): void {
+  // Проверка лимитов на вызов
+  if (tokens > AI_BUDGET.maxTokensPerCall) {
+    throw new Error(
+      `AI call exceeds token limit: ${tokens} > ${AI_BUDGET.maxTokensPerCall}`,
+    );
+  }
+
   aiCallCount++;
+  globalAICallCount++;
+
   const rate = AI_PROVIDER_RATES[provider] || 0.001;
-  aiCostEstimate += (tokens * rate) / 1000;
+  const callCost = (tokens * rate) / 1000;
+
+  aiCostEstimate += callCost;
+  globalAICostEstimate += callCost;
+
+  // Проверка бюджета
+  const isCI = process.env.CI === 'true';
+  const budgetLimit = isCI ? AI_BUDGET.maxCostCI : AI_BUDGET.maxCostDev;
+
+  if (globalAICostEstimate > budgetLimit) {
+    throw new Error(
+      `AI budget exceeded: $${globalAICostEstimate.toFixed(2)} > $${budgetLimit} `
+        + `(Provider: ${provider}, Tokens: ${tokens}, Cost: $${callCost.toFixed(4)})`,
+    );
+  }
+
+  // Логирование использования
+  console.log(
+    `🤖 AI Call: ${provider} | Tokens: ${tokens} | `
+      + `Cost: $${callCost.toFixed(4)} | Total: $${globalAICostEstimate.toFixed(2)}`,
+  );
 }
 
-/** Сброс счетчиков AI для тестов */
+/**
+ * Сброс счетчиков AI для тестов
+ *
+ * Использование в тестах для изоляции:
+ * ```typescript
+ * import { resetAICounters } from './vitest.ai.config';
+ *
+ * beforeEach(() => {
+ *   resetAICounters(); // Чистый старт для каждого теста
+ * });
+ * ```
+ */
 function resetAICounters(): void {
   aiCallCount = 0;
   aiCostEstimate = 0;
+}
+
+/** Получение статистики AI использования */
+function getAIStats() {
+  return {
+    local: {
+      calls: aiCallCount,
+      cost: aiCostEstimate,
+    },
+    global: {
+      calls: globalAICallCount,
+      cost: globalAICostEstimate,
+    },
+    budget: {
+      limit: process.env.CI === 'true' ? AI_BUDGET.maxCostCI : AI_BUDGET.maxCostDev,
+      remaining: Math.max(
+        0,
+        (process.env.CI === 'true' ? AI_BUDGET.maxCostCI : AI_BUDGET.maxCostDev)
+          - globalAICostEstimate,
+      ),
+    },
+  };
 }
 
 /** Получение отчета по AI вызовам */
@@ -158,9 +234,7 @@ function checkAIKeysAvailability() {
   return { available, missing, hasRequired };
 }
 
-// =============================================================================
-// ОСНОВНАЯ КОНФИГУРАЦИЯ
-// =============================================================================
+// ------------------ ОСНОВНАЯ КОНФИГУРАЦИЯ -----------------------------
 
 export default defineConfig({
   test: {
@@ -177,7 +251,7 @@ export default defineConfig({
     ],
 
     // Исключаем unit-тесты
-    exclude: ['tests/unit/**/*', 'src/**/*.test.ts', 'src/**/*.spec.ts'],
+    exclude: ['tests/unit/**/*', 'src/**/*.test.ts', 'src/**/*.spec.ts', 'e2e/**'],
 
     // Настройки для API тестов
     testTimeout: 30000, // 30 секунд на API вызовы
@@ -192,8 +266,9 @@ export default defineConfig({
 
     // Покрытие для AI кода
     coverage: {
+      provider: 'v8',
       include: ['src/ai/**/*', 'src/services/ai/**/*', 'src/integrations/**/*', 'src/**/*ai*/**/*'],
-      exclude: ['src/**/*.test.ts', 'src/**/*.spec.ts', 'src/**/*.d.ts'],
+      exclude: ['src/**/*.test.ts', 'src/**/*.spec.ts', 'src/**/*.d.ts', 'e2e/**'],
     },
 
     // Env переменные для AI тестов (автоматически из AI_PROVIDERS)
@@ -219,20 +294,20 @@ export default defineConfig({
   },
 });
 
-// =============================================================================
-// УТИЛИТЫ ДЛЯ AI ТЕСТОВ
-// =============================================================================
+// ------------------ УТИЛИТЫ ДЛЯ AI ТЕСТОВ -----------------------------
 
 // Функция logCIReport() теперь доступна для явного вызова в тестах
 
 // Экспорт для использования в тестах
 export {
+  AI_BUDGET,
   AI_PROVIDERS,
   aiCallCount,
   aiCostEstimate,
   callAI,
   checkAIKeysAvailability,
   getAICountersReport,
+  getAIStats,
   isProviderKeyAvailable,
   logAICountersSummary,
   logCIReport,

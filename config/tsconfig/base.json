@@ -26,6 +26,7 @@
       "@livai/tools/*": ["../packages/tools/*/index.ts"],
       "@livai/ui": ["../packages/ui/index.ts"],
       "@livai/validation": ["../packages/validation/index.ts"],
+      "@livai/vitest/*": ["../config/vitest/*"],
       "@/*": ["../apps/*/src"]
     },
     "declaration": true,
@@ -59,6 +60,7 @@
     "allowUnreachableCode": false,
     "noEmitOnError": true,
     "skipLibCheck": true,
-    "skipDefaultLibCheck": false
+    "skipDefaultLibCheck": false,
+    "verbatimModuleSyntax": true
   }
 }

@@ -94,3 +94,4 @@ package-lock.json
 
 # Sentry
 .sentryclirc
+config/playwright/node_modules/

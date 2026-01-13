@@ -1,0 +1,15 @@
+# Snyk конфигурация для LivAi проекта
+# Ограничивает сканирование только этим проектом
+
+[main]
+# Папки для игнорирования при сканировании
+ignore = venv/,services/*/venv/,__pycache__/,node_modules/,*.pyc
+
+# Только Python и JavaScript зависимости
+package-manager = pnpm,yarn,npm,pip,pipenv,poetry
+
+# Отчет только для критичных уязвимостей
+severity-threshold = high
+
+# Показывать только уязвимости с известными эксплойтами
+exploit-maturity = mature

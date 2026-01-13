@@ -1,0 +1,22 @@
+{
+  "name": "@livai/playwright-config",
+  "version": "1.0.0",
+  "description": "Playwright E2E testing configuration for LivAi project",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "postinstall": "playwright install",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:debug": "playwright test --debug",
+    "test:e2e:headed": "playwright test --headed"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.57.0",
+    "@types/node": "^25.0.3",
+    "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "playwright": "^1.57.0"
+  }
+}

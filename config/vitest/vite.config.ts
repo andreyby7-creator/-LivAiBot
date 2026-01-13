@@ -5,11 +5,9 @@
  */
 
 import react from '@vitejs/plugin-react';
-import { defineConfig, loadEnv } from 'vite';
+import { type ConfigEnv, defineConfig, loadEnv, type UserConfig } from 'vite';
 
-// =============================================================================
-// ПРОСТАЯ ВАЛИДАЦИЯ ENV
-// =============================================================================
+// ------------------ ПРОСТАЯ ВАЛИДАЦИЯ ENV -----------------------------
 
 /** Допустимые приложения */
 const VALID_APPS = ['web', 'admin', 'mobile', 'desktop', 'backend', 'electron'] as const;
@@ -25,11 +23,15 @@ interface AppConfig {
 }
 
 /** Допустимые окружения */
-const VALID_ENVS = ['development', 'production', 'test'];
+const VALID_ENVS = ['development', 'production', 'test'] as const;
+type EnvName = typeof VALID_ENVS[number];
+
+/** Приложения, использующие Next.js */
+const NEXT_APPS: AppName[] = ['admin'];
 
 /** Типизация env переменных для строгой валидации */
 interface AppEnv {
-  NODE_ENV?: string;
+  NODE_ENV?: EnvName;
   VITE_APP?: string;
   VITE_API_URL?: string;
   VITE_APP_ENV?: string;
@@ -51,7 +53,7 @@ function validateUrl(url: string): boolean {
 /** Расширенная валидация env переменных с типизацией */
 function validateEnv(
   env: AppEnv,
-  app: string,
+  app: AppName,
 ): { errors: string[]; warnings: string[]; updatedEnv: AppEnv; } {
   const errors: string[] = [];
   const warnings: string[] = [];
@@ -69,7 +71,7 @@ function validateEnv(
   }
 
   const framework = getAppFramework(app);
-  const isProduction = env.NODE_ENV === 'production';
+  const isProduction = updatedEnv.NODE_ENV === 'production';
 
   // Фреймворк-специфичные переменные
   if (framework === 'next') {
@@ -117,41 +119,23 @@ function validateEnv(
 }
 
 /** Определение фреймворка по приложению */
-function getAppFramework(app: string): string {
-  return app === ('admin' as AppName) ? 'next' : 'vite';
+function getAppFramework(app: AppName): 'next' | 'vite' {
+  return NEXT_APPS.includes(app) ? 'next' : 'vite';
 }
 
 /** Получение префиксов env для фреймворка */
-function getEnvPrefixes(framework: string): string[] {
-  return framework === 'next' ? ['NEXT_PUBLIC_*'] : ['VITE_*'];
+function getEnvPrefixes(framework: 'next' | 'vite'): string[] {
+  return framework === 'next' ? ['NEXT_PUBLIC_'] : ['VITE_'];
 }
 
 /** Генерация define маппинга для фреймворка */
 function generateDefineMapping(app: string, env: AppEnv): Record<string, string> {
-  const framework = getAppFramework(app);
-
-  if (framework === 'next') {
-    return {
-      'process.env.NEXT_PUBLIC_API_URL': JSON.stringify(
-        env[ENV_VARS.NEXT_PUBLIC.API_URL] || 'http://localhost:3001',
-      ),
-      'process.env.NEXT_PUBLIC_APP_ENV': JSON.stringify(
-        env[ENV_VARS.NEXT_PUBLIC.APP_ENV] || 'development',
-      ),
-    };
-  } else {
-    return {
-      'process.env.VITE_API_URL': JSON.stringify(
-        env[ENV_VARS.VITE.API_URL] || 'http://localhost:3001',
-      ),
-      'process.env.VITE_APP_ENV': JSON.stringify(env[ENV_VARS.VITE.APP_ENV] || 'development'),
-    };
-  }
+  // Переменные окружения теперь доступны через import.meta.env благодаря envPrefix
+  // Оставляем define только для необходимых случаев
+  return {};
 }
 
-// =============================================================================
-// КОНСТАНТЫ
-// =============================================================================
+// ------------------ КОНСТАНТЫ -----------------------------
 
 const CONSTANTS = {
   PRODUCTION: 'production',
@@ -172,9 +156,7 @@ const ENV_VARS = {
   },
 } as const;
 
-// =============================================================================
-// КОНФИГУРАЦИИ ПРИЛОЖЕНИЙ
-// =============================================================================
+// ------------------ КОНФИГУРАЦИИ ПРИЛОЖЕНИЙ -----------------------------
 
 const APP_CONFIGS: Record<AppName, AppConfig> = {
   web: { port: 3000, base: '/', desc: 'Web app' },
@@ -193,27 +175,21 @@ const getAppPort = (app: string, env: AppEnv): number => {
   return envPort && parsed > 0 && parsed <= 65535 ? parsed : getAppConfig(app).port;
 };
 
-// =============================================================================
-// ГЕНЕРАТОР БАЗОВОЙ КОНФИГУРАЦИИ
-// =============================================================================
+// ------------------ ГЕНЕРАТОР БАЗОВОЙ КОНФИГУРАЦИИ -----------------------------
 
 function createBaseViteConfig({
   app,
   mode,
-  port,
-  base,
   env,
   appFramework,
 }: {
-  app: string;
+  app: AppName;
   mode: string;
-  port: number;
-  base: string;
   env: AppEnv;
-  appFramework?: string;
-}) {
+  appFramework?: 'next' | 'vite';
+}): UserConfig {
   const cfg = getAppConfig(app);
-  const framework = appFramework || getAppFramework(app);
+  const framework = appFramework || getAppFramework(app) as 'next' | 'vite';
   const envPrefixes = getEnvPrefixes(framework);
 
   return {
@@ -242,22 +218,18 @@ function createBaseViteConfig({
   };
 }
 
-// =============================================================================
-// ЭКСПОРТЫ
-// =============================================================================
+// ------------------ ЭКСПОРТЫ -----------------------------
 
 export { createBaseViteConfig };
 export { CONSTANTS };
 export { ENV_VARS };
 
-// =============================================================================
-// ОСНОВНАЯ КОНФИГУРАЦИЯ VITE
-// =============================================================================
+// ------------------ ОСНОВНАЯ КОНФИГУРАЦИЯ VITE -----------------------------
 
-export default defineConfig(({ mode }) => {
+export default defineConfig(({ mode }: ConfigEnv) => {
   // Единый источник env переменных
   const env = loadEnv(mode, process.cwd(), '') as AppEnv;
-  const app = env[ENV_VARS.VITE.APP] || 'web';
+  const app = (env[ENV_VARS.VITE.APP] || 'web') as AppName;
   const cfg = getAppConfig(app);
   const port = getAppPort(app, env);
 
@@ -291,7 +263,12 @@ export default defineConfig(({ mode }) => {
   }
 
   // -------------------- БАЗОВАЯ КОНФИГУРАЦИЯ + ПЛАГИНЫ --------------------
-  const base = createBaseViteConfig({ app, mode, env, appFramework });
+  const base = createBaseViteConfig({
+    app,
+    mode,
+    env,
+    appFramework,
+  });
 
   // -------------------- ОПРЕДЕЛЕНИЯ ПЕРЕМЕННЫХ --------------------
   const frameworkEnv = generateDefineMapping(app, env);

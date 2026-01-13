@@ -127,45 +127,6 @@ class DeadLetterQueue(Base):
     )
 
 
-class LLMTurn(Base):
-    """LLM turn - взаимодействие с языковой моделью."""
-
-    __tablename__ = "llm_turns"
-
-    id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
-    )
-    workspace_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), nullable=False, index=True
-    )
-    operation_id: Mapped[uuid.UUID | None] = mapped_column(
-        UUID(as_uuid=True), nullable=True, index=True
-    )
-    user_id: Mapped[uuid.UUID | None] = mapped_column(
-        UUID(as_uuid=True), nullable=True, index=True
-    )
-    bot_id: Mapped[uuid.UUID | None] = mapped_column(
-        UUID(as_uuid=True), nullable=True, index=True
-    )
-    input: Mapped[str] = mapped_column(Text, nullable=False)
-    output: Mapped[str | None] = mapped_column(Text, nullable=True)
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False, server_default=func.now()
-    )
-    updated_at: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True), nullable=True
-    )
-
-    __table_args__ = (
-        Index(
-            "ux_llm_turns_workspace_operation",
-            "workspace_id",
-            "operation_id",
-            unique=True,
-        ),
-    )
-
-
 class WebhookEvent(Base):
     """Webhook событие для внешних интеграций."""
 

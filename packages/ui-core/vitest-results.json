@@ -1,0 +1,132 @@
+{
+  "numTotalTestSuites": 0,
+  "numPassedTestSuites": 0,
+  "numFailedTestSuites": 0,
+  "numPendingTestSuites": 0,
+  "numTotalTests": 0,
+  "numPassedTests": 0,
+  "numFailedTests": 0,
+  "numPendingTests": 0,
+  "numTodoTests": 0,
+  "snapshot": {
+    "added": 0,
+    "failure": false,
+    "filesAdded": 0,
+    "filesRemoved": 0,
+    "filesRemovedList": [],
+    "filesUnmatched": 0,
+    "filesUpdated": 0,
+    "matched": 0,
+    "total": 0,
+    "unchecked": 0,
+    "uncheckedKeysByFile": [],
+    "unmatched": 0,
+    "updated": 0,
+    "didUpdate": false
+  },
+  "startTime": 1768008905893,
+  "success": true,
+  "testResults": [],
+  "coverageMap": {
+    "/home/boss/Projects/livai/packages/ui-core/src/domain/conversations.ts": {
+      "path": "/home/boss/Projects/livai/packages/ui-core/src/domain/conversations.ts",
+      "statementMap": {},
+      "fnMap": {},
+      "branchMap": {},
+      "s": {},
+      "f": {},
+      "b": {},
+      "meta": { "lastBranch": 0, "lastFunction": 0, "lastStatement": 0, "seen": {} }
+    },
+    "/home/boss/Projects/livai/packages/ui-core/src/domain/bots.ts": {
+      "path": "/home/boss/Projects/livai/packages/ui-core/src/domain/bots.ts",
+      "statementMap": {},
+      "fnMap": {},
+      "branchMap": {},
+      "s": {},
+      "f": {},
+      "b": {},
+      "meta": { "lastBranch": 0, "lastFunction": 0, "lastStatement": 0, "seen": {} }
+    },
+    "/home/boss/Projects/livai/packages/ui-core/src/domain/common.ts": {
+      "path": "/home/boss/Projects/livai/packages/ui-core/src/domain/common.ts",
+      "statementMap": {},
+      "fnMap": {},
+      "branchMap": {},
+      "s": {},
+      "f": {},
+      "b": {},
+      "meta": { "lastBranch": 0, "lastFunction": 0, "lastStatement": 0, "seen": {} }
+    },
+    "/home/boss/Projects/livai/packages/ui-core/src/domain/auth.ts": {
+      "path": "/home/boss/Projects/livai/packages/ui-core/src/domain/auth.ts",
+      "statementMap": {},
+      "fnMap": {},
+      "branchMap": {},
+      "s": {},
+      "f": {},
+      "b": {},
+      "meta": { "lastBranch": 0, "lastFunction": 0, "lastStatement": 0, "seen": {} }
+    },
+    "/home/boss/Projects/livai/packages/ui-core/src/context/headers.ts": {
+      "path": "/home/boss/Projects/livai/packages/ui-core/src/context/headers.ts",
+      "statementMap": { "0": { "start": { "line": 10, "column": 23 }, "end": { "line": 17, "column": null } } },
+      "fnMap": {},
+      "branchMap": {},
+      "s": { "0": 0 },
+      "f": {},
+      "b": {},
+      "meta": { "lastBranch": 0, "lastFunction": 0, "lastStatement": 1, "seen": { "s:10:23:17:Infinity": 0 } }
+    },
+    "/home/boss/Projects/livai/packages/ui-core/src/errors/http.ts": {
+      "path": "/home/boss/Projects/livai/packages/ui-core/src/errors/http.ts",
+      "statementMap": { "0": { "start": { "line": 23, "column": 27 }, "end": { "line": 34, "column": null } } },
+      "fnMap": {},
+      "branchMap": {},
+      "s": { "0": 0 },
+      "f": {},
+      "b": {},
+      "meta": { "lastBranch": 0, "lastFunction": 0, "lastStatement": 1, "seen": { "s:23:27:34:Infinity": 0 } }
+    },
+    "/home/boss/Projects/livai/packages/ui-core/src/index.ts": {
+      "path": "/home/boss/Projects/livai/packages/ui-core/src/index.ts",
+      "statementMap": {},
+      "fnMap": {},
+      "branchMap": {},
+      "s": {},
+      "f": {},
+      "b": {},
+      "meta": { "lastBranch": 0, "lastFunction": 0, "lastStatement": 0, "seen": {} }
+    },
+    "/home/boss/Projects/livai/packages/ui-core/src/context/index.ts": {
+      "path": "/home/boss/Projects/livai/packages/ui-core/src/context/index.ts",
+      "statementMap": {},
+      "fnMap": {},
+      "branchMap": {},
+      "s": {},
+      "f": {},
+      "b": {},
+      "meta": { "lastBranch": 0, "lastFunction": 0, "lastStatement": 0, "seen": {} }
+    },
+    "/home/boss/Projects/livai/packages/ui-core/src/domain/index.ts": {
+      "path": "/home/boss/Projects/livai/packages/ui-core/src/domain/index.ts",
+      "statementMap": {},
+      "fnMap": {},
+      "branchMap": {},
+      "s": {},
+      "f": {},
+      "b": {},
+      "meta": { "lastBranch": 0, "lastFunction": 0, "lastStatement": 0, "seen": {} }
+    },
+    "/home/boss/Projects/livai/packages/ui-core/src/errors/index.ts": {
+      "path": "/home/boss/Projects/livai/packages/ui-core/src/errors/index.ts",
+      "statementMap": {},
+      "fnMap": {},
+      "branchMap": {},
+      "s": {},
+      "f": {},
+      "b": {},
+      "meta": { "lastBranch": 0, "lastFunction": 0, "lastStatement": 0, "seen": {} }
+    }
+  }
+}

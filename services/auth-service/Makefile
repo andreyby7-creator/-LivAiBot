@@ -1,8 +1,8 @@
-.PHONY: help run lint format type test migrate
+.PHONY: help run lint format type test quality migrate
 
 ROOT_DIR := $(abspath $(CURDIR)/../..)
 
-PY ?= $(ROOT_DIR)/.venv/bin/python
+PY ?= $(ROOT_DIR)/venv/bin/python
 PORT ?= 8001
 HOST ?= 0.0.0.0
 
@@ -14,6 +14,7 @@ help:
 	@echo "  make format   - ruff format"
 	@echo "  make type     - mypy"
 	@echo "  make test     - pytest"
+	@echo "  make quality  - все проверки качества (lint + type + test)"
 
 run:
 	@echo "Запуск: http://localhost:$(PORT)"
@@ -32,5 +33,8 @@ type:
 	$(PY) -m mypy --config-file $(ROOT_DIR)/config/python/mypy.ini auth_src
 
 test:
-	$(PY) -m pytest -c $(ROOT_DIR)/config/python/pytest.ini tests
+	$(PY) -m pytest -c $(ROOT_DIR)/config/pytest/pytest.ini tests
+
+quality: lint type test
+	@echo "✅ Quality checks passed for auth-service"
 

@@ -54,3 +54,29 @@ export type ThreadListResponse = {
 export type MessageListResponse = {
   items: MessageResponse[];
 };
+
+/**
+ * Запрос на создание разговора.
+ */
+export type CreateConversationRequest = {
+  title?: string;
+  bot_id?: UUID;
+  type?: string;
+  initial_message?: string;
+};
+
+/**
+ * Информация о разговоре.
+ */
+export type Conversation = {
+  id: UUID;
+  workspace_id: UUID;
+  bot_id?: UUID;
+  title?: string;
+  type?: string;
+  created_by: UUID;
+  status: 'active' | 'archived';
+  created_at: Timestamp;
+  updated_at: Timestamp;
+  metadata?: Record<string, unknown>;
+};

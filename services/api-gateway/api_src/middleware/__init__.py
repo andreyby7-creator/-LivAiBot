@@ -1,5 +1,12 @@
 # Re-export for convenience
-from .auth import AuthMiddleware  # noqa: F401
-from .operation_id import OperationIdMiddleware  # noqa: F401
-from .rate_limit import RateLimitMiddleware  # noqa: F401
-from .trace_id import TraceIdMiddleware  # noqa: F401
+from .auth import AuthMiddleware
+from .operation_id import OperationIdMiddleware
+from .rate_limit import RateLimitMiddleware
+from .trace_id import TraceIdMiddleware
+
+__all__ = [
+    "AuthMiddleware",
+    "OperationIdMiddleware",
+    "RateLimitMiddleware",
+    "TraceIdMiddleware",
+]

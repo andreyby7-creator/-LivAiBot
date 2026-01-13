@@ -57,6 +57,7 @@ export default [
       '**/.cache/**',      // Различные кеши (webpack, babel, etc.)
       '**/coverage/**',    // Отчеты о покрытии тестами
       'config/**/*.{ts,js}', // Конфигурационные файлы (vitest, vite, eslint) могут использовать dynamic imports и fs
+      '!config/testing/shared-config.ts', // НО shared-config.ts ДОЛЖЕН проверяться ESLint
     ],
   },
   // Основная конфигурация режима

@@ -436,6 +436,22 @@ canaryConfig.push({
   rules: integrationTestRules,
 });
 
+// Отключаем правило Pages Router для Next.js App Router приложений
+canaryConfig.push({
+  files: ['apps/**/*.{ts,tsx,js,jsx}'],
+  rules: {
+    '@next/next/no-html-link-for-pages': 'off', // App Router не использует pages директорию
+  },
+});
+
+// Минимальные исключения для Playwright setup файлов (тестовый код)
+canaryConfig.push({
+  files: ['config/playwright/global-setup.ts', 'config/playwright/global-teardown.ts'],
+  rules: {
+    'functional/immutable-data': 'off', // Допустима модификация глобального состояния в setup
+  },
+});
+
 // ==================== CORE-CONTRACTS: NO ANY В КОНТРАКТАХ ====================
 // Фиксируем принцип: any только на границе/в инфре, в домене/DTO запрещён.
 canaryConfig.push({

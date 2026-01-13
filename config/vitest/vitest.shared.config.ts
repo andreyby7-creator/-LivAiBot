@@ -8,9 +8,7 @@
 type EnvRecord = Record<TestEnvKeys, string>;
 type EnvOverrides = Partial<Record<TestEnvKeys, string>>;
 
-// =============================================================================
-// ENUM
-// =============================================================================
+// ------------------ ENUM -----------------------------
 
 /** Ключи переменных окружения для тестов */
 export enum TestEnvKeys {
@@ -33,9 +31,7 @@ export enum TestEnvKeys {
   WEB_BASE_URL = 'WEB_BASE_URL',
 }
 
-// =============================================================================
-// КОНСТАНТЫ
-// =============================================================================
+// ------------------ КОНСТАНТЫ -----------------------------
 
 /**
  * Обязательные переменные окружения для запуска тестов.
@@ -58,9 +54,7 @@ const REQUIRED_TEST_ENV_KEYS: readonly TestEnvKeys[] = [
   TestEnvKeys.JWT_SECRET, // Только внутренние секреты, уникальные для каждого запуска
 ];
 
-// =============================================================================
-// ДЕФОЛТНЫЕ ЗНАЧЕНИЯ ОКРУЖЕНИЯ
-// =============================================================================
+// ------------------ ДЕФОЛТНЫЕ ЗНАЧЕНИЯ ОКРУЖЕНИЯ -----------------------------
 
 /**
  * Кэшированные дефолтные значения переменных окружения для тестов.
@@ -118,9 +112,7 @@ function getDefaultTestEnv(): Readonly<EnvRecord> {
   return DEFAULT_TEST_ENV;
 }
 
-// =============================================================================
-// ВАЛИДАЦИЯ URL
-// =============================================================================
+// ------------------ ВАЛИДАЦИЯ URL -----------------------------
 
 /**
  * Валидирует URL по заданному паттерну.
@@ -134,7 +126,7 @@ function getDefaultTestEnv(): Readonly<EnvRecord> {
  */
 function validateUrl(
   url: string,
-  key: string,
+  key: TestEnvKeys | string,
   pattern: RegExp,
   expectedFormat: string,
   exampleUrl: string,
@@ -160,7 +152,7 @@ function validateApiWebUrl(url: string, key: string): void {
   if (!url) return;
 
   // Проверить на пробелы и специальные символы, которые часто вызывают проблемы
-  if (/[\s<>'"\[\]{}|\\^`]/u.test(url)) {
+  if (/[\s<>'"\[\]{}|\\^`]/.test(url)) {
     throw new Error(
       `${key} содержит недопустимые символы (пробелы, < > ' " [ ] { } | \\ ^ \`). Эти символы могут ломать URL.\n`
         + `Пример: http://localhost:3000\n`
@@ -187,9 +179,7 @@ function validateApiWebUrl(url: string, key: string): void {
   // Не требуем строгой нормализации, чтобы не ломать существующие конфигурации
 }
 
-// =============================================================================
-// ВАЛИДАЦИЯ ОКРУЖЕНИЯ
-// =============================================================================
+// ------------------ ВАЛИДАЦИЯ ОКРУЖЕНИЯ -----------------------------
 
 /**
  * Валидирует переменные окружения для тестов.
@@ -216,7 +206,7 @@ function validateTestEnv(env: EnvRecord): void {
   validateUrl(
     String(env[TestEnvKeys.DATABASE_URL] ?? ''),
     'DATABASE_URL',
-    /^postgres(ql)?:\/\/.+/,
+    /^postgres(?:ql)?:\/\/.+/,
     'начинается с postgres:// или postgresql://',
     'postgres://user:password@localhost:5432/database_name',
   );
@@ -250,9 +240,7 @@ function validateTestEnv(env: EnvRecord): void {
   validateApiWebUrl(webUrl, 'WEB_BASE_URL');
 }
 
-// =============================================================================
-// ПУБЛИЧНЫЙ API
-// =============================================================================
+// ------------------ ПУБЛИЧНЫЙ API -----------------------------
 
 /**
  * Создает переменные окружения для Vitest с значениями по умолчанию и переопределениями.
@@ -288,7 +276,7 @@ export function buildVitestEnv(overrides: EnvOverrides = {}): Readonly<EnvRecord
 
   // Логируем статистику создания окружения
   const totalKeys = Object.keys(env).length;
-  const overriddenKeys = Object.keys(overrides).length;
+  const overriddenKeys = Object.keys(filteredOverrides).length;
   const defaultKeys = totalKeys - overriddenKeys;
 
   if (process.env.VITEST_ENV_DEBUG === 'true') {

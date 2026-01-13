@@ -9,6 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from ..adapters.db.models import JobQueue
 from ..config.settings import Settings
 from ..use_cases.dlq import DLQService
+from .retry_utils import process_job
 
 # JSON-compatible types for payload data
 JSONValue = str | int | float | bool | None | list["JSONValue"] | dict[str, "JSONValue"]
@@ -117,6 +118,10 @@ class JobQueueService:
 
         await self.db_session.commit()
         return processed_count
+
+    async def process_job_with_retry(self, job: JobQueue) -> None:
+        """Обработать задачу с retry и dedupe."""
+        await process_job(job, self.db_session)
 
     async def _get_job_by_operation_id(
         self, workspace_id: uuid.UUID, operation_id: uuid.UUID

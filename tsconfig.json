@@ -5,6 +5,7 @@
     "lib": ["ES2024", "DOM", "DOM.Iterable"],
     "module": "ES2022",
     "moduleResolution": "bundler",
+    "outDir": "./dist",
     "jsx": "react-jsx",
     "baseUrl": ".",
     "paths": {
@@ -26,6 +27,7 @@
     },
     "declaration": true,
     "declarationMap": true,
+    "declarationDir": "./dist/types",
     "sourceMap": true,
     "removeComments": false,
     "importHelpers": false,
@@ -55,13 +57,19 @@
     "allowUnreachableCode": false,
     "noEmitOnError": true,
     "skipLibCheck": true,
-    "skipDefaultLibCheck": false
+    "skipDefaultLibCheck": false,
+    "allowJs": true
   },
   "include": [
     "apps/**/src/**/*",
     "apps/shared-ui/src/**/*",
     "api/src/**/*",
     "core-contracts/src/**/*",
+    "config/playwright/**/*.ts",
+    "config/testing/**/*.ts",
+    "e2e/**/*.ts",
+    "apps/web/*.config.ts",
+    "apps/web/*.setup.ts",
     "packages/**/*"
   ],
   "exclude": [
@@ -69,8 +77,6 @@
     "**/dist/**",
     "**/coverage/**",
     "**/test-results/**",
-    "**/*.config.*",
-    "**/*.setup.*",
     "**/tsup.config.*"
   ]
 }

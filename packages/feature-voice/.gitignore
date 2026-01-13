@@ -1,0 +1,52 @@
+# Dependencies
+node_modules/
+.pnpm-debug.log*
+
+# Build outputs
+dist/
+*.tsbuildinfo
+.eslintcache
+
+# Generated code / Effect-TS / FP
+**/generated/**                        # Автогенерируемые файлы Effect/GraphQL/Prisma
+packages/fp/**/*.js
+packages/fp/**/*.d.ts
+!packages/fp/**/index.d.ts
+
+# Cache directories (managed globally)
+.nx/cache/
+
+# Test coverage
+coverage/
+coverage/**
+*.lcov
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Local config / env
+*.env.local
+config.local.*
+
+# Logs
+logs/
+*.log
+
+# Temporary files
+*.tmp
+*.temp
+
+# Reports
+reports/*.html
+reports/*.json
+
+# Test results
+test-results/
+junit.xml

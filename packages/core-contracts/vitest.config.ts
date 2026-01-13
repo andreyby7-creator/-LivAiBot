@@ -1,46 +1,12 @@
-import { defineConfig } from 'vitest/config';
+import { createPackageVitestConfig } from '../../config/vitest/vitest.packages.config.js';
 
-export default defineConfig({
-  test: {
-    globals: false, // Explicit imports for library code - better practices
-    environment: 'node',
-    environmentOptions: {
-      node: {
-        builtins: ['fs', 'path', 'crypto'], // Explicit Node.js builtins for contracts
-      },
-    },
-    setupFiles: ['../config/vitest/test.setup.ts', './vitest.setup.ts'],
-    include: ['src/**/*.{test,spec}.ts', 'tests/**/*.{test,spec}.ts'],
-    exclude: ['dist/**', 'node_modules/**'],
-    testTimeout: 10000,
-    coverage: {
-      enabled: true, // Explicitly enable coverage for consistent behavior in CI/local
-      provider: 'v8',
-      reporter: ['text', 'json'], // HTML reports generated via root commands
-      reportsDirectory: './coverage',
-      include: ['src/**/*.ts'],
-      exclude: [
-        'src/**/*.test.ts',
-        'src/**/*.spec.ts',
-        'tests/**/*',
-        'src/**/index.ts',
-        'src/**/types.ts',
-        'src/**/interfaces/**/*.ts',
-        'src/**/contracts/**/*.ts',
-        'src/**/README.md',
-        // TypeScript-only types - compile-time only, no runtime logic
-        '**/*.d.ts',
-        // Interfaces - compile-time contracts only
-        'src/fn/index.ts',
-      ],
-      clean: true,
-      cleanOnRerun: true,
-      thresholds: {
-        statements: 70,
-        branches: 70,
-        functions: 85,
-        lines: 85,
-      },
-    },
-  },
+/**
+ * Конфигурация Vitest для @livai/core-contracts
+ *
+ * Core пакет: фундаментальная библиотека с максимальными требованиями качества
+ * Контракт качества: 90% statements, 85% branches, 95% functions, 90% lines
+ */
+export default createPackageVitestConfig({
+  packageName: '@livai/core-contracts',
+  packageType: 'core',
 });

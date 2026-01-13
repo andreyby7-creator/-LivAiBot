@@ -1,29 +1,18 @@
-import { visualizer } from 'rollup-plugin-visualizer';
 import { defineConfig } from 'tsup';
 
 export default defineConfig({
-  target: 'es2024', // Match tsconfig target to avoid unnecessary transformations
-  platform: 'node', // Core contracts use Node.js crypto module for correlation IDs
+  target: 'es2024', // Совпадает с target в tsconfig для избежания лишних трансформаций
+  platform: 'node', // Core contracts используют Node.js crypto модуль для correlation ID
   entry: {
     index: 'src/index.ts',
   },
   format: ['esm'],
   outDir: 'dist/esm',
-  dts: false, // tsc handles .d.ts via tsconfig.build.json
+  dts: false, // tsc генерирует .d.ts через tsconfig.build.json
   splitting: false,
   sourcemap: false, // Отключаем sourcemaps для скорости продакшена
-  clean: false, // Don't delete .d.ts from tsc
+  clean: false, // Не удаляем .d.ts файлы от tsc
   treeshake: false, // Отключаем treeshake для скорости
   minify: false, // Не минифицируем для скорости
-  external: ['effect', 'ulidx'], // Foundation dependencies must remain external
-  plugins: process.env.ANALYZE
-    ? [
-      visualizer({
-        filename: 'dist/bundle-analysis.html',
-        open: true,
-        gzipSize: true,
-        brotliSize: true,
-      }),
-    ]
-    : [],
+  external: ['effect', 'ulidx'], // Фундаментальные зависимости должны оставаться внешними
 });

@@ -1,2 +1,13 @@
 packages:
-  - 'packages/*'
+  - packages/*
+  - config/playwright
+  - config/vitest
+
+onlyBuiltDependencies:
+  - '@parcel/watcher'
+  - better-sqlite3
+  - dprint
+  - esbuild
+  - msgpackr-extract
+  - protobufjs
+  - unrs-resolver

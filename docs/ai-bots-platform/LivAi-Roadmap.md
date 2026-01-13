@@ -7,12 +7,12 @@
 - интеграции/вебхуки были надёжными (dedupe/retry/DLQ);
 - мульти-тенантность была встроена с самого начала.
 
-### 0 Принципы (что не обсуждаем)
+### 0 Принципы (что не обсуждаем) ✅
 
-- **Архитектура монорепо**: как в `LivAi-Structure.md` (services + ports/adapters + use_cases).
-- **Сервисы на Python**: папки `domain/ ports/ use_cases/ entrypoints/ adapters/ tests/`.
-- **Надёжность интеграций**: входящие вебхуки → очередь → обработка; идемпотентность; DLQ.
-- **Tenant isolation**: все данные и действия “привязаны” к workspace/tenant.
+- **Архитектура монорепо**: как в `LivAi-Structure.md` (services + ports/adapters + use_cases). ✅
+- **Сервисы на Python**: папки `domain/ ports/ use_cases/ entrypoints/ adapters/ tests/`. ✅
+- **Надёжность интеграций**: входящие вебхуки → очередь → обработка; идемпотентность; DLQ. ✅
+- **Tenant isolation**: все данные и действия "привязаны" к workspace/tenant. ✅
 
 ---
 
@@ -20,40 +20,40 @@
 
 **Цель:** повторяемая локальная среда “одной командой”.
 
-### Результаты
+### Результаты ✅
 
-- Python venv + зависимости (`requirements.txt`, `requirements-dev.txt`).
-- Docker Compose инфраструктура: Postgres/Redis/ClickHouse/MinIO/Qdrant.
-- Авто-init инфраструктуры (ClickHouse DB, MinIO buckets, Qdrant collection).
-- Проверка доступности: `scripts/infra_check.py`.
-- Единые python-конфиги: `config/python/*`.
+- Python venv + зависимости (`requirements.txt`, `requirements-dev.txt`). ✅
+- Docker Compose инфраструктура: Postgres/Redis/ClickHouse/MinIO/Qdrant. ✅
+- Авто-init инфраструктуры (ClickHouse DB, MinIO buckets, Qdrant collection). ✅
+- Проверка доступности: `scripts/infra_check.py`. ✅
+- Единые python-конфиги: `config/python/*`. ✅
 
-### Критерии готовности
+### Критерии готовности ✅
 
-- `docker compose up -d` поднимает всё без ручных команд.
-- `python scripts/infra_check.py` → `All infra checks passed.`
+- `docker compose up -d` поднимает всё без ручных команд. ✅
+- `python scripts/infra_check.py` → `All infra checks passed.`. ✅
 
 ---
 
 ## Фаза 1 — “Вертикальный срез” MVP API (U1 + U3/U5 + U10) ✅
 
-**Цель:** иметь работающий backend-контур, к которому можно подключать UI без последующего переписывания.
+**Цель:** иметь работающий backend-контур, к которому можно подключать UI без последующего переписывания. ✅
 
-### 1.0 Минимальное усиление: `command_id` / `operation_id` (сразу)
+### 1.0 Минимальное усиление: `command_id` / `operation_id` (сразу) ✅
 
 **Что:** во всех “операциях” (LLM-turn, обработка webhook, запуск джобы) заложить поле:
 
 - `operation_id` — **строго уникальный идентификатор операции**. ✅
 
-**Зачем:**
+**Зачем:** ✅
 
-- дедуп не только входящих webhook’ов, но и **LLM-turn’ов**;
-- безопасные ретраи “ответь ещё раз” без дублей;
-- унификация для очередей/саг/оркестрации.
+- дедуп не только входящих webhook'ов, но и **LLM-turn'ов**; ✅
+- безопасные ретраи "ответь ещё раз" без дублей; ✅
+- унификация для очередей/саг/оркестрации. ✅
 
-**Практика:** это 1 поле в таблицах/событиях сейчас → экономия недель позже.
+**Практика:** это 1 поле в таблицах/событиях сейчас → экономия недель позже. ✅
 
-### 1.1 Сервисы (минимум)
+### 1.1 Сервисы (минимум) ✅
 
 1. `services/api-gateway` (входная точка)
    - CORS, rate limiting (позже), health/ready. ✅
@@ -71,7 +71,7 @@
 4. `services/conversations-service` (минимально)
    - “тест-чат” (U10): хранение треда/сообщений, запуск “turn” (stub/эхо). ✅
 
-### 1.2 Данные (Postgres)
+### 1.2 Данные (Postgres) ✅
 
 Минимальные таблицы (первые миграции):
 
@@ -87,15 +87,15 @@
 
 - `command_id`/`operation_id` (см. 1.0) — в местах, где есть retry/dedupe. ✅
 
-### 1.3 Контракты API
+### 1.3 Контракты API ✅
 
-Нужно зафиксировать до начала UI:
+Нужно зафиксировать до начала UI: ✅
 
 - `/v1/*` роутинг через gateway; ✅ (каркас)
 - единая форма ошибки (`code`, `message`, `trace_id`, `details`); ✅ (каркас)
 - DTO для auth/workspace/bots/conversations. ✅
 
-### Критерии готовности
+### Критерии готовности ✅
 
 - можно пройти U1→U3→U5→U10 через API (Postman/HTTPie). ✅
 - миграции Alembic воспроизводимы. ✅

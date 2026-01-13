@@ -1,29 +1,31 @@
-# 📋 Команды проекта LivAiBot
+# 📋 **Команды проекта LivAiBot**
 
-## 🚀 Ежедневная разработка
+## 🚀 **Ежедневная разработка**
 
 ### Основные команды для ежедневной работы
 
 ```bash
-pnpm run type-check                     # Строгая проверка TS (Turbo)
-pnpm run build                          # Полная сборка (JS + типы) (Turbo)
-pnpm run dev                            # Dev режим (tsup watch, Turbo)
-pnpm run lint:canary                    # Строгий canary линтинг (Turbo)
-npx dprint fmt                          # Форматирование всего проекта
-pnpm run test                           # Все тесты (Turbo)
+pnpm run dev                             # Dev режим (tsup watch)
+pnpm run dev:full                        # Полный запуск (инфра + dev сервер)
+pnpm run build                           # Полная сборка (JS + типы)
+pnpm run type-check                      # Строгая проверка TypeScript
+pnpm run lint:canary                     # Строгий линтинг
+npx dprint fmt                           # Форматирование кода
+pnpm run test                            # Все тесты
+pnpm run project:status                  # Статус проекта (инфра + backend + frontend)
 ```
 
-## 🚀 CI/CD команды
+## 🚀 **CI/CD команды**
 
 ### Для использования в GitHub Actions / GitLab CI
 
 ```bash
-pnpm run build:ci                       # Сборка для CI (без remote cache)
-pnpm run type-check:ci                  # TypeScript проверка для CI (без cache)
-pnpm run lint:canary:ci                 # Строгий линтинг для CI (без cache)
-pnpm run test:ci                        # Тесты для CI (без cache)
-pnpm run quality:ci                     # Комплексная проверка качества (CI)
-pnpm run ci                             # Полная CI pipeline (quality + tests)
+pnpm run build:ci                        # Сборка для CI (без remote cache)
+pnpm run type-check:ci                   # TypeScript проверка для CI (без cache)
+pnpm run lint:canary:ci                  # Строгий линтинг для CI (без cache)
+pnpm run test:ci                         # Тесты для CI (без cache)
+pnpm run quality:ci                      # Комплексная проверка качества (CI)
+pnpm run ci                              # Полная CI pipeline (quality + tests)
 ```
 
 ### Отличия CI команд:
@@ -32,202 +34,175 @@ pnpm run ci                             # Полная CI pipeline (quality + te
 - **`TURBO_REMOTE_CACHE_DISABLED=true`** - отключение remote cache для надежности
 - **`cache: false`** в `turbo.json` для test:ci задачи
 
-### Когда использовать:
+## 🐍 **Backend / Python**
 
-- **Локально:** обычные команды (`pnpm run build`, `pnpm run test`)
-- **CI:** команды с суффиксом `:ci` (`pnpm run build:ci`, `pnpm run test:ci`)
+### Virtualenv + зависимости
 
----
-
-## 🐍 Python / Backend команды
-
-### Virtualenv + зависимости (один раз)
-
-В проекте используем venv в корне: **`.venv/`**.
+В проекте используем venv в корне: **`venv/`**.
 
 ```bash
-python3 -m venv .venv
-.venv/bin/python -m pip install -r requirements.txt -r requirements-dev.txt
+python3 -m venv venv
+venv/bin/python -m pip install -r requirements.txt -r requirements-dev.txt
 ```
 
-### Инфраструктура (Docker Compose) + проверка
+### Инфраструктура (Docker Compose)
 
 ```bash
-docker compose -f infrastructure/compose/docker-compose.yml up -d
-.venv/bin/python scripts/infra_check.py
+docker compose -f infrastructure/compose/docker-compose.yml up -d  # Запустить инфраструктуру
+python3 scripts/infra_check.py                                     # Проверить статус инфраструктуры
+docker compose -f infrastructure/compose/docker-compose.yml down   # Остановить инфраструктуру
 ```
 
-### Локальный запуск всех backend-сервисов “одной командой”
-
-Поднимает `api-gateway`/`auth-service`/`bots-service`/`conversations-service` на фиксированных портах `8000–8003`
-и включает проксирование `/v1/*` в gateway.
+### Локальный запуск backend
 
 ```bash
-bash scripts/dev_up.sh
-bash scripts/dev_status.sh
-bash scripts/dev_down.sh
+bash scripts/dev_up.sh                    # Поднять все сервисы (требует запущенной инфраструктуры)
+bash scripts/dev_down.sh                  # Остановить сервисы
 ```
 
-### Запуск конкретного сервиса
+### Сервисы отдельно
 
 ```bash
-cd services/api-gateway && make run
-cd services/auth-service && make run
-cd services/bots-service && make run
-cd services/conversations-service && make run
+cd services/<service> && make run         # auth-service / bots-service / conversations-service
 ```
 
-### Миграции (Alembic)
-
-Важно: у каждого сервиса **своя таблица версий Alembic**, поэтому миграции не конфликтуют.
+### Миграции
 
 ```bash
-cd services/auth-service && make migrate
-cd services/bots-service && make migrate
-cd services/conversations-service && make migrate
+pnpm run db:migrate                       # Все сервисы
+pnpm run db:reset                         # Сброс БД + инфра
+cd services/<service> && make migrate     # Конкретный сервис
 ```
 
-### Качество кода (Python)
+### Проверка качества (Python)
 
 ```bash
-cd services/api-gateway && make lint && make format && make type && make test
-cd services/auth-service && make lint && make format && make type && make test
-cd services/bots-service && make lint && make format && make type && make test
-cd services/conversations-service && make lint && make format && make type && make test
+# Индивидуальные проверки для сервиса
+cd services/<service> && make lint        # ruff check
+cd services/<service> && make format      # ruff format
+cd services/<service> && make type        # mypy
+cd services/<service> && make test        # pytest
+cd services/<service> && make quality     # все проверки для одного сервиса
+
+# Глобальные проверки для всех сервисов
+make quality                              # все проверки качества для всех сервисов (auth + bots + conversations + api-gateway)
+make quality-fast                         # быстрая проверка (auth + bots + conversations, без api-gateway)
+bash scripts/backend_check.sh             # комплексная проверка всего backend
 ```
 
-### Качество всего backend “одной командой” (без cd-ошибок)
+## 🐳 **Docker команды**
+
+### Управление контейнерами
 
 ```bash
-bash scripts/backend_check.sh
+pnpm run docker:status                    # Статус контейнеров
+pnpm run docker:logs <service>            # Логи конкретного сервиса
+pnpm run docker:shell <service>           # Shell в контейнер
+pnpm run docker:health                    # Проверка здоровья
+pnpm run docker:clean                     # Очистка контейнеров + volumes
+bash scripts/docker-helper.sh <cmd>       # Удобный интерфейс (status, logs, shell, exec, health, clean)
 ```
 
-## 📦 Install команды
-
-### Установка зависимостей
+## 📦 **Установка зависимостей**
 
 ```bash
-pnpm install                            # Установка всех зависимостей
-pnpm install --prod                     # Установка только production-зависимостей
-pnpm install --frozen-lockfile          # Установка с frozen lockfile (CI)
+pnpm install                              # Все зависимости
+pnpm install --prod                       # Только production
+pnpm install --frozen-lockfile            # CI / lockfile
+pnpm add <package>                        # Добавление runtime
+pnpm add -D <package>                     # Добавление dev
+pnpm outdated                             # Проверка устаревших пакетов
+pnpm audit                                # Проверка безопасности зависимостей
+npx npm-check-updates -u                  # Обновление пакетов
 ```
 
-## 🔨 Build команды
-
-### Сборка проекта
+## 🔨 **Сборка / Build**
 
 ```bash
-pnpm run build                          # Полная сборка (JS + типы)
-pnpm run build:js                       # Только JS
-pnpm run build:types                    # Только типы + dprint
-pnpm run build:watch                    # Watch режим
-pnpm run dev                            # Dev режим (tsup watch)
+pnpm run build                            # JS + типы
+pnpm run build:js                         # Только JS
+pnpm run build:types                      # Только типы
+pnpm run build:watch                      # Watch режим
 ```
 
-## ✅ Quality команды
+## ✅ **Quality / Lint / Format**
 
 ### Проверка качества кода
 
 ```bash
-pnpm run quality                        # Комплексная проверка качества (types + deps)
-pnpm -w run type-coverage               # Покрытие типами
-pnpm -w run deps:unused                 # Проверка неиспользуемых зависимостей
-pnpm run type-check                     # Строгая проверка TS
+pnpm run quality                          # Комплексная проверка (types + deps + lint)
+pnpm run lint                             # Линтинг
+pnpm run lint:fix                         # Автофикс
+pnpm run lint:canary                      # Строгий линтинг
+pnpm run lint:canary:fix                  # Строгий + автофикс
+npx dprint check                          # Проверка форматирования
+npx dprint fmt                            # Форматирование
 ```
 
-## 🧹 Lint команды
+## 🧪 **Тесты**
 
-### Линтинг
+### Основные команды тестирования
 
 ```bash
-pnpm run lint                           # Линтинг (turbo)
-pnpm run lint:fix                       # Автоисправление
-pnpm run lint:canary                    # Строгий canary линтинг
-pnpm run lint:canary:fix                # Строгий + автофикс
+pnpm run test                             # Все тесты
+pnpm run test:unit                        # Unit tests (Vitest + Python)
+pnpm run test:integration                 # Integration tests
+pnpm run test:e2e                         # E2E (Playwright) - (авто скрипт)
+pnpm run test:coverage:html               # Coverage отчет HTML
+pnpm run coverage:open                    # Открыть coverage в браузере
+npm run bench                             # Interactive benchmarks
+npm run bench:ci                          # CI mode benchmarks
+pnpm bench:ci                             # Turbo + все пакеты в проекте
 ```
 
-## 🎨 Format команды
-
-### Форматирование
-
-```bash
-npx dprint check                        # Проверка форматирования
-npx dprint fmt                          # Форматирование всего проекта
-npx dprint fmt "packages/**/*.src/**/*.{ts,tsx}"   # Только исходники
-```
-
-## 🧪 Test команды
-
-### Тесты
-
-#### Основные команды
-
-```bash
-pnpm run test                            # Все тесты (Turbo)
-pnpm run test:ui                         # Веб-интерфейс для тестов
-pnpm run test:coverage:html              # Тесты с HTML отчетом покрытия
-pnpm run test:coverage:watch             # Тесты с coverage в watch режиме
-pnpm run coverage:open                   # Открыть HTML отчет в браузере
-```
-
-#### Coverage анализ
-
-```bash
-pnpm run coverage:check                  # Анализ проблем покрытия кода
-pnpm run coverage:file <filename>        # Покрытие конкретного файла
-```
-
-#### Ключевые особенности
-
-- Автоматически определяет пакет по имени файла
-- Предпочитает JSON отчеты (быстрее HTML)
-- Показывает: Statements, Functions, Branches, Lines
-- Для низкого покрытия дает рекомендации по улучшению
-
-## 🔍 Pre-commit команды
+## 🔍 **Pre-commit проверки**
 
 ### Проверка перед коммитом
 
 ```bash
-pnpm run pre-commit                      # Полная проверка перед коммитом (lint + format + circular deps + dep policy + test)
-pnpm run format:check                    # Быстрая проверка форматирования
-pnpm run check:circular-deps             # Проверка циклических зависимостей в монорепо
-pnpm run deps:unused                     # Проверка неиспользуемых зависимостей в проекте
-pnpm run check:dependency-policy         # Проверка архитектурных ограничений на зависимости
-pnpm run analyze:import-metrics          # Анализ метрик сложности графа импортов
+pnpm run pre-commit                       # Lint + format + tests + deps
+pnpm run format:check                     # Проверка форматирования
+pnpm run check:circular-deps              # Циклические зависимости
+pnpm run deps:unused                      # Неиспользуемые зависимости
+pnpm run check:dependency-policy          # Архитектурные ограничения
+pnpm run analyze:import-metrics           # Метрики графа импортов
 ```
 
-## 🧽 Clean команды
+## 🧹 **Clean команды**
 
 ### Очистка
 
 ```bash
-pnpm run clean                           # Очистка кэша и временных файлов (Turbo)
-pnpm store prune                         # Очистка неиспользуемого кэша pnpm
+pnpm run clean                            # Очистка кэша и временных файлов
+pnpm store prune                          # Очистка pnpm cache
 ```
 
-## 📦 Dependency команды
-
-### Управление зависимостями
-
-```bash
-pnpm outdated                            # Проверка устаревших версий пакетов в монорепо
-pnpm audit                               # Проверка уязвимостей безопасности в зависимостях
-pnpm update --interactive                # Интерактивное обновление пакетов
-pnpm add -D <package>                    # Добавление dev зависимости
-pnpm add <package>                       # Добавление runtime зависимости
-npx npm-check-updates -u                 # Обновление всех зависимостей до последних версий (в конкретном пакете)
-```
-
-## 🔧 Debug / Анализ команды
+## 🔧 **Debug / Анализ команды**
 
 ### Отладка и анализ
 
 ```bash
-pnpm run analyze:bundles                 # Анализ бандлов всех пакетов (размеры + dependency graph)
-pnpm run analyze:bundles --size-only     # Только анализ размеров (быстрее)
-pnpm run analyze:bundles --graph-only    # Только анализ графа зависимостей
-pnpm run analyze:bundles --compare=main  # Сравнить с main branch
-pnpm run analyze:bundles --compare=none  # Без сравнения
-pnpm run dev:inspect                     # Dev режим с инспектором Node.js
+pnpm run analyze:bundles                  # Размеры бандлов + dependency graph
+pnpm run analyze:bundles --size-only      # Только анализ размеров (быстрее)
+pnpm run analyze:bundles --graph-only     # Только анализ графа зависимостей
+pnpm run analyze:bundles --compare=main   # Сравнить с main branch
+pnpm run dev:inspect                      # Dev режим с Node inspector
+pnpm run docs:generate                    # Генерация PROJECT-OVERVIEW.md
+```
+
+## 📝 **Release команды**
+
+### Подготовка к релизу
+
+```bash
+pnpm run release:prep                     # Подготовка релиза (tests + quality + changelog)
+pnpm run changelog                        # Генерация changelog из git коммитов
+```
+
+## 🔒 **Security команды**
+
+### Проверка безопасности
+
+```bash
+pnpm run security:snyk                    # Проверка уязвимостей через Snyk
 ```

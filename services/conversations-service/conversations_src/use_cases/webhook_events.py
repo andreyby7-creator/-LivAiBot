@@ -9,6 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from ..adapters.db.models import WebhookEvent
 from ..config.settings import Settings
 from ..use_cases.dlq import DLQService
+from .retry_utils import process_webhook_event
 
 # JSON-compatible types for payload data
 JSONValue = str | int | float | bool | None | list["JSONValue"] | dict[str, "JSONValue"]
@@ -128,6 +129,10 @@ class WebhookEventsService:
 
         await self.db_session.commit()
         return processed_count
+
+    async def process_event_with_retry(self, event: WebhookEvent) -> None:
+        """Обработать webhook событие с retry и dedupe."""
+        await process_webhook_event(event, self.db_session)
 
     async def _get_event_by_operation_id(
         self, workspace_id: uuid.UUID, operation_id: uuid.UUID

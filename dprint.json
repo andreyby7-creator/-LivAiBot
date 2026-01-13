@@ -34,7 +34,8 @@
     "**/*.tsbuildinfo",
     "**/generated/**",
     "**/seed/**",
-    "**/*.d.ts"
+    "**/*.d.ts",
+    "**/.tools/node-*/README.md"
   ],
   "plugins": [
     "https://plugins.dprint.dev/typescript-0.95.13.wasm",

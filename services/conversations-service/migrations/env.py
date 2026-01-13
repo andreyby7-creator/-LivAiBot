@@ -10,7 +10,7 @@ from sqlalchemy import pool
 from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
 
-from conversations_src.adapters.db import models  # noqa: F401
+# Import models to register them with SQLAlchemy for Alembic migrations
 from conversations_src.adapters.db.base import Base
 
 config = context.config

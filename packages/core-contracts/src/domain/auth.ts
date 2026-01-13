@@ -30,6 +30,18 @@ export type TokenPairResponse = {
    * Тип токена. Всегда "bearer".
    */
   token_type: 'bearer';
+  /**
+   * Время жизни токена в секундах.
+   */
+  expires_in: number;
+  /**
+   * ID пользователя.
+   */
+  user_id: UUID;
+  /**
+   * ID workspace.
+   */
+  workspace_id: UUID;
 };
 
 /**

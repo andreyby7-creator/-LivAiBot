@@ -1,0 +1,157 @@
+{
+  "name": "@livai/feature-auth",
+  "version": "1.0.0",
+  "description": "Authentication feature business logic and domain models",
+  "main": "./dist/esm/index.js",
+  "module": "./dist/esm/index.js",
+  "types": "./dist/esm/index.d.ts",
+  "sideEffects": false,
+  "license": "MIT",
+  "type": "module",
+  "engines": {
+    "node": ">=24.0.0",
+    "pnpm": ">=10.0.0"
+  },
+  "files": [
+    "dist"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/esm/index.d.ts",
+      "import": "./dist/esm/index.js",
+      "default": "./dist/esm/index.js"
+    },
+    "./io": {
+      "types": "./dist/esm/io/index.d.ts",
+      "import": "./dist/esm/io/index.js",
+      "default": "./dist/esm/io/index.js"
+    },
+    "./fp": {
+      "types": "./dist/esm/fp/index.d.ts",
+      "import": "./dist/esm/fp/index.js",
+      "default": "./dist/esm/fp/index.js"
+    },
+    "./domain": {
+      "types": "./dist/esm/domain/index.d.ts",
+      "import": "./dist/esm/domain/index.js",
+      "default": "./dist/esm/domain/index.js"
+    },
+    "./errors": {
+      "types": "./dist/esm/errors/index.d.ts",
+      "import": "./dist/esm/errors/index.js",
+      "default": "./dist/esm/errors/index.js"
+    },
+    "./context": {
+      "types": "./dist/esm/context/index.d.ts",
+      "import": "./dist/esm/context/index.js",
+      "default": "./dist/esm/context/index.js"
+    },
+    "./targets/shared": {
+      "types": "./dist/esm/targets/shared.d.ts",
+      "import": "./dist/esm/targets/shared.js",
+      "default": "./dist/esm/targets/shared.js"
+    },
+    "./targets/node": {
+      "types": "./dist/esm/targets/node.d.ts",
+      "import": "./dist/esm/targets/node.js",
+      "default": "./dist/esm/targets/node.js"
+    },
+    "./targets/browser": {
+      "types": "./dist/esm/targets/browser.d.ts",
+      "import": "./dist/esm/targets/browser.js",
+      "default": "./dist/esm/targets/browser.js"
+    }
+  },
+  "scripts": {
+    "build": "pnpm run build:types & pnpm run build:js & wait",
+    "build:js": "tsup",
+    "build:types": "rm -f *.tsbuildinfo && tsc -b tsconfig.build.json",
+    "build:watch": "tsup --watch",
+    "dev": "tsup --watch",
+    "lint": "cd ../ && pnpm run lint --filter @livai/feature-auth",
+    "type-check": "tsc --noEmit",
+    "test": "NODE_OPTIONS='--no-warnings' vitest",
+    "test:watch": "vitest --watch",
+    "test:ui": "NODE_OPTIONS='--no-warnings' vitest --ui",
+    "test:coverage": "NODE_OPTIONS='--no-warnings' vitest run --coverage",
+    "test:coverage:html": "NODE_OPTIONS='--no-warnings' vitest run --coverage --coverage.reporter=html",
+    "test:coverage:watch": "NODE_OPTIONS='--no-warnings' vitest --coverage --watch",
+    "test:ci": "NODE_OPTIONS='--no-warnings' vitest run --coverage --coverage.thresholds.statements=85 --coverage.thresholds.branches=80 --coverage.thresholds.functions=85 --coverage.thresholds.lines=85",
+    "clean": "rm -rf dist *.tsbuildinfo .eslintcache",
+    "lint:dev": "cd ../ && pnpm run lint --filter @livai/feature-auth",
+    "lint:canary": "ESLINT_MODE=canary eslint --config ../../eslint.config.mjs src",
+    "lint:canary:fix": "cd ../ && pnpm run lint:canary:fix",
+    "check:deps": "node scripts/check-circular-deps-feature-auth.js",
+    "ci:check": "pnpm run type-check && pnpm run lint && pnpm run test:ci && pnpm run check:deps",
+    "lint:fix": "cd ../ && pnpm run lint:fix --filter @livai/feature-auth",
+    "lint:ci": "cd ../ && ESLINT_MODE=canary pnpm lint --max-warnings 0"
+  },
+  "keywords": [
+    "typescript",
+    "fp",
+    "effect",
+    "domain-driven-design",
+    "contracts",
+    "core",
+    "foundation"
+  ],
+  "peerDependencies": {
+    "effect": "^3.19.13",
+    "typescript": "5.9.3"
+  },
+  "peerDependenciesMeta": {
+    "effect": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@vitest/coverage-v8": "4.0.17",
+    "eslint": "9.39.2",
+    "tsup": "8.5.1",
+    "typescript": "5.9.3",
+    "vitest": "4.0.17"
+  },
+  "tags": [
+    "node",
+    "critical"
+  ],
+  "dependencies": {
+    "@effect/ai": "^0.33.0",
+    "@effect/ai-amazon-bedrock": "^0.13.0",
+    "@effect/ai-anthropic": "^0.23.0",
+    "@effect/ai-google": "^0.12.0",
+    "@effect/ai-openai": "^0.37.0",
+    "@effect/cli": "^0.73.0",
+    "@effect/cluster": "^0.56.0",
+    "@effect/experimental": "^0.58.0",
+    "@effect/platform": "^0.94.0",
+    "@effect/platform-browser": "^0.74.0",
+    "@effect/platform-bun": "^0.87.0",
+    "@effect/platform-node": "^0.104.0",
+    "@effect/printer": "^0.47.0",
+    "@effect/printer-ansi": "^0.47.0",
+    "@effect/rpc": "^0.73.0",
+    "@effect/rpc-http": "^0.52.4",
+    "@effect/sql": "^0.49.0",
+    "@effect/sql-clickhouse": "^0.46.0",
+    "@effect/sql-d1": "^0.47.0",
+    "@effect/sql-drizzle": "^0.48.0",
+    "@effect/sql-kysely": "^0.45.0",
+    "@effect/sql-libsql": "^0.39.0",
+    "@effect/sql-mssql": "^0.50.0",
+    "@effect/sql-mysql2": "^0.50.0",
+    "@effect/sql-pg": "^0.50.0",
+    "@effect/sql-sqlite-bun": "^0.50.0",
+    "@effect/sql-sqlite-do": "^0.27.0",
+    "@effect/sql-sqlite-node": "^0.50.0",
+    "@effect/sql-sqlite-react-native": "^0.52.0",
+    "@effect/sql-sqlite-wasm": "^0.50.0",
+    "@effect/typeclass": "^0.38.0",
+    "@effect/vitest": "^0.27.0",
+    "@effect/workflow": "^0.16.0",
+    "effect": "^3.19.13"
+  },
+  "optionalDependencies": {
+    "lru-cache": "11.2.4"
+  }
+}

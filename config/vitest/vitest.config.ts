@@ -11,12 +11,13 @@
  */
 
 import { defineConfig } from 'vitest/config';
-import { aliases } from '../aliases.js';
+
 import { buildVitestEnv } from './vitest.shared.config.js';
 
-// =============================================================================
-// КОНСТАНТЫ КОНФИГУРАЦИИ
-// =============================================================================
+// Алиасы путей для унифицированного импорта в тестах
+const aliases = {};
+
+// ------------------ КОНСТАНТЫ КОНФИГУРАЦИИ -----------------------------
 
 /**
  * Константы конфигурации тестов для разных сред выполнения.
@@ -38,15 +39,16 @@ const nodeVersion = process.versions.node || '24.0.0';
 const nodeMajorVersion = parseInt((nodeVersion as string).split('.')[0] || '24', 10);
 
 // Fallback target: Node24 → Node22 → Node20 (минимум Node 20)
-const esbuildTarget = nodeMajorVersion >= 24
-  ? 'node24'
-  : nodeMajorVersion >= 22
-  ? 'node22'
-  : nodeMajorVersion >= 20
-  ? 'node20'
-  : (() => {
-    throw new Error(`Node.js ${nodeVersion} не поддерживается. Требуется Node.js 20+`);
-  })();
+let esbuildTarget: 'node20' | 'node22' | 'node24';
+if (nodeMajorVersion >= 24) {
+  esbuildTarget = 'node24';
+} else if (nodeMajorVersion >= 22) {
+  esbuildTarget = 'node22';
+} else if (nodeMajorVersion >= 20) {
+  esbuildTarget = 'node20';
+} else {
+  throw new Error(`Node.js ${nodeVersion} не поддерживается. Требуется Node.js 20+`);
+}
 
 // Оптимизация: один вызов buildVitestEnv для логирования и конфигурации
 const env = buildVitestEnv();
@@ -61,7 +63,7 @@ function logVitestConfiguration(
   esbuildTarget: string,
   testConfig: typeof TEST_CONFIG,
   env: Record<string, string>,
-) {
+): void {
   // Логируем только в CI или при явном запросе (VITEST_ENV_DEBUG=true)
   if (process.env.CI === 'true' || process.env.VITEST_ENV_DEBUG === 'true') {
     console.log(`🧪 ${configName} configuration loaded:`);
@@ -86,15 +88,15 @@ function logVitestConfiguration(
   }
 }
 
-// =============================================================================
-// БАЗОВАЯ КОНФИГУРАЦИЯ VITE/VITEST
-// =============================================================================
+// ------------------ БАЗОВАЯ КОНФИГУРАЦИЯ VITE/VITEST -----------------------------
 
 /**
  * Создает базовую конфигурацию Vitest для unit-тестов
  * @param overrides - Переопределения для специфических нужд
  */
-function createBaseVitestConfig(overrides: { test?: Record<string, any>; } = {}) {
+function createBaseVitestConfig(
+  overrides: { test?: Record<string, any>; } = {},
+): ReturnType<typeof defineConfig> {
   return defineConfig({
     test: {
       /** Глобальные переменные Vitest (describe, it, expect) */
@@ -108,14 +110,13 @@ function createBaseVitestConfig(overrides: { test?: Record<string, any>; } = {})
       hookTimeout: 10000,
 
       /** Переменные окружения для тестов с валидацией */
-      env: overrides.test?.env || env,
+      env: { ...(overrides.test?.env || env) },
 
       /** Репортеры для вывода результатов тестирования */
-      reporters: ['verbose', 'json'],
-      outputFile: {
-        html: './test-results/index.html',
-        json: './test-results/results.json',
-      },
+      reporters: [
+        'verbose',
+        ['json', { outputFile: './test-results/results.json' }],
+      ],
 
       /** Пул выполнения: threads для Node.js окружения */
       pool: 'threads',
@@ -155,6 +156,21 @@ function createBaseVitestConfig(overrides: { test?: Record<string, any>; } = {})
       /** Разрешить .only тесты: да в dev для отладки, нет в CI для полного прогона */
       allowOnly: process.env.CI !== 'true',
 
+      /** Явно указать, что тестировать ТОЛЬКО unit тесты в packages/ */
+      include: [
+        'packages/**/tests/unit/**/*.test.ts',
+        'packages/**/tests/integration/**/*.test.ts',
+      ],
+
+      /** Исключить все остальное */
+      exclude: [
+        '**/e2e/**',
+        '**/*.spec.ts',
+        '**/playwright-report/**',
+        '**/.pnpm-store/**',
+        '**/node_modules/**',
+      ],
+
       /** Максимальная параллельность выполнения */
       maxConcurrency: TEST_CONFIG.MAX_CONCURRENCY,
 
@@ -176,6 +192,15 @@ function createBaseVitestConfig(overrides: { test?: Record<string, any>; } = {})
         provider: 'v8',
         reporter: ['text', 'json', 'html', 'lcov'],
         reportsDirectory: './coverage',
+        // Отключаем thresholds в development для гибкости
+        thresholds: process.env.CI === 'true'
+          ? {
+            lines: 85,
+            functions: 80,
+            branches: 80,
+            statements: 80,
+          }
+          : undefined,
         include: [
           'apps/**/src/**/*.{ts,tsx}',
           'services/**/src/**/*.{ts,tsx}',
@@ -190,6 +215,7 @@ function createBaseVitestConfig(overrides: { test?: Record<string, any>; } = {})
           '**/*.spec.{ts,tsx}',
           '**/node_modules/**',
           '**/dist/**',
+          '**/e2e/**',
         ],
       },
 
@@ -200,21 +226,17 @@ function createBaseVitestConfig(overrides: { test?: Record<string, any>; } = {})
 
     /** Разрешение импортов с унифицированными алиасами */
     resolve: {
-      alias: aliases,
+      alias: aliases, // Пустой объект - алиасы можно добавить позже при необходимости
     },
 
-    // =============================================================================
-    // ГЛОБАЛЬНЫЕ ОПРЕДЕЛЕНИЯ
-    // =============================================================================
+    // ------------------ ГЛОБАЛЬНЫЕ ОПРЕДЕЛЕНИЯ -----------------------------
 
     /** Определение глобальных констант для тестов */
     define: {
       'import.meta.vitest': 'undefined',
     },
 
-    // =============================================================================
-    // ESBUILD НАСТРОЙКИ
-    // =============================================================================
+    // ------------------ ESBUILD НАСТРОЙКИ -----------------------------
 
     /** esbuild target: автоопределение Node 24→22→20 (минимум Node 20) */
     esbuild: {
@@ -229,9 +251,7 @@ function createBaseVitestConfig(overrides: { test?: Record<string, any>; } = {})
 // Логируем конфигурацию при запуске
 logVitestConfiguration('Vitest', nodeVersion, esbuildTarget, TEST_CONFIG, env);
 
-// =============================================================================
-// ОСНОВНАЯ КОНФИГУРАЦИЯ VITE/VITEST
-// =============================================================================
+// ------------------ ОСНОВНАЯ КОНФИГУРАЦИЯ VITE/VITEST -----------------------------
 
 // Экспортируем базовую конфигурацию с явной передачей env для детерминированности
 export default createBaseVitestConfig({ test: { env } });

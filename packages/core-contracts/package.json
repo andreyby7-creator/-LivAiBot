@@ -84,7 +84,9 @@
     "check:deps": "node scripts/check-circular-deps-core-contracts.js",
     "ci:check": "pnpm run type-check && pnpm run lint && pnpm run test:ci && pnpm run check:deps",
     "lint:fix": "cd ../ && pnpm run lint:fix --filter @livai/core-contracts",
-    "lint:ci": "cd ../ && ESLINT_MODE=canary pnpm lint --max-warnings 0"
+    "lint:ci": "cd ../ && ESLINT_MODE=canary pnpm lint --max-warnings 0",
+    "bench": "NODE_OPTIONS='--no-warnings' vitest bench",
+    "bench:ci": "NODE_OPTIONS='--no-warnings' vitest bench --run"
   },
   "keywords": [
     "typescript",
@@ -97,23 +99,19 @@
   ],
   "peerDependencies": {
     "effect": "^3.19.13",
-    "react": "19.2.3",
     "typescript": "5.9.3"
   },
   "peerDependenciesMeta": {
-    "react": {
-      "optional": true
-    },
     "effect": {
       "optional": true
     }
   },
   "devDependencies": {
-    "@vitest/coverage-v8": "4.0.16",
+    "@vitest/coverage-v8": "4.0.17",
     "eslint": "9.39.2",
     "tsup": "8.5.1",
     "typescript": "5.9.3",
-    "vitest": "4.0.16"
+    "vitest": "4.0.17"
   },
   "tags": [
     "node",

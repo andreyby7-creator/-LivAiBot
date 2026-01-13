@@ -50,6 +50,11 @@
       "inputs": ["src/**", "tests/**", "**/*.config.*"],
       "cache": false
     },
+    "bench": {
+      "inputs": ["src/**", "bench/**", "**/*.config.*"],
+      "outputs": ["bench-results/**"],
+      "cache": false
+    },
     "clean": {},
     "dev": {
       "dependsOn": [],
