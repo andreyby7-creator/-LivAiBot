@@ -33,24 +33,24 @@ export const HEADERS = Object.freeze(
  * Заголовки после успешной аутентификации пользователя.
  * Используются для бизнес-эндпоинтов после проверки токена.
  */
-export type AuthenticatedRequestHeaders = {
+export interface AuthenticatedRequestHeaders {
   [HEADERS.WORKSPACE_ID]: string;
   [HEADERS.USER_ID]: string;
   [HEADERS.TRACE_ID]?: string;
   [HEADERS.OPERATION_ID]?: string;
-};
+}
 
 /**
  * Заголовки для внутренних/сервисных запросов
  * (например, webhooks, health checks, фоновые задачи).
  * Здесь workspace_id и user_id могут отсутствовать.
  */
-export type ServiceRequestHeaders = {
+export interface ServiceRequestHeaders {
   [HEADERS.WORKSPACE_ID]?: string;
   [HEADERS.USER_ID]?: string;
   [HEADERS.TRACE_ID]?: string;
   [HEADERS.OPERATION_ID]?: string;
-};
+}
 
 /**
  * Все возможные заголовки запроса.

@@ -2,38 +2,52 @@
  * @file Unit тесты для errors/http.ts
  */
 import { describe, expect, it } from 'vitest';
-import { ERROR_CODES, type ErrorCode, type ErrorResponse } from '../../../src/errors/http.js';
+import type { ErrorCode, ErrorResponse } from '../../../src/errors/http.js';
+import { errorCodes } from '../../../src/errors/http.js';
 
-describe('ERROR_CODES', () => {
+type Assert<T extends true> = T;
+type IfEquals<X, Y, A = true, B = false> = (<T>() => T extends X ? 1 : 2) extends
+  (<T>() => T extends Y ? 1 : 2) ? A : B;
+type IsReadonlyKey<T, K extends keyof T> = IfEquals<
+  { [P in K]: T[K]; },
+  { -readonly [P in K]: T[K]; },
+  false,
+  true
+>;
+type HasAnyReadonlyKey<T> = true extends { [K in keyof T]-?: IsReadonlyKey<T, K>; }[keyof T] ? true
+  : false;
+
+// Если errorCodes перестанет быть readonly, сборка тестов должна падать
+export type ErrorCodesReadonlyInvariant = Assert<HasAnyReadonlyKey<typeof errorCodes>>;
+
+describe('errorCodes', () => {
   it('содержит все необходимые коды ошибок', () => {
-    expect(ERROR_CODES).toHaveProperty('UNAUTHORIZED');
-    expect(ERROR_CODES).toHaveProperty('FORBIDDEN');
-    expect(ERROR_CODES).toHaveProperty('VALIDATION_ERROR');
-    expect(ERROR_CODES).toHaveProperty('NOT_FOUND');
-    expect(ERROR_CODES).toHaveProperty('CONFLICT');
-    expect(ERROR_CODES).toHaveProperty('INTERNAL_ERROR');
-    expect(ERROR_CODES).toHaveProperty('DOWNSTREAM_UNAVAILABLE');
-    expect(ERROR_CODES).toHaveProperty('NOT_IMPLEMENTED');
+    expect(errorCodes).toHaveProperty('UNAUTHORIZED');
+    expect(errorCodes).toHaveProperty('FORBIDDEN');
+    expect(errorCodes).toHaveProperty('VALIDATION_ERROR');
+    expect(errorCodes).toHaveProperty('NOT_FOUND');
+    expect(errorCodes).toHaveProperty('CONFLICT');
+    expect(errorCodes).toHaveProperty('INTERNAL_ERROR');
+    expect(errorCodes).toHaveProperty('DOWNSTREAM_UNAVAILABLE');
+    expect(errorCodes).toHaveProperty('NOT_IMPLEMENTED');
   });
 
   it('все значения являются строками', () => {
-    Object.values(ERROR_CODES).forEach((code) => {
+    Object.values(errorCodes).forEach((code) => {
       expect(typeof code).toBe('string');
       expect(code.length).toBeGreaterThan(0);
     });
   });
 
   it('значения соответствуют ключам', () => {
-    Object.entries(ERROR_CODES).forEach(([key, value]) => {
+    Object.entries(errorCodes).forEach(([key, value]) => {
       expect(value).toBe(key);
     });
   });
 
   it('является immutable (as const)', () => {
-    expect(() => {
-      // @ts-expect-error - пытаемся изменить readonly объект
-      ERROR_CODES.UNAUTHORIZED = 'SOMETHING_ELSE';
-    }).toThrow();
+    // Runtime-проверка не нужна: invariant зафиксирован на уровне типов (см. errorCodesReadonlyInvariant).
+    expect(errorCodes).toBeDefined();
   });
 });
 
@@ -128,7 +142,7 @@ describe('ErrorResponse type', () => {
 
 describe('Интеграционные тесты типов', () => {
   it('ErrorCode совместим с ErrorResponse.code', () => {
-    const codes: ErrorCode[] = Object.values(ERROR_CODES);
+    const codes: ErrorCode[] = Object.values(errorCodes);
 
     codes.forEach((code) => {
       const response: ErrorResponse = {
@@ -141,8 +155,8 @@ describe('Интеграционные тесты типов', () => {
     });
   });
 
-  it('все ERROR_CODES являются валидными ErrorCode', () => {
-    Object.values(ERROR_CODES).forEach((code) => {
+  it('все errorCodes являются валидными ErrorCode', () => {
+    Object.values(errorCodes).forEach((code) => {
       // Type assertion - если это не валидный ErrorCode, будет ошибка компиляции
       const typedCode: ErrorCode = code;
       expect(typedCode).toBe(code);

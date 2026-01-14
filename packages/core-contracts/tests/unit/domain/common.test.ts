@@ -3,13 +3,14 @@
  */
 import { describe, expect, it } from 'vitest';
 import type { JsonObject, Settings, Timestamp, UUID } from '../../../src/domain/common.js';
+import { TEST_USER_ID } from '../../constants';
 
 describe('UUID type', () => {
   it('принимает строковые значения', () => {
     // Type check - это должно компилироваться без ошибок
-    const validUUID: UUID = '550e8400-e29b-41d4-a716-446655440000';
+    const validUUID: UUID = TEST_USER_ID;
     expect(typeof validUUID).toBe('string');
-    expect(validUUID).toBe('550e8400-e29b-41d4-a716-446655440000');
+    expect(validUUID).toBe(TEST_USER_ID);
   });
 
   it('является алиасом string', () => {
@@ -148,8 +149,8 @@ describe('Интеграционные тесты типов', () => {
   });
 
   it('снапшот примеров использования', () => {
-    const exampleData = {
-      uuid: '550e8400-e29b-41d4-a716-446655440000' as UUID,
+    const exampleFixture = {
+      uuid: TEST_USER_ID as UUID,
       timestamp: '2026-01-09T21:34:12.123Z' as Timestamp,
       jsonObject: {
         user: 'john',
@@ -166,6 +167,6 @@ describe('Интеграционные тесты типов', () => {
       } as Settings,
     };
 
-    expect(exampleData).toMatchSnapshot();
+    expect(exampleFixture).toMatchSnapshot();
   });
 });

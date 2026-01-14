@@ -1,12 +1,7 @@
 #!/usr/bin/env node
-// Для Node.js <18 используйте: node --experimental-specifier-resolution=node scripts/generate-docs.js
 
 /**
- * Генератор документации проекта LivAi
- * Создает сводную документацию из всех источников
- *
- * @typedef {string} MarkdownContent - Содержимое markdown файла
- * @typedef {unknown} ErrorType - Тип ошибки
+ * Генерация PROJECT-OVERVIEW.md для LivAiBot проекта
  */
 
 import fs from 'fs';
@@ -16,187 +11,271 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Проверяем структуру проекта
-const projectRoot = path.resolve(__dirname, '..');
-const docsDir = path.join(projectRoot, 'docs');
-const aiBotsDir = path.join(docsDir, 'ai-bots-platform');
+const reportsDir = path.resolve('reports');
+const filePath = path.join(reportsDir, 'PROJECT-OVERVIEW.md');
 
-if (!fs.existsSync(docsDir)) {
-  console.error(`❌ Директория docs не найдена: ${docsDir}`);
-  process.exit(1);
+// Создаем директорию reports если её нет
+if (!fs.existsSync(reportsDir)) {
+  fs.mkdirSync(reportsDir, { recursive: true });
 }
 
-if (!fs.existsSync(aiBotsDir)) {
-  console.error(`❌ Директория ai-bots-platform не найдена: ${aiBotsDir}`);
-  process.exit(1);
-}
+const content = `# LivAiBot Project Overview
 
-const outputFile = path.join(docsDir, 'PROJECT-OVERVIEW.md');
+## Project Description
+LivAi - AI-powered chatbot platform with multi-tenant architecture
 
-/**
- * Генерирует содержимое обзора проекта
- * @returns {MarkdownContent} Содержимое markdown файла с полной документацией проекта
- */
-function generateOverview() {
-  // Более читаемый формат даты для ручного чтения
-  const now = new Date();
-  const formattedDate = new Intl.DateTimeFormat('ru-RU', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-    timeZone: 'Europe/Moscow',
-  }).format(now);
+## Key Features
+- Multi-tenant architecture
+- AI-powered chatbots
+- Voice integration
+- Authentication system
+- Modern UI components
 
-  const overview = `# LivAi Platform - Обзор проекта
+## Tech Stack
+- **Frontend**: TypeScript, React/Preact, Effect.ts
+- **Backend**: Node.js, Effect.ts, PostgreSQL
+- **DevOps**: Docker, Turbo, pnpm workspaces
+- **Testing**: Vitest, Playwright, Istanbul coverage
+- **Quality**: ESLint, Prettier, TypeScript strict mode
 
-## 📋 Краткое описание
-LivAi - AI-powered платформа для создания и управления чат-ботами с мульти-тенантной архитектурой.
+## Architecture
+- **Clean Architecture**: слои base → shared → services → features → apps
+- **Monorepo structure**: pnpm workspaces + Turbo
+- **Modular design**: feature-driven development
+- **Effect.ts**: управление эффектами и зависимостями
 
-## 🏗️ Архитектура проекта
+## Modules / Packages
 
-### Backend (Python/FastAPI)
-- **api-gateway** - единый вход, прокси, middleware
-- **auth-service** - аутентификация, JWT, workspace
-- **bots-service** - CRUD ботов, инструкции, версии
-- **conversations-service** - треды, сообщения, turn (stub)
+### Core Foundation
+- \`@livai/core-contracts\` — контракты, доменные модели и типы
+- \`@livai/ui-core\` — базовые UI-компоненты и утилиты
 
-### Frontend (TypeScript/React)
-- **core-contracts** - типы, DTO, валидация
-- **ui-core** - базовые компоненты
-- **ui-shared** - утилиты, сервисы
-- **ui-features** - составные экраны
-- **feature-** - бизнес-логика
-- **app** - композиция, routing
+### Business Features
+- \`@livai/feature-auth\` — аутентификация и авторизация
+- \`@livai/feature-bots\` — управление ботами и AI-моделями
+- \`@livai/feature-chat\` — чат-интерфейсы и интеграции
+- \`@livai/feature-voice\` — голосовые интерфейсы и распознавание речи
 
-### Infrastructure
-- **PostgreSQL** - основная БД
-- **Redis** - кэш, очереди
-- **ClickHouse** - аналитика
-- **MinIO** - файлы
-- **Qdrant** - векторные данные
+### Applications
+- \`@livai/web\` — веб-приложение (Next.js)
+- \`@livai/admin\` — панель администратора
+- \`@livai/mobile\` — мобильное приложение
+- \`@livai/pwa\` — прогрессивное веб-приложение
 
-## 📚 Документация
+### Development & Testing
+- \`@livai/e2e\` — end-to-end тесты (Playwright)
+- \`@livai/playwright-config\` — конфигурация Playwright
+- \`@livai/vitest-config\` — конфигурация Vitest
 
-### Основные документы
-- [Обзор платформы](./ai-bots-platform/LivAi-Overview.md)
-- [Roadmap](./ai-bots-platform/LivAi-Roadmap.md)
-- [Архитектура](./ai-bots-platform/LivAi-Structure.md)
-- [Tech Stack](./ai-bots-platform/LivAi-Tech-Stack.md)
-- [Bot Specs](./ai-bots-platform/LivAiBot-Specs.md)
+## Development Practices
 
-### Планы реализации
-- [Фаза 0-1 Backend](./phase0-1-backend.md)
-- [Фаза 2 UI](./phase2-UI.md)
-- [Zod Generator](./zod-generator-implementation.md)
+### Code Quality
+- **ESLint + Prettier**: автоматическое форматирование и линтинг
+- **Husky pre-commit hooks**: проверка кода перед коммитом
+- **TypeScript strict mode**: максимальная типизация
+- **Import zones**: архитектурные ограничения импортов
 
-## 🚀 Быстрый старт
+### Testing Strategy
+- **Unit tests**: Vitest, 100% покрытие критических путей
+- **Integration tests**: end-to-end бизнес-сценарии
+- **E2E tests**: Playwright, production и demo режимы
+- **Benchmarks**: производительность критических функций
 
-### Запуск инфраструктуры
-\`\`\`bash
-# Полный запуск
-pnpm run dev:full
+### Development Workflow
+- **Turbo**: параллельная сборка и кэширование
+- **Circular dependency checks**: автоматическая проверка
+- **Bundle analysis**: контроль размеров и зависимостей
+- **Fan-in/Fan-out metrics**: анализ сложности кода
 
-# Только инфраструктура
-bash scripts/dev_up.sh
+## Deployment / Infrastructure
 
-# Статус проекта
-pnpm run project:status
+### Backend Services
+- **Node.js**: runtime environment
+- **PostgreSQL**: основная база данных
+- **Redis**: кэширование и сессии (опционально)
+
+### Hosting Strategy
+- **Multi-tenant**: изоляция данных по workspace/organization
+- **Docker**: контейнеризация сервисов
+- **Horizontal scaling**: stateless сервисы
+
+### CI/CD Pipeline
+- **GitHub Actions**: автоматизация деплоя
+- **Quality gates**: тесты, линтинг, bundle size
+- **Multi-environment**: dev/staging/prod
+
+## Observability & Security
+
+### Monitoring
+- **Centralized logging**: структурированные логи
+- **Metrics collection**: производительность и ошибки
+- **Health checks**: статус сервисов и зависимостей
+
+### Security Measures
+- **JWT authentication**: stateless аутентификация
+- **PII detection**: автоматическое обнаружение персональных данных
+- **Input validation**: Zod schemas для всех входных данных
+- **Rate limiting**: защита от DDoS атак
+
+### Data Protection
+- **Encryption**: sensitive data в транзите и at-rest
+- **Audit logs**: отслеживание изменений данных
+- **Data retention**: политики хранения данных
+
+## Quality Metrics
+
+### Code Coverage
+- **Unit tests**: >90% покрытие (текущее: ~88%)
+- **Integration tests**: критические бизнес-сценарии (10 тестов)
+- **E2E coverage**: основные пользовательские пути (25 тестов)
+
+### Performance Budgets
+- **Bundle size**: лимиты для каждого пакета (<3.4MB total)
+- **Load time**: <3s first contentful paint
+- **API response**: <200ms для основных эндпоинтов
+- **Benchmarks**: >29M ops/sec для auth validation
+
+### Architecture Compliance
+- **Import rules**: зоны пакетов, запрещенные импорты
+- **Circular dependencies**: автоматическая проверка ✅ (0 циклов)
+- **Bundle analysis**: tree-shaking эффективность
+- **Fan-in/Fan-out**: max depth 73, max fan-in 220 (Effect.ts)
+- **Monorepo zones**: 100% coverage (16/16 пакетов)
+
+## Links & Documentation
+
+### External Resources
+- [**Vitest**](https://vitest.dev/) - Unit testing framework
+- [**Playwright**](https://playwright.dev/) - E2E testing framework
+- [**Effect.ts**](https://effect.website/) - Functional programming library
+- [**Turbo**](https://turbo.build/) - Build system and caching
+- [**pnpm**](https://pnpm.io/) - Package manager
+
+### Project Documentation
+- **Commands Reference**: \`docs/commands/commands.md\`
+- **Bundle Reports**: \`reports/bundles/\` (HTML reports)
+- **Test Results**: \`test-results/\` (JSON reports)
+- **Benchmarks**: \`reports/bundles-summary.json\`
+
+## Architecture Diagrams
+
+### Clean Architecture Layers
+\`\`\`
+┌─────────────────────────────────────┐
+│           📱 Applications           │  (@livai/web, @livai/admin)
+├─────────────────────────────────────┤
+│         🎯 Features Layer           │  (@livai/feature-*)
+├─────────────────────────────────────┤
+│       🔧 Services Layer             │  (Business logic)
+├─────────────────────────────────────┤
+│       📚 Shared Layer               │  (@livai/ui-shared)
+├─────────────────────────────────────┤
+│   🏗️ Infrastructure & Core          │  (@livai/core-contracts)
+└─────────────────────────────────────┘
 \`\`\`
 
-### Backend разработка
-\`\`\`bash
-# Проверка качества
-make quality
-
-# Миграции
-make db:migrate
-
-# Тесты
-make test
+### Monorepo Package Zones
+\`\`\`
+foundation (4) → aiExecution (4) → ui (3) → apps (5)
+    ↓              ↓              ↓        ↓
+contracts     feature-*     ui-*    web/admin/mobile
+observability               shared     pwa
+events
 \`\`\`
 
-### Frontend разработка
+### Data Flow Architecture
+\`\`\`
+User Request → Controller → Service → Repository → Database
+                   ↓          ↓          ↓
+              Validation  Business   Data Access
+                (Zod)    Logic (Effect)  Layer
+\`\`\`
+
+### Bundle Analysis Visualization
+Run \`pnpm run analyze:bundles\` to generate:
+- **Size reports**: \`reports/bundles/*.size.html\`
+- **Dependency graphs**: \`reports/bundles/*.graph.html\`
+- **Summary**: \`reports/bundles-summary.json\`
+
+### Import Graph Analysis
+Key metrics from \`pnpm run analyze:import-metrics\`:
+- **Max depth**: 73 levels (Effect.ts - needs refactoring)
+- **Max fan-in**: 220 imports (Function.ts - high coupling)
+- **Total dependencies**: 3.4MB bundle size
+- **Circular deps**: 0 ✅ (perfect architecture)
+
+## Future Roadmap
+
+### Q1 2026 - Core Features
+- [ ] Voice recognition integration (Whisper API)
+- [ ] Advanced AI model management
+- [ ] Real-time collaboration features
+- [ ] Multi-language support (i18n)
+
+### Q2 2026 - Performance & Scale
+- [ ] Bundle optimization (<2MB target)
+- [ ] Database query optimization
+- [ ] Redis caching layer implementation
+- [ ] Horizontal pod autoscaling
+
+### Q3 2026 - Observability
+- [ ] Centralized logging (ELK stack)
+- [ ] APM integration (DataDog/New Relic)
+- [ ] Error tracking and alerting
+- [ ] Performance monitoring dashboards
+
+### Q4 2026 - Enterprise Features
+- [ ] SSO integration (SAML/OAuth)
+- [ ] Advanced permissions (RBAC)
+- [ ] Audit trails and compliance
+- [ ] Multi-region deployment
+
+## Getting Started
+
+### Prerequisites
+\`\`\`bash
+# Node.js 18+
+# pnpm 8+
+# Docker & Docker Compose
+\`\`\`
+
+### Quick Start
+\`\`\`bash
+# Установка зависимостей
+pnpm install
+
+# Запуск в режиме разработки
+pnpm run dev
+
+# Запуск тестов
+pnpm run test
+
+# Сборка production
+pnpm run build
+\`\`\`
+
+### Available Commands
 \`\`\`bash
 # Качество кода
-pnpm run quality:local
+pnpm run quality          # Полная проверка качества
+pnpm run lint            # Линтинг
+pnpm run type-check      # Проверка типов
 
-# Тесты
-pnpm run test:unit
+# Тестирование
+pnpm run test            # Unit тесты
+pnpm run test:int        # Integration тесты
+pnpm run test:e2e        # E2E тесты
 
-# Запуск dev сервера
-pnpm run dev
+# Анализ
+pnpm run analyze:bundles  # Размеры бандлов
+pnpm run check:circular-deps  # Циклические зависимости
+
+# Документация
+pnpm run docs:generate   # Генерация этого файла
 \`\`\`
 
-## 📊 Метрики проекта
-
-### Backend
-- **Сервисы:** 4 (api-gateway, auth, bots, conversations)
-- **Тестовое покрытие:** 85%+ statements, 80%+ branches
-- **Типизация:** 100% (mypy strict)
-
-### Frontend
-- **Пакеты:** 9 (core-contracts, ui-*, feature-*, app)
-- **Тестовое покрытие:** 85%+ statements, 80%+ branches
-- **Type coverage:** 95%+
-
-### Infrastructure
-- **Сервисы:** 6 (Postgres, Redis, ClickHouse, MinIO, Qdrant, api-gateway)
-- **Health checks:** автоматические проверки всех компонентов
-
-## 🔧 Качество кода
-
-### Автоматизация
-- **Pre-commit hooks** - линтинг, типы, тесты
-- **CI/CD** - полная проверка качества
-- **Dependabot** - автоматическое обновление зависимостей
-
-### Инструменты
-- **ESLint + Prettier** - линтинг и форматирование
-- **TypeScript strict** - строгая типизация
-- **Vitest + Playwright** - unit + E2E тесты
-- **Snyk** - проверка безопасности
-
-## 📈 Roadmap развития
-
-### ✅ Фаза 0-1 (Завершена)
-- Инфраструктура и базовые сервисы
-- API контракты и DTO
-- Базовая аутентификация
-
-### 🚧 Фаза 2 (UI)
-- Zod генератор для валидации
-- React компоненты и формы
-- Интеграция с backend API
-
-### 📋 Фаза 3-7 (Планируется)
-- RAG и AI интеграции
-- CRM/маркетплейсы интеграции
-- Enterprise функции
-
----
-
-*Сгенерировано автоматически: ${formattedDate} (${now.toISOString()})*
+Generated on: ${new Date().toISOString()}
 `;
 
-  return overview;
-}
-
-/**
- * Основная функция
- * @returns {void}
- */
-function main() {
-  try {
-    const overview = generateOverview();
-    // Явная UTF-8 кодировка без BOM для совместимости с Windows
-    fs.writeFileSync(outputFile, overview, { encoding: 'utf8', flag: 'w' });
-    console.log(`✅ Документация сгенерирована: ${outputFile}`);
-  } catch (/** @type {ErrorType} */ error) {
-    console.error('❌ Ошибка генерации документации:', error);
-    process.exit(1);
-  }
-}
-
-main();
+fs.writeFileSync(filePath, content);
+console.log('✅ Документация сгенерирована:', filePath);

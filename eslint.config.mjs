@@ -1,5 +1,5 @@
 /**
- * @file Центральный ESLint конфиг для LivAiBot монорепо
+ * @file Центральный ESLint конфиг для LivAi монорепо
  *
  * Единая точка входа для всех ESLint проверок.
  * Автоматически подключает все зоны, правила и архитектурные границы.
@@ -20,6 +20,8 @@
  */
 import devMode from './config/eslint/modes/dev.config.mjs';
 import canaryMode from './config/eslint/modes/canary.config.mjs';
+import typescriptParser from '@typescript-eslint/parser';
+import { CONFIG_FILES_RULES } from './config/eslint/shared/rules.mjs';
 
 // ==================== ВЫБОР РЕЖИМА ====================
 /**
@@ -56,12 +58,64 @@ export default [
       '**/.turbo/**',      // Кеш Turborepo
       '**/.cache/**',      // Различные кеши (webpack, babel, etc.)
       '**/coverage/**',    // Отчеты о покрытии тестами
-      'config/**/*.{ts,js}', // Конфигурационные файлы (vitest, vite, eslint) могут использовать dynamic imports и fs
-      '!config/testing/shared-config.ts', // НО shared-config.ts ДОЛЖЕН проверяться ESLint
+      '**/.next/**',       // Next.js build output
+      'config/**/*.js',     // JS конфиги/утилиты: без type-aware линтинга (избегаем ошибок typed rules)
+      'config/**/*.cjs',    // CJS конфиги/утилиты: аналогично
     ],
   },
   // Основная конфигурация режима
   ...selectedConfig,
+  // Tsup конфиги — линтим, но мягче (как инфраструктурный код)
+  {
+    files: ['**/tsup.config.{ts,js,mjs,cjs}'],
+    languageOptions: {
+      parser: typescriptParser,
+      parserOptions: {
+        // ВАЖНО: без type-aware (tsup.config.* часто исключены из tsconfig)
+        projectService: false,
+        ecmaVersion: 'latest',
+        sourceType: 'module',
+      },
+    },
+    rules: {
+      ...CONFIG_FILES_RULES,
+      // Отключаем type-aware правила для tsup.config.* (иначе они падают без parserServices)
+      '@typescript-eslint/no-floating-promises': 'off',
+      '@typescript-eslint/no-misused-promises': 'off',
+      '@typescript-eslint/await-thenable': 'off',
+      '@typescript-eslint/require-await': 'off',
+      '@typescript-eslint/no-unnecessary-type-assertion': 'off',
+      '@typescript-eslint/strict-boolean-expressions': 'off',
+      '@typescript-eslint/prefer-nullish-coalescing': 'off',
+      '@typescript-eslint/prefer-optional-chain': 'off',
+      '@typescript-eslint/no-unnecessary-condition': 'off',
+      '@typescript-eslint/no-confusing-void-expression': 'off',
+      '@typescript-eslint/no-unsafe-return': 'off',
+      '@typescript-eslint/no-unsafe-assignment': 'off',
+      '@typescript-eslint/no-unsafe-call': 'off',
+      '@typescript-eslint/no-meaningless-void-operator': 'off',
+      '@typescript-eslint/no-redundant-type-constituents': 'off',
+      '@typescript-eslint/no-unnecessary-qualifier': 'off',
+      '@typescript-eslint/no-unnecessary-boolean-literal-compare': 'off',
+      '@typescript-eslint/prefer-enum-initializers': 'off',
+      '@typescript-eslint/prefer-literal-enum-member': 'off',
+      '@typescript-eslint/prefer-readonly': 'off',
+      '@typescript-eslint/prefer-readonly-parameter-types': 'off',
+      '@typescript-eslint/prefer-return-this-type': 'off',
+      '@typescript-eslint/prefer-string-starts-ends-with': 'off',
+      '@typescript-eslint/require-array-sort-compare': 'off',
+      '@typescript-eslint/restrict-plus-operands': 'off',
+      '@typescript-eslint/restrict-template-expressions': 'off',
+      '@typescript-eslint/return-await': 'off',
+    },
+  },
+  // Vitest конфиги — требуют default export для работы
+  {
+    files: ['**/vitest.config.{ts,js,mjs,cjs}'],
+    rules: {
+      'import/no-default-export': 'off',
+    },
+  },
 ];
 
 // ==================== ДОСТУП К РЕЖИМАМ ====================

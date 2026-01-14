@@ -1,13 +1,15 @@
+// Node
 import { resolve } from 'path';
 import { fileURLToPath } from 'url';
-
+// External
 import tsconfigPaths from 'vite-tsconfig-paths';
 import { defineConfig } from 'vitest/config';
 
+// Internal
+import { createPackageVitestConfig } from '../../config/vitest/vitest.packages.config.js';
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = resolve(__filename, '..');
-
-import { createPackageVitestConfig } from '../../config/vitest/vitest.packages.config.js';
 
 /**
  * Конфигурация Vitest для @livai/web

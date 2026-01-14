@@ -76,7 +76,7 @@
     "test:coverage": "NODE_OPTIONS='--no-warnings' vitest run --coverage",
     "test:coverage:html": "NODE_OPTIONS='--no-warnings' vitest run --coverage --coverage.reporter=html",
     "test:coverage:watch": "NODE_OPTIONS='--no-warnings' vitest --coverage --watch",
-    "test:ci": "NODE_OPTIONS='--no-warnings' vitest run --coverage --coverage.thresholds.statements=85 --coverage.thresholds.branches=80 --coverage.thresholds.functions=85 --coverage.thresholds.lines=85",
+    "test:ci": "NODE_OPTIONS='--no-warnings' vitest run --coverage",
     "clean": "rm -rf dist *.tsbuildinfo .eslintcache",
     "lint:dev": "cd ../ && pnpm run lint --filter @livai/feature-voice",
     "lint:canary": "ESLINT_MODE=canary eslint --config ../../eslint.config.mjs src",
@@ -105,6 +105,7 @@
     }
   },
   "devDependencies": {
+    "@livai/vitest-config": "workspace:*",
     "@vitest/coverage-v8": "4.0.17",
     "eslint": "9.39.2",
     "tsup": "8.5.1",

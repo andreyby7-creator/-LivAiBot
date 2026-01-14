@@ -1,5 +1,4 @@
 import Link from 'next/link';
-
 import type { JSX } from 'react';
 
 export default function HomePage(): JSX.Element {

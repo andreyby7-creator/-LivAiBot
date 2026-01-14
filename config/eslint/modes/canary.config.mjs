@@ -1,66 +1,23 @@
 /**
- * @file Конфигурация ESLint режима CANARY для LivAiBot
+ * @file Конфигурация ESLint режима CANARY для LivAi
  *
  * Режим максимальной строгости с полным type-aware анализом и экспериментальными правилами.
- * Применяет самые строгие проверки качества ко всем зонам архитектуры LivAiBot.
+ * Применяет самые строгие проверки качества ко всем зонам архитектуры LivAi.
  *
  * Используется для nightly сборок, feature веток и глубокого анализа перед релизом.
  */
 
 import typescriptParser from '@typescript-eslint/parser';
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
-import masterConfig from '../master.config.mjs';
-// TEZ: Type Exemption Zone - импортируем из shared для single source of truth
+import masterConfig, { resolveMonorepoRoot } from '../master.config.mjs';
+// TEZ: Type Exemption Zone определена в shared/tez.config.mjs и применяется через master.config.mjs
 import { PLUGINS } from '../constants.mjs';
 import { applySeverity, applySeverityAwareRules, QUALITY_WITH_SEVERITY, CANARY_EXTRA_RULES, COMMON_IGNORES } from '../shared/rules.mjs';
-import { effectFpNamingRules } from '../rules/naming-conventions.mjs';
-import architecturalBoundariesConfig from '../rules/architectural-boundaries.mjs';
-import { integrationTestRules } from '../rules/integration-tests.rules.mjs';
-
-// ==================== УТИЛИТЫ ДЛЯ МОНОРЕПО ====================
-
-/**
- * Получает корневую директорию проекта (монорепо)
- * Используется для правильной настройки tsconfigRootDir независимо от того,
- * откуда запускается ESLint (корень или подпапка)
- * 
- * Ищет корень проекта по наличию package.json или tsconfig.json вверх по дереву
- * Это более надежно, чем просто считать уровни вложенности
- * 
- * @returns {string} абсолютный путь к корню проекта
- */
-function getProjectRoot() {
-  // Получаем директорию текущего файла через import.meta.url (ESM)
-  const __filename = fileURLToPath(import.meta.url);
-  let currentDir = path.dirname(__filename);
-  
-  // Ищем корень проекта по наличию package.json или tsconfig.json
-  // Поднимаемся вверх по дереву до тех пор, пока не найдем корень
-  while (currentDir !== path.dirname(currentDir)) {
-    const packageJsonPath = path.join(currentDir, 'package.json');
-    const tsconfigPath = path.join(currentDir, 'tsconfig.json');
-    
-    // Если нашли package.json или tsconfig.json - это корень проекта
-    if (fs.existsSync(packageJsonPath) || fs.existsSync(tsconfigPath)) {
-      return currentDir;
-    }
-    
-    // Поднимаемся на уровень выше
-    currentDir = path.dirname(currentDir);
-  }
-  
-  // Fallback: если не нашли, используем расчет по уровням
-  // (config/eslint/modes/ -> корень = 3 уровня вверх)
-  return path.resolve(path.dirname(__filename), '../../..');
-}
 
 /**
  * Корневая директория проекта для использования в tsconfigRootDir
  * Гарантирует одинаковую проверку независимо от того, откуда запускается ESLint
  */
-const PROJECT_ROOT = getProjectRoot();
+const PROJECT_ROOT = resolveMonorepoRoot(import.meta.url);
 
 /**
  * Type Exemption Zone (TEZ) - типы, исключённые из проверки prefer-readonly-parameter-types
@@ -152,8 +109,8 @@ const canaryConfig = [
   {
     ignores: [
       '**/*.d.ts', // Игнорируем ВСЕ .d.ts файлы в проекте
-      'config/**/*.ts', // Конфигурационные файлы могут использовать dynamic imports
-      'config/**/*.js', // Тестовые скрипты могут использовать fs, child_process
+      // ВАЖНО: config/**/*.{ts,js} игнорируется в eslint.config.mjs с точечными исключениями.
+      // Здесь не дублируем, чтобы не сломать '!config/testing/shared-config.ts'.
     ],
   },
   ...masterConfig.map(config => {
@@ -174,10 +131,6 @@ const canaryConfig = [
       rules: config.rules ? transformRulesForCanary(config.rules) : {},
     };
   }),
-  // Добавляем naming convention правила
-  ...effectFpNamingRules,
-  // Добавляем architectural boundaries
-  ...architecturalBoundariesConfig,
 ];
 
 // ==================== PRODUCTION ФАЙЛЫ: МАКСИМАЛЬНАЯ СТРОГОСТЬ ====================
@@ -193,15 +146,10 @@ canaryConfig.push({
   files: ['**/*.ts', '**/*.tsx'], // Проверяем все TS/TSX файлы в монорепо
   ignores: [
     ...COMMON_IGNORES, // Используем централизованные ignores для единообразия
-    // Исключаем тестовые и dev-only файлы - они проверяются отдельно через overrides
-    '**/*.test.ts',
-    '**/*.test.tsx',
-    '**/*.spec.ts',
-    '**/*.spec.tsx',
+    // Исключаем dev-only файлы - они проверяются отдельно через overrides
     '**/*.dev.ts',
-    '**/__tests__/**',
-    '**/test/**',
-    '**/tests/**',
+    // TSUP конфиги линтим отдельным (non-type-aware) override, чтобы не падать на projectService
+    '**/tsup.config.{ts,js,mjs,cjs}',
     // Исключаем конфигурационные файлы - они имеют свою специфику
     '**/*.config.ts',
     '**/*.config.tsx',
@@ -223,7 +171,7 @@ canaryConfig.push({
   },
   settings: {
     next: {
-      rootDir: ['apps/admin-panel', 'apps/web', 'apps/mobile'],
+      rootDir: ['apps/admin', 'apps/web', 'apps/mobile'],
     },
   },
   rules: {
@@ -249,7 +197,7 @@ canaryConfig.push({
 // Все условные ветки заменяются на Effect.flatMap / match / pattern matching
 // Все side effects (включая console.log/debug) оборачиваются в Effect
 canaryConfig.push({
-  files: ['**/*.dev.ts', '**/*.spec.ts'],
+  files: ['**/*.dev.ts'],
   plugins: PLUGINS,
   languageOptions: {
     parser: typescriptParser,
@@ -278,125 +226,6 @@ canaryConfig.push({
   },
 });
 
-// Переопределение правил для Effect-системы
-// ❌ FUNCTIONAL_RULES отключены для Effect-TS проекта
-// Effect-TS уже обеспечивает функциональные паттерны через API
-canaryConfig.push({
-  files: ['core-contracts/src/io/Effect/**/*.ts'],
-  plugins: PLUGINS,
-  languageOptions: {
-    parser: typescriptParser,
-    parserOptions: {
-      projectService: true,
-      // Используем PROJECT_ROOT для единообразия с другими конфигурациями
-      tsconfigRootDir: PROJECT_ROOT,
-      noWarnOnMultipleProjects: true,
-    },
-  },
-  rules: {
-    ...FULL_TYPE_AWARE_RULES,
-    '@next/next/no-html-link-for-pages': 'off',
-  },
-});
-
-// ==================== ДЕКЛАРАТИВНЫЕ DOMAIN MAPS ====================
-// Отключаем no-magic-numbers для декларативных файлов с HTTP статус-кодами
-// HTTP-коды — часть протокола, а не «магия»
-// Эти файлы декларативные и не содержат бизнес-логики
-canaryConfig.push({
-  files: [
-    '**/ErrorCodeMeta.ts',
-    '**/ErrorCodeMetaData.ts',
-  ],
-  plugins: PLUGINS,
-  languageOptions: {
-    parser: typescriptParser,
-    parserOptions: {
-      projectService: true,
-      tsconfigRootDir: PROJECT_ROOT,
-      noWarnOnMultipleProjects: true,
-    },
-  },
-  rules: {
-    ...FULL_TYPE_AWARE_RULES,
-    'no-magic-numbers': 'off', // HTTP статус-коды — данные, не алгоритмы
-  },
-});
-
-// ==================== ASSERT NEVER И ВАЛИДАЦИЯ ====================
-// assertNever и валидация — compile-time safety guards, throw допустим ТОЛЬКО здесь
-canaryConfig.push({
-  files: ['**/*ErrorCode.ts', '**/ErrorCodeMeta.ts', '**/ErrorCodeMetaData.ts', '**/BaseErrorTypes.ts', '**/ErrorCode.ts'],
-  plugins: PLUGINS,
-  languageOptions: {
-    parser: typescriptParser,
-    parserOptions: {
-      projectService: true,
-      tsconfigRootDir: PROJECT_ROOT,
-      noWarnOnMultipleProjects: true,
-    },
-  },
-  rules: {
-    ...FULL_TYPE_AWARE_RULES,
-    'fp/no-throw': 'off', // assertNever, валидация и pattern matching используют throw для compile-time safety
-  },
-});
-
-// ==================== INPUT BOUNDARY TYPES ====================
-// Разрешаем interface для input boundary types (каноничный паттерн Effect-TS: Model ≠ Input)
-// interface используется для input/output/contracts, type для unions/ADT/composition
-// ErrorMetadataInput — доменный input boundary type с readonly полями, но линтер не распознает interface с readonly полями
-// Унифицировано с dev.config.mjs для консистентности между режимами
-canaryConfig.push({
-  files: ['**/ErrorMetadata.ts'],
-  plugins: PLUGINS,
-  languageOptions: {
-    parser: typescriptParser,
-    parserOptions: {
-      projectService: true,
-      tsconfigRootDir: PROJECT_ROOT,
-      noWarnOnMultipleProjects: true,
-    },
-  },
-  rules: {
-    ...FULL_TYPE_AWARE_RULES,
-    '@typescript-eslint/consistent-type-definitions': ['error', 'interface'], // Разрешаем interface для input boundary types
-    '@typescript-eslint/prefer-readonly-parameter-types': [
-      'error',
-      {
-        allow: ['ErrorMetadataInput'], // Input boundary type с readonly полями (tooling-aware компромисс)
-      },
-    ],
-  },
-});
-
-// ==================== UNIFIED ERROR REGISTRY ====================
-// Отключаем security/detect-object-injection для UnifiedErrorRegistry.ts
-// Все доступы к объектам через динамические ключи контролируемы и безопасны:
-// - namespaceKey из Object.keys(namespaceMap) с фиксированной структурой
-// - code типизирован как ErrorCode
-// - namespace.toLowerCase() с type assertion
-canaryConfig.push({
-  files: ['**/UnifiedErrorRegistry.ts'],
-  rules: {
-    'security/detect-object-injection': 'off', // Безопасные контролируемые доступы к объектам
-  },
-});
-
-// ==================== ERROR METADATA ====================
-// Отключаем prefer-readonly-parameter-types для ErrorMetadata.ts
-// АРХИТЕКТУРНОЕ РЕШЕНИЕ: functional-first подход с immutable паттернами
-// - Входные параметры: обычные (безопасно, exactOptionalPropertyTypes не ломается)
-// - Выходные данные: readonly/as const (повышает safety и immutability)
-// - Функциональная иммутабельность: immutable паттерны Effect + spread операторы
-// - Type safety: Readonly<T> на уровне экспортов для линтера
-canaryConfig.push({
-  files: ['**/ErrorMetadata.ts'],
-  rules: {
-    '@typescript-eslint/prefer-readonly-parameter-types': 'off', // Functional-first архитектура
-  },
-});
-
 // Игнорирование дополнительных файлов (dist, build, cache уже игнорируются глобально)
 canaryConfig.unshift({
   ignores: [
@@ -407,7 +236,7 @@ canaryConfig.unshift({
 // Отключение строгих правил для тестовых файлов
 // Тесты часто используют анонимные функции, типы которых выводятся автоматически
 canaryConfig.push({
-  files: ['**/*.test.ts', '**/*.spec.ts'],
+  files: ['**/*.{test,spec}.{ts,tsx,js,jsx,mjs,cjs}'],
   rules: {
     'import/order': 'off', // Тестовые файлы могут иметь свободный порядок импортов
     ...applySeverityAwareRules(QUALITY_WITH_SEVERITY, 'test'), // explicit-function-return-type: off
@@ -430,11 +259,6 @@ canaryConfig.push({
   },
 });
 
-// Правила для integration тестов (runtime testing, console output, error validation)
-canaryConfig.push({
-  files: ['**/tests/integration/**/*.{ts,tsx,js,jsx}'],
-  rules: integrationTestRules,
-});
 
 // Отключаем правило Pages Router для Next.js App Router приложений
 canaryConfig.push({
@@ -469,6 +293,15 @@ canaryConfig.push({
   ],
   rules: {
     '@typescript-eslint/no-explicit-any': 'off',
+  },
+});
+
+// Next.js App Router: pages/ директории нет по дизайну, поэтому правило создаёт шум
+// Отключаем глобально (не только для apps/*), чтобы не получать предупреждение на старте линта
+canaryConfig.push({
+  plugins: PLUGINS,
+  rules: {
+    '@next/next/no-html-link-for-pages': 'off',
   },
 });
 

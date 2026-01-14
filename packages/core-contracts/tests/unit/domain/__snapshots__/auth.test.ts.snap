@@ -2,15 +2,15 @@
 
 exports[`LoginRequest > снапшот структуры 1`] = `
 {
-  "email": "jane.smith@example.com",
-  "password": "SecurePass456!",
+  "email": "user@example.com",
+  "password": "fakePassword123!",
 }
 `;
 
 exports[`MeResponse > снапшот структуры 1`] = `
 {
-  "email": "john.doe@example.com",
-  "user_id": "550e8400-e29b-41d4-a716-446655440000",
+  "email": "user@example.com",
+  "user_id": "123e4567-e89b-12d3-a456-426614174000",
   "workspace_id": "123e4567-e89b-12d3-a456-426614174000",
 }
 `;
@@ -23,15 +23,15 @@ exports[`RefreshRequest > снапшот структуры 1`] = `
 
 exports[`RegisterRequest > снапшот структуры 1`] = `
 {
-  "email": "john.doe@example.com",
-  "password": "MySecurePass123!",
-  "workspace_name": "John's Company",
+  "email": "user@example.com",
+  "password": "fakePassword123!",
+  "workspace_name": "Fake Workspace",
 }
 `;
 
 exports[`TokenPairResponse > снапшот структуры 1`] = `
 {
-  "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c",
+  "access_token": "ey.fake.header.fake.payload",
   "expires_in": 3600,
   "refresh_token": "refresh_token_abc123def456",
   "token_type": "bearer",
@@ -45,7 +45,7 @@ exports[`Интеграционные тесты auth flow > снапшот по
   "login": {
     "request": {
       "email": "user@example.com",
-      "password": "password123",
+      "password": "fakePassword123!",
     },
     "response": {
       "email": "user@example.com",
@@ -56,8 +56,8 @@ exports[`Интеграционные тесты auth flow > снапшот по
   "register": {
     "request": {
       "email": "user@example.com",
-      "password": "password123",
-      "workspace_name": "Workspace",
+      "password": "fakePassword123!",
+      "workspace_name": "Fake Workspace",
     },
     "response": {
       "access_token": "token123",

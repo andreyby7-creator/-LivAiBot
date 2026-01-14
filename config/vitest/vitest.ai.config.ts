@@ -114,7 +114,11 @@ function resetAICounters(): void {
 }
 
 /** Получение статистики AI использования */
-function getAIStats() {
+function getAIStats(): {
+  local: { calls: number; cost: number; };
+  global: { calls: number; cost: number; };
+  budget: { limit: number; remaining: number; };
+} {
   return {
     local: {
       calls: aiCallCount,
@@ -216,7 +220,11 @@ function withTimeout<T>(promise: Promise<T>, timeoutMs: number = DEFAULT_AI_TIME
 }
 
 /** Проверка доступности AI ключей */
-function checkAIKeysAvailability() {
+function checkAIKeysAvailability(): {
+  available: string[];
+  missing: string[];
+  hasRequired: boolean;
+} {
   const available: string[] = [];
   const missing: string[] = [];
 

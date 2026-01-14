@@ -40,6 +40,7 @@ const args = process.argv.slice(2);
 const compareRef = args.find((arg) => arg.startsWith('--compare='))?.split('=')[1] || 'main';
 const sizeOnly = args.includes('--size-only');
 const graphOnly = args.includes('--graph-only');
+const quiet = args.includes('--quiet');
 
 // Валидация CLI аргументов
 if (sizeOnly && graphOnly) {
@@ -250,12 +251,12 @@ function findPrimaryEntry(packagePath) {
  */
 async function analyzeBundle(packageName, entryFile) {
   if (!entryFile) {
-    console.log(`⚠️  Пропускаем ${packageName} - бандл не найден`);
+    if (!quiet) console.log(`⚠️  Пропускаем ${packageName} - бандл не найден`);
     return null;
   }
 
   const relativeEntry = relative(process.cwd(), entryFile);
-  console.log(`📊 Анализируем ${packageName}...`);
+  if (!quiet) console.log(`📊 Анализируем ${packageName}...`);
 
   try {
     // Убеждаемся что директория отчетов существует
@@ -281,7 +282,7 @@ async function analyzeBundle(packageName, entryFile) {
       });
 
       await fs.writeFileSync(`reports/bundles/${packageName}.size.html`, sizeHtmlReport);
-      console.log(`✅ Сгенерирован size-отчет для ${packageName}`);
+      if (!quiet) console.log(`✅ Сгенерирован size-отчет для ${packageName}`);
     }
 
     // Генерируем graph report если не size-only
@@ -290,6 +291,8 @@ async function analyzeBundle(packageName, entryFile) {
         const bundle = await rollup({
           input: entryFile,
           onwarn(warning) {
+            if (quiet) return; // В quiet режиме подавляем все предупреждения
+
             // Подавляем предупреждения о неразрешенных импортах для известных external зависимостей
             const message = warning.message || '';
             const isExternalWarning = message.includes('could not be resolved')
@@ -323,9 +326,13 @@ async function analyzeBundle(packageName, entryFile) {
         await bundle.generate({ format: 'esm' });
         await bundle.close();
 
-        console.log(`✅ Сгенерирован graph-отчет для ${packageName}`);
+        if (!quiet) console.log(`✅ Сгенерирован graph-отчет для ${packageName}`);
       } catch (graphError) {
-        console.warn(`⚠️  Не удалось сгенерировать граф для ${packageName}: ${graphError.message}`);
+        if (!quiet) {
+          console.warn(
+            `⚠️  Не удалось сгенерировать граф для ${packageName}: ${graphError.message}`,
+          );
+        }
       }
     }
 
@@ -342,7 +349,7 @@ async function analyzeBundle(packageName, entryFile) {
       },
     };
   } catch (error) {
-    console.error(`❌ Error analyzing ${packageName}: ${error.message}`);
+    if (!quiet) console.error(`❌ Error analyzing ${packageName}: ${error.message}`);
     return null;
   }
 }
@@ -468,18 +475,18 @@ function printSummary(results) {
  * Основная функция скрипта
  */
 async function main() {
-  console.log('🔍 Анализируем бандлы в LivAiBot монорепо...');
+  if (!quiet) console.log('🔍 Анализируем бандлы в LivAiBot монорепо...');
 
   const packages = await findPackages();
-  console.log(`Найдено ${packages.length} пакетов\n`);
+  if (!quiet) console.log(`Найдено ${packages.length} пакетов\n`);
 
   // Загружаем baseline для сравнения
   let baseline = null;
   if (compareRef !== 'none') {
-    console.log(`📊 Загружаем baseline из ${compareRef}...\n`);
+    if (!quiet) console.log(`📊 Загружаем baseline из ${compareRef}...\n`);
     baseline = await loadBaseline(compareRef);
     if (!baseline) {
-      console.log(`⚠️  Baseline из ${compareRef} недоступен, сравнение отключено\n`);
+      if (!quiet) console.log(`⚠️  Baseline из ${compareRef} недоступен, сравнение отключено\n`);
     }
   }
 
@@ -529,3 +536,27 @@ main().catch((error) => {
   console.error('❌ Критическая ошибка:', error);
   process.exit(1);
 });
+
+// Добавляем quiet режим в справку
+if (args.includes('--help') || args.includes('-h')) {
+  console.log(`
+Анализ бандлов для LivAiBot монорепо
+
+Использование:
+  node scripts/analyze-bundles.js [опции]
+
+Опции:
+  --size-only        Только анализ размеров (быстрее)
+  --graph-only       Только анализ графа зависимостей
+  --compare=<ref>    Сравнить с git reference (main, tag, etc.)
+  --compare=none     Без сравнения
+  --quiet           Тихий режим (меньше вывода)
+  --help, -h        Показать эту справку
+
+Примеры:
+  node scripts/analyze-bundles.js
+  node scripts/analyze-bundles.js --size-only --quiet
+  node scripts/analyze-bundles.js --compare=v1.0.0
+`);
+  process.exit(0);
+}

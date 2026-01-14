@@ -1,4 +1,4 @@
-import { createPackageVitestConfig } from '../../config/vitest/vitest.packages.config.js';
+import { createPackageVitestConfig } from '@livai/vitest-config/vitest.packages.config.js';
 
 /**
  * Конфигурация Vitest для @livai/feature-bots

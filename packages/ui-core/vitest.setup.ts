@@ -7,7 +7,7 @@ import { cleanup } from '@testing-library/react';
 import { afterEach, expect } from 'vitest';
 
 // Расширяем expect matchers для @testing-library/jest-dom
-expect.extend(matchers);
+expect.extend(matchers.default ?? matchers);
 
 // Очистка DOM после каждого теста
 afterEach(() => {

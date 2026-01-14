@@ -3,7 +3,14 @@
  */
 import { bench, describe } from 'vitest';
 
-import { LoginRequest, RegisterRequest } from '../src/domain/auth.js';
+import type { LoginRequest, RegisterRequest } from '../src/domain/auth.js';
+
+// Benchmark configuration constants
+const MIN_PASSWORD_LENGTH = 8;
+const SECONDS_PER_MINUTE = 60;
+const MINUTES_PER_HOUR = 60;
+const MS_PER_SECOND = 1000;
+const ONE_HOUR_MS = SECONDS_PER_MINUTE * MINUTES_PER_HOUR * MS_PER_SECOND;
 
 describe('Authentication Performance', () => {
   const registerRequest: RegisterRequest = {
@@ -20,22 +27,22 @@ describe('Authentication Performance', () => {
   bench('RegisterRequest validation', () => {
     // Benchmark validation logic
     const emailValid = registerRequest.email.includes('@');
-    const passwordValid = registerRequest.password.length >= 8;
+    const passwordValid = registerRequest.password.length >= MIN_PASSWORD_LENGTH;
     const workspaceValid = registerRequest.workspace_name.length > 0;
 
-    if (!(emailValid && passwordValid && workspaceValid)) {
-      throw new Error('Validation failed');
-    }
+    // В benchmark-коде не бросаем исключения (fp/no-throw).
+    // "Потребляем" результат через вызов функции (ESLint считает вызовы допустимыми выражениями).
+    const isValid = emailValid && passwordValid && workspaceValid;
+    Boolean(isValid);
   });
 
   bench('LoginRequest validation', () => {
     // Benchmark validation logic
     const emailValid = loginRequest.email.includes('@');
-    const passwordValid = loginRequest.password.length >= 8;
+    const passwordValid = loginRequest.password.length >= MIN_PASSWORD_LENGTH;
 
-    if (!(emailValid && passwordValid)) {
-      throw new Error('Validation failed');
-    }
+    const isValid = emailValid && passwordValid;
+    Boolean(isValid);
   });
 
   bench('Token generation simulation', () => {
@@ -44,13 +51,11 @@ describe('Authentication Performance', () => {
     const payload = Buffer.from(JSON.stringify({
       sub: 'user123',
       iat: Date.now(),
-      exp: Date.now() + 3600000,
+      exp: Date.now() + ONE_HOUR_MS,
     })).toString('base64');
     const signature = 'simulated_signature';
 
     const token = `${header}.${payload}.${signature}`;
-    if (!token.includes('.')) {
-      throw new Error('Invalid token format');
-    }
+    token.includes('.');
   });
 });

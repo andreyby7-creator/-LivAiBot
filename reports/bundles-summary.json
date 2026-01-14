@@ -1,13 +1,1201 @@
 {
-  "timestamp": "2026-01-09T15:55:11.967Z",
+  "timestamp": "2026-01-14T22:26:04.368Z",
   "packages": [
     {
-      "package": "core-contracts",
-      "entry": "packages/core-contracts/dist/esm/context/index.js",
+      "package": "stable-hash",
+      "entry": "apps/web/node_modules/.pnpm/stable-hash@0.0.5/node_modules/stable-hash/dist/index.js",
       "sizes": {
-        "raw": 149,
-        "gzip": 159,
-        "brotli": 131
+        "raw": 651,
+        "gzip": 436,
+        "brotli": 380
+      }
+    },
+    {
+      "package": "eslint-config-next",
+      "entry": "apps/web/node_modules/.pnpm/eslint-config-next@16.0.0_@typescript-eslint+parser@8.53.0_eslint@9.39.2_typescript@5.9_b439b48af4d1c6dd590d93584c29e3f1/node_modules/eslint-config-next/dist/index.js",
+      "sizes": {
+        "raw": 7821,
+        "gzip": 2007,
+        "brotli": 1797
+      }
+    },
+    {
+      "package": "visitor-keys",
+      "entry": "apps/web/node_modules/.pnpm/@typescript-eslint+visitor-keys@8.53.0/node_modules/@typescript-eslint/visitor-keys/dist/index.js",
+      "sizes": {
+        "raw": 453,
+        "gzip": 217,
+        "brotli": 174
+      }
+    },
+    {
+      "package": "tsconfig-utils",
+      "entry": "apps/web/node_modules/.pnpm/@typescript-eslint+tsconfig-utils@8.53.0_typescript@5.9.3/node_modules/@typescript-eslint/tsconfig-utils/dist/index.js",
+      "sizes": {
+        "raw": 867,
+        "gzip": 433,
+        "brotli": 364
+      }
+    },
+    {
+      "package": "plugin-kit",
+      "entry": "apps/web/node_modules/.pnpm/@eslint+plugin-kit@0.4.1/node_modules/@eslint/plugin-kit/dist/esm/index.js",
+      "sizes": {
+        "raw": 25387,
+        "gzip": 6469,
+        "brotli": 5574
+      }
+    },
+    {
+      "package": "gen-mapping",
+      "entry": "apps/web/node_modules/.pnpm/@jridgewell+gen-mapping@0.3.13/node_modules/@jridgewell/gen-mapping/dist/gen-mapping.mjs",
+      "sizes": {
+        "raw": 7969,
+        "gzip": 2045,
+        "brotli": 1844
+      }
+    },
+    {
+      "package": "eslint-plugin",
+      "entry": "apps/web/node_modules/.pnpm/@typescript-eslint+eslint-plugin@8.53.0_@typescript-eslint+parser@8.53.0_eslint@9.39.2__38c2b7dec4ddbcc926b825441bb32ab1/node_modules/@typescript-eslint/eslint-plugin/dist/index.js",
+      "sizes": {
+        "raw": 262,
+        "gzip": 187,
+        "brotli": 160
+      }
+    },
+    {
+      "package": "esquery",
+      "entry": "apps/web/node_modules/.pnpm/esquery@1.7.0/node_modules/esquery/dist/esquery.esm.js",
+      "sizes": {
+        "raw": 131615,
+        "gzip": 17929,
+        "brotli": 14344
+      }
+    },
+    {
+      "package": "next-i18next",
+      "entry": "apps/web/node_modules/.pnpm/next-i18next@15.4.3_@types+react@19.2.3_i18next@25.7.4_typescript@5.9.3__next@16.0.0_@b_8c59453347f2bf70b56e749f66e46c25/node_modules/next-i18next/dist/commonjs/index.js",
+      "sizes": {
+        "raw": 1227,
+        "gzip": 294,
+        "brotli": 259
+      }
+    },
+    {
+      "package": "json5",
+      "entry": "apps/web/node_modules/.pnpm/json5@2.2.3/node_modules/json5/dist/index.js",
+      "sizes": {
+        "raw": 58620,
+        "gzip": 12926,
+        "brotli": 10151
+      }
+    },
+    {
+      "package": "is-bun-module",
+      "entry": "apps/web/node_modules/.pnpm/is-bun-module@2.0.0/node_modules/is-bun-module/dist/bun.mjs",
+      "sizes": {
+        "raw": 1398,
+        "gzip": 402,
+        "brotli": 347
+      }
+    },
+    {
+      "package": "config-helpers",
+      "entry": "apps/web/node_modules/.pnpm/@eslint+config-helpers@0.4.2/node_modules/@eslint/config-helpers/dist/esm/index.js",
+      "sizes": {
+        "raw": 17210,
+        "gzip": 4430,
+        "brotli": 3865
+      }
+    },
+    {
+      "package": "config-array",
+      "entry": "apps/web/node_modules/.pnpm/@eslint+config-array@0.21.1/node_modules/@eslint/config-array/dist/esm/index.js",
+      "sizes": {
+        "raw": 42967,
+        "gzip": 10146,
+        "brotli": 8785
+      }
+    },
+    {
+      "package": "jose",
+      "entry": "apps/web/node_modules/.pnpm/jose@6.1.3/node_modules/jose/dist/webapi/index.js",
+      "sizes": {
+        "raw": 1779,
+        "gzip": 506,
+        "brotli": 445
+      }
+    },
+    {
+      "package": "js-yaml",
+      "entry": "apps/web/node_modules/.pnpm/js-yaml@4.1.1/node_modules/js-yaml/dist/js-yaml.js",
+      "sizes": {
+        "raw": 114586,
+        "gzip": 26329,
+        "brotli": 22359
+      }
+    },
+    {
+      "package": "env",
+      "entry": "apps/web/node_modules/.pnpm/@next+env@16.0.0/node_modules/@next/env/dist/index.js",
+      "sizes": {
+        "raw": 9949,
+        "gzip": 3943,
+        "brotli": 3499
+      }
+    },
+    {
+      "package": "uri-js",
+      "entry": "apps/web/node_modules/.pnpm/uri-js@4.4.1/node_modules/uri-js/dist/esnext/index.js",
+      "sizes": {
+        "raw": 537,
+        "gzip": 211,
+        "brotli": 193
+      }
+    },
+    {
+      "package": "sourcemap-codec",
+      "entry": "apps/web/node_modules/.pnpm/@jridgewell+sourcemap-codec@1.5.5/node_modules/@jridgewell/sourcemap-codec/dist/sourcemap-codec.mjs",
+      "sizes": {
+        "raw": 12869,
+        "gzip": 3109,
+        "brotli": 2754
+      }
+    },
+    {
+      "package": "preact-render-to-string",
+      "entry": "apps/web/node_modules/.pnpm/preact-render-to-string@6.5.11_preact@10.24.3/node_modules/preact-render-to-string/dist/index.js",
+      "sizes": {
+        "raw": 247,
+        "gzip": 128,
+        "brotli": 98
+      }
+    },
+    {
+      "package": "tinyglobby",
+      "entry": "apps/web/node_modules/.pnpm/tinyglobby@0.2.15/node_modules/tinyglobby/dist/index.mjs",
+      "sizes": {
+        "raw": 12881,
+        "gzip": 3826,
+        "brotli": 3390
+      }
+    },
+    {
+      "package": "hoist-non-react-statics",
+      "entry": "apps/web/node_modules/.pnpm/hoist-non-react-statics@3.3.2/node_modules/hoist-non-react-statics/dist/hoist-non-react-statics.cjs.js",
+      "sizes": {
+        "raw": 2743,
+        "gzip": 935,
+        "brotli": 771
+      }
+    },
+    {
+      "package": "compat",
+      "entry": "apps/web/node_modules/.pnpm/preact@10.24.3/node_modules/preact/compat/dist/compat.js",
+      "sizes": {
+        "raw": 11283,
+        "gzip": 4126,
+        "brotli": 3774
+      }
+    },
+    {
+      "package": "preact",
+      "entry": "apps/web/node_modules/.pnpm/preact@10.24.3/node_modules/preact/dist/preact.js",
+      "sizes": {
+        "raw": 11463,
+        "gzip": 4667,
+        "brotli": 4280
+      }
+    },
+    {
+      "package": "hooks",
+      "entry": "apps/web/node_modules/.pnpm/preact@10.24.3/node_modules/preact/hooks/dist/hooks.js",
+      "sizes": {
+        "raw": 3745,
+        "gzip": 1529,
+        "brotli": 1402
+      }
+    },
+    {
+      "package": "devtools",
+      "entry": "apps/web/node_modules/.pnpm/preact@10.24.3/node_modules/preact/devtools/dist/devtools.js",
+      "sizes": {
+        "raw": 357,
+        "gzip": 260,
+        "brotli": 204
+      }
+    },
+    {
+      "package": "test-utils",
+      "entry": "apps/web/node_modules/.pnpm/preact@10.24.3/node_modules/preact/test-utils/dist/testUtils.js",
+      "sizes": {
+        "raw": 1020,
+        "gzip": 451,
+        "brotli": 397
+      }
+    },
+    {
+      "package": "jsx-runtime",
+      "entry": "apps/web/node_modules/.pnpm/preact@10.24.3/node_modules/preact/jsx-runtime/dist/jsxRuntime.js",
+      "sizes": {
+        "raw": 1797,
+        "gzip": 976,
+        "brotli": 880
+      }
+    },
+    {
+      "package": "debug",
+      "entry": "apps/web/node_modules/.pnpm/preact@10.24.3/node_modules/preact/debug/dist/debug.js",
+      "sizes": {
+        "raw": 9498,
+        "gzip": 3824,
+        "brotli": 3351
+      }
+    },
+    {
+      "package": "resolve-uri",
+      "entry": "apps/web/node_modules/.pnpm/@jridgewell+resolve-uri@3.1.2/node_modules/@jridgewell/resolve-uri/dist/resolve-uri.mjs",
+      "sizes": {
+        "raw": 8609,
+        "gzip": 2690,
+        "brotli": 2302
+      }
+    },
+    {
+      "package": "utils",
+      "entry": "apps/web/node_modules/.pnpm/@standard-schema+utils@0.3.0/node_modules/@standard-schema/utils/dist/index.js",
+      "sizes": {
+        "raw": 860,
+        "gzip": 398,
+        "brotli": 333
+      }
+    },
+    {
+      "package": "resolve-pkg-maps",
+      "entry": "apps/web/node_modules/.pnpm/resolve-pkg-maps@1.0.0/node_modules/resolve-pkg-maps/dist/index.mjs",
+      "sizes": {
+        "raw": 2080,
+        "gzip": 1046,
+        "brotli": 920
+      }
+    },
+    {
+      "package": "project-service",
+      "entry": "apps/web/node_modules/.pnpm/@typescript-eslint+project-service@8.53.0_typescript@5.9.3/node_modules/@typescript-eslint/project-service/dist/index.js",
+      "sizes": {
+        "raw": 815,
+        "gzip": 417,
+        "brotli": 353
+      }
+    },
+    {
+      "package": "react-i18next",
+      "entry": "apps/web/node_modules/.pnpm/react-i18next@16.5.2_i18next@25.7.4_typescript@5.9.3__react-dom@19.2.3_react@19.2.3__react@19.2.3_typescript@5.9.3/node_modules/react-i18next/dist/commonjs/IcuTransUtils/index.js",
+      "sizes": {
+        "raw": 1612,
+        "gzip": 346,
+        "brotli": 300
+      }
+    },
+    {
+      "package": "typescript-estree",
+      "entry": "apps/web/node_modules/.pnpm/@typescript-eslint+typescript-estree@8.53.0_typescript@5.9.3/node_modules/@typescript-eslint/typescript-estree/dist/index.js",
+      "sizes": {
+        "raw": 3400,
+        "gzip": 875,
+        "brotli": 749
+      }
+    },
+    {
+      "package": "types",
+      "entry": "apps/web/node_modules/.pnpm/@typescript-eslint+types@8.53.0/node_modules/@typescript-eslint/types/dist/index.js",
+      "sizes": {
+        "raw": 1264,
+        "gzip": 523,
+        "brotli": 452
+      }
+    },
+    {
+      "package": "eslint-plugin-next",
+      "entry": "apps/web/node_modules/.pnpm/@next+eslint-plugin-next@16.0.0/node_modules/@next/eslint-plugin-next/dist/index.js",
+      "sizes": {
+        "raw": 7117,
+        "gzip": 1496,
+        "brotli": 1321
+      }
+    },
+    {
+      "package": "effect",
+      "entry": "apps/web/node_modules/.pnpm/effect@3.19.13/node_modules/effect/dist/cjs/index.js",
+      "sizes": {
+        "raw": 22789,
+        "gzip": 3748,
+        "brotli": 3321
+      }
+    },
+    {
+      "package": "ajv",
+      "entry": "apps/web/node_modules/.pnpm/ajv@6.12.6/node_modules/ajv/dist/ajv.bundle.js",
+      "sizes": {
+        "raw": 272665,
+        "gzip": 49210,
+        "brotli": 40093
+      }
+    },
+    {
+      "package": "acorn",
+      "entry": "apps/web/node_modules/.pnpm/acorn@8.15.0/node_modules/acorn/dist/acorn.js",
+      "sizes": {
+        "raw": 241575,
+        "gzip": 57197,
+        "brotli": 46552
+      }
+    },
+    {
+      "package": "vite-tsconfig-paths",
+      "entry": "apps/web/node_modules/.pnpm/vite-tsconfig-paths@4.3.2_typescript@5.9.3/node_modules/vite-tsconfig-paths/dist/index.js",
+      "sizes": {
+        "raw": 12896,
+        "gzip": 3926,
+        "brotli": 3531
+      }
+    },
+    {
+      "package": "parser",
+      "entry": "apps/web/node_modules/.pnpm/@typescript-eslint+parser@8.53.0_eslint@9.39.2_typescript@5.9.3/node_modules/@typescript-eslint/parser/dist/index.js",
+      "sizes": {
+        "raw": 1390,
+        "gzip": 478,
+        "brotli": 418
+      }
+    },
+    {
+      "package": "object.assign",
+      "entry": "apps/web/node_modules/.pnpm/object.assign@4.1.7/node_modules/object.assign/dist/browser.js",
+      "sizes": {
+        "raw": 41567,
+        "gzip": 10342,
+        "brotli": 9178
+      }
+    },
+    {
+      "package": "react-hook-form",
+      "entry": "apps/web/node_modules/.pnpm/react-hook-form@7.71.0_react@19.2.3/node_modules/react-hook-form/dist/index.cjs.js",
+      "sizes": {
+        "raw": 32528,
+        "gzip": 11453,
+        "brotli": 10492
+      }
+    },
+    {
+      "package": "caniuse-lite",
+      "entry": "apps/web/node_modules/.pnpm/caniuse-lite@1.0.30001764/node_modules/caniuse-lite/dist/unpacker/index.js",
+      "sizes": {
+        "raw": 198,
+        "gzip": 102,
+        "brotli": 74
+      }
+    },
+    {
+      "package": "hermes-parser",
+      "entry": "apps/web/node_modules/.pnpm/hermes-parser@0.25.1/node_modules/hermes-parser/dist/index.js",
+      "sizes": {
+        "raw": 6335,
+        "gzip": 1727,
+        "brotli": 1533
+      }
+    },
+    {
+      "package": "remapping",
+      "entry": "apps/web/node_modules/.pnpm/@jridgewell+remapping@2.3.5/node_modules/@jridgewell/remapping/dist/remapping.mjs",
+      "sizes": {
+        "raw": 4829,
+        "gzip": 1584,
+        "brotli": 1416
+      }
+    },
+    {
+      "package": "object-schema",
+      "entry": "apps/web/node_modules/.pnpm/@eslint+object-schema@2.1.7/node_modules/@eslint/object-schema/dist/esm/index.js",
+      "sizes": {
+        "raw": 11977,
+        "gzip": 2658,
+        "brotli": 2281
+      }
+    },
+    {
+      "package": "get-tsconfig",
+      "entry": "apps/web/node_modules/.pnpm/get-tsconfig@4.13.0/node_modules/get-tsconfig/dist/index.mjs",
+      "sizes": {
+        "raw": 22476,
+        "gzip": 8218,
+        "brotli": 7307
+      }
+    },
+    {
+      "package": "scope-manager",
+      "entry": "apps/web/node_modules/.pnpm/@typescript-eslint+scope-manager@8.53.0/node_modules/@typescript-eslint/scope-manager/dist/definition/index.js",
+      "sizes": {
+        "raw": 1507,
+        "gzip": 507,
+        "brotli": 439
+      }
+    },
+    {
+      "package": "i18next",
+      "entry": "apps/web/node_modules/.pnpm/i18next@25.7.4_typescript@5.9.3/node_modules/i18next/dist/cjs/i18next.js",
+      "sizes": {
+        "raw": 79815,
+        "gzip": 18097,
+        "brotli": 15935
+      }
+    },
+    {
+      "package": "spec",
+      "entry": "apps/web/node_modules/.pnpm/@standard-schema+spec@1.1.0/node_modules/@standard-schema/spec/dist/index.js",
+      "sizes": {
+        "raw": 0,
+        "gzip": 20,
+        "brotli": 1
+      }
+    },
+    {
+      "package": "utils",
+      "entry": "apps/web/node_modules/.pnpm/@typescript-eslint+utils@8.53.0_eslint@9.39.2_typescript@5.9.3/node_modules/@typescript-eslint/utils/dist/ast-utils/eslint-utils/index.js",
+      "sizes": {
+        "raw": 1012,
+        "gzip": 461,
+        "brotli": 388
+      }
+    },
+    {
+      "package": "next",
+      "entry": "apps/web/node_modules/.pnpm/next@16.0.0_@babel+core@7.28.6_@playwright+test@1.57.0_react-dom@19.2.3_react@19.2.3__react@19.2.3/node_modules/next/dist/build/babel/loader/index.js",
+      "sizes": {
+        "raw": 2313,
+        "gzip": 915,
+        "brotli": 763
+      }
+    },
+    {
+      "package": "font",
+      "entry": "apps/web/node_modules/.pnpm/next@16.0.0_@babel+core@7.28.6_@playwright+test@1.57.0_react-dom@19.2.3_react@19.2.3__react@19.2.3/node_modules/next/dist/compiled/@next/font/dist/fontkit/index.js",
+      "sizes": {
+        "raw": 815117,
+        "gzip": 187980,
+        "brotli": 149846
+      }
+    },
+    {
+      "package": "retry",
+      "entry": "apps/web/node_modules/.pnpm/@humanwhocodes+retry@0.4.3/node_modules/@humanwhocodes/retry/dist/retrier.js",
+      "sizes": {
+        "raw": 13779,
+        "gzip": 3729,
+        "brotli": 3102
+      }
+    },
+    {
+      "package": "fdir",
+      "entry": "apps/web/node_modules/.pnpm/fdir@6.5.0_picomatch@4.0.3/node_modules/fdir/dist/index.mjs",
+      "sizes": {
+        "raw": 17225,
+        "gzip": 4286,
+        "brotli": 3859
+      }
+    },
+    {
+      "package": "trace-mapping",
+      "entry": "apps/web/node_modules/.pnpm/@jridgewell+trace-mapping@0.3.31/node_modules/@jridgewell/trace-mapping/dist/trace-mapping.mjs",
+      "sizes": {
+        "raw": 15335,
+        "gzip": 3767,
+        "brotli": 3386
+      }
+    },
+    {
+      "package": "json5",
+      "entry": "apps/web/node_modules/.pnpm/json5@1.0.2/node_modules/json5/dist/index.js",
+      "sizes": {
+        "raw": 27997,
+        "gzip": 8005,
+        "brotli": 5997
+      }
+    },
+    {
+      "package": "type-utils",
+      "entry": "apps/web/node_modules/.pnpm/@typescript-eslint+type-utils@8.53.0_eslint@9.39.2_typescript@5.9.3/node_modules/@typescript-eslint/type-utils/dist/index.js",
+      "sizes": {
+        "raw": 2300,
+        "gzip": 734,
+        "brotli": 640
+      }
+    },
+    {
+      "package": "html-parse-stringify",
+      "entry": "apps/web/node_modules/.pnpm/html-parse-stringify@3.0.1/node_modules/html-parse-stringify/dist/html-parse-stringify.js",
+      "sizes": {
+        "raw": 2179,
+        "gzip": 1154,
+        "brotli": 1057
+      }
+    },
+    {
+      "package": "hermes-estree",
+      "entry": "apps/web/node_modules/.pnpm/hermes-estree@0.25.1/node_modules/hermes-estree/dist/index.js",
+      "sizes": {
+        "raw": 546,
+        "gzip": 333,
+        "brotli": 248
+      }
+    },
+    {
+      "package": "joi",
+      "entry": "apps/web/node_modules/.pnpm/@hookform+resolvers@5.2.2_react-hook-form@7.71.0_react@19.2.3_/node_modules/@hookform/resolvers/joi/dist/joi.js",
+      "sizes": {
+        "raw": 1113,
+        "gzip": 590,
+        "brotli": 516
+      }
+    },
+    {
+      "package": "typeschema",
+      "entry": "apps/web/node_modules/.pnpm/@hookform+resolvers@5.2.2_react-hook-form@7.71.0_react@19.2.3_/node_modules/@hookform/resolvers/typeschema/dist/typeschema.js",
+      "sizes": {
+        "raw": 929,
+        "gzip": 526,
+        "brotli": 447
+      }
+    },
+    {
+      "package": "standard-schema",
+      "entry": "apps/web/node_modules/.pnpm/@hookform+resolvers@5.2.2_react-hook-form@7.71.0_react@19.2.3_/node_modules/@hookform/resolvers/standard-schema/dist/standard-schema.js",
+      "sizes": {
+        "raw": 1120,
+        "gzip": 609,
+        "brotli": 524
+      }
+    },
+    {
+      "package": "superstruct",
+      "entry": "apps/web/node_modules/.pnpm/@hookform+resolvers@5.2.2_react-hook-form@7.71.0_react@19.2.3_/node_modules/@hookform/resolvers/superstruct/dist/superstruct.js",
+      "sizes": {
+        "raw": 489,
+        "gzip": 339,
+        "brotli": 276
+      }
+    },
+    {
+      "package": "effect-ts",
+      "entry": "apps/web/node_modules/.pnpm/@hookform+resolvers@5.2.2_react-hook-form@7.71.0_react@19.2.3_/node_modules/@hookform/resolvers/effect-ts/dist/effect-ts.js",
+      "sizes": {
+        "raw": 1006,
+        "gzip": 536,
+        "brotli": 458
+      }
+    },
+    {
+      "package": "computed-types",
+      "entry": "apps/web/node_modules/.pnpm/@hookform+resolvers@5.2.2_react-hook-form@7.71.0_react@19.2.3_/node_modules/@hookform/resolvers/computed-types/dist/computed-types.js",
+      "sizes": {
+        "raw": 656,
+        "gzip": 385,
+        "brotli": 326
+      }
+    },
+    {
+      "package": "resolvers",
+      "entry": "apps/web/node_modules/.pnpm/@hookform+resolvers@5.2.2_react-hook-form@7.71.0_react@19.2.3_/node_modules/@hookform/resolvers/dist/resolvers.js",
+      "sizes": {
+        "raw": 835,
+        "gzip": 475,
+        "brotli": 414
+      }
+    },
+    {
+      "package": "valibot",
+      "entry": "apps/web/node_modules/.pnpm/@hookform+resolvers@5.2.2_react-hook-form@7.71.0_react@19.2.3_/node_modules/@hookform/resolvers/valibot/dist/valibot.js",
+      "sizes": {
+        "raw": 770,
+        "gzip": 477,
+        "brotli": 414
+      }
+    },
+    {
+      "package": "io-ts",
+      "entry": "apps/web/node_modules/.pnpm/@hookform+resolvers@5.2.2_react-hook-form@7.71.0_react@19.2.3_/node_modules/@hookform/resolvers/io-ts/dist/io-ts.js",
+      "sizes": {
+        "raw": 2876,
+        "gzip": 1270,
+        "brotli": 1128
+      }
+    },
+    {
+      "package": "typebox",
+      "entry": "apps/web/node_modules/.pnpm/@hookform+resolvers@5.2.2_react-hook-form@7.71.0_react@19.2.3_/node_modules/@hookform/resolvers/typebox/dist/typebox.js",
+      "sizes": {
+        "raw": 834,
+        "gzip": 501,
+        "brotli": 424
+      }
+    },
+    {
+      "package": "vest",
+      "entry": "apps/web/node_modules/.pnpm/@hookform+resolvers@5.2.2_react-hook-form@7.71.0_react@19.2.3_/node_modules/@hookform/resolvers/vest/dist/vest.js",
+      "sizes": {
+        "raw": 806,
+        "gzip": 479,
+        "brotli": 409
+      }
+    },
+    {
+      "package": "class-validator",
+      "entry": "apps/web/node_modules/.pnpm/@hookform+resolvers@5.2.2_react-hook-form@7.71.0_react@19.2.3_/node_modules/@hookform/resolvers/class-validator/dist/class-validator.js",
+      "sizes": {
+        "raw": 994,
+        "gzip": 538,
+        "brotli": 471
+      }
+    },
+    {
+      "package": "nope",
+      "entry": "apps/web/node_modules/.pnpm/@hookform+resolvers@5.2.2_react-hook-form@7.71.0_react@19.2.3_/node_modules/@hookform/resolvers/nope/dist/nope.js",
+      "sizes": {
+        "raw": 503,
+        "gzip": 346,
+        "brotli": 284
+      }
+    },
+    {
+      "package": "zod",
+      "entry": "apps/web/node_modules/.pnpm/@hookform+resolvers@5.2.2_react-hook-form@7.71.0_react@19.2.3_/node_modules/@hookform/resolvers/zod/dist/zod.js",
+      "sizes": {
+        "raw": 2647,
+        "gzip": 980,
+        "brotli": 863
+      }
+    },
+    {
+      "package": "vine",
+      "entry": "apps/web/node_modules/.pnpm/@hookform+resolvers@5.2.2_react-hook-form@7.71.0_react@19.2.3_/node_modules/@hookform/resolvers/vine/dist/vine.js",
+      "sizes": {
+        "raw": 932,
+        "gzip": 543,
+        "brotli": 471
+      }
+    },
+    {
+      "package": "typanion",
+      "entry": "apps/web/node_modules/.pnpm/@hookform+resolvers@5.2.2_react-hook-form@7.71.0_react@19.2.3_/node_modules/@hookform/resolvers/typanion/dist/typanion.js",
+      "sizes": {
+        "raw": 492,
+        "gzip": 329,
+        "brotli": 275
+      }
+    },
+    {
+      "package": "fluentvalidation-ts",
+      "entry": "apps/web/node_modules/.pnpm/@hookform+resolvers@5.2.2_react-hook-form@7.71.0_react@19.2.3_/node_modules/@hookform/resolvers/fluentvalidation-ts/dist/fluentvalidation-ts.js",
+      "sizes": {
+        "raw": 1049,
+        "gzip": 487,
+        "brotli": 413
+      }
+    },
+    {
+      "package": "yup",
+      "entry": "apps/web/node_modules/.pnpm/@hookform+resolvers@5.2.2_react-hook-form@7.71.0_react@19.2.3_/node_modules/@hookform/resolvers/yup/dist/yup.js",
+      "sizes": {
+        "raw": 1111,
+        "gzip": 626,
+        "brotli": 537
+      }
+    },
+    {
+      "package": "arktype",
+      "entry": "apps/web/node_modules/.pnpm/@hookform+resolvers@5.2.2_react-hook-form@7.71.0_react@19.2.3_/node_modules/@hookform/resolvers/arktype/dist/arktype.js",
+      "sizes": {
+        "raw": 1248,
+        "gzip": 675,
+        "brotli": 585
+      }
+    },
+    {
+      "package": "ajv",
+      "entry": "apps/web/node_modules/.pnpm/@hookform+resolvers@5.2.2_react-hook-form@7.71.0_react@19.2.3_/node_modules/@hookform/resolvers/ajv/dist/ajv.js",
+      "sizes": {
+        "raw": 1287,
+        "gzip": 709,
+        "brotli": 612
+      }
+    },
+    {
+      "package": "hkdf",
+      "entry": "apps/web/node_modules/.pnpm/@panva+hkdf@1.2.1/node_modules/@panva/hkdf/dist/node/cjs/index.js",
+      "sizes": {
+        "raw": 1759,
+        "gzip": 706,
+        "brotli": 600
+      }
+    },
+    {
+      "package": "typescript-eslint",
+      "entry": "apps/web/node_modules/.pnpm/typescript-eslint@8.53.0_eslint@9.39.2_typescript@5.9.3/node_modules/typescript-eslint/dist/index.js",
+      "sizes": {
+        "raw": 7359,
+        "gzip": 2016,
+        "brotli": 1676
+      }
+    },
+    {
+      "package": "minimatch",
+      "entry": "apps/web/node_modules/.pnpm/minimatch@9.0.5/node_modules/minimatch/dist/commonjs/index.js",
+      "sizes": {
+        "raw": 40557,
+        "gzip": 10028,
+        "brotli": 8668
+      }
+    },
+    {
+      "package": "escalade",
+      "entry": "apps/web/node_modules/.pnpm/escalade@3.2.0/node_modules/escalade/dist/index.js",
+      "sizes": {
+        "raw": 534,
+        "gzip": 280,
+        "brotli": 254
+      }
+    },
+    {
+      "package": "styled-jsx",
+      "entry": "apps/web/node_modules/.pnpm/styled-jsx@5.1.6_@babel+core@7.28.6_react@19.2.3/node_modules/styled-jsx/dist/babel/index.js",
+      "sizes": {
+        "raw": 787977,
+        "gzip": 108658,
+        "brotli": 84193
+      }
+    },
+    {
+      "package": "module-importer",
+      "entry": "apps/web/node_modules/.pnpm/@humanwhocodes+module-importer@1.0.1/node_modules/@humanwhocodes/module-importer/dist/module-importer.js",
+      "sizes": {
+        "raw": 561,
+        "gzip": 239,
+        "brotli": 198
+      }
+    },
+    {
+      "package": "fraction.js",
+      "entry": "apps/web/node_modules/.pnpm/fraction.js@5.3.4/node_modules/fraction.js/dist/fraction.js",
+      "sizes": {
+        "raw": 24514,
+        "gzip": 6735,
+        "brotli": 5793
+      }
+    },
+    {
+      "package": "baseline-browser-mapping",
+      "entry": "apps/web/node_modules/.pnpm/baseline-browser-mapping@2.9.14/node_modules/baseline-browser-mapping/dist/index.js",
+      "sizes": {
+        "raw": 117334,
+        "gzip": 20139,
+        "brotli": 13660
+      }
+    },
+    {
+      "package": "foreground-child",
+      "entry": ".tools/node-v24.9.0-linux-x64/lib/node_modules/npm/node_modules/foreground-child/dist/commonjs/index.js",
+      "sizes": {
+        "raw": 4102,
+        "gzip": 1375,
+        "brotli": 1208
+      }
+    },
+    {
+      "package": "isexe",
+      "entry": ".tools/node-v24.9.0-linux-x64/lib/node_modules/npm/node_modules/node-gyp/node_modules/isexe/dist/cjs/index.js",
+      "sizes": {
+        "raw": 1951,
+        "gzip": 771,
+        "brotli": 657
+      }
+    },
+    {
+      "package": "postcss-selector-parser",
+      "entry": ".tools/node-v24.9.0-linux-x64/lib/node_modules/npm/node_modules/postcss-selector-parser/dist/index.js",
+      "sizes": {
+        "raw": 1684,
+        "gzip": 627,
+        "brotli": 555
+      }
+    },
+    {
+      "package": "promise-call-limit",
+      "entry": ".tools/node-v24.9.0-linux-x64/lib/node_modules/npm/node_modules/promise-call-limit/dist/commonjs/index.js",
+      "sizes": {
+        "raw": 2984,
+        "gzip": 1109,
+        "brotli": 962
+      }
+    },
+    {
+      "package": "rimraf",
+      "entry": ".tools/node-v24.9.0-linux-x64/lib/node_modules/npm/node_modules/rimraf/dist/commonjs/index.js",
+      "sizes": {
+        "raw": 4091,
+        "gzip": 967,
+        "brotli": 863
+      }
+    },
+    {
+      "package": "lru-cache",
+      "entry": ".tools/node-v24.9.0-linux-x64/lib/node_modules/npm/node_modules/lru-cache/dist/commonjs/index.js",
+      "sizes": {
+        "raw": 55017,
+        "gzip": 11568,
+        "brotli": 9929
+      }
+    },
+    {
+      "package": "tuf-js",
+      "entry": ".tools/node-v24.9.0-linux-x64/lib/node_modules/npm/node_modules/tuf-js/dist/index.js",
+      "sizes": {
+        "raw": 615,
+        "gzip": 254,
+        "brotli": 207
+      }
+    },
+    {
+      "package": "is-cidr",
+      "entry": ".tools/node-v24.9.0-linux-x64/lib/node_modules/npm/node_modules/is-cidr/dist/index.js",
+      "sizes": {
+        "raw": 328,
+        "gzip": 186,
+        "brotli": 177
+      }
+    },
+    {
+      "package": "cidr-regex",
+      "entry": ".tools/node-v24.9.0-linux-x64/lib/node_modules/npm/node_modules/cidr-regex/dist/index.js",
+      "sizes": {
+        "raw": 706,
+        "gzip": 297,
+        "brotli": 253
+      }
+    },
+    {
+      "package": "https-proxy-agent",
+      "entry": ".tools/node-v24.9.0-linux-x64/lib/node_modules/npm/node_modules/https-proxy-agent/dist/index.js",
+      "sizes": {
+        "raw": 7369,
+        "gzip": 2623,
+        "brotli": 2257
+      }
+    },
+    {
+      "package": "minipass",
+      "entry": ".tools/node-v24.9.0-linux-x64/lib/node_modules/npm/node_modules/minipass/dist/commonjs/index.js",
+      "sizes": {
+        "raw": 33796,
+        "gzip": 8042,
+        "brotli": 6988
+      }
+    },
+    {
+      "package": "diff",
+      "entry": ".tools/node-v24.9.0-linux-x64/lib/node_modules/npm/node_modules/diff/dist/diff.js",
+      "sizes": {
+        "raw": 53658,
+        "gzip": 13816,
+        "brotli": 11918
+      }
+    },
+    {
+      "package": "sprintf-js",
+      "entry": ".tools/node-v24.9.0-linux-x64/lib/node_modules/npm/node_modules/sprintf-js/dist/angular-sprintf.min.js",
+      "sizes": {
+        "raw": 498,
+        "gzip": 289,
+        "brotli": 256
+      }
+    },
+    {
+      "package": "jackspeak",
+      "entry": ".tools/node-v24.9.0-linux-x64/lib/node_modules/npm/node_modules/jackspeak/dist/commonjs/index.js",
+      "sizes": {
+        "raw": 36491,
+        "gzip": 8092,
+        "brotli": 7134
+      }
+    },
+    {
+      "package": "exponential-backoff",
+      "entry": ".tools/node-v24.9.0-linux-x64/lib/node_modules/npm/node_modules/exponential-backoff/dist/backoff.js",
+      "sizes": {
+        "raw": 5666,
+        "gzip": 1663,
+        "brotli": 1446
+      }
+    },
+    {
+      "package": "signal-exit",
+      "entry": ".tools/node-v24.9.0-linux-x64/lib/node_modules/npm/node_modules/signal-exit/dist/cjs/index.js",
+      "sizes": {
+        "raw": 9432,
+        "gzip": 2620,
+        "brotli": 2227
+      }
+    },
+    {
+      "package": "sigstore",
+      "entry": ".tools/node-v24.9.0-linux-x64/lib/node_modules/npm/node_modules/sigstore/dist/index.js",
+      "sizes": {
+        "raw": 2444,
+        "gzip": 752,
+        "brotli": 598
+      }
+    },
+    {
+      "package": "minizlib",
+      "entry": ".tools/node-v24.9.0-linux-x64/lib/node_modules/npm/node_modules/minipass-fetch/node_modules/minizlib/dist/commonjs/index.js",
+      "sizes": {
+        "raw": 12370,
+        "gzip": 3359,
+        "brotli": 2886
+      }
+    },
+    {
+      "package": "socks-proxy-agent",
+      "entry": ".tools/node-v24.9.0-linux-x64/lib/node_modules/npm/node_modules/socks-proxy-agent/dist/index.js",
+      "sizes": {
+        "raw": 6470,
+        "gzip": 2216,
+        "brotli": 1903
+      }
+    },
+    {
+      "package": "ip-address",
+      "entry": ".tools/node-v24.9.0-linux-x64/lib/node_modules/npm/node_modules/ip-address/dist/address-error.js",
+      "sizes": {
+        "raw": 423,
+        "gzip": 247,
+        "brotli": 195
+      }
+    },
+    {
+      "package": "read",
+      "entry": ".tools/node-v24.9.0-linux-x64/lib/node_modules/npm/node_modules/read/dist/commonjs/read.js",
+      "sizes": {
+        "raw": 3140,
+        "gzip": 1042,
+        "brotli": 897
+      }
+    },
+    {
+      "package": "glob",
+      "entry": ".tools/node-v24.9.0-linux-x64/lib/node_modules/npm/node_modules/glob/dist/commonjs/index.js",
+      "sizes": {
+        "raw": 2876,
+        "gzip": 662,
+        "brotli": 599
+      }
+    },
+    {
+      "package": "agent-base",
+      "entry": ".tools/node-v24.9.0-linux-x64/lib/node_modules/npm/node_modules/agent-base/dist/index.js",
+      "sizes": {
+        "raw": 7287,
+        "gzip": 2275,
+        "brotli": 1939
+      }
+    },
+    {
+      "package": "fs-minipass",
+      "entry": ".tools/node-v24.9.0-linux-x64/lib/node_modules/npm/node_modules/@isaacs/fs-minipass/dist/commonjs/index.js",
+      "sizes": {
+        "raw": 12791,
+        "gzip": 2600,
+        "brotli": 2299
+      }
+    },
+    {
+      "package": "package-json-from-dist",
+      "entry": ".tools/node-v24.9.0-linux-x64/lib/node_modules/npm/node_modules/package-json-from-dist/dist/commonjs/index.js",
+      "sizes": {
+        "raw": 4539,
+        "gzip": 1247,
+        "brotli": 1039
+      }
+    },
+    {
+      "package": "path-scurry",
+      "entry": ".tools/node-v24.9.0-linux-x64/lib/node_modules/npm/node_modules/path-scurry/dist/commonjs/index.js",
+      "sizes": {
+        "raw": 66122,
+        "gzip": 14153,
+        "brotli": 11965
+      }
+    },
+    {
+      "package": "minizlib",
+      "entry": ".tools/node-v24.9.0-linux-x64/lib/node_modules/npm/node_modules/npm-registry-fetch/node_modules/minizlib/dist/commonjs/index.js",
+      "sizes": {
+        "raw": 12370,
+        "gzip": 3359,
+        "brotli": 2886
+      }
+    },
+    {
+      "package": "yallist",
+      "entry": ".tools/node-v24.9.0-linux-x64/lib/node_modules/npm/node_modules/cacache/node_modules/yallist/dist/commonjs/index.js",
+      "sizes": {
+        "raw": 9914,
+        "gzip": 1799,
+        "brotli": 1580
+      }
+    },
+    {
+      "package": "chownr",
+      "entry": ".tools/node-v24.9.0-linux-x64/lib/node_modules/npm/node_modules/cacache/node_modules/chownr/dist/commonjs/index.js",
+      "sizes": {
+        "raw": 3059,
+        "gzip": 897,
+        "brotli": 791
+      }
+    },
+    {
+      "package": "minizlib",
+      "entry": ".tools/node-v24.9.0-linux-x64/lib/node_modules/npm/node_modules/cacache/node_modules/minizlib/dist/commonjs/index.js",
+      "sizes": {
+        "raw": 12370,
+        "gzip": 3359,
+        "brotli": 2886
+      }
+    },
+    {
+      "package": "mkdirp",
+      "entry": ".tools/node-v24.9.0-linux-x64/lib/node_modules/npm/node_modules/cacache/node_modules/mkdirp/dist/cjs/src/index.js",
+      "sizes": {
+        "raw": 3190,
+        "gzip": 643,
+        "brotli": 575
+      }
+    },
+    {
+      "package": "tar",
+      "entry": ".tools/node-v24.9.0-linux-x64/lib/node_modules/npm/node_modules/cacache/node_modules/tar/dist/commonjs/index.js",
+      "sizes": {
+        "raw": 2805,
+        "gzip": 788,
+        "brotli": 679
+      }
+    },
+    {
+      "package": "models",
+      "entry": ".tools/node-v24.9.0-linux-x64/lib/node_modules/npm/node_modules/@tufjs/models/dist/index.js",
+      "sizes": {
+        "raw": 1909,
+        "gzip": 428,
+        "brotli": 366
+      }
+    },
+    {
+      "package": "walk-up-path",
+      "entry": ".tools/node-v24.9.0-linux-x64/lib/node_modules/npm/node_modules/walk-up-path/dist/cjs/index.js",
+      "sizes": {
+        "raw": 457,
+        "gzip": 264,
+        "brotli": 226
+      }
+    },
+    {
+      "package": "bundle",
+      "entry": ".tools/node-v24.9.0-linux-x64/lib/node_modules/npm/node_modules/@sigstore/bundle/dist/index.js",
+      "sizes": {
+        "raw": 4154,
+        "gzip": 913,
+        "brotli": 743
+      }
+    },
+    {
+      "package": "tuf",
+      "entry": ".tools/node-v24.9.0-linux-x64/lib/node_modules/npm/node_modules/@sigstore/tuf/dist/index.js",
+      "sizes": {
+        "raw": 2302,
+        "gzip": 1028,
+        "brotli": 825
+      }
+    },
+    {
+      "package": "verify",
+      "entry": ".tools/node-v24.9.0-linux-x64/lib/node_modules/npm/node_modules/@sigstore/verify/dist/bundle/index.js",
+      "sizes": {
+        "raw": 2113,
+        "gzip": 642,
+        "brotli": 572
+      }
+    },
+    {
+      "package": "protobuf-specs",
+      "entry": ".tools/node-v24.9.0-linux-x64/lib/node_modules/npm/node_modules/@sigstore/protobuf-specs/dist/index.js",
+      "sizes": {
+        "raw": 1728,
+        "gzip": 801,
+        "brotli": 628
+      }
+    },
+    {
+      "package": "core",
+      "entry": ".tools/node-v24.9.0-linux-x64/lib/node_modules/npm/node_modules/@sigstore/core/dist/asn1/index.js",
+      "sizes": {
+        "raw": 810,
+        "gzip": 516,
+        "brotli": 364
+      }
+    },
+    {
+      "package": "sign",
+      "entry": ".tools/node-v24.9.0-linux-x64/lib/node_modules/npm/node_modules/@sigstore/sign/dist/bundler/index.js",
+      "sizes": {
+        "raw": 510,
+        "gzip": 231,
+        "brotli": 178
+      }
+    },
+    {
+      "package": "isexe",
+      "entry": ".tools/node-v24.9.0-linux-x64/lib/node_modules/npm/node_modules/which/node_modules/isexe/dist/cjs/index.js",
+      "sizes": {
+        "raw": 1951,
+        "gzip": 771,
+        "brotli": 657
+      }
+    },
+    {
+      "package": "minimatch",
+      "entry": ".tools/node-v24.9.0-linux-x64/lib/node_modules/npm/node_modules/minimatch/dist/commonjs/index.js",
+      "sizes": {
+        "raw": 40557,
+        "gzip": 10028,
+        "brotli": 8668
+      }
+    },
+    {
+      "package": "http-proxy-agent",
+      "entry": ".tools/node-v24.9.0-linux-x64/lib/node_modules/npm/node_modules/http-proxy-agent/dist/index.js",
+      "sizes": {
+        "raw": 6088,
+        "gzip": 2201,
+        "brotli": 1889
+      }
+    },
+    {
+      "package": "corepack",
+      "entry": ".tools/node-v24.9.0-linux-x64/lib/node_modules/corepack/dist/corepack.js",
+      "sizes": {
+        "raw": 132,
+        "gzip": 143,
+        "brotli": 112
       }
     }
   ],

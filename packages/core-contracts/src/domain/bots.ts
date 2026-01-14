@@ -6,23 +6,23 @@ import type { JsonObject, Timestamp, UUID } from './common.js';
 /**
  * Ответ с информацией о боте.
  */
-export type BotResponse = {
+export interface BotResponse {
   id: UUID;
   workspace_id: UUID;
   name: string;
   status: 'draft' | 'active';
   created_at: Timestamp;
   current_version: number;
-};
+}
 
 /**
  * Запрос на создание нового бота.
  */
-export type CreateBotRequest = {
+export interface CreateBotRequest {
   name: string;
   instruction: string;
   settings?: JsonObject;
-};
+}
 
 /**
  * Запрос на обновление инструкции бота.
@@ -31,14 +31,14 @@ export type CreateBotRequest = {
  * - Каждое обновление создаёт новую версию бота.
  * - Предыдущие версии НЕ изменяются.
  */
-export type UpdateInstructionRequest = {
+export interface UpdateInstructionRequest {
   instruction: string;
   settings?: JsonObject;
-};
+}
 
 /**
  * Ответ со списком ботов.
  */
-export type BotListResponse = {
+export interface BotListResponse {
   items: BotResponse[];
-};
+}

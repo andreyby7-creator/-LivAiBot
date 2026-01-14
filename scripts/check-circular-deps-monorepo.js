@@ -33,8 +33,13 @@ const __dirname = path.dirname(__filename);
 function findPackages() {
   const packages = [];
 
-  // Ищем все директории с package.json, исключая node_modules
+  /**
+   * Ищет все директории с package.json
+   * @param {string} dir - директория для поиска
+   * @returns {string[]} массив путей к директориям с package.json
+   */
   const findPackageDirs = (dir) => {
+    /** @type {string[]} */
     const result = [];
 
     try {

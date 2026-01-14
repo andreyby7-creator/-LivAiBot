@@ -15,10 +15,10 @@ import { afterEach, vi } from 'vitest';
 
 // Тип для глобального состояния тестов
 interface GlobalTestState {
-  mocks?: Record<string, any>;
+  mocks?: Record<string, unknown>;
   counters?: Record<string, number>;
   timestamps?: Record<string, number>;
-  cache?: Map<string, any>;
+  cache?: Map<string, unknown>;
 }
 
 declare global {
@@ -32,7 +32,7 @@ declare global {
  * Защита от повторной установки глобальных обработчиков
  * Предотвращает дублирование в watch mode и hot-reload сценариях
  */
-(() => {
+((): void => {
   // IIFE гарантирует однократное выполнение в module scope
 
   // ------------------ ЗАЩИТА ИНФРАСТРУКТУРЫ - НЕ ЛЕЧЕНИЕ ТЕСТОВ -----------------------------

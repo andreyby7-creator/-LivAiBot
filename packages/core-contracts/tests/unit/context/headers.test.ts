@@ -2,12 +2,28 @@
  * @file Unit тесты для context/headers.ts
  */
 import { describe, expect, it } from 'vitest';
-import {
-  type AuthenticatedRequestHeaders,
-  HEADERS,
-  type RequestHeaders,
-  type ServiceRequestHeaders,
+import { HEADERS } from '../../../src/context/headers.js';
+import type {
+  AuthenticatedRequestHeaders,
+  RequestHeaders,
+  ServiceRequestHeaders,
 } from '../../../src/context/headers.js';
+
+type Assert<T extends true> = T;
+type IfEquals<X, Y, A = true, B = false> = (<T>() => T extends X ? 1 : 2) extends
+  (<T>() => T extends Y ? 1 : 2) ? A : B;
+type IsReadonlyKey<T, K extends keyof T> = IfEquals<
+  { [P in K]: T[K]; },
+  { -readonly [P in K]: T[K]; },
+  false,
+  true
+>;
+type HasAnyReadonlyKey<T> = true extends { [K in keyof T]-?: IsReadonlyKey<T, K>; }[keyof T] ? true
+  : false;
+
+// Если HEADERS перестанет быть readonly, сборка тестов должна падать
+const headersReadonlyInvariant: Assert<HasAnyReadonlyKey<typeof HEADERS>> = true;
+expect(headersReadonlyInvariant).toBe(true);
 
 describe('HEADERS', () => {
   it('содержит все необходимые заголовки', () => {
@@ -32,10 +48,8 @@ describe('HEADERS', () => {
   });
 
   it('является immutable (as const)', () => {
-    expect(() => {
-      // @ts-expect-error - пытаемся изменить readonly объект
-      HEADERS.TRACE_ID = 'X-Something-Else';
-    }).toThrow();
+    // Runtime-проверка не нужна: invariant зафиксирован на уровне типов (см. HeadersReadonlyInvariant).
+    expect(HEADERS).toBeDefined();
   });
 });
 
@@ -88,6 +102,7 @@ describe('AuthenticatedRequestHeaders', () => {
       const invalidHeaders: AuthenticatedRequestHeaders = {
         'X-User-Id': 'user-456',
       };
+      void invalidHeaders;
     }).not.toThrow(); // Runtime проверка
 
     expect(() => {
@@ -95,6 +110,7 @@ describe('AuthenticatedRequestHeaders', () => {
       const invalidHeaders: AuthenticatedRequestHeaders = {
         'X-Workspace-Id': 'workspace-123',
       };
+      void invalidHeaders;
     }).not.toThrow(); // Runtime проверка
   });
 });

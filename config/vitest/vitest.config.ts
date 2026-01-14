@@ -1,3 +1,5 @@
+/// <reference types="node" />
+
 /**
  * @file Основная конфигурация Vitest для unit-тестов
  *
@@ -10,6 +12,7 @@
  * - Конфигурируемые повторы для flaky-тестов
  */
 
+// @ts-ignore - vitest types should be available from workspace
 import { defineConfig } from 'vitest/config';
 
 import { buildVitestEnv } from './vitest.shared.config.js';
@@ -95,7 +98,7 @@ function logVitestConfiguration(
  * @param overrides - Переопределения для специфических нужд
  */
 function createBaseVitestConfig(
-  overrides: { test?: Record<string, any>; } = {},
+  overrides: { test?: Record<string, unknown>; } = {},
 ): ReturnType<typeof defineConfig> {
   return defineConfig({
     test: {
@@ -156,19 +159,28 @@ function createBaseVitestConfig(
       /** Разрешить .only тесты: да в dev для отладки, нет в CI для полного прогона */
       allowOnly: process.env.CI !== 'true',
 
-      /** Явно указать, что тестировать ТОЛЬКО unit тесты в packages/ */
+      /** По умолчанию тестировать все unit и integration тесты */
       include: [
-        'packages/**/tests/unit/**/*.test.ts',
-        'packages/**/tests/integration/**/*.test.ts',
+        '**/*.test.ts',
+        '**/*.test.tsx',
       ],
 
       /** Исключить все остальное */
       exclude: [
         '**/e2e/**',
         '**/*.spec.ts',
+        'e2e/**',
         '**/playwright-report/**',
-        '**/.pnpm-store/**',
         '**/node_modules/**',
+        '**/dist/**',
+        '**/coverage/**',
+        '**/build/**',
+        '**/.next/**',
+        '**/.turbo/**',
+        // Исключить ВСЕ файлы из pnpm store
+        '**/.pnpm-store/**',
+        '.pnpm-store/**',
+        '**/.pnpm-store/**/*',
       ],
 
       /** Максимальная параллельность выполнения */
@@ -188,36 +200,44 @@ function createBaseVitestConfig(
       slowTestThreshold: process.env.CI === 'true' ? 1000 : 300,
 
       /** Настройка покрытия кода */
-      coverage: {
-        provider: 'v8',
-        reporter: ['text', 'json', 'html', 'lcov'],
-        reportsDirectory: './coverage',
-        // Отключаем thresholds в development для гибкости
-        thresholds: process.env.CI === 'true'
-          ? {
-            lines: 85,
-            functions: 80,
-            branches: 80,
-            statements: 80,
-          }
-          : undefined,
-        include: [
-          'apps/**/src/**/*.{ts,tsx}',
-          'services/**/src/**/*.{ts,tsx}',
-          'core/**/src/**/*.{ts,tsx}',
-        ],
-        exclude: [
-          '**/*.d.ts',
-          '**/*.config.{ts,js}',
-          '**/test/**',
-          '**/__tests__/**',
-          '**/*.test.{ts,tsx}',
-          '**/*.spec.{ts,tsx}',
-          '**/node_modules/**',
-          '**/dist/**',
-          '**/e2e/**',
-        ],
-      },
+      coverage: process.env.COVERAGE === 'true' || process.env.CI === 'true'
+        ? {
+          provider: 'v8',
+          reporter: ['text', 'json', 'html', 'lcov'],
+          reportsDirectory: './coverage',
+          // Отключаем thresholds в development для гибкости
+          thresholds: process.env.CI === 'true'
+            ? {
+              lines: 85,
+              functions: 80,
+              branches: 80,
+              statements: 80,
+            }
+            : undefined,
+          // Покрытие для всех исходных файлов, включая не тестируемые напрямую
+          all: true,
+          include: [
+            'packages/**/src/**/*.ts',
+            'packages/**/src/**/*.tsx',
+            'config/**/*.ts',
+            'scripts/**/*.ts',
+            'apps/**/*.ts',
+            'apps/**/*.tsx',
+          ],
+          exclude: [
+            '**/node_modules/**',
+            '**/dist/**',
+            '**/*.test.ts',
+            '**/*.test.tsx',
+            '**/*.spec.ts',
+            '**/e2e/**',
+            '**/.pnpm-store/**',
+            '**/coverage/**',
+            '**/.next/**',
+            '**/.turbo/**',
+          ],
+        }
+        : false,
 
       /** Глобальная настройка для всех тестов */
       setupFiles: ['configs/vitest/test.setup.ts'],

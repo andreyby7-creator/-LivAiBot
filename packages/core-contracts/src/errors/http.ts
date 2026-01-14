@@ -7,12 +7,12 @@
  *
  * Принцип: клиент всегда получает одинаковую форму независимо от сервиса.
  */
-export type ErrorResponse = {
+export interface ErrorResponse {
   code: ErrorCode;
   message: string;
   trace_id?: string;
   details?: Record<string, unknown> | null;
-};
+}
 
 /**
  * Стандартизированные коды ошибок.
@@ -20,7 +20,7 @@ export type ErrorResponse = {
  * Используются как string literals для совместимости с JSON API.
  * Для обратной совместимости при добавлении новых кодов.
  */
-export const ERROR_CODES = Object.freeze(
+export const errorCodes = Object.freeze(
   {
     UNAUTHORIZED: 'UNAUTHORIZED',
     FORBIDDEN: 'FORBIDDEN',
@@ -33,4 +33,4 @@ export const ERROR_CODES = Object.freeze(
   } as const,
 );
 
-export type ErrorCode = typeof ERROR_CODES[keyof typeof ERROR_CODES];
+export type ErrorCode = typeof errorCodes[keyof typeof errorCodes];

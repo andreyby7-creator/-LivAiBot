@@ -22,17 +22,17 @@ declare global {
   var testState: GlobalTestState | undefined;
   var __testTimers: NodeJS.Timeout[] | undefined;
   // vi уже объявлен в vitest globals
-  var jest: any;
+  var jest: unknown;
 }
 
 // ------------------ ТИПЫ И ИНТЕРФЕЙСЫ -----------------------------
 
 /** Глобальное состояние тестов для типизации */
 interface GlobalTestState {
-  mocks?: Record<string, any>;
+  mocks?: Record<string, unknown>;
   counters?: Record<string, number>;
   timestamps?: Record<string, number>;
-  cache?: Map<string, any>;
+  cache?: Map<string, unknown>;
 }
 
 /** Сервис для тестирования с таймаутами и ретраями */
@@ -57,8 +57,10 @@ interface TestConfig {
 // ------------------ КОНСТАНТЫ И КОНФИГУРАЦИЯ -----------------------------
 
 /** Оригинальные process listeners для восстановления после тестов */
-let originalProcessListeners: Map<NodeJS.Signals | string, ((...args: readonly any[]) => void)[]> =
-  new Map();
+const originalProcessListeners: Map<
+  NodeJS.Signals | string,
+  Array<(...args: readonly unknown[]) => void>
+> = new Map();
 
 /**
  * Сохранение оригинальных process listeners
@@ -74,7 +76,10 @@ function saveOriginalProcessListeners(): void {
   eventsToSave.forEach((event) => {
     const listeners = process.listeners(event as NodeJS.Signals);
     if (listeners.length > 0) {
-      originalProcessListeners.set(event, [...listeners] as ((...args: readonly any[]) => void)[]);
+      originalProcessListeners.set(
+        event,
+        [...listeners] as Array<(...args: readonly unknown[]) => void>,
+      );
     }
   });
 

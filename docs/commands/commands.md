@@ -11,7 +11,7 @@ pnpm run build                           # Полная сборка (JS + ти�
 pnpm run type-check                      # Строгая проверка TypeScript
 pnpm run lint:canary                     # Строгий линтинг
 npx dprint fmt                           # Форматирование кода
-pnpm run test                            # Все тесты
+pnpm run test                            # Все unit тесты
 pnpm run project:status                  # Статус проекта (инфра + backend + frontend)
 ```
 
@@ -135,6 +135,8 @@ pnpm run lint                             # Линтинг
 pnpm run lint:fix                         # Автофикс
 pnpm run lint:canary                      # Строгий линтинг
 pnpm run lint:canary:fix                  # Строгий + автофикс
+pnpm run type-check:eslint                # Проверить все ESLint конфиги
+pnpm run type-check                      # Строгая проверка TypeScript
 npx dprint check                          # Проверка форматирования
 npx dprint fmt                            # Форматирование
 ```
@@ -144,10 +146,13 @@ npx dprint fmt                            # Форматирование
 ### Основные команды тестирования
 
 ```bash
-pnpm run test                             # Все тесты
-pnpm run test:unit                        # Unit tests (Vitest + Python)
-pnpm run test:integration                 # Integration tests
-pnpm run test:e2e                         # E2E (Playwright) - (авто скрипт)
+pnpm run test                             # Все Unit тесты
+pnpm run test:py                          # Все Python тесты
+pnpm run test:int                         # Все Integration тесты
+pnpm run test:e2e                         # Все E2E тесты (Playwright) - prod
+pnpm run test:e2e:demo                    # Все E2E тесты (Playwright) - demo
+pnpm run test:e2e:smoke                   # Все E2E тесты (Playwright) - smoke
+*Для Production и смок E2E режимов нужно заранее запустить локальный сервер pnpm run dev
 pnpm run test:coverage:html               # Coverage отчет HTML
 pnpm run coverage:open                    # Открыть coverage в браузере
 npm run bench                             # Interactive benchmarks
@@ -163,6 +168,8 @@ pnpm bench:ci                             # Turbo + все пакеты в пр�
 pnpm run pre-commit                       # Lint + format + tests + deps
 pnpm run format:check                     # Проверка форматирования
 pnpm run check:circular-deps              # Циклические зависимости
+node config/eslint/utils/check-zones.mjs  # Валидация архитектурных зон пакетов
+node config/eslint/utils/validate-zones.mjs # Валидация конфигурации зон ESLint
 pnpm run deps:unused                      # Неиспользуемые зависимости
 pnpm run check:dependency-policy          # Архитектурные ограничения
 pnpm run analyze:import-metrics           # Метрики графа импортов

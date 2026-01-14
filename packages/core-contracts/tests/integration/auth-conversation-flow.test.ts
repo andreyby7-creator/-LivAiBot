@@ -9,11 +9,13 @@
  */
 
 import { describe, expect, it, vi } from 'vitest';
-import type { LoginRequest, RegisterRequest, TokenPairResponse } from '../../src/domain/auth.js';
+import type { RegisterRequest, TokenPairResponse } from '../../src/domain/auth.js';
 import type { Conversation, CreateConversationRequest } from '../../src/domain/conversations.js';
-import { type AuthenticatedRequestHeaders, HEADERS } from '../../src/context/headers.js';
-import { ERROR_CODES, type ErrorResponse } from '../../src/errors/http.js';
-import { UUID } from '../../src/domain/common.js';
+import type { AuthenticatedRequestHeaders } from '../../src/context/headers.js';
+import { HEADERS } from '../../src/context/headers.js';
+import { errorCodes } from '../../src/errors/http.js';
+import type { UUID } from '../../src/domain/common.js';
+import { FAKE_EMAIL, FAKE_PASSWORD, FAKE_WORKSPACE_NAME } from '../fakes';
 
 // Мокаем внешние зависимости для интеграционного тестирования
 const mockAuthService = {
@@ -36,9 +38,9 @@ describe('Authentication & Conversation Creation Flow', () => {
     it('should successfully register user and create initial conversation', async () => {
       // Arrange: Подготовка данных для регистрации
       const registerRequest: RegisterRequest = {
-        email: 'test@example.com',
-        password: 'ValidPassword123!',
-        workspace_name: 'Test Workspace',
+        email: FAKE_EMAIL,
+        password: FAKE_PASSWORD,
+        workspace_name: FAKE_WORKSPACE_NAME,
       };
 
       const expectedTokens: TokenPairResponse = {
@@ -81,8 +83,8 @@ describe('Authentication & Conversation Creation Flow', () => {
 
       const expectedConversation: Conversation = {
         id: 'conv_001' as UUID,
-        title: conversationRequest.title || 'Default Title',
-        type: conversationRequest.type || 'chat',
+        title: conversationRequest.title ?? 'Default Title',
+        type: conversationRequest.type ?? 'chat',
         workspace_id: result.workspace_id,
         created_by: result.user_id,
         created_at: '2024-01-12T10:00:00Z',
@@ -142,7 +144,7 @@ describe('Authentication & Conversation Creation Flow', () => {
 
       // Настраиваем mock на reject при отсутствии заголовков
       mockConversationService.createConversation.mockRejectedValue({
-        code: ERROR_CODES.UNAUTHORIZED,
+        code: errorCodes.UNAUTHORIZED,
         message: 'Missing authentication headers',
       });
 
@@ -151,7 +153,7 @@ describe('Authentication & Conversation Creation Flow', () => {
 
       // Assert: Ожидаем ошибку авторизации
       await expect(result).rejects.toMatchObject({
-        code: ERROR_CODES.UNAUTHORIZED,
+        code: errorCodes.UNAUTHORIZED,
         message: expect.stringContaining('Missing authentication headers'),
       });
     });
@@ -176,14 +178,14 @@ describe('Authentication & Conversation Creation Flow', () => {
       // Настраиваем mock для возврата правильного workspace_id
       mockConversationService.createConversation.mockImplementation(
         (request, headers) => {
-          const workspaceId = headers[HEADERS.WORKSPACE_ID] || 'workspace_789';
+          const workspaceId = headers[HEADERS.WORKSPACE_ID] ?? 'workspace_789';
           return Promise.resolve({
             id: `conv_${Math.random().toString(36).substr(2, 9)}`,
             title: request.title,
             type: request.type,
             workspace_id: workspaceId,
             created_at: '2024-01-12T10:00:00Z',
-            created_by: headers[HEADERS.USER_ID] || 'user_123',
+            created_by: headers[HEADERS.USER_ID] ?? 'user_123',
             status: 'active' as const,
             updated_at: '2024-01-12T10:00:00Z',
             metadata: {

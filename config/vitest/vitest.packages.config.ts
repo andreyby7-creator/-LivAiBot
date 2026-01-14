@@ -8,7 +8,14 @@
 
 import * as os from 'os';
 
-import { defineConfig } from 'vitest/config';
+/**
+ * В Vitest 4 `defineConfig()` типизируется как `ViteUserConfigExport`, у которого нет поля `.test`.
+ * Поэтому фабрика возвращает "плоский" объект конфигурации с явным `test`,
+ * чтобы consumers могли безопасно делать `createPackageVitestConfig(...).test`.
+ */
+export type PackageVitestConfig = {
+  test: Record<string, unknown>;
+};
 
 // ------------------ ТИПЫ И ИНТЕРФЕЙСЫ -----------------------------
 
@@ -227,7 +234,7 @@ const ENVIRONMENT_CONFIGS = {
  * @param options - Настройки пакета с типизацией
  * @returns Оптимизированная конфигурация Vitest
  */
-export function createPackageVitestConfig(options: PackageConfigOptions) {
+export function createPackageVitestConfig(options: PackageConfigOptions): PackageVitestConfig {
   const { packageName, packageType, customExcludes = [], coverageThresholds } = options;
 
   // Выбор thresholds: custom > strict contract > default
@@ -242,7 +249,7 @@ export function createPackageVitestConfig(options: PackageConfigOptions) {
   // Конфигурация окружения для типа пакета
   const envConfig = ENVIRONMENT_CONFIGS[packageType];
 
-  return defineConfig({
+  return {
     test: {
       // Идентификация пакета для отчетов
       name: packageName,
@@ -308,7 +315,7 @@ export function createPackageVitestConfig(options: PackageConfigOptions) {
       disableConsoleIntercept: process.env.CI === 'true',
       slowTestThreshold: process.env.CI === 'true' ? 1000 : 300,
     },
-  });
+  };
 }
 
 // ------------------ ЭКСПОРТЫ ДЛЯ РАСШИРЕНИЯ -----------------------------

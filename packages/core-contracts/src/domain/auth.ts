@@ -6,24 +6,24 @@ import type { UUID } from './common.js';
 /**
  * Запрос на регистрацию пользователя и workspace.
  */
-export type RegisterRequest = {
+export interface RegisterRequest {
   email: string;
   password: string;
   workspace_name: string;
-};
+}
 
 /**
  * Запрос на вход в систему.
  */
-export type LoginRequest = {
+export interface LoginRequest {
   email: string;
   password: string;
-};
+}
 
 /**
  * Ответ с токенами после успешного входа/регистрации.
  */
-export type TokenPairResponse = {
+export interface TokenPairResponse {
   access_token: string;
   refresh_token: string;
   /**
@@ -42,21 +42,21 @@ export type TokenPairResponse = {
    * ID workspace.
    */
   workspace_id: UUID;
-};
+}
 
 /**
  * Информация о текущем пользователе.
  * Может быть расширена без breaking changes.
  */
-export type MeResponse = {
+export interface MeResponse {
   user_id: UUID;
   email: string;
   workspace_id: UUID;
-};
+}
 
 /**
  * Запрос на обновление токенов.
  */
-export type RefreshRequest = {
+export interface RefreshRequest {
   refresh_token: string;
-};
+}

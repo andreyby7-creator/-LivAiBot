@@ -29,11 +29,11 @@ async function checkPythonEnvironment(): Promise<boolean> {
     let stdout = '';
     let stderr = '';
 
-    pythonProcess.stdout.on('data', (data) => {
+    pythonProcess.stdout.on('data', (data: Buffer) => {
       stdout += data.toString();
     });
 
-    pythonProcess.stderr.on('data', (data) => {
+    pythonProcess.stderr.on('data', (data: Buffer) => {
       stderr += data.toString();
     });
 
@@ -112,22 +112,26 @@ async function runPythonTests(options: RunPythonTestsOptions = {}): Promise<Test
     const args = ['-m', 'pytest'];
 
     // Аргументы для pytest (отдельный массив для читаемости)
-    const pytestArgs = [];
+    let pytestArgs: string[] = [];
 
     // Добавляем маркеры: pytest -m "unit and not ai"
     if (markers.length > 0) {
       const markerExpr = markers.join(' and ');
-      pytestArgs.push('-m', markerExpr);
+      pytestArgs = [...pytestArgs, '-m', markerExpr];
     }
 
     // Добавляем покрытие (только если pytest-cov установлен)
     if (coverage) {
       // Синхронная проверка наличия pytest-cov
       try {
-        require('child_process').execSync('python3 -c "import pytest_cov"', { stdio: 'pipe' });
-        pytestArgs.push('--cov=services');
-        pytestArgs.push('--cov-report=json:reports/coverage/python.json');
-        pytestArgs.push('--cov-report=html:reports/coverage/python');
+        const { execSync } = require('child_process') as typeof import('child_process');
+        execSync('python3 -c "import pytest_cov"', { stdio: 'pipe' });
+        pytestArgs = [
+          ...pytestArgs,
+          '--cov=services',
+          '--cov-report=json:reports/coverage/python.json',
+          '--cov-report=html:reports/coverage/python',
+        ];
       } catch {
         // pytest-cov не установлен, пропускаем покрытие
       }
@@ -135,17 +139,16 @@ async function runPythonTests(options: RunPythonTestsOptions = {}): Promise<Test
 
     // Выбираем сервис
     if (service !== 'all') {
-      pytestArgs.push(`services/${service}-service/tests/`);
+      pytestArgs = [...pytestArgs, `services/${service}-service/tests/`];
     } else {
       // Запускаем для каждого сервиса отдельно (glob не работает надежно)
-      PYTHON_SERVICES.forEach((svc) => {
-        pytestArgs.push(`services/${svc}-service/tests/`);
-      });
+      const servicePaths = PYTHON_SERVICES.map((svc) => `services/${svc}-service/tests/`);
+      pytestArgs = [...pytestArgs, ...servicePaths];
     }
 
     // Детальный вывод
     if (verbose) {
-      pytestArgs.push('-v', '--tb=long');
+      pytestArgs = [...pytestArgs, '-v', '--tb=long'];
     }
 
     const pythonProcess = spawn('python3', [...args, ...pytestArgs], {
@@ -167,13 +170,13 @@ async function runPythonTests(options: RunPythonTestsOptions = {}): Promise<Test
     const isCI = process.env.CI === 'true' || process.env.CI === '1';
     const prefix = isCI ? '[PYTEST] ' : '';
 
-    pythonProcess.stdout.on('data', (data) => {
+    pythonProcess.stdout.on('data', (data: Buffer) => {
       const chunk = data.toString();
       stdout += chunk;
       process.stdout.write(`${prefix}${chunk}`);
     });
 
-    pythonProcess.stderr.on('data', (data) => {
+    pythonProcess.stderr.on('data', (data: Buffer) => {
       const chunk = data.toString();
       stderr += chunk;
       process.stderr.write(`${prefix}${chunk}`);
@@ -202,6 +205,18 @@ export interface CoverageMergeResult {
   outputDir: string;
 }
 
+interface PythonCoverageData {
+  totals?: {
+    percent_covered?: number;
+  };
+}
+
+interface JsCoverageData {
+  total?: {
+    percent?: number;
+  };
+}
+
 async function mergeCoverageReports(): Promise<CoverageMergeResult> {
   try {
     const [pythonCoverage, jsCoverage] = await Promise.all([
@@ -211,8 +226,8 @@ async function mergeCoverageReports(): Promise<CoverageMergeResult> {
 
     const merged = {
       timestamp: new Date().toISOString(),
-      python: pythonCoverage ? JSON.parse(pythonCoverage) : null,
-      javascript: jsCoverage ? JSON.parse(jsCoverage) : null,
+      python: pythonCoverage !== null ? JSON.parse(pythonCoverage) as PythonCoverageData : null,
+      javascript: jsCoverage !== null ? JSON.parse(jsCoverage) as JsCoverageData : null,
       summary: {
         pythonTests: 0,
         jsTests: 0,
@@ -221,21 +236,24 @@ async function mergeCoverageReports(): Promise<CoverageMergeResult> {
     };
 
     // Рассчитываем объединенное покрытие (усреднение с правильной математикой)
-    const pythonCoveragePercent = merged.python?.totals?.percent_covered || 0;
-    const jsCoveragePercent = merged.javascript?.total?.percent || merged.javascript?.total || 0;
+    const pythonCoveragePercent = merged.python?.totals?.percent_covered ?? 0;
+    const jsCoveragePercent = merged.javascript?.total?.percent ?? 0;
 
-    if (pythonCoveragePercent > 0 && jsCoveragePercent > 0) {
-      // Оба отчета есть - усредняем
-      merged.summary.totalCoverage =
-        Math.round((pythonCoveragePercent + jsCoveragePercent) / 2 * 100) / 100;
-    } else {
-      // Один из отчетов отсутствует - берем имеющийся
-      merged.summary.totalCoverage = pythonCoveragePercent || jsCoveragePercent || 0;
-    }
+    const totalCoverage = pythonCoveragePercent > 0 && jsCoveragePercent > 0
+      ? Math.round((pythonCoveragePercent + jsCoveragePercent) / 2 * 100) / 100
+      : (pythonCoveragePercent || jsCoveragePercent || 0);
+
+    const mergedWithCoverage = {
+      ...merged,
+      summary: {
+        ...merged.summary,
+        totalCoverage,
+      },
+    };
 
     await fs.writeFile(
       'reports/coverage/merged.json',
-      JSON.stringify(merged, null, 2),
+      JSON.stringify(mergedWithCoverage, null, 2),
     );
 
     console.log('📊 Coverage reports merged successfully');
@@ -277,13 +295,12 @@ async function checkPythonServices(): Promise<Record<string, boolean>> {
 
   return results.reduce((acc: Record<string, boolean>, result) => {
     if (result.status === 'fulfilled') {
-      acc[result.value.service] = result.value.success;
+      return { ...acc, [result.value.service]: result.value.success };
     } else {
       // Это не должно случиться из-за .catch выше, но на всякий случай
       const reason = result.reason as { service: string; };
-      acc[reason.service] = false;
+      return { ...acc, [reason.service]: false };
     }
-    return acc;
   }, {} as Record<string, boolean>);
 }
 

@@ -9,23 +9,31 @@ import type {
   UpdateInstructionRequest,
 } from '../../../src/domain/bots.js';
 import type { JsonObject, Timestamp, UUID } from '../../../src/domain/common.js';
+import {
+  STATUS_ACTIVE,
+  STATUS_DRAFT,
+  TEST_BOT_ID,
+  TEST_BOT_NAME,
+  TEST_INSTRUCTION,
+  TEST_WORKSPACE_ID,
+} from '../../constants';
 
 describe('BotResponse', () => {
   it('валидная структура BotResponse', () => {
     const response: BotResponse = {
-      id: '550e8400-e29b-41d4-a716-446655440000' as UUID,
-      workspace_id: '123e4567-e89b-12d3-a456-426614174000' as UUID,
-      name: 'My Bot',
-      status: 'active',
+      id: TEST_BOT_ID as UUID,
+      workspace_id: TEST_WORKSPACE_ID as UUID,
+      name: TEST_BOT_NAME,
+      status: STATUS_ACTIVE,
       created_at: '2026-01-09T21:34:12.123Z' as Timestamp,
       current_version: 1,
     };
 
     expect(response).toMatchObject({
-      id: '550e8400-e29b-41d4-a716-446655440000',
-      workspace_id: '123e4567-e89b-12d3-a456-426614174000',
-      name: 'My Bot',
-      status: 'active',
+      id: TEST_BOT_ID,
+      workspace_id: TEST_WORKSPACE_ID,
+      name: TEST_BOT_NAME,
+      status: STATUS_ACTIVE,
       created_at: '2026-01-09T21:34:12.123Z',
       current_version: 1,
     });
@@ -36,7 +44,7 @@ describe('BotResponse', () => {
       id: 'bot-1' as UUID,
       workspace_id: 'workspace-1' as UUID,
       name: 'Draft Bot',
-      status: 'draft',
+      status: STATUS_DRAFT,
       created_at: '2024-01-01T00:00:00Z' as Timestamp,
       current_version: 1,
     };
@@ -45,13 +53,13 @@ describe('BotResponse', () => {
       id: 'bot-2' as UUID,
       workspace_id: 'workspace-2' as UUID,
       name: 'Active Bot',
-      status: 'active',
+      status: STATUS_ACTIVE,
       created_at: '2024-01-01T00:00:00Z' as Timestamp,
       current_version: 2,
     };
 
-    expect(draftBot.status).toBe('draft');
-    expect(activeBot.status).toBe('active');
+    expect(draftBot.status).toBe(STATUS_DRAFT);
+    expect(activeBot.status).toBe(STATUS_ACTIVE);
   });
 
   it('отвергает недопустимые значения status', () => {
@@ -73,7 +81,7 @@ describe('BotResponse', () => {
       id: 'bot-1' as UUID,
       workspace_id: 'workspace-1' as UUID,
       name: 'Bot',
-      status: 'active',
+      status: STATUS_ACTIVE,
       created_at: '2024-01-01T00:00:00Z' as Timestamp,
       current_version: 5,
     };
@@ -88,10 +96,11 @@ describe('BotResponse', () => {
       const invalid: BotResponse = {
         workspace_id: 'workspace-1' as UUID,
         name: 'Bot',
-        status: 'active',
+        status: STATUS_ACTIVE,
         created_at: '2024-01-01T00:00:00Z' as Timestamp,
         current_version: 1,
       };
+      expect(invalid).toBeDefined();
     }).not.toThrow();
 
     // Аналогично для других полей...
@@ -102,7 +111,7 @@ describe('BotResponse', () => {
       id: '550e8400-e29b-41d4-a716-446655440000' as UUID,
       workspace_id: '123e4567-e89b-12d3-a456-426614174000' as UUID,
       name: 'Assistant Bot',
-      status: 'active',
+      status: STATUS_ACTIVE,
       created_at: '2026-01-09T21:34:12.123Z' as Timestamp,
       current_version: 3,
     };
@@ -115,7 +124,7 @@ describe('CreateBotRequest', () => {
   it('валидная структура CreateBotRequest', () => {
     const request: CreateBotRequest = {
       name: 'New Bot',
-      instruction: 'You are a helpful assistant.',
+      instruction: TEST_INSTRUCTION,
       settings: {
         temperature: 0.7,
         max_tokens: 1000,
@@ -124,7 +133,7 @@ describe('CreateBotRequest', () => {
 
     expect(request).toMatchObject({
       name: 'New Bot',
-      instruction: 'You are a helpful assistant.',
+      instruction: TEST_INSTRUCTION,
       settings: {
         temperature: 0.7,
         max_tokens: 1000,
@@ -152,6 +161,7 @@ describe('CreateBotRequest', () => {
       const invalid: CreateBotRequest = {
         instruction: 'Hello',
       };
+      expect(invalid).toBeDefined();
     }).not.toThrow();
 
     expect(() => {
@@ -159,6 +169,7 @@ describe('CreateBotRequest', () => {
       const invalid: CreateBotRequest = {
         name: 'Bot',
       };
+      expect(invalid).toBeDefined();
     }).not.toThrow();
   });
 
@@ -329,7 +340,7 @@ describe('BotListResponse', () => {
       expect(bot).toHaveProperty('status');
       expect(bot).toHaveProperty('created_at');
       expect(bot).toHaveProperty('current_version');
-      expect(['draft', 'active']).toContain(bot.status);
+      expect([STATUS_DRAFT, STATUS_ACTIVE]).toContain(bot.status);
     });
   });
 
@@ -364,7 +375,7 @@ describe('Интеграционные тесты bot lifecycle', () => {
     // Создание бота
     const createRequest: CreateBotRequest = {
       name: 'New Bot',
-      instruction: 'You are a helpful assistant',
+      instruction: TEST_INSTRUCTION,
       settings: { model: 'gpt-4' } as JsonObject,
     };
 
@@ -373,13 +384,13 @@ describe('Интеграционные тесты bot lifecycle', () => {
       id: 'bot-uuid-123' as UUID,
       workspace_id: 'workspace-uuid-456' as UUID,
       name: createRequest.name,
-      status: 'draft',
+      status: STATUS_DRAFT,
       created_at: '2024-01-01T12:00:00Z' as Timestamp,
       current_version: 1,
     };
 
     expect(createdBot.name).toBe(createRequest.name);
-    expect(createdBot.status).toBe('draft');
+    expect(createdBot.status).toBe(STATUS_DRAFT);
     expect(createdBot.current_version).toBe(1);
   });
 
@@ -389,7 +400,7 @@ describe('Интеграционные тесты bot lifecycle', () => {
       id: 'bot-1' as UUID,
       workspace_id: 'workspace-1' as UUID,
       name: 'Bot',
-      status: 'active',
+      status: STATUS_ACTIVE,
       created_at: '2024-01-01T00:00:00Z' as Timestamp,
       current_version: 2,
     };
@@ -399,6 +410,7 @@ describe('Интеграционные тесты bot lifecycle', () => {
       instruction: 'Updated instruction',
       settings: { temperature: 0.8 } as JsonObject,
     };
+    void updateRequest;
 
     // Ожидаемый результат - новая версия
     const updatedBot: BotResponse = {
@@ -443,7 +455,7 @@ describe('Интеграционные тесты bot lifecycle', () => {
   });
 
   it('exhaustive проверка union типов', () => {
-    const statuses: Array<'draft' | 'active'> = ['draft', 'active'];
+    const statuses: (typeof STATUS_DRAFT | typeof STATUS_ACTIVE)[] = [STATUS_DRAFT, STATUS_ACTIVE];
 
     // Проверяем, что все возможные значения status перечислены
     statuses.forEach((status) => {
@@ -456,7 +468,7 @@ describe('Интеграционные тесты bot lifecycle', () => {
         current_version: 1,
       };
 
-      expect(['draft', 'active']).toContain(bot.status);
+      expect([STATUS_DRAFT, STATUS_ACTIVE]).toContain(bot.status);
     });
   });
 

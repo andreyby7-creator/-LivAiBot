@@ -17,8 +17,6 @@
  * - Полная интеграция с системой отчетности
  */
 
-import * as os from 'os';
-
 import { devices } from 'playwright';
 
 // Определение окружения выполнения
@@ -102,30 +100,15 @@ const timeouts = getTimeouts();
 // Функция для оценки системных ресурсов и рекомендации по параллельности
 function assessSystemResources(): { recommendedWorkers: number; warnings: string[]; } {
   const warnings: string[] = [];
-  let recommendedWorkers = workers || 4; // Default assumption
+  const recommendedWorkers = workers || 4; // Default assumption
 
-  // Проверяем доступные CPU cores (если возможно)
-  try {
-    const cpuCount = os.cpus().length;
-    const totalMemoryGB = Math.round(os.totalmem() / (1024 * 1024 * 1024));
+  // AI тесты особенно требовательны к ресурсам
+  if (FULLY_PARALLEL && recommendedWorkers > 2) {
+    warnings.push('AI-heavy tests with high parallelism may cause system instability.');
+  }
 
-    if (cpuCount < 4) {
-      warnings.push(`Low CPU cores detected (${cpuCount}). Consider reducing parallelism.`);
-      recommendedWorkers = Math.min(recommendedWorkers, Math.max(1, cpuCount - 1));
-    }
-
-    if (totalMemoryGB < 8) {
-      warnings.push(`Low memory detected (${totalMemoryGB}GB). AI tests are memory-intensive.`);
-      recommendedWorkers = Math.min(recommendedWorkers, 2);
-    }
-
-    // AI тесты особенно требовательны к ресурсам
-    if (FULLY_PARALLEL && recommendedWorkers > 2) {
-      warnings.push('AI-heavy tests with high parallelism may cause system instability.');
-    }
-  } catch (error) {
-    // Игнорируем ошибки определения ресурсов
-    warnings.push('Could not assess system resources. Monitor CPU/memory usage during tests.');
+  if (FULLY_PARALLEL) {
+    warnings.push('Monitor CPU/memory usage during parallel AI tests.');
   }
 
   return { recommendedWorkers, warnings };
@@ -174,51 +157,10 @@ const WEBSERVER_URL = process.env.E2E_BASE_URL || 'http://localhost:3000';
 const WEBSERVER_TIMEOUT = isCI ? 180000 : 120000; // 3 мин в CI, 2 мин локально
 const WEBSERVER_CWD = 'apps/web'; // Явная рабочая директория для надежности
 
-// Функция очистки старых отчетов (удаляет отчеты старше N дней)
+// Функция очистки старых отчетов отключена для совместимости с ES modules
 function cleanupOldReports(baseDir: string, maxAgeDays: number = 7): void {
-  try {
-    const fs = require('fs');
-    const path = require('path');
-
-    if (!fs.existsSync(baseDir)) return;
-
-    const now = Date.now();
-    const maxAgeMs = maxAgeDays * 24 * 60 * 60 * 1000;
-
-    // Получаем все подпапки отчетов
-    const reportDirs = fs.readdirSync(baseDir)
-      .map((dir: string) => path.join(baseDir, dir))
-      .filter((dirPath: string) => {
-        const stat = fs.statSync(dirPath);
-        return stat.isDirectory() && dirPath.includes('_'); // Только CI отчеты с timestamp
-      })
-      .filter((dirPath: string) => {
-        const stat = fs.statSync(dirPath);
-        return (now - stat.mtime.getTime()) > maxAgeMs;
-      });
-
-    // Удаляем старые папки
-    reportDirs.forEach((dirPath: string) => {
-      try {
-        fs.rmSync(dirPath, { recursive: true, force: true });
-        console.log(`🗑️  Removed old report: ${path.basename(dirPath)}`);
-      } catch (error: unknown) {
-        console.warn(
-          `⚠️  Failed to remove old report ${dirPath}:`,
-          error instanceof Error ? error.message : String(error),
-        );
-      }
-    });
-
-    if (reportDirs.length > 0) {
-      console.log(`🧹 Cleaned up ${reportDirs.length} old report(s) older than ${maxAgeDays} days`);
-    }
-  } catch (error: unknown) {
-    console.warn(
-      '⚠️  Failed to cleanup old reports:',
-      error instanceof Error ? error.message : String(error),
-    );
-  }
+  // Очистка отчетов отключена для избежания проблем с require() в ES modules
+  console.log(`ℹ️  Report cleanup disabled (ES modules compatibility)`);
 }
 
 // Директории для артефактов тестирования
@@ -235,28 +177,7 @@ cleanupOldReports('./playwright-report', maxAgeDays);
 
 const OUTPUT_DIR = `${REPORTS_DIR}/test-results`;
 
-// Функция для умного управления командой запуска web сервера
-function getWebServerCommand(): string {
-  const baseCommand = `${WEBSERVER_COMMAND} && npx wait-on ${WEBSERVER_URL} --timeout 60000`;
-
-  // В CI всегда запускаем новый сервер для предсказуемости
-  if (isCI) {
-    return baseCommand;
-  }
-
-  // Локально пытаемся переиспользовать существующий сервер
-  const checkServerCommand = `
-    if curl -s ${WEBSERVER_URL} > /dev/null 2>&1; then
-      echo "🔄 Server already running at ${WEBSERVER_URL}, reusing existing instance..."
-      exit 0
-    else
-      echo "🚀 Server not responding, starting new instance..."
-      ${baseCommand}
-    fi
-  `.trim();
-
-  return `bash -c '${checkServerCommand}'`;
-}
+// Web server команда упрощена для совместимости
 
 // CI metadata для traceability
 const ciMetadata = isCI
@@ -333,6 +254,7 @@ export default {
         deviceScaleFactor: 1,
       },
       testMatch: [
+        '**/smoke/**/*.spec.ts',
         '**/user-journeys/**/*.spec.ts',
         '**/admin-panel/**/*.spec.ts',
       ],
@@ -354,6 +276,7 @@ export default {
         channel: 'msedge',
       },
       testMatch: [
+        '**/smoke/**/*.spec.ts',
         '**/user-journeys/**/*.spec.ts',
         '**/admin-panel/**/*.spec.ts',
       ],
@@ -368,6 +291,7 @@ export default {
         channel: 'chrome',
       },
       testMatch: [
+        '**/smoke/**/*.spec.ts',
         '**/user-journeys/**/*.spec.ts',
         '**/admin-panel/**/*.spec.ts',
       ],
@@ -416,14 +340,14 @@ export default {
     },
   ],
 
-  /* Запуск локального dev сервера перед тестами */
-  webServer: {
-    command: getWebServerCommand(),
-    url: WEBSERVER_URL,
-    reuseExistingServer: !isCI,
-    timeout: WEBSERVER_TIMEOUT,
-    cwd: WEBSERVER_CWD,
-  },
+  /* Web server отключен - предполагается, что сервер уже запущен */
+  // webServer: {
+  //   command: WEBSERVER_COMMAND,
+  //   url: WEBSERVER_URL,
+  //   reuseExistingServer: true,
+  //   timeout: WEBSERVER_TIMEOUT,
+  //   cwd: WEBSERVER_CWD,
+  // },
 
   /* Глобальная настройка и очистка перед/после всех тестов (временно отключены) */
   // globalSetup: './global-setup',

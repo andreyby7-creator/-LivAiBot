@@ -1,6 +1,5 @@
+import type { ReactElement, ReactNode } from 'react';
 import { vi } from 'vitest';
-
-import type { PropsWithChildren, ReactElement } from 'react';
 import type { Mock } from 'vitest';
 
 /**
@@ -42,7 +41,8 @@ vi.mock('./env', () => ({
 
 // Мокирование ErrorBoundary
 vi.mock('react-error-boundary', () => ({
-  ErrorBoundary: ({ children }: PropsWithChildren): ReactElement => children as ReactElement,
+  ErrorBoundary: (props: unknown): ReactElement =>
+    (props as { readonly children: ReactNode; }).children as ReactElement,
   useErrorBoundary: (): {
     showBoundary: Mock;
     resetBoundary: Mock;

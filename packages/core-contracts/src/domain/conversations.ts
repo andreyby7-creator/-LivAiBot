@@ -6,69 +6,69 @@ import type { Timestamp, UUID } from './common.js';
 /**
  * Ответ с информацией о треде диалога.
  */
-export type ThreadResponse = {
+export interface ThreadResponse {
   id: UUID;
   workspace_id: UUID;
   bot_id?: UUID;
   status: 'active';
   created_at: Timestamp;
-};
+}
 
 /**
  * Ответ с информацией о сообщении.
  */
-export type MessageResponse = {
+export interface MessageResponse {
   id: UUID;
   thread_id: UUID;
   role: 'user' | 'assistant' | 'system';
   content: string;
   created_at: Timestamp;
-};
+}
 
 /**
  * Запрос на выполнение "хода" в диалоге (отправка сообщения пользователя).
  */
-export type TurnRequest = {
+export interface TurnRequest {
   content: string;
-};
+}
 
 /**
  * Ответ с результатом "хода" (сообщения пользователя + ответа ассистента).
  */
-export type TurnResponse = {
+export interface TurnResponse {
   thread_id: UUID;
   user_message: MessageResponse;
   assistant_message: MessageResponse;
-};
+}
 
 /**
  * Ответ со списком тредов.
  */
-export type ThreadListResponse = {
+export interface ThreadListResponse {
   items: ThreadResponse[];
-};
+}
 
 /**
  * Ответ со списком сообщений треда.
  */
-export type MessageListResponse = {
+export interface MessageListResponse {
   items: MessageResponse[];
-};
+}
 
 /**
  * Запрос на создание разговора.
  */
-export type CreateConversationRequest = {
+export interface CreateConversationRequest {
   title?: string;
   bot_id?: UUID;
   type?: string;
   initial_message?: string;
-};
+}
 
 /**
  * Информация о разговоре.
  */
-export type Conversation = {
+export interface Conversation {
   id: UUID;
   workspace_id: UUID;
   bot_id?: UUID;
@@ -79,4 +79,4 @@ export type Conversation = {
   created_at: Timestamp;
   updated_at: Timestamp;
   metadata?: Record<string, unknown>;
-};
+}

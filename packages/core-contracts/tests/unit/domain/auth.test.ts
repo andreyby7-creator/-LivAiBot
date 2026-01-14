@@ -11,18 +11,28 @@ import type {
 } from '../../../src/domain/auth.js';
 import type { UUID } from '../../../src/domain/common.js';
 
+import {
+  FAKE_EMAIL,
+  FAKE_EMAIL_WITH_TAG,
+  FAKE_JWT,
+  FAKE_PASSWORD,
+  FAKE_UUID,
+  FAKE_WORKSPACE_NAME,
+} from '../../fakes';
+import { TOKEN_TYPE_BEARER } from '../../constants';
+
 describe('RegisterRequest', () => {
   it('валидная структура RegisterRequest', () => {
     const request: RegisterRequest = {
-      email: 'user@example.com',
-      password: 'securePassword123',
-      workspace_name: 'My Workspace',
+      email: FAKE_EMAIL,
+      password: FAKE_PASSWORD,
+      workspace_name: FAKE_WORKSPACE_NAME,
     };
 
     expect(request).toMatchObject({
-      email: 'user@example.com',
-      password: 'securePassword123',
-      workspace_name: 'My Workspace',
+      email: FAKE_EMAIL,
+      password: FAKE_PASSWORD,
+      workspace_name: FAKE_WORKSPACE_NAME,
     });
   });
 
@@ -52,9 +62,9 @@ describe('RegisterRequest', () => {
 
   it('email валиден', () => {
     const request: RegisterRequest = {
-      email: 'test.email+tag@example.com',
-      password: 'password123',
-      workspace_name: 'Test Workspace',
+      email: FAKE_EMAIL_WITH_TAG,
+      password: FAKE_PASSWORD,
+      workspace_name: FAKE_WORKSPACE_NAME,
     };
 
     expect(request.email).toMatch(/^[^\s@]+@[^\s@]+\.[^\s@]+$/);
@@ -62,9 +72,9 @@ describe('RegisterRequest', () => {
 
   it('снапшот структуры', () => {
     const request: RegisterRequest = {
-      email: 'john.doe@example.com',
-      password: 'MySecurePass123!',
-      workspace_name: "John's Company",
+      email: FAKE_EMAIL,
+      password: FAKE_PASSWORD,
+      workspace_name: FAKE_WORKSPACE_NAME,
     };
 
     expect(request).toMatchSnapshot();
@@ -74,13 +84,13 @@ describe('RegisterRequest', () => {
 describe('LoginRequest', () => {
   it('валидная структура LoginRequest', () => {
     const request: LoginRequest = {
-      email: 'user@example.com',
-      password: 'password123',
+      email: FAKE_EMAIL,
+      password: FAKE_PASSWORD,
     };
 
     expect(request).toMatchObject({
-      email: 'user@example.com',
-      password: 'password123',
+      email: FAKE_EMAIL,
+      password: FAKE_PASSWORD,
     });
   });
 
@@ -93,15 +103,15 @@ describe('LoginRequest', () => {
 
     // @ts-expect-error - отсутствие password
     const invalid2: LoginRequest = {
-      email: 'user@example.com',
+      email: FAKE_EMAIL,
     };
     expect(invalid2).toBeDefined();
   });
 
   it('снапшот структуры', () => {
     const request: LoginRequest = {
-      email: 'jane.smith@example.com',
-      password: 'SecurePass456!',
+      email: FAKE_EMAIL,
+      password: FAKE_PASSWORD,
     };
 
     expect(request).toMatchSnapshot();
@@ -111,18 +121,18 @@ describe('LoginRequest', () => {
 describe('TokenPairResponse', () => {
   it('валидная структура TokenPairResponse', () => {
     const response: TokenPairResponse = {
-      access_token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
+      access_token: FAKE_JWT,
       refresh_token: 'refresh_token_123',
-      token_type: 'bearer',
+      token_type: TOKEN_TYPE_BEARER,
       expires_in: 3600,
       user_id: 'user_123' as UUID,
       workspace_id: 'workspace_456' as UUID,
     };
 
     expect(response).toMatchObject({
-      access_token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
+      access_token: FAKE_JWT,
       refresh_token: 'refresh_token_123',
-      token_type: 'bearer',
+      token_type: TOKEN_TYPE_BEARER,
     });
   });
 
@@ -130,13 +140,13 @@ describe('TokenPairResponse', () => {
     const response: TokenPairResponse = {
       access_token: 'token123',
       refresh_token: 'refresh123',
-      token_type: 'bearer',
+      token_type: TOKEN_TYPE_BEARER,
       expires_in: 3600,
       user_id: 'user_123' as UUID,
       workspace_id: 'workspace_456' as UUID,
     };
 
-    expect(response.token_type).toBe('bearer');
+    expect(response.token_type).toBe(TOKEN_TYPE_BEARER);
   });
 
   it('отвергает другие значения token_type', () => {
@@ -155,7 +165,7 @@ describe('TokenPairResponse', () => {
     // @ts-expect-error - отсутствие access_token
     const invalid1: TokenPairResponse = {
       refresh_token: 'refresh123',
-      token_type: 'bearer',
+      token_type: TOKEN_TYPE_BEARER,
       expires_in: 3600,
       user_id: 'user_123' as UUID,
       workspace_id: 'workspace_456' as UUID,
@@ -165,7 +175,7 @@ describe('TokenPairResponse', () => {
     // @ts-expect-error - отсутствие refresh_token
     const invalid2: TokenPairResponse = {
       access_token: 'token123',
-      token_type: 'bearer',
+      token_type: TOKEN_TYPE_BEARER,
       expires_in: 3600,
       user_id: 'user_123' as UUID,
       workspace_id: 'workspace_456' as UUID,
@@ -182,10 +192,9 @@ describe('TokenPairResponse', () => {
 
   it('снапшот структуры', () => {
     const response: TokenPairResponse = {
-      access_token:
-        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c',
+      access_token: FAKE_JWT,
       refresh_token: 'refresh_token_abc123def456',
-      token_type: 'bearer',
+      token_type: TOKEN_TYPE_BEARER,
       expires_in: 3600,
       user_id: 'user_123' as UUID,
       workspace_id: 'workspace_456' as UUID,
@@ -198,23 +207,23 @@ describe('TokenPairResponse', () => {
 describe('MeResponse', () => {
   it('валидная структура MeResponse', () => {
     const response: MeResponse = {
-      user_id: '550e8400-e29b-41d4-a716-446655440000' as UUID,
-      email: 'user@example.com',
-      workspace_id: '123e4567-e89b-12d3-a456-426614174000' as UUID,
+      user_id: FAKE_UUID as UUID,
+      email: FAKE_EMAIL,
+      workspace_id: FAKE_UUID as UUID,
     };
 
     expect(response).toMatchObject({
-      user_id: '550e8400-e29b-41d4-a716-446655440000',
-      email: 'user@example.com',
-      workspace_id: '123e4567-e89b-12d3-a456-426614174000',
+      user_id: FAKE_UUID,
+      email: FAKE_EMAIL,
+      workspace_id: FAKE_UUID,
     });
   });
 
   it('user_id и workspace_id являются UUID', () => {
     const response: MeResponse = {
-      user_id: '550e8400-e29b-41d4-a716-446655440000' as UUID,
-      email: 'user@example.com',
-      workspace_id: '123e4567-e89b-12d3-a456-426614174000' as UUID,
+      user_id: FAKE_UUID as UUID,
+      email: FAKE_EMAIL,
+      workspace_id: FAKE_UUID as UUID,
     };
 
     // Проверяем формат UUID (базовая проверка)
@@ -229,7 +238,7 @@ describe('MeResponse', () => {
   it('все поля обязательны', () => {
     // @ts-expect-error - отсутствие user_id
     const invalid1: MeResponse = {
-      email: 'user@example.com',
+      email: FAKE_EMAIL,
       workspace_id: 'workspace-id' as UUID,
     };
     expect(invalid1).toBeDefined();
@@ -244,16 +253,16 @@ describe('MeResponse', () => {
     // @ts-expect-error - отсутствие workspace_id
     const invalid3: MeResponse = {
       user_id: 'user-id' as UUID,
-      email: 'user@example.com',
+      email: FAKE_EMAIL,
     };
     expect(invalid3).toBeDefined();
   });
 
   it('снапшот структуры', () => {
     const response: MeResponse = {
-      user_id: '550e8400-e29b-41d4-a716-446655440000' as UUID,
-      email: 'john.doe@example.com',
-      workspace_id: '123e4567-e89b-12d3-a456-426614174000' as UUID,
+      user_id: FAKE_UUID as UUID,
+      email: FAKE_EMAIL,
+      workspace_id: FAKE_UUID as UUID,
     };
 
     expect(response).toMatchSnapshot();
@@ -299,37 +308,37 @@ describe('Интеграционные тесты auth flow', () => {
   it('RegisterRequest -> TokenPairResponse flow', () => {
     // Имитация полного flow регистрации
     const registerRequest: RegisterRequest = {
-      email: 'newuser@example.com',
-      password: 'SecurePass123!',
-      workspace_name: 'New Company',
+      email: FAKE_EMAIL,
+      password: FAKE_PASSWORD,
+      workspace_name: FAKE_WORKSPACE_NAME,
     };
 
     // После успешной регистрации возвращается токен
     const tokenResponse: TokenPairResponse = {
       access_token: 'access_token_from_registration',
       refresh_token: 'refresh_token_from_registration',
-      token_type: 'bearer',
+      token_type: TOKEN_TYPE_BEARER,
       expires_in: 3600,
       user_id: 'user_123' as UUID,
       workspace_id: 'workspace_456' as UUID,
     };
 
-    expect(registerRequest.email).toBe('newuser@example.com');
-    expect(tokenResponse.token_type).toBe('bearer');
+    expect(registerRequest.email).toBe(FAKE_EMAIL);
+    expect(tokenResponse.token_type).toBe(TOKEN_TYPE_BEARER);
   });
 
   it('LoginRequest -> TokenPairResponse -> MeResponse flow', () => {
     // Login
     const loginRequest: LoginRequest = {
-      email: 'existing@example.com',
-      password: 'password123',
+      email: FAKE_EMAIL,
+      password: FAKE_PASSWORD,
     };
 
     // Получение токенов
     const tokenResponse: TokenPairResponse = {
       access_token: 'access_token_123',
       refresh_token: 'refresh_token_456',
-      token_type: 'bearer',
+      token_type: TOKEN_TYPE_BEARER,
       expires_in: 3600,
       user_id: 'user_123' as UUID,
       workspace_id: 'workspace_456' as UUID,
@@ -338,12 +347,12 @@ describe('Интеграционные тесты auth flow', () => {
     // Получение информации о пользователе
     const meResponse: MeResponse = {
       user_id: 'user-uuid-123' as UUID,
-      email: 'existing@example.com',
+      email: FAKE_EMAIL,
       workspace_id: 'workspace-uuid-456' as UUID,
     };
 
     expect(loginRequest.email).toBe(meResponse.email);
-    expect(tokenResponse.token_type).toBe('bearer');
+    expect(tokenResponse.token_type).toBe(TOKEN_TYPE_BEARER);
   });
 
   it('RefreshRequest flow', () => {
@@ -354,7 +363,7 @@ describe('Интеграционные тесты auth flow', () => {
     const newTokenResponse: TokenPairResponse = {
       access_token: 'new_access_token',
       refresh_token: 'new_refresh_token',
-      token_type: 'bearer',
+      token_type: TOKEN_TYPE_BEARER,
       expires_in: 3600,
       user_id: 'user_123' as UUID,
       workspace_id: 'workspace_456' as UUID,
@@ -367,24 +376,24 @@ describe('Интеграционные тесты auth flow', () => {
     const authFlow = {
       register: {
         request: {
-          email: 'user@example.com',
-          password: 'password123',
-          workspace_name: 'Workspace',
+          email: FAKE_EMAIL,
+          password: FAKE_PASSWORD,
+          workspace_name: FAKE_WORKSPACE_NAME,
         } as RegisterRequest,
         response: {
           access_token: 'token123',
           refresh_token: 'refresh456',
-          token_type: 'bearer' as const,
+          token_type: TOKEN_TYPE_BEARER,
         } as TokenPairResponse,
       },
       login: {
         request: {
-          email: 'user@example.com',
-          password: 'password123',
+          email: FAKE_EMAIL,
+          password: FAKE_PASSWORD,
         } as LoginRequest,
         response: {
           user_id: 'user-123' as UUID,
-          email: 'user@example.com',
+          email: FAKE_EMAIL,
           workspace_id: 'workspace-456' as UUID,
         } as MeResponse,
       },

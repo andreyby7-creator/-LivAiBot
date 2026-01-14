@@ -6,7 +6,6 @@
 set -euo pipefail
 
 COMPOSE_FILE="infrastructure/compose/docker-compose.yml"
-PROJECT_NAME="livai"
 
 function show_help() {
     cat << EOF
@@ -38,11 +37,20 @@ EOF
 }
 
 function docker_compose() {
-    docker compose -f "$COMPOSE_FILE" -p "$PROJECT_NAME" "$@"
+    docker compose -f "$COMPOSE_FILE" "$@"
 }
 
 function get_containers() {
-    docker_compose ps --format "table {{.Name}}\t{{.Service}}\t{{.Status}}\t{{.Ports}}"
+    local output
+    output=$(docker_compose ps --format "table {{.Name}}\t{{.Service}}\t{{.Status}}\t{{.Ports}}")
+    if [[ -z "$(echo "$output" | tail -n +2 | xargs)" ]]; then
+        echo "Нет запущенных контейнеров"
+        echo ""
+        echo "💡 Запустите инфраструктуру:"
+        echo "   docker compose -f infrastructure/compose/docker-compose.yml up -d"
+        return 0
+    fi
+    echo "$output"
 }
 
 function check_health() {
