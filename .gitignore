@@ -52,10 +52,19 @@ temp/
 *.sqlite3
 
 # LivAI specific
+# Development tools and environments
+.tools/
+venv/
+services/*/venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
 # Core contracts builds
-core-contracts/dist/
-core-contracts/**/*.tsbuildinfo
-core-contracts/coverage/
+packages/core-contracts/dist/
+packages/core-contracts/**/*.tsbuildinfo
+packages/core-contracts/coverage/
 
 # Apps builds and outputs
 apps/*/dist/
@@ -64,6 +73,11 @@ apps/*/.nuxt/
 apps/*/.vercel/
 apps/*/.netlify/
 apps/*/out/
+
+# Packages builds
+packages/*/dist/
+packages/*/**/*.tsbuildinfo
+packages/*/coverage/
 
 # Infrastructure
 infrastructure/**/dist/
@@ -74,6 +88,8 @@ infrastructure/**/.terraform/
 test-results/
 playwright-report/
 test-results.xml
+reports/coverage/
+.nyc_output/
 
 # Lock files (keep in repo for monorepo)
 # pnpm-lock.yaml is kept for workspace consistency
