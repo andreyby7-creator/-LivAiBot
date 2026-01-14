@@ -1,88 +1,32 @@
 #!/usr/bin/env bash
-# Pre-push hook for comprehensive quality checks
-# Runs more expensive checks before pushing to remote
+# Pre-push hook for essential quality checks
+# Runs fast checks before pushing to remote
 
 set -e
 
 echo "🚀 Running pre-push checks..."
 
-# Determine changed files and packages
-CHANGED_PACKAGES=$(git diff origin/main..HEAD --name-only | grep -E '^(packages|apps)/' | cut -d'/' -f1-2 | sort -u || true)
-CHANGED_FILES=$(git diff origin/main..HEAD --name-only || true)
+# 1. TypeScript type checking (global)
+echo "  🔍 Running TypeScript type check..."
+pnpm run type-check || {
+  echo "  ❌ TypeScript type check failed"
+  exit 1
+}
 
-echo "  📋 Changed packages: ${CHANGED_PACKAGES:-none}"
-echo "  📄 Changed files: $(echo "$CHANGED_FILES" | wc -l) files"
+# 2. ESLint canary linting (global)
+echo "  📝 Running ESLint canary linting..."
+pnpm run lint:canary || {
+  echo "  ❌ ESLint linting failed"
+  exit 1
+}
 
-# 1. Type check changed packages
-if [ -n "$CHANGED_PACKAGES" ]; then
-  echo "  🔍 Type checking changed packages..."
-  for PKG in $CHANGED_PACKAGES; do
-    if [ -f "$PKG/package.json" ]; then
-      PKG_NAME=$(node -p "require('./$PKG/package.json').name || ''")
-      if [ -n "$PKG_NAME" ]; then
-        echo "    ✓ Type checking $PKG_NAME..."
-        pnpm --filter="$PKG_NAME" run type-check || {
-          echo "    ❌ Type check failed for $PKG_NAME"
-          exit 1
-        }
-      fi
-    fi
-  done
-else
-  echo "  🔍 No packages changed - skipping type check"
-fi
-
-# 2. Lint changed packages
-if [ -n "$CHANGED_PACKAGES" ]; then
-  echo "  📝 Linting changed packages..."
-  for PKG in $CHANGED_PACKAGES; do
-    if [ -f "$PKG/package.json" ]; then
-      PKG_NAME=$(node -p "require('./$PKG/package.json').name || ''")
-      if [ -n "$PKG_NAME" ]; then
-        echo "    ✓ Linting $PKG_NAME..."
-        pnpm --filter="$PKG_NAME" run lint:canary || {
-          echo "    ❌ Lint failed for $PKG_NAME"
-          exit 1
-        }
-      fi
-    fi
-  done
-else
-  echo "  📝 No packages changed - skipping lint"
-fi
-
-# 3. Test changed packages
-if [ -n "$CHANGED_PACKAGES" ]; then
-  echo "  🧪 Testing changed packages..."
-  for PKG in $CHANGED_PACKAGES; do
-    if [ -f "$PKG/package.json" ]; then
-      PKG_NAME=$(node -p "require('./$PKG/package.json').name || ''")
-      if [ -n "$PKG_NAME" ]; then
-        echo "    ✓ Testing $PKG_NAME..."
-        pnpm --filter="$PKG_NAME" run test || {
-          echo "    ❌ Tests failed for $PKG_NAME"
-          exit 1
-        }
-      fi
-    fi
-  done
-else
-  echo "  🧪 No packages changed - skipping tests"
-fi
-
-# 4. Placeholder for architecture validation
-echo "  🏛️  Architecture validation..."
-echo "    (placeholder - not implemented yet)"
-
-# 5. Placeholder for infra verification
-echo "  🧱 Infrastructure verification..."
-echo "    (placeholder - not implemented yet)"
-
-# 5. Check for security issues (optional)
-# echo "  🔒 Checking for security issues..."
-# pnpm run security:audit || {
-#   echo "  ⚠️  Security issues found (continuing)"
-# }
+# 3. Code formatting with dprint
+echo "  🎨 Running code formatting..."
+npx dprint check || {
+  echo "  ❌ Code formatting check failed"
+  echo "  💡 Run: npx dprint fmt"
+  exit 1
+}
 
 echo "✅ Pre-push checks passed!"
 
