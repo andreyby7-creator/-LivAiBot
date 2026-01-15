@@ -92,6 +92,12 @@ test-results.xml
 reports/coverage/
 .nyc_output/
 
+# Reports / artifacts (generated)
+reports/bundles/
+
+# Built static artifacts (generated)
+html/
+
 # Lock files (keep in repo for monorepo)
 # pnpm-lock.yaml is kept for workspace consistency
 package-lock.json
