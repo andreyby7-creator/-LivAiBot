@@ -6,9 +6,8 @@
  * - нам нужен стабильный мост между Zod и RHF в рамках Фазы 2
  */
 
-
 import type { FieldErrors, FieldValues, Resolver } from 'react-hook-form';
-import type { ZodError , z } from 'zod';
+import type { z, ZodError } from 'zod';
 
 import { ValidationKeys } from './zod.js';
 
@@ -88,15 +87,19 @@ function setNestedError<T extends FieldValues>(
   errors: FieldErrors<T>,
   path: readonly PropertyKey[],
   value: FieldErrors<T>[string],
-): void {
+): FieldErrors<T> {
   if (path.length === 0) {
     // Корневые ошибки (без пути) кладем в специальное поле 'root'
     // Это редкий кейс для глобальных ошибок схемы, не связанных с конкретным полем
-    (errors as Record<string, unknown>)['root'] = value;
-    return;
+    return {
+      ...errors,
+      root: value,
+    } as FieldErrors<T>;
   }
 
-  let cur: Record<string, unknown> = errors as Record<string, unknown>;
+  const result: Record<string, unknown> = { ...errors };
+
+  let cur: Record<string, unknown> = result;
   for (let i = 0; i < path.length; i += 1) {
     const key = String(path[i]);
     const isLeaf = i === path.length - 1;
@@ -104,15 +107,21 @@ function setNestedError<T extends FieldValues>(
       cur[key] = value;
     } else {
       const next = cur[key];
-      if (typeof next === 'object' && next !== null) {
-        cur = next as Record<string, unknown>;
+      if (typeof next === 'object' && next !== null && !Array.isArray(next)) {
+        // Создаем новый уровень вложенности на основе существующего
+        const newLevel = { ...(next as Record<string, unknown>) };
+        cur[key] = newLevel;
+        cur = newLevel;
       } else {
+        // Создаем новый пустой объект
         const created: Record<string, unknown> = {};
         cur[key] = created;
         cur = created;
       }
     }
   }
+
+  return result as FieldErrors<T>;
 }
 
 export function zodResolver<TSchema extends z.ZodTypeAny>(
@@ -124,12 +133,12 @@ export function zodResolver<TSchema extends z.ZodTypeAny>(
       return { values: parsed.data as z.infer<TSchema> & FieldValues, errors: {} };
     }
 
-    const errors: FieldErrors<z.infer<TSchema> & FieldValues> = {};
+    let errors: FieldErrors<z.infer<TSchema> & FieldValues> = {};
     const err: ZodError = parsed.error;
 
     for (const issue of err.issues) {
       const key = issueToKey(issue);
-      setNestedError(errors, issue.path, { type: issue.code, message: key });
+      errors = setNestedError(errors, issue.path, { type: issue.code, message: key });
     }
 
     // Возвращаем пустой объект values при ошибках - стандарт RHF
@@ -137,5 +146,3 @@ export function zodResolver<TSchema extends z.ZodTypeAny>(
     return { values: {}, errors };
   };
 }
-
-
