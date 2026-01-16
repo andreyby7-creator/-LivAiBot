@@ -97,31 +97,37 @@ function setNestedError<T extends FieldValues>(
     } as FieldErrors<T>;
   }
 
-  const result: Record<string, unknown> = { ...errors };
-
-  let cur: Record<string, unknown> = result;
-  for (let i = 0; i < path.length; i += 1) {
-    const key = String(path[i]);
-    const isLeaf = i === path.length - 1;
-    if (isLeaf) {
-      cur[key] = value;
-    } else {
-      const next = cur[key];
-      if (typeof next === 'object' && next !== null && !Array.isArray(next)) {
-        // Создаем новый уровень вложенности на основе существующего
-        const newLevel = { ...(next as Record<string, unknown>) };
-        cur[key] = newLevel;
-        cur = newLevel;
-      } else {
-        // Создаем новый пустой объект
-        const created: Record<string, unknown> = {};
-        cur[key] = created;
-        cur = created;
-      }
+  // Рекурсивно строим новую структуру объектов
+  function buildNestedObject(
+    currentPath: readonly PropertyKey[],
+    currentErrors: Record<string, unknown>,
+  ): Record<string, unknown> {
+    if (currentPath.length === 0) {
+      return value as unknown as Record<string, unknown>;
     }
+
+    const [firstKey, ...restPath] = currentPath;
+    const key = String(firstKey);
+    const existingValue = currentErrors[key];
+
+    let nestedValue: Record<string, unknown>;
+    if (
+      typeof existingValue === 'object' && existingValue !== null && !Array.isArray(existingValue)
+    ) {
+      // Рекурсивно строим вложенный объект
+      nestedValue = buildNestedObject(restPath, existingValue as Record<string, unknown>);
+    } else {
+      // Создаем новый объект для вложенного пути
+      nestedValue = buildNestedObject(restPath, {});
+    }
+
+    return {
+      ...currentErrors,
+      [key]: nestedValue,
+    };
   }
 
-  return result as FieldErrors<T>;
+  return buildNestedObject(path, errors as Record<string, unknown>) as FieldErrors<T>;
 }
 
 export function zodResolver<TSchema extends z.ZodTypeAny>(
