@@ -79,7 +79,7 @@ function recordAICall(provider: string, tokens: number): void {
   globalAICostEstimate += callCost;
 
   // Проверка бюджета
-  const isCI = process.env.CI === 'true';
+  const isCI = process.env['CI'] === 'true';
   const budgetLimit = isCI ? AI_BUDGET.maxCostCI : AI_BUDGET.maxCostDev;
 
   if (globalAICostEstimate > budgetLimit) {
@@ -129,10 +129,10 @@ function getAIStats(): {
       cost: globalAICostEstimate,
     },
     budget: {
-      limit: process.env.CI === 'true' ? AI_BUDGET.maxCostCI : AI_BUDGET.maxCostDev,
+      limit: process.env['CI'] === 'true' ? AI_BUDGET.maxCostCI : AI_BUDGET.maxCostDev,
       remaining: Math.max(
         0,
-        (process.env.CI === 'true' ? AI_BUDGET.maxCostCI : AI_BUDGET.maxCostDev)
+        (process.env['CI'] === 'true' ? AI_BUDGET.maxCostCI : AI_BUDGET.maxCostDev)
           - globalAICostEstimate,
       ),
     },

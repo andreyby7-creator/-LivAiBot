@@ -1,7 +1,8 @@
 /**
- * @file @livai/ui-features - Составные UI экраны
+ * @file @livai/ui-features — составные UI экраны и формы.
  *
- * Этот пакет содержит Составные UI экраны для LivAi.
+ * На старте Фазы 2 — формы auth и базовые feature-экраны.
  */
 
-// TODO: Add exports here
+export * from './auth/login-form.js';
+export * from './auth/register-form.js';

@@ -15,6 +15,36 @@ import { chromium } from '@playwright/test';
 
 import type { FullConfig } from '@playwright/test';
 
+// Определение окружения
+const isCI = process.env['CI'] !== undefined && process.env['CI'] !== '';
+const isVerbose = Boolean(process.env['E2E_VERBOSE'] !== 'false'); // По умолчанию verbose включен
+
+// URL для API (может отличаться от веб сервера)
+const API_BASE_URL = process.env['E2E_API_BASE_URL']
+  ?? process.env['E2E_BASE_URL']
+  ?? 'http://localhost:3000';
+
+// Таймауты для E2E операций
+const PAGE_TIMEOUT =
+  process.env['E2E_PAGE_TIMEOUT'] !== undefined && process.env['E2E_PAGE_TIMEOUT'] !== ''
+    ? parseInt(process.env['E2E_PAGE_TIMEOUT'], 10)
+    : (isCI ? 60000 : 30000); // 60 сек в CI, 30 сек локально
+
+const API_TIMEOUT =
+  process.env['E2E_API_TIMEOUT'] !== undefined && process.env['E2E_API_TIMEOUT'] !== ''
+    ? parseInt(process.env['E2E_API_TIMEOUT'], 10)
+    : 10000; // 10 сек для API запросов
+
+const API_RETRY_ATTEMPTS = process.env['E2E_API_RETRY_ATTEMPTS'] !== undefined
+    && process.env['E2E_API_RETRY_ATTEMPTS'] !== ''
+  ? parseInt(process.env['E2E_API_RETRY_ATTEMPTS'], 10)
+  : 3; // 3 попытки для API запросов
+
+const API_RETRY_DELAY =
+  process.env['E2E_API_RETRY_DELAY'] !== undefined && process.env['E2E_API_RETRY_DELAY'] !== ''
+    ? parseInt(process.env['E2E_API_RETRY_DELAY'], 10)
+    : 1000; // 1 сек задержка между попытками
+
 // HTTP клиент для API запросов
 interface ApiResponse<T = unknown> {
   success: boolean;
@@ -140,15 +170,6 @@ async function apiRequest<T = unknown>(
   );
 }
 
-// Определение окружения
-const isCI = process.env.CI !== undefined && process.env.CI !== '';
-const isVerbose = Boolean(process.env.E2E_VERBOSE !== 'false'); // По умолчанию verbose включен
-
-// URL для API (может отличаться от веб сервера)
-const API_BASE_URL = process.env.E2E_API_BASE_URL
-  ?? process.env.E2E_BASE_URL
-  ?? 'http://localhost:3000';
-
 // Метрики производительности
 interface PerformanceMetrics {
   apiRequests: {
@@ -183,26 +204,6 @@ const performanceMetrics: PerformanceMetrics = {
   browserLaunchTime: 0,
 };
 
-// Таймауты для E2E операций
-const PAGE_TIMEOUT =
-  process.env.E2E_PAGE_TIMEOUT !== undefined && process.env.E2E_PAGE_TIMEOUT !== ''
-    ? parseInt(process.env.E2E_PAGE_TIMEOUT, 10)
-    : (isCI ? 60000 : 30000); // 60 сек в CI, 30 сек локально
-
-const API_TIMEOUT = process.env.E2E_API_TIMEOUT !== undefined && process.env.E2E_API_TIMEOUT !== ''
-  ? parseInt(process.env.E2E_API_TIMEOUT, 10)
-  : 10000; // 10 сек для API запросов
-
-const API_RETRY_ATTEMPTS =
-  process.env.E2E_API_RETRY_ATTEMPTS !== undefined && process.env.E2E_API_RETRY_ATTEMPTS !== ''
-    ? parseInt(process.env.E2E_API_RETRY_ATTEMPTS, 10)
-    : 3; // 3 попытки для API запросов
-
-const API_RETRY_DELAY =
-  process.env.E2E_API_RETRY_DELAY !== undefined && process.env.E2E_API_RETRY_DELAY !== ''
-    ? parseInt(process.env.E2E_API_RETRY_DELAY, 10)
-    : 1000; // 1 сек задержка между попытками
-
 // Интерфейс для AI бота
 interface AiBot {
   id: string;
@@ -230,7 +231,9 @@ global.testEnvironment = {
   userId: '',
   apiToken: '',
   aiBots: [], // Массив созданных AI ботов для тестов
-  baseUrl: process.env.E2E_BASE_URL ?? process.env.E2E_API_BASE_URL ?? 'http://localhost:3000',
+  baseUrl: process.env['E2E_BASE_URL']
+    ?? process.env['E2E_API_BASE_URL']
+    ?? 'http://localhost:3000',
 };
 
 // API клиент для взаимодействия с тестовым сервером
@@ -484,7 +487,7 @@ async function globalSetup(config: FullConfig): Promise<TestEnvironmentData> {
         }
 
         // Уникальный файл для каждого worker при параллельном запуске
-        const workerId = process.env.TEST_WORKER_ID ?? '0';
+        const workerId = process.env['TEST_WORKER_ID'] ?? '0';
 
         // Обновляем метрики времени настройки
         performanceMetrics.setupDuration = Date.now() - setupStartTime;

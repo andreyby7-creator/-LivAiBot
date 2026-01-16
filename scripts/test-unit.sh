@@ -4,7 +4,7 @@
 # Назначение: Запуск всех unit-тестов проекта LivAI с красивым итоговым выводом
 # =============================================================================
 
-set -euo pipefail
+set -uo pipefail
 
 # ────────────────────────────────
 # Настройки
@@ -41,7 +41,7 @@ function get_test_files() {
       ! -path "*/build/*" \
       ! -path "*/.next/*" \
       ! -path "*/.turbo/*" \
-      | head -20 # Ограничиваем для тестирования
+      
   fi
 }
 
@@ -65,29 +65,13 @@ function run_vitest() {
   # echo "Found test files:"
   # echo "$test_files" | head -10
 
-  # Запуск Vitest с использованием config/vitest/vitest.config.ts
-  # Включаем coverage через переменную окружения
-  local env_vars="COVERAGE=true"
+  # Используем Turbo для оркестрации тестов по всем пакетам с правильным выводом
+  export COVERAGE=true
+  export TEST_FILE_MODE=true
+  export CI=true
 
-  if [[ -n "$test_files" ]]; then
-    # Запуск конкретных файлов с coverage
-    echo "$test_files" | xargs env $env_vars npx vitest run \
-      --config config/vitest/vitest.config.ts \
-      --reporter="verbose" \
-      --reporter="json" \
-      --outputFile="$RESULTS_DIR/results.json" \
-      --coverage \
-      --run
-  else
-    # Запуск всех тестов по конфигурации
-    env $env_vars npx vitest run \
-      --config config/vitest/vitest.config.ts \
-      --reporter="verbose" \
-      --reporter="json" \
-      --outputFile="$RESULTS_DIR/results.json" \
-      --coverage \
-      --run
-  fi
+  # Запуск тестов через Turbo для всех пакетов
+  TURBO_FORCE=true TURBO_REMOTE_CACHE_DISABLED=true turbo run test:ci
 }
 
 # ────────────────────────────────
@@ -254,7 +238,7 @@ function print_summary() {
 
   echo ""
   echo -e "${BOLD}Test Files${RESET}  $TEST_FILES_FAILED failed | $TEST_FILES_PASSED passed ($TEST_FILES_TOTAL) | $TEST_FILES_SKIPPED skipped"
-  echo -e "${BOLD}Tests     ${RESET}  $TEST_FILES_FAILED failed | $TESTS_PASSED passed ($TESTS_TOTAL) | 0 skipped"
+  echo -e "${BOLD}Tests     ${RESET}  $TESTS_FAILED failed | $TESTS_PASSED passed ($TESTS_TOTAL) | 0 skipped"
   echo -e "${BOLD}Start at  ${RESET}  $START_TIME"
   echo -e "${BOLD}Duration  ${RESET}  $DURATION"
   echo -e "${BOLD}Bench     ${RESET}  0.00s"
@@ -274,3 +258,10 @@ show_coverage
 echo ""
 echo -e "${BOLD}Start at:${RESET} $START_TIME"
 echo -e "${BOLD}End at  :${RESET} $END_TIME"
+
+# Return appropriate exit code for CI
+if [[ $TESTS_FAILED -gt 0 ]] || [[ $TEST_FILES_FAILED -gt 0 ]]; then
+  exit 1
+else
+  exit 0
+fi

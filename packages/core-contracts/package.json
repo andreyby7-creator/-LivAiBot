@@ -2,6 +2,15 @@
   "name": "@livai/core-contracts",
   "version": "1.0.0",
   "description": "Core Contracts - Foundation layer for effects, auth, domain, errors, and infrastructure contracts",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/livai/livai.git",
+    "directory": "packages/core-contracts"
+  },
+  "bugs": {
+    "url": "https://github.com/livai/livai/issues"
+  },
+  "homepage": "https://github.com/livai/livai/tree/main/packages/core-contracts#readme",
   "main": "./dist/esm/index.js",
   "module": "./dist/esm/index.js",
   "types": "./dist/esm/index.d.ts",
@@ -9,8 +18,8 @@
   "license": "MIT",
   "type": "module",
   "engines": {
-    "node": ">=24.0.0",
-    "pnpm": ">=10.0.0"
+    "node": "24.9.0",
+    "pnpm": "10.28.0"
   },
   "files": [
     "dist"
@@ -60,6 +69,11 @@
       "types": "./dist/esm/targets/browser.d.ts",
       "import": "./dist/esm/targets/browser.js",
       "default": "./dist/esm/targets/browser.js"
+    },
+    "./validation/zod": {
+      "types": "./dist/esm/validation/zod/index.d.ts",
+      "import": "./dist/esm/validation/zod/index.js",
+      "default": "./dist/esm/validation/zod/index.js"
     }
   },
   "scripts": {
@@ -68,7 +82,7 @@
     "build:types": "rm -f *.tsbuildinfo && tsc -b tsconfig.build.json",
     "build:watch": "tsup --watch",
     "dev": "tsup --watch",
-    "lint": "cd ../ && pnpm run lint --filter @livai/core-contracts",
+    "lint": "pnpm run lint:dev",
     "type-check": "tsc --noEmit",
     "test": "NODE_OPTIONS='--no-warnings' vitest run",
     "test:watch": "vitest --watch",
@@ -79,13 +93,17 @@
     "test:coverage:watch": "NODE_OPTIONS='--no-warnings' vitest --coverage --watch",
     "test:ci": "NODE_OPTIONS='--no-warnings' vitest run --coverage",
     "clean": "rm -rf dist *.tsbuildinfo .eslintcache",
-    "lint:dev": "cd ../ && pnpm run lint --filter @livai/core-contracts",
+    "lint:dev": "ESLINT_MODE=dev eslint --config ../../eslint.config.mjs src",
     "lint:canary": "ESLINT_MODE=canary eslint --config ../../eslint.config.mjs src",
-    "lint:canary:fix": "cd ../ && pnpm run lint:canary:fix",
-    "check:deps": "node scripts/check-circular-deps-core-contracts.js",
+    "lint:canary:fix": "ESLINT_MODE=canary eslint --config ../../eslint.config.mjs src --fix",
+    "check:deps": "cd ../.. && node scripts/check-circular-deps-monorepo.js",
     "ci:check": "pnpm run type-check && pnpm run lint && pnpm run test:ci && pnpm run check:deps",
-    "lint:fix": "cd ../ && pnpm run lint:fix --filter @livai/core-contracts",
-    "lint:ci": "cd ../ && ESLINT_MODE=canary pnpm lint --max-warnings 0",
+    "lint:fix": "ESLINT_MODE=dev eslint --config ../../eslint.config.mjs src --fix",
+    "lint:ci": "ESLINT_MODE=canary eslint --config ../../eslint.config.mjs src --max-warnings 0",
+    "generate:openapi": "PYTHONDONTWRITEBYTECODE=1 python3 ../../scripts/generate-openapi-snapshots.py",
+    "generate:zod": "node ../../scripts/generate-zod-schemas.mjs",
+    "generate:contracts": "node -e \"process.exit(0)\"",
+    "check:contracts": "git diff --exit-code -- ':(glob)services/*-service/openapi.json' 'packages/core-contracts/src/validation/zod/generated' || (echo \"\\n[contracts] contract drift detected\" && exit 1)",
     "bench": "NODE_OPTIONS='--no-warnings' vitest bench",
     "bench:ci": "NODE_OPTIONS='--no-warnings' vitest bench --run"
   },
@@ -110,6 +128,7 @@
   "devDependencies": {
     "@vitest/coverage-v8": "4.0.17",
     "eslint": "9.39.2",
+    "openapi-zod-client": "1.18.3",
     "tsup": "8.5.1",
     "typescript": "5.9.3",
     "vitest": "4.0.17"
@@ -152,7 +171,8 @@
     "@effect/typeclass": "^0.38.0",
     "@effect/vitest": "^0.27.0",
     "@effect/workflow": "^0.16.0",
-    "effect": "^3.19.13"
+    "effect": "^3.19.13",
+    "zod": "^4.3.5"
   },
   "optionalDependencies": {
     "lru-cache": "11.2.4"

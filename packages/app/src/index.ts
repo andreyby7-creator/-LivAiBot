@@ -1,7 +1,7 @@
 /**
- * @file @livai/app - Next.js композиция
+ * @file @livai/app — Next.js композиция (providers/hooks).
  *
- * Этот пакет содержит Next.js композиция для LivAi.
+ * На старте Фазы 2 держим здесь провайдеры верхнего уровня приложения.
  */
 
-// TODO: Add exports here
+export * from './providers/intl-provider.js';

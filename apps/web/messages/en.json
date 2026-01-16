@@ -1,0 +1,46 @@
+{
+  "common": {
+    "loading": "Loading…"
+  },
+  "auth": {
+    "email": {
+      "label": "Email"
+    },
+    "password": {
+      "label": "Password"
+    },
+    "workspaceName": {
+      "label": "Workspace name"
+    },
+    "login": {
+      "title": "Sign In",
+      "submit": "Sign In"
+    },
+    "register": {
+      "title": "Sign Up",
+      "link": "Sign In",
+      "submit": "Sign Up"
+    }
+  },
+  "home": {
+    "title": "LivAi",
+    "description": "AI-powered chatbot platform with multi-tenant architecture",
+    "dashboard": "Dashboard",
+    "e2eStatus": "E2E Test Status: ✅ Working"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "description": "UI skeleton. Screen will evolve according to roadmap."
+  },
+  "validation": {
+    "required": "Required",
+    "string": {
+      "min": "Too short",
+      "max": "Too long"
+    }
+  },
+  "metadata": {
+    "title": "LivAi - AI Chatbot Platform",
+    "description": "AI-powered chatbot platform with multi-tenant architecture"
+  }
+}

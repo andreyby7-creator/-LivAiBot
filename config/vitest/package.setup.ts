@@ -61,7 +61,7 @@ declare global {
    * Никаких "продолжений работы в сломанном состоянии"
    */
   process.on('uncaughtException', (error) => {
-    const isCI = process.env.CI === 'true';
+    const isCI = process.env['CI'] === 'true';
 
     console.error('💀 CRITICAL: Uncaught exception in test environment');
     console.error('Error:', error.message);
@@ -87,7 +87,7 @@ declare global {
    * В dev: 15 минут (для отладки долгих тестов)
    * В CI: 5 минут (быстрое обнаружение проблем)
    */
-  const isCI = process.env.CI === 'true';
+  const isCI = process.env['CI'] === 'true';
   const GLOBAL_TIMEOUT = isCI
     ? 5 * 60 * 1000 // 5 минут в CI
     : 15 * 60 * 1000; // 15 минут в dev

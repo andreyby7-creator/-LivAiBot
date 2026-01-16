@@ -54,7 +54,7 @@ export default defineConfig({
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
       reportsDirectory: './coverage',
-      include: ['src/**/*.{ts,tsx}'],
+      include: ['src/**/*.{ts,tsx}', 'i18n/**/*.{ts,tsx}'],
       exclude: [
         'src/**/*.test.{ts,tsx}',
         'src/**/*.spec.{ts,tsx}',
@@ -68,7 +68,7 @@ export default defineConfig({
       cleanOnRerun: true,
       // Специфичные thresholds для веб-приложения (более мягкие)
       // Применяются только в CI из-за exactOptionalPropertyTypes
-      ...(process.env.CI === 'true' && {
+      ...(process.env['CI'] === 'true' && {
         thresholds: {
           statements: 70,
           branches: 65,

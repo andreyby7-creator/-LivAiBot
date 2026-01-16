@@ -279,7 +279,7 @@ export function buildVitestEnv(overrides: EnvOverrides = {}): Readonly<EnvRecord
   const overriddenKeys = Object.keys(filteredOverrides).length;
   const defaultKeys = totalKeys - overriddenKeys;
 
-  if (process.env.VITEST_ENV_DEBUG === 'true') {
+  if (process.env['VITEST_ENV_DEBUG'] === 'true') {
     console.log(
       `🔧 Building test environment: ${totalKeys} keys (${defaultKeys} defaults, ${overriddenKeys} overrides)`,
     );
@@ -288,7 +288,7 @@ export function buildVitestEnv(overrides: EnvOverrides = {}): Readonly<EnvRecord
   // Валидируем обязательные ключи
   validateTestEnv(env);
 
-  if (process.env.VITEST_ENV_DEBUG === 'true') {
+  if (process.env['VITEST_ENV_DEBUG'] === 'true') {
     console.log(`✅ Test environment validated successfully`);
   }
 

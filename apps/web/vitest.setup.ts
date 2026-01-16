@@ -1,6 +1,7 @@
 import type { ReactElement, ReactNode } from 'react';
 import { vi } from 'vitest';
 import type { Mock } from 'vitest';
+import '@testing-library/jest-dom';
 
 /**
  * Setup файл для @livai/web

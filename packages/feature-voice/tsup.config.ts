@@ -8,11 +8,11 @@ export default defineConfig({
   },
   format: ['esm'],
   outDir: 'dist/esm',
-  dts: false, // tsc генерирует .d.ts через tsconfig.build.json
+  dts: true,
   splitting: false,
-  sourcemap: false, // Отключаем sourcemaps для скорости продакшена
-  clean: false, // Не удаляем .d.ts файлы от tsc
-  treeshake: false, // Отключаем treeshake для скорости
-  minify: false, // Не минифицируем для скорости
-  external: ['effect', 'ulidx'], // Фундаментальные зависимости должны оставаться внешними
+  sourcemap: false,
+  clean: true,
+  treeshake: false,
+  minify: false,
+  external: ['effect', 'ulidx'],
 });

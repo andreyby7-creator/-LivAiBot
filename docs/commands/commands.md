@@ -8,7 +8,8 @@
 pnpm run dev                             # Dev режим (tsup watch)
 pnpm run dev:full                        # Полный запуск (инфра + dev сервер)
 pnpm run build                           # Полная сборка (JS + типы)
-pnpm run type-check                      # Строгая проверка TypeScript
+pnpm run type-check                      # Строгая проверка TS (пакеты отдельно)
+pnpm run tsc:check                       # Строгая проверка TS (все ошибки)
 pnpm run lint:canary                     # Строгий линтинг
 npx dprint fmt                           # Форматирование кода
 pnpm run test                            # Все unit тесты
@@ -33,6 +34,28 @@ pnpm run ci                              # Полная CI pipeline (quality + t
 - **`TURBO_FORCE=true`** - принудительное использование Turbo (даже при ошибках)
 - **`TURBO_REMOTE_CACHE_DISABLED=true`** - отключение remote cache для надежности
 - **`cache: false`** в `turbo.json` для test:ci задачи
+
+## 📜 **Контракты (OpenAPI → Zod)**
+
+Источник истины: `services/<service>-service/openapi.json` (генерируется из FastAPI `app.openapi()`).
+
+```bash
+# Генерация снапшотов OpenAPI (перезапишет services/*-service/openapi.json)
+pnpm run generate:openapi
+
+# Генерация Zod схем из OpenAPI (перезапишет packages/core-contracts/src/validation/zod/generated/*.ts)
+pnpm run generate:zod
+
+# Полный pipeline (OpenAPI snapshots + Zod schemas)
+pnpm run generate:contracts
+
+# Проверка "дрейфа" контрактов (упадёт, если есть незакоммиченные изменения после генерации)
+# Рекомендуется: Turbo сам выполнит генерацию, а потом проверит diff.
+pnpm turbo run check:contracts
+
+# Быстрая проверка diff (без генерации) — полезно после `generate:contracts`
+pnpm run check:contracts
+```
 
 ## 🐍 **Backend / Python**
 
@@ -146,7 +169,8 @@ npx dprint fmt                            # Форматирование
 ### Основные команды тестирования
 
 ```bash
-pnpm run test                             # Все Unit тесты
+pnpm run test                             # Все Unit тесты (Turbo оркестрация)
+pnpm run test:file                        # Запуск конкретного тестового файла
 pnpm run test:py                          # Все Python тесты
 pnpm run test:int                         # Все Integration тесты
 pnpm run test:e2e                         # Все E2E тесты (Playwright) - prod
@@ -158,6 +182,23 @@ pnpm run coverage:open                    # Открыть coverage в брау�
 npm run bench                             # Interactive benchmarks
 npm run bench:ci                          # CI mode benchmarks
 pnpm bench:ci                             # Turbo + все пакеты в проекте
+```
+
+### Тестирование отдельных пакетов
+
+```bash
+# Запуск тестов конкретного пакета
+turbo run test:ci --filter=@livai/app
+turbo run test:ci --filter=@livai/feature-auth
+turbo run test:ci --filter=@livai/ui-core
+
+# Запуск конкретного тестового файла
+turbo run test:file --filter=@livai/app -- packages/app/tests/unit/types/common.test.ts
+turbo run test:file --filter=@livai/feature-auth -- packages/feature-auth/tests/unit/schemas.test.ts
+
+# Локальный запуск в пакете (быстрее для разработки)
+cd packages/app && pnpm test -- tests/unit/types/common.test.ts
+cd packages/feature-auth && pnpm test -- tests/unit/hooks/useAuth.test.ts
 ```
 
 ## 🔍 **Pre-commit проверки**

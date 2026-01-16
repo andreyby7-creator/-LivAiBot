@@ -10,13 +10,21 @@
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
     "resolveJsonModule": false,
-    "declaration": true,
     "declarationMap": false, // Отключаем .d.ts.map для скорости
     "emitDeclarationOnly": false,
     "allowJs": false,
     "checkJs": false,
-    "jsx": "react-jsx"
+    "jsx": "react-jsx",
+    "strict": true
   },
   "include": ["src"],
-  "exclude": ["node_modules", "dist", "src/**/*.test.ts", "src/**/*.spec.ts", "test/**/*"]
+  "exclude": [
+    "node_modules",
+    "dist",
+    "src/**/*.test.ts",
+    "src/**/*.spec.ts",
+    "src/**/*.test.tsx",
+    "src/**/*.spec.tsx",
+    "test/**/*"
+  ]
 }

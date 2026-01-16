@@ -1,15 +1,11 @@
 /**
- * @file Core Contracts - Foundation layer для LivAi
+ * @file @livai/ui-core — атомарные UI компоненты (примитивы).
  *
- * Содержит контракты API, типы ошибок и контекстные данные,
- * которые используются во всех сервисах и UI.
+ * Принцип:
+ * - только UI-примитивы (без бизнес-логики и без контрактов API)
+ * - без тяжёлых инфраструктурных зависимостей (db/sql/ai и т.п.)
  */
 
-// Ошибки и их коды
-export * from './errors/index.js';
-
-// Контекст (заголовки, etc.)
-export * from './context/index.js';
-
-// Доменные типы и DTO
-export * from './domain/index.js';
+export * from './primitives/button.js';
+export * from './primitives/input.js';
+export * from './primitives/form-field.js';

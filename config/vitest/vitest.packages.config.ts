@@ -96,7 +96,7 @@ const DEFAULT_THRESHOLDS = {
 function getOptimalConcurrency(): number {
   const cpuCount = os.cpus().length;
 
-  return process.env.CI === 'true'
+  return process.env['CI'] === 'true'
     ? Math.min(8, Math.max(2, Math.floor(cpuCount / 2))) // В CI используем половину ядер для стабильности, но не больше 8
     : Math.min(8, Math.max(4, cpuCount)); // Локально используем все ядра для скорости, но не больше 8
 }
@@ -182,7 +182,7 @@ const ENVIRONMENT_CONFIGS = {
       jsdom: {
         resources: 'usable', // Оптимизировано: только необходимые ресурсы для UI тестов
         url: 'http://localhost:3000',
-        pretendToBeVisual: process.env.CI !== 'true', // Визуальный режим только в dev
+        pretendToBeVisual: process.env['CI'] !== 'true', // Визуальный режим только в dev
       },
     },
   },
@@ -261,11 +261,11 @@ export function createPackageVitestConfig(options: PackageConfigOptions): Packag
       ...THREADING_CONFIG,
 
       // Таймауты: строже в CI для выявления проблем производительности
-      testTimeout: process.env.CI === 'true' ? 30000 : 60000,
-      hookTimeout: process.env.CI === 'true' ? 10000 : 30000,
+      testTimeout: process.env['CI'] === 'true' ? 30000 : 60000,
+      hookTimeout: process.env['CI'] === 'true' ? 10000 : 30000,
 
       // Watch режим только в разработке
-      watch: process.env.CI !== 'true',
+      watch: process.env['CI'] !== 'true',
 
       // Настройки окружения
       // ВНИМАНИЕ: если env содержит readonly/замороженные объекты,
@@ -282,7 +282,7 @@ export function createPackageVitestConfig(options: PackageConfigOptions): Packag
       exclude: ['dist/**', 'node_modules/**', 'e2e/**'],
 
       // Повторы для flaky тестов: больше в CI
-      retry: process.env.CI === 'true' ? 3 : 1,
+      retry: process.env['CI'] === 'true' ? 3 : 1,
 
       // Покрытие кода с расширенными репортерами
       coverage: {
@@ -296,24 +296,24 @@ export function createPackageVitestConfig(options: PackageConfigOptions): Packag
         clean: true,
         cleanOnRerun: true,
         // Thresholds применяются только в CI для соблюдения контракта качества
-        ...(process.env.CI === 'true' ? { thresholds } : {}),
+        ...(process.env['CI'] === 'true' ? { thresholds } : {}),
       },
 
       // Логирование: детальное в dev, минимальное в CI
-      silent: process.env.CI === 'true',
+      silent: process.env['CI'] === 'true',
 
       // Не считать отсутствие тестов ошибкой
       passWithNoTests: true,
 
       // Разрешать .only в dev для отладки, запрещать в CI
-      allowOnly: process.env.CI !== 'true',
+      allowOnly: process.env['CI'] !== 'true',
 
       // Не останавливаться после первой ошибки для полного отчета
       bail: 0,
 
       // Оптимизации для CI
-      disableConsoleIntercept: process.env.CI === 'true',
-      slowTestThreshold: process.env.CI === 'true' ? 1000 : 300,
+      disableConsoleIntercept: process.env['CI'] === 'true',
+      slowTestThreshold: process.env['CI'] === 'true' ? 1000 : 300,
     },
   };
 }

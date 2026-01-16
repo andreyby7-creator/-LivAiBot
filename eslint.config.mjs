@@ -54,6 +54,7 @@ export default [
     ignores: [
       '**/dist/**',        // Скомпилированные файлы во всех пакетах монорепо
       '**/build/**',       // Папки сборки
+      '**/generated/**',   // Автогенерированные исходники (проверяем через check:contracts)
       '**/html/**',        // Сгенерированные HTML assets и бандлы (webpack/vite output)
       '**/.turbo/**',      // Кеш Turborepo
       '**/.cache/**',      // Различные кеши (webpack, babel, etc.)

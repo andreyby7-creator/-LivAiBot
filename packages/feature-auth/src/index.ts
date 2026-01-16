@@ -1,7 +1,8 @@
 /**
- * @file @livai/feature-auth - Бизнес-логика аутентификации
+ * @file @livai/feature-auth — бизнес-логика аутентификации (UI-агностичная).
  *
- * Этот пакет содержит Бизнес-логика аутентификации для LivAi.
+ * На старте Фазы 2 здесь держим:
+ * - схемы/типы для форм auth (Login/Register), согласованные с backend контрактами
  */
 
-// TODO: Add exports here
+export * from './schemas.js';

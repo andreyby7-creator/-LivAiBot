@@ -167,7 +167,7 @@ async function runPythonTests(options: RunPythonTestsOptions = {}): Promise<Test
     let stderr = '';
 
     // Перенаправляем stdout и stderr для лучшей обработки ошибок
-    const isCI = process.env.CI === 'true' || process.env.CI === '1';
+    const isCI = process.env['CI'] === 'true' || process.env['CI'] === '1';
     const prefix = isCI ? '[PYTEST] ' : '';
 
     pythonProcess.stdout.on('data', (data: Buffer) => {

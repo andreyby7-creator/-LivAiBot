@@ -1,0 +1,23 @@
+{{! 
+@file Handlebars-шаблон для генерации только Zod-схем (без HTTP клиента).
+
+Важно:
+- этот файл — шаблон, а не исходник TypeScript
+- итоговые .ts файлы дополнительно получают заголовок через scripts/generate-zod-schemas.mjs
+}}
+
+import { z } from "zod";
+
+{{#each schemas}}
+const {{@key}} = {{{this}}};
+export const {{@key}}Schema = {{@key}};
+{{/each}}
+
+export const schemas = {
+{{#each schemas}}
+  {{@key}}: {{@key}}Schema,
+{{/each}}
+} as const;
+
+export type SchemaName = keyof typeof schemas;
+

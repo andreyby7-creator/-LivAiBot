@@ -16,11 +16,11 @@ import { glob as fg } from 'fast-glob';
 import type { FullConfig } from '@playwright/test';
 
 // Определение окружения
-const isVerbose = Boolean(process.env.E2E_VERBOSE !== 'false'); // По умолчанию verbose включен
+const isVerbose = Boolean(process.env['E2E_VERBOSE'] !== 'false'); // По умолчанию verbose включен
 
 // URL для API (может отличаться от веб сервера)
-const API_BASE_URL = process.env.E2E_API_BASE_URL
-  ?? process.env.E2E_BASE_URL
+const API_BASE_URL = process.env['E2E_API_BASE_URL']
+  ?? process.env['E2E_BASE_URL']
   ?? 'http://localhost:3000';
 
 // Интерфейс для AI бота (должен совпадать с global-setup.ts)
@@ -146,8 +146,8 @@ async function globalTeardown(_config: FullConfig): Promise<void> {
   if (isVerbose) console.log('🧹 Cleaning up E2E test environment...');
 
   // В CI предотвращаем параллельную очистку общих ресурсов
-  const workerId = process.env.TEST_WORKER_ID ?? '0';
-  const isCI = process.env.CI !== undefined;
+  const workerId = process.env['TEST_WORKER_ID'] ?? '0';
+  const isCI = process.env['CI'] !== undefined;
   const cleanupLockFile = path.join(process.cwd(), 'test-results', '.cleanup-lock');
 
   if (isCI && workerId !== '0') {
@@ -181,7 +181,7 @@ async function globalTeardown(_config: FullConfig): Promise<void> {
     const cleanupClient = new CleanupApiClient();
 
     // Читаем данные setup для очистки (уникальный файл для каждого worker)
-    const workerId = process.env.TEST_WORKER_ID ?? '0';
+    const workerId = process.env['TEST_WORKER_ID'] ?? '0';
     const setupFile = path.join(process.cwd(), 'test-results', `e2e-setup-${workerId}.json`);
 
     try {
@@ -246,7 +246,7 @@ async function globalTeardown(_config: FullConfig): Promise<void> {
       let cleanupTasks: string[] = [];
 
       // Очистка Playwright cache (только в CI для экономии времени разработки)
-      if (Boolean(process.env.CI)) {
+      if (Boolean(process.env['CI'])) {
         const playwrightCacheDir = path.join(process.cwd(), '.playwright');
         try {
           if (fsSync.existsSync(playwrightCacheDir)) {

@@ -1,0 +1,46 @@
+{
+  "common": {
+    "loading": "Загрузка…"
+  },
+  "auth": {
+    "email": {
+      "label": "Email"
+    },
+    "password": {
+      "label": "Пароль"
+    },
+    "workspaceName": {
+      "label": "Название workspace"
+    },
+    "login": {
+      "title": "Вход",
+      "submit": "Войти"
+    },
+    "register": {
+      "title": "Регистрация",
+      "link": "Вход",
+      "submit": "Зарегистрироваться"
+    }
+  },
+  "home": {
+    "title": "LivAi",
+    "description": "Платформа ИИ-чатботов с мульти-тенантной архитектурой",
+    "dashboard": "Дашборд",
+    "e2eStatus": "Статус E2E тестов: ✅ Работает"
+  },
+  "dashboard": {
+    "title": "Дашборд",
+    "description": "Каркас UI. Экран будет развиваться по Roadmap."
+  },
+  "validation": {
+    "required": "Обязательное поле",
+    "string": {
+      "min": "Слишком короткое значение",
+      "max": "Слишком длинное значение"
+    }
+  },
+  "metadata": {
+    "title": "LivAi - Платформа ИИ-чатботов",
+    "description": "Платформа ИИ-чатботов с мульти-тенантной архитектурой"
+  }
+}

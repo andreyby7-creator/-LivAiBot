@@ -28,13 +28,13 @@ const aliases = {};
  */
 const TEST_CONFIG = {
   /** Изоляция тестов: false в CI для скорости, true в dev для надежности */
-  ISOLATE_TESTS: process.env.CI === 'true' ? false : true,
+  ISOLATE_TESTS: process.env['CI'] === 'true' ? false : true,
   /** Параллельность: выше в CI для скорости, ниже в dev для стабильности с БД */
-  MAX_CONCURRENCY: process.env.CI === 'true' ? 2 : 1,
+  MAX_CONCURRENCY: process.env['CI'] === 'true' ? 2 : 1,
   /** Режим watch: включен в dev для live-reload, отключен в CI */
-  WATCH_MODE: process.env.CI !== 'true',
+  WATCH_MODE: process.env['CI'] !== 'true',
   /** Логирование: более детальное в dev, минимальное в CI */
-  VERBOSE_LOGGING: process.env.CI !== 'true',
+  VERBOSE_LOGGING: process.env['CI'] !== 'true',
 } as const;
 
 // Определение Node версии для fallback esbuild target
@@ -68,14 +68,14 @@ function logVitestConfiguration(
   env: Record<string, string>,
 ): void {
   // Логируем только в CI или при явном запросе (VITEST_ENV_DEBUG=true)
-  if (process.env.CI === 'true' || process.env.VITEST_ENV_DEBUG === 'true') {
+  if (process.env['CI'] === 'true' || process.env['VITEST_ENV_DEBUG'] === 'true') {
     console.log(`🧪 ${configName} configuration loaded:`);
-    console.log(`   - Environment: ${process.env.CI === 'true' ? 'CI' : 'Development'}`);
+    console.log(`   - Environment: ${process.env['CI'] === 'true' ? 'CI' : 'Development'}`);
     console.log(`   - Node.js version: ${nodeVersion} (target: ${esbuildTarget})`);
     console.log(`   - Watch mode: ${testConfig.WATCH_MODE ? 'enabled' : 'disabled'}`);
     console.log(`   - Max concurrency: ${testConfig.MAX_CONCURRENCY}`);
     console.log(
-      `   - Threading: ${process.env.CI === 'true' ? 'multi-threaded (CI)' : 'auto (dev)'}`,
+      `   - Threading: ${process.env['CI'] === 'true' ? 'multi-threaded (CI)' : 'auto (dev)'}`,
     );
     console.log(`   - Test isolation: ${testConfig.ISOLATE_TESTS ? 'enabled' : 'disabled'}`);
     console.log(`   - allowOnly: ${testConfig.WATCH_MODE ? 'enabled (dev)' : 'disabled (CI)'}`);
@@ -113,7 +113,7 @@ function createBaseVitestConfig(
       hookTimeout: 10000,
 
       /** Переменные окружения для тестов с валидацией */
-      env: { ...(overrides.test?.env || env) },
+      env: { ...(overrides.test?.['env'] || env) },
 
       /** Репортеры для вывода результатов тестирования */
       reporters: [
@@ -141,7 +141,7 @@ function createBaseVitestConfig(
       isolate: TEST_CONFIG.ISOLATE_TESTS,
 
       /** Повтор неудачных тестов: больше в CI для flaky-тестов */
-      retry: process.env.CI === 'true' ? 3 : 1,
+      retry: process.env['CI'] === 'true' ? 3 : 1,
 
       /**
        * Не останавливаться после первого неудачного теста
@@ -157,7 +157,7 @@ function createBaseVitestConfig(
       passWithNoTests: true,
 
       /** Разрешить .only тесты: да в dev для отладки, нет в CI для полного прогона */
-      allowOnly: process.env.CI !== 'true',
+      allowOnly: process.env['CI'] !== 'true',
 
       /** По умолчанию тестировать все unit и integration тесты */
       include: [
@@ -191,22 +191,26 @@ function createBaseVitestConfig(
        * Экспериментальная опция: отключить intercept консоли для лучшей производительности в CI
        * @experimental Не документирована в Vitest 4.x официально
        */
-      disableConsoleIntercept: process.env.CI === 'true',
+      disableConsoleIntercept: process.env['CI'] === 'true',
 
       /**
        * Экспериментальная опция: порог для медленных тестов (логирование предупреждений)
        * @experimental Не документирована в Vitest 4.x официально
        */
-      slowTestThreshold: process.env.CI === 'true' ? 1000 : 300,
+      slowTestThreshold: process.env['CI'] === 'true' ? 1000 : 300,
 
       /** Настройка покрытия кода */
-      coverage: process.env.COVERAGE === 'true' || process.env.CI === 'true'
+      coverage: process.env['COVERAGE'] === 'true'
+          || process.env['CI'] === 'true'
+          || process.env['TEST_FILE_MODE'] === 'true'
         ? {
           provider: 'v8',
-          reporter: ['text', 'json', 'html', 'lcov'],
+          reporter: process.env['TEST_FILE_MODE'] === 'true'
+            ? ['json']
+            : ['text', 'json', 'html', 'lcov'],
           reportsDirectory: './coverage',
-          // Отключаем thresholds в development для гибкости
-          thresholds: process.env.CI === 'true'
+          // Отключаем thresholds в development для гибкости, но включаем для TEST_FILE_MODE
+          thresholds: process.env['CI'] === 'true' || process.env['TEST_FILE_MODE'] === 'true'
             ? {
               lines: 85,
               functions: 80,
@@ -215,7 +219,7 @@ function createBaseVitestConfig(
             }
             : undefined,
           // Покрытие для всех исходных файлов, включая не тестируемые напрямую
-          all: true,
+          all: process.env['CI'] === 'true' || process.env['TEST_FILE_MODE'] === 'true',
           include: [
             'packages/**/src/**/*.ts',
             'packages/**/src/**/*.tsx',

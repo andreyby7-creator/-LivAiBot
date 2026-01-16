@@ -236,7 +236,7 @@ export default defineConfig(({ mode }: ConfigEnv) => {
   // Вычисляем appFramework один раз
   const appFramework = getAppFramework(app);
 
-  if (process.env.VITEST_ENV_DEBUG === 'true') {
+  if (process.env['VITEST_ENV_DEBUG'] === 'true') {
     console.log(`🏗️  Building ${app} in ${mode} (${appFramework})`);
     console.log(`   base: ${cfg.base}`);
     console.log(`   out: dist/${app}`);

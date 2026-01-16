@@ -13,3 +13,6 @@ export * from './context/index.js';
 
 // Доменные типы и DTO
 export * from './domain/index.js';
+
+// Runtime-валидация для frontend (Zod, автогенерация из OpenAPI + кастомные расширения)
+export * from './validation/zod/index.js';

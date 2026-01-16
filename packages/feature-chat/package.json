@@ -2,6 +2,15 @@
   "name": "@livai/feature-chat",
   "version": "1.0.0",
   "description": "Chat feature business logic and domain models",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/livai/livai.git",
+    "directory": "packages/feature-chat"
+  },
+  "bugs": {
+    "url": "https://github.com/livai/livai/issues"
+  },
+  "homepage": "https://github.com/livai/livai/tree/main/packages/feature-chat#readme",
   "main": "./dist/esm/index.js",
   "module": "./dist/esm/index.js",
   "types": "./dist/esm/index.d.ts",
@@ -9,8 +18,8 @@
   "license": "MIT",
   "type": "module",
   "engines": {
-    "node": ">=24.0.0",
-    "pnpm": ">=10.0.0"
+    "node": "24.9.0",
+    "pnpm": "10.28.0"
   },
   "files": [
     "dist"
@@ -18,57 +27,15 @@
   "exports": {
     ".": {
       "types": "./dist/esm/index.d.ts",
-      "import": "./dist/esm/index.js",
-      "default": "./dist/esm/index.js"
-    },
-    "./io": {
-      "types": "./dist/esm/io/index.d.ts",
-      "import": "./dist/esm/io/index.js",
-      "default": "./dist/esm/io/index.js"
-    },
-    "./fp": {
-      "types": "./dist/esm/fp/index.d.ts",
-      "import": "./dist/esm/fp/index.js",
-      "default": "./dist/esm/fp/index.js"
-    },
-    "./domain": {
-      "types": "./dist/esm/domain/index.d.ts",
-      "import": "./dist/esm/domain/index.js",
-      "default": "./dist/esm/domain/index.js"
-    },
-    "./errors": {
-      "types": "./dist/esm/errors/index.d.ts",
-      "import": "./dist/esm/errors/index.js",
-      "default": "./dist/esm/errors/index.js"
-    },
-    "./context": {
-      "types": "./dist/esm/context/index.d.ts",
-      "import": "./dist/esm/context/index.js",
-      "default": "./dist/esm/context/index.js"
-    },
-    "./targets/shared": {
-      "types": "./dist/esm/targets/shared.d.ts",
-      "import": "./dist/esm/targets/shared.js",
-      "default": "./dist/esm/targets/shared.js"
-    },
-    "./targets/node": {
-      "types": "./dist/esm/targets/node.d.ts",
-      "import": "./dist/esm/targets/node.js",
-      "default": "./dist/esm/targets/node.js"
-    },
-    "./targets/browser": {
-      "types": "./dist/esm/targets/browser.d.ts",
-      "import": "./dist/esm/targets/browser.js",
-      "default": "./dist/esm/targets/browser.js"
+      "import": "./dist/esm/index.js"
     }
   },
   "scripts": {
-    "build": "pnpm run build:types & pnpm run build:js & wait",
-    "build:js": "tsup",
-    "build:types": "rm -f *.tsbuildinfo && tsc -b tsconfig.build.json",
+    "build": "tsup",
+    "build:dev": "tsup --sourcemap --no-clean",
     "build:watch": "tsup --watch",
     "dev": "tsup --watch",
-    "lint": "cd ../ && pnpm run lint --filter @livai/feature-chat",
+    "lint": "pnpm run lint:dev",
     "type-check": "tsc --noEmit",
     "test": "NODE_OPTIONS='--no-warnings' vitest",
     "test:watch": "vitest --watch",
@@ -78,13 +45,13 @@
     "test:coverage:watch": "NODE_OPTIONS='--no-warnings' vitest --coverage --watch",
     "test:ci": "NODE_OPTIONS='--no-warnings' vitest run --coverage",
     "clean": "rm -rf dist *.tsbuildinfo .eslintcache",
-    "lint:dev": "cd ../ && pnpm run lint --filter @livai/feature-chat",
+    "lint:dev": "ESLINT_MODE=dev eslint --config ../../eslint.config.mjs src",
     "lint:canary": "ESLINT_MODE=canary eslint --config ../../eslint.config.mjs src",
-    "lint:canary:fix": "cd ../ && pnpm run lint:canary:fix",
-    "check:deps": "node scripts/check-circular-deps-feature-chat.js",
+    "lint:canary:fix": "ESLINT_MODE=canary eslint --config ../../eslint.config.mjs src --fix",
+    "check:deps": "cd ../.. && node scripts/check-circular-deps-monorepo.js",
     "ci:check": "pnpm run type-check && pnpm run lint && pnpm run test:ci && pnpm run check:deps",
-    "lint:fix": "cd ../ && pnpm run lint:fix --filter @livai/feature-chat",
-    "lint:ci": "cd ../ && ESLINT_MODE=canary pnpm lint --max-warnings 0"
+    "lint:fix": "ESLINT_MODE=dev eslint --config ../../eslint.config.mjs src --fix",
+    "lint:ci": "ESLINT_MODE=canary eslint --config ../../eslint.config.mjs src --max-warnings 0"
   },
   "keywords": [
     "typescript",
@@ -99,11 +66,7 @@
     "effect": "^3.19.13",
     "typescript": "5.9.3"
   },
-  "peerDependenciesMeta": {
-    "effect": {
-      "optional": true
-    }
-  },
+  "peerDependenciesMeta": {},
   "devDependencies": {
     "@livai/vitest-config": "workspace:*",
     "@vitest/coverage-v8": "4.0.17",

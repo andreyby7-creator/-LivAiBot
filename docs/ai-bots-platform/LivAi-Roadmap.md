@@ -113,6 +113,10 @@
 - Экран регистрации/входа + создание workspace (U1).
 - Экран “Боты”: список + создание + редактор инструкции (U3/U5).
 - Экран “Тест-чат” (U10).
+- Интеграция Zod-валидации (frontend/runtime guard):
+  - подключить `@livai/core-contracts/validation/zod` в UI;
+  - React Hook Form + `zodResolver(...)`;
+  - единый формат ошибок + i18n через `formatZodError(...)` / `formatZodIssues(...)`.
 
 ### Критерии готовности
 
@@ -124,6 +128,12 @@
 ## Фаза 3 — Knowledge/RAG (U6) + файлы (MinIO) + векторное хранилище (Qdrant)
 
 **Цель:** “база знаний” как ключевая ценность продукта.
+
+### 3.x Контракты (OpenAPI → Zod)
+
+- добавить `knowledge-service` (и связанные DTO) в pipeline контрактов:
+  - `services/knowledge-service/openapi.json` (snapshot)
+  - `packages/core-contracts/src/validation/zod/generated/knowledge.ts`
 
 ### 3.0 Минимальное усиление: decision trace для RAG (сразу)
 
@@ -174,6 +184,11 @@
 
 **Цель:** подключать каналы без потери сообщений и без “двойной обработки”.
 
+> Опционально (если нужен “developer-facing” слой для интеграторов/партнёров):
+> можно добавить публикацию контрактов интеграций/действий в виде **OpenAPI/JSON Schema**.
+> Источник истины для API остаётся backend OpenAPI; “схемы действий” можно генерировать отдельно
+> (Zod → OpenAPI через `zod-openapi` или Zod → JSON Schema).
+
 ### 4.1 Обязательные механики (до первого коннектора)
 
 - webhook ingress в gateway;
@@ -206,6 +221,12 @@
 - роли в workspace (owner/admin/editor/viewer);
 - audit log на изменения конфигурации;
 - API keys (для внешних интеграций и “персональный API канал”).
+
+> Опционально (для интеграторов): при введении API keys и “персонального API канала”
+> имеет смысл подумать про **официальную публикацию контрактов**:
+>
+> - backend OpenAPI (основной);
+> - схемы webhook/actions (OpenAPI/JSON Schema) — если появится marketplace действий / user-defined actions.
 
 ---
 

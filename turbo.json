@@ -1,6 +1,22 @@
 {
   "$schema": "https://turbo.build/schema.json",
   "tasks": {
+    "generate:openapi": {
+      "cache": false,
+      "outputs": ["services/*-service/openapi.json"]
+    },
+    "generate:zod": {
+      "cache": false,
+      "outputs": ["packages/core-contracts/src/validation/zod/generated/**"]
+    },
+    "generate:contracts": {
+      "dependsOn": ["generate:openapi", "generate:zod"],
+      "cache": false
+    },
+    "check:contracts": {
+      "dependsOn": ["generate:contracts"],
+      "cache": false
+    },
     "build": {
       "dependsOn": ["^build"],
       "outputs": ["dist/**", "*.tsbuildinfo"],
@@ -31,7 +47,8 @@
     },
     "test": {
       "inputs": ["src/**", "tests/**", "**/*.config.*"],
-      "outputs": ["coverage/**"]
+      "outputs": [],
+      "cache": false
     },
     "test:ci": {
       "inputs": ["src/**", "tests/**", "**/*.config.*"],
@@ -48,6 +65,11 @@
     },
     "test:coverage:watch": {
       "inputs": ["src/**", "tests/**", "**/*.config.*"],
+      "cache": false
+    },
+    "test:file": {
+      "inputs": ["src/**", "tests/**", "**/*.config.*"],
+      "outputs": ["coverage/**"],
       "cache": false
     },
     "bench": {

@@ -1,7 +1,9 @@
 /**
- * @file @livai/ui-shared - Общие UI компоненты и утилиты
+ * @file @livai/ui-shared — общие UI-утилиты (i18n, mapping ошибок, helpers).
  *
- * Этот пакет содержит Общие UI компоненты и утилиты для LivAi.
+ * В Фазе 2 здесь держим только то, что реально переиспользуется между UI/feature слоями.
  */
 
-// TODO: Add exports here
+export * from './i18n/types.js';
+export * from './validation/zod.js';
+export * from './validation/rhf-zod-resolver.js';

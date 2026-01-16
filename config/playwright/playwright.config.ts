@@ -20,7 +20,7 @@
 import { devices } from 'playwright';
 
 // Определение окружения выполнения
-const isCI = !!process.env.CI;
+const isCI = !!process.env['CI'];
 
 /**
  * ДОКУМЕНТАЦИЯ ПО ПЕРЕМЕННЫМ ОКРУЖЕНИЯ
@@ -39,7 +39,7 @@ const isCI = !!process.env.CI;
 
 // Валидация и установка значения параллельности
 function getFullyParallel(): boolean {
-  const envValue = process.env.E2E_FULLY_PARALLEL;
+  const envValue = process.env['E2E_FULLY_PARALLEL'];
 
   if (envValue === 'true') return true;
   if (envValue === 'false') return false;
@@ -50,7 +50,7 @@ function getFullyParallel(): boolean {
 
 // Валидация и установка количества воркеров
 function getWorkers(): number | undefined {
-  const envValue = process.env.E2E_WORKERS;
+  const envValue = process.env['E2E_WORKERS'];
 
   if (envValue) {
     const parsed = parseInt(envValue, 10);
@@ -84,10 +84,10 @@ function getTimeouts(): {
   };
 
   return {
-    testTimeout: parseTimeout(process.env.E2E_TEST_TIMEOUT, 2 * 60_000), // 2 мин
-    actionTimeout: parseTimeout(process.env.E2E_ACTION_TIMEOUT, 15_000), // 15 сек
-    navigationTimeout: parseTimeout(process.env.E2E_NAVIGATION_TIMEOUT, isCI ? 60_000 : 45_000), // 60 сек CI, 45 сек локально
-    expectTimeout: parseTimeout(process.env.E2E_EXPECT_TIMEOUT, isCI ? 60_000 : 45_000), // 60 сек CI, 45 сек локально
+    testTimeout: parseTimeout(process.env['E2E_TEST_TIMEOUT'], 2 * 60_000), // 2 мин
+    actionTimeout: parseTimeout(process.env['E2E_ACTION_TIMEOUT'], 15_000), // 15 сек
+    navigationTimeout: parseTimeout(process.env['E2E_NAVIGATION_TIMEOUT'], isCI ? 60_000 : 45_000), // 60 сек CI, 45 сек локально
+    expectTimeout: parseTimeout(process.env['E2E_EXPECT_TIMEOUT'], isCI ? 60_000 : 45_000), // 60 сек CI, 45 сек локально
   };
 }
 
@@ -115,7 +115,7 @@ function assessSystemResources(): { recommendedWorkers: number; warnings: string
 }
 
 // Вывод информации о конфигурации параллельности (только локально для отладки)
-if (!isCI && process.env.E2E_VERBOSE !== 'false') {
+if (!isCI && process.env['E2E_VERBOSE'] !== 'false') {
   const { recommendedWorkers, warnings } = assessSystemResources();
 
   console.log(
@@ -151,14 +151,10 @@ export const AI_TEST_CONFIG = {
 // Настройки web сервера для E2E тестов
 // E2E_WEB_COMMAND - команда запуска сервера (по умолчанию: 'pnpm run dev')
 // E2E_BASE_URL - URL веб сервера (по умолчанию: 'http://localhost:3000')
-const WEBSERVER_COMMAND = process.env.E2E_WEB_COMMAND || 'pnpm run dev';
-const WEBSERVER_URL = process.env.E2E_BASE_URL || 'http://localhost:3000';
-
-const WEBSERVER_TIMEOUT = isCI ? 180000 : 120000; // 3 мин в CI, 2 мин локально
-const WEBSERVER_CWD = 'apps/web'; // Явная рабочая директория для надежности
+const WEBSERVER_URL = process.env['E2E_BASE_URL'] || 'http://localhost:3000';
 
 // Функция очистки старых отчетов отключена для совместимости с ES modules
-function cleanupOldReports(baseDir: string, maxAgeDays: number = 7): void {
+function cleanupOldReports(_baseDir: string, _maxAgeDays: number = 7): void {
   // Очистка отчетов отключена для избежания проблем с require() в ES modules
   console.log(`ℹ️  Report cleanup disabled (ES modules compatibility)`);
 }
@@ -169,8 +165,8 @@ const REPORTS_DIR = isCI
   : './playwright-report/';
 
 // Очистка старых отчетов (в CI агрессивнее, локально мягче)
-const maxAgeDays = process.env.E2E_REPORTS_MAX_AGE_DAYS
-  ? parseInt(process.env.E2E_REPORTS_MAX_AGE_DAYS, 10)
+const maxAgeDays = process.env['E2E_REPORTS_MAX_AGE_DAYS']
+  ? parseInt(process.env['E2E_REPORTS_MAX_AGE_DAYS'], 10)
   : (isCI ? 7 : 30);
 
 cleanupOldReports('./playwright-report', maxAgeDays);
@@ -182,9 +178,9 @@ const OUTPUT_DIR = `${REPORTS_DIR}/test-results`;
 // CI metadata для traceability
 const ciMetadata = isCI
   ? {
-    commit: process.env.GITHUB_SHA || process.env.COMMIT_SHA || 'unknown',
-    branch: process.env.GITHUB_REF_NAME || process.env.BRANCH_NAME || 'unknown',
-    runId: process.env.GITHUB_RUN_ID || process.env.RUN_ID || 'unknown',
+    commit: process.env['GITHUB_SHA'] || process.env['COMMIT_SHA'] || 'unknown',
+    branch: process.env['GITHUB_REF_NAME'] || process.env['BRANCH_NAME'] || 'unknown',
+    runId: process.env['GITHUB_RUN_ID'] || process.env['RUN_ID'] || 'unknown',
   }
   : undefined;
 
