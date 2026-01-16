@@ -3,10 +3,32 @@
  */
 
 import React from 'react';
-import '@testing-library/jest-dom';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import '@testing-library/jest-dom/vitest';
 import { RegisterForm } from '../../src/auth/register-form';
+
+// Полная очистка DOM между тестами
+afterEach(cleanup);
+
+// Функция для изолированного рендера
+function renderIsolated(component: React.ReactElement) {
+  const container = document.createElement('div');
+  document.body.appendChild(container);
+
+  const result = render(component, { container });
+
+  return {
+    ...result,
+    container,
+    // Локальный поиск элементов
+    getByRole: (role: string, options?: any) => within(container).getByRole(role, options),
+    getByText: (text: string | RegExp) => within(container).getByText(text),
+    getByLabelText: (text: string | RegExp) => within(container).getByLabelText(text),
+    queryByRole: (role: string, options?: any) => within(container).queryByRole(role, options),
+    findByRole: (role: string, options?: any) => within(container).findByRole(role, options),
+  };
+}
 
 type HasTextContent = { readonly textContent: string | null; };
 
@@ -61,39 +83,43 @@ describe('RegisterForm', () => {
 
   describe('рендеринг', () => {
     it('должен рендерить все элементы формы', () => {
-      render(<RegisterForm {...defaultProps} />);
+      const { getByLabelText } = renderIsolated(
+        <RegisterForm key='render-all-elements-test' {...defaultProps} />,
+      );
 
-      expect(screen.getByLabelText('Электронная почта')).toBeInTheDocument();
-      expect(screen.getByLabelText('Пароль')).toBeInTheDocument();
-      expect(screen.getByLabelText('Название рабочего пространства')).toBeInTheDocument();
+      expect(getByLabelText('Электронная почта')).toBeInTheDocument();
+      expect(getByLabelText('Пароль')).toBeInTheDocument();
+      expect(getByLabelText('Название рабочего пространства')).toBeInTheDocument();
       expect(screen.getByRole('button', { name: 'Зарегистрироваться' })).toBeInTheDocument();
     });
 
     it('должен рендерить с английскими лейблами без i18n', () => {
-      render(<RegisterForm onSubmit={vi.fn()} />);
+      const { getByLabelText, getByRole } = renderIsolated(
+        <RegisterForm key='english-labels-test' onSubmit={vi.fn()} />,
+      );
 
-      expect(screen.getByLabelText('Email')).toBeInTheDocument();
-      expect(screen.getByLabelText('Password')).toBeInTheDocument();
-      expect(screen.getByLabelText('Workspace name')).toBeInTheDocument();
-      expect(screen.getByRole('button', { name: 'Sign Up' })).toBeInTheDocument();
+      expect(getByLabelText('Email')).toBeInTheDocument();
+      expect(getByLabelText('Password')).toBeInTheDocument();
+      expect(getByLabelText('Workspace name')).toBeInTheDocument();
+      expect(getByRole('button', { name: 'Sign Up' })).toBeInTheDocument();
     });
 
     it('должен рендерить с autoFocus на email поле по умолчанию', () => {
-      render(<RegisterForm {...defaultProps} />);
+      render(<RegisterForm key='i18n-labels-test' {...defaultProps} />);
 
       const emailInput = screen.getByLabelText('Электронная почта');
       expect(emailInput).toHaveFocus();
     });
 
     it('должен отключать autoFocus на email поле при autoFocus={false}', () => {
-      render(<RegisterForm {...defaultProps} autoFocus={false} />);
+      render(<RegisterForm key='autofocus-false-test' {...defaultProps} autoFocus={false} />);
 
       const emailInput = screen.getByLabelText('Электронная почта');
       expect(emailInput).not.toHaveFocus();
     });
 
     it('должен иметь noValidate на форме', () => {
-      render(<RegisterForm {...defaultProps} />);
+      render(<RegisterForm key='i18n-labels-test' {...defaultProps} />);
 
       const form = document.querySelector('form');
       expect(form).toBeTruthy();
@@ -101,7 +127,7 @@ describe('RegisterForm', () => {
     });
 
     it('должен иметь правильные атрибуты autocomplete', () => {
-      render(<RegisterForm {...defaultProps} />);
+      render(<RegisterForm key='i18n-labels-test' {...defaultProps} />);
 
       const emailInput = screen.getByLabelText('Электронная почта');
       const passwordInput = screen.getByLabelText('Пароль');
@@ -115,7 +141,7 @@ describe('RegisterForm', () => {
 
   describe('взаимодействие с формой', () => {
     it('должен позволять вводить email, пароль и workspace name', () => {
-      render(<RegisterForm {...defaultProps} />);
+      render(<RegisterForm key='i18n-labels-test' {...defaultProps} />);
 
       const emailInput = screen.getByLabelText('Электронная почта');
       const passwordInput = screen.getByLabelText('Пароль');
@@ -132,7 +158,7 @@ describe('RegisterForm', () => {
 
     it('должен вызывать onSubmit при успешной отправке формы', async () => {
       const mockOnSubmit = vi.fn().mockResolvedValue(undefined);
-      render(<RegisterForm {...defaultProps} onSubmit={mockOnSubmit} />);
+      render(<RegisterForm key='test-form' {...defaultProps} onSubmit={mockOnSubmit} />);
 
       const emailInput = screen.getByLabelText('Электронная почта');
       const passwordInput = screen.getByLabelText('Пароль');
@@ -155,7 +181,7 @@ describe('RegisterForm', () => {
 
     it('должен обрабатывать async onSubmit с ошибкой', async () => {
       const mockOnSubmit = vi.fn().mockRejectedValue(new Error('Registration failed'));
-      render(<RegisterForm {...defaultProps} onSubmit={mockOnSubmit} />);
+      render(<RegisterForm key='test-form' {...defaultProps} onSubmit={mockOnSubmit} />);
 
       const emailInput = screen.getByLabelText('Электронная почта');
       const passwordInput = screen.getByLabelText('Пароль');
@@ -179,7 +205,7 @@ describe('RegisterForm', () => {
 
   describe('валидация ошибок', () => {
     it('должен показывать ошибки валидации для пустых полей', async () => {
-      render(<RegisterForm {...defaultProps} />);
+      render(<RegisterForm key='i18n-labels-test' {...defaultProps} />);
 
       const submitButton = screen.getByRole('button', { name: 'Зарегистрироваться' });
       fireEvent.click(submitButton);
@@ -192,7 +218,7 @@ describe('RegisterForm', () => {
     });
 
     it('должен показывать ошибки валидации для невалидного email', async () => {
-      render(<RegisterForm {...defaultProps} />);
+      render(<RegisterForm key='i18n-labels-test' {...defaultProps} />);
 
       const emailInput = screen.getByLabelText('Электронная почта');
       const submitButton = screen.getByRole('button', { name: 'Зарегистрироваться' });
@@ -208,7 +234,7 @@ describe('RegisterForm', () => {
     });
 
     it('должен показывать ошибки валидации для короткого пароля', async () => {
-      render(<RegisterForm {...defaultProps} />);
+      render(<RegisterForm key='i18n-labels-test' {...defaultProps} />);
 
       const emailInput = screen.getByLabelText('Электронная почта');
       const passwordInput = screen.getByLabelText('Пароль');
@@ -228,7 +254,7 @@ describe('RegisterForm', () => {
     });
 
     it('должен показывать ошибки валидации для короткого workspace name', async () => {
-      render(<RegisterForm {...defaultProps} />);
+      render(<RegisterForm key='i18n-labels-test' {...defaultProps} />);
 
       const emailInput = screen.getByLabelText('Электронная почта');
       const passwordInput = screen.getByLabelText('Пароль');
@@ -248,7 +274,7 @@ describe('RegisterForm', () => {
     });
 
     it('должен очищать ошибки при новом вводе', async () => {
-      render(<RegisterForm {...defaultProps} />);
+      render(<RegisterForm key='i18n-labels-test' {...defaultProps} />);
 
       const emailInput = screen.getByLabelText('Электронная почта');
       const passwordInput = screen.getByLabelText('Пароль');
@@ -276,16 +302,19 @@ describe('RegisterForm', () => {
 
   describe('i18n функциональность', () => {
     it('должен использовать переводы для лейблов', () => {
-      render(<RegisterForm {...defaultProps} />);
+      const { getByLabelText } = renderIsolated(
+        <RegisterForm key='i18n-labels-test' {...defaultProps} />,
+      );
 
-      expect(screen.getByText('Электронная почта')).toBeInTheDocument();
-      expect(screen.getByText('Пароль')).toBeInTheDocument();
-      expect(screen.getByText('Название рабочего пространства')).toBeInTheDocument();
+      // Проверяем наличие лейблов через связанные инпуты
+      expect(getByLabelText('Электронная почта')).toBeInTheDocument();
+      expect(getByLabelText('Пароль')).toBeInTheDocument();
+      expect(getByLabelText('Название рабочего пространства')).toBeInTheDocument();
       expect(screen.getByRole('button', { name: 'Зарегистрироваться' })).toBeInTheDocument();
     });
 
     it('должен использовать переводы для ошибок', async () => {
-      render(<RegisterForm {...defaultProps} />);
+      render(<RegisterForm key='i18n-labels-test' {...defaultProps} />);
 
       const submitButton = screen.getByRole('button', { name: 'Зарегистрироваться' });
       fireEvent.click(submitButton);
@@ -296,7 +325,7 @@ describe('RegisterForm', () => {
     });
 
     it('должен использовать fallback тексты без i18n', () => {
-      render(<RegisterForm onSubmit={vi.fn()} />);
+      render(<RegisterForm key='fallback-text-test' onSubmit={vi.fn()} />);
 
       expect(screen.getByText('Email')).toBeInTheDocument();
       expect(screen.getByText('Password')).toBeInTheDocument();
@@ -307,7 +336,7 @@ describe('RegisterForm', () => {
 
   describe('состояние загрузки', () => {
     it('должен показывать loading текст и disabled кнопку', () => {
-      render(<RegisterForm {...defaultProps} isLoading={true} />);
+      render(<RegisterForm key='loading-text-test' {...defaultProps} isLoading={true} />);
 
       const submitButton = screen.getByRole('button', { name: 'Загрузка...' });
       expect(submitButton).toBeDisabled();
@@ -316,7 +345,14 @@ describe('RegisterForm', () => {
 
     it('должен предотвращать отправку формы во время загрузки', async () => {
       const mockOnSubmit = vi.fn();
-      render(<RegisterForm {...defaultProps} isLoading={true} onSubmit={mockOnSubmit} />);
+      render(
+        <RegisterForm
+          key='prevent-submit-loading-test'
+          {...defaultProps}
+          isLoading={true}
+          onSubmit={mockOnSubmit}
+        />,
+      );
 
       const submitButton = screen.getByRole('button', { name: 'Загрузка...' });
       fireEvent.click(submitButton);
@@ -325,7 +361,7 @@ describe('RegisterForm', () => {
     });
 
     it('должен использовать i18n для loading текста', () => {
-      render(<RegisterForm {...defaultProps} isLoading={true} />);
+      render(<RegisterForm key='i18n-loading-test' {...defaultProps} isLoading={true} />);
 
       expect(screen.getByRole('button', { name: 'Загрузка...' })).toBeInTheDocument();
       expect(mockT).toHaveBeenCalledWith('common.loading');
@@ -334,7 +370,7 @@ describe('RegisterForm', () => {
 
   describe('accessibility', () => {
     it('должен иметь правильные ARIA атрибуты', () => {
-      render(<RegisterForm {...defaultProps} />);
+      render(<RegisterForm key='i18n-labels-test' {...defaultProps} />);
 
       const emailInput = screen.getByLabelText('Электронная почта');
       const passwordInput = screen.getByLabelText('Пароль');
@@ -346,7 +382,7 @@ describe('RegisterForm', () => {
     });
 
     it('должен устанавливать aria-invalid при ошибках', async () => {
-      render(<RegisterForm {...defaultProps} />);
+      render(<RegisterForm key='i18n-labels-test' {...defaultProps} />);
 
       const emailInput = screen.getByLabelText('Электронная почта');
       const submitButton = screen.getByRole('button', { name: 'Зарегистрироваться' });
@@ -359,7 +395,7 @@ describe('RegisterForm', () => {
     });
 
     it('должен связывать ошибки с полями через aria-describedby', async () => {
-      render(<RegisterForm {...defaultProps} />);
+      render(<RegisterForm key='i18n-labels-test' {...defaultProps} />);
 
       const submitButton = screen.getByRole('button', { name: 'Зарегистрироваться' });
       fireEvent.click(submitButton);
@@ -375,7 +411,7 @@ describe('RegisterForm', () => {
     });
 
     it('должен иметь уникальные IDs для ошибок', async () => {
-      render(<RegisterForm {...defaultProps} />);
+      render(<RegisterForm key='i18n-labels-test' {...defaultProps} />);
 
       const submitButton = screen.getByRole('button', { name: 'Зарегистрироваться' });
       fireEvent.click(submitButton);
@@ -393,7 +429,7 @@ describe('RegisterForm', () => {
   describe('обработка ошибок', () => {
     it('должен обрабатывать исключения в onSubmit gracefully', async () => {
       const mockOnSubmit = vi.fn().mockRejectedValue(new Error('Registration failed'));
-      render(<RegisterForm {...defaultProps} onSubmit={mockOnSubmit} />);
+      render(<RegisterForm key='test-form' {...defaultProps} onSubmit={mockOnSubmit} />);
 
       const emailInput = screen.getByLabelText('Электронная почта');
       const passwordInput = screen.getByLabelText('Пароль');
@@ -420,7 +456,7 @@ describe('RegisterForm', () => {
         .mockRejectedValueOnce(new Error('First error'))
         .mockResolvedValueOnce(undefined);
 
-      render(<RegisterForm {...defaultProps} onSubmit={mockOnSubmit} />);
+      render(<RegisterForm key='test-form' {...defaultProps} onSubmit={mockOnSubmit} />);
 
       const emailInput = screen.getByLabelText('Электронная почта');
       const passwordInput = screen.getByLabelText('Пароль');
@@ -452,21 +488,23 @@ describe('RegisterForm', () => {
 
   describe('autoFocus поведение', () => {
     it('должен фокусировать email поле по умолчанию', () => {
-      render(<RegisterForm {...defaultProps} />);
+      render(<RegisterForm key='i18n-labels-test' {...defaultProps} />);
 
       const emailInput = screen.getByLabelText('Электронная почта');
       expect(emailInput).toHaveFocus();
     });
 
     it('должен отключать autoFocus при autoFocus={false}', () => {
-      render(<RegisterForm {...defaultProps} autoFocus={false} />);
+      render(
+        <RegisterForm key='autofocus-false-global-test' {...defaultProps} autoFocus={false} />,
+      );
 
       const emailInput = screen.getByLabelText('Электронная почта');
       expect(emailInput).not.toHaveFocus();
     });
 
     it('должен сохранять autoFocus по умолчанию при autoFocus={true}', () => {
-      render(<RegisterForm {...defaultProps} autoFocus={true} />);
+      render(<RegisterForm key='autofocus-true-test' {...defaultProps} autoFocus={true} />);
 
       const emailInput = screen.getByLabelText('Электронная почта');
       expect(emailInput).toHaveFocus();
@@ -476,7 +514,7 @@ describe('RegisterForm', () => {
   describe('form reset после успешной отправки', () => {
     it('должен позволять повторную отправку после успеха', async () => {
       const mockOnSubmit = vi.fn().mockResolvedValue(undefined);
-      render(<RegisterForm {...defaultProps} onSubmit={mockOnSubmit} />);
+      render(<RegisterForm key='test-form' {...defaultProps} onSubmit={mockOnSubmit} />);
 
       const emailInput = screen.getByLabelText('Электронная почта');
       const passwordInput = screen.getByLabelText('Пароль');

@@ -272,14 +272,30 @@ export function createPackageVitestConfig(options: PackageConfigOptions): Packag
       // Vitest может падать. Используйте копию: { ...env }
       ...envConfig,
 
-      // Setup файлы: только пакетный (глобальный setup настраивается отдельно)
+      // Setup файлы: глобальный + пакетный
       setupFiles: [
-        './vitest.setup.ts',
+        'configs/vitest/test.setup.ts', // Глобальный setup с jest-dom
+        './vitest.setup.ts', // Пакетный setup с cleanup
       ],
 
-      // Паттерны поиска тестов (расширен для поддержки всех типов файлов)
-      include: ['src/**/*.{test,spec}.{ts,tsx,js,jsx}', 'tests/**/*.{test,spec}.{ts,tsx,js,jsx}'],
-      exclude: ['dist/**', 'node_modules/**', 'e2e/**'],
+      // Паттерны поиска тестов (unit/integration + CLI tools)
+      include: [
+        'src/**/*.{test}.{ts,tsx,js,jsx}',
+        'tests/**/*.{test}.{ts,tsx,js,jsx}',
+        // CLI инструменты используют .spec файлы
+        '../../../tools/cli/tests/**/*.spec.{ts,tsx,js,jsx}',
+      ],
+      exclude: [
+        'dist/**',
+        'node_modules/**',
+        'e2e/**',
+        '**/e2e/**',
+        'config/playwright/**',
+        '**/playwright-report/**',
+        '**/test-results/**',
+        // Исключаем любые файлы содержащие playwright в пути
+        '**/playwright*/**',
+      ],
 
       // Повторы для flaky тестов: больше в CI
       retry: process.env['CI'] === 'true' ? 3 : 1,

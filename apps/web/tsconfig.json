@@ -43,6 +43,7 @@
     "node_modules",
     ".next",
     "out",
-    "coverage"
+    "coverage",
+    "tests/unit/mocks"
   ]
 }

@@ -3,10 +3,32 @@
  */
 
 import React from 'react';
-import '@testing-library/jest-dom';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import '@testing-library/jest-dom/vitest';
 import { LoginForm } from '../../src/auth/login-form';
+
+// Полная очистка DOM между тестами
+afterEach(cleanup);
+
+// Функция для изолированного рендера
+function renderIsolated(component: React.ReactElement) {
+  const container = document.createElement('div');
+  document.body.appendChild(container);
+
+  const result = render(component, { container });
+
+  return {
+    ...result,
+    container,
+    // Локальный поиск элементов
+    getByRole: (role: string, options?: any) => within(container).getByRole(role, options),
+    getByText: (text: string | RegExp) => within(container).getByText(text),
+    getByLabelText: (text: string | RegExp) => within(container).getByLabelText(text),
+    queryByRole: (role: string, options?: any) => within(container).queryByRole(role, options),
+    findByRole: (role: string, options?: any) => within(container).findByRole(role, options),
+  };
+}
 
 type HasTextContent = { readonly textContent: string | null; };
 
@@ -59,30 +81,36 @@ describe('LoginForm', () => {
 
   describe('рендеринг', () => {
     it('должен рендерить все элементы формы', () => {
-      render(<LoginForm {...defaultProps} />);
+      const { getByLabelText, getByRole } = renderIsolated(
+        <LoginForm key='i18n-labels-test' {...defaultProps} />,
+      );
 
-      expect(screen.getByLabelText('Электронная почта')).toBeInTheDocument();
-      expect(screen.getByLabelText('Пароль')).toBeInTheDocument();
-      expect(screen.getByRole('button', { name: 'Войти' })).toBeInTheDocument();
+      expect(getByLabelText('Электронная почта')).toBeInTheDocument();
+      expect(getByLabelText('Пароль')).toBeInTheDocument();
+      expect(getByRole('button', { name: 'Войти' })).toBeInTheDocument();
     });
 
     it('должен рендерить с английскими лейблами без i18n', () => {
-      render(<LoginForm onSubmit={vi.fn()} />);
+      const { getByLabelText, getByRole } = renderIsolated(
+        <LoginForm key='english-labels-test' onSubmit={vi.fn()} />,
+      );
 
-      expect(screen.getByLabelText('Email')).toBeInTheDocument();
-      expect(screen.getByLabelText('Password')).toBeInTheDocument();
-      expect(screen.getByRole('button', { name: 'Sign In' })).toBeInTheDocument();
+      expect(getByLabelText('Email')).toBeInTheDocument();
+      expect(getByLabelText('Password')).toBeInTheDocument();
+      expect(getByRole('button', { name: 'Sign In' })).toBeInTheDocument();
     });
 
     it('должен рендерить с autoFocus на email поле', () => {
-      render(<LoginForm {...defaultProps} />);
+      const { getByLabelText } = renderIsolated(
+        <LoginForm key='i18n-labels-test' {...defaultProps} />,
+      );
 
-      const emailInput = screen.getByLabelText('Электронная почта');
+      const emailInput = getByLabelText('Электронная почта');
       expect(emailInput).toHaveFocus();
     });
 
     it('должен иметь noValidate на форме', () => {
-      render(<LoginForm {...defaultProps} />);
+      render(<LoginForm key='i18n-labels-test' {...defaultProps} />);
 
       // LoginForm рендерит form элемент с noValidate
       const form = document.querySelector('form');
@@ -94,10 +122,12 @@ describe('LoginForm', () => {
 
   describe('взаимодействие с формой', () => {
     it('должен позволять вводить email и пароль', () => {
-      render(<LoginForm {...defaultProps} />);
+      const { getByLabelText } = renderIsolated(
+        <LoginForm key='i18n-labels-test' {...defaultProps} />,
+      );
 
-      const emailInput = screen.getByLabelText('Электронная почта');
-      const passwordInput = screen.getByLabelText('Пароль');
+      const emailInput = getByLabelText('Электронная почта');
+      const passwordInput = getByLabelText('Пароль');
 
       fireEvent.change(emailInput, { target: { value: 'test@example.com' } });
       fireEvent.change(passwordInput, { target: { value: 'password123' } });
@@ -108,10 +138,12 @@ describe('LoginForm', () => {
 
     it('должен вызывать onSubmit при успешной отправке формы', async () => {
       const mockOnSubmit = vi.fn().mockResolvedValue(undefined);
-      render(<LoginForm {...defaultProps} onSubmit={mockOnSubmit} />);
+      const { getByLabelText } = renderIsolated(
+        <LoginForm key='test-form' {...defaultProps} onSubmit={mockOnSubmit} />,
+      );
 
-      const emailInput = screen.getByLabelText('Электронная почта');
-      const passwordInput = screen.getByLabelText('Пароль');
+      const emailInput = getByLabelText('Электронная почта');
+      const passwordInput = getByLabelText('Пароль');
       const submitButton = screen.getByRole('button', { name: 'Войти' });
 
       fireEvent.change(emailInput, { target: { value: 'test@example.com' } });
@@ -128,7 +160,7 @@ describe('LoginForm', () => {
 
     it('должен обрабатывать async onSubmit с ошибкой', async () => {
       const mockOnSubmit = vi.fn().mockRejectedValue(new Error('Login failed'));
-      render(<LoginForm {...defaultProps} onSubmit={mockOnSubmit} />);
+      render(<LoginForm key='test-form' {...defaultProps} onSubmit={mockOnSubmit} />);
 
       const emailInput = screen.getByLabelText('Электронная почта');
       const passwordInput = screen.getByLabelText('Пароль');
@@ -149,13 +181,15 @@ describe('LoginForm', () => {
 
   describe('валидация ошибок', () => {
     it('должен показывать ошибки валидации для пустых полей', async () => {
-      render(<LoginForm {...defaultProps} />);
+      const { getAllByRole } = renderIsolated(
+        <LoginForm key='i18n-labels-test' {...defaultProps} />,
+      );
 
       const submitButton = screen.getByRole('button', { name: 'Войти' });
       fireEvent.click(submitButton);
 
       await waitFor(() => {
-        const alerts = screen.getAllByRole('alert');
+        const alerts = getAllByRole('alert');
         expect(alerts.length).toBeGreaterThan(0);
         // Сообщение может быть i18n key или дефолтным текстом Zod — проверяем, что не пустое.
         expect(alerts.some(hasNonEmptyText)).toBe(true);
@@ -163,9 +197,11 @@ describe('LoginForm', () => {
     });
 
     it('должен показывать ошибки валидации для невалидного email', async () => {
-      render(<LoginForm {...defaultProps} />);
+      const { getByLabelText, getAllByRole } = renderIsolated(
+        <LoginForm key='i18n-labels-test' {...defaultProps} />,
+      );
 
-      const emailInput = screen.getByLabelText('Электронная почта');
+      const emailInput = getByLabelText('Электронная почта');
       const submitButton = screen.getByRole('button', { name: 'Войти' });
 
       fireEvent.change(emailInput, { target: { value: 'invalid-email' } });
@@ -174,17 +210,19 @@ describe('LoginForm', () => {
       await waitFor(() => {
         // Для email сообщение может быть дефолтным текстом Zod (не i18n key),
         // поэтому проверяем факт ошибки и что она не пустая.
-        const alerts = screen.getAllByRole('alert');
+        const alerts = getAllByRole('alert');
         expect(alerts.length).toBeGreaterThan(0);
         expect(alerts.some(hasNonEmptyText)).toBe(true);
       });
     });
 
     it('должен показывать ошибки валидации для короткого пароля', async () => {
-      render(<LoginForm {...defaultProps} />);
+      const { getByLabelText, getAllByRole } = renderIsolated(
+        <LoginForm key='i18n-labels-test' {...defaultProps} />,
+      );
 
-      const emailInput = screen.getByLabelText('Электронная почта');
-      const passwordInput = screen.getByLabelText('Пароль');
+      const emailInput = getByLabelText('Электронная почта');
+      const passwordInput = getByLabelText('Пароль');
       const submitButton = screen.getByRole('button', { name: 'Войти' });
 
       fireEvent.change(emailInput, { target: { value: 'test@example.com' } });
@@ -192,14 +230,14 @@ describe('LoginForm', () => {
       fireEvent.click(submitButton);
 
       await waitFor(() => {
-        const alerts = screen.getAllByRole('alert');
+        const alerts = getAllByRole('alert');
         expect(alerts.length).toBeGreaterThan(0);
         expect(alerts.some(hasNonEmptyText)).toBe(true);
       });
     });
 
     it('должен очищать ошибки при новом вводе', async () => {
-      render(<LoginForm {...defaultProps} />);
+      render(<LoginForm key='i18n-labels-test' {...defaultProps} />);
 
       const emailInput = screen.getByLabelText('Электронная почта');
       const passwordInput = screen.getByLabelText('Пароль');
@@ -225,15 +263,18 @@ describe('LoginForm', () => {
 
   describe('i18n функциональность', () => {
     it('должен использовать переводы для лейблов', () => {
-      render(<LoginForm {...defaultProps} />);
+      const { getByLabelText, getByRole } = renderIsolated(
+        <LoginForm key='i18n-labels-test' {...defaultProps} />,
+      );
 
-      expect(screen.getByText('Электронная почта')).toBeInTheDocument();
-      expect(screen.getByText('Пароль')).toBeInTheDocument();
-      expect(screen.getByRole('button', { name: 'Войти' })).toBeInTheDocument();
+      // Проверяем наличие лейблов через связанные инпуты
+      expect(getByLabelText('Электронная почта')).toBeInTheDocument();
+      expect(getByLabelText('Пароль')).toBeInTheDocument();
+      expect(getByRole('button', { name: 'Войти' })).toBeInTheDocument();
     });
 
     it('должен использовать переводы для ошибок', async () => {
-      render(<LoginForm {...defaultProps} />);
+      render(<LoginForm key='i18n-labels-test' {...defaultProps} />);
 
       const submitButton = screen.getByRole('button', { name: 'Войти' });
       fireEvent.click(submitButton);
@@ -246,28 +287,39 @@ describe('LoginForm', () => {
     });
 
     it('должен использовать fallback тексты без i18n', () => {
-      render(<LoginForm onSubmit={vi.fn()} />);
+      const { getByText, getByRole } = renderIsolated(
+        <LoginForm key='fallback-text-test' onSubmit={vi.fn()} />,
+      );
 
-      expect(screen.getByText('Email')).toBeInTheDocument();
-      expect(screen.getByText('Password')).toBeInTheDocument();
-      expect(screen.getByRole('button', { name: 'Sign In' })).toBeInTheDocument();
+      expect(getByText('Email')).toBeInTheDocument();
+      expect(getByText('Password')).toBeInTheDocument();
+      expect(getByRole('button', { name: 'Sign In' })).toBeInTheDocument();
     });
   });
 
   describe('состояние загрузки', () => {
     it('должен показывать loading текст и disabled кнопку', () => {
-      render(<LoginForm {...defaultProps} isLoading={true} />);
+      const { getByRole } = renderIsolated(
+        <LoginForm key='loading-text-test' {...defaultProps} isLoading={true} />,
+      );
 
-      const submitButton = screen.getByRole('button', { name: 'Загрузка...' });
+      const submitButton = getByRole('button', { name: 'Загрузка...' });
       expect(submitButton).toBeDisabled();
       expect(submitButton).toHaveAttribute('aria-busy', 'true');
     });
 
     it('должен предотвращать отправку формы во время загрузки', async () => {
       const mockOnSubmit = vi.fn();
-      render(<LoginForm {...defaultProps} isLoading={true} onSubmit={mockOnSubmit} />);
+      const { getByRole } = renderIsolated(
+        <LoginForm
+          key='prevent-submit-loading-test'
+          {...defaultProps}
+          isLoading={true}
+          onSubmit={mockOnSubmit}
+        />,
+      );
 
-      const submitButton = screen.getByRole('button', { name: 'Загрузка...' });
+      const submitButton = getByRole('button', { name: 'Загрузка...' });
       fireEvent.click(submitButton);
 
       // onSubmit не должен вызваться
@@ -275,16 +327,18 @@ describe('LoginForm', () => {
     });
 
     it('должен использовать i18n для loading текста', () => {
-      render(<LoginForm {...defaultProps} isLoading={true} />);
+      const { getByRole } = renderIsolated(
+        <LoginForm key='i18n-loading-test' {...defaultProps} isLoading={true} />,
+      );
 
-      expect(screen.getByRole('button', { name: 'Загрузка...' })).toBeInTheDocument();
+      expect(getByRole('button', { name: 'Загрузка...' })).toBeInTheDocument();
       expect(mockT).toHaveBeenCalledWith('common.loading');
     });
   });
 
   describe('accessibility', () => {
     it('должен иметь правильные ARIA атрибуты', () => {
-      render(<LoginForm {...defaultProps} />);
+      render(<LoginForm key='i18n-labels-test' {...defaultProps} />);
 
       const emailInput = screen.getByLabelText('Электронная почта');
       const passwordInput = screen.getByLabelText('Пароль');
@@ -296,7 +350,7 @@ describe('LoginForm', () => {
     });
 
     it('должен устанавливать aria-invalid при ошибках', async () => {
-      render(<LoginForm {...defaultProps} />);
+      render(<LoginForm key='i18n-labels-test' {...defaultProps} />);
 
       const emailInput = screen.getByLabelText('Электронная почта');
       const submitButton = screen.getByRole('button', { name: 'Войти' });
@@ -309,7 +363,7 @@ describe('LoginForm', () => {
     });
 
     it('должен связывать ошибки с полями через aria-describedby', async () => {
-      render(<LoginForm {...defaultProps} />);
+      render(<LoginForm key='i18n-labels-test' {...defaultProps} />);
 
       const submitButton = screen.getByRole('button', { name: 'Войти' });
       fireEvent.click(submitButton);
@@ -325,7 +379,7 @@ describe('LoginForm', () => {
     });
 
     it('должен иметь уникальные IDs для ошибок', async () => {
-      render(<LoginForm {...defaultProps} />);
+      render(<LoginForm key='i18n-labels-test' {...defaultProps} />);
 
       const submitButton = screen.getByRole('button', { name: 'Войти' });
       fireEvent.click(submitButton);
@@ -343,7 +397,7 @@ describe('LoginForm', () => {
   describe('обработка ошибок', () => {
     it('должен обрабатывать исключения в onSubmit gracefully', async () => {
       const mockOnSubmit = vi.fn().mockRejectedValue(new Error('Network error'));
-      render(<LoginForm {...defaultProps} onSubmit={mockOnSubmit} />);
+      render(<LoginForm key='test-form' {...defaultProps} onSubmit={mockOnSubmit} />);
 
       const emailInput = screen.getByLabelText('Электронная почта');
       const passwordInput = screen.getByLabelText('Пароль');
@@ -367,7 +421,7 @@ describe('LoginForm', () => {
         .mockRejectedValueOnce(new Error('First error'))
         .mockResolvedValueOnce(undefined);
 
-      render(<LoginForm {...defaultProps} onSubmit={mockOnSubmit} />);
+      render(<LoginForm key='test-form' {...defaultProps} onSubmit={mockOnSubmit} />);
 
       const emailInput = screen.getByLabelText('Электронная почта');
       const passwordInput = screen.getByLabelText('Пароль');
@@ -393,7 +447,7 @@ describe('LoginForm', () => {
   describe('form reset после успешной отправки', () => {
     it('должен позволять повторную отправку после успеха', async () => {
       const mockOnSubmit = vi.fn().mockResolvedValue(undefined);
-      render(<LoginForm {...defaultProps} onSubmit={mockOnSubmit} />);
+      render(<LoginForm key='test-form' {...defaultProps} onSubmit={mockOnSubmit} />);
 
       const emailInput = screen.getByLabelText('Электронная почта');
       const passwordInput = screen.getByLabelText('Пароль');

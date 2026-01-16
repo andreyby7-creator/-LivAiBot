@@ -169,10 +169,14 @@ npx dprint fmt                            # Форматирование
 ### Основные команды тестирования
 
 ```bash
-pnpm run test                             # Все Unit тесты (Turbo оркестрация)
+pnpm test                                 # Все юнит тесты
+pnpm test:int                             # Все интеграционные тесты
+pnpm test:ai                              # Все AI тесты
+pnpm test:all                             # Все тесты (юнит+интегарционные+AI)
+pnpm run test:ci                          # CI режим - все тесты с покрытием
 pnpm run test:file                        # Запуск конкретного тестового файла
 pnpm run test:py                          # Все Python тесты
-pnpm run test:int                         # Все Integration тесты
+pnpm run test:int                         # Все Integration тесты (Turbo оркестрация)
 pnpm run test:e2e                         # Все E2E тесты (Playwright) - prod
 pnpm run test:e2e:demo                    # Все E2E тесты (Playwright) - demo
 pnpm run test:e2e:smoke                   # Все E2E тесты (Playwright) - smoke
@@ -188,17 +192,16 @@ pnpm bench:ci                             # Turbo + все пакеты в пр�
 
 ```bash
 # Запуск тестов конкретного пакета
-turbo run test:ci --filter=@livai/app
-turbo run test:ci --filter=@livai/feature-auth
-turbo run test:ci --filter=@livai/ui-core
+pnpm run test --packages some-package
+
+# CI режим для конкретного пакета
+pnpm run test:ci --packages some-package
 
 # Запуск конкретного тестового файла
-turbo run test:file --filter=@livai/app -- packages/app/tests/unit/types/common.test.ts
-turbo run test:file --filter=@livai/feature-auth -- packages/feature-auth/tests/unit/schemas.test.ts
+pnpm run test:file packages/some-package/tests/unit/some.test.ts
 
 # Локальный запуск в пакете (быстрее для разработки)
-cd packages/app && pnpm test -- tests/unit/types/common.test.ts
-cd packages/feature-auth && pnpm test -- tests/unit/hooks/useAuth.test.ts
+cd packages/some-package && pnpm test
 ```
 
 ## 🔍 **Pre-commit проверки**

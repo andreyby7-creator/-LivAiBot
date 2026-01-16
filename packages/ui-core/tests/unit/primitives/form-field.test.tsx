@@ -2,120 +2,157 @@
  * @file Unit тесты для FormField компонента
  */
 
-import '@testing-library/jest-dom';
-import { describe, expect, it } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { afterEach, describe, expect, it } from 'vitest';
+import { cleanup, render, within } from '@testing-library/react';
+import '@testing-library/jest-dom/vitest';
 import { FormField } from '../../../src/primitives/form-field.js';
+
+// Полная очистка DOM между тестами
+afterEach(cleanup);
+
+// Функция для изолированного рендера
+function renderIsolated(component: React.ReactElement) {
+  const container = document.createElement('div');
+  document.body.appendChild(container);
+
+  const result = render(component, { container });
+
+  return {
+    ...result,
+    container,
+    // Локальный поиск элементов
+    getByRole: (role: string, options?: any) => within(container).getByRole(role, options),
+    getByText: (text: string | RegExp) => within(container).getByText(text),
+    getByLabelText: (text: string | RegExp) => within(container).getByLabelText(text),
+    queryByRole: (role: string, options?: any) => within(container).queryByRole(role, options),
+  };
+}
 
 describe('FormField', () => {
   describe('3.1. Label', () => {
     it('label отображается', () => {
-      render(
-        <FormField label='Test Label' htmlFor='test'>
+      const { getByText } = renderIsolated(
+        <FormField key='label-display-test' label='Test Label' htmlFor='test'>
           <input id='test' />
         </FormField>,
       );
 
-      expect(screen.getByText('Test Label')).toBeInTheDocument();
+      expect(getByText('Test Label')).toBeInTheDocument();
     });
 
     it('htmlFor прокидывается в <label>', () => {
-      render(
-        <FormField label='Test Label' htmlFor='test-input'>
+      const { getByText } = renderIsolated(
+        <FormField key='htmlfor-test' label='Test Label' htmlFor='test-input'>
           <input id='test-input' />
         </FormField>,
       );
 
-      const label = screen.getByText('Test Label');
+      const label = getByText('Test Label');
       expect(label).toHaveAttribute('for', 'test-input');
     });
   });
 
   describe('3.2. Children', () => {
     it('children рендерятся', () => {
-      render(
-        <FormField label='Test' htmlFor='test'>
+      const { getByTestId } = renderIsolated(
+        <FormField key='children-test' label='Test' htmlFor='test'>
           <input data-testid='custom-input' />
         </FormField>,
       );
 
-      expect(screen.getByTestId('custom-input')).toBeInTheDocument();
+      expect(getByTestId('custom-input')).toBeInTheDocument();
     });
   });
 
   describe('3.3. Без ошибки', () => {
     it('error отсутствует → блок ошибки не рендерится', () => {
-      render(
-        <FormField label='Test' htmlFor='test'>
+      const { queryByRole } = renderIsolated(
+        <FormField key='no-error-test' label='Test' htmlFor='test'>
           <input />
         </FormField>,
       );
 
       // Проверяем, что нет элемента с role="alert"
-      expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+      expect(queryByRole('alert')).not.toBeInTheDocument();
     });
   });
 
   describe('3.4. С ошибкой', () => {
     it('error передан → текст ошибки отображается', () => {
-      render(
-        <FormField label='Test' htmlFor='test' error='This is an error'>
+      const { getByText } = renderIsolated(
+        <FormField
+          key='error-text-test'
+          label='Test'
+          htmlFor='test'
+          error={`This is an error ${Math.random()}`}
+        >
           <input />
         </FormField>,
       );
 
-      expect(screen.getByText('This is an error')).toBeInTheDocument();
+      expect(getByText(/^This is an error/)).toBeInTheDocument();
     });
 
     it('есть role="alert"', () => {
-      render(
-        <FormField label='Test' htmlFor='test' error='Error message'>
+      const { getByRole } = renderIsolated(
+        <FormField
+          key='alert-role-test'
+          label='Test'
+          htmlFor='test'
+          error={`Error message ${Math.random()}`}
+        >
           <input />
         </FormField>,
       );
 
-      expect(screen.getByRole('alert')).toHaveTextContent('Error message');
+      expect(getByRole('alert')).toHaveTextContent(/^Error message/);
     });
   });
 
   describe('3.5. errorId', () => {
     it('если errorId передан → error div получает id', () => {
-      render(
+      const { getByRole } = renderIsolated(
         <FormField
+          key='error-id-test'
           label='Test'
           htmlFor='test'
-          error='Error message'
+          error={`Error message ${Math.random()}`}
           errorId='custom-error-id'
         >
           <input />
         </FormField>,
       );
 
-      const errorDiv = screen.getByRole('alert');
+      const errorDiv = getByRole('alert');
       expect(errorDiv).toHaveAttribute('id', 'custom-error-id');
     });
 
     it('если errorId не передан → error div без id', () => {
-      render(
-        <FormField label='Test' htmlFor='test' error='Error message'>
+      const { getByRole } = renderIsolated(
+        <FormField
+          key='no-error-id-test'
+          label='Test'
+          htmlFor='test'
+          error={`Error message ${Math.random()}`}
+        >
           <input />
         </FormField>,
       );
 
-      const errorDiv = screen.getByRole('alert');
+      const errorDiv = getByRole('alert');
       expect(errorDiv).not.toHaveAttribute('id');
     });
   });
 
   describe('3.6. Data attributes', () => {
     it('error block имеет data-ui="form-field-error"', () => {
-      render(
-        <FormField label='Test' htmlFor='test' error='Error'>
+      const { getByRole } = renderIsolated(
+        <FormField key='data-ui-test' label='Test' htmlFor='test' error={`Error ${Math.random()}`}>
           <input />
         </FormField>,
       );
 
-      expect(screen.getByRole('alert')).toHaveAttribute('data-ui', 'form-field-error');
+      expect(getByRole('alert')).toHaveAttribute('data-ui', 'form-field-error');
     });
   });
 });

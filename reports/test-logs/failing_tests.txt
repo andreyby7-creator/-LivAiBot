@@ -1,0 +1,71 @@
+/home/boss/Projects/livai/apps/web/tests/unit/[locale]/layout.test.tsx: должен возвращать локализованные метаданные для en
+Error: Failed to resolve import "next/navigation" from "apps/web/src/app/[locale]/layout.tsx". Does the file exist?
+    at TransformPluginContext._formatLog (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.0.9_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:28999:43)
+    at TransformPluginContext.error (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.0.9_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:28996:14)
+    at normalizeUrl (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.0.9_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:27119:18)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.0.9_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:27177:32
+    at async Promise.all (index 2)
+    at TransformPluginContext.transform (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.0.9_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:27145:4)
+    at EnvironmentPluginContainer.transform (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.0.9_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:28797:14)
+    at loadAndTransform (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.0.9_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:22670:26)
+
+---
+
+/home/boss/Projects/livai/apps/web/tests/unit/[locale]/layout.test.tsx: должен возвращать локализованные метаданные для ru
+Error: Failed to resolve import "next/navigation" from "apps/web/src/app/[locale]/layout.tsx". Does the file exist?
+    at TransformPluginContext._formatLog (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.0.9_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:28999:43)
+    at TransformPluginContext.error (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.0.9_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:28996:14)
+    at normalizeUrl (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.0.9_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:27119:18)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.0.9_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:27177:32
+    at async Promise.all (index 2)
+    at TransformPluginContext.transform (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.0.9_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:27145:4)
+    at EnvironmentPluginContainer.transform (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.0.9_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:28797:14)
+    at loadAndTransform (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.0.9_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:22670:26)
+    at fetchModule (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.0.9_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:33993:15)
+
+---
+
+/home/boss/Projects/livai/apps/web/tests/unit/[locale]/layout.test.tsx: должен возвращать fallback метаданные для неподдерживаемой локали
+Error: Failed to resolve import "next/navigation" from "apps/web/src/app/[locale]/layout.tsx". Does the file exist?
+    at TransformPluginContext._formatLog (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.0.9_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:28999:43)
+    at TransformPluginContext.error (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.0.9_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:28996:14)
+    at normalizeUrl (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.0.9_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:27119:18)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.0.9_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:27177:32
+    at async Promise.all (index 2)
+    at TransformPluginContext.transform (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.0.9_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:27145:4)
+    at EnvironmentPluginContainer.transform (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.0.9_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:28797:14)
+    at loadAndTransform (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.0.9_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:22670:26)
+    at fetchModule (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.0.9_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:33993:15)
+
+---
+
+/home/boss/Projects/livai/apps/web/tests/unit/[locale]/layout.test.tsx: должен существовать в модуле
+Error: Failed to resolve import "next/navigation" from "apps/web/src/app/[locale]/layout.tsx". Does the file exist?
+    at TransformPluginContext._formatLog (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.0.9_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:28999:43)
+    at TransformPluginContext.error (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.0.9_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:28996:14)
+    at normalizeUrl (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.0.9_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:27119:18)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.0.9_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:27177:32
+    at async Promise.all (index 2)
+    at TransformPluginContext.transform (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.0.9_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:27145:4)
+    at EnvironmentPluginContainer.transform (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.0.9_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:28797:14)
+    at loadAndTransform (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.0.9_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:22670:26)
+    at fetchModule (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.0.9_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:33993:15)
+
+---
+
+/home/boss/Projects/livai/apps/web/tests/unit/[locale]/layout.test.tsx: должен корректно обрабатывать ошибки getTranslations
+Error: Failed to resolve import "next/navigation" from "apps/web/src/app/[locale]/layout.tsx". Does the file exist?
+    at TransformPluginContext._formatLog (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.0.9_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:28999:43)
+    at TransformPluginContext.error (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.0.9_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:28996:14)
+    at normalizeUrl (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.0.9_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:27119:18)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.0.9_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:27177:32
+    at async Promise.all (index 2)
+    at TransformPluginContext.transform (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.0.9_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:27145:4)
+    at EnvironmentPluginContainer.transform (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.0.9_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:28797:14)
+    at loadAndTransform (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.0.9_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:22670:26)
+    at fetchModule (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.0.9_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:33993:15)

@@ -259,7 +259,14 @@ export default defineConfig({
     ],
 
     // Исключаем unit-тесты
-    exclude: ['tests/unit/**/*', 'src/**/*.test.ts', 'src/**/*.spec.ts', 'e2e/**'],
+    exclude: [
+      'tests/unit/**/*',
+      'src/**/*.test.ts',
+      'src/**/*.spec.ts',
+      'e2e/**',
+      '**/e2e/**',
+      'config/playwright/**',
+    ],
 
     // Настройки для API тестов
     testTimeout: 30000, // 30 секунд на API вызовы
@@ -276,7 +283,14 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       include: ['src/ai/**/*', 'src/services/ai/**/*', 'src/integrations/**/*', 'src/**/*ai*/**/*'],
-      exclude: ['src/**/*.test.ts', 'src/**/*.spec.ts', 'src/**/*.d.ts', 'e2e/**'],
+      exclude: [
+        'src/**/*.test.ts',
+        'src/**/*.spec.ts',
+        'src/**/*.d.ts',
+        'e2e/**',
+        '**/e2e/**',
+        'config/playwright/**',
+      ],
     },
 
     // Env переменные для AI тестов (автоматически из AI_PROVIDERS)

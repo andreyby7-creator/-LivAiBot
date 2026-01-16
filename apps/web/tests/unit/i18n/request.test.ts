@@ -15,8 +15,35 @@ vi.mock('../../../i18n/routing.js', () => ({
   locales: ['en', 'ru'],
 }));
 
-// Mock для messages файлов
-const mockEnMessages = { hello: 'Hello', goodbye: 'Goodbye' };
+// Mock для messages файлов (минимальный набор для тестирования)
+const mockEnMessages = {
+  common: { loading: 'Loading…' },
+  auth: {
+    email: { label: 'Email' },
+    password: { label: 'Password' },
+    workspaceName: { label: 'Workspace name' },
+    login: { title: 'Sign In', submit: 'Sign In' },
+    register: { title: 'Sign Up', link: 'Sign In', submit: 'Sign Up' },
+  },
+  home: {
+    title: 'LivAi',
+    description: 'AI-powered chatbot platform with multi-tenant architecture',
+    dashboard: 'Dashboard',
+    e2eStatus: 'E2E Test Status: ✅ Working',
+  },
+  dashboard: {
+    title: 'Dashboard',
+    description: 'UI skeleton. Screen will evolve according to roadmap.',
+  },
+  validation: {
+    required: 'Required',
+    string: { min: 'Too short', max: 'Too long' },
+  },
+  metadata: {
+    title: 'LivAi - AI Chatbot Platform',
+    description: 'AI-powered chatbot platform with multi-tenant architecture',
+  },
+};
 const mockRuMessages = { hello: 'Привет', goodbye: 'До свидания' };
 
 vi.mock('../../../messages/en.json', () => ({
@@ -101,10 +128,12 @@ describe('next-intl request config', () => {
 
       const result = await requestConfig({ locale: 'en' } as any);
 
-      expect(result).toEqual({
-        locale: 'en',
-        messages: mockEnMessages,
-      });
+      expect(result.locale).toBe('en');
+      expect(result.messages).toMatchObject(mockEnMessages);
+      // Проверяем, что есть дополнительные ключи (полный messages bundle)
+      expect(result.messages).toHaveProperty('auth');
+      expect(result.messages).toHaveProperty('common');
+      expect(result.messages).toHaveProperty('dashboard');
     });
   });
 });

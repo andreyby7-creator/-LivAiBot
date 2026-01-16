@@ -129,7 +129,7 @@ function getEnvPrefixes(framework: 'next' | 'vite'): string[] {
 }
 
 /** Генерация define маппинга для фреймворка */
-function generateDefineMapping(app: string, env: AppEnv): Record<string, string> {
+function generateDefineMapping(_app: string, _env: AppEnv): Record<string, string> {
   // Переменные окружения теперь доступны через import.meta.env благодаря envPrefix
   // Оставляем define только для необходимых случаев
   return {};

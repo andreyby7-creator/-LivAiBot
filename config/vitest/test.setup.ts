@@ -17,6 +17,9 @@ import { join } from 'path';
 
 import { afterAll, afterEach, beforeAll, beforeEach, vi } from 'vitest';
 
+// Импорт и настройка matchers для @testing-library
+import '@testing-library/jest-dom/vitest';
+
 // Расширение глобального типа для тестового состояния
 declare global {
   var testState: GlobalTestState | undefined;
@@ -289,6 +292,34 @@ beforeEach(async () => {
  */
 afterEach(async () => {
   try {
+    // Очистка DOM в jsdom окружении
+    if (typeof document !== 'undefined' && typeof window !== 'undefined') {
+      // Агрессивная очистка всего DOM между тестами
+      document.body.innerHTML = '';
+      document.head.innerHTML = '';
+
+      // Очистка всех контейнеров рендеринга
+      const containers = document.querySelectorAll('[data-testid]');
+      containers.forEach((container) => container.remove());
+
+      // Финальная очистка всех элементов
+      const allElements = document.querySelectorAll('*');
+      allElements.forEach((element) => {
+        if (element.parentNode && element.parentNode !== document) {
+          try {
+            element.parentNode.removeChild(element);
+          } catch (e) {
+            // Игнорируем ошибки - элемент может быть уже удален
+          }
+        }
+      });
+
+      // Очистка body
+      while (document.body.firstChild) {
+        document.body.removeChild(document.body.firstChild);
+      }
+    }
+
     // Очистка временных файлов (опционально)
     if (TEST_CONFIG.clearTempFiles) {
       await cleanupTempFiles();

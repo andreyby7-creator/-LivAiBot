@@ -3,23 +3,47 @@
  */
 
 import React from 'react';
-import '@testing-library/jest-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { cleanup, render, screen } from '@testing-library/react';
+import '@testing-library/jest-dom/vitest';
 import { IntlProvider } from '../../../src/providers/intl-provider';
 
-// Mock для NextIntlClientProvider
+// Mock для NextIntlClientProvider с уникальными ID
 vi.mock('next-intl', () => ({
   NextIntlClientProvider: vi.fn(({ children, locale, messages }) => {
+    const uniqueId = Math.random().toString(36).slice(2, 9);
     return React.createElement('div', {
       'data-locale': locale,
       'data-messages': JSON.stringify(messages),
-      'data-testid': 'next-intl-provider',
+      'data-testid': `next-intl-provider-${uniqueId}`,
     }, children);
   }),
 }));
 
+// Функция для изолированного рендера
+function renderIsolated(component: React.ReactElement) {
+  const container = document.createElement('div');
+  document.body.appendChild(container);
+
+  const result = render(component, { container });
+
+  // Возвращаем результат с методом cleanup
+  return {
+    ...result,
+    cleanup: () => {
+      result.unmount();
+      if (container.parentNode) {
+        container.parentNode.removeChild(container);
+      }
+    },
+  };
+}
+
 describe('IntlProvider', () => {
+  beforeEach(() => {
+    cleanup();
+  });
+
   const mockMessages = {
     common: {
       loading: 'Loading...',
@@ -43,87 +67,111 @@ describe('IntlProvider', () => {
 
   describe('рендеринг', () => {
     it('должен рендерить NextIntlClientProvider с правильными пропсами', () => {
-      render(<IntlProvider {...defaultProps} />);
+      const { container } = renderIsolated(<IntlProvider key='basic-test' {...defaultProps} />);
 
-      const provider = screen.getByTestId('next-intl-provider');
-      expect(provider).toBeInTheDocument();
-      expect(provider).toHaveAttribute('data-locale', 'en');
-      expect(provider).toHaveAttribute('data-messages', JSON.stringify(mockMessages));
+      // Проверяем, что компонент рендерится без ошибок
+      expect(container).toBeInTheDocument();
+      // Проверяем, что есть div с data-locale (внутренняя структура NextIntl)
+      const providerDiv = container.querySelector('[data-locale]');
+      expect(providerDiv).toBeInTheDocument();
+      expect(providerDiv).toHaveAttribute('data-locale', 'en');
     });
 
     it('должен рендерить children внутри провайдера', () => {
-      render(<IntlProvider {...defaultProps} />);
+      const { getByTestId, getByText } = renderIsolated(
+        <IntlProvider key='basic-test' {...defaultProps} />,
+      );
 
-      expect(screen.getByTestId('child')).toBeInTheDocument();
-      expect(screen.getByText('Test Child')).toBeInTheDocument();
+      expect(getByTestId('child')).toBeInTheDocument();
+      expect(getByText('Test Child')).toBeInTheDocument();
     });
 
     it('должен рендерить с различными локалями', () => {
       const props = { ...defaultProps, locale: 'ru' };
-      render(<IntlProvider {...props} />);
+      const { container } = renderIsolated(
+        <IntlProvider key='conditional-render-test' {...props} />,
+      );
 
-      const provider = screen.getByTestId('next-intl-provider');
-      expect(provider).toHaveAttribute('data-locale', 'ru');
+      // Проверяем, что локаль передана правильно
+      const providerDiv = container.querySelector('[data-locale]');
+      expect(providerDiv).toHaveAttribute('data-locale', 'ru');
     });
 
     it('должен рендерить с пустыми messages', () => {
       const props = { ...defaultProps, messages: {} };
-      render(<IntlProvider {...props} />);
+      const { container } = renderIsolated(
+        <IntlProvider key='conditional-render-test' {...props} />,
+      );
 
-      const provider = screen.getByTestId('next-intl-provider');
-      expect(provider).toHaveAttribute('data-messages', '{}');
+      // Проверяем, что пустые messages переданы правильно
+      const providerDiv = container.querySelector('[data-messages]');
+      expect(providerDiv).toHaveAttribute('data-messages', '{}');
     });
 
     it('должен рендерить с null children', () => {
       const props = { ...defaultProps, children: null };
-      render(<IntlProvider {...props} />);
+      const { container } = renderIsolated(
+        <IntlProvider key='conditional-render-test' {...props} />,
+      );
 
-      const provider = screen.getByTestId('next-intl-provider');
-      expect(provider).toBeInTheDocument();
-      expect(provider.children).toHaveLength(0);
+      // Проверяем, что компонент рендерится без children
+      const providerDiv = container.querySelector('[data-locale]');
+      expect(providerDiv).toBeInTheDocument();
+      expect(providerDiv?.children).toHaveLength(0);
     });
 
     it('должен рендерить с пустым React элементом как children', () => {
       const props = { ...defaultProps, children: React.createElement(React.Fragment) };
-      render(<IntlProvider {...props} />);
+      const { container } = renderIsolated(
+        <IntlProvider key='conditional-render-test' {...props} />,
+      );
 
-      const provider = screen.getByTestId('next-intl-provider');
-      expect(provider).toBeInTheDocument();
+      // Проверяем, что компонент рендерится с пустыми children
+      const providerDiv = container.querySelector('[data-locale]');
+      expect(providerDiv).toBeInTheDocument();
     });
   });
 
   describe('memo оптимизация', () => {
     it('должен рендериться с корректными пропсами', () => {
-      render(<IntlProvider {...defaultProps} />);
+      const { container } = renderIsolated(<IntlProvider key='basic-test' {...defaultProps} />);
 
-      const provider = screen.getByTestId('next-intl-provider');
-      expect(provider).toHaveAttribute('data-locale', 'en');
-      expect(provider).toHaveAttribute('data-messages', JSON.stringify(mockMessages));
+      // Проверяем, что пропсы переданы правильно
+      const providerDiv = container.querySelector('[data-locale]');
+      expect(providerDiv).toHaveAttribute('data-locale', 'en');
+      expect(providerDiv).toHaveAttribute('data-messages', JSON.stringify(mockMessages));
     });
 
     it('должен обновлять атрибуты при изменении locale', () => {
-      const { rerender } = render(<IntlProvider {...defaultProps} />);
+      const { rerender, container } = render(
+        <IntlProvider key='locale-change-test' {...defaultProps} />,
+      );
 
-      let provider = screen.getByTestId('next-intl-provider');
-      expect(provider).toHaveAttribute('data-locale', 'en');
+      // Проверяем начальный locale
+      let providerDiv = container.querySelector('[data-locale]');
+      expect(providerDiv).toHaveAttribute('data-locale', 'en');
 
       // Ререндер с новым locale
       rerender(<IntlProvider {...defaultProps} locale='ru' />);
 
-      provider = screen.getByTestId('next-intl-provider');
-      expect(provider).toHaveAttribute('data-locale', 'ru');
+      // Проверяем, что locale изменился
+      providerDiv = container.querySelector('[data-locale]');
+      expect(providerDiv).toHaveAttribute('data-locale', 'ru');
     });
 
     it('должен обновлять атрибуты при изменении messages', () => {
-      const { rerender } = render(<IntlProvider {...defaultProps} />);
+      const { rerender, container } = render(
+        <IntlProvider key='locale-change-test' {...defaultProps} />,
+      );
 
       const newMessages = { ...mockMessages, test: 'new message' };
 
       // Ререндер с новыми messages
       rerender(<IntlProvider {...defaultProps} messages={newMessages} />);
 
-      const provider = screen.getByTestId('next-intl-provider');
-      expect(provider).toHaveAttribute('data-messages', JSON.stringify(newMessages));
+      // Проверяем, что messages обновились
+      const providerDiv = container.querySelector('[data-messages]');
+      expect(providerDiv).toHaveAttribute('data-messages', JSON.stringify(newMessages));
     });
 
     it('должен обновлять children при их изменении', () => {
@@ -154,13 +202,14 @@ describe('IntlProvider', () => {
         children: React.createElement('div', null, 'test'),
       };
 
-      expect(() => render(<IntlProvider {...props} />)).not.toThrow();
+      expect(() => render(<IntlProvider key='error-boundary-test' {...props} />)).not.toThrow();
     });
 
     it('должен требовать обязательные пропсы', () => {
       // TypeScript проверки происходят на этапе компиляции
       // Этот тест просто проверяет, что компонент работает с корректными пропсами
-      expect(() => render(<IntlProvider {...defaultProps} />)).not.toThrow();
+      expect(() => render(<IntlProvider key='error-boundary-default-test' {...defaultProps} />)).not
+        .toThrow();
     });
 
     it('должен иметь readonly пропсы', () => {
@@ -174,17 +223,22 @@ describe('IntlProvider', () => {
         children: React.createElement('div'),
       };
 
-      render(<IntlProvider {...props} />);
-      expect(screen.getByTestId('next-intl-provider')).toBeInTheDocument();
+      const { container } = renderIsolated(
+        <IntlProvider key='conditional-render-test' {...props} />,
+      );
+
+      // Проверяем, что NextIntl провайдер создался
+      const providerDiv = container.querySelector('[data-locale]');
+      expect(providerDiv).toBeInTheDocument();
     });
   });
 
   describe('интеграция с next-intl', () => {
     it('должен корректно интегрироваться с NextIntlClientProvider', () => {
-      render(<IntlProvider {...defaultProps} />);
+      const { container } = renderIsolated(<IntlProvider key='basic-test' {...defaultProps} />);
 
       // Проверяем, что компонент рендерится без ошибок
-      const provider = screen.getByTestId('next-intl-provider');
+      const provider = container.querySelector('[data-locale]');
       expect(provider).toBeInTheDocument();
       expect(provider).toHaveAttribute('data-locale', 'en');
       expect(provider).toHaveAttribute('data-messages', JSON.stringify(mockMessages));
@@ -206,9 +260,11 @@ describe('IntlProvider', () => {
       };
 
       const props = { ...defaultProps, messages: complexMessages };
-      render(<IntlProvider {...props} />);
+      const { container } = renderIsolated(
+        <IntlProvider key='conditional-render-test' {...props} />,
+      );
 
-      const provider = screen.getByTestId('next-intl-provider');
+      const provider = container.querySelector('[data-messages]');
       expect(provider).toHaveAttribute('data-messages', JSON.stringify(complexMessages));
     });
   });
@@ -217,9 +273,11 @@ describe('IntlProvider', () => {
     it('должен обрабатывать очень длинные локали', () => {
       const longLocale = 'zh-CN-traditional-with-long-subtags-and-more-text';
       const props = { ...defaultProps, locale: longLocale };
-      render(<IntlProvider {...props} />);
+      const { container } = renderIsolated(
+        <IntlProvider key='conditional-render-test' {...props} />,
+      );
 
-      const provider = screen.getByTestId('next-intl-provider');
+      const provider = container.querySelector('[data-locale]');
       expect(provider).toHaveAttribute('data-locale', longLocale);
     });
 
@@ -229,9 +287,11 @@ describe('IntlProvider', () => {
       })).reduce((acc, curr) => ({ ...acc, ...curr }), {});
 
       const props = { ...defaultProps, messages: largeMessages };
-      render(<IntlProvider {...props} />);
+      const { container } = renderIsolated(
+        <IntlProvider key='conditional-render-test' {...props} />,
+      );
 
-      const provider = screen.getByTestId('next-intl-provider');
+      const provider = container.querySelector('[data-messages]');
       expect(provider).toHaveAttribute('data-messages', JSON.stringify(largeMessages));
     });
 
@@ -244,7 +304,7 @@ describe('IntlProvider', () => {
       );
 
       const props = { ...defaultProps, children: fragmentChildren };
-      render(<IntlProvider {...props} />);
+      render(<IntlProvider key='conditional-render-test' {...props} />);
 
       expect(screen.getByTestId('child1')).toBeInTheDocument();
       expect(screen.getByTestId('child2')).toBeInTheDocument();
@@ -257,9 +317,11 @@ describe('IntlProvider', () => {
         : React.createElement('span', { 'data-testid': 'child' }, 'Child');
 
       const props = { ...defaultProps, children };
-      render(<IntlProvider {...props} />);
+      const { container } = renderIsolated(
+        <IntlProvider key='conditional-render-test' {...props} />,
+      );
 
-      expect(screen.getByTestId('child')).toBeInTheDocument();
+      expect(container.querySelector('[data-testid="child"]')).toBeInTheDocument();
     });
   });
 });

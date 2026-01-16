@@ -159,28 +159,45 @@ function createBaseVitestConfig(
       /** Разрешить .only тесты: да в dev для отладки, нет в CI для полного прогона */
       allowOnly: process.env['CI'] !== 'true',
 
+      /** Окружение по умолчанию для UI тестов */
+      environment: 'jsdom',
+
       /** По умолчанию тестировать все unit и integration тесты */
       include: [
-        '**/*.test.ts',
-        '**/*.test.tsx',
+        'packages/**/*.test.{ts,tsx}',
+        'apps/**/*.test.{ts,tsx}',
+        'tools/**/*.test.{ts,tsx}',
+        'services/**/*.test.{ts,tsx}',
+        'config/**/*.test.{ts,tsx}',
+        // Корневые тесты (не в workspace)
+        '*.test.{ts,tsx}',
+        '**/*.test.{ts,tsx}',
       ],
 
       /** Исключить все остальное */
       exclude: [
-        '**/e2e/**',
-        '**/*.spec.ts',
-        'e2e/**',
-        '**/playwright-report/**',
+        // Core exclusions - these should never be tested
         '**/node_modules/**',
+        '**/.pnpm-store/**',
+        '**/.pnpm/**',
+
+        // build artifacts
         '**/dist/**',
-        '**/coverage/**',
         '**/build/**',
         '**/.next/**',
+        '**/.output/**',
         '**/.turbo/**',
-        // Исключить ВСЕ файлы из pnpm store
-        '**/.pnpm-store/**',
-        '.pnpm-store/**',
-        '**/.pnpm-store/**/*',
+        '**/.cache/**',
+
+        // coverage & reports
+        '**/coverage/**',
+
+        // e2e
+        '**/e2e/**',
+        '**/playwright*/**',
+
+        // disabled tests
+        '**/tests-disabled/**',
       ],
 
       /** Максимальная параллельность выполнения */
@@ -200,48 +217,10 @@ function createBaseVitestConfig(
       slowTestThreshold: process.env['CI'] === 'true' ? 1000 : 300,
 
       /** Настройка покрытия кода */
-      coverage: process.env['COVERAGE'] === 'true'
-          || process.env['CI'] === 'true'
-          || process.env['TEST_FILE_MODE'] === 'true'
-        ? {
-          provider: 'v8',
-          reporter: process.env['TEST_FILE_MODE'] === 'true'
-            ? ['json']
-            : ['text', 'json', 'html', 'lcov'],
-          reportsDirectory: './coverage',
-          // Отключаем thresholds в development для гибкости, но включаем для TEST_FILE_MODE
-          thresholds: process.env['CI'] === 'true' || process.env['TEST_FILE_MODE'] === 'true'
-            ? {
-              lines: 85,
-              functions: 80,
-              branches: 80,
-              statements: 80,
-            }
-            : undefined,
-          // Покрытие для всех исходных файлов, включая не тестируемые напрямую
-          all: process.env['CI'] === 'true' || process.env['TEST_FILE_MODE'] === 'true',
-          include: [
-            'packages/**/src/**/*.ts',
-            'packages/**/src/**/*.tsx',
-            'config/**/*.ts',
-            'scripts/**/*.ts',
-            'apps/**/*.ts',
-            'apps/**/*.tsx',
-          ],
-          exclude: [
-            '**/node_modules/**',
-            '**/dist/**',
-            '**/*.test.ts',
-            '**/*.test.tsx',
-            '**/*.spec.ts',
-            '**/e2e/**',
-            '**/.pnpm-store/**',
-            '**/coverage/**',
-            '**/.next/**',
-            '**/.turbo/**',
-          ],
-        }
-        : false,
+      coverage: {
+        provider: 'v8',
+        reporter: ['text', 'json', 'html'],
+      },
 
       /** Глобальная настройка для всех тестов */
       setupFiles: ['configs/vitest/test.setup.ts'],

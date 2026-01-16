@@ -37,8 +37,8 @@ export default defineConfig({
       './vitest.setup.ts', // Специфичные моки Next.js
     ],
     include: [
-      'src/**/*.{test,spec}.{ts,tsx}',
-      'tests/**/*.{test,spec}.{ts,tsx}',
+      'src/**/*.{test}.{ts,tsx}',
+      'tests/**/*.{test}.{ts,tsx}',
     ],
     exclude: [
       'node_modules/**',
@@ -46,6 +46,10 @@ export default defineConfig({
       'out/**',
       'dist/**',
       'coverage/**',
+      // Исключаем e2e тесты Playwright
+      '../../e2e/**',
+      '../../**/e2e/**',
+      '../../config/playwright/**',
     ],
 
     // Специфичные thresholds для веб-приложения

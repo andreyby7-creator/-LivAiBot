@@ -2,7 +2,7 @@
  * @file Тесты для LocaleLayout и generateMetadata
  */
 
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 // Mock для next/navigation
 const mockNotFound = vi.fn();
