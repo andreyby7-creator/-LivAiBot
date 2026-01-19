@@ -21,7 +21,7 @@ vi.mock('next-intl', () => ({
 }));
 
 // Функция для изолированного рендера
-function renderIsolated(component: React.ReactElement) {
+function renderIsolated(component: Readonly<React.ReactElement>) {
   const container = document.createElement('div');
   document.body.appendChild(container);
 

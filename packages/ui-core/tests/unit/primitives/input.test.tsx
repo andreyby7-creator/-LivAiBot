@@ -2,7 +2,7 @@
  * @file Unit тесты для Input компонента
  */
 
-import { createRef } from 'react';
+import React, { createRef } from 'react';
 import { afterEach, describe, expect, it } from 'vitest';
 import { cleanup, render, within } from '@testing-library/react';
 import '@testing-library/jest-dom/vitest';
@@ -12,7 +12,7 @@ import { Input } from '../../../src/primitives/input.js';
 afterEach(cleanup);
 
 // Функция для изолированного рендера
-function renderIsolated(component: React.ReactElement) {
+function renderIsolated(component: Readonly<React.ReactElement>) {
   const container = document.createElement('div');
   document.body.appendChild(container);
 
