@@ -1,6 +1,12 @@
-/home/boss/Projects/livai/packages/app/tests/unit/lib/feature-flags.test.ts: возвращает ERROR когда стратегия выбрасывает исключение
-AssertionError: expected 'STRATEGY' to be 'ERROR' // Object.is equality
-    at expectEvaluationResult (/home/boss/Projects/livai/packages/app/tests/unit/lib/feature-flags.test.ts:110:25)
-    at /home/boss/Projects/livai/packages/app/tests/unit/lib/feature-flags.test.ts:294:7
-    at processTicksAndRejections (node:internal/process/task_queues:105:5)
-    at file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.17/node_modules/@vitest/runner/dist/index.js:915:20
+/home/boss/Projects/livai/packages/app/tests/unit/lib/i18n.test.ts: translate должен возвращать ошибку для несуществующего namespace
+TypeError: Cannot use 'in' operator to search for 'greeting' in undefined
+    at Object.translate (/home/boss/Projects/livai/packages/app/src/lib/i18n.ts:140:22)
+    at /home/boss/Projects/livai/packages/app/tests/unit/lib/i18n.test.ts:121:35
+    at file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.17/node_modules/@vitest/runner/dist/index.js:145:11
+    at file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.17/node_modules/@vitest/runner/dist/index.js:915:26
+    at file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.17/node_modules/@vitest/runner/dist/index.js:1243:20
+    at new Promise (<anonymous>)
+    at runWithTimeout (file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.17/node_modules/@vitest/runner/dist/index.js:1209:10)
+    at file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.17/node_modules/@vitest/runner/dist/index.js:1653:37
+    at Traces.$ (file:///home/boss/Projects/livai/node_modules/.pnpm/vitest@4.0.17_@opentelemetry+api@1.9.0_@types+node@25.0.9_jsdom@27.4.0_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vitest/dist/chunks/traces.CCmnQaNT.js:142:27)
+    at trace (file:///home/boss/Projects/livai/node_modules/.pnpm/vitest@4.0.17_@opentelemetry+api@1.9.0_@types+node@25.0.9_jsdom@27.4.0_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vitest/dist/chunks/test.B8ej_ZHS.js:239:21)

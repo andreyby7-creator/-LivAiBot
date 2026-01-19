@@ -172,18 +172,18 @@
 1️⃣3️⃣ packages/ui-core/src/primitives/input.tsx 🟢 — ts+react — Input UI
 1️⃣4️⃣ packages/ui-core/src/primitives/form-field.tsx 🟢 — ts+react — Form UI
 
-App types и libs
-1️⃣5️⃣ packages/app/src/types/common.ts 🟢 — ts — Общие типы для всего приложения (усиленная типизация)
+✅ App types и libs
+1️⃣5️⃣ packages/app/src/types/common.ts 🟢 — ts — Общие типы для всего приложения
 1️⃣6️⃣ packages/app/src/types/api.ts 🟢 — ts — Базовые типы API
 1️⃣7️⃣ packages/app/src/lib/effect-utils.ts 🟢 — ts+effect — Effect helpers
-1️⃣8️⃣ packages/app/src/lib/api-client.ts 🟢 — ts+effect — API client — types/api.ts, effect-utils.ts (раньше offline-cache)
+1️⃣8️⃣ packages/app/src/lib/api-client.ts 🟢 — ts+effect — API client — types/api.ts, effect-utils.ts
 1️⃣9️⃣ packages/app/src/lib/websocket.ts 🟢 — ts+effect — WebSocket client — effect-utils.ts
 2️⃣0️⃣ packages/app/src/lib/sse-client.ts 🟢 — ts+effect — SSE client — effect-utils.ts
 2️⃣1️⃣ packages/app/src/lib/validation.ts 🟢 — ts — Validation utils — types/*
 2️⃣2️⃣ packages/app/src/lib/error-mapping.ts 🟢 — ts — Mapping ошибок — types/*
 2️⃣3️⃣ packages/app/src/lib/feature-flags.ts 🟢 — ts — Feature flags — types/*
-2️⃣4️⃣ packages/app/src/lib/offline-cache.ts 🔴 — ts+effect — Offline caching — effect-utils.ts (после всех, кто его использует) (НЕТ)
-2️⃣5️⃣ packages/app/src/lib/i18n.ts 🔴 — ts+react — i18n utils — types/* (НЕТ)
+2️⃣4️⃣ packages/app/src/lib/offline-cache.ts 🟢 — ts+effect — Offline caching — effect-utils.ts
+2️⃣5️⃣ packages/app/src/lib/i18n.ts 🟢 — ts+react — i18n utils — types/*
 
 App UI wrappers
 2️⃣6️⃣ packages/app/src/ui/button.tsx 🔴 — ts+react — UI wrapper Button — ui-core/Button.tsx (НЕТ)

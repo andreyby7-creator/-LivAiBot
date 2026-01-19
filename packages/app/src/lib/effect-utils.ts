@@ -33,7 +33,7 @@ import type { ApiError, ApiRequestContext, ApiResponse } from '../types/api.js';
  * Универсальный эффект.
  * Любая асинхронная операция в системе должна соответствовать этому контракту.
  */
-export type Effect<T> = () => Promise<T>;
+export type Effect<T> = (signal?: AbortSignal) => Promise<T>;
 
 /**
  * Контекст выполнения эффекта.
