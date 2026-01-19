@@ -2,6 +2,7 @@
  * @file Unit тесты для FormField компонента
  */
 
+import React from 'react';
 import { afterEach, describe, expect, it } from 'vitest';
 import { cleanup, render, within } from '@testing-library/react';
 import '@testing-library/jest-dom/vitest';
@@ -11,7 +12,7 @@ import { FormField } from '../../../src/primitives/form-field.js';
 afterEach(cleanup);
 
 // Функция для изолированного рендера
-function renderIsolated(component: React.ReactElement) {
+function renderIsolated(component: Readonly<React.ReactElement>) {
   const container = document.createElement('div');
   document.body.appendChild(container);
 
@@ -21,10 +22,12 @@ function renderIsolated(component: React.ReactElement) {
     ...result,
     container,
     // Локальный поиск элементов
-    getByRole: (role: string, options?: any) => within(container).getByRole(role, options),
-    getByText: (text: string | RegExp) => within(container).getByText(text),
-    getByLabelText: (text: string | RegExp) => within(container).getByLabelText(text),
-    queryByRole: (role: string, options?: any) => within(container).queryByRole(role, options),
+    getByRole: (role: Readonly<string>, options?: Readonly<any>) =>
+      within(container).getByRole(role, options),
+    getByText: (text: Readonly<string | RegExp>) => within(container).getByText(text),
+    getByLabelText: (text: Readonly<string | RegExp>) => within(container).getByLabelText(text),
+    queryByRole: (role: Readonly<string>, options?: Readonly<any>) =>
+      within(container).queryByRole(role, options),
   };
 }
 
