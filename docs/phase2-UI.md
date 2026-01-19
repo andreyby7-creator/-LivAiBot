@@ -178,7 +178,7 @@ App types и libs
 1️⃣7️⃣ packages/app/src/lib/effect-utils.ts 🟢 — ts+effect — Effect helpers
 1️⃣8️⃣ packages/app/src/lib/api-client.ts 🟢 — ts+effect — API client — types/api.ts, effect-utils.ts (раньше offline-cache)
 1️⃣9️⃣ packages/app/src/lib/websocket.ts 🟢 — ts+effect — WebSocket client — effect-utils.ts
-2️⃣0️⃣ packages/app/src/lib/sse-client.ts 🔴 — ts+effect — SSE client — effect-utils.ts (НЕТ)
+2️⃣0️⃣ packages/app/src/lib/sse-client.ts 🟢 — ts+effect — SSE client — effect-utils.ts
 2️⃣1️⃣ packages/app/src/lib/validation.ts 🔴 — ts — Validation utils — types/* (НЕТ)
 2️⃣2️⃣ packages/app/src/lib/error-mapping.ts 🔴 — ts — Mapping ошибок — types/* (НЕТ)
 2️⃣3️⃣ packages/app/src/lib/feature-flags.ts 🔴 — ts — Feature flags — types/* (НЕТ)

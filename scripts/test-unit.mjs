@@ -1568,9 +1568,12 @@ function displayResultsSummary(duration, reporter) {
               });
             }
 
-            // Добавить длительность для пакета
-            if (testResult.duration) {
-              pkgStats.duration += testResult.duration;
+            // Добавить длительность для пакета (сумма всех assertionResults)
+            if (testResult.assertionResults) {
+              const totalDuration = testResult.assertionResults.reduce((sum, assertion) => {
+                return sum + (assertion.duration || 0);
+              }, 0);
+              pkgStats.duration += totalDuration;
             }
           });
         }
