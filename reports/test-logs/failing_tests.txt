@@ -1,33 +1,6 @@
-/home/boss/Projects/livai/packages/app/tests/unit/lib/sse-client.test.ts: MESSAGE: вызывает dispatch с правильным frame
-AssertionError: expected "vi.fn()" to be called with arguments: [ Array(1) ][90m
-
-Received: 
-
-[1m  1st vi.fn() call:
-
-[22m[2m  [[22m
-[2m    {[22m
-[2m      "frame": {[22m
-[2m        "data": "test data",[22m
-[2m        "event": undefined,[22m
-[32m-       "id": undefined,[90m
-[31m+       "id": "",[90m
-[2m        "retry": undefined,[22m
-[2m      },[22m
-[2m      "type": "MESSAGE",[22m
-[2m    },[22m
-[2m  ][22m
-[39m[90m
-
-Number of calls: [1m1[22m
-[39m
-    at Proxy.<anonymous> (file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+expect@4.0.17/node_modules/@vitest/expect/dist/index.js:1420:10)
-    at Proxy.<anonymous> (file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+expect@4.0.17/node_modules/@vitest/expect/dist/index.js:1090:14)
-    at Proxy.methodWrapper (file:///home/boss/Projects/livai/node_modules/.pnpm/chai@6.2.2/node_modules/chai/index.js:1700:25)
-    at /home/boss/Projects/livai/packages/app/tests/unit/lib/sse-client.test.ts:453:26
-    at file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.17/node_modules/@vitest/runner/dist/index.js:145:11
-    at file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.17/node_modules/@vitest/runner/dist/index.js:915:26
-    at file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.17/node_modules/@vitest/runner/dist/index.js:1243:20
-    at new Promise (<anonymous>)
-    at runWithTimeout (file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.17/node_modules/@vitest/runner/dist/index.js:1209:10)
-    at file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.17/node_modules/@vitest/runner/dist/index.js:1653:37
+/home/boss/Projects/livai/packages/app/tests/unit/lib/feature-flags.test.ts: возвращает ERROR когда стратегия выбрасывает исключение
+AssertionError: expected 'STRATEGY' to be 'ERROR' // Object.is equality
+    at expectEvaluationResult (/home/boss/Projects/livai/packages/app/tests/unit/lib/feature-flags.test.ts:110:25)
+    at /home/boss/Projects/livai/packages/app/tests/unit/lib/feature-flags.test.ts:294:7
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.17/node_modules/@vitest/runner/dist/index.js:915:20
