@@ -30,8 +30,15 @@ const CONFIGS = {
 const CI_MODE = process.env.CI === "true";
 
 dotenvExpand.expand(dotenv.config({ path: path.join(ROOT, ".env") }));
-dotenvExpand.expand(dotenv.config({ path: path.join(ROOT, ".env.test") }));
+dotenvExpand.expand(dotenv.config({ path: path.join(ROOT, "config/env/.env.test") }));
 if (CI_MODE) dotenvExpand.expand(dotenv.config({ path: path.join(ROOT, ".env.ci") }));
+
+// Валидация тестовых переменных
+const requiredTestVars = ['DATABASE_URL', 'REDIS_URL', 'JWT_SECRET'];
+const missingVars = requiredTestVars.filter(v => !process.env[v]);
+if (missingVars.length > 0) {
+  console.warn(`⚠️  Отсутствуют тестовые переменные: ${missingVars.join(', ')}`);
+}
 
 /* ================= ОПЦИИ КОМАНДНОЙ СТРОКИ ================= */
 
@@ -431,8 +438,8 @@ async function getCoverageDiff(baseBranch = 'main') {
 // Загружает пороги из конфигурационного файла Vitest
 function loadThresholdsFromConfig(configPath) {
   try {
-    // Пороги по умолчанию
-    let thresholds = { lines: 80, functions: 80, branches: 75, statements: 80 };
+    // Пороги по умолчанию - повышенные требования для качества
+    let thresholds = { lines: 85, functions: 85, branches: 85, statements: 80 };
 
     if (configPath.includes('packages') || configPath.includes('integration')) {
       // Для packages конфигурации пытаемся загрузить из файла
@@ -444,22 +451,21 @@ function loadThresholdsFromConfig(configPath) {
         // Ищем STRICT_QUALITY_CONTRACT в файле
         const strictMatch = configContent.match(/STRICT_QUALITY_CONTRACT\s*=\s*({[\s\S]*?});/);
         if (strictMatch) {
-          // Для простоты используем средние значения из контракта
-          // В реальном проекте можно парсить JSON или использовать eval с осторожностью
-          thresholds = { lines: 75, functions: 80, branches: 70, statements: 75 };
+          // Используем повышенные требования для качества
+          thresholds = { lines: 85, functions: 85, branches: 85, statements: 80 };
         }
       } catch (error) {
         console.log(`⚠️  Не удалось загрузить пороги из конфига, используем значения по умолчанию: ${error.message}`);
       }
     } else if (configPath.includes('ai')) {
-      // AI тесты имеют более мягкие требования
-      thresholds = { lines: 70, functions: 70, branches: 65, statements: 70 };
+      // AI тесты имеют повышенные требования для качества
+      thresholds = { lines: 85, functions: 85, branches: 85, statements: 80 };
     }
 
     return thresholds;
   } catch (error) {
-    console.log(`⚠️  Ошибка загрузки порогов, используем значения по умолчанию: ${error.message}`);
-    return { lines: 80, functions: 80, branches: 75, statements: 80 };
+    console.log(`⚠️  Ошибка загрузки порогов, используем повышенные значения по умолчанию: ${error.message}`);
+    return { lines: 85, functions: 85, branches: 85, statements: 80 };
   }
 }
 
@@ -469,8 +475,7 @@ function resolveTestSetup() {
   // Для глобального запуска отключаем coverage в локальном режиме (слишком много файлов)
   const isGlobalRun = opts.unit && normalizedPaths.length === 0;
   const coverageEnabled = opts.debug ? false :
-    (isGlobalRun && !CI_MODE) ? false :
-    opts.coverage !== false;
+    opts.coverage !== false; // Включаем coverage по умолчанию
 
   // Set or clear COVERAGE environment variable for Vitest config
   if (coverageEnabled) {
