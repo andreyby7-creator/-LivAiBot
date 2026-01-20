@@ -1,14 +1,30 @@
-/home/boss/Projects/livai/packages/core-contracts/tests/unit/validation/zod/zod-helpers.test.ts: normalizeZodPath обрабатывает числа в пути
-Error: Cannot find module '../../../../src/validation/zod/custom/i18n.js'
-Require stack:
-- /home/boss/Projects/livai/packages/core-contracts/tests/unit/validation/zod/zod-helpers.test.ts
-    at Module._resolveFilename (node:internal/modules/cjs/loader:1420:15)
-    at defaultResolveImpl (node:internal/modules/cjs/loader:1058:19)
-    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1063:22)
-    at Module._load (node:internal/modules/cjs/loader:1226:37)
-    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
-    at wrapModuleLoad (node:internal/modules/cjs/loader:244:24)
-    at Module.require (node:internal/modules/cjs/loader:1503:12)
-    at require (node:internal/modules/helpers:152:16)
-    at /home/boss/Projects/livai/packages/core-contracts/tests/unit/validation/zod/zod-helpers.test.ts:96:34
+/home/boss/Projects/livai/packages/app/tests/unit/ui/button.test.tsx: должен отправлять telemetry при клике
+AssertionError: expected "vi.fn()" to be called 1 times, but got 0 times
+    at /home/boss/Projects/livai/packages/app/tests/unit/ui/button.test.tsx:118:31
     at file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.17/node_modules/@vitest/runner/dist/index.js:145:11
+    at file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.17/node_modules/@vitest/runner/dist/index.js:915:26
+    at file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.17/node_modules/@vitest/runner/dist/index.js:1243:20
+    at new Promise (<anonymous>)
+    at runWithTimeout (file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.17/node_modules/@vitest/runner/dist/index.js:1209:10)
+    at file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.17/node_modules/@vitest/runner/dist/index.js:1653:37
+    at Traces.$ (file:///home/boss/Projects/livai/node_modules/.pnpm/vitest@4.0.17_@opentelemetry+api@1.9.0_@types+node@25.0.9_jsdom@27.4.0_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vitest/dist/chunks/traces.CCmnQaNT.js:142:27)
+    at trace (file:///home/boss/Projects/livai/node_modules/.pnpm/vitest@4.0.17_@opentelemetry+api@1.9.0_@types+node@25.0.9_jsdom@27.4.0_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vitest/dist/chunks/test.B8ej_ZHS.js:239:21)
+    at runTest (file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.17/node_modules/@vitest/runner/dist/index.js:1653:12)
+
+---
+
+/home/boss/Projects/livai/packages/app/tests/unit/ui/button.test.tsx: должен передавать undefined variant в telemetry
+AssertionError: expected "vi.fn()" to be called with arguments: [ { component: 'Button', …(3) } ][90m
+
+Number of calls: [1m0[22m
+[39m
+    at Proxy.<anonymous> (file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+expect@4.0.17/node_modules/@vitest/expect/dist/index.js:1420:10)
+    at Proxy.<anonymous> (file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+expect@4.0.17/node_modules/@vitest/expect/dist/index.js:1090:14)
+    at Proxy.methodWrapper (file:///home/boss/Projects/livai/node_modules/.pnpm/chai@6.2.2/node_modules/chai/index.js:1700:25)
+    at /home/boss/Projects/livai/packages/app/tests/unit/ui/button.test.tsx:144:31
+    at file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.17/node_modules/@vitest/runner/dist/index.js:145:11
+    at file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.17/node_modules/@vitest/runner/dist/index.js:915:26
+    at file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.17/node_modules/@vitest/runner/dist/index.js:1243:20
+    at new Promise (<anonymous>)
+    at runWithTimeout (file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.17/node_modules/@vitest/runner/dist/index.js:1209:10)
+    at file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.17/node_modules/@vitest/runner/dist/index.js:1653:37

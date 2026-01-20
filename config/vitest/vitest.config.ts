@@ -223,7 +223,7 @@ function createBaseVitestConfig(
       },
 
       /** Глобальная настройка для всех тестов */
-      setupFiles: ['configs/vitest/test.setup.ts'],
+      setupFiles: ['config/vitest/test.setup.ts'],
       globalSetup: [],
     },
 

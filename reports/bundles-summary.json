@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-01-14T22:26:04.368Z",
+  "timestamp": "2026-01-20T15:22:28.156Z",
   "packages": [
     {
       "package": "stable-hash",
@@ -800,6 +800,87 @@
         "raw": 117334,
         "gzip": 20139,
         "brotli": 13660
+      }
+    },
+    {
+      "package": "core-contracts",
+      "entry": "packages/core-contracts/dist/esm/context/index.js",
+      "sizes": {
+        "raw": 149,
+        "gzip": 159,
+        "brotli": 131
+      }
+    },
+    {
+      "package": "feature-bots",
+      "entry": "packages/feature-bots/dist/esm/index.js",
+      "sizes": {
+        "raw": 0,
+        "gzip": 20,
+        "brotli": 1
+      }
+    },
+    {
+      "package": "ui-shared",
+      "entry": "packages/ui-shared/dist/esm/index.js",
+      "sizes": {
+        "raw": 2905,
+        "gzip": 1120,
+        "brotli": 1003
+      }
+    },
+    {
+      "package": "feature-voice",
+      "entry": "packages/feature-voice/dist/esm/index.js",
+      "sizes": {
+        "raw": 0,
+        "gzip": 20,
+        "brotli": 1
+      }
+    },
+    {
+      "package": "app",
+      "entry": "packages/app/dist/esm/index.js",
+      "sizes": {
+        "raw": 328,
+        "gzip": 228,
+        "brotli": 174
+      }
+    },
+    {
+      "package": "feature-auth",
+      "entry": "packages/feature-auth/dist/esm/index.js",
+      "sizes": {
+        "raw": 205,
+        "gzip": 151,
+        "brotli": 112
+      }
+    },
+    {
+      "package": "feature-chat",
+      "entry": "packages/feature-chat/dist/esm/index.js",
+      "sizes": {
+        "raw": 0,
+        "gzip": 20,
+        "brotli": 1
+      }
+    },
+    {
+      "package": "ui-core",
+      "entry": "packages/ui-core/dist/esm/index.js",
+      "sizes": {
+        "raw": 1568,
+        "gzip": 797,
+        "brotli": 675
+      }
+    },
+    {
+      "package": "ui-features",
+      "entry": "packages/ui-features/dist/esm/index.js",
+      "sizes": {
+        "raw": 3173,
+        "gzip": 1149,
+        "brotli": 984
       }
     },
     {

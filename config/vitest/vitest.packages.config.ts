@@ -274,7 +274,7 @@ export function createPackageVitestConfig(options: PackageConfigOptions): Packag
 
       // Setup файлы: глобальный + пакетный
       setupFiles: [
-        'configs/vitest/test.setup.ts', // Глобальный setup с jest-dom
+        'config/vitest/test.setup.ts', // Глобальный setup с jest-dom
         './vitest.setup.ts', // Пакетный setup с cleanup
       ],
 

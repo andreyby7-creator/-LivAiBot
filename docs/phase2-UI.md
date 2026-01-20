@@ -182,12 +182,13 @@
 2️⃣1️⃣ packages/app/src/lib/validation.ts 🟢 — ts — Validation utils — types/*
 2️⃣2️⃣ packages/app/src/lib/error-mapping.ts 🟢 — ts — Mapping ошибок — types/*
 2️⃣3️⃣ packages/app/src/lib/feature-flags.ts 🟢 — ts — Feature flags — types/*
+packages/app/src/lib/telemetry.ts 🟢 — ts — Telemetry — types/*
 2️⃣4️⃣ packages/app/src/lib/offline-cache.ts 🟢 — ts+effect — Offline caching — effect-utils.ts
 2️⃣5️⃣ packages/app/src/lib/i18n.ts 🟢 — ts+react — i18n utils — types/*
 
 App UI wrappers
 2️⃣6️⃣ packages/app/src/ui/button.tsx 🟢 — ts+react — UI wrapper Button — ui-core/Button.tsx
-2️⃣7️⃣ packages/app/src/ui/input.tsx 🔴 — ts+react — UI wrapper Input — ui-core/Input.tsx (НЕТ)
+2️⃣7️⃣ packages/app/src/ui/input.tsx 🔴 — ts+react — UI wrapper Input — ui-core/Input.tsx
 2️⃣8️⃣ packages/app/src/ui/card.tsx 🔴 — ts+react — UI wrapper Card — ui-core/Card.tsx (НЕТ)
 2️⃣9️⃣ packages/app/src/ui/dialog.tsx 🔴 — ts+react — UI wrapper Dialog — ui-core/Dialog.tsx (НЕТ)
 3️⃣0️⃣ packages/app/src/ui/form.tsx 🔴 — ts+react — UI wrapper Form — ui-core/Form.tsx (НЕТ)

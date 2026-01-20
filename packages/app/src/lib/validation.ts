@@ -18,6 +18,7 @@
  */
 
 import type { ServiceErrorCode, ServicePrefix, TaggedError } from './error-mapping.js';
+import { errorFireAndForget, warnFireAndForget } from './telemetry.js';
 
 /* ============================================================================
  * 🧠 КОНТЕКСТ ВАЛИДАЦИИ
@@ -59,6 +60,12 @@ export function validationError(
     service?: ServicePrefix | undefined;
   },
 ): ValidationError {
+  warnFireAndForget('Validation error created', {
+    code,
+    ...(options?.field != null && { field: options.field }),
+    ...(options?.service != null && { service: options.service }),
+  });
+
   return {
     code,
     service: options?.service,
@@ -90,9 +97,16 @@ export function ok<T>(value: T): ValidationResult<T> {
 export function fail(
   errors: readonly ValidationError[] | ValidationError,
 ): ValidationResult<never> {
+  const errorArray = Array.isArray(errors) ? errors : [errors];
+
+  warnFireAndForget('Validation failed', {
+    errorCount: errorArray.length,
+    ...(errorArray[0]?.code != null && { firstError: String(errorArray[0].code) }),
+  });
+
   return {
     success: false,
-    errors: Array.isArray(errors) ? errors : [errors],
+    errors: errorArray,
   };
 }
 
@@ -289,6 +303,10 @@ export function validateObject<T extends Record<string, unknown>>(
     }
 
     if (errors.length > 0) {
+      errorFireAndForget('Object validation failed', {
+        errorCount: errors.length,
+        ...(ctx.service && { service: ctx.service }),
+      });
       return fail(errors);
     }
 

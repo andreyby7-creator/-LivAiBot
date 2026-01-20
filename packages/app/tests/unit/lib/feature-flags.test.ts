@@ -432,14 +432,79 @@ describe('Feature Flags Core', () => {
   });
 
   describe('Utility Functions', () => {
-    it('результаты оценки иммутабельны', async () => {
-      const provider = createMockProvider([createMockFlag('TEST_FLAG')]);
-      const result = await evaluateFeature(provider, 'TEST_FLAG' as any, ctx);
+    it('массив результатов evaluateFeatures заморожен', async () => {
+      const provider = createMockProvider([
+        createMockFlag('TEST_FLAG_1'),
+        createMockFlag('TEST_FLAG_2'),
+      ]);
+      const results = await evaluateFeatures(
+        provider,
+        ['TEST_FLAG_1' as any, 'TEST_FLAG_2' as any],
+        ctx,
+      );
 
-      expect(Object.isFrozen(result)).toBe(true);
+      expect(Object.isFrozen(results)).toBe(true);
       expect(() => {
-        (result as any).value = false;
+        (results as any).push({} as any);
       }).toThrow();
+    });
+
+    describe('percentageRollout - детерминированность хэширования', () => {
+      it('детерминирован для одинаковых userId', () => {
+        const ctx1 = createMockContext({ userId: 'test-user-123' });
+        const ctx2 = createMockContext({ userId: 'test-user-123' });
+
+        const strategy = percentageRollout(50);
+
+        // Один и тот же userId всегда дает одинаковый результат
+        const result1 = strategy(ctx1);
+        const result2 = strategy(ctx2);
+
+        expect(result1).toBe(result2);
+      });
+
+      it('работает с различными длинами userId', () => {
+        const testIds = [
+          'a', // 1 символ
+          'ab', // 2 символа
+          'abc', // 3 символа
+          'user-123', // 8 символов
+          'very-long-user-id-123456789', // 26 символов
+          'a'.repeat(100), // 100 символов
+        ];
+
+        testIds.forEach((userId) => {
+          const ctx = createMockContext({ userId });
+          const strategy = percentageRollout(50);
+
+          // Должен работать без ошибок и быть детерминированным
+          const result1 = strategy(ctx);
+          const result2 = strategy(createMockContext({ userId }));
+
+          expect(typeof result1).toBe('boolean');
+          expect(result1).toBe(result2);
+        });
+      });
+
+      it('работает с Unicode userId', () => {
+        const unicodeIds = [
+          'пользователь-123',
+          '用户-456',
+          '🚀-test',
+          'café-müller',
+        ];
+
+        unicodeIds.forEach((userId) => {
+          const ctx = createMockContext({ userId });
+          const strategy = percentageRollout(50);
+
+          const result1 = strategy(ctx);
+          const result2 = strategy(createMockContext({ userId }));
+
+          expect(typeof result1).toBe('boolean');
+          expect(result1).toBe(result2);
+        });
+      });
     });
   });
 
@@ -524,14 +589,34 @@ describe('Feature Flags Core', () => {
       expect(generalFlagName).toBe('BILLING_test_flag');
     });
 
-    it('результаты оценки иммутабельны', async () => {
-      const provider = createMockProvider([createMockFlag('TEST_FLAG')]);
-      const result = await evaluateFeature(provider, 'TEST_FLAG' as any, ctx);
+    it('useFeatureFlag возвращает boolean значение', async () => {
+      const { useFeatureFlag } = await import('../../../src/lib/feature-flags');
 
-      expect(Object.isFrozen(result)).toBe(true);
-      expect(() => {
-        (result as any).value = false;
-      }).toThrow();
+      expect(useFeatureFlag(true)).toBe(true);
+      expect(useFeatureFlag(false)).toBe(false);
+      expect(useFeatureFlag(undefined)).toBe(false);
     });
+
+    it('ошибки стратегий обрабатываются gracefully', async () => {
+      const provider = createInMemoryFeatureFlagProvider([
+        {
+          name: 'ERROR_FLAG' as any,
+          description: 'Test flag that throws',
+          default: false,
+          service: 'AI',
+          strategy: () => {
+            throw new Error('Strategy error');
+          },
+        },
+      ]);
+
+      const result = await evaluateFeature(provider, 'ERROR_FLAG' as any, ctx);
+
+      expect(result.value).toBe(false);
+      expect(result.reason).toBe('STRATEGY'); // Стратегия выполняется, но выбрасывает ошибку
+    });
+
+    // Примечание: evaluateFromMap с undefined флагом покрывается косвенно
+    // через evaluateFeatures с несуществующими флагами
   });
 });

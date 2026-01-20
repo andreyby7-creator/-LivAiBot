@@ -15,6 +15,7 @@
 import { EventEmitter } from 'events';
 
 import type { Effect } from './effect-utils.js';
+import { errorFireAndForget, warnFireAndForget } from './telemetry.js';
 
 /* ============================================================================
  * 📡 EVENT TYPES
@@ -93,7 +94,6 @@ export type OfflineCacheOptions = {
   readonly onError?: (err: unknown, key: CacheKey) => void;
   readonly onUpdate?: (key: CacheKey, value: unknown) => void;
   readonly onEvaluate?: (result: OfflineCacheResult<unknown>) => void;
-  readonly onTelemetry?: (data: { key: CacheKey; error: unknown; operation: string; }) => void;
 };
 
 /* ============================================================================
@@ -145,7 +145,6 @@ export function createOfflineCache(
     onError,
     onUpdate,
     onEvaluate,
-    onTelemetry,
   } = options ?? {};
 
   const buildKey = (key: CacheKey): string => `${namespace}:${key}`;
@@ -185,8 +184,12 @@ export function createOfflineCache(
         delay: retryDelay,
         backoff: retryBackoff,
         signal,
-        onRetry: (attempt, error) => {
-          onTelemetry?.({ key: namespacedKey, error, operation: `retry-${attempt}` });
+        onRetry: (attempt) => {
+          warnFireAndForget('Cache retry operation', {
+            key: namespacedKey,
+            attempt,
+            operation: 'retry',
+          });
         },
       },
     )
@@ -205,7 +208,11 @@ export function createOfflineCache(
       .catch((err: unknown) => {
         onError?.(err, namespacedKey);
         events.emit('error', err, namespacedKey, requestContext?.traceId, requestContext?.service);
-        onTelemetry?.({ key: namespacedKey, error: err, operation: 'fetch' });
+
+        errorFireAndForget('Cache fetch failed', {
+          key: namespacedKey,
+          operation: 'fetch',
+        });
         throw err;
       })
       .finally(() => {
@@ -414,6 +421,12 @@ export function createOfflineCache(
           return handleStaleData(entry, namespacedKey, fetcher, signal, requestContext);
         }
 
+        // Cache miss - логируем и загружаем удаленно
+        warnFireAndForget('Cache miss, fetching remotely', {
+          key: namespacedKey,
+          operation: 'cache_miss',
+        });
+
         // Удаленная загрузка + кэширование
         return await handleRemoteFetch(
           key,
@@ -426,7 +439,11 @@ export function createOfflineCache(
       } catch (err: unknown) {
         onError?.(err, namespacedKey);
         events.emit('error', err, namespacedKey, context?.traceId, context?.service);
-        onTelemetry?.({ key: namespacedKey, error: err, operation: 'getOrFetch' });
+
+        errorFireAndForget('Cache getOrFetch failed', {
+          key: namespacedKey,
+          operation: 'getOrFetch',
+        });
 
         return handleErrorFallback(key, namespacedKey, timestamp, err, requestContext);
       }

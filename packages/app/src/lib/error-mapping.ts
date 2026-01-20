@@ -18,6 +18,7 @@
  */
 
 import type { EffectError } from './effect-utils.js';
+import { errorFireAndForget } from './telemetry.js';
 
 /** Типизированная ошибка с кодом для маппинга */
 export type TaggedError<T extends ServiceErrorCode = ServiceErrorCode> = {
@@ -187,9 +188,17 @@ export function mapError<TDetails = unknown>(
 
   // Используем переданный сервис или автоматически определенный
   const finalService = service ?? detectedService;
+  const mappedCode = code ?? 'SYSTEM_UNKNOWN_ERROR';
+
+  // Логируем mapped ошибку для observability
+  errorFireAndForget('Error mapped', {
+    code: mappedCode,
+    originalErrorType: err instanceof Error ? err.constructor.name : typeof err,
+    ...(finalService && { service: finalService }),
+  });
 
   return {
-    code: code ?? 'SYSTEM_UNKNOWN_ERROR',
+    code: mappedCode,
     message: code !== undefined && isValidErrorCode(code)
       ? errorMessages[code as keyof typeof errorMessages](effectiveLocale)
       : errorMessages.SYSTEM_UNKNOWN_ERROR(effectiveLocale),

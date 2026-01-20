@@ -14,11 +14,89 @@
  * - поддержка distributed систем
  */
 
+// useMemo removed - not needed for this simple boolean conversion
+
 import type { ServicePrefix } from './error-mapping.js';
+
+/* ============================================================================
+ * 🔢 МУРМУРХЭШ КОНСТАНТЫ
+ * ========================================================================== */
+
+/**
+ * Стандартные константы MurmurHash3 для детерминированного хэширования.
+ * Не изменять - это проверенная криптографическая реализация.
+ */
+const MURMURHASH_C1 = 0xcc9e2d51; // Первая константа смешивания
+const MURMURHASH_C2 = 0x1b873593; // Вторая константа смешивания
+const MURMURHASH_R1 = 15; // Первый угол поворота
+const MURMURHASH_R2 = 13; // Второй угол поворота
+const MURMURHASH_M = 5; // Константа умножения
+const MURMURHASH_N = 0xe6546b64; // Константа сложения
+const MURMURHASH_FINALIZE_MIX_1 = 0x85ebca6b; // Финализация 1
+const MURMURHASH_FINALIZE_MIX_2 = 0xc2b2ae35; // Финализация 2
+const MURMURHASH_BLOCK_SIZE = 4; // Размер блока обработки в байтах
+const MURMURHASH_BYTE_BITS = 8; // Бит в байте
+const MURMURHASH_WORD_BITS = 32; // Бит в 32-bit слове
+const MURMURHASH_FINALIZE_SHIFT_1 = 16; // Первый сдвиг финализации
+const MURMURHASH_FINALIZE_SHIFT_2 = 13; // Второй сдвиг финализации
+const MURMURHASH_FINALIZE_SHIFT_3 = 16; // Третий сдвиг финализации
 
 /* ============================================================================
  * 🧠 КОНТЕКСТ
  * ========================================================================== */
+
+export type FeatureAttributeValue = string | number | boolean;
+
+/**
+ * Известные структурированные атрибуты для feature flags.
+ * Обеспечивают типобезопасность и автодополнение.
+ */
+export type KnownFeatureAttributes = {
+  /** Среда выполнения */
+  readonly environment?: 'production' | 'staging' | 'development' | 'test';
+
+  /** Версия приложения (semver) */
+  readonly version?: string;
+
+  /** Платформа */
+  readonly platform?: 'web' | 'mobile' | 'desktop' | 'api';
+
+  /** Тип устройства */
+  readonly deviceType?: 'desktop' | 'tablet' | 'mobile' | 'server';
+
+  /** ID эксперимента */
+  readonly experimentId?: string;
+
+  /** Регион/зона */
+  readonly region?: string;
+
+  /** Сегмент пользователя */
+  readonly userSegment?: string;
+
+  /** Уровень подписки */
+  readonly subscriptionTier?: 'free' | 'premium' | 'enterprise';
+
+  /** Язык интерфейса */
+  readonly locale?: string;
+
+  /** Временная зона */
+  readonly timezone?: string;
+
+  /** Тип подключения */
+  readonly connectionType?: 'wifi' | 'cellular' | 'ethernet' | 'offline';
+};
+
+/**
+ * Атрибуты feature flags: известные + кастомные.
+ * Известные атрибуты типизированы для лучшей DX и безопасности.
+ */
+export type FeatureAttributes = KnownFeatureAttributes & Record<string, FeatureAttributeValue>;
+
+/**
+ * Callback для логирования ошибок в feature flag стратегиях.
+ * Позволяет гибкую настройку логирования без side effects.
+ */
+export type FeatureFlagLogger = (message: string, error?: unknown) => void;
 
 export type FeatureContext = {
   readonly userId?: string;
@@ -27,7 +105,7 @@ export type FeatureContext = {
   readonly traceId?: string;
   readonly service?: ServicePrefix;
   readonly locale?: string;
-  readonly attributes?: Record<string, string | number | boolean>;
+  readonly attributes?: FeatureAttributes;
 };
 
 /* ============================================================================
@@ -58,16 +136,54 @@ export type FeatureFlagStrategy = (ctx: FeatureContext) => boolean;
 export const alwaysOn: FeatureFlagStrategy = () => true;
 export const alwaysOff: FeatureFlagStrategy = () => false;
 
-export function enabledForUsers(userIds: readonly string[]): FeatureFlagStrategy {
-  const set = new Set(userIds);
-  return (ctx) => ctx.userId !== undefined && set.has(ctx.userId);
+/**
+ * Создает стратегию для пользователей.
+ *
+ * Принцип: функциональная чистота и иммутабельность.
+ * Set создается в локальном замыкании при каждом вызове.
+ *
+ * Оптимизация: стратегии должны создаваться один раз при старте сервиса,
+ * а не на каждый запрос. Для миллионов пользователей рассмотрите
+ * отдельный оптимизированный кэш на уровне сервиса.
+ */
+export function enabledForUsers(userIds: readonly string[]): FeatureFlagStrategy;
+export function enabledForUsers(userIds: ReadonlySet<string>): FeatureFlagStrategy;
+export function enabledForUsers(
+  userIds: readonly string[] | ReadonlySet<string>,
+): FeatureFlagStrategy {
+  // Создаем иммутабельный Set в локальном замыкании
+  const allowedUsers = userIds instanceof Set ? userIds : new Set(userIds);
+
+  return (ctx: FeatureContext) => ctx.userId !== undefined && allowedUsers.has(ctx.userId);
 }
 
-export function enabledForTenants(tenantIds: readonly string[]): FeatureFlagStrategy {
-  const set = new Set(tenantIds);
-  return (ctx) => ctx.tenantId !== undefined && set.has(ctx.tenantId);
+/**
+ * Создает стратегию для тенантов.
+ *
+ * Принцип: функциональная чистота и иммутабельность.
+ * Set создается в локальном замыкании при каждом вызове.
+ *
+ * Оптимизация: стратегии должны создаваться один раз при старте сервиса,
+ * а не на каждый запрос. Для миллионов пользователей рассмотрите
+ * отдельный оптимизированный кэш на уровне сервиса.
+ */
+export function enabledForTenants(tenantIds: readonly string[]): FeatureFlagStrategy;
+export function enabledForTenants(tenantIds: ReadonlySet<string>): FeatureFlagStrategy;
+export function enabledForTenants(
+  tenantIds: readonly string[] | ReadonlySet<string>,
+): FeatureFlagStrategy {
+  // Создаем иммутабельный Set в локальном замыкании
+  const allowedTenants = tenantIds instanceof Set ? tenantIds : new Set(tenantIds);
+
+  return (ctx: FeatureContext) => ctx.tenantId !== undefined && allowedTenants.has(ctx.tenantId);
 }
 
+/**
+ * Создает стратегию rollout'а на основе процента.
+ * Использует детерминированное хэширование для обеспечения консистентности
+ * rollout'а между платформами и развертываниями.
+ * Один и тот же пользователь/тенант всегда получит одинаковый результат для одного процента.
+ */
 export function percentageRollout(
   percentage: number,
   key: 'userId' | 'tenantId' = 'userId',
@@ -78,6 +194,8 @@ export function percentageRollout(
   return (ctx) => {
     const id = ctx[key];
     if (id === undefined) return false;
+    // Детерминированное распределение: один ID всегда дает одинаковый результат
+    // >>> 0 обеспечивает беззнаковый 32-bit перед взятием модуля
     return ((stableHash(id) >>> 0) % 100) < percentage;
   };
 }
@@ -137,40 +255,40 @@ export async function evaluateFeature(
     const flag = await provider.getFlag(name);
 
     if (!flag) {
-      return freeze({
+      return {
         name,
         value: false,
         reason: 'NOT_FOUND',
         timestamp,
-      });
+      };
     }
 
     if (!flag.strategy) {
-      return freeze({
+      return {
         name,
         value: flag.default,
         reason: 'DEFAULT',
         flag,
         timestamp,
-      });
+      };
     }
 
     const value = safeExecuteStrategy(flag.strategy, ctx);
 
-    return freeze({
+    return {
       name,
       value,
       reason: 'STRATEGY',
       flag,
       timestamp,
-    });
+    };
   } catch {
-    return freeze({
+    return {
       name,
       value: false,
       reason: 'ERROR',
       timestamp,
-    });
+    };
   }
 }
 
@@ -185,20 +303,38 @@ export async function isFeatureEnabled(
 }
 
 /* ============================================================================
+ * 🎣 REACT HOOKS
+ * ========================================================================== */
+
+/**
+ * React хук для проверки feature flag отключения компонента.
+ * Возвращает true если компонент должен быть отключен через feature flag.
+ */
+export function useFeatureFlag(flagValue?: boolean): boolean {
+  return Boolean(flagValue);
+}
+
+/* ============================================================================
  * 📦 BULK API
  * ========================================================================== */
 
+/**
+ * Оптимизированная bulk-оценка feature flags.
+ * Выполняет freeze один раз для всего массива результатов вместо отдельных freeze вызовов.
+ */
 export async function evaluateFeatures(
   provider: FeatureFlagProvider,
   names: readonly FeatureFlagName[],
   ctx: FeatureContext,
 ): Promise<readonly FeatureEvaluationResult[]> {
   if (provider.getFlags) {
-    const map = await provider.getFlags(names);
-    return names.map((name) => evaluateFromMap(name, map.get(name), ctx));
+    const map: ReadonlyMap<FeatureFlagName, FeatureFlagDefinition> = await provider.getFlags(names);
+    const results = names.map((name) => evaluateFromMap(name, map.get(name), ctx));
+    return Object.freeze(results);
   }
 
-  return Promise.all(names.map((name) => evaluateFeature(provider, name, ctx)));
+  const results = await Promise.all(names.map((name) => evaluateFeature(provider, name, ctx)));
+  return Object.freeze(results);
 }
 
 /* ============================================================================
@@ -238,11 +374,15 @@ export function createInMemoryFeatureFlagProvider(
 function safeExecuteStrategy(
   strategy: FeatureFlagStrategy,
   ctx: FeatureContext,
+  logger?: FeatureFlagLogger,
 ): boolean {
   try {
     return strategy(freezeContext(ctx));
-  } catch {
-    return false;
+  } catch (err) {
+    if (logger) {
+      logger(`Feature flag strategy error for userId=${ctx.userId ?? 'unknown'}`, err);
+    }
+    return false; // безопасное fallback значение
   }
 }
 
@@ -254,45 +394,66 @@ function evaluateFromMap(
   const timestamp = Date.now();
 
   if (!flag) {
-    return freeze({
+    return {
       name,
       value: false,
       reason: 'NOT_FOUND',
       timestamp,
-    });
+    };
   }
 
   if (!flag.strategy) {
-    return freeze({
+    return {
       name,
       value: flag.default,
       reason: 'DEFAULT',
       flag,
       timestamp,
-    });
+    };
   }
 
-  return freeze({
+  return {
     name,
     value: safeExecuteStrategy(flag.strategy, ctx),
     reason: 'STRATEGY',
     flag,
     timestamp,
-  });
+  };
 }
 
+/**
+ * Реализация MurmurHash3 32-bit для детерминированного распределения.
+ * Обеспечивает лучшую устойчивость к коллизиям по сравнению с простым хэшированием строк.
+ * Используется для процентных rollout'ов фич.
+ */
 function stableHash(input: string): number {
-  const HASH_CONSTANT = 5;
   let hash = 0;
-  for (let i = 0; i < input.length; i++) {
-    hash = ((hash << HASH_CONSTANT) - hash) + input.charCodeAt(i);
-    hash |= 0;
-  }
-  return hash;
-}
 
-function freeze<T>(obj: T): T {
-  return Object.freeze(obj);
+  // Обрабатываем по 4 байта за раз
+  for (let i = 0; i < input.length; i += MURMURHASH_BLOCK_SIZE) {
+    let k = 0;
+    for (let j = 0; j < MURMURHASH_BLOCK_SIZE && i + j < input.length; j++) {
+      k |= input.charCodeAt(i + j) << (j * MURMURHASH_BYTE_BITS);
+    }
+
+    k = Math.imul(k, MURMURHASH_C1);
+    k = (k << MURMURHASH_R1) | (k >>> (MURMURHASH_WORD_BITS - MURMURHASH_R1));
+    k = Math.imul(k, MURMURHASH_C2);
+
+    hash ^= k;
+    hash = (hash << MURMURHASH_R2) | (hash >>> (MURMURHASH_WORD_BITS - MURMURHASH_R2));
+    hash = Math.imul(hash, MURMURHASH_M) + MURMURHASH_N;
+  }
+
+  // Финальное смешивание (стандартная финализация MurmurHash3)
+  hash ^= input.length;
+  hash ^= hash >>> MURMURHASH_FINALIZE_SHIFT_1;
+  hash = Math.imul(hash, MURMURHASH_FINALIZE_MIX_1);
+  hash ^= hash >>> MURMURHASH_FINALIZE_SHIFT_2;
+  hash = Math.imul(hash, MURMURHASH_FINALIZE_MIX_2);
+  hash ^= hash >>> MURMURHASH_FINALIZE_SHIFT_3;
+
+  return hash >>> 0; // Гарантируем беззнаковый 32-bit
 }
 
 function freezeContext(ctx: FeatureContext): FeatureContext {

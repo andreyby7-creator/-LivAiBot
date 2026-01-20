@@ -8,6 +8,12 @@ import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-li
 import '@testing-library/jest-dom/vitest';
 import { LoginForm } from '../../src/auth/login-form';
 
+// Mock для telemetry
+vi.mock('../../../../packages/app/src/lib/telemetry', () => ({
+  initTelemetry: vi.fn(),
+  infoFireAndForget: vi.fn(),
+}));
+
 // Полная очистка DOM между тестами
 afterEach(cleanup);
 

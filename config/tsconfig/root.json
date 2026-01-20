@@ -6,7 +6,7 @@
     "../../api/src/**/*",
     "../../core-contracts/src/**/*",
     "../../packages/**/*",
-    "../../configs/vitest/**/*"
+    "../../config/vitest/**/*"
   ],
   "exclude": ["node_modules", "**/dist/**", "**/coverage/**", "**/test-results/**"]
 }

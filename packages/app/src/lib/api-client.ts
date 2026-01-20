@@ -14,6 +14,7 @@
 
 import { withRetry, withTimeout, withTracing } from './effect-utils.js';
 import type { EffectError } from './effect-utils.js';
+import { infoFireAndForget, logFireAndForget } from './telemetry.js';
 import type {
   ApiClientConfig,
   ApiError,
@@ -73,6 +74,16 @@ export function mapHttpError(
   body: unknown,
 ): EffectError<ApiError> {
   const isServerError = response.status >= SERVER_ERROR_STATUS_MIN;
+
+  // Логируем HTTP ошибки для observability
+  const level = isServerError ? 'ERROR' : 'WARN';
+
+  logFireAndForget(level, 'HTTP request failed', {
+    url: response.url,
+    status: response.status,
+    statusText: response.statusText,
+  });
+
   return {
     kind: 'ApiError',
     status: response.status,
@@ -115,6 +126,12 @@ export class ApiClient {
   ): Promise<ApiResponse<TResponse>> {
     const effect = async (): Promise<ApiResponse<TResponse>> => {
       const url = buildUrl(this.baseUrl, req.url);
+
+      // Логируем исходящий HTTP запрос
+      infoFireAndForget('HTTP request started', {
+        url: req.url,
+        method: req.method,
+      });
 
       const response = await this.fetchImpl(url, {
         method: req.method,

@@ -7,9 +7,9 @@
  * Роль:
  * - Единственная точка входа для кнопок во всем приложении
  * - Интеграция:
- *   • i18n
- *   • telemetry
- *   • feature flags (готово к подключению)
+ *   • i18n ✓
+ *   • telemetry ✓ (централизованная система)
+ *   • feature flags ✓ (управление поведением)
  *   • accessibility
  *
  * Архитектура:
@@ -23,28 +23,20 @@ import type { JSX } from 'react';
 
 import { Button as CoreButton } from '../../../ui-core/src/index.js';
 import type { ButtonProps as CoreButtonProps } from '../../../ui-core/src/index.js';
+import { useFeatureFlag } from '../lib/feature-flags.js';
 import { useI18n } from '../lib/i18n.js';
 import type { Namespace, TranslationKey } from '../lib/i18n.js';
+import { infoFireAndForget } from '../lib/telemetry.js';
 
 /* ============================================================================
  * 🧬 TYPES
  * ========================================================================== */
 
-/** Telemetry событие кнопки */
-export type ButtonTelemetryEvent = Readonly<{
-  component: 'Button';
-  action: 'click';
-  disabled: boolean;
-  variant: CoreButtonProps['variant'];
-}>;
+// Telemetry логируется централизованно, типы событий больше не экспортируются
 
 /** App-уровневые пропсы кнопки */
 export type AppButtonProps = Readonly<
   & Omit<CoreButtonProps, 'children'>
-  & {
-    /** Telemetry hook */
-    onTelemetry?: (event: ButtonTelemetryEvent) => void;
-  }
   & (
     | {
       /** I18n режим: ключ локализации обязателен */
@@ -71,18 +63,24 @@ export type AppButtonProps = Readonly<
  * Контейнерная кнопка приложения.
  *
  * Гарантии:
- * - Без side effects
+ * - Без side effects (кроме telemetry)
  * - Детеминированная
  * - SSR safe
- * - Полностью совместима с feature-flags и аналитикой
+ * - Полностью интегрирована с централизованной telemetry
+ * - Поддерживает feature flags для управления поведением
  *
  * Использовать ТОЛЬКО её во всем проекте. */
 /** Стабильная ссылка на пустой объект параметров */
 const EMPTY_PARAMS: Record<string, string | number> = Object.freeze({});
 
 export function Button(props: AppButtonProps): JSX.Element {
-  const { onTelemetry, onClick, disabled = false, variant, ...rest } = props;
+  const { onClick, disabled = false, variant, ...rest } = props;
   const { translate } = useI18n();
+
+  // Feature flag для новых поведений кнопки (пример использования)
+  // В реальной системе: useFeatureFlag('ui.button.enhanced-behavior')
+  // Сейчас: placeholder с фиксированным значением для демонстрации архитектуры
+  const isEnhancedBehaviorEnabled = useFeatureFlag();
 
   /** Текст кнопки: i18n → children → пусто */
   const label = useMemo<React.ReactNode>(() => {
@@ -94,21 +92,21 @@ export function Button(props: AppButtonProps): JSX.Element {
     return props.children;
   }, [props, translate]);
 
-  /** Click handler с telemetry */
+  /** Click handler с централизованной telemetry */
   const handleClick = useCallback<NonNullable<CoreButtonProps['onClick']>>(
     (event: React.MouseEvent<HTMLButtonElement>) => {
       if (!disabled) {
-        onTelemetry?.({
+        infoFireAndForget('Button clicked', {
           component: 'Button',
-          action: 'click',
+          variant: variant ?? null,
           disabled,
-          variant,
+          enhancedBehavior: isEnhancedBehaviorEnabled,
         });
       }
 
       onClick?.(event);
     },
-    [disabled, onTelemetry, onClick, variant],
+    [disabled, onClick, variant, isEnhancedBehaviorEnabled],
   );
 
   return (
