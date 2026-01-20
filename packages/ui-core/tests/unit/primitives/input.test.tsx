@@ -59,8 +59,20 @@ describe('Input', () => {
 
       const input = getByRole('textbox');
       expect(input).toHaveClass('custom-input');
-      // Проверяем базовые классы
-      expect(input).toHaveClass('w-full', 'rounded-md', 'border', 'px-2.5', 'py-2');
+      // Проверяем все базовые классы
+      expect(input).toHaveClass(
+        'w-full',
+        'rounded-md',
+        'border',
+        'border-gray-300',
+        'px-2.5',
+        'py-2',
+        'outline-none',
+        'transition-colors',
+        'focus:ring-2',
+        'focus:ring-blue-500',
+        'focus:border-blue-500',
+      );
     });
   });
 

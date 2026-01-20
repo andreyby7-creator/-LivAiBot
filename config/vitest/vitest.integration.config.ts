@@ -21,6 +21,9 @@ export default defineConfig({
       'packages/**/tests/integration/**/*.test.{ts,tsx}',
       'packages/**/tests/**/*.integration.test.{ts,tsx}',
       'apps/**/tests/integration/**/*.test.{ts,tsx}',
+      // Поддержка для одиночных файлов (как в test:file)
+      'packages/**/*.test.{ts,tsx}',
+      'apps/**/*.test.{ts,tsx}',
     ],
     exclude: [
       'packages/**/tests/unit/**',

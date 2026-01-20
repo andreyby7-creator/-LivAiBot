@@ -121,9 +121,7 @@ export const useI18n = (): I18nContextType => {
   return ctx;
 };
 
-/**
- * Хелпер для быстрого SSR/Static generation
- */
+/** Хелпер для быстрого SSR/Static generation */
 export const createI18nInstance = (options: {
   locale: string;
   fallbackLocale: string;

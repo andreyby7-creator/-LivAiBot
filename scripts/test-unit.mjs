@@ -559,7 +559,16 @@ function resolveTestSetup() {
           break;
         case 'ui-unit':
         case 'package-unit':
-          configPath = CONFIGS.packages;
+          // Для unit тестов используем основную конфигурацию, а не packages
+          // Проверяем, являются ли пути unit тестами
+          const isUnitTest = normalizedPaths.some(p =>
+            p.includes('/tests/unit/') || p.includes('\\tests\\unit\\')
+          );
+          if (isUnitTest) {
+            configPath = CONFIGS.base;
+          } else {
+            configPath = CONFIGS.packages;
+          }
           baseEnvironment = 'jsdom';
           break;
         default:

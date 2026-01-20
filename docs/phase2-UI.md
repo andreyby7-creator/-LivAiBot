@@ -186,7 +186,7 @@
 2️⃣5️⃣ packages/app/src/lib/i18n.ts 🟢 — ts+react — i18n utils — types/*
 
 App UI wrappers
-2️⃣6️⃣ packages/app/src/ui/button.tsx 🔴 — ts+react — UI wrapper Button — ui-core/Button.tsx (НЕТ)
+2️⃣6️⃣ packages/app/src/ui/button.tsx 🟢 — ts+react — UI wrapper Button — ui-core/Button.tsx
 2️⃣7️⃣ packages/app/src/ui/input.tsx 🔴 — ts+react — UI wrapper Input — ui-core/Input.tsx (НЕТ)
 2️⃣8️⃣ packages/app/src/ui/card.tsx 🔴 — ts+react — UI wrapper Card — ui-core/Card.tsx (НЕТ)
 2️⃣9️⃣ packages/app/src/ui/dialog.tsx 🔴 — ts+react — UI wrapper Dialog — ui-core/Dialog.tsx (НЕТ)

@@ -91,4 +91,62 @@ describe('formatZodError', () => {
       expect(formatted[0]?.message).toBe('form.acceptTerms.required');
     }
   });
+
+  it('обрабатывает числа в пути через formatZodErrorDetailed', () => {
+    // Тестируем normalizeZodPath косвенно через formatZodErrorDetailed
+    const schema = z.object({
+      users: z.array(z.object({ name: z.string().min(1, 'required') })),
+    });
+
+    const res = schema.safeParse({ users: [{ name: '' }] });
+    expect(res.success).toBe(false);
+    if (!res.success) {
+      const formatted = formatZodErrorDetailed(res.error);
+      // Проверяем что путь содержит число (индекс массива)
+      expect(formatted[0]?.path).toContain(0); // индекс 0 в массиве
+    }
+  });
+
+  it('formatZodIssues работает без функции перевода', () => {
+    const schema = z.object({ name: z.string().min(2, 'too.short') });
+    const res = schema.safeParse({ name: 'a' });
+    expect(res.success).toBe(false);
+    if (!res.success) {
+      const formatted = formatZodError(res.error);
+      expect(formatted).toEqual(['too.short']);
+    }
+  });
+
+  it('formatZodIssuesDetailed работает без функции перевода', () => {
+    const schema = z.object({ name: z.string().min(2, 'too.short') });
+    const res = schema.safeParse({ name: 'a' });
+    expect(res.success).toBe(false);
+    if (!res.success) {
+      const formatted = formatZodErrorDetailed(res.error);
+      expect(formatted[0]?.path).toEqual(['name']);
+      expect(formatted[0]?.message).toBe('too.short');
+    }
+  });
+
+  it('keyMode=path+message работает с пустым путём', () => {
+    const schema = z.string().min(2, 'too.short');
+    const res = schema.safeParse('a');
+    expect(res.success).toBe(false);
+    if (!res.success) {
+      const formatted = formatZodError(res.error, undefined, { keyMode: 'path+message' });
+      expect(formatted).toEqual(['too.short']);
+    }
+  });
+
+  it('keyMode=path+message работает с числами в пути', () => {
+    const schema = z.object({
+      users: z.array(z.object({ name: z.string().min(2, 'name.too.short') })),
+    });
+    const res = schema.safeParse({ users: [{ name: 'a' }] });
+    expect(res.success).toBe(false);
+    if (!res.success) {
+      const formatted = formatZodError(res.error, undefined, { keyMode: 'path+message' });
+      expect(formatted).toEqual(['users.0.name.name.too.short']);
+    }
+  });
 });

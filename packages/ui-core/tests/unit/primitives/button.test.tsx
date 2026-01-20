@@ -61,6 +61,14 @@ describe('Button', () => {
       expect(button).toHaveClass('border-gray-300', 'bg-white', 'text-gray-900');
       expect(button).toHaveClass('hover:bg-gray-50');
     });
+
+    it('variant по умолчанию → primary классы', () => {
+      const { getByRole } = renderIsolated(<Button>Default</Button>);
+
+      const button = getByRole('button');
+      expect(button).toHaveClass('bg-blue-600', 'text-white');
+      expect(button).toHaveClass('hover:bg-blue-700');
+    });
   });
 
   describe('1.3. Size', () => {
@@ -107,6 +115,12 @@ describe('Button', () => {
       const { getByRole } = renderIsolated(<Button fullWidth>Full Width</Button>);
 
       expect(getByRole('button')).toHaveClass('w-full');
+    });
+
+    it('fullWidth=false или не указан → нет класса w-full', () => {
+      const { getByRole } = renderIsolated(<Button>Regular Width</Button>);
+
+      expect(getByRole('button')).not.toHaveClass('w-full');
     });
   });
 

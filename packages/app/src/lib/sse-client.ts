@@ -118,7 +118,7 @@ export type SSEClientConfig<T> = {
  * 🧱 DEFAULTS
  * ========================================================================== */
 
-const DEFAULT_DECODER: SSEDecoder<unknown> = (frame) => {
+export const defaultDecoder: SSEDecoder<unknown> = (frame) => {
   try {
     const parsed = JSON.parse(frame.data) as {
       id?: string;
@@ -170,7 +170,7 @@ export function createInitialSSEState<T>(
     heartbeatTimeoutMs: config.heartbeatTimeoutMs ?? SSE_DEFAULTS.HEARTBEAT_TIMEOUT_MS,
     lastHeartbeatAt: Date.now(),
 
-    decoder: config.decoder ?? (DEFAULT_DECODER as SSEDecoder<T>),
+    decoder: config.decoder ?? (defaultDecoder as SSEDecoder<T>),
 
     listeners: new Map(),
 

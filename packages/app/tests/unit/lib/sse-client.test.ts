@@ -19,6 +19,7 @@ import {
   createReconnectEffect,
   createSSEEffect,
   createSSERuntime,
+  defaultDecoder,
   offSSEMessage,
   onSSEMessage,
   reduceSSEState,
@@ -235,6 +236,61 @@ describe('SSE Client', () => {
       expect(state.autoReconnect).toBe(false);
       expect(state.maxRetries).toBe(5);
       expect(state.heartbeatTimeoutMs).toBe(60000);
+    });
+  });
+
+  describe('defaultDecoder', () => {
+    it('должен декодировать валидный JSON фрейм', () => {
+      const mockFrame = {
+        id: '123',
+        event: 'message',
+        data: JSON.stringify({ type: 'test', payload: { value: 42 } }),
+        retry: undefined,
+      };
+
+      const result = defaultDecoder(mockFrame);
+
+      expect(result).toEqual({
+        id: '123', // frame.id имеет приоритет
+        type: 'message', // frame.event имеет приоритет над parsed.type
+        timestamp: expect.any(Number),
+        payload: { value: 42 }, // parsed.payload
+      });
+    });
+
+    it('должен возвращать null для невалидного JSON', () => {
+      const mockFrame = {
+        id: undefined,
+        event: undefined,
+        data: 'invalid json {',
+        retry: undefined,
+      };
+
+      const result = defaultDecoder(mockFrame);
+
+      expect(result).toBeNull();
+    });
+
+    it('должен использовать значения из parsed объекта', () => {
+      const mockFrame = {
+        id: undefined, // frame.id = undefined, так что используется parsed.id
+        event: 'custom-event',
+        data: JSON.stringify({
+          id: 'parsed-id',
+          type: 'parsed-type',
+          payload: 'parsed-payload',
+        }),
+        retry: undefined,
+      };
+
+      const result = defaultDecoder(mockFrame);
+
+      expect(result).toEqual({
+        id: 'parsed-id', // parsed.id используется когда frame.id = undefined
+        type: 'custom-event', // frame.event имеет приоритет над parsed.type
+        timestamp: expect.any(Number),
+        payload: 'parsed-payload', // parsed.payload
+      });
     });
   });
 
