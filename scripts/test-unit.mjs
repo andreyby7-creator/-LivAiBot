@@ -361,14 +361,37 @@ function detectTestType(paths) {
 
   if (hasIntegrationTests) return 'integration';
 
-  // Проверяем наличие UI компонентов (для jsdom)
+  // Проверяем наличие UI компонентов или React импортов (для jsdom)
   const hasReactFiles = paths.some(p => {
       try {
         if (fs.statSync(p).isDirectory()) {
           const files = fs.readdirSync(p, { recursive: true });
-          return files.some(f => f.endsWith('.tsx') || f.endsWith('.jsx'));
+          return files.some(f => {
+            if (f.endsWith('.tsx') || f.endsWith('.jsx') || f.endsWith('.ts') || f.endsWith('.js')) {
+              try {
+                const content = fs.readFileSync(path.join(p === '.' ? '' : p, f), 'utf8');
+                return content.includes('import.*React') || content.includes('from.*react') ||
+                       content.includes('React.') || content.includes('renderHook') ||
+                       content.includes('@testing-library/react');
+              } catch {
+                return false;
+              }
+            }
+            return false;
+          });
         }
-        return p.endsWith('.tsx') || p.endsWith('.jsx');
+        // Для отдельных файлов проверяем содержимое
+        if (p.endsWith('.ts') || p.endsWith('.js') || p.endsWith('.tsx') || p.endsWith('.jsx')) {
+          try {
+            const content = fs.readFileSync(p, 'utf8');
+            return content.includes('import.*React') || content.includes('from.*react') ||
+                   content.includes('React.') || content.includes('renderHook') ||
+                   content.includes('@testing-library/react');
+          } catch {
+            return false;
+          }
+        }
+        return false;
       } catch {
         return false;
       }
@@ -530,8 +553,8 @@ function resolveTestSetup() {
         break;
       default:
         configPath = CONFIGS.base;
-        // Для глобального запуска unit тестов проверяем наличие React файлов
-        baseEnvironment = normalizedPaths.length === 0 ? detectGlobalEnvironment() : 'node';
+        // Для unit тестов используем jsdom по умолчанию (совместимость с React)
+        baseEnvironment = 'jsdom';
         break;
     }
   } else if (opts.integration) {

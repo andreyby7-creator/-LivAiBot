@@ -14,7 +14,9 @@
  * - поддержка distributed систем
  */
 
-// useMemo removed - not needed for this simple boolean conversion
+// useMemo убран - не нужен для простой конверсии boolean
+
+import React from 'react';
 
 import type { ServicePrefix } from './error-mapping.js';
 
@@ -193,7 +195,14 @@ export function percentageRollout(
 
   return (ctx) => {
     const id = ctx[key];
-    if (id === undefined) return false;
+    if (id === undefined) {
+      // Критично: логируем в dev mode когда ключ undefined
+      if (process.env['NODE_ENV'] === 'development') {
+        // eslint-disable-next-line no-console
+        console.warn(`percentageRollout: ${key} is undefined in context, returning false`);
+      }
+      return false;
+    }
     // Детерминированное распределение: один ID всегда дает одинаковый результат
     // >>> 0 обеспечивает беззнаковый 32-bit перед взятием модуля
     return ((stableHash(id) >>> 0) % 100) < percentage;
@@ -379,8 +388,12 @@ function safeExecuteStrategy(
   try {
     return strategy(freezeContext(ctx));
   } catch (err) {
+    // Критично: логируем ошибки стратегий даже без явного logger
     if (logger) {
       logger(`Feature flag strategy error for userId=${ctx.userId ?? 'unknown'}`, err);
+    } else if (process.env['NODE_ENV'] === 'development') {
+      // eslint-disable-next-line no-console
+      console.error(`Feature flag strategy error for userId=${ctx.userId ?? 'unknown'}:`, err);
     }
     return false; // безопасное fallback значение
   }
@@ -459,3 +472,44 @@ function stableHash(input: string): number {
 function freezeContext(ctx: FeatureContext): FeatureContext {
   return Object.isFrozen(ctx) ? ctx : Object.freeze({ ...ctx });
 }
+
+/* ============================================================================
+ * 🎭 RUNTIME FLAG OVERRIDE CONTEXT (Критично для A/B тестов)
+ * ========================================================================== */
+
+/**
+ * Context для runtime переопределения feature flags.
+ * Позволяет динамически изменять состояние флагов без перезапуска приложения.
+ */
+export const FeatureFlagOverrideContext = React.createContext<FeatureFlagOverrides | null>(null);
+
+/**
+ * Provider для runtime переопределения feature flags.
+ * Используется для A/B тестирования и динамических изменений.
+ */
+export const FeatureFlagOverrideProvider: React.FC<{
+  overrides: FeatureFlagOverrides;
+  children: React.ReactNode;
+}> = ({ overrides, children }) => {
+  return React.createElement(
+    FeatureFlagOverrideContext.Provider,
+    { value: overrides },
+    children,
+  );
+};
+
+/**
+ * Hook для получения переопределенных значений feature flags.
+ * Приоритет: override > исходное значение.
+ * Критично для A/B тестирования и runtime управления.
+ */
+export function useFeatureFlagOverride(flagName: string, defaultValue = false): boolean {
+  const overrides = React.useContext(FeatureFlagOverrideContext);
+  return overrides?.[flagName] ?? defaultValue;
+}
+
+/* ============================================================================
+ * 🎭 RUNTIME FLAG OVERRIDE CONTEXT
+ * ========================================================================== */
+
+export type FeatureFlagOverrides = Record<string, boolean>;

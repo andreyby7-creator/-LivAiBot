@@ -159,8 +159,8 @@ function createBaseVitestConfig(
       /** Разрешить .only тесты: да в dev для отладки, нет в CI для полного прогона */
       allowOnly: process.env['CI'] !== 'true',
 
-      /** Окружение по умолчанию для UI тестов */
-      environment: 'jsdom',
+      /** Окружение: jsdom для React тестов, node для остальных */
+      environment: 'jsdom', // Всегда jsdom для совместимости с React компонентами
 
       /** По умолчанию тестировать все unit и integration тесты */
       include: [

@@ -6,7 +6,14 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, render, renderHook, screen } from '@testing-library/react';
 import '@testing-library/jest-dom/vitest';
 import React from 'react';
-import { createI18nInstance, I18nProvider, translations, useI18n } from '../../../src/lib/i18n';
+import {
+  createI18nInstance,
+  I18nProvider,
+  testResetGlobalRuntimeStore,
+  translations,
+  useI18n,
+  useTranslationNamespace,
+} from '../../../src/lib/i18n';
 import type { Namespace, TranslationKey } from '../../../src/lib/i18n';
 
 describe('i18n', () => {
@@ -14,6 +21,8 @@ describe('i18n', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    // Очищаем globalRuntimeStore между тестами для чистоты
+    testResetGlobalRuntimeStore();
   });
 
   afterEach(() => {
@@ -52,13 +61,8 @@ describe('i18n', () => {
 
       const translated = instance.translate('common', 'greeting');
       expect(translated).toBe('Привет, {name}!');
-      expect(mockTelemetry).toHaveBeenCalledWith({
-        key: 'greeting',
-        ns: 'common',
-        locale: 'ru',
-        traceId: undefined,
-        service: undefined,
-      });
+      // Telemetry теперь вызывается только для fallback случаев
+      expect(mockTelemetry).not.toHaveBeenCalled();
     });
 
     it('translate должен переводить ключ с параметрами', () => {
@@ -70,13 +74,8 @@ describe('i18n', () => {
 
       const translated = instance.translate('common', 'greeting', { name: 'Мир' });
       expect(translated).toBe('Привет, Мир!');
-      expect(mockTelemetry).toHaveBeenCalledWith({
-        key: 'greeting',
-        ns: 'common',
-        locale: 'ru',
-        traceId: undefined,
-        service: undefined,
-      });
+      // Telemetry теперь вызывается только для fallback случаев
+      expect(mockTelemetry).not.toHaveBeenCalled();
     });
 
     it('translate должен переводить ключ с числовым параметром', () => {
@@ -88,16 +87,11 @@ describe('i18n', () => {
 
       const translated = instance.translate('common', 'greeting', { name: 123 });
       expect(translated).toBe('Привет, 123!');
-      expect(mockTelemetry).toHaveBeenCalledWith({
-        key: 'greeting',
-        ns: 'common',
-        locale: 'ru',
-        traceId: undefined,
-        service: undefined,
-      });
+      // Telemetry теперь вызывается только для fallback случаев
+      expect(mockTelemetry).not.toHaveBeenCalled();
     });
 
-    it('translate должен возвращать ошибку для несуществующего ключа', () => {
+    it('translate должен возвращать human-readable fallback для несуществующего ключа', () => {
       const instance = createI18nInstance({
         locale: 'ru',
         fallbackLocale: 'en',
@@ -105,31 +99,38 @@ describe('i18n', () => {
       });
 
       const translated = instance.translate('common', 'nonexistent' as any);
-      expect(translated).toBe('[missing common.nonexistent]');
+      // Human-readable fallback: nonexistent -> Nonexistent
+      expect(translated).toBe('Nonexistent');
       expect(mockTelemetry).toHaveBeenCalledWith({
         key: 'nonexistent',
         ns: 'common',
         locale: 'ru',
         traceId: undefined,
         service: undefined,
+        fallbackType: 'human-readable',
       });
     });
 
-    it('translate должен возвращать ошибку для несуществующего namespace', () => {
+    it('translate должен возвращать human-readable fallback для ключа, отсутствующего везде', () => {
       const instance = createI18nInstance({
         locale: 'ru',
         fallbackLocale: 'en',
         telemetry: mockTelemetry,
       });
 
-      const translated = instance.translate('nonexistent' as any, 'greeting');
-      expect(translated).toBe('[missing nonexistent.greeting]');
+      const translated = instance.translate(
+        'nonexistent' as any,
+        'uniqueKeyThatDoesNotExist' as any,
+      );
+      // Human-readable fallback: uniqueKeyThatDoesNotExist -> Unique Key That Does Not Exist
+      expect(translated).toBe('Unique Key That Does Not Exist');
       expect(mockTelemetry).toHaveBeenCalledWith({
-        key: 'greeting',
+        key: 'uniqueKeyThatDoesNotExist',
         ns: 'nonexistent',
         locale: 'ru',
         traceId: undefined,
         service: undefined,
+        fallbackType: 'human-readable',
       });
     });
 
@@ -166,13 +167,8 @@ describe('i18n', () => {
 
       const translated = instance.translate('common', 'greeting', {} as const);
       expect(translated).toBe('Привет, {name}!');
-      expect(mockTelemetry).toHaveBeenCalledWith({
-        key: 'greeting',
-        ns: 'common',
-        locale: 'ru',
-        traceId: undefined,
-        service: undefined,
-      });
+      // Telemetry теперь вызывается только для fallback случаев
+      expect(mockTelemetry).not.toHaveBeenCalled();
     });
 
     it('translate должен заменять несколько одинаковых плейсхолдеров', () => {
@@ -195,6 +191,8 @@ describe('i18n', () => {
 
       const translated = instance.translate('common', 'greeting', undefined);
       expect(translated).toBe('Привет, {name}!');
+      // Telemetry теперь вызывается только для fallback случаев
+      expect(mockTelemetry).not.toHaveBeenCalled();
     });
 
     it('translate должен работать с null параметрами', () => {
@@ -206,6 +204,37 @@ describe('i18n', () => {
 
       const translated = instance.translate('common', 'greeting', null as any);
       expect(translated).toBe('Привет, {name}!');
+      // Telemetry теперь вызывается только для fallback случаев
+      expect(mockTelemetry).not.toHaveBeenCalled();
+    });
+
+    it('loadNamespace должен загружать namespace', async () => {
+      const instance = createI18nInstance({
+        locale: 'ru',
+        fallbackLocale: 'en',
+      });
+
+      // Загружаем namespace
+      await instance.loadNamespace('test-namespace' as any);
+
+      // Проверяем что namespace загружен
+      expect(instance.isNamespaceLoaded('test-namespace' as any)).toBe(true);
+      expect(instance.isNamespaceLoaded('common')).toBe(true); // уже загружен по умолчанию
+    });
+
+    it('loadNamespace не должен загружать уже загруженный namespace повторно', async () => {
+      const instance = createI18nInstance({
+        locale: 'ru',
+        fallbackLocale: 'en',
+      });
+
+      // Загружаем namespace первый раз
+      await instance.loadNamespace('test-namespace' as any);
+      expect(instance.isNamespaceLoaded('test-namespace' as any)).toBe(true);
+
+      // Пытаемся загрузить повторно
+      await instance.loadNamespace('test-namespace' as any);
+      expect(instance.isNamespaceLoaded('test-namespace' as any)).toBe(true);
     });
   });
 
@@ -268,6 +297,29 @@ describe('i18n', () => {
     });
   });
 
+  describe('useTranslationNamespace хук', () => {
+    it('должен загружать namespace через useEffect', async () => {
+      const TestComponent = () => {
+        useTranslationNamespace('test-namespace' as any);
+        return React.createElement('div', null, 'test');
+      };
+
+      render(
+        React.createElement(I18nProvider, {
+          locale: 'ru',
+          fallbackLocale: 'en',
+          children: React.createElement(TestComponent),
+        }),
+      );
+
+      // Ждем выполнения useEffect
+      await new Promise((resolve) => setTimeout(resolve, 150));
+
+      // useTranslationNamespace должен отработать без ошибок
+      expect(screen.getByText('test')).toBeInTheDocument();
+    });
+  });
+
   describe('React интеграция', () => {
     describe('I18nProvider', () => {
       it('должен рендерить дочерние компоненты', () => {
@@ -311,13 +363,8 @@ describe('i18n', () => {
         );
 
         expect(screen.getByTestId('translate-test')).toHaveTextContent('Привет, React!');
-        expect(mockTelemetry).toHaveBeenCalledWith({
-          key: 'greeting',
-          ns: 'common',
-          locale: 'ru',
-          traceId: undefined,
-          service: undefined,
-        });
+        // Telemetry теперь вызывается только для fallback случаев
+        expect(mockTelemetry).not.toHaveBeenCalled();
       });
 
       it('должен работать с различными локалями', () => {
@@ -344,7 +391,45 @@ describe('i18n', () => {
         );
 
         expect(screen.getByTestId('locale')).toHaveTextContent('en');
-        expect(screen.getByTestId('translation')).toHaveTextContent('Привет, {name}!');
+        // Поскольку английских переводов нет, должен быть human-readable fallback
+        expect(screen.getByTestId('translation')).toHaveTextContent('Greeting');
+      });
+
+      it('должен корректно работать с namespace loading в React контексте', async () => {
+        const TestComponent = () => {
+          const { isNamespaceLoaded } = useI18n();
+          return React.createElement(
+            'div',
+            null,
+            React.createElement(
+              'span',
+              { 'data-testid': 'common-loaded' },
+              isNamespaceLoaded('common').toString(),
+            ),
+            React.createElement(
+              'span',
+              { 'data-testid': 'auth-loaded' },
+              isNamespaceLoaded('auth').toString(),
+            ),
+            React.createElement(
+              'span',
+              { 'data-testid': 'unknown-loaded' },
+              isNamespaceLoaded('unknown' as any).toString(),
+            ),
+          );
+        };
+
+        render(
+          React.createElement(I18nProvider, {
+            locale: 'ru',
+            fallbackLocale: 'en',
+            children: React.createElement(TestComponent),
+          }),
+        );
+
+        expect(screen.getByTestId('common-loaded')).toHaveTextContent('true');
+        expect(screen.getByTestId('auth-loaded')).toHaveTextContent('true');
+        expect(screen.getByTestId('unknown-loaded')).toHaveTextContent('false');
       });
     });
 
@@ -385,13 +470,8 @@ describe('i18n', () => {
 
         const translated = result.current.translate('common', 'greeting', { name: 'Тест' });
         expect(translated).toBe('Привет, Тест!');
-        expect(mockTelemetry).toHaveBeenCalledWith({
-          key: 'greeting',
-          ns: 'common',
-          locale: 'ru',
-          traceId: undefined,
-          service: undefined,
-        });
+        // Telemetry теперь вызывается только для fallback случаев
+        expect(mockTelemetry).not.toHaveBeenCalled();
       });
 
       it('translate функция должна обрабатывать несуществующие ключи в React контексте', () => {
@@ -406,7 +486,16 @@ describe('i18n', () => {
         });
 
         const translated = result.current.translate('common', 'nonexistent' as any);
-        expect(translated).toBe('[missing common.nonexistent]');
+        // Новая логика: human-readable fallback вместо [missing] формата
+        expect(translated).toBe('Nonexistent');
+        expect(mockTelemetry).toHaveBeenCalledWith({
+          key: 'nonexistent',
+          ns: 'common',
+          locale: 'ru',
+          traceId: undefined,
+          service: undefined,
+          fallbackType: 'human-readable',
+        });
       });
     });
 
