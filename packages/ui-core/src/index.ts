@@ -9,4 +9,5 @@
 export * from './primitives/button.js';
 export * from './primitives/input.js';
 export * from './primitives/form-field.js';
+export * from './primitives/form.js';
 export * from './primitives/dialog.js';
