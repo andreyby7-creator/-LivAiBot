@@ -197,10 +197,10 @@ App UI wrappers
 3️⃣3️⃣ packages/app/src/ui/sidebar.tsx 🔴 — ts+react — Sidebar (НЕТ)
 
 App state и hooks
-3️⃣4️⃣ packages/app/src/state/store.ts 🔴 — ts+zustand — Root store (НЕТ)
-3️⃣5️⃣ packages/app/src/state/query/query-client.ts 🔴 — ts+react — React query client — store.ts (НЕТ)
-3️⃣6️⃣ packages/app/src/hooks/useApi.ts 🔴 — ts+react — Hook API — lib/api-client.ts (НЕТ)
-3️⃣7️⃣ packages/app/src/hooks/useToast.ts 🔴 — ts+react — Hook Toast — ui-core/useToast.ts (НЕТ)
+3️⃣5️⃣ packages/app/src/state/store.ts 🔴 — ts+zustand — Root store (НЕТ)
+3️⃣6️⃣ packages/app/src/state/query/query-client.ts 🔴 — ts+react — React query client — store.ts (НЕТ)
+3️⃣7️⃣ packages/app/src/hooks/useApi.ts 🔴 — ts+react — Hook API — lib/api-client.ts (НЕТ)
+3️⃣8️⃣ packages/app/src/hooks/useToast.ts 🔴 — ts+react — Hook Toast — ui-core/useToast.ts (НЕТ)
 
 Feature Auth
 3️⃣8️⃣ packages/feature-auth/src/domain/LoginRequest.ts 🔴 — ts — DTO login (НЕТ)
