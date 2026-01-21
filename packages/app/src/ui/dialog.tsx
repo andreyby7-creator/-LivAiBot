@@ -235,7 +235,6 @@ function DialogComponent(props: AppDialogProps): JSX.Element | null {
   const prevOpenRef = useRef<boolean | null>(null);
 
   useEffect(() => {
-
     /*
       Intentional side-effect для отслеживания состояния Dialog.
       Необходимо для корректной телеметрии при открытии/закрытии.
@@ -259,7 +258,6 @@ function DialogComponent(props: AppDialogProps): JSX.Element | null {
         onClose?.();
       }
     }
-
   }, [policy.open, policy, onOpen, onClose]);
 
   /** Handlers (effects isolated here) */

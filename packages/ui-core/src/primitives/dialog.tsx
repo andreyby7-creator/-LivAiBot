@@ -88,7 +88,6 @@ function CoreDialogComponent(props: Readonly<CoreDialogProps>): JSX.Element | nu
 
   /** Обновить кеш фокусируемых элементов */
   const updateFocusableElements = useCallback((): void => {
-
     /*
       Intentional side-effect для кеширования focusable элементов.
       Это необходимо для focus trap в UI primitive Dialog.
@@ -104,8 +103,6 @@ function CoreDialogComponent(props: Readonly<CoreDialogProps>): JSX.Element | nu
     focusableElementsRef.current = Array.from(panelRef.current.querySelectorAll(
       'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
     )); // intentional side-effect для кеширования
-
-
   }, []);
 
   /** Получить закешированные фокусируемые элементы */
@@ -156,7 +153,6 @@ function CoreDialogComponent(props: Readonly<CoreDialogProps>): JSX.Element | nu
 
   /** Настройка фокуса и scroll lock */
   useLayoutEffect(() => {
-
     /*
       Разрешаем intentional side-effects для UI primitive Dialog:
       - focus management: сохранение/восстановление фокуса
@@ -200,7 +196,6 @@ function CoreDialogComponent(props: Readonly<CoreDialogProps>): JSX.Element | nu
         attributeFilter: ['tabindex', 'disabled', 'hidden', 'aria-hidden'],
       });
 
-
       // eslint-disable-next-line functional/immutable-data
       mutationObserverRef.current = observer; // intentional side-effect для dynamic content tracking
     }
@@ -238,7 +233,6 @@ function CoreDialogComponent(props: Readonly<CoreDialogProps>): JSX.Element | nu
         }
       }
     };
-
   }, [open, handleKeyDown, focusFirstElement, updateFocusableElements]);
 
   /** SSR безопасность и проверка открытия */
