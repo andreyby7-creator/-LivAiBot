@@ -56,6 +56,12 @@ export type AppCardProps = Readonly<
     /** Accessibility: aria-label, если нет семантического заголовка */
     ariaLabel?: string;
 
+    /** Accessibility: ID элемента с заголовком карточки */
+    ariaLabelledBy?: string;
+
+    /** Accessibility: ID элемента с описанием карточки */
+    ariaDescribedBy?: string;
+
     /** Telemetry: включена ли аналитика кликов (по умолчанию true) */
     telemetryOnClick?: boolean;
   }
@@ -115,6 +121,8 @@ function CardComponent(props: AppCardProps): JSX.Element | null {
     children,
     onClick,
     ariaLabel,
+    ariaLabelledBy,
+    ariaDescribedBy,
     ...rest
   } = props;
 
@@ -173,6 +181,8 @@ function CardComponent(props: AppCardProps): JSX.Element | null {
       tabIndex={isInteractive ? 0 : undefined}
       aria-disabled={!isInteractive}
       aria-label={ariaLabel}
+      aria-labelledby={ariaLabelledBy}
+      aria-describedby={ariaDescribedBy}
     >
       {children}
     </div>

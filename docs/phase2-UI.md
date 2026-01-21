@@ -171,27 +171,28 @@
 1️⃣2️⃣ packages/ui-core/src/primitives/button.tsx 🟢 — ts+react — Button UI
 1️⃣3️⃣ packages/ui-core/src/primitives/input.tsx 🟢 — ts+react — Input UI
 1️⃣4️⃣ packages/ui-core/src/primitives/form-field.tsx 🟢 — ts+react — Form UI
+1️⃣5️⃣ packages/ui-core/src/primitives/dialog.tsx 🟢 — ts+react — Dialog UI
 
 ✅ App types и libs
-1️⃣5️⃣ packages/app/src/types/common.ts 🟢 — ts — Общие типы для всего приложения
-1️⃣6️⃣ packages/app/src/types/api.ts 🟢 — ts — Базовые типы API
-1️⃣7️⃣ packages/app/src/lib/effect-utils.ts 🟢 — ts+effect — Effect helpers
-1️⃣8️⃣ packages/app/src/lib/api-client.ts 🟢 — ts+effect — API client — types/api.ts, effect-utils.ts
-1️⃣9️⃣ packages/app/src/lib/websocket.ts 🟢 — ts+effect — WebSocket client — effect-utils.ts
-2️⃣0️⃣ packages/app/src/lib/sse-client.ts 🟢 — ts+effect — SSE client — effect-utils.ts
-2️⃣1️⃣ packages/app/src/lib/validation.ts 🟢 — ts — Validation utils — types/*
-2️⃣2️⃣ packages/app/src/lib/error-mapping.ts 🟢 — ts — Mapping ошибок — types/*
-2️⃣3️⃣ packages/app/src/lib/feature-flags.ts 🟢 — ts — Feature flags — types/*
-2️⃣4️⃣ packages/app/src/lib/telemetry.ts 🟢 — ts — Telemetry — types/*
-2️⃣5️⃣ packages/app/src/lib/offline-cache.ts 🟢 — ts+effect — Offline caching — effect-utils.ts
-2️⃣6️⃣ packages/app/src/lib/i18n.ts 🟢 — ts+react — i18n utils — types/*
+1️⃣6️⃣ packages/app/src/types/common.ts 🟢 — ts — Общие типы для всего приложения
+1️⃣7️⃣ packages/app/src/types/api.ts 🟢 — ts — Базовые типы API
+1️⃣8️⃣ packages/app/src/lib/effect-utils.ts 🟢 — ts+effect — Effect helpers
+1️⃣9️⃣ packages/app/src/lib/api-client.ts 🟢 — ts+effect — API client — types/api.ts, effect-utils.ts
+2️⃣0️⃣ packages/app/src/lib/websocket.ts 🟢 — ts+effect — WebSocket client — effect-utils.ts
+2️⃣1️⃣ packages/app/src/lib/sse-client.ts 🟢 — ts+effect — SSE client — effect-utils.ts
+2️⃣2️⃣ packages/app/src/lib/validation.ts 🟢 — ts — Validation utils — types/*
+2️⃣3️⃣ packages/app/src/lib/error-mapping.ts 🟢 — ts — Mapping ошибок — types/*
+2️⃣4️⃣ packages/app/src/lib/feature-flags.ts 🟢 — ts — Feature flags — types/*
+2️⃣5️⃣ packages/app/src/lib/telemetry.ts 🟢 — ts — Telemetry — types/*
+2️⃣6️⃣ packages/app/src/lib/offline-cache.ts 🟢 — ts+effect — Offline caching — effect-utils.ts
+2️⃣7️⃣ packages/app/src/lib/i18n.ts 🟢 — ts+react — i18n utils — types/*
 
 App UI wrappers
 2️⃣7️⃣ packages/app/src/ui/button.tsx 🟢 — ts+react — UI wrapper Button — ui-core/Button.tsx
 2️⃣8️⃣ packages/app/src/ui/input.tsx 🟢 — ts+react — UI wrapper Input — ui-core/Input.tsx
 2️⃣9️⃣ packages/app/src/ui/card.tsx 🟢 — ts+react — UI wrapper Card — ui-core/Card.tsx
-3️⃣0️⃣ packages/app/src/ui/dialog.tsx 🔴 — ts+react — UI wrapper Dialog — ui-core/Dialog.tsx
-3️⃣1️⃣ packages/app/src/ui/form.tsx 🔴 — ts+react — UI wrapper Form — ui-core/Form.tsx (НЕТ)
+3️⃣0️⃣ packages/app/src/ui/dialog.tsx 🟢 — ts+react — UI wrapper Dialog — ui-core/Dialog.tsx
+3️⃣1️⃣ packages/app/src/ui/form.tsx 🔴 — ts+react — UI wrapper Form — ui-core/Form.tsx
 3️⃣2️⃣ packages/app/src/ui/toast.tsx 🔴 — ts+react — UI wrapper Toast — ui-core/Toast.tsx (НЕТ)
 3️⃣3️⃣ packages/app/src/ui/sidebar.tsx 🔴 — ts+react — Sidebar (НЕТ)
 
@@ -236,8 +237,6 @@ Feature Chat
 6️⃣5️⃣ packages/feature-chat/src/hooks/useRealTime.ts 🔴 — ts+react — Hook real-time — effects/connectWebSocket.ts (НЕТ)
 
 UI Core components
-6️⃣6️⃣ packages/ui-core/src/components/Card.tsx 🔴 — ts+react — Card UI (НЕТ)
-6️⃣7️⃣ packages/ui-core/src/components/Dialog.tsx 🔴 — ts+react — Dialog UI (НЕТ)
 6️⃣8️⃣ packages/ui-core/src/components/Toast.tsx 🔴 — ts+react — Toast UI (НЕТ)
 6️⃣9️⃣ packages/ui-core/src/components/Skeleton.tsx 🔴 — ts+react — Skeleton UI (НЕТ)
 7️⃣0️⃣ packages/ui-core/src/hooks/useToast.ts 🔴 — ts+react — Toast hook (НЕТ)
