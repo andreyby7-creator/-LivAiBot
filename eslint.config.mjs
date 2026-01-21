@@ -60,6 +60,8 @@ export default [
       '**/.cache/**',      // Различные кеши (webpack, babel, etc.)
       '**/coverage/**',    // Отчеты о покрытии тестами
       '**/.next/**',       // Next.js build output
+      '**/.venv/**',       // Python virtual environment
+      '**/venv/**',        // Python virtual environment (alternative name)
       'config/**/*.js',     // JS конфиги/утилиты: без type-aware линтинга (избегаем ошибок typed rules)
       'config/**/*.cjs',    // CJS конфиги/утилиты: аналогично
     ],

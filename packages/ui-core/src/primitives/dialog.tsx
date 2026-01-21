@@ -88,15 +88,24 @@ function CoreDialogComponent(props: Readonly<CoreDialogProps>): JSX.Element | nu
 
   /** Обновить кеш фокусируемых элементов */
   const updateFocusableElements = useCallback((): void => {
-    if (!panelRef.current) {
 
+    /*
+      Intentional side-effect для кеширования focusable элементов.
+      Это необходимо для focus trap в UI primitive Dialog.
+    */
+
+    if (!panelRef.current) {
+      // eslint-disable-next-line functional/immutable-data
       focusableElementsRef.current = []; // intentional side-effect для кеширования
       return;
     }
 
+    // eslint-disable-next-line functional/immutable-data
     focusableElementsRef.current = Array.from(panelRef.current.querySelectorAll(
       'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
     )); // intentional side-effect для кеширования
+
+
   }, []);
 
   /** Получить закешированные фокусируемые элементы */
@@ -147,18 +156,28 @@ function CoreDialogComponent(props: Readonly<CoreDialogProps>): JSX.Element | nu
 
   /** Настройка фокуса и scroll lock */
   useLayoutEffect(() => {
+
+    /*
+      Разрешаем intentional side-effects для UI primitive Dialog:
+      - focus management: сохранение/восстановление фокуса
+      - scroll lock: блокировка прокрутки body
+      - MutationObserver: отслеживание динамических изменений контента
+      Эти эффекты изолированы внутри UI primitive и не нарушают FP принципы
+    */
+
     if (!open) {
       return;
     }
 
-
     // Сохранить текущий фокус (intentional side-effect для focus management)
+    // eslint-disable-next-line functional/immutable-data
     previousFocusRef.current = document.activeElement as HTMLElement | null;
 
     // Предотвратить прокрутку body (со счетчиком модальных окон)
     modalCount++; // intentional side-effect для scroll lock management
     const originalOverflow = document.body.style.overflow;
     if (modalCount === 1) {
+      // eslint-disable-next-line functional/immutable-data
       document.body.style.overflow = 'hidden'; // intentional side-effect для scroll lock
     }
 
@@ -181,18 +200,19 @@ function CoreDialogComponent(props: Readonly<CoreDialogProps>): JSX.Element | nu
         attributeFilter: ['tabindex', 'disabled', 'hidden', 'aria-hidden'],
       });
 
+
+      // eslint-disable-next-line functional/immutable-data
       mutationObserverRef.current = observer; // intentional side-effect для dynamic content tracking
     }
 
     // Установить фокус на первый элемент синхронно после layout
     focusFirstElement();
 
-
     return (): void => {
-
       // Восстановить прокрутку body (со счетчиком модальных окон)
       modalCount = Math.max(0, modalCount - 1);
       if (modalCount === 0) {
+        // eslint-disable-next-line functional/immutable-data
         document.body.style.overflow = originalOverflow;
       }
 
@@ -202,6 +222,8 @@ function CoreDialogComponent(props: Readonly<CoreDialogProps>): JSX.Element | nu
       // Остановить MutationObserver
       if (mutationObserverRef.current) {
         mutationObserverRef.current.disconnect();
+
+        // eslint-disable-next-line functional/immutable-data
         mutationObserverRef.current = null; // intentional side-effect для cleanup
       }
 
@@ -215,8 +237,8 @@ function CoreDialogComponent(props: Readonly<CoreDialogProps>): JSX.Element | nu
           document.body.focus();
         }
       }
-
     };
+
   }, [open, handleKeyDown, focusFirstElement, updateFocusableElements]);
 
   /** SSR безопасность и проверка открытия */

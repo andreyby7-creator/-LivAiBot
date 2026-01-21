@@ -182,11 +182,11 @@
     }
   },
   "lint-staged": {
-    "*.{js,ts,json,md}": [
+    "{packages,config,scripts,apps}/**/*.{js,ts,json,md}": [
       "dprint fmt"
     ],
-    "*.{js,ts,tsx}": [
-      "eslint --fix --max-warnings 0"
+    "{packages,config,scripts,apps}/**/*.{js,ts,tsx}": [
+      "bash -c 'ESLINT_MODE=canary eslint --fix --max-warnings 0'"
     ]
   }
 }

@@ -235,16 +235,23 @@ function DialogComponent(props: AppDialogProps): JSX.Element | null {
   const prevOpenRef = useRef<boolean | null>(null);
 
   useEffect(() => {
-    if (prevOpenRef.current === null) {
 
-      prevOpenRef.current = policy.open;
+    /*
+      Intentional side-effect для отслеживания состояния Dialog.
+      Необходимо для корректной телеметрии при открытии/закрытии.
+    */
+
+    if (prevOpenRef.current === null) {
+      // eslint-disable-next-line functional/immutable-data
+      prevOpenRef.current = policy.open; // intentional side-effect для telemetry
       return;
     }
 
     if (policy.open !== prevOpenRef.current) {
       emitDialogTelemetry(policy.open ? 'open' : 'close', policy);
 
-      prevOpenRef.current = policy.open;
+      // eslint-disable-next-line functional/immutable-data
+      prevOpenRef.current = policy.open; // intentional side-effect для telemetry
 
       if (policy.open) {
         onOpen?.();
@@ -252,6 +259,7 @@ function DialogComponent(props: AppDialogProps): JSX.Element | null {
         onClose?.();
       }
     }
+
   }, [policy.open, policy, onOpen, onClose]);
 
   /** Handlers (effects isolated here) */
