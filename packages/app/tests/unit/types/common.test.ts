@@ -614,3 +614,4 @@ describe('Экспорты типов', () => {
     expect(testValues.asyncStatus).toBe('idle');
   });
 });
+// Все тесты теперь будут запускаться

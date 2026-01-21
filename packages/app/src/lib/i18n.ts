@@ -12,7 +12,7 @@
  * - Готов к микросервисной архитектуре
  */
 
-import React, { createContext, useCallback, useContext, useMemo } from 'react';
+import React, { createContext, useCallback, useContext, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
 
 /* ============================================================================
@@ -35,69 +35,85 @@ const coreTranslations = {
 // Управляемое императивное ядро внутри функциональной оболочки
 
 class TranslationRuntimeStore {
-  private readonly store = new Map<Namespace, Record<string, string>>();
+  readonly store: Readonly<Record<Namespace, Record<string, string>>>;
 
-  init(core: typeof coreTranslations): void {
-    Object.entries(core).forEach(([ns, translations]) => {
-      this.store.set(ns as Namespace, { ...translations });
+  constructor(
+    store: Partial<Record<Namespace, Record<string, string>>> = {},
+  ) {
+    // Гарантируем наличие всех namespace, инициализируя отсутствующие пустыми объектами
+    this.store = (['common', 'auth'] as const).reduce((acc, ns) => ({
+      ...acc,
+      [ns]: store[ns] ?? {},
+    }), {} as Record<Namespace, Record<string, string>>);
+  }
+
+  // Возвращает новый store, инициализированный базовыми переводами
+  init(core: typeof coreTranslations): TranslationRuntimeStore {
+    const newStore = Object.entries(core).reduce(
+      (acc, [ns, translations]) => ({
+        ...acc,
+        [ns as Namespace]: { ...translations },
+      }),
+      {} as Record<Namespace, Record<string, string>>,
+    );
+    return new TranslationRuntimeStore(newStore);
+  }
+
+  // Получить пространство
+  get(ns: Namespace): Record<string, string> {
+    return this.store[ns];
+  }
+
+  // Возвращает новый store с обновлённым namespace
+  set(ns: Namespace, value: Record<string, string>): TranslationRuntimeStore {
+    return new TranslationRuntimeStore({
+      ...this.store,
+      [ns]: value,
     });
   }
 
-  get(ns: Namespace): Record<string, string> {
-    return this.store.get(ns) ?? {};
-  }
-
-  set(ns: Namespace, value: Record<string, string>): void {
-    this.store.set(ns, value);
-  }
-
   has(ns: Namespace): boolean {
-    return this.store.has(ns);
+    return ns in this.store;
   }
 }
 
 class LoadedNamespaces {
-  private readonly set = new Set<Namespace>();
+  readonly namespaces: readonly Namespace[];
 
-  constructor(initial: Namespace[]) {
-    initial.forEach((ns) => {
-      this.set.add(ns);
-    });
+  constructor(initial: readonly Namespace[]) {
+    this.namespaces = [...initial];
   }
 
   has(ns: Namespace): boolean {
-    return this.set.has(ns);
+    return this.namespaces.includes(ns);
   }
 
-  add(ns: Namespace): void {
-    this.set.add(ns);
+  // Возвращает новый объект с добавленным namespace
+  add(ns: Namespace): LoadedNamespaces {
+    if (this.has(ns)) return this;
+    return new LoadedNamespaces([...this.namespaces, ns]);
   }
 }
 
+// Контекст для функциональной передачи store - полная чистота без глобального состояния
+const I18nStoreContext = createContext<TranslationRuntimeStore | null>(null);
 
-// Глобальный экземпляр для доступа прокси (legacy compatibility)
-// NOTE: Используется только для legacy Proxy доступа. Не SSR-isolated.
-// Не использовать как основной API - предпочитать локальные storeRef.
-let globalRuntimeStore: TranslationRuntimeStore | null = null;
-
-// Экспортируем для тестов - возможность сброса состояния
-export const testResetGlobalRuntimeStore = (): void => {
-  globalRuntimeStore = null;
+// Хук для доступа к store - функциональный и чистый
+export const useTranslations = (): TranslationRuntimeStore => {
+  const store = useContext(I18nStoreContext);
+  if (!store) throw new Error('useTranslations must be used within I18nProvider');
+  return store;
 };
 
-// Публичный интерфейс - комбинирует базовые и runtime переводы (для обратной совместимости)
-export const translations = new Proxy(coreTranslations, {
-  get(
-    target,
-    prop,
-  ): typeof coreTranslations[keyof typeof coreTranslations] | Record<string, string> | undefined {
-    // Сначала проверяем runtime хранилище, затем fallback к базовым
-    if (globalRuntimeStore?.has(prop as Namespace) === true) {
-      return globalRuntimeStore.get(prop as Namespace);
-    }
-    return target[prop as keyof typeof target];
-  },
-});
+// Экспортируем для тестов - создание чистого локального instance
+export const testResetTranslationStore = (): I18nContextType => {
+  // Возвращает свежий instance для изолированных тестов
+  return createI18nInstance({
+    locale: 'ru',
+    fallbackLocale: 'en',
+    telemetry: undefined,
+  });
+};
 
 // Enum для проверки ключей переводов на этапе компиляции
 export enum TranslationKeys {
@@ -111,8 +127,8 @@ export enum TranslationKeys {
   ERROR = 'error',
 }
 
-export type Namespace = keyof typeof translations;
-export type TranslationKey<N extends Namespace = Namespace> = keyof typeof translations[N];
+export type Namespace = keyof typeof coreTranslations;
+export type TranslationKey<N extends Namespace = Namespace> = keyof typeof coreTranslations[N];
 
 /* ============================================================================
  * 🌍 КОНТЕКСТ I18N
@@ -156,38 +172,42 @@ export const I18nProvider: React.FC<{
   children,
 }) => {
   // Локальное состояние загрузки пространств имён - безопасное для SSR
-  const loadedRef = React.useRef(new LoadedNamespaces(['common', 'auth']));
-  const storeRef = React.useRef(new TranslationRuntimeStore());
+  const [loadedNamespaces, setLoadedNamespaces] = useState(() =>
+    new LoadedNamespaces(['common', 'auth'])
+  );
 
-  // Инициализируем runtime хранилище базовыми переводами только для поддерживаемых локалей
-  if (locale === 'ru') {
-    storeRef.current.init(coreTranslations);
-    // Защищаем от перезаписи - устанавливаем только если не инициализирован
-    globalRuntimeStore ??= storeRef.current;
-  }
+  // Создаём store через useMemo - функциональный подход без мутаций
+  const store = React.useMemo(() => {
+    if (locale === 'ru') {
+      return new TranslationRuntimeStore().init(coreTranslations);
+    }
+    return new TranslationRuntimeStore();
+  }, [locale]);
+
+  // Store готов для использования через контекст
 
   const loadNamespace = useCallback(async (ns: Namespace): Promise<void> => {
-    if (loadedRef.current.has(ns)) {
+    if (loadedNamespaces.has(ns)) {
       return; // Already loaded
     }
 
     try {
       // Динамический импорт пространства имён (пример реализации)
       // const module = await import(`./locales/${locale}/${ns}.json`);
-      // const currentTranslations = storeRef.current.get(ns);
-      // storeRef.current.set(ns, { ...currentTranslations, ...module.default });
+      // const currentTranslations = store.get(ns);
+      // const updatedStore = store.set(ns, { ...currentTranslations, ...module.default });
 
       // Пока что симулируем задержку загрузки
       await new Promise((resolve) => setTimeout(resolve, 100));
-      loadedRef.current.add(ns);
+      setLoadedNamespaces((current) => current.add(ns));
     } catch (error) {
       throw error;
     }
-  }, []);
+  }, [loadedNamespaces]);
 
   const isNamespaceLoaded = useCallback((ns: Namespace): boolean => {
-    return loadedRef.current.has(ns);
-  }, []);
+    return loadedNamespaces.has(ns);
+  }, [loadedNamespaces]);
 
   // Хелпер для поиска перевода с полной цепочкой fallback
   const findTranslation = React.useCallback((
@@ -200,7 +220,7 @@ export const I18nProvider: React.FC<{
   } => {
     // Сначала пробуем основную локаль (пока поддерживаем только 'ru')
     if (locale === 'ru') {
-      const primaryTranslations = storeRef.current.get(ns);
+      const primaryTranslations = store.get(ns);
       if (key in primaryTranslations) {
         return { result: String(primaryTranslations[key]), usedFallback: false };
       }
@@ -211,7 +231,7 @@ export const I18nProvider: React.FC<{
     // Пока что fallback локаль не влияет на поиск переводов
 
     // Пробуем пространство имён common
-    const commonTranslations = storeRef.current.get('common');
+    const commonTranslations = store.get('common');
     if (key in commonTranslations) {
       return {
         result: String(commonTranslations[key]),
@@ -231,7 +251,7 @@ export const I18nProvider: React.FC<{
       usedFallback: true,
       fallbackType: 'human-readable',
     };
-  }, [locale]);
+  }, [locale, store]);
 
   const translate = useMemo(() => {
     return <N extends Namespace>(
@@ -268,9 +288,13 @@ export const I18nProvider: React.FC<{
   }, [locale, telemetry, findTranslation]);
 
   return React.createElement(
-    I18nContext.Provider,
-    { value: { locale, fallbackLocale, translate, loadNamespace, isNamespaceLoaded, telemetry } },
-    children,
+    I18nStoreContext.Provider,
+    { value: store },
+    React.createElement(
+      I18nContext.Provider,
+      { value: { locale, fallbackLocale, translate, loadNamespace, isNamespaceLoaded, telemetry } },
+      children,
+    ),
   );
 };
 
@@ -304,11 +328,8 @@ export const createI18nInstance = (options: {
   const { locale, fallbackLocale, telemetry } = options;
 
   // Локальное состояние загрузки пространств имён - безопасное для SSR
-  const loadedNamespaces = new LoadedNamespaces(['common', 'auth']);
-  const localStore = new TranslationRuntimeStore();
-
-  // Инициализируем базовыми переводами
-  localStore.init(coreTranslations);
+  let loadedNamespaces = new LoadedNamespaces(['common', 'auth']);
+  let store = new TranslationRuntimeStore().init(coreTranslations);
 
   // Хелпер для поиска перевода с полной цепочкой fallback
   const findTranslation = (
@@ -321,7 +342,7 @@ export const createI18nInstance = (options: {
   } => {
     // Сначала пробуем основную локаль (пока поддерживаем только 'ru')
     if (locale === 'ru') {
-      const primaryTranslations = localStore.get(ns);
+      const primaryTranslations = store.get(ns);
       if (key in primaryTranslations) {
         return { result: String(primaryTranslations[key]), usedFallback: false };
       }
@@ -332,7 +353,7 @@ export const createI18nInstance = (options: {
     // Пока что fallback локаль не влияет на поиск переводов
 
     // Пробуем пространство имён common
-    const commonTranslations = localStore.get('common');
+    const commonTranslations = store.get('common');
     if (key in commonTranslations) {
       return {
         result: String(commonTranslations[key]),
@@ -392,14 +413,16 @@ export const createI18nInstance = (options: {
     }
 
     try {
-      // Динамический импорт пространства имён (пример реализации)
-      // const module = await import(`./locales/${locale}/${ns}.json`);
-      // const currentTranslations = localStore.get(ns);
-      // localStore.set(ns, { ...currentTranslations, ...module.default });
+      // Динамический импорт пространства имён (реализация для продакшн)
+      const module = await import(`./locales/${locale}/${ns}.json`) as {
+        default: Record<string, string>;
+      };
+      const currentTranslations = store.get(ns);
+      store = store.set(ns, { ...currentTranslations, ...module.default });
+      loadedNamespaces = loadedNamespaces.add(ns);
 
-      // Пока что симулируем задержку загрузки
-      await new Promise((resolve) => setTimeout(resolve, 100));
-      loadedNamespaces.add(ns);
+      // Для обратной совместимости симулируем задержку загрузки (можно убрать в продакшн)
+      // await new Promise((resolve) => setTimeout(resolve, 100));
     } catch (error) {
       throw error;
     }

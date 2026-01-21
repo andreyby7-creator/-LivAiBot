@@ -381,22 +381,22 @@ const TelemetryBatchProviderComponent: React.FC<{
   } = config;
 
   // Хранилище batch - иммутабельные обновления
-  const batchRef = React.useRef<TelemetryBatchItem[]>([]);
-  const timeoutRef = React.useRef<number | null>(null);
+  const [batch, setBatch] = React.useState<TelemetryBatchItem[]>([]);
+  const [timeoutId, setTimeoutId] = React.useState<number | null>(null);
 
   // Сброс batch в телеметрию
   const flushBatch = React.useCallback((): void => {
-    if (batchRef.current.length === 0 || !enabled) return;
+    if (batch.length === 0 || !enabled) return;
 
-    const batchToSend = [...batchRef.current];
+    const batchToSend = [...batch];
 
-    batchRef.current = []; // Очистка batch иммутабельно
+    setBatch([]); // Очистка batch иммутабельно
 
     // Отправка всех событий в batch
     batchToSend.forEach((item) => {
       logFireAndForget(item.level, item.message, item.metadata);
     });
-  }, [enabled]);
+  }, [batch, enabled]);
 
   // Добавление события в batch
   const addToBatch = React.useCallback((
@@ -417,32 +417,34 @@ const TelemetryBatchProviderComponent: React.FC<{
       ...(metadata && { metadata }),
     };
 
-
-    batchRef.current = [...batchRef.current, item];
+    const newBatch = [...batch, item];
+    setBatch(newBatch);
 
     // Проверка, полон ли batch
-    if (batchRef.current.length >= batchSize) {
+    if (newBatch.length >= batchSize) {
       flushBatch();
-    } else {
-      // Запуск таймера сброса если еще не запущен
-
-      timeoutRef.current ??= window.setTimeout(() => {
-        flushBatch();
-
-        timeoutRef.current = null;
-      }, flushInterval);
+      return;
     }
-  }, [batchSize, flushInterval, flushBatch, enabled]);
+
+    // Запуск таймера сброса если еще не запущен
+    if (timeoutId === null) {
+      const newTimeoutId = window.setTimeout(() => {
+        flushBatch();
+        setTimeoutId(null);
+      }, flushInterval);
+      setTimeoutId(newTimeoutId);
+    }
+  }, [batchSize, flushInterval, flushBatch, enabled, batch, timeoutId]);
 
   // Очистка при размонтировании
   React.useEffect(() => {
     return (): void => {
-      if (timeoutRef.current !== null) {
-        window.clearTimeout(timeoutRef.current);
+      if (timeoutId !== null) {
+        window.clearTimeout(timeoutId);
         flushBatch();
       }
     };
-  }, [flushBatch]);
+  }, [timeoutId, flushBatch]);
 
   const contextValue: TelemetryBatchContextType = React.useMemo(
     () => ({ addToBatch }),

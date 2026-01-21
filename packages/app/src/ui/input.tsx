@@ -19,12 +19,12 @@
  * - feature/* → используют ТОЛЬКО app/ui
  */
 
-import React, { memo, useCallback, useEffect, useId, useMemo, useRef } from 'react';
+import React, { memo, useCallback, useEffect, useId, useMemo, useState } from 'react';
 import type { JSX } from 'react';
 
 import { Input as CoreInput } from '../../../ui-core/src/index.js';
 import type { InputProps as CoreInputProps } from '../../../ui-core/src/index.js';
-import { useFeatureFlag } from '../lib/feature-flags.js';
+import { useFeatureFlag, useFeatureFlagOverride } from '../lib/feature-flags.js';
 import { useI18n } from '../lib/i18n.js';
 import type { Namespace, TranslationKey } from '../lib/i18n.js';
 import { infoFireAndForget } from '../lib/telemetry.js';
@@ -33,7 +33,15 @@ import { infoFireAndForget } from '../lib/telemetry.js';
  * 🧬 TYPES
  * ========================================================================== */
 
-/** Telemetry событие input */
+/** Telemetry payload для Input компонента */
+export type InputTelemetryPayload = Readonly<{
+  component: 'Input';
+  action: 'focus' | 'blur' | 'change';
+  disabled: boolean;
+  value: string;
+}>;
+
+/** Telemetry событие input (legacy, используем InputTelemetryPayload) */
 export type InputTelemetryEvent<T = string> = Readonly<{
   component: 'Input';
   action: 'focus' | 'blur' | 'change';
@@ -102,35 +110,36 @@ const TELEMETRY_DEBOUNCE_DELAY = 300;
 /** Debounced telemetry hook для оптимизации сетевого трафика */
 const useDebouncedTelemetry = (): (
   message: string,
-  data: Record<string, string | number | boolean | null>,
+  data: InputTelemetryPayload,
 ) => void => {
-  const timeoutRef = useRef<number | undefined>(undefined);
+  const [timeoutId, setTimeoutId] = useState<number | undefined>(undefined);
 
   const debouncedInfoFireAndForget = useCallback(
     (
       message: string,
-      data: Record<string, string | number | boolean | null>,
+      data: InputTelemetryPayload,
       delay = TELEMETRY_DEBOUNCE_DELAY,
     ): void => {
-      if (timeoutRef.current !== undefined) {
-        window.clearTimeout(timeoutRef.current);
+      if (timeoutId !== undefined) {
+        window.clearTimeout(timeoutId);
       }
 
-
-      timeoutRef.current = window.setTimeout(() => {
+      const newTimeoutId = window.setTimeout(() => {
         infoFireAndForget(message, data);
       }, delay);
+
+      setTimeoutId(newTimeoutId);
     },
-    [],
+    [timeoutId],
   );
 
   useEffect(() => {
     return (): void => {
-      if (timeoutRef.current !== undefined) {
-        window.clearTimeout(timeoutRef.current);
+      if (timeoutId !== undefined) {
+        window.clearTimeout(timeoutId);
       }
     };
-  }, []);
+  }, [timeoutId]);
 
   return debouncedInfoFireAndForget;
 };
@@ -167,6 +176,7 @@ function InputComponent<T extends HTMLInputElement['value'] = string>(
   const { translate } = useI18n();
   const flagDisabled = useFeatureFlag(isDisabledByFeatureFlag);
   const flagHidden = useFeatureFlag(isHiddenByFeatureFlag);
+  const telemetryEnabled = useFeatureFlagOverride('telemetry.enabled', true);
 
   // TODO: Runtime overrides для A/B тестирования (нужен context provider)
 
@@ -182,50 +192,57 @@ function InputComponent<T extends HTMLInputElement['value'] = string>(
       const ns = props.i18nPlaceholderNs ?? 'common';
       return translate(ns, props.i18nPlaceholderKey, props.i18nPlaceholderParams ?? EMPTY_PARAMS);
     }
-    type RestProps = Omit<AppInputProps<T>, keyof AppInputProps<T>>;
-    const restProps = rest as RestProps & { placeholder?: string; };
-    return restProps.placeholder;
+    return (rest as { placeholder?: string; }).placeholder;
   }, [props, rest, translate]);
 
   /** Change handler с telemetry (debounced для оптимизации) */
   const handleChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
-    if (!effectiveDisabled) {
-      // Debounced telemetry для оптимизации сетевого трафика при быстром наборе
-      debouncedTelemetry('Input changed', {
-        component: 'Input',
-        action: 'change',
-        disabled: effectiveDisabled,
-        value: event.target.value,
-      });
+    if (!telemetryEnabled || effectiveDisabled) {
+      onChange?.(event);
+      return;
     }
+
+    // Debounced telemetry для оптимизации сетевого трафика при быстром наборе
+    debouncedTelemetry('Input changed', {
+      component: 'Input',
+      action: 'change',
+      disabled: effectiveDisabled,
+      value: event.target.value,
+    });
     onChange?.(event);
-  }, [effectiveDisabled, onChange, debouncedTelemetry]);
+  }, [telemetryEnabled, effectiveDisabled, onChange, debouncedTelemetry]);
 
   /** Focus handler с telemetry */
   const handleFocus = useCallback((event: React.FocusEvent<HTMLInputElement>) => {
-    if (!effectiveDisabled) {
-      infoFireAndForget('Input focused', {
-        component: 'Input',
-        action: 'focus',
-        disabled: effectiveDisabled,
-        value: event.currentTarget.value,
-      });
+    if (!telemetryEnabled || effectiveDisabled) {
+      onFocus?.(event);
+      return;
     }
+
+    infoFireAndForget('Input focused', {
+      component: 'Input',
+      action: 'focus',
+      disabled: effectiveDisabled,
+      value: event.currentTarget.value,
+    });
     onFocus?.(event);
-  }, [effectiveDisabled, onFocus]);
+  }, [telemetryEnabled, effectiveDisabled, onFocus]);
 
   /** Blur handler с telemetry */
   const handleBlur = useCallback((event: React.FocusEvent<HTMLInputElement>) => {
-    if (!effectiveDisabled) {
-      infoFireAndForget('Input blurred', {
-        component: 'Input',
-        action: 'blur',
-        disabled: effectiveDisabled,
-        value: event.currentTarget.value,
-      });
+    if (!telemetryEnabled || effectiveDisabled) {
+      onBlur?.(event);
+      return;
     }
+
+    infoFireAndForget('Input blurred', {
+      component: 'Input',
+      action: 'blur',
+      disabled: effectiveDisabled,
+      value: event.currentTarget.value,
+    });
     onBlur?.(event);
-  }, [effectiveDisabled, onBlur]);
+  }, [telemetryEnabled, effectiveDisabled, onBlur]);
 
   // Feature flag: скрываем компонент полностью (с учетом runtime overrides)
   if (effectiveHidden) {
@@ -246,8 +263,7 @@ function InputComponent<T extends HTMLInputElement['value'] = string>(
         defaultValue={defaultValue}
         disabled={effectiveDisabled}
         placeholder={placeholder}
-        role='textbox' // accessibility: явное указание роли для screen readers
-        aria-label={placeholder} // accessibility: fallback для screen readers
+        aria-label={hasLabel ? label : placeholder} // accessibility: label имеет приоритет над placeholder
         aria-required={isRequired} // accessibility: обязательное поле
         aria-invalid={hasError} // accessibility: состояние ошибки валидации
         aria-describedby={errorId} // accessibility: связь с элементом ошибки

@@ -1,4 +1,5 @@
 /**
+ * @vitest-environment jsdom
  * @file Тесты для LoginForm компонента
  */
 

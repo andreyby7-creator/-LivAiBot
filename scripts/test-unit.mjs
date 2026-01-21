@@ -4,7 +4,7 @@
  * Enterprise обертка вокруг Vitest
  */
 
-import { spawn, spawnSync } from "node:child_process";
+import { spawn } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
@@ -12,6 +12,39 @@ import { program } from "commander";
 import dotenv from "dotenv";
 import dotenvExpand from "dotenv-expand";
 import { globSync } from "glob";
+import ts from "typescript";
+
+/* ================= ERROR HANDLING ================= */
+
+// Централизованный error boundary для фатальных ошибок
+function fatal(message, error = null) {
+  console.error(`💥 ${message}`);
+  if (error) {
+    if (error instanceof Error) {
+      console.error(`   ${error.message}`);
+    } else {
+      console.error(`   ${error}`);
+    }
+  }
+  process.exit(1);
+}
+
+// Активное ожидание файла с таймаутом (устранение race condition)
+function waitForFile(filePath, timeoutMs = 10000) {
+  const start = Date.now();
+  return new Promise(resolve => {
+    const interval = setInterval(() => {
+      if (fs.existsSync(filePath)) {
+        clearInterval(interval);
+        resolve(true);
+      }
+      if (Date.now() - start > timeoutMs) {
+        clearInterval(interval);
+        resolve(false);
+      }
+    }, 200); // проверка каждые 200мс
+  });
+}
 
 /* ================= ПУТИ ================= */
 
@@ -122,13 +155,155 @@ function filterPathsByPackage(packagePattern, inputPaths) {
 /* ================= ПОСТРОЕНИЕ АРГУМЕНТОВ VITEСТ ================= */
 
 // Генерирует имя файла для JSON репортера
-function getJsonFilename(testTypeName, attempt) {
+function getJsonFilename(testTypeName) {
   const base = testTypeName ? `results-${testTypeName.replace(/\s+/g, '-').toLowerCase()}` : "results";
-  return attempt > 1 ? `${base}.attempt-${attempt}.json` : `${base}.json`;
+  return `${base}.json`;
+}
+
+// Определяет конфигурацию репортера и output файла
+function resolveReporterConfig(reporter = 'default', testTypeName = null, reportDir = 'reports') {
+  const name = testTypeName ? testTypeName.replace(/\s+/g, '-').toLowerCase() : null;
+
+  const map = {
+    junit: { reporter: 'junit', file: name ? `${name}.xml` : 'junit.xml', dir: reportDir },
+    json: { reporter: 'json', file: getJsonFilename(testTypeName), dir: reportDir },
+    verbose: { reporter: 'verbose', file: null },
+    default: { reporter: 'json', file: getJsonFilename(testTypeName), dir: reportDir }
+  };
+
+  const cfg = map[reporter] || map.default;
+
+  return {
+    reporter: cfg.reporter,
+    outputFile: cfg.file ? path.join(cfg.dir, cfg.file) : null
+  };
+}
+
+// Агрегирует результат одного тестового файла
+function aggregateTestResult(testResult, state) {
+  const filePath = testResult.testFilePath || testResult.name || '';
+
+  // Пропускаем системные пути
+  if (filePath.includes('.pnpm') || filePath.includes('node_modules') || filePath.includes('/projects/')) {
+    return;
+  }
+
+  const normalizedPath = path.relative(ROOT, filePath);
+  if (state.seenTests.has(normalizedPath)) return;
+
+  state.seenTests.add(normalizedPath);
+  const packageName = getPackageFromPath(normalizedPath);
+
+  if (!state.packageResults.has(packageName)) {
+    state.packageResults.set(packageName, { total: 0, passed: 0, failed: 0, skipped: 0, duration: 0 });
+  }
+
+  const pkgStats = state.packageResults.get(packageName);
+
+  testResult.assertionResults?.forEach(assertion => {
+    state.totalTests++;
+    pkgStats.total++;
+
+    switch (assertion.status) {
+      case 'passed': state.passedTests++; pkgStats.passed++; break;
+      case 'failed':
+        state.failedTests++;
+        pkgStats.failed++;
+        state.failingTestDetails.push({
+          file: filePath,
+          title: assertion.title || 'Unknown test',
+          failureMessages: assertion.failureMessages || []
+        });
+        break;
+      case 'skipped': state.skippedTests++; pkgStats.skipped++; break;
+    }
+  });
+
+  // Длительность пакета
+  const duration = testResult.assertionResults?.reduce((sum, a) => sum + (a.duration || 0), 0) || 0;
+  pkgStats.duration += duration;
+}
+
+// Финализирует результаты
+function finalizeResults({ totalTests, passedTests, failedTests, skippedTests, packageResults, failingTestDetails }) {
+  return {
+    totalTests, passedTests, failedTests, skippedTests, packageResults, failingTestDetails,
+    passRate: totalTests > 0 ? ((passedTests / totalTests) * 100).toFixed(1) : '0'
+  };
+}
+
+// Валидация формата Vitest JSON
+function isValidVitestJson(data) {
+  return (
+    data &&
+    typeof data === 'object' &&
+    Array.isArray(data.testResults)
+  );
+}
+
+// Парсит результаты тестов из JSON файла Vitest (единственный источник истины)
+function parseVitestJsonResults(outputFile = null, reportDir = 'reports') {
+  // Если outputFile не указан, ищем стандартные пути
+  const resultsDir = path.join(ROOT, reportDir);
+  const resultFiles = [];
+
+  if (outputFile && fs.existsSync(path.join(ROOT, outputFile))) {
+    resultFiles.push(path.join(ROOT, outputFile));
+  } else {
+    // Приоритет: results.json > results.attempt-* > results.final.json
+    const mainResultFile = path.join(resultsDir, "results.json");
+    if (fs.existsSync(mainResultFile)) {
+      resultFiles.push(mainResultFile);
+    } else {
+      // Если основного файла нет, ищем последний attempt
+      const attemptFiles = fs.readdirSync(resultsDir)
+        .filter(file => file.startsWith('results.attempt-') && file.endsWith('.json'))
+        .sort()
+        .reverse();
+
+      if (attemptFiles.length > 0) {
+        resultFiles.push(path.join(resultsDir, attemptFiles[0]));
+      } else if (fs.existsSync(path.join(resultsDir, "results.final.json"))) {
+        // Последний шанс - final файл
+        resultFiles.push(path.join(resultsDir, "results.final.json"));
+      }
+    }
+  }
+
+  if (resultFiles.length === 0) {
+    return null;
+  }
+
+  try {
+    const state = {
+      totalTests: 0, passedTests: 0, failedTests: 0, skippedTests: 0,
+      packageResults: new Map(), seenTests: new Set(), failingTestDetails: []
+    };
+
+    // Агрегируем результаты из всех файлов
+    for (const resultFile of resultFiles) {
+      if (fs.existsSync(resultFile)) {
+        const results = JSON.parse(fs.readFileSync(resultFile, 'utf8'));
+
+        // Валидируем формат JSON перед обработкой
+        if (!isValidVitestJson(results)) {
+          console.warn(`⚠️ Некорректный формат JSON репортера Vitest в файле: ${path.relative(ROOT, resultFile)}`);
+          continue; // Пропускаем файл с некорректным форматом
+        }
+
+        results.testResults?.forEach(testResult => aggregateTestResult(testResult, state));
+      }
+    }
+
+    return finalizeResults(state);
+  } catch (error) {
+    console.warn(`Ошибка разбора результатов тестов: ${error.message}`);
+    return null;
+  }
 }
 
 // Единая функция для построения аргументов Vitest и переменных окружения
-function buildVitestArgs(configPath, environment, normalizedPaths = [], opts, coverageEnabled, reporter = 'default', testTypeName = null, attempt = 1) {
+function buildVitestArgs(configPath, environment, normalizedPaths = [], opts, coverageEnabled, reporterConfig) {
   const testArgs = ["run", "--config", configPath];
   const env = {
     ...process.env,
@@ -165,36 +340,14 @@ function buildVitestArgs(configPath, environment, normalizedPaths = [], opts, co
     }
   }
 
-  // Репортеры - один outputFile на запуск (кроме verbose)
-  let outputFile = null;
-
-  if (reporter === "junit") {
-    fs.mkdirSync(path.join(ROOT, opts.reportDir), { recursive: true });
-    testArgs.push("--reporter", "junit");
-    // Для --all режима делаем отдельные файлы для каждого типа тестов
-    const fileName = testTypeName ? `${testTypeName.replace(/\s+/g, '-').toLowerCase()}.xml` : "junit.xml";
-    outputFile = path.join(opts.reportDir, fileName);
-  } else if (reporter === "json") {
-    testArgs.push("--reporter", "json");
-    outputFile = path.join("test-results", getJsonFilename(testTypeName, attempt));
-  } else if (reporter === "verbose") {
-    // Verbose репортер выводит в консоль, outputFile не нужен
-    testArgs.push("--reporter", "verbose");
-    // outputFile остается null
-  } else {
-    // default → json для парсинга результатов
-    testArgs.push("--reporter", "json");
-    outputFile = path.join("test-results", getJsonFilename(testTypeName, attempt));
-  }
+  // Настроить репортер
+  testArgs.push("--reporter", reporterConfig.reporter);
 
   // Создаем директорию для output файла, если он указан
-  if (outputFile) {
-    const outputDir = path.dirname(path.join(ROOT, outputFile));
+  if (reporterConfig.outputFile) {
+    const outputDir = path.dirname(path.join(ROOT, reporterConfig.outputFile));
     fs.mkdirSync(outputDir, { recursive: true });
-  }
-
-  if (outputFile) {
-    testArgs.push("--outputFile", outputFile);
+    testArgs.push("--outputFile", reporterConfig.outputFile);
   }
 
   // Полностью полагаемся на exclude в config/vitest/vitest.config.ts
@@ -209,56 +362,37 @@ function buildVitestArgs(configPath, environment, normalizedPaths = [], opts, co
 /* ================= РАЗРЕШЕНИЕ КОНФИГУРАЦИИ ================= */
 
 async function runSingleTestType(testType, testEnvironment, coverageEnabled) {
-  return new Promise((resolve) => {
-    console.log(`\n🧪 Запуск ${testType.name}...`);
-    console.log('═'.repeat(50));
+  console.log(`\n🧪 Запуск ${testType.name}...`);
+  console.log('═'.repeat(50));
 
-    try {
-      // Очищаем директории перед каждым типом тестов
-      if (coverageEnabled) {
-        fs.rmSync(path.join(ROOT, "coverage"), { recursive: true, force: true });
-      }
-
-      // Используем единую функцию построения аргументов и переменных окружения
-      const { args: testArgs, env } = buildVitestArgs(testType.config, testEnvironment, normalizedPaths, opts, coverageEnabled, opts.reporter || 'default', testType.name, 1);
-
-      // Запускаем тесты
-      const startTime = Date.now();
-      const child = spawn("pnpm", ["exec", "vitest", ...testArgs], {
-        stdio: "inherit",
-        shell: false,
-        env,
-      });
-
-      child.on('close', (code) => {
-        const endTime = Date.now();
-        const duration = (endTime - startTime) / 1000;
-
-        if (code !== 0) {
-          console.log(`❌ ${testType.name} не удались (за ${duration.toFixed(1)}с)`);
-          resolve(false);
-        } else {
-          console.log(`✅ ${testType.name} прошли (за ${duration.toFixed(1)}с)`);
-          resolve(true);
-        }
-      });
-
-      child.on('error', (error) => {
-        console.error(`💥 Ошибка запуска ${testType.name}:`, error.message);
-        resolve(false);
-      });
-
-    } catch (error) {
-      console.error(`💥 Ошибка запуска ${testType.name}:`, error.message);
-      resolve(false);
-    }
+  const result = await runVitestOnce({
+    configPath: testType.config,
+    environment: testEnvironment,
+    paths: normalizedPaths,
+    opts,
+    coverageEnabled,
+    testTypeName: testType.name
   });
+
+  if (result.success) {
+    console.log(`✅ ${testType.name} прошли (за ${result.duration.toFixed(1)}с)`);
+    return true;
+  } else {
+    console.error(`${testType.name} не удались (за ${result.duration.toFixed(1)}с)`);
+    return false;
+  }
 }
 
 async function runAllTestTypes(globalSetup) {
   // Использовать те же конфиги, которые выбираются для отдельных типов тестов
+  // Для unit тестов в режиме --all окружение определяется автоматически
+  const unitProfileResult = resolveTestProfile([], { unit: true }); // Пустые пути = глобальный запуск
+  if (!unitProfileResult.ok) {
+    fatal(`Ошибка определения профиля unit тестов: ${unitProfileResult.error}`);
+  }
+
   const testTypes = [
-    { name: 'Unit тесты', config: CONFIGS.base, environment: 'jsdom' }, // Unit тесты обычно используют jsdom
+    { name: 'Unit тесты', config: CONFIGS.base, environment: unitProfileResult.profile.environment },
     { name: 'Интеграционные тесты', config: CONFIGS.packages, environment: 'node' },
     { name: 'AI тесты', config: CONFIGS.ai, environment: 'node' }
   ];
@@ -289,7 +423,7 @@ async function runAllTestTypes(globalSetup) {
   const totalDuration = ((endTime - startTime) / 1000).toFixed(1);
 
   // Выполняем пост-тестовые проверки (как в runTestsWithRetry)
-  const { allChecksPassed: postChecksPassed } = await runPostTestChecks(totalDuration, globalSetup.reporter);
+  const { allChecksPassed: postChecksPassed } = await runPostTestChecks(totalDuration, globalSetup.reporter, globalSetup.reportDir);
   overallSuccess = overallSuccess && postChecksPassed;
 
   console.log('\n' + '='.repeat(50));
@@ -302,67 +436,52 @@ async function runAllTestTypes(globalSetup) {
   }
 }
 
-// Определяет окружение для глобального запуска unit тестов
-function detectGlobalEnvironment() {
-  try {
-    // Проверяем наличие React/JSX файлов в проекте
-    const reactFiles = globSync('**/*.{tsx,jsx}', {
-      cwd: ROOT,
-      absolute: false,
-      ignore: ['node_modules/**', '.git/**', 'dist/**', 'coverage/**']
-    });
-
-    // Если есть React файлы, используем jsdom
-    if (reactFiles.length > 0) {
-      console.log(`🔍 Найдено ${reactFiles.length} React файлов, используем jsdom окружение`);
-      return 'jsdom';
-    }
-  } catch (error) {
-    console.log(`⚠️  Ошибка определения глобального окружения: ${error.message}`);
-  }
-
-  // По умолчанию используем node
-  return 'node';
+// Определяет настройки покрытия
+function determineCoverageEnabled(opts) {
+  return !opts.debug && opts.coverage !== false;
 }
 
-// Определяет тип тестов на основе путей и паттернов файлов
-function detectTestType(paths) {
-  if (!paths || paths.length === 0) return 'unit';
+// Определяет профиль тестов: тип, конфигурацию и окружение
+// Возвращает результат вместо side-effects (throw, console.log)
+function resolveTestProfile(paths, opts) {
+  // Декларативные правила определения типа тестов
+  const TEST_TYPE_RULES = [
+    { type: 'ai', check: (paths) => checkGlobPattern(paths, '**/tests/integration/**/*.ai.test.{ts,tsx,js,jsx}') },
+    { type: 'integration', check: (paths) => checkGlobPattern(paths, '**/tests/integration/**/*.{ts,tsx,js,jsx}') },
+    { type: 'ui-unit', check: (paths) => checkContentPattern(paths, /@testing-library\/react|from\s+['"]react['"]/)},
+    { type: 'package-unit', check: (paths) => checkPackageJson(paths) },
+    { type: 'unit', check: () => true } // fallback
+  ];
 
-  // Проверяем наличие AI интеграционных тестов
-  const hasAIIntegrationTests = paths.some(p => {
-    try {
-      const dir = fs.statSync(p).isDirectory() ? p : path.dirname(p);
-      const aiFiles = globSync('**/tests/integration/**/*.ai.test.{ts,tsx,js,jsx}', {
-        cwd: dir,
-        absolute: false
-      });
-      return aiFiles.length > 0;
-    } catch {
-      return false;
+  // Определяем тип тестов на основе путей и паттернов файлов
+  function detectTestType(localPaths) {
+    if (!localPaths || localPaths.length === 0) return 'unit';
+
+    for (const rule of TEST_TYPE_RULES) {
+      if (rule.check(localPaths)) {
+        return rule.type;
+      }
     }
-  });
 
-  if (hasAIIntegrationTests) return 'ai';
+    return 'unit';
+  }
 
-  // Проверяем наличие общих интеграционных тестов
-  const hasIntegrationTests = paths.some(p => {
-    try {
-      const dir = fs.statSync(p).isDirectory() ? p : path.dirname(p);
-      const integrationFiles = globSync('**/tests/integration/**/*.{ts,tsx,js,jsx}', {
-        cwd: dir,
-        absolute: false
-      });
-      return integrationFiles.length > 0;
-    } catch {
-      return false;
-    }
-  });
+  // Проверяет наличие файлов по glob паттерну
+  function checkGlobPattern(localPaths, pattern) {
+    return localPaths.some(p => {
+      try {
+        const dir = fs.statSync(p).isDirectory() ? p : path.dirname(p);
+        const files = globSync(pattern, { cwd: dir, absolute: false });
+        return files.length > 0;
+      } catch {
+        return false;
+      }
+    });
+  }
 
-  if (hasIntegrationTests) return 'integration';
-
-  // Проверяем наличие UI компонентов или React импортов (для jsdom)
-  const hasReactFiles = paths.some(p => {
+  // Проверяет содержимое файлов на паттерн
+  function checkContentPattern(localPaths, contentRegex) {
+    return localPaths.some(p => {
       try {
         if (fs.statSync(p).isDirectory()) {
           const files = fs.readdirSync(p, { recursive: true });
@@ -370,9 +489,7 @@ function detectTestType(paths) {
             if (f.endsWith('.tsx') || f.endsWith('.jsx') || f.endsWith('.ts') || f.endsWith('.js')) {
               try {
                 const content = fs.readFileSync(path.join(p === '.' ? '' : p, f), 'utf8');
-                return content.includes('import.*React') || content.includes('from.*react') ||
-                       content.includes('React.') || content.includes('renderHook') ||
-                       content.includes('@testing-library/react');
+                return contentRegex.test(content);
               } catch {
                 return false;
               }
@@ -380,44 +497,281 @@ function detectTestType(paths) {
             return false;
           });
         }
-        // Для отдельных файлов проверяем содержимое
         if (p.endsWith('.ts') || p.endsWith('.js') || p.endsWith('.tsx') || p.endsWith('.jsx')) {
-          try {
-            const content = fs.readFileSync(p, 'utf8');
-            return content.includes('import.*React') || content.includes('from.*react') ||
-                   content.includes('React.') || content.includes('renderHook') ||
-                   content.includes('@testing-library/react');
-          } catch {
-            return false;
-          }
+          const content = fs.readFileSync(p, 'utf8');
+          return contentRegex.test(content);
         }
         return false;
       } catch {
         return false;
       }
     });
+  }
 
-  if (hasReactFiles) return 'ui-unit';
+  // Проверяет наличие package.json
+  function checkPackageJson(localPaths) {
+    return localPaths.some(p => {
+      const fullPath = path.resolve(ROOT, p);
+      return fs.existsSync(fullPath) && fs.statSync(fullPath).isDirectory() &&
+             fs.existsSync(path.join(fullPath, 'package.json'));
+    });
+  }
 
-  // Проверяем наличие package.json (для packages config)
-  const hasPackages = paths.some(p => {
-    const fullPath = path.resolve(ROOT, p);
-    return fs.existsSync(fullPath) && fs.statSync(fullPath).isDirectory() &&
-           fs.existsSync(path.join(fullPath, 'package.json'));
-  });
+  // Автоматически определяем окружение для глобальных запусков
+  function detectGlobalEnvironment() {
+    try {
+      // Проверяем наличие React/JSX файлов в проекте
+      const reactFiles = globSync('**/*.{tsx,jsx}', {
+        cwd: ROOT,
+        absolute: false,
+        ignore: ['node_modules/**', '.git/**', 'dist/**', 'coverage/**']
+      });
 
-  if (hasPackages) return 'package-unit';
+      // Если есть React файлы, используем jsdom
+      if (reactFiles.length > 0) {
+        return 'jsdom';
+      }
+    } catch {
+      // Игнорируем ошибки, возвращаем default
+    }
 
-  return 'unit'; // резервный вариант
+    // По умолчанию используем node
+    return 'node';
+  }
+
+  // Маппинг конфигураций к окружениям
+  const CONFIG_ENV_MAP = {
+    packages: 'node',
+    integration: 'node',
+    ai: 'node',
+    base: 'node'
+  };
+
+  // Получает окружение по пути конфигурации
+  function getEnvByConfig(configPath) {
+    return Object.entries(CONFIG_ENV_MAP)
+      .find(([key]) => configPath.includes(key))?.[1];
+  }
+
+  const testType = detectTestType(paths);
+
+  // --force-env имеет максимальный приоритет
+  if (opts.forceEnv) {
+    if (!['node', 'jsdom'].includes(opts.forceEnv)) {
+      return { ok: false, error: `Недопустимое значение --force-env: ${opts.forceEnv}. Должно быть 'node' или 'jsdom'` };
+    }
+  }
+
+  // Принудительно указанная конфигурация
+  if (opts.config) {
+    const cfg = CONFIGS[opts.config];
+    if (!cfg) return { ok: false, error: `Неизвестная конфигурация: ${opts.config}` };
+
+    // Приоритет: --force-env > --env > fallback по конфигу
+    let env = opts.forceEnv || opts.env;
+    if (!env) {
+      env = getEnvByConfig(cfg);
+    }
+
+    return { ok: true, profile: { type: testType, configPath: cfg, environment: env } };
+  }
+
+  // Определяем конфигурацию на основе опций и типа тестов
+  let configPath, baseEnvironment;
+
+  if (opts.unit) {
+    // Для unit тестов определяем конфигурацию на основе типа
+    switch (testType) {
+      case 'ai':
+        configPath = CONFIGS.ai;
+        baseEnvironment = 'node';
+        break;
+      case 'integration':
+      case 'package-unit':
+        configPath = CONFIGS.packages;
+        baseEnvironment = paths.length === 0 ? 'node' : 'jsdom';
+        break;
+      case 'ui-unit':
+        configPath = CONFIGS.base;
+        baseEnvironment = 'jsdom';
+        break;
+      default:
+        configPath = CONFIGS.base;
+        // Для unit тестов используем jsdom по умолчанию (совместимость с React)
+        // Для глобальных запусков определяем автоматически
+        baseEnvironment = paths.length === 0 ? detectGlobalEnvironment() : 'jsdom';
+        break;
+    }
+  } else if (opts.integration) {
+    configPath = CONFIGS.packages;
+    baseEnvironment = 'node';
+  } else if (opts.ai) {
+    configPath = CONFIGS.ai;
+    baseEnvironment = 'node';
+  } else if (opts.all) {
+    // --all не использует обычную конфигурацию
+    return null;
+  } else {
+    // Умный fallback на основе путей
+    if (paths.length > 0) {
+      switch (testType) {
+        case 'ai':
+          configPath = CONFIGS.ai;
+          baseEnvironment = 'node';
+          break;
+        case 'integration':
+          configPath = CONFIGS.packages;
+          baseEnvironment = 'node';
+          break;
+        case 'ui-unit':
+        case 'package-unit':
+          // Для unit тестов используем основную конфигурацию, а не packages
+          // Проверяем, являются ли пути unit тестами
+          const isUnitTest = paths.some(p =>
+            p.includes('/tests/unit/')
+          );
+          if (isUnitTest) {
+            configPath = CONFIGS.base;
+          } else {
+            configPath = CONFIGS.packages;
+          }
+          baseEnvironment = 'jsdom';
+          break;
+        default:
+          configPath = CONFIGS.base;
+          baseEnvironment = 'node';
+          break;
+      }
+
+      // Legacy fallback для обратной совместимости
+      const hasIntegrationPatterns = paths.some(p =>
+        p.includes('integration') || p.includes('e2e')
+      );
+      if (hasIntegrationPatterns) {
+        configPath = CONFIGS.packages;
+        baseEnvironment = 'node';
+      }
+    } else {
+      configPath = CONFIGS.base;
+      baseEnvironment = 'node';
+    }
+  }
+
+  // Приоритет: --force-env > --env > baseEnvironment
+  const environment = opts.forceEnv || opts.env || baseEnvironment;
+
+  return { ok: true, profile: { type: testType, configPath, environment } };
 }
 
-// Резервные окружения по типу конфигурации. Гарантирует консистентное поведение для каждого типа тестов
-const ENVIRONMENT_FALLBACKS = {
-  'packages': 'node',      // packages config → backend/API окружение
-  'ai': 'node',           // ai config → API calls окружение
-  'base': 'node',         // base config → общее backend окружение
-  'integration': 'node'   // integration config → API тестирование
-};
+// Находит все тестовые файлы в проекте (единственный источник истины)
+function findAllTestFiles() {
+  return globSync('**/*.test.{ts,tsx,js,jsx,mjs}', {
+    cwd: ROOT,
+    absolute: true,
+    ignore: [
+      'node_modules/**',
+      '.git/**',
+      'dist/**',
+      'coverage/**',
+      '**/e2e/**',
+      'e2e/**',
+      'config/playwright/**',
+      '**/.pnpm-store/**',
+      '**/.pnpm/**'
+    ]
+  });
+}
+
+// Запускает Vitest один раз с заданными параметрами
+async function runVitestOnce({ configPath, environment, paths, opts, coverageEnabled, testTypeName = null }) {
+  return new Promise((resolve) => {
+    try {
+      // Очищаем директории coverage перед запуском
+      if (coverageEnabled) {
+        fs.rmSync(path.join(ROOT, "coverage"), { recursive: true, force: true });
+      }
+
+      // Строим аргументы для Vitest
+      const reporterConfig = resolveReporterConfig(opts.reporter || 'default', testTypeName, opts.reportDir);
+      const { args: testArgs, env } = buildVitestArgs(configPath, environment, paths, opts, coverageEnabled, reporterConfig);
+
+      // Запускаем тесты
+      const startTime = Date.now();
+      const child = spawn("pnpm", ["exec", "vitest", ...testArgs], {
+        stdio: "inherit",
+        shell: false,
+        env,
+      });
+
+      child.on('close', async (code) => {
+        const endTime = Date.now();
+        const duration = (endTime - startTime) / 1000;
+
+        // Ждем завершения записи coverage отчетов
+        if (coverageEnabled) {
+          const coverageFile = path.join(ROOT, "coverage/coverage-final.json");
+          const ok = await waitForFile(coverageFile, 10000);
+          if (!ok) {
+            console.warn("⚠️ Coverage report not detected after 10s timeout");
+          }
+        }
+
+        resolve({
+          success: code === 0,
+          duration: duration,
+          exitCode: code,
+          signal: child.signal
+        });
+      });
+
+      child.on('error', (error) => {
+        console.error(`💥 Ошибка запуска тестов:`, error.message);
+        resolve({
+          success: false,
+          duration: 0,
+          exitCode: 1,
+          signal: null,
+          error: error.message
+        });
+      });
+
+    } catch (error) {
+      console.error(`💥 Ошибка запуска тестов:`, error.message);
+      resolve({
+        success: false,
+        duration: 0,
+        exitCode: 1,
+        signal: null,
+        error: error.message
+      });
+    }
+  });
+}
+
+// Определяет политику покрытия на основе пути конфигурации
+function resolveCoveragePolicy(configPath) {
+  // Базовая политика для unit тестов
+  let policy = {
+    thresholds: { lines: 80, functions: 80, branches: 75, statements: 80 },
+    description: 'standard'
+  };
+
+  if (configPath.includes('packages') || configPath.includes('integration')) {
+    // Для packages и integration конфигураций - повышенные требования
+    policy = {
+      thresholds: { lines: 85, functions: 85, branches: 85, statements: 80 },
+      description: 'strict'
+    };
+  } else if (configPath.includes('ai')) {
+    // AI тесты имеют повышенные требования для качества
+    policy = {
+      thresholds: { lines: 85, functions: 85, branches: 85, statements: 80 },
+      description: 'strict'
+    };
+  }
+
+  return policy;
+}
 
 // Вычисляет разницу покрытия между текущей и базовой веткой
 async function getCoverageDiff(baseBranch = 'main') {
@@ -453,7 +807,7 @@ async function getCoverageDiff(baseBranch = 'main') {
 
     return diff;
   } catch (error) {
-    console.log(`⚠️  Ошибка вычисления разницы покрытия: ${error.message}`);
+    console.warn(`Ошибка вычисления разницы покрытия: ${error.message}`);
     return null;
   }
 }
@@ -461,11 +815,12 @@ async function getCoverageDiff(baseBranch = 'main') {
 // Загружает пороги из конфигурационного файла Vitest
 function loadThresholdsFromConfig(configPath) {
   try {
-    // Пороги по умолчанию - повышенные требования для качества
-    let thresholds = { lines: 85, functions: 85, branches: 85, statements: 80 };
+    // Получаем базовую политику покрытия для этого типа конфигурации
+    const policy = resolveCoveragePolicy(configPath);
+    let thresholds = policy.thresholds;
 
-    if (configPath.includes('packages') || configPath.includes('integration')) {
-      // Для packages конфигурации пытаемся загрузить из файла
+    if (policy.description === 'strict') {
+      // Для strict политик пытаемся загрузить из файла
       try {
         // Импортируем конфиг и извлекаем пороги
         // Примечание: Это упрощенная версия, в реальности может потребоваться более сложная логика
@@ -478,156 +833,46 @@ function loadThresholdsFromConfig(configPath) {
           thresholds = { lines: 85, functions: 85, branches: 85, statements: 80 };
         }
       } catch (error) {
-        console.log(`⚠️  Не удалось загрузить пороги из конфига, используем значения по умолчанию: ${error.message}`);
+        console.warn(`Не удалось загрузить пороги из конфига, используем значения по умолчанию: ${error.message}`);
       }
-    } else if (configPath.includes('ai')) {
-      // AI тесты имеют повышенные требования для качества
-      thresholds = { lines: 85, functions: 85, branches: 85, statements: 80 };
     }
 
     return thresholds;
   } catch (error) {
-    console.log(`⚠️  Ошибка загрузки порогов, используем повышенные значения по умолчанию: ${error.message}`);
+    console.warn(`Ошибка загрузки порогов, используем повышенные значения по умолчанию: ${error.message}`);
     return { lines: 85, functions: 85, branches: 85, statements: 80 };
   }
 }
 
 // Объединенная функция для определения полной конфигурации тестов
 function resolveTestSetup() {
+  // Получаем профиль тестов через единую функцию
+  const profileResult = resolveTestProfile(normalizedPaths, opts);
+  if (!profileResult.ok) {
+    fatal(`Ошибка определения профиля тестов: ${profileResult.error}`);
+  }
+
   // Вычисляем настройки покрытия
-  // Для глобального запуска отключаем coverage в локальном режиме (слишком много файлов)
-  const isGlobalRun = opts.unit && normalizedPaths.length === 0;
-  const coverageEnabled = opts.debug ? false :
-    opts.coverage !== false; // Включаем coverage по умолчанию
+  const coverageEnabled = determineCoverageEnabled(opts);
 
-  // Set or clear COVERAGE environment variable for Vitest config
-  if (coverageEnabled) {
-    process.env.COVERAGE = 'true';
-  } else {
-    delete process.env.COVERAGE;
-  }
-
-  // --force-env имеет максимальный приоритет
-  if (opts.forceEnv) {
-    if (!['node', 'jsdom'].includes(opts.forceEnv)) {
-      throw new Error(`Недопустимое значение --force-env: ${opts.forceEnv}. Должно быть 'node' или 'jsdom'`);
-    }
-    console.log(`🔧 Принудительное переопределение окружения: ${opts.forceEnv}`);
-  }
-
-  if (opts.config) {
-    const cfg = CONFIGS[opts.config];
-    if (!cfg) throw new Error(`Неизвестная конфигурация: ${opts.config}`);
-
-    // Приоритет: --force-env > --env > fallback по конфигу
-    let env = opts.forceEnv || opts.env;
-    if (!env) {
-      // Fallback по типу конфигурации
-      const configType = Object.keys(ENVIRONMENT_FALLBACKS).find(type =>
-        cfg.includes(type)
-      );
-      env = configType ? ENVIRONMENT_FALLBACKS[configType] : undefined;
-    }
-
-    return { configPath: cfg, environment: env, coverageEnabled, reporter: opts.reporter || 'default' };
-  }
-
-  let configPath, baseEnvironment;
-
-  if (opts.unit) {
-    // Для unit тестов определяем тип на основе путей
-    const testType = detectTestType(normalizedPaths);
-    switch (testType) {
-      case 'ai':
-        configPath = CONFIGS.ai;
-        baseEnvironment = 'node';
-        break;
-      case 'integration':
-      case 'package-unit':
-        configPath = CONFIGS.packages;
-        baseEnvironment = normalizedPaths.length === 0 ? 'node' : 'jsdom';
-        break;
-      case 'ui-unit':
-        configPath = CONFIGS.packages;
-        baseEnvironment = 'jsdom';
-        break;
-      default:
-        configPath = CONFIGS.base;
-        // Для unit тестов используем jsdom по умолчанию (совместимость с React)
-        baseEnvironment = 'jsdom';
-        break;
-    }
-  } else if (opts.integration) {
-    configPath = CONFIGS.packages;
-    baseEnvironment = 'node';
-  } else if (opts.ai) {
-    configPath = CONFIGS.ai;
-    baseEnvironment = 'node';
-  } else if (opts.all) {
-    // --all не использует обычную конфигурацию
-    return null;
-  } else {
-    // Умный fallback на основе путей
-    if (normalizedPaths.length > 0) {
-      const testType = detectTestType(normalizedPaths);
-
-      switch (testType) {
-        case 'ai':
-          configPath = CONFIGS.ai;
-          baseEnvironment = 'node';
-          break;
-        case 'integration':
-          configPath = CONFIGS.packages;
-          baseEnvironment = 'node';
-          break;
-        case 'ui-unit':
-        case 'package-unit':
-          // Для unit тестов используем основную конфигурацию, а не packages
-          // Проверяем, являются ли пути unit тестами
-          const isUnitTest = normalizedPaths.some(p =>
-            p.includes('/tests/unit/') || p.includes('\\tests\\unit\\')
-          );
-          if (isUnitTest) {
-            configPath = CONFIGS.base;
-          } else {
-            configPath = CONFIGS.packages;
-          }
-          baseEnvironment = 'jsdom';
-          break;
-        default:
-          configPath = CONFIGS.base;
-          baseEnvironment = 'node';
-          break;
-      }
-
-      // Legacy fallback для обратной совместимости
-      const hasIntegrationPatterns = normalizedPaths.some(p =>
-        p.includes('integration') || p.includes('e2e')
-      );
-      if (hasIntegrationPatterns) {
-        configPath = CONFIGS.packages;
-        baseEnvironment = 'node';
-      }
-    } else {
-      configPath = CONFIGS.base;
-      baseEnvironment = 'node';
-    }
-  }
-
-  // Приоритет: --force-env > --env > baseEnvironment
-  const environment = opts.forceEnv || opts.env || baseEnvironment;
-
-  return { configPath, environment, coverageEnabled, reporter: opts.reporter || 'default' };
+  return {
+    configPath: profileResult.profile.configPath,
+    environment: profileResult.profile.environment,
+    coverageEnabled,
+    reporter: opts.reporter || 'default',
+    reportDir: opts.reportDir || 'reports'
+  };
 }
 
 // Функция для определения глобальных настроек в режиме --all
 function resolveTestSetupForAll() {
   // Вычисляем настройки покрытия
-  const coverageEnabled = opts.debug ? false : opts.coverage !== false;
+  const coverageEnabled = determineCoverageEnabled(opts);
 
   return {
     coverageEnabled,
-    reporter: opts.reporter || 'default'
+    reporter: opts.reporter || 'default',
+    reportDir: opts.reportDir || 'reports'
   };
 }
 
@@ -637,54 +882,57 @@ if (!testSetup) {
   // Но нам все равно нужны глобальные настройки для пост-обработки
   const globalTestSetup = resolveTestSetupForAll();
   runAllTestTypes(globalTestSetup).catch((error) => {
-    console.error('💥 Критическая ошибка в runAllTestTypes:', error);
-    process.exit(1);
+    fatal('Критическая ошибка в runAllTestTypes', error);
   });
   // Выйти немедленно, чтобы предотвратить дальнейшее выполнение
   process.exit(0);
 }
-const { configPath, environment, coverageEnabled, reporter } = testSetup;
+const { configPath, environment, coverageEnabled, reporter, reportDir } = testSetup;
 if (!fs.existsSync(configPath)) {
   throw new Error(`Конфигурация Vitest не найдена: ${configPath}`);
 }
 
 /* ================= ВАЛИДАЦИЯ ПУТЕЙ ================= */
 
+// Предикаты для проверки путей
+function isSystem(p) { return ['.pnpm', '.pnpm-store', 'node_modules'].some(x => p.includes(x)); }
+function isForbidden(p) { return ['e2e/', 'playwright', 'config/playwright'].some(x => p.includes(x)); }
+function isValidTest(p) { return /\.test\.(ts|tsx|js|jsx|mjs)$/.test(p); }
+
+// Проверяет наличие тестовых файлов в директории
+function hasTestFiles(dirPath) {
+  try {
+    const files = fs.readdirSync(dirPath, { recursive: true });
+    return files.some(file => {
+      const filePath = path.join(dirPath, file.toString());
+      return isValidTest(filePath);
+    });
+  } catch (error) {
+    console.warn(`Невозможно прочитать директорию: ${dirPath} (${error.message})`);
+    return false;
+  }
+}
+
 // Валидирует и нормализует пути, фильтруя только тестовые файлы
 function validateAndNormalizePaths() {
   if (paths.length === 0) return [];
-
-  // Исключаем файлы из pnpm-store и других системных директорий
-  const SYSTEM_PATTERNS = [
-    '.pnpm-store',
-    '.pnpm',
-    'node_modules'
-  ];
-
-  // Допустимые расширения тестовых файлов (ТОЛЬКО .test файлы)
-  const VALID_TEST_EXTENSIONS = [
-    '.test.ts', '.test.tsx', '.test.js', '.test.jsx', '.test.mjs'
-  ];
-
-  // Запрещенные паттерны (Playwright E2E тесты и другие внешние тесты)
-  const FORBIDDEN_PATTERNS = [
-    'e2e/',
-    'playwright',
-    'config/playwright'
-  ];
 
   const normalizedPaths = [];
   const filteredPaths = [];
 
   for (const p of paths) {
-    // Исключаем системные пути (pnpm-store, node_modules)
-    if (SYSTEM_PATTERNS.some(pattern => p.includes(pattern))) {
+    if (isSystem(p)) {
       console.log(`⏭️  Пропускаем системный путь: ${p}`);
       continue;
     }
 
-    const fullPath = path.resolve(ROOT, p);
+    if (isForbidden(p)) {
+      filteredPaths.push(p);
+      console.log(`🚫 Отфильтрован запрещенный путь: ${p}`);
+      continue;
+    }
 
+    const fullPath = path.resolve(ROOT, p);
     if (!fs.existsSync(fullPath)) {
       throw new Error(`Путь не существует: ${p} (${fullPath})`);
     }
@@ -692,63 +940,22 @@ function validateAndNormalizePaths() {
     const stat = fs.statSync(fullPath);
 
     if (stat.isFile()) {
-      // Для файлов - проверяем расширение
-      const isValidTest = VALID_TEST_EXTENSIONS.some(ext =>
-        fullPath.endsWith(ext) || fullPath.includes(ext)
-      );
-
-      if (isValidTest) {
-        // Проверяем на запрещенные паттерны (Playwright и другие внешние тесты)
-        const isForbidden = FORBIDDEN_PATTERNS.some(pattern =>
-          fullPath.includes(pattern) || p.includes(pattern)
-        );
-
-        if (!isForbidden) {
-          normalizedPaths.push(path.relative(ROOT, fullPath));
-        } else {
-          filteredPaths.push(p);
-          console.log(`🚫 Отфильтрован запрещенный файл (Playwright/other): ${p}`);
-        }
+      if (isValidTest(fullPath)) {
+        normalizedPaths.push(path.relative(ROOT, fullPath));
       } else {
         filteredPaths.push(p);
-        console.log(`⚠️  Отфильтрован не-тестовый файл: ${p}`);
+        console.warn(`Отфильтрован не-тестовый файл: ${p}`);
       }
     } else if (stat.isDirectory()) {
-      // Проверяем на запрещенные паттерны (Playwright директории)
-      const isForbidden = FORBIDDEN_PATTERNS.some(pattern =>
-        fullPath.includes(pattern) || p.includes(pattern)
-      );
-
-      if (isForbidden) {
+      if (hasTestFiles(fullPath)) {
+        normalizedPaths.push(path.relative(ROOT, fullPath));
+      } else {
         filteredPaths.push(p);
-        console.log(`🚫 Отфильтрована запрещенная директория (Playwright/other): ${p}`);
-        continue;
-      }
-
-      // Для директорий - проверяем наличие тестовых файлов
-      try {
-        const files = fs.readdirSync(fullPath, { recursive: true });
-        const hasTestFiles = files.some(file => {
-          const filePath = path.join(fullPath, file.toString());
-          return VALID_TEST_EXTENSIONS.some(ext =>
-            filePath.endsWith(ext) || filePath.includes(ext)
-          );
-        });
-
-        if (hasTestFiles) {
-          normalizedPaths.push(path.relative(ROOT, fullPath));
-        } else {
-          filteredPaths.push(p);
-          console.log(`⚠️  Директория не содержит тестовых файлов: ${p}`);
-        }
-      } catch (error) {
-        filteredPaths.push(p);
-        console.log(`⚠️  Невозможно прочитать директорию: ${p} (${error.message})`);
+        console.warn(`Директория не содержит тестовых файлов: ${p}`);
       }
     } else {
-      // Символические ссылки и другие типы файлов
       filteredPaths.push(p);
-      console.log(`⚠️  Неподдерживаемый тип пути: ${p}`);
+      console.warn(`Неподдерживаемый тип пути: ${p}`);
     }
   }
 
@@ -777,7 +984,8 @@ console.log("====================================");
 
 // DEBUG: Логируем что передаем Vitest
 if (opts.debug) {
-  const { args: debugArgs, env: debugEnv } = buildVitestArgs(configPath, environment, normalizedPaths, opts, coverageEnabled, reporter);
+  const reporterConfig = resolveReporterConfig(reporter);
+  const { args: debugArgs, env: debugEnv } = buildVitestArgs(configPath, environment, normalizedPaths, opts, coverageEnabled, reporterConfig);
   console.log('🔧 Vitest args:', debugArgs);
   console.log('📂 Normalized paths:', normalizedPaths);
   console.log('🔍 Всего тестов для запуска:', normalizedPaths.length);
@@ -796,31 +1004,15 @@ if (opts.summary) {
 if (opts.dryRun) {
   console.log("\n🧪 РЕЖИМ DRY RUN");
   console.log("📝 Команда для выполнения:");
-  const { args: dryRunArgs } = buildVitestArgs(configPath, environment, normalizedPaths, opts, coverageEnabled, reporter);
+  const reporterConfig = resolveReporterConfig(reporter);
+  const { args: dryRunArgs } = buildVitestArgs(configPath, environment, normalizedPaths, opts, coverageEnabled, reporterConfig);
   console.log(`pnpm exec vitest ${dryRunArgs.join(" ")}`);
   console.log("🔧 Значение опции parallel:", opts.parallel);
 
   console.log("\n🔍 Обнаружение тестов:");
   try {
-    // Используем улучшенный glob с правильными exclude паттернами
-    // (Vitest list имеет проблемы с exclude правилами при наличии Playwright файлов)
-    // Используем только допустимые расширения тестовых файлов (.test, исключая .spec)
-    const testFiles = globSync('**/*.test.{ts,tsx,js,jsx,mjs}', {
-      cwd: ROOT,
-      absolute: true,
-      ignore: [
-        'node_modules/**',
-        '.git/**',
-        'dist/**',
-        'coverage/**',
-        '**/e2e/**',
-        'e2e/**',
-        'config/playwright/**',
-        '**/playwright-report/**',
-        '**/.pnpm-store/**',
-        '**/.pnpm/**'
-      ]
-    });
+    // Используем единую функцию для поиска всех тестовых файлов
+    const testFiles = findAllTestFiles();
 
     if (testFiles.length > 0) {
       console.log("📁 Найденные тестовые файлы:");
@@ -838,7 +1030,7 @@ if (opts.dryRun) {
       console.log("⚠️  Тестовые файлы не найдены");
     }
   } catch (error) {
-    console.log(`⚠️  Не удалось обнаружить тестовые файлы: ${error.message}`);
+    console.warn(`Не удалось обнаружить тестовые файлы: ${error.message}`);
   }
 
   console.log("\n⚙️  Конфигурация:");
@@ -1023,7 +1215,7 @@ function getPackageFromPath(relativePath) {
 }
 
 // Генерирует стандартизированный JSON отчет для CI dashboard
-function generateCIDashboardReport(packageResults, totalDuration) {
+function generateCIDashboardReport(parsedResults, totalDuration) {
   try {
     const reportPath = path.join(ROOT, 'test-results', 'ci-dashboard-report.json');
 
@@ -1048,7 +1240,7 @@ function generateCIDashboardReport(packageResults, totalDuration) {
     };
 
     // Заполнить summary
-    for (const stats of packageResults.values()) {
+    for (const stats of parsedResults.packageResults.values()) {
       report.summary.tests += stats.total;
       report.summary.passed += stats.passed;
       report.summary.failed += stats.failed;
@@ -1056,7 +1248,7 @@ function generateCIDashboardReport(packageResults, totalDuration) {
     }
 
     // Заполнить packages
-    for (const [packageName, stats] of packageResults) {
+    for (const [packageName, stats] of parsedResults.packageResults) {
       report.packages.push({
         name: packageName,
         duration: stats.duration,
@@ -1078,7 +1270,7 @@ function generateCIDashboardReport(packageResults, totalDuration) {
     console.log(`📊 CI Dashboard отчет сгенерирован: ${path.relative(ROOT, reportPath)}`);
 
   } catch (error) {
-    console.log(`⚠️  Ошибка генерации CI dashboard отчета: ${error.message}`);
+    console.warn(`Ошибка генерации CI dashboard отчета: ${error.message}`);
   }
 }
 
@@ -1090,11 +1282,7 @@ function showTestSummary() {
 
   try {
     // Найти все тестовые файлы (только .test файлы, runner не поддерживает .spec)
-    const allTestFiles = globSync('**/*.test.{ts,tsx,js,jsx,mjs}', {
-      cwd: ROOT,
-      absolute: true,
-      ignore: ['node_modules/**', '.git/**', 'dist/**', 'coverage/**', '**/e2e/**', 'e2e/**', 'config/playwright/**', '**/.pnpm-store/**', '**/.pnpm/**']
-    });
+    const allTestFiles = findAllTestFiles();
 
     // Классифицировать файлы по типам
     const stats = {
@@ -1156,50 +1344,56 @@ function showTestSummary() {
 
 /* ================= ПРОВЕРКА .ONLY/.SKIP ================= */
 
+// Анализ файла с помощью TypeScript AST для поиска запрещенных модификаторов
+function analyzeFileForForbiddenTests(filePath) {
+  try {
+    const source = ts.createSourceFile(
+      filePath,
+      fs.readFileSync(filePath, "utf8"),
+      ts.ScriptTarget.Latest,
+      true
+    );
+
+    const offenders = { only: [], skip: [] };
+
+    function visit(node) {
+      if (ts.isPropertyAccessExpression(node)) {
+        const name = node.name.getText();
+        if (name === "only" || name === "skip") {
+          const expression = node.expression.getText();
+          if (["it", "test", "describe"].includes(expression)) {
+            // Получить позицию в файле
+            const { line } = ts.getLineAndCharacterOfPosition(source, node.getStart());
+            offenders[name].push(`${path.relative(ROOT, filePath)}:${line + 1}`);
+          }
+        }
+      }
+      ts.forEachChild(node, visit);
+    }
+
+    visit(source);
+    return offenders;
+  } catch (error) {
+    // В случае ошибки парсинга, возвращаем пустой результат
+    console.warn(`Не удалось проанализировать файл ${path.relative(ROOT, filePath)}: ${error.message}`);
+    return { only: [], skip: [] };
+  }
+}
+
 function checkForbiddenTests() {
   if (!opts.strict && !CI_MODE) return true;
 
   try {
     // Найти все поддерживаемые тестовые файлы в проекте (только .test, runner не поддерживает .spec)
-    const testFiles = globSync('**/*.test.{ts,tsx,js,jsx,mjs}', {
-      cwd: ROOT,
-      absolute: true,
-      ignore: ['node_modules/**', '.git/**', 'dist/**', 'coverage/**', '**/e2e/**', 'e2e/**', 'config/playwright/**', '**/.pnpm-store/**', '**/.pnpm/**']
-    });
+    const testFiles = findAllTestFiles();
 
     const offenders = { only: [], skip: [] };
 
-    // Проверить каждый файл на наличие .only/.skip
+    // Проанализировать каждый файл с помощью AST
     for (const file of testFiles) {
-      try {
-        const content = fs.readFileSync(file, 'utf8');
-        const lines = content.split('\n');
-
-        lines.forEach((line, index) => {
-          const lineNumber = index + 1;
-
-          // Искать .only( с границами слов, исключая комментарии и строки
-          if (/\b(it|test|describe)\.only\s*\(/.test(line) &&
-              !line.trim().startsWith('//') &&
-              !line.trim().startsWith('/*') &&
-              !line.includes('".only(') &&
-              !line.includes("'.only(")) {
-            offenders.only.push(`${path.relative(ROOT, file)}:${lineNumber}`);
-          }
-
-          // Искать .skip( с границами слов, исключая комментарии и строки
-          if (/\b(it|test|describe)\.skip\s*\(/.test(line) &&
-              !line.trim().startsWith('//') &&
-              !line.trim().startsWith('/*') &&
-              !line.includes('".skip(') &&
-              !line.includes("'.skip(")) {
-            offenders.skip.push(`${path.relative(ROOT, file)}:${lineNumber}`);
-          }
-        });
-      } catch (error) {
-        // Пропустить файлы которые нельзя прочитать
-        continue;
-      }
+      const fileOffenders = analyzeFileForForbiddenTests(file);
+      offenders.only.push(...fileOffenders.only);
+      offenders.skip.push(...fileOffenders.skip);
     }
 
     const hasOffenders = offenders.only.length > 0 || offenders.skip.length > 0;
@@ -1227,141 +1421,16 @@ function checkForbiddenTests() {
       }
     }
   } catch (error) {
-    console.log(`⚠️  Ошибка проверки запрещенных тестов: ${error.message}`);
+    console.warn(`Ошибка проверки запрещенных тестов: ${error.message}`);
   }
 
   return true;
-}
-
-// Определяет, стоит ли повторять тест на основе сравнения результатов
-function shouldRetryBasedOnResults(lastResult, hasCriticalError, retryCount, maxRetries, previousResults, currentResults) {
-  // Базовые проверки
-  if (lastResult.status === 0 || hasCriticalError || retryCount >= maxRetries) {
-    return false;
-  }
-
-  // Если нет результатов для сравнения - повторяем
-  if (!currentResults || !currentResults.testResults) {
-    return true;
-  }
-
-  // Если есть предыдущие результаты - сравниваем
-  if (previousResults && previousResults.testResults) {
-    const prevStats = getTestStats(previousResults);
-    const currentStats = getTestStats(currentResults);
-
-    // Если количество упавших тестов одинаковое - не повторяем
-    if (prevStats.failed.length === currentStats.failed.length) {
-      // Если списки упавших тестов идентичны - точно не повторяем
-      const prevFailureNames = new Set(prevStats.failed.map(f => f.fullName));
-      const currentFailureNames = new Set(currentStats.failed.map(f => f.fullName));
-
-      if (prevStats.failed.length === currentStats.failed.length &&
-          [...prevFailureNames].every(name => currentFailureNames.has(name))) {
-        return false;
-      }
-    }
-  }
-
-  // Проверяем количество упавших тестов - если слишком много, это не flaky
-  const currentStats = getTestStats(currentResults);
-  const failureRate = currentStats.total > 0 ? (currentStats.failed.length / currentStats.total) * 100 : 0;
-
-  if (currentStats.failed.length > 3) {
-    console.log(`🔄 Retry пропущен: слишком много упавших тестов (${currentStats.failed.length}/${currentStats.total}, ${failureRate.toFixed(1)}%)`);
-    console.log(`💥 Это системная ошибка, а не flaky failure`);
-
-    // Логируем первые несколько падающих тестов
-    if (currentStats.failed.length > 0) {
-      console.log(`❌ Примеры падающих тестов:`);
-      currentStats.failed.slice(0, 3).forEach(failure => {
-        console.log(`   • ${failure.title}`);
-      });
-      if (currentStats.failed.length > 3) {
-        console.log(`   ... и ещё ${currentStats.failed.length - 3} тестов`);
-      }
-    }
-
-    return false;
-  }
-
-  // Если процент упавших >5%, это тоже системная ошибка
-  if (failureRate > 5) {
-    console.log(`🔄 Retry пропущен: высокий процент упавших тестов (${failureRate.toFixed(1)}% > 5%)`);
-    console.log(`💥 Системная ошибка, retry не поможет`);
-    return false;
-  }
-
-  // Если stderr содержит flaky-паттерны - повторяем
-  if (lastResult.stderr && isLikelyFlakyFailure(lastResult.stderr)) {
-    return true;
-  }
-
-  // По умолчанию повторяем, если есть ошибки и не превышен лимит
-  return true;
-}
-
-// Извлекает статистику тестов из результатов
-function getTestStats(results) {
-  const failedTests = [];
-  let total = 0;
-
-  if (results.testResults) {
-    results.testResults.forEach((testResult) => {
-      if (testResult.assertionResults) {
-        testResult.assertionResults.forEach((assertion) => {
-          total++;
-          if (assertion.status === 'failed') {
-            failedTests.push({
-              fullName: assertion.fullName,
-              title: assertion.title,
-              ancestorTitles: assertion.ancestorTitles
-            });
-          }
-        });
-      }
-    });
-  }
-
-  return { failed: failedTests, total };
-}
-
-// Определяет, является ли failure вероятно flaky
-function isLikelyFlakyFailure(stderr) {
-  if (!stderr) return false;
-
-  const flakyPatterns = [
-    /timeout/i,
-    /network/i,
-    /connection/i,
-    /race condition/i,
-    /flaky/i,
-    /unstable/i,
-    /temporary failure/i,
-    /connection reset/i,
-    /econnreset/i,
-    /enotfound/i,
-    /etimedout/i,
-    /webdriver/i, // Для e2e тестов
-    /element not found/i, // Для UI тестов
-    /stale element/i // Для UI тестов
-  ];
-
-  return flakyPatterns.some(pattern => pattern.test(stderr));
 }
 
 // Выполняет пост-тестовые проверки (coverage, forbidden tests, CI dashboard)
-async function runPostTestChecks(duration, reporter) {
-    // Парсим результаты текущего запуска для анализа
-    let currentResults = null;
-    try {
-      const resultsPath = path.join(ROOT, "test-results", "results.json");
-      if (fs.existsSync(resultsPath)) {
-        currentResults = JSON.parse(fs.readFileSync(resultsPath, 'utf8'));
-      }
-    } catch (error) {
-      console.log(`⚠️  Не удалось прочитать результаты тестов: ${error.message}`);
-    }
+async function runPostTestChecks(duration, reporter, reportDir = 'reports') {
+    // Парсим результаты текущего запуска один раз
+    const parsedResults = parseVitestJsonResults(null, reportDir);
 
     // Повторные проверки после запуска
     let allChecksPassed = true;
@@ -1380,113 +1449,15 @@ async function runPostTestChecks(duration, reporter) {
     // Показать отчеты о покрытии
     showCoverageReport(coverageStatus);
 
-    displayResultsSummary(duration, reporter);
+    // Показать сводку результатов с уже готовыми данными
+    displayResultsSummary(duration, reporter, parsedResults, reportDir);
 
-    return { allChecksPassed, results: currentResults, coverageStatus };
+    return { allChecksPassed, results: parsedResults, coverageStatus };
 }
 
-// Выполняет тест с автоматический retry при flaky failures
-async function runTestsWithRetry() {
-  const MAX_AUTO_RETRIES = 2;
-  let retryCount = 0;
-  let lastResult = null;
-  let duration = 0;
-  let finalResultsPath = null;
-  let previousResults = null; // Храним результаты предыдущей попытки
-
-  // В CI режиме проверяем запрещенные тесты ДО запуска (чтобы не гонять тесты зря)
-  if (CI_MODE) {
-    console.log('🔍 Проверка на запрещенные модификаторы тестов (.only/.skip)...');
-    if (!checkForbiddenTests()) {
-      console.error('❌ Найдены запрещенные модификаторы тестов. Исправьте перед коммитом.');
-      process.exit(1);
-    }
-  }
-
-  while (retryCount <= MAX_AUTO_RETRIES) {
-    if (retryCount > 0) {
-      console.log(`\n🔄 Автоматический повтор ${retryCount}/${MAX_AUTO_RETRIES} из-за вероятного flaky failure`);
-      // Небольшая пауза перед повтором
-      await new Promise(resolve => setTimeout(resolve, 1000));
-    }
-
-    const startTime = Date.now();
-    // Используем единую функцию построения аргументов и переменных окружения
-    const currentAttempt = retryCount + 1;
-    const { args: vitestArgs, env } = buildVitestArgs(configPath, environment, normalizedPaths, opts, coverageEnabled, reporter, null, currentAttempt);
-    lastResult = spawnSync("pnpm", ["exec", "vitest", ...vitestArgs], {
-      stdio: ["inherit", "inherit", "pipe"],
-      shell: false,
-      env,
-    });
-    const endTime = Date.now();
-    duration = ((endTime - startTime) / 1000).toFixed(1);
-
-    // Даем Vitest время завершить запись coverage отчетов
-    // Для глобального запуска нужно больше времени
-    const delay = opts.unit && normalizedPaths.length === 0 ? 8000 : 2000;
-    if (coverageEnabled) {
-      await new Promise(resolve => setTimeout(resolve, delay));
-    }
-
-    const { allChecksPassed, results: currentResults } = await runPostTestChecks(duration, reporter);
-
-    // Сохраняем путь к результатам этой попытки
-    if (currentAttempt === 1 && fs.existsSync(path.join(ROOT, "test-results", "results.json"))) {
-      finalResultsPath = path.join(ROOT, "test-results", "results.json");
-    } else if (fs.existsSync(path.join(ROOT, "test-results", `results.attempt-${currentAttempt}.json`))) {
-      finalResultsPath = path.join(ROOT, "test-results", `results.attempt-${currentAttempt}.json`);
-    }
-
-    // Проверить критические ошибки (без анализа stderr из-за полного буферизации spawnSync)
-    const hasCriticalError = lastResult.signal;
-
-    // Если все проверки прошли - выходим успешно
-    if (lastResult.status === 0 && !hasCriticalError && allChecksPassed) {
-      console.log(`\n✅ Все тесты прошли успешно за ${duration}с`);
-      if (retryCount > 0) {
-        console.log(`   (После ${retryCount} автоматического повтор${retryCount > 1 ? 'а' : 'а'})`);
-      }
-
-      // Копируем финальный результат в results.final.json для истории
-      if (finalResultsPath && fs.existsSync(finalResultsPath)) {
-        const finalPath = path.join(ROOT, "test-results", "results.final.json");
-        fs.copyFileSync(finalResultsPath, finalPath);
-        console.log(`📊 Финальный отчет сохранен: test-results/results.final.json`);
-      }
-
-      process.exit(0);
-    }
-
-    // Проверяем, стоит ли повторять с умным анализом изменений
-    const shouldRetry = shouldRetryBasedOnResults(lastResult, hasCriticalError, retryCount, MAX_AUTO_RETRIES, previousResults, currentResults);
-
-    if (!shouldRetry) {
-      if (previousResults && currentResults) {
-        console.log(`🔄 Retry пропущен: результаты идентичны предыдущей попытке`);
-      }
-      break;
-    }
-
-    // Сохраняем текущие результаты для сравнения при следующем retry
-    previousResults = currentResults;
-
-    retryCount++;
-  }
-
-  // Финальная обработка неудачи
-  console.log(`\n❌ Тесты не удались (код выхода: ${lastResult.status ?? 1})`);
-  if (lastResult.signal) {
-    console.log(`Сигнал: ${lastResult.signal}`);
-  }
-  if (retryCount > 0) {
-    console.log(`   (После ${retryCount} автоматического повтор${retryCount > 1 ? 'а' : 'а'})`);
-  }
-  process.exit(1);
-}
 
 // Разбор и отображение сводки результатов
-function displayResultsSummary(duration, reporter) {
+function displayResultsSummary(duration, reporter, parsedResults = null, reportDir = 'reports') {
   // Для junit и verbose репортеров не показываем сводку (они уже вывели результаты)
   if (reporter === "junit" || reporter === "verbose") {
     if (reporter === "junit") {
@@ -1497,155 +1468,42 @@ function displayResultsSummary(duration, reporter) {
     return;
   }
 
-  // Читаем актуальный файл результатов (results.json имеет приоритет над final)
-  const resultsDir = path.join(ROOT, "test-results");
-  const resultFiles = [];
+  // Используем переданные результаты или парсим сами
+  const results = parsedResults || parseVitestJsonResults(null, reportDir);
 
-  // Приоритет: results.json > results.attempt-* > results.final.json
-  const mainResultFile = path.join(resultsDir, "results.json");
-  if (fs.existsSync(mainResultFile)) {
-    resultFiles.push(mainResultFile);
-  } else {
-    // Если основного файла нет, ищем последний attempt
-    const attemptFiles = fs.readdirSync(resultsDir)
-      .filter(file => file.startsWith('results.attempt-') && file.endsWith('.json'))
-      .sort()
-      .reverse();
-
-    if (attemptFiles.length > 0) {
-      resultFiles.push(path.join(resultsDir, attemptFiles[0]));
-    } else if (fs.existsSync(path.join(resultsDir, "results.final.json"))) {
-      // Последний шанс - final файл
-      resultFiles.push(path.join(resultsDir, "results.final.json"));
-    }
-  }
-
-  if (resultFiles.length === 0) {
+  if (!results) {
     console.log(`\n⚠️  Файлы результатов не найдены`);
     return;
   }
 
-  try {
-    let totalTests = 0, passedTests = 0, failedTests = 0, skippedTests = 0;
-    const packageResults = new Map();
-    const seenTests = new Set(); // Для предотвращения дублирования тестов
-    const failingTestDetails = []; // Для сбора детальной информации о падающих тестах
+  const { totalTests, passedTests, failedTests, skippedTests, packageResults, failingTestDetails, passRate } = results;
 
-    // Агрегируем результаты из всех файлов
-    for (const resultFile of resultFiles) {
-      if (fs.existsSync(resultFile)) {
-        const results = JSON.parse(fs.readFileSync(resultFile, 'utf8'));
+  console.log("\n📈 Сводка результатов тестов:");
+  console.log(`   • Всего: ${totalTests} тестов`);
+  console.log(`   • Прошли: ${passedTests}`);
+  console.log(`   • Не удались: ${failedTests}`);
+  console.log(`   • Пропущены: ${skippedTests}`);
+  console.log(`   • Длительность: ${duration}с`);
+  console.log(`   • Процент прохождения: ${passRate}%`);
 
-        // Разбор формата JSON Vitest с группировкой по пакетам
-        if (results.testResults) {
-          // results.final.json имеет testResults на верхнем уровне
-          results.testResults.forEach((testResult) => {
-            // Определить пакет по пути к файлу
-            const filePath = testResult.testFilePath || testResult.name || '';
-
-            // Агрессивно пропускаем pnpm store и node_modules пути
-            if (filePath.includes('.pnpm-store') ||
-                filePath.includes('.pnpm') ||
-                filePath.includes('node_modules') ||
-                filePath.includes('/projects/')) {
-              return;
-            }
-
-            const normalizedPath = path.relative(ROOT, filePath);
-            const testId = normalizedPath; // Уникальный ID теста
-
-            // Проверяем дублирование
-            if (seenTests.has(testId)) {
-              console.log(`⚠️  Duplicate test detected: ${testId}`);
-              return; // Пропускаем дублированный тест
-            }
-            seenTests.add(testId);
-
-            const packageName = getPackageFromPath(normalizedPath);
-
-            if (!packageResults.has(packageName)) {
-              packageResults.set(packageName, {
-                total: 0, passed: 0, failed: 0, skipped: 0, duration: 0
-              });
-            }
-
-            const pkgStats = packageResults.get(packageName);
-
-            if (testResult.assertionResults) {
-              testResult.assertionResults.forEach((assertion) => {
-                totalTests++;
-                pkgStats.total++;
-
-                switch (assertion.status) {
-                  case 'passed':
-                    passedTests++;
-                    pkgStats.passed++;
-                    break;
-                  case 'failed':
-                    failedTests++;
-                    pkgStats.failed++;
-
-                    // Собрать детальную информацию о падающем тесте
-                    failingTestDetails.push({
-                      file: testResult.testFilePath || testResult.name || 'Unknown file',
-                      title: assertion.title || 'Unknown test',
-                      failureMessages: assertion.failureMessages || []
-                    });
-                    break;
-                  case 'skipped':
-                    skippedTests++;
-                    pkgStats.skipped++;
-                    break;
-                }
-              });
-            }
-
-            // Добавить длительность для пакета (сумма всех assertionResults)
-            if (testResult.assertionResults) {
-              const totalDuration = testResult.assertionResults.reduce((sum, assertion) => {
-                return sum + (assertion.duration || 0);
-              }, 0);
-              pkgStats.duration += totalDuration;
-            }
-          });
-        }
-      }
-    }
-
-      console.log("\n📈 Сводка результатов тестов:");
-      console.log(`   • Всего: ${totalTests} тестов`);
-      console.log(`   • Прошли: ${passedTests}`);
-      console.log(`   • Не удались: ${failedTests}`);
-      console.log(`   • Пропущены: ${skippedTests}`);
-      console.log(`   • Длительность: ${duration}с`);
-
-      if (totalTests > 0) {
-        const passRate = ((passedTests / totalTests) * 100).toFixed(1);
-        console.log(`   • Процент прохождения: ${passRate}%`);
-      }
-
-      // Показать разбивку по пакетам
-      if (packageResults.size > 1) {
-        console.log("\n📦 Результаты по пакетам:");
-        for (const [packageName, stats] of packageResults) {
-          const status = stats.failed > 0 ? '❌' : stats.skipped > 0 ? '⚠️' : '✅';
-          const duration = (stats.duration / 1000).toFixed(1);
-          console.log(`   ${status} ${packageName}: ${stats.total} тестов (${stats.passed} прошли, ${stats.failed} не удались, ${stats.skipped} пропущены) за ${duration}с`);
-        }
-      }
-
-      // Записывать детальные отчеты в reports/test-logs/
-      writeDetailedReports(packageResults, failedTests, failingTestDetails);
-
-      // Генерировать стандартизированный JSON для CI dashboard (только в CI)
-      if (CI_MODE) {
-        generateCIDashboardReport(packageResults, duration);
-      }
-
-    } catch (error) {
-      console.log(`⚠️  Ошибка разбора результатов тестов: ${error.message}`);
+  // Показать разбивку по пакетам
+  if (packageResults.size > 1) {
+    console.log("\n📦 Результаты по пакетам:");
+    for (const [packageName, stats] of packageResults) {
+      const status = stats.failed > 0 ? '❌' : stats.skipped > 0 ? '⚠️' : '✅';
+      const duration = (stats.duration / 1000).toFixed(1);
+      console.log(`   ${status} ${packageName}: ${stats.total} тестов (${stats.passed} прошли, ${stats.failed} не удались, ${stats.skipped} пропущены) за ${duration}с`);
     }
   }
+
+  // Записывать детальные отчеты в reports/test-logs/
+  writeDetailedReports(packageResults, failedTests, failingTestDetails);
+
+  // Генерировать стандартизированный JSON для CI dashboard (только в CI)
+  if (CI_MODE) {
+    generateCIDashboardReport(results, duration);
+  }
+}
 
 /**
  * Записывает детальные отчеты об ошибках в reports/test-logs/
@@ -1684,9 +1542,72 @@ function writeDetailedReports(packageResults, totalFailed, failingTestDetails) {
   }
 }
 
+/* ================= CORE API ================= */
+
+// RunnerConfig: {configPath, environment, paths, coverageEnabled, reporter, reportDir}
+// RunnerResult: {success, duration, coverageStatus, results}
+
+// Архитектурный центр - платформенный API для запуска тестов
+async function runRunner(config) {
+  const { configPath, environment, paths, coverageEnabled, reporter, reportDir } = config;
+
+  // Запускаем Vitest
+  const result = await runVitestOnce({
+    configPath,
+    environment,
+    paths,
+    opts: { ...opts, reportDir }, // Передаем reportDir через opts
+    coverageEnabled
+  });
+
+  // Выполняем пост-тестовые проверки
+  const { allChecksPassed, coverageStatus, results } = await runPostTestChecks(
+    result.duration.toFixed(1),
+    reporter,
+    reportDir
+  );
+
+  return {
+    success: result.success && allChecksPassed,
+    duration: result.duration,
+    coverageStatus,
+    results
+  };
+}
+
 /* ================= ЗАПУСК ================= */
 
-console.log("\n▶️  Начало выполнения тестов...\n");
+// Основная функция CLI - парсит аргументы и вызывает платформенный API
+async function runCLI() {
+  // В CI режиме проверяем запрещенные тесты ДО запуска
+  if (CI_MODE) {
+    console.log('🔍 Проверка на запрещенные модификаторы тестов (.only/.skip)...');
+    if (!checkForbiddenTests()) {
+      fatal('Найдены запрещенные модификаторы тестов. Исправьте перед коммитом.');
+    }
+  }
 
-// Запустить тесты с автоматическим retry при flaky failures
-await runTestsWithRetry();
+  console.log("\n▶️  Начало выполнения тестов...\n");
+
+  // Вызываем платформенный API
+  const result = await runRunner({
+    configPath,
+    environment,
+    paths: normalizedPaths,
+    coverageEnabled,
+    reporter,
+    reportDir
+  });
+
+  // Обрабатываем результат
+  if (result.success) {
+    console.log(`\n✅ Все тесты прошли успешно за ${result.duration.toFixed(1)}с`);
+    process.exit(0);
+  } else {
+    console.log(`\n❌ Тесты не удались`);
+    process.exit(1);
+  }
+}
+
+// Запускаем CLI
+await runCLI();

@@ -1,4 +1,5 @@
 /**
+ * @vitest-environment jsdom
  * @file Unit тесты для FormField компонента
  */
 
