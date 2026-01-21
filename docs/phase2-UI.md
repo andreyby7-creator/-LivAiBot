@@ -188,13 +188,13 @@
 2️⃣7️⃣ packages/app/src/lib/i18n.ts 🟢 — ts+react — i18n utils — types/*
 
 App UI wrappers
-2️⃣7️⃣ packages/app/src/ui/button.tsx 🟢 — ts+react — UI wrapper Button — ui-core/Button.tsx
-2️⃣8️⃣ packages/app/src/ui/input.tsx 🟢 — ts+react — UI wrapper Input — ui-core/Input.tsx
-2️⃣9️⃣ packages/app/src/ui/card.tsx 🟢 — ts+react — UI wrapper Card — ui-core/Card.tsx
-3️⃣0️⃣ packages/app/src/ui/dialog.tsx 🟢 — ts+react — UI wrapper Dialog — ui-core/Dialog.tsx
-3️⃣1️⃣ packages/app/src/ui/form.tsx 🔴 — ts+react — UI wrapper Form — ui-core/Form.tsx
-3️⃣2️⃣ packages/app/src/ui/toast.tsx 🔴 — ts+react — UI wrapper Toast — ui-core/Toast.tsx (НЕТ)
-3️⃣3️⃣ packages/app/src/ui/sidebar.tsx 🔴 — ts+react — Sidebar (НЕТ)
+2️⃣8️⃣ packages/app/src/ui/button.tsx 🟢 — ts+react — UI wrapper Button — ui-core/Button.tsx
+2️⃣9️⃣ packages/app/src/ui/input.tsx 🟢 — ts+react — UI wrapper Input — ui-core/Input.tsx
+3️⃣0️⃣ packages/app/src/ui/card.tsx 🟢 — ts+react — UI wrapper Card — ui-core/Card.tsx
+3️⃣1️⃣ packages/app/src/ui/dialog.tsx 🟢 — ts+react — UI wrapper Dialog — ui-core/Dialog.tsx
+3️⃣2️⃣ packages/app/src/ui/form.tsx 🔴 — ts+react — UI wrapper Form — ui-core/Form.tsx
+3️⃣3️⃣ packages/app/src/ui/toast.tsx 🔴 — ts+react — UI wrapper Toast — ui-core/Toast.tsx (НЕТ)
+3️⃣4️⃣ packages/app/src/ui/sidebar.tsx 🔴 — ts+react — Sidebar (НЕТ)
 
 App state и hooks
 3️⃣5️⃣ packages/app/src/state/store.ts 🔴 — ts+zustand — Root store (НЕТ)
@@ -203,69 +203,69 @@ App state и hooks
 3️⃣8️⃣ packages/app/src/hooks/useToast.ts 🔴 — ts+react — Hook Toast — ui-core/useToast.ts (НЕТ)
 
 Feature Auth
-3️⃣8️⃣ packages/feature-auth/src/domain/LoginRequest.ts 🔴 — ts — DTO login (НЕТ)
-3️⃣9️⃣ packages/feature-auth/src/domain/TokenPair.ts 🔴 — ts — DTO token pair (НЕТ)
-4️⃣0️⃣ packages/feature-auth/src/domain/MeResponse.ts 🔴 — ts — DTO me response (НЕТ)
-4️⃣1️⃣ packages/feature-auth/src/types/auth.ts 🔴 — ts — Типы auth — domain/* (НЕТ)
-4️⃣2️⃣ packages/feature-auth/src/stores/auth.ts 🔴 — ts+zustand — Auth store — types/auth.ts (НЕТ)
-4️⃣3️⃣ packages/feature-auth/src/effects/login.ts 🔴 — ts+effect — Login effect — api-client.ts, types/auth.ts (НЕТ)
-4️⃣4️⃣ packages/feature-auth/src/effects/logout.ts 🔴 — ts+effect — Logout effect — api-client.ts (НЕТ)
-4️⃣5️⃣ packages/feature-auth/src/effects/refresh.ts 🔴 — ts+effect — Refresh effect — api-client.ts (НЕТ)
-4️⃣6️⃣ packages/feature-auth/src/hooks/useAuth.ts 🔴 — ts+react — Hook auth — stores/auth.ts, effects/* (НЕТ)
-4️⃣7️⃣ packages/feature-auth/src/schemas.ts 🟢 — схемы на базе core-contracts (реализован полностью)
+3️⃣9️⃣ packages/feature-auth/src/domain/LoginRequest.ts 🔴 — ts — DTO login (НЕТ)
+4️⃣0️⃣ packages/feature-auth/src/domain/TokenPair.ts 🔴 — ts — DTO token pair (НЕТ)
+4️⃣1️⃣ packages/feature-auth/src/domain/MeResponse.ts 🔴 — ts — DTO me response (НЕТ)
+4️⃣2️⃣ packages/feature-auth/src/types/auth.ts 🔴 — ts — Типы auth — domain/* (НЕТ)
+4️⃣3️⃣ packages/feature-auth/src/stores/auth.ts 🔴 — ts+zustand — Auth store — types/auth.ts (НЕТ)
+4️⃣4️⃣ packages/feature-auth/src/effects/login.ts 🔴 — ts+effect — Login effect — api-client.ts, types/auth.ts (НЕТ)
+4️⃣5️⃣ packages/feature-auth/src/effects/logout.ts 🔴 — ts+effect — Logout effect — api-client.ts (НЕТ)
+4️⃣6️⃣ packages/feature-auth/src/effects/refresh.ts 🔴 — ts+effect — Refresh effect — api-client.ts (НЕТ)
+4️⃣7️⃣ packages/feature-auth/src/hooks/useAuth.ts 🔴 — ts+react — Hook auth — stores/auth.ts, effects/* (НЕТ)
+4️⃣8️⃣ packages/feature-auth/src/schemas.ts 🟢 — схемы на базе core-contracts (реализован полностью)
 
 Feature Bots
-4️⃣8️⃣ packages/feature-bots/src/domain/Bot.ts 🔴 — ts — Bot entity (НЕТ)
-4️⃣9️⃣ packages/feature-bots/src/domain/BotTemplate.ts 🔴 — ts — Bot template (НЕТ)
-5️⃣0️⃣ packages/feature-bots/src/domain/Prompt.ts 🔴 — ts — Prompt entity (НЕТ)
-5️⃣1️⃣ packages/feature-bots/src/types/bots.ts 🔴 — ts — Типы bots — domain/* (НЕТ)
-5️⃣2️⃣ packages/feature-bots/src/stores/bots.ts 🔴 — ts+zustand — Bots store — types/bots.ts (НЕТ)
-5️⃣3️⃣ packages/feature-bots/src/effects/createBot.ts 🔴 — ts+effect — Create bot — api-client.ts, stores/bots.ts (НЕТ)
-5️⃣4️⃣ packages/feature-bots/src/effects/updateBot.ts 🔴 — ts+effect — Update bot — api-client.ts, stores/bots.ts (НЕТ)
-5️⃣5️⃣ packages/feature-bots/src/effects/deleteBot.ts 🔴 — ts+effect — Delete bot — api-client.ts, stores/bots.ts (НЕТ)
-5️⃣6️⃣ packages/feature-bots/src/hooks/useBots.ts 🔴 — ts+react — Hook bots list — stores/bots.ts, effects/* (НЕТ)
-5️⃣7️⃣ packages/feature-bots/src/hooks/useBotWizard.ts 🔴 — ts+react — Hook bot wizard — stores/bots.ts, effects/* (НЕТ)
+4️⃣9️⃣ packages/feature-bots/src/domain/Bot.ts 🔴 — ts — Bot entity (НЕТ)
+5️⃣0️⃣ packages/feature-bots/src/domain/BotTemplate.ts 🔴 — ts — Bot template (НЕТ)
+5️⃣1️⃣ packages/feature-bots/src/domain/Prompt.ts 🔴 — ts — Prompt entity (НЕТ)
+5️⃣2️⃣ packages/feature-bots/src/types/bots.ts 🔴 — ts — Типы bots — domain/* (НЕТ)
+5️⃣3️⃣ packages/feature-bots/src/stores/bots.ts 🔴 — ts+zustand — Bots store — types/bots.ts (НЕТ)
+5️⃣4️⃣ packages/feature-bots/src/effects/createBot.ts 🔴 — ts+effect — Create bot — api-client.ts, stores/bots.ts (НЕТ)
+5️⃣5️⃣ packages/feature-bots/src/effects/updateBot.ts 🔴 — ts+effect — Update bot — api-client.ts, stores/bots.ts (НЕТ)
+5️⃣6️⃣ packages/feature-bots/src/effects/deleteBot.ts 🔴 — ts+effect — Delete bot — api-client.ts, stores/bots.ts (НЕТ)
+5️⃣7️⃣ packages/feature-bots/src/hooks/useBots.ts 🔴 — ts+react — Hook bots list — stores/bots.ts, effects/* (НЕТ)
+5️⃣8️⃣ packages/feature-bots/src/hooks/useBotWizard.ts 🔴 — ts+react — Hook bot wizard — stores/bots.ts, effects/* (НЕТ)
 
 Feature Chat
-5️⃣8️⃣ packages/feature-chat/src/domain/Message.ts 🔴 — ts — Message entity (НЕТ)
-5️⃣9️⃣ packages/feature-chat/src/domain/Conversation.ts 🔴 — ts — Conversation entity (НЕТ)
-6️⃣0️⃣ packages/feature-chat/src/types/chat.ts 🔴 — ts — Типы chat — domain/* (НЕТ)
-6️⃣1️⃣ packages/feature-chat/src/stores/chat.ts 🔴 — ts+zustand — Chat store — types/chat.ts (НЕТ)
-6️⃣2️⃣ packages/feature-chat/src/effects/sendMessage.ts 🔴 — ts+effect — Send message effect — api-client.ts, stores/chat.ts (НЕТ)
-6️⃣3️⃣ packages/feature-chat/src/effects/connectWebSocket.ts 🔴 — ts+effect — WebSocket connect — websocket.ts, stores/chat.ts (НЕТ)
-6️⃣4️⃣ packages/feature-chat/src/hooks/useChat.ts 🔴 — ts+react — Hook chat — stores/chat.ts, effects/* (НЕТ)
-6️⃣5️⃣ packages/feature-chat/src/hooks/useRealTime.ts 🔴 — ts+react — Hook real-time — effects/connectWebSocket.ts (НЕТ)
+5️⃣9️⃣ packages/feature-chat/src/domain/Message.ts 🔴 — ts — Message entity (НЕТ)
+6️⃣0️⃣ packages/feature-chat/src/domain/Conversation.ts 🔴 — ts — Conversation entity (НЕТ)
+6️⃣1️⃣ packages/feature-chat/src/types/chat.ts 🔴 — ts — Типы chat — domain/* (НЕТ)
+6️⃣2️⃣ packages/feature-chat/src/stores/chat.ts 🔴 — ts+zustand — Chat store — types/chat.ts (НЕТ)
+6️⃣3️⃣ packages/feature-chat/src/effects/sendMessage.ts 🔴 — ts+effect — Send message effect — api-client.ts, stores/chat.ts (НЕТ)
+6️⃣4️⃣ packages/feature-chat/src/effects/connectWebSocket.ts 🔴 — ts+effect — WebSocket connect — websocket.ts, stores/chat.ts (НЕТ)
+6️⃣5️⃣ packages/feature-chat/src/hooks/useChat.ts 🔴 — ts+react — Hook chat — stores/chat.ts, effects/* (НЕТ)
+6️⃣6️⃣ packages/feature-chat/src/hooks/useRealTime.ts 🔴 — ts+react — Hook real-time — effects/connectWebSocket.ts (НЕТ)
 
 UI Core components
-6️⃣8️⃣ packages/ui-core/src/components/Toast.tsx 🔴 — ts+react — Toast UI (НЕТ)
-6️⃣9️⃣ packages/ui-core/src/components/Skeleton.tsx 🔴 — ts+react — Skeleton UI (НЕТ)
-7️⃣0️⃣ packages/ui-core/src/hooks/useToast.ts 🔴 — ts+react — Toast hook (НЕТ)
-7️⃣1️⃣ packages/ui-core/src/types/ui.ts 🔴 — ts — Типы UI (НЕТ)
+6️⃣7️⃣ packages/ui-core/src/components/Toast.tsx 🔴 — ts+react — Toast UI (НЕТ)
+6️⃣8️⃣ packages/ui-core/src/components/Skeleton.tsx 🔴 — ts+react — Skeleton UI (НЕТ)
+6️⃣9️⃣ packages/ui-core/src/hooks/useToast.ts 🔴 — ts+react — Toast hook (НЕТ)
+7️⃣0️⃣ packages/ui-core/src/types/ui.ts 🔴 — ts — Типы UI (НЕТ)
 
 UI Features — Auth
-7️⃣2️⃣ packages/ui-features/src/auth/login-form.tsx 🟢 — ts+react — Login form UI
-7️⃣3️⃣ packages/ui-features/src/auth/register-form.tsx 🟢 — ts+react — Register form UI
-7️⃣4️⃣ packages/ui-features/src/auth/WorkspaceForm.tsx 🔴 — ts+react — Workspace form UI (НЕТ)
-7️⃣5️⃣ packages/ui-features/src/auth/OnboardingFlow.tsx 🔴 — ts+react — Onboarding flow (НЕТ)
+7️⃣1️⃣ packages/ui-features/src/auth/login-form.tsx 🟢 — ts+react — Login form UI
+7️⃣2️⃣ packages/ui-features/src/auth/register-form.tsx 🟢 — ts+react — Register form UI
+7️⃣3️⃣ packages/ui-features/src/auth/WorkspaceForm.tsx 🔴 — ts+react — Workspace form UI (НЕТ)
+7️⃣4️⃣ packages/ui-features/src/auth/OnboardingFlow.tsx 🔴 — ts+react — Onboarding flow (НЕТ)
 
 UI Features — Bots
-7️⃣6️⃣ packages/ui-features/src/bots/BotDashboard.tsx 🔴 — ts+react — Bots dashboard (НЕТ)
-7️⃣7️⃣ packages/ui-features/src/bots/BotWizardFlow.tsx 🔴 — ts+react+effect — Bot wizard flow (НЕТ)
-7️⃣8️⃣ packages/ui-features/src/bots/BotTemplateSelector.tsx 🔴 — ts+react — Template selector (НЕТ)
-7️⃣9️⃣ packages/ui-features/src/bots/BotBasicForm.tsx 🔴 — ts+react — Bot basic form (НЕТ)
-8️⃣0️⃣ packages/ui-features/src/bots/PromptEditor.tsx 🔴 — ts+react+effect — Prompt editor (НЕТ)
-8️⃣1️⃣ packages/ui-features/src/bots/PromptBlocks.tsx 🔴 — ts+react — Prompt blocks (НЕТ)
-8️⃣2️⃣ packages/ui-features/src/bots/PromptPreview.tsx 🔴 — ts+react — Prompt preview (НЕТ)
+7️⃣5️⃣ packages/ui-features/src/bots/BotDashboard.tsx 🔴 — ts+react — Bots dashboard (НЕТ)
+7️⃣6️⃣ packages/ui-features/src/bots/BotWizardFlow.tsx 🔴 — ts+react+effect — Bot wizard flow (НЕТ)
+7️⃣7️⃣ packages/ui-features/src/bots/BotTemplateSelector.tsx 🔴 — ts+react — Template selector (НЕТ)
+7️⃣8️⃣ packages/ui-features/src/bots/BotBasicForm.tsx 🔴 — ts+react — Bot basic form (НЕТ)
+7️⃣9️⃣ packages/ui-features/src/bots/PromptEditor.tsx 🔴 — ts+react+effect — Prompt editor (НЕТ)
+8️⃣0️⃣ packages/ui-features/src/bots/PromptBlocks.tsx 🔴 — ts+react — Prompt blocks (НЕТ)
+8️⃣1️⃣ packages/ui-features/src/bots/PromptPreview.tsx 🔴 — ts+react — Prompt preview (НЕТ)
 
 UI Features — Chat + Pages
-8️⃣3️⃣ packages/ui-features/src/chat/ChatInterface.tsx 🔴 — ts+react+effect — Chat interface (НЕТ)
-8️⃣4️⃣ packages/ui-features/src/chat/MessageBubble.tsx 🔴 — ts+react — Message bubble (НЕТ)
-8️⃣5️⃣ packages/ui-features/src/chat/ChatInput.tsx 🔴 — ts+react — Chat input (НЕТ)
-8️⃣6️⃣ packages/ui-features/src/chat/ChatHistory.tsx 🔴 — ts+react — Chat history (НЕТ)
-8️⃣7️⃣ apps/web/src/app/[locale]/page.tsx 🟢 — Полная главная страница с i18n и навигацией (больше чем каркас)
-8️⃣8️⃣ apps/web/src/app/[locale]/dashboard/page.tsx 🟡 — Каркас dashboard с skeleton loading, accessibility и TODO для реальных виджетов/данных
-8️⃣9️⃣ apps/web/src/app/[locale]/auth/login/page.tsx 🟡 — Каркас login страницы с ui-features композитором и TODO для реального auth flow
-9️⃣0️⃣ apps/web/src/app/[locale]/auth/register/page.tsx 🟡 — Каркас register страницы с ui-features композитором и TODO для реального auth flow
+8️⃣2️⃣ packages/ui-features/src/chat/ChatInterface.tsx 🔴 — ts+react+effect — Chat interface (НЕТ)
+8️⃣3️⃣ packages/ui-features/src/chat/MessageBubble.tsx 🔴 — ts+react — Message bubble (НЕТ)
+8️⃣4️⃣ packages/ui-features/src/chat/ChatInput.tsx 🔴 — ts+react — Chat input (НЕТ)
+8️⃣5️⃣ packages/ui-features/src/chat/ChatHistory.tsx 🔴 — ts+react — Chat history (НЕТ)
+8️⃣6️⃣ apps/web/src/app/[locale]/page.tsx 🟢 — Полная главная страница с i18n и навигацией (больше чем каркас)
+8️⃣7️⃣ apps/web/src/app/[locale]/dashboard/page.tsx 🟡 — Каркас dashboard с skeleton loading, accessibility и TODO для реальных виджетов/данных
+8️⃣8️⃣ apps/web/src/app/[locale]/auth/login/page.tsx 🟡 — Каркас login страницы с ui-features композитором и TODO для реального auth flow
+8️⃣9️⃣ apps/web/src/app/[locale]/auth/register/page.tsx 🟡 — Каркас register страницы с ui-features композитором и TODO для реального auth flow
 
 ---
 
