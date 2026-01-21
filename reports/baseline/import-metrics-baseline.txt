@@ -1,0 +1,406 @@
+
+> livai@1.0.0 analyze:import-metrics /home/boss/Projects/livai
+> node scripts/analyze-import-graph-metrics.js
+
+📐 Анализ метрик графа импортов...
+📦 @livai/web: нет исходных файлов
+📦 @eslint/js
+   • файлов: 3
+   • max depth: 1
+   • max fan-in: 0 ()
+   • max fan-out: 0 ()
+
+📦 @babel/core
+   • файлов: 6
+   • max depth: 2
+   • max fan-in: 0 ()
+   • max fan-out: 6 (transform-file)
+
+📦 keyv
+   • файлов: 2
+   • max depth: 2
+   • max fan-in: 0 ()
+   • max fan-out: 1 (index.d)
+
+📦 sharp: нет исходных файлов
+📦 @jridgewell/gen-mapping
+   • файлов: 4
+   • max depth: 2
+   • max fan-in: 2 (sourcemap-segment)
+   • max fan-out: 5 (gen-mapping)
+
+📦 debug
+   • файлов: 4
+   • max depth: 1
+   • max fan-in: 0 ()
+   • max fan-out: 0 ()
+
+📦 @humanfs/core
+   • файлов: 4
+   • max depth: 1
+   • max fan-in: 0 ()
+   • max fan-out: 0 ()
+
+📦 @jridgewell/sourcemap-codec
+   • файлов: 4
+   • max depth: 3
+   • max fan-in: 3 (strings)
+   • max fan-out: 2 (scopes)
+
+📦 preact-render-to-string
+   • файлов: 15
+   • max depth: 4
+   • max fan-in: 3 (lib/util)
+   • max fan-out: 4 (lib/chunked)
+
+📦 hoist-non-react-statics
+   • файлов: 1
+   • max depth: 2
+   • max fan-in: 0 ()
+   • max fan-out: 1 (index)
+
+📦 @humanfs/node
+   • файлов: 2
+   • max depth: 2
+   • max fan-in: 0 ()
+   • max fan-out: 5 (node-hfs)
+
+📦 zod
+   • файлов: 274
+   • max depth: 11
+   • max fan-in: 59 (v4/core/util)
+   • max fan-out: 12 (v4/core/schemas)
+
+📦 preact-compat
+   • файлов: 14
+   • max depth: 4
+   • max fan-in: 4 (suspense)
+   • max fan-out: 8 (index)
+
+📦 preact
+   • файлов: 17
+   • max depth: 7
+   • max fan-in: 6 (util)
+   • max fan-out: 6 (diff/index)
+
+📦 preact-hooks
+   • файлов: 3
+   • max depth: 2
+   • max fan-in: 0 ()
+   • max fan-out: 1 (index.d)
+
+📦 preact-devtools
+   • файлов: 3
+   • max depth: 3
+   • max fan-in: 1 (devtools)
+   • max fan-out: 2 (index)
+
+📦 test-utils
+   • файлов: 2
+   • max depth: 2
+   • max fan-in: 0 ()
+   • max fan-out: 1 (index)
+
+📦 jsx-runtime
+   • файлов: 3
+   • max depth: 2
+   • max fan-in: 1 (utils)
+   • max fan-out: 3 (index)
+
+📦 preact-debug
+   • файлов: 8
+   • max depth: 3
+   • max fan-in: 1 (check-props)
+   • max fan-out: 3 (debug)
+
+📦 tsconfck
+   • файлов: 10
+   • max depth: 4
+   • max fan-in: 2 (util)
+   • max fan-out: 5 (parse)
+
+📦 react-i18next
+   • файлов: 22
+   • max depth: 6
+   • max fan-in: 6 (context)
+   • max fan-out: 7 (TransWithoutContext)
+
+📦 @tanstack/react-query
+   • файлов: 18
+   • max depth: 4
+   • max fan-in: 6 (types)
+   • max fan-out: 6 (useBaseQuery)
+
+📦 next-auth
+   • файлов: 117
+   • max depth: 5
+   • max fan-in: 3 (lib/index)
+   • max fan-out: 26 (index)
+
+📦 effect
+   • файлов: 362
+   • max depth: 73
+   • max fan-in: 220 (Function)
+   • max fan-out: 568 (Effect)
+
+📦 vite-tsconfig-paths
+   • файлов: 4
+   • max depth: 4
+   • max fan-in: 4 (path)
+   • max fan-out: 11 (index)
+
+📦 @auth/core
+   • файлов: 145
+   • max depth: 14
+   • max fan-in: 100 (providers/index)
+   • max fan-out: 14 (index)
+
+📦 @jridgewell/remapping
+   • файлов: 5
+   • max depth: 4
+   • max fan-in: 3 (source-map-tree)
+   • max fan-out: 4 (build-source-map-tree)
+
+📦 jsx-ast-utils
+   • файлов: 37
+   • max depth: 3
+   • max fan-in: 3 (propName)
+   • max fan-out: 28 (values/expressions/index)
+
+📦 @tanstack/query-core
+   • файлов: 23
+   • max depth: 12
+   • max fan-in: 15 (utils)
+   • max fan-out: 11 (types)
+
+📦 @jridgewell/trace-mapping
+   • файлов: 9
+   • max depth: 5
+   • max fan-in: 9 (sourcemap-segment)
+   • max fan-out: 8 (trace-mapping)
+
+📦 @hookform/resolvers/joi
+   • файлов: 5
+   • max depth: 5
+   • max fan-in: 3 (joi)
+   • max fan-out: 4 (joi)
+
+📦 @hookform/resolvers/typeschema
+   • файлов: 4
+   • max depth: 3
+   • max fan-in: 1 (__tests__/__fixtures__/data)
+   • max fan-out: 5 (__tests__/typeschema)
+
+📦 @hookform/resolvers/standard-schema
+   • файлов: 4
+   • max depth: 2
+   • max fan-in: 0 ()
+   • max fan-out: 4 (standard-schema)
+
+📦 @hookform/resolvers/superstruct
+   • файлов: 4
+   • max depth: 3
+   • max fan-in: 2 (superstruct)
+   • max fan-out: 4 (__tests__/superstruct)
+
+📦 @hookform/resolvers/effect-ts
+   • файлов: 4
+   • max depth: 3
+   • max fan-in: 1 (__tests__/__fixtures__/data)
+   • max fan-out: 5 (__tests__/effect-ts)
+
+📦 @hookform/resolvers/computed-types
+   • файлов: 4
+   • max depth: 4
+   • max fan-in: 3 (computed-types)
+   • max fan-out: 4 (__tests__/computed-types)
+
+📦 @hookform/resolvers/valibot
+   • файлов: 4
+   • max depth: 3
+   • max fan-in: 4 (valibot)
+   • max fan-out: 5 (__tests__/valibot)
+
+📦 @hookform/resolvers/io-ts
+   • файлов: 7
+   • max depth: 6
+   • max fan-in: 5 (io-ts)
+   • max fan-out: 9 (errorsToRecord)
+
+📦 @hookform/resolvers/typebox
+   • файлов: 5
+   • max depth: 3
+   • max fan-in: 2 (__tests__/__fixtures__/data)
+   • max fan-out: 5 (__tests__/typebox)
+
+📦 @hookform/resolvers/vest
+   • файлов: 5
+   • max depth: 3
+   • max fan-in: 2 (vest)
+   • max fan-out: 4 (vest)
+
+📦 @hookform/resolvers/class-validator
+   • файлов: 4
+   • max depth: 3
+   • max fan-in: 2 (class-validator)
+   • max fan-out: 5 (__tests__/class-validator)
+
+📦 @hookform/resolvers/nope
+   • файлов: 5
+   • max depth: 3
+   • max fan-in: 1 (__tests__/__fixtures__/data)
+   • max fan-out: 4 (nope)
+
+📦 @hookform/resolvers/zod
+   • файлов: 8
+   • max depth: 3
+   • max fan-in: 1 (__tests__/__fixtures__/data-v3)
+   • max fan-out: 4 (__tests__/zod-v3)
+
+📦 @hookform/resolvers/vine
+   • файлов: 4
+   • max depth: 3
+   • max fan-in: 1 (__tests__/__fixtures__/data)
+   • max fan-out: 5 (__tests__/vine)
+
+📦 @hookform/resolvers/typanion
+   • файлов: 4
+   • max depth: 4
+   • max fan-in: 3 (typanion)
+   • max fan-out: 6 (__tests__/typanion)
+
+📦 @hookform/resolvers/fluentvalidation-ts
+   • файлов: 4
+   • max depth: 3
+   • max fan-in: 2 (fluentvalidation-ts)
+   • max fan-out: 3 (fluentvalidation-ts)
+
+📦 @hookform/resolvers/yup
+   • файлов: 4
+   • max depth: 3
+   • max fan-in: 3 (yup)
+   • max fan-out: 3 (__tests__/yup)
+
+📦 @hookform/resolvers/arktype
+   • файлов: 4
+   • max depth: 4
+   • max fan-in: 2 (arktype)
+   • max fan-out: 5 (__tests__/arktype)
+
+📦 @hookform/resolvers/ajv
+   • файлов: 7
+   • max depth: 5
+   • max fan-in: 5 (ajv)
+   • max fan-out: 6 (ajv)
+
+📦 tsconfig-paths
+   • файлов: 18
+   • max depth: 5
+   • max fan-in: 5 (filesystem)
+   • max fan-out: 4 (match-path-async)
+
+📦 @swc/helpers: нет исходных файлов
+📦 @humanwhocodes/module-importer
+   • файлов: 1
+   • max depth: 2
+   • max fan-in: 0 ()
+   • max fan-out: 3 (module-importer)
+
+📦 fraction.js
+   • файлов: 1
+   • max depth: 1
+   • max fan-in: 0 ()
+   • max fan-out: 0 ()
+
+📦 flat-cache
+   • файлов: 3
+   • max depth: 1
+   • max fan-in: 0 ()
+   • max fan-out: 0 ()
+
+📦 debug
+   • файлов: 4
+   • max depth: 1
+   • max fan-in: 0 ()
+   • max fan-out: 0 ()
+
+📦 @livai/core-contracts
+   • файлов: 20
+   • max depth: 2
+   • max fan-in: 3 (domain/common)
+   • max fan-out: 3 (validation/zod/utils/effect)
+
+📦 @livai/feature-bots
+   • файлов: 1
+   • max depth: 1
+   • max fan-in: 0 ()
+   • max fan-out: 0 ()
+
+📦 @livai/ui-shared
+   • файлов: 4
+   • max depth: 3
+   • max fan-in: 1 (i18n/types)
+   • max fan-out: 3 (validation/rhf-zod-resolver)
+
+📦 @livai/feature-voice
+   • файлов: 1
+   • max depth: 1
+   • max fan-in: 0 ()
+   • max fan-out: 0 ()
+
+📦 @livai/app
+   • файлов: 13
+   • max depth: 5
+   • max fan-in: 6 (lib/effect-utils)
+   • max fan-out: 3 (lib/api-client)
+
+📦 @livai/feature-auth
+   • файлов: 2
+   • max depth: 2
+   • max fan-in: 0 ()
+   • max fan-out: 2 (schemas)
+
+📦 @livai/feature-chat
+   • файлов: 1
+   • max depth: 1
+   • max fan-in: 0 ()
+   • max fan-out: 0 ()
+
+📦 @livai/ui-core
+   • файлов: 1
+   • max depth: 1
+   • max fan-in: 0 ()
+   • max fan-out: 0 ()
+
+📦 @livai/ui-features
+   • файлов: 1
+   • max depth: 1
+   • max fan-in: 0 ()
+   • max fan-out: 0 ()
+
+📦 node-gyp: нет исходных файлов
+📦 sprintf-js
+   • файлов: 2
+   • max depth: 1
+   • max fan-in: 0 ()
+   • max fan-out: 0 ()
+
+📦 tiny-relative-date
+   • файлов: 2
+   • max depth: 2
+   • max fan-in: 1 (factory)
+   • max fan-out: 2 (index)
+
+📦 mkdirp
+   • файлов: 16
+   • max depth: 2
+   • max fan-in: 5 (opts-arg)
+   • max fan-out: 1 (find-made.d)
+
+📦 debug
+   • файлов: 4
+   • max depth: 1
+   • max fan-in: 0 ()
+   • max fan-out: 0 ()
+
+✅ Анализ метрик завершён

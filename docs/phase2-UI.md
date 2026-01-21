@@ -189,8 +189,8 @@
 App UI wrappers
 2️⃣7️⃣ packages/app/src/ui/button.tsx 🟢 — ts+react — UI wrapper Button — ui-core/Button.tsx
 2️⃣8️⃣ packages/app/src/ui/input.tsx 🟢 — ts+react — UI wrapper Input — ui-core/Input.tsx
-2️⃣9️⃣ packages/app/src/ui/card.tsx 🔴 — ts+react — UI wrapper Card — ui-core/Card.tsx
-3️⃣0️⃣ packages/app/src/ui/dialog.tsx 🔴 — ts+react — UI wrapper Dialog — ui-core/Dialog.tsx (НЕТ)
+2️⃣9️⃣ packages/app/src/ui/card.tsx 🟢 — ts+react — UI wrapper Card — ui-core/Card.tsx
+3️⃣0️⃣ packages/app/src/ui/dialog.tsx 🔴 — ts+react — UI wrapper Dialog — ui-core/Dialog.tsx
 3️⃣1️⃣ packages/app/src/ui/form.tsx 🔴 — ts+react — UI wrapper Form — ui-core/Form.tsx (НЕТ)
 3️⃣2️⃣ packages/app/src/ui/toast.tsx 🔴 — ts+react — UI wrapper Toast — ui-core/Toast.tsx (НЕТ)
 3️⃣3️⃣ packages/app/src/ui/sidebar.tsx 🔴 — ts+react — Sidebar (НЕТ)

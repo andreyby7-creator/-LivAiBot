@@ -55,7 +55,7 @@ function runSnykCheck() {
 
       console.log('📊 РЕЗУЛЬТАТЫ SNYK ПРОВЕРКИ');
       console.log('='.repeat(50));
-      console.log(`Общее количество зависимостей: ${summary.totalDependencies || 0}`);
+      console.log(`Общее количество зависимостей: ${results.dependencyCount || 0}`);
       console.log(`Найдено уязвимостей: ${summary.totalUniqueVulns || 0}`);
       console.log(`  - Высокий риск: ${summary.high || 0}`);
       console.log(`  - Средний риск: ${summary.medium || 0}`);
@@ -67,7 +67,7 @@ function runSnykCheck() {
         timestamp: new Date().toISOString(),
         tool: 'Snyk',
         summary: {
-          totalDependencies: summary.totalDependencies || 0,
+          totalDependencies: results.dependencyCount || 0,
           vulnerabilities: summary.totalUniqueVulns || 0,
           high: summary.high || 0,
           medium: summary.medium || 0,
@@ -124,7 +124,7 @@ function runSnykCheck() {
 
           console.log('📊 РЕЗУЛЬТАТЫ SNYK ПРОВЕРКИ');
           console.log('='.repeat(50));
-          console.log(`Общее количество зависимостей: ${summary.totalDependencies || 0}`);
+          console.log(`Общее количество зависимостей: ${results.dependencyCount || 0}`);
           console.log(`Найдено уязвимостей: ${summary.totalUniqueVulns || 0}`);
           console.log(`  - Высокий риск: ${summary.high || 0}`);
           console.log(`  - Средний риск: ${summary.medium || 0}`);
@@ -136,7 +136,7 @@ function runSnykCheck() {
             timestamp: new Date().toISOString(),
             tool: 'Snyk',
             summary: {
-              totalDependencies: summary.totalDependencies || 0,
+              totalDependencies: results.dependencyCount || 0,
               vulnerabilities: summary.totalUniqueVulns || 0,
               high: summary.high || 0,
               medium: summary.medium || 0,
