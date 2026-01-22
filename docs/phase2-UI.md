@@ -187,8 +187,8 @@
 1️⃣8️⃣ packages/ui-core/src/primitives/toggle.tsx 🟢 — ts+react — Toggle/Switch UI
 1️⃣9️⃣ packages/ui-core/src/primitives/icon.tsx 🟢 — ts+react — Icon UI
 2️⃣0️⃣ packages/ui-core/src/primitives/avatar.tsx 🟢 — ts+react — Avatar UI
-2️⃣1️⃣ packages/ui-core/src/primitives/badge.tsx 🔴 — ts+react — Badge UI
-2️⃣2️⃣ packages/ui-core/src/primitives/tooltip.tsx 🔴 — ts+react — Tooltip UI (НЕТ)
+2️⃣1️⃣ packages/ui-core/src/primitives/badge.tsx 🟢 — ts+react — Badge UI
+2️⃣2️⃣ packages/ui-core/src/primitives/tooltip.tsx 🔴 — ts+react — Tooltip UI
 2️⃣3️⃣ packages/ui-core/src/primitives/divider.tsx 🔴 — ts+react — Divider UI (НЕТ)
 2️⃣4️⃣ packages/ui-core/src/primitives/form-field.tsx 🟢 — ts+react — Form Field UI
 2️⃣5️⃣ packages/ui-core/src/primitives/dialog.tsx 🟢 — ts+react — Dialog UI
@@ -218,8 +218,8 @@ App UI wrappers
 3️⃣3️⃣ packages/app/src/ui/toggle.tsx 🟢 — ts+react — UI wrapper Toggle — ui-core/Toggle.tsx
 3️⃣4️⃣ packages/app/src/ui/icon.tsx 🟢 — ts+react — UI wrapper Icon — ui-core/Icon.tsx
 3️⃣5️⃣ packages/app/src/ui/avatar.tsx 🟢 — ts+react — UI wrapper Avatar — ui-core/Avatar.tsx
-3️⃣6️⃣ packages/app/src/ui/badge.tsx 🔴 — ts+react — UI wrapper Badge — ui-core/Badge.tsx
-3️⃣7️⃣ packages/app/src/ui/tooltip.tsx 🔴 — ts+react — UI wrapper Tooltip — ui-core/Tooltip.tsx (НЕТ)
+3️⃣6️⃣ packages/app/src/ui/badge.tsx 🟢 — ts+react — UI wrapper Badge — ui-core/Badge.tsx
+3️⃣7️⃣ packages/app/src/ui/tooltip.tsx 🔴 — ts+react — UI wrapper Tooltip — ui-core/Tooltip.tsx
 3️⃣8️⃣ packages/app/src/ui/divider.tsx 🔴 — ts+react — UI wrapper Divider — ui-core/Divider.tsx (НЕТ)
 3️⃣9️⃣ packages/app/src/ui/card.tsx 🟢 — ts+react — UI wrapper Card — ui-core/Card.tsx
 4️⃣0️⃣ packages/app/src/ui/dialog.tsx 🟢 — ts+react — UI wrapper Dialog — ui-core/Dialog.tsx
