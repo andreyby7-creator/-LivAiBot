@@ -181,8 +181,8 @@
 1️⃣2️⃣ packages/ui-core/src/primitives/button.tsx 🟢 — ts+react — Button UI
 1️⃣3️⃣ packages/ui-core/src/primitives/input.tsx 🟢 — ts+react — Input UI
 1️⃣4️⃣ packages/ui-core/src/primitives/textarea.tsx 🟢 — ts+react — Textarea UI
-1️⃣5️⃣ packages/ui-core/src/primitives/select.tsx 🔴 — ts+react — Select/Dropdown UI
-1️⃣6️⃣ packages/ui-core/src/primitives/checkbox.tsx 🔴 — ts+react — Checkbox UI (НЕТ)
+1️⃣5️⃣ packages/ui-core/src/primitives/select.tsx 🟢 — ts+react — Select/Dropdown UI
+1️⃣6️⃣ packages/ui-core/src/primitives/checkbox.tsx 🔴 — ts+react — Checkbox UI
 1️⃣7️⃣ packages/ui-core/src/primitives/radio.tsx 🔴 — ts+react — Radio button UI (НЕТ)
 1️⃣8️⃣ packages/ui-core/src/primitives/toggle.tsx 🔴 — ts+react — Toggle/Switch UI (НЕТ)
 1️⃣9️⃣ packages/ui-core/src/primitives/icon.tsx 🔴 — ts+react — Icon UI (НЕТ)
@@ -212,8 +212,8 @@ App UI wrappers
 2️⃣7️⃣ packages/app/src/ui/button.tsx 🟢 — ts+react — UI wrapper Button — ui-core/Button.tsx
 2️⃣8️⃣ packages/app/src/ui/input.tsx 🟢 — ts+react — UI wrapper Input — ui-core/Input.tsx
 2️⃣9️⃣ packages/app/src/ui/textarea.tsx 🟢 — ts+react — UI wrapper Textarea — ui-core/Textarea.tsx
-3️⃣0️⃣ packages/app/src/ui/select.tsx 🔴 — ts+react — UI wrapper Select — ui-core/Select.tsx
-3️⃣1️⃣ packages/app/src/ui/checkbox.tsx 🔴 — ts+react — UI wrapper Checkbox — ui-core/Checkbox.tsx (НЕТ)
+3️⃣0️⃣ packages/app/src/ui/select.tsx 🟢 — ts+react — UI wrapper Select — ui-core/Select.tsx
+3️⃣1️⃣ packages/app/src/ui/checkbox.tsx 🔴 — ts+react — UI wrapper Checkbox — ui-core/Checkbox.tsx
 3️⃣2️⃣ packages/app/src/ui/radio.tsx 🔴 — ts+react — UI wrapper Radio — ui-core/Radio.tsx (НЕТ)
 3️⃣3️⃣ packages/app/src/ui/toggle.tsx 🔴 — ts+react — UI wrapper Toggle — ui-core/Toggle.tsx (НЕТ)
 3️⃣4️⃣ packages/app/src/ui/icon.tsx 🔴 — ts+react — UI wrapper Icon — ui-core/Icon.tsx (НЕТ)
