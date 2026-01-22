@@ -4,7 +4,7 @@
 
 /**
  * @file check-circular-deps-monorepo.js
- * Проверка циклических зависимостей в монорепо LivAiBot
+ * Проверка циклических зависимостей в монорепо LivAi
  *
  * Проверяет:
  * 1. Циклические зависимости внутри пакетов
@@ -16,10 +16,7 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
-import { fileURLToPath } from 'url';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+import yaml from 'js-yaml';
 
 /**
  * @typedef {Record<string, string[]>} DependencyGraph
@@ -32,14 +29,18 @@ const __dirname = path.dirname(__filename);
  */
 function findPackages() {
   const packages = [];
+  const rootDir = path.resolve('.');
+
+  // Собираем все найденные пакеты из разных источников
+  const allFoundPackages = [];
 
   /**
    * Ищет все директории с package.json
    * @param {string} dir - директория для поиска
-   * @returns {string[]} массив путей к директориям с package.json
+   * @returns {Array<{name: string, path: string, packageJson: any}>} массив пакетов
    */
   const findPackageDirs = (dir) => {
-    /** @type {string[]} */
+    /** @type {Array<{name: string, path: string, packageJson: any}>} */
     const result = [];
 
     try {
@@ -49,7 +50,12 @@ function findPackages() {
         const fullPath = path.join(dir, item);
 
         if (
-          fs.statSync(fullPath).isDirectory() && !item.startsWith('.') && item !== 'node_modules'
+          fs.statSync(fullPath).isDirectory()
+          && !item.startsWith('.')
+          && item !== 'node_modules'
+          && item !== 'dist'
+          && item !== 'build'
+          && item !== 'coverage'
         ) {
           const packageJsonPath = path.join(fullPath, 'package.json');
           if (fs.existsSync(packageJsonPath)) {
@@ -66,7 +72,7 @@ function findPackages() {
               // Игнорируем невалидные package.json
             }
           } else {
-            // Рекурсивно ищем в поддиректориях
+            // Рекурсивно ищем в поддиректориях (для apps, packages и т.д.)
             result.push(...findPackageDirs(fullPath));
           }
         }
@@ -78,7 +84,65 @@ function findPackages() {
     return result;
   };
 
-  return findPackageDirs('.');
+  // Ищем пакеты по паттернам pnpm-workspace.yaml
+  try {
+    const workspaceConfigPath = path.join(rootDir, 'pnpm-workspace.yaml');
+    if (fs.existsSync(workspaceConfigPath)) {
+      /** @type {any} */
+      const workspaceConfig = yaml.load(fs.readFileSync(workspaceConfigPath, 'utf8'));
+      if (workspaceConfig && workspaceConfig.packages) {
+        for (const pattern of workspaceConfig.packages) {
+          if (typeof pattern === 'string') {
+            // Обрабатываем glob паттерны как packages/*
+            const baseDir = pattern.split('/*')[0];
+            const fullBaseDir = path.join(rootDir, baseDir);
+            if (fs.existsSync(fullBaseDir)) {
+              allFoundPackages.push(...findPackageDirs(fullBaseDir));
+            }
+          }
+        }
+      }
+    }
+  } catch (error) {
+    // Игнорируем ошибки чтения workspace config
+  }
+
+  // Ищем в основных директориях монорепо
+  const searchDirs = ['apps', 'services', 'tools'];
+  for (const searchDir of searchDirs) {
+    const fullSearchDir = path.join(rootDir, searchDir);
+    if (fs.existsSync(fullSearchDir)) {
+      allFoundPackages.push(...findPackageDirs(fullSearchDir));
+    }
+  }
+
+  // Также ищем в корне (на случай если там есть package.json)
+  const rootPackageJson = path.join(rootDir, 'package.json');
+  if (fs.existsSync(rootPackageJson)) {
+    try {
+      const packageJson = JSON.parse(fs.readFileSync(rootPackageJson, 'utf8'));
+      if (packageJson.name) {
+        allFoundPackages.push({
+          name: packageJson.name,
+          path: rootDir,
+          packageJson,
+        });
+      }
+    } catch (error) {
+      // Игнорируем ошибки чтения
+    }
+  }
+
+  // Убираем дубликаты по имени пакета
+  const seenNames = new Set();
+  for (const pkg of allFoundPackages) {
+    if (!seenNames.has(pkg.name)) {
+      seenNames.add(pkg.name);
+      packages.push(pkg);
+    }
+  }
+
+  return packages;
 }
 
 /**
@@ -160,7 +224,13 @@ function findTsFiles(dir) {
       if (stat.isDirectory() && !item.startsWith('.') && item !== 'node_modules') {
         const subFiles = findTsFiles(fullPath);
         result.push(...subFiles);
-      } else if (stat.isFile() && (item.endsWith('.ts') || item.endsWith('.js'))) {
+      } else if (
+        stat.isFile()
+        && (item.endsWith('.ts')
+          || item.endsWith('.tsx')
+          || item.endsWith('.js')
+          || item.endsWith('.jsx'))
+      ) {
         result.push(fullPath);
       }
     }
@@ -256,12 +326,19 @@ function checkPackageCycles(pkg) {
 
   // Строим граф зависимостей
   for (const file of files) {
-    const relativePath = path.relative(srcDir, file).replace(/(\.js|\.ts)$/, '');
+    const relativePath = path.relative(srcDir, file).replace(/(\.js|\.ts|\.tsx|\.jsx)$/, '');
 
     if (
       !relativePath
       || typeof relativePath !== 'string'
-      || !/^[a-zA-Z0-9\-_.\/]+$/.test(relativePath)
+      || !/^[a-zA-Z0-9\-_.\[\]\/]+$/.test(relativePath)
+      || relativePath.includes('node_modules')
+      || relativePath.includes('dist')
+      || relativePath.includes('coverage')
+      || relativePath.includes('__pycache__')
+      || relativePath.endsWith('.test')
+      || relativePath.endsWith('.spec')
+      || relativePath.endsWith('.d')
     ) {
       continue;
     }
@@ -305,8 +382,14 @@ function main() {
   // 1. Проверяем внутрипакетные циклы
   console.log('\n🔍 Проверка внутрипакетных зависимостей...');
 
+  let totalFiles = 0;
+  let totalDeps = 0;
+
   for (const pkg of packages) {
     const result = checkPackageCycles(pkg);
+
+    totalFiles += result.stats.files;
+    totalDeps += result.stats.deps;
 
     if (result.cycles.length > 0) {
       hasErrors = true;
@@ -315,7 +398,7 @@ function main() {
       for (const [file, dep] of result.cycles) {
         console.error(`   ${file} ↔ ${dep}`);
       }
-    } else if (result.stats.files > 0) {
+    } else {
       console.log(
         `✅ ${pkg.name}: ${result.stats.files} файлов, ${result.stats.deps} зависимостей`,
       );
@@ -342,16 +425,6 @@ function main() {
   // Результат
   if (!hasErrors) {
     console.log('\n✅ Циклических зависимостей не найдено!');
-
-    // Выводим статистику
-    let totalFiles = 0;
-    let totalDeps = 0;
-
-    for (const pkg of packages) {
-      const result = checkPackageCycles(pkg);
-      totalFiles += result.stats.files;
-      totalDeps += result.stats.deps;
-    }
 
     console.log(`📊 Статистика монорепо:`);
     console.log(`   Пакетов: ${packages.length}`);
