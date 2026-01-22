@@ -11,3 +11,4 @@ export * from './primitives/input.js';
 export * from './primitives/form-field.js';
 export * from './primitives/form.js';
 export * from './primitives/dialog.js';
+export * from './primitives/textarea.js';
