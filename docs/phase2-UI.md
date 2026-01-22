@@ -184,9 +184,9 @@
 1️⃣5️⃣ packages/ui-core/src/primitives/select.tsx 🟢 — ts+react — Select/Dropdown UI
 1️⃣6️⃣ packages/ui-core/src/primitives/checkbox.tsx 🟢 — ts+react — Checkbox UI
 1️⃣7️⃣ packages/ui-core/src/primitives/radio.tsx 🟢 — ts+react — Radio button UI
-1️⃣8️⃣ packages/ui-core/src/primitives/toggle.tsx 🔴 — ts+react — Toggle/Switch UI
-1️⃣9️⃣ packages/ui-core/src/primitives/icon.tsx 🔴 — ts+react — Icon UI (НЕТ)
-2️⃣0️⃣ packages/ui-core/src/primitives/avatar.tsx 🔴 — ts+react — Avatar UI (НЕТ)
+1️⃣8️⃣ packages/ui-core/src/primitives/toggle.tsx 🟢 — ts+react — Toggle/Switch UI
+1️⃣9️⃣ packages/ui-core/src/primitives/icon.tsx 🔴 — ts+react — Icon UI
+2️⃣0️⃣ packages/ui-core/src/primitives/avatar.tsx 🔴 — ts+react — Avatar UI
 2️⃣1️⃣ packages/ui-core/src/primitives/badge.tsx 🔴 — ts+react — Badge UI (НЕТ)
 2️⃣2️⃣ packages/ui-core/src/primitives/tooltip.tsx 🔴 — ts+react — Tooltip UI (НЕТ)
 2️⃣3️⃣ packages/ui-core/src/primitives/divider.tsx 🔴 — ts+react — Divider UI (НЕТ)
@@ -215,9 +215,9 @@ App UI wrappers
 3️⃣0️⃣ packages/app/src/ui/select.tsx 🟢 — ts+react — UI wrapper Select — ui-core/Select.tsx
 3️⃣1️⃣ packages/app/src/ui/checkbox.tsx 🟢 — ts+react — UI wrapper Checkbox — ui-core/Checkbox.tsx
 3️⃣2️⃣ packages/app/src/ui/radio.tsx 🟢 — ts+react — UI wrapper Radio — ui-core/Radio.tsx
-3️⃣3️⃣ packages/app/src/ui/toggle.tsx 🔴 — ts+react — UI wrapper Toggle — ui-core/Toggle.tsx
-3️⃣4️⃣ packages/app/src/ui/icon.tsx 🔴 — ts+react — UI wrapper Icon — ui-core/Icon.tsx (НЕТ)
-3️⃣5️⃣ packages/app/src/ui/avatar.tsx 🔴 — ts+react — UI wrapper Avatar — ui-core/Avatar.tsx (НЕТ)
+3️⃣3️⃣ packages/app/src/ui/toggle.tsx 🟢 — ts+react — UI wrapper Toggle — ui-core/Toggle.tsx
+3️⃣4️⃣ packages/app/src/ui/icon.tsx 🔴 — ts+react — UI wrapper Icon — ui-core/Icon.tsx
+3️⃣5️⃣ packages/app/src/ui/avatar.tsx 🔴 — ts+react — UI wrapper Avatar — ui-core/Avatar.tsx
 3️⃣6️⃣ packages/app/src/ui/badge.tsx 🔴 — ts+react — UI wrapper Badge — ui-core/Badge.tsx (НЕТ)
 3️⃣7️⃣ packages/app/src/ui/tooltip.tsx 🔴 — ts+react — UI wrapper Tooltip — ui-core/Tooltip.tsx (НЕТ)
 3️⃣8️⃣ packages/app/src/ui/divider.tsx 🔴 — ts+react — UI wrapper Divider — ui-core/Divider.tsx (НЕТ)
