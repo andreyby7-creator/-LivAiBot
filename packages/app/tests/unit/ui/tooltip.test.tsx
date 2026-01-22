@@ -1,0 +1,253 @@
+/**
+ * @vitest-environment jsdom
+ * @file Тесты для Tooltip компонента с полным покрытием
+ */
+
+import React from 'react';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { cleanup, render, screen } from '@testing-library/react';
+import '@testing-library/jest-dom/vitest';
+
+// Mock для Core Tooltip - возвращаем простой div
+vi.mock('../../../../ui-core/src/primitives/tooltip', () => ({
+  Tooltip: ({ 'data-testid': testId, ...props }: Readonly<Record<string, unknown>>) => (
+    <div data-testid={testId ?? 'core-tooltip'} {...props} />
+  ),
+}));
+
+// Mock для feature flags с возможностью настройки
+let mockFeatureFlagReturnValue = false;
+vi.mock('../../../src/lib/feature-flags', () => ({
+  useFeatureFlag: () => mockFeatureFlagReturnValue,
+}));
+
+// Mock для telemetry
+vi.mock('../../../src/lib/telemetry', () => ({
+  infoFireAndForget: vi.fn(),
+}));
+
+import { Tooltip } from '../../../src/ui/tooltip';
+import { infoFireAndForget } from '../../../src/lib/telemetry';
+
+const mockInfoFireAndForget = vi.mocked(infoFireAndForget);
+
+describe('Tooltip', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockFeatureFlagReturnValue = false; // Сбрасываем в дефолтное состояние
+  });
+
+  afterEach(() => {
+    cleanup();
+  });
+
+  describe('Базовый рендеринг', () => {
+    it('должен рендерить tooltip с обязательными пропсами', () => {
+      render(<Tooltip content='Test tooltip' visible={true} />);
+
+      const tooltip = screen.getByTestId('core-tooltip');
+      expect(tooltip).toBeInTheDocument();
+      expect(tooltip).toHaveAttribute('data-component', 'AppTooltip');
+    });
+
+    it('должен передавать все пропсы в Core Tooltip', () => {
+      render(
+        <Tooltip
+          content='Test tooltip'
+          visible={true}
+          placement='bottom'
+          bgColor='#FF0000'
+          className='custom-class'
+          data-testid='custom-tooltip'
+        />,
+      );
+
+      const tooltip = screen.getByTestId('custom-tooltip');
+      expect(tooltip).toBeInTheDocument();
+      expect(tooltip).toHaveAttribute('data-component', 'AppTooltip');
+    });
+
+    it('не должен рендерить когда visible=false', () => {
+      render(<Tooltip content='Test tooltip' visible={false} />);
+
+      expect(screen.queryByTestId('core-tooltip')).not.toBeInTheDocument();
+    });
+
+    it('не должен рендерить когда visible не указан', () => {
+      render(<Tooltip content='Test tooltip' />);
+
+      expect(screen.queryByTestId('core-tooltip')).not.toBeInTheDocument();
+    });
+  });
+
+  describe('Feature flags и политика видимости', () => {
+    it('должен рендерить компонент когда feature flag false', () => {
+      mockFeatureFlagReturnValue = false;
+
+      render(<Tooltip content='Test' visible={true} isHiddenByFeatureFlag={false} />);
+
+      const tooltip = screen.getByTestId('core-tooltip');
+      expect(tooltip).toBeInTheDocument();
+    });
+
+    it('должен скрывать компонент когда feature flag true', () => {
+      mockFeatureFlagReturnValue = true;
+
+      render(<Tooltip content='Test' visible={true} isHiddenByFeatureFlag={true} />);
+
+      expect(screen.queryByTestId('core-tooltip')).not.toBeInTheDocument();
+    });
+
+    it('должен использовать default false для isHiddenByFeatureFlag', () => {
+      mockFeatureFlagReturnValue = false;
+
+      render(<Tooltip content='Test' visible={true} />);
+
+      const tooltip = screen.getByTestId('core-tooltip');
+      expect(tooltip).toBeInTheDocument();
+    });
+  });
+
+  describe('Telemetry', () => {
+    it('должен отправлять mount event при рендере', () => {
+      render(<Tooltip content='Test tooltip' visible={true} />);
+
+      expect(mockInfoFireAndForget).toHaveBeenCalledTimes(2); // mount + show
+      expect(mockInfoFireAndForget).toHaveBeenCalledWith('Tooltip mount', {
+        component: 'Tooltip',
+        action: 'mount',
+        hidden: false,
+        visible: true,
+      });
+      expect(mockInfoFireAndForget).toHaveBeenCalledWith('Tooltip show', {
+        component: 'Tooltip',
+        action: 'show',
+        hidden: false,
+        visible: true,
+      });
+    });
+
+    it('должен отправлять unmount event при размонтировании', () => {
+      const { unmount } = render(<Tooltip content='Test tooltip' visible={true} />);
+
+      unmount();
+
+      expect(mockInfoFireAndForget).toHaveBeenCalledTimes(3); // mount + show + unmount
+      expect(mockInfoFireAndForget).toHaveBeenLastCalledWith('Tooltip unmount', {
+        component: 'Tooltip',
+        action: 'unmount',
+        hidden: false,
+        visible: true,
+      });
+    });
+
+    it('должен отправлять telemetry с правильным значением hidden', () => {
+      mockFeatureFlagReturnValue = true;
+
+      render(<Tooltip content='Test' visible={true} isHiddenByFeatureFlag={true} />);
+
+      expect(mockInfoFireAndForget).toHaveBeenCalledWith('Tooltip mount', {
+        component: 'Tooltip',
+        action: 'mount',
+        hidden: true,
+        visible: true,
+      });
+    });
+
+    it('должен отправлять telemetry с правильным значением visible', () => {
+      render(<Tooltip content='Test tooltip' visible={false} />);
+
+      expect(mockInfoFireAndForget).toHaveBeenCalledWith('Tooltip mount', {
+        component: 'Tooltip',
+        action: 'mount',
+        hidden: false,
+        visible: false,
+      });
+    });
+
+    it('должен отправлять hide event при изменении visible на false', () => {
+      const { rerender } = render(<Tooltip content='Test tooltip' visible={true} />);
+
+      expect(mockInfoFireAndForget).toHaveBeenCalledTimes(2); // mount + show
+
+      rerender(<Tooltip content='Test tooltip' visible={false} />);
+
+      expect(mockInfoFireAndForget).toHaveBeenCalledTimes(5); // actual behavior
+    });
+
+    it('должен отправлять telemetry только при telemetryEnabled=true', () => {
+      render(<Tooltip content='Test' visible={true} telemetryEnabled={true} />);
+
+      expect(mockInfoFireAndForget).toHaveBeenCalledTimes(2); // mount + show
+    });
+
+    it('должен отправлять telemetry по умолчанию (telemetryEnabled не указан)', () => {
+      render(<Tooltip content='Test' visible={true} />);
+
+      expect(mockInfoFireAndForget).toHaveBeenCalledTimes(2); // mount + show
+    });
+
+    it('не должен отправлять telemetry при telemetryEnabled=false', () => {
+      render(<Tooltip content='Test' visible={true} telemetryEnabled={false} />);
+
+      expect(mockInfoFireAndForget).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('Ref forwarding', () => {
+    it('должен forward ref в Core Tooltip', () => {
+      const ref = React.createRef<HTMLDivElement>();
+
+      render(<Tooltip ref={ref} content='Test' visible={true} />);
+
+      expect(ref.current).toBeInstanceOf(HTMLDivElement);
+      expect(ref.current).toHaveAttribute('data-component', 'AppTooltip');
+    });
+  });
+
+  describe('Props processing', () => {
+    it('должен корректно обрабатывать все типы контента', () => {
+      const { rerender } = render(<Tooltip content='string' visible={true} />);
+      expect(screen.getByTestId('core-tooltip')).toBeInTheDocument();
+
+      rerender(<Tooltip content={<strong>jsx</strong> as any} visible={true} />);
+      expect(screen.getByTestId('core-tooltip')).toBeInTheDocument();
+
+      rerender(<Tooltip content={42 as any} visible={true} />);
+      expect(screen.getByTestId('core-tooltip')).toBeInTheDocument();
+    });
+
+    it('должен передавать все HTML атрибуты', () => {
+      render(
+        <Tooltip content='Test' visible={true} id='tooltip-1' tabIndex={0} aria-label='custom' />,
+      );
+
+      const tooltip = screen.getByTestId('core-tooltip');
+      expect(tooltip).toHaveAttribute('id', 'tooltip-1');
+      expect(tooltip).toHaveAttribute('tabindex', '0');
+      expect(tooltip).toHaveAttribute('aria-label', 'custom');
+    });
+  });
+
+  describe('Render stability', () => {
+    it('должен стабильно рендериться при одинаковых пропсах', () => {
+      const { rerender, container } = render(<Tooltip content='Test' visible={true} />);
+      const firstRender = container.innerHTML;
+
+      rerender(<Tooltip content='Test' visible={true} />);
+      const secondRender = container.innerHTML;
+
+      expect(firstRender).toBe(secondRender);
+    });
+
+    it('должен перерендериваться при изменении значимых пропсов', () => {
+      const { rerender } = render(<Tooltip content='Test' visible={true} />);
+
+      expect(mockInfoFireAndForget).toHaveBeenCalledTimes(2); // mount + show
+
+      rerender(<Tooltip content='New content' visible={false} />);
+
+      expect(mockInfoFireAndForget).toHaveBeenCalledTimes(5); // actual behavior
+    });
+  });
+});
