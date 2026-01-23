@@ -242,6 +242,7 @@ const SkeletonComponent = forwardRef<HTMLDivElement, AppSkeletonProps>(
         ref={ref}
         data-component='AppSkeleton'
         data-feature-flag={policy.hiddenByFeatureFlag ? 'hidden' : 'visible'}
+        data-telemetry={policy.telemetryEnabled ? 'enabled' : 'disabled'}
         animated={policy.animated}
         {...coreProps}
       />

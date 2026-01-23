@@ -176,6 +176,7 @@ function CardComponent(props: AppCardProps): JSX.Element | null {
         : undefined}
       data-variant={policy.variant}
       data-disabled={policy.disabledByFeatureFlag || undefined}
+      data-telemetry={policy.telemetryEnabled ? 'enabled' : 'disabled'}
       role={isInteractive ? 'button' : 'group'}
       tabIndex={isInteractive ? 0 : undefined}
       aria-disabled={!isInteractive}

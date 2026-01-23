@@ -289,6 +289,7 @@ const BreadcrumbsComponent = forwardRef<HTMLElement, AppBreadcrumbsProps>(
         data-component='AppBreadcrumbs'
         data-state='visible' // internal / telemetry & CSS hooks only, не публичное API
         data-feature-flag={policy.hiddenByFeatureFlag ? 'hidden' : 'visible'} // internal / e2e-тесты only, не публичное API
+        data-telemetry={policy.telemetryEnabled ? 'enabled' : 'disabled'}
         {...coreProps}
       />
     );

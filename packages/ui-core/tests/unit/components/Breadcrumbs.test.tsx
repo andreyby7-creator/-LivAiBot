@@ -114,7 +114,7 @@ describe('Breadcrumbs', () => {
 
       const ol = getOrderedList();
       expect(ol).toBeInTheDocument();
-      expect(ol).toHaveAttribute('role', 'list');
+      // role="list" избыточен для нативного <ol> элемента
     });
 
     it('рендерит правильное количество элементов', () => {

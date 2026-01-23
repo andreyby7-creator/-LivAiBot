@@ -231,6 +231,7 @@ const ModalComponent = forwardRef<HTMLDivElement, AppModalProps>(
         variant={variant}
         data-component='AppModal'
         data-state='visible'
+        data-telemetry={policy.telemetryEnabled ? 'enabled' : 'disabled'}
         aria-label={ariaLabel}
         aria-labelledby={ariaLabelledBy}
         {...(duration !== undefined && { duration })}

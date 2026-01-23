@@ -107,6 +107,7 @@ const CoreDividerComponent = forwardRef<HTMLElement, CoreDividerProps>(
       return (
         <hr
           ref={callbackRef}
+          aria-orientation={orientation}
           data-component='CoreDivider'
           data-testid={testId}
           className={className}
@@ -119,6 +120,7 @@ const CoreDividerComponent = forwardRef<HTMLElement, CoreDividerProps>(
         <div
           ref={callbackRef}
           role='separator'
+          aria-orientation={orientation}
           data-component='CoreDivider'
           data-testid={testId}
           className={className}

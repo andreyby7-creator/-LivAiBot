@@ -194,6 +194,7 @@ const TooltipComponent = forwardRef<HTMLDivElement, AppTooltipProps>(
         ref={ref}
         visible={policy.isRendered}
         data-component='AppTooltip'
+        data-telemetry={policy.telemetryEnabled ? 'enabled' : 'disabled'}
         {...coreProps}
       />
     );

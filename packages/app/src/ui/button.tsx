@@ -135,6 +135,7 @@ const ButtonComponent = memo<AppButtonProps>(
       <CoreButton
         disabled={disabled}
         onClick={handleClick}
+        data-telemetry={policy.telemetryEnabled ? 'enabled' : 'disabled'}
         {...rest}
       >
         {label}

@@ -216,7 +216,7 @@ const CoreBreadcrumbsComponent = forwardRef<HTMLElement, CoreBreadcrumbsProps>(
         className={className}
         {...rest}
       >
-        <ol style={ORDERED_LIST_STYLE} role='list'>
+        <ol style={ORDERED_LIST_STYLE}>
           {renderedItems}
         </ol>
       </nav>

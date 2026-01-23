@@ -210,6 +210,7 @@ const ToastComponent = forwardRef<HTMLDivElement, AppToastProps>(
         visible={policy.isRendered}
         data-component='AppToast'
         data-variant={variant}
+        data-telemetry={policy.telemetryEnabled ? 'enabled' : 'disabled'}
         {...coreProps}
       />
     );

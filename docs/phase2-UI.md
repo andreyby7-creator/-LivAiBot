@@ -201,8 +201,8 @@ UI Core components и types
 2️⃣9️⃣ packages/ui-core/src/components/Skeleton.tsx 🟢 — ts+react — Skeleton UI
 3️⃣0️⃣ packages/ui-core/src/components/Modal.tsx 🟢 — ts+react — Modal UI
 3️⃣1️⃣ packages/ui-core/src/components/Breadcrumbs.tsx 🟢 — ts+react — Breadcrumbs UI
-3️⃣2️⃣ packages/ui-core/src/components/Tabs.tsx 🔴 — ts+react — Tabs UI
-3️⃣3️⃣ packages/ui-core/src/components/Accordion.tsx 🔴 — ts+react — Accordion UI (НЕТ)
+3️⃣2️⃣ packages/ui-core/src/components/Tabs.tsx 🟢 — ts+react — Tabs UI
+3️⃣3️⃣ packages/ui-core/src/components/Accordion.tsx 🔴 — ts+react — Accordion UI
 3️⃣4️⃣ packages/ui-core/src/components/DatePicker.tsx 🔴 — ts+react — DatePicker UI (НЕТ)
 3️⃣5️⃣ packages/ui-core/src/components/FileUploader.tsx 🔴 — ts+react — FileUploader UI (НЕТ)
 
@@ -241,8 +241,8 @@ App UI wrappers
 6️⃣5️⃣ packages/app/src/ui/skeleton-group.tsx — ts+react — UI wrapper Skeleton Group — ui-core/Skeleton.tsx, app/ui/skeleton.tsx
 6️⃣6️⃣ packages/app/src/ui/modal.tsx 🟢 — ts+react — UI wrapper Modal — ui-core/Modal.tsx
 6️⃣7️⃣ packages/app/src/ui/breadcrumbs.tsx 🟢 — ts+react — UI wrapper Breadcrumbs — ui-core/Breadcrumbs.tsx
-6️⃣8️⃣ packages/app/src/ui/tabs.tsx 🔴 — ts+react — UI wrapper Tabs — ui-core/Tabs.tsx (НЕТ)
-6️⃣9️⃣ packages/app/src/ui/accordion.tsx 🔴 — ts+react — UI wrapper Accordion — ui-core/Accordion.tsx (НЕТ)
+6️⃣8️⃣ packages/app/src/ui/tabs.tsx 🟢 — ts+react — UI wrapper Tabs — ui-core/Tabs.tsx
+6️⃣9️⃣ packages/app/src/ui/accordion.tsx 🔴 — ts+react — UI wrapper Accordion — ui-core/Accordion.tsx
 7️⃣0️⃣ packages/app/src/ui/date-picker.tsx 🔴 — ts+react — UI wrapper DatePicker — ui-core/DatePicker.tsx (НЕТ)
 7️⃣1️⃣ packages/app/src/ui/file-uploader.tsx 🔴 — ts+react — UI wrapper FileUploader — ui-core/FileUploader.tsx (НЕТ)
 7️⃣2️⃣ packages/app/src/ui/sidebar.tsx 🔴 — ts+react — Sidebar (НЕТ)

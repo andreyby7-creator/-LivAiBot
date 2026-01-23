@@ -346,6 +346,7 @@ const SkeletonGroupComponent = forwardRef<HTMLDivElement, AppSkeletonGroupProps>
         ref={ref}
         data-component='AppSkeletonGroup'
         data-feature-flag={policy.hiddenByFeatureFlag ? 'hidden' : 'visible'}
+        data-telemetry={policy.telemetryEnabled ? 'enabled' : 'disabled'}
         data-telemetry-id={telemetryId}
         data-testid={rest['data-testid']}
         style={getGroupStyle(gap)}
