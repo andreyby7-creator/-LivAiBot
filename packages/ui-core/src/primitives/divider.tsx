@@ -23,6 +23,8 @@
 import { forwardRef, memo, useMemo } from 'react';
 import type { CSSProperties, HTMLAttributes, JSX } from 'react';
 
+import type { UISize } from '../types/ui.js';
+
 /* ============================================================================
  * 🧬 TYPES & CONSTANTS
  * ========================================================================== */
@@ -41,7 +43,7 @@ export type CoreDividerProps = Readonly<
     color?: string;
 
     /** Длина divider (для горизонтального: width, для вертикального: height) */
-    length?: string | number;
+    length?: UISize;
 
     /** Test ID для автотестов */
     'data-testid'?: string;

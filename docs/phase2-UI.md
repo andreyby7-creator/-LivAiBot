@@ -194,16 +194,16 @@
 2️⃣5️⃣ packages/ui-core/src/primitives/dialog.tsx 🟢 — ts+react — Dialog UI
 2️⃣6️⃣ packages/ui-core/src/primitives/form.tsx 🟢 — ts+react — Form UI
 
-UI Core components
+UI Core components и types
 2️⃣7️⃣ packages/ui-core/src/components/Toast.tsx 🟢 — ts+react — Toast UI
-2️⃣8️⃣ packages/ui-core/src/components/Skeleton.tsx 🔴 — ts+react — Skeleton UI (НЕТ)
-2️⃣9️⃣ packages/ui-core/src/components/Modal.tsx 🔴 — ts+react — Modal UI (НЕТ)
-3️⃣0️⃣ packages/ui-core/src/components/Breadcrumbs.tsx 🔴 — ts+react — Breadcrumbs UI (НЕТ)
+2️⃣8️⃣ packages/ui-core/src/components/Skeleton.tsx 🟢 — ts+react — Skeleton UI
+2️⃣9️⃣ packages/ui-core/src/components/Modal.tsx 🟢 — ts+react — Modal UI
+3️⃣0️⃣ packages/ui-core/src/components/Breadcrumbs.tsx 🔴 — ts+react — Breadcrumbs UI
 3️⃣1️⃣ packages/ui-core/src/components/Tabs.tsx 🔴 — ts+react — Tabs UI (НЕТ)
 3️⃣2️⃣ packages/ui-core/src/components/Accordion.tsx 🔴 — ts+react — Accordion UI (НЕТ)
 3️⃣3️⃣ packages/ui-core/src/components/DatePicker.tsx 🔴 — ts+react — DatePicker UI (НЕТ)
 3️⃣4️⃣ packages/ui-core/src/components/FileUploader.tsx 🔴 — ts+react — FileUploader UI (НЕТ)
-3️⃣5️⃣ packages/ui-core/src/types/ui.ts 🔴 — ts — Типы UI (НЕТ)
+3️⃣5️⃣ packages/ui-core/src/types/ui.ts 🟢 — ts — Типы UI
 
 ✅ App types и libs
 3️⃣6️⃣ packages/app/src/types/common.ts 🟢 — ts — Общие типы для всего приложения
@@ -236,15 +236,16 @@ App UI wrappers
 6️⃣1️⃣ packages/app/src/ui/dialog.tsx 🟢 — ts+react — UI wrapper Dialog — ui-core/Dialog.tsx
 6️⃣2️⃣ packages/app/src/ui/form.tsx 🟢 — ts+react — UI wrapper Form — ui-core/Form.tsx
 6️⃣3️⃣ packages/app/src/ui/toast.tsx 🟢 — ts+react — UI wrapper Toast — ui-core/Toast.tsx
-6️⃣4️⃣ packages/app/src/ui/sidebar.tsx 🔴 — ts+react — Sidebar (НЕТ)
-6️⃣5️⃣ packages/app/src/ui/loading-spinner.tsx 🔴 — ts+react — Loading Spinner (НЕТ)
-6️⃣6️⃣ packages/app/src/ui/search-bar.tsx 🔴 — ts+react — Search Bar (НЕТ)
+6️⃣4️⃣ packages/app/src/ui/modal.tsx 🟢 — ts+react — Modal (НЕТ)
+6️⃣5️⃣ packages/app/src/ui/sidebar.tsx 🔴 — ts+react — Sidebar (НЕТ)
+6️⃣6️⃣ packages/app/src/ui/loading-spinner.tsx 🔴 — ts+react — Loading Spinner (НЕТ)
+6️⃣7️⃣ packages/app/src/ui/search-bar.tsx 🔴 — ts+react — Search Bar (НЕТ)
 
 App state и hooks
-6️⃣7️⃣ packages/app/src/state/store.ts 🔴 — ts+zustand — Root store (НЕТ)
-6️⃣8️⃣ packages/app/src/state/query/query-client.ts 🔴 — ts+react — React query client — store.ts (НЕТ)
-6️⃣9️⃣ packages/app/src/hooks/useApi.ts 🔴 — ts+react — Hook API — lib/api-client.ts (НЕТ)
-7️⃣0️⃣ packages/app/src/hooks/useToast.ts 🔴 — ts+react — Hook Toast — ui-core/useToast.ts (НЕТ)
+6️⃣8️⃣ packages/app/src/state/store.ts 🔴 — ts+zustand — Root store (НЕТ)
+6️⃣9️⃣ packages/app/src/state/query/query-client.ts 🔴 — ts+react — React query client — store.ts (НЕТ)
+7️⃣0️⃣ packages/app/src/hooks/useApi.ts 🔴 — ts+react — Hook API — lib/api-client.ts (НЕТ)
+7️⃣1️⃣ packages/app/src/hooks/useToast.ts 🔴 — ts+react — Hook Toast — ui-core/useToast.ts (НЕТ)
 
 Feature Auth
 7️⃣1️⃣ packages/feature-auth/src/domain/LoginRequest.ts 🔴 — ts — DTO login (НЕТ)

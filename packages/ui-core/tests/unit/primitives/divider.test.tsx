@@ -125,7 +125,7 @@ describe('Divider', () => {
     });
 
     it('применяет кастомные значения length (number)', () => {
-      const { getDivider } = renderIsolated(<Divider length={200} />);
+      const { getDivider } = renderIsolated(<Divider length={200 as any} />);
 
       const divider = getDivider();
       expect(window.getComputedStyle(divider).width).toBe('200px');

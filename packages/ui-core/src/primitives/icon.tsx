@@ -19,6 +19,8 @@
 import { forwardRef, memo, useMemo } from 'react';
 import type { CSSProperties, HTMLAttributes, JSX } from 'react';
 
+import type { UISize } from '../types/ui.js';
+
 /* ============================================================================
  * 🧬 TYPES & CONSTANTS
  * ========================================================================== */
@@ -31,7 +33,7 @@ export type CoreIconProps = Readonly<
     name: string;
 
     /** Размер иконки */
-    size?: number | string;
+    size?: UISize;
 
     /** Цвет иконки */
     color?: string;

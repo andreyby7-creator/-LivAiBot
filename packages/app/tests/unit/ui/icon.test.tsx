@@ -216,7 +216,7 @@ describe('Icon', () => {
 
   describe('Проброс пропсов к CoreIcon', () => {
     it('должен пробрасывать size пропс', () => {
-      render(<Icon name='test-icon' size={24} />);
+      render(<Icon name='test-icon' size={24 as any} />);
 
       const icon = screen.getByRole('img');
       expect(icon).toHaveStyle('--icon-size: 24px');
@@ -318,7 +318,7 @@ describe('Icon', () => {
       const { container, rerender } = render(
         <Icon
           name='stable-icon'
-          size={20}
+          size={20 as any}
           color='blue'
           variantByFeatureFlag='primary'
         />,
@@ -329,7 +329,7 @@ describe('Icon', () => {
       rerender(
         <Icon
           name='stable-icon'
-          size={20}
+          size={20 as any}
           color='blue'
           variantByFeatureFlag='primary'
         />,

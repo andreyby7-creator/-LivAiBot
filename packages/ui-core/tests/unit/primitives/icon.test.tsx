@@ -64,7 +64,7 @@ describe('Icon', () => {
     });
 
     it('size как число конвертируется в px', () => {
-      const { getIcon } = renderIsolated(<Icon name='test-icon' size={24} />);
+      const { getIcon } = renderIsolated(<Icon name='test-icon' size={24 as any} />);
 
       const icon = getIcon();
       expect(icon).toHaveStyle({
@@ -185,12 +185,12 @@ describe('Icon', () => {
   describe('1.7. Стабильность рендера', () => {
     it('рендер стабилен при одинаковых пропсах', () => {
       const { container, rerender } = renderIsolated(
-        <Icon name='stable-icon' size={20} color='blue' />,
+        <Icon name='stable-icon' size={20 as any} color='blue' />,
       );
 
       const firstRender = container.innerHTML;
 
-      rerender(<Icon name='stable-icon' size={20} color='blue' />);
+      rerender(<Icon name='stable-icon' size={20 as any} color='blue' />);
 
       expect(container.innerHTML).toBe(firstRender);
     });
@@ -215,7 +215,9 @@ describe('Icon', () => {
 
   describe('1.8. CSS Variables', () => {
     it('всегда устанавливает CSS variables для size и color', () => {
-      const { getIcon } = renderIsolated(<Icon name='test-icon' size={32} color='#ff0000' />);
+      const { getIcon } = renderIsolated(
+        <Icon name='test-icon' size={32 as any} color='#ff0000' />,
+      );
 
       const icon = getIcon();
 
@@ -230,14 +232,14 @@ describe('Icon', () => {
 
     it('CSS variables обновляются при изменении пропсов', () => {
       const { getIcon, rerender } = renderIsolated(
-        <Icon name='test-icon' size={16} color='black' />,
+        <Icon name='test-icon' size={16 as any} color='black' />,
       );
 
       const icon = getIcon();
       expect(icon.style.getPropertyValue('--icon-size')).toBe('16px');
       expect(icon.style.getPropertyValue('--icon-color')).toBe('black');
 
-      rerender(<Icon name='test-icon' size={48} color='white' />);
+      rerender(<Icon name='test-icon' size={48 as any} color='white' />);
 
       expect(icon.style.getPropertyValue('--icon-size')).toBe('48px');
       expect(icon.style.getPropertyValue('--icon-color')).toBe('white');
@@ -263,7 +265,7 @@ describe('Icon', () => {
     });
 
     it('размер 0 работает корректно', () => {
-      const { getIcon } = renderIsolated(<Icon name='test-icon' size={0} />);
+      const { getIcon } = renderIsolated(<Icon name='test-icon' size={0 as any} />);
 
       const icon = getIcon();
       expect(icon).toHaveStyle('--icon-size: 0px');
