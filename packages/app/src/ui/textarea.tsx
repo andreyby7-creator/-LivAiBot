@@ -23,7 +23,6 @@ import type { JSX } from 'react';
 
 import { Textarea as CoreTextarea } from '../../../ui-core/src/primitives/textarea.js';
 import type { CoreTextareaProps } from '../../../ui-core/src/primitives/textarea.js';
-import { useFeatureFlag } from '../lib/feature-flags.js';
 import { infoFireAndForget } from '../lib/telemetry.js';
 
 /* ============================================================================
@@ -68,21 +67,21 @@ export type AppTextareaProps = Readonly<
  * ========================================================================== */
 
 type TextareaPolicy = Readonly<{
-  hidden: boolean;
-  disabled: boolean;
-  variant: string | null;
-  telemetryEnabled: boolean;
-  telemetryOnChange: boolean;
-  telemetryOnFocus: boolean;
+  readonly hiddenByFeatureFlag: boolean;
+  readonly disabledByFeatureFlag: boolean;
+  readonly variant: string | null;
+  readonly telemetryEnabled: boolean;
+  readonly telemetryOnChange: boolean;
+  readonly telemetryOnFocus: boolean;
 }>;
 
 function useTextareaPolicy(props: AppTextareaProps): TextareaPolicy {
-  const hidden = useFeatureFlag(props.isHiddenByFeatureFlag);
-  const disabled = useFeatureFlag(props.isDisabledByFeatureFlag);
+  const hidden = Boolean(props.isHiddenByFeatureFlag);
+  const disabled = Boolean(props.isDisabledByFeatureFlag);
 
   return useMemo<TextareaPolicy>(() => ({
-    hidden,
-    disabled,
+    hiddenByFeatureFlag: hidden,
+    disabledByFeatureFlag: disabled,
     variant: props.variantByFeatureFlag ?? null,
     telemetryEnabled: props.telemetryEnabled !== false,
     telemetryOnChange: props.telemetryOnChange !== false,
@@ -109,8 +108,8 @@ function emitTextareaTelemetry(
     component: 'Textarea',
     action,
     variant: policy.variant,
-    hidden: policy.hidden,
-    disabled: policy.disabled,
+    hidden: policy.hiddenByFeatureFlag,
+    disabled: policy.disabledByFeatureFlag,
   };
 
   infoFireAndForget(`Textarea ${action}`, payload);
@@ -147,7 +146,7 @@ function TextareaComponent(props: AppTextareaProps): JSX.Element | null {
   /** event handlers */
   const handleChange = useCallback(
     (event: React.ChangeEvent<HTMLTextAreaElement>) => {
-      if (policy.disabled) return;
+      if (policy.disabledByFeatureFlag) return;
 
       if (policy.telemetryEnabled && policy.telemetryOnChange) {
         emitTextareaTelemetry('change', policy);
@@ -181,7 +180,7 @@ function TextareaComponent(props: AppTextareaProps): JSX.Element | null {
   );
 
   /** скрыт */
-  if (policy.hidden) {
+  if (policy.hiddenByFeatureFlag) {
     return null;
   }
 
@@ -189,11 +188,11 @@ function TextareaComponent(props: AppTextareaProps): JSX.Element | null {
   return (
     <CoreTextarea
       {...coreProps}
-      disabled={policy.disabled || undefined}
+      disabled={policy.disabledByFeatureFlag || undefined}
       data-variant={policy.variant}
-      data-disabled={policy.disabled || undefined}
-      aria-disabled={policy.disabled || undefined}
-      aria-busy={policy.disabled || undefined}
+      data-disabled={policy.disabledByFeatureFlag || undefined}
+      aria-disabled={policy.disabledByFeatureFlag || undefined}
+      aria-busy={policy.disabledByFeatureFlag || undefined}
       onChange={handleChange}
       onFocus={handleFocus}
       onBlur={handleBlur}
@@ -202,12 +201,28 @@ function TextareaComponent(props: AppTextareaProps): JSX.Element | null {
 }
 
 /**
- * Memoized Textarea.
+ * UI-контракт Textarea компонента.
  *
- * Подходит для:
- * - форм ввода
- * - чат-интерфейсов
- * - мастеров и workflow UI
+ * @contract
+ *
+ * Гарантируется:
+ * - Детерминированный рендеринг без side effects (кроме telemetry)
+ * - SSR-safe и concurrent rendering compatible
+ * - Полная интеграция с централизованной telemetry системой
+ * - Управление feature flags для скрытия и отключения
+ * - Корректная обработка controlled/uncontrolled состояния
+ *
+ * Инварианты:
+ * - Всегда возвращает валидный JSX.Element или null
+ * - Состояние value синхронизировано с onChange callback
+ * - Feature flags применяются корректно к visibility и disabled
+ * - Telemetry events отправляются только при реальных изменениях
+ *
+ * Не допускается:
+ * - Использование напрямую core Textarea компонента
+ * - Смешивание controlled и uncontrolled режимов
+ * - Игнорирование accessibility атрибутов
+ * - Модификация telemetry payload структуры
  */
 export const Textarea = Object.assign(memo(TextareaComponent), {
   displayName: 'Textarea',

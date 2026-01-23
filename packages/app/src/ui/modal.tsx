@@ -21,13 +21,12 @@
  * - CoreModal остается без анимаций для максимальной производительности и простоты
  */
 
-import { forwardRef, memo, useEffect, useMemo } from 'react';
+import { forwardRef, memo, useEffect, useMemo, useRef } from 'react';
 import type { JSX, Ref } from 'react';
 
 import { Modal as CoreModal } from '../../../ui-core/src/components/Modal.js';
 import type { CoreModalProps, ModalVariant } from '../../../ui-core/src/components/Modal.js';
 import type { UIDuration } from '../../../ui-core/src/types/ui.js';
-import { useFeatureFlag } from '../lib/feature-flags.js';
 import { infoFireAndForget } from '../lib/telemetry.js';
 
 /* ============================================================================
@@ -81,19 +80,32 @@ export type AppModalProps = Readonly<
  * ========================================================================== */
 
 type ModalPolicy = Readonly<{
-  hidden: boolean;
-  isVisible: boolean;
-  telemetryEnabled: boolean;
+  readonly hiddenByFeatureFlag: boolean;
+  readonly isRendered: boolean;
+  readonly telemetryEnabled: boolean;
 }>;
 
+/**
+ * ModalPolicy является единственным источником истины
+ * для:
+ * - DOM rendering
+ * - telemetry
+ * - visibility state
+ *
+ * Ни один consumer не имеет права повторно интерпретировать props.visible
+ * или feature flags.
+ */
 function useModalPolicy(props: AppModalProps): ModalPolicy {
-  const hiddenByFlag = useFeatureFlag(props.isHiddenByFeatureFlag ?? false);
+  const hiddenByFlag = Boolean(props.isHiddenByFeatureFlag);
 
-  return useMemo(() => ({
-    hidden: hiddenByFlag,
-    isVisible: !hiddenByFlag,
-    telemetryEnabled: props.telemetryEnabled !== false,
-  }), [hiddenByFlag, props.telemetryEnabled]);
+  return useMemo(() => {
+    const isRendered = !hiddenByFlag && props.visible !== false;
+    return {
+      hiddenByFeatureFlag: hiddenByFlag,
+      isRendered,
+      telemetryEnabled: props.telemetryEnabled !== false,
+    };
+  }, [hiddenByFlag, props.visible, props.telemetryEnabled]);
 }
 
 /* ============================================================================
@@ -104,18 +116,22 @@ function emitModalTelemetry(payload: ModalTelemetryPayload): void {
   infoFireAndForget(`Modal ${payload.action}`, payload);
 }
 
+/**
+ * Формирование payload для Modal telemetry.
+ */
 function getModalPayload(
   action: ModalTelemetryAction,
-  hidden: boolean,
-  variant: ModalVariant,
-  visible: boolean,
+  policy: ModalPolicy,
+  telemetryProps: {
+    variant: ModalVariant;
+  },
 ): ModalTelemetryPayload {
   return {
     component: 'Modal',
     action,
-    hidden,
-    visible,
-    variant,
+    hidden: policy.hiddenByFeatureFlag,
+    visible: policy.isRendered,
+    variant: telemetryProps.variant,
   };
 }
 
@@ -126,7 +142,6 @@ function getModalPayload(
 const ModalComponent = forwardRef<HTMLDivElement, AppModalProps>(
   function ModalComponent(props: AppModalProps, ref: Ref<HTMLDivElement>): JSX.Element | null {
     const {
-      visible = false,
       variant = DEFAULT_VARIANT,
       'aria-label': ariaLabel,
       'aria-labelledby': ariaLabelledBy,
@@ -135,57 +150,87 @@ const ModalComponent = forwardRef<HTMLDivElement, AppModalProps>(
     } = props;
     const policy = useModalPolicy(props);
 
-    const mountPayload = useMemo(
-      () => getModalPayload(ModalTelemetryAction.Mount, policy.hidden, variant, visible),
-      [policy.hidden, variant, visible],
-    );
+    /** Минимальный набор telemetry-данных */
+    const telemetryProps = useMemo(() => ({
+      variant,
+    }), [variant]);
 
-    const unmountPayload = useMemo(
-      () => getModalPayload(ModalTelemetryAction.Unmount, policy.hidden, variant, visible),
-      [policy.hidden, variant, visible],
-    );
+    /**
+     * Lifecycle telemetry фиксирует состояние policy на момент первого рендера.
+     * Не реагирует на последующие изменения props или policy.
+     * Это архитектурная гарантия.
+     */
+    const lifecyclePayloadRef = useRef<
+      {
+        mount: ModalTelemetryPayload;
+        unmount: ModalTelemetryPayload;
+      } | undefined
+    >(undefined);
+
+    // eslint-disable-next-line functional/immutable-data
+    lifecyclePayloadRef.current ??= {
+      mount: getModalPayload(ModalTelemetryAction.Mount, policy, telemetryProps),
+      unmount: getModalPayload(ModalTelemetryAction.Unmount, policy, telemetryProps),
+    };
+
+    const lifecyclePayload = lifecyclePayloadRef.current;
 
     const showPayload = useMemo(
-      () => getModalPayload(ModalTelemetryAction.Show, policy.hidden, variant, true),
-      [policy.hidden, variant],
+      () => ({
+        ...getModalPayload(ModalTelemetryAction.Show, policy, telemetryProps),
+        visible: true,
+      }),
+      [policy, telemetryProps],
     );
 
     const hidePayload = useMemo(
-      () => getModalPayload(ModalTelemetryAction.Hide, policy.hidden, variant, false),
-      [policy.hidden, variant],
+      () => ({
+        ...getModalPayload(ModalTelemetryAction.Hide, policy, telemetryProps),
+        visible: false,
+      }),
+      [policy, telemetryProps],
     );
 
     /** Telemetry lifecycle */
     useEffect(() => {
       if (!policy.telemetryEnabled) return;
 
-      emitModalTelemetry(mountPayload);
+      emitModalTelemetry(lifecyclePayload.mount);
       return (): void => {
-        emitModalTelemetry(unmountPayload);
+        emitModalTelemetry(lifecyclePayload.unmount);
       };
-    }, [policy.telemetryEnabled, mountPayload, unmountPayload]);
+    }, [policy.telemetryEnabled, lifecyclePayload]);
 
-    /** Telemetry для видимости */
+    /** Telemetry для видимости - only on changes, not on mount */
+    const prevVisibleRef = useRef<boolean | undefined>(undefined);
+
     useEffect(() => {
       if (!policy.telemetryEnabled) return;
 
-      if (visible) {
-        emitModalTelemetry(showPayload);
-      } else {
-        emitModalTelemetry(hidePayload);
+      const currentVisibility = policy.isRendered;
+      const prevVisibility = prevVisibleRef.current;
+
+      // Emit only on actual visibility changes, not on mount
+      if (prevVisibility !== undefined && prevVisibility !== currentVisibility) {
+        emitModalTelemetry(
+          currentVisibility ? showPayload : hidePayload,
+        );
       }
-    }, [visible, policy.telemetryEnabled, showPayload, hidePayload]);
+
+      // eslint-disable-next-line functional/immutable-data
+      prevVisibleRef.current = currentVisibility;
+    }, [policy.telemetryEnabled, policy.isRendered, showPayload, hidePayload]);
 
     /** Policy: hidden */
-    if (!policy.isVisible) return null;
+    if (!policy.isRendered) return null;
 
     return (
       <CoreModal
         ref={ref}
-        visible={visible}
+        visible={policy.isRendered}
         variant={variant}
         data-component='AppModal'
-        data-state={visible ? 'visible' : 'hidden'}
+        data-state='visible'
         aria-label={ariaLabel}
         aria-labelledby={ariaLabelledBy}
         {...(duration !== undefined && { duration })}
@@ -199,16 +244,30 @@ const ModalComponent = forwardRef<HTMLDivElement, AppModalProps>(
 ModalComponent.displayName = 'Modal';
 
 /**
- * Memoized App Modal с ref forwarding.
+ * UI-контракт Modal компонента.
  *
- * Подходит для:
- * - UI модалок
- * - workflow
- * - design-system интеграций
+ * @contract
  *
- * Гарантии:
- * - Чёткое разделение Core и App слоёв
- * - Централизованная telemetry
- * - Управление фичефлагами в одном месте
+ * Гарантируется:
+ * - Детерминированный рендеринг без side effects (кроме telemetry)
+ * - SSR-safe и concurrent rendering compatible
+ * - Полная интеграция с централизованной telemetry системой
+ * - Управление feature flags для скрытия модального окна
+ * - Корректная обработка accessibility (focus management, ARIA)
+ *
+ * Инварианты:
+ * - Focus trap работает корректно при открытии
+ * - Overlay блокирует взаимодействие с остальным UI
+ * - ESC и backdrop click закрывают модальное окно
+ * - Telemetry payload содержит корректные размеры
+ * - Telemetry отражает состояние policy, а не сырые props
+ * - visible/hidden в payload являются производными только от policy
+ *
+ * Не допускается:
+ * - Использование напрямую core Modal компонента
+ * - Игнорирование feature flag логики
+ * - Нарушение focus management контрактов
+ * - Модификация telemetry payload структуры
+ * - Использование props.visible напрямую вне policy
  */
 export const Modal = memo(ModalComponent);

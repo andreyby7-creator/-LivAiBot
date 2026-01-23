@@ -27,7 +27,6 @@ import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from '
 import type { JSX } from 'react';
 
 import { Dialog as CoreDialog } from '../../../ui-core/src/primitives/dialog.js';
-import { useFeatureFlag } from '../lib/feature-flags.js';
 import { infoFireAndForget } from '../lib/telemetry.js';
 
 /* ============================================================================
@@ -96,8 +95,8 @@ export type AppDialogProps = Readonly<{
 
 /** DialogPolicy — контракт поведения Dialog. Это и есть «микросервисный API» модального взаимодействия. */
 type DialogPolicy = Readonly<{
-  hidden: boolean;
-  disabled: boolean;
+  readonly hiddenByFeatureFlag: boolean;
+  readonly disabledByFeatureFlag: boolean;
   open: boolean;
   variant: string | null;
   telemetryEnabled: boolean;
@@ -129,8 +128,8 @@ function useDialogPolicy(props: AppDialogProps): DialogPolicyController {
     closeOnEscape = true,
   } = props;
 
-  const hidden = useFeatureFlag(isHiddenByFeatureFlag);
-  const disabled = useFeatureFlag(isDisabledByFeatureFlag);
+  const hidden = Boolean(isHiddenByFeatureFlag);
+  const disabled = Boolean(isDisabledByFeatureFlag);
 
   /** Uncontrolled state */
   const [internalOpen, setInternalOpen] = useState<boolean>(defaultOpen ?? false);
@@ -162,8 +161,8 @@ function useDialogPolicy(props: AppDialogProps): DialogPolicyController {
 
   /** Policy = единственный источник истины */
   const policy = useMemo<DialogPolicy>(() => ({
-    hidden,
-    disabled,
+    hiddenByFeatureFlag: hidden,
+    disabledByFeatureFlag: disabled,
     open: effectiveOpen,
     variant: variantByFeatureFlag ?? null,
     telemetryEnabled: telemetryEnabled !== false,
@@ -197,8 +196,8 @@ function emitDialogTelemetry(
       action,
       open: policy.open,
       variant: policy.variant,
-      hidden: policy.hidden,
-      disabled: policy.disabled,
+      hidden: policy.hiddenByFeatureFlag,
+      disabled: policy.disabledByFeatureFlag,
     });
   });
 }
@@ -262,9 +261,9 @@ function DialogComponent(props: AppDialogProps): JSX.Element | null {
 
   /** Handlers (effects isolated here) */
   const handleClose = useCallback(() => {
-    if (policy.disabled) return;
+    if (policy.disabledByFeatureFlag) return;
     setOpen(false);
-  }, [policy.disabled, setOpen]);
+  }, [policy.disabledByFeatureFlag, setOpen]);
 
   const handleBackdropClick = useCallback(() => {
     if (!policy.closeOnBackdropClick) return;
@@ -277,7 +276,7 @@ function DialogComponent(props: AppDialogProps): JSX.Element | null {
   }, [policy.closeOnEscape, handleClose]);
 
   /** Hidden / Closed state. JSX знает только policy */
-  if (policy.hidden || !policy.open) {
+  if (policy.hiddenByFeatureFlag || !policy.open) {
     return null;
   }
 
@@ -288,7 +287,7 @@ function DialogComponent(props: AppDialogProps): JSX.Element | null {
       onBackdropClick={handleBackdropClick}
       onEscape={handleEscape}
       data-variant={policy.variant}
-      {...(policy.disabled && { 'data-disabled': policy.disabled })}
+      {...(policy.disabledByFeatureFlag && { 'data-disabled': policy.disabledByFeatureFlag })}
       {...(id != null ? { id } : {})}
       {...(dataTestId != null ? { 'data-testid': dataTestId } : {})}
       {...(ariaLabelledBy != null ? { 'aria-labelledby': ariaLabelledBy } : {})}
@@ -300,11 +299,28 @@ function DialogComponent(props: AppDialogProps): JSX.Element | null {
 }
 
 /**
- * Memoized Dialog.
- * Оптимизирован для:
- * - сложных layout'ов
- * - вложенных модальных цепочек
- * - платформенного переиспользования
+ * UI-контракт Dialog компонента.
+ *
+ * @contract
+ *
+ * Гарантируется:
+ * - Детерминированный рендеринг без side effects (кроме telemetry)
+ * - SSR-safe и concurrent rendering compatible
+ * - Полная интеграция с централизованной telemetry системой
+ * - Управление feature flags для скрытия и отключения
+ * - Корректная обработка controlled/uncontrolled состояния
+ *
+ * Инварианты:
+ * - Всегда возвращает валидный JSX.Element или null
+ * - Focus trap активируется при открытии
+ * - Overlay блокирует взаимодействие с фоном
+ * - Feature flags применяются корректно к visibility и disabled
+ *
+ * Не допускается:
+ * - Использование напрямую core Dialog компонента
+ * - Смешивание controlled и uncontrolled режимов
+ * - Игнорирование focus management контрактов
+ * - Модификация telemetry payload структуры
  */
 export const Dialog = Object.assign(memo(DialogComponent), {
   displayName: 'Dialog',

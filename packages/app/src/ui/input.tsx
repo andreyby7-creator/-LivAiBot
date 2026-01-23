@@ -24,7 +24,7 @@ import type { JSX } from 'react';
 
 import { Input as CoreInput } from '../../../ui-core/src/index.js';
 import type { InputProps as CoreInputProps } from '../../../ui-core/src/index.js';
-import { useFeatureFlag, useFeatureFlagOverride } from '../lib/feature-flags.js';
+import { useFeatureFlagOverride } from '../lib/feature-flags.js';
 import { useI18n } from '../lib/i18n.js';
 import type { Namespace, TranslationKey } from '../lib/i18n.js';
 import { infoFireAndForget } from '../lib/telemetry.js';
@@ -174,8 +174,8 @@ function InputComponent<T extends HTMLInputElement['value'] = string>(
   }
 
   const { translate } = useI18n();
-  const flagDisabled = useFeatureFlag(isDisabledByFeatureFlag);
-  const flagHidden = useFeatureFlag(isHiddenByFeatureFlag);
+  const flagDisabled = Boolean(isDisabledByFeatureFlag);
+  const flagHidden = Boolean(isHiddenByFeatureFlag);
   const telemetryEnabled = useFeatureFlagOverride('telemetry.enabled', true);
 
   // TODO: Runtime overrides для A/B тестирования (нужен context provider)

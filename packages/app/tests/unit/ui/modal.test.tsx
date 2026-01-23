@@ -121,10 +121,8 @@ describe('App Modal', () => {
       expect(screen.getByText(testContent)).toBeInTheDocument();
     });
 
-    it('не должен рендерить modal когда feature flag включен', () => {
-      mockFeatureFlagReturnValue = true; // Modal скрыт
-
-      render(<Modal visible={true}>{testContent}</Modal>);
+    it('не должен рендерить modal когда isHiddenByFeatureFlag=true', () => {
+      render(<Modal visible={true} isHiddenByFeatureFlag={true}>{testContent}</Modal>);
 
       expect(screen.queryByText(testContent)).not.toBeInTheDocument();
     });

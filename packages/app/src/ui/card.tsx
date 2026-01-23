@@ -24,7 +24,6 @@
 import React, { memo, useCallback, useEffect, useMemo } from 'react';
 import type { HTMLAttributes, JSX } from 'react';
 
-import { useFeatureFlag } from '../lib/feature-flags.js';
 import { infoFireAndForget } from '../lib/telemetry.js';
 
 /* ============================================================================
@@ -73,10 +72,10 @@ export type AppCardProps = Readonly<
 
 /** CardPolicy — контракт поведения компонента. Именно это и есть «микросервисный API» Card. */
 type CardPolicy = Readonly<{
-  hidden: boolean;
-  disabled: boolean;
-  variant: string | null;
-  telemetryEnabled: boolean;
+  readonly hiddenByFeatureFlag: boolean;
+  readonly disabledByFeatureFlag: boolean;
+  readonly variant: string | null;
+  readonly telemetryEnabled: boolean;
   // Future hooks для стратегического расширения
   experimentGroup?: string;
   securityLevel?: 'low' | 'high';
@@ -84,12 +83,12 @@ type CardPolicy = Readonly<{
 
 /** Resolve policy из props + feature flags. Единственное место, где UI знает про флаги. */
 function useCardPolicy(props: AppCardProps): CardPolicy {
-  const hidden = useFeatureFlag(props.isHiddenByFeatureFlag);
-  const disabled = useFeatureFlag(props.isDisabledByFeatureFlag);
+  const hidden = Boolean(props.isHiddenByFeatureFlag);
+  const disabled = Boolean(props.isDisabledByFeatureFlag);
 
   return useMemo<CardPolicy>(() => ({
-    hidden,
-    disabled,
+    hiddenByFeatureFlag: hidden,
+    disabledByFeatureFlag: disabled,
     variant: props.variantByFeatureFlag ?? null,
     telemetryEnabled: props.telemetryOnClick !== false,
   }), [hidden, disabled, props.variantByFeatureFlag, props.telemetryOnClick]);
@@ -107,8 +106,8 @@ function emitCardTelemetry(
     component: 'Card',
     action,
     variant: policy.variant,
-    hidden: policy.hidden,
-    disabled: policy.disabled,
+    hidden: policy.hiddenByFeatureFlag,
+    disabled: policy.disabledByFeatureFlag,
   });
 }
 
@@ -140,15 +139,15 @@ function CardComponent(props: AppCardProps): JSX.Element | null {
   }, []);
 
   /** Derived state */
-  const isInteractive = Boolean(onClick) && !policy.disabled;
+  const isInteractive = Boolean(onClick) && !policy.disabledByFeatureFlag;
 
   /** Handlers (effects isolated here) */
   const handleActivation = useCallback(
     (event?: React.SyntheticEvent<HTMLDivElement>) => {
-      if (policy.telemetryEnabled && !policy.disabled) {
+      if (policy.telemetryEnabled && !policy.disabledByFeatureFlag) {
         emitCardTelemetry('click', policy);
       }
-      if (!policy.disabled) {
+      if (!policy.disabledByFeatureFlag) {
         onClick?.(event as React.MouseEvent<HTMLDivElement>);
       }
     },
@@ -156,7 +155,7 @@ function CardComponent(props: AppCardProps): JSX.Element | null {
   );
 
   /** Hidden state */
-  if (policy.hidden) {
+  if (policy.hiddenByFeatureFlag) {
     return null;
   }
 
@@ -176,7 +175,7 @@ function CardComponent(props: AppCardProps): JSX.Element | null {
         }
         : undefined}
       data-variant={policy.variant}
-      data-disabled={policy.disabled || undefined}
+      data-disabled={policy.disabledByFeatureFlag || undefined}
       role={isInteractive ? 'button' : 'group'}
       tabIndex={isInteractive ? 0 : undefined}
       aria-disabled={!isInteractive}
@@ -190,11 +189,28 @@ function CardComponent(props: AppCardProps): JSX.Element | null {
 }
 
 /**
- * Memoized Card.
- * Оптимизирована для:
- * - списков
- * - dashboards
- * - карточных layout'ов
+ * UI-контракт Card компонента.
+ *
+ * @contract
+ *
+ * Гарантируется:
+ * - Детерминированный рендеринг без side effects (кроме telemetry)
+ * - SSR-safe и concurrent rendering compatible
+ * - Полная интеграция с централизованной telemetry системой
+ * - Управление feature flags для скрытия и отключения
+ * - Корректная обработка интерактивности и accessibility
+ *
+ * Инварианты:
+ * - Всегда возвращает валидный JSX.Element или null
+ * - Интерактивность определяется наличием onClick callback
+ * - Feature flags применяются корректно к visibility и disabled
+ * - Keyboard navigation работает для интерактивных карточек
+ *
+ * Не допускается:
+ * - Использование напрямую div вместо Card компонента
+ * - Игнорирование accessibility атрибутов
+ * - Нарушение keyboard navigation контрактов
+ * - Модификация telemetry payload структуры
  */
 export const Card = Object.assign(memo(CardComponent), {
   displayName: 'Card',

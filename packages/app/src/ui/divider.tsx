@@ -20,7 +20,7 @@
  * <Divider orientation="vertical" thickness={2} color="red" length="50px" />
  */
 
-import { forwardRef, memo, useEffect, useMemo } from 'react';
+import { forwardRef, memo, useEffect, useMemo, useRef } from 'react';
 import type { JSX, Ref } from 'react';
 
 import { Divider as CoreDivider } from '../../../ui-core/src/primitives/divider.js';
@@ -28,7 +28,6 @@ import type {
   CoreDividerProps,
   DividerOrientation,
 } from '../../../ui-core/src/primitives/divider.js';
-import { useFeatureFlag } from '../lib/feature-flags.js';
 import { infoFireAndForget } from '../lib/telemetry.js';
 
 /* ============================================================================
@@ -63,17 +62,17 @@ export type AppDividerProps = Readonly<
  * ========================================================================== */
 
 type DividerPolicy = Readonly<{
-  hidden: boolean;
-  isVisible: boolean;
-  telemetryEnabled: boolean;
+  readonly hiddenByFeatureFlag: boolean;
+  readonly isRendered: boolean;
+  readonly telemetryEnabled: boolean;
 }>;
 
 function useDividerPolicy(props: AppDividerProps): DividerPolicy {
-  const hiddenByFlag = useFeatureFlag(props.isHiddenByFeatureFlag ?? false);
+  const hiddenByFlag = Boolean(props.isHiddenByFeatureFlag);
 
   return useMemo(() => ({
-    hidden: hiddenByFlag,
-    isVisible: !hiddenByFlag,
+    hiddenByFeatureFlag: hiddenByFlag,
+    isRendered: !hiddenByFlag,
     telemetryEnabled: props.telemetryEnabled !== false,
   }), [hiddenByFlag, props.telemetryEnabled]);
 }
@@ -94,7 +93,7 @@ function getDividerPayload(
   return {
     component: 'Divider',
     action,
-    hidden: policy.hidden,
+    hidden: policy.hiddenByFeatureFlag,
     orientation: coreProps.orientation ?? 'horizontal',
     color: coreProps.color ?? 'var(--divider-color, #E5E7EB)',
   };
@@ -109,28 +108,33 @@ const DividerComponent = forwardRef<HTMLElement, AppDividerProps>(
     const policy = useDividerPolicy(props);
     const { ...coreProps } = props;
 
-    const mountPayload = useMemo<DividerTelemetryPayload>(
-      () => getDividerPayload(DividerTelemetryAction.Mount, policy, coreProps),
-      [policy, coreProps],
-    );
+    const lifecyclePayloadRef = useRef<
+      {
+        mount: DividerTelemetryPayload;
+        unmount: DividerTelemetryPayload;
+      } | undefined
+    >(undefined);
 
-    const unmountPayload = useMemo<DividerTelemetryPayload>(
-      () => getDividerPayload(DividerTelemetryAction.Unmount, policy, coreProps),
-      [policy, coreProps],
-    );
+    // eslint-disable-next-line functional/immutable-data
+    lifecyclePayloadRef.current ??= {
+      mount: getDividerPayload(DividerTelemetryAction.Mount, policy, coreProps),
+      unmount: getDividerPayload(DividerTelemetryAction.Unmount, policy, coreProps),
+    };
+
+    const lifecyclePayload = lifecyclePayloadRef.current;
 
     /** Telemetry lifecycle */
     useEffect(() => {
       if (!policy.telemetryEnabled) return;
 
-      emitDividerTelemetry(mountPayload);
+      emitDividerTelemetry(lifecyclePayload.mount);
       return (): void => {
-        emitDividerTelemetry(unmountPayload);
+        emitDividerTelemetry(lifecyclePayload.unmount);
       };
-    }, [policy.telemetryEnabled, mountPayload, unmountPayload]);
+    }, [policy.telemetryEnabled, lifecyclePayload]);
 
     /** Policy: hidden */
-    if (!policy.isVisible) return null;
+    if (!policy.isRendered) return null;
 
     return (
       <CoreDivider
@@ -146,16 +150,27 @@ const DividerComponent = forwardRef<HTMLElement, AppDividerProps>(
 DividerComponent.displayName = 'Divider';
 
 /**
- * Memoized App Divider with ref forwarding.
+ * UI-контракт Divider компонента.
  *
- * Подходит для:
- * - UI-компонентов
- * - workflow
- * - design-system интеграций
+ * @contract
  *
- * Гарантии:
- * - Чёткое разделение Core и App слоёв
- * - Централизованная telemetry
- * - Управление фичефлагами в одном месте
+ * Гарантируется:
+ * - Детерминированный рендеринг без side effects (кроме telemetry)
+ * - SSR-safe и concurrent rendering compatible
+ * - Полная интеграция с централизованной telemetry системой
+ * - Управление feature flags для скрытия разделителей
+ * - Корректное применение CSS размеров (thickness)
+ *
+ * Инварианты:
+ * - Всегда возвращает валидный JSX.Element или null
+ * - CSS размеры применяются корректно через thickness prop
+ * - Feature flags полностью изолированы от Core логики
+ * - Orientation (horizontal/vertical) работает корректно
+ *
+ * Не допускается:
+ * - Использование напрямую core Divider компонента
+ * - Переопределение размеров через CSS вместо props
+ * - Игнорирование feature flag логики
+ * - Модификация telemetry payload структуры
  */
 export const Divider = memo(DividerComponent);

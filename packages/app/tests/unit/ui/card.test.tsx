@@ -83,10 +83,10 @@ describe('Card', () => {
       mockFeatureFlagReturnValue = false; // Восстанавливаем
     });
 
-    it('должен рендерить компонент при isHiddenByFeatureFlag=true но feature flag отключен', () => {
+    it('должен скрывать компонент при isHiddenByFeatureFlag=true независимо от feature flag', () => {
       render(<Card isHiddenByFeatureFlag={true}>Content</Card>);
 
-      expect(screen.getByText('Content')).toBeInTheDocument();
+      expect(screen.queryByText('Content')).not.toBeInTheDocument();
     });
 
     it('должен передавать variantByFeatureFlag в data-variant', () => {
@@ -119,12 +119,12 @@ describe('Card', () => {
       expect(true).toBe(true);
     });
 
-    it('должен быть enabled при isDisabledByFeatureFlag=true но feature flag отключен', () => {
+    it('должен быть disabled при isDisabledByFeatureFlag=true независимо от feature flag', () => {
       render(<Card isDisabledByFeatureFlag={true} onClick={mockOnClick}>Content</Card>);
 
       const card = screen.getByText('Content');
-      expect(card).not.toHaveAttribute('data-disabled');
-      expect(card).toHaveAttribute('aria-disabled', 'false'); // интерактивные элементы имеют aria-disabled="false"
+      expect(card).toHaveAttribute('data-disabled');
+      expect(card).toHaveAttribute('aria-disabled', 'true');
     });
   });
 

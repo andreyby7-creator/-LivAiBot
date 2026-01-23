@@ -76,13 +76,13 @@ describe('App Breadcrumbs', () => {
       );
     });
 
-    it('должен передавать data-state с текущим состоянием видимости', () => {
+    it('должен правильно управлять видимостью через policy', () => {
       const { rerender } = render(<Breadcrumbs items={testItems} visible={true} />);
 
-      expect(screen.getByTestId('core-breadcrumbs')).toHaveAttribute('data-state', 'visible');
+      expect(screen.getByTestId('core-breadcrumbs')).toBeInTheDocument();
 
       rerender(<Breadcrumbs items={testItems} visible={false} />);
-      expect(screen.getByTestId('core-breadcrumbs')).toHaveAttribute('data-state', 'hidden');
+      expect(screen.queryByTestId('core-breadcrumbs')).not.toBeInTheDocument(); // visible=false скрывает компонент
     });
 
     it('должен передавать data-feature-flag с состоянием feature flag', () => {
@@ -150,7 +150,18 @@ describe('App Breadcrumbs', () => {
     });
 
     it('должен отправлять show/hide telemetry при изменении видимости', () => {
-      const { rerender } = render(<Breadcrumbs items={testItems} visible={true} />);
+      const { rerender } = render(<Breadcrumbs items={testItems} visible={false} />);
+
+      // Mount при первом рендере
+      expect(mockInfoFireAndForget).toHaveBeenCalledWith('Breadcrumbs mount', {
+        component: 'Breadcrumbs',
+        action: 'mount',
+        hidden: false,
+        visible: false,
+        itemsCount: 3,
+      });
+
+      rerender(<Breadcrumbs items={testItems} visible={true} />);
 
       expect(mockInfoFireAndForget).toHaveBeenCalledWith('Breadcrumbs show', {
         component: 'Breadcrumbs',
@@ -161,6 +172,14 @@ describe('App Breadcrumbs', () => {
       });
 
       rerender(<Breadcrumbs items={testItems} visible={false} />);
+
+      expect(mockInfoFireAndForget).toHaveBeenCalledWith('Breadcrumbs hide', {
+        component: 'Breadcrumbs',
+        action: 'hide',
+        hidden: false,
+        visible: false,
+        itemsCount: 3,
+      });
 
       expect(mockInfoFireAndForget).toHaveBeenCalledWith('Breadcrumbs hide', {
         component: 'Breadcrumbs',
@@ -232,10 +251,10 @@ describe('App Breadcrumbs', () => {
       expect(breadcrumbs).toHaveClass('custom-class');
     });
 
-    it('должен иметь visible=false по умолчанию', () => {
+    it('должен иметь visible=true по умолчанию', () => {
       render(<Breadcrumbs items={testItems} />);
 
-      expect(screen.getByTestId('core-breadcrumbs')).toHaveAttribute('data-state', 'hidden');
+      expect(screen.getByTestId('core-breadcrumbs')).toHaveAttribute('data-state', 'visible');
     });
 
     it('должен поддерживать ref forwarding', () => {
@@ -342,13 +361,8 @@ describe('App Breadcrumbs', () => {
       const newItems = [{ label: 'New', href: '/new' }];
       rerender(<Breadcrumbs items={newItems} visible={true} />);
 
-      // Mount должен пересчитаться для новых items
-      expect(mockInfoFireAndForget).toHaveBeenCalledWith(
-        'Breadcrumbs mount',
-        expect.objectContaining({
-          itemsCount: 1,
-        }),
-      );
+      // Mount payload остается immutable - пересчет не происходит
+      expect(mockInfoFireAndForget).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -365,8 +379,14 @@ describe('App Breadcrumbs', () => {
     });
 
     it('должен реагировать на изменение visible', () => {
-      const { rerender } = render(<Breadcrumbs items={testItems} visible={true} />);
+      const { rerender } = render(<Breadcrumbs items={testItems} visible={false} />);
 
+      // Mount при первом рендере
+      expect(mockInfoFireAndForget).toHaveBeenCalledWith('Breadcrumbs mount', expect.any(Object));
+
+      rerender(<Breadcrumbs items={testItems} visible={true} />);
+
+      // Show при изменении visible
       expect(mockInfoFireAndForget).toHaveBeenCalledWith('Breadcrumbs show', expect.any(Object));
 
       rerender(<Breadcrumbs items={testItems} visible={false} />);

@@ -1,40 +1,51 @@
 /**
  * @file packages/app/src/ui/button.tsx
  * ============================================================================
- * 🔘 APP UI BUTTON — КОНТЕЙНЕРНЫЙ WRAPPER КНОПКИ ПРИЛОЖЕНИЯ
+ * 🔘 APP UI BUTTON — UI МИКРОСЕРВИС BUTTON
  * ============================================================================
  *
- * Роль:
- * - Единственная точка входа для кнопок во всем приложении
- * - Интеграция:
- *   • i18n ✓
- *   • telemetry ✓ (централизованная система)
- *   • feature flags ✓ (управление поведением)
- *   • accessibility
+ * Единственная точка входа для Button в приложении.
+ * UI boundary между ui-core и бизнес-логикой.
  *
- * Архитектура:
- * - ui-core → только визуал
- * - app/ui → адаптация под бизнес-контекст
- * - feature/* → используют ТОЛЬКО app/ui
+ * Ответственность:
+ * - Policy (feature flags)
+ * - Telemetry (fire-and-forget)
+ * - I18n (интернационализация текста)
+ * - Контроль поведения на App-уровне
+ *
+ * Не содержит:
+ * - DOM-манипуляций кроме Core
+ * - Платформенных эффектов кроме telemetry
  */
 
-import React, { useCallback, useMemo } from 'react';
+import React, { memo, useCallback, useMemo } from 'react';
 import type { JSX } from 'react';
 
-import { Button as CoreButton } from '../../../ui-core/src/index.js';
-import type { ButtonProps as CoreButtonProps } from '../../../ui-core/src/index.js';
-import { useFeatureFlag } from '../lib/feature-flags.js';
+import { Button as CoreButton } from '../../../ui-core/src/primitives/button.js';
+import type { ButtonProps as CoreButtonProps } from '../../../ui-core/src/primitives/button.js';
 import { useI18n } from '../lib/i18n.js';
 import type { Namespace, TranslationKey } from '../lib/i18n.js';
 import { infoFireAndForget } from '../lib/telemetry.js';
 
 /* ============================================================================
- * 🧬 TYPES
+ * 🧬 TYPES & CONSTANTS
  * ========================================================================== */
 
-// Telemetry логируется централизованно, типы событий больше не экспортируются
+enum ButtonTelemetryAction {
+  Click = 'click',
+}
 
-/** App-уровневые пропсы кнопки */
+/** Стабильная ссылка на пустой объект параметров */
+const EMPTY_PARAMS: Record<string, string | number> = Object.freeze({});
+
+type ButtonTelemetryPayload = {
+  component: 'Button';
+  action: ButtonTelemetryAction;
+  variant: string | null;
+  disabled: boolean;
+};
+
+/** App props для Button */
 export type AppButtonProps = Readonly<
   & Omit<CoreButtonProps, 'children'>
   & (
@@ -56,79 +67,122 @@ export type AppButtonProps = Readonly<
 >;
 
 /* ============================================================================
+ * 🧠 POLICY
+ * ========================================================================== */
+
+type ButtonPolicy = Readonly<{
+  readonly telemetryEnabled: boolean;
+}>;
+
+/**
+ * Хук управления policy Button.
+ * Учитывает feature flags и настройки.
+ * @returns ButtonPolicy
+ */
+function useButtonPolicy(): ButtonPolicy {
+  // Пока нет feature flags для Button, но архитектура готова
+  return useMemo(() => ({
+    telemetryEnabled: true, // Всегда включена для кнопок
+  }), []);
+}
+
+/* ============================================================================
+ * 📡 TELEMETRY
+ * ========================================================================== */
+
+function emitButtonTelemetry(payload: ButtonTelemetryPayload): void {
+  infoFireAndForget(`Button ${payload.action}`, payload);
+}
+
+/* ============================================================================
  * 🎯 APP BUTTON
  * ========================================================================== */
 
-/**
- * Контейнерная кнопка приложения.
- *
- * Гарантии:
- * - Без side effects (кроме telemetry)
- * - Детеминированная
- * - SSR safe
- * - Полностью интегрирована с централизованной telemetry
- * - Поддерживает feature flags для управления поведением
- *
- * Использовать ТОЛЬКО её во всем проекте. */
-/** Стабильная ссылка на пустой объект параметров */
-const EMPTY_PARAMS: Record<string, string | number> = Object.freeze({});
+const ButtonComponent = memo<AppButtonProps>(
+  function ButtonComponent(props: AppButtonProps): JSX.Element {
+    const { onClick, disabled = false, variant, ...rest } = props;
+    const { translate } = useI18n();
+    const policy = useButtonPolicy();
 
-export function Button(props: AppButtonProps): JSX.Element {
-  const { onClick, disabled = false, variant, ...rest } = props;
-  const { translate } = useI18n();
-
-  // Feature flag для новых поведений кнопки (пример использования)
-  // В реальной системе: useFeatureFlag('ui.button.enhanced-behavior')
-  // Сейчас: placeholder с фиксированным значением для демонстрации архитектуры
-  const isEnhancedBehaviorEnabled = useFeatureFlag();
-
-  /** Текст кнопки: i18n → children → пусто */
-  const label = useMemo<React.ReactNode>(() => {
-    // Narrowing через discriminated union
-    if ('i18nKey' in props) {
-      const effectiveNs = props.i18nNs ?? 'common';
-      return translate(effectiveNs, props.i18nKey, props.i18nParams ?? EMPTY_PARAMS);
-    }
-    return props.children;
-  }, [props, translate]);
-
-  /** Click handler с централизованной telemetry */
-  const handleClick = useCallback<NonNullable<CoreButtonProps['onClick']>>(
-    (event: React.MouseEvent<HTMLButtonElement>) => {
-      if (!disabled) {
-        infoFireAndForget('Button clicked', {
-          component: 'Button',
-          variant: variant ?? null,
-          disabled,
-          enhancedBehavior: isEnhancedBehaviorEnabled,
-        });
+    /** Текст кнопки: i18n → children → пусто */
+    const label = useMemo<React.ReactNode>(() => {
+      // Narrowing через discriminated union
+      if ('i18nKey' in props) {
+        const effectiveNs = props.i18nNs ?? 'common';
+        return translate(effectiveNs, props.i18nKey, props.i18nParams ?? EMPTY_PARAMS);
       }
+      return props.children;
+    }, [props, translate]);
 
-      onClick?.(event);
-    },
-    [disabled, onClick, variant, isEnhancedBehaviorEnabled],
-  );
+    /** Click handler с централизованной telemetry */
+    const handleClick = useCallback<NonNullable<CoreButtonProps['onClick']>>(
+      (event: React.MouseEvent<HTMLButtonElement>) => {
+        if (!disabled && policy.telemetryEnabled) {
+          emitButtonTelemetry({
+            component: 'Button',
+            action: ButtonTelemetryAction.Click,
+            variant: variant ?? null,
+            disabled,
+          });
+        }
 
-  return (
-    <CoreButton
-      disabled={disabled}
-      onClick={handleClick}
-      {...rest}
-    >
-      {label}
-    </CoreButton>
-  );
-}
+        onClick?.(event);
+      },
+      [disabled, onClick, variant, policy.telemetryEnabled],
+    );
+
+    return (
+      <CoreButton
+        disabled={disabled}
+        onClick={handleClick}
+        {...rest}
+      >
+        {label}
+      </CoreButton>
+    );
+  },
+);
+
+/* eslint-disable functional/immutable-data */
+ButtonComponent.displayName = 'Button';
+/* eslint-enable functional/immutable-data */
+
+/**
+ * UI-контракт кнопки приложения.
+ *
+ * @contract
+ *
+ * Гарантируется:
+ * - Детерминированный рендеринг без side effects (кроме telemetry)
+ * - SSR-safe и concurrent rendering compatible
+ * - Полная интеграция с централизованной telemetry системой
+ * - Поддержка feature flags для управления поведением
+ * - Корректная обработка i18n локализации
+ *
+ * Инварианты:
+ * - Всегда возвращает валидный JSX.Element
+ * - Telemetry отправляется только при реальных кликах
+ * - i18n ключи разрешаются в существующие переводы
+ * - Feature flags не влияют на базовую функциональность
+ *
+ * Не допускается:
+ * - Использование напрямую core Button компонента
+ * - Переопределение onClick без вызова super
+ * - Модификация telemetry payload структуры
+ * - Игнорирование accessibility атрибутов
+ */
+export const Button = ButtonComponent;
 
 /* ============================================================================
  * 🧩 ARCHITECTURAL CONTRACT
  * ========================================================================== */
+
 /**
  * Этот файл — UI boundary.
  *
  * Он:
  * - Защищает core UI от бизнес-логики
- * - Защищает бизнес-логику от UI деталей
+ * - Защищает бизнес-логик от UI деталей
  * - Делает проект масштабируемым
  *
  * Любая новая:

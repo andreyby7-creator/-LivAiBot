@@ -17,12 +17,11 @@
  * - платформенных эффектов
  */
 
-import { forwardRef, memo, useEffect, useMemo } from 'react';
+import { forwardRef, memo, useEffect, useMemo, useRef } from 'react';
 import type { JSX, Ref } from 'react';
 
 import { Avatar as CoreAvatar } from '../../../ui-core/src/primitives/avatar.js';
 import type { CoreAvatarProps } from '../../../ui-core/src/primitives/avatar.js';
-import { useFeatureFlag } from '../lib/feature-flags.js';
 import { infoFireAndForget } from '../lib/telemetry.js';
 
 /* ============================================================================
@@ -60,17 +59,17 @@ export type AppAvatarProps = Readonly<
  * ========================================================================== */
 
 type AvatarPolicy = Readonly<{
-  hidden: boolean;
-  isVisible: boolean;
-  telemetryEnabled: boolean;
+  readonly hiddenByFeatureFlag: boolean;
+  readonly isRendered: boolean;
+  readonly telemetryEnabled: boolean;
 }>;
 
 function useAvatarPolicy(props: AppAvatarProps): AvatarPolicy {
-  const hidden = useFeatureFlag(props.isHiddenByFeatureFlag ?? false);
+  const hidden = Boolean(props.isHiddenByFeatureFlag);
 
   return useMemo<AvatarPolicy>(() => ({
-    hidden,
-    isVisible: !hidden,
+    hiddenByFeatureFlag: hidden,
+    isRendered: !hidden,
     telemetryEnabled: props.telemetryEnabled !== false,
   }), [hidden, props.telemetryEnabled]);
 }
@@ -103,20 +102,31 @@ const AvatarComponent = forwardRef<HTMLDivElement, AppAvatarProps>(
         .join('');
     }, [name]);
 
-    // Мемоизированные telemetry payload'ы для consistency
-    const mountPayload = useMemo<AvatarTelemetryPayload>(() => ({
-      component: 'Avatar',
-      action: AvatarTelemetryAction.Mount,
-      hidden: policy.hidden,
-      name: name ?? null,
-    }), [policy.hidden, name]);
+    // Immutable lifecycle telemetry snapshot
+    const lifecyclePayloadRef = useRef<
+      {
+        mount: AvatarTelemetryPayload;
+        unmount: AvatarTelemetryPayload;
+      } | undefined
+    >(undefined);
 
-    const unmountPayload = useMemo<AvatarTelemetryPayload>(() => ({
-      component: 'Avatar',
-      action: AvatarTelemetryAction.Unmount,
-      hidden: policy.hidden,
-      name: name ?? null,
-    }), [policy.hidden, name]);
+    // eslint-disable-next-line functional/immutable-data
+    lifecyclePayloadRef.current ??= {
+      mount: {
+        component: 'Avatar' as const,
+        action: AvatarTelemetryAction.Mount,
+        hidden: policy.hiddenByFeatureFlag,
+        name: name ?? null,
+      },
+      unmount: {
+        component: 'Avatar' as const,
+        action: AvatarTelemetryAction.Unmount,
+        hidden: policy.hiddenByFeatureFlag,
+        name: name ?? null,
+      },
+    };
+
+    const lifecyclePayload = lifecyclePayloadRef.current;
 
     /** Dev invariant: strict validation for development */
     if (
@@ -135,16 +145,16 @@ const AvatarComponent = forwardRef<HTMLDivElement, AppAvatarProps>(
     /** Telemetry lifecycle */
     useEffect(() => {
       if (policy.telemetryEnabled) {
-        emitAvatarTelemetry(mountPayload);
+        emitAvatarTelemetry(lifecyclePayload.mount);
         return (): void => {
-          emitAvatarTelemetry(unmountPayload);
+          emitAvatarTelemetry(lifecyclePayload.unmount);
         };
       }
       return undefined;
-    }, [policy.telemetryEnabled, mountPayload, unmountPayload]);
+    }, [policy.telemetryEnabled, lifecyclePayload]);
 
     /** hidden */
-    if (!policy.isVisible) return null;
+    if (!policy.isRendered) return null;
 
     return (
       <CoreAvatar
@@ -164,11 +174,27 @@ const AvatarComponent = forwardRef<HTMLDivElement, AppAvatarProps>(
 AvatarComponent.displayName = 'Avatar';
 
 /**
- * Memoized App Avatar with ref forwarding.
+ * UI-контракт Avatar компонента.
  *
- * Подходит для:
- * - UI-компонентов
- * - workflow
- * - design-system интеграций
+ * @contract
+ *
+ * Гарантируется:
+ * - Детерминированный рендеринг без side effects (кроме telemetry)
+ * - SSR-safe и concurrent rendering compatible
+ * - Полная интеграция с централизованной telemetry системой
+ * - Управление feature flags для скрытия аватаров
+ * - Автоматическая генерация fallback текста из имени
+ *
+ * Инварианты:
+ * - Всегда возвращает валидный JSX.Element или null
+ * - Fallback текст генерируется из alt атрибута
+ * - Feature flags полностью изолированы от Core логики
+ * - Изображения загружаются с error handling
+ *
+ * Не допускается:
+ * - Использование напрямую core Avatar компонента
+ * - Передача пустого alt атрибута
+ * - Игнорирование feature flag логики
+ * - Модификация telemetry payload структуры
  */
 export const Avatar = memo(AvatarComponent);

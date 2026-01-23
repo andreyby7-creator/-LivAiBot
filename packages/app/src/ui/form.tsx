@@ -13,7 +13,6 @@ import type { JSX } from 'react';
 
 import { Form as CoreForm } from '../../../ui-core/src/primitives/form.js';
 import type { CoreFormProps } from '../../../ui-core/src/primitives/form.js';
-import { useFeatureFlag } from '../lib/feature-flags.js';
 import { infoFireAndForget } from '../lib/telemetry.js';
 
 /* ============================================================================
@@ -46,21 +45,21 @@ export type AppFormProps = Readonly<
  * ========================================================================== */
 
 type FormPolicy = Readonly<{
-  hidden: boolean;
-  disabled: boolean;
-  variant: string | null;
-  telemetryEnabled: boolean;
-  telemetryOnSubmit: boolean;
-  telemetryOnReset: boolean;
+  readonly hiddenByFeatureFlag: boolean;
+  readonly disabledByFeatureFlag: boolean;
+  readonly variant: string | null;
+  readonly telemetryEnabled: boolean;
+  readonly telemetryOnSubmit: boolean;
+  readonly telemetryOnReset: boolean;
 }>;
 
 function useFormPolicy(props: AppFormProps): FormPolicy {
-  const hidden = useFeatureFlag(props.isHiddenByFeatureFlag);
-  const disabled = useFeatureFlag(props.isDisabledByFeatureFlag);
+  const hidden = Boolean(props.isHiddenByFeatureFlag);
+  const disabled = Boolean(props.isDisabledByFeatureFlag);
 
   return useMemo<FormPolicy>(() => ({
-    hidden,
-    disabled,
+    hiddenByFeatureFlag: hidden,
+    disabledByFeatureFlag: disabled,
     variant: props.variantByFeatureFlag ?? null,
     telemetryEnabled: props.telemetryEnabled !== false,
     telemetryOnSubmit: props.telemetryOnSubmit !== false,
@@ -87,8 +86,8 @@ function emitFormTelemetry(
     component: 'Form',
     action,
     variant: policy.variant,
-    hidden: policy.hidden,
-    disabled: policy.disabled,
+    hidden: policy.hiddenByFeatureFlag,
+    disabled: policy.disabledByFeatureFlag,
   });
 }
 
@@ -122,7 +121,7 @@ function FormComponent(props: AppFormProps): JSX.Element | null {
   /** обработчики */
   const handleSubmit = useCallback(
     (event: React.FormEvent<HTMLFormElement>) => {
-      if (policy.disabled) {
+      if (policy.disabledByFeatureFlag) {
         return;
       }
 
@@ -137,7 +136,7 @@ function FormComponent(props: AppFormProps): JSX.Element | null {
 
   const handleReset = useCallback(
     (event: React.FormEvent<HTMLFormElement>) => {
-      if (policy.disabled) {
+      if (policy.disabledByFeatureFlag) {
         return;
       }
 
@@ -150,7 +149,7 @@ function FormComponent(props: AppFormProps): JSX.Element | null {
     [policy, onReset],
   );
 
-  if (policy.hidden) {
+  if (policy.hiddenByFeatureFlag) {
     return null;
   }
 
@@ -160,15 +159,39 @@ function FormComponent(props: AppFormProps): JSX.Element | null {
       onSubmit={handleSubmit}
       onReset={handleReset}
       data-variant={policy.variant}
-      data-disabled={policy.disabled || undefined}
-      aria-disabled={policy.disabled || undefined}
-      aria-busy={policy.disabled || undefined}
+      data-disabled={policy.disabledByFeatureFlag || undefined}
+      aria-disabled={policy.disabledByFeatureFlag || undefined}
+      aria-busy={policy.disabledByFeatureFlag || undefined}
     >
       {children}
     </CoreForm>
   );
 }
 
+/**
+ * UI-контракт Form компонента.
+ *
+ * @contract
+ *
+ * Гарантируется:
+ * - Детерминированный рендеринг без side effects (кроме telemetry)
+ * - SSR-safe и concurrent rendering compatible
+ * - Полная интеграция с централизованной telemetry системой
+ * - Управление feature flags для скрытия и отключения
+ * - Корректная обработка submit/reset событий
+ *
+ * Инварианты:
+ * - Всегда возвращает валидный JSX.Element или null
+ * - Submit/reset events передаются корректно в callbacks
+ * - Feature flags применяются корректно к visibility и disabled
+ * - Telemetry events отправляются только при реальных действиях
+ *
+ * Не допускается:
+ * - Использование напрямую core Form компонента
+ * - Переопределение submit/reset логики без callbacks
+ * - Игнорирование accessibility атрибутов
+ * - Модификация telemetry payload структуры
+ */
 export const Form = Object.assign(memo(FormComponent), {
   displayName: 'Form',
 });

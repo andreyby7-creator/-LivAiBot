@@ -274,7 +274,7 @@ describe('Badge', () => {
       expect(firstRender).toBe(secondRender);
     });
 
-    it('должен перерендериваться при изменении значимых пропсов', () => {
+    it('не должен пересчитывать lifecycle telemetry при изменении пропсов', () => {
       const { rerender } = render(<Badge value='test' />);
 
       expect(mockInfoFireAndForget).toHaveBeenCalledTimes(1);
@@ -285,21 +285,11 @@ describe('Badge', () => {
         value: 'test',
       });
 
-      rerender(<Badge value='new value' />);
+      mockInfoFireAndForget.mockClear();
 
-      expect(mockInfoFireAndForget).toHaveBeenCalledTimes(3); // unmount old + mount new
-      expect(mockInfoFireAndForget).toHaveBeenNthCalledWith(2, 'Badge unmount', {
-        component: 'Badge',
-        action: 'unmount',
-        hidden: false,
-        value: 'test',
-      });
-      expect(mockInfoFireAndForget).toHaveBeenNthCalledWith(3, 'Badge mount', {
-        component: 'Badge',
-        action: 'mount',
-        hidden: false,
-        value: 'new value',
-      });
+      rerender(<Badge value='new value' />);
+      // Lifecycle telemetry не должен пересчитываться при изменении пропсов
+      expect(mockInfoFireAndForget).not.toHaveBeenCalled();
     });
   });
 });

@@ -1,495 +1,12 @@
-/home/boss/Projects/livai/packages/ui-core/tests/unit/primitives/dialog.test.tsx: рендерится без падений с минимальными пропсами
-TypeError: () => ({
-  observe: __vite_ssr_import_1__.vi.fn(),
-  disconnect: __vite_ssr_import_1__.vi.fn(),
-  takeRecords: ...<omitted>...}) is not a constructor
-    at new Mock (file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+spy@4.0.17/node_modules/@vitest/spy/dist/index.js:262:27)
-    at /home/boss/Projects/livai/packages/ui-core/src/primitives/dialog.tsx:173:24
-    at Object.react_stack_bottom_frame (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:25989:20)
-    at runWithFiberInDEV (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:874:13)
-    at commitHookEffectListMount (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:13249:29)
-    at commitHookLayoutEffects (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:13213:11)
-    at commitLayoutEffectOnFiber (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:13951:13)
-    at recursivelyTraverseLayoutEffects (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:15159:11)
-    at commitLayoutEffectOnFiber (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:14031:11)
-    at flushLayoutEffects (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:18138:15)
+/home/boss/Projects/livai/packages/app/tests/unit/ui/avatar.test.tsx: должен пересчитывать значения при изменении пропсов
+AssertionError: expected "vi.fn()" to be called with arguments: [ 'Avatar mount', …(1) ][90m
 
----
-
-/home/boss/Projects/livai/packages/ui-core/tests/unit/primitives/dialog.test.tsx: рендерится в portal (document.body)
-TypeError: () => ({
-  observe: __vite_ssr_import_1__.vi.fn(),
-  disconnect: __vite_ssr_import_1__.vi.fn(),
-  takeRecords: ...<omitted>...}) is not a constructor
-    at new Mock (file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+spy@4.0.17/node_modules/@vitest/spy/dist/index.js:262:27)
-    at /home/boss/Projects/livai/packages/ui-core/src/primitives/dialog.tsx:173:24
-    at Object.react_stack_bottom_frame (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:25989:20)
-    at runWithFiberInDEV (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:874:13)
-    at commitHookEffectListMount (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:13249:29)
-    at commitHookLayoutEffects (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:13213:11)
-    at commitLayoutEffectOnFiber (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:13951:13)
-    at recursivelyTraverseLayoutEffects (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:15159:11)
-    at commitLayoutEffectOnFiber (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:14031:11)
-    at flushLayoutEffects (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:18138:15)
-
----
-
-/home/boss/Projects/livai/packages/ui-core/tests/unit/primitives/dialog.test.tsx: применяет базовые CSS классы
-TypeError: () => ({
-  observe: __vite_ssr_import_1__.vi.fn(),
-  disconnect: __vite_ssr_import_1__.vi.fn(),
-  takeRecords: ...<omitted>...}) is not a constructor
-    at new Mock (file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+spy@4.0.17/node_modules/@vitest/spy/dist/index.js:262:27)
-    at /home/boss/Projects/livai/packages/ui-core/src/primitives/dialog.tsx:173:24
-    at Object.react_stack_bottom_frame (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:25989:20)
-    at runWithFiberInDEV (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:874:13)
-    at commitHookEffectListMount (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:13249:29)
-    at commitHookLayoutEffects (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:13213:11)
-    at commitLayoutEffectOnFiber (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:13951:13)
-    at recursivelyTraverseLayoutEffects (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:15159:11)
-    at commitLayoutEffectOnFiber (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:14031:11)
-    at flushLayoutEffects (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:18138:15)
-
----
-
-/home/boss/Projects/livai/packages/ui-core/tests/unit/primitives/dialog.test.tsx: применяет role="dialog"
-TypeError: () => ({
-  observe: __vite_ssr_import_1__.vi.fn(),
-  disconnect: __vite_ssr_import_1__.vi.fn(),
-  takeRecords: ...<omitted>...}) is not a constructor
-    at new Mock (file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+spy@4.0.17/node_modules/@vitest/spy/dist/index.js:262:27)
-    at /home/boss/Projects/livai/packages/ui-core/src/primitives/dialog.tsx:173:24
-    at Object.react_stack_bottom_frame (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:25989:20)
-    at runWithFiberInDEV (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:874:13)
-    at commitHookEffectListMount (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:13249:29)
-    at commitHookLayoutEffects (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:13213:11)
-    at commitLayoutEffectOnFiber (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:13951:13)
-    at recursivelyTraverseLayoutEffects (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:15159:11)
-    at commitLayoutEffectOnFiber (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:14031:11)
-    at flushLayoutEffects (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:18138:15)
-
----
-
-/home/boss/Projects/livai/packages/ui-core/tests/unit/primitives/dialog.test.tsx: применяет aria-modal
-TypeError: () => ({
-  observe: __vite_ssr_import_1__.vi.fn(),
-  disconnect: __vite_ssr_import_1__.vi.fn(),
-  takeRecords: ...<omitted>...}) is not a constructor
-    at new Mock (file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+spy@4.0.17/node_modules/@vitest/spy/dist/index.js:262:27)
-    at /home/boss/Projects/livai/packages/ui-core/src/primitives/dialog.tsx:173:24
-    at Object.react_stack_bottom_frame (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:25989:20)
-    at runWithFiberInDEV (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:874:13)
-    at commitHookEffectListMount (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:13249:29)
-    at commitHookLayoutEffects (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:13213:11)
-    at commitLayoutEffectOnFiber (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:13951:13)
-    at recursivelyTraverseLayoutEffects (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:15159:11)
-    at commitLayoutEffectOnFiber (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:14031:11)
-    at flushLayoutEffects (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:18138:15)
-
----
-
-/home/boss/Projects/livai/packages/ui-core/tests/unit/primitives/dialog.test.tsx: применяет aria-labelledby когда передан
-TypeError: () => ({
-  observe: __vite_ssr_import_1__.vi.fn(),
-  disconnect: __vite_ssr_import_1__.vi.fn(),
-  takeRecords: ...<omitted>...}) is not a constructor
-    at new Mock (file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+spy@4.0.17/node_modules/@vitest/spy/dist/index.js:262:27)
-    at /home/boss/Projects/livai/packages/ui-core/src/primitives/dialog.tsx:173:24
-    at Object.react_stack_bottom_frame (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:25989:20)
-    at runWithFiberInDEV (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:874:13)
-    at commitHookEffectListMount (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:13249:29)
-    at commitHookLayoutEffects (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:13213:11)
-    at commitLayoutEffectOnFiber (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:13951:13)
-    at recursivelyTraverseLayoutEffects (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:15159:11)
-    at commitLayoutEffectOnFiber (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:14031:11)
-    at flushLayoutEffects (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:18138:15)
-
----
-
-/home/boss/Projects/livai/packages/ui-core/tests/unit/primitives/dialog.test.tsx: применяет aria-describedby когда передан
-TypeError: () => ({
-  observe: __vite_ssr_import_1__.vi.fn(),
-  disconnect: __vite_ssr_import_1__.vi.fn(),
-  takeRecords: ...<omitted>...}) is not a constructor
-    at new Mock (file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+spy@4.0.17/node_modules/@vitest/spy/dist/index.js:262:27)
-    at /home/boss/Projects/livai/packages/ui-core/src/primitives/dialog.tsx:173:24
-    at Object.react_stack_bottom_frame (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:25989:20)
-    at runWithFiberInDEV (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:874:13)
-    at commitHookEffectListMount (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:13249:29)
-    at commitHookLayoutEffects (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:13213:11)
-    at commitLayoutEffectOnFiber (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:13951:13)
-    at recursivelyTraverseLayoutEffects (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:15159:11)
-    at commitLayoutEffectOnFiber (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:14031:11)
-    at flushLayoutEffects (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:18138:15)
-
----
-
-/home/boss/Projects/livai/packages/ui-core/tests/unit/primitives/dialog.test.tsx: не применяет aria-labelledby когда не передан
-TypeError: () => ({
-  observe: __vite_ssr_import_1__.vi.fn(),
-  disconnect: __vite_ssr_import_1__.vi.fn(),
-  takeRecords: ...<omitted>...}) is not a constructor
-    at new Mock (file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+spy@4.0.17/node_modules/@vitest/spy/dist/index.js:262:27)
-    at /home/boss/Projects/livai/packages/ui-core/src/primitives/dialog.tsx:173:24
-    at Object.react_stack_bottom_frame (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:25989:20)
-    at runWithFiberInDEV (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:874:13)
-    at commitHookEffectListMount (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:13249:29)
-    at commitHookLayoutEffects (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:13213:11)
-    at commitLayoutEffectOnFiber (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:13951:13)
-    at recursivelyTraverseLayoutEffects (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:15159:11)
-    at commitLayoutEffectOnFiber (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:14031:11)
-    at flushLayoutEffects (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:18138:15)
-
----
-
-/home/boss/Projects/livai/packages/ui-core/tests/unit/primitives/dialog.test.tsx: применяет data-variant когда передан
-TypeError: () => ({
-  observe: __vite_ssr_import_1__.vi.fn(),
-  disconnect: __vite_ssr_import_1__.vi.fn(),
-  takeRecords: ...<omitted>...}) is not a constructor
-    at new Mock (file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+spy@4.0.17/node_modules/@vitest/spy/dist/index.js:262:27)
-    at /home/boss/Projects/livai/packages/ui-core/src/primitives/dialog.tsx:173:24
-    at Object.react_stack_bottom_frame (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:25989:20)
-    at runWithFiberInDEV (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:874:13)
-    at commitHookEffectListMount (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:13249:29)
-    at commitHookLayoutEffects (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:13213:11)
-    at commitLayoutEffectOnFiber (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:13951:13)
-    at recursivelyTraverseLayoutEffects (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:15159:11)
-    at commitLayoutEffectOnFiber (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:14031:11)
-    at flushLayoutEffects (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:18138:15)
-
----
-
-/home/boss/Projects/livai/packages/ui-core/tests/unit/primitives/dialog.test.tsx: применяет data-disabled когда передан
-TypeError: () => ({
-  observe: __vite_ssr_import_1__.vi.fn(),
-  disconnect: __vite_ssr_import_1__.vi.fn(),
-  takeRecords: ...<omitted>...}) is not a constructor
-    at new Mock (file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+spy@4.0.17/node_modules/@vitest/spy/dist/index.js:262:27)
-    at /home/boss/Projects/livai/packages/ui-core/src/primitives/dialog.tsx:173:24
-    at Object.react_stack_bottom_frame (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:25989:20)
-    at runWithFiberInDEV (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:874:13)
-    at commitHookEffectListMount (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:13249:29)
-    at commitHookLayoutEffects (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:13213:11)
-    at commitLayoutEffectOnFiber (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:13951:13)
-    at recursivelyTraverseLayoutEffects (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:15159:11)
-    at commitLayoutEffectOnFiber (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:14031:11)
-    at flushLayoutEffects (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:18138:15)
-
----
-
-/home/boss/Projects/livai/packages/ui-core/tests/unit/primitives/dialog.test.tsx: применяет z-index через CSS переменную
-TypeError: () => ({
-  observe: __vite_ssr_import_1__.vi.fn(),
-  disconnect: __vite_ssr_import_1__.vi.fn(),
-  takeRecords: ...<omitted>...}) is not a constructor
-    at new Mock (file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+spy@4.0.17/node_modules/@vitest/spy/dist/index.js:262:27)
-    at /home/boss/Projects/livai/packages/ui-core/src/primitives/dialog.tsx:173:24
-    at Object.react_stack_bottom_frame (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:25989:20)
-    at runWithFiberInDEV (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:874:13)
-    at commitHookEffectListMount (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:13249:29)
-    at commitHookLayoutEffects (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:13213:11)
-    at commitLayoutEffectOnFiber (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:13951:13)
-    at recursivelyTraverseLayoutEffects (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:15159:11)
-    at commitLayoutEffectOnFiber (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:14031:11)
-    at flushLayoutEffects (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:18138:15)
-
----
-
-/home/boss/Projects/livai/packages/ui-core/tests/unit/primitives/dialog.test.tsx: z-index по умолчанию = 1000
-TypeError: () => ({
-  observe: __vite_ssr_import_1__.vi.fn(),
-  disconnect: __vite_ssr_import_1__.vi.fn(),
-  takeRecords: ...<omitted>...}) is not a constructor
-    at new Mock (file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+spy@4.0.17/node_modules/@vitest/spy/dist/index.js:262:27)
-    at /home/boss/Projects/livai/packages/ui-core/src/primitives/dialog.tsx:173:24
-    at Object.react_stack_bottom_frame (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:25989:20)
-    at runWithFiberInDEV (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:874:13)
-    at commitHookEffectListMount (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:13249:29)
-    at commitHookLayoutEffects (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:13213:11)
-    at commitLayoutEffectOnFiber (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:13951:13)
-    at recursivelyTraverseLayoutEffects (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:15159:11)
-    at commitLayoutEffectOnFiber (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:14031:11)
-    at flushLayoutEffects (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:18138:15)
-
----
-
-/home/boss/Projects/livai/packages/ui-core/tests/unit/primitives/dialog.test.tsx: рендерит backdrop с правильными классами
-TypeError: () => ({
-  observe: __vite_ssr_import_1__.vi.fn(),
-  disconnect: __vite_ssr_import_1__.vi.fn(),
-  takeRecords: ...<omitted>...}) is not a constructor
-    at new Mock (file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+spy@4.0.17/node_modules/@vitest/spy/dist/index.js:262:27)
-    at /home/boss/Projects/livai/packages/ui-core/src/primitives/dialog.tsx:173:24
-    at Object.react_stack_bottom_frame (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:25989:20)
-    at runWithFiberInDEV (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:874:13)
-    at commitHookEffectListMount (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:13249:29)
-    at commitHookLayoutEffects (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:13213:11)
-    at commitLayoutEffectOnFiber (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:13951:13)
-    at recursivelyTraverseLayoutEffects (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:15159:11)
-    at commitLayoutEffectOnFiber (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:14031:11)
-    at flushLayoutEffects (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:18138:15)
-
----
-
-/home/boss/Projects/livai/packages/ui-core/tests/unit/primitives/dialog.test.tsx: backdrop имеет aria-hidden="true"
-TypeError: () => ({
-  observe: __vite_ssr_import_1__.vi.fn(),
-  disconnect: __vite_ssr_import_1__.vi.fn(),
-  takeRecords: ...<omitted>...}) is not a constructor
-    at new Mock (file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+spy@4.0.17/node_modules/@vitest/spy/dist/index.js:262:27)
-    at /home/boss/Projects/livai/packages/ui-core/src/primitives/dialog.tsx:173:24
-    at Object.react_stack_bottom_frame (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:25989:20)
-    at runWithFiberInDEV (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:874:13)
-    at commitHookEffectListMount (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:13249:29)
-    at commitHookLayoutEffects (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:13213:11)
-    at commitLayoutEffectOnFiber (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:13951:13)
-    at recursivelyTraverseLayoutEffects (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:15159:11)
-    at commitLayoutEffectOnFiber (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:14031:11)
-    at flushLayoutEffects (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:18138:15)
-
----
-
-/home/boss/Projects/livai/packages/ui-core/tests/unit/primitives/dialog.test.tsx: backdrop имеет role="presentation"
-TypeError: () => ({
-  observe: __vite_ssr_import_1__.vi.fn(),
-  disconnect: __vite_ssr_import_1__.vi.fn(),
-  takeRecords: ...<omitted>...}) is not a constructor
-    at new Mock (file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+spy@4.0.17/node_modules/@vitest/spy/dist/index.js:262:27)
-    at /home/boss/Projects/livai/packages/ui-core/src/primitives/dialog.tsx:173:24
-    at Object.react_stack_bottom_frame (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:25989:20)
-    at runWithFiberInDEV (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:874:13)
-    at commitHookEffectListMount (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:13249:29)
-    at commitHookLayoutEffects (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:13213:11)
-    at commitLayoutEffectOnFiber (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:13951:13)
-    at recursivelyTraverseLayoutEffects (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:15159:11)
-    at commitLayoutEffectOnFiber (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:14031:11)
-    at flushLayoutEffects (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:18138:15)
-
----
-
-/home/boss/Projects/livai/packages/ui-core/tests/unit/primitives/dialog.test.tsx: backdrop вызывает onBackdropClick при клике
-TypeError: () => ({
-  observe: __vite_ssr_import_1__.vi.fn(),
-  disconnect: __vite_ssr_import_1__.vi.fn(),
-  takeRecords: ...<omitted>...}) is not a constructor
-    at new Mock (file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+spy@4.0.17/node_modules/@vitest/spy/dist/index.js:262:27)
-    at /home/boss/Projects/livai/packages/ui-core/src/primitives/dialog.tsx:173:24
-    at Object.react_stack_bottom_frame (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:25989:20)
-    at runWithFiberInDEV (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:874:13)
-    at commitHookEffectListMount (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:13249:29)
-    at commitHookLayoutEffects (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:13213:11)
-    at commitLayoutEffectOnFiber (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:13951:13)
-    at recursivelyTraverseLayoutEffects (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:15159:11)
-    at commitLayoutEffectOnFiber (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:14031:11)
-    at flushLayoutEffects (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:18138:15)
-
----
-
-/home/boss/Projects/livai/packages/ui-core/tests/unit/primitives/dialog.test.tsx: рендерит panel с правильными классами
-TypeError: () => ({
-  observe: __vite_ssr_import_1__.vi.fn(),
-  disconnect: __vite_ssr_import_1__.vi.fn(),
-  takeRecords: ...<omitted>...}) is not a constructor
-    at new Mock (file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+spy@4.0.17/node_modules/@vitest/spy/dist/index.js:262:27)
-    at /home/boss/Projects/livai/packages/ui-core/src/primitives/dialog.tsx:173:24
-    at Object.react_stack_bottom_frame (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:25989:20)
-    at runWithFiberInDEV (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:874:13)
-    at commitHookEffectListMount (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:13249:29)
-    at commitHookLayoutEffects (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:13213:11)
-    at commitLayoutEffectOnFiber (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:13951:13)
-    at recursivelyTraverseLayoutEffects (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:15159:11)
-    at commitLayoutEffectOnFiber (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:14031:11)
-    at flushLayoutEffects (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:18138:15)
-
----
-
-/home/boss/Projects/livai/packages/ui-core/tests/unit/primitives/dialog.test.tsx: panel не имеет aria-hidden (в отличие от backdrop)
-TypeError: () => ({
-  observe: __vite_ssr_import_1__.vi.fn(),
-  disconnect: __vite_ssr_import_1__.vi.fn(),
-  takeRecords: ...<omitted>...}) is not a constructor
-    at new Mock (file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+spy@4.0.17/node_modules/@vitest/spy/dist/index.js:262:27)
-    at /home/boss/Projects/livai/packages/ui-core/src/primitives/dialog.tsx:173:24
-    at Object.react_stack_bottom_frame (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:25989:20)
-    at runWithFiberInDEV (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:874:13)
-    at commitHookEffectListMount (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:13249:29)
-    at commitHookLayoutEffects (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:13213:11)
-    at commitLayoutEffectOnFiber (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:13951:13)
-    at recursivelyTraverseLayoutEffects (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:15159:11)
-    at commitLayoutEffectOnFiber (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:14031:11)
-    at flushLayoutEffects (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:18138:15)
-
----
-
-/home/boss/Projects/livai/packages/ui-core/tests/unit/primitives/dialog.test.tsx: передает children в panel
-TypeError: () => ({
-  observe: __vite_ssr_import_1__.vi.fn(),
-  disconnect: __vite_ssr_import_1__.vi.fn(),
-  takeRecords: ...<omitted>...}) is not a constructor
-    at new Mock (file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+spy@4.0.17/node_modules/@vitest/spy/dist/index.js:262:27)
-    at /home/boss/Projects/livai/packages/ui-core/src/primitives/dialog.tsx:173:24
-    at Object.react_stack_bottom_frame (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:25989:20)
-    at runWithFiberInDEV (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:874:13)
-    at commitHookEffectListMount (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:13249:29)
-    at commitHookLayoutEffects (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:13213:11)
-    at commitLayoutEffectOnFiber (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:13951:13)
-    at recursivelyTraverseLayoutEffects (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:15159:11)
-    at commitLayoutEffectOnFiber (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:14031:11)
-    at flushLayoutEffects (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:18138:15)
-
----
-
-/home/boss/Projects/livai/packages/ui-core/tests/unit/primitives/dialog.test.tsx: вызывает onEscape при нажатии Escape
-TypeError: () => ({
-  observe: __vite_ssr_import_1__.vi.fn(),
-  disconnect: __vite_ssr_import_1__.vi.fn(),
-  takeRecords: ...<omitted>...}) is not a constructor
-    at new Mock (file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+spy@4.0.17/node_modules/@vitest/spy/dist/index.js:262:27)
-    at /home/boss/Projects/livai/packages/ui-core/src/primitives/dialog.tsx:173:24
-    at Object.react_stack_bottom_frame (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:25989:20)
-    at runWithFiberInDEV (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:874:13)
-    at commitHookEffectListMount (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:13249:29)
-    at commitHookLayoutEffects (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:13213:11)
-    at commitLayoutEffectOnFiber (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:13951:13)
-    at recursivelyTraverseLayoutEffects (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:15159:11)
-    at commitLayoutEffectOnFiber (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:14031:11)
-    at flushLayoutEffects (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:18138:15)
-
----
-
-/home/boss/Projects/livai/packages/ui-core/tests/unit/primitives/dialog.test.tsx: не вызывает onEscape при других клавишах
-TypeError: () => ({
-  observe: __vite_ssr_import_1__.vi.fn(),
-  disconnect: __vite_ssr_import_1__.vi.fn(),
-  takeRecords: ...<omitted>...}) is not a constructor
-    at new Mock (file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+spy@4.0.17/node_modules/@vitest/spy/dist/index.js:262:27)
-    at /home/boss/Projects/livai/packages/ui-core/src/primitives/dialog.tsx:173:24
-    at Object.react_stack_bottom_frame (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:25989:20)
-    at runWithFiberInDEV (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:874:13)
-    at commitHookEffectListMount (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:13249:29)
-    at commitHookLayoutEffects (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:13213:11)
-    at commitLayoutEffectOnFiber (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:13951:13)
-    at recursivelyTraverseLayoutEffects (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:15159:11)
-    at commitLayoutEffectOnFiber (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:14031:11)
-    at flushLayoutEffects (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:18138:15)
-
----
-
-/home/boss/Projects/livai/packages/ui-core/tests/unit/primitives/dialog.test.tsx: не вызывает onEscape когда не передан
-TypeError: () => ({
-  observe: __vite_ssr_import_1__.vi.fn(),
-  disconnect: __vite_ssr_import_1__.vi.fn(),
-  takeRecords: ...<omitted>...}) is not a constructor
-    at new Mock (file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+spy@4.0.17/node_modules/@vitest/spy/dist/index.js:262:27)
-    at /home/boss/Projects/livai/packages/ui-core/src/primitives/dialog.tsx:173:24
-    at Object.react_stack_bottom_frame (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:25989:20)
-    at runWithFiberInDEV (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:874:13)
-    at commitHookEffectListMount (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:13249:29)
-    at commitHookLayoutEffects (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:13213:11)
-    at commitLayoutEffectOnFiber (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:13951:13)
-    at recursivelyTraverseLayoutEffects (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:15159:11)
-    at commitLayoutEffectOnFiber (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:14031:11)
-    at flushLayoutEffects (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:18138:15)
-
----
-
-/home/boss/Projects/livai/packages/ui-core/tests/unit/primitives/dialog.test.tsx: MutationObserver создается при mount
-TypeError: () => ({
-  observe: __vite_ssr_import_1__.vi.fn(),
-  disconnect: __vite_ssr_import_1__.vi.fn(),
-  takeRecords: ...<omitted>...}) is not a constructor
-    at new Mock (file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+spy@4.0.17/node_modules/@vitest/spy/dist/index.js:262:27)
-    at /home/boss/Projects/livai/packages/ui-core/src/primitives/dialog.tsx:173:24
-    at Object.react_stack_bottom_frame (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:25989:20)
-    at runWithFiberInDEV (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:874:13)
-    at commitHookEffectListMount (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:13249:29)
-    at commitHookLayoutEffects (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:13213:11)
-    at commitLayoutEffectOnFiber (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:13951:13)
-    at recursivelyTraverseLayoutEffects (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:15159:11)
-    at commitLayoutEffectOnFiber (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:14031:11)
-    at flushLayoutEffects (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:18138:15)
-
----
-
-/home/boss/Projects/livai/packages/ui-core/tests/unit/primitives/dialog.test.tsx: MutationObserver получает правильные параметры
-TypeError: () => ({
-        observe: mockObserve,
-        disconnect: __vite_ssr_import_1__.vi.fn()
-      }) is not a constructor
-    at new Mock (file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+spy@4.0.17/node_modules/@vitest/spy/dist/index.js:262:27)
-    at /home/boss/Projects/livai/packages/ui-core/src/primitives/dialog.tsx:173:24
-    at Object.react_stack_bottom_frame (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:25989:20)
-    at runWithFiberInDEV (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:874:13)
-    at commitHookEffectListMount (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:13249:29)
-    at commitHookLayoutEffects (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:13213:11)
-    at commitLayoutEffectOnFiber (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:13951:13)
-    at recursivelyTraverseLayoutEffects (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:15159:11)
-    at commitLayoutEffectOnFiber (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:14031:11)
-    at flushLayoutEffects (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:18138:15)
-
----
-
-/home/boss/Projects/livai/packages/ui-core/tests/unit/primitives/dialog.test.tsx: передает id атрибут
-TypeError: () => ({
-        observe: mockObserve,
-        disconnect: __vite_ssr_import_1__.vi.fn()
-      }) is not a constructor
-    at new Mock (file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+spy@4.0.17/node_modules/@vitest/spy/dist/index.js:262:27)
-    at /home/boss/Projects/livai/packages/ui-core/src/primitives/dialog.tsx:173:24
-    at Object.react_stack_bottom_frame (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:25989:20)
-    at runWithFiberInDEV (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:874:13)
-    at commitHookEffectListMount (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:13249:29)
-    at commitHookLayoutEffects (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:13213:11)
-    at commitLayoutEffectOnFiber (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:13951:13)
-    at recursivelyTraverseLayoutEffects (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:15159:11)
-    at commitLayoutEffectOnFiber (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:14031:11)
-    at flushLayoutEffects (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:18138:15)
-
----
-
-/home/boss/Projects/livai/packages/ui-core/tests/unit/primitives/dialog.test.tsx: передает data-testid атрибут
-TypeError: () => ({
-        observe: mockObserve,
-        disconnect: __vite_ssr_import_1__.vi.fn()
-      }) is not a constructor
-    at new Mock (file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+spy@4.0.17/node_modules/@vitest/spy/dist/index.js:262:27)
-    at /home/boss/Projects/livai/packages/ui-core/src/primitives/dialog.tsx:173:24
-    at Object.react_stack_bottom_frame (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:25989:20)
-    at runWithFiberInDEV (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:874:13)
-    at commitHookEffectListMount (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:13249:29)
-    at commitHookLayoutEffects (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:13213:11)
-    at commitLayoutEffectOnFiber (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:13951:13)
-    at recursivelyTraverseLayoutEffects (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:15159:11)
-    at commitLayoutEffectOnFiber (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:14031:11)
-    at flushLayoutEffects (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:18138:15)
-
----
-
-/home/boss/Projects/livai/packages/ui-core/tests/unit/primitives/dialog.test.tsx: передает произвольные атрибуты
-TypeError: () => ({
-        observe: mockObserve,
-        disconnect: __vite_ssr_import_1__.vi.fn()
-      }) is not a constructor
-    at new Mock (file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+spy@4.0.17/node_modules/@vitest/spy/dist/index.js:262:27)
-    at /home/boss/Projects/livai/packages/ui-core/src/primitives/dialog.tsx:173:24
-    at Object.react_stack_bottom_frame (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:25989:20)
-    at runWithFiberInDEV (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:874:13)
-    at commitHookEffectListMount (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:13249:29)
-    at commitHookLayoutEffects (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:13213:11)
-    at commitLayoutEffectOnFiber (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:13951:13)
-    at recursivelyTraverseLayoutEffects (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:15159:11)
-    at commitLayoutEffectOnFiber (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:14031:11)
-    at flushLayoutEffects (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:18138:15)
-
----
-
-/home/boss/Projects/livai/packages/ui-core/tests/unit/primitives/dialog.test.tsx: работает с пустыми children
-AssertionError: expected [Function] to not throw an error but 'TypeError: () => ({\n        observe:…' was thrown
-    at Proxy.<anonymous> (file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+expect@4.0.17/node_modules/@vitest/expect/dist/index.js:1485:16)
+Number of calls: [1m0[22m
+[39m
+    at Proxy.<anonymous> (file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+expect@4.0.17/node_modules/@vitest/expect/dist/index.js:1420:10)
     at Proxy.<anonymous> (file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+expect@4.0.17/node_modules/@vitest/expect/dist/index.js:1090:14)
     at Proxy.methodWrapper (file:///home/boss/Projects/livai/node_modules/.pnpm/chai@6.2.2/node_modules/chai/index.js:1700:25)
-    at /home/boss/Projects/livai/packages/ui-core/tests/unit/primitives/dialog.test.tsx:388:14
+    at /home/boss/Projects/livai/packages/app/tests/unit/ui/avatar.test.tsx:324:37
     at file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.17/node_modules/@vitest/runner/dist/index.js:145:11
     at file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.17/node_modules/@vitest/runner/dist/index.js:915:26
     at file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.17/node_modules/@vitest/runner/dist/index.js:1243:20
@@ -499,76 +16,9 @@ AssertionError: expected [Function] to not throw an error but 'TypeError: () => 
 
 ---
 
-/home/boss/Projects/livai/packages/ui-core/tests/unit/primitives/dialog.test.tsx: работает с undefined children
-AssertionError: expected [Function] to not throw an error but 'TypeError: () => ({\n        observe:…' was thrown
-    at Proxy.<anonymous> (file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+expect@4.0.17/node_modules/@vitest/expect/dist/index.js:1485:16)
-    at Proxy.<anonymous> (file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+expect@4.0.17/node_modules/@vitest/expect/dist/index.js:1090:14)
-    at Proxy.methodWrapper (file:///home/boss/Projects/livai/node_modules/.pnpm/chai@6.2.2/node_modules/chai/index.js:1700:25)
-    at /home/boss/Projects/livai/packages/ui-core/tests/unit/primitives/dialog.test.tsx:398:14
-    at file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.17/node_modules/@vitest/runner/dist/index.js:145:11
-    at file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.17/node_modules/@vitest/runner/dist/index.js:915:26
-    at file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.17/node_modules/@vitest/runner/dist/index.js:1243:20
-    at new Promise (<anonymous>)
-    at runWithTimeout (file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.17/node_modules/@vitest/runner/dist/index.js:1209:10)
-    at file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.17/node_modules/@vitest/runner/dist/index.js:1653:37
-
----
-
-/home/boss/Projects/livai/packages/ui-core/tests/unit/primitives/dialog.test.tsx: работает без children
-AssertionError: expected [Function] to not throw an error but 'TypeError: () => ({\n        observe:…' was thrown
-    at Proxy.<anonymous> (file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+expect@4.0.17/node_modules/@vitest/expect/dist/index.js:1485:16)
-    at Proxy.<anonymous> (file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+expect@4.0.17/node_modules/@vitest/expect/dist/index.js:1090:14)
-    at Proxy.methodWrapper (file:///home/boss/Projects/livai/node_modules/.pnpm/chai@6.2.2/node_modules/chai/index.js:1700:25)
-    at /home/boss/Projects/livai/packages/ui-core/tests/unit/primitives/dialog.test.tsx:404:14
-    at file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.17/node_modules/@vitest/runner/dist/index.js:145:11
-    at file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.17/node_modules/@vitest/runner/dist/index.js:915:26
-    at file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.17/node_modules/@vitest/runner/dist/index.js:1243:20
-    at new Promise (<anonymous>)
-    at runWithTimeout (file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.17/node_modules/@vitest/runner/dist/index.js:1209:10)
-    at file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.17/node_modules/@vitest/runner/dist/index.js:1653:37
-
----
-
-/home/boss/Projects/livai/packages/ui-core/tests/unit/primitives/dialog.test.tsx: работает с null data-variant
-TypeError: () => ({
-        observe: mockObserve,
-        disconnect: __vite_ssr_import_1__.vi.fn()
-      }) is not a constructor
-    at new Mock (file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+spy@4.0.17/node_modules/@vitest/spy/dist/index.js:262:27)
-    at /home/boss/Projects/livai/packages/ui-core/src/primitives/dialog.tsx:173:24
-    at Object.react_stack_bottom_frame (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:25989:20)
-    at runWithFiberInDEV (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:874:13)
-    at commitHookEffectListMount (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:13249:29)
-    at commitHookLayoutEffects (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:13213:11)
-    at commitLayoutEffectOnFiber (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:13951:13)
-    at recursivelyTraverseLayoutEffects (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:15159:11)
-    at commitLayoutEffectOnFiber (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:14031:11)
-    at flushLayoutEffects (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:18138:15)
-
----
-
-/home/boss/Projects/livai/packages/ui-core/tests/unit/primitives/dialog.test.tsx: работает без data-variant
-TypeError: () => ({
-        observe: mockObserve,
-        disconnect: __vite_ssr_import_1__.vi.fn()
-      }) is not a constructor
-    at new Mock (file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+spy@4.0.17/node_modules/@vitest/spy/dist/index.js:262:27)
-    at /home/boss/Projects/livai/packages/ui-core/src/primitives/dialog.tsx:173:24
-    at Object.react_stack_bottom_frame (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:25989:20)
-    at runWithFiberInDEV (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:874:13)
-    at commitHookEffectListMount (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:13249:29)
-    at commitHookLayoutEffects (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:13213:11)
-    at commitLayoutEffectOnFiber (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:13951:13)
-    at recursivelyTraverseLayoutEffects (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:15159:11)
-    at commitLayoutEffectOnFiber (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:14031:11)
-    at flushLayoutEffects (/home/boss/Projects/livai/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:18138:15)
-
----
-
-/home/boss/Projects/livai/packages/ui-core/tests/unit/primitives/dialog.test.tsx: не рендерится в SSR окружении
-ReferenceError: document is not defined
-    at render (/home/boss/Projects/livai/node_modules/.pnpm/@testing-library+react@16.3.1_@testing-library+dom@10.4.1_@types+react-dom@19.2.3_@type_a96e6fd9d8b1ecd9b6926ce608f1ef13/node_modules/@testing-library/react/dist/pure.js:256:5)
-    at /home/boss/Projects/livai/packages/ui-core/tests/unit/primitives/dialog.test.tsx:444:29
+/home/boss/Projects/livai/packages/app/tests/unit/ui/badge.test.tsx: должен перерендериваться при изменении значимых пропсов
+AssertionError: expected "vi.fn()" to be called 3 times, but got 1 times
+    at /home/boss/Projects/livai/packages/app/tests/unit/ui/badge.test.tsx:290:37
     at file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.17/node_modules/@vitest/runner/dist/index.js:145:11
     at file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.17/node_modules/@vitest/runner/dist/index.js:915:26
     at file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.17/node_modules/@vitest/runner/dist/index.js:1243:20
@@ -577,3 +27,328 @@ ReferenceError: document is not defined
     at file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.17/node_modules/@vitest/runner/dist/index.js:1653:37
     at Traces.$ (file:///home/boss/Projects/livai/node_modules/.pnpm/vitest@4.0.17_@opentelemetry+api@1.9.0_@types+node@25.0.9_jsdom@27.4.0_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vitest/dist/chunks/traces.CCmnQaNT.js:142:27)
     at trace (file:///home/boss/Projects/livai/node_modules/.pnpm/vitest@4.0.17_@opentelemetry+api@1.9.0_@types+node@25.0.9_jsdom@27.4.0_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vitest/dist/chunks/test.B8ej_ZHS.js:239:21)
+    at runTest (file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.17/node_modules/@vitest/runner/dist/index.js:1653:12)
+
+---
+
+/home/boss/Projects/livai/packages/app/tests/unit/ui/breadcrumbs.test.tsx: должен передавать data-state с текущим состоянием видимости
+TestingLibraryElementError: Unable to find an element by: [data-testid="core-breadcrumbs"]
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div />[39m
+[36m</body>[39m
+    at Object.getElementError (/home/boss/Projects/livai/node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/config.js:37:19)
+    at /home/boss/Projects/livai/node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+    at /home/boss/Projects/livai/node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+    at /home/boss/Projects/livai/node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+    at /home/boss/Projects/livai/packages/app/tests/unit/ui/breadcrumbs.test.tsx:85:21
+    at file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.17/node_modules/@vitest/runner/dist/index.js:145:11
+    at file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.17/node_modules/@vitest/runner/dist/index.js:915:26
+    at file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.17/node_modules/@vitest/runner/dist/index.js:1243:20
+    at new Promise (<anonymous>)
+    at runWithTimeout (file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.17/node_modules/@vitest/runner/dist/index.js:1209:10)
+
+---
+
+/home/boss/Projects/livai/packages/app/tests/unit/ui/breadcrumbs.test.tsx: должен отправлять show/hide telemetry при изменении видимости
+AssertionError: expected "vi.fn()" to be called with arguments: [ 'Breadcrumbs show', …(1) ][90m
+
+Received: 
+
+[1m  1st vi.fn() call:
+
+[22m[33m@@ -1,9 +1,9 @@[90m
+[2m  [[22m
+[32m-   "Breadcrumbs show",[90m
+[31m+   "Breadcrumbs mount",[90m
+[2m    {[22m
+[32m-     "action": "show",[90m
+[31m+     "action": "mount",[90m
+[2m      "component": "Breadcrumbs",[22m
+[2m      "hidden": false,[22m
+[2m      "itemsCount": 3,[22m
+[2m      "visible": true,[22m
+[2m    },[22m
+[39m[90m
+
+Number of calls: [1m1[22m
+[39m
+    at Proxy.<anonymous> (file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+expect@4.0.17/node_modules/@vitest/expect/dist/index.js:1420:10)
+    at Proxy.<anonymous> (file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+expect@4.0.17/node_modules/@vitest/expect/dist/index.js:1090:14)
+    at Proxy.methodWrapper (file:///home/boss/Projects/livai/node_modules/.pnpm/chai@6.2.2/node_modules/chai/index.js:1700:25)
+    at /home/boss/Projects/livai/packages/app/tests/unit/ui/breadcrumbs.test.tsx:155:37
+    at file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.17/node_modules/@vitest/runner/dist/index.js:145:11
+    at file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.17/node_modules/@vitest/runner/dist/index.js:915:26
+    at file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.17/node_modules/@vitest/runner/dist/index.js:1243:20
+    at new Promise (<anonymous>)
+    at runWithTimeout (file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.17/node_modules/@vitest/runner/dist/index.js:1209:10)
+    at file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.17/node_modules/@vitest/runner/dist/index.js:1653:37
+
+---
+
+/home/boss/Projects/livai/packages/app/tests/unit/ui/breadcrumbs.test.tsx: правильно обрабатывает изменение items
+AssertionError: expected "vi.fn()" to be called with arguments: [ 'Breadcrumbs mount', …(1) ][90m
+
+Received: 
+
+[1m  1st vi.fn() call:
+
+[22m[2m  [[22m
+[2m    "Breadcrumbs mount",[22m
+[32m-   ObjectContaining {[90m
+[32m-     "itemsCount": 1,[90m
+[31m+   {[90m
+[31m+     "action": "mount",[90m
+[31m+     "component": "Breadcrumbs",[90m
+[31m+     "hidden": false,[90m
+[31m+     "itemsCount": 3,[90m
+[31m+     "visible": true,[90m
+[2m    },[22m
+[2m  ][22m
+[39m[90m
+
+Number of calls: [1m1[22m
+[39m
+    at Proxy.<anonymous> (file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+expect@4.0.17/node_modules/@vitest/expect/dist/index.js:1420:10)
+    at Proxy.<anonymous> (file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+expect@4.0.17/node_modules/@vitest/expect/dist/index.js:1090:14)
+    at Proxy.methodWrapper (file:///home/boss/Projects/livai/node_modules/.pnpm/chai@6.2.2/node_modules/chai/index.js:1700:25)
+    at /home/boss/Projects/livai/packages/app/tests/unit/ui/breadcrumbs.test.tsx:346:37
+    at file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.17/node_modules/@vitest/runner/dist/index.js:145:11
+    at file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.17/node_modules/@vitest/runner/dist/index.js:915:26
+    at file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.17/node_modules/@vitest/runner/dist/index.js:1243:20
+    at new Promise (<anonymous>)
+    at runWithTimeout (file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.17/node_modules/@vitest/runner/dist/index.js:1209:10)
+    at file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.17/node_modules/@vitest/runner/dist/index.js:1653:37
+
+---
+
+/home/boss/Projects/livai/packages/app/tests/unit/ui/breadcrumbs.test.tsx: должен реагировать на изменение visible
+AssertionError: expected "vi.fn()" to be called with arguments: [ 'Breadcrumbs show', Any<Object> ][90m
+
+Received: 
+
+[1m  1st vi.fn() call:
+
+[22m[2m  [[22m
+[32m-   "Breadcrumbs show",[90m
+[32m-   Any<Object>,[90m
+[31m+   "Breadcrumbs mount",[90m
+[31m+   {[90m
+[31m+     "action": "mount",[90m
+[31m+     "component": "Breadcrumbs",[90m
+[31m+     "hidden": false,[90m
+[31m+     "itemsCount": 3,[90m
+[31m+     "visible": true,[90m
+[31m+   },[90m
+[2m  ][22m
+[39m[90m
+
+Number of calls: [1m1[22m
+[39m
+    at Proxy.<anonymous> (file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+expect@4.0.17/node_modules/@vitest/expect/dist/index.js:1420:10)
+    at Proxy.<anonymous> (file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+expect@4.0.17/node_modules/@vitest/expect/dist/index.js:1090:14)
+    at Proxy.methodWrapper (file:///home/boss/Projects/livai/node_modules/.pnpm/chai@6.2.2/node_modules/chai/index.js:1700:25)
+    at /home/boss/Projects/livai/packages/app/tests/unit/ui/breadcrumbs.test.tsx:370:37
+    at file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.17/node_modules/@vitest/runner/dist/index.js:145:11
+    at file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.17/node_modules/@vitest/runner/dist/index.js:915:26
+    at file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.17/node_modules/@vitest/runner/dist/index.js:1243:20
+    at new Promise (<anonymous>)
+    at runWithTimeout (file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.17/node_modules/@vitest/runner/dist/index.js:1209:10)
+    at file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.17/node_modules/@vitest/runner/dist/index.js:1653:37
+
+---
+
+/home/boss/Projects/livai/packages/app/tests/unit/ui/card.test.tsx: должен рендерить компонент при isHiddenByFeatureFlag=true но feature flag отключен
+TestingLibraryElementError: Unable to find an element with the text: Content. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div />[39m
+[36m</body>[39m
+    at Object.getElementError (/home/boss/Projects/livai/node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/config.js:37:19)
+    at /home/boss/Projects/livai/node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+    at /home/boss/Projects/livai/node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+    at /home/boss/Projects/livai/node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+    at /home/boss/Projects/livai/packages/app/tests/unit/ui/card.test.tsx:89:21
+    at file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.17/node_modules/@vitest/runner/dist/index.js:145:11
+    at file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.17/node_modules/@vitest/runner/dist/index.js:915:26
+    at file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.17/node_modules/@vitest/runner/dist/index.js:1243:20
+    at new Promise (<anonymous>)
+    at runWithTimeout (file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.17/node_modules/@vitest/runner/dist/index.js:1209:10)
+
+---
+
+/home/boss/Projects/livai/packages/app/tests/unit/ui/card.test.tsx: должен быть enabled при isDisabledByFeatureFlag=true но feature flag отключен
+Error: [2mexpect([22m[31melement[39m[2m).not.toHaveAttribute([22m[32m[32m"data-disabled"[32m[39m[2m) // element.hasAttribute("data-disabled")[22m
+
+Expected the element not to have attribute:
+[32m  data-disabled[39m
+Received:
+[31m  data-disabled="true"[39m
+    at Proxy.expectWrapper (file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+expect@4.0.17/node_modules/@vitest/expect/dist/index.js:1821:12)
+    at Proxy.<anonymous> (file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+expect@4.0.17/node_modules/@vitest/expect/dist/index.js:1090:14)
+    at Proxy.methodWrapper (file:///home/boss/Projects/livai/node_modules/.pnpm/chai@6.2.2/node_modules/chai/index.js:1700:25)
+    at /home/boss/Projects/livai/packages/app/tests/unit/ui/card.test.tsx:126:24
+    at file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.17/node_modules/@vitest/runner/dist/index.js:145:11
+    at file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.17/node_modules/@vitest/runner/dist/index.js:915:26
+    at file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.17/node_modules/@vitest/runner/dist/index.js:1243:20
+    at new Promise (<anonymous>)
+    at runWithTimeout (file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.17/node_modules/@vitest/runner/dist/index.js:1209:10)
+    at file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.17/node_modules/@vitest/runner/dist/index.js:1653:37
+
+---
+
+/home/boss/Projects/livai/packages/app/tests/unit/ui/modal.test.tsx: не должен рендерить modal когда feature flag включен
+Error: [2mexpect([22m[31melement[39m[2m).not.toBeInTheDocument()[22m
+
+[31mexpected document not to contain element, found <div
+  data-component="AppModal"
+  data-state="visible"
+  data-testid="core-modal"
+  data-variant="default"
+  data-visible="true"
+>
+  Test modal content
+</div> instead[39m
+    at Proxy.expectWrapper (file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+expect@4.0.17/node_modules/@vitest/expect/dist/index.js:1821:12)
+    at Proxy.<anonymous> (file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+expect@4.0.17/node_modules/@vitest/expect/dist/index.js:1090:14)
+    at Proxy.methodWrapper (file:///home/boss/Projects/livai/node_modules/.pnpm/chai@6.2.2/node_modules/chai/index.js:1700:25)
+    at /home/boss/Projects/livai/packages/app/tests/unit/ui/modal.test.tsx:129:51
+    at file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.17/node_modules/@vitest/runner/dist/index.js:145:11
+    at file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.17/node_modules/@vitest/runner/dist/index.js:915:26
+    at file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.17/node_modules/@vitest/runner/dist/index.js:1243:20
+    at new Promise (<anonymous>)
+    at runWithTimeout (file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.17/node_modules/@vitest/runner/dist/index.js:1209:10)
+    at file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.17/node_modules/@vitest/runner/dist/index.js:1653:37
+
+---
+
+/home/boss/Projects/livai/packages/app/tests/unit/ui/toast.test.tsx: не должен рендерить когда feature flag включен и isHiddenByFeatureFlag не указан
+Error: [2mexpect([22m[31melement[39m[2m).not.toBeInTheDocument()[22m
+
+[31mexpected document not to contain element, found <div
+  content="Test toast"
+  data-component="AppToast"
+  data-testid="core-toast"
+  data-variant="info"
+  data-visible="true"
+/> instead[39m
+    at Proxy.expectWrapper (file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+expect@4.0.17/node_modules/@vitest/expect/dist/index.js:1821:12)
+    at Proxy.<anonymous> (file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+expect@4.0.17/node_modules/@vitest/expect/dist/index.js:1090:14)
+    at Proxy.methodWrapper (file:///home/boss/Projects/livai/node_modules/.pnpm/chai@6.2.2/node_modules/chai/index.js:1700:25)
+    at /home/boss/Projects/livai/packages/app/tests/unit/ui/toast.test.tsx:122:54
+    at file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.17/node_modules/@vitest/runner/dist/index.js:145:11
+    at file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.17/node_modules/@vitest/runner/dist/index.js:915:26
+    at file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.17/node_modules/@vitest/runner/dist/index.js:1243:20
+    at new Promise (<anonymous>)
+    at runWithTimeout (file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.17/node_modules/@vitest/runner/dist/index.js:1209:10)
+    at file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.17/node_modules/@vitest/runner/dist/index.js:1653:37
+
+---
+
+/home/boss/Projects/livai/packages/app/tests/unit/ui/toast.test.tsx: должен пересчитывать payload при изменении variant
+AssertionError: expected "vi.fn()" to be called with arguments: [ 'Toast mount', …(1) ][90m
+
+Number of calls: [1m0[22m
+[39m
+    at Proxy.<anonymous> (file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+expect@4.0.17/node_modules/@vitest/expect/dist/index.js:1420:10)
+    at Proxy.<anonymous> (file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+expect@4.0.17/node_modules/@vitest/expect/dist/index.js:1090:14)
+    at Proxy.methodWrapper (file:///home/boss/Projects/livai/node_modules/.pnpm/chai@6.2.2/node_modules/chai/index.js:1700:25)
+    at /home/boss/Projects/livai/packages/app/tests/unit/ui/toast.test.tsx:302:37
+    at file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.17/node_modules/@vitest/runner/dist/index.js:145:11
+    at file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.17/node_modules/@vitest/runner/dist/index.js:915:26
+    at file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.17/node_modules/@vitest/runner/dist/index.js:1243:20
+    at new Promise (<anonymous>)
+    at runWithTimeout (file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.17/node_modules/@vitest/runner/dist/index.js:1209:10)
+    at file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.17/node_modules/@vitest/runner/dist/index.js:1653:37
+
+---
+
+/home/boss/Projects/livai/packages/app/tests/unit/ui/tooltip.test.tsx: должен отправлять mount event при рендере
+AssertionError: expected "vi.fn()" to be called 2 times, but got 1 times
+    at /home/boss/Projects/livai/packages/app/tests/unit/ui/tooltip.test.tsx:115:37
+    at file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.17/node_modules/@vitest/runner/dist/index.js:145:11
+    at file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.17/node_modules/@vitest/runner/dist/index.js:915:26
+    at file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.17/node_modules/@vitest/runner/dist/index.js:1243:20
+    at new Promise (<anonymous>)
+    at runWithTimeout (file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.17/node_modules/@vitest/runner/dist/index.js:1209:10)
+    at file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.17/node_modules/@vitest/runner/dist/index.js:1653:37
+    at Traces.$ (file:///home/boss/Projects/livai/node_modules/.pnpm/vitest@4.0.17_@opentelemetry+api@1.9.0_@types+node@25.0.9_jsdom@27.4.0_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vitest/dist/chunks/traces.CCmnQaNT.js:142:27)
+    at trace (file:///home/boss/Projects/livai/node_modules/.pnpm/vitest@4.0.17_@opentelemetry+api@1.9.0_@types+node@25.0.9_jsdom@27.4.0_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vitest/dist/chunks/test.B8ej_ZHS.js:239:21)
+    at runTest (file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.17/node_modules/@vitest/runner/dist/index.js:1653:12)
+
+---
+
+/home/boss/Projects/livai/packages/app/tests/unit/ui/tooltip.test.tsx: должен отправлять unmount event при размонтировании
+AssertionError: expected "vi.fn()" to be called 3 times, but got 2 times
+    at /home/boss/Projects/livai/packages/app/tests/unit/ui/tooltip.test.tsx:135:37
+    at file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.17/node_modules/@vitest/runner/dist/index.js:145:11
+    at file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.17/node_modules/@vitest/runner/dist/index.js:915:26
+    at file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.17/node_modules/@vitest/runner/dist/index.js:1243:20
+    at new Promise (<anonymous>)
+    at runWithTimeout (file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.17/node_modules/@vitest/runner/dist/index.js:1209:10)
+    at file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.17/node_modules/@vitest/runner/dist/index.js:1653:37
+    at Traces.$ (file:///home/boss/Projects/livai/node_modules/.pnpm/vitest@4.0.17_@opentelemetry+api@1.9.0_@types+node@25.0.9_jsdom@27.4.0_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vitest/dist/chunks/traces.CCmnQaNT.js:142:27)
+    at trace (file:///home/boss/Projects/livai/node_modules/.pnpm/vitest@4.0.17_@opentelemetry+api@1.9.0_@types+node@25.0.9_jsdom@27.4.0_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vitest/dist/chunks/test.B8ej_ZHS.js:239:21)
+    at runTest (file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.17/node_modules/@vitest/runner/dist/index.js:1653:12)
+
+---
+
+/home/boss/Projects/livai/packages/app/tests/unit/ui/tooltip.test.tsx: должен отправлять hide event при изменении visible на false
+AssertionError: expected "vi.fn()" to be called 2 times, but got 1 times
+    at /home/boss/Projects/livai/packages/app/tests/unit/ui/tooltip.test.tsx:171:37
+    at file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.17/node_modules/@vitest/runner/dist/index.js:145:11
+    at file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.17/node_modules/@vitest/runner/dist/index.js:915:26
+    at file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.17/node_modules/@vitest/runner/dist/index.js:1243:20
+    at new Promise (<anonymous>)
+    at runWithTimeout (file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.17/node_modules/@vitest/runner/dist/index.js:1209:10)
+    at file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.17/node_modules/@vitest/runner/dist/index.js:1653:37
+    at Traces.$ (file:///home/boss/Projects/livai/node_modules/.pnpm/vitest@4.0.17_@opentelemetry+api@1.9.0_@types+node@25.0.9_jsdom@27.4.0_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vitest/dist/chunks/traces.CCmnQaNT.js:142:27)
+    at trace (file:///home/boss/Projects/livai/node_modules/.pnpm/vitest@4.0.17_@opentelemetry+api@1.9.0_@types+node@25.0.9_jsdom@27.4.0_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vitest/dist/chunks/test.B8ej_ZHS.js:239:21)
+    at runTest (file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.17/node_modules/@vitest/runner/dist/index.js:1653:12)
+
+---
+
+/home/boss/Projects/livai/packages/app/tests/unit/ui/tooltip.test.tsx: должен отправлять telemetry только при telemetryEnabled=true
+AssertionError: expected "vi.fn()" to be called 2 times, but got 1 times
+    at /home/boss/Projects/livai/packages/app/tests/unit/ui/tooltip.test.tsx:181:37
+    at file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.17/node_modules/@vitest/runner/dist/index.js:145:11
+    at file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.17/node_modules/@vitest/runner/dist/index.js:915:26
+    at file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.17/node_modules/@vitest/runner/dist/index.js:1243:20
+    at new Promise (<anonymous>)
+    at runWithTimeout (file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.17/node_modules/@vitest/runner/dist/index.js:1209:10)
+    at file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.17/node_modules/@vitest/runner/dist/index.js:1653:37
+    at Traces.$ (file:///home/boss/Projects/livai/node_modules/.pnpm/vitest@4.0.17_@opentelemetry+api@1.9.0_@types+node@25.0.9_jsdom@27.4.0_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vitest/dist/chunks/traces.CCmnQaNT.js:142:27)
+    at trace (file:///home/boss/Projects/livai/node_modules/.pnpm/vitest@4.0.17_@opentelemetry+api@1.9.0_@types+node@25.0.9_jsdom@27.4.0_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vitest/dist/chunks/test.B8ej_ZHS.js:239:21)
+    at runTest (file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.17/node_modules/@vitest/runner/dist/index.js:1653:12)
+
+---
+
+/home/boss/Projects/livai/packages/app/tests/unit/ui/tooltip.test.tsx: должен отправлять telemetry по умолчанию (telemetryEnabled не указан)
+AssertionError: expected "vi.fn()" to be called 2 times, but got 1 times
+    at /home/boss/Projects/livai/packages/app/tests/unit/ui/tooltip.test.tsx:187:37
+    at file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.17/node_modules/@vitest/runner/dist/index.js:145:11
+    at file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.17/node_modules/@vitest/runner/dist/index.js:915:26
+    at file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.17/node_modules/@vitest/runner/dist/index.js:1243:20
+    at new Promise (<anonymous>)
+    at runWithTimeout (file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.17/node_modules/@vitest/runner/dist/index.js:1209:10)
+    at file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.17/node_modules/@vitest/runner/dist/index.js:1653:37
+    at Traces.$ (file:///home/boss/Projects/livai/node_modules/.pnpm/vitest@4.0.17_@opentelemetry+api@1.9.0_@types+node@25.0.9_jsdom@27.4.0_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vitest/dist/chunks/traces.CCmnQaNT.js:142:27)
+    at trace (file:///home/boss/Projects/livai/node_modules/.pnpm/vitest@4.0.17_@opentelemetry+api@1.9.0_@types+node@25.0.9_jsdom@27.4.0_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vitest/dist/chunks/test.B8ej_ZHS.js:239:21)
+    at runTest (file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.17/node_modules/@vitest/runner/dist/index.js:1653:12)
+
+---
+
+/home/boss/Projects/livai/packages/app/tests/unit/ui/tooltip.test.tsx: должен перерендериваться при изменении значимых пропсов
+AssertionError: expected "vi.fn()" to be called 2 times, but got 1 times
+    at /home/boss/Projects/livai/packages/app/tests/unit/ui/tooltip.test.tsx:246:37
+    at file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.17/node_modules/@vitest/runner/dist/index.js:145:11
+    at file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.17/node_modules/@vitest/runner/dist/index.js:915:26
+    at file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.17/node_modules/@vitest/runner/dist/index.js:1243:20
+    at new Promise (<anonymous>)
+    at runWithTimeout (file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.17/node_modules/@vitest/runner/dist/index.js:1209:10)
+    at file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.17/node_modules/@vitest/runner/dist/index.js:1653:37
+    at Traces.$ (file:///home/boss/Projects/livai/node_modules/.pnpm/vitest@4.0.17_@opentelemetry+api@1.9.0_@types+node@25.0.9_jsdom@27.4.0_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vitest/dist/chunks/traces.CCmnQaNT.js:142:27)
+    at trace (file:///home/boss/Projects/livai/node_modules/.pnpm/vitest@4.0.17_@opentelemetry+api@1.9.0_@types+node@25.0.9_jsdom@27.4.0_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vitest/dist/chunks/test.B8ej_ZHS.js:239:21)
+    at runTest (file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.17/node_modules/@vitest/runner/dist/index.js:1653:12)

@@ -17,12 +17,11 @@
  * - платформенных эффектов
  */
 
-import { forwardRef, memo, useEffect, useMemo } from 'react';
+import { forwardRef, memo, useEffect, useMemo, useRef } from 'react';
 import type { JSX, Ref } from 'react';
 
 import { Badge as CoreBadge } from '../../../ui-core/src/primitives/badge.js';
 import type { CoreBadgeProps } from '../../../ui-core/src/primitives/badge.js';
-import { useFeatureFlag } from '../lib/feature-flags.js';
 import { infoFireAndForget } from '../lib/telemetry.js';
 
 /* ============================================================================
@@ -57,18 +56,18 @@ export type AppBadgeProps = Readonly<
  * ========================================================================== */
 
 type BadgePolicy = Readonly<{
-  hidden: boolean;
-  isVisible: boolean;
-  telemetryEnabled: boolean;
+  readonly hiddenByFeatureFlag: boolean;
+  readonly isRendered: boolean;
+  readonly telemetryEnabled: boolean;
 }>;
 
 function useBadgePolicy(props: AppBadgeProps): BadgePolicy {
-  const hiddenByFlag = useFeatureFlag(props.isHiddenByFeatureFlag ?? false);
+  const hiddenByFlag = Boolean(props.isHiddenByFeatureFlag);
 
   return useMemo(
     () => ({
-      hidden: hiddenByFlag,
-      isVisible: !hiddenByFlag,
+      hiddenByFeatureFlag: hiddenByFlag,
+      isRendered: !hiddenByFlag,
       telemetryEnabled: props.telemetryEnabled !== false,
     }),
     [hiddenByFlag, props.telemetryEnabled],
@@ -100,38 +99,43 @@ const BadgeComponent = forwardRef<HTMLSpanElement, AppBadgeProps>(
 
     const policy = useBadgePolicy(props);
 
-    const mountPayload = useMemo<BadgeTelemetryPayload>(
-      () => ({
-        component: 'Badge',
-        action: BadgeTelemetryAction.Mount,
-        hidden: policy.hidden,
-        value,
-      }),
-      [policy.hidden, value],
-    );
+    const lifecyclePayloadRef = useRef<
+      {
+        mount: BadgeTelemetryPayload;
+        unmount: BadgeTelemetryPayload;
+      } | undefined
+    >(undefined);
 
-    const unmountPayload = useMemo<BadgeTelemetryPayload>(
-      () => ({
-        component: 'Badge',
-        action: BadgeTelemetryAction.Unmount,
-        hidden: policy.hidden,
+    // eslint-disable-next-line functional/immutable-data
+    lifecyclePayloadRef.current ??= {
+      mount: {
+        component: 'Badge' as const,
+        action: BadgeTelemetryAction.Mount,
+        hidden: policy.hiddenByFeatureFlag,
         value,
-      }),
-      [policy.hidden, value],
-    );
+      },
+      unmount: {
+        component: 'Badge' as const,
+        action: BadgeTelemetryAction.Unmount,
+        hidden: policy.hiddenByFeatureFlag,
+        value,
+      },
+    };
+
+    const lifecyclePayload = lifecyclePayloadRef.current;
 
     /** Telemetry lifecycle */
     useEffect(() => {
       if (!policy.telemetryEnabled) return;
 
-      emitBadgeTelemetry(mountPayload);
+      emitBadgeTelemetry(lifecyclePayload.mount);
       return (): void => {
-        emitBadgeTelemetry(unmountPayload);
+        emitBadgeTelemetry(lifecyclePayload.unmount);
       };
-    }, [policy.telemetryEnabled, mountPayload, unmountPayload]);
+    }, [policy.telemetryEnabled, lifecyclePayload]);
 
     /** Policy: hidden */
-    if (!policy.isVisible) return null;
+    if (!policy.isRendered) return null;
 
     return (
       <CoreBadge
@@ -148,16 +152,27 @@ const BadgeComponent = forwardRef<HTMLSpanElement, AppBadgeProps>(
 BadgeComponent.displayName = 'Badge';
 
 /**
- * Memoized App Badge with ref forwarding.
+ * UI-контракт Badge компонента.
  *
- * Подходит для:
- * - UI-компонентов
- * - workflow
- * - design-system интеграций
+ * @contract
  *
- * Гарантии:
- * - Чёткое разделение Core и App слоёв
- * - Централизованная telemetry
- * - Управление фичефлагами в одном месте
+ * Гарантируется:
+ * - Детерминированный рендеринг без side effects (кроме telemetry)
+ * - SSR-safe и concurrent rendering compatible
+ * - Полная интеграция с централизованной telemetry системой
+ * - Управление feature flags для скрытия бейджей
+ * - Корректное отображение числовых значений
+ *
+ * Инварианты:
+ * - Всегда возвращает валидный JSX.Element или null
+ * - Числовые значения отображаются корректно
+ * - Feature flags полностью изолированы от Core логики
+ * - Telemetry payload содержит корректное значение
+ *
+ * Не допускается:
+ * - Использование напрямую core Badge компонента
+ * - Передача невалидных числовых значений
+ * - Игнорирование feature flag логики
+ * - Модификация telemetry payload структуры
  */
 export const Badge = memo(BadgeComponent);

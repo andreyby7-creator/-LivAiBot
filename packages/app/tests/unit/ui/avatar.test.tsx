@@ -309,7 +309,7 @@ describe('Avatar', () => {
       expect(avatar1).toBe(avatar2);
     });
 
-    it('должен пересчитывать значения при изменении пропсов', () => {
+    it('не должен пересчитывать lifecycle telemetry при изменении пропсов', () => {
       const { rerender } = render(<Avatar alt='Test User' name='John Doe' />);
       expect(mockInfoFireAndForget).toHaveBeenCalledWith('Avatar mount', {
         component: 'Avatar',
@@ -321,12 +321,8 @@ describe('Avatar', () => {
       mockInfoFireAndForget.mockClear();
 
       rerender(<Avatar alt='Test User' name='Jane Smith' />);
-      expect(mockInfoFireAndForget).toHaveBeenCalledWith('Avatar mount', {
-        component: 'Avatar',
-        action: 'mount',
-        hidden: false,
-        name: 'Jane Smith',
-      });
+      // Lifecycle telemetry не должен пересчитываться при изменении пропсов
+      expect(mockInfoFireAndForget).not.toHaveBeenCalled();
     });
   });
 

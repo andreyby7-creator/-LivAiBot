@@ -227,11 +227,10 @@ describe('Input', () => {
       expect(screen.getByRole('textbox')).toBeDisabled();
     });
 
-    it('должен быть disabled при isDisabledByFeatureFlag={true}', () => {
-      // Поскольку feature flag по умолчанию false, компонент не будет disabled
+    it('должен быть disabled при isDisabledByFeatureFlag={true} независимо от feature flag', () => {
       render(<Input isDisabledByFeatureFlag={true} />);
 
-      expect(screen.getByRole('textbox')).not.toBeDisabled();
+      expect(screen.getByRole('textbox')).toBeDisabled();
     });
 
     it('должен быть enabled по умолчанию', () => {
@@ -250,11 +249,10 @@ describe('Input', () => {
       mockFeatureFlagReturnValue = false; // восстанавливаем значение по умолчанию
     });
 
-    it('должен рендерить компонент при isHiddenByFeatureFlag (feature flag отключен)', () => {
-      // Поскольку feature flag по умолчанию false, компонент рендерится
+    it('должен скрывать компонент при isHiddenByFeatureFlag=true независимо от feature flag', () => {
       render(<Input isHiddenByFeatureFlag={true} />);
 
-      expect(screen.getByRole('textbox')).toBeInTheDocument();
+      expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
     });
 
     it('должен рендерить компонент при обычных условиях', () => {

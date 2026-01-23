@@ -22,7 +22,6 @@ import type { JSX, Ref } from 'react';
 
 import { Icon as CoreIcon } from '../../../ui-core/src/primitives/icon.js';
 import type { CoreIconProps } from '../../../ui-core/src/primitives/icon.js';
-import { useFeatureFlag } from '../lib/feature-flags.js';
 import { infoFireAndForget } from '../lib/telemetry.js';
 
 // eslint-disable-next-line functional/immutable-data -- Мутация displayName - безопасная операция для улучшения debugging experience в DevTools
@@ -61,16 +60,16 @@ export type AppIconProps = Readonly<
  * ========================================================================== */
 
 type IconPolicy = Readonly<{
-  hidden: boolean;
-  variant: string | null;
-  telemetryEnabled: boolean;
+  readonly hiddenByFeatureFlag: boolean;
+  readonly variant: string | null;
+  readonly telemetryEnabled: boolean;
 }>;
 
 function useIconPolicy(props: AppIconProps): IconPolicy {
-  const hidden = useFeatureFlag(props.isHiddenByFeatureFlag);
+  const hidden = Boolean(props.isHiddenByFeatureFlag);
 
   return useMemo<IconPolicy>(() => ({
-    hidden,
+    hiddenByFeatureFlag: hidden,
     variant: props.variantByFeatureFlag ?? null,
     telemetryEnabled: props.telemetryEnabled !== false,
   }), [
@@ -90,7 +89,7 @@ function emitIconTelemetry(action: IconTelemetryAction, policy: IconPolicy, name
   const payload: IconTelemetryPayload = {
     component: 'Icon',
     action,
-    hidden: policy.hidden,
+    hidden: policy.hiddenByFeatureFlag,
     variant: policy.variant,
     name,
   };
@@ -132,8 +131,8 @@ const IconComponent = forwardRef<HTMLElement | null, AppIconProps>(
     }, [ref]);
 
     const debugAttributes = useMemo(
-      () => (policy.hidden ? { 'data-hidden': true } : {}),
-      [policy.hidden],
+      () => (policy.hiddenByFeatureFlag ? { 'data-hidden': true } : {}),
+      [policy.hiddenByFeatureFlag],
     );
 
     /** Жизненный цикл telemetry */
@@ -149,7 +148,7 @@ const IconComponent = forwardRef<HTMLElement | null, AppIconProps>(
     }, []);
 
     /** hidden */
-    if (policy.hidden) return null;
+    if (policy.hiddenByFeatureFlag) return null;
 
     return (
       <CoreIcon
@@ -165,12 +164,28 @@ const IconComponent = forwardRef<HTMLElement | null, AppIconProps>(
 );
 
 /**
- * Memoized App Icon with ref forwarding.
+ * UI-контракт Icon компонента.
  *
- * Подходит для:
- * - UI-компонентов
- * - workflow
- * - design-system интеграций
+ * @contract
+ *
+ * Гарантируется:
+ * - Детерминированный рендеринг без side effects (кроме telemetry)
+ * - SSR-safe и concurrent rendering compatible
+ * - Полная интеграция с централизованной telemetry системой
+ * - Управление feature flags для скрытия иконок
+ * - Корректное применение CSS размеров через size prop
+ *
+ * Инварианты:
+ * - Всегда возвращает валидный JSX.Element или null
+ * - Icon name соответствует существующему в системе
+ * - CSS размеры применяются корректно через size prop
+ * - Feature flags полностью изолированы от Core логики
+ *
+ * Не допускается:
+ * - Использование напрямую core Icon компонента
+ * - Передача несуществующих icon name
+ * - Переопределение размеров через CSS вместо props
+ * - Модификация telemetry payload структуры
  */
 export const Icon = Object.assign(memo(IconComponent), {
   displayName: 'Icon',

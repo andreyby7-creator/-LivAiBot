@@ -21,7 +21,7 @@
  * - CoreBreadcrumbs остается полностью presentational
  */
 
-import React, { forwardRef, memo, useEffect, useMemo } from 'react';
+import React, { forwardRef, memo, useEffect, useMemo, useRef } from 'react';
 import type { JSX, Ref } from 'react';
 
 import { Breadcrumbs as CoreBreadcrumbs } from '../../../ui-core/src/components/Breadcrumbs.js';
@@ -29,7 +29,6 @@ import type {
   BreadcrumbItem,
   CoreBreadcrumbsProps,
 } from '../../../ui-core/src/components/Breadcrumbs.js';
-import { useFeatureFlag } from '../lib/feature-flags.js';
 import { infoFireAndForget } from '../lib/telemetry.js';
 
 /* ============================================================================
@@ -78,19 +77,32 @@ export type AppBreadcrumbItem = CoreBreadcrumbsProps['items'][number];
  * ========================================================================== */
 
 type BreadcrumbsPolicy = Readonly<{
-  hidden: boolean;
-  isVisible: boolean;
-  telemetryEnabled: boolean;
+  readonly hiddenByFeatureFlag: boolean;
+  readonly isRendered: boolean;
+  readonly telemetryEnabled: boolean;
 }>;
 
+/**
+ * BreadcrumbsPolicy является единственным источником истины
+ * для:
+ * - DOM rendering
+ * - telemetry
+ * - visibility state
+ *
+ * Ни один consumer не имеет права повторно интерпретировать props.visible
+ * или feature flags.
+ */
 function useBreadcrumbsPolicy(props: AppBreadcrumbsProps): BreadcrumbsPolicy {
-  const hiddenByFlag = useFeatureFlag(props.isHiddenByFeatureFlag ?? false);
+  const hiddenByFeatureFlag = Boolean(props.isHiddenByFeatureFlag);
 
-  return useMemo(() => ({
-    hidden: hiddenByFlag,
-    isVisible: !hiddenByFlag,
-    telemetryEnabled: props.telemetryEnabled !== false,
-  }), [hiddenByFlag, props.telemetryEnabled]);
+  return useMemo(() => {
+    const isRendered = !hiddenByFeatureFlag && props.visible !== false;
+    return {
+      hiddenByFeatureFlag,
+      isRendered,
+      telemetryEnabled: props.telemetryEnabled !== false,
+    };
+  }, [hiddenByFeatureFlag, props.visible, props.telemetryEnabled]);
 }
 
 /* ============================================================================
@@ -99,12 +111,10 @@ function useBreadcrumbsPolicy(props: AppBreadcrumbsProps): BreadcrumbsPolicy {
 
 function useBreadcrumbsItems(
   items: readonly BreadcrumbItem[],
-  telemetryEnabled: boolean,
-  hidden: boolean,
-  visible: boolean,
+  policy: BreadcrumbsPolicy,
 ): readonly BreadcrumbItem[] {
   // Optional optimization: если items часто меняются, можно добавить JSON.stringify(items) в зависимости
-  // useMemo(() => ..., [items, telemetryEnabled, hidden, visible, JSON.stringify(items)])
+  // useMemo(() => ..., [items, policy, JSON.stringify(items)])
   return useMemo(() => {
     return items.map((item, index): BreadcrumbItem => {
       const originalOnClick = item.onClick;
@@ -116,14 +126,15 @@ function useBreadcrumbsItems(
         ...item,
         onClick: (event: React.MouseEvent<HTMLAnchorElement>): void => {
           // Telemetry для кликов
-          if (telemetryEnabled) {
+          if (policy.telemetryEnabled) {
             const clickPayload = getBreadcrumbsPayload(
               BreadcrumbsTelemetryAction.Click,
-              hidden,
-              visible,
-              items.length,
-              index,
-              item.label,
+              policy,
+              {
+                itemsCount: items.length,
+                itemIndex: index,
+                itemLabel: item.label,
+              },
             );
             emitBreadcrumbsTelemetry(clickPayload);
           }
@@ -133,7 +144,7 @@ function useBreadcrumbsItems(
         },
       };
     });
-  }, [items, telemetryEnabled, hidden, visible]);
+  }, [items, policy]);
 }
 
 /* ============================================================================
@@ -144,22 +155,26 @@ function emitBreadcrumbsTelemetry(payload: BreadcrumbsTelemetryPayload): void {
   infoFireAndForget(`Breadcrumbs ${payload.action}`, payload);
 }
 
+/**
+ * Формирование payload для Breadcrumbs telemetry.
+ */
 function getBreadcrumbsPayload(
   action: BreadcrumbsTelemetryAction,
-  hidden: boolean,
-  visible: boolean,
-  itemsCount: number,
-  itemIndex?: number,
-  itemLabel?: string,
+  policy: BreadcrumbsPolicy,
+  telemetryProps: {
+    itemsCount: number;
+    itemIndex?: number;
+    itemLabel?: string;
+  },
 ): BreadcrumbsTelemetryPayload {
   return {
     component: 'Breadcrumbs',
     action,
-    hidden,
-    visible,
-    itemsCount,
-    ...(itemIndex !== undefined && { itemIndex }),
-    ...(itemLabel !== undefined && { itemLabel }),
+    hidden: policy.hiddenByFeatureFlag,
+    visible: policy.isRendered,
+    itemsCount: telemetryProps.itemsCount,
+    ...(telemetryProps.itemIndex !== undefined && { itemIndex: telemetryProps.itemIndex }),
+    ...(telemetryProps.itemLabel !== undefined && { itemLabel: telemetryProps.itemLabel }),
   };
 }
 
@@ -172,75 +187,108 @@ const BreadcrumbsComponent = forwardRef<HTMLElement, AppBreadcrumbsProps>(
     props: AppBreadcrumbsProps,
     ref: Ref<HTMLElement>,
   ): JSX.Element | null {
-    const { visible = false, items, ...coreProps } = props;
+    const { items, ...coreProps } = props;
     const policy = useBreadcrumbsPolicy(props);
 
-    // Payload'ы вычисляются прямо в useEffect для оптимизации
+    /** Минимальный набор telemetry-данных */
+    const telemetryProps = useMemo(() => ({
+      itemsCount: items.length,
+    }), [items.length]);
 
     // Обогащаем items telemetry обработчиками через custom hook
-    const enrichedItems = useBreadcrumbsItems(
-      items,
-      policy.telemetryEnabled,
-      policy.hidden,
-      visible,
-    );
+    const enrichedItems = useBreadcrumbsItems(items, policy);
 
-    /** Telemetry lifecycle */
+    /**
+     * Lifecycle telemetry фиксирует состояние policy на момент первого рендера.
+     * Не реагирует на последующие изменения props или policy.
+     * Это архитектурная гарантия.
+     */
+    const lifecyclePayloadRef = useRef<
+      {
+        mount: BreadcrumbsTelemetryPayload;
+        unmount: BreadcrumbsTelemetryPayload;
+      } | undefined
+    >(undefined);
+
+    // eslint-disable-next-line functional/immutable-data
+    lifecyclePayloadRef.current ??= {
+      mount: getBreadcrumbsPayload(
+        BreadcrumbsTelemetryAction.Mount,
+        policy,
+        telemetryProps,
+      ),
+      unmount: getBreadcrumbsPayload(
+        BreadcrumbsTelemetryAction.Unmount,
+        policy,
+        telemetryProps,
+      ),
+    };
+
+    const lifecyclePayload = lifecyclePayloadRef.current;
+
     useEffect(() => {
       if (!policy.telemetryEnabled) return;
 
-      const mountPayload = getBreadcrumbsPayload(
-        BreadcrumbsTelemetryAction.Mount,
-        policy.hidden,
-        visible,
-        items.length,
-      );
-      emitBreadcrumbsTelemetry(mountPayload);
+      emitBreadcrumbsTelemetry(lifecyclePayload.mount);
 
       return (): void => {
-        const unmountPayload = getBreadcrumbsPayload(
-          BreadcrumbsTelemetryAction.Unmount,
-          policy.hidden,
-          visible,
-          items.length,
-        );
-        emitBreadcrumbsTelemetry(unmountPayload);
+        emitBreadcrumbsTelemetry(lifecyclePayload.unmount);
       };
-    }, [policy.telemetryEnabled, policy.hidden, visible, items.length]);
+    }, [policy.telemetryEnabled, lifecyclePayload]);
 
-    /** Telemetry для видимости */
+    /** Visibility telemetry - only on changes, not on mount */
+    const showPayload = useMemo(
+      () => ({
+        ...getBreadcrumbsPayload(
+          BreadcrumbsTelemetryAction.Show,
+          policy,
+          telemetryProps,
+        ),
+        visible: true,
+      }),
+      [policy, telemetryProps],
+    );
+    const hidePayload = useMemo(
+      () => ({
+        ...getBreadcrumbsPayload(
+          BreadcrumbsTelemetryAction.Hide,
+          policy,
+          telemetryProps,
+        ),
+        visible: false,
+      }),
+      [policy, telemetryProps],
+    );
+
+    const prevVisibilityRef = useRef<boolean | undefined>(undefined);
+
     useEffect(() => {
       if (!policy.telemetryEnabled) return;
 
-      if (visible) {
-        const showPayload = getBreadcrumbsPayload(
-          BreadcrumbsTelemetryAction.Show,
-          policy.hidden,
-          true,
-          items.length,
+      const currentVisibility = policy.isRendered;
+      const prevVisibility = prevVisibilityRef.current;
+
+      // Emit only on actual visibility changes, not on mount
+      if (prevVisibility !== undefined && prevVisibility !== currentVisibility) {
+        emitBreadcrumbsTelemetry(
+          currentVisibility ? showPayload : hidePayload,
         );
-        emitBreadcrumbsTelemetry(showPayload);
-      } else {
-        const hidePayload = getBreadcrumbsPayload(
-          BreadcrumbsTelemetryAction.Hide,
-          policy.hidden,
-          false,
-          items.length,
-        );
-        emitBreadcrumbsTelemetry(hidePayload);
       }
-    }, [visible, policy.telemetryEnabled, policy.hidden, items]);
+
+      // eslint-disable-next-line functional/immutable-data
+      prevVisibilityRef.current = currentVisibility;
+    }, [policy.telemetryEnabled, policy.isRendered, showPayload, hidePayload]);
 
     /** Policy: hidden (accessibility: элемент полностью удаляется из DOM) */
-    if (!policy.isVisible) return null;
+    if (!policy.isRendered) return null;
 
     return (
       <CoreBreadcrumbs
         ref={ref}
         items={enrichedItems}
         data-component='AppBreadcrumbs'
-        data-state={visible ? 'visible' : 'hidden'} // internal / telemetry & CSS hooks only, не публичное API
-        data-feature-flag={policy.hidden ? 'hidden' : 'visible'} // internal / e2e-тесты only, не публичное API
+        data-state='visible' // internal / telemetry & CSS hooks only, не публичное API
+        data-feature-flag={policy.hiddenByFeatureFlag ? 'hidden' : 'visible'} // internal / e2e-тесты only, не публичное API
         {...coreProps}
       />
     );
@@ -262,5 +310,10 @@ BreadcrumbsComponent.displayName = 'Breadcrumbs';
  * - Чёткое разделение Core и App слоёв
  * - Централизованная telemetry
  * - Управление feature flags в одном месте
+ * - Telemetry отражает состояние policy, а не сырые props
+ * - visible/hidden в payload являются производными только от policy
+ *
+ * Не допускается:
+ * - Использование props.visible напрямую вне policy
  */
 export const Breadcrumbs = memo(BreadcrumbsComponent);

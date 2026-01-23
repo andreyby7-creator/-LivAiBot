@@ -72,20 +72,18 @@ describe('App Toast', () => {
       expect(toast).toHaveClass('custom-class');
     });
 
-    it('должен рендерить когда visible=false (передает false в Core)', () => {
+    it('не должен рендерить когда visible=false', () => {
       render(<Toast content='Test toast' visible={false} />);
 
-      const toast = screen.getByTestId('core-toast');
-      expect(toast).toBeInTheDocument();
-      expect(toast).toHaveAttribute('data-visible', 'false');
+      expect(screen.queryByTestId('core-toast')).not.toBeInTheDocument();
     });
 
-    it('должен рендерить когда visible не указан (по умолчанию false)', () => {
+    it('должен рендерить когда visible не указан (по умолчанию true)', () => {
       render(<Toast content='Test toast' />);
 
       const toast = screen.getByTestId('core-toast');
       expect(toast).toBeInTheDocument();
-      expect(toast).toHaveAttribute('data-visible', 'false');
+      expect(toast).toHaveAttribute('data-visible', 'true');
     });
   });
 
@@ -114,10 +112,8 @@ describe('App Toast', () => {
       expect(screen.queryByTestId('core-toast')).not.toBeInTheDocument();
     });
 
-    it('не должен рендерить когда feature flag включен и isHiddenByFeatureFlag не указан', () => {
-      mockFeatureFlagReturnValue = true;
-
-      render(<Toast content='Test toast' visible={true} />);
+    it('не должен рендерить когда isHiddenByFeatureFlag=true', () => {
+      render(<Toast content='Test toast' visible={true} isHiddenByFeatureFlag={true} />);
 
       expect(screen.queryByTestId('core-toast')).not.toBeInTheDocument();
     });
@@ -206,7 +202,7 @@ describe('App Toast', () => {
         component: 'Toast',
         action: 'mount',
         hidden: true,
-        visible: true,
+        visible: false,
         variant: 'info',
       });
     });
@@ -292,20 +288,15 @@ describe('App Toast', () => {
       expect(mockInfoFireAndForget.mock.calls.length).toBe(initialCalls);
     });
 
-    it('должен пересчитывать payload при изменении variant', () => {
+    it('не должен пересчитывать lifecycle telemetry при изменении variant', () => {
       const { rerender } = render(<Toast content='Test toast' visible={true} variant='info' />);
 
       mockInfoFireAndForget.mockClear();
 
       rerender(<Toast content='Test toast' visible={true} variant='success' />);
 
-      expect(mockInfoFireAndForget).toHaveBeenCalledWith('Toast mount', {
-        component: 'Toast',
-        action: 'mount',
-        hidden: false,
-        visible: true,
-        variant: 'success',
-      });
+      // Lifecycle telemetry не должен пересчитываться при изменении пропсов
+      expect(mockInfoFireAndForget).not.toHaveBeenCalled();
     });
   });
 

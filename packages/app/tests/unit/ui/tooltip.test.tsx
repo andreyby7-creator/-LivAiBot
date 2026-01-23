@@ -73,10 +73,10 @@ describe('Tooltip', () => {
       expect(screen.queryByTestId('core-tooltip')).not.toBeInTheDocument();
     });
 
-    it('не должен рендерить когда visible не указан', () => {
+    it('должен рендерить когда visible не указан (по умолчанию true)', () => {
       render(<Tooltip content='Test tooltip' />);
 
-      expect(screen.queryByTestId('core-tooltip')).not.toBeInTheDocument();
+      expect(screen.getByTestId('core-tooltip')).toBeInTheDocument();
     });
   });
 
@@ -112,16 +112,10 @@ describe('Tooltip', () => {
     it('должен отправлять mount event при рендере', () => {
       render(<Tooltip content='Test tooltip' visible={true} />);
 
-      expect(mockInfoFireAndForget).toHaveBeenCalledTimes(2); // mount + show
+      expect(mockInfoFireAndForget).toHaveBeenCalledTimes(1); // только mount
       expect(mockInfoFireAndForget).toHaveBeenCalledWith('Tooltip mount', {
         component: 'Tooltip',
         action: 'mount',
-        hidden: false,
-        visible: true,
-      });
-      expect(mockInfoFireAndForget).toHaveBeenCalledWith('Tooltip show', {
-        component: 'Tooltip',
-        action: 'show',
         hidden: false,
         visible: true,
       });
@@ -132,7 +126,7 @@ describe('Tooltip', () => {
 
       unmount();
 
-      expect(mockInfoFireAndForget).toHaveBeenCalledTimes(3); // mount + show + unmount
+      expect(mockInfoFireAndForget).toHaveBeenCalledTimes(2); // mount + unmount
       expect(mockInfoFireAndForget).toHaveBeenLastCalledWith('Tooltip unmount', {
         component: 'Tooltip',
         action: 'unmount',
@@ -150,7 +144,7 @@ describe('Tooltip', () => {
         component: 'Tooltip',
         action: 'mount',
         hidden: true,
-        visible: true,
+        visible: false,
       });
     });
 
@@ -168,23 +162,31 @@ describe('Tooltip', () => {
     it('должен отправлять hide event при изменении visible на false', () => {
       const { rerender } = render(<Tooltip content='Test tooltip' visible={true} />);
 
-      expect(mockInfoFireAndForget).toHaveBeenCalledTimes(2); // mount + show
+      expect(mockInfoFireAndForget).toHaveBeenCalledTimes(1); // только mount
+
+      mockInfoFireAndForget.mockClear();
 
       rerender(<Tooltip content='Test tooltip' visible={false} />);
 
-      expect(mockInfoFireAndForget).toHaveBeenCalledTimes(5); // actual behavior
+      expect(mockInfoFireAndForget).toHaveBeenCalledTimes(1); // только hide
+      expect(mockInfoFireAndForget).toHaveBeenCalledWith('Tooltip hide', {
+        component: 'Tooltip',
+        action: 'hide',
+        hidden: false,
+        visible: false,
+      });
     });
 
     it('должен отправлять telemetry только при telemetryEnabled=true', () => {
       render(<Tooltip content='Test' visible={true} telemetryEnabled={true} />);
 
-      expect(mockInfoFireAndForget).toHaveBeenCalledTimes(2); // mount + show
+      expect(mockInfoFireAndForget).toHaveBeenCalledTimes(1); // только mount
     });
 
     it('должен отправлять telemetry по умолчанию (telemetryEnabled не указан)', () => {
       render(<Tooltip content='Test' visible={true} />);
 
-      expect(mockInfoFireAndForget).toHaveBeenCalledTimes(2); // mount + show
+      expect(mockInfoFireAndForget).toHaveBeenCalledTimes(1); // только mount
     });
 
     it('не должен отправлять telemetry при telemetryEnabled=false', () => {
@@ -240,14 +242,22 @@ describe('Tooltip', () => {
       expect(firstRender).toBe(secondRender);
     });
 
-    it('должен перерендериваться при изменении значимых пропсов', () => {
+    it('не должен пересчитывать lifecycle telemetry при изменении пропсов', () => {
       const { rerender } = render(<Tooltip content='Test' visible={true} />);
 
-      expect(mockInfoFireAndForget).toHaveBeenCalledTimes(2); // mount + show
+      expect(mockInfoFireAndForget).toHaveBeenCalledTimes(1); // только mount
+
+      mockInfoFireAndForget.mockClear();
 
       rerender(<Tooltip content='New content' visible={false} />);
 
-      expect(mockInfoFireAndForget).toHaveBeenCalledTimes(5); // actual behavior
+      expect(mockInfoFireAndForget).toHaveBeenCalledTimes(1); // только hide
+      expect(mockInfoFireAndForget).toHaveBeenCalledWith('Tooltip hide', {
+        component: 'Tooltip',
+        action: 'hide',
+        hidden: false,
+        visible: false,
+      });
     });
   });
 });

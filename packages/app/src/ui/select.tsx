@@ -23,7 +23,6 @@ import type { JSX } from 'react';
 
 import { Select as CoreSelect } from '../../../ui-core/src/primitives/select.js';
 import type { CoreSelectProps } from '../../../ui-core/src/primitives/select.js';
-import { useFeatureFlag } from '../lib/feature-flags.js';
 import { infoFireAndForget } from '../lib/telemetry.js';
 
 /* ============================================================================
@@ -74,22 +73,22 @@ export type AppSelectProps = Readonly<
  * ========================================================================== */
 
 type SelectPolicy = Readonly<{
-  hidden: boolean;
-  disabled: boolean;
-  variant: string | null;
-  telemetryEnabled: boolean;
-  telemetryOnChange: boolean;
-  telemetryOnFocus: boolean;
-  telemetryOnBlur: boolean;
+  readonly hiddenByFeatureFlag: boolean;
+  readonly disabledByFeatureFlag: boolean;
+  readonly variant: string | null;
+  readonly telemetryEnabled: boolean;
+  readonly telemetryOnChange: boolean;
+  readonly telemetryOnFocus: boolean;
+  readonly telemetryOnBlur: boolean;
 }>;
 
 function useSelectPolicy(props: AppSelectProps): SelectPolicy {
-  const hidden = useFeatureFlag(props.isHiddenByFeatureFlag);
-  const disabled = useFeatureFlag(props.isDisabledByFeatureFlag);
+  const hidden = Boolean(props.isHiddenByFeatureFlag);
+  const disabled = Boolean(props.isDisabledByFeatureFlag);
 
   return useMemo<SelectPolicy>(() => ({
-    hidden,
-    disabled,
+    hiddenByFeatureFlag: hidden,
+    disabledByFeatureFlag: disabled,
     variant: props.variantByFeatureFlag ?? null,
     telemetryEnabled: props.telemetryEnabled !== false,
     telemetryOnChange: props.telemetryOnChange !== false,
@@ -118,8 +117,8 @@ function emitSelectTelemetry(
     component: 'Select',
     action,
     variant: policy.variant,
-    hidden: policy.hidden,
-    disabled: policy.disabled,
+    hidden: policy.hiddenByFeatureFlag,
+    disabled: policy.disabledByFeatureFlag,
   };
 
   infoFireAndForget(`Select ${action}`, payload);
@@ -158,7 +157,7 @@ const SelectComponent = forwardRef<HTMLSelectElement, AppSelectProps>(
     /** event handlers */
     const handleChange = useCallback(
       (event: React.ChangeEvent<HTMLSelectElement>) => {
-        if (policy.disabled) return;
+        if (policy.disabledByFeatureFlag) return;
 
         if (policy.telemetryEnabled && policy.telemetryOnChange) {
           emitSelectTelemetry('change', policy);
@@ -192,7 +191,7 @@ const SelectComponent = forwardRef<HTMLSelectElement, AppSelectProps>(
     );
 
     /** hidden */
-    if (policy.hidden) {
+    if (policy.hiddenByFeatureFlag) {
       return null;
     }
 
@@ -211,11 +210,11 @@ const SelectComponent = forwardRef<HTMLSelectElement, AppSelectProps>(
         {...coreProps}
         {...(dataTestId != null ? { 'data-testid': dataTestId } : {})}
         data-component='AppSelect'
-        disabled={policy.disabled || undefined}
+        disabled={policy.disabledByFeatureFlag || undefined}
         data-variant={policy.variant}
-        data-disabled={policy.disabled || undefined}
-        aria-disabled={policy.disabled || undefined}
-        aria-busy={policy.disabled || undefined}
+        data-disabled={policy.disabledByFeatureFlag || undefined}
+        aria-disabled={policy.disabledByFeatureFlag || undefined}
+        aria-busy={policy.disabledByFeatureFlag || undefined}
         onChange={handleChange}
         onFocus={handleFocus}
         onBlur={handleBlur}
@@ -225,14 +224,28 @@ const SelectComponent = forwardRef<HTMLSelectElement, AppSelectProps>(
 );
 
 /**
- * Memoized Select with ref forwarding.
+ * UI-контракт Select компонента.
  *
- * Подходит для:
- * - фильтров
- * - форм ввода (react-hook-form, final-form)
- * - конфигурационных панелей
- * - workflow UI
- * - программного управления (focus, scrollIntoView)
+ * @contract
+ *
+ * Гарантируется:
+ * - Детерминированный рендеринг без side effects (кроме telemetry)
+ * - SSR-safe и concurrent rendering compatible
+ * - Полная интеграция с централизованной telemetry системой
+ * - Управление feature flags для скрытия и отключения
+ * - Корректная обработка controlled/uncontrolled состояния
+ *
+ * Инварианты:
+ * - Всегда возвращает валидный JSX.Element или null
+ * - Состояние value синхронизировано с onChange callback
+ * - Feature flags применяются корректно к visibility и disabled
+ * - Telemetry events отправляются только при реальных изменениях
+ *
+ * Не допускается:
+ * - Использование напрямую core Select компонента
+ * - Смешивание controlled и uncontrolled режимов
+ * - Игнорирование accessibility атрибутов
+ * - Модификация telemetry payload структуры
  */
 export const Select = Object.assign(memo(SelectComponent), {
   displayName: 'Select',
