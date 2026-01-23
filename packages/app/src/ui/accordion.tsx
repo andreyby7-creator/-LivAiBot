@@ -1,0 +1,412 @@
+/**
+ * @file packages/app/src/ui/accordion.tsx
+ * ============================================================================
+ * 🟥 APP UI ACCORDION — UI МИКРОСЕРВИС ACCORDION
+ * ============================================================================
+ *
+ * Единственная точка входа для Accordion в приложении.
+ * UI boundary между ui-core и бизнес-логикой.
+ *
+ * Ответственность:
+ * - Policy (hidden / visibility)
+ * - Telemetry
+ * - Feature flags
+ *
+ * Не содержит:
+ * - DOM-манипуляций кроме Core
+ * - Платформенных эффектов
+ *
+ * Архитектурные решения:
+ * - Управление открытыми элементами и событиями обрабатывается в App слое
+ * - CoreAccordion остается полностью presentational
+ */
+
+import { forwardRef, memo, useCallback, useEffect, useMemo, useRef } from 'react';
+import type { JSX, MouseEvent, Ref } from 'react';
+
+import { Accordion as CoreAccordion } from '../../../ui-core/src/components/Accordion.js';
+import type { CoreAccordionProps } from '../../../ui-core/src/components/Accordion.js';
+import { infoFireAndForget } from '../lib/telemetry.js';
+
+/* ============================================================================
+ * 🧬 TYPES & CONSTANTS
+ * ========================================================================== */
+
+enum AccordionTelemetryAction {
+  Mount = 'mount',
+  Unmount = 'unmount',
+  Show = 'show',
+  Hide = 'hide',
+  Toggle = 'toggle',
+}
+
+type AccordionTelemetryPayload = {
+  component: 'Accordion';
+  action: AccordionTelemetryAction;
+  hidden: boolean;
+  visible: boolean;
+  itemsCount: number;
+  openItemsCount: number;
+  openItemIds?: string[];
+  mode?: 'single' | 'multiple';
+};
+
+export type AppAccordionProps = Readonly<
+  Omit<CoreAccordionProps, 'onChange' | 'data-testid'> & {
+    /** Видимость Accordion (App policy). Default = true */
+    visible?: boolean;
+
+    /** Feature flag: скрыть Accordion */
+    isHiddenByFeatureFlag?: boolean;
+
+    /** Telemetry master switch */
+    telemetryEnabled?: boolean;
+
+    /** Callback при изменении открытых элементов */
+    onChange?: (itemId: string, event: MouseEvent<HTMLButtonElement>) => void;
+
+    /** Test ID для автотестов */
+    'data-testid'?: string;
+  }
+>;
+
+/* ============================================================================
+ * 🧠 POLICY
+ * ========================================================================== */
+
+type AccordionPolicy = Readonly<{
+  readonly hiddenByFeatureFlag: boolean;
+  readonly isRendered: boolean;
+  readonly telemetryEnabled: boolean;
+}>;
+
+/**
+ * AccordionPolicy является единственным источником истины
+ * для:
+ * - DOM rendering
+ * - telemetry
+ * - visibility state
+ *
+ * Ни один consumer не имеет права повторно интерпретировать props.visible
+ * или feature flags.
+ */
+function useAccordionPolicy(props: AppAccordionProps): AccordionPolicy {
+  const hiddenByFeatureFlag = Boolean(props.isHiddenByFeatureFlag);
+
+  return useMemo(() => {
+    const isRendered = !hiddenByFeatureFlag && props.visible !== false;
+    return {
+      hiddenByFeatureFlag,
+      isRendered,
+      telemetryEnabled: props.telemetryEnabled !== false,
+    };
+  }, [hiddenByFeatureFlag, props.visible, props.telemetryEnabled]);
+}
+
+/* ============================================================================
+ * 📡 TELEMETRY
+ * ========================================================================== */
+
+function emitAccordionTelemetry(payload: AccordionTelemetryPayload): void {
+  /**
+   * Преобразуем payload в формат, совместимый с telemetry API.
+   * Примечание: telemetry API поддерживает только примитивные типы (string | number | boolean | null),
+   * поэтому массивы (openItemIds) преобразуются в JSON-строку.
+   * Если в будущем API будет поддерживать массивы напрямую, можно будет убрать JSON.stringify.
+   */
+  const metadata: Readonly<Record<string, string | number | boolean | null>> = {
+    component: payload.component,
+    action: payload.action,
+    hidden: payload.hidden,
+    visible: payload.visible,
+    itemsCount: payload.itemsCount,
+    openItemsCount: payload.openItemsCount,
+    ...(payload.openItemIds !== undefined && { openItemIds: JSON.stringify(payload.openItemIds) }),
+    ...(payload.mode !== undefined && { mode: payload.mode }),
+  };
+  infoFireAndForget(`Accordion ${payload.action}`, metadata);
+}
+
+/**
+ * Базовое формирование payload для Accordion telemetry (без visible).
+ * visible добавляется явно в show/hide payload для семантической чистоты.
+ */
+function getAccordionPayloadBase(
+  action: AccordionTelemetryAction,
+  policy: AccordionPolicy,
+  telemetryProps: {
+    itemsCount: number;
+    openItemsCount: number;
+    openItemIds?: string[];
+    mode?: 'single' | 'multiple';
+  },
+): Omit<AccordionTelemetryPayload, 'visible'> {
+  return {
+    component: 'Accordion',
+    action,
+    hidden: policy.hiddenByFeatureFlag,
+    itemsCount: telemetryProps.itemsCount,
+    openItemsCount: telemetryProps.openItemsCount,
+    ...(telemetryProps.openItemIds !== undefined && { openItemIds: telemetryProps.openItemIds }),
+    ...(telemetryProps.mode !== undefined && { mode: telemetryProps.mode }),
+  };
+}
+
+/**
+ * Формирование payload для Accordion telemetry (для lifecycle events).
+ * Использует policy.isRendered для visible.
+ */
+function getAccordionPayload(
+  action: AccordionTelemetryAction,
+  policy: AccordionPolicy,
+  telemetryProps: {
+    itemsCount: number;
+    openItemsCount: number;
+    openItemIds?: string[];
+    mode?: 'single' | 'multiple';
+  },
+): AccordionTelemetryPayload {
+  return {
+    ...getAccordionPayloadBase(action, policy, telemetryProps),
+    visible: policy.isRendered,
+  };
+}
+
+/* ============================================================================
+ * 🎯 APP ACCORDION
+ * ========================================================================== */
+
+const AccordionComponent = forwardRef<HTMLDivElement, AppAccordionProps>(
+  function AccordionComponent(
+    props: AppAccordionProps,
+    ref: Ref<HTMLDivElement>,
+  ): JSX.Element | null {
+    const {
+      items,
+      openItemId,
+      openItemIds,
+      onChange,
+      mode,
+      ...coreProps
+    } = props;
+    const policy = useAccordionPolicy(props);
+
+    /** Вычисляем количество открытых элементов и их IDs */
+    const { openItemsCount, currentOpenItemIds } = useMemo(() => {
+      if (mode === 'single' && openItemId !== undefined) {
+        return { openItemsCount: 1, currentOpenItemIds: [openItemId] };
+      }
+      if (mode === 'multiple' && openItemIds !== undefined) {
+        return { openItemsCount: openItemIds.length, currentOpenItemIds: [...openItemIds] };
+      }
+      return { openItemsCount: 0, currentOpenItemIds: [] };
+    }, [mode, openItemId, openItemIds]);
+
+    /** Минимальный набор telemetry-данных */
+    const telemetryProps = useMemo(() => {
+      const base = {
+        itemsCount: items.length,
+        openItemsCount,
+        ...(mode !== undefined && { mode }),
+      };
+      if (currentOpenItemIds.length > 0) {
+        return { ...base, openItemIds: currentOpenItemIds };
+      }
+      return base;
+    }, [items.length, openItemsCount, currentOpenItemIds, mode]);
+
+    /**
+     * Lifecycle telemetry фиксирует состояние policy на момент первого рендера.
+     * Не реагирует на последующие изменения props или policy.
+     * Это архитектурная гарантия.
+     */
+    const lifecyclePayloadRef = useRef<
+      {
+        mount: AccordionTelemetryPayload;
+        unmount: AccordionTelemetryPayload;
+      } | undefined
+    >(undefined);
+
+    // eslint-disable-next-line functional/immutable-data
+    lifecyclePayloadRef.current ??= {
+      mount: getAccordionPayload(AccordionTelemetryAction.Mount, policy, telemetryProps),
+      unmount: getAccordionPayload(AccordionTelemetryAction.Unmount, policy, telemetryProps),
+    };
+
+    const lifecyclePayload = lifecyclePayloadRef.current;
+
+    const showPayload = useMemo(
+      () => ({
+        ...getAccordionPayloadBase(AccordionTelemetryAction.Show, policy, telemetryProps),
+        visible: true,
+      }),
+      [policy, telemetryProps],
+    );
+
+    const hidePayload = useMemo(
+      () => ({
+        ...getAccordionPayloadBase(AccordionTelemetryAction.Hide, policy, telemetryProps),
+        visible: false,
+      }),
+      [policy, telemetryProps],
+    );
+
+    /**
+     * Обработчик изменения элемента с telemetry.
+     *
+     * @param itemId - ID элемента, который был кликнут
+     * @param event - Mouse event
+     *
+     * @note Toggle telemetry фиксирует состояние ДО клика (pre-click snapshot).
+     * Это означает, что openItemsCount и openItemIds отражают состояние на момент рендера,
+     * а не новое состояние после обработки клика App-слоем.
+     * Если требуется telemetry с новым состоянием, это должно обрабатываться в App-слое.
+     */
+    const handleChange = useCallback(
+      (itemId: string, event: MouseEvent<HTMLButtonElement>): void => {
+        if (policy.telemetryEnabled) {
+          const beforeToggleTelemetryProps: {
+            itemsCount: number;
+            openItemsCount: number;
+            openItemIds?: string[];
+            mode?: 'single' | 'multiple';
+          } = {
+            itemsCount: items.length,
+            openItemsCount,
+            ...(mode !== undefined && { mode }),
+            ...(currentOpenItemIds.length > 0 && { openItemIds: currentOpenItemIds }),
+          };
+          const beforeTogglePayload = getAccordionPayload(
+            AccordionTelemetryAction.Toggle,
+            policy,
+            beforeToggleTelemetryProps,
+          );
+          emitAccordionTelemetry(beforeTogglePayload);
+        }
+
+        onChange?.(itemId, event);
+      },
+      [policy, items.length, openItemsCount, currentOpenItemIds, mode, onChange],
+    );
+
+    /** Telemetry lifecycle */
+    useEffect(() => {
+      if (!policy.telemetryEnabled) return;
+
+      emitAccordionTelemetry(lifecyclePayload.mount);
+      return (): void => {
+        emitAccordionTelemetry(lifecyclePayload.unmount);
+      };
+    }, [policy.telemetryEnabled, lifecyclePayload]);
+
+    /** Telemetry для видимости - only on changes, not on mount */
+    const prevVisibleRef = useRef<boolean | undefined>(undefined);
+
+    /**
+     * DRY функция для отправки visibility telemetry.
+     * Отправляет telemetry только при фактическом изменении видимости.
+     */
+    const emitVisibilityTelemetry = useCallback(
+      (prevVisibility: boolean | undefined, currentVisibility: boolean): void => {
+        if (prevVisibility !== undefined && prevVisibility !== currentVisibility) {
+          emitAccordionTelemetry(
+            currentVisibility ? showPayload : hidePayload,
+          );
+        }
+      },
+      [showPayload, hidePayload],
+    );
+
+    useEffect(() => {
+      if (!policy.telemetryEnabled) return;
+
+      const currentVisibility = policy.isRendered;
+      const prevVisibility = prevVisibleRef.current;
+
+      emitVisibilityTelemetry(prevVisibility, currentVisibility);
+
+      // eslint-disable-next-line functional/immutable-data
+      prevVisibleRef.current = currentVisibility;
+    }, [policy.telemetryEnabled, policy.isRendered, emitVisibilityTelemetry]);
+
+    /**
+     * Контракт CoreAccordion:
+     * - В single mode используется только openItemId (имеет приоритет)
+     * - В multiple mode используется только openItemIds
+     * - Передача обоих props одновременно не рекомендуется, но CoreAccordion обработает корректно
+     */
+    const coreAccordionProps = useMemo(() => {
+      // Runtime warning в dev-mode для конфликта props
+      if (
+        process.env['NODE_ENV'] !== 'production' && mode === 'single' && openItemIds !== undefined
+      ) {
+        // eslint-disable-next-line no-console
+        console.warn(
+          '[Accordion] openItemIds ignored in single mode. Use openItemId instead.',
+        );
+      }
+
+      return {
+        items,
+        ...(openItemId !== undefined && { openItemId }),
+        ...(openItemIds !== undefined && { openItemIds }),
+        onChange: handleChange,
+        ...(mode !== undefined && { mode }),
+        'data-component': 'AppAccordion' as const,
+        'data-state': 'visible' as const,
+        'data-feature-flag': policy.hiddenByFeatureFlag ? 'hidden' as const : 'visible' as const,
+        'data-telemetry': policy.telemetryEnabled ? 'enabled' as const : 'disabled' as const,
+      };
+    }, [
+      items,
+      openItemId,
+      openItemIds,
+      handleChange,
+      mode,
+      policy.hiddenByFeatureFlag,
+      policy.telemetryEnabled,
+    ]);
+
+    /** Policy: hidden */
+    if (!policy.isRendered) return null;
+
+    return (
+      <CoreAccordion
+        ref={ref}
+        {...coreAccordionProps}
+        {...coreProps}
+      />
+    );
+  },
+);
+
+// eslint-disable-next-line functional/immutable-data
+AccordionComponent.displayName = 'Accordion';
+
+/**
+ * UI-контракт Accordion компонента.
+ *
+ * @contract
+ *
+ * Гарантируется:
+ * - Детерминированный рендеринг без side effects (кроме telemetry)
+ * - SSR-safe и concurrent rendering compatible
+ * - Полная интеграция с централизованной telemetry системой
+ * - Управление feature flags для скрытия аккордеона
+ * - Корректная обработка accessibility (ARIA)
+ *
+ * Инварианты:
+ * - Всегда возвращает валидный JSX.Element или null
+ * - Telemetry payload содержит корректное количество элементов
+ * - Feature flags применяются корректно к visibility
+ * - Telemetry отражает состояние policy, а не сырые props
+ * - visible/hidden в payload являются производными только от policy
+ * - Toggle telemetry отправляется при каждом изменении открытых элементов
+ *
+ * Не допускается:
+ * - Использование напрямую core Accordion компонента
+ * - Игнорирование feature flag логики
+ * - Модификация telemetry payload структуры
+ * - Использование props.visible напрямую вне policy
+ */
+export const Accordion = memo(AccordionComponent);
