@@ -81,6 +81,7 @@
     "ui"
   ],
   "dependencies": {
+    "dayjs": "1.11.19",
     "next-intl": "^4.7.0"
   }
 }

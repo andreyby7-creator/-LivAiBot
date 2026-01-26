@@ -208,9 +208,9 @@ UI Core components и types
 3️⃣6️⃣ packages/ui-core/src/components/Breadcrumbs.tsx 🟢 — ts+react — Breadcrumbs UI
 3️⃣7️⃣ packages/ui-core/src/components/Tabs.tsx 🟢 — ts+react — Tabs UI
 3️⃣8️⃣ packages/ui-core/src/components/Accordion.tsx 🟢 — ts+react — Accordion UI
-3️⃣9️⃣ packages/ui-core/src/components/DatePicker.tsx 🔴 — ts+react — DatePicker UI
-4️⃣0️⃣ packages/ui-core/src/components/FileUploader.tsx 🔴 — ts+react — FileUploader UI (НЕТ)
-4️⃣1️⃣ packages/ui-core/src/components/sidebar.tsx 🔴 — ts+react — Sidebar UI (НЕТ)
+3️⃣9️⃣ packages/ui-core/src/components/DatePicker.tsx 🟢 — ts+react — DatePicker UI
+4️⃣0️⃣ packages/ui-core/src/components/FileUploader.tsx 🔴 — ts+react — FileUploader UI
+4️⃣1️⃣ packages/ui-core/src/components/sidebar.tsx 🔴 — ts+react — Sidebar UI
 4️⃣2️⃣ packages/ui-core/src/components/search-bar.tsx 🔴 — ts+react — SearchBar (НЕТ)
 4️⃣3️⃣ packages/ui-core/src/components/confirm-dialog.tsx 🔴 — ts+react — ConfirmDialog UI (НЕТ)
 4️⃣4️⃣ packages/ui-core/src/components/error-boundary.tsx 🔴 — ts+react — Error Boundary (НЕТ)
@@ -257,9 +257,9 @@ App UI wrappers
 8️⃣1️⃣ packages/app/src/ui/breadcrumbs.tsx 🟢 — ts+react — UI wrapper Breadcrumbs — ui-core/Breadcrumbs.tsx
 8️⃣2️⃣ packages/app/src/ui/tabs.tsx 🟢 — ts+react — UI wrapper Tabs — ui-core/Tabs.tsx
 8️⃣3️⃣ packages/app/src/ui/accordion.tsx 🟢 — ts+react — UI wrapper Accordion — ui-core/Accordion.tsx
-8️⃣4️⃣ packages/app/src/ui/date-picker.tsx 🔴 — ts+react — UI wrapper DatePicker — ui-core/DatePicker.tsx
-8️⃣5️⃣ packages/app/src/ui/file-uploader.tsx 🔴 — ts+react — UI wrapper FileUploader — ui-core/FileUploader.tsx (НЕТ)
-8️⃣6️⃣ packages/app/src/ui/sidebar.tsx 🔴 — ts+react — Sidebar (НЕТ)
+8️⃣4️⃣ packages/app/src/ui/date-picker.tsx 🟢 — ts+react — UI wrapper DatePicker — ui-core/DatePicker.tsx
+8️⃣5️⃣ packages/app/src/ui/file-uploader.tsx 🔴 — ts+react — UI wrapper FileUploader — ui-core/FileUploader.tsx
+8️⃣6️⃣ packages/app/src/ui/sidebar.tsx 🔴 — ts+react — Sidebar
 8️⃣7️⃣ packages/app/src/ui/search-bar.tsx 🔴 — ts+react — Search Bar (НЕТ)
 8️⃣8️⃣ packages/app/src/ui/confirm-dialog.tsx 🔴 — ts+react — UI wrapper ConfirmDialog — ui-core/ConfirmDialog.tsx (НЕТ)
 8️⃣9️⃣ packages/app/src/ui/error-boundary.tsx 🔴 — ts+react — UI wrapper Error Boundary — ui-core/ErrorBoundary.tsx (НЕТ)

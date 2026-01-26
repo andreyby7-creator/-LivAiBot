@@ -17,6 +17,7 @@ export * from './ui/button.js';
 export * from './ui/card.js';
 export * from './ui/checkbox.js';
 export * from './ui/context-menu.js';
+export * from './ui/date-picker.js';
 export * from './ui/dialog.js';
 export * from './ui/divider.js';
 export * from './ui/dropdown.js';
