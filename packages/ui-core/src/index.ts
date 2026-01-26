@@ -38,6 +38,7 @@ export * from './primitives/tooltip.js';
 export * from './components/Accordion.js';
 export * from './components/Breadcrumbs.js';
 export * from './components/DatePicker.js';
+export * from './components/FileUploader.js';
 export * from './components/Modal.js';
 export * from './components/Skeleton.js';
 export * from './components/Tabs.js';

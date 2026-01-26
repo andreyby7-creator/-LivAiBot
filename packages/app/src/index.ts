@@ -21,6 +21,7 @@ export * from './ui/date-picker.js';
 export * from './ui/dialog.js';
 export * from './ui/divider.js';
 export * from './ui/dropdown.js';
+export * from './ui/file-uploader.js';
 export * from './ui/form.js';
 export * from './ui/icon.js';
 export * from './ui/input.js';
