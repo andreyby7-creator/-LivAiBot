@@ -196,9 +196,9 @@
 2️⃣6️⃣ packages/ui-core/src/primitives/dialog.tsx 🟢 — ts+react — Dialog UI
 2️⃣7️⃣ packages/ui-core/src/primitives/form.tsx 🟢 — ts+react — Form UI
 2️⃣8️⃣ packages/ui-core/src/primitives/loading-spinner.tsx 🟢 — ts+react — Loading Spinner
-2️⃣9️⃣ packages/ui-core/src/primitives/dropdown.tsx 🔴 — ts+react — Dropdown/Menu UI
-3️⃣0️⃣ packages/ui-core/src/primitives/context-menu.tsx 🔴 — ts+react — ContextMenu UI (НЕТ)
-3️⃣1️⃣ packages/ui-core/src/primitives/status-indicator.tsx 🔴 — ts+react — StatusIndicator UI (НЕТ)
+2️⃣9️⃣ packages/ui-core/src/primitives/dropdown.tsx 🟢 — ts+react — Dropdown/Menu UI
+3️⃣0️⃣ packages/ui-core/src/primitives/context-menu.tsx 🟢 — ts+react — ContextMenu UI
+3️⃣1️⃣ packages/ui-core/src/primitives/status-indicator.tsx 🔴 — ts+react — StatusIndicator UI
 
 UI Core components и types
 3️⃣2️⃣ packages/ui-core/src/types/ui.ts 🟢 — ts — Типы UI
@@ -247,9 +247,9 @@ App UI wrappers
 7️⃣1️⃣ packages/app/src/ui/dialog.tsx 🟢 — ts+react — UI wrapper Dialog — ui-core/Dialog.tsx
 7️⃣2️⃣ packages/app/src/ui/form.tsx 🟢 — ts+react — UI wrapper Form — ui-core/Form.tsx
 7️⃣3️⃣ packages/app/src/ui/loading-spinner.tsx 🟢 — ts+react — Loading Spinner
-7️⃣4️⃣ packages/app/src/ui/dropdown.tsx 🔴 — ts+react — UI wrapper Dropdown — ui-core/Dropdown.tsx
-7️⃣5️⃣ packages/app/src/ui/context-menu.tsx 🔴 — ts+react — UI wrapper ContextMenu — ui-core/ContextMenu.tsx (НЕТ)
-7️⃣6️⃣ packages/app/src/ui/status-indicator.tsx 🔴 — ts+react — UI wrapper StatusIndicator — ui-core/StatusIndicator.tsx (НЕТ)
+7️⃣4️⃣ packages/app/src/ui/dropdown.tsx 🟢 — ts+react — UI wrapper Dropdown — ui-core/Dropdown.tsx
+7️⃣5️⃣ packages/app/src/ui/context-menu.tsx 🟢 — ts+react — UI wrapper ContextMenu — ui-core/ContextMenu.tsx
+7️⃣6️⃣ packages/app/src/ui/status-indicator.tsx 🔴 — ts+react — UI wrapper StatusIndicator — ui-core/StatusIndicator.tsx
 7️⃣7️⃣ packages/app/src/ui/toast.tsx 🟢 — ts+react — UI wrapper Toast — ui-core/Toast.tsx
 7️⃣8️⃣ packages/app/src/ui/skeleton.tsx 🟢 — ts+react — UI wrapper Skeleton — ui-core/Skeleton.tsx
 7️⃣9️⃣ packages/app/src/ui/skeleton-group.tsx — ts+react — UI wrapper Skeleton Group — ui-core/Skeleton.tsx, app/ui/skeleton.tsx
