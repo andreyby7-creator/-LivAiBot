@@ -1,0 +1,1246 @@
+/**
+ * @file packages/app/src/lib/service-worker.ts
+ * ============================================================================
+ * 🔧 SERVICE WORKER — PWA/OFFLINE ЯДРО
+ * ============================================================================
+ *
+ * Свойства:
+ * - Гибридные стратегии кеширования (NetworkFirst, CacheFirst, StaleWhileRevalidate)
+ * - Push notifications поддержка
+ * - Background sync для оффлайн операций
+ * - Автоматическая очистка устаревших кешей
+ * - Telemetry-ready архитектура
+ * - Микросервисная архитектура с traceId
+ * - Отказоустойчивый и resilient
+ * - Готов к production использованию
+ *
+ * Принципы:
+ * - Zero business logic (только инфраструктура)
+ * - Immutable конфигурация
+ * - Полная типизация TypeScript
+ * - Graceful degradation
+ */
+
+/* ============================================================================
+ * 🧠 ТИПЫ И КОНСТРАНТЫ
+ * ========================================================================== */
+
+/** Версия Service Worker для управления кешами */
+const SW_VERSION = '1.0.0';
+
+/** Ожидаемый scope Service Worker */
+const EXPECTED_SCOPE = '/';
+
+/** Feature flag для отключения Service Worker (kill-switch) */
+const SW_DISABLED = false; // Устанавливается через remote config или environment variable
+
+/** Константы для размеров */
+const BYTES_IN_KB = 1024;
+const BYTES_IN_MB = BYTES_IN_KB * BYTES_IN_KB;
+
+/** Максимальный размер одного ответа для кеширования (10MB) */
+const MAX_RESPONSE_SIZE_BYTES = 10 * BYTES_IN_MB;
+
+/** Максимальный размер всего кеша в байтах (100MB) */
+const MAX_TOTAL_CACHE_SIZE_BYTES = 100 * BYTES_IN_MB;
+
+/** Счетчик ошибок для self-health monitoring */
+let errorCount = 0;
+const MAX_ERRORS_BEFORE_DISABLE = 50;
+
+/** Версия схемы телеметрии */
+const TELEMETRY_SCHEMA_VERSION = '1.0.0';
+
+/** App ID для namespace изоляции */
+const APP_ID = 'livai';
+const ENVIRONMENT = 'prod'; // prod | stage | dev
+
+/** Префикс для кешей с namespace изоляцией */
+const CACHE_PREFIX = `${APP_ID}-${ENVIRONMENT}-sw`;
+
+/** Имя основного кеша */
+const MAIN_CACHE_NAME = `${CACHE_PREFIX}-v${SW_VERSION}`;
+
+/** Имя кеша для статических ресурсов */
+const STATIC_CACHE_NAME = `${CACHE_PREFIX}-static-v${SW_VERSION}`;
+
+/** Имя кеша для API запросов (базовое, без user hash) */
+const API_CACHE_BASE_NAME = `${CACHE_PREFIX}-api-v${SW_VERSION}`;
+
+/** Получает имя API кеша с изоляцией по пользователю */
+function getApiCacheName(userHash: string | null): string {
+  if (userHash === null) {
+    // Публичные API без изоляции
+    return `${API_CACHE_BASE_NAME}-public`;
+  }
+  return `${API_CACHE_BASE_NAME}-${userHash}`;
+}
+
+/** Извлекает хеш пользователя из запроса (Authorization header) */
+function getUserHashFromRequest(request: Request): string | null {
+  try {
+    const authHeader = request.headers.get('authorization');
+    if (authHeader === null || authHeader === '') {
+      return null;
+    }
+    if (!authHeader.toLowerCase().startsWith('bearer ')) {
+      return null;
+    }
+    const tokenPart = authHeader.split(' ', 2)[1];
+    const token = tokenPart?.trim();
+    if (token === '' || token === undefined) {
+      return null;
+    }
+    // Простой хеш токена для изоляции кеша (первые 16 символов base64)
+    // В production можно использовать crypto.subtle.digest для SHA-256
+    const HASH_LENGTH = 16;
+    const hash = btoa(token).substring(0, HASH_LENGTH).replace(/[^a-zA-Z0-9]/g, '');
+    return hash === '' ? null : hash;
+  } catch {
+    return null;
+  }
+}
+
+/** Время жизни кеша в миллисекундах (7 дней) */
+const DAYS_IN_WEEK = 7;
+const HOURS_IN_DAY = 24;
+const MINUTES_IN_HOUR = 60;
+const SECONDS_IN_MINUTE = 60;
+const MILLISECONDS_IN_SECOND = 1000;
+const CACHE_TTL = DAYS_IN_WEEK
+  * HOURS_IN_DAY
+  * MINUTES_IN_HOUR
+  * SECONDS_IN_MINUTE
+  * MILLISECONDS_IN_SECOND;
+
+/** Константы для конфигурации кеширования */
+const STATIC_CACHE_DAYS = 30;
+const API_CACHE_MINUTES = 5;
+const API_NETWORK_TIMEOUT_SECONDS = 5;
+
+/** URLs для предварительного кеширования при установке */
+const PRECACHE_MAIN_URLS: readonly string[] = [
+  '/',
+  '/offline.html',
+] as const;
+
+const PRECACHE_STATIC_URLS: readonly string[] = [
+  '/icons/icon-192x192.png',
+  '/icons/icon-512x512.png',
+] as const;
+
+/**
+ * Стратегия кеширования
+ *
+ * CacheFirst = CacheFirst + TTL enforcement
+ * - Возвращает кеш только если он свежий (не expired)
+ * - Кеш без sw-cached-date считается expired
+ * - Fallback на сеть если кеш устарел или отсутствует
+ */
+type CacheStrategy =
+  | 'NetworkFirst'
+  | 'CacheFirst'
+  | 'StaleWhileRevalidate'
+  | 'NetworkOnly'
+  | 'CacheOnly';
+
+/** Конфигурация кеширования для маршрута */
+type RouteCacheConfig = Readonly<{
+  strategy: CacheStrategy;
+  cacheName?: string | undefined;
+  maxAge?: number | undefined;
+  maxEntries?: number | undefined;
+  networkTimeout?: number | undefined;
+}>;
+
+/** Контекст запроса для телеметрии */
+type RequestContext = Readonly<{
+  traceId?: string;
+  service?: string;
+  timestamp: number;
+}>;
+
+/** Типы ошибок для детальной классификации */
+type ErrorSource =
+  | 'ERROR_NETWORK'
+  | 'ERROR_TIMEOUT'
+  | 'ERROR_CACHE_MISS'
+  | 'ERROR_INVALID_RESPONSE'
+  | 'ERROR';
+
+/** Результат обработки запроса */
+type RequestResult = Readonly<{
+  response: Response;
+  source: 'CACHE' | 'NETWORK' | 'STALE' | ErrorSource;
+  timestamp: number;
+  traceId?: string | undefined;
+}>;
+
+/** Типы для Service Worker API */
+export type Client = {
+  readonly url: string;
+  readonly id: string;
+  readonly type: 'window' | 'worker' | 'sharedworker';
+  postMessage(message: unknown, transfer?: Transferable[]): void;
+};
+
+export type WindowClient = Client & {
+  focus(): Promise<WindowClient>;
+};
+
+export type Clients = {
+  matchAll(
+    options?: {
+      type?: 'window' | 'worker' | 'sharedworker' | 'all';
+      includeUncontrolled?: boolean;
+    },
+  ): Promise<Client[]>;
+  openWindow(url: string): Promise<WindowClient | null>;
+  claim(): Promise<void>;
+};
+
+export type ExtendableEvent = Event & {
+  waitUntil(promise: Promise<unknown>): void;
+};
+
+export type FetchEvent = ExtendableEvent & {
+  readonly request: Request;
+  respondWith(response: Response | Promise<Response>): void;
+};
+
+export type ExtendableMessageEvent = ExtendableEvent & {
+  readonly data: unknown;
+};
+
+export type ServiceWorkerGlobalScope = {
+  readonly registration: ServiceWorkerRegistration;
+  readonly clients: Clients;
+  skipWaiting(): Promise<void>;
+  addEventListener(type: 'install', listener: (event: ExtendableEvent) => void): void;
+  addEventListener(type: 'activate', listener: (event: ExtendableEvent) => void): void;
+  addEventListener(type: 'fetch', listener: (event: FetchEvent) => void): void;
+  addEventListener(type: 'push', listener: (event: ExtendableMessageEvent) => void): void;
+  addEventListener(
+    type: 'notificationclick',
+    listener: (event: Event & { notification: Notification; }) => void,
+  ): void;
+  addEventListener(
+    type: 'sync',
+    listener: (
+      event: Event & { tag: string; waitUntil: (promise: Promise<unknown>) => void; },
+    ) => void,
+  ): void;
+};
+
+// Service Worker работает в отдельном контексте, используем глобальный self
+const swSelf = self as unknown as ServiceWorkerGlobalScope;
+
+/* ============================================================================
+ * ⚙️ КОНФИГУРАЦИЯ МАРШРУТОВ
+ * ========================================================================== */
+
+/** Конфигурация кеширования для различных типов запросов */
+type RoutePattern = string | RegExp;
+
+const ROUTE_CONFIGS: readonly (readonly [RoutePattern, RouteCacheConfig])[] = [
+  // Статические ресурсы (CSS, JS, изображения) - CacheFirst
+  [
+    /\.(?:js|css|woff2?|png|jpg|jpeg|svg|gif|webp|ico)$/,
+    {
+      strategy: 'CacheFirst' as const,
+      cacheName: STATIC_CACHE_NAME,
+      maxAge: STATIC_CACHE_DAYS
+        * HOURS_IN_DAY
+        * MINUTES_IN_HOUR
+        * SECONDS_IN_MINUTE
+        * MILLISECONDS_IN_SECOND, // 30 дней
+      maxEntries: 100,
+    },
+  ],
+  // API запросы - NetworkFirst с fallback на кеш
+  // cacheName будет переопределён в handleRequest с учётом userHash
+  [
+    /^\/api\//,
+    {
+      strategy: 'NetworkFirst' as const,
+      cacheName: API_CACHE_BASE_NAME, // Базовое имя, будет заменено на getApiCacheName(userHash)
+      maxAge: API_CACHE_MINUTES * MINUTES_IN_HOUR * SECONDS_IN_MINUTE * MILLISECONDS_IN_SECOND, // 5 минут
+      maxEntries: 50,
+      networkTimeout: API_NETWORK_TIMEOUT_SECONDS * MILLISECONDS_IN_SECOND, // 5 секунд
+    },
+  ],
+  // HTML страницы - StaleWhileRevalidate
+  [
+    /\.html$|^\/$/,
+    {
+      strategy: 'StaleWhileRevalidate' as const,
+      cacheName: MAIN_CACHE_NAME,
+      maxAge: HOURS_IN_DAY * MINUTES_IN_HOUR * SECONDS_IN_MINUTE * MILLISECONDS_IN_SECOND, // 1 день
+      maxEntries: 20,
+    },
+  ],
+  // По умолчанию - NetworkFirst
+  [
+    '*',
+    {
+      strategy: 'NetworkFirst' as const,
+      cacheName: MAIN_CACHE_NAME,
+      maxAge: CACHE_TTL,
+      maxEntries: 100,
+    },
+  ],
+] as const;
+
+/* ============================================================================
+ * 🔧 УТИЛИТЫ КЕШИРОВАНИЯ
+ * ========================================================================== */
+
+/** Получает конфигурацию кеширования для запроса */
+function getRouteConfig(url: string): RouteCacheConfig {
+  for (const [pattern, config] of ROUTE_CONFIGS) {
+    if (pattern === '*') continue;
+
+    if (pattern instanceof RegExp) {
+      if (pattern.test(url)) {
+        return config;
+      }
+    } else if (typeof pattern === 'string' && url.includes(pattern)) {
+      return config;
+    }
+  }
+
+  // Fallback на дефолтную конфигурацию
+  const defaultConfig = ROUTE_CONFIGS.find(([pattern]) => pattern === '*');
+  return defaultConfig?.[1] ?? {
+    strategy: 'NetworkFirst',
+    cacheName: MAIN_CACHE_NAME,
+    maxAge: CACHE_TTL,
+    maxEntries: 100,
+  };
+}
+
+/**
+ * Проверяет валидность ответа для кеширования (cache poisoning protection)
+ *
+ * Правила:
+ * - Только статус 200 OK
+ * - Content-Type должен быть валидным
+ * - Размер не должен превышать лимит
+ */
+function isValidForCaching(response: Response, request?: Request): boolean {
+  // Только успешные ответы
+  const HTTP_OK = 200;
+  if (response.status !== HTTP_OK) return false;
+
+  // Проверка размера (если доступен Content-Length)
+  const contentLength = response.headers.get('content-length');
+  if (contentLength !== null) {
+    const size = Number.parseInt(contentLength, 10);
+    if (size > MAX_RESPONSE_SIZE_BYTES) return false;
+  }
+
+  // Базовые проверки Content-Type (можно расширить)
+  const contentType = response.headers.get('content-type');
+  if (contentType === null) return false;
+
+  // Блокируем кеширование HTML в API кеше (защита от ошибок)
+  if (contentType.includes('text/html') && response.url.includes('/api/')) {
+    return false;
+  }
+
+  // API cache isolation: проверка cache-control: private
+  // Если ответ помечен как private, не кешируем в общем API кеше
+  if (request?.url.includes('/api/') === true) {
+    const cacheControl = response.headers.get('cache-control');
+    const isPrivate = cacheControl?.toLowerCase().includes('private') ?? false;
+    if (isPrivate) {
+      // Private ответы требуют изоляции по пользователю
+      // Если нет userHash, не кешируем
+      const userHash = getUserHashFromRequest(request);
+      if (userHash === null) {
+        return false;
+      }
+    }
+  }
+
+  return true;
+}
+
+/** Проверяет, истек ли срок действия кеша */
+function isCacheExpired(response: Response, maxAge: number): boolean {
+  const cachedDate = response.headers.get('sw-cached-date');
+  if (cachedDate === null || cachedDate === '') return true;
+
+  const cachedTime = Number.parseInt(cachedDate, 10);
+  const now = Date.now();
+  return now - cachedTime > maxAge;
+}
+
+/** Создает кешируемый ответ с метаданными */
+function createCacheableResponse(response: Response): Response {
+  const cloned = response.clone();
+  const headers = new Headers(cloned.headers);
+  headers.set('sw-cached-date', Date.now().toString());
+
+  return new Response(cloned.body, {
+    status: cloned.status,
+    statusText: cloned.statusText,
+    headers,
+  });
+}
+
+/** Очищает устаревшие кеши */
+async function cleanOldCacheEntries(
+  cacheName: string,
+  maxEntries: number,
+): Promise<void> {
+  if (maxEntries <= 0) return;
+
+  try {
+    const cache = await caches.open(cacheName);
+    const keys = await cache.keys();
+
+    if (keys.length <= maxEntries) return;
+
+    // Сортируем по дате кеширования (старые первыми)
+    const entries = await Promise.all(
+      keys.map(async (request) => {
+        const response = await cache.match(request);
+        if (!response) {
+          // Если response отсутствует, считаем запись самой новой (удаляется последней)
+          return {
+            request,
+            timestamp: Number.MAX_SAFE_INTEGER,
+          };
+        }
+        const cachedDate = response.headers.get('sw-cached-date') ?? null;
+        const timestamp = cachedDate !== null && cachedDate !== ''
+          ? Number.parseInt(cachedDate, 10)
+          : 0;
+        return {
+          request,
+          timestamp,
+        };
+      }),
+    );
+
+    const sortedEntries = [...entries].sort((a, b) => a.timestamp - b.timestamp);
+
+    // Удаляем старые записи
+    const toDelete = sortedEntries.slice(0, sortedEntries.length - maxEntries);
+    await Promise.all(toDelete.map((entry) => cache.delete(entry.request)));
+  } catch {
+    // Graceful degradation - ошибки очистки не должны ломать работу
+    // В Service Worker нет доступа к telemetry, поэтому просто игнорируем ошибки
+  }
+}
+
+/* ============================================================================
+ * 🎯 СТРАТЕГИИ КЕШИРОВАНИЯ
+ * ========================================================================== */
+
+/** NetworkFirst стратегия: пробует сеть, fallback на кеш */
+async function networkFirstStrategy(
+  request: Request,
+  config: RouteCacheConfig,
+  context: RequestContext,
+): Promise<RequestResult> {
+  const cacheName = config.cacheName ?? MAIN_CACHE_NAME;
+  const cache = await caches.open(cacheName);
+  const DEFAULT_NETWORK_TIMEOUT = 10 * MILLISECONDS_IN_SECOND;
+  const networkTimeout = config.networkTimeout ?? DEFAULT_NETWORK_TIMEOUT;
+
+  try {
+    // Пробуем сеть с таймаутом и AbortController
+    const abortController = new AbortController();
+    const timeoutId = setTimeout(() => {
+      abortController.abort();
+    }, networkTimeout);
+
+    const networkPromise = fetch(request, { signal: abortController.signal })
+      .finally(() => {
+        clearTimeout(timeoutId);
+      });
+
+    const response = await networkPromise;
+
+    if (response.ok && isValidForCaching(response, request)) {
+      // Проверяем размер ответа перед кешированием
+      const cloned = response.clone();
+      const body = await cloned.arrayBuffer();
+      if (body.byteLength > MAX_RESPONSE_SIZE_BYTES) {
+        // Ответ слишком большой, не кешируем
+        return {
+          response,
+          source: 'NETWORK',
+          timestamp: context.timestamp,
+          traceId: context.traceId,
+        };
+      }
+
+      // Кешируем успешный ответ
+      await cache.put(request, createCacheableResponse(response.clone()));
+      await cleanOldCacheEntries(cacheName, config.maxEntries ?? 100);
+
+      return {
+        response,
+        source: 'NETWORK',
+        timestamp: context.timestamp,
+        traceId: context.traceId,
+      };
+    }
+
+    throw new Error(`Network response not ok: ${response.status}`);
+  } catch {
+    // Fallback на кеш
+    const cachedResponse = await cache.match(request);
+
+    if (cachedResponse) {
+      const maxAge = config.maxAge ?? CACHE_TTL;
+      const isExpired = isCacheExpired(cachedResponse, maxAge);
+
+      return {
+        response: cachedResponse,
+        source: isExpired ? 'STALE' : 'CACHE',
+        timestamp: context.timestamp,
+        traceId: context.traceId,
+      };
+    }
+
+    // Если кеша нет, возвращаем ошибку с телеметрией
+    return {
+      response: new Response('Network error', { status: 503, statusText: 'Service Unavailable' }),
+      source: 'ERROR',
+      timestamp: context.timestamp,
+      traceId: context.traceId,
+    };
+  }
+}
+
+/**
+ * CacheFirst стратегия: пробует кеш, fallback на сеть
+ *
+ * Поведение: CacheFirst + TTL enforcement
+ * - Возвращает кеш только если он свежий (isCacheExpired = false)
+ * - Кеш без sw-cached-date считается expired → fallback на сеть
+ * - Если сеть недоступна, возвращает STALE кеш (даже без даты)
+ */
+async function cacheFirstStrategy(
+  request: Request,
+  config: RouteCacheConfig,
+  context: RequestContext,
+): Promise<RequestResult> {
+  const cacheName = config.cacheName ?? MAIN_CACHE_NAME;
+  const cache = await caches.open(cacheName);
+
+  // Пробуем кеш
+  const cachedResponse = await cache.match(request);
+
+  if (cachedResponse) {
+    const maxAge = config.maxAge ?? CACHE_TTL;
+    const isExpired = isCacheExpired(cachedResponse, maxAge);
+
+    if (!isExpired) {
+      return {
+        response: cachedResponse,
+        source: 'CACHE',
+        timestamp: context.timestamp,
+        traceId: context.traceId,
+      };
+    }
+  }
+
+  // Fallback на сеть
+  try {
+    const response = await fetch(request);
+
+    if (response.ok) {
+      await cache.put(request, createCacheableResponse(response.clone()));
+      await cleanOldCacheEntries(cacheName, config.maxEntries ?? 100);
+      // Byte-limit: проверяем общий размер кеша
+      await purgeCacheIfNeeded(cacheName);
+    }
+
+    return {
+      response,
+      source: 'NETWORK',
+      timestamp: context.timestamp,
+      traceId: context.traceId,
+    };
+  } catch (error) {
+    // Если сеть недоступна, возвращаем устаревший кеш если есть
+    if (cachedResponse) {
+      return {
+        response: cachedResponse,
+        source: 'STALE',
+        timestamp: context.timestamp,
+        traceId: context.traceId,
+      };
+    }
+
+    throw error;
+  }
+}
+
+/** StaleWhileRevalidate стратегия: возвращает кеш сразу, обновляет в фоне */
+async function staleWhileRevalidateStrategy(
+  request: Request,
+  config: RouteCacheConfig,
+  context: RequestContext,
+): Promise<RequestResult> {
+  const cacheName = config.cacheName ?? MAIN_CACHE_NAME;
+  const cache = await caches.open(cacheName);
+
+  // Пробуем кеш
+  const cachedResponse = await cache.match(request);
+
+  // Фоновое обновление (не блокируем ответ)
+  if (cachedResponse) {
+    const updatePromise = fetch(request)
+      .then(async (response): Promise<Response | undefined> => {
+        if (response.ok) {
+          await cache.put(request, createCacheableResponse(response.clone()));
+          await cleanOldCacheEntries(cacheName, config.maxEntries ?? 100);
+          // Byte-limit: проверяем общий размер кеша
+          await purgeCacheIfNeeded(cacheName);
+        }
+        return undefined;
+      })
+      .catch((): undefined => {
+        // Игнорируем ошибки фонового обновления
+        return undefined;
+      });
+
+    // Запускаем обновление в фоне
+    updatePromise.catch(() => {
+      // Игнорируем ошибки фонового обновления
+    });
+
+    return {
+      response: cachedResponse,
+      source: 'STALE',
+      timestamp: context.timestamp,
+      traceId: context.traceId,
+    };
+  }
+
+  // Если кеша нет, ждем сеть
+  const response = await fetch(request);
+
+  if (response.ok && isValidForCaching(response, request)) {
+    // Проверяем размер перед кешированием
+    const cloned = response.clone();
+    const body = await cloned.arrayBuffer();
+    if (body.byteLength <= MAX_RESPONSE_SIZE_BYTES) {
+      await cache.put(request, createCacheableResponse(response.clone()));
+      await cleanOldCacheEntries(cacheName, config.maxEntries ?? 100);
+    }
+  }
+
+  return {
+    response,
+    source: 'NETWORK',
+    timestamp: context.timestamp,
+    traceId: context.traceId,
+  };
+}
+
+/** Обрабатывает запрос согласно стратегии кеширования */
+async function handleRequest(
+  request: Request,
+  context: RequestContext,
+  config: RouteCacheConfig,
+): Promise<RequestResult> {
+  // API cache isolation: используем изолированный кеш для API запросов
+  let finalConfig = config;
+  if (request.url.includes('/api/')) {
+    const userHash = getUserHashFromRequest(request);
+    const apiCacheName = getApiCacheName(userHash);
+    finalConfig = {
+      ...config,
+      cacheName: apiCacheName,
+    };
+  }
+
+  switch (finalConfig.strategy) {
+    case 'NetworkFirst':
+      return networkFirstStrategy(request, finalConfig, context);
+    case 'CacheFirst':
+      return cacheFirstStrategy(request, finalConfig, context);
+    case 'StaleWhileRevalidate':
+      return staleWhileRevalidateStrategy(request, finalConfig, context);
+    case 'NetworkOnly': {
+      try {
+        const response = await fetch(request);
+        return {
+          response,
+          source: 'NETWORK',
+          timestamp: context.timestamp,
+          traceId: context.traceId,
+        };
+      } catch {
+        return {
+          response: new Response('Network error', {
+            status: 503,
+            statusText: 'Service Unavailable',
+          }),
+          source: 'ERROR',
+          timestamp: context.timestamp,
+          traceId: context.traceId,
+        };
+      }
+    }
+    case 'CacheOnly': {
+      const cache = await caches.open(finalConfig.cacheName ?? MAIN_CACHE_NAME);
+      const cachedResponse = await cache.match(request);
+      if (!cachedResponse) {
+        return {
+          response: new Response('Cache miss', { status: 504, statusText: 'Gateway Timeout' }),
+          source: 'ERROR_CACHE_MISS',
+          timestamp: context.timestamp,
+          traceId: context.traceId,
+        };
+      }
+      return {
+        response: cachedResponse,
+        source: 'CACHE',
+        timestamp: context.timestamp,
+        traceId: context.traceId,
+      };
+    }
+    default:
+      return networkFirstStrategy(request, finalConfig, context);
+  }
+}
+
+/* ============================================================================
+ * 📡 PUSH NOTIFICATIONS
+ * ========================================================================== */
+
+/** Обрабатывает push уведомления */
+async function handlePushNotification(event: ExtendableMessageEvent): Promise<void> {
+  try {
+    const eventData = event.data as { json?: () => unknown; } | undefined;
+    const jsonMethod = eventData?.json;
+    const data = (jsonMethod !== undefined ? jsonMethod() : undefined) as {
+      title?: string;
+      body?: string;
+      icon?: string;
+      tag?: string;
+      data?: unknown;
+      requireInteraction?: boolean;
+      silent?: boolean;
+    } | undefined ?? {};
+    const title = data.title ?? 'LivAi';
+    const options: NotificationOptions = {
+      body: data.body ?? '',
+      icon: data.icon ?? '/icons/icon-192x192.png',
+      badge: '/icons/icon-96x96.png',
+      ...(data.tag !== undefined && { tag: data.tag }),
+      ...(data.data !== undefined && { data: data.data }),
+      requireInteraction: data.requireInteraction ?? false,
+      silent: data.silent ?? false,
+    };
+
+    await swSelf.registration.showNotification(title, options);
+  } catch {
+    // Graceful degradation - ошибки push notifications не должны ломать работу
+    // В Service Worker нет доступа к telemetry, поэтому просто игнорируем ошибки
+  }
+}
+
+/** Обрабатывает клик по уведомлению */
+async function handleNotificationClick(
+  event: Event & { notification: Notification; },
+): Promise<void> {
+  event.notification.close();
+
+  const data = event.notification.data as { url?: string; } | undefined;
+  const url = data?.url ?? '/';
+
+  const clients = await swSelf.clients.matchAll({
+    type: 'window',
+    includeUncontrolled: true,
+  });
+
+  // Пробуем открыть существующее окно
+  for (const client of clients) {
+    if (client.url === url && 'focus' in client) {
+      await (client as Client & { focus(): Promise<Client>; }).focus();
+      return;
+    }
+  }
+
+  // Открываем новое окно
+  const openWindowMethod = swSelf.clients.openWindow;
+  await openWindowMethod(url);
+}
+
+/* ============================================================================
+ * 🔄 BACKGROUND SYNC
+ * ========================================================================== */
+
+/**
+ * Обрабатывает background sync для оффлайн операций
+ *
+ * Статус: 🟡 В разработке
+ * Текущая реализация - заглушка для будущей синхронизации оффлайн операций
+ */
+function handleBackgroundSync(
+  event: Event & { tag: string; waitUntil: (promise: Promise<unknown>) => void; },
+): void {
+  try {
+    if (event.tag === 'sync-messages') {
+      // TODO: Синхронизация сообщений при восстановлении соединения
+      // Здесь будет логика отправки накопленных сообщений из IndexedDB
+      // В Service Worker нет доступа к telemetry, поэтому просто игнорируем
+    }
+  } catch {
+    // Graceful degradation - ошибки background sync не должны ломать работу
+    // В Service Worker нет доступа к telemetry, поэтому просто игнорируем ошибки
+  }
+}
+
+/* ============================================================================
+ * 🔄 МИГРАЦИИ И ВАЛИДАЦИЯ
+ * ========================================================================== */
+
+/* ============================================================================
+ * 🗑️ DECOMMISSION FLOW (Enterprise: полное удаление SW из прода)
+ * ========================================================================== */
+
+/**
+ * Полностью удаляет Service Worker из продакшена.
+ * Используется для emergency decommission.
+ *
+ * Чек-лист:
+ * - unregister SW
+ * - delete all caches by prefix
+ * - reload clients
+ * - verify navigator.serviceWorker.controller === null
+ *
+ * Вызывается из клиента через postMessage или через remote config.
+ */
+export async function decommissionServiceWorker(): Promise<void> {
+  try {
+    // 1. Удаляем все кеши с префиксом приложения
+    const cacheNames = await caches.keys();
+    const appCaches = cacheNames.filter((name) => name.startsWith(CACHE_PREFIX));
+    await Promise.all(appCaches.map((name) => caches.delete(name)));
+
+    // 2. Отправляем команду всем клиентам для перезагрузки
+    const clients = await swSelf.clients.matchAll({ includeUncontrolled: true });
+    await Promise.all(
+      clients.map((client) => {
+        if ('reload' in client && typeof client.reload === 'function') {
+          return (client.reload as () => Promise<void>)();
+        }
+        // Проверяем, что это WindowClient с методом navigate
+        if (client.type === 'window' && 'url' in client) {
+          const windowClient = client as unknown as WindowClient;
+          if (
+            'navigate' in windowClient
+            && typeof (windowClient as {
+                navigate?: (url: string) => Promise<WindowClient | null>;
+              }).navigate === 'function'
+          ) {
+            const navigateMethod =
+              (windowClient as { navigate: (url: string) => Promise<WindowClient | null>; })
+                .navigate;
+            return navigateMethod(windowClient.url);
+          }
+        }
+        return Promise.resolve();
+      }),
+    );
+
+    // 3. Отключаем Service Worker
+    await swSelf.registration.unregister();
+  } catch {
+    // Graceful degradation - ошибки не должны ломать процесс
+  }
+}
+
+/* ============================================================================
+ * 📊 BYTE-LIMIT НА ВЕСЬ CACHE (Enterprise: лимит на общий объём)
+ * ========================================================================== */
+
+/**
+ * Подсчитывает общий размер кеша в байтах.
+ */
+async function getCacheSize(cacheName: string): Promise<number> {
+  try {
+    const cache = await caches.open(cacheName);
+    const keys = await cache.keys();
+    let totalSize = 0;
+
+    for (const request of keys) {
+      const response = await cache.match(request);
+      if (response) {
+        const contentLength = response.headers.get('content-length');
+        if (contentLength !== null) {
+          totalSize += Number.parseInt(contentLength, 10);
+        } else {
+          // Если Content-Length нет, пытаемся получить размер через blob
+          try {
+            const blob = await response.blob();
+            totalSize += blob.size;
+          } catch {
+            // Если не удалось, пропускаем
+          }
+        }
+      }
+    }
+
+    return totalSize;
+  } catch {
+    return 0;
+  }
+}
+
+/**
+ * Очищает кеш по LRU (Least Recently Used) при превышении лимита.
+ */
+async function purgeCacheIfNeeded(cacheName: string): Promise<void> {
+  try {
+    const totalSize = await getCacheSize(cacheName);
+    if (totalSize <= MAX_TOTAL_CACHE_SIZE_BYTES) {
+      return;
+    }
+
+    // Превышен лимит - удаляем старые записи (LRU)
+    const cache = await caches.open(cacheName);
+    const keys = await cache.keys();
+
+    // Собираем записи с timestamp
+    const entries = await Promise.all(
+      keys.map(async (request) => {
+        const response = await cache.match(request);
+        let size = 0;
+        let timestamp = 0;
+
+        if (response) {
+          const contentLength = response.headers.get('content-length');
+          if (contentLength !== null) {
+            size = Number.parseInt(contentLength, 10);
+          } else {
+            try {
+              const blob = await response.blob();
+              size = blob.size;
+            } catch {
+              // Пропускаем если не удалось получить размер
+            }
+          }
+
+          const cachedDate = response.headers.get('sw-cached-date');
+          if (cachedDate !== null && cachedDate !== '') {
+            timestamp = Number.parseInt(cachedDate, 10);
+          }
+        }
+
+        return { request, size, timestamp };
+      }),
+    );
+
+    // Сортируем по timestamp (старые первыми)
+    const sortedEntries = [...entries].sort((a, b) => a.timestamp - b.timestamp);
+
+    // Удаляем старые записи пока не уложимся в лимит
+    let currentSize = totalSize;
+    for (const entry of sortedEntries) {
+      if (currentSize <= MAX_TOTAL_CACHE_SIZE_BYTES) {
+        break;
+      }
+      await cache.delete(entry.request);
+      currentSize -= entry.size;
+    }
+  } catch {
+    // Graceful degradation
+  }
+}
+
+/** Проверяет scope Service Worker (sanity-check) */
+function validateServiceWorkerScope(): boolean {
+  try {
+    const actualScope = swSelf.registration.scope;
+    const expectedScopeUrl = new URL(EXPECTED_SCOPE, self.location.origin).href;
+    if (actualScope !== expectedScopeUrl) {
+      // Scope не совпадает - это может быть "призрачный" SW
+      return false;
+    }
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/** Выполняет миграции между версиями SW */
+function runVersionMigrations(oldVersion: string | null): Promise<void> {
+  if (oldVersion === null) {
+    // Первая установка, миграции не нужны
+    return Promise.resolve();
+  }
+
+  // Пример: миграция с версии 1.0.0 на 1.1.0
+  const targetVersion = '1.1.0';
+  if (oldVersion < targetVersion) {
+    // Здесь можно выполнить миграцию схемы кеша
+    // Например: migrateCacheSchema()
+  }
+
+  // Добавьте другие миграции по мере необходимости
+  return Promise.resolve();
+}
+
+/* ============================================================================
+ * 🧹 ОЧИСТКА КЕШЕЙ
+ * ========================================================================== */
+
+/** Удаляет старые версии кешей */
+async function cleanupOldCaches(): Promise<void> {
+  try {
+    const cacheNames = await caches.keys();
+    const oldCaches = cacheNames.filter((name) =>
+      name.startsWith(CACHE_PREFIX) && !name.includes(`v${SW_VERSION}`)
+    );
+
+    await Promise.all(oldCaches.map((name) => caches.delete(name)));
+  } catch {
+    // Graceful degradation - ошибки очистки кешей не должны ломать работу
+    // В Service Worker нет доступа к telemetry, поэтому просто игнорируем ошибки
+  }
+}
+
+/* ============================================================================
+ * 🎯 SERVICE WORKER EVENT HANDLERS
+ * ========================================================================== */
+
+/** Обработчик установки Service Worker */
+swSelf.addEventListener('install', (event: ExtendableEvent): void => {
+  // Kill-switch: если SW отключен, не устанавливаем
+  // SW_DISABLED - константа для будущего remote config
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+  if (SW_DISABLED) {
+    return;
+  }
+
+  // Проверка scope
+  if (!validateServiceWorkerScope()) {
+    // Scope не совпадает - не устанавливаем
+    return;
+  }
+
+  event.waitUntil(
+    (async (): Promise<void> => {
+      // Предварительное кеширование критических ресурсов
+      // MAIN cache: offline.html и главная страница
+      const mainCache = await caches.open(MAIN_CACHE_NAME);
+      try {
+        await mainCache.addAll(PRECACHE_MAIN_URLS as string[]);
+      } catch {
+        // Graceful degradation - если не удалось закешировать, продолжаем
+      }
+
+      // STATIC cache: иконки и статические ресурсы
+      const staticCache = await caches.open(STATIC_CACHE_NAME);
+      try {
+        await staticCache.addAll(PRECACHE_STATIC_URLS as string[]);
+      } catch {
+        // Graceful degradation - если не удалось закешировать, продолжаем
+      }
+
+      // Пропускаем ожидание активации для быстрого обновления
+      await swSelf.skipWaiting();
+    })(),
+  );
+});
+
+/** Обработчик активации Service Worker */
+swSelf.addEventListener('activate', (event: ExtendableEvent): void => {
+  // Kill-switch: если SW отключен, не активируем
+  // SW_DISABLED - константа для будущего remote config
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+  if (SW_DISABLED) {
+    return;
+  }
+
+  event.waitUntil(
+    (async (): Promise<void> => {
+      // Определяем старую версию из кешей
+      const cacheNames = await caches.keys();
+      const oldCache = cacheNames.find((name) =>
+        name.startsWith(CACHE_PREFIX) && !name.includes(`v${SW_VERSION}`)
+      );
+      const versionMatch = oldCache?.match(/v([\d.]+)/);
+      const oldVersion = versionMatch?.[1] ?? null;
+
+      // Выполняем миграции между версиями
+      await runVersionMigrations(oldVersion);
+
+      // Очищаем старые кеши
+      await cleanupOldCaches();
+
+      // Берем контроль над всеми клиентами
+      await swSelf.clients.claim();
+
+      // Cache warming: прогрев критичных маршрутов
+      // Можно добавить прогрев API кеша и dashboard shell
+      // await warmupCache();
+    })(),
+  );
+});
+
+/** Self-health monitoring: проверяет, не превышен ли лимит ошибок */
+function checkSelfHealth(): boolean {
+  if (errorCount > MAX_ERRORS_BEFORE_DISABLE) {
+    // Слишком много ошибок - SW переходит в passive режим
+    return false;
+  }
+  return true;
+}
+
+/** Обработчик fetch запросов */
+swSelf.addEventListener('fetch', (event: FetchEvent) => {
+  // Kill-switch: если SW отключен, не перехватываем запросы
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+  if (SW_DISABLED) {
+    return;
+  }
+
+  // Self-health monitoring: проверяем здоровье SW
+  if (!checkSelfHealth()) {
+    return;
+  }
+
+  const { request } = event;
+
+  // Игнорируем не-GET запросы
+  if (request.method !== 'GET') {
+    return;
+  }
+
+  // Игнорируем range-requests (видео, аудио, стримы)
+  // Service Worker не должен обрабатывать частичные запросы
+  if (request.headers.has('range')) {
+    return;
+  }
+
+  // Игнорируем chrome-extension и другие специальные протоколы
+  if (!request.url.startsWith('http')) {
+    return;
+  }
+
+  // Игнорируем запросы к сторонним доменам (same-origin only)
+  try {
+    const url = new URL(request.url);
+    if (url.origin !== self.location.origin) {
+      return;
+    }
+  } catch {
+    // Если не удалось распарсить URL, игнорируем запрос
+    return;
+  }
+
+  const context: RequestContext = {
+    timestamp: Date.now(),
+    traceId: crypto.randomUUID(),
+  };
+
+  const url = new URL(request.url);
+  const config = getRouteConfig(url.pathname);
+
+  // Отправляем traceId клиентам для телеметрии
+  const sendTelemetry = (result: RequestResult): void => {
+    swSelf.clients.matchAll()
+      .then((clients) => {
+        clients.forEach((client) => {
+          const message = {
+            type: 'SW_TRACE',
+            schemaVersion: TELEMETRY_SCHEMA_VERSION,
+            traceId: result.traceId,
+            url: request.url,
+            strategy: config.strategy,
+            cacheName: config.cacheName ?? null,
+            source: result.source,
+            timestamp: result.timestamp,
+            appId: APP_ID,
+            environment: ENVIRONMENT,
+          };
+          try {
+            client.postMessage(message);
+          } catch {
+            // Игнорируем ошибки отправки телеметрии
+          }
+        });
+        return undefined;
+      })
+      .catch(() => {
+        // Игнорируем ошибки получения клиентов
+      });
+  };
+
+  event.respondWith(
+    handleRequest(request, context, config)
+      .then((result) => {
+        // Сбрасываем счетчик ошибок при успехе
+        if (result.source !== 'ERROR' && !result.source.startsWith('ERROR_')) {
+          errorCount = 0;
+        }
+        sendTelemetry(result);
+        return result.response;
+      })
+      .catch(async (): Promise<Response> => {
+        // Увеличиваем счетчик ошибок
+        errorCount += 1;
+
+        // Offline UX contract: определяем стратегию ответа
+        // 503/504 → offline.html
+        // Другие → raw error или retry
+        let offlinePage: Response | undefined;
+        try {
+          offlinePage = await caches.match('/offline.html');
+        } catch {
+          // Игнорируем ошибки получения offline страницы
+        }
+        if (offlinePage !== undefined) {
+          return offlinePage;
+        }
+        return new Response('Offline', {
+          status: 503,
+          statusText: 'Service Unavailable',
+        });
+      }),
+  );
+});
+
+/** Обработчик push уведомлений */
+swSelf.addEventListener('push', (event: ExtendableMessageEvent): void => {
+  event.waitUntil(handlePushNotification(event));
+});
+
+/** Обработчик клика по уведомлению */
+swSelf.addEventListener(
+  'notificationclick',
+  (
+    event: Event & { notification: Notification; waitUntil?: (promise: Promise<unknown>) => void; },
+  ): void => {
+    const waitUntilMethod = event.waitUntil;
+    if (waitUntilMethod !== undefined) {
+      waitUntilMethod(handleNotificationClick(event));
+    } else {
+      handleNotificationClick(event).catch(() => {
+        // Игнорируем ошибки обработки клика по уведомлению
+      });
+    }
+  },
+);
+
+/** Обработчик background sync */
+swSelf.addEventListener(
+  'sync',
+  (event: Event & { tag: string; waitUntil: (promise: Promise<unknown>) => void; }): void => {
+    handleBackgroundSync(event);
+    const syncPromise = Promise.resolve(undefined);
+    (event as ExtendableEvent).waitUntil(syncPromise);
+  },
+);

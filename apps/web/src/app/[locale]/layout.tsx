@@ -34,6 +34,13 @@ export async function generateMetadata({
   return {
     title: t('title'),
     description: t('description'),
+    manifest: '/manifest.json',
+    themeColor: '#2563eb',
+    appleWebApp: {
+      capable: true,
+      statusBarStyle: 'default',
+      title: 'LivAi',
+    },
   };
 }
 
