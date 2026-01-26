@@ -13,3 +13,4 @@ export * from './primitives/form.js';
 export * from './primitives/dialog.js';
 export * from './primitives/textarea.js';
 export * from './primitives/select.js';
+export * from './primitives/dropdown.js';
