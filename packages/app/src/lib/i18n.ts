@@ -414,9 +414,19 @@ export const createI18nInstance = (options: {
 
     try {
       // Динамический импорт пространства имён (реализация для продакшн)
-      const module = await import(`./locales/${locale}/${ns}.json`) as {
+      // esbuild не может статически разрешить шаблонные динамические импорты
+      // Используем переменную для обхода статического анализа esbuild
+      const localePath = `./locales/${locale}/${ns}.json`;
+
+      // Типизируем результат динамического импорта
+      type LocaleModule = {
         default: Record<string, string>;
       };
+
+      // Динамический импорт будет разрешен только в runtime
+      // Используем явное приведение типа для безопасности
+      const module = await import(localePath) as LocaleModule;
+
       const currentTranslations = store.get(ns);
       store = store.set(ns, { ...currentTranslations, ...module.default });
       loadedNamespaces = loadedNamespaces.add(ns);

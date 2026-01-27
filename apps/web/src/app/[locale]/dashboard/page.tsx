@@ -1,8 +1,10 @@
+'use client';
+
 import { useTranslations } from 'next-intl';
 import type { JSX } from 'react';
 import { useEffect, useState } from 'react';
 
-import type { Locale } from '../../../../i18n/routing.js';
+import type { Locale } from '../../../../i18n/routing';
 
 /**
  * Props для компонента DashboardPage

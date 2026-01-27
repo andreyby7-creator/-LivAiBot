@@ -35,6 +35,15 @@ vi.mock('@livai/app', () => ({
   })),
 }));
 
+// Mock для Providers
+const mockProviders = vi.fn(({ children }) => ({
+  type: 'Memo(ProvidersComponent)',
+  props: { children },
+}));
+vi.mock('../../../src/app/providers.js', () => ({
+  Providers: mockProviders,
+}));
+
 describe('LocaleLayout', () => {
   const mockMessages = { hello: 'Hello', goodbye: 'Goodbye' };
   const mockTranslations = {
@@ -200,7 +209,18 @@ describe('LocaleLayout', () => {
       expect(intlProvider.type).toBeDefined(); // IntlProvider
       expect(intlProvider.props.locale).toBe('ru');
       expect(intlProvider.props.messages).toBe(mockMessages);
-      expect(intlProvider.props.children).toBe(mockChildren);
+
+      // Теперь IntlProvider содержит Providers, который содержит children
+      // В новой архитектуре IntlProvider оборачивает Providers, который оборачивает children
+      // Проверяем, что структура JSX правильная: IntlProvider содержит Providers
+      const providers = intlProvider.props.children;
+      expect(providers).toBeDefined();
+      // В JSX структуре мок IntlProvider возвращает объект с type и props
+      // Проверяем, что это объект (результат вызова мока IntlProvider)
+      expect(typeof providers).toBe('object');
+      // Проверяем, что структура соответствует ожидаемой: Providers оборачивает children
+      expect(providers.props).toBeDefined();
+      expect(providers.props.children).toBe(mockChildren);
     });
   });
 

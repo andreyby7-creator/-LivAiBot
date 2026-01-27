@@ -1,9 +1,127 @@
-/home/boss/Projects/livai/apps/web/tests/unit/env.test.ts: parseEnv должна пробрасывать не-ZodError ошибки
-Error: promise resolved "undefined" instead of rejecting
-    at _Assertion.__VITEST_REJECTS__ (file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+expect@4.0.17/node_modules/@vitest/expect/dist/index.js:1675:17)
-    at _Assertion.propertyGetter (file:///home/boss/Projects/livai/node_modules/.pnpm/chai@6.2.2/node_modules/chai/index.js:1570:27)
-    at Reflect.get (<anonymous>)
-    at Object.proxyGetter [as get] (file:///home/boss/Projects/livai/node_modules/.pnpm/chai@6.2.2/node_modules/chai/index.js:1659:22)
-    at /home/boss/Projects/livai/apps/web/tests/unit/env.test.ts:626:8
-    at processTicksAndRejections (node:internal/process/task_queues:105:5)
-    at file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.17/node_modules/@vitest/runner/dist/index.js:915:20
+/home/boss/Projects/livai/apps/web/tests/unit/[locale]/layout.test.tsx: должен возвращать локализованные метаданные для en
+Error: Failed to resolve import "react-dom" from "packages/app/dist/esm/index.js". Does the file exist?
+    at TransformPluginContext._formatLog (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.0.9_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:28999:43)
+    at TransformPluginContext.error (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.0.9_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:28996:14)
+    at normalizeUrl (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.0.9_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:27119:18)
+    at file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.0.9_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:27177:32
+    at async Promise.all (index 23)
+    at TransformPluginContext.transform (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.0.9_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:27145:4)
+    at EnvironmentPluginContainer.transform (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.0.9_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:28797:14)
+    at loadAndTransform (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.0.9_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:22670:26)
+
+---
+
+/home/boss/Projects/livai/apps/web/tests/unit/[locale]/layout.test.tsx: должен возвращать локализованные метаданные для ru
+Error: Failed to resolve import "react-dom" from "packages/app/dist/esm/index.js". Does the file exist?
+    at TransformPluginContext._formatLog (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.0.9_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:28999:43)
+    at TransformPluginContext.error (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.0.9_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:28996:14)
+    at normalizeUrl (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.0.9_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:27119:18)
+    at file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.0.9_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:27177:32
+    at async Promise.all (index 23)
+    at TransformPluginContext.transform (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.0.9_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:27145:4)
+    at EnvironmentPluginContainer.transform (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.0.9_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:28797:14)
+    at loadAndTransform (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.0.9_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:22670:26)
+
+---
+
+/home/boss/Projects/livai/apps/web/tests/unit/[locale]/layout.test.tsx: должен возвращать fallback метаданные для неподдерживаемой локали
+Error: Failed to resolve import "react-dom" from "packages/app/dist/esm/index.js". Does the file exist?
+    at TransformPluginContext._formatLog (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.0.9_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:28999:43)
+    at TransformPluginContext.error (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.0.9_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:28996:14)
+    at normalizeUrl (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.0.9_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:27119:18)
+    at file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.0.9_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:27177:32
+    at async Promise.all (index 23)
+    at TransformPluginContext.transform (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.0.9_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:27145:4)
+    at EnvironmentPluginContainer.transform (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.0.9_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:28797:14)
+    at loadAndTransform (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.0.9_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:22670:26)
+
+---
+
+/home/boss/Projects/livai/apps/web/tests/unit/[locale]/layout.test.tsx: должен валидировать локали косвенно через generateMetadata
+Error: Failed to resolve import "react-dom" from "packages/app/dist/esm/index.js". Does the file exist?
+    at TransformPluginContext._formatLog (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.0.9_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:28999:43)
+    at TransformPluginContext.error (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.0.9_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:28996:14)
+    at normalizeUrl (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.0.9_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:27119:18)
+    at file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.0.9_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:27177:32
+    at async Promise.all (index 23)
+    at TransformPluginContext.transform (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.0.9_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:27145:4)
+    at EnvironmentPluginContainer.transform (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.0.9_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:28797:14)
+    at loadAndTransform (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.0.9_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:22670:26)
+
+---
+
+/home/boss/Projects/livai/apps/web/tests/unit/[locale]/layout.test.tsx: должен существовать в модуле
+Error: Failed to resolve import "react-dom" from "packages/app/dist/esm/index.js". Does the file exist?
+    at TransformPluginContext._formatLog (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.0.9_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:28999:43)
+    at TransformPluginContext.error (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.0.9_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:28996:14)
+    at normalizeUrl (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.0.9_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:27119:18)
+    at file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.0.9_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:27177:32
+    at async Promise.all (index 23)
+    at TransformPluginContext.transform (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.0.9_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:27145:4)
+    at EnvironmentPluginContainer.transform (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.0.9_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:28797:14)
+    at loadAndTransform (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.0.9_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:22670:26)
+
+---
+
+/home/boss/Projects/livai/apps/web/tests/unit/[locale]/layout.test.tsx: должен рендерить layout с поддерживаемой локалью
+Error: Failed to resolve import "react-dom" from "packages/app/dist/esm/index.js". Does the file exist?
+    at TransformPluginContext._formatLog (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.0.9_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:28999:43)
+    at TransformPluginContext.error (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.0.9_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:28996:14)
+    at normalizeUrl (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.0.9_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:27119:18)
+    at file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.0.9_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:27177:32
+    at async Promise.all (index 23)
+    at TransformPluginContext.transform (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.0.9_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:27145:4)
+    at EnvironmentPluginContainer.transform (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.0.9_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:28797:14)
+    at loadAndTransform (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.0.9_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:22670:26)
+
+---
+
+/home/boss/Projects/livai/apps/web/tests/unit/[locale]/layout.test.tsx: должен вызывать notFound для неподдерживаемой локали
+Error: Failed to resolve import "react-dom" from "packages/app/dist/esm/index.js". Does the file exist?
+    at TransformPluginContext._formatLog (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.0.9_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:28999:43)
+    at TransformPluginContext.error (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.0.9_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:28996:14)
+    at normalizeUrl (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.0.9_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:27119:18)
+    at file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.0.9_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:27177:32
+    at async Promise.all (index 23)
+    at TransformPluginContext.transform (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.0.9_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:27145:4)
+    at EnvironmentPluginContainer.transform (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.0.9_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:28797:14)
+    at loadAndTransform (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.0.9_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:22670:26)
+
+---
+
+/home/boss/Projects/livai/apps/web/tests/unit/[locale]/layout.test.tsx: должен корректно структурировать JSX для валидной локали
+Error: Failed to resolve import "react-dom" from "packages/app/dist/esm/index.js". Does the file exist?
+    at TransformPluginContext._formatLog (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.0.9_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:28999:43)
+    at TransformPluginContext.error (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.0.9_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:28996:14)
+    at normalizeUrl (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.0.9_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:27119:18)
+    at file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.0.9_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:27177:32
+    at async Promise.all (index 23)
+    at TransformPluginContext.transform (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.0.9_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:27145:4)
+    at EnvironmentPluginContainer.transform (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.0.9_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:28797:14)
+    at loadAndTransform (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.0.9_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:22670:26)
+
+---
+
+/home/boss/Projects/livai/apps/web/tests/unit/[locale]/layout.test.tsx: должен корректно обрабатывать ошибки getTranslations
+Error: Failed to resolve import "react-dom" from "packages/app/dist/esm/index.js". Does the file exist?
+    at TransformPluginContext._formatLog (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.0.9_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:28999:43)
+    at TransformPluginContext.error (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.0.9_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:28996:14)
+    at normalizeUrl (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.0.9_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:27119:18)
+    at file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.0.9_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:27177:32
+    at async Promise.all (index 23)
+    at TransformPluginContext.transform (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.0.9_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:27145:4)
+    at EnvironmentPluginContainer.transform (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.0.9_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:28797:14)
+    at loadAndTransform (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.0.9_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:22670:26)
+
+---
+
+/home/boss/Projects/livai/apps/web/tests/unit/[locale]/layout.test.tsx: должен корректно обрабатывать ошибки getMessages
+Error: Failed to resolve import "react-dom" from "packages/app/dist/esm/index.js". Does the file exist?
+    at TransformPluginContext._formatLog (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.0.9_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:28999:43)
+    at TransformPluginContext.error (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.0.9_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:28996:14)
+    at normalizeUrl (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.0.9_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:27119:18)
+    at file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.0.9_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:27177:32
+    at async Promise.all (index 23)
+    at TransformPluginContext.transform (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.0.9_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:27145:4)
+    at EnvironmentPluginContainer.transform (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.0.9_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:28797:14)
+    at loadAndTransform (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.0.9_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:22670:26)

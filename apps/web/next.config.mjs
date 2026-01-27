@@ -59,20 +59,12 @@ const nextConfig = {
 
   // Конфигурация Webpack
   webpack: (config) => {
-    // Здесь можно добавить кастомные правила Webpack
-
-    // Оптимизация бандла Effect.js (использовать с осторожностью)
-    // Примечание: 'effect': false может вызвать проблемы runtime если модули Effect нужны
-    // Рассмотрите ручной tree-shaking или оптимизации бандлера Effect
-    // webpack: (config, { dev, isServer }) => {
-    //   if (!dev && !isServer) {
-    //     config.resolve.alias = {
-    //       ...config.resolve.alias,
-    //       'effect': false, // Tree shake неиспользуемых модулей Effect
-    //     };
-    //   }
-    //   return config;
-    // }
+    // Разрешение .js импортов из TypeScript файлов (для ESM с moduleResolution: NodeNext)
+    // Когда пакеты используют .js в импортах, webpack должен искать .ts/.tsx файлы
+    // Порядок важен: .ts/.tsx должны быть первыми, иначе webpack может подтянуть реальные .js из node_modules
+    config.resolve.extensionAlias = {
+      '.js': ['.ts', '.tsx', '.js', '.jsx'],
+    };
 
     return config;
   },

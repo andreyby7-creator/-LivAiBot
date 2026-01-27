@@ -14,11 +14,54 @@
 
 // @ts-ignore - vitest types should be available from workspace
 import { defineConfig } from 'vitest/config';
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 import { buildVitestEnv } from './vitest.shared.config.js';
 
+// Определяем корневую директорию проекта
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const ROOT = path.resolve(__dirname, '../..');
+
+// Функция для динамического поиска модуля в pnpm workspace
+function findPnpmModule(moduleName: string): string | null {
+  const pnpmDir = path.join(ROOT, 'node_modules/.pnpm');
+  if (!fs.existsSync(pnpmDir)) return null;
+
+  try {
+    const entries = fs.readdirSync(pnpmDir);
+    const moduleDir = entries.find((entry) =>
+      entry.startsWith(`${moduleName}@`) && fs.statSync(path.join(pnpmDir, entry)).isDirectory()
+    );
+
+    if (moduleDir) {
+      const modulePath = path.join(pnpmDir, moduleDir, 'node_modules', moduleName);
+      if (fs.existsSync(modulePath)) {
+        return modulePath;
+      }
+    }
+  } catch {
+    // Игнорируем ошибки, вернем null
+  }
+
+  return null;
+}
+
 // Алиасы путей для унифицированного импорта в тестах
-const aliases = {};
+const aliases: Record<string, string> = {};
+
+// Явное разрешение react-dom и react для гарантированного нахождения модулей в pnpm workspace
+const reactDomPath = findPnpmModule('react-dom');
+const reactPath = findPnpmModule('react');
+
+if (reactDomPath) {
+  aliases['react-dom'] = reactDomPath;
+}
+if (reactPath) {
+  aliases['react'] = reactPath;
+}
 
 // ------------------ КОНСТАНТЫ КОНФИГУРАЦИИ -----------------------------
 
@@ -230,6 +273,37 @@ function createBaseVitestConfig(
     /** Разрешение импортов с унифицированными алиасами */
     resolve: {
       alias: aliases, // Пустой объект - алиасы можно добавить позже при необходимости
+      // Поддержка условий экспорта из package.json (для React jsx-runtime)
+      conditions: ['import', 'module', 'browser', 'default'],
+    },
+
+    // Настройки сервера для работы с pnpm workspace
+    server: {
+      fs: {
+        // Разрешить доступ к файлам из корня проекта и всех workspace пакетов
+        allow: ['..'],
+      },
+    },
+
+    // Настройки для правильного разрешения зависимостей из скомпилированных пакетов
+    ssr: {
+      // Включаем все зависимости в обработку Vite (нужно для работы с dist файлами)
+      noExternal: ['react', 'react-dom'],
+    },
+
+    // Оптимизация зависимостей для правильного разрешения React/React-DOM из dist файлов
+    optimizeDeps: {
+      // Включаем React и React-DOM для предварительной обработки
+      include: ['react', 'react-dom'],
+      // Исключаем пакеты монорепозитория из оптимизации (они должны обрабатываться напрямую)
+      exclude: [],
+      // Принудительно пересобирать зависимости при изменении (для надежности)
+      force: false,
+      // Эсмеральда (esbuild) опции для правильной обработки
+      esbuildOptions: {
+        // Поддержка JSX для правильной обработки React
+        jsx: 'automatic',
+      },
     },
 
     // ------------------ ГЛОБАЛЬНЫЕ ОПРЕДЕЛЕНИЯ -----------------------------

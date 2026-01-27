@@ -1,18 +1,32 @@
 import { defineConfig } from 'tsup';
 
 export default defineConfig({
-  target: 'es2024', // Совпадает с target в tsconfig для избежания лишних трансформаций
-  platform: 'neutral', // Next.js композиция и утилиты (используется в web)
-  entry: {
-    index: 'src/index.ts',
-  },
+  entry: ['src/index.ts'],
   format: ['esm'],
+  target: 'es2022',
+
+  // ВАЖНО: библиотечный режим для Next.js (backend/domain пакет)
+  splitting: true, // разбивает на модули
+  minify: false, // никакой минификации
+  sourcemap: true,
+  clean: true,
+
+  platform: 'node', // backend/domain пакет с Node.js модулями (events, etc)
+  dts: true,
+
   outDir: 'dist/esm',
-  dts: true, // Генерируем .d.ts вместе с JS (как в ui-* пакетах)
-  splitting: false,
-  sourcemap: false, // Для продакшена sourcemaps не нужны
-  clean: true, // Чистим dist перед сборкой
-  treeshake: true,
-  minify: true,
-  external: ['react', 'react-dom', 'next'],
+
+  external: [
+    'react',
+    'react-dom',
+    'next',
+    // Node.js core модули (backend пакет)
+    'events',
+    'fs',
+    'path',
+    'crypto',
+    'stream',
+    'http',
+    'https',
+  ],
 });

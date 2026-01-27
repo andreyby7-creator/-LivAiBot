@@ -1,11 +1,12 @@
-import { IntlProvider } from '@livai/app';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { getMessages, getTranslations, setRequestLocale } from 'next-intl/server';
 import type { JSX, ReactNode } from 'react';
 
-import { locales } from '../../../i18n/routing.js';
+import { IntlProvider } from './intl-provider';
+import { locales } from '../../../i18n/routing';
 import '../globals.css';
+import { Providers } from '../providers';
 
 /**
  * Type guard для валидации поддерживаемой локали
@@ -67,7 +68,9 @@ export default async function LocaleLayout({
     <html lang={locale} suppressHydrationWarning>
       <body className='antialiased'>
         <IntlProvider locale={locale} messages={messages}>
-          {children}
+          <Providers>
+            {children}
+          </Providers>
         </IntlProvider>
       </body>
     </html>

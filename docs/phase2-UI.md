@@ -149,7 +149,7 @@ apps/web (тонкий композитор)
 1️⃣0️⃣ apps/web/messages/ru.json 🟢 — Полная локализация RU со всеми необходимыми ключами
 1️⃣1️⃣ apps/web/src/app/globals.css 🟢 — Глобальные стили
 1️⃣2️⃣ apps/web/src/app/[locale]/layout.tsx 🟢 — Полный root layout с i18n provider и генерацией метаданных
-1️⃣3️⃣ apps/web/src/app/providers.tsx 🔴 — Next.js Providers wrapper — проксирует AppProviders (НЕТ)
+1️⃣3️⃣ apps/web/src/app/providers.tsx 🔴 — Next.js Providers wrapper — проксирует AppProviders
 1️⃣4️⃣ apps/web/middleware.ts 🟢 — Полная i18n routing middleware с next-intl и правильными исключениями
 1️⃣5️⃣ apps/web/public/manifest.json 🟢 — PWA manifest
 1️⃣6️⃣ apps/web/public/sw.js 🔴 — Service Worker для PWA (НЕТ)

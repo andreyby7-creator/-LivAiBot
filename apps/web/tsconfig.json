@@ -27,6 +27,7 @@
       "@/components/*": ["./src/components/*"],
       "@/lib/*": ["./src/lib/*"],
       "@/styles/*": ["./src/styles/*"],
+      "@i18n/*": ["./i18n/*"],
       "@livai/feature-auth": ["../../packages/feature-auth/src/index.ts"],
       "@livai/ui-features": ["../../packages/ui-features/src/index.ts"]
     }
