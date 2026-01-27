@@ -120,7 +120,7 @@ function FormComponent(props: AppFormProps): JSX.Element | null {
 
   /** обработчики */
   const handleSubmit = useCallback(
-    (event: React.FormEvent<HTMLFormElement>) => {
+    (event: React.SubmitEvent<HTMLFormElement>) => {
       if (policy.disabledByFeatureFlag) {
         return;
       }

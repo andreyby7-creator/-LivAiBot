@@ -155,7 +155,7 @@ apps/web (тонкий композитор)
 1️⃣6️⃣ apps/web/src/sw.ts 🟢 — Service Worker TypeScript исходник
 1️⃣7️⃣ apps/web/public/sw.js 🟢 — Service Worker JavaScript (генерируется из sw.ts при сборке)
 1️⃣8️⃣ apps/web/src/app/sw-register.ts 🟡 — Регистрация Service Worker на клиенте (TODO: интегрировать toast notification system из @livai/app для уведомления пользователя перед перезагрузкой вместо console.log)
-1️⃣9️⃣ apps/web/public/favicon.ico 🔴 — Favicon для production (НЕТ)
+1️⃣9️⃣ apps/web/public/favicon.ico 🟢 — Favicon для production
 2️⃣0️⃣ apps/web/public/icon-192.png 🔴 — PWA icon 192x192 (НЕТ)
 2️⃣1️⃣ apps/web/public/icon-512.png 🔴 — PWA icon 512x512 (НЕТ)
 2️⃣2️⃣ apps/web/public/robots.txt 🔴 — Robots.txt для SEO (НЕТ)

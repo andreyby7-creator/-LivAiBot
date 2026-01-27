@@ -52,7 +52,7 @@ function CoreFormComponent(props: CoreFormProps): JSX.Element {
 
   /** Перехват submit */
   const handleSubmit = useCallback(
-    (event: React.FormEvent<HTMLFormElement>) => {
+    (event: React.SubmitEvent<HTMLFormElement>) => {
       event.preventDefault();
       onSubmit?.(event);
     },
