@@ -136,7 +136,7 @@ apps/web (тонкий композитор)
 
 ### **📁 Структура и порядок реализации:**
 
-✅ Web базовые файлы и i18n
+🟡 Web базовые файлы и i18n
 1️⃣ apps/web/package.json 🟢 — Полная реализация Next.js приложения с зависимостями (next-intl, react-hook-form, zod, workspace пакеты)
 2️⃣ apps/web/tsconfig.json 🟢 — Полная TS конфигурация с paths на workspace packages и правильными настройками для Next.js
 3️⃣ apps/web/next.config.mjs 🟢 — Полная Next.js конфигурация с настройками безопасности, изображений и webpack
@@ -154,7 +154,7 @@ apps/web (тонкий композитор)
 1️⃣5️⃣ apps/web/public/manifest.json 🟢 — PWA manifest
 1️⃣6️⃣ apps/web/src/sw.ts 🟢 — Service Worker TypeScript исходник
 1️⃣7️⃣ apps/web/public/sw.js 🟢 — Service Worker JavaScript (генерируется из sw.ts при сборке)
-1️⃣8️⃣ apps/web/src/app/sw-register.ts 🟢 — Регистрация Service Worker на клиенте
+1️⃣8️⃣ apps/web/src/app/sw-register.ts 🟡 — Регистрация Service Worker на клиенте (TODO: интегрировать toast notification system из @livai/app для уведомления пользователя перед перезагрузкой вместо console.log)
 1️⃣9️⃣ apps/web/public/favicon.ico 🔴 — Favicon для production (НЕТ)
 2️⃣0️⃣ apps/web/public/icon-192.png 🔴 — PWA icon 192x192 (НЕТ)
 2️⃣1️⃣ apps/web/public/icon-512.png 🔴 — PWA icon 512x512 (НЕТ)
