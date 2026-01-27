@@ -32,7 +32,17 @@ const SW_VERSION = '1.0.0';
 const EXPECTED_SCOPE = '/';
 
 /** Feature flag для отключения Service Worker (kill-switch) */
-const SW_DISABLED = false; // Устанавливается через remote config или environment variable
+// Значение может быть изменено через remote config или environment variable
+// Используется функция для возможности runtime проверки (например, через cache API)
+function getSwDisabled(): boolean {
+  // В будущем можно добавить проверку remote config через cache API
+  // const configCache = await caches.match('/sw-config.json');
+  // if (configCache) { ... }
+  return false;
+}
+export function swDisabled(): boolean {
+  return getSwDisabled();
+}
 
 /** Константы для размеров */
 const BYTES_IN_KB = 1024;
@@ -59,10 +69,12 @@ const ENVIRONMENT = 'prod'; // prod | stage | dev
 const CACHE_PREFIX = `${APP_ID}-${ENVIRONMENT}-sw`;
 
 /** Имя основного кеша */
-const MAIN_CACHE_NAME = `${CACHE_PREFIX}-v${SW_VERSION}`;
+const mainCacheNameValue = `${CACHE_PREFIX}-v${SW_VERSION}`;
+export const mainCacheName = mainCacheNameValue;
 
 /** Имя кеша для статических ресурсов */
-const STATIC_CACHE_NAME = `${CACHE_PREFIX}-static-v${SW_VERSION}`;
+const staticCacheNameValue = `${CACHE_PREFIX}-static-v${SW_VERSION}`;
+export const staticCacheName = staticCacheNameValue;
 
 /** Имя кеша для API запросов (базовое, без user hash) */
 const API_CACHE_BASE_NAME = `${CACHE_PREFIX}-api-v${SW_VERSION}`;
@@ -119,15 +131,17 @@ const API_CACHE_MINUTES = 5;
 const API_NETWORK_TIMEOUT_SECONDS = 5;
 
 /** URLs для предварительного кеширования при установке */
-const PRECACHE_MAIN_URLS: readonly string[] = [
+const precacheMainUrlsValue: readonly string[] = [
   '/',
   '/offline.html',
 ] as const;
+export const precacheMainUrls = precacheMainUrlsValue;
 
-const PRECACHE_STATIC_URLS: readonly string[] = [
+const precacheStaticUrlsValue: readonly string[] = [
   '/icons/icon-192x192.png',
   '/icons/icon-512x512.png',
 ] as const;
+export const precacheStaticUrls = precacheStaticUrlsValue;
 
 /**
  * Стратегия кеширования
@@ -233,7 +247,7 @@ export type ServiceWorkerGlobalScope = {
 };
 
 // Service Worker работает в отдельном контексте, используем глобальный self
-const swSelf = self as unknown as ServiceWorkerGlobalScope;
+export const swSelf = self as unknown as ServiceWorkerGlobalScope;
 
 /* ============================================================================
  * ⚙️ КОНФИГУРАЦИЯ МАРШРУТОВ
@@ -248,7 +262,7 @@ const ROUTE_CONFIGS: readonly (readonly [RoutePattern, RouteCacheConfig])[] = [
     /\.(?:js|css|woff2?|png|jpg|jpeg|svg|gif|webp|ico)$/,
     {
       strategy: 'CacheFirst' as const,
-      cacheName: STATIC_CACHE_NAME,
+      cacheName: staticCacheName,
       maxAge: STATIC_CACHE_DAYS
         * HOURS_IN_DAY
         * MINUTES_IN_HOUR
@@ -274,7 +288,7 @@ const ROUTE_CONFIGS: readonly (readonly [RoutePattern, RouteCacheConfig])[] = [
     /\.html$|^\/$/,
     {
       strategy: 'StaleWhileRevalidate' as const,
-      cacheName: MAIN_CACHE_NAME,
+      cacheName: mainCacheName,
       maxAge: HOURS_IN_DAY * MINUTES_IN_HOUR * SECONDS_IN_MINUTE * MILLISECONDS_IN_SECOND, // 1 день
       maxEntries: 20,
     },
@@ -284,7 +298,7 @@ const ROUTE_CONFIGS: readonly (readonly [RoutePattern, RouteCacheConfig])[] = [
     '*',
     {
       strategy: 'NetworkFirst' as const,
-      cacheName: MAIN_CACHE_NAME,
+      cacheName: mainCacheName,
       maxAge: CACHE_TTL,
       maxEntries: 100,
     },
@@ -313,7 +327,7 @@ function getRouteConfig(url: string): RouteCacheConfig {
   const defaultConfig = ROUTE_CONFIGS.find(([pattern]) => pattern === '*');
   return defaultConfig?.[1] ?? {
     strategy: 'NetworkFirst',
-    cacheName: MAIN_CACHE_NAME,
+    cacheName: mainCacheName,
     maxAge: CACHE_TTL,
     maxEntries: 100,
   };
@@ -445,7 +459,7 @@ async function networkFirstStrategy(
   config: RouteCacheConfig,
   context: RequestContext,
 ): Promise<RequestResult> {
-  const cacheName = config.cacheName ?? MAIN_CACHE_NAME;
+  const cacheName = config.cacheName ?? mainCacheName;
   const cache = await caches.open(cacheName);
   const DEFAULT_NETWORK_TIMEOUT = 10 * MILLISECONDS_IN_SECOND;
   const networkTimeout = config.networkTimeout ?? DEFAULT_NETWORK_TIMEOUT;
@@ -530,7 +544,7 @@ async function cacheFirstStrategy(
   config: RouteCacheConfig,
   context: RequestContext,
 ): Promise<RequestResult> {
-  const cacheName = config.cacheName ?? MAIN_CACHE_NAME;
+  const cacheName = config.cacheName ?? mainCacheName;
   const cache = await caches.open(cacheName);
 
   // Пробуем кеш
@@ -588,7 +602,7 @@ async function staleWhileRevalidateStrategy(
   config: RouteCacheConfig,
   context: RequestContext,
 ): Promise<RequestResult> {
-  const cacheName = config.cacheName ?? MAIN_CACHE_NAME;
+  const cacheName = config.cacheName ?? mainCacheName;
   const cache = await caches.open(cacheName);
 
   // Пробуем кеш
@@ -646,7 +660,7 @@ async function staleWhileRevalidateStrategy(
 }
 
 /** Обрабатывает запрос согласно стратегии кеширования */
-async function handleRequest(
+export async function handleRequest(
   request: Request,
   context: RequestContext,
   config: RouteCacheConfig,
@@ -691,7 +705,7 @@ async function handleRequest(
       }
     }
     case 'CacheOnly': {
-      const cache = await caches.open(finalConfig.cacheName ?? MAIN_CACHE_NAME);
+      const cache = await caches.open(finalConfig.cacheName ?? mainCacheName);
       const cachedResponse = await cache.match(request);
       if (!cachedResponse) {
         return {
@@ -718,7 +732,7 @@ async function handleRequest(
  * ========================================================================== */
 
 /** Обрабатывает push уведомления */
-async function handlePushNotification(event: ExtendableMessageEvent): Promise<void> {
+export async function handlePushNotification(event: ExtendableMessageEvent): Promise<void> {
   try {
     const eventData = event.data as { json?: () => unknown; } | undefined;
     const jsonMethod = eventData?.json;
@@ -750,7 +764,7 @@ async function handlePushNotification(event: ExtendableMessageEvent): Promise<vo
 }
 
 /** Обрабатывает клик по уведомлению */
-async function handleNotificationClick(
+export async function handleNotificationClick(
   event: Event & { notification: Notification; },
 ): Promise<void> {
   event.notification.close();
@@ -786,19 +800,23 @@ async function handleNotificationClick(
  * Статус: 🟡 В разработке
  * Текущая реализация - заглушка для будущей синхронизации оффлайн операций
  */
-function handleBackgroundSync(
+export function handleBackgroundSync(
   event: Event & { tag: string; waitUntil: (promise: Promise<unknown>) => void; },
-): void {
-  try {
-    if (event.tag === 'sync-messages') {
-      // TODO: Синхронизация сообщений при восстановлении соединения
-      // Здесь будет логика отправки накопленных сообщений из IndexedDB
-      // В Service Worker нет доступа к telemetry, поэтому просто игнорируем
+): Promise<void> {
+  return Promise.resolve().then(() => {
+    try {
+      if (event.tag === 'sync-messages') {
+        // TODO: Синхронизация сообщений при восстановлении соединения
+        // Здесь будет логика отправки накопленных сообщений из IndexedDB
+        // В Service Worker нет доступа к telemetry, поэтому просто игнорируем
+      }
+      return undefined;
+    } catch {
+      // Graceful degradation - ошибки background sync не должны ломать работу
+      // В Service Worker нет доступа к telemetry, поэтому просто игнорируем ошибки
+      return undefined;
     }
-  } catch {
-    // Graceful degradation - ошибки background sync не должны ломать работу
-    // В Service Worker нет доступа к telemetry, поэтому просто игнорируем ошибки
-  }
+  });
 }
 
 /* ============================================================================
@@ -1018,9 +1036,8 @@ async function cleanupOldCaches(): Promise<void> {
 /** Обработчик установки Service Worker */
 swSelf.addEventListener('install', (event: ExtendableEvent): void => {
   // Kill-switch: если SW отключен, не устанавливаем
-  // SW_DISABLED - константа для будущего remote config
-  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-  if (SW_DISABLED) {
+  // swDisabled - функция для будущего remote config
+  if (swDisabled()) {
     return;
   }
 
@@ -1034,17 +1051,17 @@ swSelf.addEventListener('install', (event: ExtendableEvent): void => {
     (async (): Promise<void> => {
       // Предварительное кеширование критических ресурсов
       // MAIN cache: offline.html и главная страница
-      const mainCache = await caches.open(MAIN_CACHE_NAME);
+      const mainCache = await caches.open(mainCacheName);
       try {
-        await mainCache.addAll(PRECACHE_MAIN_URLS as string[]);
+        await mainCache.addAll(precacheMainUrls as string[]);
       } catch {
         // Graceful degradation - если не удалось закешировать, продолжаем
       }
 
       // STATIC cache: иконки и статические ресурсы
-      const staticCache = await caches.open(STATIC_CACHE_NAME);
+      const staticCache = await caches.open(staticCacheName);
       try {
-        await staticCache.addAll(PRECACHE_STATIC_URLS as string[]);
+        await staticCache.addAll(precacheStaticUrls as string[]);
       } catch {
         // Graceful degradation - если не удалось закешировать, продолжаем
       }
@@ -1058,9 +1075,8 @@ swSelf.addEventListener('install', (event: ExtendableEvent): void => {
 /** Обработчик активации Service Worker */
 swSelf.addEventListener('activate', (event: ExtendableEvent): void => {
   // Kill-switch: если SW отключен, не активируем
-  // SW_DISABLED - константа для будущего remote config
-  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-  if (SW_DISABLED) {
+  // swDisabled - функция для будущего remote config
+  if (swDisabled()) {
     return;
   }
 
@@ -1102,8 +1118,7 @@ function checkSelfHealth(): boolean {
 /** Обработчик fetch запросов */
 swSelf.addEventListener('fetch', (event: FetchEvent) => {
   // Kill-switch: если SW отключен, не перехватываем запросы
-  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-  if (SW_DISABLED) {
+  if (swDisabled()) {
     return;
   }
 
@@ -1239,8 +1254,7 @@ swSelf.addEventListener(
 swSelf.addEventListener(
   'sync',
   (event: Event & { tag: string; waitUntil: (promise: Promise<unknown>) => void; }): void => {
-    handleBackgroundSync(event);
-    const syncPromise = Promise.resolve(undefined);
+    const syncPromise = handleBackgroundSync(event);
     (event as ExtendableEvent).waitUntil(syncPromise);
   },
 );
