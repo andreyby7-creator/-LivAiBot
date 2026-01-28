@@ -1,0 +1,392 @@
+/**
+ * @file packages/app/src/ui/sidebar.tsx
+ * ============================================================================
+ * 🟥 APP UI SIDEBAR — UI МИКРОСЕРВИС SIDEBAR
+ * ============================================================================
+ *
+ * Единственная точка входа для SideBar в приложении.
+ * UI boundary между ui-core и бизнес-логикой.
+ *
+ * Ответственность:
+ * - Policy (hidden / visibility / collapsed)
+ * - Telemetry
+ * - Feature flags
+ *
+ * Не содержит:
+ * - DOM-манипуляций кроме Core
+ * - Платформенных эффектов
+ *
+ * Архитектурные решения:
+ * - Управление состоянием свернутости и событиями обрабатывается в App слое
+ * - CoreSideBar остается полностью presentational
+ */
+
+import { forwardRef, memo, useCallback, useEffect, useMemo, useRef } from 'react';
+import type { JSX, Ref } from 'react';
+
+import { SideBar as CoreSideBar } from '../../../ui-core/src/components/SideBar.js';
+import type { CoreSideBarProps } from '../../../ui-core/src/components/SideBar.js';
+import { infoFireAndForget } from '../lib/telemetry.js';
+
+/* ============================================================================
+ * 🧬 TYPES & CONSTANTS
+ * ========================================================================== */
+
+const SideBarTelemetryAction = {
+  Mount: 'mount',
+  Unmount: 'unmount',
+  Show: 'show',
+  Hide: 'hide',
+  Toggle: 'toggle',
+  ItemClick: 'itemClick',
+} as const;
+
+type SideBarTelemetryAction = typeof SideBarTelemetryAction[keyof typeof SideBarTelemetryAction];
+
+/** Позиции sidebar для telemetry payload с максимальной type-safety */
+const SideBarPosition = ['left', 'right'] as const;
+type SideBarPosition = typeof SideBarPosition[number];
+
+type SideBarTelemetryPayload = {
+  component: 'SideBar';
+  action: SideBarTelemetryAction;
+  hidden: boolean;
+  visible: boolean;
+  collapsed: boolean;
+  itemsCount: number;
+  position?: SideBarPosition;
+  itemId?: string;
+};
+
+export type AppSideBarProps = Readonly<
+  Omit<CoreSideBarProps, 'onItemClick' | 'data-testid'> & {
+    /** Видимость SideBar (App policy). Default = true */
+    visible?: boolean;
+
+    /** Feature flag: скрыть SideBar */
+    isHiddenByFeatureFlag?: boolean;
+
+    /** Feature flag: свернуть SideBar */
+    isCollapsedByFeatureFlag?: boolean;
+
+    /** Telemetry master switch */
+    telemetryEnabled?: boolean;
+
+    /** Callback при клике на элемент */
+    onItemClick?: (itemId: string) => void;
+
+    /** Test ID для автотестов */
+    'data-testid'?: string;
+  }
+>;
+
+/* ============================================================================
+ * 🧠 POLICY
+ * ========================================================================== */
+
+type SideBarPolicy = Readonly<{
+  readonly hiddenByFeatureFlag: boolean;
+  readonly collapsedByFeatureFlag: boolean;
+  readonly isRendered: boolean;
+  readonly isCollapsed: boolean;
+  readonly telemetryEnabled: boolean;
+}>;
+
+/**
+ * SideBarPolicy является единственным источником истины
+ * для:
+ * - DOM rendering
+ * - telemetry
+ * - visibility state
+ * - collapsed state
+ *
+ * Ни один consumer не имеет права повторно интерпретировать props.visible,
+ * props.collapsed или feature flags.
+ */
+function useSideBarPolicy(props: AppSideBarProps): SideBarPolicy {
+  const hiddenByFeatureFlag = Boolean(props.isHiddenByFeatureFlag);
+  const collapsedByFeatureFlag = Boolean(props.isCollapsedByFeatureFlag);
+
+  return useMemo(() => {
+    const isRendered = !hiddenByFeatureFlag && props.visible !== false;
+    const isCollapsed = collapsedByFeatureFlag || props.collapsed === true;
+    return {
+      hiddenByFeatureFlag,
+      collapsedByFeatureFlag,
+      isRendered,
+      isCollapsed,
+      telemetryEnabled: props.telemetryEnabled !== false,
+    };
+  }, [
+    hiddenByFeatureFlag,
+    collapsedByFeatureFlag,
+    props.visible,
+    props.collapsed,
+    props.telemetryEnabled,
+  ]);
+}
+
+/* ============================================================================
+ * 📡 TELEMETRY
+ * ========================================================================== */
+
+function emitSideBarTelemetry(payload: SideBarTelemetryPayload): void {
+  infoFireAndForget(`SideBar ${payload.action}`, payload);
+}
+
+/**
+ * Базовое формирование payload для SideBar telemetry (без visible).
+ * visible добавляется явно в show/hide payload для семантической чистоты.
+ */
+function getSideBarPayloadBase(
+  action: SideBarTelemetryAction,
+  policy: SideBarPolicy,
+  telemetryProps: {
+    itemsCount: number;
+    position: SideBarPosition;
+    itemId?: string;
+  },
+): Omit<SideBarTelemetryPayload, 'visible'> {
+  return {
+    component: 'SideBar',
+    action,
+    hidden: policy.hiddenByFeatureFlag,
+    collapsed: policy.isCollapsed,
+    itemsCount: telemetryProps.itemsCount,
+    position: telemetryProps.position,
+    ...(telemetryProps.itemId !== undefined && { itemId: telemetryProps.itemId }),
+  };
+}
+
+/**
+ * Формирование payload для SideBar telemetry (для lifecycle events).
+ * Использует policy.isRendered для visible.
+ */
+function getSideBarPayload(
+  action: SideBarTelemetryAction,
+  policy: SideBarPolicy,
+  telemetryProps: {
+    itemsCount: number;
+    position: SideBarPosition;
+    itemId?: string;
+  },
+): SideBarTelemetryPayload {
+  return {
+    ...getSideBarPayloadBase(action, policy, telemetryProps),
+    visible: policy.isRendered,
+  };
+}
+
+/* ============================================================================
+ * 🎯 APP SIDEBAR
+ * ========================================================================== */
+
+const SideBarComponent = forwardRef<HTMLDivElement, AppSideBarProps>(
+  function SideBarComponent(props: AppSideBarProps, ref: Ref<HTMLDivElement>): JSX.Element | null {
+    const {
+      items: itemsProp,
+      onItemClick,
+      position = 'left',
+      ...coreProps
+    } = props;
+    const items = itemsProp ?? [];
+    const policy = useSideBarPolicy(props);
+
+    /** Минимальный набор telemetry-данных */
+    const telemetryProps = useMemo(() => ({
+      itemsCount: items.length,
+      position,
+    }), [items.length, position]);
+
+    /**
+     * Lifecycle telemetry фиксирует состояние policy на момент первого рендера.
+     * Не реагирует на последующие изменения props или policy.
+     * Это архитектурная гарантия для детерминированности.
+     *
+     * @remarks
+     * Важно: При изменении policy между mount/unmount lifecycle payload может быть
+     * менее информативным, так как отражает только начальное состояние.
+     * Для отслеживания динамических изменений используйте show/hide/toggle telemetry.
+     */
+    const lifecyclePayloadRef = useRef<
+      {
+        mount: SideBarTelemetryPayload;
+        unmount: SideBarTelemetryPayload;
+      } | undefined
+    >(undefined);
+
+    // eslint-disable-next-line functional/immutable-data
+    lifecyclePayloadRef.current ??= {
+      mount: getSideBarPayload(SideBarTelemetryAction.Mount, policy, telemetryProps),
+      unmount: getSideBarPayload(SideBarTelemetryAction.Unmount, policy, telemetryProps),
+    };
+
+    const lifecyclePayload = lifecyclePayloadRef.current;
+
+    const showPayload = useMemo(
+      () => ({
+        ...getSideBarPayloadBase(SideBarTelemetryAction.Show, policy, telemetryProps),
+        visible: true,
+      }),
+      [policy, telemetryProps],
+    );
+
+    const hidePayload = useMemo(
+      () => ({
+        ...getSideBarPayloadBase(SideBarTelemetryAction.Hide, policy, telemetryProps),
+        visible: false,
+      }),
+      [policy, telemetryProps],
+    );
+
+    /** Предыдущее состояние свернутости для telemetry toggle */
+    const prevCollapsedRef = useRef<boolean | undefined>(policy.isCollapsed);
+
+    /** Обработчик клика на элемент с telemetry */
+    const handleItemClick = useCallback(
+      (itemId: string): void => {
+        if (policy.telemetryEnabled) {
+          const itemClickPayload = getSideBarPayload(
+            SideBarTelemetryAction.ItemClick,
+            policy,
+            {
+              itemsCount: items.length,
+              position,
+              itemId,
+            },
+          );
+          emitSideBarTelemetry(itemClickPayload);
+        }
+
+        onItemClick?.(itemId);
+      },
+      [policy, items.length, position, onItemClick],
+    );
+
+    /** Telemetry lifecycle */
+    useEffect(() => {
+      if (!policy.telemetryEnabled) return;
+
+      emitSideBarTelemetry(lifecyclePayload.mount);
+      return (): void => {
+        emitSideBarTelemetry(lifecyclePayload.unmount);
+      };
+    }, [policy.telemetryEnabled, lifecyclePayload]);
+
+    /** Telemetry для видимости - only on changes, not on mount */
+    const prevVisibleRef = useRef<boolean | undefined>(undefined);
+
+    useEffect(() => {
+      if (!policy.telemetryEnabled) return;
+
+      const currentVisibility = policy.isRendered;
+      const prevVisibility = prevVisibleRef.current;
+
+      // Emit only on actual visibility changes, not on mount
+      if (prevVisibility !== undefined && prevVisibility !== currentVisibility) {
+        emitSideBarTelemetry(
+          currentVisibility ? showPayload : hidePayload,
+        );
+      }
+
+      // eslint-disable-next-line functional/immutable-data
+      prevVisibleRef.current = currentVisibility;
+    }, [policy.telemetryEnabled, policy.isRendered, showPayload, hidePayload]);
+
+    /** Telemetry для свернутости - only on changes, not on mount */
+    useEffect(() => {
+      if (!policy.telemetryEnabled) return;
+
+      const currentCollapsed = policy.isCollapsed;
+      const prevCollapsed = prevCollapsedRef.current;
+
+      // Emit only on actual collapsed changes, not on mount
+      if (prevCollapsed !== undefined && prevCollapsed !== currentCollapsed) {
+        const togglePayload = getSideBarPayload(
+          SideBarTelemetryAction.Toggle,
+          policy,
+          telemetryProps,
+        );
+        emitSideBarTelemetry(togglePayload);
+      }
+
+      // eslint-disable-next-line functional/immutable-data
+      prevCollapsedRef.current = currentCollapsed;
+    }, [policy, telemetryProps]);
+
+    /** Policy: hidden */
+    if (!policy.isRendered) return null;
+
+    return (
+      <CoreSideBar
+        ref={ref}
+        items={items}
+        onItemClick={handleItemClick}
+        collapsed={policy.isCollapsed}
+        position={position}
+        data-component='AppSideBar'
+        data-state='visible'
+        data-position={position}
+        data-feature-flag={policy.hiddenByFeatureFlag ? 'hidden' : 'visible'}
+        data-telemetry={policy.telemetryEnabled ? 'enabled' : 'disabled'}
+        {...coreProps}
+      />
+    );
+  },
+);
+
+// eslint-disable-next-line functional/immutable-data
+SideBarComponent.displayName = 'SideBar';
+
+/**
+ * UI-контракт SideBar компонента.
+ *
+ * @contract
+ *
+ * Гарантируется:
+ * - Детерминированный рендеринг без side effects (кроме telemetry)
+ * - SSR-safe и concurrent rendering compatible
+ * - Полная интеграция с централизованной telemetry системой
+ * - Управление feature flags для скрытия и свертывания
+ * - Корректная обработка accessibility (ARIA)
+ *
+ * Инварианты:
+ * - Всегда возвращает валидный JSX.Element или null
+ * - Telemetry payload содержит корректное количество элементов
+ * - Feature flags применяются корректно к visibility и collapsed
+ * - Telemetry отражает состояние policy, а не сырые props
+ * - visible/hidden в payload являются производными только от policy
+ * - ItemClick telemetry отправляется при каждом клике на элемент
+ * - Toggle telemetry отправляется при изменении состояния свернутости
+ *
+ * Не допускается:
+ * - Использование напрямую core SideBar компонента
+ * - Игнорирование feature flag логики
+ * - Модификация telemetry payload структуры
+ * - Использование props.visible или props.collapsed напрямую вне policy
+ *
+ * @example
+ * ```tsx
+ * // Базовое использование
+ * <SideBar
+ *   items={[
+ *     { id: '1', label: 'Dashboard', icon: <Icon /> },
+ *     { id: '2', label: 'Settings', icon: <Icon /> },
+ *   ]}
+ *   onItemClick={(id) => console.log('Clicked:', id)}
+ * />
+ *
+ * // С feature flags и telemetry
+ * <SideBar
+ *   items={items}
+ *   onItemClick={handleItemClick}
+ *   visible={isSidebarVisible}
+ *   collapsed={isCollapsed}
+ *   isHiddenByFeatureFlag={!featureFlags.sidebarEnabled}
+ *   isCollapsedByFeatureFlag={featureFlags.sidebarCollapsed}
+ *   telemetryEnabled={true}
+ *   position="left"
+ * />
+ * ```
+ */
+export const SideBar = memo(SideBarComponent);
