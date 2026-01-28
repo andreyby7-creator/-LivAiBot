@@ -158,7 +158,7 @@ apps/web (тонкий композитор)
 1️⃣9️⃣ apps/web/public/favicon.ico 🟢 — Favicon для production
 2️⃣0️⃣ apps/web/src/app/icon-192.png/route.ts 🟢 — PWA icon 192x192 (PNG endpoint, генерируется на лету)
 2️⃣1️⃣ apps/web/src/app/icon-512.png/route.ts 🟢 — PWA icon 512x512 (PNG endpoint, генерируется на лету)
-2️⃣2️⃣ apps/web/public/robots.txt 🔴 — Robots.txt для SEO (НЕТ)
+2️⃣2️⃣ apps/web/src/app/robots.txt/route.ts 🟢 — Robots.txt для SEO (динамический endpoint, env-aware policy, готовность к sitemap)
 2️⃣3️⃣ apps/web/public/sitemap.xml 🔴 — Sitemap для SEO (НЕТ)
 
 ✅ UI Core primitives
