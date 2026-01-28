@@ -195,8 +195,8 @@ UI Core components и types
 5️⃣2️⃣ packages/ui-core/src/components/FileUploader.tsx 🟢 — ts+react — FileUploader UI
 5️⃣3️⃣ packages/ui-core/src/components/SideBar.tsx 🟢 — ts+react — SideBar UI
 5️⃣4️⃣ packages/ui-core/src/components/SearchBar.tsx 🟢 — ts+react — SearchBar UI
-5️⃣5️⃣ packages/ui-core/src/components/ConfirmDialog.tsx 🔴 — ts+react — ConfirmDialog UI
-5️⃣6️⃣ packages/ui-core/src/components/ErrorBoundary.tsx 🔴 — ts+react — ErrorBoundary UI (НЕТ)
+5️⃣5️⃣ packages/ui-core/src/components/ConfirmDialog.tsx 🟢 — ts+react — ConfirmDialog UI
+5️⃣6️⃣ packages/ui-core/src/components/ErrorBoundary.tsx 🔴 — ts+react — ErrorBoundary UI
 5️⃣7️⃣ packages/ui-core/src/components/UserProfileDisplay.tsx 🔴 — ts+react — User profile display with avatar, name, email (НЕТ)
 5️⃣8️⃣ packages/ui-core/src/components/NavigationMenuItem.tsx 🔴 — ts+react — Navigation menu item with icon (НЕТ)
 5️⃣9️⃣ packages/ui-core/src/components/LanguageSelector.tsx 🔴 — ts+react — Language selector component (НЕТ)
@@ -254,8 +254,8 @@ App UI wrappers
 1️⃣0️⃣7️⃣ packages/app/src/ui/file-uploader.tsx 🟢 — ts+react — UI wrapper FileUploader — ui-core/FileUploader.tsx
 1️⃣0️⃣8️⃣ packages/app/src/ui/sidebar.tsx 🟢 — ts+react — UI wrapper SideBar — ui-core/SideBar.tsx
 1️⃣0️⃣9️⃣ packages/app/src/ui/search-bar.tsx 🟢 — ts+react — UI wrapper SearchBar — ui-core/SearchBar.tsx
-1️⃣1️⃣0️⃣ packages/app/src/ui/confirm-dialog.tsx 🔴 — ts+react — UI wrapper ConfirmDialog — ui-core/ConfirmDialog.tsx
-1️⃣1️⃣1️⃣ packages/app/src/ui/error-boundary.tsx 🔴 — ts+react — UI wrapper Error Boundary — ui-core/ErrorBoundary.tsx (НЕТ)
+1️⃣1️⃣0️⃣ packages/app/src/ui/confirm-dialog.tsx 🟢 — ts+react — UI wrapper ConfirmDialog — ui-core/ConfirmDialog.tsx
+1️⃣1️⃣1️⃣ packages/app/src/ui/error-boundary.tsx 🔴 — ts+react — UI wrapper Error Boundary — ui-core/ErrorBoundary.tsx
 1️⃣1️⃣2️⃣ packages/app/src/ui/user-profile-display.tsx 🔴 — ts+react — UI wrapper UserProfileDisplay — ui-core/UserProfileDisplay.tsx (НЕТ)
 1️⃣1️⃣3️⃣ packages/app/src/ui/navigation-menu-item.tsx 🔴 — ts+react — UI wrapper NavigationMenuItem — ui-core/NavigationMenuItem.tsx (НЕТ)
 1️⃣1️⃣4️⃣ packages/app/src/ui/language-selector.tsx 🔴 — ts+react — UI wrapper LanguageSelector — ui-core/LanguageSelector.tsx (НЕТ)
