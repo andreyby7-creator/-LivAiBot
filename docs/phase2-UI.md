@@ -159,7 +159,7 @@ apps/web (тонкий композитор)
 2️⃣0️⃣ apps/web/src/app/icon-192.png/route.ts 🟢 — PWA icon 192x192 (PNG endpoint, генерируется на лету)
 2️⃣1️⃣ apps/web/src/app/icon-512.png/route.ts 🟢 — PWA icon 512x512 (PNG endpoint, генерируется на лету)
 2️⃣2️⃣ apps/web/src/app/robots.txt/route.ts 🟢 — Robots.txt для SEO (динамический endpoint, env-aware policy, готовность к sitemap)
-2️⃣3️⃣ apps/web/public/sitemap.xml 🔴 — Sitemap для SEO (НЕТ)
+2️⃣3️⃣ apps/web/src/app/sitemap.xml/route.ts 🟢 — Sitemap для SEO (XML endpoint, генерируется на лету, env-aware policy, i18n поддержка)
 
 ✅ UI Core primitives
 2️⃣4️⃣ packages/ui-core/src/primitives/button.tsx 🟢 — ts+react — Button UI
