@@ -289,4 +289,4 @@ pnpm run check:circular-deps  # Циклические зависимости
 pnpm run docs:generate   # Генерация этого файла
 ```
 
-Generated on: 2026-01-14T22:32:56.903Z
+Generated on: 2026-01-28T13:26:14.748Z

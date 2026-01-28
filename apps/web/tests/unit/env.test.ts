@@ -19,6 +19,10 @@ import { z } from 'zod';
 vi.mock('fs', () => ({
   default: {
     existsSync: vi.fn(),
+    accessSync: vi.fn(),
+    constants: {
+      F_OK: 0,
+    },
     readFileSync: vi.fn(),
   },
 }));
@@ -268,7 +272,9 @@ describe('env.ts - Environment Configuration', () => {
       });
 
       const fs = await import('fs');
-      vi.mocked(fs.default.existsSync).mockReturnValue(false);
+      vi.mocked(fs.default.accessSync).mockImplementation(() => {
+        throw new Error('File not found');
+      });
       const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
 
       await import('../../src/env');
@@ -297,7 +303,9 @@ describe('env.ts - Environment Configuration', () => {
       });
 
       const fs = await import('fs');
-      vi.mocked(fs.default.existsSync).mockReturnValue(false);
+      vi.mocked(fs.default.accessSync).mockImplementation(() => {
+        throw new Error('File not found');
+      });
       const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
 
       await import('../../src/env');
@@ -318,7 +326,9 @@ describe('env.ts - Environment Configuration', () => {
       });
 
       const fs = await import('fs');
-      vi.mocked(fs.default.existsSync).mockReturnValue(false);
+      vi.mocked(fs.default.accessSync).mockImplementation(() => {
+        throw new Error('File not found');
+      });
       const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
 
       await import('../../src/env');
@@ -720,7 +730,9 @@ describe('env.ts - Environment Configuration', () => {
 
       const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
       const fs = await import('fs');
-      vi.mocked(fs.default.existsSync).mockReturnValue(false);
+      vi.mocked(fs.default.accessSync).mockImplementation(() => {
+        throw new Error('File not found');
+      });
 
       await import('../../src/env');
 
@@ -736,7 +748,7 @@ describe('env.ts - Environment Configuration', () => {
       setupRequiredEnv({ NODE_ENV: 'development' });
 
       const fs = await import('fs');
-      vi.mocked(fs.default.existsSync).mockReturnValue(true);
+      vi.mocked(fs.default.accessSync).mockImplementation(() => {}); // File exists
       vi.mocked(fs.default.readFileSync).mockReturnValue(
         'NEXT_PUBLIC_SENTRY_DSN=https://sentry.io\nNEXT_PUBLIC_POSTHOG_KEY=test-key\n',
       );
@@ -745,7 +757,7 @@ describe('env.ts - Environment Configuration', () => {
 
       await import('../../src/env');
 
-      expect(fs.default.existsSync).toHaveBeenCalled();
+      expect(fs.default.accessSync).toHaveBeenCalled();
       expect(fs.default.readFileSync).toHaveBeenCalled();
 
       consoleWarnSpy.mockRestore();
@@ -760,7 +772,7 @@ describe('env.ts - Environment Configuration', () => {
       process.env['NEXT_PUBLIC_WEB_BASE_URL'] = 'http://localhost:3000';
 
       const fs = await import('fs');
-      vi.mocked(fs.default.existsSync).mockReturnValue(true);
+      vi.mocked(fs.default.accessSync).mockImplementation(() => {}); // File exists
       vi.mocked(fs.default.readFileSync).mockReturnValue(
         'NEXT_PUBLIC_SENTRY_DSN=https://sentry.io\n  NEXT_PUBLIC_POSTHOG_KEY=test-key\nINVALID_LINE\n',
       );
@@ -768,6 +780,7 @@ describe('env.ts - Environment Configuration', () => {
       await import('../../src/env');
 
       // Проверяем что файл был прочитан
+      expect(fs.default.accessSync).toHaveBeenCalled();
       expect(fs.default.readFileSync).toHaveBeenCalledWith(
         expect.stringContaining('.env.local'),
         'utf-8',
@@ -781,7 +794,9 @@ describe('env.ts - Environment Configuration', () => {
       delete process.env['JWT_SECRET'];
       // Но JWT_SECRET тоже будет сгенерирован, поэтому проверим что подсказка есть в списке missing vars
       const fs = await import('fs');
-      vi.mocked(fs.default.existsSync).mockReturnValue(false);
+      vi.mocked(fs.default.accessSync).mockImplementation(() => {
+        throw new Error('File not found');
+      });
       const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
 
       await import('../../src/env');
@@ -801,7 +816,9 @@ describe('env.ts - Environment Configuration', () => {
 
       const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
       const fs = await import('fs');
-      vi.mocked(fs.default.existsSync).mockReturnValue(false);
+      vi.mocked(fs.default.accessSync).mockImplementation(() => {
+        throw new Error('File not found');
+      });
 
       await import('../../src/env');
 
@@ -821,7 +838,9 @@ describe('env.ts - Environment Configuration', () => {
       delete process.env['TEST_API_URL'];
 
       const fs = await import('fs');
-      vi.mocked(fs.default.existsSync).mockReturnValue(false);
+      vi.mocked(fs.default.accessSync).mockImplementation(() => {
+        throw new Error('File not found');
+      });
       const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
 
       await import('../../src/env');
@@ -842,7 +861,9 @@ describe('env.ts - Environment Configuration', () => {
 
       const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
       const fs = await import('fs');
-      vi.mocked(fs.default.existsSync).mockReturnValue(false);
+      vi.mocked(fs.default.accessSync).mockImplementation(() => {
+        throw new Error('File not found');
+      });
 
       await import('../../src/env');
 
@@ -862,7 +883,9 @@ describe('env.ts - Environment Configuration', () => {
 
       const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
       const fs = await import('fs');
-      vi.mocked(fs.default.existsSync).mockReturnValue(false);
+      vi.mocked(fs.default.accessSync).mockImplementation(() => {
+        throw new Error('File not found');
+      });
 
       await import('../../src/env');
 
@@ -880,7 +903,9 @@ describe('env.ts - Environment Configuration', () => {
       setupRequiredEnv({ NODE_ENV: 'production' });
 
       const fs = await import('fs');
-      vi.mocked(fs.default.existsSync).mockReturnValue(false);
+      vi.mocked(fs.default.accessSync).mockImplementation(() => {
+        throw new Error('File not found');
+      });
       const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
 
       await import('../../src/env');
@@ -898,7 +923,9 @@ describe('env.ts - Environment Configuration', () => {
       setupRequiredEnv({ NODE_ENV: 'test' });
 
       const fs = await import('fs');
-      vi.mocked(fs.default.existsSync).mockReturnValue(false);
+      vi.mocked(fs.default.accessSync).mockImplementation(() => {
+        throw new Error('File not found');
+      });
       const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
 
       await import('../../src/env');

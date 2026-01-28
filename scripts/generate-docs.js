@@ -15,7 +15,9 @@ const reportsDir = path.resolve('reports');
 const filePath = path.join(reportsDir, 'PROJECT-OVERVIEW.md');
 
 // Создаем директорию reports если её нет
-if (!fs.existsSync(reportsDir)) {
+try {
+  fs.accessSync(reportsDir, fs.constants.F_OK);
+} catch {
   fs.mkdirSync(reportsDir, { recursive: true });
 }
 

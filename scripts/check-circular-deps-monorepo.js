@@ -58,7 +58,14 @@ function findPackages() {
           && item !== 'coverage'
         ) {
           const packageJsonPath = path.join(fullPath, 'package.json');
-          if (fs.existsSync(packageJsonPath)) {
+          let packageJsonExists = false;
+          try {
+            fs.accessSync(packageJsonPath, fs.constants.F_OK);
+            packageJsonExists = true;
+          } catch {
+            packageJsonExists = false;
+          }
+          if (packageJsonExists) {
             try {
               const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
               if (packageJson.name) {
@@ -87,7 +94,14 @@ function findPackages() {
   // Ищем пакеты по паттернам pnpm-workspace.yaml
   try {
     const workspaceConfigPath = path.join(rootDir, 'pnpm-workspace.yaml');
-    if (fs.existsSync(workspaceConfigPath)) {
+    let workspaceConfigExists = false;
+    try {
+      fs.accessSync(workspaceConfigPath, fs.constants.F_OK);
+      workspaceConfigExists = true;
+    } catch {
+      workspaceConfigExists = false;
+    }
+    if (workspaceConfigExists) {
       /** @type {any} */
       const workspaceConfig = yaml.load(fs.readFileSync(workspaceConfigPath, 'utf8'));
       if (workspaceConfig && workspaceConfig.packages) {
@@ -96,7 +110,14 @@ function findPackages() {
             // Обрабатываем glob паттерны как packages/*
             const baseDir = pattern.split('/*')[0];
             const fullBaseDir = path.join(rootDir, baseDir);
-            if (fs.existsSync(fullBaseDir)) {
+            let baseDirExists = false;
+            try {
+              fs.accessSync(fullBaseDir, fs.constants.F_OK);
+              baseDirExists = true;
+            } catch {
+              baseDirExists = false;
+            }
+            if (baseDirExists) {
               allFoundPackages.push(...findPackageDirs(fullBaseDir));
             }
           }
@@ -111,14 +132,28 @@ function findPackages() {
   const searchDirs = ['apps', 'services', 'tools'];
   for (const searchDir of searchDirs) {
     const fullSearchDir = path.join(rootDir, searchDir);
-    if (fs.existsSync(fullSearchDir)) {
+    let searchDirExists = false;
+    try {
+      fs.accessSync(fullSearchDir, fs.constants.F_OK);
+      searchDirExists = true;
+    } catch {
+      searchDirExists = false;
+    }
+    if (searchDirExists) {
       allFoundPackages.push(...findPackageDirs(fullSearchDir));
     }
   }
 
   // Также ищем в корне (на случай если там есть package.json)
   const rootPackageJson = path.join(rootDir, 'package.json');
-  if (fs.existsSync(rootPackageJson)) {
+  let rootPackageJsonExists = false;
+  try {
+    fs.accessSync(rootPackageJson, fs.constants.F_OK);
+    rootPackageJsonExists = true;
+  } catch {
+    rootPackageJsonExists = false;
+  }
+  if (rootPackageJsonExists) {
     try {
       const packageJson = JSON.parse(fs.readFileSync(rootPackageJson, 'utf8'));
       if (packageJson.name) {
@@ -316,7 +351,14 @@ function detectCircularDependencies(graph) {
 function checkPackageCycles(pkg) {
   const srcDir = path.join(pkg.path, 'src');
 
-  if (!fs.existsSync(srcDir)) {
+  let srcDirExists = false;
+  try {
+    fs.accessSync(srcDir, fs.constants.F_OK);
+    srcDirExists = true;
+  } catch {
+    srcDirExists = false;
+  }
+  if (!srcDirExists) {
     return { cycles: [], stats: { files: 0, deps: 0 } };
   }
 

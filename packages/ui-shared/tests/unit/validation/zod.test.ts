@@ -47,6 +47,14 @@ describe('buildNestedKey', () => {
     expect(buildNestedKey([], 'validation.required', { nested: true })).toBe('validation.required');
   });
 
+  it('nested=true, но pathStr пустая строка (после join) — возвращает key', () => {
+    // Случай когда path содержит пустые строки или только пробелы после String()
+    // Это edge case, но нужно покрыть ветку pathStr ? ... : key
+    const result = buildNestedKey([''], 'validation.required', { nested: true });
+    // Пустая строка после join даст пустую строку, поэтому вернется key
+    expect(result).toBe('validation.required');
+  });
+
   it('shouldNest можно переопределить', () => {
     const shouldNest = (key: string) => key.startsWith('x.');
     expect(buildNestedKey(['a'], 'validation.required', { nested: true, shouldNest })).toBe(
@@ -119,6 +127,16 @@ describe('createZodI18nErrorMap', () => {
     const res = map({ code: 'unknown_code', type: 'unknown_type' }, {
       defaultError: 'default.error',
     });
+    expect(res.message).toBe('default.error');
+  });
+
+  it('fallback: если type существует, но code не найден в typeCodeMap, возвращает defaultError', () => {
+    const map = createZodI18nErrorMap();
+    // Используем существующий type (string), но неизвестный code
+    const res = map({ code: 'unknown_code_for_string', type: 'string' }, {
+      defaultError: 'default.error',
+    });
+    // typeMap существует, но key не найден, поэтому message остается defaultError
     expect(res.message).toBe('default.error');
   });
 

@@ -9,8 +9,8 @@ import { loginSchema } from '@livai/feature-auth';
 import { Button, FormField, Input } from '@livai/ui-core';
 import type { TFunction } from '@livai/ui-shared';
 import { translateZodMessage, zodResolver as rhfZodResolver } from '@livai/ui-shared';
-import type { FormEventHandler, JSX } from 'react';
-import { useCallback, useId } from 'react';
+import React, { useCallback, useId } from 'react';
+import type { JSX } from 'react';
 import type { FieldError } from 'react-hook-form';
 import { useForm } from 'react-hook-form';
 
@@ -42,8 +42,8 @@ export function LoginForm(props: LoginFormProps): JSX.Element {
   const emailError = getFieldError(errors.email);
   const passwordError = getFieldError(errors.password);
 
-  const onFormSubmit = useCallback<FormEventHandler<HTMLFormElement>>(
-    (e) => {
+  const onFormSubmit = useCallback(
+    (e: React.SubmitEvent<HTMLFormElement>) => {
       form.handleSubmit(async (values) => {
         try {
           await onSubmit(values);

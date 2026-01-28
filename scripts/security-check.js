@@ -12,7 +12,9 @@ const reportsDir = path.resolve('reports');
 const securityReportPath = path.join(reportsDir, 'security-report.json');
 
 // Создаем директорию reports если её нет
-if (!fs.existsSync(reportsDir)) {
+try {
+  fs.accessSync(reportsDir, fs.constants.F_OK);
+} catch {
   fs.mkdirSync(reportsDir, { recursive: true });
 }
 

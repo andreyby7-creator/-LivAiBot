@@ -135,7 +135,7 @@ function FormComponent(props: AppFormProps): JSX.Element | null {
   );
 
   const handleReset = useCallback(
-    (event: React.FormEvent<HTMLFormElement>) => {
+    (event: React.SyntheticEvent<HTMLFormElement>) => {
       if (policy.disabledByFeatureFlag) {
         return;
       }

@@ -107,4 +107,56 @@ describe('zodResolver (RHF)', () => {
     expect(res.errors.root.message).toBe('root.custom');
     expect(res.errors.root.type).toBe('custom');
   });
+
+  it('nested path с существующими ошибками рекурсивно строит вложенную структуру', async () => {
+    const schema = z.object({
+      user: z.object({
+        profile: z.object({
+          name: z.string().min(1),
+          email: z.string().email(),
+        }),
+      }),
+    });
+    const resolver = zodResolver(schema);
+
+    // Сначала создаем ошибку для user.profile.name
+    const res1 = await (resolver as any)({ user: { profile: { name: '' } } }, {}, {});
+    expect(res1.errors.user.profile.name).toBeDefined();
+
+    // Затем добавляем ошибку для user.profile.email - должна рекурсивно использовать существующий объект
+    const res2 = await (resolver as any)(
+      { user: { profile: { name: '', email: 'invalid' } } },
+      {},
+      {},
+    );
+    expect(res2.errors.user.profile.name).toBeDefined();
+    expect(res2.errors.user.profile.email).toBeDefined();
+    // Проверяем, что структура вложенная и оба поля имеют ошибки
+    expect(typeof res2.errors.user.profile.name.message).toBe('string');
+    expect(typeof res2.errors.user.profile.email.message).toBe('string');
+  });
+
+  it('nested path с существующими ошибками рекурсивно строит вложенную структуру', async () => {
+    const schema = z.object({
+      user: z.object({
+        profile: z.object({
+          name: z.string().min(1),
+          email: z.string().email(),
+        }),
+      }),
+    });
+    const resolver = zodResolver(schema);
+
+    // Создаем ошибки для обоих полей одновременно - должна рекурсивно строить вложенную структуру
+    const res = await (resolver as any)(
+      { user: { profile: { name: '', email: 'invalid' } } },
+      {},
+      {},
+    );
+    expect(res.errors.user.profile.name).toBeDefined();
+    expect(res.errors.user.profile.email).toBeDefined();
+    // Проверяем, что структура вложенная и оба поля имеют ошибки
+    expect(typeof res.errors.user.profile.name.message).toBe('string');
+    expect(typeof res.errors.user.profile.email.message).toBe('string');
+  });
 });

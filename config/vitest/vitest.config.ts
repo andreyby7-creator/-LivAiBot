@@ -28,7 +28,11 @@ const ROOT = path.resolve(__dirname, '../..');
 // Функция для динамического поиска модуля в pnpm workspace
 function findPnpmModule(moduleName: string): string | null {
   const pnpmDir = path.join(ROOT, 'node_modules/.pnpm');
-  if (!fs.existsSync(pnpmDir)) return null;
+  try {
+    fs.accessSync(pnpmDir, fs.constants.F_OK);
+  } catch {
+    return null;
+  }
 
   try {
     const entries = fs.readdirSync(pnpmDir);
@@ -38,8 +42,11 @@ function findPnpmModule(moduleName: string): string | null {
 
     if (moduleDir) {
       const modulePath = path.join(pnpmDir, moduleDir, 'node_modules', moduleName);
-      if (fs.existsSync(modulePath)) {
+      try {
+        fs.accessSync(modulePath, fs.constants.F_OK);
         return modulePath;
+      } catch {
+        // Module path doesn't exist
       }
     }
   } catch {

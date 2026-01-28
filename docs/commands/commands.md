@@ -160,7 +160,7 @@ pnpm run lint:fix                         # Автофикс
 pnpm run lint:canary                      # Строгий линтинг
 pnpm run lint:canary:fix                  # Строгий + автофикс
 pnpm run type-check:eslint                # Проверить все ESLint конфиги
-pnpm run type-check                      # Строгая проверка TypeScript
+pnpm run type-check                       # Строгая проверка TypeScript
 npx dprint check                          # Проверка форматирования
 npx dprint fmt                            # Форматирование
 ```
@@ -215,8 +215,10 @@ pnpm run format:check                     # Проверка форматиро�
 pnpm run check:circular-deps              # Циклические зависимости
 node config/eslint/utils/check-zones.mjs  # Валидация архитектурных зон пакетов
 node config/eslint/utils/validate-zones.mjs # Валидация конфигурации зон ESLint
+node config/eslint/test-context.js        # Диагностика контекста выполнения ESLint (canary.config.mjs)
 pnpm run deps:unused                      # Неиспользуемые зависимости
 pnpm run check:dependency-policy          # Архитектурные ограничения
+pnpm run check:deprecated                 # Проверка deprecated типов (React, Node.js, TypeScript, Next.js, Effect, Zod)
 pnpm run analyze:import-metrics           # Метрики графа импортов
 ```
 

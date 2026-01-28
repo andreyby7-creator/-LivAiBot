@@ -124,7 +124,8 @@ export const defaultLocale = publicEnv.NEXT_PUBLIC_DEFAULT_LOCALE; // default lo
 if (process.env.NODE_ENV === 'development') {
   const envFilePath = path.resolve(process.cwd(), '.env.local');
   const localEnv: Record<string, string> = {};
-  if (fs.existsSync(envFilePath)) {
+  try {
+    fs.accessSync(envFilePath, fs.constants.F_OK);
     fs.readFileSync(envFilePath, 'utf-8')
       .split(/\r?\n/)
       .forEach((line) => {
@@ -135,6 +136,8 @@ if (process.env.NODE_ENV === 'development') {
           Object.assign(localEnv, { [key]: line });
         }
       });
+  } catch {
+    // File doesn't exist, skip
   }
 
   const checkVars = [

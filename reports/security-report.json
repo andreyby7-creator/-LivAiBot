@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-01-21T15:38:19.633Z",
+  "timestamp": "2026-01-28T13:26:26.563Z",
   "tool": "Snyk",
   "summary": {
     "totalDependencies": 5,
@@ -111,7 +111,7 @@
     "filesystemPolicy": false,
     "uniqueCount": 0,
     "projectName": "livai",
-    "foundProjectCount": 13,
+    "foundProjectCount": 14,
     "displayTargetFile": "package.json",
     "hasUnknownVersions": false,
     "path": "/home/boss/Projects/livai"
