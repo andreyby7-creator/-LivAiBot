@@ -1,0 +1,186 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Card > Улучшенные тесты: Snapshot для всех variant и size > рендерит snapshot для disabled карточки 1`] = `
+<div
+  aria-disabled="true"
+  data-component="AppCard"
+  data-disabled="true"
+  data-size="medium"
+  data-telemetry="enabled"
+  role="group"
+  style="display: block; box-sizing: border-box; background-color: var(--card-bg, #FFFFFF); border: 1px solid var(--card-border, #E5E7EB); box-shadow: none; padding: 16px; border-radius: 12px;"
+>
+  Disabled Card
+</div>
+`;
+
+exports[`Card > Улучшенные тесты: Snapshot для всех variant и size > рендерит snapshot для интерактивной карточки 1`] = `
+<div
+  data-component="AppCard"
+  data-size="large"
+  data-telemetry="enabled"
+  role="button"
+  style="display: block; box-sizing: border-box; background-color: var(--card-bg, #FFFFFF); border-width: 0px; border-style: none; box-shadow: var(--card-shadow-elevated, 0 4px 6px -1px rgba(0, 0, 0, 0.1)); padding: 24px; border-radius: 16px;"
+  tabindex="0"
+>
+  Interactive Card
+</div>
+`;
+
+exports[`Card > Улучшенные тесты: Snapshot для всех variant и size > рендерит snapshot для карточки с variant и variantByFeatureFlag 1`] = `
+<div
+  data-component="AppCard"
+  data-size="medium"
+  data-telemetry="enabled"
+  data-variant="premium"
+  role="group"
+  style="display: block; box-sizing: border-box; background-color: var(--card-bg, #FFFFFF); border-width: 0px; border-style: none; box-shadow: var(--card-shadow-elevated, 0 4px 6px -1px rgba(0, 0, 0, 0.1)); padding: 16px; border-radius: 12px;"
+  variantbyfeatureflag="premium"
+>
+  Card with both variants
+</div>
+`;
+
+exports[`Card > Улучшенные тесты: Snapshot для всех variant и size > рендерит корректный snapshot для variant="default" и size="large" 1`] = `
+<div
+  data-component="AppCard"
+  data-size="large"
+  data-telemetry="enabled"
+  role="group"
+  style="display: block; box-sizing: border-box; background-color: var(--card-bg, #FFFFFF); border-width: 0px; border-style: none; box-shadow: var(--card-shadow, 0 1px 3px 0 rgba(0, 0, 0, 0.1)); padding: 24px; border-radius: 16px;"
+>
+  Card Content
+</div>
+`;
+
+exports[`Card > Улучшенные тесты: Snapshot для всех variant и size > рендерит корректный snapshot для variant="default" и size="medium" 1`] = `
+<div
+  data-component="AppCard"
+  data-size="medium"
+  data-telemetry="enabled"
+  role="group"
+  style="display: block; box-sizing: border-box; background-color: var(--card-bg, #FFFFFF); border-width: 0px; border-style: none; box-shadow: var(--card-shadow, 0 1px 3px 0 rgba(0, 0, 0, 0.1)); padding: 16px; border-radius: 12px;"
+>
+  Card Content
+</div>
+`;
+
+exports[`Card > Улучшенные тесты: Snapshot для всех variant и size > рендерит корректный snapshot для variant="default" и size="small" 1`] = `
+<div
+  data-component="AppCard"
+  data-size="small"
+  data-telemetry="enabled"
+  role="group"
+  style="display: block; box-sizing: border-box; background-color: var(--card-bg, #FFFFFF); border-width: 0px; border-style: none; box-shadow: var(--card-shadow, 0 1px 3px 0 rgba(0, 0, 0, 0.1)); padding: 12px; border-radius: 8px;"
+>
+  Card Content
+</div>
+`;
+
+exports[`Card > Улучшенные тесты: Snapshot для всех variant и size > рендерит корректный snapshot для variant="elevated" и size="large" 1`] = `
+<div
+  data-component="AppCard"
+  data-size="large"
+  data-telemetry="enabled"
+  role="group"
+  style="display: block; box-sizing: border-box; background-color: var(--card-bg, #FFFFFF); border-width: 0px; border-style: none; box-shadow: var(--card-shadow-elevated, 0 4px 6px -1px rgba(0, 0, 0, 0.1)); padding: 24px; border-radius: 16px;"
+>
+  Card Content
+</div>
+`;
+
+exports[`Card > Улучшенные тесты: Snapshot для всех variant и size > рендерит корректный snapshot для variant="elevated" и size="medium" 1`] = `
+<div
+  data-component="AppCard"
+  data-size="medium"
+  data-telemetry="enabled"
+  role="group"
+  style="display: block; box-sizing: border-box; background-color: var(--card-bg, #FFFFFF); border-width: 0px; border-style: none; box-shadow: var(--card-shadow-elevated, 0 4px 6px -1px rgba(0, 0, 0, 0.1)); padding: 16px; border-radius: 12px;"
+>
+  Card Content
+</div>
+`;
+
+exports[`Card > Улучшенные тесты: Snapshot для всех variant и size > рендерит корректный snapshot для variant="elevated" и size="small" 1`] = `
+<div
+  data-component="AppCard"
+  data-size="small"
+  data-telemetry="enabled"
+  role="group"
+  style="display: block; box-sizing: border-box; background-color: var(--card-bg, #FFFFFF); border-width: 0px; border-style: none; box-shadow: var(--card-shadow-elevated, 0 4px 6px -1px rgba(0, 0, 0, 0.1)); padding: 12px; border-radius: 8px;"
+>
+  Card Content
+</div>
+`;
+
+exports[`Card > Улучшенные тесты: Snapshot для всех variant и size > рендерит корректный snapshot для variant="flat" и size="large" 1`] = `
+<div
+  data-component="AppCard"
+  data-size="large"
+  data-telemetry="enabled"
+  role="group"
+  style="display: block; box-sizing: border-box; background-color: var(--card-bg, #FFFFFF); border-width: 0px; border-style: none; box-shadow: none; padding: 24px; border-radius: 16px;"
+>
+  Card Content
+</div>
+`;
+
+exports[`Card > Улучшенные тесты: Snapshot для всех variant и size > рендерит корректный snapshot для variant="flat" и size="medium" 1`] = `
+<div
+  data-component="AppCard"
+  data-size="medium"
+  data-telemetry="enabled"
+  role="group"
+  style="display: block; box-sizing: border-box; background-color: var(--card-bg, #FFFFFF); border-width: 0px; border-style: none; box-shadow: none; padding: 16px; border-radius: 12px;"
+>
+  Card Content
+</div>
+`;
+
+exports[`Card > Улучшенные тесты: Snapshot для всех variant и size > рендерит корректный snapshot для variant="flat" и size="small" 1`] = `
+<div
+  data-component="AppCard"
+  data-size="small"
+  data-telemetry="enabled"
+  role="group"
+  style="display: block; box-sizing: border-box; background-color: var(--card-bg, #FFFFFF); border-width: 0px; border-style: none; box-shadow: none; padding: 12px; border-radius: 8px;"
+>
+  Card Content
+</div>
+`;
+
+exports[`Card > Улучшенные тесты: Snapshot для всех variant и size > рендерит корректный snapshot для variant="outlined" и size="large" 1`] = `
+<div
+  data-component="AppCard"
+  data-size="large"
+  data-telemetry="enabled"
+  role="group"
+  style="display: block; box-sizing: border-box; background-color: var(--card-bg, #FFFFFF); border: 1px solid var(--card-border, #E5E7EB); box-shadow: none; padding: 24px; border-radius: 16px;"
+>
+  Card Content
+</div>
+`;
+
+exports[`Card > Улучшенные тесты: Snapshot для всех variant и size > рендерит корректный snapshot для variant="outlined" и size="medium" 1`] = `
+<div
+  data-component="AppCard"
+  data-size="medium"
+  data-telemetry="enabled"
+  role="group"
+  style="display: block; box-sizing: border-box; background-color: var(--card-bg, #FFFFFF); border: 1px solid var(--card-border, #E5E7EB); box-shadow: none; padding: 16px; border-radius: 12px;"
+>
+  Card Content
+</div>
+`;
+
+exports[`Card > Улучшенные тесты: Snapshot для всех variant и size > рендерит корректный snapshot для variant="outlined" и size="small" 1`] = `
+<div
+  data-component="AppCard"
+  data-size="small"
+  data-telemetry="enabled"
+  role="group"
+  style="display: block; box-sizing: border-box; background-color: var(--card-bg, #FFFFFF); border: 1px solid var(--card-border, #E5E7EB); box-shadow: none; padding: 12px; border-radius: 8px;"
+>
+  Card Content
+</div>
+`;

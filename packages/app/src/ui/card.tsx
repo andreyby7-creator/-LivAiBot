@@ -21,9 +21,11 @@
  * - Компонент детерминированный и SSR-safe
  */
 
-import React, { memo, useCallback, useEffect, useMemo } from 'react';
-import type { HTMLAttributes, JSX } from 'react';
+import { forwardRef, memo, useCallback, useEffect, useMemo } from 'react';
+import type { JSX, KeyboardEvent, MouseEvent, Ref } from 'react';
 
+import { Card as CoreCard } from '../../../ui-core/src/primitives/card.js';
+import type { CoreCardProps } from '../../../ui-core/src/primitives/card.js';
 import { infoFireAndForget } from '../lib/telemetry.js';
 
 /* ============================================================================
@@ -41,7 +43,7 @@ type CardTelemetryPayload = Readonly<{
 
 /** App-уровневые пропсы Card. */
 export type AppCardProps = Readonly<
-  & HTMLAttributes<HTMLDivElement>
+  & Omit<CoreCardProps, 'data-component' | 'data-variant' | 'data-size' | 'onClick'>
   & {
     /** Feature flag: скрыть карточку полностью */
     isHiddenByFeatureFlag?: boolean;
@@ -63,6 +65,19 @@ export type AppCardProps = Readonly<
 
     /** Telemetry: включена ли аналитика кликов (по умолчанию true) */
     telemetryOnClick?: boolean;
+
+    /**
+     * Обработчик активации карточки (клик или клавиатура).
+     * Вызывается при клике мыши или нажатии Enter/Space.
+     *
+     * @remarks
+     * Для интерактивных карточек (с onClick) автоматически добавляется:
+     * - role="button"
+     * - tabIndex={0}
+     * - keyboard navigation (Enter/Space)
+     * - pointer-events: none при aria-disabled="true"
+     */
+    onClick?: (event: MouseEvent<HTMLDivElement> | KeyboardEvent<HTMLDivElement>) => void;
   }
 >;
 
@@ -115,79 +130,116 @@ function emitCardTelemetry(
  * 🎯 APP CARD
  * ========================================================================== */
 
-function CardComponent(props: AppCardProps): JSX.Element | null {
-  const {
-    children,
-    onClick,
-    ariaLabel,
-    ariaLabelledBy,
-    ariaDescribedBy,
-    ...rest
-  } = props;
+const CardComponent = forwardRef<HTMLDivElement, AppCardProps>(
+  function CardComponent(props: AppCardProps, ref: Ref<HTMLDivElement>): JSX.Element | null {
+    const {
+      children,
+      onClick,
+      ariaLabel,
+      ariaLabelledBy,
+      ariaDescribedBy,
+      variant,
+      size,
+      style: _style, // Исключаем style из coreProps, чтобы использовать combinedStyle
+      ...coreProps
+    } = props;
 
-  /** Policy */
-  const policy = useCardPolicy(props);
+    /** Policy */
+    const policy = useCardPolicy(props);
 
-  /** Lifecycle telemetry */
-  useEffect((): () => void => {
-    emitCardTelemetry('mount', policy);
-    return (): void => {
-      emitCardTelemetry('unmount', policy);
-    };
-    // policy намеренно фиксируется на mount
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    /** Lifecycle telemetry */
+    // Mount/unmount telemetry вызываются всегда для отслеживания lifecycle компонента.
+    // Click telemetry контролируется через telemetryOnClick (policy.telemetryEnabled).
+    useEffect((): () => void => {
+      emitCardTelemetry('mount', policy);
+      return (): void => {
+        emitCardTelemetry('unmount', policy);
+      };
+      // INTENTIONAL: policy намеренно фиксируется на mount для консистентности telemetry.
+      // Policy не должен меняться после первого рендера, чтобы telemetry payload был стабильным.
+      // Это архитектурное решение для предотвращения рассинхронизации между mount/unmount событиями.
+      //
+      // ⚠️ ВАЖНО: Policy должен быть стабильным после mount.
+      // Если policy меняется динамически, это может привести к рассинхронизации между
+      // mount/unmount событиями в telemetry. Для динамических изменений используйте
+      // отдельные события (например, 'click' или кастомные события), а не lifecycle hooks.
+      //
+      // @see useCardPolicy - policy вычисляется из props и feature flags один раз при mount.
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
-  /** Derived state */
-  const isInteractive = Boolean(onClick) && !policy.disabledByFeatureFlag;
+    /** Derived state */
+    const isInteractive = Boolean(onClick) && !policy.disabledByFeatureFlag;
+    const isDisabled = policy.disabledByFeatureFlag;
 
-  /** Handlers (effects isolated here) */
-  const handleActivation = useCallback(
-    (event?: React.SyntheticEvent<HTMLDivElement>) => {
-      if (policy.telemetryEnabled && !policy.disabledByFeatureFlag) {
-        emitCardTelemetry('click', policy);
+    /** Стили для disabled состояния */
+    // Объединяем стили так, чтобы pointer-events применялся после всех остальных стилей
+    const combinedStyle = useMemo(() => {
+      const baseStyle = _style;
+      if (isInteractive && isDisabled) {
+        // Для role="button" с aria-disabled="true" требуется pointer-events: none
+        // для полной совместимости с HTML спецификацией и предотвращения взаимодействия
+        return {
+          ...(baseStyle ?? {}),
+          pointerEvents: 'none' as const,
+        };
       }
-      if (!policy.disabledByFeatureFlag) {
-        onClick?.(event as React.MouseEvent<HTMLDivElement>);
-      }
-    },
-    [policy, onClick],
-  );
+      return baseStyle;
+    }, [isInteractive, isDisabled, _style]);
 
-  /** Hidden state */
-  if (policy.hiddenByFeatureFlag) {
-    return null;
-  }
-
-  /** View (максимально «тупая») */
-  return (
-    <div
-      {...rest}
-      onClick={(e) => {
-        handleActivation(e);
-      }}
-      onKeyDown={isInteractive
-        ? (e: React.KeyboardEvent<HTMLDivElement>): void => {
-          if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault();
-            handleActivation(e);
-          }
+    /** Handlers (effects isolated here) */
+    const handleActivation = useCallback(
+      (event: MouseEvent<HTMLDivElement> | KeyboardEvent<HTMLDivElement>) => {
+        if (policy.telemetryEnabled && !isDisabled) {
+          emitCardTelemetry('click', policy);
         }
-        : undefined}
-      data-variant={policy.variant}
-      data-disabled={policy.disabledByFeatureFlag || undefined}
-      data-telemetry={policy.telemetryEnabled ? 'enabled' : 'disabled'}
-      role={isInteractive ? 'button' : 'group'}
-      tabIndex={isInteractive ? 0 : undefined}
-      aria-disabled={!isInteractive}
-      aria-label={ariaLabel}
-      aria-labelledby={ariaLabelledBy}
-      aria-describedby={ariaDescribedBy}
-    >
-      {children}
-    </div>
-  );
-}
+        if (!isDisabled && onClick) {
+          // onClick типизирован как (event: MouseEvent | KeyboardEvent) => void
+          // для поддержки как кликов мыши, так и keyboard navigation
+          onClick(event);
+        }
+      },
+      [policy, onClick, isDisabled],
+    );
+
+    /** Hidden state */
+    if (policy.hiddenByFeatureFlag) {
+      return null;
+    }
+
+    /** View (максимально «тупая») */
+    return (
+      <CoreCard
+        ref={ref}
+        {...(variant !== undefined ? { variant } : {})}
+        {...(size !== undefined ? { size } : {})}
+        data-component='AppCard'
+        data-variant={policy.variant ?? undefined}
+        data-disabled={isDisabled || undefined}
+        data-telemetry={policy.telemetryEnabled ? 'enabled' : 'disabled'}
+        role={isInteractive ? 'button' : 'group'}
+        tabIndex={isInteractive ? 0 : undefined}
+        aria-disabled={isDisabled || undefined}
+        aria-label={ariaLabel}
+        aria-labelledby={ariaLabelledBy}
+        aria-describedby={ariaDescribedBy}
+        onClick={onClick ? handleActivation : undefined}
+        onKeyDown={isInteractive
+          ? (e: KeyboardEvent<HTMLDivElement>): void => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              handleActivation(e);
+            }
+          }
+          : undefined}
+        style={combinedStyle}
+        {...coreProps}
+      >
+        {children}
+      </CoreCard>
+    );
+  },
+);
 
 /**
  * UI-контракт Card компонента.
@@ -206,16 +258,42 @@ function CardComponent(props: AppCardProps): JSX.Element | null {
  * - Интерактивность определяется наличием onClick callback
  * - Feature flags применяются корректно к visibility и disabled
  * - Keyboard navigation работает для интерактивных карточек
+ * - aria-disabled={true} только при disabledByFeatureFlag={true}
+ * - props.variant имеет визуальный приоритет над variantByFeatureFlag (data-variant)
+ *
+ * Приоритет variant:
+ * - props.variant → визуальный стиль карточки (передается в CoreCard)
+ * - variantByFeatureFlag → data-variant атрибут для telemetry/тестирования
+ * - Если оба заданы, props.variant определяет внешний вид, variantByFeatureFlag - метаданные
+ *
+ * CSS переменные и стилизация:
+ * - Все стили передаются через CoreCard (bgColor, borderColor, shadow, width, height)
+ * - CSS переменные поддерживаются через CoreCard (например, var(--card-bg))
+ * - ⚠️ ОГРАНИЧЕНИЕ: Dynamic CSS переменные (меняющиеся во время выполнения) могут
+ *   не обновляться автоматически из-за мемоизации стилей в CoreCard.
+ *   Для динамических значений используйте inline style через props.style.
+ * - Fallback значения определены в CoreCard (DEFAULT_BG_COLOR, DEFAULT_BORDER_COLOR и т.д.)
+ *
+ * Accessibility для интерактивных карточек:
+ * - role="button" автоматически применяется при наличии onClick
+ * - aria-disabled="true" блокирует взаимодействие через pointer-events: none
+ * - Keyboard navigation: Enter и Space активируют карточку
+ * - tabIndex={0} для фокусируемости интерактивных карточек
  *
  * Не допускается:
  * - Использование напрямую div вместо Card компонента
  * - Игнорирование accessibility атрибутов
  * - Нарушение keyboard navigation контрактов
  * - Модификация telemetry payload структуры
+ * - Изменение policy после mount (см. документацию useEffect выше)
  */
-export const Card = Object.assign(memo(CardComponent), {
-  displayName: 'Card',
-});
+// eslint-disable-next-line functional/immutable-data
+CardComponent.displayName = 'Card';
+
+/**
+ * Memoized AppCard.
+ */
+export const Card = memo(CardComponent);
 
 /* ============================================================================
  * 🧩 ARCHITECTURAL CONTRACT

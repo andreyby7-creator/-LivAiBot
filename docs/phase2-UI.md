@@ -174,7 +174,7 @@ apps/web (тонкий композитор)
 3️⃣3️⃣ packages/ui-core/src/primitives/badge.tsx 🟢 — ts+react — Badge UI
 3️⃣4️⃣ packages/ui-core/src/primitives/tooltip.tsx 🟢 — ts+react — Tooltip UI
 3️⃣5️⃣ packages/ui-core/src/primitives/divider.tsx 🟢 — ts+react — Divider UI
-3️⃣6️⃣ packages/ui-core/src/primitives/card.tsx 🔴 — ts+react — Card UI
+3️⃣6️⃣ packages/ui-core/src/primitives/card.tsx 🟢 — ts+react — Card UI
 3️⃣7️⃣ packages/ui-core/src/primitives/form-field.tsx 🟢 — ts+react — Form Field UI
 3️⃣8️⃣ packages/ui-core/src/primitives/dialog.tsx 🟢 — ts+react — Dialog UI
 3️⃣9️⃣ packages/ui-core/src/primitives/form.tsx 🟢 — ts+react — Form UI
