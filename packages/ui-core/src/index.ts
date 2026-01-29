@@ -14,6 +14,7 @@
 export * from './primitives/avatar.js';
 export * from './primitives/badge.js';
 export * from './primitives/button.js';
+export * from './primitives/card.js';
 export * from './primitives/checkbox.js';
 export * from './primitives/context-menu.js';
 export * from './primitives/dialog.js';
@@ -37,12 +38,20 @@ export * from './primitives/tooltip.js';
 
 export * from './components/Accordion.js';
 export * from './components/Breadcrumbs.js';
+export * from './components/ConfirmDialog.js';
 export * from './components/DatePicker.js';
+export * from './components/ErrorBoundary.js';
 export * from './components/FileUploader.js';
+export * from './components/LanguageSelector.js';
 export * from './components/Modal.js';
+export * from './components/NavigationMenuItem.js';
+export * from './components/SearchBar.js';
+export * from './components/SideBar.js';
 export * from './components/Skeleton.js';
+export * from './components/SupportButton.js';
 export * from './components/Tabs.js';
 export * from './components/Toast.js';
+export * from './components/UserProfileDisplay.js';
 
 /* ============================================================================
  * 🧬 TYPES — UI ТИПЫ

@@ -162,104 +162,104 @@ apps/web (тонкий композитор)
 2️⃣3️⃣ apps/web/src/app/sitemap.xml/route.ts 🟢 — Sitemap для SEO (XML endpoint, генерируется на лету, env-aware policy, i18n поддержка)
 
 ✅ UI Core primitives
-2️⃣4️⃣ packages/ui-core/src/primitives/button.tsx 🟢 — ts+react — Button UI
-2️⃣5️⃣ packages/ui-core/src/primitives/input.tsx 🟢 — ts+react — Input UI
-2️⃣6️⃣ packages/ui-core/src/primitives/textarea.tsx 🟢 — ts+react — Textarea UI
-2️⃣7️⃣ packages/ui-core/src/primitives/select.tsx 🟢 — ts+react — Select/Dropdown UI
-2️⃣8️⃣ packages/ui-core/src/primitives/checkbox.tsx 🟢 — ts+react — Checkbox UI
-2️⃣9️⃣ packages/ui-core/src/primitives/radio.tsx 🟢 — ts+react — Radio button UI
-3️⃣0️⃣ packages/ui-core/src/primitives/toggle.tsx 🟢 — ts+react — Toggle/Switch UI
-3️⃣1️⃣ packages/ui-core/src/primitives/icon.tsx 🟢 — ts+react — Icon UI
-3️⃣2️⃣ packages/ui-core/src/primitives/avatar.tsx 🟢 — ts+react — Avatar UI
-3️⃣3️⃣ packages/ui-core/src/primitives/badge.tsx 🟢 — ts+react — Badge UI
-3️⃣4️⃣ packages/ui-core/src/primitives/tooltip.tsx 🟢 — ts+react — Tooltip UI
-3️⃣5️⃣ packages/ui-core/src/primitives/divider.tsx 🟢 — ts+react — Divider UI
-3️⃣6️⃣ packages/ui-core/src/primitives/card.tsx 🟢 — ts+react — Card UI
-3️⃣7️⃣ packages/ui-core/src/primitives/form-field.tsx 🟢 — ts+react — Form Field UI
-3️⃣8️⃣ packages/ui-core/src/primitives/dialog.tsx 🟢 — ts+react — Dialog UI
-3️⃣9️⃣ packages/ui-core/src/primitives/form.tsx 🟢 — ts+react — Form UI
-4️⃣0️⃣ packages/ui-core/src/primitives/loading-spinner.tsx 🟢 — ts+react — Loading Spinner
-4️⃣1️⃣ packages/ui-core/src/primitives/dropdown.tsx 🟢 — ts+react — Dropdown/Menu UI
-4️⃣2️⃣ packages/ui-core/src/primitives/context-menu.tsx 🟢 — ts+react — ContextMenu UI
-4️⃣3️⃣ packages/ui-core/src/primitives/status-indicator.tsx 🟢 — ts+react — StatusIndicator UI
+2️⃣4️⃣ packages/ui-core/src/primitives/button.tsx 🟢 — ts+react — deps: —
+2️⃣5️⃣ packages/ui-core/src/primitives/input.tsx 🟢 — ts+react — deps: —
+2️⃣6️⃣ packages/ui-core/src/primitives/textarea.tsx 🟢 — ts+react — deps: —
+2️⃣7️⃣ packages/ui-core/src/primitives/select.tsx 🟢 — ts+react — deps: —
+2️⃣8️⃣ packages/ui-core/src/primitives/checkbox.tsx 🟢 — ts+react — deps: —
+2️⃣9️⃣ packages/ui-core/src/primitives/radio.tsx 🟢 — ts+react — deps: —
+3️⃣0️⃣ packages/ui-core/src/primitives/toggle.tsx 🟢 — ts+react — deps: —
+3️⃣1️⃣ packages/ui-core/src/primitives/icon.tsx 🟢 — ts+react — deps: —
+3️⃣2️⃣ packages/ui-core/src/primitives/avatar.tsx 🟢 — ts+react — deps: —
+3️⃣3️⃣ packages/ui-core/src/primitives/badge.tsx 🟢 — ts+react — deps: —
+3️⃣4️⃣ packages/ui-core/src/primitives/tooltip.tsx 🟢 — ts+react — deps: —
+3️⃣5️⃣ packages/ui-core/src/primitives/divider.tsx 🟢 — ts+react — deps: —
+3️⃣6️⃣ packages/ui-core/src/primitives/card.tsx 🟢 — ts+react — deps: —
+3️⃣7️⃣ packages/ui-core/src/primitives/form-field.tsx 🟢 — ts+react — deps: —
+3️⃣8️⃣ packages/ui-core/src/primitives/dialog.tsx 🟢 — ts+react — deps: —
+3️⃣9️⃣ packages/ui-core/src/primitives/form.tsx 🟢 — ts+react — deps: —
+4️⃣0️⃣ packages/ui-core/src/primitives/loading-spinner.tsx 🟢 — ts+react — deps: —
+4️⃣1️⃣ packages/ui-core/src/primitives/dropdown.tsx 🟢 — ts+react — deps: —
+4️⃣2️⃣ packages/ui-core/src/primitives/context-menu.tsx 🟢 — ts+react — deps: —
+4️⃣3️⃣ packages/ui-core/src/primitives/status-indicator.tsx 🟢 — ts+react — deps: —
 
-UI Core components и types
-4️⃣4️⃣ packages/ui-core/src/types/ui.ts 🟢 — ts — Типы UI
-4️⃣5️⃣ packages/ui-core/src/components/Toast.tsx 🟢 — ts+react — Toast UI
-4️⃣6️⃣ packages/ui-core/src/components/Skeleton.tsx 🟢 — ts+react — Skeleton UI
-4️⃣7️⃣ packages/ui-core/src/components/Modal.tsx 🟢 — ts+react — Modal UI
-4️⃣8️⃣ packages/ui-core/src/components/Breadcrumbs.tsx 🟢 — ts+react — Breadcrumbs UI
-4️⃣9️⃣ packages/ui-core/src/components/Tabs.tsx 🟢 — ts+react — Tabs UI
-5️⃣0️⃣ packages/ui-core/src/components/Accordion.tsx 🟢 — ts+react — Accordion UI
-5️⃣1️⃣ packages/ui-core/src/components/DatePicker.tsx 🟢 — ts+react — DatePicker UI
-5️⃣2️⃣ packages/ui-core/src/components/FileUploader.tsx 🟢 — ts+react — FileUploader UI
-5️⃣3️⃣ packages/ui-core/src/components/SideBar.tsx 🟢 — ts+react — SideBar UI
-5️⃣4️⃣ packages/ui-core/src/components/SearchBar.tsx 🟢 — ts+react — SearchBar UI
-5️⃣5️⃣ packages/ui-core/src/components/ConfirmDialog.tsx 🟢 — ts+react — ConfirmDialog UI
-5️⃣6️⃣ packages/ui-core/src/components/ErrorBoundary.tsx 🟢 — ts+react — ErrorBoundary UI
-5️⃣7️⃣ packages/ui-core/src/components/UserProfileDisplay.tsx 🟢 — ts+react — UserProfileDisplay UI
-5️⃣8️⃣ packages/ui-core/src/components/NavigationMenuItem.tsx 🟢 — ts+react — NavigationMenuItem UI
-5️⃣9️⃣ packages/ui-core/src/components/LanguageSelector.tsx 🔴 — ts+react — LanguageSelector UI
-6️⃣0️⃣ packages/ui-core/src/components/SupportButton.tsx 🔴 — ts+react — SupportButton UI
+✅ UI Core components и types
+4️⃣4️⃣ packages/ui-core/src/types/ui.ts 🟢 — ts — deps: —
+4️⃣5️⃣ packages/ui-core/src/components/Toast.tsx 🟢 — ts+react — deps: —
+4️⃣6️⃣ packages/ui-core/src/components/Skeleton.tsx 🟢 — ts+react — deps: —
+4️⃣7️⃣ packages/ui-core/src/components/Modal.tsx 🟢 — ts+react — deps: —
+4️⃣8️⃣ packages/ui-core/src/components/Breadcrumbs.tsx 🟢 — ts+react — deps: —
+4️⃣9️⃣ packages/ui-core/src/components/Tabs.tsx 🟢 — ts+react — deps: —
+5️⃣0️⃣ packages/ui-core/src/components/Accordion.tsx 🟢 — ts+react — deps: —
+5️⃣1️⃣ packages/ui-core/src/components/DatePicker.tsx 🟢 — ts+react — deps: —
+5️⃣2️⃣ packages/ui-core/src/components/FileUploader.tsx 🟢 — ts+react — deps: —
+5️⃣3️⃣ packages/ui-core/src/components/SideBar.tsx 🟢 — ts+react — deps: —
+5️⃣4️⃣ packages/ui-core/src/components/SearchBar.tsx 🟢 — ts+react — deps: —
+5️⃣5️⃣ packages/ui-core/src/components/ConfirmDialog.tsx 🟢 — ts+react — deps: —
+5️⃣6️⃣ packages/ui-core/src/components/ErrorBoundary.tsx 🟢 — ts+react — deps: —
+5️⃣7️⃣ packages/ui-core/src/components/UserProfileDisplay.tsx 🟢 — ts+react — deps: —
+5️⃣8️⃣ packages/ui-core/src/components/NavigationMenuItem.tsx 🟢 — ts+react — deps: —
+5️⃣9️⃣ packages/ui-core/src/components/LanguageSelector.tsx 🟢 — ts+react — deps: —
+6️⃣0️⃣ packages/ui-core/src/components/SupportButton.tsx 🟢 — ts+react — deps: —
 
-✅ App types и libs
-6️⃣1️⃣ packages/app/src/types/common.ts 🟢 — ts — Общие типы для всего приложения
-6️⃣2️⃣ packages/app/src/types/api.ts 🟢 — ts — Базовые типы API
-6️⃣3️⃣ packages/app/src/types/errors.ts 🔴 — ts — Типы ошибок API (ApiError, ValidationError, AuthError, RateLimitError, NetworkError) (НЕТ)
-6️⃣4️⃣ packages/app/src/lib/effect-utils.ts 🟢 — ts+effect — Effect helpers
+App types и libs
+6️⃣1️⃣ packages/app/src/types/common.ts 🟢 — ts — deps: —
+6️⃣2️⃣ packages/app/src/types/api.ts 🟢 — ts deps: types/common.ts
+6️⃣3️⃣ packages/app/src/types/errors.ts 🔴 — ts — deps: types/common.ts, types/api.ts (НЕТ)
+6️⃣4️⃣ packages/app/src/lib/effect-utils.ts 🟢 — ts+effect — deps: types/common.ts
 6️⃣5️⃣ packages/app/src/lib/api-client.ts 🟢 — ts+effect — API client — types/api.ts, effect-utils.ts
-6️⃣6️⃣ packages/app/src/lib/api-schema-guard.ts 🔴 — ts+effect — Runtime валидация API ответов — validation.ts, types/errors.ts (НЕТ)
-6️⃣7️⃣ packages/app/src/lib/websocket.ts 🟢 — ts+effect — WebSocket client — effect-utils.ts
-6️⃣8️⃣ packages/app/src/lib/sse-client.ts 🟢 — ts+effect — SSE client — effect-utils.ts
-6️⃣9️⃣ packages/app/src/lib/validation.ts 🟢 — ts — Validation utils — types/*
-7️⃣0️⃣ packages/app/src/lib/auth-guard.ts 🔴 — ts — Auth guard для защиты маршрутов — types/errors.ts (НЕТ)
-7️⃣1️⃣ packages/app/src/lib/route-permissions.ts 🔴 — ts — Route permissions проверка — auth-guard.ts (НЕТ)
-7️⃣2️⃣ packages/app/src/lib/error-mapping.ts 🟢 — ts — Mapping ошибок — types/errors.ts, types/*
-7️⃣3️⃣ packages/app/src/lib/feature-flags.ts 🟢 — ts — Feature flags — types/*
-7️⃣4️⃣ packages/app/src/lib/telemetry.ts 🟢 — ts — Telemetry — types/*
-7️⃣5️⃣ packages/app/src/lib/logger.ts 🔴 — ts — Logger для error tracing и user actions (НЕТ)
-7️⃣6️⃣ packages/app/src/lib/performance.ts 🔴 — ts — Performance monitoring (slow API, Web vitals) (НЕТ)
-7️⃣7️⃣ packages/app/src/lib/offline-cache.ts 🟢 — ts+effect — Offline caching — effect-utils.ts
-7️⃣8️⃣ packages/app/src/lib/service-worker.ts 🟢 — ts — Service Worker для PWA/offline
-7️⃣9️⃣ packages/app/src/lib/i18n.ts 🟢 — ts+react — i18n utils — types/*
+6️⃣6️⃣ packages/app/src/lib/websocket.ts 🟢 — ts+effect — deps: lib/effect-utils.ts, types/api.ts, types/errors.ts
+6️⃣7️⃣ packages/app/src/lib/sse-client.ts 🟢 — ts+effect — deps: lib/effect-utils.ts, types/api.ts, types/errors.ts
+6️⃣8️⃣ packages/app/src/lib/validation.ts 🟢 — ts — deps: types/common.ts, types/errors.ts
+6️⃣9️⃣ packages/app/src/lib/error-mapping.ts 🟢 — ts — deps: types/errors.ts, types/common.ts, types/api.ts
+7️⃣0️⃣ packages/app/src/lib/api-schema-guard.ts 🔴 — ts+effect — deps: types/api.ts, types/errors.ts, lib/validation.ts (НЕТ)
+7️⃣1️⃣ packages/app/src/lib/route-permissions.ts 🔴 — ts — deps: lib/auth-guard.ts, types/common.ts (НЕТ)
+7️⃣2️⃣ packages/app/src/lib/auth-guard.ts 🔴 — ts — deps: types/common.ts, lib/error-mapping.ts (НЕТ)
+7️⃣3️⃣ packages/app/src/lib/feature-flags.ts 🟢 — ts — deps: types/common.ts
+7️⃣4️⃣ packages/app/src/lib/telemetry.ts 🟢 — ts — deps: types/common.ts, types/api.ts
+7️⃣5️⃣ packages/app/src/lib/logger.ts 🔴 — ts — deps: types/common.ts, lib/error-mapping.ts, lib/telemetry.ts (НЕТ)
+7️⃣6️⃣ packages/app/src/lib/performance.ts 🔴 — ts — deps: lib/telemetry.ts, types/common.ts (НЕТ)
+7️⃣7️⃣ packages/app/src/lib/offline-cache.ts 🟢 — ts+effect — deps: lib/effect-utils.ts, types/api.ts
+7️⃣8️⃣ packages/app/src/lib/service-worker.ts 🟢 — ts — deps: lib/offline-cache.ts, types/common.ts
+7️⃣9️⃣ packages/app/src/lib/i18n.ts 🟢 — ts+react — deps: types/common.ts
 
-App UI wrappers
-8️⃣0️⃣ packages/app/src/ui/button.tsx 🟢 — ts+react — UI wrapper Button — ui-core/Button.tsx
-8️⃣1️⃣ packages/app/src/ui/input.tsx 🟢 — ts+react — UI wrapper Input — ui-core/Input.tsx
-8️⃣2️⃣ packages/app/src/ui/textarea.tsx 🟢 — ts+react — UI wrapper Textarea — ui-core/Textarea.tsx
-8️⃣3️⃣ packages/app/src/ui/select.tsx 🟢 — ts+react — UI wrapper Select — ui-core/Select.tsx
-8️⃣4️⃣ packages/app/src/ui/checkbox.tsx 🟢 — ts+react — UI wrapper Checkbox — ui-core/Checkbox.tsx
-8️⃣5️⃣ packages/app/src/ui/radio.tsx 🟢 — ts+react — UI wrapper Radio — ui-core/Radio.tsx
-8️⃣6️⃣ packages/app/src/ui/toggle.tsx 🟢 — ts+react — UI wrapper Toggle — ui-core/Toggle.tsx
-8️⃣7️⃣ packages/app/src/ui/icon.tsx 🟢 — ts+react — UI wrapper Icon — ui-core/Icon.tsx
-8️⃣8️⃣ packages/app/src/ui/avatar.tsx 🟢 — ts+react — UI wrapper Avatar — ui-core/Avatar.tsx
-8️⃣9️⃣ packages/app/src/ui/badge.tsx 🟢 — ts+react — UI wrapper Badge — ui-core/Badge.tsx
-9️⃣0️⃣ packages/app/src/ui/tooltip.tsx 🟢 — ts+react — UI wrapper Tooltip — ui-core/Tooltip.tsx
-9️⃣1️⃣ packages/app/src/ui/divider.tsx 🟢 — ts+react — UI wrapper Divider — ui-core/Divider.tsx
-9️⃣2️⃣ packages/app/src/ui/card.tsx 🟢 — ts+react — UI wrapper Card — ui-core/Card.tsx
-9️⃣3️⃣ packages/app/src/ui/dialog.tsx 🟢 — ts+react — UI wrapper Dialog — ui-core/Dialog.tsx
-9️⃣4️⃣ packages/app/src/ui/form.tsx 🟢 — ts+react — UI wrapper Form — ui-core/Form.tsx
-9️⃣5️⃣ packages/app/src/ui/loading-spinner.tsx 🟢 — ts+react — Loading Spinner
-9️⃣6️⃣ packages/app/src/ui/dropdown.tsx 🟢 — ts+react — UI wrapper Dropdown — ui-core/Dropdown.tsx
-9️⃣7️⃣ packages/app/src/ui/context-menu.tsx 🟢 — ts+react — UI wrapper ContextMenu — ui-core/ContextMenu.tsx
-9️⃣8️⃣ packages/app/src/ui/status-indicator.tsx 🟢 — ts+react — UI wrapper StatusIndicator — ui-core/StatusIndicator.tsx
-9️⃣9️⃣ packages/app/src/ui/toast.tsx 🟢 — ts+react — UI wrapper Toast — ui-core/Toast.tsx
-1️⃣0️⃣0️⃣ packages/app/src/ui/skeleton.tsx 🟢 — ts+react — UI wrapper Skeleton — ui-core/Skeleton.tsx
-1️⃣0️⃣1️⃣ packages/app/src/ui/skeleton-group.tsx — ts+react — UI wrapper Skeleton Group — ui-core/Skeleton.tsx, app/ui/skeleton.tsx
-1️⃣0️⃣2️⃣ packages/app/src/ui/modal.tsx 🟢 — ts+react — UI wrapper Modal — ui-core/Modal.tsx
-1️⃣0️⃣3️⃣ packages/app/src/ui/breadcrumbs.tsx 🟢 — ts+react — UI wrapper Breadcrumbs — ui-core/Breadcrumbs.tsx
-1️⃣0️⃣4️⃣ packages/app/src/ui/tabs.tsx 🟢 — ts+react — UI wrapper Tabs — ui-core/Tabs.tsx
-1️⃣0️⃣5️⃣ packages/app/src/ui/accordion.tsx 🟢 — ts+react — UI wrapper Accordion — ui-core/Accordion.tsx
-1️⃣0️⃣6️⃣ packages/app/src/ui/date-picker.tsx 🟢 — ts+react — UI wrapper DatePicker — ui-core/DatePicker.tsx
-1️⃣0️⃣7️⃣ packages/app/src/ui/file-uploader.tsx 🟢 — ts+react — UI wrapper FileUploader — ui-core/FileUploader.tsx
-1️⃣0️⃣8️⃣ packages/app/src/ui/sidebar.tsx 🟢 — ts+react — UI wrapper SideBar — ui-core/SideBar.tsx
-1️⃣0️⃣9️⃣ packages/app/src/ui/search-bar.tsx 🟢 — ts+react — UI wrapper SearchBar — ui-core/SearchBar.tsx
-1️⃣1️⃣0️⃣ packages/app/src/ui/confirm-dialog.tsx 🟢 — ts+react — UI wrapper ConfirmDialog — ui-core/ConfirmDialog.tsx
-1️⃣1️⃣1️⃣ packages/app/src/ui/error-boundary.tsx 🟢 — ts+react — UI wrapper Error Boundary — ui-core/ErrorBoundary.tsx
-1️⃣1️⃣2️⃣ packages/app/src/ui/user-profile-display.tsx 🟢 — ts+react — UI wrapper UserProfileDisplay — ui-core/UserProfileDisplay.tsx
-1️⃣1️⃣3️⃣ packages/app/src/ui/navigation-menu-item.tsx 🟢 — ts+react — UI wrapper NavigationMenuItem — ui-core/NavigationMenuItem.tsx
-1️⃣1️⃣4️⃣ packages/app/src/ui/language-selector.tsx 🔴 — ts+react — UI wrapper LanguageSelector — ui-core/LanguageSelector.tsx
-1️⃣1️⃣5️⃣ packages/app/src/ui/support-button.tsx 🔴 — ts+react — UI wrapper SupportButton — ui-core/SupportButton.tsx
+✅ App UI wrappers
+8️⃣0️⃣ packages/app/src/ui/button.tsx 🟢 — ts+react — deps: ui-core/primitives/button.tsx, app/types/common.ts, app/lib/feature-flags.ts, app/lib/i18n.ts
+8️⃣1️⃣ packages/app/src/ui/input.tsx 🟢 — ts+react — deps: ui-core/primitives/input.tsx, app/types/common.ts, app/lib/feature-flags.ts, app/lib/i18n.ts
+8️⃣2️⃣ packages/app/src/ui/textarea.tsx 🟢 — ts+react — deps: ui-core/primitives/textarea.tsx, app/types/common.ts, app/lib/feature-flags.ts, app/lib/i18n.ts
+8️⃣3️⃣ packages/app/src/ui/select.tsx 🟢 — ts+react — deps: ui-core/primitives/select.tsx, app/types/common.ts, app/lib/feature-flags.ts, app/lib/i18n.ts
+8️⃣4️⃣ packages/app/src/ui/checkbox.tsx 🟢 — ts+react — deps: ui-core/primitives/checkbox.tsx, app/types/common.ts, app/lib/feature-flags.ts, app/lib/i18n.ts
+8️⃣5️⃣ packages/app/src/ui/radio.tsx 🟢 — ts+react — deps: ui-core/primitives/radio.tsx, app/types/common.ts, app/lib/feature-flags.ts, app/lib/i18n.ts
+8️⃣6️⃣ packages/app/src/ui/toggle.tsx 🟢 — ts+react — deps: ui-core/primitives/toggle.tsx, app/types/common.ts, app/lib/feature-flags.ts, app/lib/i18n.ts
+8️⃣7️⃣ packages/app/src/ui/icon.tsx 🟢 — ts+react — deps: ui-core/primitives/icon.tsx, app/types/common.ts, app/lib/i18n.ts
+8️⃣8️⃣ packages/app/src/ui/avatar.tsx 🟢 — ts+react — deps: ui-core/primitives/avatar.tsx, app/types/common.ts, app/lib/i18n.ts
+8️⃣9️⃣ packages/app/src/ui/badge.tsx 🟢 — ts+react — deps: ui-core/primitives/badge.tsx, app/types/common.ts, app/lib/i18n.ts
+9️⃣0️⃣ packages/app/src/ui/tooltip.tsx 🟢 — ts+react — deps: ui-core/primitives/tooltip.tsx, app/types/common.ts, app/lib/i18n.ts
+9️⃣1️⃣ packages/app/src/ui/divider.tsx 🟢 — ts+react — deps: ui-core/primitives/divider.tsx, app/types/common.ts
+9️⃣2️⃣ packages/app/src/ui/card.tsx 🟢 — ts+react — deps: ui-core/primitives/card.tsx, app/types/common.ts, app/lib/i18n.ts
+9️⃣3️⃣ packages/app/src/ui/dialog.tsx 🟢 — ts+react — deps: ui-core/primitives/dialog.tsx, app/types/common.ts, app/lib/i18n.ts
+9️⃣4️⃣ packages/app/src/ui/form.tsx 🟢 — ts+react — deps: ui-core/primitives/form.tsx, ui-core/primitives/form-field.tsx, app/types/common.ts, app/lib/feature-flags.ts, app/lib/i18n.ts
+9️⃣5️⃣ packages/app/src/ui/loading-spinner.tsx 🟢 — ts+react — deps: ui-core/primitives/loading-spinner.tsx, app/types/common.ts
+9️⃣6️⃣ packages/app/src/ui/dropdown.tsx 🟢 — ts+react — deps: ui-core/primitives/dropdown.tsx, app/types/common.ts, app/lib/i18n.ts
+9️⃣7️⃣ packages/app/src/ui/context-menu.tsx 🟢 — ts+react — deps: ui-core/primitives/context-menu.tsx, app/types/common.ts, app/lib/i18n.ts
+9️⃣8️⃣ packages/app/src/ui/status-indicator.tsx 🟢 — ts+react — deps: ui-core/primitives/status-indicator.tsx, app/types/common.ts
+9️⃣9️⃣ packages/app/src/ui/toast.tsx 🟢 — ts+react — deps: ui-core/components/Toast.tsx, app/types/common.ts, app/lib/i18n.ts
+1️⃣0️⃣0️⃣ packages/app/src/ui/skeleton.tsx 🟢 — ts+react — deps: ui-core/components/Skeleton.tsx, app/types/common.ts
+1️⃣0️⃣1️⃣ packages/app/src/ui/skeleton-group.tsx 🟢 — ts+react — deps: ui-core/components/Skeleton.tsx, app/types/common.ts
+1️⃣0️⃣2️⃣ packages/app/src/ui/modal.tsx 🟢 — ts+react — deps: ui-core/components/Modal.tsx, app/types/common.ts, app/lib/i18n.ts
+1️⃣0️⃣3️⃣ packages/app/src/ui/breadcrumbs.tsx 🟢 — ts+react — deps: ui-core/components/Breadcrumbs.tsx, app/types/common.ts
+1️⃣0️⃣4️⃣ packages/app/src/ui/tabs.tsx 🟢 — ts+react — deps: ui-core/components/Tabs.tsx, app/types/common.ts
+1️⃣0️⃣5️⃣ packages/app/src/ui/accordion.tsx 🟢 — ts+react — deps: ui-core/components/Accordion.tsx, app/types/common.ts
+1️⃣0️⃣6️⃣ packages/app/src/ui/date-picker.tsx 🟢 — ts+react — deps: ui-core/components/DatePicker.tsx, app/types/common.ts
+1️⃣0️⃣7️⃣ packages/app/src/ui/file-uploader.tsx 🟢 — ts+react — deps: ui-core/components/FileUploader.tsx, app/types/common.ts
+1️⃣0️⃣8️⃣ packages/app/src/ui/sidebar.tsx 🟢 — ts+react — deps: ui-core/components/SideBar.tsx, app/types/common.ts
+1️⃣0️⃣9️⃣ packages/app/src/ui/search-bar.tsx 🟢 — ts+react — deps: ui-core/components/SearchBar.tsx, app/types/common.ts
+1️⃣1️⃣0️⃣ packages/app/src/ui/confirm-dialog.tsx 🟢 — ts+react — deps: ui-core/components/ConfirmDialog.tsx, app/types/common.ts
+1️⃣1️⃣1️⃣ packages/app/src/ui/error-boundary.tsx 🟢 — ts+react — deps: ui-core/components/ErrorBoundary.tsx, app/types/common.ts
+1️⃣1️⃣2️⃣ packages/app/src/ui/user-profile-display.tsx 🟢 — ts+react — deps: ui-core/components/UserProfileDisplay.tsx, app/types/common.ts
+1️⃣1️⃣3️⃣ packages/app/src/ui/navigation-menu-item.tsx 🟢 — ts+react — deps: ui-core/components/NavigationMenuItem.tsx, app/types/common.ts
+1️⃣1️⃣4️⃣ packages/app/src/ui/language-selector.tsx 🟢 — ts+react — deps: ui-core/components/LanguageSelector.tsx, app/types/common.ts, app/lib/i18n.ts
+1️⃣1️⃣5️⃣ packages/app/src/ui/support-button.tsx 🟢 — ts+react — deps: ui-core/components/SupportButton.tsx, app/types/common.ts, app/lib/feature-flags.ts, app/lib/telemetry.ts
 
 App state и hooks
 1️⃣1️⃣6️⃣ packages/app/src/providers/TelemetryProvider.tsx 🔴 — ts+react — Telemetry Provider для batch телеметрии — lib/telemetry.ts (НЕТ)

@@ -16,27 +16,35 @@ export * from './ui/breadcrumbs.js';
 export * from './ui/button.js';
 export * from './ui/card.js';
 export * from './ui/checkbox.js';
+export * from './ui/confirm-dialog.js';
 export * from './ui/context-menu.js';
 export * from './ui/date-picker.js';
 export * from './ui/dialog.js';
 export * from './ui/divider.js';
 export * from './ui/dropdown.js';
+export * from './ui/error-boundary.js';
 export * from './ui/file-uploader.js';
 export * from './ui/form.js';
 export * from './ui/icon.js';
 export * from './ui/input.js';
+export * from './ui/language-selector.js';
 export * from './ui/loading-spinner.js';
 export * from './ui/modal.js';
+export * from './ui/navigation-menu-item.js';
 export * from './ui/radio.js';
+export * from './ui/search-bar.js';
 export * from './ui/select.js';
+export * from './ui/sidebar.js';
 export * from './ui/skeleton-group.js';
 export * from './ui/skeleton.js';
 export * from './ui/status-indicator.js';
+export * from './ui/support-button.js';
 export * from './ui/tabs.js';
 export * from './ui/textarea.js';
 export * from './ui/toast.js';
 export * from './ui/toggle.js';
 export * from './ui/tooltip.js';
+export * from './ui/user-profile-display.js';
 
 /* ============================================================================
  * 🛠️ LIB — УТИЛИТЫ И КЛИЕНТЫ
