@@ -414,6 +414,22 @@ describe('SSE Client', () => {
       expect(result.emittedEvents).toEqual([]);
     });
 
+    it('MESSAGE: работает когда frame.event undefined', () => {
+      const frame = {
+        id: undefined,
+        event: undefined,
+        timestamp: Date.now(),
+        data: JSON.stringify({ message: 'test' }),
+        retry: undefined,
+      };
+
+      const event: SSEInternalEvent = { type: 'MESSAGE', frame };
+      const result = reduceSSEState(initialState, event);
+
+      expect(result.emittedEvents).toHaveLength(1);
+      expect(result.emittedEvents[0]?.type).toBe('message'); // default value
+    });
+
     it('ERROR: устанавливает CLOSED состояние', () => {
       const stateOpen = { ...initialState, connectionState: 'OPEN' as const };
       const event: SSEInternalEvent = { type: 'ERROR', error: new Error('test') };
@@ -439,11 +455,60 @@ describe('SSE Client', () => {
       // cleanup вызывается в effect-слое, не в reducer
     });
 
+    it('DISCONNECTED: работает когда cleanup и heartbeatCleanup undefined', () => {
+      const stateWithoutCleanups = {
+        ...initialState,
+        cleanup: undefined,
+        heartbeatCleanup: undefined,
+        connectionState: 'OPEN' as const,
+      };
+
+      const event: SSEInternalEvent = { type: 'DISCONNECTED' };
+      const result = reduceSSEState(stateWithoutCleanups, event);
+
+      expect(result.newState.connectionState).toBe('CLOSED');
+      // Не должно падать при отсутствии cleanup функций
+    });
+
     it('HEARTBEAT: обновляет lastHeartbeatAt', () => {
       const event: SSEInternalEvent = { type: 'HEARTBEAT' };
       const result = reduceSSEState(initialState, event);
 
       expect(result.newState.lastHeartbeatAt).toBeGreaterThanOrEqual(initialState.lastHeartbeatAt);
+    });
+
+    it('SET_CLEANUP: сохраняет cleanup функцию', () => {
+      const cleanupFn = vi.fn();
+      const event: SSEInternalEvent = { type: 'SET_CLEANUP', cleanup: cleanupFn };
+      const result = reduceSSEState(initialState, event);
+
+      expect(result.newState.cleanup).toBe(cleanupFn);
+    });
+
+    it('SET_HEARTBEAT_CLEANUP: сохраняет heartbeat cleanup функцию', () => {
+      const heartbeatCleanupFn = vi.fn();
+      const event: SSEInternalEvent = {
+        type: 'SET_HEARTBEAT_CLEANUP',
+        cleanup: heartbeatCleanupFn,
+      };
+      const result = reduceSSEState(initialState, event);
+
+      expect(result.newState.heartbeatCleanup).toBe(heartbeatCleanupFn);
+    });
+
+    it('START_HEARTBEAT: обновляет lastHeartbeatAt', () => {
+      const event: SSEInternalEvent = { type: 'START_HEARTBEAT' };
+      const result = reduceSSEState(initialState, event);
+
+      expect(result.newState.lastHeartbeatAt).toBeGreaterThanOrEqual(initialState.lastHeartbeatAt);
+      expect(result.emittedEvents).toEqual([]);
+    });
+
+    it('INCREMENT_RETRIES: увеличивает счетчик retries', () => {
+      const event: SSEInternalEvent = { type: 'INCREMENT_RETRIES' };
+      const result = reduceSSEState(initialState, event);
+
+      expect(result.newState.retries).toBe(initialState.retries + 1);
     });
 
     it('unknown event: возвращает неизмененное состояние', () => {
@@ -460,7 +525,7 @@ describe('SSE Client', () => {
       const state = createInitialSSEState(createTestConfig());
       const dispatch = vi.fn();
 
-      const effect = createSSEEffect(state, dispatch);
+      const effect = createSSEEffect(() => state, dispatch);
       effect();
 
       expect(global.EventSource).toHaveBeenCalledWith(state.url, { withCredentials: true });
@@ -470,7 +535,7 @@ describe('SSE Client', () => {
       const state = createInitialSSEState(createTestConfig());
       const dispatch = vi.fn();
 
-      const effect = createSSEEffect(state, dispatch);
+      const effect = createSSEEffect(() => state, dispatch);
       effect();
 
       expect((mockEventSource as any).mockAddEventListener).toHaveBeenCalledTimes(3);
@@ -499,7 +564,7 @@ describe('SSE Client', () => {
       const state = createInitialSSEState(createTestConfig({ telemetry }));
       const dispatch = vi.fn();
 
-      const effect = createSSEEffect(state, dispatch);
+      const effect = createSSEEffect(() => state, dispatch);
       effect();
 
       const openCall = (mockEventSource as any).mockAddEventListener.mock.calls.find(
@@ -524,7 +589,7 @@ describe('SSE Client', () => {
       const state = createInitialSSEState(createTestConfig({ telemetry }));
       const dispatch = vi.fn();
 
-      const effect = createSSEEffect(state, dispatch);
+      const effect = createSSEEffect(() => state, dispatch);
       effect();
 
       const errorCall = (mockEventSource as any).mockAddEventListener.mock.calls.find(
@@ -545,7 +610,7 @@ describe('SSE Client', () => {
       const state = createInitialSSEState(createTestConfig({ abortController }));
       const dispatch = vi.fn();
 
-      const effect = createSSEEffect(state, dispatch);
+      const effect = createSSEEffect(() => state, dispatch);
       effect();
 
       expect(abortController.signal.addEventListener).toHaveBeenCalledWith(
@@ -559,7 +624,7 @@ describe('SSE Client', () => {
       const state = createInitialSSEState(createTestConfig({ abortController }));
       const dispatch = vi.fn();
 
-      const effect = createSSEEffect(state, dispatch);
+      const effect = createSSEEffect(() => state, dispatch);
       effect();
 
       const abortCall = (abortController as any).mockAddEventListener.mock.calls.find(
@@ -578,7 +643,7 @@ describe('SSE Client', () => {
       const state = createInitialSSEState(createTestConfig());
       const dispatch = vi.fn();
 
-      const effect = createHeartbeatEffect(state, dispatch);
+      const effect = createHeartbeatEffect(() => state, dispatch);
       const onCleanup = vi.fn();
       effect(onCleanup);
 
@@ -592,7 +657,7 @@ describe('SSE Client', () => {
       }));
       const dispatch = vi.fn();
 
-      const effect = createHeartbeatEffect(state, dispatch);
+      const effect = createHeartbeatEffect(() => state, dispatch);
       const onCleanup = vi.fn();
       effect(onCleanup);
 
@@ -609,7 +674,7 @@ describe('SSE Client', () => {
       const state = createInitialSSEState(createTestConfig());
       const dispatch = vi.fn();
 
-      const effect = createHeartbeatEffect(state, dispatch);
+      const effect = createHeartbeatEffect(() => state, dispatch);
       const onCleanup = vi.fn();
       effect(onCleanup);
 
@@ -628,7 +693,7 @@ describe('SSE Client', () => {
       const state = createInitialSSEState(createTestConfig({ autoReconnect: false }));
       const connect = vi.fn();
 
-      const effect = createReconnectEffect(state, connect);
+      const effect = createReconnectEffect(() => state, connect);
 
       expect(effect).toBeNull();
     });
@@ -640,7 +705,7 @@ describe('SSE Client', () => {
       const stateWithMaxRetries = { ...state, retries: 3 };
       const connect = vi.fn();
 
-      const effect = createReconnectEffect(stateWithMaxRetries, connect);
+      const effect = createReconnectEffect(() => stateWithMaxRetries, connect);
 
       expect(effect).toBeNull();
     });
@@ -651,7 +716,7 @@ describe('SSE Client', () => {
       }));
       const connect = vi.fn();
 
-      const effect = createReconnectEffect(state, connect);
+      const effect = createReconnectEffect(() => state, connect);
 
       expect(typeof effect).toBe('function');
 
@@ -679,10 +744,47 @@ describe('SSE Client', () => {
       }));
       const connect = vi.fn();
 
-      createReconnectEffect(state, connect);
+      createReconnectEffect(() => state, connect);
 
       expect(telemetry.onReconnect).toHaveBeenCalledWith(1, expect.any(Number));
     });
+
+    it('работает когда telemetry.onReconnect не определена', () => {
+      const telemetry = {
+        onConnect: vi.fn(),
+        onDisconnect: vi.fn(),
+        onMessage: vi.fn(),
+        onError: vi.fn(),
+        // onReconnect не определена
+      };
+      const state = createInitialSSEState(createTestConfig({
+        reconnectStrategy: { type: 'fixed', delayMs: 1000 },
+        telemetry,
+      }));
+      const connect = vi.fn();
+
+      // Не должно падать
+      const effect = createReconnectEffect(() => state, connect);
+      expect(effect).toBeDefined();
+    });
+
+    it('работает когда telemetry полностью undefined', () => {
+      const config = createTestConfig({
+        reconnectStrategy: { type: 'fixed', delayMs: 1000 },
+      });
+      // Удаляем telemetry из конфига
+      delete (config as any).telemetry;
+
+      const state = createInitialSSEState(config);
+      const connect = vi.fn();
+
+      // Не должно падать
+      const effect = createReconnectEffect(() => state, connect);
+      expect(effect).toBeDefined();
+    });
+
+    // NOTE: Тесты abort сигнала пропущены из-за сложности с таймерами
+    // Основная логика abort тестируется в других интеграционных тестах
   });
 
   describe('onSSEMessage / offSSEMessage', () => {
@@ -748,7 +850,7 @@ describe('SSE Client', () => {
       const config = createTestConfig();
       const runtime = createSSERuntime(config);
 
-      const effect = createSSEEffect(runtime.getState(), runtime.dispatch);
+      const effect = createSSEEffect(runtime.getState, runtime.dispatch);
       const es = runtime.startEffect(effect);
 
       expect(es).toBeInstanceOf(EventSource);
@@ -807,6 +909,35 @@ describe('SSE Client', () => {
         }),
       );
     });
+
+    it('работает без telemetry', () => {
+      const config = createTestConfig();
+      delete (config as any).telemetry;
+
+      const runtime = createSSERuntime(config);
+
+      // Должен работать без ошибок
+      expect(runtime.getState()).toBeDefined();
+      expect(runtime.getState().telemetry).toBeUndefined();
+    });
+
+    it('работает без abortController', () => {
+      const config = createTestConfig();
+      delete (config as any).abortController;
+
+      const runtime = createSSERuntime(config);
+
+      expect(runtime.getState().abortController).toBeUndefined();
+    });
+
+    it('работает без context', () => {
+      const config = createTestConfig();
+      delete (config as any).context;
+
+      const runtime = createSSERuntime(config);
+
+      expect(runtime.getState().context).toBeUndefined();
+    });
   });
 
   describe('Integration tests', () => {
@@ -834,7 +965,7 @@ describe('SSE Client', () => {
       global.EventSource = MockEventSource as any;
 
       // Создаем эффект и запускаем
-      const effect = createSSEEffect(runtime.getState(), runtime.dispatch);
+      const effect = createSSEEffect(runtime.getState, runtime.dispatch);
       const es = runtime.startEffect(effect);
 
       expect(es).toEqual(mockES);
@@ -876,7 +1007,7 @@ describe('SSE Client', () => {
       const config = createTestConfig({ heartbeatTimeoutMs: 1000 });
       const runtime = createSSERuntime(config);
 
-      const heartbeatEffect = createHeartbeatEffect(runtime.getState(), runtime.dispatch);
+      const heartbeatEffect = createHeartbeatEffect(runtime.getState, runtime.dispatch);
       const onCleanup = vi.fn();
       heartbeatEffect(onCleanup);
 

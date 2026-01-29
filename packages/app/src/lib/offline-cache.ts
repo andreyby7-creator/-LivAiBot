@@ -10,6 +10,19 @@
  * - Неизменяемый и функциональный
  * - Отказоустойчивый и resilient
  * - Готов к telemetry, microservice-friendly, безопасен для распределенных систем
+ *
+ * ┌───────────────────── SWR Flow ─────────────────────┐
+ * │                                                    │
+ * │ getOrFetch(key) → Cache Check → Fresh? → Return    │
+ * │     ↓                ↓              ↓              │
+ * │ Cache Miss       Stale Data    Background Fetch    │
+ * │     ↓                ↓              ↓              │
+ * │ ongoingFetches? → Wait Existing → Return           │
+ * │     ↓                                              │
+ * │   Start New → Fetch → Store → Return               │
+ * │                                                    │
+ * │ Key: ongoingFetches + staleWhileRevalidateDelay    │
+ * └────────────────────────────────────────────────────┘
  */
 
 import { EventEmitter } from 'events';
@@ -30,6 +43,13 @@ export type OfflineCacheEvents = {
 class TypedOfflineCacheEmitter extends EventEmitter {
   override on<K extends keyof OfflineCacheEvents>(event: K, listener: OfflineCacheEvents[K]): this {
     return super.on(event, listener);
+  }
+
+  override once<K extends keyof OfflineCacheEvents>(
+    event: K,
+    listener: OfflineCacheEvents[K],
+  ): this {
+    return super.once(event, listener);
   }
 
   override emit<K extends keyof OfflineCacheEvents>(
@@ -125,6 +145,7 @@ export function createOfflineCache(
   set: <T>(key: CacheKey, value: T, contextOverride?: OfflineCacheContext) => Effect<void>;
   remove: (key: CacheKey, contextOverride?: OfflineCacheContext) => Effect<void>;
   clear: (contextOverride?: OfflineCacheContext) => Effect<void>;
+  cancel: (key: CacheKey) => boolean;
   on: <Event extends keyof OfflineCacheEvents>(
     event: Event,
     listener: OfflineCacheEvents[Event],
@@ -150,10 +171,38 @@ export function createOfflineCache(
   const buildKey = (key: CacheKey): string => `${namespace}:${key}`;
   const now = (): number => Date.now();
   const events = new TypedOfflineCacheEmitter();
+
+  // Debounced версия onEvaluate для снижения нагрузки при частых stale updates
+  let onEvaluateTimeoutId: ReturnType<typeof setTimeout> | undefined;
+  const debouncedOnEvaluate = (result: OfflineCacheResult<unknown>): void => {
+    if (onEvaluateTimeoutId) {
+      clearTimeout(onEvaluateTimeoutId);
+    }
+    onEvaluateTimeoutId = setTimeout(() => {
+      onEvaluate?.(result);
+    }, 100); // 100ms debounce для high-frequency stale updates
+  };
   const ongoingFetches: Record<
     CacheKey,
     { promise: Promise<unknown>; timeoutId?: ReturnType<typeof setTimeout>; }
   > = {};
+
+  /** Очищает ongoing fetch для ключа */
+  function cleanupFetch(namespacedKey: CacheKey, signal?: AbortSignal): void {
+    const entry = ongoingFetches[namespacedKey];
+    if (entry) {
+      if (entry.timeoutId) {
+        clearTimeout(entry.timeoutId);
+      }
+      if (signal) {
+        signal.removeEventListener('abort', () => {
+          cleanupFetch(namespacedKey);
+        });
+      }
+      // eslint-disable-next-line functional/immutable-data
+      delete ongoingFetches[namespacedKey];
+    }
+  }
 
   /** Создает promise для fetch операции с обработкой ошибок и событиями */
   function createFetchPromise<T>(
@@ -163,7 +212,7 @@ export function createOfflineCache(
     requestContext?: OfflineCacheContext,
   ): Promise<T> {
     const abortHandler = (): void => {
-      Reflect.deleteProperty(ongoingFetches, namespacedKey);
+      cleanupFetch(namespacedKey, signal);
     };
 
     signal.addEventListener('abort', abortHandler);
@@ -173,7 +222,7 @@ export function createOfflineCache(
 
     // Проверяем abort перед началом выполнения
     if (signal.aborted) {
-      Reflect.deleteProperty(ongoingFetches, namespacedKey);
+      cleanupFetch(namespacedKey, signal);
       throw new Error('Operation was aborted');
     }
 
@@ -217,7 +266,7 @@ export function createOfflineCache(
       })
       .finally(() => {
         signal.removeEventListener('abort', abortHandler);
-        Reflect.deleteProperty(ongoingFetches, namespacedKey);
+        cleanupFetch(namespacedKey);
       });
   }
 
@@ -230,7 +279,7 @@ export function createOfflineCache(
     requestContext?: OfflineCacheContext,
   ): OfflineCacheResult<T> {
     // Фоновое обновление без блокировки - только если нет ongoing fetch
-    if (!Reflect.has(ongoingFetches, namespacedKey)) {
+    if (!(namespacedKey in ongoingFetches)) {
       // Проверяем еще раз, что fetch не запущен (на случай гонки)
       if (!signal.aborted) {
         const fetchPromise = createFetchPromise(namespacedKey, fetcher, signal, requestContext);
@@ -239,31 +288,28 @@ export function createOfflineCache(
           // Запускаем fetch с задержкой
           const timeoutId = setTimeout(() => {
             // Fetch уже создан в createFetchPromise, просто убираем timeoutId
-            if (Reflect.has(ongoingFetches, namespacedKey)) {
-              Reflect.set(ongoingFetches, namespacedKey, { promise: fetchPromise });
+            if (namespacedKey in ongoingFetches) {
+              // eslint-disable-next-line functional/immutable-data
+              ongoingFetches[namespacedKey] = { promise: fetchPromise };
             }
           }, staleWhileRevalidateDelay);
 
-          Reflect.set(ongoingFetches, namespacedKey, { promise: fetchPromise, timeoutId });
+          // eslint-disable-next-line functional/immutable-data
+          ongoingFetches[namespacedKey] = { promise: fetchPromise, timeoutId };
         } else {
           // Запускаем немедленно
-          Reflect.set(ongoingFetches, namespacedKey, { promise: fetchPromise });
+          // eslint-disable-next-line functional/immutable-data
+          ongoingFetches[namespacedKey] = { promise: fetchPromise };
         }
 
         // Обработчик abort для полной очистки
         signal.addEventListener('abort', () => {
-          const entry = Reflect.get(ongoingFetches, namespacedKey) as {
-            timeoutId?: ReturnType<typeof setTimeout>;
-          } | undefined;
-          if (entry?.timeoutId) {
-            clearTimeout(entry.timeoutId);
-          }
-          Reflect.deleteProperty(ongoingFetches, namespacedKey);
+          cleanupFetch(namespacedKey);
         }, { once: true });
 
         // Гарантируем очистку после завершения
         fetchPromise.finally(() => {
-          Reflect.deleteProperty(ongoingFetches, namespacedKey);
+          cleanupFetch(namespacedKey);
         }).catch(() => {
           // Игнорируем ошибки очистки
         });
@@ -271,7 +317,7 @@ export function createOfflineCache(
     }
 
     const result = createCacheResult(entry.key, entry.value, 'STALE', now(), undefined, context);
-    onEvaluate?.(result);
+    debouncedOnEvaluate(result);
     return result;
   }
 
@@ -320,7 +366,7 @@ export function createOfflineCache(
     timestamp: number,
     requestContext?: OfflineCacheContext,
   ): Promise<OfflineCacheResult<T>> {
-    const entry = Reflect.get(ongoingFetches, namespacedKey) as { promise: Promise<unknown>; };
+    const entry = ongoingFetches[namespacedKey] as { promise: Promise<unknown>; };
     const value = await entry.promise as T;
     const result = createCacheResult(key, value, 'REMOTE', timestamp, undefined, requestContext);
     onEvaluate?.(result);
@@ -338,7 +384,8 @@ export function createOfflineCache(
   ): Promise<OfflineCacheResult<T>> {
     try {
       const fetchPromise = createFetchPromise(namespacedKey, fetcher, signal, requestContext);
-      Reflect.set(ongoingFetches, namespacedKey, { promise: fetchPromise });
+      // eslint-disable-next-line functional/immutable-data
+      ongoingFetches[namespacedKey] = { promise: fetchPromise };
       const value = await fetchPromise;
       const result = createCacheResult(key, value, 'REMOTE', timestamp, undefined, requestContext);
       onEvaluate?.(result);
@@ -413,7 +460,7 @@ export function createOfflineCache(
           return result;
         }
 
-        if (Reflect.has(ongoingFetches, namespacedKey)) {
+        if (namespacedKey in ongoingFetches) {
           return await handleExistingFetch(key, namespacedKey, timestamp, requestContext);
         }
 
@@ -486,6 +533,19 @@ export function createOfflineCache(
       },
     );
 
+  const cancel = (key: CacheKey): boolean => {
+    const namespacedKey = buildKey(key);
+    if (namespacedKey in ongoingFetches) {
+      cleanupFetch(namespacedKey);
+      warnFireAndForget('Cache fetch cancelled by client', {
+        key: namespacedKey,
+        operation: 'cancel',
+      });
+      return true;
+    }
+    return false;
+  };
+
   const on = <Event extends keyof OfflineCacheEvents>(
     event: Event,
     listener: OfflineCacheEvents[Event],
@@ -493,7 +553,7 @@ export function createOfflineCache(
     events.on(event, listener);
   };
 
-  return freeze({ getOrFetch, get, set, remove, clear, on, events });
+  return freeze({ getOrFetch, get, set, remove, clear, cancel, on, events });
 }
 
 /* ============================================================================
@@ -509,19 +569,22 @@ export function createInMemoryOfflineCacheStore(): OfflineCacheStore {
     },
     set<T>(entry: CacheEntry<T>): Effect<void> {
       return (): Promise<void> => {
-        Reflect.apply(cache.set, cache, [entry.key, freeze(entry)]);
+        // eslint-disable-next-line functional/immutable-data
+        cache.set(entry.key, freeze(entry));
         return Promise.resolve();
       };
     },
     delete(key: CacheKey): Effect<void> {
       return (): Promise<void> => {
-        Reflect.apply(cache.delete, cache, [key]);
+        // eslint-disable-next-line functional/immutable-data
+        cache.delete(key);
         return Promise.resolve();
       };
     },
     clear(): Effect<void> {
       return (): Promise<void> => {
-        Reflect.apply(cache.clear, cache, []);
+        // eslint-disable-next-line functional/immutable-data
+        cache.clear();
         return Promise.resolve();
       };
     },
@@ -539,6 +602,7 @@ export function createInMemoryOfflineCacheStore(): OfflineCacheStore {
 const DEFAULT_RETRY_ATTEMPTS = 3;
 const DEFAULT_RETRY_DELAY = 1000;
 const DEFAULT_RETRY_BACKOFF = 2;
+const RETRY_JITTER_FACTOR = 0.25; // Фактор jitter для распределения нагрузки (25%)
 
 // Выполняет функцию с повторными попытками и экспоненциальным backoff
 async function retryWithBackoff<T>(
@@ -568,12 +632,21 @@ async function retryWithBackoff<T>(
         break; // Последняя попытка, выбрасываем ошибку
       }
 
-      const delay = options.delay * Math.pow(options.backoff, attempt - 1);
+      const baseDelay = options.delay * Math.pow(options.backoff, attempt - 1);
+      // Добавляем jitter (случайное смещение до 25% от базовой задержки)
+      const jitter = baseDelay * RETRY_JITTER_FACTOR * Math.random();
+      const delay = baseDelay + jitter;
       options.onRetry?.(attempt, error);
 
       await new Promise((resolve) => setTimeout(resolve, delay));
     }
   }
+
+  // Логируем финальную ошибку для telemetry
+  errorFireAndForget('Cache retry exhausted', {
+    attempts: options.attempts,
+    operation: 'retry_exhausted',
+  });
 
   throw lastError;
 }
@@ -584,7 +657,20 @@ async function retryWithBackoff<T>(
 
 /** Замораживает объект для обеспечения immutability. Возвращает объект без изменений если он уже заморожен */
 function freeze<T>(obj: T): T {
-  return Object.isFrozen(obj) ? obj : Object.freeze(obj);
+  if (Object.isFrozen(obj)) return obj;
+
+  // Deep freeze для вложенных объектов
+  if (obj !== null && obj !== undefined && typeof obj === 'object') {
+    const propNames = Object.getOwnPropertyNames(obj);
+    for (const name of propNames) {
+      const value = (obj as Record<string, unknown>)[name];
+      if (value !== null && value !== undefined && typeof value === 'object') {
+        freeze(value);
+      }
+    }
+  }
+
+  return Object.freeze(obj);
 }
 
 /** Effect композиция: последовательное выполнение эффектов (аналог chain/flatMap для нашей простой Effect системы) */
@@ -605,14 +691,14 @@ function mapEffectResult<A, B>(effect: Effect<A>, transform: (value: A) => B): E
  * @param transforms - Массив функций-трансформаторов
  * @returns Составной эффект с последовательными трансформациями
  */
-export function pipeEffects<A>(
+export function pipeEffects<A, B = A>(
   effect: Effect<A>,
-  ...transforms: ((value: A) => Effect<A>)[]
-): Effect<A> {
+  ...transforms: ((value: unknown) => Effect<unknown>)[]
+): Effect<B> {
   return transforms.reduce((currentEffect, transform) => {
     return chainEffects(currentEffect, (value) => {
       const nextEffect = transform(value);
       return nextEffect;
     });
-  }, effect);
+  }, effect as Effect<unknown>) as Effect<B>;
 }

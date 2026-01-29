@@ -35,11 +35,15 @@ import type {
   SoftDeletable,
   VersionedEntity,
 } from '../../../src/types/api.js';
-import type { ID } from '../../../src/types/common.js';
+import type { ID, ISODateString } from '../../../src/types/common.js';
 
 // Helper функции для создания брендированных ID в тестах
 function createGenericID(id: string): ID {
   return id as ID;
+}
+
+function createISODateString(date: string): ISODateString {
+  return date as ISODateString;
 }
 
 // ============================================================================
@@ -326,7 +330,7 @@ describe('RealtimeEvent типизированные события', () => {
   it('создает базовое событие', () => {
     const event: RealtimeEvent = {
       type: 'USER_JOINED',
-      timestamp: '2026-01-16T12:34:56.000Z',
+      timestamp: createISODateString('2026-01-16T12:34:56.000Z'),
       payload: { userId: 'user-123' },
     };
 
@@ -341,7 +345,7 @@ describe('RealtimeEvent типизированные события', () => {
 
     const chatEvent: ChatMessageEvent = {
       type: 'CHAT_MESSAGE',
-      timestamp: '2026-01-16T12:34:56.000Z',
+      timestamp: createISODateString('2026-01-16T12:34:56.000Z'),
       payload: {
         message: 'Hello!',
         from: 'user-123',
@@ -446,8 +450,8 @@ describe('BaseApiDTO тип', () => {
   it('создает базовый DTO с обязательными полями', () => {
     const dto: BaseApiDTO = {
       id: createGenericID('entity-123'),
-      createdAt: '2026-01-16T12:34:56.000Z',
-      updatedAt: '2026-01-16T13:00:00.000Z',
+      createdAt: createISODateString('2026-01-16T12:34:56.000Z'),
+      updatedAt: createISODateString('2026-01-16T13:00:00.000Z'),
     };
 
     expect(dto.id).toBe('entity-123');
@@ -458,7 +462,7 @@ describe('BaseApiDTO тип', () => {
   it('updatedAt может быть undefined', () => {
     const dto: BaseApiDTO = {
       id: createGenericID('entity-456'),
-      createdAt: '2026-01-16T12:34:56.000Z',
+      createdAt: createISODateString('2026-01-16T12:34:56.000Z'),
     };
 
     expect(dto.id).toBe('entity-456');
@@ -470,7 +474,7 @@ describe('BaseApiDTO тип', () => {
 describe('SoftDeletable контракт', () => {
   it('добавляет поле deletedAt', () => {
     const softDeletable: SoftDeletable = {
-      deletedAt: '2026-01-16T14:00:00.000Z',
+      deletedAt: createISODateString('2026-01-16T14:00:00.000Z'),
     };
 
     expect(softDeletable.deletedAt).toBe('2026-01-16T14:00:00.000Z');

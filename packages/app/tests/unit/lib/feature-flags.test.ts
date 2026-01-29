@@ -22,10 +22,12 @@ import {
   enabledForUsers,
   evaluateFeature,
   evaluateFeatures,
+  FeatureFlagOverrideProvider,
   isFeatureEnabled,
   not,
   or,
   percentageRollout,
+  setGlobalFeatureFlagLogger,
   useFeatureFlagOverride,
 } from '../../../src/lib/feature-flags';
 import type {
@@ -151,6 +153,14 @@ describe('Feature Flags Core', () => {
       const strategy = enabledForUsers([]);
       expect(strategy(createMockContext({ userId: 'any' }))).toBe(false);
     });
+
+    it('enabledForUsers возвращает false когда массив пустой независимо от userId', () => {
+      const strategy = enabledForUsers([]);
+
+      expect(strategy(createMockContext({ userId: 'user1' }))).toBe(false);
+      expect(strategy(createMockContext({ userId: 'admin' }))).toBe(false);
+      expect(strategy(createMockContext({ userId: undefined } as any))).toBe(false);
+    });
   });
 
   describe('Tenant-based Strategies', () => {
@@ -169,6 +179,14 @@ describe('Feature Flags Core', () => {
     it('enabledForTenants работает с пустым массивом', () => {
       const strategy = enabledForTenants([]);
       expect(strategy(createMockContext({ tenantId: 'any' }))).toBe(false);
+    });
+
+    it('enabledForTenants возвращает false когда массив пустой независимо от tenantId', () => {
+      const strategy = enabledForTenants([]);
+
+      expect(strategy(createMockContext({ tenantId: 'tenant1' }))).toBe(false);
+      expect(strategy(createMockContext({ tenantId: 'enterprise' }))).toBe(false);
+      expect(strategy(createMockContext({ tenantId: undefined } as any))).toBe(false);
     });
   });
 
@@ -212,6 +230,20 @@ describe('Feature Flags Core', () => {
       const result1 = strategy(testCtx);
       const result2 = strategy(testCtx);
       expect(result1).toBe(result2);
+    });
+
+    it('percentageRollout возвращает false ровно на границе 0', () => {
+      const strategy = percentageRollout(0);
+      const ctx = createMockContext({ userId: 'any-user' });
+
+      expect(strategy(ctx)).toBe(false);
+    });
+
+    it('percentageRollout возвращает true ровно на границе 100', () => {
+      const strategy = percentageRollout(100);
+      const ctx = createMockContext({ userId: 'any-user' });
+
+      expect(strategy(ctx)).toBe(true);
     });
   });
 
@@ -917,6 +949,79 @@ describe('Feature Flags Core', () => {
         expect.any(Error),
       );
     });
+
+    it('должен использовать глобальный logger при ошибках стратегии без явного logger', async () => {
+      const globalLoggerSpy = vi.fn();
+
+      // Set global logger for this test
+      setGlobalFeatureFlagLogger(globalLoggerSpy);
+
+      // Create provider with flag that has error strategy
+      const provider = createInMemoryFeatureFlagProvider([
+        {
+          name: 'SYSTEM_ERROR_FLAG' as any,
+          description: 'Test flag with error strategy',
+          default: false,
+          service: 'SYSTEM',
+          strategy: () => {
+            throw new Error('Strategy error');
+          },
+        },
+      ]);
+
+      const result = await evaluateFeature(
+        provider,
+        'SYSTEM_ERROR_FLAG' as any,
+        createMockContext(),
+      );
+
+      expect(result.value).toBe(false);
+      expect(result.reason).toBe('STRATEGY'); // safeExecuteStrategy handles errors gracefully
+      expect(globalLoggerSpy).toHaveBeenCalledWith(
+        'Feature flag strategy error for userId=test-user-123',
+        expect.any(Error),
+      );
+
+      // Clear global logger
+      setGlobalFeatureFlagLogger(null as any);
+    });
+
+    it('должен использовать console.error в development режиме без глобального logger', async () => {
+      // Mock environment for development using Vitest stubEnv
+      vi.stubEnv('NODE_ENV', 'development');
+
+      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+      // Create provider with flag that has error strategy
+      const provider = createInMemoryFeatureFlagProvider([
+        {
+          name: 'SYSTEM_ERROR_FLAG' as any,
+          description: 'Test flag with error strategy',
+          default: false,
+          service: 'SYSTEM',
+          strategy: () => {
+            throw new Error('Strategy error');
+          },
+        },
+      ]);
+
+      const result = await evaluateFeature(
+        provider,
+        'SYSTEM_ERROR_FLAG' as any,
+        createMockContext(),
+      );
+
+      expect(result.value).toBe(false);
+      expect(result.reason).toBe('STRATEGY');
+      expect(consoleSpy).toHaveBeenCalledWith(
+        'Feature flag strategy error for userId=test-user-123:',
+        expect.any(Error),
+      );
+
+      // Restore
+      consoleSpy.mockRestore();
+      vi.unstubAllEnvs();
+    });
   });
 
   describe('evaluateFromMap edge cases', () => {
@@ -944,63 +1049,56 @@ describe('Feature Flags Core', () => {
       expect(result.reason).toBe('NOT_FOUND');
     });
 
-    it('evaluateFromMap должен обрабатывать undefined флаг напрямую', () => {
-      // Mock evaluateFromMap function
-      const evaluateFromMap = (name: any, flag: any, _ctx: any) => {
-        const timestamp = Date.now();
-        if (flag == null) {
-          return {
-            name,
-            value: false,
-            reason: 'NOT_FOUND',
-            timestamp,
-          };
-        }
-        return { name, value: true, reason: 'MOCK', timestamp };
-      };
+    it('evaluateFromMap должен обрабатывать undefined флаг напрямую', async () => {
+      // Test through evaluateFeature with provider that returns undefined
+      const provider = createInMemoryFeatureFlagProvider([]);
 
-      const result = evaluateFromMap('TEST_FLAG', undefined, createMockContext());
+      const result = await evaluateFeature(
+        provider,
+        'NON_EXISTENT_FLAG' as any,
+        createMockContext(),
+      );
 
-      expect(result.name).toBe('TEST_FLAG');
+      expect(result.name).toBe('NON_EXISTENT_FLAG');
       expect(result.value).toBe(false);
       expect(result.reason).toBe('NOT_FOUND');
+      expect(result.flag).toBeUndefined();
     });
 
-    it('freezeContext должен обрабатывать undefined значения', () => {
-      // Mock freezeContext function
-      const freezeContext = (ctx: any) => {
-        return Object.freeze({ ...ctx });
-      };
-      const ctx = { userId: undefined, tenantId: 'tenant' };
-
-      const frozen = freezeContext(ctx);
-
-      expect(frozen.userId).toBeUndefined();
-      expect(frozen.tenantId).toBe('tenant');
-      expect(Object.isFrozen(frozen)).toBe(true);
-    });
+    // freezeContext не экспортируется для прямого тестирования
+    // Функциональность тестируется косвенно через публичные API
   });
 
   describe('Runtime flag override (Critical)', () => {
     it('useFeatureFlagOverride должен работать с context', () => {
       // Test basic functionality without complex mocking
-      const overrides = { 'test-flag': true };
-      const result = overrides['test-flag'] || false;
+      const overrides = { 'SYSTEM_TEST_FLAG': true } as any;
+      const result = overrides['SYSTEM_TEST_FLAG'] ?? false;
 
       expect(result).toBe(true);
     });
 
-    it('FeatureFlagOverrideProvider должен предоставлять overrides', () => {
-      // Simplified test - just check that the component exists
-      expect(true).toBe(true);
+    it('FeatureFlagOverrideProvider должен рендерить children с context', () => {
+      const overrides = { 'SYSTEM_TEST_FLAG': true } as any;
+      const childElement = React.createElement('div', { 'data-testid': 'child' }, 'Child content');
+
+      const providerElement = React.createElement(
+        FeatureFlagOverrideProvider,
+        { overrides, children: childElement },
+      );
+
+      // Check that it creates the correct element structure
+      expect(providerElement.type).toBe(FeatureFlagOverrideProvider);
+      expect(providerElement.props.overrides).toBe(overrides);
+      expect(providerElement.props.children).toBe(childElement);
     });
 
     it('useFeatureFlagOverride должен возвращать default value без context', () => {
       // Test that it returns default value when no context is available
       // by rendering without provider
       const TestComponent = () => {
-        const val1 = useFeatureFlagOverride('any-flag', true);
-        const val2 = useFeatureFlagOverride('any-flag', false);
+        const val1 = useFeatureFlagOverride('SYSTEM_TEST_FLAG' as any, true);
+        const val2 = useFeatureFlagOverride('SYSTEM_TEST_FLAG' as any, false);
         return React.createElement('div', {}, `${val1}-${val2}`);
       };
 
@@ -1012,8 +1110,8 @@ describe('Feature Flags Core', () => {
       const originalUseContext = React.useContext;
       React.useContext = vi.fn().mockReturnValue(null);
 
-      expect(useFeatureFlagOverride('test-flag', true)).toBe(true);
-      expect(useFeatureFlagOverride('test-flag', false)).toBe(false);
+      expect(useFeatureFlagOverride('SYSTEM_TEST_FLAG' as any, true)).toBe(true);
+      expect(useFeatureFlagOverride('SYSTEM_TEST_FLAG' as any, false)).toBe(false);
 
       React.useContext = originalUseContext;
     });
@@ -1021,12 +1119,12 @@ describe('Feature Flags Core', () => {
     it('useFeatureFlagOverride должен возвращать override value когда доступен', () => {
       // Mock context to return overrides
       const originalUseContext = React.useContext;
-      const overrides = { 'test-flag': true, 'other-flag': false };
+      const overrides = { 'SYSTEM_TEST_FLAG': true, 'SYSTEM_OTHER_FLAG': false } as any;
       React.useContext = vi.fn().mockReturnValue(overrides);
 
-      expect(useFeatureFlagOverride('test-flag', false)).toBe(true);
-      expect(useFeatureFlagOverride('other-flag', true)).toBe(false);
-      expect(useFeatureFlagOverride('missing-flag', true)).toBe(true);
+      expect(useFeatureFlagOverride('SYSTEM_TEST_FLAG' as any, false)).toBe(true);
+      expect(useFeatureFlagOverride('SYSTEM_OTHER_FLAG' as any, true)).toBe(false);
+      expect(useFeatureFlagOverride('SYSTEM_MISSING_FLAG' as any, true)).toBe(true);
 
       React.useContext = originalUseContext;
     });

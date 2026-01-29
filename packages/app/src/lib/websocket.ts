@@ -23,7 +23,15 @@
  * - retry / reconnect / tracing
  */
 
-import type { EffectAbortController, EffectContext } from './effect-utils.js';
+import { sleep, withLogging } from './effect-utils.js';
+import type {
+  EffectAbortController,
+  EffectContext,
+  EffectError,
+  EffectLogger,
+} from './effect-utils.js';
+import { infoFireAndForget, logFireAndForget } from './telemetry.js';
+// ApiError используется только для HTTP API, WebSocket использует EffectError
 
 /* ============================================================================
 * 🧠 БАЗОВЫЕ ТИПЫ
@@ -96,9 +104,38 @@ export function createInitialWebSocketState<TMessage>(
     retryBackoffFactor: config.retryBackoffFactor ?? 2,
     retries: 0,
 
-    listeners: new Set(),
+    listeners: Object.freeze(new Set()) as ReadonlySet<(event: WebSocketEvent<TMessage>) => void>,
     abortController: config.abortController,
     context: config.context,
+  };
+}
+
+/** Создает логгер для WebSocket эффектов. */
+export function createWebSocketLogger(operation: string): EffectLogger {
+  return {
+    onStart: (context?: EffectContext): void => {
+      infoFireAndForget(`WebSocket ${operation} started`, {
+        operation,
+        source: context?.source ?? 'WebSocket',
+        ...(context?.traceId != null && { traceId: context.traceId }),
+      });
+    },
+    onSuccess: (durationMs: number, context?: EffectContext): void => {
+      logFireAndForget('INFO', `WebSocket ${operation} completed`, {
+        operation,
+        durationMs,
+        source: context?.source ?? 'WebSocket',
+        ...(context?.traceId != null && { traceId: context.traceId }),
+      });
+    },
+    onError: (error: unknown, context?: EffectContext): void => {
+      logFireAndForget('WARN', `WebSocket ${operation} failed`, {
+        operation,
+        error: error instanceof Error ? error.message : String(error),
+        source: context?.source ?? 'WebSocket',
+        ...(context?.traceId != null && { traceId: context.traceId }),
+      });
+    },
   };
 }
 
@@ -176,7 +213,7 @@ export type WebSocketHandlers = Readonly<{
   open: () => void;
   message: (event: MessageEvent) => void;
   close: () => Promise<void> | void;
-  error?: () => void;
+  error?: (event: Event) => void;
 }>;
 
 /** Расширенные handlers с поддержкой tracing/observability. */
@@ -213,8 +250,8 @@ export function createWebSocketEffect(
       }
     });
     if (handlers.error) {
-      ws.addEventListener('error', () => {
-        handlers.error?.();
+      ws.addEventListener('error', (event) => {
+        handlers.error?.(event);
       });
     }
 
@@ -310,7 +347,7 @@ export function connectWebSocket<T>(
 
   // Возвращаем новое состояние и composed effect
   const newState = setConnectionState(state, 'CONNECTING');
-  const composedEffect = (): WebSocket => {
+  const composedEffect: () => WebSocket = (): WebSocket => {
     const ws = wsEffect();
     attachAbortController(ws);
     return ws;
@@ -338,16 +375,23 @@ export function handleWebSocketClose<T>(
       MAX_RETRY_DELAY_MS,
     );
     const delayedReconnectEffect = async (): Promise<void> => {
-      await new Promise((resolve) => setTimeout(resolve, delayMs));
+      await sleep(delayMs, nextState.abortController?.signal);
       reconnectEffect();
     };
 
     // Обертка для соблюдения no-floating-promises правила
-    const safeDelayedReconnectEffect = async (): Promise<void> => {
+    const safeDelayedReconnectEffect: () => Promise<void> = async (): Promise<void> => {
       try {
         await delayedReconnectEffect();
-      } catch {
-        /* игнорировать ошибки reconnect */
+      } catch (error) {
+        // Логируем ошибки reconnect для observability
+        logFireAndForget('WARN', 'WebSocket reconnect failed', {
+          operation: 'reconnect',
+          error: error instanceof Error ? error.message : String(error),
+          source: 'WebSocket',
+          url: nextState.url,
+          retryAttempt: nextState.retries,
+        });
       }
     };
 
@@ -370,8 +414,15 @@ export function closeWebSocketEffect<T>(
   code?: number,
   reason?: string,
 ): WebSocketClientState<T> {
-  // Side-effect: закрыть WebSocket соединение
-  state.ws?.close(code, reason);
+  // Side-effect: закрыть WebSocket соединение с логированием
+  const logger = createWebSocketLogger('close');
+  const closeEffect = async (): Promise<void> => {
+    state.ws?.close(code, reason);
+    await Promise.resolve();
+  };
+  const loggedCloseEffect = withLogging(closeEffect, logger, state.context);
+  // eslint-disable-next-line @typescript-eslint/no-floating-promises
+  loggedCloseEffect(); // Promise игнорируется для соблюдения контракта функции
   return setWebSocket(state, undefined);
 }
 
@@ -381,17 +432,37 @@ export function sendWebSocketMessageEffect<T>(
   event: WebSocketEvent<T>,
 ): WebSocketClientState<T> {
   if (state.ws?.readyState !== WebSocket.OPEN) {
-    throw new Error('WebSocket is not open');
+    const error: EffectError = {
+      kind: 'Network',
+      message: 'WebSocket is not open',
+      ...(state.ws?.readyState !== undefined && { status: state.ws.readyState }),
+    };
+    throw error;
   }
 
-  // Side-effect: отправить сообщение через WebSocket с error handling
-  try {
-    state.ws.send(JSON.stringify(event));
-  } catch (error) {
-    // Safety: если WebSocket закрыт между проверкой и отправкой
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    throw new Error(`Failed to send WebSocket message: ${errorMessage}`);
-  }
+  // Side-effect: отправить сообщение через WebSocket с error handling и логированием
+  const logger = createWebSocketLogger('sendMessage');
+  const sendEffect = async (): Promise<void> => {
+    try {
+      // После проверки readyState мы знаем, что ws определен
+      (state.ws as WebSocket).send(JSON.stringify(event));
+      await Promise.resolve();
+    } catch (error) {
+      // Safety: если WebSocket закрыт между проверкой и отправкой
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      const wsError: EffectError = {
+        kind: 'Network',
+        message: `Failed to send WebSocket message: ${errorMessage}`,
+        status: (state.ws as WebSocket).readyState,
+        payload: error,
+      };
+      throw wsError;
+    }
+  };
+
+  const loggedSendEffect = withLogging(sendEffect, logger, state.context);
+  // eslint-disable-next-line @typescript-eslint/no-floating-promises
+  loggedSendEffect(); // Promise игнорируется для соблюдения контракта функции
 
   return state;
 }

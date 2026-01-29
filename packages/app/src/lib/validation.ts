@@ -68,7 +68,7 @@ export function validationError(
 
   return {
     code,
-    service: options?.service,
+    service: options?.service ?? 'SYSTEM',
     field: options?.field,
     message: options?.message,
     details: options?.details,
@@ -142,6 +142,21 @@ export function pipe<A, B>(
   };
 }
 
+// pipeMany — последовательное применение нескольких валидаторов
+export function pipeMany<T>(...validators: Validator<T>[]): Validator<T> {
+  return (input, ctx) => {
+    let currentValue: unknown = input;
+
+    for (const validator of validators) {
+      const result = validator(currentValue, ctx);
+      if (!result.success) return result;
+      currentValue = result.value;
+    }
+
+    return ok(currentValue as T);
+  };
+}
+
 // asyncPipe — асинхронная версия
 export function asyncPipe<A, B>(
   v1: AsyncValidator<A>,
@@ -200,7 +215,7 @@ export function isNumber(
   field?: string,
 ): Validator<number> {
   return (input, ctx) => {
-    if (typeof input !== 'number' || Number.isNaN(input)) {
+    if (typeof input !== 'number' || !Number.isFinite(input)) {
       return fail(
         validationError(code, {
           field,

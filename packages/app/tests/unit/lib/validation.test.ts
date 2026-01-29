@@ -106,7 +106,7 @@ describe('Validation Core', () => {
 
       expect(error).toEqual({
         code: 'SYSTEM_UNKNOWN_ERROR',
-        service: undefined,
+        service: 'SYSTEM',
         field: undefined,
         message: undefined,
         details: undefined,
@@ -141,7 +141,7 @@ describe('Validation Core', () => {
       expect(error.field).toBeUndefined();
       expect(error.message).toBeUndefined();
       expect(error.details).toBeUndefined();
-      expect(error.service).toBeUndefined();
+      expect(error.service).toBe('SYSTEM'); // service fallback'ится на 'SYSTEM' даже при явном undefined
     });
   });
 

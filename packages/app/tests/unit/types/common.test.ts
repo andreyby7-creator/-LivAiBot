@@ -53,6 +53,11 @@ function createGenericID(id: string): ID {
   return id as ID;
 }
 
+// Helper функция для создания ISODateString в тестах
+function createISODateString(date: string): ISODateString {
+  return date as ISODateString;
+}
+
 // ============================================================================
 // 🔑 БАЗОВЫЕ УТИЛИТАРНЫЕ ТИПЫ
 // ============================================================================
@@ -88,9 +93,9 @@ describe('ID брендированные типы', () => {
 describe('ISODateString тип', () => {
   it('принимает корректные ISO 8601 строки', () => {
     const timestamps: ISODateString[] = [
-      '2026-01-16T12:34:56.000Z',
-      '2026-01-16T12:34:56Z',
-      '2026-01-16T12:34:56.123Z',
+      createISODateString('2026-01-16T12:34:56.000Z'),
+      createISODateString('2026-01-16T12:34:56Z'),
+      createISODateString('2026-01-16T12:34:56.123Z'),
     ];
 
     timestamps.forEach((ts) => {
@@ -100,7 +105,7 @@ describe('ISODateString тип', () => {
   });
 
   it('является алиасом string', () => {
-    const isoString: ISODateString = '2026-01-16T12:34:56.000Z';
+    const isoString: ISODateString = createISODateString('2026-01-16T12:34:56.000Z');
     const str: string = isoString;
     expect(str).toBe('2026-01-16T12:34:56.000Z');
   });
@@ -226,8 +231,8 @@ describe('BaseDTO тип', () => {
   it('создает базовый DTO с обязательными полями', () => {
     const dto: BaseDTO = {
       id: createGenericID('entity-123'),
-      createdAt: '2026-01-16T12:34:56.000Z',
-      updatedAt: '2026-01-16T13:00:00.000Z',
+      createdAt: createISODateString('2026-01-16T12:34:56.000Z'),
+      updatedAt: createISODateString('2026-01-16T13:00:00.000Z'),
     };
 
     expect(dto.id).toBe('entity-123');
@@ -238,7 +243,7 @@ describe('BaseDTO тип', () => {
   it('updatedAt может быть undefined', () => {
     const dto: BaseDTO = {
       id: createGenericID('entity-456'),
-      createdAt: '2026-01-16T12:34:56.000Z',
+      createdAt: createISODateString('2026-01-16T12:34:56.000Z'),
     };
 
     expect(dto.id).toBe('entity-456');
@@ -401,7 +406,7 @@ describe('RealtimeEvent типизированные каналы', () => {
   it('создает базовое событие', () => {
     const event: RealtimeEvent = {
       type: 'USER_JOINED',
-      timestamp: '2026-01-16T12:34:56.000Z',
+      timestamp: createISODateString('2026-01-16T12:34:56.000Z'),
       payload: { userId: 'user-123' },
     };
 
@@ -416,7 +421,7 @@ describe('RealtimeEvent типизированные каналы', () => {
 
     const chatEvent: ChatMessageEvent = {
       type: 'CHAT_MESSAGE',
-      timestamp: '2026-01-16T12:34:56.000Z',
+      timestamp: createISODateString('2026-01-16T12:34:56.000Z'),
       payload: {
         message: 'Hello!',
         from: 'user-123',
@@ -470,9 +475,9 @@ describe('AuthContext тип', () => {
       isAuthenticated: false,
     };
 
-    expect(context.accessToken).toBeUndefined();
-    expect(context.refreshToken).toBeUndefined();
     expect(context.isAuthenticated).toBe(false);
+    expect(context).not.toHaveProperty('accessToken');
+    expect(context).not.toHaveProperty('refreshToken');
   });
 });
 

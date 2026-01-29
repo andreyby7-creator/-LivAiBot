@@ -12,8 +12,8 @@
  * Этот файл — «ворота» между UI/Features и распределённой системой.
  */
 
-import { withRetry, withTimeout, withTracing } from './effect-utils.js';
-import type { EffectError } from './effect-utils.js';
+import { withLogging, withRetry, withTimeout } from './effect-utils.js';
+import type { EffectError, EffectLogger } from './effect-utils.js';
 import { infoFireAndForget, logFireAndForget } from './telemetry.js';
 import type {
   ApiClientConfig,
@@ -30,6 +30,38 @@ import type {
 const DEFAULT_TIMEOUT_MS = 15_000;
 const SERVER_ERROR_STATUS_MIN = 500;
 const RETRY_DELAY_MS = 1000;
+
+/**
+ * Создаёт логгер для API запросов.
+ * Интегрируется с системой телеметрии.
+ */
+function createApiLogger(): EffectLogger {
+  return {
+    onStart: (context): void => {
+      infoFireAndForget('API request started', {
+        source: context?.source ?? 'unknown',
+        description: context?.description ?? 'unknown',
+        ...(context?.traceId != null && { traceId: context.traceId }),
+      });
+    },
+    onSuccess: (durationMs, context): void => {
+      logFireAndForget('INFO', 'API request completed', {
+        durationMs,
+        source: context?.source ?? 'unknown',
+        description: context?.description ?? 'unknown',
+        ...(context?.traceId != null && { traceId: context.traceId }),
+      });
+    },
+    onError: (error, context): void => {
+      logFireAndForget('ERROR', 'API request failed', {
+        error: error instanceof Error ? error.message : String(error),
+        source: context?.source ?? 'unknown',
+        description: context?.description ?? 'unknown',
+        ...(context?.traceId != null && { traceId: context.traceId }),
+      });
+    },
+  };
+}
 
 export type ApiClientOptions = {
   baseUrl: string;
@@ -61,7 +93,13 @@ export function buildHeaders(
 
 export async function parseJsonSafe<T>(response: Response): Promise<T | null> {
   const text = await response.text();
-  if (!text) return null;
+  if (!text) {
+    // Для ошибочных ответов пустое тело - это потеря информации
+    if (!response.ok) {
+      throw new Error(`Empty response body for error status ${response.status}`);
+    }
+    return null;
+  }
   return JSON.parse(text) as T;
 }
 
@@ -137,6 +175,7 @@ export class ApiClient {
         method: req.method,
         headers: buildHeaders(this.defaultHeaders, req.headers),
         body: req.body !== undefined ? JSON.stringify(req.body) : null,
+        ...(req.signal && { signal: req.signal }),
       });
 
       const data = await parseJsonSafe<TResponse>(response);
@@ -156,11 +195,20 @@ export class ApiClient {
       {
         retries: this.retries,
         delayMs: RETRY_DELAY_MS,
-        shouldRetry: () => true,
+        shouldRetry: (error) => (error as EffectError).retriable ?? false,
       },
     );
 
-    const tracedEffect = withTracing('api-request', retryEffect);
+    // Добавляем tracing для observability
+    const tracedEffect = withLogging(
+      retryEffect,
+      createApiLogger(),
+      {
+        source: 'ApiClient',
+        description: `${req.method} ${req.url}`,
+        ...(req.context?.traceId != null && { traceId: req.context.traceId }),
+      },
+    );
 
     return tracedEffect();
   }
@@ -245,5 +293,6 @@ export function createApiClient(config: ApiClientConfig): ApiClient {
     defaultHeaders: config.defaultHeaders ?? {},
     timeoutMs: config.timeoutMs ?? DEFAULT_TIMEOUT_MS,
     retries: config.retries ?? 2,
+    ...(config.fetchImpl && { fetchImpl: config.fetchImpl }),
   });
 }

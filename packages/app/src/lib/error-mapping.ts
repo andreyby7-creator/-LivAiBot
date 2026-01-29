@@ -119,7 +119,7 @@ function isTaggedError(err: unknown): err is TaggedError {
 // Получает код ошибки и сервис из TaggedError
 function getErrorInfo(
   err: unknown,
-): { code?: ServiceErrorCode; service?: ServicePrefix | undefined; } {
+): Readonly<{ code?: ServiceErrorCode; service?: ServicePrefix | undefined; }> {
   if (!isTaggedError(err)) return {};
 
   return {
@@ -164,8 +164,8 @@ export function mapError<TDetails = unknown>(
   locale?: string,
   service?: ServicePrefix,
 ): MappedError<TDetails> {
-  // Используем переданный locale или из конфига
-  const effectiveLocale = locale ?? getErrorLocale();
+  // Используем переданный locale или из конфига с fallback на 'ru'
+  const effectiveLocale = locale ?? getErrorLocale() ?? 'ru';
 
   // Сначала проверяем TaggedError с кодом и автоматическим определением сервиса
   const errorInfo = getErrorInfo(err);
@@ -173,8 +173,10 @@ export function mapError<TDetails = unknown>(
   let detectedService = errorInfo.service;
 
   // Если не нашли код, проверяем EffectError с kind
-  if (code === undefined && isEffectError(err)) {
-    code = kindToErrorCode[err.kind as keyof typeof kindToErrorCode];
+  if (code === undefined && isEffectError(err) && typeof err.kind === 'string') {
+    if (err.kind in kindToErrorCode) {
+      code = kindToErrorCode[err.kind as keyof typeof kindToErrorCode];
+    }
 
     // Для EffectError можно попробовать определить сервис из kind (например, 'auth/...' -> 'AUTH')
     if (err.kind.startsWith('auth/')) {
@@ -194,7 +196,8 @@ export function mapError<TDetails = unknown>(
   errorFireAndForget('Error mapped', {
     code: mappedCode,
     originalErrorType: err instanceof Error ? err.constructor.name : typeof err,
-    ...(finalService && { service: finalService }),
+    service: finalService ?? 'UNKNOWN_SERVICE',
+    ...(details !== undefined && details !== null && { details }),
   });
 
   return {
@@ -236,7 +239,7 @@ export function chainMappers<TDetails = unknown>(
     }
     return {
       code: 'SYSTEM_UNKNOWN_ERROR',
-      message: errorMessages.SYSTEM_UNKNOWN_ERROR(locale ?? getErrorLocale()),
+      message: errorMessages.SYSTEM_UNKNOWN_ERROR(locale ?? getErrorLocale() ?? 'ru'),
       originError: err instanceof Error ? err : undefined,
       details,
       timestamp: Date.now(),

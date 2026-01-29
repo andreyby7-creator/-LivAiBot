@@ -176,7 +176,7 @@ function InputComponent<T extends HTMLInputElement['value'] = string>(
   const { translate } = useI18n();
   const flagDisabled = Boolean(isDisabledByFeatureFlag);
   const flagHidden = Boolean(isHiddenByFeatureFlag);
-  const telemetryEnabled = useFeatureFlagOverride('telemetry.enabled', true);
+  const telemetryEnabled = useFeatureFlagOverride('SYSTEM_telemetry_enabled', true);
 
   // TODO: Runtime overrides для A/B тестирования (нужен context provider)
 

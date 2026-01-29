@@ -21,6 +21,8 @@
 /* 🔑 БАЗОВЫЕ УТИЛИТАРНЫЕ ТИПЫ */
 /* ========================================================================== */
 
+declare const IDBrand: unique symbol;
+
 /**
  * Уникальный идентификатор сущности с брендингом типов.
  * Предотвращает перепутывание ID разных сущностей.
@@ -30,43 +32,49 @@
  * export type BotID = ID<"BotID">;
  * export type ConversationID = ID<"ConversationID">;
  */
-export type ID<T extends string = string> = string & { __brand: T; };
+export type ID<T extends string = string> = string & {
+  readonly [IDBrand]: T;
+};
+
+declare const ISODateBrand: unique symbol;
 
 /**
  * ISO-8601 строка даты.
  * Пример: "2026-01-16T12:34:56.000Z"
  */
-export type ISODateString = string;
+export type ISODateString = string & { readonly [ISODateBrand]: 'ISODateString'; };
 
 /**
  * Универсальный JSON-совместимый тип.
  * Применяется для метаданных, payload'ов и логирования.
  */
-export type Json =
-  | string
-  | number
-  | boolean
-  | null
-  | { [key: string]: Json; }
-  | Json[];
+export type JsonPrimitive = string | number | boolean | null;
+export type JsonValue = JsonPrimitive | JsonObject | JsonArray;
+export type JsonObject = { readonly [key: string]: JsonValue; };
+export type JsonArray = readonly JsonValue[];
 
-/**
- * Nullable helper.
- */
+export type Json = JsonValue;
+
+/** Nullable helper. */
 export type Nullable<T> = T | null;
 
-/**
- * Optional helper.
- */
+/** Optional helper. */
 export type Optional<T> = T | undefined;
 
 /**
- * Readonly helper.
+ * Maybe helper - объединяет null и undefined.
+ * Полезно для API ответов и Effect паттернов.
+ */
+export type Maybe<T> = T | null | undefined;
+
+/**
+ * Deep readonly helper.
  * Используется для иммутабельных DTO.
  */
-export type Immutable<T> = {
-  readonly [K in keyof T]: T[K];
-};
+export type Immutable<T> = T extends Function ? T
+  : T extends (infer U)[] ? readonly Immutable<U>[]
+  : T extends object ? { readonly [K in keyof T]: Immutable<T[K]>; }
+  : T;
 
 /* ========================================================================== */
 /* 🌍 ПЛАТФОРМЕННЫЕ ТИПЫ */
@@ -84,8 +92,10 @@ export type Platform = 'web' | 'pwa' | 'mobile' | 'admin';
  */
 export type AppContext = {
   platform: Platform;
-  locale: string;
-  timezone?: string;
+  locale: string; // RFC 5646: en-US, ru-RU
+  timezone?: string; // IANA: Europe/Riga
+  tenantId?: ID<'Tenant'>;
+  experimentGroup?: string;
 };
 
 /* ========================================================================== */
@@ -95,10 +105,13 @@ export type AppContext = {
 /**
  * Базовый контракт для всех API DTO.
  * Все входные/выходные модели микросервисов должны его расширять.
+ *
+ * @example
+ * type UserDTO = BaseDTO<'User'> & { name: string; email: string; };
  */
-export type BaseDTO = {
+export type BaseDTO<IDType extends string = string> = {
   /** Уникальный идентификатор объекта */
-  id: ID;
+  id: ID<IDType>;
 
   /** Дата создания в ISO формате */
   createdAt: ISODateString;
@@ -107,14 +120,26 @@ export type BaseDTO = {
   updatedAt?: ISODateString;
 };
 
-/**
- * Контракт для пагинированных ответов API.
- */
+/** Контракт для пагинированных ответов API. */
 export type PaginatedResponse<T> = {
-  items: T[];
-  total: number;
-  limit: number;
-  offset: number;
+  readonly items: readonly T[];
+  readonly total: number;
+  readonly limit: number;
+  readonly offset: number;
+};
+
+/** Успешный ответ API. */
+export type ApiSuccess<T> = {
+  readonly success: true;
+  readonly data: T;
+  readonly meta?: Json;
+};
+
+/** Ошибочный ответ API. */
+export type ApiFailure = {
+  readonly success: false;
+  readonly error: ApiError;
+  readonly meta?: Json;
 };
 
 /**
@@ -126,18 +151,13 @@ export type PaginatedResponse<T> = {
  *   { success: true, data: users, meta: { total: 100 } } |
  *   { success: false, error: apiError, meta: { traceId: "abc" } };
  */
-export type ApiResponse<T> =
-  | { success: true; data: T; meta?: Json; }
-  | { success: false; error: ApiError; meta?: Json; };
+export type ApiResponse<T> = ApiSuccess<T> | ApiFailure;
 
 /* ========================================================================== */
 /* ❌ ОШИБКИ И СОСТОЯНИЯ */
 /* ========================================================================== */
 
-/**
- * Категории ошибок.
- * Совместимо с backend-кодами микросервисов.
- */
+/** Категории ошибок. Совместимо с backend-кодами микросервисов. */
 export type ErrorCategory =
   | 'VALIDATION'
   | 'AUTH'
@@ -147,14 +167,10 @@ export type ErrorCategory =
   | 'RATE_LIMIT'
   | 'INTERNAL';
 
-/**
- * Источник ошибки для distributed tracing.
- */
+/** Источник ошибки для distributed tracing. */
 export type ErrorSource = 'CLIENT' | 'GATEWAY' | 'SERVICE';
 
-/**
- * Универсальная ошибка API с поддержкой distributed tracing.
- */
+/** Универсальная ошибка API с поддержкой distributed tracing. */
 export type ApiError = {
   /** Машинно-обрабатываемый код */
   code: string;
@@ -173,13 +189,25 @@ export type ApiError = {
 
   /** Дополнительные данные для логирования и аналитики */
   details?: Json;
+
+  /** Причина ошибки для Effect error chaining */
+  cause?: unknown;
 };
 
-/**
- * Состояние асинхронного процесса.
- * Используется в store, hooks и UI.
- */
+/** Состояние асинхронного процесса. Используется в store, hooks и UI. */
 export type AsyncStatus = 'idle' | 'loading' | 'success' | 'error';
+
+/** Состояние ожидания асинхронного процесса. */
+export type AsyncIdle = { status: 'idle'; };
+
+/** Состояние выполнения асинхронного процесса. */
+export type AsyncLoading = { status: 'loading'; };
+
+/** Успешное завершение асинхронного процесса. */
+export type AsyncSuccess<T> = { status: 'success'; data: T; };
+
+/** Ошибка в асинхронном процессе. */
+export type AsyncError = { status: 'error'; error: ApiError; };
 
 /**
  * Универсальный контейнер состояния запроса с дискриминацией.
@@ -193,10 +221,10 @@ export type AsyncStatus = 'idle' | 'loading' | 'success' | 'error';
  *   { status: "error"; error: apiError };
  */
 export type AsyncState<T> =
-  | { status: 'idle'; }
-  | { status: 'loading'; }
-  | { status: 'success'; data: T; }
-  | { status: 'error'; error: ApiError; };
+  | AsyncIdle
+  | AsyncLoading
+  | AsyncSuccess<T>
+  | AsyncError;
 
 /* ========================================================================== */
 /* 🔁 EVENT-DRIVEN И REALTIME */
@@ -209,68 +237,61 @@ export type AsyncState<T> =
  * RealtimeEvent<"CHAT_MESSAGE", Message>
  * RealtimeEvent<"USER_JOINED", { userId: UserID }>
  */
-export type RealtimeEvent<TType extends string = string, TPayload = Json> = {
+export type RealtimeEvent<
+  TType extends string = string,
+  TPayload = Json,
+> = {
   /** Типизированный тип события */
-  type: TType;
+  readonly type: TType;
 
   /** Временная метка */
-  timestamp: ISODateString;
+  readonly timestamp: ISODateString;
 
   /** Payload события */
-  payload: TPayload;
+  readonly payload: TPayload;
 };
 
-/**
- * Подписка на события.
- */
+/** Подписка на события. */
 export type Subscription = {
-  channel: string;
-  unsubscribe: () => void;
+  readonly channel: string;
+  readonly unsubscribe: VoidFn;
 };
 
 /* ========================================================================== */
 /* 🔒 SECURITY & FEATURE FLAGS */
 /* ========================================================================== */
 
-/**
- * Контекст авторизации.
- * Используется feature-auth и api-client.
- */
-export type AuthContext = {
-  accessToken?: string;
-  refreshToken?: string;
-  isAuthenticated: boolean;
-};
+/** Контекст авторизации. Используется feature-auth и api-client. */
+export type AuthContext =
+  | { isAuthenticated: false; }
+  | {
+    isAuthenticated: true;
+    accessToken: string;
+    refreshToken?: string;
+  };
 
-/**
- * Универсальный формат feature-флагов.
- */
+/** Универсальный формат feature-флагов. */
 export type FeatureFlags = Record<string, boolean>;
 
 /* ========================================================================== */
 /* 🧩 UTILITY CONTRACTS */
 /* ========================================================================== */
 
-/**
- * Функция без аргументов.
- */
+/** Функция без аргументов. */
 export type VoidFn = () => void;
 
-/**
- * Функция-обработчик с параметром.
- */
+/** Функция-обработчик с параметром. */
 export type Handler<T> = (value: T) => void;
 
-/**
- * Универсальный тип для идентифицируемых сущностей.
- */
+/** Универсальный тип для идентифицируемых сущностей. */
 export type Identifiable = {
   id: ID;
 };
 
-/**
- * Контракт для логируемых сущностей.
- */
+/** Контракт для логируемых сущностей. */
 export type Loggable = {
   toLog(): Json;
 };
+
+/** Асинхронная функция без параметров. */
+export type AsyncFn<T> = () => Promise<T>;

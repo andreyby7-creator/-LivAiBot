@@ -14,8 +14,6 @@
  * - поддержка distributed систем
  */
 
-// useMemo убран - не нужен для простой конверсии boolean
-
 import React from 'react';
 
 import type { ServicePrefix } from './error-mapping.js';
@@ -100,6 +98,38 @@ export type FeatureAttributes = KnownFeatureAttributes & Record<string, FeatureA
  */
 export type FeatureFlagLogger = (message: string, error?: unknown) => void;
 
+/**
+ * Глобальный logger для feature flags. Используется как fallback,
+ * когда не передан явный logger в стратегии.
+ *
+ * @example
+ * ```typescript
+ * // Настройка глобального logger'а
+ * setGlobalFeatureFlagLogger((message, error) => {
+ *   telemetry.error('FeatureFlag', message, { error });
+ * });
+ *
+ * // Теперь все стратегии будут использовать этот logger
+ * const strategy = percentageRollout(50);
+ * ```
+ */
+let globalFeatureFlagLogger: FeatureFlagLogger | undefined;
+
+/**
+ * Устанавливает глобальный logger для feature flags.
+ * Используется всеми стратегиями, когда не передан явный logger.
+ */
+export function setGlobalFeatureFlagLogger(logger: FeatureFlagLogger): void {
+  globalFeatureFlagLogger = logger;
+}
+
+/**
+ * Получает текущий глобальный logger для feature flags.
+ */
+export function getGlobalFeatureFlagLogger(): FeatureFlagLogger | undefined {
+  return globalFeatureFlagLogger;
+}
+
 export type FeatureContext = {
   readonly userId?: string;
   readonly tenantId?: string;
@@ -147,6 +177,18 @@ export const alwaysOff: FeatureFlagStrategy = () => false;
  * Оптимизация: стратегии должны создаваться один раз при старте сервиса,
  * а не на каждый запрос. Для миллионов пользователей рассмотрите
  * отдельный оптимизированный кэш на уровне сервиса.
+ *
+ * @example
+ * ```typescript
+ * const vipUsers = enabledForUsers(['user-123', 'user-456']);
+ * const flag: FeatureFlagDefinition = {
+ *   name: 'SYSTEM_premium_features',
+ *   description: 'Premium features for VIP users',
+ *   default: false,
+ *   service: 'SYSTEM',
+ *   strategy: vipUsers,
+ * };
+ * ```
  */
 export function enabledForUsers(userIds: readonly string[]): FeatureFlagStrategy;
 export function enabledForUsers(userIds: ReadonlySet<string>): FeatureFlagStrategy;
@@ -185,13 +227,28 @@ export function enabledForTenants(
  * Использует детерминированное хэширование для обеспечения консистентности
  * rollout'а между платформами и развертываниями.
  * Один и тот же пользователь/тенант всегда получит одинаковый результат для одного процента.
+ *
+ * @example
+ * ```typescript
+ * const gradualRollout = percentageRollout(25); // 25% пользователей
+ * const tenantRollout = percentageRollout(50, 'tenantId'); // 50% тенантов
+ * const flag: FeatureFlagDefinition = {
+ *   name: 'SYSTEM_new_ui',
+ *   description: 'New UI rollout',
+ *   default: false,
+ *   service: 'SYSTEM',
+ *   strategy: gradualRollout,
+ * };
+ * ```
  */
 export function percentageRollout(
   percentage: number,
   key: 'userId' | 'tenantId' = 'userId',
 ): FeatureFlagStrategy {
-  if (percentage <= 0) return alwaysOff;
-  if (percentage >= 100) return alwaysOn;
+  // Безопасная валидация диапазона: от 0 до 100
+  const safePercentage = Math.min(Math.max(percentage, 0), 100);
+  if (safePercentage <= 0) return alwaysOff;
+  if (safePercentage >= 100) return alwaysOn;
 
   return (ctx) => {
     const id = ctx[key];
@@ -205,7 +262,7 @@ export function percentageRollout(
     }
     // Детерминированное распределение: один ID всегда дает одинаковый результат
     // >>> 0 обеспечивает беззнаковый 32-bit перед взятием модуля
-    return ((stableHash(id) >>> 0) % 100) < percentage;
+    return ((stableHash(id) >>> 0) % 100) < safePercentage;
   };
 }
 
@@ -388,12 +445,17 @@ function safeExecuteStrategy(
   try {
     return strategy(freezeContext(ctx));
   } catch (err) {
-    // Критично: логируем ошибки стратегий даже без явного logger
+    const errorMessage = `Feature flag strategy error for userId=${ctx.userId ?? 'unknown'}`;
+
+    // Приоритет: явный logger > глобальный logger > development console
     if (logger) {
-      logger(`Feature flag strategy error for userId=${ctx.userId ?? 'unknown'}`, err);
+      logger(errorMessage, err);
+    } else if (globalFeatureFlagLogger) {
+      globalFeatureFlagLogger(errorMessage, err);
     } else if (process.env['NODE_ENV'] === 'development') {
+      // Fallback только для development без глобального logger'а
       // eslint-disable-next-line no-console
-      console.error(`Feature flag strategy error for userId=${ctx.userId ?? 'unknown'}:`, err);
+      console.error(`${errorMessage}:`, err);
     }
     return false; // безопасное fallback значение
   }
@@ -463,14 +525,20 @@ function stableHash(input: string): number {
   hash ^= hash >>> MURMURHASH_FINALIZE_SHIFT_1;
   hash = Math.imul(hash, MURMURHASH_FINALIZE_MIX_1);
   hash ^= hash >>> MURMURHASH_FINALIZE_SHIFT_2;
+  /* istanbul ignore next */
   hash = Math.imul(hash, MURMURHASH_FINALIZE_MIX_2);
+  /* istanbul ignore next */
   hash ^= hash >>> MURMURHASH_FINALIZE_SHIFT_3;
 
   return hash >>> 0; // Гарантируем беззнаковый 32-bit
 }
 
-function freezeContext(ctx: FeatureContext): FeatureContext {
-  return Object.isFrozen(ctx) ? ctx : Object.freeze({ ...ctx });
+export function freezeContext(ctx: FeatureContext): FeatureContext {
+  if (Object.isFrozen(ctx)) return ctx;
+  return Object.freeze({
+    ...ctx,
+    ...(ctx.attributes && { attributes: Object.freeze({ ...ctx.attributes }) }),
+  });
 }
 
 /* ============================================================================
@@ -486,6 +554,22 @@ export const FeatureFlagOverrideContext = React.createContext<FeatureFlagOverrid
 /**
  * Provider для runtime переопределения feature flags.
  * Используется для A/B тестирования и динамических изменений.
+ *
+ * @example
+ * ```typescript
+ * function App() {
+ *   const overrides: FeatureFlagOverrides = {
+ *     'SYSTEM_new_ui': true,
+ *     'SYSTEM_telemetry_enabled': false,
+ *   };
+ *
+ *   return (
+ *     <FeatureFlagOverrideProvider overrides={overrides}>
+ *       <MyApp />
+ *     </FeatureFlagOverrideProvider>
+ *   );
+ * }
+ * ```
  */
 export const FeatureFlagOverrideProvider: React.FC<{
   overrides: FeatureFlagOverrides;
@@ -502,8 +586,17 @@ export const FeatureFlagOverrideProvider: React.FC<{
  * Hook для получения переопределенных значений feature flags.
  * Приоритет: override > исходное значение.
  * Критично для A/B тестирования и runtime управления.
+ *
+ * @example
+ * ```typescript
+ * function MyComponent() {
+ *   const isNewFeatureEnabled = useFeatureFlagOverride('SYSTEM_new_feature', false);
+ *
+ *   return isNewFeatureEnabled ? <NewFeature /> : <OldFeature />;
+ * }
+ * ```
  */
-export function useFeatureFlagOverride(flagName: string, defaultValue = false): boolean {
+export function useFeatureFlagOverride(flagName: FeatureFlagName, defaultValue = false): boolean {
   const overrides = React.useContext(FeatureFlagOverrideContext);
   return overrides?.[flagName] ?? defaultValue;
 }
@@ -512,4 +605,4 @@ export function useFeatureFlagOverride(flagName: string, defaultValue = false): 
  * 🎭 RUNTIME FLAG OVERRIDE CONTEXT
  * ========================================================================== */
 
-export type FeatureFlagOverrides = Record<string, boolean>;
+export type FeatureFlagOverrides = Record<FeatureFlagName, boolean>;

@@ -606,7 +606,9 @@ describe('createApiClient factory', () => {
 describe('Integration with Effect Utils', () => {
   it('использует withRetry для server errors', async () => {
     const mockFetch = vi.fn()
-      .mockResolvedValueOnce(createMockResponse(500, 'Server Error'))
+      .mockResolvedValueOnce(
+        createMockResponse(500, 'Server Error', { error: 'Internal server error' }),
+      )
       .mockResolvedValueOnce(createMockResponse(200, 'OK', { success: true }));
 
     const client = new ApiClient({

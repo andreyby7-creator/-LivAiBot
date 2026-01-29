@@ -16,6 +16,53 @@
 import React from 'react';
 
 /* ============================================================================
+ * 🔧 УТИЛИТЫ КОНСОЛИ (только для bootstrap)
+ * ========================================================================== */
+
+const consoleLog = (...args: unknown[]): void => {
+  // eslint-disable-next-line no-console
+  console.log(...args);
+};
+
+const consoleWarn = (...args: unknown[]): void => {
+  // eslint-disable-next-line no-console
+  console.warn(...args);
+};
+
+const consoleError = (...args: unknown[]): void => {
+  // eslint-disable-next-line no-console
+  console.error(...args);
+};
+
+/* ============================================================================
+ * 🐛 УТИЛИТЫ ОТЛАДКИ
+ * ========================================================================== */
+
+const GLOBAL_CLIENT_KEY = '__telemetryClient';
+
+/**
+ * Устанавливает глобальный клиент для отладки (только в dev режиме).
+ */
+const setGlobalClientForDebug = (client: TelemetryClient): void => {
+  if (typeof globalThis !== 'undefined') {
+    // eslint-disable-next-line functional/immutable-data
+    (globalThis as typeof globalThis & Record<string, unknown>)[GLOBAL_CLIENT_KEY] = client;
+  }
+};
+
+/**
+ * Получает глобальный клиент для отладки.
+ */
+export const getGlobalClientForDebug = (): TelemetryClient | undefined => {
+  if (typeof globalThis !== 'undefined') {
+    return (globalThis as typeof globalThis & Record<string, unknown>)[GLOBAL_CLIENT_KEY] as
+      | TelemetryClient
+      | undefined;
+  }
+  return undefined;
+};
+
+/* ============================================================================
  * 🧱 ОСНОВНЫЕ ТИПЫ
  * ========================================================================== */
 
@@ -24,20 +71,25 @@ export const telemetryLevels = ['INFO', 'WARN', 'ERROR'] as const;
 export type TelemetryLevel = (typeof telemetryLevels)[number];
 
 // Событие телеметрии - неизменяемый объект с метаданными
-export type TelemetryEvent = Readonly<{
-  level: TelemetryLevel; // Уровень важности события
-  message: string; // Сообщение события
-  metadata?: Readonly<Record<string, string | number | boolean | null>>; // Дополнительные данные
-  timestamp: number; // Время события в миллисекундах
-}>;
+export type TelemetryEvent<TMetadata = Readonly<Record<string, string | number | boolean | null>>> =
+  Readonly<{
+    level: TelemetryLevel; // Уровень важности события
+    message: string; // Сообщение события
+    metadata?: TMetadata; // Дополнительные данные
+    timestamp: number; // Время события в миллисекундах
+  }>;
 
 // Sink - абстракция для отправки событий (console, внешние SDK и т.д.)
-export type TelemetrySink = (event: TelemetryEvent) => void | Promise<void>;
+export type TelemetrySink<TMetadata = Readonly<Record<string, string | number | boolean | null>>> =
+  (event: TelemetryEvent<TMetadata>) => void | Promise<void>;
 
 // Конфигурация телеметрии - передается при инициализации
-export type TelemetryConfig = Readonly<{
+export type TelemetryConfig<
+  TMetadata = Readonly<Record<string, string | number | boolean | null>>,
+> = Readonly<{
   levelThreshold?: TelemetryLevel; // Минимальный уровень для логирования
-  sinks?: readonly TelemetrySink[]; // Массив получателей событий
+  sinks?: readonly TelemetrySink<TMetadata>[]; // Массив получателей событий
+  onError?: (error: unknown, event: TelemetryEvent<TMetadata>) => void; // Callback для ошибок sinks
 }>;
 
 /* ============================================================================
@@ -61,37 +113,52 @@ export const levelPriority = Object.freeze(
  * Enterprise-ready клиент телеметрии.
  * Принимает sinks в конструкторе, никаких мутаций после создания.
  */
-export class TelemetryClient {
-  private readonly sinks: readonly TelemetrySink[];
+export class TelemetryClient<
+  TMetadata = Readonly<Record<string, string | number | boolean | null>>,
+> {
+  private readonly sinks: readonly TelemetrySink<TMetadata>[];
   private readonly levelThreshold: TelemetryLevel;
+  private readonly onError:
+    | ((error: unknown, event: TelemetryEvent<TMetadata>) => void)
+    | undefined;
 
-  constructor(config: TelemetryConfig = {}) {
+  constructor(config: TelemetryConfig<TMetadata> = {}) {
     this.levelThreshold = config.levelThreshold ?? 'INFO';
     this.sinks = config.sinks ?? [];
+    this.onError = config.onError;
   }
 
   // Основной метод логирования события
   async log(
     level: TelemetryLevel,
     message: string,
-    metadata?: Readonly<Record<string, string | number | boolean | null>>,
+    metadata?: TMetadata,
   ): Promise<void> {
     if (!this.shouldEmit(level)) return;
 
-    const event: TelemetryEvent = {
+    const event: TelemetryEvent<TMetadata> = {
       level,
       message,
       timestamp: Date.now(),
-      ...(metadata && { metadata }),
+      ...(metadata !== undefined && { metadata }),
     };
 
-    await Promise.allSettled(this.sinks.map((sink) => Promise.resolve(sink(event))));
+    const results = await Promise.allSettled(
+      this.sinks.map((sink) => Promise.resolve(sink(event))),
+    );
+
+    // Обработка ошибок sinks
+    results.forEach((result) => {
+      if (result.status === 'rejected' && this.onError) {
+        this.onError(result.reason, event);
+      }
+    });
   }
 
   // Сокращение для INFO уровня
   info(
     message: string,
-    metadata?: Readonly<Record<string, string | number | boolean | null>>,
+    metadata?: TMetadata,
   ): Promise<void> {
     return this.log('INFO', message, metadata);
   }
@@ -99,7 +166,7 @@ export class TelemetryClient {
   // Сокращение для WARN уровня
   warn(
     message: string,
-    metadata?: Readonly<Record<string, string | number | boolean | null>>,
+    metadata?: TMetadata,
   ): Promise<void> {
     return this.log('WARN', message, metadata);
   }
@@ -107,7 +174,7 @@ export class TelemetryClient {
   // Сокращение для ERROR уровня
   error(
     message: string,
-    metadata?: Readonly<Record<string, string | number | boolean | null>>,
+    metadata?: TMetadata,
   ): Promise<void> {
     return this.log('ERROR', message, metadata);
   }
@@ -123,7 +190,7 @@ export class TelemetryClient {
  * ========================================================================== */
 
 /**
- * NOTE:
+ * ПРИМЕЧАНИЕ:
  * console используется исключительно внутри createConsoleSink как
  * boundary side-effect для инфраструктуры.
  * Это единственная допустимая точка прямого I/O в данном модуле.
@@ -138,14 +205,11 @@ export const createConsoleSink = (): TelemetrySink => {
     const prefix = `[${event.level}] ${new Date(event.timestamp).toISOString()}`;
 
     if (event.level === 'ERROR') {
-      // eslint-disable-next-line no-console -- оправданный side-effect в bootstrap
-      console.error(prefix, event.message, event.metadata);
+      consoleError(prefix, event.message, event.metadata);
     } else if (event.level === 'WARN') {
-      // eslint-disable-next-line no-console -- оправданный side-effect в bootstrap
-      console.warn(prefix, event.message, event.metadata);
+      consoleWarn(prefix, event.message, event.metadata);
     } else {
-      // eslint-disable-next-line no-console -- оправданный side-effect в bootstrap
-      console.log(prefix, event.message, event.metadata);
+      consoleLog(prefix, event.message, event.metadata);
     }
   };
 };
@@ -194,40 +258,56 @@ export function isTelemetryInitialized(): boolean {
 }
 
 // Fire-and-forget версия log метода.
-export function logFireAndForget(
+export function logFireAndForget<
+  TMetadata = Readonly<Record<string, string | number | boolean | null>>,
+>(
   level: TelemetryLevel,
   message: string,
-  metadata?: Readonly<Record<string, string | number | boolean | null>>,
+  metadata?: TMetadata,
 ): void {
   if (!isTelemetryInitialized()) return;
-  fireAndForget(() => getGlobalTelemetryClient().log(level, message, metadata));
+  fireAndForget(() =>
+    (getGlobalTelemetryClient() as TelemetryClient<TMetadata>).log(level, message, metadata)
+  );
 }
 
 // Fire-and-forget версия info метода.
-export function infoFireAndForget(
+export function infoFireAndForget<
+  TMetadata = Readonly<Record<string, string | number | boolean | null>>,
+>(
   message: string,
-  metadata?: Readonly<Record<string, string | number | boolean | null>>,
+  metadata?: TMetadata,
 ): void {
   if (!isTelemetryInitialized()) return;
-  fireAndForget(() => getGlobalTelemetryClient().info(message, metadata));
+  fireAndForget(() =>
+    (getGlobalTelemetryClient() as TelemetryClient<TMetadata>).info(message, metadata)
+  );
 }
 
 // Fire-and-forget версия warn метода.
-export function warnFireAndForget(
+export function warnFireAndForget<
+  TMetadata = Readonly<Record<string, string | number | boolean | null>>,
+>(
   message: string,
-  metadata?: Readonly<Record<string, string | number | boolean | null>>,
+  metadata?: TMetadata,
 ): void {
   if (!isTelemetryInitialized()) return;
-  fireAndForget(() => getGlobalTelemetryClient().warn(message, metadata));
+  fireAndForget(() =>
+    (getGlobalTelemetryClient() as TelemetryClient<TMetadata>).warn(message, metadata)
+  );
 }
 
 // Fire-and-forget версия error метода.
-export function errorFireAndForget(
+export function errorFireAndForget<
+  TMetadata = Readonly<Record<string, string | number | boolean | null>>,
+>(
   message: string,
-  metadata?: Readonly<Record<string, string | number | boolean | null>>,
+  metadata?: TMetadata,
 ): void {
   if (!isTelemetryInitialized()) return;
-  fireAndForget(() => getGlobalTelemetryClient().error(message, metadata));
+  fireAndForget(() =>
+    (getGlobalTelemetryClient() as TelemetryClient<TMetadata>).error(message, metadata)
+  );
 }
 
 /**
@@ -301,6 +381,10 @@ export function initTelemetry(config: TelemetryConfig = {}): TelemetryClient {
   };
 
   globalClient = new TelemetryClient(telemetryConfig);
+
+  // Global access для отладки и тестирования
+  setGlobalClientForDebug(globalClient);
+
   return globalClient;
 }
 
@@ -381,22 +465,22 @@ const TelemetryBatchProviderComponent: React.FC<{
   } = config;
 
   // Хранилище batch - иммутабельные обновления
-  const [batch, setBatch] = React.useState<TelemetryBatchItem[]>([]);
-  const [timeoutId, setTimeoutId] = React.useState<number | null>(null);
+  const [, setBatch] = React.useState<readonly TelemetryBatchItem[]>([]);
+  const timeoutIdRef = React.useRef<number | null>(null);
 
   // Сброс batch в телеметрию
   const flushBatch = React.useCallback((): void => {
-    if (batch.length === 0 || !enabled) return;
+    setBatch((currentBatch) => {
+      if (currentBatch.length === 0 || !enabled) return currentBatch;
 
-    const batchToSend = [...batch];
+      // Отправка всех событий в batch
+      currentBatch.forEach((item) => {
+        logFireAndForget(item.level, item.message, item.metadata);
+      });
 
-    setBatch([]); // Очистка batch иммутабельно
-
-    // Отправка всех событий в batch
-    batchToSend.forEach((item) => {
-      logFireAndForget(item.level, item.message, item.metadata);
+      return []; // Очистка batch
     });
-  }, [batch, enabled]);
+  }, [enabled]);
 
   // Добавление события в batch
   const addToBatch = React.useCallback((
@@ -405,46 +489,54 @@ const TelemetryBatchProviderComponent: React.FC<{
     metadata?: Readonly<Record<string, string | number | boolean | null>>,
   ) => {
     if (!enabled) {
-      // Fallback на немедленную отправку
+      // Резервный вариант - немедленная отправка
       logFireAndForget(level, message, metadata);
       return;
     }
 
-    const item: TelemetryBatchItem = {
+    const item: TelemetryBatchItem = Object.freeze({
       level,
       message,
       timestamp: Date.now(),
       ...(metadata && { metadata }),
-    };
+    });
 
-    const newBatch = [...batch, item];
-    setBatch(newBatch);
+    setBatch((prevBatch) => {
+      const newBatch = [...prevBatch, item];
 
-    // Проверка, полон ли batch
-    if (newBatch.length >= batchSize) {
-      flushBatch();
-      return;
-    }
+      // Проверка, полон ли batch
+      if (newBatch.length >= batchSize) {
+        // Немедленный flush для избежания переполнения
+        flushBatch();
+        return [];
+      }
+
+      return newBatch;
+    });
 
     // Запуск таймера сброса если еще не запущен
-    if (timeoutId === null) {
+    if (timeoutIdRef.current === null) {
       const newTimeoutId = window.setTimeout(() => {
         flushBatch();
-        setTimeoutId(null);
+        // eslint-disable-next-line functional/immutable-data
+        timeoutIdRef.current = null;
       }, flushInterval);
-      setTimeoutId(newTimeoutId);
+      // eslint-disable-next-line functional/immutable-data
+      timeoutIdRef.current = newTimeoutId;
     }
-  }, [batchSize, flushInterval, flushBatch, enabled, batch, timeoutId]);
+  }, [batchSize, flushInterval, flushBatch, enabled]);
 
   // Очистка при размонтировании
   React.useEffect(() => {
     return (): void => {
-      if (timeoutId !== null) {
-        window.clearTimeout(timeoutId);
+      if (timeoutIdRef.current !== null) {
+        window.clearTimeout(timeoutIdRef.current);
+        // eslint-disable-next-line functional/immutable-data
+        timeoutIdRef.current = null;
         flushBatch();
       }
     };
-  }, [timeoutId, flushBatch]);
+  }, [flushBatch]);
 
   const contextValue: TelemetryBatchContextType = React.useMemo(
     () => ({ addToBatch }),
@@ -503,15 +595,18 @@ export const createBatchAwareSink = (
     if (batch.length === 0) return;
 
     const batchToSend = [...batch];
-    batch = [];
+    // eslint-disable-next-line functional/immutable-data
+    batch.length = 0; // Очистка массива
 
     // Отправка batch как единый запрос если SDK поддерживает
     try {
       if (sdk.captureBatch && typeof sdk.captureBatch === 'function') {
-        await sdk.captureBatch(batchToSend);
+        await sdk.captureBatch(batchToSend.map((event) => Object.freeze(event)));
       } else {
         // Fallback на индивидуальную отправку
-        await Promise.all(batchToSend.map((event) => Promise.resolve(sdk.capture(event))));
+        await Promise.all(
+          batchToSend.map((event) => Promise.resolve(sdk.capture(Object.freeze(event)))),
+        );
       }
     } catch (error) {
       // В dev режиме логируем ошибки batch flush для отладки
@@ -523,6 +618,36 @@ export const createBatchAwareSink = (
     }
   };
 
+  // Сброс batch при выгрузке страницы для предотвращения потери данных
+  if (typeof globalThis !== 'undefined' && typeof globalThis.addEventListener === 'function') {
+    const handleBeforeUnload = (): void => {
+      if (batch.length > 0) {
+        // Синхронный сброс для beforeunload (нет времени на асинхронные операции)
+        if (sdk.captureBatch && typeof sdk.captureBatch === 'function') {
+          try {
+            // eslint-disable-next-line @typescript-eslint/no-floating-promises
+            sdk.captureBatch(batch.map((event) => Object.freeze(event)));
+          } catch {
+            // Игнорируем ошибки во время выгрузки
+          }
+        } else {
+          batch.forEach((event) => {
+            try {
+              // eslint-disable-next-line @typescript-eslint/no-floating-promises
+              sdk.capture(Object.freeze(event));
+            } catch {
+              // Игнорируем ошибки во время выгрузки
+            }
+          });
+        }
+        // eslint-disable-next-line functional/immutable-data
+        batch.length = 0;
+      }
+    };
+
+    globalThis.addEventListener('beforeunload', handleBeforeUnload);
+  }
+
   return (event: TelemetryEvent): void | Promise<void> => {
     batch = [...batch, event];
 
@@ -533,7 +658,7 @@ export const createBatchAwareSink = (
       }
       return flushBatch();
     } else {
-      // Start flush timer if not already started
+      // Запуск таймера сброса если еще не запущен
       timeoutId ??= globalThis.setTimeout(() => {
         flushBatch().catch((error) => {
           // В dev режиме логируем ошибки batch flush для отладки

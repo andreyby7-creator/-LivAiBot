@@ -18,7 +18,9 @@
  * Это streaming runtime, не просто SSE клиент.
  */
 
-import type { EffectAbortController, EffectContext } from './effect-utils.js';
+import { withLogging } from './effect-utils.js';
+import type { EffectAbortController, EffectContext, EffectLogger } from './effect-utils.js';
+import { infoFireAndForget, logFireAndForget } from './telemetry.js';
 
 /* ============================================================================
  * 🧠 ПРОТОКОЛ И БАЗОВЫЕ ТИПЫ
@@ -192,18 +194,18 @@ function updateMap<K, V>(
   key: K,
   value: V,
 ): ReadonlyMap<K, V> {
-  return new Map(map).set(key, value);
+  return Object.freeze(new Map(map).set(key, value));
 }
 
 function updateSet<T>(
   set: ReadonlySet<T>,
   item: T,
 ): ReadonlySet<T> {
-  return new Set(set).add(item);
+  return Object.freeze(new Set(set).add(item));
 }
 
 const deleteFromSet = <T>(s: ReadonlySet<T>, v: T): ReadonlySet<T> =>
-  new Set([...s].filter((x) => x !== v));
+  Object.freeze(new Set([...s].filter((x) => x !== v)));
 
 export function calculateReconnectDelay(
   strategy: Readonly<ReconnectStrategy>,
@@ -240,6 +242,7 @@ export type SSEInternalEvent =
   | { readonly type: 'SET_CLEANUP'; readonly cleanup: (() => void) | undefined; }
   | { readonly type: 'SET_HEARTBEAT_CLEANUP'; readonly cleanup: (() => void) | undefined; }
   | { readonly type: 'START_HEARTBEAT'; }
+  | { readonly type: 'INCREMENT_RETRIES'; }
   | { readonly type: 'ERROR'; readonly error: unknown; }
   | { readonly type: 'MESSAGE'; readonly frame: SSEFrame; }
   | { readonly type: 'HEARTBEAT'; }
@@ -273,6 +276,12 @@ function handleError(
 ): (error: unknown) => void {
   return (error: unknown) => {
     telemetry?.onError?.(error);
+    // Логируем ошибки SSE соединения
+    logFireAndForget('WARN', 'SSE connection error', {
+      operation: 'connection',
+      error: error instanceof Error ? error.message : String(error),
+      source: 'SSE',
+    });
     dispatch({ type: 'ERROR', error });
   };
 }
@@ -285,21 +294,71 @@ function parseSSEFrame(event: MessageEvent): SSEFrame {
       ? (event as MessageEvent & { lastEventId?: string; }).lastEventId
       : undefined;
 
-  return {
+  // Парсим retry из данных события, если оно приходит в формате "retry: <milliseconds>"
+  let retry: number | undefined;
+  const data = String(event.data);
+  const retryMatch = data.match(/^retry:\s*(\d+)$/m);
+  const retryValue = retryMatch?.[1];
+  if (retryValue !== undefined && retryValue !== '') {
+    const retryMs = parseInt(retryValue, 10);
+    if (!isNaN(retryMs) && retryMs > 0) {
+      retry = retryMs;
+    }
+  }
+
+  return Object.freeze({
     id: lastEventId ?? undefined,
     event: event.type !== 'message' ? event.type : undefined,
-    data: String(event.data),
-    retry: undefined, // EventSource не предоставляет retry hints
+    data: data,
+    retry,
+  });
+}
+
+/** Создает логгер для SSE эффектов. */
+export function createSSELogger(operation: string): EffectLogger {
+  return {
+    onStart: (context?: EffectContext): void => {
+      infoFireAndForget(`SSE ${operation} started`, {
+        operation,
+        source: context?.source ?? 'SSE',
+        ...(context?.traceId != null && { traceId: context.traceId }),
+      });
+    },
+    onSuccess: (durationMs: number, context?: EffectContext): void => {
+      logFireAndForget('INFO', `SSE ${operation} completed`, {
+        operation,
+        durationMs,
+        source: context?.source ?? 'SSE',
+        ...(context?.traceId != null && { traceId: context.traceId }),
+      });
+    },
+    onError: (error: unknown, context?: EffectContext): void => {
+      logFireAndForget('WARN', `SSE ${operation} failed`, {
+        operation,
+        error: error instanceof Error ? error.message : String(error),
+        source: context?.source ?? 'SSE',
+        ...(context?.traceId != null && { traceId: context.traceId }),
+      });
+    },
   };
 }
 
+/** Создает SSE подключение с автоматическим управлением жизненным циклом. */
+export function connectSSE<T>(
+  getState: () => Readonly<SSEClientState<T>>,
+  dispatch: SSEDispatch,
+): SSEEffect {
+  return createSSEEffect(getState, dispatch);
+}
+
 export function createSSEEffect<T>(
-  state: Readonly<SSEClientState<T>>,
+  getState: () => Readonly<SSEClientState<T>>,
   dispatch: SSEDispatch,
 ): SSEEffect {
   return () => {
+    const currentState = getState();
     const es = new EventSource(
-      buildSSEUrl(state.url, state.lastEventId),
+      buildSSEUrl(currentState.url, currentState.lastEventId),
       { withCredentials: true },
     );
 
@@ -307,7 +366,15 @@ export function createSSEEffect<T>(
     const effectDispatch = (event: SSEInternalEvent): void => {
       // Handle FSM side effects
       if (event.type === 'DISCONNECTED') {
-        state.telemetry?.onDisconnect?.();
+        currentState.telemetry?.onDisconnect?.();
+        // Логируем отключение
+        logFireAndForget('INFO', 'SSE connection disconnected', {
+          operation: 'disconnect',
+          source: 'SSE',
+          url: currentState.url,
+        });
+        // Увеличиваем счетчик попыток для reconnect
+        dispatch({ type: 'INCREMENT_RETRIES' });
         // heartbeatCleanup теперь вызывается в reducer через state.heartbeatCleanup?.()
       }
 
@@ -317,33 +384,33 @@ export function createSSEEffect<T>(
 
     // Объединяем open handler с heartbeat запуском
     const openHandler = (): void => {
-      state.telemetry?.onConnect?.();
+      currentState.telemetry?.onConnect?.();
       effectDispatch({ type: 'OPEN' });
 
       // Запускаем heartbeat через FSM при открытии соединения
-      const heartbeatEffect = createHeartbeatEffect(state, effectDispatch);
+      const heartbeatEffect = createHeartbeatEffect(getState, effectDispatch);
       heartbeatEffect((cleanup: () => void) => {
         effectDispatch({ type: 'SET_HEARTBEAT_CLEANUP', cleanup });
       });
     };
 
     es.addEventListener('open', openHandler);
-    es.addEventListener('message', handleMessage(effectDispatch, state.telemetry));
-    es.addEventListener('error', handleError(effectDispatch, state.telemetry));
+    es.addEventListener('message', handleMessage(effectDispatch, currentState.telemetry));
+    es.addEventListener('error', handleError(effectDispatch, currentState.telemetry));
 
     // AbortController listener с proper cleanup
     let abortListener: (() => void) | undefined;
 
-    if (state.abortController) {
+    if (currentState.abortController) {
       const onAbort = (): void => {
         effectDispatch({ type: 'DISCONNECTED' });
       };
 
-      state.abortController.signal.addEventListener('abort', onAbort);
+      currentState.abortController.signal.addEventListener('abort', onAbort);
 
       // Cleanup функция для снятия listener
       abortListener = (): void => {
-        state.abortController?.signal.removeEventListener('abort', onAbort);
+        currentState.abortController?.signal.removeEventListener('abort', onAbort);
       };
     }
 
@@ -364,7 +431,10 @@ export function createSSEEffect<T>(
  * 🎯 FSM EFFECTS
  * ========================================================================== */
 
-export type SSEEmittedEvent<TMessage = unknown> = SSEProtocolEvent<TMessage>;
+/** Side effect события, которые должны быть выполнены effect-слоем. */
+export type SSESidEffectEvent = { readonly type: 'CLEANUP'; readonly cleanup: () => void; };
+
+export type SSEEmittedEvent<TMessage = unknown> = SSEProtocolEvent<TMessage> | SSESidEffectEvent;
 
 /* ============================================================================
  * ⚡ REDUCER (PURE FSM - NO SIDE EFFECTS)
@@ -417,6 +487,15 @@ export function reduceSSEState<T>(
         emittedEvents: [],
       };
 
+    case 'INCREMENT_RETRIES':
+      return {
+        newState: {
+          ...state,
+          retries: state.retries + 1,
+        },
+        emittedEvents: [],
+      };
+
     case 'OPEN':
       return {
         newState: {
@@ -457,9 +536,14 @@ export function reduceSSEState<T>(
       };
 
     case 'DISCONNECTED':
-      // Cleanup всех ресурсов под управлением FSM
-      state.cleanup?.();
-      state.heartbeatCleanup?.();
+      // Emit cleanup events для выполнения effect-слоем
+      const cleanupEvents: readonly SSESidEffectEvent[] = [
+        ...(state.cleanup ? [{ type: 'CLEANUP' as const, cleanup: state.cleanup }] : []),
+        ...(state.heartbeatCleanup
+          ? [{ type: 'CLEANUP' as const, cleanup: state.heartbeatCleanup }]
+          : []),
+      ];
+
       return {
         newState: {
           ...state,
@@ -468,7 +552,7 @@ export function reduceSSEState<T>(
           cleanup: undefined,
           heartbeatCleanup: undefined,
         },
-        emittedEvents: [],
+        emittedEvents: cleanupEvents,
       };
 
     case 'HEARTBEAT':
@@ -515,21 +599,41 @@ export function createSSERuntime<T>(
 
     // Выполняем emitted events - встроенная логика emit
     result.emittedEvents.forEach((emittedEvent) => {
+      // Обработка side effect событий
+      if (emittedEvent.type === 'CLEANUP') {
+        (emittedEvent as SSESidEffectEvent).cleanup();
+        return;
+      }
+
+      // Обработка protocol событий для listeners
       const listeners = currentState.listeners.get(emittedEvent.type);
       listeners?.forEach((fn: (event: SSEProtocolEvent<T>) => void) => {
-        fn(emittedEvent);
+        fn(emittedEvent as SSEProtocolEvent<T>);
       });
     });
   };
 
   const startEffect = (effect: SSEEffect): EventSource => {
     const { resource, cleanup } = effect();
+    const logger = createSSELogger('connect');
 
-    // FSM получает владение ресурсами через события
-    dispatch({ type: 'CONNECTED', eventSource: resource });
-    dispatch({ type: 'SET_CLEANUP', cleanup });
+    const loggedConnectEffect = withLogging(
+      async (): Promise<{ resource: EventSource; cleanup: () => void; }> => {
+        // FSM получает владение ресурсами через события
+        dispatch({ type: 'CONNECTED', eventSource: resource });
+        dispatch({ type: 'SET_CLEANUP', cleanup });
 
-    return resource;
+        await Promise.resolve();
+        return { resource, cleanup };
+      },
+      logger,
+      currentState.context,
+    );
+
+    // Для соблюдения контракта функции игнорируем Promise
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
+    loggedConnectEffect();
+    return resource; // Возвращаем ресурс напрямую для обратной совместимости
   };
 
   const stopEffect = (): void => {
@@ -562,21 +666,22 @@ export function createSSERuntime<T>(
 export type HeartbeatEffect = (onCleanup: (cleanup: () => void) => void) => void;
 
 export function createHeartbeatEffect<T>(
-  state: Readonly<SSEClientState<T>>,
+  getState: () => Readonly<SSEClientState<T>>,
   dispatch: SSEDispatch,
 ): HeartbeatEffect {
   return (onCleanup) => {
     const intervalId = setInterval(() => {
-      const timeSinceLastHeartbeat = Date.now() - state.lastHeartbeatAt;
-      if (timeSinceLastHeartbeat > state.heartbeatTimeoutMs) {
+      const currentState = getState();
+      const timeSinceLastHeartbeat = Date.now() - currentState.lastHeartbeatAt;
+      if (timeSinceLastHeartbeat > currentState.heartbeatTimeoutMs) {
         dispatch({
           type: 'ERROR',
           error: new Error(
-            `Heartbeat timeout: ${timeSinceLastHeartbeat}ms > ${state.heartbeatTimeoutMs}ms`,
+            `Heartbeat timeout: ${timeSinceLastHeartbeat}ms > ${currentState.heartbeatTimeoutMs}ms`,
           ),
         });
       }
-    }, Math.max(1000, state.heartbeatTimeoutMs / SSE_DEFAULTS.HEARTBEAT_CHECK_DIVISOR)); // Проверяем часто, но не чаще 1 секунды
+    }, Math.max(1000, getState().heartbeatTimeoutMs / SSE_DEFAULTS.HEARTBEAT_CHECK_DIVISOR)); // Проверяем часто, но не чаще 1 секунды
 
     // Cleanup функция для остановки heartbeat при закрытии
     onCleanup(() => {
@@ -589,10 +694,11 @@ export function createHeartbeatEffect<T>(
  * 🔁 RECONNECT EFFECT
  * ========================================================================== */
 
-export function createReconnectEffect(
-  state: Readonly<SSEClientState<unknown>>,
+export function createReconnectEffect<T>(
+  getState: () => Readonly<SSEClientState<T>>,
   connect: () => void,
-): (() => Promise<void>) | null {
+): ((signal?: AbortSignal) => Promise<void>) | null {
+  const state = getState();
   if (!state.autoReconnect || state.retries >= state.maxRetries) {
     return null;
   }
@@ -603,9 +709,26 @@ export function createReconnectEffect(
 
   state.telemetry?.onReconnect?.(nextAttempt, delay);
 
-  return async () => {
-    await new Promise((resolve) => setTimeout(resolve, delay));
-    connect();
+  return async (signal?: AbortSignal) => {
+    await new Promise<void>((resolve, reject) => {
+      const timer = setTimeout(resolve, delay);
+
+      const cleanup = (): void => {
+        clearTimeout(timer);
+        reject(new Error('Reconnect aborted'));
+      };
+
+      if (signal?.aborted === true) {
+        cleanup();
+        return;
+      }
+
+      signal?.addEventListener('abort', cleanup, { once: true });
+    });
+
+    if (signal?.aborted !== true) {
+      connect();
+    }
   };
 }
 
@@ -618,7 +741,8 @@ export function onSSEMessage<T>(
   channel: string,
   listener: (event: SSEProtocolEvent<T>) => void,
 ): SSEClientState<T> {
-  const existing = state.listeners.get(channel) ?? new Set();
+  const existing = state.listeners.get(channel)
+    ?? Object.freeze(new Set<(event: SSEProtocolEvent<T>) => void>());
   const updated = updateSet(existing, listener);
 
   return {
@@ -638,7 +762,11 @@ export function offSSEMessage<T>(
   const updated = deleteFromSet(existing, listener);
 
   const map = updated.size === 0
-    ? new Map([...state.listeners].filter(([key]) => key !== channel))
+    ? Object.freeze(
+      new Map<string, ReadonlySet<(event: SSEProtocolEvent<T>) => void>>(
+        [...state.listeners].filter(([key]) => key !== channel),
+      ),
+    )
     : updateMap(state.listeners, channel, updated);
 
   return {

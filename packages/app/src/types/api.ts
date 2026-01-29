@@ -16,7 +16,7 @@
  * - Zero-runtime-cost, только типы
  */
 
-import type { ID, ISODateString, Json } from './common.js';
+import type { ID, ISODateString, Json, Platform } from './common.js';
 
 /* ========================================================================== */
 /* 🧱 БАЗОВЫЕ HTTP КОНТРАКТЫ */
@@ -52,19 +52,19 @@ export type ApiServiceName =
  */
 export type ApiRequestContext = {
   /** Уникальный trace-id запроса (для distributed tracing) */
-  traceId?: string;
+  readonly traceId?: string;
 
   /** Текущий пользователь/сессия */
-  authToken?: string;
+  readonly authToken?: string;
 
   /** Текущая локаль */
-  locale?: string;
+  readonly locale?: string;
 
   /** Платформа клиента (web, pwa, mobile, admin) */
-  platform?: string;
+  readonly platform?: Platform;
 
   /** 🔁 Ключ идемпотентности для критичных write-операций */
-  idempotencyKey?: string;
+  readonly idempotencyKey?: string;
 };
 
 /* ========================================================================== */
@@ -101,40 +101,40 @@ export type ApiErrorSource =
  */
 export type ApiError = {
   /** Машинно-обрабатываемый код ошибки */
-  code: string;
+  readonly code: string;
 
   /** Категория ошибки */
-  category: ApiErrorCategory;
+  readonly category: ApiErrorCategory;
 
   /** Человекочитаемое сообщение */
-  message: string;
+  readonly message: string;
 
   /** Где произошла ошибка */
-  source?: ApiErrorSource;
+  readonly source?: ApiErrorSource;
 
   /** Trace-id для корреляции логов */
-  traceId?: string;
+  readonly traceId?: string;
 
   /** Дополнительные данные для логирования и отладки */
-  details?: Json;
+  readonly details?: Json;
 };
 
 /**
  * Успешный ответ API.
  */
 export type ApiSuccessResponse<T> = {
-  success: true;
-  data: T;
-  meta?: Json;
+  readonly success: true;
+  readonly data: T;
+  readonly meta?: Json;
 };
 
 /**
  * Ошибочный ответ API.
  */
 export type ApiFailureResponse = {
-  success: false;
-  error: ApiError;
-  meta?: Json;
+  readonly success: false;
+  readonly error: ApiError;
+  readonly meta?: Json;
 };
 
 /**
@@ -153,18 +153,18 @@ export type ApiResponse<T> =
  * Параметры пагинации для API запросов.
  */
 export type PaginationParams = {
-  limit: number;
-  offset: number;
+  readonly limit: number;
+  readonly offset: number;
 };
 
 /**
  * Контракт пагинированного ответа.
  */
 export type PaginatedResult<T> = {
-  items: T[];
-  total: number;
-  limit: number;
-  offset: number;
+  readonly items: readonly T[];
+  readonly total: number;
+  readonly limit: number;
+  readonly offset: number;
 };
 
 /* ========================================================================== */
@@ -183,13 +183,13 @@ export type RealtimeEvent<
   TPayload = Json,
 > = {
   /** Тип события */
-  type: TType;
+  readonly type: TType;
 
   /** Временная метка */
-  timestamp: ISODateString;
+  readonly timestamp: ISODateString;
 
   /** Payload события */
-  payload: TPayload;
+  readonly payload: TPayload;
 };
 
 /**
@@ -219,6 +219,7 @@ export type ApiRequest<TBody = unknown, TQuery = unknown> = {
   headers?: Record<string, string>;
   context?: ApiRequestContext;
   retryPolicy?: ApiRetryPolicy;
+  signal?: AbortSignal;
 };
 
 /**
@@ -227,10 +228,10 @@ export type ApiRequest<TBody = unknown, TQuery = unknown> = {
  */
 export type ApiRetryPolicy = {
   /** Количество попыток */
-  retries: number;
+  readonly retries: number;
 
   /** Задержка между попытками в мс */
-  backoffMs: number;
+  readonly backoffMs: number;
 };
 
 /**
@@ -250,16 +251,16 @@ export type ApiHandler<TReq, TRes> = (
  * Все доменные DTO должны расширять этот контракт.
  */
 export type BaseApiDTO = {
-  id: ID;
-  createdAt: ISODateString;
-  updatedAt?: ISODateString;
+  readonly id: ID;
+  readonly createdAt: ISODateString;
+  readonly updatedAt?: ISODateString;
 };
 
 /**
  * Контракт soft-delete сущностей.
  */
 export type SoftDeletable = {
-  deletedAt?: ISODateString;
+  readonly deletedAt?: ISODateString;
 };
 
 /**
@@ -267,7 +268,7 @@ export type SoftDeletable = {
  * Используется для optimistic locking.
  */
 export type VersionedEntity = {
-  version: number;
+  readonly version: number;
 };
 
 /* ========================================================================== */
@@ -278,18 +279,18 @@ export type VersionedEntity = {
  * Контекст авторизации API.
  */
 export type ApiAuthContext = {
-  accessToken?: string;
-  refreshToken?: string;
-  isAuthenticated: boolean;
+  readonly accessToken?: string;
+  readonly refreshToken?: string;
+  readonly isAuthenticated: boolean;
 };
 
 /**
  * Заголовки, используемые во всех сервисах.
  */
 export type ApiHeaders = {
-  'x-trace-id'?: string;
-  'x-request-id'?: string;
-  Authorization?: string;
+  readonly 'x-trace-id'?: string;
+  readonly 'x-request-id'?: string;
+  readonly Authorization?: string;
 };
 
 /* ========================================================================== */
@@ -301,13 +302,13 @@ export type ApiHeaders = {
  */
 export type ApiMetrics = {
   /** Время выполнения запроса в мс */
-  durationMs: number;
+  readonly durationMs: number;
 
   /** HTTP статус */
-  statusCode: number;
+  readonly statusCode: number;
 
   /** Имя сервиса-источника */
-  service: string;
+  readonly service: string;
 };
 
 /* ========================================================================== */
@@ -320,17 +321,17 @@ export type ApiMetrics = {
  */
 export type ApiClientConfig = {
   /** Базовый URL API */
-  baseUrl: string;
+  readonly baseUrl: string;
 
   /** Заголовки по умолчанию */
-  defaultHeaders?: ApiHeaders;
+  readonly defaultHeaders?: ApiHeaders;
 
   /** Таймаут запросов в мс */
-  timeoutMs?: number;
+  readonly timeoutMs?: number;
 
   /** Количество повторных попыток */
-  retries?: number;
+  readonly retries?: number;
 
   /** Кастомная реализация fetch */
-  fetchImpl?: typeof fetch;
+  readonly fetchImpl?: typeof fetch;
 };

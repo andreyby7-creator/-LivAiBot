@@ -23,11 +23,19 @@
  * - Один контракт → одна ответственность
  */
 
+import { Effect as EffectLib } from 'effect';
+
 import type { ApiError, ApiRequestContext, ApiResponse } from '../types/api.js';
 
 /* ========================================================================== */
 /* 🧠 БАЗОВЫЕ ТИПЫ ЭФФЕКТОВ */
 /* ========================================================================== */
+
+/**
+ * Effect функция без параметров.
+ * Когда дойдём до effect-utils — пригодится.
+ */
+export type EffectFn<T> = () => EffectLib.Effect<T>;
 
 /**
  * Универсальный эффект.
@@ -41,10 +49,13 @@ export type Effect<T> = (signal?: AbortSignal) => Promise<T>;
  */
 export type EffectContext = ApiRequestContext & {
   /** Имя сервиса или feature, откуда был вызван эффект */
-  source?: string;
+  readonly source?: string;
 
   /** Человекочитаемое описание эффекта */
-  description?: string;
+  readonly description?: string;
+
+  /** Trace ID для distributed tracing */
+  readonly traceId?: string;
 };
 
 /* ========================================================================== */
@@ -71,15 +82,23 @@ export function withTimeout<T>(
   effect: Effect<T>,
   timeoutMs: number,
 ): Effect<T> {
-  return () => {
-    return Promise.race([
-      effect(),
-      new Promise<T>((_, reject) => {
-        setTimeout((): void => {
-          reject(new TimeoutError());
-        }, timeoutMs);
-      }),
-    ]);
+  return async () => {
+    let timeoutId: ReturnType<typeof setTimeout> | undefined;
+
+    try {
+      return await Promise.race([
+        effect(),
+        new Promise<T>((_, reject) => {
+          timeoutId = setTimeout((): void => {
+            reject(new TimeoutError());
+          }, timeoutMs);
+        }),
+      ]);
+    } finally {
+      if (timeoutId !== undefined) {
+        clearTimeout(timeoutId);
+      }
+    }
   };
 }
 
@@ -92,23 +111,26 @@ export function withTimeout<T>(
  */
 export type RetryPolicy = {
   /** Количество повторов */
-  retries: number;
+  readonly retries: number;
 
   /** Базовая задержка между повторами (мс) */
-  delayMs: number;
+  readonly delayMs: number;
+
+  /** Максимальная задержка между повторами (мс) для safety */
+  readonly maxDelayMs?: number;
 
   /** Экспоненциальный backoff */
-  factor?: number;
+  readonly factor?: number;
 
   /** Фильтр ошибок, при которых retry допустим */
-  shouldRetry: (error: unknown) => boolean;
+  readonly shouldRetry: (error: unknown) => boolean;
 };
 
 /**
  * Оборачивает эффект в retry-механику.
  *
  * @example
- * const effect = withRetry(fetchUser, { retries: 3, delayMs: 1000 });
+ * const effect = withRetry(fetchUser, { retries: 3, delayMs: 1000, maxDelayMs: 30000 });
  * const user = await effect(); // Максимум 4 попытки (1 + 3 retry)
  */
 export function withRetry<T>(
@@ -118,11 +140,12 @@ export function withRetry<T>(
   const {
     retries,
     delayMs,
+    maxDelayMs,
     factor = 2,
     shouldRetry,
   } = policy;
 
-  return async () => {
+  return async (): Promise<T> => {
     let currentDelay = delayMs;
 
     for (let attempt = 0; attempt <= retries; attempt++) {
@@ -139,7 +162,7 @@ export function withRetry<T>(
         }
 
         await new Promise<void>((r) => setTimeout(r, currentDelay));
-        currentDelay *= factor;
+        currentDelay = Math.min(currentDelay * factor, maxDelayMs ?? currentDelay * factor);
       }
     }
 
@@ -184,12 +207,19 @@ export function createEffectAbortController(): EffectAbortController {
  */
 export async function safeExecute<T>(
   effect: Effect<T>,
-): Promise<{ ok: true; data: T; } | { ok: false; error: unknown; }> {
+): EffectResult<T> {
   try {
     const data = await effect();
     return { ok: true, data };
   } catch (error) {
-    return { ok: false, error };
+    // Преобразуем неизвестную ошибку в EffectError
+    const effectError: EffectError = {
+      kind: 'Unknown',
+      message: error instanceof Error ? error.message : String(error),
+      payload: error,
+      retriable: false,
+    };
+    return { ok: false, error: effectError };
   }
 }
 
@@ -227,20 +257,27 @@ export function asApiEffect<T>(
 
 /**
  * Последовательно композирует эффекты.
+ * Поддерживает цепочку из любого количества эффектов.
  *
  * @example
  * const effect = pipeEffects(
  *   () => fetchToken(),
  *   (token) => fetchUser(token),
+ *   (user) => fetchPosts(user.id),
  * )
  */
-export function pipeEffects<A, B>(
-  first: Effect<A>,
-  second: (a: A) => Effect<B>,
-): Effect<B> {
-  return async () => {
-    const a = await first();
-    return second(a)();
+export function pipeEffects<T>(
+  first: Effect<T>,
+  ...effects: ((value: unknown) => Effect<unknown>)[]
+): Effect<unknown> {
+  return async (): Promise<unknown> => {
+    let result: unknown = await first();
+
+    for (const effect of effects) {
+      result = await effect(result)();
+    }
+
+    return result;
   };
 }
 
@@ -267,12 +304,14 @@ export function withLogging<T>(
   context?: EffectContext,
 ): Effect<T> {
   return async () => {
-    const start = performance.now();
+    const start = typeof performance !== 'undefined' ? performance.now() : Date.now();
     logger.onStart?.(context);
 
     try {
       const result = await effect();
-      logger.onSuccess?.(performance.now() - start, context);
+      const duration = (typeof performance !== 'undefined' ? performance.now() : Date.now())
+        - start;
+      logger.onSuccess?.(duration, context);
       return result;
     } catch (error) {
       logger.onError?.(error, context);
@@ -286,10 +325,21 @@ export function withLogging<T>(
 /* ========================================================================== */
 
 /**
- * Платформо-независимый sleep.
+ * Платформо-независимый sleep с поддержкой cancellation.
  */
-export function sleep(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
+export function sleep(ms: number, signal?: AbortSignal): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const timeoutId = setTimeout(resolve, ms);
+
+    if (signal) {
+      const abortHandler = (): void => {
+        clearTimeout(timeoutId);
+        reject(new Error('Sleep cancelled'));
+      };
+
+      signal.addEventListener('abort', abortHandler, { once: true });
+    }
+  });
 }
 
 /* ========================================================================== */
@@ -298,45 +348,22 @@ export function sleep(ms: number): Promise<void> {
 
 /**
  * Результат выполнения эффекта.
- * Может быть успешным или содержать ошибку.
+ * Унифицированный формат для success/error handling.
  */
-export type EffectResult<T> = Promise<T>;
+export type EffectResult<T> = Promise<{ ok: true; data: T; } | { ok: false; error: EffectError; }>;
+
+/**
+ * Типы ошибок эффектов для discriminated union.
+ */
+export type EffectErrorKind = 'Timeout' | 'Network' | 'Server' | 'ApiError' | 'Unknown';
 
 /**
  * Ошибка эффекта с метаданными.
  */
 export type EffectError<T = unknown> = {
-  kind: string;
-  status?: number;
-  message: string;
-  payload?: T;
-  retriable?: boolean;
+  readonly kind: EffectErrorKind;
+  readonly status?: number;
+  readonly message: string;
+  readonly payload?: T;
+  readonly retriable?: boolean;
 };
-
-/* ========================================================================== */
-/* 🔍 TRACING & OBSERVABILITY */
-/* ========================================================================== */
-
-/**
- * Оборачивает эффект в tracing для observability.
- * Добавляет метаданные для мониторинга и отладки.
- */
-export function withTracing<T>(
-  _operation: string,
-  effect: Effect<T>,
-): Effect<T> {
-  return async () => {
-    try {
-      const result = await effect();
-
-      // В реальном приложении здесь будет отправка метрик
-      // console.log(`[TRACE] ${_operation} completed`);
-
-      return result;
-    } catch (error) {
-      // console.error(`[TRACE] ${_operation} failed:`, error);
-
-      throw error;
-    }
-  };
-}
