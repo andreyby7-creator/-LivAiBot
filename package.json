@@ -160,7 +160,7 @@
     "rollup-plugin-visualizer": "^6.0.5",
     "tsup": "^8.5.1",
     "tsx": "^4.21.0",
-    "turbo": "^2.7.6",
+    "turbo": "^2.8.0",
     "type-coverage": "^2.29.7",
     "type-fest": "^5.4.2",
     "typescript": "^5.9.3",

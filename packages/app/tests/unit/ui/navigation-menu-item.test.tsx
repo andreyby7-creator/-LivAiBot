@@ -1,0 +1,635 @@
+/**
+ * @vitest-environment jsdom
+ * @file Тесты для App NavigationMenuItem компонента с полным покрытием
+ */
+
+import React from 'react';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+import '@testing-library/jest-dom/vitest';
+
+// Mock для Core NavigationMenuItem - возвращаем простой div с переданными пропсами
+vi.mock('../../../../ui-core/src/components/NavigationMenuItem.js', () => ({
+  NavigationMenuItem: React.forwardRef<
+    HTMLDivElement,
+    React.ComponentProps<'div'> & {
+      item?: any;
+      size?: string;
+      variant?: string;
+      showIcon?: boolean;
+      showLabel?: boolean;
+      customIcon?: any;
+      onClick?: any;
+      'data-component'?: string;
+    }
+  >((
+    {
+      item,
+      size,
+      variant,
+      showIcon,
+      showLabel,
+      customIcon,
+      onClick,
+      'data-component': dataComponent,
+      ...props
+    },
+    ref,
+  ) => {
+    return (
+      <div
+        ref={ref}
+        data-testid='core-navigation-menu-item'
+        data-size={size}
+        data-variant={variant}
+        data-show-icon={String(showIcon)}
+        data-show-label={String(showLabel)}
+        data-active={item?.isActive === true ? 'true' : undefined}
+        data-disabled={item?.isDisabled === true ? 'true' : undefined}
+        data-component={dataComponent}
+        onClick={onClick}
+        onKeyDown={onClick != null
+          ? (e) => {
+            if (e.key === 'Enter' || e.key === ' ') e.preventDefault();
+            onClick(e as any);
+          }
+          : undefined}
+        tabIndex={onClick != null ? 0 : undefined}
+        role={onClick != null ? 'button' : undefined}
+        {...props}
+      />
+    );
+  }),
+}));
+
+// Mock для feature flags с возможностью настройки
+let mockFeatureFlagReturnValue = false;
+vi.mock('../../../src/lib/feature-flags', () => ({
+  useFeatureFlag: () => mockFeatureFlagReturnValue,
+}));
+
+// Mock для telemetry
+vi.mock('../../../src/lib/telemetry', () => ({
+  infoFireAndForget: vi.fn(),
+}));
+
+import { NavigationMenuItem } from '../../../src/ui/navigation-menu-item';
+import type { NavigationMenuItemData } from '../../../../ui-core/src/components/NavigationMenuItem.js';
+import { infoFireAndForget } from '../../../src/lib/telemetry';
+
+const mockInfoFireAndForget = vi.mocked(infoFireAndForget);
+
+describe('App NavigationMenuItem', () => {
+  // Общие тестовые переменные
+  const baseItem = {
+    label: 'Главная',
+    href: '/home',
+    icon: '🏠',
+    isActive: false,
+    isDisabled: false,
+  };
+
+  const activeItem = {
+    ...baseItem,
+    isActive: true,
+  };
+
+  const disabledItem = {
+    ...baseItem,
+    isDisabled: true,
+  };
+
+  const itemWithoutHref = {
+    label: 'Профиль',
+    icon: '👤',
+  };
+
+  const customStyle = { borderRadius: '8px', padding: '12px' };
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockFeatureFlagReturnValue = false; // Сбрасываем в дефолтное состояние
+  });
+
+  afterEach(() => {
+    cleanup();
+  });
+
+  describe('Базовый рендеринг', () => {
+    it('должен рендерить компонент с обязательными пропсами', () => {
+      render(<NavigationMenuItem item={baseItem} />);
+
+      const component = screen.getByTestId('core-navigation-menu-item');
+      expect(component).toBeInTheDocument();
+      expect(component).toHaveAttribute('data-component', 'AppNavigationMenuItem');
+    });
+
+    it('не должен рендерить компонент когда visible=false', () => {
+      render(<NavigationMenuItem item={baseItem} visible={false} />);
+
+      expect(screen.queryByTestId('core-navigation-menu-item')).not.toBeInTheDocument();
+    });
+
+    it('должен рендерить компонент с полным набором пропсов', () => {
+      render(<NavigationMenuItem item={baseItem} size='large' variant='compact' />);
+
+      expect(screen.getByTestId('core-navigation-menu-item')).toBeInTheDocument();
+    });
+  });
+
+  describe('Feature flags (Policy)', () => {
+    it('должен рендерить компонент когда feature flag отключен', () => {
+      mockFeatureFlagReturnValue = false;
+
+      render(<NavigationMenuItem item={baseItem} />);
+
+      expect(screen.getByTestId('core-navigation-menu-item')).toBeInTheDocument();
+    });
+
+    it('не должен рендерить компонент когда isHiddenByFeatureFlag=true', () => {
+      render(<NavigationMenuItem item={baseItem} isHiddenByFeatureFlag={true} />);
+
+      expect(screen.queryByTestId('core-navigation-menu-item')).not.toBeInTheDocument();
+    });
+
+    it('должен применять disabled стиль когда isDisabledByFeatureFlag=true', () => {
+      render(<NavigationMenuItem item={baseItem} isDisabledByFeatureFlag={true} />);
+
+      const component = screen.getByTestId('core-navigation-menu-item');
+      expect(component).toHaveAttribute('data-state', 'disabled');
+      expect(component).toHaveStyle({
+        opacity: '0.6',
+        pointerEvents: 'none',
+      });
+    });
+
+    it('должен применять active состояние по умолчанию', () => {
+      render(<NavigationMenuItem item={baseItem} />);
+
+      const component = screen.getByTestId('core-navigation-menu-item');
+      expect(component).toHaveAttribute('data-state', 'active');
+    });
+
+    it('должен устанавливать правильные data attributes для feature flags', () => {
+      render(
+        <NavigationMenuItem
+          item={baseItem}
+          isHiddenByFeatureFlag={false}
+          isDisabledByFeatureFlag={false}
+        />,
+      );
+
+      const component = screen.getByTestId('core-navigation-menu-item');
+      expect(component).toHaveAttribute('data-feature-flag', 'visible');
+      expect(component).toHaveAttribute('data-state', 'active');
+    });
+
+    it('должен комбинировать item.isDisabled с policy.disabledByFeatureFlag', () => {
+      render(<NavigationMenuItem item={baseItem} isDisabledByFeatureFlag={true} />);
+
+      const component = screen.getByTestId('core-navigation-menu-item');
+      expect(component).toHaveAttribute('data-disabled', 'true'); // Core получает combined disabled state
+    });
+  });
+
+  describe('Telemetry', () => {
+    it('должен отправлять mount и unmount события при рендере', () => {
+      const { unmount } = render(
+        <NavigationMenuItem item={baseItem} size='medium' variant='default' />,
+      );
+
+      expect(mockInfoFireAndForget).toHaveBeenCalledWith('NavigationMenuItem mount', {
+        component: 'NavigationMenuItem',
+        action: 'mount',
+        hidden: false,
+        visible: true,
+        disabled: false,
+        size: 'medium',
+        variant: 'default',
+        hasIcon: true,
+        hasLabel: true,
+        isActive: false,
+        isLink: true,
+      });
+
+      unmount();
+
+      expect(mockInfoFireAndForget).toHaveBeenCalledWith('NavigationMenuItem unmount', {
+        component: 'NavigationMenuItem',
+        action: 'unmount',
+        hidden: false,
+        visible: true,
+        disabled: false,
+        size: 'medium',
+        variant: 'default',
+        hasIcon: true,
+        hasLabel: true,
+        isActive: false,
+        isLink: true,
+      });
+    });
+
+    it('не должен отправлять telemetry когда telemetryEnabled=false', () => {
+      render(<NavigationMenuItem item={baseItem} telemetryEnabled={false} />);
+
+      expect(mockInfoFireAndForget).not.toHaveBeenCalled();
+    });
+
+    it('должен использовать true по умолчанию для telemetry', () => {
+      render(<NavigationMenuItem item={baseItem} />);
+
+      expect(mockInfoFireAndForget).toHaveBeenCalledWith(
+        'NavigationMenuItem mount',
+        expect.any(Object),
+      );
+    });
+
+    it('должен отправлять click telemetry при клике', () => {
+      const mockOnClick = vi.fn();
+      render(<NavigationMenuItem item={baseItem} onClick={mockOnClick} />);
+
+      const component = screen.getByTestId('core-navigation-menu-item');
+      fireEvent.click(component);
+
+      expect(mockInfoFireAndForget).toHaveBeenCalledWith('NavigationMenuItem click', {
+        component: 'NavigationMenuItem',
+        action: 'click',
+        hidden: false,
+        visible: true,
+        disabled: false,
+        hasIcon: true,
+        hasLabel: true,
+        isActive: false,
+        isLink: true,
+      });
+
+      expect(mockOnClick).toHaveBeenCalledWith(baseItem, expect.any(Object));
+    });
+
+    it('не должен отправлять click telemetry когда telemetry отключен', () => {
+      const mockOnClick = vi.fn();
+      render(<NavigationMenuItem item={baseItem} onClick={mockOnClick} telemetryEnabled={false} />);
+
+      const component = screen.getByTestId('core-navigation-menu-item');
+      fireEvent.click(component);
+
+      expect(mockInfoFireAndForget).not.toHaveBeenCalled(); // telemetry полностью отключен
+      expect(mockOnClick).toHaveBeenCalled();
+    });
+
+    it('должен правильно вычислять telemetry props для разных элементов', () => {
+      // Элемент без иконки
+      render(<NavigationMenuItem item={itemWithoutHref} showIcon={false} />);
+
+      expect(mockInfoFireAndForget).toHaveBeenCalledWith('NavigationMenuItem mount', {
+        component: 'NavigationMenuItem',
+        action: 'mount',
+        hidden: false,
+        visible: true,
+        disabled: false,
+        hasIcon: false, // showIcon=false
+        hasLabel: true,
+        isActive: false,
+        isLink: false, // нет href
+      });
+    });
+
+    it('должен учитывать isDisabledFromItem для isLink в telemetry', () => {
+      render(<NavigationMenuItem item={disabledItem} />);
+
+      expect(mockInfoFireAndForget).toHaveBeenCalledWith('NavigationMenuItem mount', {
+        component: 'NavigationMenuItem',
+        action: 'mount',
+        hidden: false,
+        visible: true,
+        disabled: false,
+        hasIcon: true,
+        hasLabel: true,
+        isActive: false,
+        isLink: false, // isDisabledFromItem=true, поэтому false
+      });
+    });
+
+    it('должен учитывать policy.disabledByFeatureFlag для isLink в telemetry', () => {
+      render(<NavigationMenuItem item={baseItem} isDisabledByFeatureFlag={true} />);
+
+      expect(mockInfoFireAndForget).toHaveBeenCalledWith('NavigationMenuItem mount', {
+        component: 'NavigationMenuItem',
+        action: 'mount',
+        hidden: false,
+        visible: true,
+        disabled: true,
+        hasIcon: true,
+        hasLabel: true,
+        isActive: false,
+        isLink: false, // disabledByFeatureFlag=true, поэтому false
+      });
+    });
+  });
+
+  describe('Click handler', () => {
+    it('должен вызывать onClick при клике', () => {
+      const mockOnClick = vi.fn();
+      render(<NavigationMenuItem item={baseItem} onClick={mockOnClick} />);
+
+      const component = screen.getByTestId('core-navigation-menu-item');
+      fireEvent.click(component);
+
+      expect(mockOnClick).toHaveBeenCalledWith(baseItem, expect.any(Object));
+    });
+
+    it('должен передавать правильные параметры в onClick', () => {
+      const mockOnClick = vi.fn();
+      render(<NavigationMenuItem item={activeItem} onClick={mockOnClick} />);
+
+      const component = screen.getByTestId('core-navigation-menu-item');
+      fireEvent.click(component);
+
+      expect(mockOnClick).toHaveBeenCalledWith(activeItem, expect.any(Object));
+    });
+
+    it('не должен вызывать onClick когда он не передан', () => {
+      render(<NavigationMenuItem item={baseItem} />);
+
+      const component = screen.getByTestId('core-navigation-menu-item');
+      fireEvent.click(component);
+
+      // onClick не передан, поэтому не должно быть ошибки
+      expect(component).toBeInTheDocument();
+    });
+
+    it('должен передавать onClick в Core компонент только когда он передан', () => {
+      const mockOnClick = vi.fn();
+      render(<NavigationMenuItem item={baseItem} onClick={mockOnClick} />);
+
+      const component = screen.getByTestId('core-navigation-menu-item');
+      // Проверяем, что элемент имеет onClick handler (наличие role="button" указывает на это)
+      expect(component).toHaveAttribute('role', 'button');
+    });
+
+    it('не должен передавать onClick в Core компонент когда он не передан', () => {
+      render(<NavigationMenuItem item={baseItem} />);
+
+      const component = screen.getByTestId('core-navigation-menu-item');
+      // onClick не должен быть установлен когда он не передан
+      expect(component.onclick).toBeNull();
+    });
+  });
+
+  describe('Props processing и data attributes', () => {
+    it('должен передавать size в Core компонент', () => {
+      render(<NavigationMenuItem item={baseItem} size='large' />);
+
+      const component = screen.getByTestId('core-navigation-menu-item');
+      expect(component).toHaveAttribute('data-size', 'large');
+    });
+
+    it('должен передавать variant в Core компонент', () => {
+      render(<NavigationMenuItem item={baseItem} variant='compact' />);
+
+      const component = screen.getByTestId('core-navigation-menu-item');
+      expect(component).toHaveAttribute('data-variant', 'compact');
+    });
+
+    it('должен передавать showIcon/showLabel в Core компонент', () => {
+      render(
+        <NavigationMenuItem
+          item={baseItem}
+          showIcon={true}
+          showLabel={false}
+        />,
+      );
+
+      const component = screen.getByTestId('core-navigation-menu-item');
+      expect(component).toHaveAttribute('data-show-icon', 'true');
+      expect(component).toHaveAttribute('data-show-label', 'false');
+    });
+
+    it('должен передавать customIcon в Core компонент', () => {
+      const customIcon = <span>★</span>;
+      render(<NavigationMenuItem item={baseItem} customIcon={customIcon} />);
+
+      const component = screen.getByTestId('core-navigation-menu-item');
+      expect(component).toBeInTheDocument();
+    });
+
+    it('должен применять className к Core компоненту', () => {
+      render(<NavigationMenuItem item={baseItem} className='custom-class' />);
+
+      const component = screen.getByTestId('core-navigation-menu-item');
+      expect(component).toHaveClass('custom-class');
+    });
+
+    it('должен применять style к Core компоненту', () => {
+      render(<NavigationMenuItem item={baseItem} style={customStyle} />);
+
+      const component = screen.getByTestId('core-navigation-menu-item');
+      expect(component).toHaveStyle(customStyle);
+    });
+
+    it('должен применять data-testid', () => {
+      render(<NavigationMenuItem item={baseItem} data-testid='custom-test-id' />);
+
+      expect(screen.getByTestId('custom-test-id')).toBeInTheDocument();
+    });
+
+    it('должен прокидывать дополнительные HTML атрибуты', () => {
+      render(
+        <NavigationMenuItem
+          item={baseItem}
+          id='menu-item-1'
+          title='Главная страница'
+          data-custom='value'
+        />,
+      );
+
+      const component = screen.getByTestId('core-navigation-menu-item');
+      expect(component).toHaveAttribute('id', 'menu-item-1');
+      expect(component).toHaveAttribute('title', 'Главная страница');
+      expect(component).toHaveAttribute('data-custom', 'value');
+    });
+
+    it('должен устанавливать правильные data attributes по умолчанию', () => {
+      render(<NavigationMenuItem item={baseItem} />);
+
+      const component = screen.getByTestId('core-navigation-menu-item');
+      expect(component).toHaveAttribute('data-component', 'AppNavigationMenuItem');
+      expect(component).toHaveAttribute('data-feature-flag', 'visible');
+      expect(component).toHaveAttribute('data-state', 'active');
+      expect(component).toHaveAttribute('data-telemetry', 'enabled');
+    });
+
+    it('должен устанавливать data-telemetry="disabled" когда telemetry отключен', () => {
+      render(<NavigationMenuItem item={baseItem} telemetryEnabled={false} />);
+
+      const component = screen.getByTestId('core-navigation-menu-item');
+      expect(component).toHaveAttribute('data-telemetry', 'disabled');
+    });
+  });
+
+  describe('Ref forwarding', () => {
+    it('должен поддерживать ref forwarding для anchor элемента', () => {
+      const ref = React.createRef<any>();
+
+      render(<NavigationMenuItem ref={ref} item={baseItem} />);
+
+      expect(ref.current).toBeInstanceOf(HTMLDivElement); // Mock возвращает div
+      expect(ref.current).toHaveAttribute('data-component', 'AppNavigationMenuItem');
+    });
+
+    it('должен поддерживать ref forwarding для button элемента', () => {
+      const ref = React.createRef<any>();
+
+      render(<NavigationMenuItem ref={ref} item={itemWithoutHref} />);
+
+      expect(ref.current).toBeInstanceOf(HTMLDivElement); // Mock возвращает div
+      expect(ref.current).toHaveAttribute('data-component', 'AppNavigationMenuItem');
+    });
+  });
+
+  describe('Render stability', () => {
+    it('не должен пересчитывать telemetry props при одинаковых пропсах', () => {
+      const { rerender } = render(
+        <NavigationMenuItem item={baseItem} size='medium' variant='default' />,
+      );
+
+      const component1 = screen.getByTestId('core-navigation-menu-item');
+
+      rerender(<NavigationMenuItem item={baseItem} size='medium' variant='default' />);
+
+      const component2 = screen.getByTestId('core-navigation-menu-item');
+
+      expect(component1).toBe(component2);
+    });
+
+    it('должен обновлять стили при изменении policy', () => {
+      const { rerender } = render(<NavigationMenuItem item={baseItem} />);
+
+      let component = screen.getByTestId('core-navigation-menu-item');
+      expect(component).toHaveAttribute('data-state', 'active');
+
+      rerender(<NavigationMenuItem item={baseItem} isDisabledByFeatureFlag={true} />);
+
+      component = screen.getByTestId('core-navigation-menu-item');
+      expect(component).toHaveAttribute('data-state', 'disabled');
+    });
+  });
+
+  describe('Edge cases', () => {
+    it('работает с undefined style', () => {
+      render(<NavigationMenuItem item={baseItem} style={undefined} />);
+
+      expect(screen.getByTestId('core-navigation-menu-item')).toBeInTheDocument();
+    });
+
+    it('работает с пустым объектом style', () => {
+      render(<NavigationMenuItem item={baseItem} style={{}} />);
+
+      expect(screen.getByTestId('core-navigation-menu-item')).toBeInTheDocument();
+    });
+
+    it('работает с пустой строкой label', () => {
+      const itemWithEmptyLabel = { label: '', href: '/test' };
+      render(<NavigationMenuItem item={itemWithEmptyLabel} />);
+
+      expect(screen.getByTestId('core-navigation-menu-item')).toBeInTheDocument();
+    });
+
+    it('работает с null значениями в item', () => {
+      const itemWithNulls = {
+        label: 'Test',
+        href: null as any,
+        icon: null as any,
+        isActive: null as any,
+        isDisabled: null as any,
+      };
+
+      render(<NavigationMenuItem item={itemWithNulls} />);
+
+      expect(screen.getByTestId('core-navigation-menu-item')).toBeInTheDocument();
+    });
+
+    it('работает с отсутствующими свойствами в item', () => {
+      const itemWithUndefined = {
+        label: 'Test',
+      } as NavigationMenuItemData;
+
+      render(<NavigationMenuItem item={itemWithUndefined} />);
+
+      expect(screen.getByTestId('core-navigation-menu-item')).toBeInTheDocument();
+    });
+
+    it('правильно комбинирует custom style с disabled style', () => {
+      const customStyle = { backgroundColor: 'red' };
+
+      render(
+        <NavigationMenuItem
+          item={baseItem}
+          style={customStyle}
+          isDisabledByFeatureFlag={true}
+        />,
+      );
+
+      const component = screen.getByTestId('core-navigation-menu-item');
+      const computedStyle = window.getComputedStyle(component);
+      expect(computedStyle.backgroundColor).toBe('rgb(255, 0, 0)'); // red преобразуется в rgb
+      expect(computedStyle.opacity).toBe('0.6');
+      expect(computedStyle.pointerEvents).toBe('none');
+    });
+
+    it('правильно обрабатывает policy комбинации', () => {
+      // Скрытый компонент не должен рендериться даже если disabled
+      render(
+        <NavigationMenuItem
+          item={baseItem}
+          isHiddenByFeatureFlag={true}
+          isDisabledByFeatureFlag={true}
+        />,
+      );
+
+      expect(screen.queryByTestId('core-navigation-menu-item')).not.toBeInTheDocument();
+    });
+
+    it('работает со всеми пропсами одновременно', () => {
+      const customIcon = <span>★</span>;
+      const mockOnClick = vi.fn();
+
+      render(
+        <NavigationMenuItem
+          item={activeItem}
+          size='large'
+          variant='compact'
+          showIcon={true}
+          showLabel={true}
+          customIcon={customIcon}
+          className='custom-class'
+          style={customStyle}
+          data-testid='menu-item'
+          id='test-id'
+          onClick={mockOnClick}
+        />,
+      );
+
+      const component = screen.getByTestId('menu-item');
+      expect(component).toHaveAttribute('data-size', 'large');
+      expect(component).toHaveAttribute('data-variant', 'compact');
+      expect(component).toHaveAttribute('data-active', 'true');
+      expect(component).toHaveClass('custom-class');
+      expect(component).toHaveAttribute('id', 'test-id');
+    });
+
+    it('правильно обрабатывает несколько кликов', () => {
+      const mockOnClick = vi.fn();
+      render(<NavigationMenuItem item={baseItem} onClick={mockOnClick} />);
+
+      const component = screen.getByTestId('core-navigation-menu-item');
+
+      fireEvent.click(component);
+      fireEvent.click(component);
+      fireEvent.click(component);
+
+      expect(mockOnClick).toHaveBeenCalledTimes(3);
+      expect(mockInfoFireAndForget).toHaveBeenCalledTimes(4); // mount + 3 click (unmount не вызывается в этом тесте)
+    });
+  });
+});

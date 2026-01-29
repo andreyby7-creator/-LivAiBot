@@ -197,10 +197,10 @@ UI Core components и types
 5️⃣4️⃣ packages/ui-core/src/components/SearchBar.tsx 🟢 — ts+react — SearchBar UI
 5️⃣5️⃣ packages/ui-core/src/components/ConfirmDialog.tsx 🟢 — ts+react — ConfirmDialog UI
 5️⃣6️⃣ packages/ui-core/src/components/ErrorBoundary.tsx 🟢 — ts+react — ErrorBoundary UI
-5️⃣7️⃣ packages/ui-core/src/components/UserProfileDisplay.tsx 🔴 — ts+react — User profile display with avatar, name, email
-5️⃣8️⃣ packages/ui-core/src/components/NavigationMenuItem.tsx 🔴 — ts+react — Navigation menu item with icon (НЕТ)
-5️⃣9️⃣ packages/ui-core/src/components/LanguageSelector.tsx 🔴 — ts+react — Language selector component (НЕТ)
-6️⃣0️⃣ packages/ui-core/src/components/SupportButton.tsx 🔴 — ts+react — Support button with status indicator (НЕТ)
+5️⃣7️⃣ packages/ui-core/src/components/UserProfileDisplay.tsx 🟢 — ts+react — UserProfileDisplay UI
+5️⃣8️⃣ packages/ui-core/src/components/NavigationMenuItem.tsx 🟢 — ts+react — NavigationMenuItem UI
+5️⃣9️⃣ packages/ui-core/src/components/LanguageSelector.tsx 🔴 — ts+react — LanguageSelector UI
+6️⃣0️⃣ packages/ui-core/src/components/SupportButton.tsx 🔴 — ts+react — SupportButton UI
 
 ✅ App types и libs
 6️⃣1️⃣ packages/app/src/types/common.ts 🟢 — ts — Общие типы для всего приложения
@@ -256,10 +256,10 @@ App UI wrappers
 1️⃣0️⃣9️⃣ packages/app/src/ui/search-bar.tsx 🟢 — ts+react — UI wrapper SearchBar — ui-core/SearchBar.tsx
 1️⃣1️⃣0️⃣ packages/app/src/ui/confirm-dialog.tsx 🟢 — ts+react — UI wrapper ConfirmDialog — ui-core/ConfirmDialog.tsx
 1️⃣1️⃣1️⃣ packages/app/src/ui/error-boundary.tsx 🟢 — ts+react — UI wrapper Error Boundary — ui-core/ErrorBoundary.tsx
-1️⃣1️⃣2️⃣ packages/app/src/ui/user-profile-display.tsx 🔴 — ts+react — UI wrapper UserProfileDisplay — ui-core/UserProfileDisplay.tsx
-1️⃣1️⃣3️⃣ packages/app/src/ui/navigation-menu-item.tsx 🔴 — ts+react — UI wrapper NavigationMenuItem — ui-core/NavigationMenuItem.tsx (НЕТ)
-1️⃣1️⃣4️⃣ packages/app/src/ui/language-selector.tsx 🔴 — ts+react — UI wrapper LanguageSelector — ui-core/LanguageSelector.tsx (НЕТ)
-1️⃣1️⃣5️⃣ packages/app/src/ui/support-button.tsx 🔴 — ts+react — UI wrapper SupportButton — ui-core/SupportButton.tsx (НЕТ)
+1️⃣1️⃣2️⃣ packages/app/src/ui/user-profile-display.tsx 🟢 — ts+react — UI wrapper UserProfileDisplay — ui-core/UserProfileDisplay.tsx
+1️⃣1️⃣3️⃣ packages/app/src/ui/navigation-menu-item.tsx 🟢 — ts+react — UI wrapper NavigationMenuItem — ui-core/NavigationMenuItem.tsx
+1️⃣1️⃣4️⃣ packages/app/src/ui/language-selector.tsx 🔴 — ts+react — UI wrapper LanguageSelector — ui-core/LanguageSelector.tsx
+1️⃣1️⃣5️⃣ packages/app/src/ui/support-button.tsx 🔴 — ts+react — UI wrapper SupportButton — ui-core/SupportButton.tsx
 
 App state и hooks
 1️⃣1️⃣6️⃣ packages/app/src/providers/TelemetryProvider.tsx 🔴 — ts+react — Telemetry Provider для batch телеметрии — lib/telemetry.ts (НЕТ)
