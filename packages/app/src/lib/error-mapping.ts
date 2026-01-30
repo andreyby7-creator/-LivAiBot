@@ -77,6 +77,22 @@ export const errorMessages = {
     locale === 'en' ? 'AI model not found' : 'Модель AI не найдена',
   'SYSTEM_UNKNOWN_ERROR': (locale?: string) =>
     locale === 'en' ? 'Unknown error' : 'Неизвестная ошибка',
+  'SYSTEM_VALIDATION_REQUEST_SCHEMA_INVALID': (locale?: string) =>
+    locale === 'en' ? 'Request schema validation failed' : 'Ошибка валидации схемы запроса',
+  'SYSTEM_VALIDATION_RESPONSE_SCHEMA_INVALID': (locale?: string) =>
+    locale === 'en' ? 'Response schema validation failed' : 'Ошибка валидации схемы ответа',
+  'SYSTEM_VALIDATION_REQUEST_PAYLOAD_TOO_LARGE': (locale?: string) =>
+    locale === 'en' ? 'Request payload too large' : 'Размер запроса превышает допустимый',
+  'SYSTEM_VALIDATION_RESPONSE_PAYLOAD_TOO_LARGE': (locale?: string) =>
+    locale === 'en' ? 'Response payload too large' : 'Размер ответа превышает допустимый',
+  'SYSTEM_VALIDATION_REQUEST_HEADERS_INVALID': (locale?: string) =>
+    locale === 'en' ? 'Request headers validation failed' : 'Ошибка валидации заголовков запроса',
+  'SYSTEM_VALIDATION_RESPONSE_HEADERS_INVALID': (locale?: string) =>
+    locale === 'en' ? 'Response headers validation failed' : 'Ошибка валидации заголовков ответа',
+  'SYSTEM_VALIDATION_SCHEMA_VERSION_MISMATCH': (locale?: string) =>
+    locale === 'en' ? 'Schema version mismatch' : 'Несовпадение версии схемы',
+  'SYSTEM_VALIDATION_TIMEOUT_EXCEEDED': (locale?: string) =>
+    locale === 'en' ? 'Validation timeout exceeded' : 'Превышено время ожидания валидации',
 } as const satisfies Record<ServiceErrorCode, (locale?: string) => string>;
 
 /* ============================================================================

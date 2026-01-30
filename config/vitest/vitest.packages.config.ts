@@ -272,6 +272,11 @@ export function createPackageVitestConfig(options: PackageConfigOptions): Packag
       // Vitest может падать. Используйте копию: { ...env }
       ...envConfig,
 
+      // Определение compile-time констант (аналог webpack.DefinePlugin)
+      define: {
+        __ENVIRONMENT__: JSON.stringify('dev'),
+      },
+
       // Setup файлы: глобальный + пакетный
       setupFiles: [
         'config/vitest/test.setup.ts', // Глобальный setup с jest-dom

@@ -192,16 +192,17 @@ swSelf.addEventListener('notificationclick', (event: NotificationEvent) => {
  */
 swSelf.addEventListener('sync', (event: SyncEvent) => {
   event.waitUntil(
-    (async (): Promise<void> => {
+    Promise.resolve().then(() => {
       try {
-        // handleBackgroundSync может выполнять асинхронные операции внутри
-        // Если функция не возвращает Promise, её следует переписать так, чтобы возвращала Promise<void>
-        await handleBackgroundSync(event);
+        // handleBackgroundSync выполняет синхронные операции
+        handleBackgroundSync(event as ExtendableEvent & { tag: string; });
+        return undefined;
       } catch (error: unknown) {
         // eslint-disable-next-line no-console
         console.error('[SW][Sync]', error);
+        return undefined;
       }
-    })(),
+    }),
   );
 });
 

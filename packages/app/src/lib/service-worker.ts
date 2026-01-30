@@ -28,9 +28,6 @@
 /** Версия Service Worker для управления кешами */
 const SW_VERSION = '1.0.0';
 
-/** Ожидаемый scope Service Worker */
-const EXPECTED_SCOPE = '/';
-
 /** Feature flag для отключения Service Worker (kill-switch) */
 // Значение может быть изменено через remote config или environment variable
 // Используется функция для возможности runtime проверки (например, через cache API)
@@ -54,16 +51,15 @@ const MAX_RESPONSE_SIZE_BYTES = 10 * BYTES_IN_MB;
 /** Максимальный размер всего кеша в байтах (100MB) */
 const MAX_TOTAL_CACHE_SIZE_BYTES = 100 * BYTES_IN_MB;
 
-/** Счетчик ошибок для self-health monitoring */
-let errorCount = 0;
-const MAX_ERRORS_BEFORE_DISABLE = 50;
-
 /** Версия схемы телеметрии */
 const TELEMETRY_SCHEMA_VERSION = '1.0.0';
 
 /** App ID для namespace изоляции */
 const APP_ID = 'livai';
-const ENVIRONMENT = 'prod'; // prod | stage | dev
+
+/** Environment compile-time constant для оптимизации bundler'а */
+declare const __ENVIRONMENT__: 'prod' | 'stage' | 'dev';
+const ENVIRONMENT = __ENVIRONMENT__;
 
 /** Префикс для кешей с namespace изоляцией */
 const CACHE_PREFIX = `${APP_ID}-${ENVIRONMENT}-sw`;
@@ -88,8 +84,23 @@ function getApiCacheName(userHash: string | null): string {
   return `${API_CACHE_BASE_NAME}-${userHash}`;
 }
 
+/** Константы для хеширования токенов */
+const TOKEN_HASH_BYTES = 8;
+const TOKEN_HASH_HEX_LENGTH = 2;
+const HEX_RADIX = 16;
+
+/** Создает безопасный хеш токена с использованием crypto.subtle */
+async function hashToken(token: string): Promise<string> {
+  const data = new TextEncoder().encode(token);
+  const digest = await crypto.subtle.digest('SHA-256', data);
+  return [...new Uint8Array(digest)]
+    .slice(0, TOKEN_HASH_BYTES)
+    .map((b) => b.toString(HEX_RADIX).padStart(TOKEN_HASH_HEX_LENGTH, '0'))
+    .join('');
+}
+
 /** Извлекает хеш пользователя из запроса (Authorization header) */
-function getUserHashFromRequest(request: Request): string | null {
+async function getUserHashFromRequest(request: Request): Promise<string | null> {
   try {
     const authHeader = request.headers.get('authorization');
     if (authHeader === null || authHeader === '') {
@@ -103,11 +114,9 @@ function getUserHashFromRequest(request: Request): string | null {
     if (token === '' || token === undefined) {
       return null;
     }
-    // Простой хеш токена для изоляции кеша (первые 16 символов base64)
-    // В production можно использовать crypto.subtle.digest для SHA-256
-    const HASH_LENGTH = 16;
-    const hash = btoa(token).substring(0, HASH_LENGTH).replace(/[^a-zA-Z0-9]/g, '');
-    return hash === '' ? null : hash;
+    // Безопасный SHA-256 хеш токена для изоляции кеша
+    const hash = await hashToken(token);
+    return hash;
   } catch {
     return null;
   }
@@ -133,7 +142,7 @@ const API_NETWORK_TIMEOUT_SECONDS = 5;
 /** URLs для предварительного кеширования при установке */
 const precacheMainUrlsValue: readonly string[] = [
   '/',
-  '/offline.html',
+  `/offline.html?v=${SW_VERSION}`,
 ] as const;
 export const precacheMainUrls = precacheMainUrlsValue;
 
@@ -341,7 +350,7 @@ function getRouteConfig(url: string): RouteCacheConfig {
  * - Content-Type должен быть валидным
  * - Размер не должен превышать лимит
  */
-function isValidForCaching(response: Response, request?: Request): boolean {
+async function isValidForCaching(response: Response, request?: Request): Promise<boolean> {
   // Только успешные ответы
   const HTTP_OK = 200;
   if (response.status !== HTTP_OK) return false;
@@ -370,7 +379,7 @@ function isValidForCaching(response: Response, request?: Request): boolean {
     if (isPrivate) {
       // Private ответы требуют изоляции по пользователю
       // Если нет userHash, не кешируем
-      const userHash = getUserHashFromRequest(request);
+      const userHash = await getUserHashFromRequest(request);
       if (userHash === null) {
         return false;
       }
@@ -383,11 +392,22 @@ function isValidForCaching(response: Response, request?: Request): boolean {
 /** Проверяет, истек ли срок действия кеша */
 function isCacheExpired(response: Response, maxAge: number): boolean {
   const cachedDate = response.headers.get('sw-cached-date');
-  if (cachedDate === null || cachedDate === '') return true;
+  if (cachedDate !== null && cachedDate !== '') {
+    const cachedTime = Number.parseInt(cachedDate, 10);
+    const now = Date.now();
+    return now - cachedTime > maxAge;
+  }
 
-  const cachedTime = Number.parseInt(cachedDate, 10);
-  const now = Date.now();
-  return now - cachedTime > maxAge;
+  // Fallback to Date header
+  const dateHeader = response.headers.get('date');
+  if (dateHeader !== null && dateHeader !== '') {
+    const dateTime = new Date(dateHeader).getTime();
+    const now = Date.now();
+    return now - dateTime > maxAge;
+  }
+
+  // No timestamp available - consider expired
+  return true;
 }
 
 /** Создает кешируемый ответ с метаданными */
@@ -401,6 +421,37 @@ function createCacheableResponse(response: Response): Response {
     statusText: cloned.statusText,
     headers,
   });
+}
+
+/** Обновляет timestamp кешированного ответа (для LRU) */
+async function updateCacheEntryTimestamp(
+  cache: Cache,
+  request: Request,
+  response: Response,
+): Promise<void> {
+  try {
+    await cache.put(request, createCacheableResponse(response));
+  } catch {
+    // Graceful degradation - если не удалось обновить timestamp, продолжаем
+  }
+}
+
+/** Проверяет размер ответа и определяет, можно ли его кешировать */
+async function getResponseSizeForCaching(response: Response): Promise<number | null> {
+  const contentLength = response.headers.get('content-length');
+  if (contentLength !== null) {
+    return Number.parseInt(contentLength, 10);
+  }
+
+  // Fallback: проверяем размер через blob для chunked/streaming responses
+  try {
+    const cloned = response.clone();
+    const blob = await cloned.blob();
+    return blob.size;
+  } catch {
+    // Если не удалось получить размер, не кешируем
+    return null;
+  }
 }
 
 /** Очищает устаревшие кеши */
@@ -478,12 +529,11 @@ async function networkFirstStrategy(
 
     const response = await networkPromise;
 
-    if (response.ok && isValidForCaching(response, request)) {
-      // Проверяем размер ответа перед кешированием
-      const cloned = response.clone();
-      const body = await cloned.arrayBuffer();
-      if (body.byteLength > MAX_RESPONSE_SIZE_BYTES) {
-        // Ответ слишком большой, не кешируем
+    if (response.ok && await isValidForCaching(response, request)) {
+      const responseSize = await getResponseSizeForCaching(response);
+
+      if (responseSize === null || responseSize > MAX_RESPONSE_SIZE_BYTES) {
+        // Ответ слишком большой или не удалось определить размер - не кешируем
         return {
           response,
           source: 'NETWORK',
@@ -555,6 +605,8 @@ async function cacheFirstStrategy(
     const isExpired = isCacheExpired(cachedResponse, maxAge);
 
     if (!isExpired) {
+      // Обновляем timestamp для LRU (cache hit)
+      await updateCacheEntryTimestamp(cache, request, cachedResponse);
       return {
         response: cachedResponse,
         source: 'CACHE',
@@ -641,11 +693,10 @@ async function staleWhileRevalidateStrategy(
   // Если кеша нет, ждем сеть
   const response = await fetch(request);
 
-  if (response.ok && isValidForCaching(response, request)) {
-    // Проверяем размер перед кешированием
-    const cloned = response.clone();
-    const body = await cloned.arrayBuffer();
-    if (body.byteLength <= MAX_RESPONSE_SIZE_BYTES) {
+  if (response.ok && await isValidForCaching(response, request)) {
+    const responseSize = await getResponseSizeForCaching(response);
+
+    if (responseSize !== null && responseSize <= MAX_RESPONSE_SIZE_BYTES) {
       await cache.put(request, createCacheableResponse(response.clone()));
       await cleanOldCacheEntries(cacheName, config.maxEntries ?? 100);
     }
@@ -668,7 +719,7 @@ export async function handleRequest(
   // API cache isolation: используем изолированный кеш для API запросов
   let finalConfig = config;
   if (request.url.includes('/api/')) {
-    const userHash = getUserHashFromRequest(request);
+    const userHash = await getUserHashFromRequest(request);
     const apiCacheName = getApiCacheName(userHash);
     finalConfig = {
       ...config,
@@ -715,6 +766,10 @@ export async function handleRequest(
           traceId: context.traceId,
         };
       }
+
+      // CacheOnly возвращает кеш независимо от freshness
+      // Обновляем timestamp для LRU (cache hit)
+      await updateCacheEntryTimestamp(cache, request, cachedResponse);
       return {
         response: cachedResponse,
         source: 'CACHE',
@@ -763,6 +818,15 @@ export async function handlePushNotification(event: ExtendableMessageEvent): Pro
   }
 }
 
+/** Обрабатывает background sync события */
+export function handleBackgroundSync(
+  event: ExtendableEvent & { tag: string; },
+): void {
+  // Базовая обработка background sync - в будущем можно расширить
+  // Пока просто подтверждаем получение события
+  event.waitUntil(Promise.resolve());
+}
+
 /** Обрабатывает клик по уведомлению */
 export async function handleNotificationClick(
   event: Event & { notification: Notification; },
@@ -789,39 +853,6 @@ export async function handleNotificationClick(
   const openWindowMethod = swSelf.clients.openWindow;
   await openWindowMethod(url);
 }
-
-/* ============================================================================
- * 🔄 BACKGROUND SYNC
- * ========================================================================== */
-
-/**
- * Обрабатывает background sync для оффлайн операций
- *
- * Статус: 🟡 В разработке
- * Текущая реализация - заглушка для будущей синхронизации оффлайн операций
- */
-export function handleBackgroundSync(
-  event: Event & { tag: string; waitUntil: (promise: Promise<unknown>) => void; },
-): Promise<void> {
-  return Promise.resolve().then(() => {
-    try {
-      if (event.tag === 'sync-messages') {
-        // TODO: Синхронизация сообщений при восстановлении соединения
-        // Здесь будет логика отправки накопленных сообщений из IndexedDB
-        // В Service Worker нет доступа к telemetry, поэтому просто игнорируем
-      }
-      return undefined;
-    } catch {
-      // Graceful degradation - ошибки background sync не должны ломать работу
-      // В Service Worker нет доступа к telemetry, поэтому просто игнорируем ошибки
-      return undefined;
-    }
-  });
-}
-
-/* ============================================================================
- * 🔄 МИГРАЦИИ И ВАЛИДАЦИЯ
- * ========================================================================== */
 
 /* ============================================================================
  * 🗑️ DECOMMISSION FLOW (Enterprise: полное удаление SW из прода)
@@ -977,21 +1008,6 @@ async function purgeCacheIfNeeded(cacheName: string): Promise<void> {
   }
 }
 
-/** Проверяет scope Service Worker (sanity-check) */
-function validateServiceWorkerScope(): boolean {
-  try {
-    const actualScope = swSelf.registration.scope;
-    const expectedScopeUrl = new URL(EXPECTED_SCOPE, self.location.origin).href;
-    if (actualScope !== expectedScopeUrl) {
-      // Scope не совпадает - это может быть "призрачный" SW
-      return false;
-    }
-    return true;
-  } catch {
-    return false;
-  }
-}
-
 /** Выполняет миграции между версиями SW */
 function runVersionMigrations(oldVersion: string | null): Promise<void> {
   if (oldVersion === null) {
@@ -1038,12 +1054,6 @@ swSelf.addEventListener('install', (event: ExtendableEvent): void => {
   // Kill-switch: если SW отключен, не устанавливаем
   // swDisabled - функция для будущего remote config
   if (swDisabled()) {
-    return;
-  }
-
-  // Проверка scope
-  if (!validateServiceWorkerScope()) {
-    // Scope не совпадает - не устанавливаем
     return;
   }
 
@@ -1106,24 +1116,10 @@ swSelf.addEventListener('activate', (event: ExtendableEvent): void => {
   );
 });
 
-/** Self-health monitoring: проверяет, не превышен ли лимит ошибок */
-function checkSelfHealth(): boolean {
-  if (errorCount > MAX_ERRORS_BEFORE_DISABLE) {
-    // Слишком много ошибок - SW переходит в passive режим
-    return false;
-  }
-  return true;
-}
-
 /** Обработчик fetch запросов */
 swSelf.addEventListener('fetch', (event: FetchEvent) => {
   // Kill-switch: если SW отключен, не перехватываем запросы
   if (swDisabled()) {
-    return;
-  }
-
-  // Self-health monitoring: проверяем здоровье SW
-  if (!checkSelfHealth()) {
     return;
   }
 
@@ -1166,6 +1162,12 @@ swSelf.addEventListener('fetch', (event: FetchEvent) => {
 
   // Отправляем traceId клиентам для телеметрии
   const sendTelemetry = (result: RequestResult): void => {
+    // Отправляем telemetry только для проблемных случаев (ERROR, STALE)
+    // чтобы избежать перегрузки postMessage
+    if (result.source === 'NETWORK' || result.source === 'CACHE') {
+      return;
+    }
+
     swSelf.clients.matchAll()
       .then((clients) => {
         clients.forEach((client) => {
@@ -1197,17 +1199,10 @@ swSelf.addEventListener('fetch', (event: FetchEvent) => {
   event.respondWith(
     handleRequest(request, context, config)
       .then((result) => {
-        // Сбрасываем счетчик ошибок при успехе
-        if (result.source !== 'ERROR' && !result.source.startsWith('ERROR_')) {
-          errorCount = 0;
-        }
         sendTelemetry(result);
         return result.response;
       })
       .catch(async (): Promise<Response> => {
-        // Увеличиваем счетчик ошибок
-        errorCount += 1;
-
         // Offline UX contract: определяем стратегию ответа
         // 503/504 → offline.html
         // Другие → raw error или retry
@@ -1250,11 +1245,12 @@ swSelf.addEventListener(
   },
 );
 
-/** Обработчик background sync */
-swSelf.addEventListener(
-  'sync',
-  (event: Event & { tag: string; waitUntil: (promise: Promise<unknown>) => void; }): void => {
-    const syncPromise = handleBackgroundSync(event);
-    (event as ExtendableEvent).waitUntil(syncPromise);
-  },
-);
+/** Обработчик background sync событий */
+swSelf.addEventListener('sync', (event: ExtendableEvent & { tag: string; }): void => {
+  event.waitUntil(
+    Promise.resolve().then(() => {
+      handleBackgroundSync(event);
+      return undefined;
+    }),
+  );
+});
