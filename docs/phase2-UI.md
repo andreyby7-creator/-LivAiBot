@@ -218,7 +218,7 @@ App types и libs
 7️⃣3️⃣ packages/app/src/lib/feature-flags.ts 🟢 — ts — deps: lib/error-mapping.ts
 7️⃣4️⃣ packages/app/src/lib/offline-cache.ts 🟢 — ts+effect — deps: lib/effect-utils.ts, lib/telemetry.ts
 7️⃣5️⃣ packages/app/src/lib/api-schema-guard.ts 🟢 — ts+effect — deps: types/api.js, lib/error-mapping.js, lib/telemetry.js, lib/validation.js
-7️⃣6️⃣ packages/app/src/lib/performance.ts 🔴 — ts — deps: lib/telemetry.ts, types/common.ts (НЕТ)
+7️⃣6️⃣ packages/app/src/lib/performance.ts 🟢 — ts+effect — deps: lib/telemetry.js, types/common.js
 7️⃣7️⃣ packages/app/src/lib/auth-guard.ts 🔴 — ts — deps: types/common.ts, lib/error-mapping.ts (НЕТ)
 7️⃣8️⃣ packages/app/src/lib/route-permissions.ts 🔴 — ts — deps: lib/auth-guard.ts, types/common.ts (НЕТ)
 7️⃣9️⃣ packages/app/src/lib/logger.ts 🔴 — ts — deps: types/common.ts, lib/error-mapping.ts, lib/telemetry.ts (НЕТ)
