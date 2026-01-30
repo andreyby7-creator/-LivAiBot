@@ -206,21 +206,21 @@ App types и libs
 6️⃣1️⃣ packages/app/src/types/common.ts 🟢 — ts — deps: —
 6️⃣2️⃣ packages/app/src/types/api.ts 🟢 — ts deps: types/common.ts
 6️⃣3️⃣ packages/app/src/types/errors.ts 🟢 — ts — deps: types/common.ts, types/api.ts
-6️⃣4️⃣ packages/app/src/lib/effect-utils.ts 🟢 — ts+effect — deps: types/api.ts
-6️⃣5️⃣ packages/app/src/lib/telemetry.ts 🟢 — ts — deps: types/common.ts, types/api.ts
-6️⃣6️⃣ packages/app/src/lib/api-client.ts 🟢 — ts+effect — API client — types/api.ts, lib/effect-utils.ts, lib/telemetry.ts
-6️⃣7️⃣ packages/app/src/lib/websocket.ts 🟢 — ts+effect — deps: lib/effect-utils.ts, lib/telemetry.ts
-6️⃣8️⃣ packages/app/src/lib/sse-client.ts 🟢 — ts+effect — deps: lib/effect-utils.ts, lib/telemetry.ts
-6️⃣9️⃣ packages/app/src/lib/error-mapping.ts 🟢 — ts — deps: lib/effect-utils.ts, lib/telemetry.ts
-7️⃣0️⃣ packages/app/src/lib/validation.ts 🟢 — ts — deps: lib/error-mapping.ts, lib/telemetry.ts
-7️⃣1️⃣ packages/app/src/lib/feature-flags.ts 🟢 — ts — deps: lib/error-mapping.ts
-7️⃣2️⃣ packages/app/src/lib/offline-cache.ts 🟢 — ts+effect — deps: lib/effect-utils.ts, types/api.ts
-7️⃣3️⃣ packages/app/src/lib/service-worker.ts 🟢 — ts — deps: lib/offline-cache.ts, types/common.ts
-7️⃣4️⃣ packages/app/src/lib/i18n.ts 🟢 — ts+react — deps: types/common.ts
-7️⃣5️⃣ packages/app/src/lib/performance.ts 🔴 — ts — deps: lib/telemetry.ts, types/common.ts (НЕТ)
-7️⃣6️⃣ packages/app/src/lib/auth-guard.ts 🔴 — ts — deps: types/common.ts, lib/error-mapping.ts (НЕТ)
-7️⃣7️⃣ packages/app/src/lib/route-permissions.ts 🔴 — ts — deps: lib/auth-guard.ts, types/common.ts (НЕТ)
-7️⃣8️⃣ packages/app/src/lib/api-schema-guard.ts 🔴 — ts+effect — deps: types/api.ts, types/errors.ts, lib/validation.ts (НЕТ)
+6️⃣4️⃣ packages/app/src/lib/telemetry.ts 🟢 — ts — deps: —
+6️⃣5️⃣ packages/app/src/lib/service-worker.ts 🟢 — ts — deps: —
+6️⃣6️⃣ packages/app/src/lib/i18n.ts 🟢 — ts+react — deps: —
+6️⃣7️⃣ packages/app/src/lib/effect-utils.ts 🟢 — ts+effect — deps: types/api.ts
+6️⃣8️⃣ packages/app/src/lib/api-client.ts 🟢 — ts+effect — deps: types/api.ts, lib/effect-utils.ts, lib/telemetry.ts
+6️⃣9️⃣ packages/app/src/lib/websocket.ts 🟢 — ts+effect — deps: lib/effect-utils.ts, lib/telemetry.ts
+7️⃣0️⃣ packages/app/src/lib/sse-client.ts 🟢 — ts+effect — deps: lib/effect-utils.ts, lib/telemetry.ts
+7️⃣1️⃣ packages/app/src/lib/error-mapping.ts 🟢 — ts — deps: lib/effect-utils.ts, lib/telemetry.ts
+7️⃣2️⃣ packages/app/src/lib/validation.ts 🟢 — ts — deps: lib/error-mapping.ts, lib/telemetry.ts
+7️⃣3️⃣ packages/app/src/lib/feature-flags.ts 🟢 — ts — deps: lib/error-mapping.ts
+7️⃣4️⃣ packages/app/src/lib/offline-cache.ts 🟢 — ts+effect — deps: lib/effect-utils.ts, lib/telemetry.ts
+7️⃣5️⃣ packages/app/src/lib/api-schema-guard.ts 🔴 — ts+effect — deps: types/api.ts, types/errors.ts, lib/validation.ts (НЕТ)
+7️⃣6️⃣ packages/app/src/lib/performance.ts 🔴 — ts — deps: lib/telemetry.ts, types/common.ts (НЕТ)
+7️⃣7️⃣ packages/app/src/lib/auth-guard.ts 🔴 — ts — deps: types/common.ts, lib/error-mapping.ts (НЕТ)
+7️⃣8️⃣ packages/app/src/lib/route-permissions.ts 🔴 — ts — deps: lib/auth-guard.ts, types/common.ts (НЕТ)
 7️⃣9️⃣ packages/app/src/lib/logger.ts 🔴 — ts — deps: types/common.ts, lib/error-mapping.ts, lib/telemetry.ts (НЕТ)
 
 ✅ App UI wrappers

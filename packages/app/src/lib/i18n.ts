@@ -12,8 +12,53 @@
  * - Готов к микросервисной архитектуре
  */
 
-import React, { createContext, useCallback, useContext, useMemo, useState } from 'react';
+import React, { createContext, useCallback, useContext, useMemo, useReducer } from 'react';
 import type { ReactNode } from 'react';
+
+/* ============================================================================
+ * 🏷️ ТИПЫ
+ * ========================================================================== */
+
+/** Типы fallback для телеметрии */
+export type FallbackType = 'common' | 'human-readable' | 'fallback-locale';
+
+/* ============================================================================
+ * 🔧 УТИЛИТЫ
+ * ========================================================================== */
+
+// Замена плейсхолдеров {key} в строке на значения из params
+function interpolateParams(str: string, params?: Record<string, string | number>): string {
+  if (!params) return str;
+  return Object.entries(params).reduce(
+    (acc, [k, v]) => acc.replace(new RegExp(`{${k}}`, 'g'), String(v)),
+    str,
+  );
+}
+
+function getLocalePath(locale: string, ns: Namespace): string {
+  // Явное маппинг для известных комбинаций locale/namespace
+  // Это позволяет bundler'у лучше оптимизировать chunks
+  const knownPaths: Record<string, Record<string, string>> = {
+    ru: {
+      common: './locales/ru/common.json',
+      auth: './locales/ru/auth.json',
+    },
+    en: {
+      common: './locales/en/common.json',
+      auth: './locales/en/auth.json',
+    },
+  };
+
+  // Для известных путей возвращаем прямой путь
+  const knownPath = knownPaths[locale]?.[ns];
+  if (knownPath != null) {
+    return knownPath;
+  }
+
+  // Для неизвестных комбинаций используем template literal
+  // (webpack/esbuild всё равно создаст отдельный chunk)
+  return `./locales/${locale}/${ns}.json`;
+}
 
 /* ============================================================================
  * 🏷️ ТИПИЗИРОВАННЫЕ ПЕРЕВОДЫ
@@ -32,9 +77,9 @@ const coreTranslations = {
   },
 } as const;
 
-// Управляемое императивное ядро внутри функциональной оболочки
+// Иммутабельный snapshot переводов для функционального подхода
 
-class TranslationRuntimeStore {
+class TranslationSnapshot {
   readonly store: Readonly<Record<Namespace, Record<string, string>>>;
 
   constructor(
@@ -47,8 +92,8 @@ class TranslationRuntimeStore {
     }), {} as Record<Namespace, Record<string, string>>);
   }
 
-  // Возвращает новый store, инициализированный базовыми переводами
-  init(core: typeof coreTranslations): TranslationRuntimeStore {
+  // Возвращает новый snapshot, инициализированный базовыми переводами
+  init(core: typeof coreTranslations): TranslationSnapshot {
     const newStore = Object.entries(core).reduce(
       (acc, [ns, translations]) => ({
         ...acc,
@@ -56,7 +101,7 @@ class TranslationRuntimeStore {
       }),
       {} as Record<Namespace, Record<string, string>>,
     );
-    return new TranslationRuntimeStore(newStore);
+    return new TranslationSnapshot(newStore);
   }
 
   // Получить пространство
@@ -64,11 +109,21 @@ class TranslationRuntimeStore {
     return this.store[ns];
   }
 
-  // Возвращает новый store с обновлённым namespace
-  set(ns: Namespace, value: Record<string, string>): TranslationRuntimeStore {
-    return new TranslationRuntimeStore({
+  // Возвращает новый snapshot с обновлённым namespace
+  set(ns: Namespace, value: Record<string, string>): TranslationSnapshot {
+    return new TranslationSnapshot({
       ...this.store,
       [ns]: value,
+    });
+  }
+
+  // Возвращает новый snapshot с объединёнными переводами для namespace
+  merge(ns: Namespace, translations: Record<string, string>): TranslationSnapshot {
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+    const existingTranslations = this.store[ns] ?? {};
+    return new TranslationSnapshot({
+      ...this.store,
+      [ns]: { ...existingTranslations, ...translations },
     });
   }
 
@@ -77,29 +132,25 @@ class TranslationRuntimeStore {
   }
 }
 
-class LoadedNamespaces {
-  readonly namespaces: readonly Namespace[];
+// Используем ReadonlySet для loaded namespaces - эффективнее и проще чем класс
 
-  constructor(initial: readonly Namespace[]) {
-    this.namespaces = [...initial];
-  }
+// Контекст для функциональной передачи snapshot - полная чистота без глобального состояния
+const I18nStoreContext = createContext<TranslationSnapshot | null>(null);
 
-  has(ns: Namespace): boolean {
-    return this.namespaces.includes(ns);
-  }
-
-  // Возвращает новый объект с добавленным namespace
-  add(ns: Namespace): LoadedNamespaces {
-    if (this.has(ns)) return this;
-    return new LoadedNamespaces([...this.namespaces, ns]);
-  }
-}
-
-// Контекст для функциональной передачи store - полная чистота без глобального состояния
-const I18nStoreContext = createContext<TranslationRuntimeStore | null>(null);
-
-// Хук для доступа к store - функциональный и чистый
-export const useTranslations = (): TranslationRuntimeStore => {
+/**
+ * @internal Хук для доступа к TranslationSnapshot для текущей локали
+ *
+ * ⚠️ ВНИМАНИЕ: Этот хук предназначен для ТЕСТИРОВАНИЯ и ВНУТРЕННИХ УТИЛИТ.
+ * Для пользовательского кода используйте translate функцию из I18nContext.
+ *
+ * Прямой доступ к snapshot может:
+ * - Обойти fallback логику
+ * - Нарушить инварианты системы
+ * - Привести к неожиданному поведению
+ *
+ * Используйте только в тестах и внутренних компонентах!
+ */
+export const useTranslations = (): TranslationSnapshot => {
   const store = useContext(I18nStoreContext);
   if (!store) throw new Error('useTranslations must be used within I18nProvider');
   return store;
@@ -115,24 +166,180 @@ export const testResetTranslationStore = (): I18nContextType => {
   });
 };
 
-// Enum для проверки ключей переводов на этапе компиляции
-export enum TranslationKeys {
-  // Common
-  GREETING = 'greeting',
-  FAREWELL = 'farewell',
-
-  // Auth
-  LOGIN = 'login',
-  LOGOUT = 'logout',
-  ERROR = 'error',
-}
-
 export type Namespace = keyof typeof coreTranslations;
 export type TranslationKey<N extends Namespace = Namespace> = keyof typeof coreTranslations[N];
+
+// Хранилище snapshots для каждой локали (включая fallback)
+type LocaleStore = Record<string, TranslationSnapshot>;
+
+// Pure функция для поиска перевода с цепочкой fallback
+function findTranslationInStore(
+  localeStore: LocaleStore,
+  primaryLocale: string,
+  fallbackLocale: string,
+  ns: Namespace,
+  key: string,
+): {
+  result: string;
+  usedFallback: boolean;
+  fallbackType?: FallbackType;
+} {
+  // Сначала пробуем основную локаль
+  const primaryStore = localeStore[primaryLocale];
+  if (primaryStore) {
+    const primaryTranslations = primaryStore.get(ns);
+    if (key in primaryTranslations) {
+      return { result: String(primaryTranslations[key]), usedFallback: false };
+    }
+  }
+
+  // Пробуем fallback локаль если отличается от основной
+  if (fallbackLocale !== primaryLocale) {
+    const fallbackStore = localeStore[fallbackLocale];
+    if (fallbackStore) {
+      const fallbackTranslations = fallbackStore.get(ns);
+      if (key in fallbackTranslations) {
+        return {
+          result: String(fallbackTranslations[key]),
+          usedFallback: true,
+          fallbackType: 'fallback-locale',
+        };
+      }
+    }
+  }
+
+  // Пробуем пространство имён common (из основной локали)
+  if (primaryStore) {
+    const commonTranslations = primaryStore.get('common');
+    if (key in commonTranslations) {
+      return {
+        result: String(commonTranslations[key]),
+        usedFallback: true,
+        fallbackType: 'common',
+      };
+    }
+  }
+
+  // Человеко-читаемый fallback
+  const humanReadable = String(key)
+    .replace(/([A-Z])/g, ' $1')
+    .replace(/^./, (str) => str.toUpperCase())
+    .trim();
+
+  return {
+    result: humanReadable,
+    usedFallback: true,
+    fallbackType: 'human-readable',
+  };
+}
+
+// Получает перевод с fallback логикой
+function getTranslation(
+  localeStore: LocaleStore, // Хранилище локалей
+  locale: string, // Основная локаль
+  fallback: string, // Fallback локаль
+  ns: Namespace, // Пространство имён
+  key: string, // Ключ перевода
+): {
+  result: string; // Результат поиска с информацией о fallback
+  usedFallback: boolean;
+  fallbackType?: FallbackType;
+} {
+  return findTranslationInStore(localeStore, locale, fallback, ns, key);
+}
 
 /* ============================================================================
  * 🌍 КОНТЕКСТ I18N
  * ========================================================================== */
+
+// Состояние i18n для useReducer
+export type I18nState = {
+  loadedNamespaces: Set<Namespace>;
+  failedNamespaces: Set<Namespace>;
+  localeStore: LocaleStore;
+};
+
+// Actions для обновления состояния
+type I18nAction =
+  | {
+    type: 'LOAD_NAMESPACE_SUCCESS';
+    ns: Namespace;
+    locale: string;
+    translations: Record<string, string>;
+  }
+  | { type: 'LOAD_NAMESPACE_ERROR'; ns: Namespace; }
+  | { type: 'INIT_LOCALES'; locale: string; fallbackLocale: string; }
+  | {
+    type: 'LOAD_FALLBACK_NAMESPACE_SUCCESS';
+    ns: Namespace;
+    fallbackLocale: string;
+    translations: Record<string, string>;
+  };
+
+// Reducer для атомарных обновлений состояния
+function i18nReducer(state: I18nState, action: I18nAction): I18nState {
+  switch (action.type) {
+    case 'LOAD_NAMESPACE_SUCCESS': {
+      const { ns, locale, translations } = action;
+      const currentSnapshot = state.localeStore[locale] ?? new TranslationSnapshot();
+      const updatedSnapshot = currentSnapshot.set(ns, translations);
+      return {
+        loadedNamespaces: new Set([...state.loadedNamespaces, ns]),
+        failedNamespaces: state.failedNamespaces,
+        localeStore: {
+          ...state.localeStore,
+          [locale]: updatedSnapshot,
+        },
+      };
+    }
+    case 'LOAD_NAMESPACE_ERROR': {
+      return {
+        ...state,
+        failedNamespaces: new Set([...state.failedNamespaces, action.ns]),
+      };
+    }
+    case 'INIT_LOCALES': {
+      const { locale, fallbackLocale } = action;
+      let newStore = { ...state.localeStore };
+
+      // Инициализируем основную локаль если не существует
+      if (!(locale in newStore)) {
+        const snapshot = locale === 'ru'
+          ? new TranslationSnapshot().init(coreTranslations)
+          : new TranslationSnapshot();
+        newStore = { ...newStore, [locale]: snapshot };
+      }
+
+      // Инициализируем fallback локаль если отличается и не существует
+      if (fallbackLocale !== locale && !(fallbackLocale in newStore)) {
+        const snapshot = fallbackLocale === 'ru'
+          ? new TranslationSnapshot().init(coreTranslations)
+          : new TranslationSnapshot();
+        newStore = { ...newStore, [fallbackLocale]: snapshot };
+      }
+
+      return {
+        ...state,
+        localeStore: newStore,
+      };
+    }
+    case 'LOAD_FALLBACK_NAMESPACE_SUCCESS': {
+      const { ns, fallbackLocale, translations } = action;
+      const currentSnapshot = state.localeStore[fallbackLocale] ?? new TranslationSnapshot();
+      const updatedSnapshot = currentSnapshot.merge(ns, translations);
+      return {
+        loadedNamespaces: new Set([...state.loadedNamespaces, ns]),
+        failedNamespaces: state.failedNamespaces,
+        localeStore: {
+          ...state.localeStore,
+          [fallbackLocale]: updatedSnapshot,
+        },
+      };
+    }
+    default:
+      return state;
+  }
+}
 
 export type I18nContextType = {
   locale: string;
@@ -147,12 +354,14 @@ export type I18nContextType = {
   telemetry?:
     | ((
       data: {
+        /** Translation key (should be valid TranslationKey<N>) */
         key: string;
+        /** Namespace (should be valid Namespace) */
         ns: string;
         locale: string;
-        traceId?: string | undefined;
-        service?: string | undefined;
-        fallbackType?: 'common' | 'human-readable' | 'fallback-locale';
+        traceId: string;
+        service: string;
+        fallbackType?: FallbackType;
       },
     ) => void)
     | undefined;
@@ -164,94 +373,103 @@ export const I18nProvider: React.FC<{
   locale: string;
   fallbackLocale: string;
   telemetry?: I18nContextType['telemetry'];
+  traceId?: string;
+  service?: string;
   children: ReactNode;
 }> = ({
   locale,
   fallbackLocale,
   telemetry,
+  traceId = 'unknown',
+  service = 'frontend',
   children,
 }) => {
-  // Локальное состояние загрузки пространств имён - безопасное для SSR
-  const [loadedNamespaces, setLoadedNamespaces] = useState(() =>
-    new LoadedNamespaces(['common', 'auth'])
-  );
+  // Инициализируем состояние через useReducer для атомарных обновлений
+  const [state, dispatch] = useReducer(i18nReducer, undefined, () => {
+    const initialStore: LocaleStore = {};
+    // Инициализируем основную локаль
+    const primarySnapshot = locale === 'ru'
+      ? new TranslationSnapshot().init(coreTranslations)
+      : new TranslationSnapshot();
 
-  // Создаём store через useMemo - функциональный подход без мутаций
-  const store = React.useMemo(() => {
-    if (locale === 'ru') {
-      return new TranslationRuntimeStore().init(coreTranslations);
-    }
-    return new TranslationRuntimeStore();
-  }, [locale]);
+    // Инициализируем fallback локаль если отличается
+    const fallbackSnapshot = fallbackLocale !== locale && fallbackLocale === 'ru'
+      ? new TranslationSnapshot().init(coreTranslations)
+      : new TranslationSnapshot();
+
+    return {
+      loadedNamespaces: new Set<Namespace>(['common', 'auth']),
+      failedNamespaces: new Set<Namespace>(),
+      localeStore: {
+        ...initialStore,
+        [locale]: primarySnapshot,
+        ...(fallbackLocale !== locale && { [fallbackLocale]: fallbackSnapshot }),
+      },
+    };
+  });
+
+  // Обновляем localeStore при изменении локалей
+  React.useEffect(() => {
+    dispatch({ type: 'INIT_LOCALES', locale, fallbackLocale });
+  }, [locale, fallbackLocale]);
 
   // Store готов для использования через контекст
 
   const loadNamespace = useCallback(async (ns: Namespace): Promise<void> => {
-    if (loadedNamespaces.has(ns)) {
-      return; // Already loaded
+    if (state.loadedNamespaces.has(ns)) {
+      return; // Уже загружено
     }
 
     try {
-      // Динамический импорт пространства имён (пример реализации)
-      // const module = await import(`./locales/${locale}/${ns}.json`);
-      // const currentTranslations = store.get(ns);
-      // const updatedStore = store.set(ns, { ...currentTranslations, ...module.default });
+      // Динамический импорт пространства имён для основной локали
+      // Используем явное маппинг для известных путей для лучшего bundling
+      const primaryPath = getLocalePath(locale, ns);
+      const primaryModule = await import(primaryPath) as { default: Record<string, string>; };
 
-      // Пока что симулируем задержку загрузки
-      await new Promise((resolve) => setTimeout(resolve, 100));
-      setLoadedNamespaces((current) => current.add(ns));
+      // Загружаем для основной локали
+      dispatch({
+        type: 'LOAD_NAMESPACE_SUCCESS',
+        ns,
+        locale,
+        translations: primaryModule.default,
+      });
+
+      // Если fallback локаль отличается, загружаем и для неё
+      if (fallbackLocale !== locale) {
+        try {
+          const fallbackPath = getLocalePath(fallbackLocale, ns);
+          const fallbackModule = await import(fallbackPath) as { default: Record<string, string>; };
+          dispatch({
+            type: 'LOAD_FALLBACK_NAMESPACE_SUCCESS',
+            ns,
+            fallbackLocale,
+            translations: fallbackModule.default,
+          });
+        } catch {
+          // Загрузка fallback локали не удалась, но основная локаль загружена - всё равно помечаем как загруженное
+          // Тихий сбой для загрузки fallback локали
+        }
+      }
     } catch (error) {
+      // Fallback: помечаем как загруженное даже при ошибке, чтобы избежать повторных попыток
+      dispatch({ type: 'LOAD_NAMESPACE_ERROR', ns });
       throw error;
     }
-  }, [loadedNamespaces]);
+  }, [state.loadedNamespaces, locale, fallbackLocale]);
 
   const isNamespaceLoaded = useCallback((ns: Namespace): boolean => {
-    return loadedNamespaces.has(ns);
-  }, [loadedNamespaces]);
+    return state.loadedNamespaces.has(ns);
+  }, [state.loadedNamespaces]);
 
   // Хелпер для поиска перевода с полной цепочкой fallback
   const findTranslation = React.useCallback((
     ns: Namespace,
     key: string,
-  ): {
-    result: string;
-    usedFallback: boolean;
-    fallbackType?: 'common' | 'human-readable' | 'fallback-locale';
-  } => {
-    // Сначала пробуем основную локаль (пока поддерживаем только 'ru')
-    if (locale === 'ru') {
-      const primaryTranslations = store.get(ns);
-      if (key in primaryTranslations) {
-        return { result: String(primaryTranslations[key]), usedFallback: false };
-      }
-    }
-
-    // Пробуем fallback локаль если отличается
-    // TODO: fallback-locale storage пока не реализован - требуется отдельное хранилище для каждой локали
-    // Пока что fallback локаль не влияет на поиск переводов
-
-    // Пробуем пространство имён common
-    const commonTranslations = store.get('common');
-    if (key in commonTranslations) {
-      return {
-        result: String(commonTranslations[key]),
-        usedFallback: true,
-        fallbackType: 'common',
-      };
-    }
-
-    // Человеко-читаемый fallback
-    const humanReadable = String(key)
-      .replace(/([A-Z])/g, ' $1')
-      .replace(/^./, (str) => str.toUpperCase())
-      .trim();
-
-    return {
-      result: humanReadable,
-      usedFallback: true,
-      fallbackType: 'human-readable',
-    };
-  }, [locale, store]);
+  ) => getTranslation(state.localeStore, locale, fallbackLocale, ns, key), [
+    state.localeStore,
+    locale,
+    fallbackLocale,
+  ]);
 
   const translate = useMemo(() => {
     return <N extends Namespace>(
@@ -262,12 +480,7 @@ export const I18nProvider: React.FC<{
       const { result, usedFallback, fallbackType } = findTranslation(ns, String(key));
 
       // Интерполируем параметры
-      let finalResult = result;
-      if (params) {
-        for (const [k, v] of Object.entries(params)) {
-          finalResult = finalResult.replace(new RegExp(`{${k}}`, 'g'), String(v));
-        }
-      }
+      const finalResult = interpolateParams(result, params);
 
       // Отправляем телеметрию только для случаев fallback чтобы избежать спама
       if (usedFallback && telemetry) {
@@ -275,8 +488,8 @@ export const I18nProvider: React.FC<{
           key: String(key),
           ns: String(ns),
           locale,
-          traceId: undefined,
-          service: undefined,
+          traceId,
+          service,
           ...(fallbackType && { fallbackType }),
         };
 
@@ -285,11 +498,11 @@ export const I18nProvider: React.FC<{
 
       return finalResult;
     };
-  }, [locale, telemetry, findTranslation]);
+  }, [locale, telemetry, findTranslation, service, traceId]);
 
   return React.createElement(
     I18nStoreContext.Provider,
-    { value: store },
+    { value: state.localeStore[locale] ?? new TranslationSnapshot() },
     React.createElement(
       I18nContext.Provider,
       { value: { locale, fallbackLocale, translate, loadNamespace, isNamespaceLoaded, telemetry } },
@@ -313,8 +526,9 @@ export const useTranslationNamespace = (ns: Namespace): void => {
   const { loadNamespace } = useI18n();
 
   React.useEffect(() => {
-    loadNamespace(ns).catch(() => {
-      // TODO: Добавить обработку ошибок загрузки переводов
+    loadNamespace(ns).catch((err) => {
+      // eslint-disable-next-line no-console
+      console.warn(`Failed to load namespace "${ns}":`, err);
     });
   }, [ns, loadNamespace]);
 };
@@ -324,56 +538,36 @@ export const createI18nInstance = (options: {
   locale: string;
   fallbackLocale: string;
   telemetry?: I18nContextType['telemetry'];
+  traceId?: string;
+  service?: string;
 }): I18nContextType => {
-  const { locale, fallbackLocale, telemetry } = options;
+  const { locale, fallbackLocale, telemetry, traceId = 'unknown', service = 'backend' } = options;
 
   // Локальное состояние загрузки пространств имён - безопасное для SSR
-  let loadedNamespaces = new LoadedNamespaces(['common', 'auth']);
-  let store = new TranslationRuntimeStore().init(coreTranslations);
+  let loadedNamespaces = new Set<Namespace>(['common', 'auth']);
+  let localeStore: LocaleStore = {};
+
+  // Инициализируем localeStore
+  const primarySnapshot = locale === 'ru'
+    ? new TranslationSnapshot().init(coreTranslations)
+    : new TranslationSnapshot();
+
+  const fallbackSnapshot = fallbackLocale !== locale && fallbackLocale === 'ru'
+    ? new TranslationSnapshot().init(coreTranslations)
+    : new TranslationSnapshot();
+
+  // Создаем иммутабельный объект
+  localeStore = {
+    [locale]: primarySnapshot,
+    ...(fallbackLocale !== locale && { [fallbackLocale]: fallbackSnapshot }),
+  };
 
   // Хелпер для поиска перевода с полной цепочкой fallback
-  const findTranslation = (
-    ns: Namespace,
-    key: string,
-  ): {
+  const findTranslation = (ns: Namespace, key: string): {
     result: string;
     usedFallback: boolean;
-    fallbackType?: 'common' | 'human-readable' | 'fallback-locale';
-  } => {
-    // Сначала пробуем основную локаль (пока поддерживаем только 'ru')
-    if (locale === 'ru') {
-      const primaryTranslations = store.get(ns);
-      if (key in primaryTranslations) {
-        return { result: String(primaryTranslations[key]), usedFallback: false };
-      }
-    }
-
-    // Пробуем fallback локаль если отличается
-    // TODO: fallback-locale storage пока не реализован - требуется отдельное хранилище для каждой локали
-    // Пока что fallback локаль не влияет на поиск переводов
-
-    // Пробуем пространство имён common
-    const commonTranslations = store.get('common');
-    if (key in commonTranslations) {
-      return {
-        result: String(commonTranslations[key]),
-        usedFallback: true,
-        fallbackType: 'common',
-      };
-    }
-
-    // Человеко-читаемый fallback
-    const humanReadable = String(key)
-      .replace(/([A-Z])/g, ' $1')
-      .replace(/^./, (str) => str.toUpperCase())
-      .trim();
-
-    return {
-      result: humanReadable,
-      usedFallback: true,
-      fallbackType: 'human-readable',
-    };
-  };
+    fallbackType?: FallbackType;
+  } => getTranslation(localeStore, locale, fallbackLocale, ns, key);
 
   const translate = <N extends Namespace>(
     ns: N,
@@ -383,25 +577,18 @@ export const createI18nInstance = (options: {
     const { result, usedFallback, fallbackType } = findTranslation(ns, String(key));
 
     // Интерполируем параметры
-    let finalResult = result;
-    if (params) {
-      for (const [k, v] of Object.entries(params)) {
-        finalResult = finalResult.replace(new RegExp(`{${k}}`, 'g'), String(v));
-      }
-    }
+    const finalResult = interpolateParams(result, params);
 
     // Отправляем телеметрию только для случаев fallback чтобы избежать спама
     if (usedFallback && telemetry) {
-      const telemetryData: Parameters<NonNullable<typeof telemetry>>[0] = {
+      telemetry({
         key: String(key),
         ns: String(ns),
         locale,
-        traceId: undefined,
-        service: undefined,
+        traceId,
+        service,
         ...(fallbackType && { fallbackType }),
-      };
-
-      telemetry(telemetryData);
+      });
     }
 
     return finalResult;
@@ -409,14 +596,14 @@ export const createI18nInstance = (options: {
 
   const loadNamespace = async (ns: Namespace): Promise<void> => {
     if (loadedNamespaces.has(ns)) {
-      return; // Already loaded
+      return; // Уже загружено
     }
 
     try {
       // Динамический импорт пространства имён (реализация для продакшн)
       // esbuild не может статически разрешить шаблонные динамические импорты
       // Используем переменную для обхода статического анализа esbuild
-      const localePath = `./locales/${locale}/${ns}.json`;
+      const localePath = getLocalePath(locale, ns);
 
       // Типизируем результат динамического импорта
       type LocaleModule = {
@@ -427,9 +614,12 @@ export const createI18nInstance = (options: {
       // Используем явное приведение типа для безопасности
       const module = await import(localePath) as LocaleModule;
 
-      const currentTranslations = store.get(ns);
-      store = store.set(ns, { ...currentTranslations, ...module.default });
-      loadedNamespaces = loadedNamespaces.add(ns);
+      const currentSnapshot = localeStore[locale] ?? new TranslationSnapshot();
+      const updatedSnapshot = currentSnapshot.merge(ns, module.default);
+
+      // Создаем новый объект вместо мутации
+      localeStore = { ...localeStore, [locale]: updatedSnapshot };
+      loadedNamespaces = new Set([...loadedNamespaces, ns]);
 
       // Для обратной совместимости симулируем задержку загрузки (можно убрать в продакшн)
       // await new Promise((resolve) => setTimeout(resolve, 100));

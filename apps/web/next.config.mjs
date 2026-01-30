@@ -1,3 +1,7 @@
+import { createRequire } from 'module';
+
+const require = createRequire(import.meta.url);
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   // Конфигурация вывода для Docker развертывания
@@ -65,6 +69,20 @@ const nextConfig = {
     config.resolve.extensionAlias = {
       '.js': ['.ts', '.tsx', '.js', '.jsx'],
     };
+
+    // Compile-time environment constant для оптимизации bundler'а
+    const webpack = require('webpack');
+    config.plugins.push(
+      new webpack.DefinePlugin({
+        __ENVIRONMENT__: JSON.stringify(
+          process.env.NODE_ENV === 'production'
+            ? 'prod'
+            : process.env.NEXT_PUBLIC_APP_ENV === 'staging'
+              ? 'stage'
+              : 'dev'
+        ),
+      })
+    );
 
     return config;
   },

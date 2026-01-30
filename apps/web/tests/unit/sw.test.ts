@@ -849,7 +849,9 @@ describe('sw.ts - Service Worker', () => {
 
     it('должен обработать ошибку при background sync', async () => {
       const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-      mockHandleBackgroundSync.mockRejectedValueOnce(new Error('Sync error'));
+      mockHandleBackgroundSync.mockImplementationOnce(() => {
+        throw new Error('Sync error');
+      });
 
       await import('../../src/sw');
 

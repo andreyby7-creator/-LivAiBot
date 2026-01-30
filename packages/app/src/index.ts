@@ -67,7 +67,26 @@ export {
   type OfflineCacheResult,
   type OfflineCacheStore,
 } from './lib/offline-cache.js';
-export * from './lib/service-worker.js';
+export {
+  type Client,
+  type Clients,
+  decommissionServiceWorker,
+  type ExtendableEvent,
+  type ExtendableMessageEvent,
+  type FetchEvent,
+  handleBackgroundSync,
+  handleNotificationClick,
+  handlePushNotification,
+  handleRequest,
+  mainCacheName,
+  precacheMainUrls,
+  precacheStaticUrls,
+  type ServiceWorkerGlobalScope,
+  staticCacheName,
+  swDisabled,
+  swSelf,
+  type WindowClient,
+} from './lib/service-worker.js';
 export * from './lib/sse-client.js';
 export * from './lib/telemetry.js';
 export * from './lib/validation.js';
