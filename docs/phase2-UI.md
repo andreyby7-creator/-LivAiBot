@@ -202,7 +202,7 @@ apps/web (тонкий композитор)
 5️⃣9️⃣ packages/ui-core/src/components/LanguageSelector.tsx 🟢 — ts+react — deps: —
 6️⃣0️⃣ packages/ui-core/src/components/SupportButton.tsx 🟢 — ts+react — deps: —
 
-App types и libs
+✅ App types и libs
 6️⃣1️⃣ packages/app/src/types/common.ts 🟢 — ts — deps: —
 6️⃣2️⃣ packages/app/src/types/api.ts 🟢 — ts deps: types/common.ts
 6️⃣3️⃣ packages/app/src/types/errors.ts 🟢 — ts — deps: types/common.ts, types/api.ts
@@ -218,48 +218,48 @@ App types и libs
 7️⃣3️⃣ packages/app/src/lib/feature-flags.ts 🟢 — ts — deps: lib/error-mapping.ts
 7️⃣4️⃣ packages/app/src/lib/offline-cache.ts 🟢 — ts+effect — deps: lib/effect-utils.ts, lib/telemetry.ts
 7️⃣5️⃣ packages/app/src/lib/api-schema-guard.ts 🟢 — ts+effect — deps: types/api.js, lib/error-mapping.js, lib/telemetry.js, lib/validation.js
-7️⃣6️⃣ packages/app/src/lib/performance.ts 🟢 — ts+effect — deps: lib/telemetry.js, types/common.js
+7️⃣6️⃣ packages/app/src/lib/performance.ts 🟢 — ts+effect — deps: types/common.js, lib/telemetry.js
 7️⃣7️⃣ packages/app/src/lib/auth-guard.ts 🟢 — ts — deps: types/common.ts, lib/error-mapping.ts
-7️⃣8️⃣ packages/app/src/lib/route-permissions.ts 🔴 — ts — deps: types/common.ts
-7️⃣9️⃣ packages/app/src/lib/logger.ts 🔴 — ts — deps: types/common.ts, lib/telemetry.ts (НЕТ)
+7️⃣8️⃣ packages/app/src/lib/route-permissions.ts 🟢 — ts — deps: types/common.ts, lib/auth-guard.ts
+7️⃣9️⃣ packages/app/src/lib/logger.ts 🟢 — ts — deps: types/common.ts, lib/telemetry.ts
 
 ✅ App UI wrappers
-8️⃣0️⃣ packages/app/src/ui/button.tsx 🟢 — ts+react — deps: ui-core/primitives/button.tsx, app/types/common.ts, app/lib/feature-flags.ts, app/lib/i18n.ts
-8️⃣1️⃣ packages/app/src/ui/input.tsx 🟢 — ts+react — deps: ui-core/primitives/input.tsx, app/types/common.ts, app/lib/feature-flags.ts, app/lib/i18n.ts
-8️⃣2️⃣ packages/app/src/ui/textarea.tsx 🟢 — ts+react — deps: ui-core/primitives/textarea.tsx, app/types/common.ts, app/lib/feature-flags.ts, app/lib/i18n.ts
-8️⃣3️⃣ packages/app/src/ui/select.tsx 🟢 — ts+react — deps: ui-core/primitives/select.tsx, app/types/common.ts, app/lib/feature-flags.ts, app/lib/i18n.ts
-8️⃣4️⃣ packages/app/src/ui/checkbox.tsx 🟢 — ts+react — deps: ui-core/primitives/checkbox.tsx, app/types/common.ts, app/lib/feature-flags.ts, app/lib/i18n.ts
-8️⃣5️⃣ packages/app/src/ui/radio.tsx 🟢 — ts+react — deps: ui-core/primitives/radio.tsx, app/types/common.ts, app/lib/feature-flags.ts, app/lib/i18n.ts
-8️⃣6️⃣ packages/app/src/ui/toggle.tsx 🟢 — ts+react — deps: ui-core/primitives/toggle.tsx, app/types/common.ts, app/lib/feature-flags.ts, app/lib/i18n.ts
-8️⃣7️⃣ packages/app/src/ui/icon.tsx 🟢 — ts+react — deps: ui-core/primitives/icon.tsx, app/types/common.ts, app/lib/i18n.ts
-8️⃣8️⃣ packages/app/src/ui/avatar.tsx 🟢 — ts+react — deps: ui-core/primitives/avatar.tsx, app/types/common.ts, app/lib/i18n.ts
-8️⃣9️⃣ packages/app/src/ui/badge.tsx 🟢 — ts+react — deps: ui-core/primitives/badge.tsx, app/types/common.ts, app/lib/i18n.ts
-9️⃣0️⃣ packages/app/src/ui/tooltip.tsx 🟢 — ts+react — deps: ui-core/primitives/tooltip.tsx, app/types/common.ts, app/lib/i18n.ts
-9️⃣1️⃣ packages/app/src/ui/divider.tsx 🟢 — ts+react — deps: ui-core/primitives/divider.tsx, app/types/common.ts
-9️⃣2️⃣ packages/app/src/ui/card.tsx 🟢 — ts+react — deps: ui-core/primitives/card.tsx, app/types/common.ts, app/lib/i18n.ts
-9️⃣3️⃣ packages/app/src/ui/dialog.tsx 🟢 — ts+react — deps: ui-core/primitives/dialog.tsx, app/types/common.ts, app/lib/i18n.ts
-9️⃣4️⃣ packages/app/src/ui/form.tsx 🟢 — ts+react — deps: ui-core/primitives/form.tsx, ui-core/primitives/form-field.tsx, app/types/common.ts, app/lib/feature-flags.ts, app/lib/i18n.ts
-9️⃣5️⃣ packages/app/src/ui/loading-spinner.tsx 🟢 — ts+react — deps: ui-core/primitives/loading-spinner.tsx, app/types/common.ts
-9️⃣6️⃣ packages/app/src/ui/dropdown.tsx 🟢 — ts+react — deps: ui-core/primitives/dropdown.tsx, app/types/common.ts, app/lib/i18n.ts
-9️⃣7️⃣ packages/app/src/ui/context-menu.tsx 🟢 — ts+react — deps: ui-core/primitives/context-menu.tsx, app/types/common.ts, app/lib/i18n.ts
-9️⃣8️⃣ packages/app/src/ui/status-indicator.tsx 🟢 — ts+react — deps: ui-core/primitives/status-indicator.tsx, app/types/common.ts
-9️⃣9️⃣ packages/app/src/ui/toast.tsx 🟢 — ts+react — deps: ui-core/components/Toast.tsx, app/types/common.ts, app/lib/i18n.ts
-1️⃣0️⃣0️⃣ packages/app/src/ui/skeleton.tsx 🟢 — ts+react — deps: ui-core/components/Skeleton.tsx, app/types/common.ts
-1️⃣0️⃣1️⃣ packages/app/src/ui/skeleton-group.tsx 🟢 — ts+react — deps: ui-core/components/Skeleton.tsx, app/types/common.ts
-1️⃣0️⃣2️⃣ packages/app/src/ui/modal.tsx 🟢 — ts+react — deps: ui-core/components/Modal.tsx, app/types/common.ts, app/lib/i18n.ts
-1️⃣0️⃣3️⃣ packages/app/src/ui/breadcrumbs.tsx 🟢 — ts+react — deps: ui-core/components/Breadcrumbs.tsx, app/types/common.ts
-1️⃣0️⃣4️⃣ packages/app/src/ui/tabs.tsx 🟢 — ts+react — deps: ui-core/components/Tabs.tsx, app/types/common.ts
-1️⃣0️⃣5️⃣ packages/app/src/ui/accordion.tsx 🟢 — ts+react — deps: ui-core/components/Accordion.tsx, app/types/common.ts
-1️⃣0️⃣6️⃣ packages/app/src/ui/date-picker.tsx 🟢 — ts+react — deps: ui-core/components/DatePicker.tsx, app/types/common.ts
-1️⃣0️⃣7️⃣ packages/app/src/ui/file-uploader.tsx 🟢 — ts+react — deps: ui-core/components/FileUploader.tsx, app/types/common.ts
-1️⃣0️⃣8️⃣ packages/app/src/ui/sidebar.tsx 🟢 — ts+react — deps: ui-core/components/SideBar.tsx, app/types/common.ts
-1️⃣0️⃣9️⃣ packages/app/src/ui/search-bar.tsx 🟢 — ts+react — deps: ui-core/components/SearchBar.tsx, app/types/common.ts
-1️⃣1️⃣0️⃣ packages/app/src/ui/confirm-dialog.tsx 🟢 — ts+react — deps: ui-core/components/ConfirmDialog.tsx, app/types/common.ts
-1️⃣1️⃣1️⃣ packages/app/src/ui/error-boundary.tsx 🟢 — ts+react — deps: ui-core/components/ErrorBoundary.tsx, app/types/common.ts
-1️⃣1️⃣2️⃣ packages/app/src/ui/user-profile-display.tsx 🟢 — ts+react — deps: ui-core/components/UserProfileDisplay.tsx, app/types/common.ts
-1️⃣1️⃣3️⃣ packages/app/src/ui/navigation-menu-item.tsx 🟢 — ts+react — deps: ui-core/components/NavigationMenuItem.tsx, app/types/common.ts
-1️⃣1️⃣4️⃣ packages/app/src/ui/language-selector.tsx 🟢 — ts+react — deps: ui-core/components/LanguageSelector.tsx, app/types/common.ts, app/lib/i18n.ts
-1️⃣1️⃣5️⃣ packages/app/src/ui/support-button.tsx 🟢 — ts+react — deps: ui-core/components/SupportButton.tsx, app/types/common.ts, app/lib/feature-flags.ts, app/lib/telemetry.ts
+8️⃣0️⃣ packages/app/src/ui/button.tsx 🟢 — ts+react — deps: ui-core/primitives/button.tsx, app/lib/feature-flags.ts, app/lib/i18n.ts, app/lib/telemetry.ts
+8️⃣1️⃣ packages/app/src/ui/input.tsx 🟢 — ts+react — deps: ui-core/src/index.tsx, app/lib/feature-flags.ts, app/lib/i18n.ts, app/lib/telemetry.ts
+8️⃣2️⃣ packages/app/src/ui/textarea.tsx 🟢 — ts+react — deps: ui-core/primitives/textarea.tsx, app/lib/feature-flags.ts, app/lib/telemetry.ts
+8️⃣3️⃣ packages/app/src/ui/select.tsx 🟢 — ts+react — deps: ui-core/primitives/select.tsx, app/lib/feature-flags.ts, app/lib/telemetry.ts
+8️⃣4️⃣ packages/app/src/ui/checkbox.tsx 🟢 — ts+react — deps: ui-core/primitives/checkbox.tsx, app/lib/feature-flags.ts, app/lib/telemetry.ts
+8️⃣5️⃣ packages/app/src/ui/radio.tsx 🟢 — ts+react — deps: ui-core/primitives/radio.tsx, app/lib/feature-flags.ts, app/lib/telemetry.ts
+8️⃣6️⃣ packages/app/src/ui/toggle.tsx 🟢 — ts+react — deps: ui-core/primitives/toggle.tsx, app/lib/feature-flags.ts, app/lib/telemetry.ts
+8️⃣7️⃣ packages/app/src/ui/icon.tsx 🟢 — ts+react — deps: ui-core/primitives/icon.tsx, app/lib/feature-flags.ts, app/lib/telemetry.ts
+8️⃣8️⃣ packages/app/src/ui/avatar.tsx 🟢 — ts+react — deps: ui-core/primitives/avatar.tsx, app/lib/feature-flags.ts, app/lib/telemetry.ts
+8️⃣9️⃣ packages/app/src/ui/badge.tsx 🟢 — ts+react — deps: ui-core/primitives/badge.tsx, app/lib/feature-flags.ts, app/lib/telemetry.ts
+9️⃣0️⃣ packages/app/src/ui/tooltip.tsx 🟢 — ts+react — deps: ui-core/primitives/tooltip.tsx, app/lib/feature-flags.ts, app/lib/telemetry.ts
+9️⃣1️⃣ packages/app/src/ui/divider.tsx 🟢 — ts+react — deps: ui-core/primitives/divider.tsx, app/lib/feature-flags.ts, app/lib/telemetry.ts
+9️⃣2️⃣ packages/app/src/ui/card.tsx 🟢 — ts+react — deps: ui-core/primitives/card.tsx, app/lib/feature-flags.ts, app/lib/telemetry.ts
+9️⃣3️⃣ packages/app/src/ui/dialog.tsx 🟢 — ts+react — deps: ui-core/primitives/dialog.tsx, app/lib/feature-flags.ts, app/lib/telemetry.ts
+9️⃣4️⃣ packages/app/src/ui/form.tsx 🟢 — ts+react — deps: ui-core/primitives/form.tsx, app/lib/feature-flags.ts, app/lib/telemetry.ts
+9️⃣5️⃣ packages/app/src/ui/loading-spinner.tsx 🟢 — ts+react — deps: ui-core/primitives/loading-spinner.tsx, app/lib/feature-flags.ts, app/lib/telemetry.ts
+9️⃣6️⃣ packages/app/src/ui/dropdown.tsx 🟢 — ts+react — deps: ui-core/primitives/dropdown.tsx, app/lib/feature-flags.ts, app/lib/telemetry.ts
+9️⃣7️⃣ packages/app/src/ui/context-menu.tsx 🟢 — ts+react — deps: ui-core/primitives/context-menu.tsx, app/lib/feature-flags.ts, app/lib/telemetry.ts
+9️⃣8️⃣ packages/app/src/ui/status-indicator.tsx 🟢 — ts+react — deps: ui-core/primitives/status-indicator.tsx, app/lib/feature-flags.ts, app/lib/telemetry.ts
+9️⃣9️⃣ packages/app/src/ui/toast.tsx 🟢 — ts+react — deps: ui-core/components/Toast.tsx, app/lib/feature-flags.ts, app/lib/telemetry.ts
+1️⃣0️⃣0️⃣ packages/app/src/ui/skeleton.tsx 🟢 — ts+react — deps: ui-core/components/Skeleton.tsx, app/lib/feature-flags.ts, app/lib/telemetry.ts
+1️⃣0️⃣1️⃣ packages/app/src/ui/skeleton-group.tsx 🟢 — ts+react — deps: ui-core/components/Skeleton.tsx, app/lib/feature-flags.ts, app/lib/telemetry.ts
+1️⃣0️⃣2️⃣ packages/app/src/ui/modal.tsx 🟢 — ts+react — deps: ui-core/components/Modal.tsx, ui-core/types/ui.ts, app/lib/feature-flags.ts, app/lib/telemetry.ts
+1️⃣0️⃣3️⃣ packages/app/src/ui/breadcrumbs.tsx 🟢 — ts+react — deps: ui-core/components/Breadcrumbs.tsx, app/lib/feature-flags.ts, app/lib/telemetry.ts
+1️⃣0️⃣4️⃣ packages/app/src/ui/tabs.tsx 🟢 — ts+react — deps: ui-core/components/Tabs.tsx, app/lib/feature-flags.ts, app/lib/telemetry.ts
+1️⃣0️⃣5️⃣ packages/app/src/ui/accordion.tsx 🟢 — ts+react — deps: ui-core/components/Accordion.tsx, app/lib/feature-flags.ts, app/lib/telemetry.ts
+1️⃣0️⃣6️⃣ packages/app/src/ui/date-picker.tsx 🟢 — ts+react — deps: ui-core/components/DatePicker.tsx, app/lib/feature-flags.ts, app/lib/telemetry.ts
+1️⃣0️⃣7️⃣ packages/app/src/ui/file-uploader.tsx 🟢 — ts+react — deps: ui-core/components/FileUploader.tsx, app/lib/feature-flags.ts, app/lib/telemetry.ts
+1️⃣0️⃣8️⃣ packages/app/src/ui/sidebar.tsx 🟢 — ts+react — deps: ui-core/components/SideBar.tsx, app/lib/feature-flags.ts, app/lib/telemetry.ts
+1️⃣0️⃣9️⃣ packages/app/src/ui/search-bar.tsx 🟢 — ts+react — deps: ui-core/components/SearchBar.tsx, app/lib/feature-flags.ts, app/lib/telemetry.ts
+1️⃣1️⃣0️⃣ packages/app/src/ui/confirm-dialog.tsx 🟢 — ts+react — deps: ui-core/components/ConfirmDialog.tsx, ui-core/components/Modal.tsx, app/lib/feature-flags.ts, app/lib/telemetry.ts
+1️⃣1️⃣1️⃣ packages/app/src/ui/error-boundary.tsx 🟢 — ts+react — deps: ui-core/components/ErrorBoundary.tsx, app/lib/feature-flags.ts, app/lib/telemetry.ts
+1️⃣1️⃣2️⃣ packages/app/src/ui/user-profile-display.tsx 🟢 — ts+react — deps: ui-core/components/UserProfileDisplay.tsx, app/lib/feature-flags.ts, app/lib/telemetry.ts
+1️⃣1️⃣3️⃣ packages/app/src/ui/navigation-menu-item.tsx 🟢 — ts+react — deps: ui-core/components/NavigationMenuItem.tsx, app/lib/feature-flags.ts, app/lib/telemetry.ts
+1️⃣1️⃣4️⃣ packages/app/src/ui/language-selector.tsx 🟢 — ts+react — deps: ui-core/components/LanguageSelector.tsx, app/lib/feature-flags.ts, app/lib/telemetry.ts
+1️⃣1️⃣5️⃣ packages/app/src/ui/support-button.tsx 🟢 — ts+react — deps: ui-core/components/SupportButton.tsx, app/lib/feature-flags.ts, app/lib/telemetry.ts
 
 App state и hooks
 1️⃣1️⃣6️⃣ packages/app/src/providers/TelemetryProvider.tsx 🔴 — ts+react — Telemetry Provider для batch телеметрии — lib/telemetry.ts (НЕТ)

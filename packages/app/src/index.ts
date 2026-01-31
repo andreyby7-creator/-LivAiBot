@@ -92,6 +92,10 @@ export * from './lib/telemetry.js';
 export * from './lib/validation.js';
 export * from './lib/websocket.js';
 export * from './lib/api-schema-guard.js';
+export * from './lib/performance.js';
+export * from './lib/auth-guard.js';
+export * from './lib/route-permissions.js';
+export * from './lib/logger.js';
 
 /* ============================================================================
  * 🧬 TYPES — ТИПЫ
@@ -126,9 +130,16 @@ export {
 } from './types/api.js';
 // Экспортируем из common.js остальные типы, исключая конфликтующие
 export {
+  type ApiFailure,
+  type ApiSuccess,
   type AppContext,
+  type AsyncError,
+  type AsyncFn,
+  type AsyncIdle,
+  type AsyncLoading,
   type AsyncState,
   type AsyncStatus,
+  type AsyncSuccess,
   type AuthContext,
   type BaseDTO,
   type ErrorCategory,
@@ -140,7 +151,12 @@ export {
   type Immutable,
   type ISODateString,
   type Json,
+  type JsonArray,
+  type JsonObject,
+  type JsonPrimitive,
+  type JsonValue,
   type Loggable,
+  type Maybe,
   type Nullable,
   type Optional,
   type PaginatedResponse,
@@ -148,6 +164,22 @@ export {
   type Subscription,
   type VoidFn,
 } from './types/common.js';
+
+// Экспортируем типы ошибок
+export {
+  type AppError,
+  type ClientError,
+  createServerError,
+  type ErrorFn,
+  type ErrorHandler,
+  type FrontendErrorSource,
+  handleError,
+  type IsErrorOfType,
+  type NetworkError,
+  type ServerError,
+  type UnknownError,
+  type ValidationError,
+} from './types/errors.js';
 
 /* ============================================================================
  * 🎯 PROVIDERS — ПРОВАЙДЕРЫ
