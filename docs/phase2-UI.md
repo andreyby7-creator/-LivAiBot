@@ -219,9 +219,9 @@ App types и libs
 7️⃣4️⃣ packages/app/src/lib/offline-cache.ts 🟢 — ts+effect — deps: lib/effect-utils.ts, lib/telemetry.ts
 7️⃣5️⃣ packages/app/src/lib/api-schema-guard.ts 🟢 — ts+effect — deps: types/api.js, lib/error-mapping.js, lib/telemetry.js, lib/validation.js
 7️⃣6️⃣ packages/app/src/lib/performance.ts 🟢 — ts+effect — deps: lib/telemetry.js, types/common.js
-7️⃣7️⃣ packages/app/src/lib/auth-guard.ts 🔴 — ts — deps: types/common.ts, lib/error-mapping.ts (НЕТ)
-7️⃣8️⃣ packages/app/src/lib/route-permissions.ts 🔴 — ts — deps: lib/auth-guard.ts, types/common.ts (НЕТ)
-7️⃣9️⃣ packages/app/src/lib/logger.ts 🔴 — ts — deps: types/common.ts, lib/error-mapping.ts, lib/telemetry.ts (НЕТ)
+7️⃣7️⃣ packages/app/src/lib/auth-guard.ts 🟢 — ts — deps: types/common.ts, lib/error-mapping.ts
+7️⃣8️⃣ packages/app/src/lib/route-permissions.ts 🔴 — ts — deps: types/common.ts
+7️⃣9️⃣ packages/app/src/lib/logger.ts 🔴 — ts — deps: types/common.ts, lib/telemetry.ts (НЕТ)
 
 ✅ App UI wrappers
 8️⃣0️⃣ packages/app/src/ui/button.tsx 🟢 — ts+react — deps: ui-core/primitives/button.tsx, app/types/common.ts, app/lib/feature-flags.ts, app/lib/i18n.ts

@@ -10,7 +10,7 @@
  */
 
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import type { EffectError } from '../../../src/lib/effect-utils';
+import type { EffectError, EffectErrorKind } from '../../../src/lib/effect-utils';
 import {
   chainMappers,
   errorMessages,
@@ -44,7 +44,7 @@ function createMockTaggedError<T extends ServiceErrorCode>(
  * Создает mock EffectError
  */
 function createMockEffectError(kind: string, message = 'Effect error'): EffectError {
-  return { kind, message };
+  return { kind: kind as EffectErrorKind, message };
 }
 
 /**

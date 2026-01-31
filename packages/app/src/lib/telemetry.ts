@@ -5,7 +5,6 @@
  * ============================================================================
  *
  * Свойства:
- * - отсутствие eslint-disable директив
  * - контролируемая иммутабельность
  * - поддержка асинхронных sink'ов
  * - enterprise-ready архитектура
@@ -13,7 +12,7 @@
  * - легко тестируемое и расширяемое
  */
 
-import React from 'react';
+import * as React from 'react';
 
 /* ============================================================================
  * 🔧 УТИЛИТЫ КОНСОЛИ (только для bootstrap)
@@ -457,12 +456,13 @@ export const TelemetryBatchContext = React.createContext<TelemetryBatchContextTy
 const TelemetryBatchProviderComponent: React.FC<{
   children: React.ReactNode;
   config?: TelemetryBatchConfig;
-}> = ({ children, config = {} }) => {
+}> = ({ children, config }) => {
+  const effectiveConfig = config ?? {};
   const {
     batchSize = defaultBatchSize,
     flushInterval = defaultFlushInterval,
     enabled = true,
-  } = config;
+  } = effectiveConfig;
 
   // Хранилище batch - иммутабельные обновления
   const [, setBatch] = React.useState<readonly TelemetryBatchItem[]>([]);

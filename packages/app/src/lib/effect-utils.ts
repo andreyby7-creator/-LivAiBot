@@ -207,7 +207,7 @@ export function createEffectAbortController(): EffectAbortController {
  */
 export async function safeExecute<T>(
   effect: Effect<T>,
-): EffectResult<T> {
+): Promise<{ ok: true; data: T; } | { ok: false; error: EffectError; }> {
   try {
     const data = await effect();
     return { ok: true, data };
