@@ -1,18 +1,35 @@
 /**
  * @file packages/app/src/lib/telemetry.ts
  * ============================================================================
- * 🔹 ЯДРО ТЕЛЕМЕТРИИ — ПРОДАКШЕН / IMMUTABLE / FUNCTIONAL SAFE
+ * 🔹 TELEMETRY SHELL — BOOTSTRAP / REACT / INFRASTRUCTURE
  * ============================================================================
  *
+ * Архитектурная роль:
+ * - Application shell для телеметрии (НЕ чистое ядро)
+ * - React интеграция и глобальное состояние
+ * - Bootstrap логика и инициализация
+ * - Infrastructure: timers, console, SDK адаптеры
+ * - Thin wrapper над чистым batch-core ядром
+ *
  * Свойства:
- * - контролируемая иммутабельность
- * - поддержка асинхронных sink'ов
- * - enterprise-ready архитектура
- * - hexagonal architecture (чистое ядро)
- * - легко тестируемое и расширяемое
+ * - контролируемая иммутабельность в shell слое
+ * - поддержка асинхронных sink'ов и SDK
+ * - enterprise-ready архитектура с hexagonal подходом
+ * - React hooks и Context API
+ * - легко тестируемое с разделением на core/shell
  */
 
 import * as React from 'react';
+
+import { telemetryBatchCore } from './telemetry.batch-core.js';
+import { BatchCoreConfigVersion } from '../types/telemetry.js';
+import type {
+  TelemetryBatchCoreState,
+  TelemetryConfig,
+  TelemetryEvent,
+  TelemetryLevel,
+  TelemetrySink,
+} from '../types/telemetry.js';
 
 /* ============================================================================
  * 🔧 УТИЛИТЫ КОНСОЛИ (только для bootstrap)
@@ -61,35 +78,8 @@ export const getGlobalClientForDebug = (): TelemetryClient | undefined => {
   return undefined;
 };
 
-/* ============================================================================
- * 🧱 ОСНОВНЫЕ ТИПЫ
- * ========================================================================== */
-
-// Уровни логирования в порядке возрастания важности
+// Для обратной совместимости - re-export уровней
 export const telemetryLevels = ['INFO', 'WARN', 'ERROR'] as const;
-export type TelemetryLevel = (typeof telemetryLevels)[number];
-
-// Событие телеметрии - неизменяемый объект с метаданными
-export type TelemetryEvent<TMetadata = Readonly<Record<string, string | number | boolean | null>>> =
-  Readonly<{
-    level: TelemetryLevel; // Уровень важности события
-    message: string; // Сообщение события
-    metadata?: TMetadata; // Дополнительные данные
-    timestamp: number; // Время события в миллисекундах
-  }>;
-
-// Sink - абстракция для отправки событий (console, внешние SDK и т.д.)
-export type TelemetrySink<TMetadata = Readonly<Record<string, string | number | boolean | null>>> =
-  (event: TelemetryEvent<TMetadata>) => void | Promise<void>;
-
-// Конфигурация телеметрии - передается при инициализации
-export type TelemetryConfig<
-  TMetadata = Readonly<Record<string, string | number | boolean | null>>,
-> = Readonly<{
-  levelThreshold?: TelemetryLevel; // Минимальный уровень для логирования
-  sinks?: readonly TelemetrySink<TMetadata>[]; // Массив получателей событий
-  onError?: (error: unknown, event: TelemetryEvent<TMetadata>) => void; // Callback для ошибок sinks
-}>;
 
 /* ============================================================================
  * ⚖️ ПРИОРИТЕТЫ УРОВНЕЙ (O(1) ДОСТУП)
@@ -132,13 +122,14 @@ export class TelemetryClient<
     level: TelemetryLevel,
     message: string,
     metadata?: TMetadata,
+    timestamp: number = Date.now(),
   ): Promise<void> {
     if (!this.shouldEmit(level)) return;
 
     const event: TelemetryEvent<TMetadata> = {
       level,
       message,
-      timestamp: Date.now(),
+      timestamp,
       ...(metadata !== undefined && { metadata }),
     };
 
@@ -246,14 +237,9 @@ export function fireAndForget(fn: () => Promise<void>): void {
   });
 }
 
-// Проверяет, инициализирована ли telemetry (graceful, без исключений)
+// Проверяет, инициализирована ли telemetry
 export function isTelemetryInitialized(): boolean {
-  try {
-    getGlobalTelemetryClient();
-    return true;
-  } catch {
-    return false;
-  }
+  return globalClient !== null;
 }
 
 // Fire-and-forget версия log метода.
@@ -464,21 +450,29 @@ const TelemetryBatchProviderComponent: React.FC<{
     enabled = true,
   } = effectiveConfig;
 
-  // Хранилище batch - иммутабельные обновления
-  const [, setBatch] = React.useState<readonly TelemetryBatchItem[]>([]);
-  const timeoutIdRef = React.useRef<number | null>(null);
+  // Batch состояние в useRef (не вызывает ререндеры)
+  const batchStateRef = React.useRef<TelemetryBatchCoreState>(
+    telemetryBatchCore.createInitialState({
+      maxBatchSize: batchSize,
+      configVersion: BatchCoreConfigVersion,
+    }),
+  );
+  const timeoutIdRef = React.useRef<ReturnType<typeof globalThis.setTimeout> | null>(null);
 
   // Сброс batch в телеметрию
   const flushBatch = React.useCallback((): void => {
-    setBatch((currentBatch) => {
-      if (currentBatch.length === 0 || !enabled) return currentBatch;
+    if (!enabled) return;
 
-      // Отправка всех событий в batch
-      currentBatch.forEach((item) => {
-        logFireAndForget(item.level, item.message, item.metadata);
-      });
+    const currentState = batchStateRef.current;
+    if (currentState.batch.length === 0) return;
 
-      return []; // Очистка batch
+    const [newState, eventsToFlush] = telemetryBatchCore.flush(currentState);
+    // eslint-disable-next-line functional/immutable-data
+    batchStateRef.current = newState;
+
+    // Отправка всех событий в batch
+    eventsToFlush.forEach((event) => {
+      logFireAndForget(event.level, event.message, event.metadata);
     });
   }, [enabled]);
 
@@ -494,29 +488,23 @@ const TelemetryBatchProviderComponent: React.FC<{
       return;
     }
 
-    const item: TelemetryBatchItem = Object.freeze({
+    // Используем чистое ядро для обновления состояния
+    // eslint-disable-next-line functional/immutable-data
+    batchStateRef.current = telemetryBatchCore.addEvent(
       level,
       message,
-      timestamp: Date.now(),
-      ...(metadata && { metadata }),
-    });
+      metadata,
+      Date.now(), // timestamp извне для чистоты core
+    )(batchStateRef.current);
 
-    setBatch((prevBatch) => {
-      const newBatch = [...prevBatch, item];
-
-      // Проверка, полон ли batch
-      if (newBatch.length >= batchSize) {
-        // Немедленный flush для избежания переполнения
-        flushBatch();
-        return [];
-      }
-
-      return newBatch;
-    });
+    // Проверка необходимости flush
+    if (telemetryBatchCore.shouldFlush(batchStateRef.current)) {
+      flushBatch();
+    }
 
     // Запуск таймера сброса если еще не запущен
     if (timeoutIdRef.current === null) {
-      const newTimeoutId = window.setTimeout(() => {
+      const newTimeoutId = globalThis.setTimeout(() => {
         flushBatch();
         // eslint-disable-next-line functional/immutable-data
         timeoutIdRef.current = null;
@@ -524,13 +512,13 @@ const TelemetryBatchProviderComponent: React.FC<{
       // eslint-disable-next-line functional/immutable-data
       timeoutIdRef.current = newTimeoutId;
     }
-  }, [batchSize, flushInterval, flushBatch, enabled]);
+  }, [flushInterval, flushBatch, enabled]);
 
   // Очистка при размонтировании
   React.useEffect(() => {
     return (): void => {
       if (timeoutIdRef.current !== null) {
-        window.clearTimeout(timeoutIdRef.current);
+        globalThis.clearTimeout(timeoutIdRef.current);
         // eslint-disable-next-line functional/immutable-data
         timeoutIdRef.current = null;
         flushBatch();
@@ -588,24 +576,28 @@ export const createBatchAwareSink = (
 ): TelemetrySink => {
   const { batchSize = defaultBatchSize, flushInterval = defaultFlushInterval } = batchConfig;
 
-  let batch: TelemetryEvent[] = [];
+  // NOTE: local mutable state is intentional (imperative sink shell)
+  // Batch sink - это imperative обертка над functional core для работы с внешними SDK
+  let batchState = telemetryBatchCore.createInitialState({
+    maxBatchSize: batchSize,
+    configVersion: BatchCoreConfigVersion,
+  });
   let timeoutId: ReturnType<typeof globalThis.setTimeout> | null = null;
 
   const flushBatch = async (): Promise<void> => {
-    if (batch.length === 0) return;
+    if (batchState.batch.length === 0) return;
 
-    const batchToSend = [...batch];
-    // eslint-disable-next-line functional/immutable-data
-    batch.length = 0; // Очистка массива
+    const [newState, eventsToFlush] = telemetryBatchCore.flush(batchState);
+    batchState = newState;
 
     // Отправка batch как единый запрос если SDK поддерживает
     try {
       if (sdk.captureBatch && typeof sdk.captureBatch === 'function') {
-        await sdk.captureBatch(batchToSend.map((event) => Object.freeze(event)));
+        await sdk.captureBatch([...eventsToFlush]);
       } else {
         // Fallback на индивидуальную отправку
         await Promise.all(
-          batchToSend.map((event) => Promise.resolve(sdk.capture(Object.freeze(event)))),
+          eventsToFlush.map((event) => Promise.resolve(sdk.capture(event))),
         );
       }
     } catch (error) {
@@ -619,29 +611,30 @@ export const createBatchAwareSink = (
   };
 
   // Сброс batch при выгрузке страницы для предотвращения потери данных
+  // NOTE: listener не удаляется намеренно - createBatchAwareSink одноразовый
+  // В dev режиме при HMR могут быть дубликаты, но это приемлемо для sink'а
   if (typeof globalThis !== 'undefined' && typeof globalThis.addEventListener === 'function') {
     const handleBeforeUnload = (): void => {
-      if (batch.length > 0) {
+      if (batchState.batch.length > 0) {
         // Синхронный сброс для beforeunload (нет времени на асинхронные операции)
+        const [, eventsToFlush] = telemetryBatchCore.flush(batchState);
         if (sdk.captureBatch && typeof sdk.captureBatch === 'function') {
           try {
             // eslint-disable-next-line @typescript-eslint/no-floating-promises
-            sdk.captureBatch(batch.map((event) => Object.freeze(event)));
+            sdk.captureBatch([...eventsToFlush]);
           } catch {
             // Игнорируем ошибки во время выгрузки
           }
         } else {
-          batch.forEach((event) => {
+          eventsToFlush.forEach((event) => {
             try {
               // eslint-disable-next-line @typescript-eslint/no-floating-promises
-              sdk.capture(Object.freeze(event));
+              sdk.capture(event);
             } catch {
               // Игнорируем ошибки во время выгрузки
             }
           });
         }
-        // eslint-disable-next-line functional/immutable-data
-        batch.length = 0;
       }
     };
 
@@ -649,9 +642,15 @@ export const createBatchAwareSink = (
   }
 
   return (event: TelemetryEvent): void | Promise<void> => {
-    batch = [...batch, event];
+    // Добавляем событие через чистое ядро
+    batchState = telemetryBatchCore.addEvent(
+      event.level,
+      event.message,
+      event.metadata,
+      event.timestamp,
+    )(batchState);
 
-    if (batch.length >= batchSize) {
+    if (telemetryBatchCore.shouldFlush(batchState)) {
       if (timeoutId !== null) {
         globalThis.clearTimeout(timeoutId);
         timeoutId = null;

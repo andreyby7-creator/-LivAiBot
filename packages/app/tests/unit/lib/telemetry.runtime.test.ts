@@ -32,7 +32,7 @@ import {
   telemetryLevels,
   warnFireAndForget,
 } from '../../../src/lib/telemetry';
-import type { TelemetryEvent, TelemetrySink } from '../../../src/lib/telemetry';
+import type { TelemetryEvent, TelemetrySink } from '../../../src/types/telemetry';
 
 beforeEach(() => {
   vi.useFakeTimers();
