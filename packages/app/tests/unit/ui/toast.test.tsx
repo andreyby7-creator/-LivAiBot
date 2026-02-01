@@ -32,8 +32,32 @@ vi.mock('../../../src/lib/telemetry', () => ({
 
 import { Toast } from '../../../src/ui/toast';
 import { infoFireAndForget } from '../../../src/lib/telemetry';
+import type { ClientError, NetworkError } from '../../../src/types/errors';
+import type { ISODateString } from '../../../src/types/common';
 
 const mockInfoFireAndForget = vi.mocked(infoFireAndForget);
+
+// Фабричные функции для создания тестовых ошибок
+const createTestClientError = (): ClientError => ({
+  type: 'ClientError' as const,
+  severity: 'warning' as const,
+  source: 'UI',
+  code: 'TEST_ERROR',
+  message: 'Test client error',
+  context: {},
+  traceId: 'test-trace-id',
+  timestamp: new Date().toISOString() as ISODateString,
+});
+
+const createTestNetworkError = (): NetworkError => ({
+  type: 'NetworkError' as const,
+  severity: 'error' as const,
+  statusCode: 500,
+  message: 'Test network error',
+  endpoint: '/test',
+  traceId: 'test-trace-id',
+  timestamp: new Date().toISOString() as ISODateString,
+});
 
 describe('App Toast', () => {
   beforeEach(() => {
@@ -336,6 +360,51 @@ describe('App Toast', () => {
       expect(() => {
         render(<Toast content='Test' visible={true} />);
       }).not.toThrow();
+    });
+  });
+
+  describe('Error to variant mapping', () => {
+    it('ClientError должен маппиться на warning variant', () => {
+      const clientError = createTestClientError();
+
+      render(<Toast content='Error toast' visible={true} error={clientError} />);
+
+      const toast = screen.getByTestId('core-toast');
+      expect(toast).toHaveAttribute('data-variant', 'warning');
+    });
+
+    it('NetworkError должен маппиться на error variant', () => {
+      const networkError = createTestNetworkError();
+
+      render(<Toast content='Error toast' visible={true} error={networkError} />);
+
+      const toast = screen.getByTestId('core-toast');
+      expect(toast).toHaveAttribute('data-variant', 'error');
+    });
+
+    it('error имеет приоритет над explicit variant', () => {
+      const clientError = createTestClientError();
+
+      render(<Toast content='Error toast' visible={true} error={clientError} variant='info' />);
+
+      const toast = screen.getByTestId('core-toast');
+      // Ожидаем warning от error, а не info от explicit variant
+      expect(toast).toHaveAttribute('data-variant', 'warning');
+    });
+
+    it('explicit variant работает когда нет error', () => {
+      render(<Toast content='Info toast' visible={true} variant='info' />);
+
+      const toast = screen.getByTestId('core-toast');
+      expect(toast).toHaveAttribute('data-variant', 'info');
+    });
+
+    it('props.visible правильно обрабатывается через policy (не напрямую)', () => {
+      render(<Toast content='Test toast' visible={true} />);
+
+      const toast = screen.getByTestId('core-toast');
+      // visible=true должно пройти через policy и стать data-visible="true"
+      expect(toast).toHaveAttribute('data-visible', 'true');
     });
   });
 

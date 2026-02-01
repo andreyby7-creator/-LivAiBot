@@ -23,6 +23,7 @@ import type { JSX, Ref } from 'react';
 import { Toast as CoreToast } from '../../../ui-core/src/components/Toast.js';
 import type { CoreToastProps, ToastVariant } from '../../../ui-core/src/components/Toast.js';
 import { infoFireAndForget } from '../lib/telemetry.js';
+import type { AppError } from '../types/errors.js';
 
 /* ============================================================================
  * 🧬 TYPES & CONSTANTS
@@ -37,13 +38,40 @@ enum ToastTelemetryAction {
   Hide = 'hide',
 }
 
-type ToastTelemetryPayload = {
-  component: 'Toast';
-  action: ToastTelemetryAction;
-  hidden: boolean;
-  visible: boolean;
-  variant: ToastVariant;
+/**
+ * Определяет variant Toast на основе AppError или explicit props.
+ *
+ * Приоритет:
+ * 1. error.severity
+ * 2. explicit variant
+ * 3. DEFAULT_VARIANT
+ */
+type ToastVariantInput = {
+  readonly error?: AppError | undefined;
+  readonly variant?: ToastVariant | undefined;
 };
+
+function getToastVariant(props: ToastVariantInput): ToastVariant {
+  if (props.error) {
+    switch (props.error.severity) {
+      case 'warning':
+        return 'warning';
+      case 'error':
+        return 'error';
+      default:
+        return 'error';
+    }
+  }
+  return props.variant ?? DEFAULT_VARIANT;
+}
+
+type ToastTelemetryPayload = Readonly<{
+  readonly component: 'Toast';
+  readonly action: ToastTelemetryAction;
+  readonly hidden: boolean;
+  readonly visible: boolean;
+  readonly variant: ToastVariant;
+}>;
 
 export type AppToastProps = Readonly<
   Omit<CoreToastProps, 'visible'> & {
@@ -55,6 +83,9 @@ export type AppToastProps = Readonly<
 
     /** Telemetry master switch */
     telemetryEnabled?: boolean;
+
+    /** Типизированная ошибка для автоматического определения variant */
+    error?: AppError;
   }
 >;
 
@@ -84,6 +115,7 @@ function useToastPolicy(
   const hiddenByFlag = Boolean(props.isHiddenByFeatureFlag);
 
   return useMemo(() => {
+    // NOTE: если появится анимация или отложенное скрытие, rendered и visible могут расходиться
     const isRendered = !hiddenByFlag && props.visible !== false;
     return {
       hiddenByFeatureFlag: hiddenByFlag,
@@ -101,9 +133,7 @@ function emitToastTelemetry(payload: ToastTelemetryPayload): void {
   infoFireAndForget(`Toast ${payload.action}`, payload);
 }
 
-/**
- * Формирование payload для Toast telemetry.
- */
+/** Формирование payload для Toast telemetry. */
 function getToastPayload(
   action: ToastTelemetryAction,
   policy: ToastPolicy,
@@ -126,9 +156,10 @@ function getToastPayload(
 
 const ToastComponent = forwardRef<HTMLDivElement, AppToastProps>(
   function ToastComponent(props: AppToastProps, ref: Ref<HTMLDivElement>): JSX.Element | null {
-    const { ...coreProps } = props;
+    const { error, ...coreProps } = props;
     const policy = useToastPolicy(props);
-    const variant = props.variant ?? DEFAULT_VARIANT;
+
+    const variant = getToastVariant({ error, variant: props.variant });
 
     /** Минимальный набор telemetry-данных */
     const telemetryProps = useMemo(() => ({
@@ -181,7 +212,7 @@ const ToastComponent = forwardRef<HTMLDivElement, AppToastProps>(
       };
     }, [policy.telemetryEnabled, lifecyclePayload]);
 
-    /** Telemetry for visibility changes - only on changes, not on mount */
+    /** Telemetry для изменений видимости - только при изменениях, не при монтировании */
     const prevVisibleRef = useRef<boolean | undefined>(undefined);
 
     useEffect(() => {
@@ -190,7 +221,7 @@ const ToastComponent = forwardRef<HTMLDivElement, AppToastProps>(
       const currentVisibility = policy.isRendered;
       const prevVisibility = prevVisibleRef.current;
 
-      // Emit only on actual visibility changes, not on mount
+      // Отправляем только при реальных изменениях видимости, не при монтировании
       if (prevVisibility !== undefined && prevVisibility !== currentVisibility) {
         emitToastTelemetry(
           currentVisibility ? showPayload : hidePayload,
@@ -231,12 +262,13 @@ ToastComponent.displayName = 'Toast';
  * - Полная интеграция с централизованной telemetry системой
  * - Управление feature flags для скрытия уведомлений
  * - Корректная обработка accessibility (ARIA live regions)
+ * - Типизированная обработка ошибок приложения
  *
  * Инварианты:
  * - Всегда возвращает валидный JSX.Element или null
  * - Telemetry payload содержит корректный variant
  * - Feature flags полностью изолированы от Core логики
- * - ARIA атрибуты соответствуют WCAG стандартам
+ * - ARIA атрибуты корректно проксируются в CoreToast
  * - Telemetry отражает состояние policy, а не сырые props
  * - visible/hidden в payload являются производными только от policy
  *

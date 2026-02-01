@@ -34,6 +34,7 @@ import type {
   CoreLanguageSelectorProps,
   LanguageData,
 } from '../../../ui-core/src/components/LanguageSelector.js';
+import { useI18n } from '../lib/i18n.js';
 import { infoFireAndForget } from '../lib/telemetry.js';
 
 /** Тип элемента, который может рендерить LanguageSelector */
@@ -57,6 +58,9 @@ type LanguageSelectorTelemetryAction =
 type LanguageSelectorSize = 'small' | 'medium' | 'large';
 type LanguageSelectorVariant = 'default' | 'compact' | 'minimal';
 
+/** Поддерживаемые клавиши для клавиатурной навигации */
+type NavigationKey = 'Escape' | 'Enter' | ' ' | 'ArrowDown' | 'ArrowUp' | 'Home' | 'End';
+
 type LanguageSelectorTelemetryPayload = {
   component: 'LanguageSelector';
   action: LanguageSelectorTelemetryAction;
@@ -70,6 +74,7 @@ type LanguageSelectorTelemetryPayload = {
   availableLanguagesCount: number;
   showFlags: boolean;
   showCodes: boolean;
+  locale: string;
 };
 
 export type AppLanguageSelectorProps = Readonly<
@@ -172,6 +177,7 @@ function getLanguageSelectorPayload(
     availableLanguagesCount: number;
     showFlags: boolean;
     showCodes: boolean;
+    locale: string;
   },
 ): LanguageSelectorTelemetryPayload {
   return {
@@ -187,6 +193,7 @@ function getLanguageSelectorPayload(
     availableLanguagesCount: telemetryProps.availableLanguagesCount,
     showFlags: telemetryProps.showFlags,
     showCodes: telemetryProps.showCodes,
+    locale: telemetryProps.locale,
   };
 }
 
@@ -202,6 +209,7 @@ function extractLanguageSelectorTelemetryProps(
     languages: readonly LanguageData[];
     showFlags?: boolean;
     showCodes?: boolean;
+    locale: string;
   },
 ): {
   size?: LanguageSelectorSize;
@@ -210,6 +218,7 @@ function extractLanguageSelectorTelemetryProps(
   availableLanguagesCount: number;
   showFlags: boolean;
   showCodes: boolean;
+  locale: string;
 } {
   return {
     ...(props.size !== undefined && { size: props.size }),
@@ -218,6 +227,7 @@ function extractLanguageSelectorTelemetryProps(
     availableLanguagesCount: props.languages.length,
     showFlags: props.showFlags !== false,
     showCodes: props.showCodes === true,
+    locale: props.locale,
   };
 }
 
@@ -249,6 +259,31 @@ const LanguageSelectorComponent = forwardRef<LanguageSelectorElement, AppLanguag
       ...coreProps
     } = props;
 
+    // i18n интеграция для locale в telemetry и переводов
+    const { locale, translate } = useI18n();
+
+    // Хелпер для динамических переводов языков
+    const translateLanguageName = useCallback(
+      (languageCode: string, defaultName: string): string => {
+        try {
+          // Пробуем перевести через обход строгой типизации для динамических ключей
+          return (translate as (
+            ns: string,
+            key: string,
+            params?: Record<string, unknown>,
+          ) => string)(
+            'common',
+            `language.${languageCode}`,
+            { default: defaultName },
+          );
+        } catch {
+          // Fallback на оригинальное имя
+          return defaultName;
+        }
+      },
+      [translate],
+    );
+
     /** Состояние открытия dropdown в App слое */
     const policy = useLanguageSelectorPolicy(props);
 
@@ -262,6 +297,7 @@ const LanguageSelectorComponent = forwardRef<LanguageSelectorElement, AppLanguag
           languages,
           ...(showFlags !== undefined && { showFlags }),
           ...(showCodes !== undefined && { showCodes }),
+          locale,
         }),
       [
         size,
@@ -270,6 +306,7 @@ const LanguageSelectorComponent = forwardRef<LanguageSelectorElement, AppLanguag
         languages,
         showFlags,
         showCodes,
+        locale,
       ],
     );
 
@@ -278,6 +315,9 @@ const LanguageSelectorComponent = forwardRef<LanguageSelectorElement, AppLanguag
     /** Определяем режим: controlled или uncontrolled */
     const isControlled = typeof controlledIsOpen === 'boolean';
     const isOpen = isControlled ? controlledIsOpen : internalIsOpen;
+
+    // Ref для стабильного сравнения isOpen (избегает false positives в controlled mode)
+    const lastIsOpenRef = useRef<boolean>(isOpen);
 
     /** Функция для изменения состояния открытия с поддержкой controlled mode */
     const setIsOpen = useCallback((newIsOpen: boolean | ((prev: boolean) => boolean)) => {
@@ -290,7 +330,7 @@ const LanguageSelectorComponent = forwardRef<LanguageSelectorElement, AppLanguag
       }
 
       // Telemetry для открытия/закрытия dropdown
-      if (policy.telemetryEnabled && nextIsOpen !== isOpen) {
+      if (policy.telemetryEnabled && nextIsOpen !== lastIsOpenRef.current) {
         emitLanguageSelectorTelemetry(
           getLanguageSelectorPayload(
             nextIsOpen
@@ -301,24 +341,40 @@ const LanguageSelectorComponent = forwardRef<LanguageSelectorElement, AppLanguag
           ),
         );
       }
+
+      // Обновляем ref для стабильного сравнения
+      // eslint-disable-next-line functional/immutable-data
+      lastIsOpenRef.current = nextIsOpen;
     }, [isOpen, isControlled, onOpenChange, setInternalIsOpen, policy, telemetryProps]);
+
+    /** Переведенные имена языков для отображения */
+    const translatedLanguages = useMemo(
+      () =>
+        languages.map((lang) => ({
+          ...lang,
+          name: translateLanguageName(lang.code, lang.name),
+        })),
+      [languages, translateLanguageName],
+    );
+
+    /** Доступные (не отключенные) языки для навигации */
+    const navigableLanguages = useMemo(
+      () => translatedLanguages.filter((lang) => lang.isDisabled !== true),
+      [translatedLanguages],
+    );
 
     /** Состояние активного индекса для клавиатурной навигации */
     const [activeIndex, setActiveIndex] = useState(-1);
 
-    /** Доступные (не отключенные) языки для навигации */
-    const navigableLanguages = useMemo(
-      () => languages.filter((lang) => lang.isDisabled !== true),
-      [languages],
-    );
-
     /** Индекс выбранного языка в списке доступных языков */
     const selectedNavigableIndex = useMemo(() => {
       if (!selectedLanguageCode) return -1;
-      const selectedLanguage = languages.find((lang) => lang.code === selectedLanguageCode);
+      const selectedLanguage = translatedLanguages.find((lang) =>
+        lang.code === selectedLanguageCode
+      );
       if (!selectedLanguage || selectedLanguage.isDisabled === true) return -1;
       return navigableLanguages.findIndex((lang) => lang.code === selectedLanguage.code);
-    }, [languages, selectedLanguageCode, navigableLanguages]);
+    }, [translatedLanguages, selectedLanguageCode, navigableLanguages]);
 
     /** Фильтруем controlled props из coreProps (App-слой управляет этими аспектами) */
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -465,7 +521,7 @@ const LanguageSelectorComponent = forwardRef<LanguageSelectorElement, AppLanguag
 
     /** Вспомогательная функция для обработки клавиш */
     // eslint-disable-next-line sonarjs/cognitive-complexity
-    const processKey = useCallback((key: string, event: KeyboardEvent) => {
+    const processKey = useCallback((key: NavigationKey, event: KeyboardEvent) => {
       switch (key) {
         case 'Escape':
           if (Boolean(isOpen)) {
@@ -531,7 +587,10 @@ const LanguageSelectorComponent = forwardRef<LanguageSelectorElement, AppLanguag
 
     /** Обработчик клавиатуры для навигации (App-слой управляет навигацией) */
     const handleKeyDown = useCallback((event: KeyboardEvent) => {
-      processKey(event.key, event);
+      const key = event.key as NavigationKey;
+      if (['Escape', 'Enter', ' ', 'ArrowDown', 'ArrowUp', 'Home', 'End'].includes(key)) {
+        processKey(key, event);
+      }
     }, [processKey]);
 
     /** Policy: hidden */
@@ -540,13 +599,15 @@ const LanguageSelectorComponent = forwardRef<LanguageSelectorElement, AppLanguag
     return (
       <CoreLanguageSelector
         ref={ref}
-        languages={languages}
+        languages={translatedLanguages}
         selectedLanguageCode={selectedLanguageCode}
         isOpen={isOpen}
         onToggle={handleToggle}
         onClose={handleClose}
         onKeyDown={handleKeyDown}
-        activeDescendantId={isOpen
+        role='listbox'
+        aria-expanded={isOpen}
+        aria-activedescendant={isOpen
             && activeIndex >= 0
             && activeIndex < navigableLanguages.length
             && dataTestId != null

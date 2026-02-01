@@ -297,6 +297,14 @@ describe('App DatePicker', () => {
       expect(screen.queryByTestId('core-date-picker')).not.toBeInTheDocument();
     });
 
+    it('не должен рендерить когда visible=false && isHiddenByFeatureFlag=true', () => {
+      render(
+        <DatePicker visible={false} isHiddenByFeatureFlag={true} />,
+      );
+
+      expect(screen.queryByTestId('core-date-picker')).not.toBeInTheDocument();
+    });
+
     it('должен рендерить когда visible=true и isHiddenByFeatureFlag=false', () => {
       render(
         <DatePicker visible={true} isHiddenByFeatureFlag={false} />,
@@ -529,6 +537,43 @@ describe('App DatePicker', () => {
         expect(dayAfterMax).toHaveAttribute('data-disabled', 'true');
       }
     });
+
+    it('должен вызывать onInvalidInput при вводе даты до minDate', () => {
+      const onInvalidInput = vi.fn();
+      const minDate = new Date('2024-01-10');
+      render(<DatePicker {...{ minDate, onInvalidInput } as unknown as AppDatePickerProps} />);
+
+      const input = screen.getByTestId('date-input');
+      fireEvent.change(input, { target: { value: '2024-01-05' } });
+
+      expect(onInvalidInput).toHaveBeenCalledWith('2024-01-05');
+    });
+
+    it('должен вызывать onInvalidInput при вводе даты после maxDate', () => {
+      const onInvalidInput = vi.fn();
+      const maxDate = new Date('2024-12-31');
+      render(<DatePicker {...{ maxDate, onInvalidInput } as unknown as AppDatePickerProps} />);
+
+      const input = screen.getByTestId('date-input');
+      fireEvent.change(input, { target: { value: '2025-01-01' } });
+
+      expect(onInvalidInput).toHaveBeenCalledWith('2025-01-01');
+    });
+
+    it('должен принимать дату в диапазоне minDate/maxDate при ручном вводе', () => {
+      const onChange = vi.fn();
+      const minDate = new Date('2024-01-01');
+      const maxDate = new Date('2024-12-31');
+      render(<DatePicker {...{ minDate, maxDate, onChange } as unknown as AppDatePickerProps} />);
+
+      const input = screen.getByTestId('date-input');
+      fireEvent.change(input, { target: { value: '2024-06-15' } });
+
+      expect(onChange).toHaveBeenCalledWith(
+        expect.any(Date),
+        '2024-06-15',
+      );
+    });
   });
 
   describe('Обработчики событий', () => {
@@ -565,6 +610,30 @@ describe('App DatePicker', () => {
       fireEvent.change(input, { target: { value: 'invalid-date' } });
 
       expect(handleChange).not.toHaveBeenCalled();
+    });
+
+    it('должен вызывать onInvalidInput при вводе невалидной даты', () => {
+      const onInvalidInput = vi.fn();
+      render(<DatePicker onInvalidInput={onInvalidInput} />);
+
+      const input = screen.getByTestId('date-input');
+      fireEvent.change(input, { target: { value: 'not-a-date' } });
+
+      expect(onInvalidInput).toHaveBeenCalledWith('not-a-date');
+    });
+
+    it('должен вызывать onInvalidInput при вводе даты вне диапазона minDate/maxDate', () => {
+      const onInvalidInput = vi.fn();
+      const minDate = new Date('2024-01-01');
+      const maxDate = new Date('2024-12-31');
+      render(
+        <DatePicker {...{ minDate, maxDate, onInvalidInput } as unknown as AppDatePickerProps} />,
+      );
+
+      const input = screen.getByTestId('date-input');
+      fireEvent.change(input, { target: { value: '2025-01-01' } });
+
+      expect(onInvalidInput).toHaveBeenCalledWith('2025-01-01');
     });
 
     it('должен использовать кастомный format при парсинге input', () => {
@@ -979,6 +1048,67 @@ describe('App DatePicker', () => {
         const payload = mountCall[1] as Record<string, unknown>;
         expect(payload['visible']).toBe(false);
       }
+    });
+
+    it('должен отправлять telemetry только при первом открытии календаря', () => {
+      render(<DatePicker />);
+
+      // Очищаем начальные вызовы
+      vi.clearAllMocks();
+
+      const toggleButton = screen.getByTestId('toggle-button');
+
+      // Первое открытие - должен отправить open
+      fireEvent.click(toggleButton);
+      expect(mockInfoFireAndForget).toHaveBeenCalledWith(
+        'DatePicker open',
+        expect.any(Object),
+      );
+
+      // Очищаем вызовы
+      vi.clearAllMocks();
+
+      // Закрытие - должен отправить close
+      fireEvent.click(toggleButton);
+      expect(mockInfoFireAndForget).toHaveBeenCalledWith(
+        'DatePicker close',
+        expect.any(Object),
+      );
+
+      // Очищаем вызовы
+      vi.clearAllMocks();
+
+      // Повторное открытие - снова должен отправить open
+      fireEvent.click(toggleButton);
+      expect(mockInfoFireAndForget).toHaveBeenCalledWith(
+        'DatePicker open',
+        expect.any(Object),
+      );
+    });
+
+    it('должен отправлять change telemetry при каждом изменении через input', () => {
+      render(<DatePicker />);
+
+      const input = screen.getByTestId('date-input');
+
+      // Первое изменение
+      fireEvent.change(input, { target: { value: '2024-01-15' } });
+      expect(mockInfoFireAndForget).toHaveBeenCalledWith(
+        'DatePicker change',
+        expect.objectContaining({
+          value: '2024-01-15',
+        }),
+      );
+
+      // Второе изменение
+      vi.clearAllMocks();
+      fireEvent.change(input, { target: { value: '2024-03-20' } });
+      expect(mockInfoFireAndForget).toHaveBeenCalledWith(
+        'DatePicker change',
+        expect.objectContaining({
+          value: '2024-03-20',
+        }),
+      );
     });
   });
 

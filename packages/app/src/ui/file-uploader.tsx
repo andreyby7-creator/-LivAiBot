@@ -31,20 +31,17 @@ import type {
   FileInfo,
 } from '../../../ui-core/src/components/FileUploader.js';
 import { infoFireAndForget } from '../lib/telemetry.js';
+import { formatFileSize, validateFileBasic } from '../lib/validation.js';
+import type {
+  AppFileStatus,
+  FileValidationResult,
+  InternalFileInfo,
+  UploadDomainStatus,
+} from '../types/api.js';
 
 /* ============================================================================
  * 🧬 TYPES & CONSTANTS
  * ========================================================================== */
-
-/** Domain статус загрузки файла (бизнес-логика) */
-type UploadDomainStatus = 'idle' | 'uploading' | 'success' | 'error';
-
-/** UI статус файла для отображения (не зависит от Core) */
-type AppFileStatus =
-  | Readonly<{ type: 'pending'; label: string; }>
-  | Readonly<{ type: 'progress'; label: string; }>
-  | Readonly<{ type: 'success'; label: string; }>
-  | Readonly<{ type: 'error'; label: string; }>;
 
 enum FileUploaderTelemetryAction {
   Mount = 'mount',
@@ -78,12 +75,6 @@ type TelemetryBase = Readonly<{
   visible: boolean;
   filesCount: number;
   totalSize: number;
-}>;
-
-/** Результат валидации файла */
-type FileValidationResult = Readonly<{
-  valid: boolean;
-  error?: string;
 }>;
 
 export type AppFileUploaderProps = Readonly<
@@ -176,13 +167,6 @@ function useFileUploaderPolicy(props: AppFileUploaderProps): FileUploaderPolicy 
  * ========================================================================== */
 
 /** Внутренний тип для хранения состояния файлов (единственный источник истины) */
-type InternalFileInfo = Readonly<{
-  id: string;
-  file: File;
-  uploadStatus: UploadDomainStatus;
-  uploadProgress?: number;
-  errorMessage?: string;
-}>;
 
 /**
  * Фабрика базовых полей для telemetry payload
@@ -222,70 +206,10 @@ function emitFileUploaderTelemetry(payload: FileUploaderTelemetryPayload): void 
  * ========================================================================== */
 
 /** Константы для форматирования размера файла */
-const BYTES_PER_KB = 1024;
-const FILE_SIZE_UNITS = ['Bytes', 'KB', 'MB', 'GB'] as const;
-const MIME_TYPE_WILDCARD_SUFFIX_LENGTH = 2; // Длина "/*"
 
 /**
  * Валидация файла по базовым правилам (размер, тип, количество)
  */
-function validateFileBasic(
-  file: File,
-  maxSize?: number,
-  accept?: string,
-): FileValidationResult {
-  // Проверка размера
-  if (maxSize !== undefined && file.size > maxSize) {
-    return {
-      valid: false,
-      error: `Файл "${file.name}" превышает максимальный размер ${formatFileSize(maxSize)}`,
-    };
-  }
-
-  // Проверка типа (если указан accept)
-  if (accept !== undefined && accept !== '' && accept !== '*') {
-    const acceptedTypes = accept.split(',').map((type) => type.trim());
-    const fileType = file.type.toLowerCase();
-    const fileName = file.name.toLowerCase();
-
-    const isAccepted = acceptedTypes.some((acceptedType) => {
-      if (acceptedType.endsWith('/*')) {
-        // Паттерн типа "image/*"
-        const baseType = acceptedType.slice(
-          0,
-          acceptedType.length - MIME_TYPE_WILDCARD_SUFFIX_LENGTH,
-        );
-        return fileType.startsWith(baseType);
-      }
-      if (acceptedType.startsWith('.')) {
-        // Расширение файла ".pdf"
-        return fileName.endsWith(acceptedType.toLowerCase());
-      }
-      // Точный MIME тип
-      return fileType === acceptedType.toLowerCase();
-    });
-
-    if (!isAccepted) {
-      return {
-        valid: false,
-        error: `Файл "${file.name}" имеет недопустимый тип. Разрешены: ${accept}`,
-      };
-    }
-  }
-
-  return { valid: true };
-}
-
-/**
- * Форматирование размера файла
- */
-function formatFileSize(bytes: number): string {
-  if (bytes === 0) return '0 Bytes';
-  const i = Math.floor(Math.log(bytes) / Math.log(BYTES_PER_KB));
-  return `${Math.round((bytes / Math.pow(BYTES_PER_KB, i)) * 100) / 100} ${
-    FILE_SIZE_UNITS[i] ?? 'Bytes'
-  }`;
-}
 
 /**
  * Форматирование типа файла

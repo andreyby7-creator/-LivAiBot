@@ -12,8 +12,14 @@
  * - Готов к микросервисной архитектуре
  */
 
+import dayjs from 'dayjs';
+import localizedFormat from 'dayjs/plugin/localizedFormat.js';
+import 'dayjs/locale/en.js';
 import React, { createContext, useCallback, useContext, useMemo, useReducer } from 'react';
 import type { ReactNode } from 'react';
+
+// Инициализация dayjs плагинов
+dayjs.extend(localizedFormat);
 
 /* ============================================================================
  * 🏷️ ТИПЫ
@@ -33,6 +39,147 @@ function interpolateParams(str: string, params?: Record<string, string | number>
     (acc, [k, v]) => acc.replace(new RegExp(`{${k}}`, 'g'), String(v)),
     str,
   );
+}
+
+/* ============================================================================
+ * 📅 DAYJS LOCALE MANAGEMENT
+ * ========================================================================== */
+
+/**
+ * Устанавливает локаль для dayjs.
+ * SSR-safe: использует динамический импорт для bundle splitting.
+ *
+ * @param locale - код локали (например, 'ru', 'en', 'de')
+ */
+export async function setDayjsLocale(locale: string): Promise<void> {
+  try {
+    // Динамический импорт для bundle splitting
+    await import(`dayjs/locale/${locale}.js`);
+    dayjs.locale(locale);
+
+    // Telemetry для отслеживания использования локалей (только в dev)
+    if (typeof window !== 'undefined' && process.env['NODE_ENV'] === 'development') {
+      // eslint-disable-next-line no-console
+      console.log(`[i18n] Dayjs locale set to: ${locale}`);
+    }
+  } catch (error) {
+    // Fallback на английский при ошибке загрузки
+    dayjs.locale('en');
+
+    // Telemetry для ошибок локализации
+    if (typeof window !== 'undefined') {
+      // eslint-disable-next-line no-console
+      console.warn(`[i18n] Failed to load dayjs locale '${locale}', fallback to 'en'`, error);
+    }
+  }
+}
+
+/**
+ * Синхронная установка локали (для случаев когда локаль уже загружена).
+ * Использовать только после предварительной загрузки через setDayjsLocale.
+ *
+ * @param locale - код локали
+ */
+export function setDayjsLocaleSync(locale: string): void {
+  try {
+    dayjs.locale(locale);
+  } catch (error) {
+    dayjs.locale('en');
+    if (typeof window !== 'undefined') {
+      // eslint-disable-next-line no-console
+      console.warn(`[i18n] Failed to set dayjs locale '${locale}' sync, fallback to 'en'`, error);
+    }
+  }
+}
+
+/**
+ * Получает текущую установленную локаль dayjs.
+ */
+export function getCurrentDayjsLocale(): string {
+  return dayjs.locale();
+}
+
+/**
+ * Проверяет доступна ли локаль для dayjs.
+ *
+ * @param locale - код локали для проверки
+ */
+export function isDayjsLocaleSupported(locale: string): boolean {
+  // Список поддерживаемых локалей dayjs
+  const supportedLocales = [
+    'en',
+    'ru',
+    'de',
+    'fr',
+    'es',
+    'it',
+    'pt',
+    'zh',
+    'ja',
+    'ko',
+    'ar',
+    'hi',
+    'bn',
+    'ur',
+    'fa',
+    'tr',
+    'pl',
+    'uk',
+    'cs',
+    'sk',
+    'bg',
+    'hr',
+    'sl',
+    'et',
+    'lv',
+    'lt',
+    'ro',
+    'hu',
+    'el',
+    'he',
+    'th',
+    'vi',
+    'id',
+    'ms',
+    'tl',
+    'sw',
+    'am',
+    'om',
+    'ti',
+    'so',
+  ];
+
+  return supportedLocales.includes(locale);
+}
+
+/**
+ * Форматирует дату в локализованном формате.
+ * Удобная обертка над dayjs с текущей локалью.
+ *
+ * @param date - дата для форматирования
+ * @param format - формат dayjs (например, 'MMMM YYYY')
+ */
+export function formatDateLocalized(date: Date | dayjs.Dayjs | string, format: string): string {
+  return dayjs(date).format(format);
+}
+
+/**
+ * Простая функция перевода без React контекста.
+ * Используется для базовых случаев где React контекст недоступен.
+ * Пока возвращает ключ как есть (заглушка для будущей реализации).
+ *
+ * @param key - ключ перевода
+ * @param params - параметры для интерполяции
+ */
+export function t(
+  key: string,
+  params?: Record<string, string | number> & { default?: string; },
+): string {
+  // TODO: Реализовать полноценную систему переводов без React контекста
+  // Пока возвращаем default или ключ
+  if (params?.default !== undefined && params.default !== '') return params.default;
+  if (!params || Object.keys(params).length === 0) return key;
+  return interpolateParams(key, params);
 }
 
 function getLocalePath(locale: string, ns: Namespace): string {

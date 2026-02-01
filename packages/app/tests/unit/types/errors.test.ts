@@ -83,6 +83,7 @@ describe('AppError discriminated union', () => {
   it('создает ClientError', () => {
     const error: ClientError = {
       type: 'ClientError',
+      severity: 'warning',
       source: 'UI',
       code: 'INVALID_ACTION',
       message: 'User performed invalid action',
@@ -103,6 +104,7 @@ describe('AppError discriminated union', () => {
   it('создает ValidationError', () => {
     const error: ValidationError = {
       type: 'ValidationError',
+      severity: 'warning',
       fieldErrors: {
         email: 'Invalid email format',
         password: 'Password too short',
@@ -125,6 +127,7 @@ describe('AppError discriminated union', () => {
   it('создает ValidationError без fieldErrors', () => {
     const error: ValidationError = {
       type: 'ValidationError',
+      severity: 'warning',
       message: 'General validation error',
       timestamp: createISODateString('2026-01-16T12:34:56.000Z'),
     };
@@ -139,6 +142,7 @@ describe('AppError discriminated union', () => {
   it('создает NetworkError', () => {
     const error: NetworkError = {
       type: 'NetworkError',
+      severity: 'error',
       statusCode: 500,
       message: 'Internal server error',
       endpoint: '/api/users',
@@ -159,6 +163,7 @@ describe('AppError discriminated union', () => {
   it('создает NetworkError с минимальными полями', () => {
     const error: NetworkError = {
       type: 'NetworkError',
+      severity: 'error',
       message: 'Network timeout',
       timestamp: createISODateString('2026-01-16T12:34:56.000Z'),
     };
@@ -176,6 +181,7 @@ describe('AppError discriminated union', () => {
     const apiError = createApiError();
     const error: ServerError = {
       type: 'ServerError',
+      severity: 'error',
       apiError,
       endpoint: '/api/users',
       platform: 'web',
@@ -193,6 +199,7 @@ describe('AppError discriminated union', () => {
     const apiError = createApiError();
     const error: ServerError = {
       type: 'ServerError',
+      severity: 'error',
       apiError,
       timestamp: createISODateString('2026-01-16T12:34:56.000Z'),
     };
@@ -208,6 +215,7 @@ describe('AppError discriminated union', () => {
     const originalError = new Error('Original error');
     const error: UnknownError = {
       type: 'UnknownError',
+      severity: 'error',
       message: 'Something went wrong',
       original: originalError,
       traceId: 'trace-202',
@@ -224,6 +232,7 @@ describe('AppError discriminated union', () => {
   it('создает UnknownError с минимальными полями', () => {
     const error: UnknownError = {
       type: 'UnknownError',
+      severity: 'error',
       message: 'Unknown error occurred',
       timestamp: createISODateString('2026-01-16T12:34:56.000Z'),
     };
@@ -265,6 +274,7 @@ describe('ClientError тип', () => {
   it('создает полную клиентскую ошибку', () => {
     const error: ClientError = {
       type: 'ClientError',
+      severity: 'warning',
       source: 'UI',
       code: 'BUTTON_CLICK_ERROR',
       message: 'Failed to handle button click',
@@ -285,6 +295,7 @@ describe('ClientError тип', () => {
   it('создает минимальную клиентскую ошибку', () => {
     const error: ClientError = {
       type: 'ClientError',
+      severity: 'warning',
       source: 'UNKNOWN',
       code: 'GENERIC_ERROR',
       message: 'Something went wrong',
@@ -309,6 +320,7 @@ describe('ValidationError тип', () => {
   it('создает ошибку валидации с field errors', () => {
     const error: ValidationError = {
       type: 'ValidationError',
+      severity: 'warning',
       fieldErrors: {
         username: 'Username must be at least 3 characters',
         email: 'Invalid email format',
@@ -333,6 +345,7 @@ describe('ValidationError тип', () => {
   it('создает ошибку валидации без field errors', () => {
     const error: ValidationError = {
       type: 'ValidationError',
+      severity: 'warning',
       message: 'Invalid request payload',
       timestamp: createISODateString('2026-01-16T12:34:56.000Z'),
     };
@@ -353,6 +366,7 @@ describe('NetworkError тип', () => {
   it('создает полную сетевую ошибку', () => {
     const error: NetworkError = {
       type: 'NetworkError',
+      severity: 'error',
       statusCode: 404,
       message: 'Resource not found',
       endpoint: '/api/users/123',
@@ -373,6 +387,7 @@ describe('NetworkError тип', () => {
   it('создает сетевую ошибку с timeout', () => {
     const error: NetworkError = {
       type: 'NetworkError',
+      severity: 'error',
       statusCode: 408,
       message: 'Request timeout',
       endpoint: '/api/slow-endpoint',
@@ -395,6 +410,7 @@ describe('ServerError тип', () => {
     const apiError = createApiError();
     const error: ServerError = {
       type: 'ServerError',
+      severity: 'error',
       apiError,
       endpoint: '/api/auth/login',
       platform: 'web',
@@ -412,6 +428,7 @@ describe('ServerError тип', () => {
     const apiError = createApiError();
     const error: ServerError = {
       type: 'ServerError',
+      severity: 'error',
       apiError,
       timestamp: createISODateString('2026-01-16T12:34:56.000Z'),
     };
@@ -433,6 +450,7 @@ describe('UnknownError тип', () => {
     const originalError = new TypeError('Invalid type provided');
     const error: UnknownError = {
       type: 'UnknownError',
+      severity: 'error',
       message: 'Unexpected error occurred',
       original: originalError,
       traceId: 'unknown-trace-101',
@@ -449,6 +467,7 @@ describe('UnknownError тип', () => {
   it('создает неизвестную ошибку без оригинальной ошибки', () => {
     const error: UnknownError = {
       type: 'UnknownError',
+      severity: 'error',
       message: 'Something unexpected happened',
       timestamp: createISODateString('2026-01-16T12:34:56.000Z'),
     };
@@ -473,6 +492,7 @@ describe('ErrorFn тип', () => {
       errorCount++;
       return {
         type: 'ClientError',
+        severity: 'warning',
         source: 'UI',
         code: 'TEST_ERROR',
         message: `Test error #${errorCount}`,
@@ -515,6 +535,7 @@ describe('ErrorHandler тип', () => {
 
     const clientError: ClientError = {
       type: 'ClientError',
+      severity: 'warning',
       source: 'UI',
       code: 'TEST',
       message: 'Test client error',
@@ -523,6 +544,7 @@ describe('ErrorHandler тип', () => {
 
     const validationError: ValidationError = {
       type: 'ValidationError',
+      severity: 'warning',
       message: 'Test validation error',
       timestamp: createISODateString('2026-01-16T12:34:56.000Z'),
     };
@@ -545,6 +567,7 @@ describe('IsErrorOfType тип', () => {
 
     const clientError: ClientError = {
       type: 'ClientError',
+      severity: 'warning',
       source: 'UI',
       code: 'TEST',
       message: 'Test error',
@@ -553,6 +576,7 @@ describe('IsErrorOfType тип', () => {
 
     const validationError: ValidationError = {
       type: 'ValidationError',
+      severity: 'warning',
       message: 'Validation error',
       timestamp: createISODateString('2026-01-16T12:34:56.000Z'),
     };
@@ -576,12 +600,14 @@ describe('IsErrorOfType тип', () => {
 
     const validationError: ValidationError = {
       type: 'ValidationError',
+      severity: 'warning',
       message: 'Validation failed',
       timestamp: createISODateString('2026-01-16T12:34:56.000Z'),
     };
 
     const networkError: NetworkError = {
       type: 'NetworkError',
+      severity: 'error',
       message: 'Network error',
       timestamp: createISODateString('2026-01-16T12:34:56.000Z'),
     };
@@ -660,6 +686,7 @@ describe('handleError функция', () => {
     try {
       const clientError: ClientError = {
         type: 'ClientError',
+        severity: 'warning',
         source: 'UI',
         code: 'TEST',
         message: 'Client error',
@@ -668,24 +695,28 @@ describe('handleError функция', () => {
 
       const validationError: ValidationError = {
         type: 'ValidationError',
+        severity: 'warning',
         message: 'Validation error',
         timestamp: createISODateString('2026-01-16T12:34:56.000Z'),
       };
 
       const networkError: NetworkError = {
         type: 'NetworkError',
+        severity: 'error',
         message: 'Network error',
         timestamp: createISODateString('2026-01-16T12:34:56.000Z'),
       };
 
       const serverError: ServerError = {
         type: 'ServerError',
+        severity: 'error',
         apiError: createApiError(),
         timestamp: createISODateString('2026-01-16T12:34:56.000Z'),
       };
 
       const unknownError: UnknownError = {
         type: 'UnknownError',
+        severity: 'error',
         message: 'Unknown error',
         timestamp: createISODateString('2026-01-16T12:34:56.000Z'),
       };
@@ -727,6 +758,7 @@ describe('handleError функция', () => {
 
     const clientError: ClientError = {
       type: 'ClientError',
+      severity: 'warning',
       source: 'UI',
       code: 'TEST',
       message: 'Test error',
@@ -751,6 +783,7 @@ describe('Экспорты типов', () => {
       frontendErrorSource: 'UI' as FrontendErrorSource,
       appError: {
         type: 'ClientError' as const,
+        severity: 'warning' as const,
         source: 'UI' as const,
         code: 'TEST',
         message: 'Test',
@@ -771,6 +804,7 @@ describe('Экспорты типов', () => {
     // Проверяем handleError (без side effects)
     const mockError: ClientError = {
       type: 'ClientError',
+      severity: 'warning',
       source: 'UI',
       code: 'TEST',
       message: 'Test error',

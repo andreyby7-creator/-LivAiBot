@@ -21,6 +21,16 @@ import type { ServiceErrorCode, ServicePrefix, TaggedError } from './error-mappi
 import { errorFireAndForget, warnFireAndForget } from './telemetry.js';
 
 /* ============================================================================
+ * 🎭 PUBLIC API
+ * ========================================================================== */
+
+/**
+ * Схема валидации — абстракция для UI-слоя.
+ * UI компоненты работают только с этой абстракцией, не зная деталей реализации.
+ */
+export type ValidationSchema = unknown;
+
+/* ============================================================================
  * 🧠 КОНТЕКСТ ВАЛИДАЦИИ
  * ========================================================================== */
 
@@ -32,12 +42,12 @@ import { errorFireAndForget, warnFireAndForget } from './telemetry.js';
  * - feature flags
  * - локали
  */
-export type ValidationContext = {
+export type ValidationContext = Readonly<{
   readonly requestId?: string;
   readonly traceId?: string;
   readonly locale?: string;
   readonly service?: ServicePrefix;
-};
+}>;
 
 /* ============================================================================
  * ❌ ОШИБКИ ВАЛИДАЦИИ
@@ -336,4 +346,154 @@ export function validateObject<T extends Record<string, unknown>>(
 // Оборачивает sync-валидатор в async
 export function toAsync<T>(validator: Validator<T>): AsyncValidator<T> {
   return async (input, ctx) => Promise.resolve(validator(input, ctx));
+}
+
+/* ============================================================================
+ * 🏗️ FORM VALIDATION ADAPTER
+ * ========================================================================== */
+
+/**
+ * Результат валидации формы — абстракция для UI-слоя.
+ * Form компонент работает только с этой абстракцией, не зная деталей валидации.
+ */
+export type FormValidationResult = ValidationResult<Record<string, unknown>>;
+
+/**
+ * Валидирует HTML форму по схеме.
+ * Validation ожидает HTMLFormElement — не FormData или кастомный объект.
+ *
+ * NOTE:
+ * Если схема некорректна или не распознана,
+ * валидация считается успешной (fail-soft),
+ * ошибка логируется через telemetry.
+ *
+ * @param form - HTML форма для валидации
+ * @param schema - схема валидации (абстракция для UI-слоя)
+ * @param context - контекст валидации
+ * @returns результат валидации
+ */
+export function validateForm(
+  form: HTMLFormElement,
+  schema: ValidationSchema,
+  context?: ValidationContext,
+): FormValidationResult {
+  // Преобразуем FormData в объект для валидации
+  const formData = new FormData(form);
+
+  // Создаем иммутабельный объект данных
+  const data = Array.from(formData.entries()).reduce<Record<string, unknown>>(
+    (acc, [key, value]) => {
+      // Обрабатываем множественные значения (checkboxes, multiple selects)
+      if (acc[key] !== undefined) {
+        if (Array.isArray(acc[key])) {
+          return {
+            ...acc,
+            [key]: [...(acc[key] as unknown[]), value],
+          };
+        } else {
+          return {
+            ...acc,
+            [key]: [acc[key], value],
+          };
+        }
+      } else {
+        return {
+          ...acc,
+          [key]: value,
+        };
+      }
+    },
+    {},
+  );
+
+  // Если схема не является ObjectSchema, возвращаем успешный результат
+  // UI-слой не знает тип схемы, поэтому делегируем проверку
+  if (!isObjectSchema(schema)) {
+    warnFireAndForget('Invalid validation schema provided to validateForm', {
+      schemaType: typeof schema,
+      ...(context?.service && { service: context.service }),
+    });
+    return ok(data);
+  }
+
+  // Вызываем валидацию через validateObject
+  return validateObject(schema)(data, context ?? {});
+}
+
+/**
+ * Type guard для проверки что схема является ObjectSchema.
+ * Внутренняя функция — UI-слой не должен знать о типах схем.
+ */
+function isObjectSchema<T extends Record<string, unknown>>(
+  schema: unknown,
+): schema is ObjectSchema<T> {
+  return (
+    typeof schema === 'object'
+    && schema !== null
+    && Object.values(schema).every((validator) => typeof validator === 'function')
+  );
+}
+
+/* ============================================================================
+ * 📁 FILE VALIDATION ADAPTER
+ * ========================================================================== */
+
+const BYTES_PER_KILOBYTE = 1024; // 2^10 bytes in a kilobyte
+
+/**
+ * Форматирует размер файла в человеко-читаемый формат.
+ */
+export function formatFileSize(bytes: number): string {
+  if (bytes === 0) return '0 Bytes';
+  const FILE_SIZE_UNITS = ['Bytes', 'KB', 'MB', 'GB'] as const;
+  const i = Math.floor(Math.log(bytes) / Math.log(BYTES_PER_KILOBYTE));
+  return `${Math.round((bytes / Math.pow(BYTES_PER_KILOBYTE, i)) * 100) / 100} ${
+    FILE_SIZE_UNITS[i] ?? 'Bytes'
+  }`;
+}
+
+/**
+ * Валидирует один файл по базовым правилам.
+ * Централизованная логика для предотвращения дублирования.
+ */
+export function validateFileBasic(
+  file: File,
+  maxSize?: number,
+  accept?: string,
+): import('../types/api.js').FileValidationResult {
+  // Проверка размера
+  if (maxSize !== undefined && file.size > maxSize) {
+    return {
+      valid: false,
+      error: `Файл "${file.name}" превышает максимальный размер ${formatFileSize(maxSize)}`,
+    };
+  }
+
+  // Проверка типа (если указан accept)
+  if (accept !== undefined && accept !== '' && accept !== '*') {
+    const acceptedTypes = accept.split(',').map((type) => type.trim());
+    const fileType = file.type.toLowerCase();
+    const fileName = file.name.toLowerCase();
+
+    const MIME_WILDCARD_SUFFIX_LENGTH = 2; // Длина суффикса "/*"
+    const isAccepted = acceptedTypes.some((acceptedType) => {
+      const trimmed = acceptedType.toLowerCase();
+      if (trimmed.endsWith('/*')) {
+        return fileType.startsWith(trimmed.slice(0, -MIME_WILDCARD_SUFFIX_LENGTH));
+      }
+      if (trimmed.startsWith('.')) {
+        return fileName.endsWith(trimmed);
+      }
+      return fileType === trimmed;
+    });
+
+    if (!isAccepted) {
+      return {
+        valid: false,
+        error: `Недопустимый тип файла: ${file.name}`,
+      };
+    }
+  }
+
+  return { valid: true };
 }

@@ -33,6 +33,7 @@ import type {
   CalendarWeek,
   CoreDatePickerProps,
 } from '../../../ui-core/src/components/DatePicker.js';
+import { formatDateLocalized, setDayjsLocale, t } from '../lib/i18n.js';
 import { infoFireAndForget } from '../lib/telemetry.js';
 
 /* ============================================================================
@@ -92,6 +93,9 @@ export type AppDatePickerProps = Readonly<
 
     /** Test ID для автотестов */
     'data-testid'?: string;
+
+    /** Callback при некорректном вводе даты */
+    onInvalidInput?: (value: string) => void;
   }
 >;
 
@@ -238,36 +242,26 @@ const DatePickerComponent = forwardRef<HTMLDivElement, AppDatePickerProps>(
     const {
       value: valueProp,
       onChange,
+      onInvalidInput,
       format = DEFAULT_FORMAT,
       locale,
       minDate: minDateProp,
       maxDate: maxDateProp,
       disabled = false,
-      placeholder = 'Select date',
+      placeholder = t('datepicker.placeholder', { default: 'Select date' }),
       'data-testid': testId,
       ...coreProps
     } = props;
 
     const policy = useDatePickerPolicy(props);
 
-    // Инициализация locale для dayjs
+    // Инициализация locale для dayjs через централизованную систему
+    // SSR-safe: не вызывать side-effects на сервере
     useEffect(() => {
-      if (locale !== undefined) {
-        // Динамический импорт locale для dayjs
-        // Проверка на частые изменения locale не требуется, т.к. locale обычно стабилен
-        import(`dayjs/locale/${locale}.js`)
-          .then(() => {
-            dayjs.locale(locale);
-            return undefined;
-          })
-          .catch((error) => {
-            // Логируем ошибку загрузки locale для отладки
-            if (process.env['NODE_ENV'] === 'development') {
-              // eslint-disable-next-line no-console
-              console.warn(`Failed to load dayjs locale "${locale}":`, error);
-            }
-            return undefined;
-          });
+      if (locale !== undefined && typeof window !== 'undefined') {
+        setDayjsLocale(locale).catch(() => {
+          // Обработка ошибки уже происходит внутри setDayjsLocale
+        });
       }
     }, [locale]);
 
@@ -310,7 +304,7 @@ const DatePickerComponent = forwardRef<HTMLDivElement, AppDatePickerProps>(
 
     // Метка текущего месяца
     const currentMonthLabel = useMemo(() => {
-      return currentMonth.format('MMMM YYYY');
+      return formatDateLocalized(currentMonth, 'MMMM YYYY');
     }, [currentMonth]);
 
     /** Минимальный набор telemetry-данных */
@@ -433,6 +427,16 @@ const DatePickerComponent = forwardRef<HTMLDivElement, AppDatePickerProps>(
       // Парсим введенное значение в strict mode
       const parsedDate = dayjs(newValue, format, true);
       if (parsedDate.isValid()) {
+        // Проверяем диапазон minDate/maxDate
+        const isOutOfRange = (minDate !== null && parsedDate.isBefore(minDate, 'day'))
+          || (maxDate !== null && parsedDate.isAfter(maxDate, 'day'));
+
+        if (isOutOfRange) {
+          // Дата вне допустимого диапазона
+          onInvalidInput?.(newValue);
+          return;
+        }
+
         onChange?.(parsedDate.toDate(), newValue);
 
         if (policy.telemetryEnabled) {
@@ -447,10 +451,11 @@ const DatePickerComponent = forwardRef<HTMLDivElement, AppDatePickerProps>(
       } else if (newValue === '') {
         // Пустое значение = сброс даты
         onChange?.(null, '');
+      } else {
+        // Некорректный ввод (не пустой и не валидный)
+        onInvalidInput?.(newValue);
       }
-      // Примечание: некорректный ввод (не пустой и не валидный) игнорируется без feedback.
-      // Это намеренное поведение для избежания ошибок при вводе.
-    }, [onChange, format, policy, isOpen]);
+    }, [onChange, onInvalidInput, format, policy, isOpen, minDate, maxDate]);
 
     const coreDatePickerProps = useMemo((): CoreDatePickerProps => ({
       value: formattedValue,
@@ -514,9 +519,10 @@ const DatePickerComponent = forwardRef<HTMLDivElement, AppDatePickerProps>(
  * - Полная интеграция с централизованной telemetry системой
  * - Управление feature flags для скрытия DatePicker
  * - Корректная обработка accessibility (keyboard navigation, ARIA)
- * - Форматирование дат через dayjs
+ * - Форматирование дат через dayjs с централизованной i18n
  * - Генерация календаря
- * - Валидация дат через minDate/maxDate
+ * - Валидация дат через minDate/maxDate (включая ручной ввод)
+ * - Обработка некорректного ввода через onInvalidInput callback
  *
  * Инварианты:
  * - Календарь корректно отображается для любого месяца

@@ -7,6 +7,7 @@ import React from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom/vitest';
+import { I18nProvider } from '../../../src/lib/i18n';
 
 // Mock для Core LanguageSelector - возвращаем простой div с переданными пропсами
 vi.mock('../../../../ui-core/src/components/LanguageSelector.js', () => ({
@@ -90,6 +91,37 @@ vi.mock('../../../../ui-core/src/components/LanguageSelector.js', () => ({
   }),
 }));
 
+// Helper для рендера с I18nProvider
+const renderWithI18n = (ui: Readonly<React.ReactElement>) => {
+  return render(
+    React.createElement(I18nProvider, {
+      locale: 'en',
+      fallbackLocale: 'en',
+      telemetry: vi.fn(),
+      traceId: 'test',
+      service: 'test',
+      children: ui,
+    }),
+  );
+};
+
+// Helper для rerender с I18nProvider
+const rerenderWithI18n = (
+  rerender: (ui: Readonly<React.ReactElement>) => void,
+  ui: Readonly<React.ReactElement>,
+) => {
+  rerender(
+    React.createElement(I18nProvider, {
+      locale: 'en',
+      fallbackLocale: 'en',
+      telemetry: vi.fn(),
+      traceId: 'test',
+      service: 'test',
+      children: ui,
+    }),
+  );
+};
+
 // Mock для feature flags с возможностью настройки
 let mockFeatureFlagReturnValue = false;
 vi.mock('../../../src/lib/feature-flags', () => ({
@@ -134,7 +166,7 @@ describe('App LanguageSelector', () => {
   describe('4.1. Policy (Feature flags & Visibility)', () => {
     describe('Visibility policy', () => {
       it('рендерит компонент когда visible=true (по умолчанию)', () => {
-        render(
+        renderWithI18n(
           <LanguageSelector
             languages={languages}
             selectedLanguageCode={selectedLanguageCode}
@@ -146,7 +178,7 @@ describe('App LanguageSelector', () => {
       });
 
       it('не рендерит компонент когда visible=false', () => {
-        const { container } = render(
+        const { container } = renderWithI18n(
           <LanguageSelector
             languages={languages}
             selectedLanguageCode={selectedLanguageCode}
@@ -159,7 +191,7 @@ describe('App LanguageSelector', () => {
       });
 
       it('рендерит компонент когда visible=undefined (по умолчанию true)', () => {
-        render(
+        renderWithI18n(
           <LanguageSelector
             languages={languages}
             selectedLanguageCode={selectedLanguageCode}
@@ -173,7 +205,7 @@ describe('App LanguageSelector', () => {
 
     describe('Feature flags', () => {
       it('рендерит компонент когда isHiddenByFeatureFlag=false (по умолчанию)', () => {
-        render(
+        renderWithI18n(
           <LanguageSelector
             languages={languages}
             selectedLanguageCode={selectedLanguageCode}
@@ -185,7 +217,7 @@ describe('App LanguageSelector', () => {
       });
 
       it('не рендерит компонент когда isHiddenByFeatureFlag=true', () => {
-        const { container } = render(
+        const { container } = renderWithI18n(
           <LanguageSelector
             languages={languages}
             selectedLanguageCode={selectedLanguageCode}
@@ -198,7 +230,7 @@ describe('App LanguageSelector', () => {
       });
 
       it('применяет disabled стиль когда isDisabledByFeatureFlag=true', () => {
-        render(
+        renderWithI18n(
           <LanguageSelector
             languages={languages}
             selectedLanguageCode={selectedLanguageCode}
@@ -212,7 +244,7 @@ describe('App LanguageSelector', () => {
       });
 
       it('комбинирует disabled prop с feature flag', () => {
-        render(
+        renderWithI18n(
           <LanguageSelector
             languages={languages}
             selectedLanguageCode={selectedLanguageCode}
@@ -228,7 +260,7 @@ describe('App LanguageSelector', () => {
       });
 
       it('применяет только disabled prop без feature flag', () => {
-        render(
+        renderWithI18n(
           <LanguageSelector
             languages={languages}
             selectedLanguageCode={selectedLanguageCode}
@@ -244,7 +276,7 @@ describe('App LanguageSelector', () => {
       });
 
       it('применяет только feature flag без disabled prop', () => {
-        render(
+        renderWithI18n(
           <LanguageSelector
             languages={languages}
             selectedLanguageCode={selectedLanguageCode}
@@ -262,7 +294,7 @@ describe('App LanguageSelector', () => {
 
     describe('Data attributes', () => {
       it('применяет правильные data attributes для feature flags', () => {
-        render(
+        renderWithI18n(
           <LanguageSelector
             languages={languages}
             selectedLanguageCode={selectedLanguageCode}
@@ -283,7 +315,7 @@ describe('App LanguageSelector', () => {
 
   describe('4.2. Telemetry', () => {
     it('отправляет mount telemetry при рендере', () => {
-      const { unmount } = render(
+      const { unmount } = renderWithI18n(
         <LanguageSelector
           languages={languages}
           selectedLanguageCode={selectedLanguageCode}
@@ -317,6 +349,7 @@ describe('App LanguageSelector', () => {
         availableLanguagesCount: 3,
         showFlags: true,
         showCodes: false,
+        locale: 'en',
       });
 
       unmount();
@@ -327,7 +360,7 @@ describe('App LanguageSelector', () => {
     });
 
     it('не отправляет telemetry когда telemetryEnabled=false', () => {
-      render(
+      renderWithI18n(
         <LanguageSelector
           languages={languages}
           selectedLanguageCode={selectedLanguageCode}
@@ -340,7 +373,7 @@ describe('App LanguageSelector', () => {
     });
 
     it('правильно формирует telemetry payload структуру', () => {
-      render(
+      renderWithI18n(
         <LanguageSelector
           languages={languages}
           selectedLanguageCode={selectedLanguageCode}
@@ -369,11 +402,12 @@ describe('App LanguageSelector', () => {
         availableLanguagesCount: 3,
         showFlags: false,
         showCodes: true,
+        locale: 'en',
       });
     });
 
     it('правильно формирует telemetry payload без опциональных пропсов', () => {
-      render(
+      renderWithI18n(
         <LanguageSelector
           languages={languages}
           selectedLanguageCode={selectedLanguageCode}
@@ -395,13 +429,14 @@ describe('App LanguageSelector', () => {
         availableLanguagesCount: 3,
         showFlags: true,
         showCodes: false,
+        locale: 'en',
       });
     });
   });
 
   describe('4.3. Props processing и data attributes', () => {
     it('передает languages в Core компонент', () => {
-      render(
+      renderWithI18n(
         <LanguageSelector
           languages={languages}
           selectedLanguageCode={selectedLanguageCode}
@@ -414,7 +449,7 @@ describe('App LanguageSelector', () => {
     });
 
     it('передает size/variant в Core компонент', () => {
-      render(
+      renderWithI18n(
         <LanguageSelector
           languages={languages}
           selectedLanguageCode={selectedLanguageCode}
@@ -430,7 +465,7 @@ describe('App LanguageSelector', () => {
     });
 
     it('передает showFlags/showCodes в Core компонент', () => {
-      render(
+      renderWithI18n(
         <LanguageSelector
           languages={languages}
           selectedLanguageCode={selectedLanguageCode}
@@ -446,7 +481,7 @@ describe('App LanguageSelector', () => {
     });
 
     it('передает placeholder в Core компонент', () => {
-      render(
+      renderWithI18n(
         <LanguageSelector
           languages={languages}
           selectedLanguageCode={selectedLanguageCode}
@@ -460,7 +495,7 @@ describe('App LanguageSelector', () => {
     });
 
     it('применяет aria-label', () => {
-      render(
+      renderWithI18n(
         <LanguageSelector
           languages={languages}
           selectedLanguageCode={selectedLanguageCode}
@@ -474,7 +509,7 @@ describe('App LanguageSelector', () => {
     });
 
     it('применяет data-testid', () => {
-      render(
+      renderWithI18n(
         <LanguageSelector
           languages={languages}
           selectedLanguageCode={selectedLanguageCode}
@@ -489,7 +524,7 @@ describe('App LanguageSelector', () => {
 
   describe('4.4. Props forwarding', () => {
     it('передает callbacks в Core компонент', () => {
-      render(
+      renderWithI18n(
         <LanguageSelector
           languages={languages}
           selectedLanguageCode={selectedLanguageCode}
@@ -509,7 +544,7 @@ describe('App LanguageSelector', () => {
 
   describe('4.5. Controlled mode', () => {
     it('работает в controlled mode с isOpen и onOpenChange', () => {
-      const { rerender } = render(
+      const { rerender } = renderWithI18n(
         <LanguageSelector
           languages={languages}
           selectedLanguageCode={selectedLanguageCode}
@@ -526,7 +561,8 @@ describe('App LanguageSelector', () => {
       expect(mockOnOpenChange).toHaveBeenCalledWith(true);
 
       // Ререндерим с isOpen=true
-      rerender(
+      rerenderWithI18n(
+        rerender,
         <LanguageSelector
           languages={languages}
           selectedLanguageCode={selectedLanguageCode}
@@ -541,7 +577,7 @@ describe('App LanguageSelector', () => {
 
   describe('4.6. Keyboard navigation', () => {
     it('инициализирует активный индекс при открытии', () => {
-      render(
+      renderWithI18n(
         <LanguageSelector
           languages={languages}
           selectedLanguageCode={selectedLanguageCode}
@@ -555,7 +591,7 @@ describe('App LanguageSelector', () => {
     });
 
     it('инициализирует активный индекс на 0 когда выбранный язык не найден', () => {
-      render(
+      renderWithI18n(
         <LanguageSelector
           languages={languages}
           selectedLanguageCode='nonexistent'
@@ -568,7 +604,7 @@ describe('App LanguageSelector', () => {
     });
 
     it('инициализирует активный индекс на 0 для пустого списка', () => {
-      render(
+      renderWithI18n(
         <LanguageSelector
           languages={[]}
           selectedLanguageCode=''
@@ -581,7 +617,7 @@ describe('App LanguageSelector', () => {
     });
 
     it('обрабатывает клавишу Enter для выбора языка', () => {
-      render(
+      renderWithI18n(
         <LanguageSelector
           languages={languages}
           selectedLanguageCode={selectedLanguageCode}
@@ -597,7 +633,7 @@ describe('App LanguageSelector', () => {
     });
 
     it('обрабатывает клавишу Escape для закрытия', () => {
-      render(
+      renderWithI18n(
         <LanguageSelector
           languages={languages}
           selectedLanguageCode={selectedLanguageCode}
@@ -613,7 +649,7 @@ describe('App LanguageSelector', () => {
     });
 
     it('игнорирует Escape когда dropdown уже закрыт', () => {
-      render(
+      renderWithI18n(
         <LanguageSelector
           languages={languages}
           selectedLanguageCode={selectedLanguageCode}
@@ -630,7 +666,7 @@ describe('App LanguageSelector', () => {
     });
 
     it('обрабатывает Enter для открытия dropdown когда закрыт', () => {
-      render(
+      renderWithI18n(
         <LanguageSelector
           languages={languages}
           selectedLanguageCode={selectedLanguageCode}
@@ -646,7 +682,7 @@ describe('App LanguageSelector', () => {
     });
 
     it('обрабатывает стрелки для навигации', () => {
-      render(
+      renderWithI18n(
         <LanguageSelector
           languages={languages}
           selectedLanguageCode={selectedLanguageCode}
@@ -666,7 +702,7 @@ describe('App LanguageSelector', () => {
     });
 
     it('обрабатывает Home и End клавиши для навигации', () => {
-      render(
+      renderWithI18n(
         <LanguageSelector
           languages={languages}
           selectedLanguageCode='es' // средний элемент
@@ -695,7 +731,7 @@ describe('App LanguageSelector', () => {
   describe('4.7. Ref forwarding', () => {
     it('поддерживает ref forwarding', () => {
       const ref = createMockRef();
-      render(
+      renderWithI18n(
         <LanguageSelector
           ref={ref}
           languages={languages}
@@ -710,7 +746,7 @@ describe('App LanguageSelector', () => {
 
   describe('4.8. Render stability', () => {
     it('не пересчитывает policy при одинаковых пропсах', () => {
-      const { rerender } = render(
+      const { rerender } = renderWithI18n(
         <LanguageSelector
           languages={languages}
           selectedLanguageCode={selectedLanguageCode}
@@ -724,7 +760,8 @@ describe('App LanguageSelector', () => {
 
       const initialCallCount = mockInfoFireAndForget.mock.calls.length;
 
-      rerender(
+      rerenderWithI18n(
+        rerender,
         <LanguageSelector
           languages={languages}
           selectedLanguageCode={selectedLanguageCode}
@@ -741,7 +778,7 @@ describe('App LanguageSelector', () => {
     });
 
     it('не пересчитывает telemetry при одинаковых пропсах', () => {
-      const { rerender } = render(
+      const { rerender } = renderWithI18n(
         <LanguageSelector
           languages={languages}
           selectedLanguageCode={selectedLanguageCode}
@@ -752,7 +789,8 @@ describe('App LanguageSelector', () => {
 
       const initialCallCount = mockInfoFireAndForget.mock.calls.length;
 
-      rerender(
+      rerenderWithI18n(
+        rerender,
         <LanguageSelector
           languages={languages}
           selectedLanguageCode={selectedLanguageCode}
@@ -768,7 +806,7 @@ describe('App LanguageSelector', () => {
 
   describe('4.9. Edge cases', () => {
     it('работает с пустым списком языков', () => {
-      render(
+      renderWithI18n(
         <LanguageSelector
           languages={[]}
           selectedLanguageCode=''
@@ -780,7 +818,7 @@ describe('App LanguageSelector', () => {
     });
 
     it('работает когда выбранный язык не найден', () => {
-      render(
+      renderWithI18n(
         <LanguageSelector
           languages={languages}
           selectedLanguageCode='nonexistent'
@@ -798,7 +836,7 @@ describe('App LanguageSelector', () => {
         { code: 'es', name: 'Español' },
       ];
 
-      render(
+      renderWithI18n(
         <LanguageSelector
           languages={languagesWithDisabled}
           selectedLanguageCode='en'
@@ -812,7 +850,7 @@ describe('App LanguageSelector', () => {
     });
 
     it('правильно обрабатывает навигацию на границах списка', () => {
-      render(
+      renderWithI18n(
         <LanguageSelector
           languages={languages}
           selectedLanguageCode='en' // первый элемент
@@ -832,7 +870,7 @@ describe('App LanguageSelector', () => {
     });
 
     it('сбрасывает активный индекс при закрытии dropdown', () => {
-      const { rerender } = render(
+      const { rerender } = renderWithI18n(
         <LanguageSelector
           languages={languages}
           selectedLanguageCode={selectedLanguageCode}
@@ -844,7 +882,8 @@ describe('App LanguageSelector', () => {
       expect(selector).toHaveAttribute('data-navigated-language-code', 'ru');
 
       // Закрываем dropdown
-      rerender(
+      rerenderWithI18n(
+        rerender,
         <LanguageSelector
           languages={languages}
           selectedLanguageCode={selectedLanguageCode}
@@ -858,7 +897,7 @@ describe('App LanguageSelector', () => {
     });
 
     it('работает с undefined props', () => {
-      render(
+      renderWithI18n(
         <LanguageSelector
           languages={languages}
           selectedLanguageCode={selectedLanguageCode}
@@ -871,7 +910,7 @@ describe('App LanguageSelector', () => {
 
     it('правильно вычисляет selectedNavigableIndex', () => {
       // Тест когда выбранный язык найден и не disabled
-      render(
+      renderWithI18n(
         <LanguageSelector
           languages={languages}
           selectedLanguageCode='ru'
@@ -889,7 +928,7 @@ describe('App LanguageSelector', () => {
         { code: 'ru', name: 'Русский' },
       ];
 
-      render(
+      renderWithI18n(
         <LanguageSelector
           languages={languagesWithDisabledSelected}
           selectedLanguageCode='en' // disabled язык
@@ -903,7 +942,7 @@ describe('App LanguageSelector', () => {
     });
 
     it('правильно вычисляет selectedNavigableIndex когда язык не найден', () => {
-      render(
+      renderWithI18n(
         <LanguageSelector
           languages={languages}
           selectedLanguageCode='nonexistent'
@@ -924,7 +963,7 @@ describe('App LanguageSelector', () => {
         { code: 'fr', name: 'Français' },
       ];
 
-      render(
+      renderWithI18n(
         <LanguageSelector
           languages={languagesWithMixedDisabled}
           selectedLanguageCode='ru'

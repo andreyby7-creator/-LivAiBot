@@ -335,3 +335,31 @@ export type ApiClientConfig = {
   /** Кастомная реализация fetch */
   readonly fetchImpl?: typeof fetch;
 };
+
+/* ========================================================================== */
+/* 📁 FILE UPLOAD CONTRACTS */
+/* ========================================================================== */
+
+/** Domain статус загрузки файла (бизнес-логика) */
+export type UploadDomainStatus = 'idle' | 'uploading' | 'success' | 'error';
+
+/** Результат валидации файла */
+export type FileValidationResult = Readonly<{
+  valid: boolean;
+  error?: string;
+}>;
+
+/** UI статус файла для отображения (не зависит от Core) */
+export type AppFileStatus =
+  | Readonly<{ type: 'pending'; label: string; }>
+  | Readonly<{ type: 'progress'; label: string; }>
+  | Readonly<{ type: 'success'; label: string; }>
+  | Readonly<{ type: 'error'; label: string; }>;
+
+export type InternalFileInfo = Readonly<{
+  id: string;
+  file: File;
+  uploadStatus: UploadDomainStatus;
+  uploadProgress?: number;
+  errorMessage?: string;
+}>;

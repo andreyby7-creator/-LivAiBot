@@ -11,6 +11,7 @@
  *
  * Принципы:
  * - Discriminated unions для всех ошибок
+ * - Severity для UI-семантики (info/warning/error)
  * - Полная иммутабельность
  * - Совместимость с distributed tracing и observability
  * - Zero-runtime-cost, только типы
@@ -49,6 +50,7 @@ export type AppError =
 /** Ошибка, вызванная некорректным действием пользователя. */
 export type ClientError = {
   readonly type: 'ClientError';
+  readonly severity: 'warning';
   readonly source: FrontendErrorSource | 'UNKNOWN';
   readonly code: string;
   readonly message: string;
@@ -64,6 +66,7 @@ export type ClientError = {
 /** Ошибка валидации данных (формы, payload, API request). */
 export type ValidationError = {
   readonly type: 'ValidationError';
+  readonly severity: 'warning';
   readonly fieldErrors?: Readonly<Record<string, string>>;
   readonly message: string;
   readonly traceId?: string;
@@ -77,6 +80,7 @@ export type ValidationError = {
 /** Ошибка сети или отказ backend сервиса. */
 export type NetworkError = {
   readonly type: 'NetworkError';
+  readonly severity: 'error';
   readonly statusCode?: number;
   readonly message: string;
   readonly endpoint?: string;
@@ -88,6 +92,7 @@ export type NetworkError = {
 /** Ошибка, возвращаемая backend сервисом через API контракт. */
 export type ServerError = {
   readonly type: 'ServerError';
+  readonly severity: 'error';
   readonly apiError: ApiErrorContract;
   readonly endpoint?: string;
   readonly platform?: Platform;
@@ -101,6 +106,7 @@ export type ServerError = {
 /** Ошибка, которая не подпадает под известные категории. */
 export type UnknownError = {
   readonly type: 'UnknownError';
+  readonly severity: 'error';
   readonly message: string;
   readonly original?: unknown;
   readonly traceId?: string;
@@ -133,6 +139,7 @@ export const createServerError = (
   platform?: Platform,
 ): ServerError => ({
   type: 'ServerError' as const,
+  severity: 'error' as const,
   apiError,
   // Поля endpoint и platform добавляются conditionally и будут readonly согласно типу ServerError
   ...(endpoint !== undefined && { endpoint }),

@@ -14,6 +14,8 @@ import type { JSX } from 'react';
 import { Form as CoreForm } from '../../../ui-core/src/primitives/form.js';
 import type { CoreFormProps } from '../../../ui-core/src/primitives/form.js';
 import { infoFireAndForget } from '../lib/telemetry.js';
+import type { FormValidationResult, ValidationSchema } from '../lib/validation.js';
+import { validateForm } from '../lib/validation.js';
 
 /* ============================================================================
  * 🧬 TYPES
@@ -30,13 +32,22 @@ type FormTelemetryPayload = Readonly<{
 export type AppFormProps = Readonly<
   & CoreFormProps
   & {
+    /* feature flags */
     isHiddenByFeatureFlag?: boolean;
     isDisabledByFeatureFlag?: boolean;
     variantByFeatureFlag?: string;
 
+    /* telemetry */
     telemetryEnabled?: boolean;
     telemetryOnSubmit?: boolean;
     telemetryOnReset?: boolean;
+
+    /* validation */
+    validationSchema?: ValidationSchema;
+    onValidationError?: (result: FormValidationResult) => void;
+
+    /* async state */
+    isSubmitting?: boolean;
   }
 >;
 
@@ -100,6 +111,8 @@ function FormComponent(props: AppFormProps): JSX.Element | null {
     children,
     onSubmit,
     onReset,
+    validationSchema,
+    onValidationError,
     ...coreProps
   } = props;
 
@@ -114,7 +127,7 @@ function FormComponent(props: AppFormProps): JSX.Element | null {
       };
     }
     return undefined;
-    // policy intentionally frozen
+    // policy является неизменяемой по дизайну (снимок feature flags)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -125,13 +138,26 @@ function FormComponent(props: AppFormProps): JSX.Element | null {
         return;
       }
 
+      if (validationSchema !== undefined) {
+        const result = validateForm(
+          event.currentTarget,
+          validationSchema,
+        );
+
+        if (!result.success) {
+          // при ошибке валидации submit и telemetry не выполняются
+          onValidationError?.(result);
+          return;
+        }
+      }
+
       if (policy.telemetryEnabled && policy.telemetryOnSubmit) {
         emitFormTelemetry('submit', policy);
       }
 
       onSubmit?.(event);
     },
-    [policy, onSubmit],
+    [policy, onSubmit, validationSchema, onValidationError],
   );
 
   const handleReset = useCallback(
@@ -161,12 +187,21 @@ function FormComponent(props: AppFormProps): JSX.Element | null {
       data-variant={policy.variant}
       data-disabled={policy.disabledByFeatureFlag || undefined}
       aria-disabled={policy.disabledByFeatureFlag || undefined}
-      aria-busy={policy.disabledByFeatureFlag || undefined}
+      // aria-busy отражает только асинхронное состояние submit,
+      // а не feature-flag или disabled policy
+      aria-busy={props.isSubmitting === true || undefined}
     >
       {children}
     </CoreForm>
   );
 }
+
+/**
+ * Интеграция валидации:
+ * - Form делегирует проверку данных в lib/validation.ts
+ * - Логика валидации отдельных полей не размещается в UI-слое
+ * - Обеспечивается единая и согласованная валидация с backend и схемами
+ */
 
 /**
  * UI-контракт Form компонента.
@@ -179,18 +214,22 @@ function FormComponent(props: AppFormProps): JSX.Element | null {
  * - Полная интеграция с централизованной telemetry системой
  * - Управление feature flags для скрытия и отключения
  * - Корректная обработка submit/reset событий
+ * - Клиентская валидация через централизованную систему
+ * - Асинхронное состояние submit управляется извне (controlled)
  *
  * Инварианты:
  * - Всегда возвращает валидный JSX.Element или null
  * - Submit/reset events передаются корректно в callbacks
  * - Feature flags применяются корректно к visibility и disabled
  * - Telemetry events отправляются только при реальных действиях
+ * - Валидация выполняется до telemetry и submit callbacks
  *
  * Не допускается:
  * - Использование напрямую core Form компонента
  * - Переопределение submit/reset логики без callbacks
  * - Игнорирование accessibility атрибутов
  * - Модификация telemetry payload структуры
+ * - Валидация данных внутри UI-слоя
  */
 export const Form = Object.assign(memo(FormComponent), {
   displayName: 'Form',
