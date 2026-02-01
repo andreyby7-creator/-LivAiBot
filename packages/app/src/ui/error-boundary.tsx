@@ -27,7 +27,9 @@ import type { ErrorInfo, ReactNode } from 'react';
 
 import { CoreErrorBoundary } from '../../../ui-core/src/components/ErrorBoundary.js';
 import type { CoreErrorBoundaryProps } from '../../../ui-core/src/components/ErrorBoundary.js';
+import { mapErrorBoundaryError } from '../lib/error-mapping.js';
 import { errorFireAndForget, infoFireAndForget } from '../lib/telemetry.js';
+import type { AppError } from '../types/errors.js';
 
 /* ============================================================================
  * 🧬 TYPES & CONSTANTS
@@ -40,6 +42,22 @@ const ErrorBoundaryTelemetryAction = {
   Reset: 'reset',
 } as const;
 
+/** Дефолтный fallback UI для error-boundary. */
+const defaultFallback = (error: Error): ReactNode => (
+  <div
+    role='alert'
+    style={{
+      padding: '1rem',
+      border: '1px solid #ff6b6b',
+      borderRadius: '4px',
+      backgroundColor: '#ffeaea',
+    }}
+  >
+    <h3 style={{ margin: '0 0 0.5rem 0', color: '#d63031' }}>Произошла ошибка</h3>
+    <p style={{ margin: '0', color: '#636e72' }}>{error.message}</p>
+  </div>
+);
+
 type ErrorBoundaryTelemetryAction =
   typeof ErrorBoundaryTelemetryAction[keyof typeof ErrorBoundaryTelemetryAction];
 
@@ -49,7 +67,7 @@ type ErrorBoundaryTelemetryPayload = {
   hidden: boolean;
   disabled: boolean;
   hasError: boolean;
-  errorName?: string;
+  errorCode?: string;
   errorMessage?: string;
 };
 
@@ -139,7 +157,7 @@ function getErrorBoundaryPayload(
   policy: ErrorBoundaryPolicy,
   telemetryProps: {
     hasError: boolean;
-    errorName?: string;
+    errorCode?: string;
     errorMessage?: string;
   },
 ): ErrorBoundaryTelemetryPayload {
@@ -149,7 +167,7 @@ function getErrorBoundaryPayload(
     hidden: policy.hiddenByFeatureFlag,
     disabled: policy.disabledByFeatureFlag,
     hasError: telemetryProps.hasError,
-    ...(telemetryProps.errorName !== undefined && { errorName: telemetryProps.errorName }),
+    ...(telemetryProps.errorCode !== undefined && { errorCode: telemetryProps.errorCode }),
     ...(telemetryProps.errorMessage !== undefined && { errorMessage: telemetryProps.errorMessage }),
   };
 }
@@ -231,14 +249,20 @@ class AppErrorBoundaryInner extends Component<
       hasError: true,
     });
 
+    // Маппируем ошибку в AppError для унифицированной обработки
+    const appError: AppError = mapErrorBoundaryError(error, this.props.policy.telemetryEnabled);
+
     if (this.props.policy.telemetryEnabled) {
+      // Для error-boundary всегда возвращается UnknownError с полем message
+      const errorMessage = appError.type === 'UnknownError' ? appError.message : error.message;
+
       const errorPayload = getErrorBoundaryPayload(
         ErrorBoundaryTelemetryAction.Error,
         this.props.policy,
         {
           hasError: true,
-          errorName: error.name,
-          errorMessage: error.message,
+          errorCode: appError.type, // Используем тип ошибки вместо error.name
+          errorMessage, // Используем унифицированное сообщение ошибки
         },
       );
       emitErrorBoundaryTelemetry(errorPayload);
@@ -249,6 +273,11 @@ class AppErrorBoundaryInner extends Component<
 
   /** Обработчик сброса ошибки с telemetry. */
   handleReset = (): void => {
+    // Не выполняем reset если ErrorBoundary отключен через feature flag
+    if (this.props.policy.disabledByFeatureFlag) {
+      return;
+    }
+
     this.setState({
       hasError: false,
     });
@@ -279,16 +308,48 @@ class AppErrorBoundaryInner extends Component<
     if (!this.cachedPropsDeps) {
       return true;
     }
-    return (
-      this.cachedPropsDeps.children !== currentDeps.children
-      || this.cachedPropsDeps.hasError !== currentDeps.hasError
+
+    // Проверяем основные props
+    if (
+      this.cachedPropsDeps.hasError !== currentDeps.hasError
       || this.cachedPropsDeps.disabled !== currentDeps.disabled
       || this.cachedPropsDeps.telemetry !== currentDeps.telemetry
       || this.cachedPropsDeps.resetLabel !== currentDeps.resetLabel
       || this.cachedPropsDeps.showStack !== currentDeps.showStack
       || this.cachedPropsDeps.dataTestId !== currentDeps.dataTestId
       || this.cachedPropsDeps.fallback !== currentDeps.fallback
-    );
+    ) {
+      return true;
+    }
+
+    // Shallow compare для children - проверяем количество элементов и базовую структуру
+    const cachedChildrenCount = React.Children.count(this.cachedPropsDeps.children);
+    const currentChildrenCount = React.Children.count(currentDeps.children);
+
+    if (cachedChildrenCount !== currentChildrenCount) {
+      return true;
+    }
+
+    // Проверяем, что это не просто разные ссылки на одинаковые элементы
+    if (this.cachedPropsDeps.children !== currentDeps.children) {
+      // Для простых случаев сравниваем напрямую
+      if (cachedChildrenCount === 1) {
+        const cachedChild = React.Children.only(this.cachedPropsDeps.children);
+        const currentChild = React.Children.only(currentDeps.children);
+
+        // Если оба - валидные элементы, сравниваем их тип и key
+        if (React.isValidElement(cachedChild) && React.isValidElement(currentChild)) {
+          if (cachedChild.type !== currentChild.type || cachedChild.key !== currentChild.key) {
+            return true;
+          }
+        }
+      } else {
+        // Для множественных children считаем их изменившимися (консервативный подход)
+        return true;
+      }
+    }
+
+    return false;
   }
 
   /** Создаёт props для CoreErrorBoundary */
@@ -306,9 +367,17 @@ class AppErrorBoundaryInner extends Component<
       onReset: this.handleReset,
     } satisfies Pick<CoreErrorBoundaryProps, 'children' | 'onError' | 'onReset'>;
 
+    // Создаем унифицированную функцию fallback для корректной типизации
+    const fallbackFn: (error: Error, errorInfo: ErrorInfo) => ReactNode =
+      typeof fallback === 'function'
+        ? fallback
+        : fallback !== undefined
+        ? ((() => fallback) as (error: Error, errorInfo: ErrorInfo) => ReactNode)
+        : defaultFallback;
+
     return {
       ...baseProps,
-      ...(fallback !== undefined && { fallback }),
+      fallback: fallbackFn,
       ...(resetLabel !== undefined && { resetLabel }),
       ...(showStack !== undefined && { showStack }),
       ...(dataTestId !== undefined && { 'data-testid': dataTestId }),

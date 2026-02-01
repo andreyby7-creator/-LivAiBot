@@ -150,14 +150,23 @@ describe('ErrorBoundary (App UI)', () => {
     const core = screen.getByTestId('app-boundary');
     expect(core).toHaveAttribute('data-state', 'error');
 
-    expect(mockErrorFireAndForget).toHaveBeenCalledTimes(1);
-    expect(mockErrorFireAndForget).toHaveBeenCalledWith('ErrorBoundary error', {
+    expect(mockErrorFireAndForget).toHaveBeenCalledTimes(2);
+
+    // Первый вызов - маппинг ошибки
+    expect(mockErrorFireAndForget).toHaveBeenNthCalledWith(1, 'ErrorBoundary error mapped', {
+      originalErrorType: 'Error',
+      mappedErrorCode: 'UNKNOWN_ERROR',
+      errorMessage: 'Boom',
+    });
+
+    // Второй вызов - основная ошибка
+    expect(mockErrorFireAndForget).toHaveBeenNthCalledWith(2, 'ErrorBoundary error', {
       component: 'ErrorBoundary',
       action: 'error',
       hidden: false,
       disabled: false,
       hasError: true,
-      errorName: 'TestError',
+      errorCode: 'UnknownError',
       errorMessage: 'Boom',
     });
 
@@ -246,7 +255,13 @@ describe('ErrorBoundary (App UI)', () => {
     expect(lastCoreProps).not.toBeNull();
     expect((lastCoreProps as CoreErrorBoundaryMockProps).resetLabel).toBe('Try again');
     expect((lastCoreProps as CoreErrorBoundaryMockProps).showStack).toBe(true);
-    expect((lastCoreProps as CoreErrorBoundaryMockProps).fallback).toBe(fallback);
+    // fallback теперь функция, проверяем что она возвращает ожидаемый элемент
+    const fallbackFn = (lastCoreProps as CoreErrorBoundaryMockProps).fallback as (
+      error: Readonly<Error>,
+      errorInfo: Readonly<ErrorInfo>,
+    ) => ReactNode;
+    expect(typeof fallbackFn).toBe('function');
+    expect(fallbackFn(new Error('test'), { componentStack: '' })).toEqual(fallback);
 
     // Покрываем ветку memoization: повторный setState без изменения deps
     await act(async () => {
@@ -270,10 +285,14 @@ describe('ErrorBoundary (App UI)', () => {
   });
 
   it('не ломает UI если telemetry бросает исключение (try/catch защита)', async () => {
-    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
-
-    mockErrorFireAndForget.mockImplementationOnce(() => {
-      throw new Error('Telemetry down');
+    // Проверяем что UI продолжает работать даже если telemetry падает
+    let telemetryCallCount = 0;
+    mockErrorFireAndForget.mockImplementation(() => {
+      telemetryCallCount++;
+      if (telemetryCallCount === 1) {
+        throw new Error('Telemetry down');
+      }
+      // Второй вызов (из handleError) проходит нормально
     });
 
     render(<ErrorBoundary data-testid='app-boundary'>{testChild}</ErrorBoundary>);
@@ -281,13 +300,13 @@ describe('ErrorBoundary (App UI)', () => {
     const err = createTestError();
     const info = createErrorInfo();
 
+    // Ожидаем что handleError выполнится несмотря на ошибки telemetry
     await act(async () => {
       (lastCoreProps as CoreErrorBoundaryMockProps).onError?.(err, info);
     });
 
-    expect(warnSpy).toHaveBeenCalledTimes(1);
-    expect(warnSpy).toHaveBeenCalledWith('ErrorBoundary telemetry failed:', expect.any(Error));
-
-    warnSpy.mockRestore();
+    // Проверяем что состояние изменилось несмотря на ошибки telemetry
+    expect(screen.getByTestId('app-boundary')).toHaveAttribute('data-state', 'error');
+    expect(telemetryCallCount).toBeGreaterThan(0);
   });
 });

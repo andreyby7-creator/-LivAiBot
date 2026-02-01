@@ -19,6 +19,8 @@
 
 import type { EffectError } from './effect-utils.js';
 import { errorFireAndForget } from './telemetry.js';
+import type { ISODateString } from '../types/common.js';
+import type { AppError, ErrorBoundaryErrorCode, UnknownError } from '../types/errors.js';
 
 /** Типизированная ошибка с кодом для маппинга */
 export type TaggedError<T extends ServiceErrorCode = ServiceErrorCode> = {
@@ -226,6 +228,48 @@ export function mapError<TDetails = unknown>(
     timestamp: Date.now(),
     service: finalService,
   };
+}
+
+/**
+ * Преобразует Error в AppError для error-boundary компонента
+ * Используется для унифицированной обработки ошибок в UI слое
+ */
+export function mapErrorBoundaryError(error: Error, telemetryEnabled = true): AppError {
+  // Определяем тип ошибки по сообщению для унифицированной обработки
+  let errorCode: ErrorBoundaryErrorCode = 'UNKNOWN_ERROR';
+
+  if (error.message.includes('Network') || error.message.includes('fetch')) {
+    errorCode = 'NETWORK_ERROR';
+  } else if (error.message.includes('Validation') || error.message.includes('validation')) {
+    errorCode = 'VALIDATION_ERROR';
+  }
+
+  // Логируем маппинг ошибки для observability (только если telemetry включена)
+  if (telemetryEnabled) {
+    try {
+      errorFireAndForget('ErrorBoundary error mapped', {
+        originalErrorType: error.constructor.name,
+        mappedErrorCode: errorCode as string, // ErrorBoundaryErrorCode
+        errorMessage: error.message,
+      });
+    } catch (telemetryError) {
+      // Игнорируем ошибки telemetry, чтобы не ломать UI
+      // eslint-disable-next-line no-console
+      console.warn('ErrorBoundary mapping telemetry failed:', telemetryError);
+    }
+  }
+
+  // Создаем UnknownError с соответствующими полями
+  // В будущем можно расширить для возврата разных типов AppError
+  const appError: UnknownError = {
+    type: 'UnknownError',
+    severity: 'error',
+    message: error.message,
+    original: error,
+    timestamp: new Date().toISOString() as ISODateString,
+  };
+
+  return appError;
 }
 
 /* ============================================================================

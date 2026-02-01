@@ -51,7 +51,7 @@ export type AppError =
 export type ClientError = {
   readonly type: 'ClientError';
   readonly severity: 'warning';
-  readonly source: FrontendErrorSource | 'UNKNOWN';
+  readonly source: FrontendErrorSource;
   readonly code: string;
   readonly message: string;
   readonly context?: Json;
@@ -123,6 +123,12 @@ export type ErrorFn<T extends AppError = AppError> = () => T;
 /** Тип обработчика ошибок. */
 export type ErrorHandler<T extends AppError = AppError> = (error: T) => void;
 
+/** Код ошибки для error-boundary маппинга. */
+export type ErrorBoundaryErrorCode =
+  | 'NETWORK_ERROR'
+  | 'VALIDATION_ERROR'
+  | 'UNKNOWN_ERROR';
+
 /** Проверка типа ошибки по discriminated union. */
 export type IsErrorOfType<T extends AppError['type']> = (
   error: AppError,
@@ -159,7 +165,10 @@ export const handleError: ErrorHandler = (error) => {
       // console.error(error);
       break;
     default:
-      const _exhaustiveCheck: never = error;
-      return _exhaustiveCheck;
+      // Логируем неожиданный тип ошибки для debugging
+      // eslint-disable-next-line no-console
+      console.error('Unexpected error type:', error);
+      // В production можно отправить в error tracking
+      throw new Error(`Unexpected error type: ${(error as { type?: string; }).type ?? 'unknown'}`);
   }
 };

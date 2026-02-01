@@ -255,7 +255,7 @@ apps/web (тонкий композитор)
 1️⃣0️⃣8️⃣ packages/app/src/ui/sidebar.tsx 🟢 — ts+react — deps: ui-core/components/SideBar.tsx, app/lib/feature-flags.ts, app/lib/telemetry.ts
 1️⃣0️⃣9️⃣ packages/app/src/ui/search-bar.tsx 🟢 — ts+react — deps: ui-core/components/SearchBar.tsx, app/lib/feature-flags.ts, app/lib/telemetry.ts
 1️⃣1️⃣0️⃣ packages/app/src/ui/confirm-dialog.tsx 🟢 — ts+react — deps: ui-core/components/ConfirmDialog.tsx, ui-core/components/Modal.tsx, app/lib/feature-flags.ts, app/lib/telemetry.ts
-1️⃣1️⃣1️⃣ packages/app/src/ui/error-boundary.tsx 🟡 — ts+react — deps: ui-core/components/ErrorBoundary.tsx, app/lib/feature-flags.ts, app/lib/telemetry.ts
+1️⃣1️⃣1️⃣ packages/app/src/ui/error-boundary.tsx 🟢 — ts+react — deps: ui-core/components/ErrorBoundary.tsx, app/lib/feature-flags.ts, app/lib/telemetry.ts, app/lib/error-mapping.ts, app/types/errors.ts
 1️⃣1️⃣2️⃣ packages/app/src/ui/user-profile-display.tsx 🟡 — ts+react — deps: ui-core/components/UserProfileDisplay.tsx, app/lib/feature-flags.ts, app/lib/telemetry.ts
 1️⃣1️⃣3️⃣ packages/app/src/ui/navigation-menu-item.tsx 🟡 — ts+react — deps: ui-core/components/NavigationMenuItem.tsx, app/lib/feature-flags.ts, app/lib/telemetry.ts
 1️⃣1️⃣4️⃣ packages/app/src/ui/language-selector.tsx 🟢 — ts+react — deps: ui-core/components/LanguageSelector.tsx, app/lib/feature-flags.ts, app/lib/telemetry.ts, app/lib/i18n.ts

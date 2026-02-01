@@ -189,8 +189,8 @@
 ## error-boundary.tsx
 
 **Текущие deps**: feature-flags, telemetry
-**Анализ**: ⚠️ Неполные зависимости - boundary обрабатывает ошибки
-**Рекомендации**: Добавить `lib/error-mapping.ts` для обработки ошибок и `types/errors.ts` для типизации
+**Анализ**: ✅ Корректные зависимости - error-boundary использует error-mapping для унифицированной обработки ошибок и types/errors для типизации
+**Рекомендации**: Зависимости соответствуют архитектуре
 
 ## user-profile-display.tsx
 
@@ -218,15 +218,14 @@
 
 ## Резюме анализа
 
-### Компоненты без изменений (33/36):
+### Компоненты без изменений (34/36):
 
-button, input, textarea, select, checkbox, radio, toggle, icon, avatar, badge, tooltip, divider, card, dialog, loading-spinner, dropdown, context-menu, status-indicator, skeleton, skeleton-group, modal, breadcrumbs, tabs, accordion, sidebar, search-bar, confirm-dialog, support-button, form, toast, file-uploader, date-picker, language-selector
+button, input, textarea, select, checkbox, radio, toggle, icon, avatar, badge, tooltip, divider, card, dialog, loading-spinner, dropdown, context-menu, status-indicator, skeleton, skeleton-group, modal, breadcrumbs, tabs, accordion, sidebar, search-bar, confirm-dialog, support-button, form, toast, file-uploader, date-picker, language-selector, error-boundary
 
-### Компоненты требующие изменений (3/36):
+### Компоненты требующие изменений (2/36):
 
-1. **error-boundary.tsx** → добавить `lib/error-mapping.ts`, `types/errors.ts`
-2. **user-profile-display.tsx** → добавить `lib/auth-guard.ts`, `types/common.ts`
-3. **navigation-menu-item.tsx** → добавить `lib/route-permissions.ts`
+1. **user-profile-display.tsx** → добавить `lib/auth-guard.ts`, `types/common.ts`
+2. **navigation-menu-item.tsx** → добавить `lib/route-permissions.ts`
 
 ## Архитектурные выводы:
 
