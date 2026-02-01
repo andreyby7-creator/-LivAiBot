@@ -29,6 +29,7 @@ import type {
   CoreNavigationMenuItemProps,
   NavigationMenuItemData,
 } from '../../../ui-core/src/components/NavigationMenuItem.js';
+import { canAccessRoute } from '../lib/route-permissions.js';
 import { infoFireAndForget } from '../lib/telemetry.js';
 
 /** Тип элемента, который может рендерить NavigationMenuItem - либо anchor, либо button */
@@ -56,6 +57,7 @@ type NavigationMenuItemTelemetryPayload = {
   hidden: boolean;
   visible: boolean;
   disabled: boolean;
+  routeAccessible: boolean;
   size?: NavigationMenuItemSize;
   variant?: NavigationMenuItemVariant;
   hasIcon: boolean;
@@ -95,6 +97,7 @@ type NavigationMenuItemPolicy = Readonly<{
   readonly disabledByFeatureFlag: boolean;
   readonly isRendered: boolean;
   readonly telemetryEnabled: boolean;
+  readonly routeAccessible: boolean;
 }>;
 
 /**
@@ -116,19 +119,27 @@ function useNavigationMenuItemPolicy(
     const disabledByFeatureFlag = props.isDisabledByFeatureFlag === true;
     const telemetryEnabled = props.telemetryEnabled !== false;
 
-    const isRendered = !hiddenByFeatureFlag && props.visible !== false;
+    // Проверяем доступ к маршруту (если есть href)
+    // SSR-safe: canAccessRoute возвращает консервативный результат в серверном окружении
+    const routeAccessible = props.item.href !== undefined && props.item.href !== ''
+      ? canAccessRoute(props.item.href)
+      : true;
+
+    const isRendered = !hiddenByFeatureFlag && props.visible !== false && routeAccessible;
 
     return {
       hiddenByFeatureFlag,
       disabledByFeatureFlag,
       isRendered,
       telemetryEnabled,
+      routeAccessible,
     };
   }, [
     props.isHiddenByFeatureFlag,
     props.isDisabledByFeatureFlag,
     props.visible,
     props.telemetryEnabled,
+    props.item.href,
   ]);
 }
 
@@ -164,13 +175,16 @@ function getNavigationMenuItemPayload(
     hidden: policy.hiddenByFeatureFlag,
     visible: policy.isRendered,
     disabled: policy.disabledByFeatureFlag,
+    routeAccessible: policy.routeAccessible,
     ...(telemetryProps.size !== undefined && { size: telemetryProps.size }),
     ...(telemetryProps.variant !== undefined && { variant: telemetryProps.variant }),
     hasIcon: telemetryProps.hasIcon,
     hasLabel: telemetryProps.hasLabel,
     isActive: telemetryProps.isActive,
     isLink: telemetryProps.isLinkCandidate
-      && !(telemetryProps.isDisabledFromItem || policy.disabledByFeatureFlag),
+      && !(telemetryProps.isDisabledFromItem
+        || policy.disabledByFeatureFlag
+        || !policy.routeAccessible),
   };
 }
 
@@ -300,20 +314,24 @@ const NavigationMenuItemComponent = forwardRef<
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [policy.telemetryEnabled]);
 
-    /** App-level disabled enhancement: добавляем визуальные стили для policy.disabledByFeatureFlag */
+    /** App-level disabled enhancement: добавляем визуальные стили для disabled состояний */
     const combinedStyle = useMemo<CSSProperties | undefined>(() => {
-      if (!policy.disabledByFeatureFlag) return style;
+      const disabled = policy.disabledByFeatureFlag || !policy.routeAccessible;
+      if (!disabled) return style;
 
       return {
         ...(style ?? {}),
         opacity: 0.6,
         pointerEvents: 'none' as const,
       };
-    }, [policy.disabledByFeatureFlag, style]);
+    }, [policy.disabledByFeatureFlag, policy.routeAccessible, style]);
 
     /** Обработчик клика с telemetry */
     const handleClick = useCallback(
       (event: MouseEvent<HTMLElement>) => {
+        // Не выполняем клик, если маршрут недоступен
+        if (!policy.routeAccessible) return;
+
         if (policy.telemetryEnabled) {
           emitNavigationMenuItemTelemetry(
             getNavigationMenuItemPayload(
@@ -337,7 +355,9 @@ const NavigationMenuItemComponent = forwardRef<
         ref={ref}
         item={{
           ...item,
-          isDisabled: item.isDisabled === true || policy.disabledByFeatureFlag,
+          isDisabled: item.isDisabled === true
+            || policy.disabledByFeatureFlag
+            || !policy.routeAccessible,
         }}
         {...(size !== undefined && { size })}
         {...(variant !== undefined && { variant })}
@@ -347,8 +367,9 @@ const NavigationMenuItemComponent = forwardRef<
         style={combinedStyle}
         className={className}
         onClick={onClick ? handleClick : undefined}
+        aria-disabled={policy.disabledByFeatureFlag || !policy.routeAccessible}
         data-component='AppNavigationMenuItem'
-        data-state={policy.disabledByFeatureFlag ? 'disabled' : 'active'}
+        data-state={policy.disabledByFeatureFlag || !policy.routeAccessible ? 'disabled' : 'active'}
         data-feature-flag={policy.hiddenByFeatureFlag ? 'hidden' : 'visible'}
         data-telemetry={policy.telemetryEnabled ? 'enabled' : 'disabled'}
         {...(dataTestId !== undefined && { 'data-testid': dataTestId })}

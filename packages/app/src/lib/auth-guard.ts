@@ -32,6 +32,8 @@
  * - Легкость тестирования без моков и стабов
  */
 
+import React, { createContext, useContext } from 'react';
+
 import type { TaggedError } from './error-mapping.js';
 import type { AuthContext, ID } from '../types/common.js';
 
@@ -44,6 +46,9 @@ import type { AuthContext, ID } from '../types/common.js';
  * Расширяет базовый AuthContext дополнительными полями для принятия решений.
  * Включает requestId/traceId для полного distributed tracing.
  */
+// Re-export ID type for convenience
+export type { ID };
+
 export type AuthGuardContext = AuthContext & {
   readonly requestId: string;
   readonly traceId?: string;
@@ -483,4 +488,40 @@ export function requirePermission(
 
     return allow('SUCCESS');
   };
+}
+
+/* ============================================================================
+ * 🎣 REACT HOOKS ДЛЯ ИСПОЛЬЗОВАНИЯ В UI
+ * ========================================================================== */
+
+/**
+ * React Context для AuthGuardContext.
+ * Используется для предоставления контекста авторизации компонентам.
+ */
+export const AuthGuardReactContext = createContext<AuthGuardContext | null>(null);
+
+/**
+ * React Hook для получения контекста авторизации.
+ * Возвращает AuthGuardContext или выбрасывает ошибку если контекст не найден.
+ *
+ * @returns контекст авторизации
+ * @throws Error если AuthGuardReactContext не предоставлен
+ */
+/**
+ * React Provider для AuthGuardContext.
+ * Предоставляет контекст авторизации дочерним компонентам.
+ */
+export const AuthGuardProvider: React.FC<{
+  children: React.ReactNode;
+  value: AuthGuardContext;
+}> = ({ children, value }) => {
+  return React.createElement(AuthGuardReactContext.Provider, { value }, children);
+};
+
+export function useAuthGuardContext(): AuthGuardContext {
+  const context = useContext(AuthGuardReactContext);
+  if (context === null) {
+    throw new Error('useAuthGuardContext must be used within an AuthGuardProvider');
+  }
+  return context;
 }

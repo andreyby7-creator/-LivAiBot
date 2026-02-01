@@ -33,6 +33,9 @@ import type {
   CoreUserProfileDisplayProps,
   UserProfileData,
 } from '../../../ui-core/src/components/UserProfileDisplay.js';
+import { useAuthGuardContext } from '../lib/auth-guard.js';
+import { checkRoutePermission } from '../lib/route-permissions.js';
+import type { RoutePermissionContext } from '../lib/route-permissions.js';
 import { infoFireAndForget } from '../lib/telemetry.js';
 
 /* ============================================================================
@@ -91,6 +94,7 @@ export type AppUserProfileDisplayProps = Readonly<
 type UserProfileDisplayPolicy = Readonly<{
   readonly hiddenByFeatureFlag: boolean;
   readonly disabledByFeatureFlag: boolean;
+  readonly isAuthorized: boolean;
   readonly isRendered: boolean;
   readonly telemetryEnabled: boolean;
 }>;
@@ -109,16 +113,30 @@ type UserProfileDisplayPolicy = Readonly<{
 function useUserProfileDisplayPolicy(
   props: AppUserProfileDisplayProps,
 ): UserProfileDisplayPolicy {
+  const authContext = useAuthGuardContext();
+
   return useMemo(() => {
     const hiddenByFeatureFlag = props.isHiddenByFeatureFlag === true;
     const disabledByFeatureFlag = props.isDisabledByFeatureFlag === true;
     const telemetryEnabled = props.telemetryEnabled !== false;
 
-    const isRendered = !hiddenByFeatureFlag && props.visible !== false;
+    // Проверяем права доступа к профилю через route-permissions
+    const canViewProfile = checkRoutePermission(
+      { type: 'profile', path: '/profile' },
+      {
+        ...authContext,
+        userRoles: new Set(authContext.roles),
+        userPermissions: new Set(authContext.permissions),
+      } as RoutePermissionContext,
+    );
+
+    const isAuthorized = canViewProfile.allowed;
+    const isRendered = !hiddenByFeatureFlag && props.visible !== false && isAuthorized;
 
     return {
       hiddenByFeatureFlag,
       disabledByFeatureFlag,
+      isAuthorized,
       isRendered,
       telemetryEnabled,
     };
@@ -127,6 +145,7 @@ function useUserProfileDisplayPolicy(
     props.isDisabledByFeatureFlag,
     props.visible,
     props.telemetryEnabled,
+    authContext,
   ]);
 }
 
@@ -194,16 +213,19 @@ function extractTelemetryProps(
   return {
     ...(props.size !== undefined && { size: props.size }),
     ...(props.variant !== undefined && { variant: props.variant }),
-    hasAvatar: props.showAvatar !== false
-      && (
-        (profile.avatarUrl != null && profile.avatarUrl !== '')
-        || props.customAvatar != null
-      ),
-    hasName: props.showName !== false && profile.name != null && profile.name !== '',
-    hasEmail: props.showEmail !== false && profile.email !== '',
-    hasAdditionalInfo: props.showAdditionalInfo === true
-      && profile.additionalInfo != null
-      && profile.additionalInfo !== '',
+    hasAvatar: Boolean(
+      props.showAvatar !== false
+        && (
+          Boolean(profile.avatarUrl?.trim())
+          || Boolean(props.customAvatar)
+        ),
+    ),
+    hasName: Boolean(props.showName !== false && Boolean(profile.name?.trim())),
+    hasEmail: Boolean(props.showEmail !== false && Boolean(profile.email.trim())),
+    hasAdditionalInfo: Boolean(
+      props.showAdditionalInfo === true
+        && Boolean(profile.additionalInfo?.trim()),
+    ),
   };
 }
 
@@ -299,7 +321,12 @@ const UserProfileDisplayComponent = forwardRef<HTMLDivElement, AppUserProfileDis
     const hasEmittedViewRef = useRef<boolean>(false);
 
     useEffect(() => {
-      if (!policy.telemetryEnabled || !policy.isRendered || hasEmittedViewRef.current) {
+      if (
+        !policy.telemetryEnabled
+        || !policy.isRendered
+        || !policy.isAuthorized
+        || hasEmittedViewRef.current
+      ) {
         return;
       }
 
@@ -316,6 +343,7 @@ const UserProfileDisplayComponent = forwardRef<HTMLDivElement, AppUserProfileDis
     }, [
       policy.telemetryEnabled,
       policy.isRendered,
+      policy.isAuthorized,
       policy,
       telemetryProps,
     ]);

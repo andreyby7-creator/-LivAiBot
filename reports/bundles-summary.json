@@ -1,6 +1,51 @@
 {
-  "timestamp": "2026-01-21T15:26:45.648Z",
+  "timestamp": "2026-02-01T11:39:09.772Z",
   "packages": [
+    {
+      "package": "env",
+      "entry": "apps/web/.next/standalone/node_modules/.pnpm/@next+env@16.0.0/node_modules/@next/env/dist/index.js",
+      "sizes": {
+        "raw": 9949,
+        "gzip": 3943,
+        "brotli": 3499
+      }
+    },
+    {
+      "package": "next",
+      "entry": "apps/web/.next/standalone/node_modules/.pnpm/next@16.0.0_@babel+core@7.28.6_@opentelemetry+api@1.9.0_@playwright+test@1.57.0_react-d_3fa93d3dd47a51b9f56ffdb594347230/node_modules/next/dist/build/babel/loader/index.js",
+      "sizes": {
+        "raw": 2313,
+        "gzip": 915,
+        "brotli": 763
+      }
+    },
+    {
+      "package": "font",
+      "entry": "apps/web/.next/standalone/node_modules/.pnpm/next@16.0.0_@babel+core@7.28.6_@opentelemetry+api@1.9.0_@playwright+test@1.57.0_react-d_3fa93d3dd47a51b9f56ffdb594347230/node_modules/next/dist/compiled/@next/font/dist/fontkit/index.js",
+      "sizes": {
+        "raw": 815117,
+        "gzip": 187980,
+        "brotli": 149846
+      }
+    },
+    {
+      "package": "caniuse-lite",
+      "entry": "apps/web/.next/standalone/node_modules/.pnpm/caniuse-lite@1.0.30001764/node_modules/caniuse-lite/dist/unpacker/index.js",
+      "sizes": {
+        "raw": 198,
+        "gzip": 102,
+        "brotli": 74
+      }
+    },
+    {
+      "package": "styled-jsx",
+      "entry": "apps/web/.next/standalone/node_modules/.pnpm/styled-jsx@5.1.6_@babel+core@7.28.6_react@19.2.3/node_modules/styled-jsx/dist/index/index.js",
+      "sizes": {
+        "raw": 18896,
+        "gzip": 4794,
+        "brotli": 4125
+      }
+    },
     {
       "package": "stable-hash",
       "entry": "apps/web/node_modules/.pnpm/stable-hash@0.0.5/node_modules/stable-hash/dist/index.js",
@@ -842,9 +887,9 @@
       "package": "app",
       "entry": "packages/app/dist/esm/index.js",
       "sizes": {
-        "raw": 328,
-        "gzip": 228,
-        "brotli": 174
+        "raw": 1030375,
+        "gzip": 200444,
+        "brotli": 156552
       }
     },
     {
@@ -869,18 +914,18 @@
       "package": "ui-core",
       "entry": "packages/ui-core/dist/esm/index.js",
       "sizes": {
-        "raw": 1568,
-        "gzip": 797,
-        "brotli": 675
+        "raw": 73777,
+        "gzip": 19519,
+        "brotli": 17028
       }
     },
     {
       "package": "ui-features",
       "entry": "packages/ui-features/dist/esm/index.js",
       "sizes": {
-        "raw": 3173,
-        "gzip": 1149,
-        "brotli": 984
+        "raw": 3135,
+        "gzip": 1151,
+        "brotli": 974
       }
     },
     {

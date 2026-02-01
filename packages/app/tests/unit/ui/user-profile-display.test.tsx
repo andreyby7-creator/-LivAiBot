@@ -8,6 +8,18 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom/vitest';
 
+// Импортируем для тестов
+import type { AuthGuardContext, ID, Permission, UserRole } from '../../../src/lib/auth-guard.js';
+
+// Mock useAuthGuardContext
+vi.mock('../../../src/lib/auth-guard.js', async () => {
+  const actual = await vi.importActual('../../../src/lib/auth-guard.js');
+  return {
+    ...actual,
+    useAuthGuardContext: () => mockAuthContext,
+  };
+});
+
 // Mock для Core UserProfileDisplay - возвращаем простой div с переданными пропсами
 vi.mock('../../../../ui-core/src/components/UserProfileDisplay.js', () => ({
   UserProfileDisplay: React.forwardRef<
@@ -82,6 +94,21 @@ const mockInfoFireAndForget = vi.mocked(infoFireAndForget);
 
 // Mock console.warn для тестирования dev warnings
 const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+// Mock контекст авторизации для тестов
+const mockAuthContext: AuthGuardContext = {
+  isAuthenticated: true,
+  accessToken: 'mock-token',
+  refreshToken: 'mock-refresh',
+  requestId: 'test-request',
+  traceId: 'test-trace',
+  userAgent: 'test-agent',
+  ipAddress: '127.0.0.1',
+  sessionId: 'test-session',
+  userId: 'test-user-id' as ID,
+  roles: new Set(['USER'] as UserRole[]),
+  permissions: new Set(['READ_PUBLIC'] as Permission[]),
+};
 
 describe('App UserProfileDisplay', () => {
   // Общие тестовые переменные
@@ -408,16 +435,19 @@ describe('App UserProfileDisplay', () => {
   });
 
   describe('Render stability', () => {
-    it('должен быть стабилен при перерендере с одинаковыми пропсами', () => {
+    it('должен корректно рендериться с одинаковыми пропсами', () => {
       const { rerender } = render(<UserProfileDisplay profile={minimalProfile} />);
 
       const component1 = screen.getByTestId('core-user-profile-display');
 
+      // Ререндеринг с теми же пропсами
       rerender(<UserProfileDisplay profile={minimalProfile} />);
 
       const component2 = screen.getByTestId('core-user-profile-display');
 
+      // Компонент должен оставаться тем же (React reconciliation)
       expect(component1).toBe(component2);
+      expect(component2).toBeInTheDocument();
     });
 
     it('не должен пересчитывать lifecycle telemetry при изменении пропсов', () => {

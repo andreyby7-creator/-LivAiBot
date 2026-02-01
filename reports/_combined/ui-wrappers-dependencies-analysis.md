@@ -194,15 +194,15 @@
 
 ## user-profile-display.tsx
 
-**Текущие deps**: feature-flags, telemetry
-**Анализ**: ⚠️ Неполные зависимости - профиль пользователя может требовать авторизации
-**Рекомендации**: Добавить `lib/auth-guard.ts` для проверки доступа и `types/common.ts` для типов пользователя
+**Текущие deps**: feature-flags, telemetry, auth-guard, route-permissions
+**Анализ**: ✅ Корректные зависимости - профиль пользователя с проверкой авторизации и ролей
+**Рекомендации**: Зависимости соответствуют архитектуре
 
 ## navigation-menu-item.tsx
 
-**Текущие deps**: feature-flags, telemetry
-**Анализ**: ⚠️ Неполные зависимости - навигация может иметь права доступа
-**Рекомендации**: Добавить `lib/route-permissions.ts` для проверки прав доступа
+**Текущие deps**: feature-flags, telemetry, route-permissions
+**Анализ**: ✅ Корректные зависимости - навигация включает проверку прав доступа к маршрутам
+**Рекомендации**: Зависимости соответствуют архитектуре
 
 ## language-selector.tsx
 
@@ -218,18 +218,6 @@
 
 ## Резюме анализа
 
-### Компоненты без изменений (34/36):
+### Компоненты без изменений (36/36):
 
-button, input, textarea, select, checkbox, radio, toggle, icon, avatar, badge, tooltip, divider, card, dialog, loading-spinner, dropdown, context-menu, status-indicator, skeleton, skeleton-group, modal, breadcrumbs, tabs, accordion, sidebar, search-bar, confirm-dialog, support-button, form, toast, file-uploader, date-picker, language-selector, error-boundary
-
-### Компоненты требующие изменений (2/36):
-
-1. **user-profile-display.tsx** → добавить `lib/auth-guard.ts`, `types/common.ts`
-2. **navigation-menu-item.tsx** → добавить `lib/route-permissions.ts`
-
-## Архитектурные выводы:
-
-- Большинство компонентов правильно спроектированы
-- 4 компонента требуют дополнительных зависимостей для полной функциональности
-- Добавление зависимостей улучшит type safety, консистентность API и предотвратит дублирование логики
-- Архитектура останется чистой и модульной
+button, input, textarea, select, checkbox, radio, toggle, icon, avatar, badge, tooltip, divider, card, dialog, loading-spinner, dropdown, context-menu, status-indicator, skeleton, skeleton-group, modal, breadcrumbs, tabs, accordion, sidebar, search-bar, confirm-dialog, support-button, form, toast, file-uploader, date-picker, language-selector, error-boundary, navigation-menu-item, user-profile-display

@@ -2,7 +2,6 @@
 import { resolve } from 'path';
 import { fileURLToPath } from 'url';
 // External
-import tsconfigPaths from 'vite-tsconfig-paths';
 import { defineConfig } from 'vitest/config';
 
 // Internal
@@ -20,7 +19,7 @@ const __dirname = resolve(__filename, '..');
  * - Собственные thresholds для frontend-приложения
  */
 export default defineConfig({
-  plugins: [tsconfigPaths()],
+  plugins: [],
 
   test: {
     // Базовые унифицированные настройки от фабрики пакетов

@@ -378,3 +378,89 @@ export function getRequiredPermissions(routeType: RouteType): readonly Permissio
     (ROUTE_PERMISSION_POLICIES[routeType] as RoutePermissionRule).requiredPermissions;
   return permissions ? Object.freeze([...permissions]) : Object.freeze([]);
 }
+
+/**
+ * Определяет тип маршрута по пути.
+ * Вспомогательная функция для упрощения логики сопоставления.
+ *
+ * @param routePath - путь маршрута
+ * @returns тип маршрута
+ */
+function getRouteTypeFromPath(routePath: string | null | undefined): RouteType {
+  // Early return для невалидных значений
+  if (routePath === null || routePath === undefined) {
+    return 'public';
+  }
+
+  if (typeof routePath !== 'string') {
+    return 'public';
+  }
+
+  const trimmedPath = routePath.trim();
+  if (trimmedPath.length === 0) {
+    return 'public';
+  }
+
+  // Теперь trimmedPath гарантированно непустая строка
+
+  if (trimmedPath.startsWith('/auth') || trimmedPath === '/login' || trimmedPath === '/register') {
+    return 'auth';
+  }
+  if (trimmedPath.startsWith('/dashboard')) {
+    return 'dashboard';
+  }
+  if (trimmedPath.startsWith('/admin')) {
+    return 'admin';
+  }
+  if (trimmedPath.startsWith('/api')) {
+    return 'api';
+  }
+  if (trimmedPath.startsWith('/profile')) {
+    return 'profile';
+  }
+  if (trimmedPath.startsWith('/settings')) {
+    return 'settings';
+  }
+  // По умолчанию - публичный маршрут
+  return 'public';
+}
+
+/**
+ * Проверяет доступ к маршруту по пути.
+ * ⚠️ Упрощённая проверка для UI компонентов:
+ * - Использует "пустой" контекст (неавторизованный пользователь)
+ * - Не учитывает customCheck и реальные роли пользователя
+ * - SSR-safe: возвращает консервативный результат в серверном окружении
+ *
+ * @param routePath - путь маршрута
+ * @returns true если маршрут доступен, false иначе
+ */
+export function canAccessRoute(routePath: string): boolean {
+  // SSR-safe: в серверном окружении показываем только публичные маршруты
+  // чтобы избежать hydration mismatch из-за неизвестного статуса аутентификации
+  if (typeof window === 'undefined') {
+    // В SSR считаем доступными только публичные и auth маршруты
+    return getRouteTypeFromPath(routePath) === 'public'
+      || getRouteTypeFromPath(routePath) === 'auth';
+  }
+
+  // Определяем тип маршрута по пути
+  const routeType = getRouteTypeFromPath(routePath);
+
+  // Создаем минимальный маршрут
+  const route: RouteInfo = {
+    type: routeType,
+    path: routePath,
+  };
+
+  // Создаем пустой контекст (предполагаем неавторизованного пользователя)
+  const context: RoutePermissionContext = {
+    requestId: 'ui-check',
+    isAuthenticated: false,
+    isAdminMode: false,
+  };
+
+  // Проверяем доступ
+  const result = checkRoutePermission(route, context);
+  return result.allowed;
+}
