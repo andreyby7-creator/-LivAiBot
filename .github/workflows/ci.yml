@@ -10,6 +10,7 @@ jobs:
   quality:
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    needs: contracts
     steps:
       - name: Pre-checkout debug
         run: |
@@ -129,7 +130,9 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: "[Contracts] Generate contracts"
-        run: pnpm turbo run generate:contracts
+        run: |
+          source venv/bin/activate
+          pnpm turbo run generate:contracts
 
       - name: Check generated OpenAPI/Zod contracts are up to date
         run: pnpm turbo run check:contracts
@@ -137,6 +140,7 @@ jobs:
   unit-tests:
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    needs: contracts
     steps:
       - name: Pre-checkout debug
         run: |
@@ -198,6 +202,7 @@ jobs:
 
   e2e-tests:
     runs-on: ubuntu-latest
+    needs: contracts
     steps:
       - uses: actions/checkout@v6
 
@@ -231,6 +236,7 @@ jobs:
 
   performance-benchmarks:
     runs-on: ubuntu-latest
+    needs: contracts
     steps:
       - uses: actions/checkout@v6
 
