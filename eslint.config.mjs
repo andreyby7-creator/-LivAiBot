@@ -16,32 +16,11 @@
 
 // ==================== ОСНОВНЫЕ ИМПОРТЫ ====================
 /**
- * Импортируем все компоненты ESLint конфигурации
+ * Импортируем canary конфигурацию - единственный используемый режим
  */
-import devMode from './config/eslint/modes/dev.config.mjs';
-import canaryMode from './config/eslint/modes/canary.config.mjs';
+import canaryConfig from './config/eslint/modes/canary.config.mjs';
 import typescriptParser from '@typescript-eslint/parser';
 import { CONFIG_FILES_RULES } from './config/eslint/shared/rules.mjs';
-
-// ==================== ВЫБОР РЕЖИМА ====================
-/**
- * Определяем режим работы на основе переменной окружения
- * По умолчанию используется dev режим
- */
-const ESLINT_MODE = process.env.ESLINT_MODE || 'dev';
-
-let selectedConfig;
-
-switch (ESLINT_MODE) {
-  case 'dev':
-    selectedConfig = devMode;
-    break;
-  case 'canary':
-    selectedConfig = canaryMode;
-    break;
-  default:
-    selectedConfig = devMode;
-}
 
 // ==================== ЭКСПОРТ ====================
 /**
@@ -67,8 +46,8 @@ export default [
       'config/**/*.cjs',    // CJS конфиги/утилиты: аналогично
     ],
   },
-  // Основная конфигурация режима
-  ...selectedConfig,
+  // Основная конфигурация canary режима
+  ...canaryConfig,
   // Tsup конфиги — линтим, но мягче (как инфраструктурный код)
   {
     files: ['**/tsup.config.{ts,js,mjs,cjs}'],
@@ -122,13 +101,3 @@ export default [
   },
 ];
 
-// ==================== ДОСТУП К РЕЖИМАМ ====================
-/**
- * Прямой доступ к dev режиму
- */
-export { devMode };
-
-/**
- * Прямой доступ к canary режиму
- */
-export { canaryMode };
