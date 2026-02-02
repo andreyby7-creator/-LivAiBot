@@ -46,6 +46,22 @@ function waitForFile(filePath, timeoutMs = 10000) {
   });
 }
 
+// Поиск coverage-final.json в любых подпапках coverage (Vitest может складывать в coverage/tmp)
+function locateCoverageFile() {
+  const candidates = globSync('coverage/**/coverage-final.json', { cwd: ROOT, absolute: true });
+  return candidates[0] ?? null;
+}
+
+async function waitForCoverageFile(timeoutMs = 15000) {
+  const start = Date.now();
+  while (Date.now() - start <= timeoutMs) {
+    const file = locateCoverageFile();
+    if (file && fs.existsSync(file)) return file;
+    await new Promise(res => setTimeout(res, 200));
+  }
+  return null;
+}
+
 /* ================= ПУТИ ================= */
 
 const ROOT = process.cwd();
@@ -707,14 +723,14 @@ async function runVitestOnce({ configPath, environment, paths, opts, coverageEna
         const endTime = Date.now();
         const duration = (endTime - startTime) / 1000;
 
-        // Ждем завершения записи coverage отчетов
-        if (coverageEnabled) {
-          const coverageFile = path.join(ROOT, "coverage/coverage-final.json");
-          const ok = await waitForFile(coverageFile, 10000);
-          if (!ok) {
-            console.warn("⚠️ Coverage report not detected after 10s timeout");
-          }
+      // Ждем завершения записи coverage отчетов
+      let coverageFilePath = null;
+      if (coverageEnabled) {
+        coverageFilePath = await waitForCoverageFile(15000);
+        if (!coverageFilePath) {
+          console.warn("⚠️ Coverage report not detected after 15s timeout (looked in coverage/**/coverage-final.json)");
         }
+      }
 
         resolve({
           success: code === 0,
@@ -994,10 +1010,13 @@ if (opts.debug) {
   console.log('🔧 Vitest args:', debugArgs);
   console.log('📂 Normalized paths:', normalizedPaths);
   console.log('🔍 Всего тестов для запуска:', normalizedPaths.length);
-  console.log('🌍 Environment vars:', {
-    COVERAGE: debugEnv.COVERAGE ? 'enabled' : 'disabled',
-    VITEST_MAX_THREADS: debugEnv.VITEST_MAX_THREADS || 'default',
-    VITEST_MIN_THREADS: debugEnv.VITEST_MIN_THREADS || 'default'
+  // Не логируем "сырые" env во избежание утечек; выводим только безопасные флаги
+  console.log('🌍 Execution flags:', {
+    coverage: coverageEnabled ? 'enabled' : 'disabled',
+    vitestThreads: {
+      max: debugEnv.VITEST_MAX_THREADS ? 'custom' : 'default',
+      min: debugEnv.VITEST_MIN_THREADS ? 'custom' : 'default',
+    },
   });
 }
 
@@ -1063,8 +1082,8 @@ if (CI_MODE) {
 async function checkCoverageThresholds() {
   if (!coverageEnabled) return { enabled: false, reportFound: false, thresholdsStatus: 'not_applicable' };
 
-  const coverageJsonPath = path.join(ROOT, "coverage", "coverage-final.json");
-  if (!fs.existsSync(coverageJsonPath)) {
+  const coverageJsonPath = locateCoverageFile();
+  if (!coverageJsonPath || !fs.existsSync(coverageJsonPath)) {
     const error = new Error("Coverage is enabled but report was not generated - check Vitest config and CLI flags");
     console.error(`❌ ${error.message}`);
 
