@@ -1476,6 +1476,45 @@ async function runPostTestChecks(duration, reporter, reportDir = 'reports') {
     return { allChecksPassed, results: parsedResults, coverageStatus };
 }
 
+// Показывает детали неудачных тестов
+function showFailedTestsDetails(results) {
+  if (!results || !results.failingTestDetails || results.failingTestDetails.length === 0) {
+    console.log('\n📋 Детали неудачных тестов: нет данных');
+    return;
+  }
+
+  console.log('\n📋 Детали неудачных тестов:');
+
+  // Группируем по файлам для лучшей читаемости
+  const byFile = new Map();
+
+  for (const detail of results.failingTestDetails) {
+    const file = detail.file;
+    if (!byFile.has(file)) {
+      byFile.set(file, []);
+    }
+    byFile.get(file).push(detail);
+  }
+
+  for (const [file, failures] of byFile) {
+    console.log(`\n❌ ${path.relative(ROOT, file)}:`);
+    for (const failure of failures) {
+      console.log(`  • ${failure.title}`);
+      if (failure.failureMessages && failure.failureMessages.length > 0) {
+        for (const msg of failure.failureMessages) {
+          // Показываем только первые несколько строк ошибки
+          const lines = msg.split('\n').slice(0, 3);
+          for (const line of lines) {
+            console.log(`    ${line}`);
+          }
+          if (msg.split('\n').length > 3) {
+            console.log('    ...');
+          }
+        }
+      }
+    }
+  }
+}
 
 // Разбор и отображение сводки результатов
 function displayResultsSummary(duration, reporter, parsedResults = null, reportDir = 'reports') {
@@ -1626,6 +1665,13 @@ async function runCLI() {
     process.exit(0);
   } else {
     console.log(`\n❌ Тесты не удались`);
+
+    // Показываем детали неудачных тестов
+    const testResults = parseVitestJsonResults(null, reportDir);
+    if (testResults) {
+      showFailedTestsDetails(testResults);
+    }
+
     process.exit(1);
   }
 }
