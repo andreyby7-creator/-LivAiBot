@@ -2,6 +2,9 @@
 # Pre-push hook for essential quality checks
 # Runs fast checks before pushing to remote
 
+# Ensure PATH includes node/pnpm
+export PATH="$HOME/.nvm/versions/node/*/bin:$HOME/.local/share/pnpm:$HOME/.volta/bin:$PATH"
+
 echo "🚀 Running pre-push checks..."
 
 # 1. TypeScript type checking (global)

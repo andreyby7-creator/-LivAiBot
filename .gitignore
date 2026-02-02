@@ -47,6 +47,9 @@ temp/
 .cache/
 .turbo/
 
+# Binaries
+bin/
+
 # Database
 *.db
 *.sqlite
