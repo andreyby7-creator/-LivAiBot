@@ -137,6 +137,7 @@ pnpm add <package>                        # Добавление runtime
 pnpm add -D <package>                     # Добавление dev
 pnpm outdated                             # Проверка устаревших пакетов
 pnpm audit                                # Проверка безопасности зависимостей
+pip-audit                                 # Проверка безопасности Python зависимостей
 npx npm-check-updates -u                  # Обновление пакетов
 ```
 
