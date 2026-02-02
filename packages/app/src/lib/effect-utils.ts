@@ -23,7 +23,7 @@
  * - Один контракт → одна ответственность
  */
 
-import { Effect as EffectLib } from 'effect';
+import type { Effect as EffectLib } from 'effect';
 
 import type { ApiError, ApiRequestContext, ApiResponse } from '../types/api.js';
 

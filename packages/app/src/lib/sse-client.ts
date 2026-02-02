@@ -309,7 +309,7 @@ function parseSSEFrame(event: MessageEvent): SSEFrame {
   return Object.freeze({
     id: lastEventId ?? undefined,
     event: event.type !== 'message' ? event.type : undefined,
-    data: data,
+    data,
     retry,
   });
 }

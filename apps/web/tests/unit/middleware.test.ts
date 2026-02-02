@@ -3,6 +3,7 @@
  */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import type middleware from '../../middleware.js';
 
 // Mock для next-intl/middleware
 const mockCreateMiddleware = vi.fn(() => () => {});
@@ -22,7 +23,7 @@ afterEach(() => {
 });
 
 // Импорт middleware для тестирования
-let middlewareModule: typeof import('../../middleware.js');
+let middlewareModule: typeof middleware;
 
 describe('middleware', () => {
   beforeEach(async () => {

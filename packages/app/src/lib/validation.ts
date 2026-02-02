@@ -19,6 +19,7 @@
 
 import type { ServiceErrorCode, ServicePrefix, TaggedError } from './error-mapping.js';
 import { errorFireAndForget, warnFireAndForget } from './telemetry.js';
+import type { FileValidationResult } from '../types/api.js';
 
 /* ============================================================================
  * 🎭 PUBLIC API
@@ -460,7 +461,7 @@ export function validateFileBasic(
   file: File,
   maxSize?: number,
   accept?: string,
-): import('../types/api.js').FileValidationResult {
+): FileValidationResult {
   // Проверка размера
   if (maxSize !== undefined && file.size > maxSize) {
     return {
