@@ -42,10 +42,6 @@ export default {
       /\bAKIA[0-9A-Z]{16}\b/,
       /\b[a-zA-Z0-9]{40}\b/, // AWS secret keys are 40 chars
 
-      // Database connection strings with passwords
-      /mongodb:\/\/[^:]+:[^@]+@[^/]+\//,
-      /postgresql:\/\/[^:]+:[^@]+@[^/]+\//,
-      /mysql:\/\/[^:]+:[^@]+@[^/]+\//,
     ];
 
     // Known test/safe tokens to ignore
@@ -64,6 +60,11 @@ export default {
       Literal(node) {
         if (typeof node.value === 'string') {
           const value = node.value;
+
+          // Ограничиваем длину для защиты от ReDoS на огромных строках
+          if (value.length > 5000) {
+            return;
+          }
 
           // Skip very short strings or those that are clearly not tokens
           if (value.length < 10) {
@@ -113,6 +114,24 @@ export default {
               messageId: 'suspiciousTokenPattern',
             });
           }
+        }
+
+        // Check DB URLs with credentials using URL parser (avoids regex backtracking)
+        try {
+          const url = new URL(value);
+          const protocols = new Set(['mongodb:', 'postgresql:', 'mysql:']);
+          if (protocols.has(url.protocol) && url.username && url.password) {
+            context.report({
+              node,
+              messageId: 'hardcodedToken',
+              data: {
+                token: `${url.protocol}//${url.username}:***@${url.host}`,
+              },
+            });
+            return;
+          }
+        } catch {
+          // not a valid URL, ignore
         }
       },
     };
