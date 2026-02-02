@@ -134,8 +134,8 @@ jobs:
         run: |
           source venv/bin/activate
           python3 scripts/generate-openapi-snapshots.py
-          pnpm turbo run generate:zod
-          pnpm turbo run check:contracts
+          node scripts/generate-zod-schemas.mjs
+          git diff --exit-code -- ':(glob)services/*-service/openapi.json' 'packages/core-contracts/src/validation/zod/generated' || (echo "\\n[contracts] contract drift detected" && exit 1)
 
       - name: Check generated OpenAPI/Zod contracts are up to date
         run: pnpm turbo run check:contracts
