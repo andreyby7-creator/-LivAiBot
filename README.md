@@ -72,3 +72,5 @@ make run
 См. `config/python/README.md`.
 
 # CI trigger
+
+# ESLint CI fix test
