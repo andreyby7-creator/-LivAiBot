@@ -48,11 +48,16 @@ function waitForFile(filePath, timeoutMs = 10000) {
 
 // Поиск coverage-final.json в любых подпапках coverage (Vitest может складывать в coverage/tmp)
 function locateCoverageFile() {
-  const candidates = globSync('coverage/**/coverage-final.json', { cwd: ROOT, absolute: true });
+  // Ищем отчет покрытий глобально, но игнорируем node_modules и кеши
+  const candidates = globSync('**/coverage-final.json', {
+    cwd: ROOT,
+    absolute: true,
+    ignore: ['**/node_modules/**', '**/.pnpm/**', '**/.pnpm-store/**', '**/.turbo/**'],
+  });
   return candidates[0] ?? null;
 }
 
-async function waitForCoverageFile(timeoutMs = 15000) {
+async function waitForCoverageFile(timeoutMs = 60000) {
   const start = Date.now();
   while (Date.now() - start <= timeoutMs) {
     const file = locateCoverageFile();
@@ -726,9 +731,11 @@ async function runVitestOnce({ configPath, environment, paths, opts, coverageEna
       // Ждем завершения записи coverage отчетов
       let coverageFilePath = null;
       if (coverageEnabled) {
-        coverageFilePath = await waitForCoverageFile(15000);
-        if (!coverageFilePath) {
-          console.warn("⚠️ Coverage report not detected after 15s timeout (looked in coverage/**/coverage-final.json)");
+        coverageFilePath = await waitForCoverageFile(60000);
+        if (coverageFilePath) {
+          console.log(`📑 Coverage report detected at: ${path.relative(ROOT, coverageFilePath)}`);
+        } else {
+          console.warn("⚠️ Coverage report not detected after 60s timeout (searched for **/coverage-final.json)");
         }
       }
 
