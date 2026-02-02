@@ -43,6 +43,7 @@
       "inputs": ["src/**", "**/*.config.*", ".eslintrc*"]
     },
     "type-check": {
+      "dependsOn": ["^type-check"],
       "inputs": ["src/**", "tsconfig*.json"]
     },
     "test": {
