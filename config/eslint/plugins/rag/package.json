@@ -1,0 +1,30 @@
+{
+  "name": "eslint-plugin-rag",
+  "version": "1.0.0",
+  "description": "ESLint plugin for RAG (Retrieval-Augmented Generation) systems safety rules",
+  "main": "index.js",
+  "type": "module",
+  "keywords": [
+    "eslint",
+    "eslint-plugin",
+    "rag",
+    "ai",
+    "retrieval",
+    "generation",
+    "context",
+    "tokens"
+  ],
+  "author": "LivAi Team",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/livai/livai",
+    "directory": "config/eslint/plugins/rag"
+  },
+  "peerDependencies": {
+    "eslint": ">=8.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

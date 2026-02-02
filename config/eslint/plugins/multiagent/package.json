@@ -1,0 +1,29 @@
+{
+  "name": "eslint-plugin-multiagent",
+  "version": "1.0.0",
+  "description": "ESLint plugin for multi-agent systems safety and isolation rules",
+  "main": "index.js",
+  "type": "module",
+  "keywords": [
+    "eslint",
+    "eslint-plugin",
+    "multiagent",
+    "ai",
+    "agents",
+    "isolation",
+    "orchestration"
+  ],
+  "author": "LivAi Team",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/livai/livai",
+    "directory": "config/eslint/plugins/multiagent"
+  },
+  "peerDependencies": {
+    "eslint": ">=8.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
