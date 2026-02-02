@@ -35,13 +35,10 @@ importers:
         version: 3.19.15
       next:
         specifier: ^16.1.6
-        version: 16.1.6(@babel/core@7.28.6)(@opentelemetry/api@1.9.0)(@playwright/test@1.58.1)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
-<<<<<<< HEAD
-=======
+        version: 16.1.6(@babel/core@7.29.0)(@opentelemetry/api@1.9.0)(@playwright/test@1.58.1)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
       zustand:
         specifier: ^5.0.11
         version: 5.0.11(@types/react@19.2.10)(react@19.2.3)
->>>>>>> 8c3b78b (feat(telemetry): реализация системы телеметрии с batch-обработкой)
     devDependencies:
       '@effect/eslint-plugin':
         specifier: ^0.3.2
@@ -78,10 +75,10 @@ importers:
         version: 8.54.0(eslint@9.39.2)(typescript@5.9.3)
       '@vitest/coverage-istanbul':
         specifier: ^4.0.18
-        version: 4.0.18(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@25.1.0)(jsdom@27.4.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.2))
+        version: 4.0.18(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@25.1.0)(jsdom@28.0.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.2))
       '@vitest/coverage-v8':
         specifier: 4.0.18
-        version: 4.0.18(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@25.1.0)(jsdom@27.4.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.2))
+        version: 4.0.18(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@25.1.0)(jsdom@28.0.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.2))
       c8:
         specifier: ^10.1.3
         version: 10.1.3
@@ -201,7 +198,7 @@ importers:
         version: 8.0.0(typescript@5.9.3)
       next-intl:
         specifier: ^4.8.1
-        version: 4.8.1(next@16.1.6(@babel/core@7.28.6)(@opentelemetry/api@1.9.0)(@playwright/test@1.58.1)(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react@19.2.3)(typescript@5.9.3)
+        version: 4.8.1(next@16.1.6(@babel/core@7.29.0)(@opentelemetry/api@1.9.0)(@playwright/test@1.58.1)(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react@19.2.3)(typescript@5.9.3)
       rollup:
         specifier: ^4.57.1
         version: 4.57.1
@@ -228,7 +225,7 @@ importers:
         version: 5.9.3
       vitest:
         specifier: 4.0.18
-        version: 4.0.18(@opentelemetry/api@1.9.0)(@types/node@25.1.0)(jsdom@27.4.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.2)
+        version: 4.0.18(@opentelemetry/api@1.9.0)(@types/node@25.1.0)(jsdom@28.0.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.2)
 
   apps/web:
     dependencies:
@@ -252,13 +249,13 @@ importers:
         version: 3.19.13
       next:
         specifier: '>=16.0.11'
-        version: 16.1.6(@babel/core@7.28.6)(@opentelemetry/api@1.9.0)(@playwright/test@1.57.0)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
+        version: 16.1.6(@babel/core@7.29.0)(@opentelemetry/api@1.9.0)(@playwright/test@1.57.0)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
       next-auth:
         specifier: ^5.0.0-beta.30
-        version: 5.0.0-beta.30(next@16.1.6(@babel/core@7.28.6)(@opentelemetry/api@1.9.0)(@playwright/test@1.57.0)(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react@19.2.3)
+        version: 5.0.0-beta.30(next@16.1.6(@babel/core@7.29.0)(@opentelemetry/api@1.9.0)(@playwright/test@1.57.0)(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react@19.2.3)
       next-intl:
         specifier: ^4.7.0
-        version: 4.7.0(next@16.1.6(@babel/core@7.28.6)(@opentelemetry/api@1.9.0)(@playwright/test@1.57.0)(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react@19.2.3)(typescript@5.9.3)
+        version: 4.7.0(next@16.1.6(@babel/core@7.29.0)(@opentelemetry/api@1.9.0)(@playwright/test@1.57.0)(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react@19.2.3)(typescript@5.9.3)
       react:
         specifier: 19.2.3
         version: 19.2.3
@@ -344,7 +341,7 @@ importers:
         version: 7.3.1(@types/node@25.0.10)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.2)
       vitest:
         specifier: 4.0.18
-        version: 4.0.18(@opentelemetry/api@1.9.0)(@types/node@25.0.10)(jsdom@27.4.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.2)
+        version: 4.0.18(@opentelemetry/api@1.9.0)(@types/node@25.0.10)(jsdom@28.0.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.2)
 
   packages/app:
     dependencies:
@@ -353,7 +350,7 @@ importers:
         version: 1.11.19
       next-intl:
         specifier: ^4.7.0
-        version: 4.7.0(next@16.1.6(@babel/core@7.28.6)(@opentelemetry/api@1.9.0)(@playwright/test@1.58.1)(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react@19.2.3)(typescript@5.9.3)
+        version: 4.7.0(next@16.1.6(@babel/core@7.29.0)(@opentelemetry/api@1.9.0)(@playwright/test@1.58.1)(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react@19.2.3)(typescript@5.9.3)
       react:
         specifier: 19.2.3
         version: 19.2.3
@@ -369,17 +366,13 @@ importers:
         version: 16.3.1(@testing-library/dom@10.4.1)(@types/react-dom@19.2.3(@types/react@19.2.10))(@types/react@19.2.10)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
       '@vitest/coverage-v8':
         specifier: 4.0.18
-<<<<<<< HEAD
-        version: 4.0.18(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@25.1.0)(jsdom@27.4.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.2))
-=======
-        version: 4.0.18(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@25.2.0)(jsdom@27.4.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.2))
->>>>>>> 8c3b78b (feat(telemetry): реализация системы телеметрии с batch-обработкой)
+        version: 4.0.18(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@25.2.0)(jsdom@28.0.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.2))
       eslint:
         specifier: 9.39.2
         version: 9.39.2
       jsdom:
-        specifier: 27.4.0
-        version: 27.4.0
+        specifier: 28.0.0
+        version: 28.0.0
       tsup:
         specifier: 8.5.1
         version: 8.5.1(@swc/core@1.15.11)(postcss@8.5.6)(tsx@4.21.0)(typescript@5.9.3)(yaml@2.8.2)
@@ -388,11 +381,7 @@ importers:
         version: 5.9.3
       vitest:
         specifier: 4.0.18
-<<<<<<< HEAD
-        version: 4.0.18(@opentelemetry/api@1.9.0)(@types/node@25.1.0)(jsdom@27.4.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.2)
-=======
-        version: 4.0.18(@opentelemetry/api@1.9.0)(@types/node@25.2.0)(jsdom@27.4.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.2)
->>>>>>> 8c3b78b (feat(telemetry): реализация системы телеметрии с batch-обработкой)
+        version: 4.0.18(@opentelemetry/api@1.9.0)(@types/node@25.2.0)(jsdom@28.0.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.2)
 
   packages/core-contracts:
     dependencies:
@@ -491,11 +480,7 @@ importers:
         version: 0.38.0(effect@3.19.14)
       '@effect/vitest':
         specifier: ^0.27.0
-<<<<<<< HEAD
-        version: 0.27.0(effect@3.19.14)(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@25.1.0)(jsdom@27.4.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.2))
-=======
-        version: 0.27.0(effect@3.19.14)(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@25.2.0)(jsdom@27.4.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.2))
->>>>>>> 8c3b78b (feat(telemetry): реализация системы телеметрии с batch-обработкой)
+        version: 0.27.0(effect@3.19.14)(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@25.2.0)(jsdom@28.0.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.2))
       '@effect/workflow':
         specifier: ^0.16.0
         version: 0.16.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(effect@3.19.14)
@@ -508,11 +493,7 @@ importers:
     devDependencies:
       '@vitest/coverage-v8':
         specifier: 4.0.18
-<<<<<<< HEAD
-        version: 4.0.18(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@25.1.0)(jsdom@27.4.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.2))
-=======
-        version: 4.0.18(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@25.2.0)(jsdom@27.4.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.2))
->>>>>>> 8c3b78b (feat(telemetry): реализация системы телеметрии с batch-обработкой)
+        version: 4.0.18(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@25.2.0)(jsdom@28.0.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.2))
       eslint:
         specifier: 9.39.2
         version: 9.39.2
@@ -527,11 +508,7 @@ importers:
         version: 5.9.3
       vitest:
         specifier: 4.0.18
-<<<<<<< HEAD
-        version: 4.0.18(@opentelemetry/api@1.9.0)(@types/node@25.1.0)(jsdom@27.4.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.2)
-=======
-        version: 4.0.18(@opentelemetry/api@1.9.0)(@types/node@25.2.0)(jsdom@27.4.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.2)
->>>>>>> 8c3b78b (feat(telemetry): реализация системы телеметрии с batch-обработкой)
+        version: 4.0.18(@opentelemetry/api@1.9.0)(@types/node@25.2.0)(jsdom@28.0.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.2)
     optionalDependencies:
       lru-cache:
         specifier: 11.2.4
@@ -554,11 +531,7 @@ importers:
         version: link:../../config/vitest
       '@vitest/coverage-v8':
         specifier: 4.0.18
-<<<<<<< HEAD
-        version: 4.0.18(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@25.1.0)(jsdom@27.4.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.2))
-=======
-        version: 4.0.18(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@25.2.0)(jsdom@27.4.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.2))
->>>>>>> 8c3b78b (feat(telemetry): реализация системы телеметрии с batch-обработкой)
+        version: 4.0.18(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@25.2.0)(jsdom@28.0.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.2))
       eslint:
         specifier: 9.39.2
         version: 9.39.2
@@ -570,11 +543,7 @@ importers:
         version: 5.9.3
       vitest:
         specifier: 4.0.18
-<<<<<<< HEAD
-        version: 4.0.18(@opentelemetry/api@1.9.0)(@types/node@25.1.0)(jsdom@27.4.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.2)
-=======
-        version: 4.0.18(@opentelemetry/api@1.9.0)(@types/node@25.2.0)(jsdom@27.4.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.2)
->>>>>>> 8c3b78b (feat(telemetry): реализация системы телеметрии с batch-обработкой)
+        version: 4.0.18(@opentelemetry/api@1.9.0)(@types/node@25.2.0)(jsdom@28.0.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.2)
     optionalDependencies:
       lru-cache:
         specifier: 11.2.4
@@ -677,11 +646,7 @@ importers:
         version: 0.38.0(effect@3.19.14)
       '@effect/vitest':
         specifier: ^0.27.0
-<<<<<<< HEAD
-        version: 0.27.0(effect@3.19.14)(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@25.1.0)(jsdom@27.4.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.2))
-=======
-        version: 0.27.0(effect@3.19.14)(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@25.2.0)(jsdom@27.4.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.2))
->>>>>>> 8c3b78b (feat(telemetry): реализация системы телеметрии с batch-обработкой)
+        version: 0.27.0(effect@3.19.14)(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@25.2.0)(jsdom@28.0.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.2))
       '@effect/workflow':
         specifier: ^0.16.0
         version: 0.16.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(effect@3.19.14)
@@ -694,11 +659,7 @@ importers:
         version: link:../../config/vitest
       '@vitest/coverage-v8':
         specifier: 4.0.18
-<<<<<<< HEAD
-        version: 4.0.18(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@25.1.0)(jsdom@27.4.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.2))
-=======
-        version: 4.0.18(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@25.2.0)(jsdom@27.4.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.2))
->>>>>>> 8c3b78b (feat(telemetry): реализация системы телеметрии с batch-обработкой)
+        version: 4.0.18(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@25.2.0)(jsdom@28.0.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.2))
       eslint:
         specifier: 9.39.2
         version: 9.39.2
@@ -710,11 +671,7 @@ importers:
         version: 5.9.3
       vitest:
         specifier: 4.0.18
-<<<<<<< HEAD
-        version: 4.0.18(@opentelemetry/api@1.9.0)(@types/node@25.1.0)(jsdom@27.4.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.2)
-=======
-        version: 4.0.18(@opentelemetry/api@1.9.0)(@types/node@25.2.0)(jsdom@27.4.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.2)
->>>>>>> 8c3b78b (feat(telemetry): реализация системы телеметрии с batch-обработкой)
+        version: 4.0.18(@opentelemetry/api@1.9.0)(@types/node@25.2.0)(jsdom@28.0.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.2)
     optionalDependencies:
       lru-cache:
         specifier: 11.2.4
@@ -817,11 +774,7 @@ importers:
         version: 0.38.0(effect@3.19.14)
       '@effect/vitest':
         specifier: ^0.27.0
-<<<<<<< HEAD
-        version: 0.27.0(effect@3.19.14)(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@25.1.0)(jsdom@27.4.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.2))
-=======
-        version: 0.27.0(effect@3.19.14)(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@25.2.0)(jsdom@27.4.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.2))
->>>>>>> 8c3b78b (feat(telemetry): реализация системы телеметрии с batch-обработкой)
+        version: 0.27.0(effect@3.19.14)(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@25.2.0)(jsdom@28.0.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.2))
       '@effect/workflow':
         specifier: ^0.16.0
         version: 0.16.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(effect@3.19.14)
@@ -834,11 +787,7 @@ importers:
         version: link:../../config/vitest
       '@vitest/coverage-v8':
         specifier: 4.0.18
-<<<<<<< HEAD
-        version: 4.0.18(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@25.1.0)(jsdom@27.4.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.2))
-=======
-        version: 4.0.18(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@25.2.0)(jsdom@27.4.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.2))
->>>>>>> 8c3b78b (feat(telemetry): реализация системы телеметрии с batch-обработкой)
+        version: 4.0.18(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@25.2.0)(jsdom@28.0.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.2))
       eslint:
         specifier: 9.39.2
         version: 9.39.2
@@ -850,11 +799,7 @@ importers:
         version: 5.9.3
       vitest:
         specifier: 4.0.18
-<<<<<<< HEAD
-        version: 4.0.18(@opentelemetry/api@1.9.0)(@types/node@25.1.0)(jsdom@27.4.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.2)
-=======
-        version: 4.0.18(@opentelemetry/api@1.9.0)(@types/node@25.2.0)(jsdom@27.4.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.2)
->>>>>>> 8c3b78b (feat(telemetry): реализация системы телеметрии с batch-обработкой)
+        version: 4.0.18(@opentelemetry/api@1.9.0)(@types/node@25.2.0)(jsdom@28.0.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.2)
     optionalDependencies:
       lru-cache:
         specifier: 11.2.4
@@ -957,11 +902,7 @@ importers:
         version: 0.38.0(effect@3.19.14)
       '@effect/vitest':
         specifier: ^0.27.0
-<<<<<<< HEAD
-        version: 0.27.0(effect@3.19.14)(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@25.1.0)(jsdom@27.4.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.2))
-=======
-        version: 0.27.0(effect@3.19.14)(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@25.2.0)(jsdom@27.4.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.2))
->>>>>>> 8c3b78b (feat(telemetry): реализация системы телеметрии с batch-обработкой)
+        version: 0.27.0(effect@3.19.14)(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@25.2.0)(jsdom@28.0.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.2))
       '@effect/workflow':
         specifier: ^0.16.0
         version: 0.16.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(effect@3.19.14)
@@ -974,11 +915,7 @@ importers:
         version: link:../../config/vitest
       '@vitest/coverage-v8':
         specifier: 4.0.18
-<<<<<<< HEAD
-        version: 4.0.18(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@25.1.0)(jsdom@27.4.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.2))
-=======
-        version: 4.0.18(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@25.2.0)(jsdom@27.4.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.2))
->>>>>>> 8c3b78b (feat(telemetry): реализация системы телеметрии с batch-обработкой)
+        version: 4.0.18(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@25.2.0)(jsdom@28.0.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.2))
       eslint:
         specifier: 9.39.2
         version: 9.39.2
@@ -990,11 +927,7 @@ importers:
         version: 5.9.3
       vitest:
         specifier: 4.0.18
-<<<<<<< HEAD
-        version: 4.0.18(@opentelemetry/api@1.9.0)(@types/node@25.1.0)(jsdom@27.4.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.2)
-=======
-        version: 4.0.18(@opentelemetry/api@1.9.0)(@types/node@25.2.0)(jsdom@27.4.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.2)
->>>>>>> 8c3b78b (feat(telemetry): реализация системы телеметрии с batch-обработкой)
+        version: 4.0.18(@opentelemetry/api@1.9.0)(@types/node@25.2.0)(jsdom@28.0.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.2)
     optionalDependencies:
       lru-cache:
         specifier: 11.2.4
@@ -1020,11 +953,7 @@ importers:
         version: 16.3.1(@testing-library/dom@10.4.1)(@types/react-dom@19.2.3(@types/react@19.2.10))(@types/react@19.2.10)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
       '@vitest/coverage-v8':
         specifier: 4.0.18
-<<<<<<< HEAD
-        version: 4.0.18(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@25.1.0)(jsdom@27.4.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.2))
-=======
-        version: 4.0.18(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@25.2.0)(jsdom@27.4.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.2))
->>>>>>> 8c3b78b (feat(telemetry): реализация системы телеметрии с batch-обработкой)
+        version: 4.0.18(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@25.2.0)(jsdom@28.0.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.2))
       concurrently:
         specifier: ^8.2.2
         version: 8.2.2
@@ -1032,8 +961,8 @@ importers:
         specifier: 9.39.2
         version: 9.39.2
       jsdom:
-        specifier: 27.4.0
-        version: 27.4.0
+        specifier: 28.0.0
+        version: 28.0.0
       tsup:
         specifier: 8.5.1
         version: 8.5.1(@swc/core@1.15.11)(postcss@8.5.6)(tsx@4.21.0)(typescript@5.9.3)(yaml@2.8.2)
@@ -1042,11 +971,7 @@ importers:
         version: 5.9.3
       vitest:
         specifier: 4.0.18
-<<<<<<< HEAD
-        version: 4.0.18(@opentelemetry/api@1.9.0)(@types/node@25.1.0)(jsdom@27.4.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.2)
-=======
-        version: 4.0.18(@opentelemetry/api@1.9.0)(@types/node@25.2.0)(jsdom@27.4.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.2)
->>>>>>> 8c3b78b (feat(telemetry): реализация системы телеметрии с batch-обработкой)
+        version: 4.0.18(@opentelemetry/api@1.9.0)(@types/node@25.2.0)(jsdom@28.0.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.2)
 
   packages/ui-features:
     dependencies:
@@ -1080,17 +1005,13 @@ importers:
         version: 16.3.1(@testing-library/dom@10.4.1)(@types/react-dom@19.2.3(@types/react@19.2.10))(@types/react@19.2.10)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
       '@vitest/coverage-v8':
         specifier: 4.0.18
-<<<<<<< HEAD
-        version: 4.0.18(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@25.1.0)(jsdom@27.4.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.2))
-=======
-        version: 4.0.18(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@25.2.0)(jsdom@27.4.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.2))
->>>>>>> 8c3b78b (feat(telemetry): реализация системы телеметрии с batch-обработкой)
+        version: 4.0.18(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@25.2.0)(jsdom@28.0.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.2))
       eslint:
         specifier: 9.39.2
         version: 9.39.2
       jsdom:
-        specifier: 27.4.0
-        version: 27.4.0
+        specifier: 28.0.0
+        version: 28.0.0
       tsup:
         specifier: 8.5.1
         version: 8.5.1(@swc/core@1.15.11)(postcss@8.5.6)(tsx@4.21.0)(typescript@5.9.3)(yaml@2.8.2)
@@ -1099,11 +1020,7 @@ importers:
         version: 5.9.3
       vitest:
         specifier: 4.0.18
-<<<<<<< HEAD
-        version: 4.0.18(@opentelemetry/api@1.9.0)(@types/node@25.1.0)(jsdom@27.4.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.2)
-=======
-        version: 4.0.18(@opentelemetry/api@1.9.0)(@types/node@25.2.0)(jsdom@27.4.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.2)
->>>>>>> 8c3b78b (feat(telemetry): реализация системы телеметрии с batch-обработкой)
+        version: 4.0.18(@opentelemetry/api@1.9.0)(@types/node@25.2.0)(jsdom@28.0.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.2)
     optionalDependencies:
       lru-cache:
         specifier: 11.2.4
@@ -1129,17 +1046,13 @@ importers:
         version: 16.3.1(@testing-library/dom@10.4.1)(@types/react-dom@19.2.3(@types/react@19.2.10))(@types/react@19.2.10)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
       '@vitest/coverage-v8':
         specifier: 4.0.18
-<<<<<<< HEAD
-        version: 4.0.18(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@25.1.0)(jsdom@27.4.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.2))
-=======
-        version: 4.0.18(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@25.2.0)(jsdom@27.4.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.2))
->>>>>>> 8c3b78b (feat(telemetry): реализация системы телеметрии с batch-обработкой)
+        version: 4.0.18(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@25.2.0)(jsdom@28.0.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.2))
       eslint:
         specifier: 9.39.2
         version: 9.39.2
       jsdom:
-        specifier: 27.4.0
-        version: 27.4.0
+        specifier: 28.0.0
+        version: 28.0.0
       tsup:
         specifier: 8.5.1
         version: 8.5.1(@swc/core@1.15.11)(postcss@8.5.6)(tsx@4.21.0)(typescript@5.9.3)(yaml@2.8.2)
@@ -1148,11 +1061,7 @@ importers:
         version: 5.9.3
       vitest:
         specifier: 4.0.18
-<<<<<<< HEAD
-        version: 4.0.18(@opentelemetry/api@1.9.0)(@types/node@25.1.0)(jsdom@27.4.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.2)
-=======
-        version: 4.0.18(@opentelemetry/api@1.9.0)(@types/node@25.2.0)(jsdom@27.4.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.2)
->>>>>>> 8c3b78b (feat(telemetry): реализация системы телеметрии с batch-обработкой)
+        version: 4.0.18(@opentelemetry/api@1.9.0)(@types/node@25.2.0)(jsdom@28.0.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.2)
 
 packages:
 
@@ -1184,8 +1093,8 @@ packages:
   '@asamuzakjp/css-color@4.1.1':
     resolution: {integrity: sha512-B0Hv6G3gWGMn0xKJ0txEi/jM5iFpT3MfDxmhZFb4W047GvytCf1DHQ1D69W3zHI4yWe2aTZAA0JnbMZ7Xc8DuQ==}
 
-  '@asamuzakjp/dom-selector@6.7.6':
-    resolution: {integrity: sha512-hBaJER6A9MpdG3WgdlOolHmbOYvSk46y7IQN/1+iqiCuUu6iWdQrs9DGKF8ocqsEqWujWf/V7b7vaDgiUmIvUg==}
+  '@asamuzakjp/dom-selector@6.7.7':
+    resolution: {integrity: sha512-8CO/UQ4tzDd7ula+/CVimJIVWez99UJlbMyIgk8xOnhAVPKLnBZmUFYVgugS441v2ZqUq5EnSh6B0Ua0liSFAA==}
 
   '@asamuzakjp/nwsapi@2.3.9':
     resolution: {integrity: sha512-n8GuYSrI9bF7FFZ/SjhwevlHc8xaVlb/7HmHelnc/PZXBD2ZR49NnN9sMMuDdEGPeeRQ5d0hqlSlEpgCX3Wl0Q==}
@@ -1516,9 +1425,8 @@ packages:
     peerDependencies:
       '@csstools/css-tokenizer': ^3.0.4
 
-  '@csstools/css-syntax-patches-for-csstree@1.0.25':
-    resolution: {integrity: sha512-g0Kw9W3vjx5BEBAF8c5Fm2NcB/Fs8jJXh85aXqwEXiL+tqtOut07TWgyaGzAAfTM+gKckrrncyeGEZPcaRgm2Q==}
-    engines: {node: '>=18'}
+  '@csstools/css-syntax-patches-for-csstree@1.0.26':
+    resolution: {integrity: sha512-6boXK0KkzT5u5xOgF6TKB+CLq9SOpEGmkZw0g5n9/7yg85wab3UzSxB8TxhLJ31L4SGJ6BCFRw/iftTha1CJXA==}
 
   '@csstools/css-tokenizer@3.0.4':
     resolution: {integrity: sha512-Vd/9EVDiu6PPJt9yAh6roZP6El1xHrdvIVGjyBsHR0RYwNHgL7FJPyIIW4fANJNG6FtyZfvlRPpFI4ZM/lubvw==}
@@ -2068,13 +1976,13 @@ packages:
     resolution: {integrity: sha512-43/qtrDUokr7LJqoF2c3+RInu/t4zfrpYdoSDfYyhg52rwLV6TnOvdG4fXm7IkSB3wErkcmJS9iEhjVtOSEjjA==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
 
-  '@exodus/bytes@1.8.0':
-    resolution: {integrity: sha512-8JPn18Bcp8Uo1T82gR8lh2guEOa5KKU/IEKvvdp0sgmi7coPBWf1Doi1EXsGZb2ehc8ym/StJCjffYV+ne7sXQ==}
+  '@exodus/bytes@1.11.0':
+    resolution: {integrity: sha512-wO3vd8nsEHdumsXrjGO/v4p6irbg7hy9kvIeR6i2AwylZSk4HJdWgL0FNaVquW1+AweJcdvU1IEpuIWk/WaPnA==}
     engines: {node: ^20.19.0 || ^22.12.0 || >=24.0.0}
     peerDependencies:
-      '@exodus/crypto': ^1.0.0-rc.4
+      '@noble/hashes': ^1.8.0 || ^2.0.0
     peerDependenciesMeta:
-      '@exodus/crypto':
+      '@noble/hashes':
         optional: true
 
   '@formatjs/ecma402-abstract@2.3.6':
@@ -3423,12 +3331,9 @@ packages:
   '@types/node@25.1.0':
     resolution: {integrity: sha512-t7frlewr6+cbx+9Ohpl0NOTKXZNV9xHRmNOvql47BFJKcEG1CxtxlPEEe+gR9uhVWM4DwhnvTF110mIL4yP9RA==}
 
-<<<<<<< HEAD
-=======
   '@types/node@25.2.0':
     resolution: {integrity: sha512-DZ8VwRFUNzuqJ5khrvwMXHmvPe+zGayJhr2CDNiKB1WBE1ST8Djl00D0IC4vvNmHMdj6DlbYRIaFE7WHjlDl5w==}
 
->>>>>>> 8c3b78b (feat(telemetry): реализация системы телеметрии с batch-обработкой)
   '@types/parse-json@4.0.2':
     resolution: {integrity: sha512-dISoDXWWQwUquiKsyZ4Ng+HX2KsPL7LyHKHQwgGFEA3IaKac4Obd+h2a/a6waisAoepJlBcx9paWqjA8/HVjCw==}
 
@@ -4265,9 +4170,9 @@ packages:
     resolution: {integrity: sha512-0R9ikRb668HB7QDxT1vkpuUBtqc53YyAwMwGeUFKRojY/NWKvdZ+9UYtRfGmhqNbRkTSVpMbmyhXipFFv2cb/A==}
     engines: {node: '>= 12'}
 
-  data-urls@6.0.0:
-    resolution: {integrity: sha512-BnBS08aLUM+DKamupXs3w2tJJoqU+AkaE/+6vQxi/G/DPmIZFJJp9Dkb1kM03AZx8ADehDUZgsNxju3mPXZYIA==}
-    engines: {node: '>=20'}
+  data-urls@7.0.0:
+    resolution: {integrity: sha512-23XHcCF+coGYevirZceTVD7NdJOqVn+49IHyxgszm+JIiHLoB2TkmPtsYkNWT1pvRSGkc35L6NHs0yHkN2SumA==}
+    engines: {node: ^20.19.0 || ^22.12.0 || >=24.0.0}
 
   data-view-buffer@1.0.2:
     resolution: {integrity: sha512-EmKO5V3OLXh1rtK2wgXRansaK1/mtVdTUEiEI0W8RkvgT05kfxaH29PliLnpLP73yYO6142Q72QNa8Wx/A5CqQ==}
@@ -5691,8 +5596,8 @@ packages:
   jsc-safe-url@0.2.4:
     resolution: {integrity: sha512-0wM3YBWtYePOjfyXQH5MWQ8H7sdk5EXSwZvmSLKk2RboVQ2Bu239jycHDz5J/8Blf3K0Qnoy2b6xD+z10MFB+Q==}
 
-  jsdom@27.4.0:
-    resolution: {integrity: sha512-mjzqwWRD9Y1J1KUi7W97Gja1bwOOM5Ug0EZ6UDK3xS7j7mndrkwozHtSblfomlzyB4NepioNt+B2sOSzczVgtQ==}
+  jsdom@28.0.0:
+    resolution: {integrity: sha512-KDYJgZ6T2TKdU8yBfYueq5EPG/EylMsBvCaenWMJb2OXmjgczzwveRCoJ+Hgj1lXPDyasvrgneSn4GBuR1hYyA==}
     engines: {node: ^20.19.0 || ^22.12.0 || >=24.0.0}
     peerDependencies:
       canvas: ^3.0.0
@@ -7369,11 +7274,11 @@ packages:
     resolution: {integrity: sha512-PSkbLUoxOFRzJYjjxHJt9xro7D+iilgMX/C9lawzVuYiIdcihh9DXmVibBe8lmcFrRi/VzlPjBxbN7rH24q8/Q==}
     engines: {node: '>=14.0.0'}
 
-  tldts-core@7.0.19:
-    resolution: {integrity: sha512-lJX2dEWx0SGH4O6p+7FPwYmJ/bu1JbcGJ8RLaG9b7liIgZ85itUVEPbMtWRVrde/0fnDPEPHW10ZsKW3kVsE9A==}
+  tldts-core@7.0.21:
+    resolution: {integrity: sha512-oVOMdHvgjqyzUZH1rOESgJP1uNe2bVrfK0jUHHmiM2rpEiRbf3j4BrsIc6JigJRbHGanQwuZv/R+LTcHsw+bLA==}
 
-  tldts@7.0.19:
-    resolution: {integrity: sha512-8PWx8tvC4jDB39BQw1m4x8y5MH1BcQ5xHeL2n7UVFulMPH/3Q0uiamahFJ3lXA0zO2SUyRXuVVbWSDmstlt9YA==}
+  tldts@7.0.21:
+    resolution: {integrity: sha512-Plu6V8fF/XU6d2k8jPtlQf5F4Xx2hAin4r2C2ca7wR8NK5MbRTo9huLUWRe28f3Uk8bYZfg74tit/dSjc18xnw==}
     hasBin: true
 
   tmpl@1.0.5:
@@ -7604,6 +7509,10 @@ packages:
     resolution: {integrity: sha512-y+8YjDFzWdQlSE9N5nzKMT3g4a5UBX1HKowfdXh0uvAnTaqqwqB92Jt4UXBAeKekDs5IaDKyJFR4X1gYVCgXcw==}
     engines: {node: '>=20.18.1'}
 
+  undici@7.20.0:
+    resolution: {integrity: sha512-MJZrkjyd7DeC+uPZh+5/YaMDxFiiEEaDgbUSVMXayofAkDWF1088CDo+2RPg7B1BuS1qf1vgNE7xqwPxE0DuSQ==}
+    engines: {node: '>=20.18.1'}
+
   universalify@2.0.1:
     resolution: {integrity: sha512-gptHNQghINnc/vTGIk0SOFGFNXw7JVrlRUtConJRlvaw6DuX0wO5Jeko9sWrMBhh+PsYAZ7oXAiOnf/UKogyiw==}
     engines: {node: '>= 10.0.0'}
@@ -7772,13 +7681,13 @@ packages:
   whatwg-fetch@3.6.20:
     resolution: {integrity: sha512-EqhiFU6daOA8kpjOWTL0olhVOF3i7OrFzSYiGsEMB8GcXS+RrzauAERX65xMeNWVqxA6HXH2m69Z9LaKKdisfg==}
 
-  whatwg-mimetype@4.0.0:
-    resolution: {integrity: sha512-QaKxh0eNIi2mE9p2vEdzfagOKHCcj1pJ56EEHGQOVxp8r9/iszLUUV7v89x9O1p/T+NlTM5W7jW6+cz4Fq1YVg==}
-    engines: {node: '>=18'}
-
-  whatwg-url@15.1.0:
-    resolution: {integrity: sha512-2ytDk0kiEj/yu90JOAp44PVPUkO9+jVhyf+SybKlRHSDlvOOZhdPIrr7xTH64l4WixO2cP+wQIcgujkGBPPz6g==}
+  whatwg-mimetype@5.0.0:
+    resolution: {integrity: sha512-sXcNcHOC51uPGF0P/D4NVtrkjSU2fNsm9iog4ZvZJsL3rjoDAzXZhkm2MWt1y+PUdggKAYVoMAIYcs78wJ51Cw==}
     engines: {node: '>=20'}
+
+  whatwg-url@16.0.0:
+    resolution: {integrity: sha512-9CcxtEKsf53UFwkSUZjG+9vydAsFO4lFHBpJUtjBcoJOCJpKnSJNwCw813zrYJHpCJ7sgfbtOe0V5Ku7Pa1XMQ==}
+    engines: {node: ^20.19.0 || ^22.12.0 || >=24.0.0}
 
   whence@2.1.0:
     resolution: {integrity: sha512-4UBPMg5mng5KLzdliVQdQ4fJwCdIMXkE8CkoDmGKRy5r8pV9xq+nVgf/sKXpmNEIOtFp7m7v2bFdb7JoLvh+Hg==}
@@ -8008,9 +7917,9 @@ snapshots:
       '@csstools/css-color-parser': 3.1.0(@csstools/css-parser-algorithms@3.0.5(@csstools/css-tokenizer@3.0.4))(@csstools/css-tokenizer@3.0.4)
       '@csstools/css-parser-algorithms': 3.0.5(@csstools/css-tokenizer@3.0.4)
       '@csstools/css-tokenizer': 3.0.4
-      lru-cache: 11.2.5
+      lru-cache: 11.2.4
 
-  '@asamuzakjp/dom-selector@6.7.6':
+  '@asamuzakjp/dom-selector@6.7.7':
     dependencies:
       '@asamuzakjp/nwsapi': 2.3.9
       bidi-js: 1.0.3
@@ -8485,7 +8394,7 @@ snapshots:
     dependencies:
       '@csstools/css-tokenizer': 3.0.4
 
-  '@csstools/css-syntax-patches-for-csstree@1.0.25': {}
+  '@csstools/css-syntax-patches-for-csstree@1.0.26': {}
 
   '@csstools/css-tokenizer@3.0.4': {}
 
@@ -8806,17 +8715,10 @@ snapshots:
     dependencies:
       effect: 3.19.14
 
-<<<<<<< HEAD
-  '@effect/vitest@0.27.0(effect@3.19.14)(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@25.1.0)(jsdom@27.4.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.2))':
+  '@effect/vitest@0.27.0(effect@3.19.14)(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@25.2.0)(jsdom@28.0.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.2))':
     dependencies:
       effect: 3.19.14
-      vitest: 4.0.18(@opentelemetry/api@1.9.0)(@types/node@25.1.0)(jsdom@27.4.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.2)
-=======
-  '@effect/vitest@0.27.0(effect@3.19.14)(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@25.2.0)(jsdom@27.4.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.2))':
-    dependencies:
-      effect: 3.19.14
-      vitest: 4.0.18(@opentelemetry/api@1.9.0)(@types/node@25.2.0)(jsdom@27.4.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.2)
->>>>>>> 8c3b78b (feat(telemetry): реализация системы телеметрии с batch-обработкой)
+      vitest: 4.0.18(@opentelemetry/api@1.9.0)(@types/node@25.2.0)(jsdom@28.0.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.2)
 
   '@effect/wa-sqlite@0.1.2': {}
 
@@ -8969,7 +8871,7 @@ snapshots:
       '@eslint/core': 0.17.0
       levn: 0.4.1
 
-  '@exodus/bytes@1.8.0': {}
+  '@exodus/bytes@1.11.0': {}
 
   '@formatjs/ecma402-abstract@2.3.6':
     dependencies:
@@ -9188,22 +9090,14 @@ snapshots:
     dependencies:
       '@jest/fake-timers': 29.7.0
       '@jest/types': 29.6.3
-<<<<<<< HEAD
-      '@types/node': 25.1.0
-=======
       '@types/node': 25.2.0
->>>>>>> 8c3b78b (feat(telemetry): реализация системы телеметрии с batch-обработкой)
       jest-mock: 29.7.0
 
   '@jest/fake-timers@29.7.0':
     dependencies:
       '@jest/types': 29.6.3
       '@sinonjs/fake-timers': 10.3.0
-<<<<<<< HEAD
-      '@types/node': 25.1.0
-=======
       '@types/node': 25.2.0
->>>>>>> 8c3b78b (feat(telemetry): реализация системы телеметрии с batch-обработкой)
       jest-message-util: 29.7.0
       jest-mock: 29.7.0
       jest-util: 29.7.0
@@ -9237,11 +9131,7 @@ snapshots:
       '@jest/schemas': 29.6.3
       '@types/istanbul-lib-coverage': 2.0.6
       '@types/istanbul-reports': 3.0.4
-<<<<<<< HEAD
-      '@types/node': 25.1.0
-=======
       '@types/node': 25.2.0
->>>>>>> 8c3b78b (feat(telemetry): реализация системы телеметрии с batch-обработкой)
       '@types/yargs': 17.0.35
       chalk: 4.1.2
 
@@ -10233,11 +10123,7 @@ snapshots:
 
   '@types/graceful-fs@4.1.9':
     dependencies:
-<<<<<<< HEAD
-      '@types/node': 25.1.0
-=======
       '@types/node': 25.2.0
->>>>>>> 8c3b78b (feat(telemetry): реализация системы телеметрии с batch-обработкой)
 
   '@types/istanbul-lib-coverage@2.0.6': {}
 
@@ -10273,13 +10159,10 @@ snapshots:
     dependencies:
       undici-types: 7.16.0
 
-<<<<<<< HEAD
-=======
   '@types/node@25.2.0':
     dependencies:
       undici-types: 7.16.0
 
->>>>>>> 8c3b78b (feat(telemetry): реализация системы телеметрии с batch-обработкой)
   '@types/parse-json@4.0.2': {}
 
   '@types/react-dom@19.2.3(@types/react@19.2.10)':
@@ -10534,7 +10417,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@vitest/coverage-istanbul@4.0.18(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@25.1.0)(jsdom@27.4.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.2))':
+  '@vitest/coverage-istanbul@4.0.18(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@25.1.0)(jsdom@28.0.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.2))':
     dependencies:
       '@istanbuljs/schema': 0.1.3
       '@jridgewell/gen-mapping': 0.3.13
@@ -10546,11 +10429,11 @@ snapshots:
       magicast: 0.5.1
       obug: 2.1.1
       tinyrainbow: 3.0.3
-      vitest: 4.0.18(@opentelemetry/api@1.9.0)(@types/node@25.1.0)(jsdom@27.4.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.2)
+      vitest: 4.0.18(@opentelemetry/api@1.9.0)(@types/node@25.1.0)(jsdom@28.0.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.2)
     transitivePeerDependencies:
       - supports-color
 
-  '@vitest/coverage-v8@4.0.18(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@25.1.0)(jsdom@27.4.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.2))':
+  '@vitest/coverage-v8@4.0.18(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@25.1.0)(jsdom@28.0.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.2))':
     dependencies:
       '@bcoe/v8-coverage': 1.0.2
       '@vitest/utils': 4.0.18
@@ -10562,11 +10445,9 @@ snapshots:
       obug: 2.1.1
       std-env: 3.10.0
       tinyrainbow: 3.0.3
-      vitest: 4.0.18(@opentelemetry/api@1.9.0)(@types/node@25.1.0)(jsdom@27.4.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.2)
-<<<<<<< HEAD
-=======
+      vitest: 4.0.18(@opentelemetry/api@1.9.0)(@types/node@25.1.0)(jsdom@28.0.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.2)
 
-  '@vitest/coverage-v8@4.0.18(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@25.2.0)(jsdom@27.4.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.2))':
+  '@vitest/coverage-v8@4.0.18(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@25.2.0)(jsdom@28.0.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.2))':
     dependencies:
       '@bcoe/v8-coverage': 1.0.2
       '@vitest/utils': 4.0.18
@@ -10578,8 +10459,7 @@ snapshots:
       obug: 2.1.1
       std-env: 3.10.0
       tinyrainbow: 3.0.3
-      vitest: 4.0.18(@opentelemetry/api@1.9.0)(@types/node@25.2.0)(jsdom@27.4.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.2)
->>>>>>> 8c3b78b (feat(telemetry): реализация системы телеметрии с batch-обработкой)
+      vitest: 4.0.18(@opentelemetry/api@1.9.0)(@types/node@25.2.0)(jsdom@28.0.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.2)
 
   '@vitest/expect@4.0.18':
     dependencies:
@@ -10605,6 +10485,14 @@ snapshots:
       magic-string: 0.30.21
     optionalDependencies:
       vite: 7.3.1(@types/node@25.1.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.2)
+
+  '@vitest/mocker@4.0.18(vite@7.3.1(@types/node@25.2.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.2))':
+    dependencies:
+      '@vitest/spy': 4.0.18
+      estree-walker: 3.0.3
+      magic-string: 0.30.21
+    optionalDependencies:
+      vite: 7.3.1(@types/node@25.2.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.2)
 
   '@vitest/pretty-format@4.0.18':
     dependencies:
@@ -11093,11 +10981,7 @@ snapshots:
 
   chrome-launcher@0.15.2:
     dependencies:
-<<<<<<< HEAD
-      '@types/node': 25.1.0
-=======
       '@types/node': 25.2.0
->>>>>>> 8c3b78b (feat(telemetry): реализация системы телеметрии с batch-обработкой)
       escape-string-regexp: 4.0.0
       is-wsl: 2.2.0
       lighthouse-logger: 1.4.2
@@ -11106,11 +10990,7 @@ snapshots:
 
   chromium-edge-launcher@0.2.0:
     dependencies:
-<<<<<<< HEAD
-      '@types/node': 25.1.0
-=======
       '@types/node': 25.2.0
->>>>>>> 8c3b78b (feat(telemetry): реализация системы телеметрии с batch-обработкой)
       escape-string-regexp: 4.0.0
       is-wsl: 2.2.0
       lighthouse-logger: 1.4.2
@@ -11252,9 +11132,9 @@ snapshots:
   cssstyle@5.3.7:
     dependencies:
       '@asamuzakjp/css-color': 4.1.1
-      '@csstools/css-syntax-patches-for-csstree': 1.0.25
+      '@csstools/css-syntax-patches-for-csstree': 1.0.26
       css-tree: 3.1.0
-      lru-cache: 11.2.5
+      lru-cache: 11.2.4
 
   csstype@3.2.3: {}
 
@@ -11262,10 +11142,12 @@ snapshots:
 
   data-uri-to-buffer@4.0.1: {}
 
-  data-urls@6.0.0:
+  data-urls@7.0.0:
     dependencies:
-      whatwg-mimetype: 4.0.0
-      whatwg-url: 15.1.0
+      whatwg-mimetype: 5.0.0
+      whatwg-url: 16.0.0
+    transitivePeerDependencies:
+      - '@noble/hashes'
 
   data-view-buffer@1.0.2:
     dependencies:
@@ -11727,8 +11609,8 @@ snapshots:
       '@next/eslint-plugin-next': 16.0.0
       eslint: 9.39.2
       eslint-import-resolver-node: 0.3.9
-      eslint-import-resolver-typescript: 3.10.1(eslint-plugin-import@2.32.0(@typescript-eslint/parser@8.54.0(eslint@9.39.2)(typescript@5.9.3))(eslint-import-resolver-typescript@4.4.4)(eslint@9.39.2))(eslint@9.39.2)
-      eslint-plugin-import: 2.32.0(@typescript-eslint/parser@8.54.0(eslint@9.39.2)(typescript@5.9.3))(eslint-import-resolver-typescript@3.10.1)(eslint@9.39.2)
+      eslint-import-resolver-typescript: 3.10.1(eslint-plugin-import@2.32.0)(eslint@9.39.2)
+      eslint-plugin-import: 2.32.0(@typescript-eslint/parser@8.54.0(eslint@9.39.2)(typescript@5.9.3))(eslint-import-resolver-typescript@4.4.4)(eslint@9.39.2)
       eslint-plugin-jsx-a11y: 6.10.2(eslint@9.39.2)
       eslint-plugin-react: 7.37.5(eslint@9.39.2)
       eslint-plugin-react-hooks: 7.0.1(eslint@9.39.2)
@@ -11770,7 +11652,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  eslint-import-resolver-typescript@3.10.1(eslint-plugin-import@2.32.0(@typescript-eslint/parser@8.54.0(eslint@9.39.2)(typescript@5.9.3))(eslint-import-resolver-typescript@4.4.4)(eslint@9.39.2))(eslint@9.39.2):
+  eslint-import-resolver-typescript@3.10.1(eslint-plugin-import@2.32.0)(eslint@9.39.2):
     dependencies:
       '@nolyfill/is-core-module': 1.0.39
       debug: 4.4.3
@@ -11781,7 +11663,7 @@ snapshots:
       tinyglobby: 0.2.15
       unrs-resolver: 1.11.1
     optionalDependencies:
-      eslint-plugin-import: 2.32.0(@typescript-eslint/parser@8.54.0(eslint@9.39.2)(typescript@5.9.3))(eslint-import-resolver-typescript@3.10.1)(eslint@9.39.2)
+      eslint-plugin-import: 2.32.0(@typescript-eslint/parser@8.54.0(eslint@9.39.2)(typescript@5.9.3))(eslint-import-resolver-typescript@4.4.4)(eslint@9.39.2)
     transitivePeerDependencies:
       - supports-color
 
@@ -11797,17 +11679,6 @@ snapshots:
       unrs-resolver: 1.11.1
     optionalDependencies:
       eslint-plugin-import: 2.32.0(@typescript-eslint/parser@8.54.0(eslint@9.39.2)(typescript@5.9.3))(eslint-import-resolver-typescript@4.4.4)(eslint@9.39.2)
-    transitivePeerDependencies:
-      - supports-color
-
-  eslint-module-utils@2.12.1(@typescript-eslint/parser@8.54.0(eslint@9.39.2)(typescript@5.9.3))(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@3.10.1(eslint-plugin-import@2.32.0(@typescript-eslint/parser@8.54.0(eslint@9.39.2)(typescript@5.9.3))(eslint-import-resolver-typescript@4.4.4)(eslint@9.39.2))(eslint@9.39.2))(eslint@9.39.2):
-    dependencies:
-      debug: 3.2.7
-    optionalDependencies:
-      '@typescript-eslint/parser': 8.54.0(eslint@9.39.2)(typescript@5.9.3)
-      eslint: 9.39.2
-      eslint-import-resolver-node: 0.3.9
-      eslint-import-resolver-typescript: 3.10.1(eslint-plugin-import@2.32.0(@typescript-eslint/parser@8.54.0(eslint@9.39.2)(typescript@5.9.3))(eslint-import-resolver-typescript@4.4.4)(eslint@9.39.2))(eslint@9.39.2)
     transitivePeerDependencies:
       - supports-color
 
@@ -11862,35 +11733,6 @@ snapshots:
     optionalDependencies:
       typescript: 5.9.3
     transitivePeerDependencies:
-      - supports-color
-
-  eslint-plugin-import@2.32.0(@typescript-eslint/parser@8.54.0(eslint@9.39.2)(typescript@5.9.3))(eslint-import-resolver-typescript@3.10.1)(eslint@9.39.2):
-    dependencies:
-      '@rtsao/scc': 1.1.0
-      array-includes: 3.1.9
-      array.prototype.findlastindex: 1.2.6
-      array.prototype.flat: 1.3.3
-      array.prototype.flatmap: 1.3.3
-      debug: 3.2.7
-      doctrine: 2.1.0
-      eslint: 9.39.2
-      eslint-import-resolver-node: 0.3.9
-      eslint-module-utils: 2.12.1(@typescript-eslint/parser@8.54.0(eslint@9.39.2)(typescript@5.9.3))(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@3.10.1(eslint-plugin-import@2.32.0(@typescript-eslint/parser@8.54.0(eslint@9.39.2)(typescript@5.9.3))(eslint-import-resolver-typescript@4.4.4)(eslint@9.39.2))(eslint@9.39.2))(eslint@9.39.2)
-      hasown: 2.0.2
-      is-core-module: 2.16.1
-      is-glob: 4.0.3
-      minimatch: 3.1.2
-      object.fromentries: 2.0.8
-      object.groupby: 1.0.3
-      object.values: 1.2.1
-      semver: 6.3.1
-      string.prototype.trimend: 1.0.9
-      tsconfig-paths: 3.15.0
-    optionalDependencies:
-      '@typescript-eslint/parser': 8.54.0(eslint@9.39.2)(typescript@5.9.3)
-    transitivePeerDependencies:
-      - eslint-import-resolver-typescript
-      - eslint-import-resolver-webpack
       - supports-color
 
   eslint-plugin-import@2.32.0(@typescript-eslint/parser@8.54.0(eslint@9.39.2)(typescript@5.9.3))(eslint-import-resolver-typescript@4.4.4)(eslint@9.39.2):
@@ -12480,9 +12322,9 @@ snapshots:
 
   html-encoding-sniffer@6.0.0:
     dependencies:
-      '@exodus/bytes': 1.8.0
+      '@exodus/bytes': 1.11.0
     transitivePeerDependencies:
-      - '@exodus/crypto'
+      - '@noble/hashes'
 
   html-escaper@2.0.2: {}
 
@@ -12808,11 +12650,7 @@ snapshots:
       '@jest/environment': 29.7.0
       '@jest/fake-timers': 29.7.0
       '@jest/types': 29.6.3
-<<<<<<< HEAD
-      '@types/node': 25.1.0
-=======
       '@types/node': 25.2.0
->>>>>>> 8c3b78b (feat(telemetry): реализация системы телеметрии с batch-обработкой)
       jest-mock: 29.7.0
       jest-util: 29.7.0
 
@@ -12822,11 +12660,7 @@ snapshots:
     dependencies:
       '@jest/types': 29.6.3
       '@types/graceful-fs': 4.1.9
-<<<<<<< HEAD
-      '@types/node': 25.1.0
-=======
       '@types/node': 25.2.0
->>>>>>> 8c3b78b (feat(telemetry): реализация системы телеметрии с batch-обработкой)
       anymatch: 3.1.3
       fb-watchman: 2.0.2
       graceful-fs: 4.2.11
@@ -12853,11 +12687,7 @@ snapshots:
   jest-mock@29.7.0:
     dependencies:
       '@jest/types': 29.6.3
-<<<<<<< HEAD
-      '@types/node': 25.1.0
-=======
       '@types/node': 25.2.0
->>>>>>> 8c3b78b (feat(telemetry): реализация системы телеметрии с batch-обработкой)
       jest-util: 29.7.0
 
   jest-regex-util@29.6.3: {}
@@ -12865,11 +12695,7 @@ snapshots:
   jest-util@29.7.0:
     dependencies:
       '@jest/types': 29.6.3
-<<<<<<< HEAD
-      '@types/node': 25.1.0
-=======
       '@types/node': 25.2.0
->>>>>>> 8c3b78b (feat(telemetry): реализация системы телеметрии с batch-обработкой)
       chalk: 4.1.2
       ci-info: 3.9.0
       graceful-fs: 4.2.11
@@ -12886,11 +12712,7 @@ snapshots:
 
   jest-worker@29.7.0:
     dependencies:
-<<<<<<< HEAD
-      '@types/node': 25.1.0
-=======
       '@types/node': 25.2.0
->>>>>>> 8c3b78b (feat(telemetry): реализация системы телеметрии с batch-обработкой)
       jest-util: 29.7.0
       merge-stream: 2.0.0
       supports-color: 8.1.1
@@ -12920,13 +12742,13 @@ snapshots:
 
   jsc-safe-url@0.2.4: {}
 
-  jsdom@27.4.0:
+  jsdom@28.0.0:
     dependencies:
       '@acemir/cssom': 0.9.31
-      '@asamuzakjp/dom-selector': 6.7.6
-      '@exodus/bytes': 1.8.0
+      '@asamuzakjp/dom-selector': 6.7.7
+      '@exodus/bytes': 1.11.0
       cssstyle: 5.3.7
-      data-urls: 6.0.0
+      data-urls: 7.0.0
       decimal.js: 10.6.0
       html-encoding-sniffer: 6.0.0
       http-proxy-agent: 7.0.2
@@ -12936,17 +12758,15 @@ snapshots:
       saxes: 6.0.0
       symbol-tree: 3.2.4
       tough-cookie: 6.0.0
+      undici: 7.20.0
       w3c-xmlserializer: 5.0.0
       webidl-conversions: 8.0.1
-      whatwg-mimetype: 4.0.0
-      whatwg-url: 15.1.0
-      ws: 8.19.0
+      whatwg-mimetype: 5.0.0
+      whatwg-url: 16.0.0
       xml-name-validator: 5.0.0
     transitivePeerDependencies:
-      - '@exodus/crypto'
-      - bufferutil
+      - '@noble/hashes'
       - supports-color
-      - utf-8-validate
 
   jsesc@3.1.0: {}
 
@@ -13146,8 +12966,7 @@ snapshots:
 
   lru-cache@10.4.3: {}
 
-  lru-cache@11.2.4:
-    optional: true
+  lru-cache@11.2.4: {}
 
   lru-cache@11.2.5: {}
 
@@ -13525,23 +13344,23 @@ snapshots:
 
   neo-async@2.6.2: {}
 
-  next-auth@5.0.0-beta.30(next@16.1.6(@babel/core@7.28.6)(@opentelemetry/api@1.9.0)(@playwright/test@1.57.0)(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react@19.2.3):
+  next-auth@5.0.0-beta.30(next@16.1.6(@babel/core@7.29.0)(@opentelemetry/api@1.9.0)(@playwright/test@1.57.0)(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react@19.2.3):
     dependencies:
       '@auth/core': 0.41.0
-      next: 16.1.6(@babel/core@7.28.6)(@opentelemetry/api@1.9.0)(@playwright/test@1.57.0)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
+      next: 16.1.6(@babel/core@7.29.0)(@opentelemetry/api@1.9.0)(@playwright/test@1.57.0)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
       react: 19.2.3
 
   next-intl-swc-plugin-extractor@4.7.0: {}
 
   next-intl-swc-plugin-extractor@4.8.1: {}
 
-  next-intl@4.7.0(next@16.1.6(@babel/core@7.28.6)(@opentelemetry/api@1.9.0)(@playwright/test@1.57.0)(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react@19.2.3)(typescript@5.9.3):
+  next-intl@4.7.0(next@16.1.6(@babel/core@7.29.0)(@opentelemetry/api@1.9.0)(@playwright/test@1.57.0)(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react@19.2.3)(typescript@5.9.3):
     dependencies:
       '@formatjs/intl-localematcher': 0.5.10
       '@parcel/watcher': 2.5.4
       '@swc/core': 1.15.8
       negotiator: 1.0.0
-      next: 16.1.6(@babel/core@7.28.6)(@opentelemetry/api@1.9.0)(@playwright/test@1.57.0)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
+      next: 16.1.6(@babel/core@7.29.0)(@opentelemetry/api@1.9.0)(@playwright/test@1.57.0)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
       next-intl-swc-plugin-extractor: 4.7.0
       po-parser: 2.1.1
       react: 19.2.3
@@ -13551,13 +13370,13 @@ snapshots:
     transitivePeerDependencies:
       - '@swc/helpers'
 
-  next-intl@4.7.0(next@16.1.6(@babel/core@7.28.6)(@opentelemetry/api@1.9.0)(@playwright/test@1.58.1)(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react@19.2.3)(typescript@5.9.3):
+  next-intl@4.7.0(next@16.1.6(@babel/core@7.29.0)(@opentelemetry/api@1.9.0)(@playwright/test@1.58.1)(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react@19.2.3)(typescript@5.9.3):
     dependencies:
       '@formatjs/intl-localematcher': 0.5.10
       '@parcel/watcher': 2.5.4
       '@swc/core': 1.15.8
       negotiator: 1.0.0
-      next: 16.1.6(@babel/core@7.28.6)(@opentelemetry/api@1.9.0)(@playwright/test@1.58.1)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
+      next: 16.1.6(@babel/core@7.29.0)(@opentelemetry/api@1.9.0)(@playwright/test@1.58.1)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
       next-intl-swc-plugin-extractor: 4.7.0
       po-parser: 2.1.1
       react: 19.2.3
@@ -13567,14 +13386,14 @@ snapshots:
     transitivePeerDependencies:
       - '@swc/helpers'
 
-  next-intl@4.8.1(next@16.1.6(@babel/core@7.28.6)(@opentelemetry/api@1.9.0)(@playwright/test@1.58.1)(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react@19.2.3)(typescript@5.9.3):
+  next-intl@4.8.1(next@16.1.6(@babel/core@7.29.0)(@opentelemetry/api@1.9.0)(@playwright/test@1.58.1)(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react@19.2.3)(typescript@5.9.3):
     dependencies:
       '@formatjs/intl-localematcher': 0.5.10
       '@parcel/watcher': 2.5.6
       '@swc/core': 1.15.11
       icu-minify: 4.8.1
       negotiator: 1.0.0
-      next: 16.1.6(@babel/core@7.28.6)(@opentelemetry/api@1.9.0)(@playwright/test@1.58.1)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
+      next: 16.1.6(@babel/core@7.29.0)(@opentelemetry/api@1.9.0)(@playwright/test@1.58.1)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
       next-intl-swc-plugin-extractor: 4.8.1
       po-parser: 2.1.1
       react: 19.2.3
@@ -13584,7 +13403,7 @@ snapshots:
     transitivePeerDependencies:
       - '@swc/helpers'
 
-  next@16.1.6(@babel/core@7.28.6)(@opentelemetry/api@1.9.0)(@playwright/test@1.57.0)(react-dom@19.2.3(react@19.2.3))(react@19.2.3):
+  next@16.1.6(@babel/core@7.29.0)(@opentelemetry/api@1.9.0)(@playwright/test@1.57.0)(react-dom@19.2.3(react@19.2.3))(react@19.2.3):
     dependencies:
       '@next/env': 16.1.6
       '@swc/helpers': 0.5.15
@@ -13593,7 +13412,7 @@ snapshots:
       postcss: 8.4.31
       react: 19.2.3
       react-dom: 19.2.3(react@19.2.3)
-      styled-jsx: 5.1.6(@babel/core@7.28.6)(react@19.2.3)
+      styled-jsx: 5.1.6(@babel/core@7.29.0)(react@19.2.3)
     optionalDependencies:
       '@next/swc-darwin-arm64': 16.1.6
       '@next/swc-darwin-x64': 16.1.6
@@ -13610,7 +13429,7 @@ snapshots:
       - '@babel/core'
       - babel-plugin-macros
 
-  next@16.1.6(@babel/core@7.28.6)(@opentelemetry/api@1.9.0)(@playwright/test@1.58.1)(react-dom@19.2.3(react@19.2.3))(react@19.2.3):
+  next@16.1.6(@babel/core@7.29.0)(@opentelemetry/api@1.9.0)(@playwright/test@1.58.1)(react-dom@19.2.3(react@19.2.3))(react@19.2.3):
     dependencies:
       '@next/env': 16.1.6
       '@swc/helpers': 0.5.15
@@ -13619,7 +13438,7 @@ snapshots:
       postcss: 8.4.31
       react: 19.2.3
       react-dom: 19.2.3(react@19.2.3)
-      styled-jsx: 5.1.6(@babel/core@7.28.6)(react@19.2.3)
+      styled-jsx: 5.1.6(@babel/core@7.29.0)(react@19.2.3)
     optionalDependencies:
       '@next/swc-darwin-arm64': 16.1.6
       '@next/swc-darwin-x64': 16.1.6
@@ -13905,7 +13724,7 @@ snapshots:
 
   path-scurry@2.0.1:
     dependencies:
-      lru-cache: 11.2.5
+      lru-cache: 11.2.4
       minipass: 7.1.2
 
   path-type@4.0.0: {}
@@ -14857,12 +14676,12 @@ snapshots:
 
   strip-json-comments@3.1.1: {}
 
-  styled-jsx@5.1.6(@babel/core@7.28.6)(react@19.2.3):
+  styled-jsx@5.1.6(@babel/core@7.29.0)(react@19.2.3):
     dependencies:
       client-only: 0.0.1
       react: 19.2.3
     optionalDependencies:
-      '@babel/core': 7.28.6
+      '@babel/core': 7.29.0
 
   stylus-lookup@6.1.0:
     dependencies:
@@ -14984,11 +14803,11 @@ snapshots:
 
   tinyrainbow@3.0.3: {}
 
-  tldts-core@7.0.19: {}
+  tldts-core@7.0.21: {}
 
-  tldts@7.0.19:
+  tldts@7.0.21:
     dependencies:
-      tldts-core: 7.0.19
+      tldts-core: 7.0.21
 
   tmpl@1.0.5: {}
 
@@ -15002,7 +14821,7 @@ snapshots:
 
   tough-cookie@6.0.0:
     dependencies:
-      tldts: 7.0.19
+      tldts: 7.0.21
 
   tr46@6.0.0:
     dependencies:
@@ -15224,6 +15043,8 @@ snapshots:
 
   undici@7.18.2: {}
 
+  undici@7.20.0: {}
+
   universalify@2.0.1: {}
 
   unpipe@1.0.0: {}
@@ -15339,8 +15160,6 @@ snapshots:
       tsx: 4.21.0
       yaml: 2.8.2
 
-<<<<<<< HEAD
-=======
   vite@7.3.1(@types/node@25.2.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.2):
     dependencies:
       esbuild: 0.27.2
@@ -15356,8 +15175,7 @@ snapshots:
       tsx: 4.21.0
       yaml: 2.8.2
 
->>>>>>> 8c3b78b (feat(telemetry): реализация системы телеметрии с batch-обработкой)
-  vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@25.0.10)(jsdom@27.4.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.2):
+  vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@25.0.10)(jsdom@28.0.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.2):
     dependencies:
       '@vitest/expect': 4.0.18
       '@vitest/mocker': 4.0.18(vite@7.3.1(@types/node@25.0.10)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.2))
@@ -15382,7 +15200,7 @@ snapshots:
     optionalDependencies:
       '@opentelemetry/api': 1.9.0
       '@types/node': 25.0.10
-      jsdom: 27.4.0
+      jsdom: 28.0.0
     transitivePeerDependencies:
       - jiti
       - less
@@ -15396,7 +15214,7 @@ snapshots:
       - tsx
       - yaml
 
-  vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@25.1.0)(jsdom@27.4.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.2):
+  vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@25.1.0)(jsdom@28.0.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.2):
     dependencies:
       '@vitest/expect': 4.0.18
       '@vitest/mocker': 4.0.18(vite@7.3.1(@types/node@25.1.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.2))
@@ -15421,7 +15239,7 @@ snapshots:
     optionalDependencies:
       '@opentelemetry/api': 1.9.0
       '@types/node': 25.1.0
-      jsdom: 27.4.0
+      jsdom: 28.0.0
     transitivePeerDependencies:
       - jiti
       - less
@@ -15435,12 +15253,10 @@ snapshots:
       - tsx
       - yaml
 
-<<<<<<< HEAD
-=======
-  vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@25.2.0)(jsdom@27.4.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.2):
+  vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@25.2.0)(jsdom@28.0.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.2):
     dependencies:
       '@vitest/expect': 4.0.18
-      '@vitest/mocker': 4.0.18(vite@7.3.1(@types/node@25.1.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.2))
+      '@vitest/mocker': 4.0.18(vite@7.3.1(@types/node@25.2.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.2))
       '@vitest/pretty-format': 4.0.18
       '@vitest/runner': 4.0.18
       '@vitest/snapshot': 4.0.18
@@ -15462,7 +15278,7 @@ snapshots:
     optionalDependencies:
       '@opentelemetry/api': 1.9.0
       '@types/node': 25.2.0
-      jsdom: 27.4.0
+      jsdom: 28.0.0
     transitivePeerDependencies:
       - jiti
       - less
@@ -15476,7 +15292,6 @@ snapshots:
       - tsx
       - yaml
 
->>>>>>> 8c3b78b (feat(telemetry): реализация системы телеметрии с batch-обработкой)
   vlq@1.0.1: {}
 
   w3c-xmlserializer@5.0.0:
@@ -15501,12 +15316,15 @@ snapshots:
 
   whatwg-fetch@3.6.20: {}
 
-  whatwg-mimetype@4.0.0: {}
+  whatwg-mimetype@5.0.0: {}
 
-  whatwg-url@15.1.0:
+  whatwg-url@16.0.0:
     dependencies:
+      '@exodus/bytes': 1.11.0
       tr46: 6.0.0
       webidl-conversions: 8.0.1
+    transitivePeerDependencies:
+      - '@noble/hashes'
 
   whence@2.1.0:
     dependencies:
