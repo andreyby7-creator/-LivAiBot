@@ -846,10 +846,15 @@ function loadThresholdsFromConfig(configPath) {
 
 // Объединенная функция для определения полной конфигурации тестов
 function resolveTestSetup() {
+  // Проверяем что normalizedPaths и opts определены
+  if (!normalizedPaths || !opts) {
+    fatal('Критическая ошибка: normalizedPaths или opts не определены');
+  }
+
   // Получаем профиль тестов через единую функцию
   const profileResult = resolveTestProfile(normalizedPaths, opts);
-  if (!profileResult.ok) {
-    fatal(`Ошибка определения профиля тестов: ${profileResult.error}`);
+  if (!profileResult || !profileResult.ok) {
+    fatal(`Ошибка определения профиля тестов: ${profileResult?.error || 'profileResult is null/undefined'}`);
   }
 
   // Вычисляем настройки покрытия
