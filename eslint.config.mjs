@@ -15,12 +15,36 @@
  */
 
 // ==================== ОСНОВНЫЕ ИМПОРТЫ ====================
-/**
- * Импортируем canary конфигурацию - единственный используемый режим
- */
-import canaryConfig from './config/eslint/modes/canary.config.mjs';
 import typescriptParser from '@typescript-eslint/parser';
 import { CONFIG_FILES_RULES } from './config/eslint/shared/rules.mjs';
+
+// ==================== ВЫБОР РЕЖИМА ====================
+/**
+ * Определяем режим работы на основе переменной окружения
+ * По умолчанию используется dev режим
+ */
+const ESLINT_MODE = process.env.ESLINT_MODE || 'dev';
+
+const MODE_PATHS = {
+  dev: './config/eslint/modes/dev.config.mjs',
+  canary: './config/eslint/modes/canary.config.mjs',
+};
+
+async function loadModeConfig(mode) {
+  const normalizedMode = mode === 'canary' ? 'canary' : 'dev';
+  const specifier = MODE_PATHS[normalizedMode] ?? MODE_PATHS.dev;
+  const targetUrl = new URL(specifier, import.meta.url);
+
+  try {
+    const module = await import(targetUrl);
+    return module.default;
+  } catch (error) {
+    console.error(`[eslint] Failed to load '${normalizedMode}' mode config from ${targetUrl.pathname}`);
+    throw error;
+  }
+}
+
+const selectedConfig = await loadModeConfig(ESLINT_MODE);
 
 // ==================== ЭКСПОРТ ====================
 /**
@@ -46,8 +70,8 @@ export default [
       'config/**/*.cjs',    // CJS конфиги/утилиты: аналогично
     ],
   },
-  // Основная конфигурация canary режима
-  ...canaryConfig,
+  // Основная конфигурация выбранного режима
+  ...selectedConfig,
   // Tsup конфиги — линтим, но мягче (как инфраструктурный код)
   {
     files: ['**/tsup.config.{ts,js,mjs,cjs}'],
@@ -101,3 +125,5 @@ export default [
   },
 ];
 
+// Экспорты прямых режимов убраны: конфиг лениво грузит только выбранный режим,
+// что исключает падение на отсутствующих файлах режима в CI.
