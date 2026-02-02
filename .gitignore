@@ -94,6 +94,15 @@ playwright-report/
 reports/playwright-report/
 test-results.xml
 reports/coverage/
+
+# Test result files (generated)
+reports/*.json
+reports/*.xml
+!reports/_combined/
+!reports/baseline/
+!reports/CHANGELOG.md
+!reports/PROJECT-OVERVIEW.md
+!reports/build-issues.md
 .nyc_output/
 
 # Reports / artifacts (generated)
