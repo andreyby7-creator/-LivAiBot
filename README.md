@@ -70,3 +70,4 @@ make run
 
 Общие настройки линта/типизации/тестов лежат в `config/python/`.
 См. `config/python/README.md`.
+# CI trigger
