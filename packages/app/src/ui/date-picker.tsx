@@ -23,7 +23,16 @@
 
 import dayjs from 'dayjs';
 import type { Dayjs } from 'dayjs';
-import { forwardRef, memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  forwardRef,
+  memo,
+  useCallback,
+  useEffect,
+  useImperativeHandle,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import type { JSX, Ref } from 'react';
 
 import { DatePicker as CoreDatePicker } from '../../../ui-core/src/components/DatePicker.js';
@@ -79,6 +88,9 @@ export type AppDatePickerProps = Readonly<
     /** Feature flag: скрыть DatePicker */
     isHiddenByFeatureFlag?: boolean;
 
+    /** Feature flag: отключить DatePicker */
+    isDisabledByFeatureFlag?: boolean;
+
     /** Telemetry master switch */
     telemetryEnabled?: boolean;
 
@@ -101,12 +113,32 @@ export type AppDatePickerProps = Readonly<
 
 const DEFAULT_FORMAT = 'YYYY-MM-DD';
 
+const BUSINESS_PROPS = [
+  'visible',
+  'isHiddenByFeatureFlag',
+  'isDisabledByFeatureFlag',
+  'telemetryEnabled',
+] as const;
+
+function omit<T extends Record<string, unknown>, K extends readonly string[]>(
+  obj: T,
+  keys: K,
+): Omit<T, K[number]> {
+  const result = { ...obj };
+  for (const key of keys) {
+    // eslint-disable-next-line functional/immutable-data
+    delete result[key];
+  }
+  return result;
+}
+
 /* ============================================================================
  * 🧠 POLICY
  * ========================================================================== */
 
 type DatePickerPolicy = Readonly<{
   readonly hiddenByFeatureFlag: boolean;
+  readonly disabledByFeatureFlag: boolean;
   readonly isRendered: boolean;
   readonly telemetryEnabled: boolean;
 }>;
@@ -123,15 +155,17 @@ type DatePickerPolicy = Readonly<{
  */
 function useDatePickerPolicy(props: AppDatePickerProps): DatePickerPolicy {
   const hiddenByFlag = Boolean(props.isHiddenByFeatureFlag);
+  const disabledByFlag = Boolean(props.isDisabledByFeatureFlag);
 
   return useMemo(() => {
     const isRendered = !hiddenByFlag && props.visible !== false;
     return {
       hiddenByFeatureFlag: hiddenByFlag,
+      disabledByFeatureFlag: disabledByFlag,
       isRendered,
       telemetryEnabled: props.telemetryEnabled !== false,
     };
-  }, [hiddenByFlag, props.visible, props.telemetryEnabled]);
+  }, [hiddenByFlag, disabledByFlag, props.visible, props.telemetryEnabled]);
 }
 
 /* ============================================================================
@@ -239,6 +273,7 @@ const DatePickerComponent = forwardRef<HTMLDivElement, AppDatePickerProps>(
     props: AppDatePickerProps,
     ref: Ref<HTMLDivElement>,
   ): JSX.Element | null {
+    const filteredProps = omit(props, BUSINESS_PROPS);
     const {
       value: valueProp,
       onChange,
@@ -251,9 +286,14 @@ const DatePickerComponent = forwardRef<HTMLDivElement, AppDatePickerProps>(
       placeholder = t('datepicker.placeholder', { default: 'Select date' }),
       'data-testid': testId,
       ...coreProps
-    } = props;
+    } = filteredProps;
 
     const policy = useDatePickerPolicy(props);
+    const internalRef = useRef<HTMLDivElement | null>(null);
+
+    useImperativeHandle(ref, () => internalRef.current ?? document.createElement('div'), [
+      internalRef,
+    ]);
 
     // Инициализация locale для dayjs через централизованную систему
     // SSR-safe: не вызывать side-effects на сервере
@@ -334,35 +374,52 @@ const DatePickerComponent = forwardRef<HTMLDivElement, AppDatePickerProps>(
 
     const lifecyclePayload = lifecyclePayloadRef.current;
 
+    /**
+     * Policy snapshot для детерминированных telemetry payloads.
+     * Фиксируется на mount, чтобы payload не пересоздавались при изменении
+     * только telemetryEnabled или других редко меняющихся свойств policy.
+     */
+    const policySnapshotRef = useRef<DatePickerPolicy | undefined>(undefined);
+
+    // eslint-disable-next-line functional/immutable-data
+    policySnapshotRef.current ??= policy;
+
+    const policySnapshot = policySnapshotRef.current;
+
     // Payload для telemetry (мемоизированы для избежания пересоздания)
-    // Примечание: payload включает policy + telemetryProps. При изменении policy (редко)
-    // payload не обновится автоматически, но это намеренно - policy фиксируется на mount
-    // для архитектурной гарантии детерминированности telemetry.
+    // Используют policySnapshot для детерминированности
     const openPayload = useMemo(
       () => ({
-        ...getDatePickerPayload(DatePickerTelemetryAction.Open, policy, {
+        ...getDatePickerPayload(DatePickerTelemetryAction.Open, policySnapshot, {
           ...telemetryProps,
           isOpen: true,
         }),
       }),
-      [policy, telemetryProps],
+      [policySnapshot, telemetryProps],
     );
 
     const closePayload = useMemo(
       () => ({
-        ...getDatePickerPayload(DatePickerTelemetryAction.Close, policy, {
+        ...getDatePickerPayload(DatePickerTelemetryAction.Close, policySnapshot, {
           ...telemetryProps,
           isOpen: false,
         }),
       }),
-      [policy, telemetryProps],
+      [policySnapshot, telemetryProps],
     );
 
     const selectPayload = useMemo(
       () => ({
-        ...getDatePickerPayload(DatePickerTelemetryAction.Select, policy, telemetryProps),
+        ...getDatePickerPayload(DatePickerTelemetryAction.Select, policySnapshot, telemetryProps),
       }),
-      [policy, telemetryProps],
+      [policySnapshot, telemetryProps],
+    );
+
+    const changePayload = useMemo(
+      () => ({
+        ...getDatePickerPayload(DatePickerTelemetryAction.Change, policySnapshot, telemetryProps),
+      }),
+      [policySnapshot, telemetryProps],
     );
 
     /** Telemetry lifecycle */
@@ -441,11 +498,8 @@ const DatePickerComponent = forwardRef<HTMLDivElement, AppDatePickerProps>(
 
         if (policy.telemetryEnabled) {
           emitDatePickerTelemetry({
-            ...getDatePickerPayload(DatePickerTelemetryAction.Change, policy, {
-              isOpen,
-              value: newValue,
-              format,
-            }),
+            ...changePayload,
+            value: newValue, // Override with actual new value
           });
         }
       } else if (newValue === '') {
@@ -455,7 +509,7 @@ const DatePickerComponent = forwardRef<HTMLDivElement, AppDatePickerProps>(
         // Некорректный ввод (не пустой и не валидный)
         onInvalidInput?.(newValue);
       }
-    }, [onChange, onInvalidInput, format, policy, isOpen, minDate, maxDate]);
+    }, [onChange, onInvalidInput, format, policy, minDate, maxDate, changePayload]);
 
     const coreDatePickerProps = useMemo((): CoreDatePickerProps => ({
       value: formattedValue,
@@ -469,10 +523,11 @@ const DatePickerComponent = forwardRef<HTMLDivElement, AppDatePickerProps>(
       currentMonthLabel,
       ...(minDate !== null ? { minDate: minDate.format('YYYY-MM-DD') } : {}),
       ...(maxDate !== null ? { maxDate: maxDate.format('YYYY-MM-DD') } : {}),
-      disabled,
+      disabled: policy.disabledByFeatureFlag || disabled || undefined,
       'data-component': 'AppDatePicker',
       'data-state': policy.isRendered ? 'visible' : 'hidden',
       'data-feature-flag': policy.hiddenByFeatureFlag ? 'hidden' : 'visible',
+      'data-disabled': policy.disabledByFeatureFlag || undefined,
       'data-telemetry': policy.telemetryEnabled ? 'enabled' : 'disabled',
       ...(testId !== undefined ? { 'data-testid': testId } : {}),
       ...coreProps,
@@ -491,6 +546,7 @@ const DatePickerComponent = forwardRef<HTMLDivElement, AppDatePickerProps>(
       disabled,
       policy.isRendered,
       policy.hiddenByFeatureFlag,
+      policy.disabledByFeatureFlag,
       policy.telemetryEnabled,
       testId,
       coreProps,
@@ -501,7 +557,7 @@ const DatePickerComponent = forwardRef<HTMLDivElement, AppDatePickerProps>(
 
     return (
       <CoreDatePicker
-        ref={ref}
+        ref={internalRef}
         {...coreDatePickerProps}
       />
     );

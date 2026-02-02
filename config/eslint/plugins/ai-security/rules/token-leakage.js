@@ -118,11 +118,11 @@ export default {
 
         // Check DB URLs with credentials using URL parser (avoids regex backtracking)
         try {
-          const url = new URL(value);
+          const url = new URL(node.init.value);
           const protocols = new Set(['mongodb:', 'postgresql:', 'mysql:']);
           if (protocols.has(url.protocol) && url.username && url.password) {
             context.report({
-              node,
+              node: node.init,
               messageId: 'hardcodedToken',
               data: {
                 token: `${url.protocol}//${url.username}:***@${url.host}`,

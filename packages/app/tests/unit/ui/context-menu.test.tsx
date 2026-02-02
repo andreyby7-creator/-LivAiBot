@@ -36,6 +36,10 @@ vi.mock('../../../../ui-core/src/primitives/context-menu', () => ({
       'data-testid': testId,
       className,
       style,
+      // Исключаем бизнес-пропсы, которые не должны попадать в DOM
+      visible,
+      isHiddenByFeatureFlag,
+      telemetryEnabled,
       ...rest
     } = props;
 

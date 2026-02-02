@@ -18,6 +18,21 @@ import type { FormValidationResult, ValidationSchema } from '../lib/validation.j
 import { validateForm } from '../lib/validation.js';
 
 /* ============================================================================
+ * 🛠️ УТИЛИТЫ
+ * ========================================================================== */
+
+// Фильтрует указанные ключи из объекта
+function omit<T extends Record<string, unknown>, K extends keyof T>(
+  obj: T,
+  keys: readonly K[],
+): Omit<T, K> {
+  const keySet = new Set(keys as readonly string[]);
+  return Object.fromEntries(
+    Object.entries(obj).filter(([key]) => !keySet.has(key)),
+  ) as Omit<T, K>;
+}
+
+/* ============================================================================
  * 🧬 TYPES
  * ========================================================================== */
 
@@ -50,6 +65,19 @@ export type AppFormProps = Readonly<
     isSubmitting?: boolean;
   }
 >;
+
+// Бизнес-пропсы, которые не должны попадать в DOM
+const BUSINESS_PROPS = [
+  'isHiddenByFeatureFlag',
+  'isDisabledByFeatureFlag',
+  'variantByFeatureFlag',
+  'telemetryEnabled',
+  'telemetryOnSubmit',
+  'telemetryOnReset',
+  'validationSchema',
+  'onValidationError',
+  'isSubmitting',
+] as const;
 
 /* ============================================================================
  * 🧠 POLICY
@@ -107,18 +135,21 @@ function emitFormTelemetry(
  * ========================================================================== */
 
 function FormComponent(props: AppFormProps): JSX.Element | null {
+  const policy = useFormPolicy(props);
+
+  // Фильтруем бизнес-пропсы, оставляем только DOM-безопасные
+  const domProps = omit(props, BUSINESS_PROPS);
+
   const {
     children,
     onSubmit,
     onReset,
-    validationSchema,
-    onValidationError,
-    ...coreProps
-  } = props;
+  } = domProps;
 
-  const policy = useFormPolicy(props);
+  // Эти пропсы не являются DOM-пропсами, берем из оригинальных props
+  const { validationSchema, onValidationError } = props;
 
-  /** жизненный цикл */
+  // Жизненный цикл
   useEffect((): (() => void) | undefined => {
     if (policy.telemetryEnabled) {
       emitFormTelemetry('mount', policy);
@@ -131,7 +162,8 @@ function FormComponent(props: AppFormProps): JSX.Element | null {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  /** обработчики */
+  // Обработчики
+  // CoreForm отвечает за preventDefault() - AppForm не вмешивается в native behavior
   const handleSubmit = useCallback(
     (event: React.SubmitEvent<HTMLFormElement>) => {
       if (policy.disabledByFeatureFlag) {
@@ -181,7 +213,7 @@ function FormComponent(props: AppFormProps): JSX.Element | null {
 
   return (
     <CoreForm
-      {...coreProps}
+      {...domProps}
       onSubmit={handleSubmit}
       onReset={handleReset}
       data-variant={policy.variant}
@@ -216,6 +248,7 @@ function FormComponent(props: AppFormProps): JSX.Element | null {
  * - Корректная обработка submit/reset событий
  * - Клиентская валидация через централизованную систему
  * - Асинхронное состояние submit управляется извне (controlled)
+ * - isSubmitting влияет только на aria-busy, не блокирует повторные submit
  *
  * Инварианты:
  * - Всегда возвращает валидный JSX.Element или null

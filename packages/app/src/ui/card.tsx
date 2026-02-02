@@ -28,6 +28,27 @@ import { Card as CoreCard } from '../../../ui-core/src/primitives/card.js';
 import type { CoreCardProps } from '../../../ui-core/src/primitives/card.js';
 import { infoFireAndForget } from '../lib/telemetry.js';
 
+// Фильтруем бизнес-пропсы от DOM-пропсов
+function omit<T extends Record<string, unknown>, K extends readonly string[]>(
+  obj: T,
+  keys: K,
+): Omit<T, K[number]> {
+  const result = { ...obj };
+  for (const key of keys) {
+    // eslint-disable-next-line functional/immutable-data
+    delete result[key];
+  }
+  return result;
+}
+
+// Бизнес-пропсы, которые не должны попадать в DOM
+const BUSINESS_PROPS = [
+  'isHiddenByFeatureFlag',
+  'isDisabledByFeatureFlag',
+  'variantByFeatureFlag',
+  'telemetryOnClick',
+] as const;
+
 /* ============================================================================
  * 🧬 TYPES
  * ========================================================================== */
@@ -132,6 +153,8 @@ function emitCardTelemetry(
 
 const CardComponent = forwardRef<HTMLDivElement, AppCardProps>(
   function CardComponent(props: AppCardProps, ref: Ref<HTMLDivElement>): JSX.Element | null {
+    // Фильтруем бизнес-пропсы от DOM-пропсов
+    const domProps = omit(props, BUSINESS_PROPS);
     const {
       children,
       onClick,
@@ -142,7 +165,7 @@ const CardComponent = forwardRef<HTMLDivElement, AppCardProps>(
       size,
       style: _style, // Исключаем style из coreProps, чтобы использовать combinedStyle
       ...coreProps
-    } = props;
+    } = domProps;
 
     /** Policy */
     const policy = useCardPolicy(props);

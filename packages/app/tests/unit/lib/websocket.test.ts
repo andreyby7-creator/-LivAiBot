@@ -121,12 +121,16 @@ describe('WebSocket Client', () => {
   beforeEach(() => {
     mockWebSocket = createMockWebSocket();
 
-    // Mock global WebSocket constructor
-    global.WebSocket = vi.fn().mockImplementation(function(this: any) {
+    // Mock global WebSocket constructor using vi.fn() spy
+    global.WebSocket = vi.fn().mockImplementation(function(this: any, _url: string) {
       // Copy properties to 'this' to simulate constructor behavior
       Object.assign(this, mockWebSocket);
       return this;
     }) as any;
+
+    // Set static properties
+    (global.WebSocket as any).OPEN = WebSocket.OPEN;
+    (global.WebSocket as any).CLOSED = WebSocket.CLOSED;
   });
 
   afterEach(() => {
@@ -370,6 +374,10 @@ describe('WebSocket Client', () => {
         }
         return mockWebSocket;
       }) as any;
+
+      // Set static properties
+      (global.WebSocket as any).OPEN = WebSocket.OPEN;
+      (global.WebSocket as any).CLOSED = WebSocket.CLOSED;
 
       try {
         const state = createInitialWebSocketState(createTestConfig({

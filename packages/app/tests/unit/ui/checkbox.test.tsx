@@ -56,7 +56,7 @@ describe('Checkbox', () => {
 
       const checkbox = screen.getByRole('checkbox');
       expect(checkbox).toHaveAttribute('data-component', 'AppCheckbox');
-      expect(checkbox).toHaveAttribute('aria-checked', 'false');
+      expect(checkbox).not.toHaveAttribute('aria-checked'); // uncontrolled
       expect(checkbox).not.toBeDisabled();
     });
 
@@ -86,7 +86,7 @@ describe('Checkbox', () => {
       const checkbox = screen.getByRole('checkbox');
       expect(checkbox).toBeDisabled();
       expect(checkbox).toHaveAttribute('aria-disabled', 'true');
-      expect(checkbox).toHaveAttribute('aria-busy', 'true');
+      expect(checkbox).not.toHaveAttribute('aria-busy'); // busy только если явно передан
     });
 
     it('должен иметь variant когда variantByFeatureFlag установлен', () => {
@@ -103,7 +103,7 @@ describe('Checkbox', () => {
 
       const checkbox = screen.getByRole('checkbox');
       expect(checkbox).not.toBeChecked();
-      expect(checkbox).toHaveAttribute('aria-checked', 'false');
+      expect(checkbox).not.toHaveAttribute('aria-checked'); // uncontrolled
     });
 
     it('должен иметь indeterminate=false по умолчанию', () => {
@@ -385,7 +385,7 @@ describe('Checkbox', () => {
 
       const checkbox = screen.getByRole('checkbox');
       expect(checkbox).toBeInTheDocument();
-      expect(checkbox).toHaveAttribute('aria-checked', 'false');
+      expect(checkbox).not.toHaveAttribute('aria-checked'); // checked=undefined makes it uncontrolled
     });
 
     it('должен работать без обработчиков событий', () => {

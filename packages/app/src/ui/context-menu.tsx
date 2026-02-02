@@ -33,6 +33,21 @@ import type { CSSProperties, JSX, KeyboardEvent, MouseEvent, Ref } from 'react';
  */
 const useIsomorphicLayoutEffect = typeof window !== 'undefined' ? useLayoutEffect : useEffect;
 
+/* ============================================================================
+ * 🛠️ УТИЛИТЫ
+ * ========================================================================== */
+
+// Фильтрует указанные ключи из объекта
+function omit<T extends Record<string, unknown>, K extends keyof T>(
+  obj: T,
+  keys: readonly K[],
+): Omit<T, K> {
+  const keySet = new Set(keys as readonly string[]);
+  return Object.fromEntries(
+    Object.entries(obj).filter(([key]) => !keySet.has(key)),
+  ) as Omit<T, K>;
+}
+
 import { ContextMenu as CoreContextMenu } from '../../../ui-core/src/primitives/context-menu.js';
 import type {
   ContextMenuRef,
@@ -94,6 +109,12 @@ export type AppContextMenuProps = Readonly<
     style?: CSSProperties;
   }
 >;
+
+// Бизнес-пропсы, которые не должны попадать в DOM
+const BUSINESS_PROPS = [
+  'visible',
+  'isHiddenByFeatureFlag',
+] as const;
 
 /* ============================================================================
  * 🧠 POLICY
@@ -200,6 +221,9 @@ const ContextMenuComponent = forwardRef<HTMLDivElement, AppContextMenuProps>(
     props: AppContextMenuProps,
     ref: Ref<HTMLDivElement>,
   ): JSX.Element | null {
+    // Фильтруем бизнес-пропсы, оставляем только DOM-безопасные
+    const domProps = omit(props, BUSINESS_PROPS);
+
     const {
       items,
       isOpen,
@@ -208,8 +232,8 @@ const ContextMenuComponent = forwardRef<HTMLDivElement, AppContextMenuProps>(
       onClose,
       'data-component-id': componentId,
       style,
-      ...coreProps
-    } = props;
+      ...filteredCoreProps
+    } = domProps;
     const policy = useContextMenuPolicy(props);
 
     /** Ref для меню для keyboard navigation и фокусировки */
@@ -436,7 +460,7 @@ const ContextMenuComponent = forwardRef<HTMLDivElement, AppContextMenuProps>(
       'data-feature-flag': policy.hiddenByFeatureFlag ? 'hidden' : 'visible',
       'data-telemetry': policy.telemetryEnabled ? 'enabled' : 'disabled',
       style: containerStyle,
-      ...coreProps,
+      ...filteredCoreProps,
     }), [
       items,
       isOpen,
@@ -449,7 +473,7 @@ const ContextMenuComponent = forwardRef<HTMLDivElement, AppContextMenuProps>(
       policy.hiddenByFeatureFlag,
       policy.telemetryEnabled,
       containerStyle,
-      coreProps,
+      filteredCoreProps,
     ]);
 
     /**

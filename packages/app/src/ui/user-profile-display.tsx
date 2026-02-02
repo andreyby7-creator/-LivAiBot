@@ -39,6 +39,21 @@ import type { RoutePermissionContext } from '../lib/route-permissions.js';
 import { infoFireAndForget } from '../lib/telemetry.js';
 
 /* ============================================================================
+ * 🛠️ УТИЛИТЫ
+ * ========================================================================== */
+
+// Фильтрует указанные ключи из объекта
+function omit<T extends Record<string, unknown>, K extends keyof T>(
+  obj: T,
+  keys: readonly K[],
+): Omit<T, K> {
+  const keySet = new Set(keys as readonly string[]);
+  return Object.fromEntries(
+    Object.entries(obj).filter(([key]) => !keySet.has(key)),
+  ) as Omit<T, K>;
+}
+
+/* ============================================================================
  * 🧬 TYPES & CONSTANTS
  * =========================================================================== */
 
@@ -87,17 +102,29 @@ export type AppUserProfileDisplayProps = Readonly<
   }
 >;
 
+// Бизнес-пропсы, которые не должны попадать в DOM
+// style исключается из domProps, так как комбинируется policy-слоем
+const BUSINESS_PROPS = [
+  'isHiddenByFeatureFlag',
+  'isDisabledByFeatureFlag',
+  'telemetryEnabled',
+  'visible',
+  'style',
+] as const;
+
 /* ============================================================================
  * 🧠 POLICY
  * =========================================================================== */
 
-type UserProfileDisplayPolicy = Readonly<{
-  readonly hiddenByFeatureFlag: boolean;
-  readonly disabledByFeatureFlag: boolean;
-  readonly isAuthorized: boolean;
-  readonly isRendered: boolean;
-  readonly telemetryEnabled: boolean;
-}>;
+type UserProfileDisplayPolicy =
+  & Readonly<{
+    readonly hiddenByFeatureFlag: boolean;
+    readonly disabledByFeatureFlag: boolean;
+    readonly isAuthorized: boolean;
+    readonly isRendered: boolean;
+    readonly telemetryEnabled: boolean;
+  }>
+  & { readonly __brand: 'UserProfileDisplayPolicy'; };
 
 /**
  * UserProfileDisplayPolicy является единственным источником истины
@@ -114,6 +141,7 @@ function useUserProfileDisplayPolicy(
   props: AppUserProfileDisplayProps,
 ): UserProfileDisplayPolicy {
   const authContext = useAuthGuardContext();
+  const { roles, permissions } = authContext;
 
   return useMemo(() => {
     const hiddenByFeatureFlag = props.isHiddenByFeatureFlag === true;
@@ -125,13 +153,18 @@ function useUserProfileDisplayPolicy(
       { type: 'profile', path: '/profile' },
       {
         ...authContext,
-        userRoles: new Set(authContext.roles),
-        userPermissions: new Set(authContext.permissions),
+        userRoles: new Set(roles),
+        userPermissions: new Set(permissions),
       } as RoutePermissionContext,
     );
 
     const isAuthorized = canViewProfile.allowed;
-    const isRendered = !hiddenByFeatureFlag && props.visible !== false && isAuthorized;
+
+    // Видимость по policy: учитывает feature flags и explicit visible
+    const isVisibleByPolicy = props.visible !== false && !hiddenByFeatureFlag;
+
+    // Финальная видимость: policy + authorization
+    const isRendered = isVisibleByPolicy && isAuthorized;
 
     return {
       hiddenByFeatureFlag,
@@ -139,12 +172,15 @@ function useUserProfileDisplayPolicy(
       isAuthorized,
       isRendered,
       telemetryEnabled,
+      __brand: 'UserProfileDisplayPolicy' as const,
     };
   }, [
     props.isHiddenByFeatureFlag,
     props.isDisabledByFeatureFlag,
     props.visible,
     props.telemetryEnabled,
+    roles,
+    permissions,
     authContext,
   ]);
 }
@@ -238,6 +274,9 @@ const UserProfileDisplayComponent = forwardRef<HTMLDivElement, AppUserProfileDis
     props: AppUserProfileDisplayProps,
     ref: Ref<HTMLDivElement>,
   ): JSX.Element | null {
+    const policy = useUserProfileDisplayPolicy(props);
+
+    // Фильтруем бизнес-пропсы, оставляем только DOM-безопасные
     const {
       profile,
       size,
@@ -247,15 +286,15 @@ const UserProfileDisplayComponent = forwardRef<HTMLDivElement, AppUserProfileDis
       showEmail,
       showAdditionalInfo,
       customAvatar,
-      style,
       className,
       'data-testid': dataTestId,
-      ...coreProps
-    } = props;
+      ...restCoreProps // остаток CoreUserProfileDisplayProps после явного извлечения
+    } = omit(props, BUSINESS_PROPS);
 
-    const policy = useUserProfileDisplayPolicy(props);
+    // style берем из оригинальных props, чтобы правильно комбинировать с disabled стилем
+    const { style } = props;
 
-    /** Telemetry props */
+    // Telemetry props
     const telemetryProps = useMemo(
       () =>
         extractTelemetryProps(profile, {
@@ -279,11 +318,9 @@ const UserProfileDisplayComponent = forwardRef<HTMLDivElement, AppUserProfileDis
       ],
     );
 
-    /**
-     * Lifecycle telemetry фиксирует состояние policy на момент первого рендера.
-     * Не реагирует на последующие изменения props или policy.
-     * Это архитектурная гарантия для детерминированности.
-     */
+    // Lifecycle telemetry фиксирует состояние policy на момент первого рендера
+    // Не реагирует на последующие изменения props или policy
+    // Это архитектурная гарантия для детерминированности
     type LifecyclePayload = Readonly<{
       mount: UserProfileDisplayTelemetryPayload;
       unmount: UserProfileDisplayTelemetryPayload;
@@ -307,7 +344,7 @@ const UserProfileDisplayComponent = forwardRef<HTMLDivElement, AppUserProfileDis
 
     const lifecyclePayload = lifecyclePayloadRef.current;
 
-    /** Telemetry lifecycle */
+    // Telemetry lifecycle
     useEffect(() => {
       if (!policy.telemetryEnabled) return;
 
@@ -317,7 +354,7 @@ const UserProfileDisplayComponent = forwardRef<HTMLDivElement, AppUserProfileDis
       };
     }, [policy.telemetryEnabled, lifecyclePayload]);
 
-    /** Telemetry для view - только при первом рендере, если компонент видим */
+    // Telemetry для view - только при первом рендере, если компонент видим
     const hasEmittedViewRef = useRef<boolean>(false);
 
     useEffect(() => {
@@ -348,7 +385,7 @@ const UserProfileDisplayComponent = forwardRef<HTMLDivElement, AppUserProfileDis
       telemetryProps,
     ]);
 
-    /** Объединяем стили для disabled состояния */
+    // Объединяем стили для disabled состояния
     const combinedStyle = useMemo<CSSProperties | undefined>(() => {
       if (!policy.disabledByFeatureFlag) return style;
 
@@ -359,7 +396,7 @@ const UserProfileDisplayComponent = forwardRef<HTMLDivElement, AppUserProfileDis
       };
     }, [policy.disabledByFeatureFlag, style]);
 
-    /** Policy: hidden */
+    // Policy: hidden
     if (!policy.isRendered) return null;
 
     return (
@@ -372,7 +409,7 @@ const UserProfileDisplayComponent = forwardRef<HTMLDivElement, AppUserProfileDis
         {...(showName !== undefined && { showName })}
         {...(showEmail !== undefined && { showEmail })}
         {...(showAdditionalInfo !== undefined && { showAdditionalInfo })}
-        {...(customAvatar !== undefined && { customAvatar })}
+        customAvatar={customAvatar}
         style={combinedStyle}
         className={className}
         data-component='AppUserProfileDisplay'
@@ -380,7 +417,7 @@ const UserProfileDisplayComponent = forwardRef<HTMLDivElement, AppUserProfileDis
         data-feature-flag={policy.hiddenByFeatureFlag ? 'hidden' : 'visible'}
         data-telemetry={policy.telemetryEnabled ? 'enabled' : 'disabled'}
         {...(dataTestId !== undefined && { 'data-testid': dataTestId })}
-        {...coreProps}
+        {...restCoreProps}
       />
     );
   },

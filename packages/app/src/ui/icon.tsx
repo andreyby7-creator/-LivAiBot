@@ -101,9 +101,28 @@ function emitIconTelemetry(action: IconTelemetryAction, policy: IconPolicy, name
  * 🎯 APP ICON
  * ========================================================================== */
 
+const BUSINESS_PROPS = [
+  'isHiddenByFeatureFlag',
+  'variantByFeatureFlag',
+  'telemetryEnabled',
+] as const;
+
+function omit<T extends Record<string, unknown>, K extends readonly string[]>(
+  obj: T,
+  keys: K,
+): Omit<T, K[number]> {
+  const result = { ...obj };
+  for (const key of keys) {
+    // eslint-disable-next-line functional/immutable-data
+    delete result[key];
+  }
+  return result;
+}
+
 const IconComponent = forwardRef<HTMLElement | null, AppIconProps>(
   function IconComponent(props: AppIconProps, ref: Ref<HTMLElement | null>): JSX.Element | null {
-    const { name, ...coreProps } = props;
+    const filteredProps = omit(props, BUSINESS_PROPS);
+    const { name, ...coreProps } = filteredProps;
     const policy = useIconPolicy(props);
     const internalRef = useRef<HTMLElement | null>(null);
 

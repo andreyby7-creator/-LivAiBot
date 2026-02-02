@@ -32,7 +32,22 @@ import type {
 import { canAccessRoute } from '../lib/route-permissions.js';
 import { infoFireAndForget } from '../lib/telemetry.js';
 
-/** Тип элемента, который может рендерить NavigationMenuItem - либо anchor, либо button */
+/* ============================================================================
+ * 🛠️ УТИЛИТЫ
+ * ========================================================================== */
+
+// Фильтрует указанные ключи из объекта
+function omit<T extends Record<string, unknown>, K extends keyof T>(
+  obj: T,
+  keys: readonly K[],
+): Omit<T, K> {
+  const keySet = new Set(keys as readonly string[]);
+  return Object.fromEntries(
+    Object.entries(obj).filter(([key]) => !keySet.has(key)),
+  ) as Omit<T, K>;
+}
+
+// Тип элемента, который может рендерить NavigationMenuItem - либо anchor, либо button
 type NavigationMenuItemElement = HTMLAnchorElement | HTMLButtonElement;
 
 /* ============================================================================
@@ -87,6 +102,14 @@ export type AppNavigationMenuItemProps = Readonly<
     'data-testid'?: string;
   }
 >;
+
+// Бизнес-пропсы, которые не должны попадать в DOM
+const BUSINESS_PROPS = [
+  'visible',
+  'isHiddenByFeatureFlag',
+  'isDisabledByFeatureFlag',
+  'telemetryEnabled',
+] as const;
 
 /* ============================================================================
  * 🧠 POLICY
@@ -153,9 +176,7 @@ function emitNavigationMenuItemTelemetry(
   infoFireAndForget(`NavigationMenuItem ${payload.action}`, payload);
 }
 
-/**
- * Формирование payload для NavigationMenuItem telemetry.
- */
+// Формирование payload для NavigationMenuItem telemetry
 function getNavigationMenuItemPayload(
   action: NavigationMenuItemTelemetryAction,
   policy: NavigationMenuItemPolicy,
@@ -188,10 +209,7 @@ function getNavigationMenuItemPayload(
   };
 }
 
-/**
- * Извлекает telemetry props из данных элемента меню и props компонента.
- * Чистая функция без знания App props целиком.
- */
+// Извлекает telemetry props из данных элемента меню и props компонента
 function extractNavigationMenuItemTelemetryProps(
   item: NavigationMenuItemData,
   props: {
@@ -234,6 +252,9 @@ const NavigationMenuItemComponent = forwardRef<
     props: AppNavigationMenuItemProps,
     ref: Ref<NavigationMenuItemElement>,
   ): JSX.Element | null {
+    // Фильтруем бизнес-пропсы, оставляем только DOM-безопасные
+    const domProps = omit(props, BUSINESS_PROPS);
+
     const {
       item,
       size,
@@ -245,12 +266,12 @@ const NavigationMenuItemComponent = forwardRef<
       className,
       onClick,
       'data-testid': dataTestId,
-      ...coreProps
-    } = props;
+      ...filteredCoreProps
+    } = domProps;
 
     const policy = useNavigationMenuItemPolicy(props);
 
-    /** Telemetry props */
+    // Telemetry props
     const telemetryProps = useMemo(
       () =>
         extractNavigationMenuItemTelemetryProps(item, {
@@ -270,11 +291,7 @@ const NavigationMenuItemComponent = forwardRef<
       ],
     );
 
-    /**
-     * Lifecycle telemetry фиксирует состояние policy на момент первого рендера.
-     * Не реагирует на последующие изменения props или policy.
-     * Это архитектурная гарантия для детерминированности.
-     */
+    // Lifecycle telemetry фиксирует состояние policy на момент первого рендера
     type LifecyclePayload = Readonly<{
       mount: NavigationMenuItemTelemetryPayload;
       unmount: NavigationMenuItemTelemetryPayload;
@@ -298,11 +315,11 @@ const NavigationMenuItemComponent = forwardRef<
 
     const lifecyclePayload = lifecyclePayloadRef.current;
 
-    /** Стабильные ссылки на payload для telemetry (immutable by contract) */
+    // Стабильные ссылки на payload для telemetry (immutable by contract)
     const mountPayload = lifecyclePayload.mount;
     const unmountPayload = lifecyclePayload.unmount;
 
-    /** Telemetry lifecycle */
+    // Telemetry lifecycle
     useEffect(() => {
       if (!policy.telemetryEnabled) return;
 
@@ -314,7 +331,7 @@ const NavigationMenuItemComponent = forwardRef<
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [policy.telemetryEnabled]);
 
-    /** App-level disabled enhancement: добавляем визуальные стили для disabled состояний */
+    // App-level disabled enhancement: добавляем визуальные стили для disabled состояний
     const combinedStyle = useMemo<CSSProperties | undefined>(() => {
       const disabled = policy.disabledByFeatureFlag || !policy.routeAccessible;
       if (!disabled) return style;
@@ -326,7 +343,7 @@ const NavigationMenuItemComponent = forwardRef<
       };
     }, [policy.disabledByFeatureFlag, policy.routeAccessible, style]);
 
-    /** Обработчик клика с telemetry */
+    // Обработчик клика с telemetry
     const handleClick = useCallback(
       (event: MouseEvent<HTMLElement>) => {
         // Не выполняем клик, если маршрут недоступен
@@ -347,7 +364,7 @@ const NavigationMenuItemComponent = forwardRef<
       [policy, telemetryProps, onClick, item],
     );
 
-    /** Policy: hidden */
+    // Policy: hidden
     if (!policy.isRendered) return null;
 
     return (
@@ -373,7 +390,7 @@ const NavigationMenuItemComponent = forwardRef<
         data-feature-flag={policy.hiddenByFeatureFlag ? 'hidden' : 'visible'}
         data-telemetry={policy.telemetryEnabled ? 'enabled' : 'disabled'}
         {...(dataTestId !== undefined && { 'data-testid': dataTestId })}
-        {...coreProps}
+        {...filteredCoreProps}
       />
     );
   },

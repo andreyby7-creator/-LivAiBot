@@ -25,6 +25,21 @@ import type { CoreBadgeProps } from '../../../ui-core/src/primitives/badge.js';
 import { infoFireAndForget } from '../lib/telemetry.js';
 
 /* ============================================================================
+ * 🛠️ УТИЛИТЫ
+ * ========================================================================== */
+
+// Фильтрует указанные ключи из объекта
+function omit<T extends Record<string, unknown>, K extends keyof T>(
+  obj: T,
+  keys: readonly K[],
+): Omit<T, K> {
+  const keySet = new Set(keys as readonly string[]);
+  return Object.fromEntries(
+    Object.entries(obj).filter(([key]) => !keySet.has(key)),
+  ) as Omit<T, K>;
+}
+
+/* ============================================================================
  * 🧬 TYPES & CONSTANTS
  * ========================================================================== */
 
@@ -46,10 +61,23 @@ export type AppBadgeProps = Readonly<
     /** Feature flag: скрыть компонент */
     isHiddenByFeatureFlag?: boolean;
 
+    /** Feature flag: variant компонента */
+    variantByFeatureFlag?: string;
+
     /** Telemetry master switch */
     telemetryEnabled?: boolean;
   }
 >;
+
+// Бизнес-пропсы и внутренние Core-пропсы, которые не должны попадать в DOM
+const BUSINESS_PROPS = [
+  'isHiddenByFeatureFlag',
+  'variantByFeatureFlag',
+  'telemetryEnabled',
+  // Внутренние пропсы CoreBadge, используемые только для стилизации
+  'bgColor',
+  'textColor',
+] as const;
 
 /* ============================================================================
  * 🧠 POLICY
@@ -88,7 +116,10 @@ function emitBadgeTelemetry(payload: BadgeTelemetryPayload): void {
 
 const BadgeComponent = forwardRef<HTMLSpanElement, AppBadgeProps>(
   function BadgeComponent(props: AppBadgeProps, ref: Ref<HTMLSpanElement>): JSX.Element | null {
-    const { value = null, ...coreProps } = props;
+    // Фильтруем бизнес-пропсы, оставляем только DOM-безопасные
+    const domProps = omit(props, BUSINESS_PROPS);
+
+    const { value = null, ...filteredCoreProps } = domProps;
 
     if (process.env['NODE_ENV'] !== 'production' && value == null) {
       // eslint-disable-next-line no-console
@@ -124,7 +155,7 @@ const BadgeComponent = forwardRef<HTMLSpanElement, AppBadgeProps>(
 
     const lifecyclePayload = lifecyclePayloadRef.current;
 
-    /** Telemetry lifecycle */
+    // Telemetry lifecycle
     useEffect(() => {
       if (!policy.telemetryEnabled) return;
 
@@ -134,7 +165,7 @@ const BadgeComponent = forwardRef<HTMLSpanElement, AppBadgeProps>(
       };
     }, [policy.telemetryEnabled, lifecyclePayload]);
 
-    /** Policy: hidden */
+    // Policy: hidden
     if (!policy.isRendered) return null;
 
     return (
@@ -142,7 +173,7 @@ const BadgeComponent = forwardRef<HTMLSpanElement, AppBadgeProps>(
         ref={ref}
         value={value}
         data-component='AppBadge'
-        {...coreProps}
+        {...filteredCoreProps}
       />
     );
   },

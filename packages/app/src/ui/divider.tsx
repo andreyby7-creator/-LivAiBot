@@ -31,6 +31,21 @@ import type {
 import { infoFireAndForget } from '../lib/telemetry.js';
 
 /* ============================================================================
+ * 🛠️ УТИЛИТЫ
+ * ========================================================================== */
+
+// Фильтрует указанные ключи из объекта
+function omit<T extends Record<string, unknown>, K extends keyof T>(
+  obj: T,
+  keys: readonly K[],
+): Omit<T, K> {
+  const keySet = new Set(keys as readonly string[]);
+  return Object.fromEntries(
+    Object.entries(obj).filter(([key]) => !keySet.has(key)),
+  ) as Omit<T, K>;
+}
+
+/* ============================================================================
  * 🧬 TYPES & CONSTANTS
  * ========================================================================== */
 
@@ -56,6 +71,12 @@ export type AppDividerProps = Readonly<
     telemetryEnabled?: boolean;
   }
 >;
+
+// Бизнес-пропсы, которые не должны попадать в DOM
+const BUSINESS_PROPS = [
+  'isHiddenByFeatureFlag',
+  'telemetryEnabled',
+] as const;
 
 /* ============================================================================
  * 🧠 POLICY
@@ -105,8 +126,10 @@ function getDividerPayload(
 
 const DividerComponent = forwardRef<HTMLElement, AppDividerProps>(
   function DividerComponent(props: AppDividerProps, ref: Ref<HTMLElement>): JSX.Element | null {
+    // Фильтруем бизнес-пропсы, оставляем только DOM-безопасные
+    const domProps = omit(props, BUSINESS_PROPS);
+
     const policy = useDividerPolicy(props);
-    const { ...coreProps } = props;
 
     const lifecyclePayloadRef = useRef<
       {
@@ -117,13 +140,13 @@ const DividerComponent = forwardRef<HTMLElement, AppDividerProps>(
 
     // eslint-disable-next-line functional/immutable-data
     lifecyclePayloadRef.current ??= {
-      mount: getDividerPayload(DividerTelemetryAction.Mount, policy, coreProps),
-      unmount: getDividerPayload(DividerTelemetryAction.Unmount, policy, coreProps),
+      mount: getDividerPayload(DividerTelemetryAction.Mount, policy, domProps),
+      unmount: getDividerPayload(DividerTelemetryAction.Unmount, policy, domProps),
     };
 
     const lifecyclePayload = lifecyclePayloadRef.current;
 
-    /** Telemetry lifecycle */
+    // Telemetry lifecycle
     useEffect(() => {
       if (!policy.telemetryEnabled) return;
 
@@ -133,14 +156,14 @@ const DividerComponent = forwardRef<HTMLElement, AppDividerProps>(
       };
     }, [policy.telemetryEnabled, lifecyclePayload]);
 
-    /** Policy: hidden */
+    // Policy: hidden
     if (!policy.isRendered) return null;
 
     return (
       <CoreDivider
         ref={ref}
         data-component='AppDivider'
-        {...coreProps}
+        {...domProps}
       />
     );
   },

@@ -859,6 +859,7 @@ describe('App DatePicker', () => {
     });
 
     it('должен обрабатывать ошибку загрузки locale в development', () => {
+      // Мокаем console.warn чтобы подавить предупреждение о неудачной загрузке locale
       const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
       vi.stubEnv('NODE_ENV', 'development');
 

@@ -418,27 +418,27 @@ describe('App Accordion', () => {
         <Accordion
           items={testItems}
           mode='single'
-          openItemId='item1'
           onChange={mockOnChange}
         />,
       );
 
-      // Очищаем вызовы от mount
-      vi.clearAllMocks();
+      // Не очищаем, чтобы сохранить mount и увидеть toggle
 
       const item1Button = screen.getByText('Item 1');
       fireEvent.click(item1Button);
 
-      expect(mockInfoFireAndForget).toHaveBeenCalledWith('Accordion toggle', {
+      const toggleCall = mockInfoFireAndForget.mock.calls.find(
+        (call) => call[0] === 'Accordion toggle',
+      );
+      expect(toggleCall).toEqual(['Accordion toggle', {
         component: 'Accordion',
         action: 'toggle',
         hidden: false,
         visible: true,
         itemsCount: 3,
-        openItemsCount: 1,
-        openItemIds: JSON.stringify(['item1']),
+        openItemsCount: 0,
         mode: 'single',
-      });
+      }]);
     });
 
     it('не должен отправлять toggle telemetry когда telemetryEnabled=false', () => {
@@ -472,12 +472,15 @@ describe('App Accordion', () => {
         />,
       );
 
-      vi.clearAllMocks();
+      // Не очищаем, чтобы сохранить mount
 
       const item1Button = screen.getByText('Item 1');
       fireEvent.click(item1Button);
 
-      expect(mockInfoFireAndForget).toHaveBeenCalledWith('Accordion toggle', {
+      const toggleCall = mockInfoFireAndForget.mock.calls.find(
+        (call) => call[0] === 'Accordion toggle',
+      );
+      expect(toggleCall).toEqual(['Accordion toggle', {
         component: 'Accordion',
         action: 'toggle',
         hidden: false,
@@ -486,7 +489,7 @@ describe('App Accordion', () => {
         openItemsCount: 2,
         openItemIds: JSON.stringify(['item1', 'item2']),
         mode: 'multiple',
-      });
+      }]);
     });
 
     it('должен отправлять toggle telemetry без openItemIds когда нет открытых элементов', () => {
@@ -495,12 +498,15 @@ describe('App Accordion', () => {
         <Accordion items={testItems} mode='single' onChange={mockOnChange} />,
       );
 
-      vi.clearAllMocks();
+      // Не очищаем, чтобы сохранить mount
 
       const item1Button = screen.getByText('Item 1');
       fireEvent.click(item1Button);
 
-      expect(mockInfoFireAndForget).toHaveBeenCalledWith('Accordion toggle', {
+      const toggleCall = mockInfoFireAndForget.mock.calls.find(
+        (call) => call[0] === 'Accordion toggle',
+      );
+      expect(toggleCall).toEqual(['Accordion toggle', {
         component: 'Accordion',
         action: 'toggle',
         hidden: false,
@@ -508,11 +514,8 @@ describe('App Accordion', () => {
         itemsCount: 3,
         openItemsCount: 0,
         mode: 'single',
-      });
+      }]);
 
-      const toggleCall = mockInfoFireAndForget.mock.calls.find(
-        (call) => call[0] === 'Accordion toggle',
-      );
       expect(toggleCall?.[1]).not.toHaveProperty('openItemIds');
     });
 

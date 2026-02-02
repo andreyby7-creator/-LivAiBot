@@ -18,7 +18,15 @@
  * - платформенных эффектов
  */
 
-import React, { forwardRef, memo, useCallback, useEffect, useMemo } from 'react';
+import React, {
+  forwardRef,
+  memo,
+  useCallback,
+  useEffect,
+  useImperativeHandle,
+  useMemo,
+  useRef,
+} from 'react';
 import type { JSX } from 'react';
 
 import { Select as CoreSelect } from '../../../ui-core/src/primitives/select.js';
@@ -29,6 +37,30 @@ import { infoFireAndForget } from '../lib/telemetry.js';
  * 🧬 TYPES
  * ========================================================================== */
 
+/** Бизнес-пропсы, которые не должны попадать в DOM */
+const BUSINESS_PROPS = [
+  'isHiddenByFeatureFlag',
+  'isDisabledByFeatureFlag',
+  'variantByFeatureFlag',
+  'telemetryEnabled',
+  'telemetryOnChange',
+  'telemetryOnFocus',
+  'telemetryOnBlur',
+] as const;
+
+/** Функция для фильтрации бизнес-пропсов */
+function omit<T extends Record<string, unknown>, K extends readonly string[]>(
+  obj: T,
+  keys: K,
+): Omit<T, K[number]> {
+  const result = { ...obj };
+  for (const key of keys) {
+    // eslint-disable-next-line functional/immutable-data
+    delete result[key];
+  }
+  return result;
+}
+
 type SelectTelemetryAction = 'mount' | 'unmount' | 'change' | 'focus' | 'blur';
 
 type SelectTelemetryPayload = Readonly<{
@@ -37,6 +69,7 @@ type SelectTelemetryPayload = Readonly<{
   variant: string | null;
   hidden: boolean;
   disabled: boolean;
+  value?: string; // для change событий
 }>;
 
 export type AppSelectProps = Readonly<
@@ -112,6 +145,7 @@ function useSelectPolicy(props: AppSelectProps): SelectPolicy {
 function emitSelectTelemetry(
   action: SelectTelemetryAction,
   policy: SelectPolicy,
+  value?: string,
 ): void {
   const payload: SelectTelemetryPayload = {
     component: 'Select',
@@ -119,6 +153,7 @@ function emitSelectTelemetry(
     variant: policy.variant,
     hidden: policy.hiddenByFeatureFlag,
     disabled: policy.disabledByFeatureFlag,
+    ...(action === 'change' && value !== undefined && { value }),
   };
 
   infoFireAndForget(`Select ${action}`, payload);
@@ -130,22 +165,31 @@ function emitSelectTelemetry(
 
 const SelectComponent = forwardRef<HTMLSelectElement, AppSelectProps>(
   function SelectComponent(props, ref): JSX.Element | null {
+    // Сначала фильтруем бизнес-пропсы
+    const filteredProps = omit(props, BUSINESS_PROPS);
+
     const {
       onChange,
       onFocus,
       onBlur,
       'data-testid': dataTestId,
       ...coreProps
-    } = props;
+    } = filteredProps;
 
     const policy = useSelectPolicy(props);
+    const internalRef = useRef<HTMLSelectElement | null>(null);
+
+    /** Безопасная пересылка ref */
+    useImperativeHandle(ref, () => internalRef.current ?? document.createElement('select'), [
+      internalRef,
+    ]);
 
     /** lifecycle telemetry */
     useEffect(() => {
       if (policy.telemetryEnabled) {
-        emitSelectTelemetry('mount', policy);
+        emitSelectTelemetry('mount', policy, String(props.value ?? ''));
         return (): void => {
-          emitSelectTelemetry('unmount', policy);
+          emitSelectTelemetry('unmount', policy, String(props.value ?? ''));
         };
       }
       return undefined;
@@ -160,7 +204,7 @@ const SelectComponent = forwardRef<HTMLSelectElement, AppSelectProps>(
         if (policy.disabledByFeatureFlag) return;
 
         if (policy.telemetryEnabled && policy.telemetryOnChange) {
-          emitSelectTelemetry('change', policy);
+          emitSelectTelemetry('change', policy, event.target.value);
         }
 
         onChange?.(event);
@@ -206,7 +250,7 @@ const SelectComponent = forwardRef<HTMLSelectElement, AppSelectProps>(
   */
     return (
       <CoreSelect
-        ref={ref}
+        ref={internalRef}
         {...coreProps}
         {...(dataTestId != null ? { 'data-testid': dataTestId } : {})}
         data-component='AppSelect'

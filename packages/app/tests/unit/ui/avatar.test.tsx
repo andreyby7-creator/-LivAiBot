@@ -8,10 +8,30 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom/vitest';
 
-// Mock для Core Avatar - возвращаем простой div
+// Mock для Core Avatar - возвращаем простой div, фильтруя Core-специфичные пропсы
 vi.mock('../../../../ui-core/src/primitives/avatar', () => ({
-  Avatar: ({ 'data-testid': testId, ...props }: Readonly<Record<string, unknown>>) => (
-    <div data-testid={testId ?? 'core-avatar'} {...props} />
+  Avatar: ({
+    'data-testid': testId,
+    src,
+    alt,
+    fallbackText,
+    size,
+    bgColor,
+    className,
+    style,
+    ...domProps
+  }: Readonly<Record<string, unknown>>) => (
+    <div
+      data-testid={testId ?? 'core-avatar'}
+      data-src={src}
+      data-alt={alt}
+      data-fallback-text={fallbackText}
+      data-size={size}
+      data-bg-color={bgColor}
+      className={className as string}
+      style={style as React.CSSProperties}
+      {...domProps}
+    />
   ),
 }));
 
@@ -75,6 +95,10 @@ describe('Avatar', () => {
       const avatar = screen.getByTestId('custom-avatar');
       expect(avatar).toBeInTheDocument();
       expect(avatar).toHaveAttribute('data-component', 'AppAvatar');
+      expect(avatar).toHaveAttribute('data-alt', 'Test User');
+      expect(avatar).toHaveAttribute('data-size', '48');
+      expect(avatar).toHaveAttribute('data-bg-color', '#FF0000');
+      expect(avatar).toHaveClass('test-class');
     });
   });
 
@@ -170,49 +194,49 @@ describe('Avatar', () => {
       render(<Avatar name='John Doe' />);
 
       const avatar = screen.getByTestId('core-avatar');
-      expect(avatar).toHaveAttribute('alt', 'John Doe');
+      expect(avatar).toHaveAttribute('data-alt', 'John Doe');
     });
 
     it('должен использовать name как alt когда name передан', () => {
       render(<Avatar name='Jane Smith' />);
 
       const avatar = screen.getByTestId('core-avatar');
-      expect(avatar).toHaveAttribute('alt', 'Jane Smith');
+      expect(avatar).toHaveAttribute('data-alt', 'Jane Smith');
     });
 
     it('должен использовать "avatar" как alt когда name null', () => {
       render(<Avatar name={null} />);
 
       const avatar = screen.getByTestId('core-avatar');
-      expect(avatar).toHaveAttribute('alt', 'avatar');
+      expect(avatar).toHaveAttribute('data-alt', 'avatar');
     });
 
     it('должен вычислять fallbackText из имени', () => {
       render(<Avatar name='John Michael Doe' />);
 
       const avatar = screen.getByTestId('core-avatar');
-      expect(avatar).toHaveAttribute('fallbackText', 'JM');
+      expect(avatar).toHaveAttribute('data-fallback-text', 'JM');
     });
 
     it('должен вычислять fallbackText для односимвольного имени', () => {
       render(<Avatar name='A' />);
 
       const avatar = screen.getByTestId('core-avatar');
-      expect(avatar).toHaveAttribute('fallbackText', 'A');
+      expect(avatar).toHaveAttribute('data-fallback-text', 'A');
     });
 
     it('должен использовать пустую строку для fallbackText когда имя пустое', () => {
       render(<Avatar name='' />);
 
       const avatar = screen.getByTestId('core-avatar');
-      expect(avatar).toHaveAttribute('fallbackText', '');
+      expect(avatar).toHaveAttribute('data-fallback-text', '');
     });
 
     it('должен передавать src напрямую', () => {
       render(<Avatar src='/test.jpg' alt='Test User' />);
 
       const avatar = screen.getByTestId('core-avatar');
-      expect(avatar).toHaveAttribute('src', '/test.jpg');
+      expect(avatar).toHaveAttribute('data-src', '/test.jpg');
     });
 
     it('должен передавать src как undefined когда src не передан', () => {
@@ -331,31 +355,31 @@ describe('Avatar', () => {
       render(<Avatar src='/test.jpg' name={null} />);
 
       const avatar = screen.getByTestId('core-avatar');
-      expect(avatar).toHaveAttribute('alt', 'avatar');
-      expect(avatar).toHaveAttribute('fallbackText', '');
+      expect(avatar).toHaveAttribute('data-alt', 'avatar');
+      expect(avatar).toHaveAttribute('data-fallback-text', '');
     });
 
     it('должен работать с пустой строкой name', () => {
       render(<Avatar name='' />);
 
       const avatar = screen.getByTestId('core-avatar');
-      expect(avatar).toHaveAttribute('alt', '');
-      expect(avatar).toHaveAttribute('fallbackText', '');
+      expect(avatar).toHaveAttribute('data-alt', '');
+      expect(avatar).toHaveAttribute('data-fallback-text', '');
     });
 
     it('должен правильно обрабатывать многословные имена', () => {
       render(<Avatar name='John Jacob Jingleheimer Schmidt' />);
 
       const avatar = screen.getByTestId('core-avatar');
-      expect(avatar).toHaveAttribute('alt', 'John Jacob Jingleheimer Schmidt');
-      expect(avatar).toHaveAttribute('fallbackText', 'JJ');
+      expect(avatar).toHaveAttribute('data-alt', 'John Jacob Jingleheimer Schmidt');
+      expect(avatar).toHaveAttribute('data-fallback-text', 'JJ');
     });
 
     it('должен ограничивать инициалы двумя символами максимум', () => {
       render(<Avatar name='Very Long Name Here' />);
 
       const avatar = screen.getByTestId('core-avatar');
-      expect(avatar).toHaveAttribute('fallbackText', 'VL');
+      expect(avatar).toHaveAttribute('data-fallback-text', 'VL');
     });
   });
 });

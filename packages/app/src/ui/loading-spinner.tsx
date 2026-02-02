@@ -29,6 +29,21 @@ import type { CoreLoadingSpinnerProps } from '../../../ui-core/src/primitives/lo
 import { infoFireAndForget } from '../lib/telemetry.js';
 
 /* ============================================================================
+ * 🛠️ УТИЛИТЫ
+ * ========================================================================== */
+
+// Фильтрует указанные ключи из объекта
+function omit<T extends Record<string, unknown>, K extends keyof T>(
+  obj: T,
+  keys: readonly K[],
+): Omit<T, K> {
+  const keySet = new Set(keys as readonly string[]);
+  return Object.fromEntries(
+    Object.entries(obj).filter(([key]) => !keySet.has(key)),
+  ) as Omit<T, K>;
+}
+
+/* ============================================================================
  * 🧬 TYPES & CONSTANTS
  * ========================================================================== */
 
@@ -63,6 +78,15 @@ export type AppLoadingSpinnerProps = Readonly<
     'data-testid'?: string;
   }
 >;
+
+// Бизнес-пропсы, которые не должны попадать в DOM
+// aria-label контролируется App-слоем для ARIA трансформации
+const BUSINESS_PROPS = [
+  'visible',
+  'isHiddenByFeatureFlag',
+  'telemetryEnabled',
+  'aria-label',
+] as const;
 
 /* ============================================================================
  * 🧠 POLICY
@@ -157,26 +181,29 @@ const LoadingSpinnerComponent = forwardRef<HTMLDivElement, AppLoadingSpinnerProp
     props: AppLoadingSpinnerProps,
     ref: Ref<HTMLDivElement>,
   ): JSX.Element | null {
+    // Фильтруем бизнес-пропсы, оставляем только DOM-безопасные
+    const domProps = omit(props, BUSINESS_PROPS);
+
     const {
       variant,
       size,
       color,
-      'aria-label': ariaLabel,
-      ...coreProps
-    } = props;
+      ...filteredCoreProps
+    } = domProps;
+
+    // aria-label - бизнес-проп, берем из оригинальных props
+    const { 'aria-label': ariaLabel } = props;
     const policy = useLoadingSpinnerPolicy(props);
 
-    /** Минимальный набор telemetry-данных */
+    // Минимальный набор telemetry-данных
     const telemetryProps = useMemo(() => ({
       ...(variant !== undefined && { variant }),
       ...(size !== undefined && { size: typeof size === 'string' ? size : String(size) }),
     }), [variant, size]);
 
-    /**
-     * Lifecycle telemetry фиксирует состояние policy на момент первого рендера.
-     * Не реагирует на последующие изменения props или policy.
-     * Это архитектурная гарантия.
-     */
+    // Lifecycle telemetry фиксирует состояние policy на момент первого рендера
+    // Не реагирует на последующие изменения props или policy
+    // Это архитектурная гарантия
     const lifecyclePayloadRef = useRef<
       {
         mount: LoadingSpinnerTelemetryPayload;
@@ -200,10 +227,8 @@ const LoadingSpinnerComponent = forwardRef<HTMLDivElement, AppLoadingSpinnerProp
 
     const lifecyclePayload = lifecyclePayloadRef.current;
 
-    /**
-     * Payload для show telemetry.
-     * visible=true является производной от policy, а не сырых props.
-     */
+    // Payload для show telemetry
+    // visible=true является производной от policy, а не сырых props
     const showPayload = useMemo(
       () => ({
         ...getLoadingSpinnerPayloadBase(LoadingSpinnerTelemetryAction.Show, policy, telemetryProps),
@@ -212,10 +237,8 @@ const LoadingSpinnerComponent = forwardRef<HTMLDivElement, AppLoadingSpinnerProp
       [policy, telemetryProps],
     );
 
-    /**
-     * Payload для hide telemetry.
-     * visible=false является производной от policy, а не сырых props.
-     */
+    // Payload для hide telemetry
+    // visible=false является производной от policy, а не сырых props
     const hidePayload = useMemo(
       () => ({
         ...getLoadingSpinnerPayloadBase(LoadingSpinnerTelemetryAction.Hide, policy, telemetryProps),
@@ -224,7 +247,7 @@ const LoadingSpinnerComponent = forwardRef<HTMLDivElement, AppLoadingSpinnerProp
       [policy, telemetryProps],
     );
 
-    /** Telemetry lifecycle */
+    // Telemetry lifecycle
     useEffect(() => {
       if (!policy.telemetryEnabled) return;
 
@@ -234,13 +257,11 @@ const LoadingSpinnerComponent = forwardRef<HTMLDivElement, AppLoadingSpinnerProp
       };
     }, [policy.telemetryEnabled, lifecyclePayload]);
 
-    /** Telemetry для видимости - only on changes, not on mount */
+    // Telemetry для видимости - only on changes, not on mount
     const prevVisibleRef = useRef<boolean | undefined>(undefined);
 
-    /**
-     * DRY функция для отправки visibility telemetry.
-     * Отправляет telemetry только при фактическом изменении видимости.
-     */
+    // DRY функция для отправки visibility telemetry
+    // Отправляет telemetry только при фактическом изменении видимости
     const emitVisibilityTelemetry = useCallback(
       (prevVisibility: boolean | undefined, currentVisibility: boolean): void => {
         if (prevVisibility !== undefined && prevVisibility !== currentVisibility) {
@@ -264,7 +285,7 @@ const LoadingSpinnerComponent = forwardRef<HTMLDivElement, AppLoadingSpinnerProp
       prevVisibleRef.current = currentVisibility;
     }, [policy.telemetryEnabled, policy.isRendered, emitVisibilityTelemetry]);
 
-    /** Policy: hidden */
+    // Policy: hidden
     if (!policy.isRendered) return null;
 
     /**
@@ -278,7 +299,6 @@ const LoadingSpinnerComponent = forwardRef<HTMLDivElement, AppLoadingSpinnerProp
     return (
       <CoreLoadingSpinner
         ref={ref}
-        visible={true}
         {...(variant !== undefined && { variant })}
         {...(size !== undefined && { size })}
         {...(color !== undefined && { color })}
@@ -288,7 +308,7 @@ const LoadingSpinnerComponent = forwardRef<HTMLDivElement, AppLoadingSpinnerProp
         data-feature-flag={policy.hiddenByFeatureFlag ? 'hidden' : 'visible'}
         data-telemetry={policy.telemetryEnabled ? 'enabled' : 'disabled'}
         {...(variant !== undefined && { 'data-variant': variant })}
-        {...coreProps}
+        {...filteredCoreProps}
       />
     );
   },

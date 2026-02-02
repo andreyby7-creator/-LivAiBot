@@ -357,13 +357,14 @@ describe('App Tabs', () => {
         <Tabs items={testItems} activeTabId='tab1' onChange={mockOnChange} />,
       );
 
-      // Очищаем вызовы от mount
-      vi.clearAllMocks();
+      // Оставляем mount вызовы, проверяем что есть change после клика
+      expect(mockInfoFireAndForget).toHaveBeenCalledTimes(1); // только mount
 
       const tab2Button = screen.getByText('Tab 2');
       fireEvent.click(tab2Button);
 
-      expect(mockInfoFireAndForget).toHaveBeenCalledWith('Tabs change', {
+      expect(mockInfoFireAndForget).toHaveBeenCalledTimes(2); // mount + change
+      expect(mockInfoFireAndForget).toHaveBeenLastCalledWith('Tabs change', {
         component: 'Tabs',
         action: 'change',
         hidden: false,
@@ -404,12 +405,13 @@ describe('App Tabs', () => {
         />,
       );
 
-      vi.clearAllMocks();
+      expect(mockInfoFireAndForget).toHaveBeenCalledTimes(1); // только mount
 
       const tab2Button = screen.getByText('Tab 2');
       fireEvent.click(tab2Button);
 
-      expect(mockInfoFireAndForget).toHaveBeenCalledWith('Tabs change', {
+      expect(mockInfoFireAndForget).toHaveBeenCalledTimes(2); // mount + change
+      expect(mockInfoFireAndForget).toHaveBeenLastCalledWith('Tabs change', {
         component: 'Tabs',
         action: 'change',
         hidden: false,
@@ -425,12 +427,13 @@ describe('App Tabs', () => {
       const mockOnChange = vi.fn();
       render(<Tabs items={testItems} onChange={mockOnChange} />);
 
-      vi.clearAllMocks();
+      expect(mockInfoFireAndForget).toHaveBeenCalledTimes(1); // только mount
 
       const tab2Button = screen.getByText('Tab 2');
       fireEvent.click(tab2Button);
 
-      expect(mockInfoFireAndForget).toHaveBeenCalledWith('Tabs change', {
+      expect(mockInfoFireAndForget).toHaveBeenCalledTimes(2); // mount + change
+      expect(mockInfoFireAndForget).toHaveBeenLastCalledWith('Tabs change', {
         component: 'Tabs',
         action: 'change',
         hidden: false,
@@ -548,13 +551,14 @@ describe('App Tabs', () => {
         <Tabs items={testItems} activeTabId='tab1' onChange={mockOnChange} />,
       );
 
-      vi.clearAllMocks();
+      expect(mockInfoFireAndForget).toHaveBeenCalledTimes(1); // только mount
 
       // Первое изменение: tab1 -> tab2
       const tab2Button = screen.getByText('Tab 2');
       fireEvent.click(tab2Button);
 
-      expect(mockInfoFireAndForget).toHaveBeenCalledWith('Tabs change', {
+      expect(mockInfoFireAndForget).toHaveBeenCalledTimes(2); // mount + change
+      expect(mockInfoFireAndForget).toHaveBeenLastCalledWith('Tabs change', {
         component: 'Tabs',
         action: 'change',
         hidden: false,
@@ -564,13 +568,12 @@ describe('App Tabs', () => {
         previousTabId: 'tab1',
       });
 
-      vi.clearAllMocks();
-
       // Второе изменение: tab2 -> tab3
       const tab3Button = screen.getByText('Tab 3');
       fireEvent.click(tab3Button);
 
-      expect(mockInfoFireAndForget).toHaveBeenCalledWith('Tabs change', {
+      expect(mockInfoFireAndForget).toHaveBeenCalledTimes(3); // mount + change1 + change2
+      expect(mockInfoFireAndForget).toHaveBeenLastCalledWith('Tabs change', {
         component: 'Tabs',
         action: 'change',
         hidden: false,

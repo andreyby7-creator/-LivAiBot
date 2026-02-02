@@ -61,7 +61,7 @@ export type CoreToggleProps = Readonly<
 
 const CoreToggleComponent = forwardRef<HTMLInputElement, CoreToggleProps>(
   function CoreToggleComponent(props, ref): JSX.Element {
-    const { autoFocus = false, ...rest } = props;
+    const { autoFocus = false, indeterminate, ...rest } = props;
 
     const internalRef = useRef<HTMLInputElement | null>(null);
     const hasFocusedRef = useRef(false);
@@ -89,9 +89,9 @@ const CoreToggleComponent = forwardRef<HTMLInputElement, CoreToggleProps>(
     /** Indeterminate state management */
     useEffect(() => {
       if (internalRef.current && 'indeterminate' in internalRef.current) {
-        internalRef.current.indeterminate = Boolean(rest.indeterminate); // eslint-disable-line functional/immutable-data
+        internalRef.current.indeterminate = Boolean(indeterminate); // eslint-disable-line functional/immutable-data
       }
-    }, [rest.indeterminate]);
+    }, [indeterminate]);
 
     return (
       <input

@@ -32,6 +32,21 @@ import type {
 import { infoFireAndForget } from '../lib/telemetry.js';
 
 /* ============================================================================
+ * 🛠️ УТИЛИТЫ
+ * ========================================================================== */
+
+// Фильтрует указанные ключи из объекта
+function omit<T extends Record<string, unknown>, K extends keyof T>(
+  obj: T,
+  keys: readonly K[],
+): Omit<T, K> {
+  const keySet = new Set(keys as readonly string[]);
+  return Object.fromEntries(
+    Object.entries(obj).filter(([key]) => !keySet.has(key)),
+  ) as Omit<T, K>;
+}
+
+/* ============================================================================
  * 🧬 TYPES & CONSTANTS
  * ========================================================================== */
 
@@ -71,6 +86,13 @@ export type AppBreadcrumbsProps = Readonly<
 
 /** Обогащенный элемент breadcrumbs с App-уровнем логики */
 export type AppBreadcrumbItem = CoreBreadcrumbsProps['items'][number];
+
+// Бизнес-пропсы, которые не должны попадать в DOM
+const BUSINESS_PROPS = [
+  'visible',
+  'isHiddenByFeatureFlag',
+  'telemetryEnabled',
+] as const;
 
 /* ============================================================================
  * 🧠 POLICY
@@ -187,10 +209,13 @@ const BreadcrumbsComponent = forwardRef<HTMLElement, AppBreadcrumbsProps>(
     props: AppBreadcrumbsProps,
     ref: Ref<HTMLElement>,
   ): JSX.Element | null {
-    const { items, ...coreProps } = props;
+    // Фильтруем бизнес-пропсы, оставляем только DOM-безопасные
+    const domProps = omit(props, BUSINESS_PROPS);
+
+    const { items, ...filteredCoreProps } = domProps;
     const policy = useBreadcrumbsPolicy(props);
 
-    /** Минимальный набор telemetry-данных */
+    // Минимальный набор telemetry-данных
     const telemetryProps = useMemo(() => ({
       itemsCount: items.length,
     }), [items.length]);
@@ -198,11 +223,9 @@ const BreadcrumbsComponent = forwardRef<HTMLElement, AppBreadcrumbsProps>(
     // Обогащаем items telemetry обработчиками через custom hook
     const enrichedItems = useBreadcrumbsItems(items, policy);
 
-    /**
-     * Lifecycle telemetry фиксирует состояние policy на момент первого рендера.
-     * Не реагирует на последующие изменения props или policy.
-     * Это архитектурная гарантия.
-     */
+    // Lifecycle telemetry фиксирует состояние policy на момент первого рендера
+    // Не реагирует на последующие изменения props или policy
+    // Это архитектурная гарантия
     const lifecyclePayloadRef = useRef<
       {
         mount: BreadcrumbsTelemetryPayload;
@@ -236,7 +259,7 @@ const BreadcrumbsComponent = forwardRef<HTMLElement, AppBreadcrumbsProps>(
       };
     }, [policy.telemetryEnabled, lifecyclePayload]);
 
-    /** Visibility telemetry - only on changes, not on mount */
+    // Visibility telemetry - only on changes, not on mount
     const showPayload = useMemo(
       () => ({
         ...getBreadcrumbsPayload(
@@ -279,7 +302,7 @@ const BreadcrumbsComponent = forwardRef<HTMLElement, AppBreadcrumbsProps>(
       prevVisibilityRef.current = currentVisibility;
     }, [policy.telemetryEnabled, policy.isRendered, showPayload, hidePayload]);
 
-    /** Policy: hidden (accessibility: элемент полностью удаляется из DOM) */
+    // Policy: hidden (accessibility: элемент полностью удаляется из DOM)
     if (!policy.isRendered) return null;
 
     return (
@@ -290,7 +313,7 @@ const BreadcrumbsComponent = forwardRef<HTMLElement, AppBreadcrumbsProps>(
         data-state='visible' // internal / telemetry & CSS hooks only, не публичное API
         data-feature-flag={policy.hiddenByFeatureFlag ? 'hidden' : 'visible'} // internal / e2e-тесты only, не публичное API
         data-telemetry={policy.telemetryEnabled ? 'enabled' : 'disabled'}
-        {...coreProps}
+        {...filteredCoreProps}
       />
     );
   },

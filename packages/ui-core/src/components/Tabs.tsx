@@ -101,7 +101,9 @@ const TAB_BUTTON_STYLE: CSSProperties = {
   fontSize: '14px',
   fontWeight: 'normal',
   transition: 'color 0.2s ease',
-  borderBottom: '2px solid transparent',
+  borderBottomWidth: '2px',
+  borderBottomStyle: 'solid',
+  borderBottomColor: 'transparent',
   marginBottom: '-1px',
 };
 

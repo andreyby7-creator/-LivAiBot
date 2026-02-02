@@ -25,6 +25,21 @@ import type { CoreTooltipProps } from '../../../ui-core/src/primitives/tooltip.j
 import { infoFireAndForget } from '../lib/telemetry.js';
 
 /* ============================================================================
+ * 🛠️ УТИЛИТЫ
+ * ========================================================================== */
+
+// Фильтрует указанные ключи из объекта
+function omit<T extends Record<string, unknown>, K extends keyof T>(
+  obj: T,
+  keys: readonly K[],
+): Omit<T, K> {
+  const keySet = new Set(keys as readonly string[]);
+  return Object.fromEntries(
+    Object.entries(obj).filter(([key]) => !keySet.has(key)),
+  ) as Omit<T, K>;
+}
+
+/* ============================================================================
  * 🧬 TYPES & CONSTANTS
  * ========================================================================== */
 
@@ -50,10 +65,24 @@ export type AppTooltipProps = Readonly<
     /** Feature flag: скрыть Tooltip */
     isHiddenByFeatureFlag?: boolean;
 
+    /** Feature flag: variant Tooltip */
+    variantByFeatureFlag?: string;
+
     /** Telemetry master switch */
     telemetryEnabled?: boolean;
   }
 >;
+
+// Бизнес-пропсы и внутренние Core-пропсы, которые не должны попадать в DOM
+const BUSINESS_PROPS = [
+  'visible',
+  'isHiddenByFeatureFlag',
+  'variantByFeatureFlag',
+  'telemetryEnabled',
+  // Внутренние пропсы CoreTooltip, используемые только для стилизации
+  'bgColor',
+  'textColor',
+] as const;
 
 /* ============================================================================
  * 🧠 POLICY
@@ -96,9 +125,7 @@ function emitTooltipTelemetry(payload: TooltipTelemetryPayload): void {
   infoFireAndForget(`Tooltip ${payload.action}`, payload);
 }
 
-/**
- * Формирование payload для Tooltip telemetry.
- */
+// Формирование payload для Tooltip telemetry
 function getTooltipPayload(
   action: TooltipTelemetryAction,
   policy: TooltipPolicy,
@@ -117,7 +144,10 @@ function getTooltipPayload(
 
 const TooltipComponent = forwardRef<HTMLDivElement, AppTooltipProps>(
   function TooltipComponent(props: AppTooltipProps, ref: Ref<HTMLDivElement>): JSX.Element | null {
-    const { ...coreProps } = props;
+    // Фильтруем бизнес-пропсы, оставляем только DOM-безопасные
+    const domProps = omit(props, BUSINESS_PROPS);
+
+    const { ...filteredCoreProps } = domProps;
     const policy = useTooltipPolicy(props);
 
     /**
@@ -140,23 +170,15 @@ const TooltipComponent = forwardRef<HTMLDivElement, AppTooltipProps>(
 
     const lifecyclePayload = lifecyclePayloadRef.current;
 
-    const showPayload = useMemo(
-      () => ({
-        ...getTooltipPayload(TooltipTelemetryAction.Show, policy),
-        visible: true,
-      }),
+    // Payload для telemetry создаются по требованию
+    const emitVisibilityChange = useMemo(
+      () => (action: TooltipTelemetryAction): void => {
+        emitTooltipTelemetry(getTooltipPayload(action, policy));
+      },
       [policy],
     );
 
-    const hidePayload = useMemo(
-      () => ({
-        ...getTooltipPayload(TooltipTelemetryAction.Hide, policy),
-        visible: false,
-      }),
-      [policy],
-    );
-
-    /** Telemetry lifecycle */
+    // Telemetry lifecycle
     useEffect(() => {
       if (!policy.telemetryEnabled) return;
 
@@ -166,27 +188,33 @@ const TooltipComponent = forwardRef<HTMLDivElement, AppTooltipProps>(
       };
     }, [policy.telemetryEnabled, lifecyclePayload]);
 
-    /** Telemetry for visibility changes - only on changes, not on mount */
+    // Telemetry for visibility changes - only on changes, not on mount
     const prevVisibleRef = useRef<boolean | undefined>(undefined);
 
     useEffect(() => {
       if (!policy.telemetryEnabled) return;
 
       const currentVisibility = policy.isRendered;
-      const prevVisibility = prevVisibleRef.current;
+
+      // Инициализируем prevVisibleRef при первом рендере
+      if (prevVisibleRef.current === undefined) {
+        // eslint-disable-next-line functional/immutable-data
+        prevVisibleRef.current = currentVisibility;
+        return;
+      }
 
       // Emit only on actual visibility changes, not on mount
-      if (prevVisibility !== undefined && prevVisibility !== currentVisibility) {
-        emitTooltipTelemetry(
-          currentVisibility ? showPayload : hidePayload,
+      if (prevVisibleRef.current !== currentVisibility) {
+        emitVisibilityChange(
+          currentVisibility ? TooltipTelemetryAction.Show : TooltipTelemetryAction.Hide,
         );
       }
 
       // eslint-disable-next-line functional/immutable-data
       prevVisibleRef.current = currentVisibility;
-    }, [policy.telemetryEnabled, policy.isRendered, showPayload, hidePayload]);
+    }, [policy.telemetryEnabled, policy.isRendered, emitVisibilityChange]);
 
-    /** Policy: hidden */
+    // Policy: hidden
     if (!policy.isRendered) return null;
 
     return (
@@ -195,7 +223,7 @@ const TooltipComponent = forwardRef<HTMLDivElement, AppTooltipProps>(
         visible={policy.isRendered}
         data-component='AppTooltip'
         data-telemetry={policy.telemetryEnabled ? 'enabled' : 'disabled'}
-        {...coreProps}
+        {...filteredCoreProps}
       />
     );
   },

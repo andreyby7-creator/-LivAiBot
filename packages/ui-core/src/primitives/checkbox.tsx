@@ -18,7 +18,7 @@
  * - продуктовых решений
  */
 
-import { forwardRef, memo, useEffect, useImperativeHandle, useRef } from 'react';
+import { forwardRef, memo, useEffect, useImperativeHandle, useRef, useState } from 'react';
 import type { InputHTMLAttributes, JSX } from 'react';
 
 /* ============================================================================
@@ -52,10 +52,10 @@ export type CoreCheckboxProps = Readonly<
 
 const CoreCheckboxComponent = forwardRef<HTMLInputElement, CoreCheckboxProps>(
   function CoreCheckboxComponent(props, ref): JSX.Element {
-    const { autoFocus = false, ...rest } = props;
+    const { autoFocus = false, indeterminate, ...rest } = props;
 
     const internalRef = useRef<HTMLInputElement | null>(null);
-    const hasFocusedRef = useRef(false);
+    const [isFocusedOnce, setIsFocusedOnce] = useState(false);
 
     /** Ref forwarding без мутации объекта */
     useImperativeHandle(ref, () => internalRef.current ?? document.createElement('input'), [
@@ -64,35 +64,34 @@ const CoreCheckboxComponent = forwardRef<HTMLInputElement, CoreCheckboxProps>(
 
     /** Focus management */
     useEffect(() => {
-      if (!autoFocus) return;
+      if (!autoFocus || isFocusedOnce) return;
       const node = internalRef.current;
       if (!node) return;
-      if (hasFocusedRef.current) return;
 
       // Focus в следующем макротаске для полной совместимости
       const id = setTimeout(() => {
         node.focus({ preventScroll: true });
+        setIsFocusedOnce(true);
       }, 0);
 
-      hasFocusedRef.current = true; // eslint-disable-line functional/immutable-data
       return (): void => {
         clearTimeout(id);
       };
-    }, [autoFocus]);
+    }, [autoFocus, isFocusedOnce]);
 
     /** Indeterminate state management */
     useEffect(() => {
       if (internalRef.current && 'indeterminate' in internalRef.current) {
-        internalRef.current.indeterminate = Boolean(rest.indeterminate); // eslint-disable-line functional/immutable-data
+        internalRef.current.indeterminate = Boolean(indeterminate); // eslint-disable-line functional/immutable-data
       }
-    }, [rest.indeterminate]);
+    }, [indeterminate]);
 
     return (
       <input
         ref={internalRef}
         type='checkbox'
         aria-checked={Boolean(rest.checked)}
-        aria-busy={rest.disabled ?? undefined}
+        aria-busy={rest['aria-busy'] ?? undefined}
         data-component='CoreCheckbox'
         {...rest}
       />

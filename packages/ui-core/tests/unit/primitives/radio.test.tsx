@@ -73,14 +73,16 @@ describe('Radio', () => {
     });
 
     it('aria-checked=true когда checked=true', () => {
-      const { getRadio } = renderIsolated(<Radio checked />);
+      const onChange = vi.fn();
+      const { getRadio } = renderIsolated(<Radio checked onChange={onChange} />);
 
       const radio = getRadio();
       expect(radio).toHaveAttribute('aria-checked', 'true');
     });
 
     it('aria-checked=false когда checked=false', () => {
-      const { getRadio } = renderIsolated(<Radio checked={false} />);
+      const onChange = vi.fn();
+      const { getRadio } = renderIsolated(<Radio checked={false} onChange={onChange} />);
 
       const radio = getRadio();
       expect(radio).toHaveAttribute('aria-checked', 'false');
@@ -242,11 +244,14 @@ describe('Radio', () => {
 
   describe('4.5. Стабильность рендера', () => {
     it('рендер стабилен при одинаковых пропсах', () => {
-      const { container, rerender } = renderIsolated(<Radio id='stable' checked />);
+      const onChange = vi.fn();
+      const { container, rerender } = renderIsolated(
+        <Radio id='stable' checked onChange={onChange} />,
+      );
 
       const firstRender = container.innerHTML;
 
-      rerender(<Radio id='stable' checked />);
+      rerender(<Radio id='stable' checked onChange={onChange} />);
 
       expect(container.innerHTML).toBe(firstRender);
     });
@@ -345,15 +350,16 @@ describe('Radio', () => {
     });
 
     it('checked состояние синхронизируется с DOM', () => {
-      const { getRadio, rerender } = renderIsolated(<Radio checked />);
+      const onChange = vi.fn();
+      const { getRadio, rerender } = renderIsolated(<Radio checked onChange={onChange} />);
 
       const radio = getRadio();
       expect(radio).toBeChecked();
 
-      rerender(<Radio checked={false} />);
+      rerender(<Radio checked={false} onChange={onChange} />);
       expect(radio).not.toBeChecked();
 
-      rerender(<Radio checked />);
+      rerender(<Radio checked onChange={onChange} />);
       expect(radio).toBeChecked();
     });
   });

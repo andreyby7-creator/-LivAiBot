@@ -29,6 +29,20 @@ import type { CoreAccordionProps } from '../../../ui-core/src/components/Accordi
 import { infoFireAndForget } from '../lib/telemetry.js';
 
 /* ============================================================================
+ * 🛠️ УТИЛИТЫ
+ * ========================================================================== */
+
+function omit<T extends Record<string, unknown>, K extends keyof T>(
+  obj: T,
+  keys: readonly K[],
+): Omit<T, K> {
+  const keySet = new Set(keys as readonly string[]);
+  return Object.fromEntries(
+    Object.entries(obj).filter(([key]) => !keySet.has(key)),
+  ) as Omit<T, K>;
+}
+
+/* ============================================================================
  * 🧬 TYPES & CONSTANTS
  * ========================================================================== */
 
@@ -69,6 +83,13 @@ export type AppAccordionProps = Readonly<
     'data-testid'?: string;
   }
 >;
+
+// 📦 Бизнес-пропсы, которые не должны попадать в DOM
+const BUSINESS_PROPS = [
+  'isHiddenByFeatureFlag',
+  'telemetryEnabled',
+  'visible',
+] as const;
 
 /* ============================================================================
  * 🧠 POLICY
@@ -181,17 +202,23 @@ const AccordionComponent = forwardRef<HTMLDivElement, AppAccordionProps>(
     props: AppAccordionProps,
     ref: Ref<HTMLDivElement>,
   ): JSX.Element | null {
+    const policy = useAccordionPolicy(props);
+
+    // Фильтруем бизнес-пропсы, оставляем только DOM-безопасные
+    // onChange обрабатывается отдельно через handleChange
+    const domProps = omit(props, [...BUSINESS_PROPS, 'onChange']);
+
     const {
       items,
       openItemId,
       openItemIds,
-      onChange,
       mode,
-      ...coreProps
-    } = props;
-    const policy = useAccordionPolicy(props);
+    } = domProps;
 
-    /** Вычисляем количество открытых элементов и их IDs */
+    // onChange не является DOM-пропсом, берем из оригинальных props
+    const { onChange } = props;
+
+    // Вычисляем количество открытых элементов и их IDs
     const { openItemsCount, currentOpenItemIds } = useMemo(() => {
       if (mode === 'single' && openItemId !== undefined) {
         return { openItemsCount: 1, currentOpenItemIds: [openItemId] };
@@ -202,8 +229,8 @@ const AccordionComponent = forwardRef<HTMLDivElement, AppAccordionProps>(
       return { openItemsCount: 0, currentOpenItemIds: [] };
     }, [mode, openItemId, openItemIds]);
 
-    /** Минимальный набор telemetry-данных */
-    const telemetryProps = useMemo(() => {
+    // Генерация snapshot'а telemetry данных
+    const createTelemetrySnapshot = useCallback(() => {
       const base = {
         itemsCount: items.length,
         openItemsCount,
@@ -215,11 +242,12 @@ const AccordionComponent = forwardRef<HTMLDivElement, AppAccordionProps>(
       return base;
     }, [items.length, openItemsCount, currentOpenItemIds, mode]);
 
-    /**
-     * Lifecycle telemetry фиксирует состояние policy на момент первого рендера.
-     * Не реагирует на последующие изменения props или policy.
-     * Это архитектурная гарантия.
-     */
+    // Минимальный набор telemetry-данных
+    const telemetryProps = useMemo(() => createTelemetrySnapshot(), [createTelemetrySnapshot]);
+
+    // Lifecycle telemetry фиксирует состояние policy на момент первого рендера
+    // Не реагирует на последующие изменения props или policy
+    // Это архитектурная гарантия
     const lifecyclePayloadRef = useRef<
       {
         mount: AccordionTelemetryPayload;
@@ -265,28 +293,17 @@ const AccordionComponent = forwardRef<HTMLDivElement, AppAccordionProps>(
     const handleChange = useCallback(
       (itemId: string, event: MouseEvent<HTMLButtonElement>): void => {
         if (policy.telemetryEnabled) {
-          const beforeToggleTelemetryProps: {
-            itemsCount: number;
-            openItemsCount: number;
-            openItemIds?: string[];
-            mode?: 'single' | 'multiple';
-          } = {
-            itemsCount: items.length,
-            openItemsCount,
-            ...(mode !== undefined && { mode }),
-            ...(currentOpenItemIds.length > 0 && { openItemIds: currentOpenItemIds }),
-          };
           const beforeTogglePayload = getAccordionPayload(
             AccordionTelemetryAction.Toggle,
             policy,
-            beforeToggleTelemetryProps,
+            createTelemetrySnapshot(),
           );
           emitAccordionTelemetry(beforeTogglePayload);
         }
 
         onChange?.(itemId, event);
       },
-      [policy, items.length, openItemsCount, currentOpenItemIds, mode, onChange],
+      [policy, createTelemetrySnapshot, onChange],
     );
 
     /** Telemetry lifecycle */
@@ -329,12 +346,10 @@ const AccordionComponent = forwardRef<HTMLDivElement, AppAccordionProps>(
       prevVisibleRef.current = currentVisibility;
     }, [policy.telemetryEnabled, policy.isRendered, emitVisibilityTelemetry]);
 
-    /**
-     * Контракт CoreAccordion:
-     * - В single mode используется только openItemId (имеет приоритет)
-     * - В multiple mode используется только openItemIds
-     * - Передача обоих props одновременно не рекомендуется, но CoreAccordion обработает корректно
-     */
+    // Контракт CoreAccordion
+    // - В single mode используется только openItemId (имеет приоритет)
+    // - В multiple mode используется только openItemIds
+    // - Передача обоих props одновременно не рекомендуется, но CoreAccordion обработает корректно
     const coreAccordionProps = useMemo(() => {
       // Runtime warning в dev-mode для конфликта props
       if (
@@ -367,14 +382,14 @@ const AccordionComponent = forwardRef<HTMLDivElement, AppAccordionProps>(
       policy.telemetryEnabled,
     ]);
 
-    /** Policy: hidden */
+    // Policy: hidden
     if (!policy.isRendered) return null;
 
     return (
       <CoreAccordion
         ref={ref}
         {...coreAccordionProps}
-        {...coreProps}
+        {...domProps}
       />
     );
   },

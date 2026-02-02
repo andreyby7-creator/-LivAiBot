@@ -26,6 +26,21 @@ import type { CoreTextareaProps } from '../../../ui-core/src/primitives/textarea
 import { infoFireAndForget } from '../lib/telemetry.js';
 
 /* ============================================================================
+ * 🛠️ УТИЛИТЫ
+ * ========================================================================== */
+
+// Фильтрует указанные ключи из объекта
+function omit<T extends Record<string, unknown>, K extends keyof T>(
+  obj: T,
+  keys: readonly K[],
+): Omit<T, K> {
+  const keySet = new Set(keys as readonly string[]);
+  return Object.fromEntries(
+    Object.entries(obj).filter(([key]) => !keySet.has(key)),
+  ) as Omit<T, K>;
+}
+
+/* ============================================================================
  * 🧬 TYPES
  * ========================================================================== */
 
@@ -61,6 +76,16 @@ export type AppTextareaProps = Readonly<
     telemetryOnFocus?: boolean;
   }
 >;
+
+// Бизнес-пропсы, которые не должны попадать в DOM
+const BUSINESS_PROPS = [
+  'isHiddenByFeatureFlag',
+  'isDisabledByFeatureFlag',
+  'variantByFeatureFlag',
+  'telemetryEnabled',
+  'telemetryOnChange',
+  'telemetryOnFocus',
+] as const;
 
 /* ============================================================================
  * 🧠 POLICY
@@ -120,16 +145,19 @@ function emitTextareaTelemetry(
  * ========================================================================== */
 
 function TextareaComponent(props: AppTextareaProps): JSX.Element | null {
+  // Фильтруем бизнес-пропсы, оставляем только DOM-безопасные
+  const domProps = omit(props, BUSINESS_PROPS);
+
   const {
     onChange,
     onFocus,
     onBlur,
-    ...coreProps
-  } = props;
+    ...filteredCoreProps
+  } = domProps;
 
   const policy = useTextareaPolicy(props);
 
-  /** lifecycle telemetry */
+  // lifecycle telemetry
   useEffect(() => {
     if (policy.telemetryEnabled) {
       emitTextareaTelemetry('mount', policy);
@@ -143,7 +171,7 @@ function TextareaComponent(props: AppTextareaProps): JSX.Element | null {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  /** event handlers */
+  // event handlers
   const handleChange = useCallback(
     (event: React.ChangeEvent<HTMLTextAreaElement>) => {
       if (policy.disabledByFeatureFlag) return;
@@ -179,15 +207,15 @@ function TextareaComponent(props: AppTextareaProps): JSX.Element | null {
     [policy, onBlur],
   );
 
-  /** скрыт */
+  // скрыт
   if (policy.hiddenByFeatureFlag) {
     return null;
   }
 
-  /** View (максимально тупая) */
+  // View (максимально тупая)
   return (
     <CoreTextarea
-      {...coreProps}
+      {...filteredCoreProps}
       disabled={policy.disabledByFeatureFlag || undefined}
       data-variant={policy.variant}
       data-disabled={policy.disabledByFeatureFlag || undefined}

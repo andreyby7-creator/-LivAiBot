@@ -29,6 +29,21 @@ import type { CoreSideBarProps } from '../../../ui-core/src/components/SideBar.j
 import { infoFireAndForget } from '../lib/telemetry.js';
 
 /* ============================================================================
+ * 🛠️ УТИЛИТЫ
+ * ========================================================================== */
+
+// Фильтрует указанные ключи из объекта
+function omit<T extends Record<string, unknown>, K extends keyof T>(
+  obj: T,
+  keys: readonly K[],
+): Omit<T, K> {
+  const keySet = new Set(keys as readonly string[]);
+  return Object.fromEntries(
+    Object.entries(obj).filter(([key]) => !keySet.has(key)),
+  ) as Omit<T, K>;
+}
+
+/* ============================================================================
  * 🧬 TYPES & CONSTANTS
  * ========================================================================== */
 
@@ -79,6 +94,15 @@ export type AppSideBarProps = Readonly<
     'data-testid'?: string;
   }
 >;
+
+// Бизнес-пропсы, которые не должны попадать в DOM
+const BUSINESS_PROPS = [
+  'visible',
+  'isHiddenByFeatureFlag',
+  'isCollapsedByFeatureFlag',
+  'telemetryEnabled',
+  'collapsedWidth',
+] as const;
 
 /* ============================================================================
  * 🧠 POLICY
@@ -183,31 +207,27 @@ function getSideBarPayload(
 
 const SideBarComponent = forwardRef<HTMLDivElement, AppSideBarProps>(
   function SideBarComponent(props: AppSideBarProps, ref: Ref<HTMLDivElement>): JSX.Element | null {
+    const policy = useSideBarPolicy(props);
+
+    // Фильтруем бизнес-пропсы, оставляем только DOM-безопасные
+    const domProps = omit(props, BUSINESS_PROPS);
+
     const {
       items: itemsProp,
       onItemClick,
       position = 'left',
-      ...coreProps
-    } = props;
+      ...additionalProps
+    } = domProps;
     const items = itemsProp ?? [];
-    const policy = useSideBarPolicy(props);
 
-    /** Минимальный набор telemetry-данных */
+    // Минимальный набор telemetry-данных
     const telemetryProps = useMemo(() => ({
       itemsCount: items.length,
       position,
     }), [items.length, position]);
 
-    /**
-     * Lifecycle telemetry фиксирует состояние policy на момент первого рендера.
-     * Не реагирует на последующие изменения props или policy.
-     * Это архитектурная гарантия для детерминированности.
-     *
-     * @remarks
-     * Важно: При изменении policy между mount/unmount lifecycle payload может быть
-     * менее информативным, так как отражает только начальное состояние.
-     * Для отслеживания динамических изменений используйте show/hide/toggle telemetry.
-     */
+    // Lifecycle telemetry фиксирует состояние policy на момент первого рендера
+    // Не реагирует на последующие изменения props или policy
     const lifecyclePayloadRef = useRef<
       {
         mount: SideBarTelemetryPayload;
@@ -239,10 +259,10 @@ const SideBarComponent = forwardRef<HTMLDivElement, AppSideBarProps>(
       [policy, telemetryProps],
     );
 
-    /** Предыдущее состояние свернутости для telemetry toggle */
+    // Предыдущее состояние свернутости для telemetry toggle
     const prevCollapsedRef = useRef<boolean | undefined>(policy.isCollapsed);
 
-    /** Обработчик клика на элемент с telemetry */
+    // Обработчик клика на элемент с telemetry
     const handleItemClick = useCallback(
       (itemId: string): void => {
         if (policy.telemetryEnabled) {
@@ -263,7 +283,7 @@ const SideBarComponent = forwardRef<HTMLDivElement, AppSideBarProps>(
       [policy, items.length, position, onItemClick],
     );
 
-    /** Telemetry lifecycle */
+    // Telemetry lifecycle
     useEffect(() => {
       if (!policy.telemetryEnabled) return;
 
@@ -273,7 +293,7 @@ const SideBarComponent = forwardRef<HTMLDivElement, AppSideBarProps>(
       };
     }, [policy.telemetryEnabled, lifecyclePayload]);
 
-    /** Telemetry для видимости - only on changes, not on mount */
+    // Telemetry для видимости - only on changes, not on mount
     const prevVisibleRef = useRef<boolean | undefined>(undefined);
 
     useEffect(() => {
@@ -293,7 +313,7 @@ const SideBarComponent = forwardRef<HTMLDivElement, AppSideBarProps>(
       prevVisibleRef.current = currentVisibility;
     }, [policy.telemetryEnabled, policy.isRendered, showPayload, hidePayload]);
 
-    /** Telemetry для свернутости - only on changes, not on mount */
+    // Telemetry для свернутости - only on changes, not on mount
     useEffect(() => {
       if (!policy.telemetryEnabled) return;
 
@@ -314,7 +334,7 @@ const SideBarComponent = forwardRef<HTMLDivElement, AppSideBarProps>(
       prevCollapsedRef.current = currentCollapsed;
     }, [policy, telemetryProps]);
 
-    /** Policy: hidden */
+    // Policy: hidden
     if (!policy.isRendered) return null;
 
     return (
@@ -329,7 +349,7 @@ const SideBarComponent = forwardRef<HTMLDivElement, AppSideBarProps>(
         data-position={position}
         data-feature-flag={policy.hiddenByFeatureFlag ? 'hidden' : 'visible'}
         data-telemetry={policy.telemetryEnabled ? 'enabled' : 'disabled'}
-        {...coreProps}
+        {...additionalProps}
       />
     );
   },

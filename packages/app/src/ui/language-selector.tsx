@@ -37,6 +37,21 @@ import type {
 import { useI18n } from '../lib/i18n.js';
 import { infoFireAndForget } from '../lib/telemetry.js';
 
+/* ============================================================================
+ * 🛠️ УТИЛИТЫ
+ * ========================================================================== */
+
+// Фильтрует указанные ключи из объекта
+function omit<T extends Record<string, unknown>, K extends keyof T>(
+  obj: T,
+  keys: readonly K[],
+): Omit<T, K> {
+  const keySet = new Set(keys as readonly string[]);
+  return Object.fromEntries(
+    Object.entries(obj).filter(([key]) => !keySet.has(key)),
+  ) as Omit<T, K>;
+}
+
 /** Тип элемента, который может рендерить LanguageSelector */
 type LanguageSelectorElement = HTMLDivElement;
 
@@ -107,6 +122,25 @@ export type AppLanguageSelectorProps = Readonly<
     'data-testid'?: string;
   }
 >;
+
+// Бизнес-пропсы, которые не должны попадать в DOM
+// style исключается из domProps, так как комбинируется policy-слоем
+// ariaLabel трансформируется в aria-label, не должен протекать в Core
+// languages, selectedLanguageCode, isOpen указываются явно в JSX
+const BUSINESS_PROPS = [
+  'isHiddenByFeatureFlag',
+  'isDisabledByFeatureFlag',
+  'telemetryEnabled',
+  'visible',
+  'style',
+  'onLanguageSelect',
+  'ariaLabel',
+  'onToggle',
+  'onClose',
+  'languages',
+  'selectedLanguageCode',
+  'isOpen',
+] as const;
 
 /* ============================================================================
  * 🧠 POLICY
@@ -241,6 +275,7 @@ const LanguageSelectorComponent = forwardRef<LanguageSelectorElement, AppLanguag
     props: AppLanguageSelectorProps,
     ref: Ref<LanguageSelectorElement>,
   ): JSX.Element | null {
+    // Сначала извлекаем все нужные props
     const {
       languages,
       selectedLanguageCode,
@@ -251,13 +286,19 @@ const LanguageSelectorComponent = forwardRef<LanguageSelectorElement, AppLanguag
       placeholder,
       disabled,
       onLanguageChange,
-      onLanguageSelect,
       isOpen: controlledIsOpen,
       onOpenChange,
-      ariaLabel,
       'data-testid': dataTestId,
-      ...coreProps
     } = props;
+
+    // Фильтруем бизнес-пропсы, оставляем только DOM-безопасные
+    const domProps = omit(props, BUSINESS_PROPS);
+
+    // ariaLabel - бизнес-проп, берем из оригинальных props
+    const { ariaLabel } = props;
+
+    // onLanguageSelect - бизнес-проп, берем из оригинальных props
+    const { onLanguageSelect } = props;
 
     // i18n интеграция для locale в telemetry и переводов
     const { locale, translate } = useI18n();
@@ -376,15 +417,12 @@ const LanguageSelectorComponent = forwardRef<LanguageSelectorElement, AppLanguag
       return navigableLanguages.findIndex((lang) => lang.code === selectedLanguage.code);
     }, [translatedLanguages, selectedLanguageCode, navigableLanguages]);
 
-    /** Фильтруем controlled props из coreProps (App-слой управляет этими аспектами) */
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { onToggle: _, onClose: __, ...filteredCoreProps } = coreProps;
+    // Props для передачи в Core компонент (уже отфильтрованы от бизнес-пропсов)
+    const filteredCoreProps = domProps;
 
-    /**
-     * Lifecycle telemetry фиксирует состояние policy на момент первого рендера.
-     * Не реагирует на последующие изменения props или policy.
-     * Это архитектурная гарантия для детерминированности.
-     */
+    // Lifecycle telemetry фиксирует состояние policy на момент первого рендера
+    // Не реагирует на последующие изменения props или policy
+    // Это архитектурная гарантия для детерминированности
     type LifecyclePayload = Readonly<{
       mount: LanguageSelectorTelemetryPayload;
       unmount: LanguageSelectorTelemetryPayload;
@@ -408,11 +446,11 @@ const LanguageSelectorComponent = forwardRef<LanguageSelectorElement, AppLanguag
 
     const lifecyclePayload = lifecyclePayloadRef.current;
 
-    /** Стабильные ссылки на payload для useEffect dependencies (immutable by contract) */
+    // Стабильные ссылки на payload для useEffect dependencies (immutable by contract)
     const mountPayload = lifecyclePayload.mount;
     const unmountPayload = lifecyclePayload.unmount;
 
-    /** Telemetry lifecycle */
+    // Telemetry lifecycle
     useEffect(() => {
       if (!policy.telemetryEnabled) return;
 
@@ -422,13 +460,13 @@ const LanguageSelectorComponent = forwardRef<LanguageSelectorElement, AppLanguag
       };
     }, [policy.telemetryEnabled, mountPayload, unmountPayload]);
 
-    /** Объединяем стили для disabled состояния */
+    // Объединяем стили для disabled состояния
     const combinedDisabled = useMemo<boolean>(
       () => disabled === true || policy.disabledByFeatureFlag,
       [disabled, policy.disabledByFeatureFlag],
     );
 
-    /** Отправка telemetry для выбора языка */
+    // Отправка telemetry для выбора языка
     const emitLanguageChangeTelemetry = useCallback(() => {
       if (policy.telemetryEnabled) {
         emitLanguageSelectorTelemetry(
@@ -441,7 +479,7 @@ const LanguageSelectorComponent = forwardRef<LanguageSelectorElement, AppLanguag
       }
     }, [policy, telemetryProps]);
 
-    /** Обработчик выбора языка с App-level логикой */
+    // Обработчик выбора языка с App-level логикой
     const handleLanguageChange = useCallback(
       (languageCode: string) => {
         emitLanguageChangeTelemetry();
@@ -458,17 +496,17 @@ const LanguageSelectorComponent = forwardRef<LanguageSelectorElement, AppLanguag
       [emitLanguageChangeTelemetry, languages, onLanguageSelect, onLanguageChange, setIsOpen],
     );
 
-    /** Обработчик переключения состояния открытия */
+    // Обработчик переключения состояния открытия
     const handleToggle = useCallback((): void => {
       setIsOpen((prev) => !prev);
     }, [setIsOpen]);
 
-    /** Обработчик закрытия dropdown */
+    // Обработчик закрытия dropdown
     const handleClose = useCallback((): void => {
       setIsOpen(false);
     }, [setIsOpen]);
 
-    /** Вспомогательные функции для клавиатурной навигации */
+    // Вспомогательные функции для клавиатурной навигации
     const navigateToIndex = useCallback((index: number) => {
       if (navigableLanguages.length === 0) return;
       const clampedIndex = Math.max(0, Math.min(index, navigableLanguages.length - 1));
@@ -506,7 +544,7 @@ const LanguageSelectorComponent = forwardRef<LanguageSelectorElement, AppLanguag
       }
     }, [isOpen, setIsOpen]);
 
-    /** Инициализация активного индекса при открытии дропдауна */
+    // Инициализация активного индекса при открытии дропдауна
     useEffect(() => {
       if (isOpen) {
         // При открытии устанавливаем активный индекс на выбранный язык (если есть доступные языки)
@@ -519,7 +557,7 @@ const LanguageSelectorComponent = forwardRef<LanguageSelectorElement, AppLanguag
       }
     }, [isOpen, selectedNavigableIndex, navigableLanguages.length]);
 
-    /** Вспомогательная функция для обработки клавиш */
+    // Вспомогательная функция для обработки клавиш
     // eslint-disable-next-line sonarjs/cognitive-complexity
     const processKey = useCallback((key: NavigationKey, event: KeyboardEvent) => {
       switch (key) {
@@ -585,7 +623,7 @@ const LanguageSelectorComponent = forwardRef<LanguageSelectorElement, AppLanguag
       openDropdownIfNeeded,
     ]);
 
-    /** Обработчик клавиатуры для навигации (App-слой управляет навигацией) */
+    // Обработчик клавиатуры для навигации (App-слой управляет навигацией)
     const handleKeyDown = useCallback((event: KeyboardEvent) => {
       const key = event.key as NavigationKey;
       if (['Escape', 'Enter', ' ', 'ArrowDown', 'ArrowUp', 'Home', 'End'].includes(key)) {
@@ -593,7 +631,7 @@ const LanguageSelectorComponent = forwardRef<LanguageSelectorElement, AppLanguag
       }
     }, [processKey]);
 
-    /** Policy: hidden */
+    // Policy: hidden
     if (!policy.isRendered) return null;
 
     return (
@@ -626,6 +664,7 @@ const LanguageSelectorComponent = forwardRef<LanguageSelectorElement, AppLanguag
         onLanguageChange={handleLanguageChange}
         data-component='AppLanguageSelector'
         data-state={policy.disabledByFeatureFlag ? 'disabled' : 'active'}
+        data-disabled={combinedDisabled || undefined}
         data-feature-flag={policy.hiddenByFeatureFlag ? 'hidden' : 'visible'}
         data-telemetry={policy.telemetryEnabled ? 'enabled' : 'disabled'}
         {...(ariaLabel != null && ariaLabel !== '' && { 'aria-label': ariaLabel })}

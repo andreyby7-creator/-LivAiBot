@@ -19,7 +19,7 @@
  * - feature/* → используют ТОЛЬКО app/ui
  */
 
-import React, { memo, useCallback, useEffect, useId, useMemo, useState } from 'react';
+import React, { memo, useCallback, useEffect, useId, useMemo, useRef } from 'react';
 import type { JSX } from 'react';
 
 import { Input as CoreInput } from '../../../ui-core/src/index.js';
@@ -28,6 +28,54 @@ import { useFeatureFlagOverride } from '../lib/feature-flags.js';
 import { useI18n } from '../lib/i18n.js';
 import type { Namespace, TranslationKey } from '../lib/i18n.js';
 import { infoFireAndForget } from '../lib/telemetry.js';
+
+// Фильтруем бизнес-пропсы от DOM-пропсов
+function omit<T extends Record<string, unknown>, K extends readonly string[]>(
+  obj: T,
+  keys: K,
+): Omit<T, K[number]> {
+  const result = { ...obj };
+  for (const key of keys) {
+    // eslint-disable-next-line functional/immutable-data
+    delete result[key];
+  }
+  return result;
+}
+
+// Бизнес-пропсы, которые не должны попадать в DOM
+const BUSINESS_PROPS = [
+  'isHiddenByFeatureFlag',
+  'isDisabledByFeatureFlag',
+  'variantByFeatureFlag',
+  'hasError',
+  'isRequired',
+  'label',
+  'errorId',
+  'i18nPlaceholderKey',
+  'i18nPlaceholderNs',
+  'i18nPlaceholderParams',
+] as const;
+
+/** Compile-time гарантия: безопасные props для input элемента */
+type SafeInputProps = Omit<
+  React.InputHTMLAttributes<HTMLInputElement>,
+  | 'value' // обрабатывается отдельно
+  | 'defaultValue' // обрабатывается отдельно
+  | 'disabled' // обрабатывается отдельно
+  | 'placeholder' // обрабатывается отдельно
+  | 'onChange' // обрабатывается отдельно
+  | 'onFocus' // обрабатывается отдельно
+  | 'onBlur' // обрабатывается отдельно
+  | 'aria-label' // обрабатывается отдельно
+  | 'aria-required' // обрабатывается отдельно
+  | 'aria-invalid' // обрабатывается отдельно
+  | 'aria-describedby' // обрабатывается отдельно
+  | 'aria-live' // обрабатывается отдельно
+  | 'data-variant' // обрабатывается отдельно
+  | 'type' // type уже задан в CoreInput
+  | 'name' // может конфликтовать с form handling
+  | 'form' // может конфликтовать с form handling
+>;
 
 /* ============================================================================
  * 🧬 TYPES
@@ -112,7 +160,7 @@ const useDebouncedTelemetry = (): (
   message: string,
   data: InputTelemetryPayload,
 ) => void => {
-  const [timeoutId, setTimeoutId] = useState<number | undefined>(undefined);
+  const timeoutRef = useRef<number | undefined>(undefined);
 
   const debouncedInfoFireAndForget = useCallback(
     (
@@ -120,26 +168,27 @@ const useDebouncedTelemetry = (): (
       data: InputTelemetryPayload,
       delay = TELEMETRY_DEBOUNCE_DELAY,
     ): void => {
-      if (timeoutId !== undefined) {
-        window.clearTimeout(timeoutId);
+      if (timeoutRef.current !== undefined) {
+        window.clearTimeout(timeoutRef.current);
       }
 
-      const newTimeoutId = window.setTimeout(() => {
+      // eslint-disable-next-line functional/immutable-data
+      timeoutRef.current = window.setTimeout(() => {
         infoFireAndForget(message, data);
+        // eslint-disable-next-line functional/immutable-data
+        timeoutRef.current = undefined;
       }, delay);
-
-      setTimeoutId(newTimeoutId);
     },
-    [timeoutId],
+    [],
   );
 
   useEffect(() => {
     return (): void => {
-      if (timeoutId !== undefined) {
-        window.clearTimeout(timeoutId);
+      if (timeoutRef.current !== undefined) {
+        window.clearTimeout(timeoutRef.current);
       }
     };
-  }, [timeoutId]);
+  }, []);
 
   return debouncedInfoFireAndForget;
 };
@@ -147,13 +196,8 @@ const useDebouncedTelemetry = (): (
 function InputComponent<T extends HTMLInputElement['value'] = string>(
   props: AppInputProps<T>,
 ): JSX.Element | null {
+  // Извлекаем бизнес-пропсы из оригинальных пропсов
   const {
-    onChange,
-    onFocus,
-    onBlur,
-    disabled = false,
-    value,
-    defaultValue,
     isDisabledByFeatureFlag,
     isRequired = false,
     hasError = false,
@@ -161,24 +205,52 @@ function InputComponent<T extends HTMLInputElement['value'] = string>(
     isHiddenByFeatureFlag,
     variantByFeatureFlag,
     errorId,
-    ...rest
+    i18nPlaceholderKey: _i18nPlaceholderKey,
+    i18nPlaceholderNs: _i18nPlaceholderNs,
+    i18nPlaceholderParams: _i18nPlaceholderParams,
   } = props;
 
-  // Controlled / Uncontrolled invariant check
-  if (
-    process.env['NODE_ENV'] === 'development' && value !== undefined && defaultValue !== undefined
-  ) {
-    throw new Error(
-      'Input не должен одновременно иметь value и defaultValue. Используйте только одно из свойств.',
-    );
+  // Фильтруем бизнес-пропсы от DOM-пропсов
+  const domProps = omit(props, BUSINESS_PROPS);
+
+  const {
+    onChange,
+    onFocus,
+    onBlur,
+    disabled = false,
+    value,
+    defaultValue,
+    ...rest
+  } = domProps;
+
+  // Compile-time гарантия: rest содержит только безопасные props для input
+  const safeRest = rest as SafeInputProps;
+
+  // Controlled / Uncontrolled handling: value имеет приоритет над defaultValue
+  // В production режиме value выигрывает, в development - кидаем ошибку
+  if (value !== undefined && defaultValue !== undefined) {
+    if (process.env['NODE_ENV'] === 'development') {
+      throw new Error(
+        'Input не должен одновременно иметь value и defaultValue. Используйте только одно из свойств.',
+      );
+    }
+    // В production режиме игнорируем defaultValue, если есть value
   }
+
+  // Определяем финальные пропсы для CoreInput
+  const coreProps = {
+    value,
+    ...(value === undefined ? { defaultValue } : {}),
+  };
 
   const { translate } = useI18n();
   const flagDisabled = Boolean(isDisabledByFeatureFlag);
   const flagHidden = Boolean(isHiddenByFeatureFlag);
   const telemetryEnabled = useFeatureFlagOverride('SYSTEM_telemetry_enabled', true);
 
-  // TODO: Runtime overrides для A/B тестирования (нужен context provider)
+  // TODO: Runtime overrides для A/B тестирования
+  // Нужен context provider для динамического переключения флагов на лету
+  // Пока что feature flags работают только на основе useFeatureFlagOverride
 
   const effectiveDisabled = disabled || flagDisabled;
   const effectiveHidden = flagHidden;
@@ -186,14 +258,27 @@ function InputComponent<T extends HTMLInputElement['value'] = string>(
   const hasLabel = Boolean(label?.trim());
   const debouncedTelemetry = useDebouncedTelemetry();
 
-  /** Placeholder: i18n → fallback → undefined */
-  const placeholder = useMemo<string | undefined>(() => {
-    if ('i18nPlaceholderKey' in props) {
-      const ns = props.i18nPlaceholderNs ?? 'common';
-      return translate(ns, props.i18nPlaceholderKey, props.i18nPlaceholderParams ?? EMPTY_PARAMS);
+  /** Получить финальный placeholder с i18n fallback */
+  const getPlaceholder = useCallback((): string => {
+    // Используем i18n если ключ определен, иначе обычный placeholder
+    const key = _i18nPlaceholderKey;
+    // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-condition
+    if (key) {
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+      const ns = _i18nPlaceholderNs || 'common';
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+      const params = _i18nPlaceholderParams || EMPTY_PARAMS;
+      const i18nText = translate(ns, key, params);
+      // Если i18n вернул пустую строку или undefined, используем обычный placeholder
+      if (i18nText) {
+        return i18nText;
+      }
     }
-    return (rest as { placeholder?: string; }).placeholder;
-  }, [props, rest, translate]);
+    return (domProps as { placeholder?: string; }).placeholder ?? '';
+  }, [_i18nPlaceholderKey, _i18nPlaceholderNs, _i18nPlaceholderParams, domProps, translate]);
+
+  /** Placeholder: i18n → fallback → пустая строка */
+  const placeholder = useMemo<string>(getPlaceholder, [getPlaceholder]);
 
   /** Change handler с telemetry (debounced для оптимизации) */
   const handleChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
@@ -259,20 +344,20 @@ function InputComponent<T extends HTMLInputElement['value'] = string>(
       )}
       <CoreInput
         id={inputId}
-        value={value}
-        defaultValue={defaultValue}
+        {...coreProps}
         disabled={effectiveDisabled}
         placeholder={placeholder}
-        aria-label={hasLabel ? label : placeholder} // accessibility: label имеет приоритет над placeholder
+        aria-label={hasLabel ? label : placeholder || undefined} // accessibility: label имеет приоритет над placeholder
         aria-required={isRequired} // accessibility: обязательное поле
         aria-invalid={hasError} // accessibility: состояние ошибки валидации
         aria-describedby={errorId} // accessibility: связь с элементом ошибки
         aria-live={hasError ? 'polite' : undefined} // accessibility: оповещение об ошибках
-        data-variant={variantByFeatureFlag} // feature flag: вариант компонента для стилизации
+        {...(variantByFeatureFlag !== undefined ? { 'data-variant': variantByFeatureFlag } : {})}
+        // feature flag: вариант компонента для стилизации
         onChange={handleChange}
         onFocus={handleFocus}
         onBlur={handleBlur}
-        {...rest}
+        {...safeRest}
       />
     </>
   );

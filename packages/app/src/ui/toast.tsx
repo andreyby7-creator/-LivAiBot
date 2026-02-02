@@ -26,6 +26,21 @@ import { infoFireAndForget } from '../lib/telemetry.js';
 import type { AppError } from '../types/errors.js';
 
 /* ============================================================================
+ * 🛠️ УТИЛИТЫ
+ * ========================================================================== */
+
+// Фильтрует указанные ключи из объекта
+function omit<T extends Record<string, unknown>, K extends keyof T>(
+  obj: T,
+  keys: readonly K[],
+): Omit<T, K> {
+  const keySet = new Set(keys as readonly string[]);
+  return Object.fromEntries(
+    Object.entries(obj).filter(([key]) => !keySet.has(key)),
+  ) as Omit<T, K>;
+}
+
+/* ============================================================================
  * 🧬 TYPES & CONSTANTS
  * ========================================================================== */
 
@@ -89,6 +104,13 @@ export type AppToastProps = Readonly<
   }
 >;
 
+// Бизнес-пропсы, которые не должны попадать в DOM
+const BUSINESS_PROPS = [
+  'visible',
+  'isHiddenByFeatureFlag',
+  'telemetryEnabled',
+] as const;
+
 /* ============================================================================
  * 🧠 POLICY
  * ========================================================================== */
@@ -133,7 +155,7 @@ function emitToastTelemetry(payload: ToastTelemetryPayload): void {
   infoFireAndForget(`Toast ${payload.action}`, payload);
 }
 
-/** Формирование payload для Toast telemetry. */
+// Формирование payload для Toast telemetry
 function getToastPayload(
   action: ToastTelemetryAction,
   policy: ToastPolicy,
@@ -156,12 +178,15 @@ function getToastPayload(
 
 const ToastComponent = forwardRef<HTMLDivElement, AppToastProps>(
   function ToastComponent(props: AppToastProps, ref: Ref<HTMLDivElement>): JSX.Element | null {
-    const { error, ...coreProps } = props;
+    // Фильтруем бизнес-пропсы, оставляем только DOM-безопасные
+    const domProps = omit(props, BUSINESS_PROPS);
+
+    const { error, ...filteredCoreProps } = domProps;
     const policy = useToastPolicy(props);
 
     const variant = getToastVariant({ error, variant: props.variant });
 
-    /** Минимальный набор telemetry-данных */
+    // Минимальный набор telemetry-данных
     const telemetryProps = useMemo(() => ({
       variant,
     }), [variant]);
@@ -202,7 +227,7 @@ const ToastComponent = forwardRef<HTMLDivElement, AppToastProps>(
       [policy, telemetryProps],
     );
 
-    /** Telemetry lifecycle */
+    // Telemetry lifecycle
     useEffect(() => {
       if (!policy.telemetryEnabled) return;
 
@@ -212,7 +237,7 @@ const ToastComponent = forwardRef<HTMLDivElement, AppToastProps>(
       };
     }, [policy.telemetryEnabled, lifecyclePayload]);
 
-    /** Telemetry для изменений видимости - только при изменениях, не при монтировании */
+    // Telemetry для изменений видимости - только при изменениях, не при монтировании
     const prevVisibleRef = useRef<boolean | undefined>(undefined);
 
     useEffect(() => {
@@ -232,7 +257,7 @@ const ToastComponent = forwardRef<HTMLDivElement, AppToastProps>(
       prevVisibleRef.current = currentVisibility;
     }, [policy.telemetryEnabled, policy.isRendered, showPayload, hidePayload]);
 
-    /** Policy: hidden */
+    // Policy: hidden
     if (!policy.isRendered) return null;
 
     return (
@@ -242,7 +267,7 @@ const ToastComponent = forwardRef<HTMLDivElement, AppToastProps>(
         data-component='AppToast'
         data-variant={variant}
         data-telemetry={policy.telemetryEnabled ? 'enabled' : 'disabled'}
-        {...coreProps}
+        {...filteredCoreProps}
       />
     );
   },

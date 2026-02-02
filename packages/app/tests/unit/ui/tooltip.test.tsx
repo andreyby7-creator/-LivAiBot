@@ -8,10 +8,38 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom/vitest';
 
-// Mock для Core Tooltip - возвращаем простой div
+// Mock для Core Tooltip - возвращаем простой div, но фильтруем внутренние пропсы
 vi.mock('../../../../ui-core/src/primitives/tooltip', () => ({
-  Tooltip: ({ 'data-testid': testId, ...props }: Readonly<Record<string, unknown>>) => (
-    <div data-testid={testId ?? 'core-tooltip'} {...props} />
+  // eslint-disable-next-line @typescript-eslint/prefer-readonly-parameter-types
+  Tooltip: ({
+    'data-testid': testId,
+    visible,
+    placement,
+    content,
+    trigger,
+    style,
+    className,
+    ...props
+  }: Readonly<{
+    'data-testid'?: string;
+    visible?: boolean;
+    placement?: string;
+    content?: string;
+    trigger?: string;
+    style?: import('react').CSSProperties;
+    className?: string;
+    [key: string]: unknown;
+  }>) => (
+    <div
+      data-testid={testId ?? 'core-tooltip'}
+      data-visible={visible}
+      data-placement={placement}
+      data-content={content}
+      data-trigger={trigger}
+      style={style}
+      className={className}
+      {...props}
+    />
   ),
 }));
 

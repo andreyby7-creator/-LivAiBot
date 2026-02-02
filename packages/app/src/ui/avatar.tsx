@@ -25,6 +25,21 @@ import type { CoreAvatarProps } from '../../../ui-core/src/primitives/avatar.js'
 import { infoFireAndForget } from '../lib/telemetry.js';
 
 /* ============================================================================
+ * 🛠️ УТИЛИТЫ
+ * ========================================================================== */
+
+// Фильтрует указанные ключи из объекта
+function omit<T extends Record<string, unknown>, K extends keyof T>(
+  obj: T,
+  keys: readonly K[],
+): Omit<T, K> {
+  const keySet = new Set(keys as readonly string[]);
+  return Object.fromEntries(
+    Object.entries(obj).filter(([key]) => !keySet.has(key)),
+  ) as Omit<T, K>;
+}
+
+/* ============================================================================
  * 🧬 TYPES & CONSTANTS
  * ========================================================================== */
 
@@ -53,6 +68,14 @@ export type AppAvatarProps = Readonly<
     name?: string | null;
   }
 >;
+
+// Бизнес-пропсы, которые не должны попадать в DOM
+// name трансформируется в fallbackText, не должен протекать в Core
+const BUSINESS_PROPS = [
+  'isHiddenByFeatureFlag',
+  'telemetryEnabled',
+  'name',
+] as const;
 
 /* ============================================================================
  * 🧠 POLICY
@@ -88,7 +111,13 @@ function emitAvatarTelemetry(payload: AvatarTelemetryPayload): void {
 
 const AvatarComponent = forwardRef<HTMLDivElement, AppAvatarProps>(
   function AvatarComponent(props: AppAvatarProps, ref: Ref<HTMLDivElement>): JSX.Element | null {
-    const { src, name, ...coreProps } = props;
+    // Фильтруем бизнес-пропсы, оставляем только DOM-безопасные
+    const domProps = omit(props, BUSINESS_PROPS);
+
+    const { src, ...filteredCoreProps } = domProps;
+
+    // name - бизнес-проп, берем из оригинальных props
+    const { name } = props;
     const policy = useAvatarPolicy(props);
 
     // Мемоизированные вычисления должны быть перед любыми условными return
@@ -128,7 +157,7 @@ const AvatarComponent = forwardRef<HTMLDivElement, AppAvatarProps>(
 
     const lifecyclePayload = lifecyclePayloadRef.current;
 
-    /** Dev invariant: strict validation for development */
+    // Dev invariant: strict validation for development
     if (
       process.env['NODE_ENV'] !== 'production'
       && process.env['NODE_ENV'] !== 'test'
@@ -142,7 +171,7 @@ const AvatarComponent = forwardRef<HTMLDivElement, AppAvatarProps>(
       );
     }
 
-    /** Telemetry lifecycle */
+    // Telemetry lifecycle
     useEffect(() => {
       if (policy.telemetryEnabled) {
         emitAvatarTelemetry(lifecyclePayload.mount);
@@ -153,7 +182,7 @@ const AvatarComponent = forwardRef<HTMLDivElement, AppAvatarProps>(
       return undefined;
     }, [policy.telemetryEnabled, lifecyclePayload]);
 
-    /** hidden */
+    // hidden
     if (!policy.isRendered) return null;
 
     return (
@@ -163,7 +192,7 @@ const AvatarComponent = forwardRef<HTMLDivElement, AppAvatarProps>(
         alt={alt}
         fallbackText={fallbackText}
         data-component='AppAvatar'
-        {...coreProps}
+        {...filteredCoreProps}
       />
     );
   },

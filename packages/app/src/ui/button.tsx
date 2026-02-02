@@ -28,6 +28,21 @@ import type { Namespace, TranslationKey } from '../lib/i18n.js';
 import { infoFireAndForget } from '../lib/telemetry.js';
 
 /* ============================================================================
+ * 🛠️ УТИЛИТЫ
+ * ========================================================================== */
+
+// Фильтрует указанные ключи из объекта
+function omit<T extends Record<string, unknown>, K extends keyof T>(
+  obj: T,
+  keys: readonly K[],
+): Omit<T, K> {
+  const keySet = new Set(keys as readonly string[]);
+  return Object.fromEntries(
+    Object.entries(obj).filter(([key]) => !keySet.has(key)),
+  ) as Omit<T, K>;
+}
+
+/* ============================================================================
  * 🧬 TYPES & CONSTANTS
  * ========================================================================== */
 
@@ -66,6 +81,14 @@ export type AppButtonProps = Readonly<
   )
 >;
 
+// Бизнес-пропсы, которые не должны попадать в DOM
+// i18n пропсы трансформируются в children, не должны протекать в Core
+const BUSINESS_PROPS = [
+  'i18nKey',
+  'i18nNs',
+  'i18nParams',
+] as const;
+
 /* ============================================================================
  * 🧠 POLICY
  * ========================================================================== */
@@ -100,11 +123,14 @@ function emitButtonTelemetry(payload: ButtonTelemetryPayload): void {
 
 const ButtonComponent = memo<AppButtonProps>(
   function ButtonComponent(props: AppButtonProps): JSX.Element {
-    const { onClick, disabled = false, variant, ...rest } = props;
+    // Фильтруем бизнес-пропсы, оставляем только DOM-безопасные
+    const domProps = omit(props, BUSINESS_PROPS);
+
+    const { onClick, disabled = false, variant, ...filteredCoreProps } = domProps;
     const { translate } = useI18n();
     const policy = useButtonPolicy();
 
-    /** Текст кнопки: i18n → children → пусто */
+    // Текст кнопки: i18n → children → пусто
     const label = useMemo<React.ReactNode>(() => {
       // Narrowing через discriminated union
       if ('i18nKey' in props) {
@@ -114,7 +140,7 @@ const ButtonComponent = memo<AppButtonProps>(
       return props.children;
     }, [props, translate]);
 
-    /** Click handler с централизованной telemetry */
+    // Click handler с централизованной telemetry
     const handleClick = useCallback<NonNullable<CoreButtonProps['onClick']>>(
       (event: React.MouseEvent<HTMLButtonElement>) => {
         if (!disabled && policy.telemetryEnabled) {
@@ -136,7 +162,7 @@ const ButtonComponent = memo<AppButtonProps>(
         disabled={disabled}
         onClick={handleClick}
         data-telemetry={policy.telemetryEnabled ? 'enabled' : 'disabled'}
-        {...rest}
+        {...filteredCoreProps}
       >
         {label}
       </CoreButton>

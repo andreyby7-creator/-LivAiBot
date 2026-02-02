@@ -35,7 +35,6 @@ exports[`Card > Улучшенные тесты: Snapshot для всех varian
   data-variant="premium"
   role="group"
   style="display: block; box-sizing: border-box; background-color: var(--card-bg, #FFFFFF); border-width: 0px; border-style: none; box-shadow: var(--card-shadow-elevated, 0 4px 6px -1px rgba(0, 0, 0, 0.1)); padding: 16px; border-radius: 12px;"
-  variantbyfeatureflag="premium"
 >
   Card with both variants
 </div>

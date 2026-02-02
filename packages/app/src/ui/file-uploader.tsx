@@ -43,6 +43,36 @@ import type {
  * 🧬 TYPES & CONSTANTS
  * ========================================================================== */
 
+/** Бизнес-пропсы, которые не должны попадать в DOM */
+const BUSINESS_PROPS = [
+  'visible',
+  'isHiddenByFeatureFlag',
+  'telemetryEnabled',
+  'onFilesSelected',
+  'onFileRemove',
+  'onUploadStart',
+  'onUploadProgress',
+  'onUploadSuccess',
+  'onUploadError',
+  'uploadFile',
+  'validateFile',
+  'maxSize',
+  'maxFiles',
+] as const;
+
+/** Функция для фильтрации бизнес-пропсов */
+function omit<T extends Record<string, unknown>, K extends readonly string[]>(
+  obj: T,
+  keys: K,
+): Omit<T, K[number]> {
+  const result = { ...obj };
+  for (const key of keys) {
+    // eslint-disable-next-line functional/immutable-data
+    delete result[key];
+  }
+  return result;
+}
+
 enum FileUploaderTelemetryAction {
   Mount = 'mount',
   Unmount = 'unmount',
@@ -272,6 +302,7 @@ const FileUploaderComponent = forwardRef<HTMLDivElement, AppFileUploaderProps>(
     props: AppFileUploaderProps,
     ref: Ref<HTMLDivElement>,
   ): JSX.Element | null {
+    // Деструктурируем все пропсы
     const {
       onFilesSelected,
       onFileRemove,
@@ -293,8 +324,11 @@ const FileUploaderComponent = forwardRef<HTMLDivElement, AppFileUploaderProps>(
       buttonAriaLabel,
       dropZoneAriaLabel,
       'data-testid': testId,
-      ...coreProps
+      ...restProps
     } = props;
+
+    // Фильтруем бизнес-пропсы перед передачей в Core компонент
+    const coreProps = omit(restProps, BUSINESS_PROPS);
 
     const policy = useFileUploaderPolicy(props);
 
@@ -451,7 +485,7 @@ const FileUploaderComponent = forwardRef<HTMLDivElement, AppFileUploaderProps>(
         onUploadStart?.(fileId, file);
 
         try {
-          const response = await uploadFile(file, (progress) => {
+          const response = await uploadFile(file, (progress: number) => {
             // Обновляем прогресс и отправляем telemetry
             setFiles((prev) => {
               const updatedFiles = prev.map((f) =>

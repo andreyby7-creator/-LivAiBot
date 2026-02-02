@@ -229,12 +229,14 @@ describe('Select', () => {
       const select = screen.getByRole('combobox');
       fireEvent.change(select, { target: { value: 'test' } });
 
-      expect(mockInfoFireAndForget).toHaveBeenCalledWith('Select change', {
+      // Проверяем второй вызов (первый - mount)
+      expect(mockInfoFireAndForget).toHaveBeenNthCalledWith(2, 'Select change', {
         component: 'Select',
         action: 'change',
         variant: null,
         hidden: false,
         disabled: false,
+        value: expect.any(String),
       });
       expect(mockOnChange).toHaveBeenCalled();
     });
@@ -245,7 +247,8 @@ describe('Select', () => {
       const select = screen.getByRole('combobox');
       fireEvent.focus(select);
 
-      expect(mockInfoFireAndForget).toHaveBeenCalledWith('Select focus', {
+      // Проверяем второй вызов (первый - mount)
+      expect(mockInfoFireAndForget).toHaveBeenNthCalledWith(2, 'Select focus', {
         component: 'Select',
         action: 'focus',
         variant: null,
@@ -261,7 +264,8 @@ describe('Select', () => {
       const select = screen.getByRole('combobox');
       fireEvent.blur(select);
 
-      expect(mockInfoFireAndForget).toHaveBeenCalledWith('Select blur', {
+      // Проверяем второй вызов (первый - mount)
+      expect(mockInfoFireAndForget).toHaveBeenNthCalledWith(2, 'Select blur', {
         component: 'Select',
         action: 'blur',
         variant: null,

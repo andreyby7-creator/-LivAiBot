@@ -18,7 +18,6 @@ vi.mock('../../../../ui-core/src/primitives/loading-spinner', () => ({
     ref,
   ) => {
     const {
-      visible,
       variant,
       size,
       color,
@@ -43,7 +42,6 @@ vi.mock('../../../../ui-core/src/primitives/loading-spinner', () => ({
         data-feature-flag={dataFeatureFlag}
         data-telemetry={dataTelemetry}
         data-variant={dataVariant}
-        data-visible={visible}
         data-variant-prop={variant}
         data-size-prop={size}
         data-color-prop={color}
@@ -117,15 +115,6 @@ describe('App LoadingSpinner', () => {
       expect(screen.getByTestId('core-loading-spinner')).toHaveAttribute(
         'data-telemetry',
         'enabled',
-      );
-    });
-
-    it('должен передавать visible={true} в Core LoadingSpinner', () => {
-      render(<LoadingSpinner />);
-
-      expect(screen.getByTestId('core-loading-spinner')).toHaveAttribute(
-        'data-visible',
-        'true',
       );
     });
 
@@ -535,7 +524,6 @@ describe('App LoadingSpinner', () => {
 
       const spinner = screen.getByTestId('test-spinner');
       // App-специфичные пропсы не должны быть в data-атрибутах Core
-      expect(spinner).not.toHaveAttribute('data-visible-prop');
       expect(spinner).not.toHaveAttribute('data-is-hidden-by-feature-flag');
       expect(spinner).not.toHaveAttribute('data-telemetry-enabled-prop');
     });

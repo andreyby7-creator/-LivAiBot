@@ -293,12 +293,18 @@ describe('favicon.ts - Favicon Service', () => {
     it('должен обрабатывать ошибки через onError callback', async () => {
       const { injectFaviconService } = await import('../../../public/favicon');
       const onError = vi.fn();
+      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
       (mockHead.appendChild as ReturnType<typeof vi.fn>).mockImplementation(() => {
         throw new Error('Test error');
       });
 
       injectFaviconService({ onError });
       expect(onError).toHaveBeenCalled();
+      // В debug=false ошибки не должны логироваться
+      expect(consoleErrorSpy).not.toHaveBeenCalled();
+
+      consoleErrorSpy.mockRestore();
+      (mockHead.appendChild as ReturnType<typeof vi.fn>).mockImplementation(() => {});
     });
 
     it('должен логировать ошибки в debug режиме', async () => {
@@ -824,6 +830,8 @@ describe('favicon.ts - Favicon Service', () => {
 
       injectFaviconService({ onError });
       expect(onError).toHaveBeenCalledWith(expect.any(Error));
+
+      (mockHead.appendChild as ReturnType<typeof vi.fn>).mockImplementation(() => {});
     });
 
     it('должен обрабатывать не-Error объекты', async () => {
@@ -835,6 +843,8 @@ describe('favicon.ts - Favicon Service', () => {
 
       injectFaviconService({ onError });
       expect(onError).toHaveBeenCalledWith(expect.any(Error));
+
+      (mockHead.appendChild as ReturnType<typeof vi.fn>).mockImplementation(() => {});
     });
   });
 

@@ -41,31 +41,57 @@ type CheckboxTelemetryPayload = {
   indeterminate?: boolean;
 };
 
+type AppCheckboxBusinessProps = {
+  /** Feature flag: скрыть компонент */
+  isHiddenByFeatureFlag?: boolean;
+
+  /** Feature flag: отключить интерактивность */
+  isDisabledByFeatureFlag?: boolean;
+
+  /** Feature flag: визуальный вариант */
+  variantByFeatureFlag?: string;
+
+  /** Telemetry master switch */
+  telemetryEnabled?: boolean;
+
+  /** Telemetry for value change */
+  telemetryOnChange?: boolean;
+
+  /** Telemetry for focus events */
+  telemetryOnFocus?: boolean;
+
+  /** Telemetry for blur events */
+  telemetryOnBlur?: boolean;
+};
+
 export type AppCheckboxProps = Readonly<
   & CoreCheckboxProps
-  & {
-    /** Feature flag: скрыть компонент */
-    isHiddenByFeatureFlag?: boolean;
-
-    /** Feature flag: отключить интерактивность */
-    isDisabledByFeatureFlag?: boolean;
-
-    /** Feature flag: визуальный вариант */
-    variantByFeatureFlag?: string;
-
-    /** Telemetry master switch */
-    telemetryEnabled?: boolean;
-
-    /** Telemetry for value change */
-    telemetryOnChange?: boolean;
-
-    /** Telemetry for focus events */
-    telemetryOnFocus?: boolean;
-
-    /** Telemetry for blur events */
-    telemetryOnBlur?: boolean;
-  }
+  & AppCheckboxBusinessProps
 >;
+
+/* ============================================================================
+ * 🛠️ УТИЛИТЫ
+ * ========================================================================== */
+function omit<T extends Record<string, unknown>, K extends keyof T>(
+  obj: T,
+  keys: readonly K[],
+): Omit<T, K> {
+  const keySet = new Set(keys as readonly string[]);
+  return Object.fromEntries(
+    Object.entries(obj).filter(([key]) => !keySet.has(key)),
+  ) as Omit<T, K>;
+}
+
+// Бизнес-пропсы, которые не должны попадать в DOM
+const BUSINESS_PROPS = [
+  'isHiddenByFeatureFlag',
+  'isDisabledByFeatureFlag',
+  'variantByFeatureFlag',
+  'telemetryEnabled',
+  'telemetryOnChange',
+  'telemetryOnFocus',
+  'telemetryOnBlur',
+] as const;
 
 /* ============================================================================
  * 🧠 POLICY
@@ -123,7 +149,7 @@ function emitCheckboxTelemetry(
     hidden: policy.hiddenByFeatureFlag,
     disabled: policy.disabledByFeatureFlag,
     ...(checked !== undefined && { checked }),
-    ...(indeterminate !== undefined && { indeterminate }),
+    indeterminate: indeterminate ?? false, // Всегда включаем indeterminate для консистентности
   };
 
   infoFireAndForget(`Checkbox ${action}`, payload);
@@ -135,11 +161,14 @@ function emitCheckboxTelemetry(
 
 const CheckboxComponent = forwardRef<HTMLInputElement, AppCheckboxProps>(
   function CheckboxComponent(props, ref): JSX.Element | null {
-    const { onChange, onFocus, onBlur, checked = false, indeterminate = false, ...rest } = props;
-
     const policy = useCheckboxPolicy(props);
 
-    /** телеметрия жизненного цикла */
+    // Фильтруем бизнес-пропсы, оставляем только DOM-безопасные
+    const domProps = omit(props, BUSINESS_PROPS);
+
+    const { onChange, onFocus, onBlur, checked, indeterminate } = domProps;
+
+    // Телеметрия жизненного цикла
     useEffect(() => {
       if (policy.telemetryEnabled) {
         emitCheckboxTelemetry('mount', policy, checked, indeterminate);
@@ -152,7 +181,7 @@ const CheckboxComponent = forwardRef<HTMLInputElement, AppCheckboxProps>(
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    /** обработчики событий */
+    // Обработчики событий
     const handleChange = useCallback(
       (event: React.ChangeEvent<HTMLInputElement>) => {
         if (policy.disabledByFeatureFlag) return;
@@ -188,25 +217,24 @@ const CheckboxComponent = forwardRef<HTMLInputElement, AppCheckboxProps>(
       [policy, onBlur, indeterminate],
     );
 
-    /** hidden */
+    // Скрываем компонент по фиче-флагу
     if (policy.hiddenByFeatureFlag) {
       return null;
     }
 
-    /** View */
+    // Рендер
     return (
       <CoreCheckbox
         ref={ref}
-        {...rest}
-        checked={checked}
-        indeterminate={indeterminate}
+        {...domProps}
+        {...(checked !== undefined ? { checked } : {})}
+        readOnly={checked !== undefined && !onChange ? true : undefined}
         data-component='AppCheckbox'
         disabled={policy.disabledByFeatureFlag || undefined}
         data-variant={policy.variant}
         data-disabled={policy.disabledByFeatureFlag || undefined}
         aria-disabled={policy.disabledByFeatureFlag || undefined}
-        aria-busy={policy.disabledByFeatureFlag || undefined}
-        aria-checked={Boolean(checked)}
+        aria-checked={checked !== undefined ? Boolean(checked) : undefined}
         onChange={handleChange}
         onFocus={handleFocus}
         onBlur={handleBlur}

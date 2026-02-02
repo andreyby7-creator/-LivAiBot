@@ -217,11 +217,31 @@ function getSearchBarPayload(
  * 🎯 APP SEARCHBAR
  * ========================================================================== */
 
+const BUSINESS_PROPS = [
+  'visible',
+  'isHiddenByFeatureFlag',
+  'isDisabledByFeatureFlag',
+  'telemetryEnabled',
+] as const;
+
+function omit<T extends Record<string, unknown>, K extends readonly string[]>(
+  obj: T,
+  keys: K,
+): Omit<T, K[number]> {
+  const result = { ...obj };
+  for (const key of keys) {
+    // eslint-disable-next-line functional/immutable-data
+    delete result[key];
+  }
+  return result;
+}
+
 const SearchBarComponent = forwardRef<HTMLInputElement, AppSearchBarProps>(
   function SearchBarComponent(
     props: AppSearchBarProps,
     ref: Ref<HTMLInputElement>,
   ): JSX.Element | null {
+    const filteredProps = omit(props, BUSINESS_PROPS);
     const {
       value: valueProp,
       onChange,
@@ -229,7 +249,7 @@ const SearchBarComponent = forwardRef<HTMLInputElement, AppSearchBarProps>(
       onClear,
       size,
       ...coreProps
-    } = props;
+    } = filteredProps;
     const policy = useSearchBarPolicy(props);
 
     const value = valueProp ?? '';

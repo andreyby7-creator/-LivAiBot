@@ -29,6 +29,21 @@ import type { CoreTabsProps } from '../../../ui-core/src/components/Tabs.js';
 import { infoFireAndForget } from '../lib/telemetry.js';
 
 /* ============================================================================
+ * 🛠️ УТИЛИТЫ
+ * ========================================================================== */
+
+// Фильтрует указанные ключи из объекта
+function omit<T extends Record<string, unknown>, K extends keyof T>(
+  obj: T,
+  keys: readonly K[],
+): Omit<T, K> {
+  const keySet = new Set(keys as readonly string[]);
+  return Object.fromEntries(
+    Object.entries(obj).filter(([key]) => !keySet.has(key)),
+  ) as Omit<T, K>;
+}
+
+/* ============================================================================
  * 🧬 TYPES & CONSTANTS
  * ========================================================================== */
 
@@ -70,6 +85,14 @@ export type AppTabsProps = Readonly<
   }
 >;
 
+// Бизнес-пропсы, которые не должны попадать в DOM
+const BUSINESS_PROPS = [
+  'isHiddenByFeatureFlag',
+  'telemetryEnabled',
+  'visible',
+  'onChange', // обрабатывается отдельно
+] as const;
+
 /* ============================================================================
  * 🧠 POLICY
  * ========================================================================== */
@@ -80,16 +103,13 @@ type TabsPolicy = Readonly<{
   readonly telemetryEnabled: boolean;
 }>;
 
-/**
- * TabsPolicy является единственным источником истины
- * для:
- * - DOM rendering
- * - telemetry
- * - visibility state
- *
- * Ни один consumer не имеет права повторно интерпретировать props.visible
- * или feature flags.
- */
+// TabsPolicy является единственным источником истины для:
+// - DOM rendering
+// - telemetry
+// - visibility state
+//
+// Ни один consumer не имеет права повторно интерпретировать props.visible
+// или feature flags.
 function useTabsPolicy(props: AppTabsProps): TabsPolicy {
   const hiddenByFeatureFlag = Boolean(props.isHiddenByFeatureFlag);
 
@@ -111,10 +131,8 @@ function emitTabsTelemetry(payload: TabsTelemetryPayload): void {
   infoFireAndForget(`Tabs ${payload.action}`, payload);
 }
 
-/**
- * Базовое формирование payload для Tabs telemetry (без visible).
- * visible добавляется явно в show/hide payload для семантической чистоты.
- */
+// Базовое формирование payload для Tabs telemetry (без visible)
+// visible добавляется явно в show/hide payload для семантической чистоты
 function getTabsPayloadBase(
   action: TabsTelemetryAction,
   policy: TabsPolicy,
@@ -137,10 +155,8 @@ function getTabsPayloadBase(
   };
 }
 
-/**
- * Формирование payload для Tabs telemetry (для lifecycle events).
- * Использует policy.isRendered для visible.
- */
+// Формирование payload для Tabs telemetry (для lifecycle events)
+// Использует policy.isRendered для visible
 function getTabsPayload(
   action: TabsTelemetryAction,
   policy: TabsPolicy,
@@ -163,27 +179,27 @@ function getTabsPayload(
 
 const TabsComponent = forwardRef<HTMLDivElement, AppTabsProps>(
   function TabsComponent(props: AppTabsProps, ref: Ref<HTMLDivElement>): JSX.Element | null {
+    const policy = useTabsPolicy(props);
+
+    // Фильтруем бизнес-пропсы, оставляем только DOM-безопасные
+    const domProps = omit(props, BUSINESS_PROPS);
+
     const {
       items,
       activeTabId,
       onChange,
       orientation,
-      ...coreProps
     } = props;
-    const policy = useTabsPolicy(props);
 
-    /** Минимальный набор telemetry-данных */
+    // Минимальный набор telemetry-данных
     const telemetryProps = useMemo(() => ({
       tabsCount: items.length,
       ...(activeTabId !== undefined && { activeTabId }),
       ...(orientation !== undefined && { orientation }),
     }), [items.length, activeTabId, orientation]);
 
-    /**
-     * Lifecycle telemetry фиксирует состояние policy на момент первого рендера.
-     * Не реагирует на последующие изменения props или policy.
-     * Это архитектурная гарантия.
-     */
+    // Lifecycle telemetry фиксирует состояние policy на момент первого рендера
+    // Не реагирует на последующие изменения props или policy
     const lifecyclePayloadRef = useRef<
       {
         mount: TabsTelemetryPayload;
@@ -244,7 +260,7 @@ const TabsComponent = forwardRef<HTMLDivElement, AppTabsProps>(
       [policy, items.length, orientation, onChange],
     );
 
-    /** Telemetry lifecycle */
+    // Telemetry lifecycle
     useEffect(() => {
       if (!policy.telemetryEnabled) return;
 
@@ -254,7 +270,7 @@ const TabsComponent = forwardRef<HTMLDivElement, AppTabsProps>(
       };
     }, [policy.telemetryEnabled, lifecyclePayload]);
 
-    /** Telemetry для видимости - only on changes, not on mount */
+    // Telemetry для видимости - only on changes, not on mount
     const prevVisibleRef = useRef<boolean | undefined>(undefined);
 
     useEffect(() => {
@@ -274,13 +290,12 @@ const TabsComponent = forwardRef<HTMLDivElement, AppTabsProps>(
       prevVisibleRef.current = currentVisibility;
     }, [policy.telemetryEnabled, policy.isRendered, showPayload, hidePayload]);
 
-    /** Policy: hidden */
+    // Policy: hidden
     if (!policy.isRendered) return null;
 
     return (
       <CoreTabs
         ref={ref}
-        items={items}
         {...(activeTabId !== undefined && { activeTabId })}
         onChange={handleChange}
         {...(orientation !== undefined && { orientation })}
@@ -288,7 +303,7 @@ const TabsComponent = forwardRef<HTMLDivElement, AppTabsProps>(
         data-state='visible'
         data-feature-flag={policy.hiddenByFeatureFlag ? 'hidden' : 'visible'}
         data-telemetry={policy.telemetryEnabled ? 'enabled' : 'disabled'}
-        {...coreProps}
+        {...domProps}
       />
     );
   },

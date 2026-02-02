@@ -39,6 +39,23 @@ import type {
 import { infoFireAndForget } from '../lib/telemetry.js';
 
 /* ============================================================================
+ * 🛠️ УТИЛИТЫ
+ * ========================================================================== */
+
+/**
+ * Filters out specified keys from an object
+ */
+function omit<T extends Record<string, unknown>, K extends keyof T>(
+  obj: T,
+  keys: readonly K[],
+): Omit<T, K> {
+  const keySet = new Set(keys as readonly string[]);
+  return Object.fromEntries(
+    Object.entries(obj).filter(([key]) => !keySet.has(key)),
+  ) as Omit<T, K>;
+}
+
+/* ============================================================================
  * 🧬 TYPES & CONSTANTS
  * ========================================================================== */
 
@@ -81,6 +98,13 @@ export type AppStatusIndicatorProps = Readonly<
     'data-testid'?: string;
   }
 >;
+
+// Бизнес-пропсы, которые не должны попадать в DOM
+const BUSINESS_PROPS = [
+  'isHiddenByFeatureFlag',
+  'telemetryEnabled',
+  'visible',
+] as const;
 
 /* ============================================================================
  * 🧠 POLICY
@@ -159,6 +183,11 @@ const StatusIndicatorComponent = forwardRef<
   props: AppStatusIndicatorProps,
   ref: Ref<HTMLSpanElement>,
 ): JSX.Element | null {
+  const policy = useStatusIndicatorPolicy(props);
+
+  // Фильтруем бизнес-пропсы, оставляем только DOM-безопасные
+  const domProps = omit(props, BUSINESS_PROPS);
+
   const {
     status = 'idle',
     variant,
@@ -166,10 +195,10 @@ const StatusIndicatorComponent = forwardRef<
     color,
     text,
     'data-testid': testId,
-    ...coreProps
-  } = props;
+    ...additionalProps
+  } = domProps;
 
-  /** Runtime проверка валидности status */
+  // Runtime проверка валидности status
   if (
     process.env['NODE_ENV'] !== 'production'
     && !VALID_STATUSES.includes(status)
@@ -177,10 +206,7 @@ const StatusIndicatorComponent = forwardRef<
     throw new Error(`Invalid StatusIndicator status: ${status}`);
   }
 
-  /** Policy */
-  const policy = useStatusIndicatorPolicy(props);
-
-  /** Base payload для telemetry */
+  // Base payload для telemetry
   const getStatusIndicatorPayloadBase = useCallback(
     (action: StatusIndicatorTelemetryAction): StatusIndicatorTelemetryPayload => ({
       component: 'StatusIndicator',
@@ -194,7 +220,7 @@ const StatusIndicatorComponent = forwardRef<
     [policy.hiddenByFeatureFlag, policy.isRendered, status, variant, size],
   );
 
-  /** Lifecycle payload (фиксируется на mount) */
+  // Lifecycle payload (фиксируется на mount)
   const lifecyclePayloadRef = useRef<
     {
       mount: StatusIndicatorTelemetryPayload;
@@ -212,7 +238,7 @@ const StatusIndicatorComponent = forwardRef<
 
   const lifecyclePayload = lifecyclePayloadRef.current;
 
-  /** Lifecycle telemetry */
+  // Lifecycle telemetry
   useEffect(() => {
     if (!policy.telemetryEnabled) return;
 
@@ -222,7 +248,7 @@ const StatusIndicatorComponent = forwardRef<
     };
   }, [policy.telemetryEnabled, lifecyclePayload]);
 
-  /** Visibility effect (единственный источник истины для show/hide telemetry) */
+  // Visibility effect (единственный источник истины для show/hide telemetry)
   const previousIsRenderedRef = useRef<boolean | undefined>(undefined);
 
   useEffect(() => {
@@ -248,7 +274,7 @@ const StatusIndicatorComponent = forwardRef<
     previousIsRenderedRef.current = isRendered;
   }, [policy.isRendered, policy.telemetryEnabled, getStatusIndicatorPayloadBase]);
 
-  /** Status change telemetry */
+  // Status change telemetry
   const previousStatusRef = useRef<StatusIndicatorStatus | undefined>(
     undefined,
   );
@@ -283,7 +309,7 @@ const StatusIndicatorComponent = forwardRef<
     getStatusIndicatorPayloadBase,
   ]);
 
-  /** Core props (должен быть до early return для соблюдения правил хуков) */
+  // Core props (должен быть до early return для соблюдения правил хуков)
   const coreStatusIndicatorProps: CoreStatusIndicatorProps = useMemo(
     () => ({
       status,
@@ -298,7 +324,7 @@ const StatusIndicatorComponent = forwardRef<
       ...optionalProp(variant !== undefined, { 'data-variant': variant }),
       ...optionalProp(size !== undefined, { 'data-size': size }),
       ...optionalProp(testId !== undefined, { 'data-testid': testId }),
-      ...coreProps,
+      ...additionalProps,
     }),
     [
       status,
@@ -310,11 +336,11 @@ const StatusIndicatorComponent = forwardRef<
       policy.isRendered,
       policy.hiddenByFeatureFlag,
       policy.telemetryEnabled,
-      coreProps,
+      additionalProps,
     ],
   );
 
-  /** Policy: hidden */
+  // Policy: hidden
   if (!policy.isRendered) return null;
 
   return <CoreStatusIndicator ref={ref} {...coreStatusIndicatorProps} />;

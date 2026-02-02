@@ -76,7 +76,8 @@ describe('Toggle', () => {
     });
 
     it('aria-checked=true и aria-pressed=true когда checked=true', () => {
-      const { getToggle } = renderIsolated(<Toggle checked />);
+      const onChange = vi.fn();
+      const { getToggle } = renderIsolated(<Toggle checked onChange={onChange} />);
 
       const toggle = getToggle();
       expect(toggle).toHaveAttribute('aria-checked', 'true');
@@ -84,7 +85,8 @@ describe('Toggle', () => {
     });
 
     it('aria-checked=false и aria-pressed=false когда checked=false', () => {
-      const { getToggle } = renderIsolated(<Toggle checked={false} />);
+      const onChange = vi.fn();
+      const { getToggle } = renderIsolated(<Toggle checked={false} onChange={onChange} />);
 
       const toggle = getToggle();
       expect(toggle).toHaveAttribute('aria-checked', 'false');
@@ -316,11 +318,14 @@ describe('Toggle', () => {
 
   describe('4.6. Стабильность рендера', () => {
     it('рендер стабилен при одинаковых пропсах', () => {
-      const { container, rerender } = renderIsolated(<Toggle id='stable' checked />);
+      const onChange = vi.fn();
+      const { container, rerender } = renderIsolated(
+        <Toggle id='stable' checked onChange={onChange} />,
+      );
 
       const firstRender = container.innerHTML;
 
-      rerender(<Toggle id='stable' checked />);
+      rerender(<Toggle id='stable' checked onChange={onChange} />);
 
       expect(container.innerHTML).toBe(firstRender);
     });
@@ -420,15 +425,16 @@ describe('Toggle', () => {
     });
 
     it('checked состояние синхронизируется с DOM', () => {
-      const { getToggle, rerender } = renderIsolated(<Toggle checked />);
+      const onChange = vi.fn();
+      const { getToggle, rerender } = renderIsolated(<Toggle checked onChange={onChange} />);
 
       const toggle = getToggle();
       expect(toggle).toBeChecked();
 
-      rerender(<Toggle checked={false} />);
+      rerender(<Toggle checked={false} onChange={onChange} />);
       expect(toggle).not.toBeChecked();
 
-      rerender(<Toggle checked />);
+      rerender(<Toggle checked onChange={onChange} />);
       expect(toggle).toBeChecked();
     });
   });

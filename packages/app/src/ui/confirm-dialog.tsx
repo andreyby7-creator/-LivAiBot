@@ -30,6 +30,21 @@ import type { ModalVariant } from '../../../ui-core/src/components/Modal.js';
 import { infoFireAndForget } from '../lib/telemetry.js';
 
 /* ============================================================================
+ * 🛠️ УТИЛИТЫ
+ * ========================================================================== */
+
+// Фильтрует указанные ключи из объекта
+function omit<T extends Record<string, unknown>, K extends keyof T>(
+  obj: T,
+  keys: readonly K[],
+): Omit<T, K> {
+  const keySet = new Set(keys as readonly string[]);
+  return Object.fromEntries(
+    Object.entries(obj).filter(([key]) => !keySet.has(key)),
+  ) as Omit<T, K>;
+}
+
+/* ============================================================================
  * 🧬 TYPES & CONSTANTS
  * ========================================================================== */
 
@@ -84,6 +99,14 @@ export type AppConfirmDialogProps = Readonly<
     'data-testid'?: string;
   }
 >;
+
+// Бизнес-пропсы, которые не должны попадать в DOM
+const BUSINESS_PROPS = [
+  'visible',
+  'isHiddenByFeatureFlag',
+  'isDisabledByFeatureFlag',
+  'telemetryEnabled',
+] as const;
 
 /* ============================================================================
  * 🧠 POLICY
@@ -145,9 +168,7 @@ function emitConfirmDialogTelemetry(payload: ConfirmDialogTelemetryPayload): voi
   infoFireAndForget(`ConfirmDialog ${payload.action}`, payload);
 }
 
-/**
- * Формирование payload для ConfirmDialog telemetry.
- */
+// Формирование payload для ConfirmDialog telemetry
 function getConfirmDialogPayload(
   action: ConfirmDialogTelemetryAction,
   policy: ConfirmDialogPolicy,
@@ -178,6 +199,9 @@ const ConfirmDialogComponent = forwardRef<HTMLDivElement, AppConfirmDialogProps>
     props: AppConfirmDialogProps,
     ref: Ref<HTMLDivElement>,
   ): JSX.Element | null {
+    // Фильтруем бизнес-пропсы, оставляем только DOM-безопасные
+    const domProps = omit(props, BUSINESS_PROPS);
+
     const {
       title,
       message,
@@ -188,11 +212,11 @@ const ConfirmDialogComponent = forwardRef<HTMLDivElement, AppConfirmDialogProps>
       onConfirm,
       onCancel,
       'data-testid': dataTestId,
-      ...coreProps
-    } = props;
+      ...filteredCoreProps
+    } = domProps;
     const policy = useConfirmDialogPolicy(props);
 
-    /** Минимальный набор telemetry-данных */
+    // Минимальный набор telemetry-данных
     const telemetryProps = useMemo(
       () => ({
         variant,
@@ -202,16 +226,7 @@ const ConfirmDialogComponent = forwardRef<HTMLDivElement, AppConfirmDialogProps>
       [variant, title, message],
     );
 
-    /**
-     * Lifecycle telemetry фиксирует состояние policy на момент первого рендера.
-     * Не реагирует на последующие изменения props или policy.
-     * Это архитектурная гарантия для детерминированности.
-     *
-     * @remarks
-     * Важно: При изменении policy между mount/unmount lifecycle payload может быть
-     * менее информативным, так как отражает только начальное состояние.
-     * Для отслеживания динамических изменений используйте show/hide telemetry.
-     */
+    // Lifecycle telemetry фиксирует состояние policy на момент первого рендера
     const lifecyclePayloadRef = useRef<
       {
         mount: ConfirmDialogTelemetryPayload;
@@ -247,14 +262,7 @@ const ConfirmDialogComponent = forwardRef<HTMLDivElement, AppConfirmDialogProps>
       [policy, telemetryProps],
     );
 
-    /**
-     * Обработчик подтверждения с telemetry.
-     *
-     * @remarks
-     * Telemetry отправляется даже если policy.isDisabled === true.
-     * policy.isDisabled блокирует только UI взаимодействие, но не telemetry tracking.
-     * Это позволяет отслеживать попытки взаимодействия с заблокированным диалогом.
-     */
+    // Обработчик подтверждения с telemetry
     const handleConfirm = useCallback((): void => {
       if (policy.telemetryEnabled) {
         const confirmPayload = getConfirmDialogPayload(
@@ -268,14 +276,7 @@ const ConfirmDialogComponent = forwardRef<HTMLDivElement, AppConfirmDialogProps>
       onConfirm?.();
     }, [policy, telemetryProps, onConfirm]);
 
-    /**
-     * Обработчик отмены с telemetry.
-     *
-     * @remarks
-     * Telemetry отправляется даже если policy.isDisabled === true.
-     * policy.isDisabled блокирует только UI взаимодействие, но не telemetry tracking.
-     * Это позволяет отслеживать попытки взаимодействия с заблокированным диалогом.
-     */
+    // Обработчик отмены с telemetry
     const handleCancel = useCallback((): void => {
       if (policy.telemetryEnabled) {
         const cancelPayload = getConfirmDialogPayload(
@@ -289,7 +290,7 @@ const ConfirmDialogComponent = forwardRef<HTMLDivElement, AppConfirmDialogProps>
       onCancel?.();
     }, [policy, telemetryProps, onCancel]);
 
-    /** Telemetry lifecycle */
+    // Telemetry lifecycle
     useEffect(() => {
       if (!policy.telemetryEnabled) return;
 
@@ -299,7 +300,7 @@ const ConfirmDialogComponent = forwardRef<HTMLDivElement, AppConfirmDialogProps>
       };
     }, [policy.telemetryEnabled, lifecyclePayload]);
 
-    /** Telemetry для видимости - only on changes, not on mount */
+    // Telemetry для видимости - only on changes, not on mount
     const prevVisibleRef = useRef<boolean | undefined>(undefined);
 
     useEffect(() => {
@@ -319,10 +320,10 @@ const ConfirmDialogComponent = forwardRef<HTMLDivElement, AppConfirmDialogProps>
       prevVisibleRef.current = currentVisibility;
     }, [policy.telemetryEnabled, policy.isRendered, showPayload, hidePayload]);
 
-    /** Policy: hidden */
+    // Policy: hidden
     if (!policy.isRendered) return null;
 
-    /** Props для CoreConfirmDialog, вынесены для читаемости */
+    // Props для CoreConfirmDialog, вынесены для читаемости
     const coreDialogProps = {
       ref,
       visible: policy.isRendered,
@@ -341,7 +342,7 @@ const ConfirmDialogComponent = forwardRef<HTMLDivElement, AppConfirmDialogProps>
       'data-disabled': policy.isDisabled || undefined,
       'data-feature-flag': policy.hiddenByFeatureFlag ? 'hidden' : 'visible',
       'data-telemetry': policy.telemetryEnabled ? 'enabled' : 'disabled',
-      ...coreProps,
+      ...filteredCoreProps,
     } as CoreConfirmDialogProps;
 
     return <CoreConfirmDialog {...coreDialogProps} />;

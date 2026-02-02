@@ -33,6 +33,21 @@ import type {
 import { infoFireAndForget } from '../lib/telemetry.js';
 
 /* ============================================================================
+ * 🛠️ УТИЛИТЫ
+ * ========================================================================== */
+
+// Фильтрует указанные ключи из объекта
+function omit<T extends Record<string, unknown>, K extends keyof T>(
+  obj: T,
+  keys: readonly K[],
+): Omit<T, K> {
+  const keySet = new Set(keys as readonly string[]);
+  return Object.fromEntries(
+    Object.entries(obj).filter(([key]) => !keySet.has(key)),
+  ) as Omit<T, K>;
+}
+
+/* ============================================================================
  * 🧬 TYPES & CONSTANTS
  * ========================================================================== */
 
@@ -78,6 +93,14 @@ export type AppSkeletonProps = Readonly<
     'data-testid'?: string;
   }
 >;
+
+// Бизнес-пропсы, которые не должны попадать в DOM
+const BUSINESS_PROPS = [
+  'visible',
+  'isHiddenByFeatureFlag',
+  'telemetryEnabled',
+  'animated',
+] as const;
 
 /* ============================================================================
  * 🧠 POLICY
@@ -164,14 +187,15 @@ const SkeletonComponent = forwardRef<HTMLDivElement, AppSkeletonProps>(
     props: AppSkeletonProps,
     ref: Ref<HTMLDivElement>,
   ): JSX.Element | null {
-    const { width, height, variant, ...coreProps } = props;
+    // Фильтруем бизнес-пропсы, оставляем только DOM-безопасные
+    const domProps = omit(props, BUSINESS_PROPS);
+
+    const { width, height, variant, ...filteredCoreProps } = domProps;
     const policy = useSkeletonPolicy(props);
 
-    /**
-     * Lifecycle telemetry фиксирует состояние policy на момент первого рендера.
-     * Не реагирует на последующие изменения props или policy.
-     * Это архитектурная гарантия.
-     */
+    // Lifecycle telemetry фиксирует состояние policy на момент первого рендера
+    // Не реагирует на последующие изменения props или policy
+    // Это архитектурная гарантия
     const lifecyclePayloadRef = useRef<
       {
         mount: SkeletonTelemetryPayload;
@@ -205,7 +229,7 @@ const SkeletonComponent = forwardRef<HTMLDivElement, AppSkeletonProps>(
       };
     }, [policy.telemetryEnabled, lifecyclePayload]);
 
-    /** Visibility telemetry - only on changes, not on mount */
+    // Visibility telemetry - only on changes, not on mount
     const showPayload = useMemo(
       () => getSkeletonPayload(SkeletonTelemetryAction.Show, policy, { width, height, variant }),
       [policy, width, height, variant],
@@ -234,7 +258,7 @@ const SkeletonComponent = forwardRef<HTMLDivElement, AppSkeletonProps>(
       prevVisibilityRef.current = currentVisibility;
     }, [policy.telemetryEnabled, policy.isRendered, showPayload, hidePayload]);
 
-    /** Policy: hidden → полностью удаляем из DOM */
+    // Policy: hidden → полностью удаляем из DOM
     if (!policy.isRendered) return null;
 
     return (
@@ -244,7 +268,7 @@ const SkeletonComponent = forwardRef<HTMLDivElement, AppSkeletonProps>(
         data-feature-flag={policy.hiddenByFeatureFlag ? 'hidden' : 'visible'}
         data-telemetry={policy.telemetryEnabled ? 'enabled' : 'disabled'}
         animated={policy.animated}
-        {...coreProps}
+        {...filteredCoreProps}
       />
     );
   },

@@ -37,6 +37,30 @@ import { infoFireAndForget } from '../lib/telemetry.js';
  * 🧬 TYPES
  * ========================================================================== */
 
+/** Бизнес-пропсы, которые не должны попадать в DOM */
+const BUSINESS_PROPS = [
+  'isHiddenByFeatureFlag',
+  'isDisabledByFeatureFlag',
+  'variantByFeatureFlag',
+  'telemetryEnabled',
+  'telemetryOnChange',
+  'telemetryOnFocus',
+  'telemetryOnBlur',
+] as const;
+
+/** Функция для фильтрации бизнес-пропсов */
+function omit<T extends Record<string, unknown>, K extends readonly string[]>(
+  obj: T,
+  keys: K,
+): Omit<T, K[number]> {
+  const result = { ...obj };
+  for (const key of keys) {
+    // eslint-disable-next-line functional/immutable-data
+    delete result[key];
+  }
+  return result;
+}
+
 type ToggleTelemetryAction = 'mount' | 'unmount' | 'change' | 'focus' | 'blur';
 
 type ToggleTelemetryPayload = {
@@ -49,8 +73,14 @@ type ToggleTelemetryPayload = {
 };
 
 export type AppToggleProps = Readonly<
-  & CoreToggleProps
+  & Omit<CoreToggleProps, 'checked'> // Исключаем checked из CoreToggleProps
   & {
+    /** Состояние toggle (controlled mode) */
+    checked?: boolean;
+
+    /** Начальное состояние toggle (uncontrolled mode) */
+    defaultChecked?: boolean;
+
     /** Feature flag: скрыть компонент */
     isHiddenByFeatureFlag?: boolean;
 
@@ -140,11 +170,26 @@ function emitToggleTelemetry(
 
 const ToggleComponent = forwardRef<HTMLInputElement, AppToggleProps>(
   function ToggleComponent(props, ref): JSX.Element | null {
-    const { onChange, onFocus, onBlur, checked = false, indeterminate = false, ...coreProps } =
-      props;
+    // Сначала фильтруем бизнес-пропсы
+    const filteredProps = omit(props, BUSINESS_PROPS);
+
+    const {
+      onChange,
+      onFocus,
+      onBlur,
+      checked,
+      defaultChecked = false,
+      indeterminate = false,
+      ...coreProps
+    } = filteredProps;
 
     const policy = useTogglePolicy(props);
     const internalRef = useRef<HTMLInputElement | null>(null);
+    const checkedRef = useRef<boolean>(checked ?? defaultChecked);
+
+    // Синхронизируем ref с актуальным значением checked для telemetry
+    // eslint-disable-next-line functional/immutable-data
+    checkedRef.current = checked ?? defaultChecked;
 
     /** Безопасная пересылка ref */
     useImperativeHandle(ref, () => internalRef.current ?? document.createElement('input'), [
@@ -154,9 +199,9 @@ const ToggleComponent = forwardRef<HTMLInputElement, AppToggleProps>(
     /** Жизненный цикл telemetry */
     useEffect(() => {
       if (policy.telemetryEnabled) {
-        emitToggleTelemetry('mount', policy, checked);
+        emitToggleTelemetry('mount', policy, checkedRef.current);
         return (): void => {
-          emitToggleTelemetry('unmount', policy, checked);
+          emitToggleTelemetry('unmount', policy, checkedRef.current);
         };
       }
       return undefined;
@@ -222,7 +267,7 @@ const ToggleComponent = forwardRef<HTMLInputElement, AppToggleProps>(
       <CoreToggle
         ref={internalRef}
         {...coreProps}
-        checked={checked}
+        {...(checked !== undefined ? { checked } : { defaultChecked })}
         indeterminate={indeterminate}
         data-component='AppToggle'
         disabled={policy.disabledByFeatureFlag || undefined}
@@ -230,7 +275,7 @@ const ToggleComponent = forwardRef<HTMLInputElement, AppToggleProps>(
         data-disabled={policy.disabledByFeatureFlag || undefined}
         aria-disabled={policy.disabledByFeatureFlag || undefined}
         aria-busy={policy.disabledByFeatureFlag || undefined}
-        aria-checked={checked}
+        aria-checked={checked ?? defaultChecked}
         onChange={handleChange}
         onFocus={handleFocus}
         onBlur={handleBlur}

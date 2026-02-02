@@ -29,6 +29,21 @@ import type { CoreDropdownProps } from '../../../ui-core/src/primitives/dropdown
 import { infoFireAndForget } from '../lib/telemetry.js';
 
 /* ============================================================================
+ * 🛠️ УТИЛИТЫ
+ * ========================================================================== */
+
+// Фильтрует указанные ключи из объекта
+function omit<T extends Record<string, unknown>, K extends keyof T>(
+  obj: T,
+  keys: readonly K[],
+): Omit<T, K> {
+  const keySet = new Set(keys as readonly string[]);
+  return Object.fromEntries(
+    Object.entries(obj).filter(([key]) => !keySet.has(key)),
+  ) as Omit<T, K>;
+}
+
+/* ============================================================================
  * 🧬 TYPES & CONSTANTS
  * ========================================================================== */
 
@@ -83,6 +98,13 @@ export type AppDropdownProps = Readonly<
   }
 >;
 
+// Бизнес-пропсы, которые не должны попадать в DOM
+const BUSINESS_PROPS = [
+  'visible',
+  'isHiddenByFeatureFlag',
+  'telemetryEnabled',
+] as const;
+
 /* ============================================================================
  * 🧠 POLICY
  * ========================================================================== */
@@ -126,10 +148,7 @@ function emitDropdownTelemetry(payload: DropdownTelemetryPayload): void {
   infoFireAndForget(`Dropdown ${payload.action}`, payload);
 }
 
-/**
- * Базовое формирование payload для Dropdown telemetry (без visible).
- * visible добавляется явно в show/hide payload для семантической чистоты.
- */
+// Базовое формирование payload для Dropdown telemetry (без visible)
 function getDropdownPayloadBase(
   action: DropdownTelemetryAction,
   policy: DropdownPolicy,
@@ -152,10 +171,7 @@ function getDropdownPayloadBase(
   };
 }
 
-/**
- * Формирование payload для Dropdown telemetry (для lifecycle events).
- * Использует policy.isRendered для visible.
- */
+// Формирование payload для Dropdown telemetry (для lifecycle events)
 function getDropdownPayload(
   action: DropdownTelemetryAction,
   policy: DropdownPolicy,
@@ -181,6 +197,9 @@ const DropdownComponent = forwardRef<HTMLDivElement, AppDropdownProps>(
     props: AppDropdownProps,
     ref: Ref<HTMLDivElement>,
   ): JSX.Element | null {
+    // Фильтруем бизнес-пропсы, оставляем только DOM-безопасные
+    const domProps = omit(props, BUSINESS_PROPS);
+
     const {
       items,
       trigger,
@@ -190,22 +209,18 @@ const DropdownComponent = forwardRef<HTMLDivElement, AppDropdownProps>(
       onClose,
       placement,
       'data-component-id': componentId,
-      ...coreProps
-    } = props;
+      ...filteredCoreProps
+    } = domProps;
     const policy = useDropdownPolicy(props);
 
-    /** Минимальный набор telemetry-данных */
+    // Минимальный набор telemetry-данных
     const telemetryProps = useMemo(() => ({
       itemsCount: items.length,
       ...(isOpen !== undefined && { isOpen }),
       ...(placement !== undefined && { placement }),
     }), [items.length, isOpen, placement]);
 
-    /**
-     * Lifecycle telemetry фиксирует состояние policy на момент первого рендера.
-     * Не реагирует на последующие изменения props или policy.
-     * Это архитектурная гарантия.
-     */
+    // Lifecycle telemetry фиксирует состояние policy на момент первого рендера
     const lifecyclePayloadRef = useRef<
       {
         mount: DropdownTelemetryPayload;
@@ -229,10 +244,7 @@ const DropdownComponent = forwardRef<HTMLDivElement, AppDropdownProps>(
 
     const lifecyclePayload = lifecyclePayloadRef.current;
 
-    /**
-     * Payload для show telemetry.
-     * visible=true является производной от policy, а не сырых props.
-     */
+    // Payload для show telemetry
     const showPayload = useMemo(
       () => ({
         ...getDropdownPayloadBase(DropdownTelemetryAction.Show, policy, telemetryProps),
@@ -241,10 +253,7 @@ const DropdownComponent = forwardRef<HTMLDivElement, AppDropdownProps>(
       [policy, telemetryProps],
     );
 
-    /**
-     * Payload для hide telemetry.
-     * visible=false является производной от policy, а не сырых props.
-     */
+    // Payload для hide telemetry
     const hidePayload = useMemo(
       () => ({
         ...getDropdownPayloadBase(DropdownTelemetryAction.Hide, policy, telemetryProps),
@@ -253,7 +262,7 @@ const DropdownComponent = forwardRef<HTMLDivElement, AppDropdownProps>(
       [policy, telemetryProps],
     );
 
-    /** Telemetry lifecycle */
+    // Telemetry lifecycle
     useEffect(() => {
       if (!policy.telemetryEnabled) return;
 
@@ -263,13 +272,10 @@ const DropdownComponent = forwardRef<HTMLDivElement, AppDropdownProps>(
       };
     }, [policy.telemetryEnabled, lifecyclePayload]);
 
-    /** Telemetry для видимости - only on changes, not on mount */
+    // Telemetry для видимости - only on changes, not on mount
     const prevVisibleRef = useRef<boolean | undefined>(undefined);
 
-    /**
-     * DRY функция для отправки visibility telemetry.
-     * Отправляет telemetry только при фактическом изменении видимости.
-     */
+    // DRY функция для отправки visibility telemetry
     const emitVisibilityTelemetry = useCallback(
       (prevVisibility: boolean | undefined, currentVisibility: boolean): void => {
         if (prevVisibility !== undefined && prevVisibility !== currentVisibility) {
@@ -293,7 +299,7 @@ const DropdownComponent = forwardRef<HTMLDivElement, AppDropdownProps>(
       prevVisibleRef.current = currentVisibility;
     }, [policy.telemetryEnabled, policy.isRendered, emitVisibilityTelemetry]);
 
-    /** Обработчик toggle с telemetry */
+    // Обработчик toggle с telemetry
     const handleToggle = useCallback(
       (
         newIsOpen: boolean,
@@ -317,7 +323,7 @@ const DropdownComponent = forwardRef<HTMLDivElement, AppDropdownProps>(
       [policy, items.length, placement, onToggle],
     );
 
-    /** Обработчик select с telemetry */
+    // Обработчик select с telemetry
     const handleSelect = useCallback(
       (itemId: string, event: MouseEvent<HTMLLIElement> | KeyboardEvent<HTMLLIElement>): void => {
         if (policy.telemetryEnabled) {
@@ -339,12 +345,8 @@ const DropdownComponent = forwardRef<HTMLDivElement, AppDropdownProps>(
       [policy, items.length, isOpen, placement, onSelect],
     );
 
-    /**
-     * CoreDropdown получает все необходимые пропсы.
-     * data-component='AppDropdown' используется для telemetry и отладки,
-     * позволяя идентифицировать App-обертку в DevTools и логах.
-     */
-    /** Обработчик закрытия меню */
+    // CoreDropdown получает все необходимые пропсы
+    // Обработчик закрытия меню
     const handleClose = useCallback((): void => {
       // Только сообщаем родителю о закрытии
       // Visibility telemetry обрабатывается в visibility effect через policy.isRendered
@@ -368,7 +370,7 @@ const DropdownComponent = forwardRef<HTMLDivElement, AppDropdownProps>(
       'data-telemetry': policy.telemetryEnabled ? 'enabled' : 'disabled',
       // data-placement для отладки и автотестов (видимость в DOM)
       ...(placement !== undefined && { 'data-placement': placement }),
-      ...coreProps,
+      ...filteredCoreProps,
     }), [
       items,
       trigger,
@@ -381,10 +383,10 @@ const DropdownComponent = forwardRef<HTMLDivElement, AppDropdownProps>(
       policy.isRendered,
       policy.hiddenByFeatureFlag,
       policy.telemetryEnabled,
-      coreProps,
+      filteredCoreProps,
     ]);
 
-    /** Policy: hidden */
+    // Policy: hidden
     if (!policy.isRendered) return null;
 
     return (

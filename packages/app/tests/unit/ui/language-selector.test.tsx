@@ -24,6 +24,7 @@ vi.mock('../../../../ui-core/src/components/LanguageSelector.js', () => ({
       showCodes?: boolean;
       disabled?: boolean;
       onLanguageChange?: (code: string) => void;
+      onOpenChange?: (isOpen: boolean) => void;
       onToggle?: () => void;
       onClose?: () => void;
       onKeyDown?: (event: any) => void;
@@ -48,6 +49,7 @@ vi.mock('../../../../ui-core/src/components/LanguageSelector.js', () => ({
       showCodes,
       disabled,
       onLanguageChange,
+      onOpenChange,
       onToggle,
       onClose,
       onKeyDown,

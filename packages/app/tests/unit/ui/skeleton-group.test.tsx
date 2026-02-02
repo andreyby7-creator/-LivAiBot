@@ -8,7 +8,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom/vitest';
 
-// Mock для App Skeleton - возвращаем простой div
+// Mock для App Skeleton - возвращаем простой div, фильтруем бизнес-пропсы
 vi.mock('../../../src/ui/skeleton', () => ({
   Skeleton: (
     {
@@ -17,6 +17,10 @@ vi.mock('../../../src/ui/skeleton', () => ({
       variant,
       width,
       height,
+      // Исключаем бизнес-пропсы, которые не должны попадать в DOM
+      visible,
+      isHiddenByFeatureFlag,
+      telemetryEnabled,
       ...props
     }: Readonly<Record<string, unknown>>,
   ) => (

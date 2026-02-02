@@ -73,14 +73,16 @@ describe('Checkbox', () => {
     });
 
     it('aria-checked=true когда checked=true', () => {
-      const { getCheckbox } = renderIsolated(<Checkbox checked />);
+      const onChange = vi.fn();
+      const { getCheckbox } = renderIsolated(<Checkbox checked onChange={onChange} />);
 
       const checkbox = getCheckbox();
       expect(checkbox).toHaveAttribute('aria-checked', 'true');
     });
 
     it('aria-checked=false когда checked=false', () => {
-      const { getCheckbox } = renderIsolated(<Checkbox checked={false} />);
+      const onChange = vi.fn();
+      const { getCheckbox } = renderIsolated(<Checkbox checked={false} onChange={onChange} />);
 
       const checkbox = getCheckbox();
       expect(checkbox).toHaveAttribute('aria-checked', 'false');
@@ -126,6 +128,7 @@ describe('Checkbox', () => {
 
   describe('4.3. Пропсы пробрасываются', () => {
     it('стандартные HTML пропсы пробрасываются корректно', () => {
+      const onChange = vi.fn();
       const { getCheckbox } = renderIsolated(
         <Checkbox
           id='test-checkbox'
@@ -135,6 +138,7 @@ describe('Checkbox', () => {
           required
           checked
           value='test-value'
+          onChange={onChange}
         />,
       );
 
@@ -168,11 +172,18 @@ describe('Checkbox', () => {
       expect(getCheckbox()).toHaveAttribute('data-component', 'CoreCheckbox');
     });
 
-    it('aria-busy=true когда disabled=true', () => {
-      const { getCheckbox } = renderIsolated(<Checkbox disabled />);
+    it('aria-busy=true когда aria-busy=true передан явно', () => {
+      const { getCheckbox } = renderIsolated(<Checkbox aria-busy />);
 
       const checkbox = getCheckbox();
       expect(checkbox).toHaveAttribute('aria-busy', 'true');
+    });
+
+    it('aria-busy отсутствует когда disabled=true но aria-busy не передан', () => {
+      const { getCheckbox } = renderIsolated(<Checkbox disabled />);
+
+      const checkbox = getCheckbox();
+      expect(checkbox).not.toHaveAttribute('aria-busy');
     });
 
     it('aria-busy отсутствует когда disabled=false или undefined', () => {
@@ -300,11 +311,14 @@ describe('Checkbox', () => {
 
   describe('4.6. Стабильность рендера', () => {
     it('рендер стабилен при одинаковых пропсах', () => {
-      const { container, rerender } = renderIsolated(<Checkbox id='stable' checked />);
+      const onChange = vi.fn();
+      const { container, rerender } = renderIsolated(
+        <Checkbox id='stable' checked onChange={onChange} />,
+      );
 
       const firstRender = container.innerHTML;
 
-      rerender(<Checkbox id='stable' checked />);
+      rerender(<Checkbox id='stable' checked onChange={onChange} />);
 
       expect(container.innerHTML).toBe(firstRender);
     });
@@ -408,15 +422,16 @@ describe('Checkbox', () => {
     });
 
     it('checked состояние синхронизируется с DOM', () => {
-      const { getCheckbox, rerender } = renderIsolated(<Checkbox checked />);
+      const onChange = vi.fn();
+      const { getCheckbox, rerender } = renderIsolated(<Checkbox checked onChange={onChange} />);
 
       const checkbox = getCheckbox();
       expect(checkbox).toBeChecked();
 
-      rerender(<Checkbox checked={false} />);
+      rerender(<Checkbox checked={false} onChange={onChange} />);
       expect(checkbox).not.toBeChecked();
 
-      rerender(<Checkbox checked />);
+      rerender(<Checkbox checked onChange={onChange} />);
       expect(checkbox).toBeChecked();
     });
   });

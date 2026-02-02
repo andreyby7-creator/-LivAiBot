@@ -34,6 +34,21 @@ import type { CoreRadioProps } from '../../../ui-core/src/primitives/radio.js';
 import { infoFireAndForget } from '../lib/telemetry.js';
 
 /* ============================================================================
+ * 🛠️ УТИЛИТЫ
+ * ========================================================================== */
+
+// Фильтрует указанные ключи из объекта
+function omit<T extends Record<string, unknown>, K extends keyof T>(
+  obj: T,
+  keys: readonly K[],
+): Omit<T, K> {
+  const keySet = new Set(keys as readonly string[]);
+  return Object.fromEntries(
+    Object.entries(obj).filter(([key]) => !keySet.has(key)),
+  ) as Omit<T, K>;
+}
+
+/* ============================================================================
  * 🧬 TYPES
  * ========================================================================== */
 
@@ -73,6 +88,17 @@ export type AppRadioProps = Readonly<
     telemetryOnBlur?: boolean;
   }
 >;
+
+// Бизнес-пропсы, которые не должны попадать в DOM
+const BUSINESS_PROPS = [
+  'isHiddenByFeatureFlag',
+  'isDisabledByFeatureFlag',
+  'variantByFeatureFlag',
+  'telemetryEnabled',
+  'telemetryOnChange',
+  'telemetryOnFocus',
+  'telemetryOnBlur',
+] as const;
 
 /* ============================================================================
  * 🧠 POLICY
@@ -140,17 +166,20 @@ function emitRadioTelemetry(
 
 const RadioComponent = forwardRef<HTMLInputElement, AppRadioProps>(
   function RadioComponent(props, ref): JSX.Element | null {
-    const { onChange, onFocus, onBlur, checked = false, ...coreProps } = props;
+    // Фильтруем бизнес-пропсы, оставляем только DOM-безопасные
+    const domProps = omit(props, BUSINESS_PROPS);
+
+    const { onChange, onFocus, onBlur, checked = false, ...filteredCoreProps } = domProps;
 
     const policy = useRadioPolicy(props);
     const internalRef = useRef<HTMLInputElement | null>(null);
 
-    /** Безопасная пересылка ref */
+    // Безопасная пересылка ref
     useImperativeHandle(ref, () => internalRef.current ?? document.createElement('input'), [
       internalRef,
-    ]);
+    ]); // Fallback для случаев, когда компонент скрыт или ref не инициализирован
 
-    /** Жизненный цикл telemetry */
+    // Жизненный цикл telemetry
     useEffect(() => {
       if (policy.telemetryEnabled) {
         emitRadioTelemetry('mount', policy, checked);
@@ -163,14 +192,14 @@ const RadioComponent = forwardRef<HTMLInputElement, AppRadioProps>(
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    /** Синхронизация checked для безопасного concurrent rendering */
+    // Синхронизация checked для безопасного concurrent rendering
     useEffect(() => {
       if (internalRef.current) {
         internalRef.current.checked = Boolean(checked); // eslint-disable-line functional/immutable-data
       }
     }, [checked]);
 
-    /** Обработчики событий */
+    // Обработчики событий
     const handleChange = useCallback(
       (event: React.ChangeEvent<HTMLInputElement>) => {
         if (policy.disabledByFeatureFlag) return;
@@ -206,16 +235,16 @@ const RadioComponent = forwardRef<HTMLInputElement, AppRadioProps>(
       [policy, onBlur],
     );
 
-    /** hidden */
+    // hidden
     if (policy.hiddenByFeatureFlag) return null;
 
-    /** View */
+    // View
     return (
       <CoreRadio
         ref={internalRef}
-        {...coreProps}
+        {...filteredCoreProps}
         data-component='AppRadio'
-        disabled={policy.disabledByFeatureFlag || undefined}
+        disabled={policy.disabledByFeatureFlag}
         data-variant={policy.variant}
         data-disabled={policy.disabledByFeatureFlag || undefined}
         aria-disabled={policy.disabledByFeatureFlag || undefined}

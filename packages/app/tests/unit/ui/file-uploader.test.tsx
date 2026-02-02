@@ -195,12 +195,15 @@ import { infoFireAndForget } from '../../../src/lib/telemetry';
 const mockInfoFireAndForget = vi.mocked(infoFireAndForget);
 
 describe('App FileUploader', () => {
+  let uuidCounter = 0;
+
   beforeEach(() => {
     vi.clearAllMocks();
-    // Мокаем crypto.randomUUID для стабильных ID в тестах
+    uuidCounter = 0; // Сбрасываем счетчик для каждого теста
+    // Мокаем crypto.randomUUID для уникальных ID в тестах
     Object.defineProperty(globalThis, 'crypto', {
       value: {
-        randomUUID: vi.fn(() => 'test-uuid-1'),
+        randomUUID: vi.fn(() => `test-uuid-${++uuidCounter}`),
       },
       writable: true,
       configurable: true,
@@ -1721,16 +1724,6 @@ describe('App FileUploader', () => {
     });
 
     it('должен отображать несколько файлов', async () => {
-      // Мокаем crypto.randomUUID для разных ID
-      let uuidCounter = 0;
-      Object.defineProperty(globalThis, 'crypto', {
-        value: {
-          randomUUID: vi.fn(() => `test-uuid-${++uuidCounter}`),
-        },
-        writable: true,
-        configurable: true,
-      });
-
       render(<FileUploader multiple />);
 
       const file1 = new File(['content1'], 'test1.txt', { type: 'text/plain' });

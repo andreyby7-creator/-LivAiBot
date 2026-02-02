@@ -8,10 +8,35 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom/vitest';
 
-// Mock для Core Badge - возвращаем простой span
+// Mock для Core Badge - возвращаем простой span, но фильтруем внутренние пропсы
 vi.mock('../../../../ui-core/src/primitives/badge', () => ({
-  Badge: ({ 'data-testid': testId, ...props }: Readonly<Record<string, unknown>>) => (
-    <span data-testid={testId ?? 'core-badge'} {...props} />
+  // eslint-disable-next-line @typescript-eslint/prefer-readonly-parameter-types
+  Badge: ({
+    'data-testid': testId,
+    value,
+    size,
+    variant,
+    style,
+    className,
+    ...props
+  }: Readonly<{
+    'data-testid'?: string;
+    value?: string;
+    size?: string;
+    variant?: string;
+    style?: import('react').CSSProperties;
+    className?: string;
+    [key: string]: unknown;
+  }>) => (
+    <span
+      data-testid={testId ?? 'core-badge'}
+      data-value={value}
+      data-size={size}
+      data-variant={variant}
+      style={style}
+      className={className}
+      {...props}
+    />
   ),
 }));
 
