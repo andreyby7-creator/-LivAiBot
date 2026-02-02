@@ -2,31 +2,29 @@
 # Pre-push hook for essential quality checks
 # Runs fast checks before pushing to remote
 
-set -e
-
 echo "🚀 Running pre-push checks..."
 
 # 1. TypeScript type checking (global)
 echo "  🔍 Running TypeScript type check..."
-pnpm run type-check || {
+if ! pnpm run type-check; then
   echo "  ❌ TypeScript type check failed"
   exit 1
-}
+fi
 
 # 2. ESLint canary linting (global)
 echo "  📝 Running ESLint canary linting..."
-pnpm run lint:canary || {
+if ! pnpm run lint:canary; then
   echo "  ❌ ESLint linting failed"
   exit 1
-}
+fi
 
 # 3. Code formatting with dprint
 echo "  🎨 Running code formatting..."
-npx dprint check || {
+if ! npx dprint check; then
   echo "  ❌ Code formatting check failed"
   echo "  💡 Run: npx dprint fmt"
   exit 1
-}
+fi
 
 echo "✅ Pre-push checks passed!"
 
