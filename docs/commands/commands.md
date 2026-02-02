@@ -252,6 +252,10 @@ pnpm run docs:generate                    # Генерация PROJECT-OVERVIEW.
 ```bash
 pnpm run release:prep                     # Подготовка релиза (tests + quality + changelog)
 pnpm run changelog                        # Генерация changelog из git коммитов
+gh pr create                              # Создание PR после подготовки релиза
+gh pr view                                # Просмотр деталей существующего PR
+gh pr list                                # Показать список PR в репозитории
+gh pr merge                               # cлить (merge) PR в целевую ветку
 ```
 
 ## 🔒 **Security команды**
