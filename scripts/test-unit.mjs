@@ -335,10 +335,11 @@ function buildVitestArgs(configPath, environment, normalizedPaths = [], opts, co
   if (opts.bail) testArgs.push("--bail");
   if (opts.retry !== "0") testArgs.push("--retry", opts.retry);
 
-  // Vitest 4.x: --no-threads флаг удален, используем переменные окружения
-  if (opts.runInBand || opts.debug) {
+  // Vitest 4.x: управляем потоками через env (устранение флаки в CI JSON reporter)
+  if (CI_MODE || opts.runInBand || opts.debug) {
     env.VITEST_MAX_THREADS = '1';
     env.VITEST_MIN_THREADS = '1';
+    testArgs.push("--maxConcurrency", "1");
   }
   if (opts.watch) testArgs.push("--watch");
   if (opts.changed) testArgs.push("--changed");
