@@ -150,11 +150,10 @@ jobs:
             'packages/core-contracts/src/validation/zod/generated' || \
             (echo "\\n[contracts] contract drift detected" && exit 1)
 
-      - name: Activate Python environment for contracts check
-        run: source venv/bin/activate
-
       - name: Check generated OpenAPI/Zod contracts are up to date
-        run: pnpm turbo run check:contracts
+        run: |
+          source venv/bin/activate
+          pnpm turbo run check:contracts
 
   unit-tests:
     runs-on: ubuntu-latest
