@@ -1,10 +1,11 @@
+---
 name: CI
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [main, develop]
   pull_request:
-    branches: [ main ]
+    branches: [main]
 
 jobs:
   quality:
@@ -159,7 +160,7 @@ jobs:
           which python || echo "python not found"
           python --version 2>/dev/null || echo "python version check failed"
           which node || echo "node not found"
-          [ "$(node --version 2>/dev/null | cut -d'.' -f1)" = "v22" ] && echo "✅ Node.js v22.x" || echo "❌ Node.js version: $(node --version 2>/dev/null)"
+          node --version 2>/dev/null || echo "node version check failed"
           echo "=== DEBUG END ==="
 
       - name: Setup Node.js
