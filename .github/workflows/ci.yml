@@ -9,8 +9,21 @@ on:
 jobs:
   quality:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v6
+
+      - name: Debug environment
+        run: |
+          echo "=== DEBUG INFO ==="
+          which python || echo "python not found"
+          python --version 2>/dev/null || echo "python version check failed"
+          which node || echo "node not found"
+          node --version 2>/dev/null || echo "node version check failed"
+          which pnpm || echo "pnpm not found"
+          pnpm --version 2>/dev/null || echo "pnpm version check failed"
+          echo "PATH: $PATH"
+          echo "=== DEBUG END ==="
 
       - name: Setup Node.js
         uses: actions/setup-node@v6
@@ -37,8 +50,18 @@ jobs:
 
   contracts:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v6
+
+      - name: Debug environment
+        run: |
+          echo "=== CONTRACTS DEBUG ==="
+          which python || echo "python not found"
+          python --version 2>/dev/null || echo "python version check failed"
+          which node || echo "node not found"
+          node --version 2>/dev/null || echo "node version check failed"
+          echo "=== DEBUG END ==="
 
       - name: Setup Node.js
         uses: actions/setup-node@v6
@@ -73,8 +96,20 @@ jobs:
 
   unit-tests:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v6
+
+      - name: Debug environment
+        run: |
+          echo "=== UNIT-TESTS DEBUG ==="
+          which python || echo "python not found"
+          python --version 2>/dev/null || echo "python version check failed"
+          which node || echo "node not found"
+          node --version 2>/dev/null || echo "node version check failed"
+          which pnpm || echo "pnpm not found"
+          pnpm --version 2>/dev/null || echo "pnpm version check failed"
+          echo "=== DEBUG END ==="
 
       - name: Setup Node.js
         uses: actions/setup-node@v6
