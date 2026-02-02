@@ -81,7 +81,7 @@ const CONFIGS = {
 
 /* ================= ЗАГРУЗКА ПЕРЕМЕННЫХ ОКРУЖЕНИЯ ================= */
 
-const CI_MODE = process.env.CI === "true";
+const CI_MODE = process.env.CI === "true" || process.env.CI === "1" || !!process.env.CI;
 
 dotenvExpand.expand(dotenv.config({ path: path.join(ROOT, ".env") }));
 dotenvExpand.expand(dotenv.config({ path: path.join(ROOT, "config/env/.env.test") }));
