@@ -138,7 +138,7 @@ function determinePackage(fileName) {
   // Ищем файл во всех пакетах
   const projectRoot = join(__dirname, '..');
   for (const pkg of packages) {
-    const packagePath = join(projectRoot, pkg.replace('packages/', 'packages/'));
+    const packagePath = join(projectRoot, pkg);
     const srcPath = join(packagePath, 'src');
 
     if (existsSync(srcPath)) {

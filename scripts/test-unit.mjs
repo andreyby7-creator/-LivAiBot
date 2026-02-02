@@ -990,9 +990,9 @@ if (opts.debug) {
   console.log('📂 Normalized paths:', normalizedPaths);
   console.log('🔍 Всего тестов для запуска:', normalizedPaths.length);
   console.log('🌍 Environment vars:', {
-    COVERAGE: debugEnv.COVERAGE,
-    VITEST_MAX_THREADS: debugEnv.VITEST_MAX_THREADS,
-    VITEST_MIN_THREADS: debugEnv.VITEST_MIN_THREADS
+    COVERAGE: debugEnv.COVERAGE ? 'enabled' : 'disabled',
+    VITEST_MAX_THREADS: debugEnv.VITEST_MAX_THREADS || 'default',
+    VITEST_MIN_THREADS: debugEnv.VITEST_MIN_THREADS || 'default'
   });
 }
 
