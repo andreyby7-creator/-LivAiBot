@@ -11,6 +11,17 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
+      - name: Pre-checkout debug
+        run: |
+          echo "=== PRE-CHECKOUT DEBUG ==="
+          whoami
+          pwd
+          ls -la
+          df -h
+          echo "GITHUB ENV:"
+          env | grep -E "(GITHUB|RUNNER|PATH)" | sort
+          echo "=== DEBUG END ==="
+
       - uses: actions/checkout@v6
 
       - name: Debug environment
@@ -52,6 +63,15 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
+      - name: Pre-checkout debug
+        run: |
+          echo "=== CONTRACTS PRE-CHECKOUT DEBUG ==="
+          whoami
+          pwd
+          echo "GITHUB ENV:"
+          env | grep -E "(GITHUB|RUNNER)" | sort
+          echo "=== DEBUG END ==="
+
       - uses: actions/checkout@v6
 
       - name: Debug environment
@@ -98,6 +118,15 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
+      - name: Pre-checkout debug
+        run: |
+          echo "=== UNIT-TESTS PRE-CHECKOUT DEBUG ==="
+          whoami
+          pwd
+          echo "GITHUB ENV:"
+          env | grep -E "(GITHUB|RUNNER)" | sort
+          echo "=== DEBUG END ==="
+
       - uses: actions/checkout@v6
 
       - name: Debug environment
