@@ -30,9 +30,7 @@ jobs:
           which python || echo "python not found"
           python --version 2>/dev/null || echo "python version check failed"
           which node || echo "node not found"
-          [ "$(node --version 2>/dev/null)" = "v24.12.0" ] && echo "✅ Node.js v24.12.0" || echo "❌ Node.js version: $(node --version 2>/dev/null)"
-          which pnpm || echo "pnpm not found"
-          pnpm --version 2>/dev/null || echo "pnpm version check failed"
+          node --version 2>/dev/null || echo "node version check failed"
           echo "PATH: $PATH"
           echo "=== DEBUG END ==="
 
@@ -44,7 +42,19 @@ jobs:
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
-          version: 10
+          version: 10.28.0
+
+      - name: Get pnpm store path
+        id: pnpm-store
+        run: echo "STORE_PATH=$(pnpm store path --silent)" >> "$GITHUB_OUTPUT"
+
+      - name: Cache pnpm store
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.pnpm-store.outputs.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -79,7 +89,7 @@ jobs:
           which python || echo "python not found"
           python --version 2>/dev/null || echo "python version check failed"
           which node || echo "node not found"
-          [ "$(node --version 2>/dev/null)" = "v24.12.0" ] && echo "✅ Node.js v24.12.0" || echo "❌ Node.js version: $(node --version 2>/dev/null)"
+          node --version 2>/dev/null || echo "node version check failed"
           echo "=== DEBUG END ==="
 
       - name: Setup Node.js
@@ -90,7 +100,19 @@ jobs:
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
-          version: 10
+          version: 10.28.0
+
+      - name: Get pnpm store path
+        id: pnpm-store
+        run: echo "STORE_PATH=$(pnpm store path --silent)" >> "$GITHUB_OUTPUT"
+
+      - name: Cache pnpm store
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.pnpm-store.outputs.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
 
       - name: Setup Python
         uses: actions/setup-python@v6
@@ -102,11 +124,6 @@ jobs:
           python -m venv venv
           venv/bin/python -m pip install --upgrade pip
           venv/bin/pip install -r requirements.txt -r requirements-dev.txt
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 10
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -138,9 +155,7 @@ jobs:
           which python || echo "python not found"
           python --version 2>/dev/null || echo "python version check failed"
           which node || echo "node not found"
-          [ "$(node --version 2>/dev/null)" = "v24.12.0" ] && echo "✅ Node.js v24.12.0" || echo "❌ Node.js version: $(node --version 2>/dev/null)"
-          which pnpm || echo "pnpm not found"
-          pnpm --version 2>/dev/null || echo "pnpm version check failed"
+          [ "$(node --version 2>/dev/null | cut -d'.' -f1)" = "v22" ] && echo "✅ Node.js v22.x" || echo "❌ Node.js version: $(node --version 2>/dev/null)"
           echo "=== DEBUG END ==="
 
       - name: Setup Node.js
@@ -151,7 +166,19 @@ jobs:
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
-          version: 10
+          version: 10.28.0
+
+      - name: Get pnpm store path
+        id: pnpm-store
+        run: echo "STORE_PATH=$(pnpm store path --silent)" >> "$GITHUB_OUTPUT"
+
+      - name: Cache pnpm store
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.pnpm-store.outputs.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
 
       - name: Setup Python
         uses: actions/setup-python@v6
@@ -162,11 +189,6 @@ jobs:
         run: |
           python -m venv venv
           venv/bin/pip install pytest pytest-cov
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 10
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -187,7 +209,19 @@ jobs:
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
-          version: 10
+          version: 10.28.0
+
+      - name: Get pnpm store path
+        id: pnpm-store
+        run: echo "STORE_PATH=$(pnpm store path --silent)" >> "$GITHUB_OUTPUT"
+
+      - name: Cache pnpm store
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.pnpm-store.outputs.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -208,7 +242,19 @@ jobs:
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
-          version: 10
+          version: 10.28.0
+
+      - name: Get pnpm store path
+        id: pnpm-store
+        run: echo "STORE_PATH=$(pnpm store path --silent)" >> "$GITHUB_OUTPUT"
+
+      - name: Cache pnpm store
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.pnpm-store.outputs.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -240,7 +286,19 @@ jobs:
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
-          version: 10
+          version: 10.28.0
+
+      - name: Get pnpm store path
+        id: pnpm-store
+        run: echo "STORE_PATH=$(pnpm store path --silent)" >> "$GITHUB_OUTPUT"
+
+      - name: Cache pnpm store
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.pnpm-store.outputs.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
