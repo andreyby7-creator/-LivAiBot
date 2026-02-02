@@ -327,7 +327,9 @@ export const BASE_RULES = {
   ],
   'import/no-duplicates': 'error',                       // Дублирование импортов
   'import/no-unused-modules': 'warn',                    // Неиспользуемые модули
-  'import/no-unresolved': 'warn',                        // Невозможно разрешить импорт
+  'import/no-unresolved': ['warn', {
+    ignore: ['^@livai/']  // Игнорировать workspace пакеты LivAi
+  }],
   'import/consistent-type-specifier-style': ['error', 'prefer-top-level'], // Стиль type imports
 
   // Контроль отключений ESLint
