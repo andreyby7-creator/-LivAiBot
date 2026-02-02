@@ -245,8 +245,8 @@ importers:
         specifier: ^5.90.12
         version: 5.90.20(react@19.2.3)
       effect:
-        specifier: 3.19.13
-        version: 3.19.13
+        specifier: 3.19.15
+        version: 3.19.15
       next:
         specifier: '>=16.0.11'
         version: 16.1.6(@babel/core@7.29.0)(@opentelemetry/api@1.9.0)(@playwright/test@1.57.0)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
@@ -387,106 +387,106 @@ importers:
     dependencies:
       '@effect/ai':
         specifier: ^0.33.0
-        version: 0.33.2(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(effect@3.19.14)
+        version: 0.33.2(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(effect@3.19.15)
       '@effect/ai-amazon-bedrock':
         specifier: ^0.13.0
-        version: 0.13.0(@effect/ai-anthropic@0.23.0(@effect/ai@0.33.2(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(effect@3.19.14))(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/ai@0.33.2(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(effect@3.19.14))(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14)
+        version: 0.13.0(@effect/ai-anthropic@0.23.0(@effect/ai@0.33.2(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(effect@3.19.15))(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/ai@0.33.2(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(effect@3.19.15))(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)
       '@effect/ai-anthropic':
         specifier: ^0.23.0
-        version: 0.23.0(@effect/ai@0.33.2(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(effect@3.19.14))(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14)
+        version: 0.23.0(@effect/ai@0.33.2(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(effect@3.19.15))(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)
       '@effect/ai-google':
         specifier: ^0.12.0
-        version: 0.12.1(@effect/ai@0.33.2(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(effect@3.19.14))(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14)
+        version: 0.12.1(@effect/ai@0.33.2(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(effect@3.19.15))(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)
       '@effect/ai-openai':
         specifier: ^0.37.0
-        version: 0.37.2(@effect/ai@0.33.2(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(effect@3.19.14))(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14)
+        version: 0.37.2(@effect/ai@0.33.2(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(effect@3.19.15))(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)
       '@effect/cli':
         specifier: ^0.73.0
-        version: 0.73.0(@effect/platform@0.94.1(effect@3.19.14))(@effect/printer-ansi@0.47.0(@effect/typeclass@0.38.0(effect@3.19.14))(effect@3.19.14))(@effect/printer@0.47.0(@effect/typeclass@0.38.0(effect@3.19.14))(effect@3.19.14))(effect@3.19.14)
+        version: 0.73.0(@effect/platform@0.94.1(effect@3.19.15))(@effect/printer-ansi@0.47.0(@effect/typeclass@0.38.0(effect@3.19.15))(effect@3.19.15))(@effect/printer@0.47.0(@effect/typeclass@0.38.0(effect@3.19.15))(effect@3.19.15))(effect@3.19.15)
       '@effect/cluster':
         specifier: ^0.56.0
-        version: 0.56.1(@effect/platform@0.94.1(effect@3.19.14))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/workflow@0.16.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(effect@3.19.14))(effect@3.19.14)
+        version: 0.56.1(@effect/platform@0.94.1(effect@3.19.15))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/workflow@0.16.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(effect@3.19.15))(effect@3.19.15)
       '@effect/experimental':
         specifier: ^0.58.0
-        version: 0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14)
+        version: 0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)
       '@effect/platform':
         specifier: 0.94.1
-        version: 0.94.1(effect@3.19.14)
+        version: 0.94.1(effect@3.19.15)
       '@effect/platform-browser':
         specifier: ^0.74.0
-        version: 0.74.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14)
+        version: 0.74.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)
       '@effect/platform-bun':
         specifier: ^0.87.0
-        version: 0.87.0(@effect/cluster@0.56.1(@effect/platform@0.94.1(effect@3.19.14))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/workflow@0.16.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(effect@3.19.14)
+        version: 0.87.0(@effect/cluster@0.56.1(@effect/platform@0.94.1(effect@3.19.15))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/workflow@0.16.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(effect@3.19.15)
       '@effect/platform-node':
         specifier: ^0.104.0
-        version: 0.104.0(@effect/cluster@0.56.1(@effect/platform@0.94.1(effect@3.19.14))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/workflow@0.16.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(effect@3.19.14)
+        version: 0.104.0(@effect/cluster@0.56.1(@effect/platform@0.94.1(effect@3.19.15))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/workflow@0.16.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(effect@3.19.15)
       '@effect/printer':
         specifier: ^0.47.0
-        version: 0.47.0(@effect/typeclass@0.38.0(effect@3.19.14))(effect@3.19.14)
+        version: 0.47.0(@effect/typeclass@0.38.0(effect@3.19.15))(effect@3.19.15)
       '@effect/printer-ansi':
         specifier: ^0.47.0
-        version: 0.47.0(@effect/typeclass@0.38.0(effect@3.19.14))(effect@3.19.14)
+        version: 0.47.0(@effect/typeclass@0.38.0(effect@3.19.15))(effect@3.19.15)
       '@effect/rpc':
         specifier: ^0.73.0
-        version: 0.73.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14)
+        version: 0.73.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)
       '@effect/rpc-http':
         specifier: ^0.52.4
-        version: 0.52.4(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14)
+        version: 0.52.4(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)
       '@effect/sql':
         specifier: ^0.49.0
-        version: 0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14)
+        version: 0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)
       '@effect/sql-clickhouse':
         specifier: ^0.46.0
-        version: 0.46.0(794cf51779cb1401eb2a13b51f0b0d12)
+        version: 0.46.0(fc55635ae63953abaca999a75a593872)
       '@effect/sql-d1':
         specifier: ^0.47.0
-        version: 0.47.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(effect@3.19.14)
+        version: 0.47.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(effect@3.19.15)
       '@effect/sql-drizzle':
         specifier: ^0.48.0
-        version: 0.48.0(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(drizzle-orm@0.45.1(@cloudflare/workers-types@4.20260116.0)(@libsql/client@0.12.0)(@op-engineering/op-sqlite@7.1.0(react-native@0.83.1(@babel/core@7.29.0)(@types/react@19.2.10)(react@19.2.3))(react@19.2.3))(@opentelemetry/api@1.9.0)(better-sqlite3@11.10.0)(kysely@0.28.9)(mysql2@3.16.1)(pg@8.17.1))(effect@3.19.14)
+        version: 0.48.0(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(drizzle-orm@0.45.1(@cloudflare/workers-types@4.20260116.0)(@libsql/client@0.12.0)(@op-engineering/op-sqlite@7.1.0(react-native@0.83.1(@babel/core@7.29.0)(@types/react@19.2.10)(react@19.2.3))(react@19.2.3))(@opentelemetry/api@1.9.0)(better-sqlite3@11.10.0)(kysely@0.28.9)(mysql2@3.16.1)(pg@8.17.1))(effect@3.19.15)
       '@effect/sql-kysely':
         specifier: ^0.45.0
-        version: 0.45.0(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(effect@3.19.14)(kysely@0.28.9)
+        version: 0.45.0(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(effect@3.19.15)(kysely@0.28.9)
       '@effect/sql-libsql':
         specifier: ^0.39.0
-        version: 0.39.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(effect@3.19.14)
+        version: 0.39.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(effect@3.19.15)
       '@effect/sql-mssql':
         specifier: ^0.50.0
-        version: 0.50.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(effect@3.19.14)
+        version: 0.50.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(effect@3.19.15)
       '@effect/sql-mysql2':
         specifier: ^0.50.0
-        version: 0.50.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(effect@3.19.14)
+        version: 0.50.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(effect@3.19.15)
       '@effect/sql-pg':
         specifier: ^0.50.0
-        version: 0.50.1(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(effect@3.19.14)
+        version: 0.50.1(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(effect@3.19.15)
       '@effect/sql-sqlite-bun':
         specifier: ^0.50.0
-        version: 0.50.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(effect@3.19.14)
+        version: 0.50.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(effect@3.19.15)
       '@effect/sql-sqlite-do':
         specifier: ^0.27.0
-        version: 0.27.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(effect@3.19.14)
+        version: 0.27.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(effect@3.19.15)
       '@effect/sql-sqlite-node':
         specifier: ^0.50.0
-        version: 0.50.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(effect@3.19.14)
+        version: 0.50.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(effect@3.19.15)
       '@effect/sql-sqlite-react-native':
         specifier: ^0.52.0
-        version: 0.52.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@op-engineering/op-sqlite@7.1.0(react-native@0.83.1(@babel/core@7.29.0)(@types/react@19.2.10)(react@19.2.3))(react@19.2.3))(effect@3.19.14)
+        version: 0.52.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@op-engineering/op-sqlite@7.1.0(react-native@0.83.1(@babel/core@7.29.0)(@types/react@19.2.10)(react@19.2.3))(react@19.2.3))(effect@3.19.15)
       '@effect/sql-sqlite-wasm':
         specifier: ^0.50.0
-        version: 0.50.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/wa-sqlite@0.1.2)(effect@3.19.14)
+        version: 0.50.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/wa-sqlite@0.1.2)(effect@3.19.15)
       '@effect/typeclass':
         specifier: ^0.38.0
-        version: 0.38.0(effect@3.19.14)
+        version: 0.38.0(effect@3.19.15)
       '@effect/vitest':
         specifier: ^0.27.0
-        version: 0.27.0(effect@3.19.14)(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@25.2.0)(jsdom@28.0.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.2))
+        version: 0.27.0(effect@3.19.15)(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@25.2.0)(jsdom@28.0.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.2))
       '@effect/workflow':
         specifier: ^0.16.0
-        version: 0.16.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(effect@3.19.14)
+        version: 0.16.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(effect@3.19.15)
       effect:
-        specifier: ^3.19.13
-        version: 3.19.14
+        specifier: ^3.19.15
+        version: 3.19.15
       zod:
         specifier: ^4.3.5
         version: 4.3.5
@@ -553,106 +553,106 @@ importers:
     dependencies:
       '@effect/ai':
         specifier: ^0.33.0
-        version: 0.33.2(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(effect@3.19.14)
+        version: 0.33.2(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(effect@3.19.15)
       '@effect/ai-amazon-bedrock':
         specifier: ^0.13.0
-        version: 0.13.0(@effect/ai-anthropic@0.23.0(@effect/ai@0.33.2(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(effect@3.19.14))(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/ai@0.33.2(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(effect@3.19.14))(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14)
+        version: 0.13.0(@effect/ai-anthropic@0.23.0(@effect/ai@0.33.2(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(effect@3.19.15))(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/ai@0.33.2(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(effect@3.19.15))(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)
       '@effect/ai-anthropic':
         specifier: ^0.23.0
-        version: 0.23.0(@effect/ai@0.33.2(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(effect@3.19.14))(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14)
+        version: 0.23.0(@effect/ai@0.33.2(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(effect@3.19.15))(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)
       '@effect/ai-google':
         specifier: ^0.12.0
-        version: 0.12.1(@effect/ai@0.33.2(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(effect@3.19.14))(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14)
+        version: 0.12.1(@effect/ai@0.33.2(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(effect@3.19.15))(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)
       '@effect/ai-openai':
         specifier: ^0.37.0
-        version: 0.37.2(@effect/ai@0.33.2(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(effect@3.19.14))(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14)
+        version: 0.37.2(@effect/ai@0.33.2(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(effect@3.19.15))(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)
       '@effect/cli':
         specifier: ^0.73.0
-        version: 0.73.0(@effect/platform@0.94.1(effect@3.19.14))(@effect/printer-ansi@0.47.0(@effect/typeclass@0.38.0(effect@3.19.14))(effect@3.19.14))(@effect/printer@0.47.0(@effect/typeclass@0.38.0(effect@3.19.14))(effect@3.19.14))(effect@3.19.14)
+        version: 0.73.0(@effect/platform@0.94.1(effect@3.19.15))(@effect/printer-ansi@0.47.0(@effect/typeclass@0.38.0(effect@3.19.15))(effect@3.19.15))(@effect/printer@0.47.0(@effect/typeclass@0.38.0(effect@3.19.15))(effect@3.19.15))(effect@3.19.15)
       '@effect/cluster':
         specifier: ^0.56.0
-        version: 0.56.1(@effect/platform@0.94.1(effect@3.19.14))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/workflow@0.16.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(effect@3.19.14))(effect@3.19.14)
+        version: 0.56.1(@effect/platform@0.94.1(effect@3.19.15))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/workflow@0.16.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(effect@3.19.15))(effect@3.19.15)
       '@effect/experimental':
         specifier: ^0.58.0
-        version: 0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14)
+        version: 0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)
       '@effect/platform':
         specifier: 0.94.1
-        version: 0.94.1(effect@3.19.14)
+        version: 0.94.1(effect@3.19.15)
       '@effect/platform-browser':
         specifier: ^0.74.0
-        version: 0.74.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14)
+        version: 0.74.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)
       '@effect/platform-bun':
         specifier: ^0.87.0
-        version: 0.87.0(@effect/cluster@0.56.1(@effect/platform@0.94.1(effect@3.19.14))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/workflow@0.16.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(effect@3.19.14)
+        version: 0.87.0(@effect/cluster@0.56.1(@effect/platform@0.94.1(effect@3.19.15))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/workflow@0.16.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(effect@3.19.15)
       '@effect/platform-node':
         specifier: ^0.104.0
-        version: 0.104.0(@effect/cluster@0.56.1(@effect/platform@0.94.1(effect@3.19.14))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/workflow@0.16.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(effect@3.19.14)
+        version: 0.104.0(@effect/cluster@0.56.1(@effect/platform@0.94.1(effect@3.19.15))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/workflow@0.16.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(effect@3.19.15)
       '@effect/printer':
         specifier: ^0.47.0
-        version: 0.47.0(@effect/typeclass@0.38.0(effect@3.19.14))(effect@3.19.14)
+        version: 0.47.0(@effect/typeclass@0.38.0(effect@3.19.15))(effect@3.19.15)
       '@effect/printer-ansi':
         specifier: ^0.47.0
-        version: 0.47.0(@effect/typeclass@0.38.0(effect@3.19.14))(effect@3.19.14)
+        version: 0.47.0(@effect/typeclass@0.38.0(effect@3.19.15))(effect@3.19.15)
       '@effect/rpc':
         specifier: ^0.73.0
-        version: 0.73.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14)
+        version: 0.73.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)
       '@effect/rpc-http':
         specifier: ^0.52.4
-        version: 0.52.4(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14)
+        version: 0.52.4(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)
       '@effect/sql':
         specifier: ^0.49.0
-        version: 0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14)
+        version: 0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)
       '@effect/sql-clickhouse':
         specifier: ^0.46.0
-        version: 0.46.0(794cf51779cb1401eb2a13b51f0b0d12)
+        version: 0.46.0(fc55635ae63953abaca999a75a593872)
       '@effect/sql-d1':
         specifier: ^0.47.0
-        version: 0.47.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(effect@3.19.14)
+        version: 0.47.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(effect@3.19.15)
       '@effect/sql-drizzle':
         specifier: ^0.48.0
-        version: 0.48.0(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(drizzle-orm@0.45.1(@cloudflare/workers-types@4.20260116.0)(@libsql/client@0.12.0)(@op-engineering/op-sqlite@7.1.0(react-native@0.83.1(@babel/core@7.29.0)(@types/react@19.2.10)(react@19.2.3))(react@19.2.3))(@opentelemetry/api@1.9.0)(better-sqlite3@11.10.0)(kysely@0.28.9)(mysql2@3.16.1)(pg@8.17.1))(effect@3.19.14)
+        version: 0.48.0(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(drizzle-orm@0.45.1(@cloudflare/workers-types@4.20260116.0)(@libsql/client@0.12.0)(@op-engineering/op-sqlite@7.1.0(react-native@0.83.1(@babel/core@7.29.0)(@types/react@19.2.10)(react@19.2.3))(react@19.2.3))(@opentelemetry/api@1.9.0)(better-sqlite3@11.10.0)(kysely@0.28.9)(mysql2@3.16.1)(pg@8.17.1))(effect@3.19.15)
       '@effect/sql-kysely':
         specifier: ^0.45.0
-        version: 0.45.0(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(effect@3.19.14)(kysely@0.28.9)
+        version: 0.45.0(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(effect@3.19.15)(kysely@0.28.9)
       '@effect/sql-libsql':
         specifier: ^0.39.0
-        version: 0.39.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(effect@3.19.14)
+        version: 0.39.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(effect@3.19.15)
       '@effect/sql-mssql':
         specifier: ^0.50.0
-        version: 0.50.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(effect@3.19.14)
+        version: 0.50.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(effect@3.19.15)
       '@effect/sql-mysql2':
         specifier: ^0.50.0
-        version: 0.50.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(effect@3.19.14)
+        version: 0.50.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(effect@3.19.15)
       '@effect/sql-pg':
         specifier: ^0.50.0
-        version: 0.50.1(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(effect@3.19.14)
+        version: 0.50.1(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(effect@3.19.15)
       '@effect/sql-sqlite-bun':
         specifier: ^0.50.0
-        version: 0.50.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(effect@3.19.14)
+        version: 0.50.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(effect@3.19.15)
       '@effect/sql-sqlite-do':
         specifier: ^0.27.0
-        version: 0.27.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(effect@3.19.14)
+        version: 0.27.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(effect@3.19.15)
       '@effect/sql-sqlite-node':
         specifier: ^0.50.0
-        version: 0.50.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(effect@3.19.14)
+        version: 0.50.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(effect@3.19.15)
       '@effect/sql-sqlite-react-native':
         specifier: ^0.52.0
-        version: 0.52.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@op-engineering/op-sqlite@7.1.0(react-native@0.83.1(@babel/core@7.29.0)(@types/react@19.2.10)(react@19.2.3))(react@19.2.3))(effect@3.19.14)
+        version: 0.52.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@op-engineering/op-sqlite@7.1.0(react-native@0.83.1(@babel/core@7.29.0)(@types/react@19.2.10)(react@19.2.3))(react@19.2.3))(effect@3.19.15)
       '@effect/sql-sqlite-wasm':
         specifier: ^0.50.0
-        version: 0.50.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/wa-sqlite@0.1.2)(effect@3.19.14)
+        version: 0.50.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/wa-sqlite@0.1.2)(effect@3.19.15)
       '@effect/typeclass':
         specifier: ^0.38.0
-        version: 0.38.0(effect@3.19.14)
+        version: 0.38.0(effect@3.19.15)
       '@effect/vitest':
         specifier: ^0.27.0
-        version: 0.27.0(effect@3.19.14)(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@25.2.0)(jsdom@28.0.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.2))
+        version: 0.27.0(effect@3.19.15)(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@25.2.0)(jsdom@28.0.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.2))
       '@effect/workflow':
         specifier: ^0.16.0
-        version: 0.16.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(effect@3.19.14)
+        version: 0.16.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(effect@3.19.15)
       effect:
-        specifier: ^3.19.13
-        version: 3.19.14
+        specifier: ^3.19.15
+        version: 3.19.15
     devDependencies:
       '@livai/vitest-config':
         specifier: workspace:*
@@ -681,106 +681,106 @@ importers:
     dependencies:
       '@effect/ai':
         specifier: ^0.33.0
-        version: 0.33.2(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(effect@3.19.14)
+        version: 0.33.2(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(effect@3.19.15)
       '@effect/ai-amazon-bedrock':
         specifier: ^0.13.0
-        version: 0.13.0(@effect/ai-anthropic@0.23.0(@effect/ai@0.33.2(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(effect@3.19.14))(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/ai@0.33.2(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(effect@3.19.14))(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14)
+        version: 0.13.0(@effect/ai-anthropic@0.23.0(@effect/ai@0.33.2(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(effect@3.19.15))(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/ai@0.33.2(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(effect@3.19.15))(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)
       '@effect/ai-anthropic':
         specifier: ^0.23.0
-        version: 0.23.0(@effect/ai@0.33.2(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(effect@3.19.14))(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14)
+        version: 0.23.0(@effect/ai@0.33.2(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(effect@3.19.15))(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)
       '@effect/ai-google':
         specifier: ^0.12.0
-        version: 0.12.1(@effect/ai@0.33.2(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(effect@3.19.14))(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14)
+        version: 0.12.1(@effect/ai@0.33.2(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(effect@3.19.15))(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)
       '@effect/ai-openai':
         specifier: ^0.37.0
-        version: 0.37.2(@effect/ai@0.33.2(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(effect@3.19.14))(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14)
+        version: 0.37.2(@effect/ai@0.33.2(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(effect@3.19.15))(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)
       '@effect/cli':
         specifier: ^0.73.0
-        version: 0.73.0(@effect/platform@0.94.1(effect@3.19.14))(@effect/printer-ansi@0.47.0(@effect/typeclass@0.38.0(effect@3.19.14))(effect@3.19.14))(@effect/printer@0.47.0(@effect/typeclass@0.38.0(effect@3.19.14))(effect@3.19.14))(effect@3.19.14)
+        version: 0.73.0(@effect/platform@0.94.1(effect@3.19.15))(@effect/printer-ansi@0.47.0(@effect/typeclass@0.38.0(effect@3.19.15))(effect@3.19.15))(@effect/printer@0.47.0(@effect/typeclass@0.38.0(effect@3.19.15))(effect@3.19.15))(effect@3.19.15)
       '@effect/cluster':
         specifier: ^0.56.0
-        version: 0.56.1(@effect/platform@0.94.1(effect@3.19.14))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/workflow@0.16.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(effect@3.19.14))(effect@3.19.14)
+        version: 0.56.1(@effect/platform@0.94.1(effect@3.19.15))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/workflow@0.16.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(effect@3.19.15))(effect@3.19.15)
       '@effect/experimental':
         specifier: ^0.58.0
-        version: 0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14)
+        version: 0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)
       '@effect/platform':
         specifier: 0.94.1
-        version: 0.94.1(effect@3.19.14)
+        version: 0.94.1(effect@3.19.15)
       '@effect/platform-browser':
         specifier: ^0.74.0
-        version: 0.74.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14)
+        version: 0.74.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)
       '@effect/platform-bun':
         specifier: ^0.87.0
-        version: 0.87.0(@effect/cluster@0.56.1(@effect/platform@0.94.1(effect@3.19.14))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/workflow@0.16.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(effect@3.19.14)
+        version: 0.87.0(@effect/cluster@0.56.1(@effect/platform@0.94.1(effect@3.19.15))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/workflow@0.16.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(effect@3.19.15)
       '@effect/platform-node':
         specifier: ^0.104.0
-        version: 0.104.0(@effect/cluster@0.56.1(@effect/platform@0.94.1(effect@3.19.14))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/workflow@0.16.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(effect@3.19.14)
+        version: 0.104.0(@effect/cluster@0.56.1(@effect/platform@0.94.1(effect@3.19.15))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/workflow@0.16.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(effect@3.19.15)
       '@effect/printer':
         specifier: ^0.47.0
-        version: 0.47.0(@effect/typeclass@0.38.0(effect@3.19.14))(effect@3.19.14)
+        version: 0.47.0(@effect/typeclass@0.38.0(effect@3.19.15))(effect@3.19.15)
       '@effect/printer-ansi':
         specifier: ^0.47.0
-        version: 0.47.0(@effect/typeclass@0.38.0(effect@3.19.14))(effect@3.19.14)
+        version: 0.47.0(@effect/typeclass@0.38.0(effect@3.19.15))(effect@3.19.15)
       '@effect/rpc':
         specifier: ^0.73.0
-        version: 0.73.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14)
+        version: 0.73.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)
       '@effect/rpc-http':
         specifier: ^0.52.4
-        version: 0.52.4(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14)
+        version: 0.52.4(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)
       '@effect/sql':
         specifier: ^0.49.0
-        version: 0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14)
+        version: 0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)
       '@effect/sql-clickhouse':
         specifier: ^0.46.0
-        version: 0.46.0(794cf51779cb1401eb2a13b51f0b0d12)
+        version: 0.46.0(fc55635ae63953abaca999a75a593872)
       '@effect/sql-d1':
         specifier: ^0.47.0
-        version: 0.47.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(effect@3.19.14)
+        version: 0.47.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(effect@3.19.15)
       '@effect/sql-drizzle':
         specifier: ^0.48.0
-        version: 0.48.0(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(drizzle-orm@0.45.1(@cloudflare/workers-types@4.20260116.0)(@libsql/client@0.12.0)(@op-engineering/op-sqlite@7.1.0(react-native@0.83.1(@babel/core@7.29.0)(@types/react@19.2.10)(react@19.2.3))(react@19.2.3))(@opentelemetry/api@1.9.0)(better-sqlite3@11.10.0)(kysely@0.28.9)(mysql2@3.16.1)(pg@8.17.1))(effect@3.19.14)
+        version: 0.48.0(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(drizzle-orm@0.45.1(@cloudflare/workers-types@4.20260116.0)(@libsql/client@0.12.0)(@op-engineering/op-sqlite@7.1.0(react-native@0.83.1(@babel/core@7.29.0)(@types/react@19.2.10)(react@19.2.3))(react@19.2.3))(@opentelemetry/api@1.9.0)(better-sqlite3@11.10.0)(kysely@0.28.9)(mysql2@3.16.1)(pg@8.17.1))(effect@3.19.15)
       '@effect/sql-kysely':
         specifier: ^0.45.0
-        version: 0.45.0(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(effect@3.19.14)(kysely@0.28.9)
+        version: 0.45.0(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(effect@3.19.15)(kysely@0.28.9)
       '@effect/sql-libsql':
         specifier: ^0.39.0
-        version: 0.39.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(effect@3.19.14)
+        version: 0.39.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(effect@3.19.15)
       '@effect/sql-mssql':
         specifier: ^0.50.0
-        version: 0.50.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(effect@3.19.14)
+        version: 0.50.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(effect@3.19.15)
       '@effect/sql-mysql2':
         specifier: ^0.50.0
-        version: 0.50.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(effect@3.19.14)
+        version: 0.50.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(effect@3.19.15)
       '@effect/sql-pg':
         specifier: ^0.50.0
-        version: 0.50.1(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(effect@3.19.14)
+        version: 0.50.1(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(effect@3.19.15)
       '@effect/sql-sqlite-bun':
         specifier: ^0.50.0
-        version: 0.50.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(effect@3.19.14)
+        version: 0.50.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(effect@3.19.15)
       '@effect/sql-sqlite-do':
         specifier: ^0.27.0
-        version: 0.27.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(effect@3.19.14)
+        version: 0.27.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(effect@3.19.15)
       '@effect/sql-sqlite-node':
         specifier: ^0.50.0
-        version: 0.50.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(effect@3.19.14)
+        version: 0.50.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(effect@3.19.15)
       '@effect/sql-sqlite-react-native':
         specifier: ^0.52.0
-        version: 0.52.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@op-engineering/op-sqlite@7.1.0(react-native@0.83.1(@babel/core@7.29.0)(@types/react@19.2.10)(react@19.2.3))(react@19.2.3))(effect@3.19.14)
+        version: 0.52.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@op-engineering/op-sqlite@7.1.0(react-native@0.83.1(@babel/core@7.29.0)(@types/react@19.2.10)(react@19.2.3))(react@19.2.3))(effect@3.19.15)
       '@effect/sql-sqlite-wasm':
         specifier: ^0.50.0
-        version: 0.50.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/wa-sqlite@0.1.2)(effect@3.19.14)
+        version: 0.50.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/wa-sqlite@0.1.2)(effect@3.19.15)
       '@effect/typeclass':
         specifier: ^0.38.0
-        version: 0.38.0(effect@3.19.14)
+        version: 0.38.0(effect@3.19.15)
       '@effect/vitest':
         specifier: ^0.27.0
-        version: 0.27.0(effect@3.19.14)(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@25.2.0)(jsdom@28.0.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.2))
+        version: 0.27.0(effect@3.19.15)(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@25.2.0)(jsdom@28.0.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.2))
       '@effect/workflow':
         specifier: ^0.16.0
-        version: 0.16.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(effect@3.19.14)
+        version: 0.16.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(effect@3.19.15)
       effect:
-        specifier: ^3.19.13
-        version: 3.19.14
+        specifier: ^3.19.15
+        version: 3.19.15
     devDependencies:
       '@livai/vitest-config':
         specifier: workspace:*
@@ -809,106 +809,106 @@ importers:
     dependencies:
       '@effect/ai':
         specifier: ^0.33.0
-        version: 0.33.2(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(effect@3.19.14)
+        version: 0.33.2(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(effect@3.19.15)
       '@effect/ai-amazon-bedrock':
         specifier: ^0.13.0
-        version: 0.13.0(@effect/ai-anthropic@0.23.0(@effect/ai@0.33.2(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(effect@3.19.14))(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/ai@0.33.2(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(effect@3.19.14))(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14)
+        version: 0.13.0(@effect/ai-anthropic@0.23.0(@effect/ai@0.33.2(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(effect@3.19.15))(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/ai@0.33.2(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(effect@3.19.15))(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)
       '@effect/ai-anthropic':
         specifier: ^0.23.0
-        version: 0.23.0(@effect/ai@0.33.2(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(effect@3.19.14))(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14)
+        version: 0.23.0(@effect/ai@0.33.2(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(effect@3.19.15))(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)
       '@effect/ai-google':
         specifier: ^0.12.0
-        version: 0.12.1(@effect/ai@0.33.2(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(effect@3.19.14))(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14)
+        version: 0.12.1(@effect/ai@0.33.2(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(effect@3.19.15))(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)
       '@effect/ai-openai':
         specifier: ^0.37.0
-        version: 0.37.2(@effect/ai@0.33.2(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(effect@3.19.14))(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14)
+        version: 0.37.2(@effect/ai@0.33.2(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(effect@3.19.15))(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)
       '@effect/cli':
         specifier: ^0.73.0
-        version: 0.73.0(@effect/platform@0.94.1(effect@3.19.14))(@effect/printer-ansi@0.47.0(@effect/typeclass@0.38.0(effect@3.19.14))(effect@3.19.14))(@effect/printer@0.47.0(@effect/typeclass@0.38.0(effect@3.19.14))(effect@3.19.14))(effect@3.19.14)
+        version: 0.73.0(@effect/platform@0.94.1(effect@3.19.15))(@effect/printer-ansi@0.47.0(@effect/typeclass@0.38.0(effect@3.19.15))(effect@3.19.15))(@effect/printer@0.47.0(@effect/typeclass@0.38.0(effect@3.19.15))(effect@3.19.15))(effect@3.19.15)
       '@effect/cluster':
         specifier: ^0.56.0
-        version: 0.56.1(@effect/platform@0.94.1(effect@3.19.14))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/workflow@0.16.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(effect@3.19.14))(effect@3.19.14)
+        version: 0.56.1(@effect/platform@0.94.1(effect@3.19.15))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/workflow@0.16.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(effect@3.19.15))(effect@3.19.15)
       '@effect/experimental':
         specifier: ^0.58.0
-        version: 0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14)
+        version: 0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)
       '@effect/platform':
         specifier: 0.94.1
-        version: 0.94.1(effect@3.19.14)
+        version: 0.94.1(effect@3.19.15)
       '@effect/platform-browser':
         specifier: ^0.74.0
-        version: 0.74.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14)
+        version: 0.74.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)
       '@effect/platform-bun':
         specifier: ^0.87.0
-        version: 0.87.0(@effect/cluster@0.56.1(@effect/platform@0.94.1(effect@3.19.14))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/workflow@0.16.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(effect@3.19.14)
+        version: 0.87.0(@effect/cluster@0.56.1(@effect/platform@0.94.1(effect@3.19.15))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/workflow@0.16.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(effect@3.19.15)
       '@effect/platform-node':
         specifier: ^0.104.0
-        version: 0.104.0(@effect/cluster@0.56.1(@effect/platform@0.94.1(effect@3.19.14))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/workflow@0.16.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(effect@3.19.14)
+        version: 0.104.0(@effect/cluster@0.56.1(@effect/platform@0.94.1(effect@3.19.15))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/workflow@0.16.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(effect@3.19.15)
       '@effect/printer':
         specifier: ^0.47.0
-        version: 0.47.0(@effect/typeclass@0.38.0(effect@3.19.14))(effect@3.19.14)
+        version: 0.47.0(@effect/typeclass@0.38.0(effect@3.19.15))(effect@3.19.15)
       '@effect/printer-ansi':
         specifier: ^0.47.0
-        version: 0.47.0(@effect/typeclass@0.38.0(effect@3.19.14))(effect@3.19.14)
+        version: 0.47.0(@effect/typeclass@0.38.0(effect@3.19.15))(effect@3.19.15)
       '@effect/rpc':
         specifier: ^0.73.0
-        version: 0.73.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14)
+        version: 0.73.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)
       '@effect/rpc-http':
         specifier: ^0.52.4
-        version: 0.52.4(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14)
+        version: 0.52.4(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)
       '@effect/sql':
         specifier: ^0.49.0
-        version: 0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14)
+        version: 0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)
       '@effect/sql-clickhouse':
         specifier: ^0.46.0
-        version: 0.46.0(794cf51779cb1401eb2a13b51f0b0d12)
+        version: 0.46.0(fc55635ae63953abaca999a75a593872)
       '@effect/sql-d1':
         specifier: ^0.47.0
-        version: 0.47.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(effect@3.19.14)
+        version: 0.47.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(effect@3.19.15)
       '@effect/sql-drizzle':
         specifier: ^0.48.0
-        version: 0.48.0(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(drizzle-orm@0.45.1(@cloudflare/workers-types@4.20260116.0)(@libsql/client@0.12.0)(@op-engineering/op-sqlite@7.1.0(react-native@0.83.1(@babel/core@7.29.0)(@types/react@19.2.10)(react@19.2.3))(react@19.2.3))(@opentelemetry/api@1.9.0)(better-sqlite3@11.10.0)(kysely@0.28.9)(mysql2@3.16.1)(pg@8.17.1))(effect@3.19.14)
+        version: 0.48.0(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(drizzle-orm@0.45.1(@cloudflare/workers-types@4.20260116.0)(@libsql/client@0.12.0)(@op-engineering/op-sqlite@7.1.0(react-native@0.83.1(@babel/core@7.29.0)(@types/react@19.2.10)(react@19.2.3))(react@19.2.3))(@opentelemetry/api@1.9.0)(better-sqlite3@11.10.0)(kysely@0.28.9)(mysql2@3.16.1)(pg@8.17.1))(effect@3.19.15)
       '@effect/sql-kysely':
         specifier: ^0.45.0
-        version: 0.45.0(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(effect@3.19.14)(kysely@0.28.9)
+        version: 0.45.0(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(effect@3.19.15)(kysely@0.28.9)
       '@effect/sql-libsql':
         specifier: ^0.39.0
-        version: 0.39.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(effect@3.19.14)
+        version: 0.39.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(effect@3.19.15)
       '@effect/sql-mssql':
         specifier: ^0.50.0
-        version: 0.50.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(effect@3.19.14)
+        version: 0.50.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(effect@3.19.15)
       '@effect/sql-mysql2':
         specifier: ^0.50.0
-        version: 0.50.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(effect@3.19.14)
+        version: 0.50.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(effect@3.19.15)
       '@effect/sql-pg':
         specifier: ^0.50.0
-        version: 0.50.1(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(effect@3.19.14)
+        version: 0.50.1(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(effect@3.19.15)
       '@effect/sql-sqlite-bun':
         specifier: ^0.50.0
-        version: 0.50.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(effect@3.19.14)
+        version: 0.50.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(effect@3.19.15)
       '@effect/sql-sqlite-do':
         specifier: ^0.27.0
-        version: 0.27.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(effect@3.19.14)
+        version: 0.27.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(effect@3.19.15)
       '@effect/sql-sqlite-node':
         specifier: ^0.50.0
-        version: 0.50.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(effect@3.19.14)
+        version: 0.50.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(effect@3.19.15)
       '@effect/sql-sqlite-react-native':
         specifier: ^0.52.0
-        version: 0.52.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@op-engineering/op-sqlite@7.1.0(react-native@0.83.1(@babel/core@7.29.0)(@types/react@19.2.10)(react@19.2.3))(react@19.2.3))(effect@3.19.14)
+        version: 0.52.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@op-engineering/op-sqlite@7.1.0(react-native@0.83.1(@babel/core@7.29.0)(@types/react@19.2.10)(react@19.2.3))(react@19.2.3))(effect@3.19.15)
       '@effect/sql-sqlite-wasm':
         specifier: ^0.50.0
-        version: 0.50.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/wa-sqlite@0.1.2)(effect@3.19.14)
+        version: 0.50.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/wa-sqlite@0.1.2)(effect@3.19.15)
       '@effect/typeclass':
         specifier: ^0.38.0
-        version: 0.38.0(effect@3.19.14)
+        version: 0.38.0(effect@3.19.15)
       '@effect/vitest':
         specifier: ^0.27.0
-        version: 0.27.0(effect@3.19.14)(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@25.2.0)(jsdom@28.0.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.2))
+        version: 0.27.0(effect@3.19.15)(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@25.2.0)(jsdom@28.0.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.2))
       '@effect/workflow':
         specifier: ^0.16.0
-        version: 0.16.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(effect@3.19.14)
+        version: 0.16.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(effect@3.19.15)
       effect:
-        specifier: ^3.19.13
-        version: 3.19.14
+        specifier: ^3.19.15
+        version: 3.19.15
     devDependencies:
       '@livai/vitest-config':
         specifier: workspace:*
@@ -4381,9 +4381,6 @@ packages:
 
   ee-first@1.1.1:
     resolution: {integrity: sha512-WMwm9LhRUo+WUaRN+vRuETqG89IgZphVSNkdFgeb6sS/E4OrDIN7t48CAewSHXc6C8lefD8KKfr5vY61brQlow==}
-
-  effect@3.19.13:
-    resolution: {integrity: sha512-8MZ783YuHRwHZX2Mmm+bpGxq+7XPd88sWwYAz2Ysry80sEKpftDZXs2Hg9ZyjESi1IBTNHF0oDKe0zJRkUlyew==}
 
   effect@3.19.14:
     resolution: {integrity: sha512-3vwdq0zlvQOxXzXNKRIPKTqZNMyGCdaFUBfMPqpsyzZDre67kgC1EEHDV4EoQTovJ4w5fmJW756f86kkuz7WFA==}
@@ -8312,66 +8309,66 @@ snapshots:
   '@dprint/win32-x64@0.51.1':
     optional: true
 
-  '@effect/ai-amazon-bedrock@0.13.0(@effect/ai-anthropic@0.23.0(@effect/ai@0.33.2(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(effect@3.19.14))(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/ai@0.33.2(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(effect@3.19.14))(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14)':
+  '@effect/ai-amazon-bedrock@0.13.0(@effect/ai-anthropic@0.23.0(@effect/ai@0.33.2(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(effect@3.19.15))(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/ai@0.33.2(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(effect@3.19.15))(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)':
     dependencies:
-      '@effect/ai': 0.33.2(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(effect@3.19.14)
-      '@effect/ai-anthropic': 0.23.0(@effect/ai@0.33.2(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(effect@3.19.14))(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14)
-      '@effect/experimental': 0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14)
-      '@effect/platform': 0.94.1(effect@3.19.14)
+      '@effect/ai': 0.33.2(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(effect@3.19.15)
+      '@effect/ai-anthropic': 0.23.0(@effect/ai@0.33.2(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(effect@3.19.15))(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)
+      '@effect/experimental': 0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)
+      '@effect/platform': 0.94.1(effect@3.19.15)
       '@smithy/eventstream-codec': 4.2.8
       '@smithy/util-utf8': 4.2.0
       aws4fetch: 1.0.20
-      effect: 3.19.14
+      effect: 3.19.15
       gpt-tokenizer: 2.9.0
 
-  '@effect/ai-anthropic@0.23.0(@effect/ai@0.33.2(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(effect@3.19.14))(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14)':
+  '@effect/ai-anthropic@0.23.0(@effect/ai@0.33.2(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(effect@3.19.15))(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)':
     dependencies:
       '@anthropic-ai/tokenizer': 0.0.4
-      '@effect/ai': 0.33.2(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(effect@3.19.14)
-      '@effect/experimental': 0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14)
-      '@effect/platform': 0.94.1(effect@3.19.14)
-      effect: 3.19.14
+      '@effect/ai': 0.33.2(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(effect@3.19.15)
+      '@effect/experimental': 0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)
+      '@effect/platform': 0.94.1(effect@3.19.15)
+      effect: 3.19.15
 
-  '@effect/ai-google@0.12.1(@effect/ai@0.33.2(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(effect@3.19.14))(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14)':
+  '@effect/ai-google@0.12.1(@effect/ai@0.33.2(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(effect@3.19.15))(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)':
     dependencies:
-      '@effect/ai': 0.33.2(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(effect@3.19.14)
-      '@effect/experimental': 0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14)
-      '@effect/platform': 0.94.1(effect@3.19.14)
-      effect: 3.19.14
+      '@effect/ai': 0.33.2(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(effect@3.19.15)
+      '@effect/experimental': 0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)
+      '@effect/platform': 0.94.1(effect@3.19.15)
+      effect: 3.19.15
 
-  '@effect/ai-openai@0.37.2(@effect/ai@0.33.2(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(effect@3.19.14))(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14)':
+  '@effect/ai-openai@0.37.2(@effect/ai@0.33.2(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(effect@3.19.15))(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)':
     dependencies:
-      '@effect/ai': 0.33.2(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(effect@3.19.14)
-      '@effect/experimental': 0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14)
-      '@effect/platform': 0.94.1(effect@3.19.14)
-      effect: 3.19.14
+      '@effect/ai': 0.33.2(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(effect@3.19.15)
+      '@effect/experimental': 0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)
+      '@effect/platform': 0.94.1(effect@3.19.15)
+      effect: 3.19.15
       gpt-tokenizer: 2.9.0
 
-  '@effect/ai@0.33.2(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(effect@3.19.14)':
+  '@effect/ai@0.33.2(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(effect@3.19.15)':
     dependencies:
-      '@effect/experimental': 0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14)
-      '@effect/platform': 0.94.1(effect@3.19.14)
-      '@effect/rpc': 0.73.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14)
-      effect: 3.19.14
+      '@effect/experimental': 0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)
+      '@effect/platform': 0.94.1(effect@3.19.15)
+      '@effect/rpc': 0.73.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)
+      effect: 3.19.15
       find-my-way-ts: 0.1.6
 
-  '@effect/cli@0.73.0(@effect/platform@0.94.1(effect@3.19.14))(@effect/printer-ansi@0.47.0(@effect/typeclass@0.38.0(effect@3.19.14))(effect@3.19.14))(@effect/printer@0.47.0(@effect/typeclass@0.38.0(effect@3.19.14))(effect@3.19.14))(effect@3.19.14)':
+  '@effect/cli@0.73.0(@effect/platform@0.94.1(effect@3.19.15))(@effect/printer-ansi@0.47.0(@effect/typeclass@0.38.0(effect@3.19.15))(effect@3.19.15))(@effect/printer@0.47.0(@effect/typeclass@0.38.0(effect@3.19.15))(effect@3.19.15))(effect@3.19.15)':
     dependencies:
-      '@effect/platform': 0.94.1(effect@3.19.14)
-      '@effect/printer': 0.47.0(@effect/typeclass@0.38.0(effect@3.19.14))(effect@3.19.14)
-      '@effect/printer-ansi': 0.47.0(@effect/typeclass@0.38.0(effect@3.19.14))(effect@3.19.14)
-      effect: 3.19.14
+      '@effect/platform': 0.94.1(effect@3.19.15)
+      '@effect/printer': 0.47.0(@effect/typeclass@0.38.0(effect@3.19.15))(effect@3.19.15)
+      '@effect/printer-ansi': 0.47.0(@effect/typeclass@0.38.0(effect@3.19.15))(effect@3.19.15)
+      effect: 3.19.15
       ini: 4.1.3
       toml: 3.0.0
       yaml: 2.8.2
 
-  '@effect/cluster@0.56.1(@effect/platform@0.94.1(effect@3.19.14))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/workflow@0.16.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(effect@3.19.14))(effect@3.19.14)':
+  '@effect/cluster@0.56.1(@effect/platform@0.94.1(effect@3.19.15))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/workflow@0.16.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(effect@3.19.15))(effect@3.19.15)':
     dependencies:
-      '@effect/platform': 0.94.1(effect@3.19.14)
-      '@effect/rpc': 0.73.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14)
-      '@effect/sql': 0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14)
-      '@effect/workflow': 0.16.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(effect@3.19.14)
-      effect: 3.19.14
+      '@effect/platform': 0.94.1(effect@3.19.15)
+      '@effect/rpc': 0.73.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)
+      '@effect/sql': 0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)
+      '@effect/workflow': 0.16.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(effect@3.19.15)
+      effect: 3.19.15
       kubernetes-types: 1.30.0
 
   '@effect/eslint-plugin@0.3.2':
@@ -8380,53 +8377,53 @@ snapshots:
       '@dprint/typescript': 0.91.8
       prettier-linter-helpers: 1.0.1
 
-  '@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14)':
+  '@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)':
     dependencies:
-      '@effect/platform': 0.94.1(effect@3.19.14)
-      effect: 3.19.14
+      '@effect/platform': 0.94.1(effect@3.19.15)
+      effect: 3.19.15
       uuid: 11.1.0
 
-  '@effect/platform-browser@0.74.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14)':
+  '@effect/platform-browser@0.74.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)':
     dependencies:
-      '@effect/platform': 0.94.1(effect@3.19.14)
-      effect: 3.19.14
+      '@effect/platform': 0.94.1(effect@3.19.15)
+      effect: 3.19.15
       multipasta: 0.2.7
 
-  '@effect/platform-bun@0.87.0(@effect/cluster@0.56.1(@effect/platform@0.94.1(effect@3.19.14))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/workflow@0.16.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(effect@3.19.14)':
+  '@effect/platform-bun@0.87.0(@effect/cluster@0.56.1(@effect/platform@0.94.1(effect@3.19.15))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/workflow@0.16.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(effect@3.19.15)':
     dependencies:
-      '@effect/cluster': 0.56.1(@effect/platform@0.94.1(effect@3.19.14))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/workflow@0.16.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(effect@3.19.14))(effect@3.19.14)
-      '@effect/platform': 0.94.1(effect@3.19.14)
-      '@effect/platform-node-shared': 0.57.0(@effect/cluster@0.56.1(@effect/platform@0.94.1(effect@3.19.14))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/workflow@0.16.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(effect@3.19.14)
-      '@effect/rpc': 0.73.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14)
-      '@effect/sql': 0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14)
-      effect: 3.19.14
+      '@effect/cluster': 0.56.1(@effect/platform@0.94.1(effect@3.19.15))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/workflow@0.16.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(effect@3.19.15))(effect@3.19.15)
+      '@effect/platform': 0.94.1(effect@3.19.15)
+      '@effect/platform-node-shared': 0.57.0(@effect/cluster@0.56.1(@effect/platform@0.94.1(effect@3.19.15))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/workflow@0.16.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(effect@3.19.15)
+      '@effect/rpc': 0.73.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)
+      '@effect/sql': 0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)
+      effect: 3.19.15
       multipasta: 0.2.7
     transitivePeerDependencies:
       - bufferutil
       - utf-8-validate
 
-  '@effect/platform-node-shared@0.57.0(@effect/cluster@0.56.1(@effect/platform@0.94.1(effect@3.19.14))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/workflow@0.16.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(effect@3.19.14)':
+  '@effect/platform-node-shared@0.57.0(@effect/cluster@0.56.1(@effect/platform@0.94.1(effect@3.19.15))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/workflow@0.16.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(effect@3.19.15)':
     dependencies:
-      '@effect/cluster': 0.56.1(@effect/platform@0.94.1(effect@3.19.14))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/workflow@0.16.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(effect@3.19.14))(effect@3.19.14)
-      '@effect/platform': 0.94.1(effect@3.19.14)
-      '@effect/rpc': 0.73.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14)
-      '@effect/sql': 0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14)
+      '@effect/cluster': 0.56.1(@effect/platform@0.94.1(effect@3.19.15))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/workflow@0.16.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(effect@3.19.15))(effect@3.19.15)
+      '@effect/platform': 0.94.1(effect@3.19.15)
+      '@effect/rpc': 0.73.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)
+      '@effect/sql': 0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)
       '@parcel/watcher': 2.5.4
-      effect: 3.19.14
+      effect: 3.19.15
       multipasta: 0.2.7
       ws: 8.19.0
     transitivePeerDependencies:
       - bufferutil
       - utf-8-validate
 
-  '@effect/platform-node@0.104.0(@effect/cluster@0.56.1(@effect/platform@0.94.1(effect@3.19.14))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/workflow@0.16.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(effect@3.19.14)':
+  '@effect/platform-node@0.104.0(@effect/cluster@0.56.1(@effect/platform@0.94.1(effect@3.19.15))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/workflow@0.16.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(effect@3.19.15)':
     dependencies:
-      '@effect/cluster': 0.56.1(@effect/platform@0.94.1(effect@3.19.14))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/workflow@0.16.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(effect@3.19.14))(effect@3.19.14)
-      '@effect/platform': 0.94.1(effect@3.19.14)
-      '@effect/platform-node-shared': 0.57.0(@effect/cluster@0.56.1(@effect/platform@0.94.1(effect@3.19.14))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/workflow@0.16.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(effect@3.19.14)
-      '@effect/rpc': 0.73.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14)
-      '@effect/sql': 0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14)
-      effect: 3.19.14
+      '@effect/cluster': 0.56.1(@effect/platform@0.94.1(effect@3.19.15))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/workflow@0.16.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(effect@3.19.15))(effect@3.19.15)
+      '@effect/platform': 0.94.1(effect@3.19.15)
+      '@effect/platform-node-shared': 0.57.0(@effect/cluster@0.56.1(@effect/platform@0.94.1(effect@3.19.15))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/workflow@0.16.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(effect@3.19.15)
+      '@effect/rpc': 0.73.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)
+      '@effect/sql': 0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)
+      effect: 3.19.15
       mime: 3.0.0
       undici: 7.18.2
       ws: 8.19.0
@@ -8434,105 +8431,105 @@ snapshots:
       - bufferutil
       - utf-8-validate
 
-  '@effect/platform@0.94.1(effect@3.19.14)':
+  '@effect/platform@0.94.1(effect@3.19.15)':
     dependencies:
-      effect: 3.19.14
+      effect: 3.19.15
       find-my-way-ts: 0.1.6
       msgpackr: 1.11.8
       multipasta: 0.2.7
 
-  '@effect/printer-ansi@0.47.0(@effect/typeclass@0.38.0(effect@3.19.14))(effect@3.19.14)':
+  '@effect/printer-ansi@0.47.0(@effect/typeclass@0.38.0(effect@3.19.15))(effect@3.19.15)':
     dependencies:
-      '@effect/printer': 0.47.0(@effect/typeclass@0.38.0(effect@3.19.14))(effect@3.19.14)
-      '@effect/typeclass': 0.38.0(effect@3.19.14)
-      effect: 3.19.14
+      '@effect/printer': 0.47.0(@effect/typeclass@0.38.0(effect@3.19.15))(effect@3.19.15)
+      '@effect/typeclass': 0.38.0(effect@3.19.15)
+      effect: 3.19.15
 
-  '@effect/printer@0.47.0(@effect/typeclass@0.38.0(effect@3.19.14))(effect@3.19.14)':
+  '@effect/printer@0.47.0(@effect/typeclass@0.38.0(effect@3.19.15))(effect@3.19.15)':
     dependencies:
-      '@effect/typeclass': 0.38.0(effect@3.19.14)
-      effect: 3.19.14
+      '@effect/typeclass': 0.38.0(effect@3.19.15)
+      effect: 3.19.15
 
-  '@effect/rpc-http@0.52.4(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14)':
+  '@effect/rpc-http@0.52.4(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)':
     dependencies:
-      '@effect/platform': 0.94.1(effect@3.19.14)
-      '@effect/rpc': 0.54.4(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14)
-      effect: 3.19.14
+      '@effect/platform': 0.94.1(effect@3.19.15)
+      '@effect/rpc': 0.54.4(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)
+      effect: 3.19.15
 
-  '@effect/rpc@0.54.4(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14)':
+  '@effect/rpc@0.54.4(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)':
     dependencies:
-      '@effect/platform': 0.94.1(effect@3.19.14)
-      effect: 3.19.14
+      '@effect/platform': 0.94.1(effect@3.19.15)
+      effect: 3.19.15
 
-  '@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14)':
+  '@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)':
     dependencies:
-      '@effect/platform': 0.94.1(effect@3.19.14)
-      effect: 3.19.14
+      '@effect/platform': 0.94.1(effect@3.19.15)
+      effect: 3.19.15
       msgpackr: 1.11.8
 
-  '@effect/sql-clickhouse@0.46.0(794cf51779cb1401eb2a13b51f0b0d12)':
+  '@effect/sql-clickhouse@0.46.0(fc55635ae63953abaca999a75a593872)':
     dependencies:
       '@clickhouse/client': 1.16.0
-      '@effect/experimental': 0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14)
-      '@effect/platform': 0.94.1(effect@3.19.14)
-      '@effect/platform-node': 0.104.0(@effect/cluster@0.56.1(@effect/platform@0.94.1(effect@3.19.14))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/workflow@0.16.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(effect@3.19.14)
-      '@effect/sql': 0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14)
-      effect: 3.19.14
+      '@effect/experimental': 0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)
+      '@effect/platform': 0.94.1(effect@3.19.15)
+      '@effect/platform-node': 0.104.0(@effect/cluster@0.56.1(@effect/platform@0.94.1(effect@3.19.15))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/workflow@0.16.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(effect@3.19.15)
+      '@effect/sql': 0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)
+      effect: 3.19.15
 
-  '@effect/sql-d1@0.47.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(effect@3.19.14)':
+  '@effect/sql-d1@0.47.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(effect@3.19.15)':
     dependencies:
       '@cloudflare/workers-types': 4.20260116.0
-      '@effect/experimental': 0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14)
-      '@effect/platform': 0.94.1(effect@3.19.14)
-      '@effect/sql': 0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14)
-      effect: 3.19.14
+      '@effect/experimental': 0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)
+      '@effect/platform': 0.94.1(effect@3.19.15)
+      '@effect/sql': 0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)
+      effect: 3.19.15
 
-  '@effect/sql-drizzle@0.48.0(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(drizzle-orm@0.45.1(@cloudflare/workers-types@4.20260116.0)(@libsql/client@0.12.0)(@op-engineering/op-sqlite@7.1.0(react-native@0.83.1(@babel/core@7.29.0)(@types/react@19.2.10)(react@19.2.3))(react@19.2.3))(@opentelemetry/api@1.9.0)(better-sqlite3@11.10.0)(kysely@0.28.9)(mysql2@3.16.1)(pg@8.17.1))(effect@3.19.14)':
+  '@effect/sql-drizzle@0.48.0(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(drizzle-orm@0.45.1(@cloudflare/workers-types@4.20260116.0)(@libsql/client@0.12.0)(@op-engineering/op-sqlite@7.1.0(react-native@0.83.1(@babel/core@7.29.0)(@types/react@19.2.10)(react@19.2.3))(react@19.2.3))(@opentelemetry/api@1.9.0)(better-sqlite3@11.10.0)(kysely@0.28.9)(mysql2@3.16.1)(pg@8.17.1))(effect@3.19.15)':
     dependencies:
-      '@effect/sql': 0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14)
+      '@effect/sql': 0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)
       drizzle-orm: 0.45.1(@cloudflare/workers-types@4.20260116.0)(@libsql/client@0.12.0)(@op-engineering/op-sqlite@7.1.0(react-native@0.83.1(@babel/core@7.29.0)(@types/react@19.2.10)(react@19.2.3))(react@19.2.3))(@opentelemetry/api@1.9.0)(better-sqlite3@11.10.0)(kysely@0.28.9)(mysql2@3.16.1)(pg@8.17.1)
-      effect: 3.19.14
+      effect: 3.19.15
 
-  '@effect/sql-kysely@0.45.0(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(effect@3.19.14)(kysely@0.28.9)':
+  '@effect/sql-kysely@0.45.0(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(effect@3.19.15)(kysely@0.28.9)':
     dependencies:
-      '@effect/sql': 0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14)
-      effect: 3.19.14
+      '@effect/sql': 0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)
+      effect: 3.19.15
       kysely: 0.28.9
 
-  '@effect/sql-libsql@0.39.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(effect@3.19.14)':
+  '@effect/sql-libsql@0.39.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(effect@3.19.15)':
     dependencies:
-      '@effect/experimental': 0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14)
-      '@effect/platform': 0.94.1(effect@3.19.14)
-      '@effect/sql': 0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14)
+      '@effect/experimental': 0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)
+      '@effect/platform': 0.94.1(effect@3.19.15)
+      '@effect/sql': 0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)
       '@libsql/client': 0.12.0
-      effect: 3.19.14
+      effect: 3.19.15
     transitivePeerDependencies:
       - bufferutil
       - utf-8-validate
 
-  '@effect/sql-mssql@0.50.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(effect@3.19.14)':
+  '@effect/sql-mssql@0.50.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(effect@3.19.15)':
     dependencies:
-      '@effect/experimental': 0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14)
-      '@effect/platform': 0.94.1(effect@3.19.14)
-      '@effect/sql': 0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14)
-      effect: 3.19.14
+      '@effect/experimental': 0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)
+      '@effect/platform': 0.94.1(effect@3.19.15)
+      '@effect/sql': 0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)
+      effect: 3.19.15
       tedious: 18.6.2
     transitivePeerDependencies:
       - supports-color
 
-  '@effect/sql-mysql2@0.50.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(effect@3.19.14)':
+  '@effect/sql-mysql2@0.50.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(effect@3.19.15)':
     dependencies:
-      '@effect/experimental': 0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14)
-      '@effect/platform': 0.94.1(effect@3.19.14)
-      '@effect/sql': 0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14)
-      effect: 3.19.14
+      '@effect/experimental': 0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)
+      '@effect/platform': 0.94.1(effect@3.19.15)
+      '@effect/sql': 0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)
+      effect: 3.19.15
       mysql2: 3.16.1
 
-  '@effect/sql-pg@0.50.1(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(effect@3.19.14)':
+  '@effect/sql-pg@0.50.1(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(effect@3.19.15)':
     dependencies:
-      '@effect/experimental': 0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14)
-      '@effect/platform': 0.94.1(effect@3.19.14)
-      '@effect/sql': 0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14)
-      effect: 3.19.14
+      '@effect/experimental': 0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)
+      '@effect/platform': 0.94.1(effect@3.19.15)
+      '@effect/sql': 0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)
+      effect: 3.19.15
       pg: 8.17.1
       pg-connection-string: 2.9.1
       pg-cursor: 2.16.1(pg@8.17.1)
@@ -8541,65 +8538,65 @@ snapshots:
     transitivePeerDependencies:
       - pg-native
 
-  '@effect/sql-sqlite-bun@0.50.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(effect@3.19.14)':
+  '@effect/sql-sqlite-bun@0.50.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(effect@3.19.15)':
     dependencies:
-      '@effect/experimental': 0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14)
-      '@effect/platform': 0.94.1(effect@3.19.14)
-      '@effect/sql': 0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14)
-      effect: 3.19.14
+      '@effect/experimental': 0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)
+      '@effect/platform': 0.94.1(effect@3.19.15)
+      '@effect/sql': 0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)
+      effect: 3.19.15
 
-  '@effect/sql-sqlite-do@0.27.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(effect@3.19.14)':
+  '@effect/sql-sqlite-do@0.27.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(effect@3.19.15)':
     dependencies:
-      '@effect/experimental': 0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14)
-      '@effect/sql': 0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14)
-      effect: 3.19.14
+      '@effect/experimental': 0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)
+      '@effect/sql': 0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)
+      effect: 3.19.15
 
-  '@effect/sql-sqlite-node@0.50.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(effect@3.19.14)':
+  '@effect/sql-sqlite-node@0.50.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(effect@3.19.15)':
     dependencies:
-      '@effect/experimental': 0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14)
-      '@effect/platform': 0.94.1(effect@3.19.14)
-      '@effect/sql': 0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14)
+      '@effect/experimental': 0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)
+      '@effect/platform': 0.94.1(effect@3.19.15)
+      '@effect/sql': 0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)
       better-sqlite3: 11.10.0
-      effect: 3.19.14
+      effect: 3.19.15
 
-  '@effect/sql-sqlite-react-native@0.52.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@op-engineering/op-sqlite@7.1.0(react-native@0.83.1(@babel/core@7.29.0)(@types/react@19.2.10)(react@19.2.3))(react@19.2.3))(effect@3.19.14)':
+  '@effect/sql-sqlite-react-native@0.52.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@op-engineering/op-sqlite@7.1.0(react-native@0.83.1(@babel/core@7.29.0)(@types/react@19.2.10)(react@19.2.3))(react@19.2.3))(effect@3.19.15)':
     dependencies:
-      '@effect/experimental': 0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14)
-      '@effect/sql': 0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14)
+      '@effect/experimental': 0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)
+      '@effect/sql': 0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)
       '@op-engineering/op-sqlite': 7.1.0(react-native@0.83.1(@babel/core@7.29.0)(@types/react@19.2.10)(react@19.2.3))(react@19.2.3)
-      effect: 3.19.14
+      effect: 3.19.15
 
-  '@effect/sql-sqlite-wasm@0.50.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/wa-sqlite@0.1.2)(effect@3.19.14)':
+  '@effect/sql-sqlite-wasm@0.50.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/wa-sqlite@0.1.2)(effect@3.19.15)':
     dependencies:
-      '@effect/experimental': 0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14)
-      '@effect/sql': 0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14)
+      '@effect/experimental': 0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)
+      '@effect/sql': 0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)
       '@effect/wa-sqlite': 0.1.2
-      effect: 3.19.14
+      effect: 3.19.15
 
-  '@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14)':
+  '@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)':
     dependencies:
-      '@effect/experimental': 0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14)
-      '@effect/platform': 0.94.1(effect@3.19.14)
-      effect: 3.19.14
+      '@effect/experimental': 0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)
+      '@effect/platform': 0.94.1(effect@3.19.15)
+      effect: 3.19.15
       uuid: 11.1.0
 
-  '@effect/typeclass@0.38.0(effect@3.19.14)':
+  '@effect/typeclass@0.38.0(effect@3.19.15)':
     dependencies:
-      effect: 3.19.14
+      effect: 3.19.15
 
-  '@effect/vitest@0.27.0(effect@3.19.14)(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@25.2.0)(jsdom@28.0.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.2))':
+  '@effect/vitest@0.27.0(effect@3.19.15)(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@25.2.0)(jsdom@28.0.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.2))':
     dependencies:
-      effect: 3.19.14
+      effect: 3.19.15
       vitest: 4.0.18(@opentelemetry/api@1.9.0)(@types/node@25.2.0)(jsdom@28.0.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.2)
 
   '@effect/wa-sqlite@0.1.2': {}
 
-  '@effect/workflow@0.16.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(effect@3.19.14)':
+  '@effect/workflow@0.16.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/platform@0.94.1(effect@3.19.15))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(effect@3.19.15)':
     dependencies:
-      '@effect/experimental': 0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14)
-      '@effect/platform': 0.94.1(effect@3.19.14)
-      '@effect/rpc': 0.73.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14)
-      effect: 3.19.14
+      '@effect/experimental': 0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)
+      '@effect/platform': 0.94.1(effect@3.19.15)
+      '@effect/rpc': 0.73.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)
+      effect: 3.19.15
 
   '@emnapi/core@1.8.1':
     dependencies:
@@ -11144,11 +11141,6 @@ snapshots:
       safe-buffer: 5.2.1
 
   ee-first@1.1.1: {}
-
-  effect@3.19.13:
-    dependencies:
-      '@standard-schema/spec': 1.1.0
-      fast-check: 3.23.2
 
   effect@3.19.14:
     dependencies:
