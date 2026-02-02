@@ -28,8 +28,16 @@
       "@/lib/*": ["./src/lib/*"],
       "@/styles/*": ["./src/styles/*"],
       "@i18n/*": ["./i18n/*"],
+      "@livai/app": ["../../packages/app/src/index.ts"],
+      "@livai/app/*": ["../../packages/app/src/*"],
       "@livai/feature-auth": ["../../packages/feature-auth/src/index.ts"],
-      "@livai/ui-features": ["../../packages/ui-features/src/index.ts"]
+      "@livai/feature-auth/*": ["../../packages/feature-auth/src/*"],
+      "@livai/ui-core": ["../../packages/ui-core/src/index.ts"],
+      "@livai/ui-core/*": ["../../packages/ui-core/src/*"],
+      "@livai/ui-features": ["../../packages/ui-features/src/index.ts"],
+      "@livai/ui-features/*": ["../../packages/ui-features/src/*"],
+      "@livai/ui-shared": ["../../packages/ui-shared/src/index.ts"],
+      "@livai/ui-shared/*": ["../../packages/ui-shared/src/*"]
     }
   },
   "include": [
