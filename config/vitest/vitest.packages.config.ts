@@ -285,8 +285,8 @@ export function createPackageVitestConfig(options: PackageConfigOptions): Packag
 
       // Паттерны поиска тестов (unit/integration + CLI tools)
       include: [
-        'src/**/*.{test}.{ts,tsx,js,jsx}',
         'tests/**/*.{test}.{ts,tsx,js,jsx}',
+        '**/*.{test}.{ts,tsx,js,jsx}',
         // CLI инструменты используют .spec файлы
         '../../../tools/cli/tests/**/*.spec.{ts,tsx,js,jsx}',
       ],

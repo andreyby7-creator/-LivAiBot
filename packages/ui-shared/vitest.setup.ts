@@ -5,8 +5,8 @@
 import { cleanup } from '@testing-library/react';
 import { afterEach, beforeEach } from 'vitest';
 
-// Импорт jest-dom matchers для UI тестов
-import '@testing-library/jest-dom/vitest';
+// Импортируем общий setup (включая jest-dom matchers)
+export * from '../../config/vitest/test.setup.js';
 
 // Очистка DOM перед и после каждого теста
 beforeEach(() => {
@@ -53,5 +53,4 @@ afterEach(() => {
   inputs.forEach((input) => input.remove());
 });
 
-// Импортируем общий setup (включая jest-dom matchers)
-export * from '../../config/vitest/test.setup.js';
+// Jest-dom уже импортирован выше, общий setup не нужен для UI пакетов

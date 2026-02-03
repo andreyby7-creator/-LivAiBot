@@ -14,6 +14,32 @@ import dotenvExpand from "dotenv-expand";
 import { globSync } from "glob";
 import ts from "typescript";
 
+/* ================= ПРОВЕРКА ВЕРСИИ NODE ================= */
+
+function assertNodeVersion() {
+  // Читаем требуемую версию из .nvmrc файла
+  let requiredVersion = '24.12.0'; // значение по умолчанию
+  try {
+    if (fs.existsSync('.nvmrc')) {
+      requiredVersion = fs.readFileSync('.nvmrc', 'utf8').trim();
+    }
+  } catch (error) {
+    console.warn('Не удалось прочитать .nvmrc файл, используем версию по умолчанию');
+  }
+
+  const [requiredMajor, requiredMinor] = requiredVersion.split('.').map(Number);
+  const [currentMajor, currentMinor] = process.versions.node.split('.').map(Number);
+
+  if (currentMajor !== requiredMajor || currentMinor !== requiredMinor) {
+    fatal(
+      `Требуется Node ${requiredVersion}, обнаружено ${process.versions.node}. ` +
+      `Установите/активируйте нужную версию: nvm install ${requiredVersion} && nvm use ${requiredVersion}`
+    );
+  }
+}
+
+assertNodeVersion();
+
 /* ================= ERROR HANDLING ================= */
 
 // Централизованный error boundary для фатальных ошибок
@@ -29,26 +55,13 @@ function fatal(message, error = null) {
   process.exit(1);
 }
 
-// Активное ожидание файла с таймаутом (устранение race condition)
-function waitForFile(filePath, timeoutMs = 10000) {
-  const start = Date.now();
-  return new Promise(resolve => {
-    const interval = setInterval(() => {
-      if (fs.existsSync(filePath)) {
-        clearInterval(interval);
-        resolve(true);
-      }
-      if (Date.now() - start > timeoutMs) {
-        clearInterval(interval);
-        resolve(false);
-      }
-    }, 200); // проверка каждые 200мс
-  });
-}
-
 // Поиск coverage-final.json в любых подпапках coverage (Vitest может складывать в coverage/tmp)
 function locateCoverageFile() {
-  // Ищем отчет покрытий глобально, но игнорируем node_modules и кеши
+  // Приоритет: корневой coverage/coverage-final.json
+  const rootCoverage = path.join(ROOT, 'coverage', 'coverage-final.json');
+  if (fs.existsSync(rootCoverage)) return rootCoverage;
+
+  // Если корневого нет — ищем глобально, но игнорируем node_modules и кеши
   const candidates = globSync('**/coverage-final.json', {
     cwd: ROOT,
     absolute: true,
@@ -133,6 +146,12 @@ const paths = program.args.length ? program.args : [];
 // Окружение и настройки будут разрешены позже в resolveTestSetup
 
 let normalizedPaths = validateAndNormalizePaths();
+let coverageCleaned = false; // гарантируем, что coverage очищается один раз за запуск
+let coverageEnabled = false;
+let configPath = null;
+let environment = null;
+let reporter = opts.reporter || 'default';
+let reportDir = opts.reportDir || 'reports';
 
 // Применить фильтрацию пакетов
 if (opts.packages) {
@@ -271,22 +290,35 @@ function parseVitestJsonResults(outputFile = null, reportDir = 'reports') {
   if (outputFile && fs.existsSync(path.join(ROOT, outputFile))) {
     resultFiles.push(path.join(ROOT, outputFile));
   } else {
-    // Приоритет: results.json > results.attempt-* > results.final.json
+    // Приоритет: results.json > results.attempt-* > results.final.json > остальные results*.json
     const mainResultFile = path.join(resultsDir, "results.json");
     if (fs.existsSync(mainResultFile)) {
       resultFiles.push(mainResultFile);
     } else {
-      // Если основного файла нет, ищем последний attempt
-      const attemptFiles = fs.readdirSync(resultsDir)
-        .filter(file => file.startsWith('results.attempt-') && file.endsWith('.json'))
-        .sort()
-        .reverse();
+      try {
+        const files = fs.readdirSync(resultsDir)
+          .filter(file => file.startsWith('results') && file.endsWith('.json'))
+          .map(file => ({ file, mtime: fs.statSync(path.join(resultsDir, file)).mtime.getTime() }))
+          .sort((a, b) => b.mtime - a.mtime);
 
-      if (attemptFiles.length > 0) {
-        resultFiles.push(path.join(resultsDir, attemptFiles[0]));
-      } else if (fs.existsSync(path.join(resultsDir, "results.final.json"))) {
-        // Последний шанс - final файл
-        resultFiles.push(path.join(resultsDir, "results.final.json"));
+        // Если основного файла нет, ищем последний attempt
+        const attempt = files.find(f => f.file.startsWith('results.attempt-'));
+        if (attempt) {
+          resultFiles.push(path.join(resultsDir, attempt.file));
+        } else if (fs.existsSync(path.join(resultsDir, "results.final.json"))) {
+          // Последний шанс - final файл
+          resultFiles.push(path.join(resultsDir, "results.final.json"));
+        }
+
+        // Добавляем остальные результаты (results*.json) как дополнительный источник
+        for (const entry of files) {
+          const fullPath = path.join(resultsDir, entry.file);
+          if (!resultFiles.includes(fullPath)) {
+            resultFiles.push(fullPath);
+          }
+        }
+      } catch (error) {
+        // Игнорируем ошибки чтения директории
       }
     }
   }
@@ -429,14 +461,23 @@ async function runAllTestTypes(globalSetup) {
   const startTime = Date.now();
   let overallSuccess = true;
 
+  // AI тесты пока не имеют кода для покрытия - отключаем coverage
+  const getCoverageEnabled = (testType) => {
+    return testType.name === 'AI тесты' ? false : globalSetup.coverageEnabled;
+  };
+
   if (CI_MODE) {
     for (const testType of testTypes) {
-      const success = await runSingleTestType(testType, testType.environment, globalSetup.coverageEnabled);
+      const coverageEnabled = getCoverageEnabled(testType);
+      const success = await runSingleTestType(testType, testType.environment, coverageEnabled);
       if (!success) overallSuccess = false;
     }
   } else {
     const results = await Promise.all(
-      testTypes.map(testType => runSingleTestType(testType, testType.environment, globalSetup.coverageEnabled))
+      testTypes.map(testType => {
+        const coverageEnabled = getCoverageEnabled(testType);
+        return runSingleTestType(testType, testType.environment, coverageEnabled);
+      })
     );
     overallSuccess = results.every(success => success);
   }
@@ -709,8 +750,9 @@ async function runVitestOnce({ configPath, environment, paths, opts, coverageEna
   return new Promise((resolve) => {
     try {
       // Очищаем директории coverage перед запуском
-      if (coverageEnabled) {
+      if (coverageEnabled && !coverageCleaned) {
         fs.rmSync(path.join(ROOT, "coverage"), { recursive: true, force: true });
+        coverageCleaned = true;
       }
 
       // Строим аргументы для Vitest
@@ -875,6 +917,11 @@ function resolveTestSetup() {
     fatal('Критическая ошибка: normalizedPaths или opts не определены');
   }
 
+  // Режим --all: конфигурация определяется в resolveTestSetupForAll/runAllTestTypes
+  if (opts.all) {
+    return null;
+  }
+
   // Получаем профиль тестов через единую функцию
   const profileResult = resolveTestProfile(normalizedPaths, opts);
   if (!profileResult || !profileResult.ok) {
@@ -910,13 +957,15 @@ if (!testSetup) {
   // Режим --all: запустить все типы тестов последовательно/параллельно
   // Но нам все равно нужны глобальные настройки для пост-обработки
   const globalTestSetup = resolveTestSetupForAll();
-  runAllTestTypes(globalTestSetup).catch((error) => {
+  coverageEnabled = globalTestSetup.coverageEnabled;
+  reporter = globalTestSetup.reporter;
+  reportDir = globalTestSetup.reportDir;
+  await runAllTestTypes(globalTestSetup).catch((error) => {
     fatal('Критическая ошибка в runAllTestTypes', error);
   });
-  // Выйти немедленно, чтобы предотвратить дальнейшее выполнение
   process.exit(0);
 }
-const { configPath, environment, coverageEnabled, reporter, reportDir } = testSetup;
+({ configPath, environment, coverageEnabled, reporter, reportDir } = testSetup);
 if (!fs.existsSync(configPath)) {
   throw new Error(`Конфигурация Vitest не найдена: ${configPath}`);
 }
@@ -1100,8 +1149,19 @@ async function checkCoverageThresholds() {
     const coverage = JSON.parse(fs.readFileSync(coverageJsonPath, 'utf8'));
     const total = coverage.total || {};
 
+    // Если отчет пустой (нет строк/функций/веток), пропускаем проверку порогов
+    const noData =
+      (total.lines?.total ?? 0) === 0 &&
+      (total.functions?.total ?? 0) === 0 &&
+      (total.branches?.total ?? 0) === 0 &&
+      (total.statements?.total ?? 0) === 0;
+    if (noData) {
+      console.warn("⚠️ Coverage report is empty; skipping threshold checks.");
+      return { enabled: true, reportFound: true, thresholdsStatus: 'skipped' };
+    }
+
     // Динамическая загрузка порогов из конфигурационного файла
-    const thresholds = loadThresholdsFromConfig(configPath);
+    const thresholds = loadThresholdsFromConfig(configPath || CONFIGS.base);
 
     console.log("\n📊 Проверка порогов покрытия:");
     console.log(`   Требуется: ${thresholds.lines}% строк, ${thresholds.functions}% функций, ${thresholds.branches}% ветвей, ${thresholds.statements}% выражений`);

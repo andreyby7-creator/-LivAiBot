@@ -33,6 +33,7 @@ export default defineConfig({
       'config/playwright/**',
       '**/playwright-report/**',
       'packages/**/tests/**/*.spec.{ts,tsx}',
+      '**/node_modules/**',
     ],
     // Интеграционные тесты могут быть медленнее
     testTimeout: 30000,

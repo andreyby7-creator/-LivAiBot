@@ -249,13 +249,16 @@ export default defineConfig({
     name: 'AI Integration Tests',
     environment: 'node',
     globals: true,
-    setupFiles: ['./test.setup.ts'],
+    setupFiles: ['./config/vitest/ai-test.setup.ts'],
 
     // AI интеграционные тесты
     include: [
       'tests/integration/**/*.ai.test.ts',
       'tests/integration/**/*.ai.spec.ts',
       'src/**/*ai*integration*.test.ts',
+      'packages/**/tests/integration/**/*.ai.test.ts',
+      'packages/**/tests/integration/**/*.ai.spec.ts',
+      'packages/**/*ai*integration*.test.ts',
     ],
 
     // Исключаем unit-тесты
@@ -278,20 +281,6 @@ export default defineConfig({
     // Параллельность и изоляция
     pool: 'threads',
     isolate: false, // AI тесты могут быть зависимы от состояния
-
-    // Покрытие для AI кода
-    coverage: {
-      provider: 'v8',
-      include: ['src/ai/**/*', 'src/services/ai/**/*', 'src/integrations/**/*', 'src/**/*ai*/**/*'],
-      exclude: [
-        'src/**/*.test.ts',
-        'src/**/*.spec.ts',
-        'src/**/*.d.ts',
-        'e2e/**',
-        '**/e2e/**',
-        'config/playwright/**',
-      ],
-    },
 
     // Env переменные для AI тестов (автоматически из AI_PROVIDERS)
     env: Object.fromEntries(
