@@ -267,7 +267,7 @@ App state и hooks
 1️⃣1️⃣8️⃣ packages/app/src/state/store.ts 🟢 — ts+zustand — deps: types/common.ts
 1️⃣1️⃣9️⃣ packages/app/src/state/query/query-client.ts 🟢 — ts+react — deps: lib/telemetry.ts
 1️⃣2️⃣0️⃣ packages/app/src/providers/TelemetryProvider.tsx 🟢 — ts+react — deps: lib/telemetry.ts, types/telemetry.ts
-1️⃣2️⃣1️⃣ packages/app/src/providers/FeatureFlagsProvider.tsx 🔴 — ts+zustand — deps: lib/feature-flags.ts
+1️⃣2️⃣1️⃣ packages/app/src/providers/FeatureFlagsProvider.tsx 🟢 — ts+zustand — deps: lib/feature-flags.ts, types/common.ts
 1️⃣2️⃣2️⃣ packages/app/src/providers/QueryClientProvider.tsx 🔴 — ts+react — deps: state/query/query-client.ts
 1️⃣2️⃣3️⃣ packages/app/src/providers/ToastProvider.tsx 🔴 — ts+react — deps: ui-core/Toast.tsx
 1️⃣2️⃣4️⃣ packages/app/src/providers/AppProviders.tsx 🔴 — ts+react — deps: providers/TelemetryProvider.tsx, providers/FeatureFlagsProvider.tsx, providers/QueryClientProvider.tsx, providers/ToastProvider.tsx, state/store.ts

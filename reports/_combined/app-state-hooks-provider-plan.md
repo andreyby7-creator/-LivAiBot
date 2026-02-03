@@ -153,7 +153,7 @@ export const useTelemetry = () => useContext(TelemetryContext);
 
 ---
 
-### 4️⃣ **FeatureFlagsProvider.tsx** 🔴
+### 4️⃣ **FeatureFlagsProvider.tsx** 🟢
 
 **Расположение:** `packages/app/src/providers/FeatureFlagsProvider.tsx`
 **Стек:** TS + Zustand (single source of truth)
