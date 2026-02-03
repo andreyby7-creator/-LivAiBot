@@ -78,11 +78,182 @@
 
 ### **🔍 Структура проекта (реализованная):**
 
-📁 services/
-1️⃣ services/api-gateway/ — ts — API Gateway (FastAPI + middleware + прокси)
-2️⃣ services/auth-service/ — ts — Auth Service (JWT + workspace + регистрация)
-3️⃣ services/bots-service/ — ts — Bots Service (CRUD + инструкции + версии)
-4️⃣ services/conversations-service/ — ts — Conversations Service (треды + turn stub)
+#### **Backend сервисы (4):**
+
+- ✅ `services/api-gateway` - единый вход + прокси + middleware
+- ✅ `services/auth-service` - аутентификация + workspace + JWT
+- ✅ `services/bots-service` - CRUD ботов + инструкции + версии
+- ✅ `services/conversations-service` - треды + сообщения + turn (stub)
+
+#### **Инфраструктура:**
+
+- ✅ `infrastructure/compose/docker-compose.yml` - Postgres/Redis/ClickHouse/MinIO/Qdrant
+- ✅ `scripts/infra_check.py` - проверка доступности инфраструктуры
+
+### **🚀 ПОЛНЫЙ СПИСОК РЕАЛИЗОВАННЫХ ФАЙЛОВ:**
+
+#### **API Gateway сервис:**
+
+1️⃣ services/api-gateway/api_src/main.py 🟢 — py+fastapi — FastAPI приложение
+2️⃣ services/api-gateway/api_src/config/settings.py 🟢 — py+pydantic — Настройки сервиса
+3️⃣ services/api-gateway/api_src/entrypoints/http/routes_health.py 🟢 — py+fastapi — Health check endpoints
+4️⃣ services/api-gateway/api_src/entrypoints/http/routes_v1.py 🟢 — py+fastapi — API v1 прокси роутинг
+5️⃣ services/api-gateway/api_src/errors/http_errors.py 🟢 — py — HTTP обработка ошибок
+6️⃣ services/api-gateway/api_src/middleware/auth.py 🟢 — py+fastapi — JWT аутентификация middleware
+7️⃣ services/api-gateway/api_src/middleware/operation_id.py 🟢 — py+fastapi — Operation ID middleware
+8️⃣ services/api-gateway/api_src/middleware/rate_limit.py 🟢 — py+fastapi — Rate limiting middleware
+9️⃣ services/api-gateway/api_src/middleware/trace_id.py 🟢 — py+fastapi — Trace ID middleware
+🔟 services/api-gateway/api_src/security/jwt.py 🟢 — py — JWT утилиты
+1️⃣1️⃣ services/api-gateway/api_src/clients/__init__.py 🟢 — py — HTTP клиенты для прокси
+1️⃣2️⃣ services/api-gateway/api_src/adapters/__init__.py 🟢 — py — Адаптеры
+1️⃣3️⃣ services/api-gateway/api_src/domain/__init__.py 🟢 — py — Доменная модель
+1️⃣4️⃣ services/api-gateway/api_src/ports/__init__.py 🟢 — py — Порты (интерфейсы)
+1️⃣5️⃣ services/api-gateway/api_src/use_cases/__init__.py 🟢 — py — Use cases
+1️⃣6️⃣ services/api-gateway/api_src/observability/__init__.py 🟢 — py — Наблюдаемость
+1️⃣7️⃣ services/api-gateway/tests/test_health.py 🟢 — py+pytest — Health check тесты
+1️⃣8️⃣ services/api-gateway/Makefile 🟢 — make — Команды сборки
+1️⃣9️⃣ services/api-gateway/README.md 🟢 — md — Документация сервиса
+2️⃣0️⃣ services/api-gateway/pytest.ini 🟢 — ini — Pytest конфигурация
+2️⃣1️⃣ services/api-gateway/coverage.json 🟢 — json — Coverage отчет
+
+#### **Auth Service:**
+
+2️⃣2️⃣ services/auth-service/auth_src/main.py 🟢 — py+fastapi — FastAPI приложение
+2️⃣3️⃣ services/auth-service/auth_src/config/settings.py 🟢 — py+pydantic — Настройки сервиса
+2️⃣4️⃣ services/auth-service/auth_src/entrypoints/http/routes_auth.py 🟢 — py+fastapi — Auth API endpoints
+2️⃣5️⃣ services/auth-service/auth_src/entrypoints/http/routes_health.py 🟢 — py+fastapi — Health check endpoints
+2️⃣6️⃣ services/auth-service/auth_src/errors/http_errors.py 🟢 — py — HTTP обработка ошибок
+2️⃣7️⃣ services/auth-service/auth_src/middleware/operation_id.py 🟢 — py+fastapi — Operation ID middleware
+2️⃣8️⃣ services/auth-service/auth_src/middleware/trace_id.py 🟢 — py+fastapi — Trace ID middleware
+2️⃣9️⃣ services/auth-service/auth_src/security/jwt.py 🟢 — py — JWT токены и валидация
+3️⃣0️⃣ services/auth-service/auth_src/security/passwords.py 🟢 — py — Хэширование паролей
+3️⃣1️⃣ services/auth-service/auth_src/adapters/db/models.py 🟢 — py+sqlalchemy — БД модели (users, workspaces)
+3️⃣2️⃣ services/auth-service/auth_src/adapters/db/base.py 🟢 — py+sqlalchemy — БД базовые классы
+3️⃣3️⃣ services/auth-service/auth_src/adapters/db/audit.py 🟢 — py+sqlalchemy — Audit лог модели
+3️⃣4️⃣ services/auth-service/auth_src/adapters/db/session.py 🟢 — py+sqlalchemy — Async сессии БД
+3️⃣5️⃣ services/auth-service/auth_src/domain/__init__.py 🟢 — py — Доменная модель
+3️⃣6️⃣ services/auth-service/auth_src/ports/__init__.py 🟢 — py — Порты (интерфейсы)
+3️⃣7️⃣ services/auth-service/auth_src/use_cases/__init__.py 🟢 — py — Use cases
+3️⃣8️⃣ services/auth-service/tests/test_health.py 🟢 — py+pytest — Health check тесты
+3️⃣9️⃣ services/auth-service/Makefile 🟢 — make — Команды сборки
+4️⃣0️⃣ services/auth-service/README.md 🟢 — md — Документация сервиса
+4️⃣1️⃣ services/auth-service/pytest.ini 🟢 — ini — Pytest конфигурация
+4️⃣2️⃣ services/auth-service/coverage.json 🟢 — json — Coverage отчет
+4️⃣3️⃣ services/auth-service/openapi.json 🟢 — json — OpenAPI спецификация
+4️⃣4️⃣ services/auth-service/alembic.ini 🟢 — ini — Alembic конфигурация
+4️⃣5️⃣ services/auth-service/migrations/env.py 🟢 — py — Alembic environment
+4️⃣6️⃣ services/auth-service/migrations/versions/001_initial.py 🟢 — py — Initial миграция
+4️⃣7️⃣ services/auth-service/migrations/versions/002_audit_log.py 🟢 — py — Audit log миграция
+
+#### **Bots Service:**
+
+4️⃣8️⃣ services/bots-service/bots_src/main.py 🟢 — py+fastapi — FastAPI приложение
+4️⃣9️⃣ services/bots-service/bots_src/config/settings.py 🟢 — py+pydantic — Настройки сервиса
+5️⃣0️⃣ services/bots-service/bots_src/entrypoints/http/routes_bots.py 🟢 — py+fastapi — Bots API endpoints
+5️⃣1️⃣ services/bots-service/bots_src/entrypoints/http/routes_health.py 🟢 — py+fastapi — Health check endpoints
+5️⃣2️⃣ services/bots-service/bots_src/errors/http_errors.py 🟢 — py — HTTP обработка ошибок
+5️⃣3️⃣ services/bots-service/bots_src/middleware/tenant.py 🟢 — py+fastapi — Tenant isolation middleware
+5️⃣4️⃣ services/bots-service/bots_src/adapters/db/models.py 🟢 — py+sqlalchemy — БД модели (bots, bot_versions)
+5️⃣5️⃣ services/bots-service/bots_src/adapters/db/base.py 🟢 — py+sqlalchemy — БД базовые классы
+5️⃣6️⃣ services/bots-service/bots_src/adapters/db/audit.py 🟢 — py+sqlalchemy — Audit лог модели
+5️⃣7️⃣ services/bots-service/bots_src/adapters/db/session.py 🟢 — py+sqlalchemy — Async сессии БД
+5️⃣8️⃣ services/bots-service/tests/test_health.py 🟢 — py+pytest — Health check тесты
+5️⃣9️⃣ services/bots-service/Makefile 🟢 — make — Команды сборки
+6️⃣0️⃣ services/bots-service/README.md 🟢 — md — Документация сервиса
+6️⃣1️⃣ services/bots-service/pytest.ini 🟢 — ini — Pytest конфигурация
+6️⃣2️⃣ services/bots-service/coverage.json 🟢 — json — Coverage отчет
+6️⃣3️⃣ services/bots-service/openapi.json 🟢 — json — OpenAPI спецификация
+6️⃣4️⃣ services/bots-service/alembic.ini 🟢 — ini — Alembic конфигурация
+6️⃣5️⃣ services/bots-service/migrations/env.py 🟢 — py — Alembic environment
+6️⃣6️⃣ services/bots-service/migrations/versions/001_initial.py 🟢 — py — Initial миграция
+6️⃣7️⃣ services/bots-service/migrations/versions/002_audit_log.py 🟢 — py — Audit log миграция
+
+#### **Conversations Service:**
+
+6️⃣8️⃣ services/conversations-service/conversations_src/main.py 🟢 — py+fastapi — FastAPI приложение
+6️⃣9️⃣ services/conversations-service/conversations_src/config/settings.py 🟢 — py+pydantic — Настройки сервиса
+7️⃣0️⃣ services/conversations-service/conversations_src/entrypoints/http/routes_conversations.py 🟢 — py+fastapi — Conversations API endpoints
+7️⃣1️⃣ services/conversations-service/conversations_src/entrypoints/http/routes_health.py 🟢 — py+fastapi — Health check endpoints
+7️⃣2️⃣ services/conversations-service/conversations_src/errors/http_errors.py 🟢 — py — HTTP обработка ошибок
+7️⃣3️⃣ services/conversations-service/conversations_src/middleware/tenant.py 🟢 — py+fastapi — Tenant isolation middleware
+7️⃣4️⃣ services/conversations-service/conversations_src/middleware/dedupe.py 🟢 — py+fastapi — Deduplication middleware
+7️⃣5️⃣ services/conversations-service/conversations_src/adapters/db/models.py 🟢 — py+sqlalchemy — БД модели (conversations, threads, messages)
+7️⃣6️⃣ services/conversations-service/conversations_src/adapters/db/base.py 🟢 — py+sqlalchemy — БД базовые классы
+7️⃣7️⃣ services/conversations-service/conversations_src/adapters/db/audit.py 🟢 — py+sqlalchemy — Audit лог модели
+7️⃣8️⃣ services/conversations-service/conversations_src/adapters/db/session.py 🟢 — py+sqlalchemy — Async сессии БД
+7️⃣9️⃣ services/conversations-service/conversations_src/adapters/db/dlq_repository.py 🟢 — py — Dead letter queue repository
+8️⃣0️⃣ services/conversations-service/conversations_src/adapters/db/llm_turns_model.py 🟢 — py+sqlalchemy — LLM turns модель
+8️⃣1️⃣ services/conversations-service/conversations_src/use_cases/dlq.py 🟢 — py — Dead letter queue use case
+8️⃣2️⃣ services/conversations-service/conversations_src/use_cases/job_queue.py 🟢 — py — Job queue use case
+8️⃣3️⃣ services/conversations-service/conversations_src/use_cases/llm_turns.py 🟢 — py — LLM turns use case
+8️⃣4️⃣ services/conversations-service/conversations_src/use_cases/retry_utils.py 🟢 — py — Retry utilities
+8️⃣5️⃣ services/conversations-service/conversations_src/use_cases/webhook_events.py 🟢 — py — Webhook events use case
+8️⃣6️⃣ services/conversations-service/tests/test_health.py 🟢 — py+pytest — Health check тесты
+8️⃣7️⃣ services/conversations-service/tests/test_dlq.py 🟢 — py+pytest — DLQ тесты
+8️⃣8️⃣ services/conversations-service/Makefile 🟢 — make — Команды сборки
+8️⃣9️⃣ services/conversations-service/README.md 🟢 — md — Документация сервиса
+9️⃣0️⃣ services/conversations-service/pytest.ini 🟢 — ini — Pytest конфигурация
+9️⃣1️⃣ services/conversations-service/coverage.json 🟢 — json — Coverage отчет
+9️⃣2️⃣ services/conversations-service/openapi.json 🟢 — json — OpenAPI спецификация
+9️⃣3️⃣ services/conversations-service/alembic.ini 🟢 — ini — Alembic конфигурация
+9️⃣4️⃣ services/conversations-service/migrations/env.py 🟢 — py — Alembic environment
+9️⃣5️⃣ services/conversations-service/migrations/versions/001_initial.py 🟢 — py — Initial миграция
+9️⃣6️⃣ services/conversations-service/migrations/versions/002_audit_log.py 🟢 — py — Audit log миграция
+9️⃣7️⃣ services/conversations-service/migrations/versions/003_llm_turns.py 🟢 — py — LLM turns миграция
+
+#### **Инфраструктура и конфигурация:**
+
+9️⃣8️⃣ infrastructure/compose/docker-compose.yml 🟢 — yaml — Docker Compose инфраструктура
+9️⃣9️⃣ infrastructure/compose/init-jobs/__init__.py 🟢 — py — Инициализация джобы
+1️⃣0️⃣0️⃣ scripts/infra_check.py 🟢 — py — Проверка доступности инфраструктуры
+1️⃣0️⃣1️⃣ scripts/dev_up.sh 🟢 — sh — Поднять всю инфраструктуру и сервисы
+1️⃣0️⃣2️⃣ scripts/dev_down.sh 🟢 — sh — Остановить всю инфраструктуру
+1️⃣0️⃣3️⃣ scripts/dev_status.sh 🟢 — sh — Проверить статус сервисов
+1️⃣0️⃣4️⃣ scripts/backend_check.sh 🟢 — sh — Проверка всех backend сервисов
+1️⃣0️⃣5️⃣ config/python/settings_example.py 🟢 — py — Pydantic Settings для сервисов
+1️⃣0️⃣6️⃣ config/python/alembic.ini 🟢 — ini — Alembic конфигурация миграций
+1️⃣0️⃣7️⃣ config/python/logging.yaml 🟢 — yaml — Логирование конфигурация
+1️⃣0️⃣8️⃣ config/python/mypy.ini 🟢 — ini — MyPy статическая типизация
+1️⃣0️⃣9️⃣ config/python/ruff.toml 🟢 — toml — Ruff линтер и форматирование
+1️⃣1️⃣0️⃣ config/python/pytest.ini 🟢 — ini — Pytest конфигурация
+1️⃣1️⃣1️⃣ config/python/pyproject.template.toml 🟢 — toml — Шаблон pyproject.toml
+
+#### **Тестирование и E2E:**
+
+1️⃣1️⃣2️⃣ e2e/user-journeys/create-ai-bot.spec.ts 🟢 — ts — E2E тест создания бота
+1️⃣1️⃣3️⃣ e2e/user-journeys/registration-and-workspace.spec.ts 🟢 — ts — E2E тест регистрации
+1️⃣1️⃣4️⃣ .github/workflows/ci.yml 🟢 — yaml — CI/CD pipeline
+1️⃣1️⃣5️⃣ .github/workflows/lint.yml 🟢 — yaml — Линтинг и форматирование
+1️⃣1️⃣6️⃣ .github/workflows/test.yml 🟢 — yaml — Запуск тестов
+1️⃣1️⃣7️⃣ .github/workflows/security.yml 🟢 — yaml — Безопасность
+
+#### **Корневые файлы проекта:**
+
+1️⃣1️⃣8️⃣ pyproject.toml 🟢 — toml — Python зависимости и конфигурация
+1️⃣1️⃣9️⃣ requirements.txt 🟢 — txt — Python зависимости
+1️⃣2️⃣0️⃣ requirements-dev.txt 🟢 — txt — Dev зависимости
+1️⃣2️⃣1️⃣ package.json 🟢 — json — Node.js workspace конфигурация
+1️⃣2️⃣2️⃣ pnpm-workspace.yaml 🟢 — yaml — PNPM workspace
+1️⃣2️⃣3️⃣ pnpm-lock.yaml 🟢 — yaml — PNPM lockfile
+1️⃣2️⃣4️⃣ turbo.json 🟢 — json — Turborepo конфигурация
+1️⃣2️⃣5️⃣ tsconfig.json 🟢 — json — TypeScript корневая конфигурация
+1️⃣2️⃣6️⃣ pyrightconfig.json 🟢 — json — Pyright (Pylance) конфигурация
+1️⃣2️⃣7️⃣ eslint.config.mjs 🟢 — js — ESLint конфигурация
+1️⃣2️⃣8️⃣ dprint.json 🟢 — json — Dprint форматирование
+1️⃣2️⃣9️⃣ env.example 🟢 — env — Пример переменных окружения
+1️⃣3️⃣0️⃣ Makefile 🟢 — make — Команды сборки и разработки
+1️⃣3️⃣1️⃣ LICENSE 🟢 — txt — Лицензия проекта
+1️⃣3️⃣2️⃣ README.md 🟢 — md — Документация проекта
+1️⃣3️⃣3️⃣ build-order.yml 🟢 — yaml — Порядок сборки пакетов
+1️⃣3️⃣4️⃣ budgets.json 🟢 — json — Бюджеты bundle sizes
+1️⃣3️⃣5️⃣ coverage_clean.json 🟢 — json — Конфигурация очистки coverage
+1️⃣3️⃣6️⃣ dependency-policy.json 🟢 — json — Политика зависимостей
+1️⃣3️⃣7️⃣ get-pip.py 🟢 — py — Установщик pip для Python
+1️⃣3️⃣8️⃣ .gitignore 🟢 — gitignore — Исключаемые файлы
+1️⃣3️⃣9️⃣ .husky/_/husky.sh 🟢 — sh — Husky setup
+1️⃣4️⃣0️⃣ .husky/commit-msg 🟢 — sh — Commit message hook
+1️⃣4️⃣1️⃣ .husky/pre-commit 🟢 — sh — Pre-commit hook
+1️⃣4️⃣2️⃣ .husky/pre-push 🟢 — sh — Pre-push hook
 
 📁 apps/
 1️⃣ apps/web/ — ts — Next.js приложение (подготовлено для Фазы 2)
