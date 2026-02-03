@@ -264,7 +264,7 @@ apps/web (тонкий композитор)
 1️⃣1️⃣7️⃣ packages/app/src/ui/support-button.tsx 🟢 — ts+react — deps: ui-core/components/SupportButton.tsx, app/lib/feature-flags.ts, app/lib/telemetry.ts
 
 App state и hooks
-1️⃣1️⃣8️⃣ packages/app/src/state/store.ts 🔴 — ts+zustand — deps: —
+1️⃣1️⃣8️⃣ packages/app/src/state/store.ts 🟢 — ts+zustand — deps: types/common.ts
 1️⃣1️⃣9️⃣ packages/app/src/state/query/query-client.ts 🔴 — ts+react — deps: lib/telemetry.ts
 1️⃣2️⃣0️⃣ packages/app/src/providers/TelemetryProvider.tsx 🔴 — ts+react — deps: lib/telemetry.ts
 1️⃣2️⃣1️⃣ packages/app/src/providers/FeatureFlagsProvider.tsx 🔴 — ts+zustand — deps: lib/feature-flags.ts

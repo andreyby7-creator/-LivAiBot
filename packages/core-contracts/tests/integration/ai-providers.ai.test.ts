@@ -7,11 +7,29 @@
  * - Базовые проверки подключения
  */
 
-import { describe, expect, it } from 'vitest';
+import { beforeAll, describe, expect, it } from 'vitest';
 
 // Импортируем утилиты из AI конфигурации
 // Note: Эти функции доступны через глобальную конфигурацию Vitest
 // но для интеграционных тестов мы импортируем их напрямую
+
+// Настройка тестовых переменных окружения для AI провайдеров
+beforeAll(() => {
+  // Устанавливаем тестовые значения для API ключей
+  // В реальном CI эти значения должны быть установлены через секреты
+  // eslint-disable-next-line fp/no-mutation
+  process.env['OPENAI_API_KEY'] ??= 'test-openai-key';
+  // eslint-disable-next-line fp/no-mutation
+  process.env['ANTHROPIC_API_KEY'] ??= 'test-anthropic-key';
+  // eslint-disable-next-line fp/no-mutation
+  process.env['GOOGLE_AI_API_KEY'] ??= 'test-google-ai-key';
+
+  // Устанавливаем дополнительные лимиты для тестов
+  // eslint-disable-next-line fp/no-mutation
+  process.env['AI_MAX_TOKENS'] ??= '4000';
+  // eslint-disable-next-line fp/no-mutation
+  process.env['AI_REQUEST_TIMEOUT'] ??= '30000';
+});
 
 describe('AI Providers Integration', () => {
   describe('Provider Configuration', () => {
