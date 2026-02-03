@@ -27,6 +27,10 @@ PROD_MODE=${PROD_MODE:-false} # Production mode: runs real tests instead of demo
 USER_TARGET=${1:-""} # Если аргумент передан, тестируем только его
 COVERAGE_DIR="./reports/coverage"
 RESULTS_DIR="./playwright-report/test-results"
+E2E_BASE_URL=${E2E_BASE_URL:-http://localhost:3000}
+E2E_AUTO_START_SERVER=${E2E_AUTO_START_SERVER:-true}
+SERVER_PID=""
+DEV_LOG="/tmp/e2e-dev.log"
 START_TIME=$(date +"%H:%M:%S")
 START_TS=$(date +%s)
 
@@ -49,16 +53,41 @@ function run_playwright_e2e() {
     echo -e "${YELLOW}Production mode: Running real E2E tests${RESET}"
 
     # Проверяем доступность веб-сервера перед запуском тестов
-    local web_url="${E2E_BASE_URL:-http://localhost:3000}"
+    local web_url="$E2E_BASE_URL"
     echo -e "${CYAN}Checking web server availability at: $web_url${RESET}"
 
     # Проверяем доступность сервера с таймаутом 10 секунд
-    if ! curl -f --max-time 10 --silent "$web_url" > /dev/null 2>&1; then
-      echo -e "${RED}❌ ERROR: Web server is not available at $web_url${RESET}"
-      echo -e "${YELLOW}💡 Please start the web server first:${RESET}"
-      echo -e "${CYAN}   pnpm run dev${RESET}"
-      echo -e "${YELLOW}   or set E2E_BASE_URL to the correct server URL${RESET}"
-      return 1
+    if ! curl --max-time 10 --silent "$web_url" > /dev/null 2>&1; then
+      if [[ "$CI_MODE" == "true" && "$E2E_AUTO_START_SERVER" == "true" ]]; then
+        echo -e "${YELLOW}⚠️  Web server not available, starting local dev server...${RESET}"
+        pnpm run dev -- --host 0.0.0.0 --port 3000 >"$DEV_LOG" 2>&1 &
+        SERVER_PID=$!
+        # ждём до 90 секунд
+        for _ in {1..90}; do
+          if curl --max-time 5 --silent "$web_url" > /dev/null 2>&1; then
+            echo -e "${GREEN}✅ Web server started locally${RESET}"
+            break
+          fi
+          if ! ps -p "$SERVER_PID" > /dev/null 2>&1; then
+            echo -e "${RED}❌ Dev server process terminated prematurely${RESET}"
+            [[ -f "$DEV_LOG" ]] && { echo -e "${YELLOW}Tail of dev server log:${RESET}"; tail -n 80 "$DEV_LOG"; }
+            return 1
+          fi
+          sleep 1
+        done
+        # финальная проверка
+        if ! curl -f --max-time 5 --silent "$web_url" > /dev/null 2>&1; then
+          echo -e "${RED}❌ Failed to start local dev server for E2E${RESET}"
+          [[ -f "$DEV_LOG" ]] && { echo -e "${YELLOW}Tail of dev server log:${RESET}"; tail -n 80 "$DEV_LOG"; }
+          return 1
+        fi
+      else
+        echo -e "${RED}❌ ERROR: Web server is not available at $web_url${RESET}"
+        echo -e "${YELLOW}💡 Please start the web server first:${RESET}"
+        echo -e "${CYAN}   pnpm run dev${RESET}"
+        echo -e "${YELLOW}   or set E2E_BASE_URL to the correct server URL${RESET}"
+        return 1
+      fi
     fi
 
     echo -e "${GREEN}✅ Web server is available${RESET}"
@@ -389,6 +418,14 @@ show_artifacts
 echo ""
 echo -e "${BOLD}Start at:${RESET} $START_TIME"
 echo -e "${BOLD}End at  :${RESET} $END_TIME"
+
+function cleanup() {
+  if [[ -n "$SERVER_PID" ]] && ps -p "$SERVER_PID" > /dev/null 2>&1; then
+    kill "$SERVER_PID" >/dev/null 2>&1 || true
+  fi
+}
+
+trap cleanup EXIT
 
 # Выходим с ошибкой если есть проваленные тесты
 if [[ $FAILED_TESTS -gt 0 ]]; then
