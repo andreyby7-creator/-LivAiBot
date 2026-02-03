@@ -117,7 +117,7 @@ if (typeof window !== 'undefined') {
 
 ---
 
-### 3️⃣ **TelemetryProvider.tsx** 🔴
+### 3️⃣ **TelemetryProvider.tsx** 🟢
 
 **Расположение:** `packages/app/src/providers/TelemetryProvider.tsx`
 **Стек:** TS + React Context
