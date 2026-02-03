@@ -181,8 +181,27 @@ export {
   type ValidationError,
 } from './types/errors.js';
 
+// Экспортируем типы телеметрии
+export {
+  BatchCoreConfigVersion,
+  type TelemetryBatchCoreConfig,
+  type TelemetryBatchCoreState,
+  type TelemetryConfig,
+  type TelemetryEvent,
+  type TelemetryLevel,
+  TelemetryLevels,
+  type TelemetryMetadata,
+  type TelemetrySink,
+} from './types/telemetry.js';
+
 /* ============================================================================
  * 🎯 PROVIDERS — ПРОВАЙДЕРЫ
  * ========================================================================== */
 
 export * from './providers/intl-provider.js';
+
+/* ============================================================================
+ * 🏪 STORE — ГЛОБАЛЬНОЕ СОСТОЯНИЕ
+ * ========================================================================== */
+
+export * from './state/store.js';
