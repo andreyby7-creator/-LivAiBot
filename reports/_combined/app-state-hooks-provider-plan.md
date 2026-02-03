@@ -70,7 +70,7 @@ interface AppState {
 
 ---
 
-### 2️⃣ **query-client.ts** 🔴
+### 2️⃣ **query-client.ts** 🟢
 
 **Расположение:** `packages/app/src/state/query/query-client.ts`
 **Стек:** TS + @tanstack/react-query

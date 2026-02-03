@@ -205,3 +205,4 @@ export * from './providers/intl-provider.js';
  * ========================================================================== */
 
 export * from './state/store.js';
+export * from './state/query/query-client.js';

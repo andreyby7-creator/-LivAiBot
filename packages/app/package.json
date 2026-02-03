@@ -81,6 +81,7 @@
     "ui"
   ],
   "dependencies": {
+    "@tanstack/react-query": "^5.90.20",
     "dayjs": "1.11.19",
     "next-intl": "4.8.2",
     "web-vitals": "^5.1.0"
