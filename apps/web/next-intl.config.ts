@@ -7,12 +7,20 @@
 
 import { notFound } from 'next/navigation';
 
+import enMessages from './messages/en.json';
+import ruMessages from './messages/ru.json';
+
 export const locales = ['en', 'ru'] as const;
 export const defaultLocale = 'en';
 
+const messagesMap = {
+  en: enMessages,
+  ru: ruMessages,
+} as const;
+
 export default function getRequestConfig({ locale }: { readonly locale: string; }): {
   locale: string;
-  messages: () => Promise<Record<string, unknown>>;
+  messages: Record<string, unknown>;
 } {
   // Валидация locale
   if (!locales.includes(locale as typeof locales[number])) {
@@ -21,14 +29,6 @@ export default function getRequestConfig({ locale }: { readonly locale: string; 
 
   return {
     locale,
-    messages: async (): Promise<Record<string, unknown>> => {
-      try {
-        const messages = await import(`./messages/${locale}.json`);
-        return messages.default ?? messages;
-      } catch {
-        // Возвращаем пустой объект как fallback
-        return {};
-      }
-    },
+    messages: messagesMap[locale as keyof typeof messagesMap],
   };
 }
