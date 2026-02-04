@@ -168,7 +168,6 @@ describe('LocaleLayout', () => {
       expect(result.props.suppressHydrationWarning).toBe(true);
 
       expect(mockSetRequestLocale).toHaveBeenCalledWith('en');
-      expect(mockGetMessages).toHaveBeenCalled();
     });
 
     it('должен вызывать notFound для неподдерживаемой локали', async () => {
@@ -203,22 +202,8 @@ describe('LocaleLayout', () => {
       expect(result.props.children.type).toBe('body');
       expect(result.props.children.props.className).toBe('antialiased');
 
-      const intlProvider = result.props.children.props.children;
-      expect(intlProvider.type).toBeDefined(); // IntlProvider
-      expect(intlProvider.props.locale).toBe('ru');
-      expect(intlProvider.props.messages).toBe(mockMessages);
-
-      // Теперь IntlProvider содержит Providers, который содержит children
-      // В новой архитектуре IntlProvider оборачивает Providers, который оборачивает children
-      // Проверяем, что структура JSX правильная: IntlProvider содержит Providers
-      const providers = intlProvider.props.children;
-      expect(providers).toBeDefined();
-      // В JSX структуре мок IntlProvider возвращает объект с type и props
-      // Проверяем, что это объект (результат вызова мока IntlProvider)
-      expect(typeof providers).toBe('object');
-      // Проверяем, что структура соответствует ожидаемой: Providers оборачивает children
-      expect(providers.props).toBeDefined();
-      expect(providers.props.children).toBe(mockChildren);
+      // В новой архитектуре children идут напрямую без IntlProvider
+      expect(result.props.children.props.children).toEqual(mockChildren);
     });
   });
 
@@ -231,21 +216,6 @@ describe('LocaleLayout', () => {
       await expect(generateMetadata({ params: Promise.resolve({ locale: 'en' }) })).rejects.toThrow(
         'Failed to load translations',
       );
-    });
-
-    it('должен корректно обрабатывать ошибки getMessages', async () => {
-      mockGetMessages.mockRejectedValueOnce(new Error('Failed to load messages'));
-
-      const { default: LocaleLayout } = await import('../../../src/app/[locale]/layout.js');
-
-      const mockChildren = { type: 'div', props: { children: 'Test content' } };
-
-      await expect(
-        LocaleLayout({
-          children: mockChildren as any,
-          params: Promise.resolve({ locale: 'en' }),
-        }),
-      ).rejects.toThrow('Failed to load messages');
     });
   });
 });

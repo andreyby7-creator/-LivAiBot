@@ -1,5 +1,5 @@
 /**
- * @file Тесты для RegisterPage
+ * @file Тесты для RegisterClient (клиентский компонент)
  */
 
 import { readFileSync } from 'fs';
@@ -40,7 +40,7 @@ vi.mock('../../../../../../i18n/routing.js', () => ({
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-describe('RegisterPage', () => {
+describe('RegisterClient (Client Component)', () => {
   const mockTranslations = {
     'register.title': 'Sign Up',
     'register.link': 'Sign In',
@@ -58,7 +58,7 @@ describe('RegisterPage', () => {
   describe('структура кода', () => {
     it('должен импортировать useTranslations из next-intl', () => {
       const content = readFileSync(
-        resolve(__dirname, '../../../../../src/app/[locale]/auth/register/page.tsx'),
+        resolve(__dirname, '../../../../../src/app/[locale]/auth/register/RegisterClient.tsx'),
         'utf8',
       );
 
@@ -68,29 +68,29 @@ describe('RegisterPage', () => {
 
     it('должен импортировать тип Locale', () => {
       const content = readFileSync(
-        resolve(__dirname, '../../../../../src/app/[locale]/auth/register/page.tsx'),
+        resolve(__dirname, '../../../../../src/app/[locale]/auth/register/RegisterClient.tsx'),
         'utf8',
       );
 
       expect(content).toContain('import type { Locale }');
-      expect(content).toContain('}: RegisterPageProps');
+      expect(content).toContain('}: RegisterClientProps');
     });
 
     it('должен содержать type RegisterPageProps', () => {
       const content = readFileSync(
-        resolve(__dirname, '../../../../../src/app/[locale]/auth/register/page.tsx'),
+        resolve(__dirname, '../../../../../src/app/[locale]/auth/register/RegisterClient.tsx'),
         'utf8',
       );
 
-      expect(content).toContain('type RegisterPageProps');
-      expect(content).toContain('}: RegisterPageProps');
+      expect(content).toContain('type RegisterClientProps');
+      expect(content).toContain('}: RegisterClientProps');
     });
   });
 
   describe('i18n интеграция', () => {
     it("должен использовать useTranslations с типом 'auth'", () => {
       const content = readFileSync(
-        resolve(__dirname, '../../../../../src/app/[locale]/auth/register/page.tsx'),
+        resolve(__dirname, '../../../../../src/app/[locale]/auth/register/RegisterClient.tsx'),
         'utf8',
       );
 
@@ -99,7 +99,7 @@ describe('RegisterPage', () => {
 
     it('должен содержать все необходимые ключи переводов', () => {
       const content = readFileSync(
-        resolve(__dirname, '../../../../../src/app/[locale]/auth/register/page.tsx'),
+        resolve(__dirname, '../../../../../src/app/[locale]/auth/register/RegisterClient.tsx'),
         'utf8',
       );
 
@@ -111,7 +111,7 @@ describe('RegisterPage', () => {
   describe('структура JSX', () => {
     it('должен содержать правильную структуру HTML элементов', () => {
       const content = readFileSync(
-        resolve(__dirname, '../../../../../src/app/[locale]/auth/register/page.tsx'),
+        resolve(__dirname, '../../../../../src/app/[locale]/auth/register/RegisterClient.tsx'),
         'utf8',
       );
 
@@ -125,7 +125,7 @@ describe('RegisterPage', () => {
 
     it('должен использовать Tailwind классы вместо inline стилей', () => {
       const content = readFileSync(
-        resolve(__dirname, '../../../../../src/app/[locale]/auth/register/page.tsx'),
+        resolve(__dirname, '../../../../../src/app/[locale]/auth/register/RegisterClient.tsx'),
         'utf8',
       );
 
@@ -147,7 +147,7 @@ describe('RegisterPage', () => {
   describe('accessibility', () => {
     it('должен содержать role="main"', () => {
       const content = readFileSync(
-        resolve(__dirname, '../../../../../src/app/[locale]/auth/register/page.tsx'),
+        resolve(__dirname, '../../../../../src/app/[locale]/auth/register/RegisterClient.tsx'),
         'utf8',
       );
 
@@ -156,7 +156,7 @@ describe('RegisterPage', () => {
 
     it('должен содержать aria-label для main и h1', () => {
       const content = readFileSync(
-        resolve(__dirname, '../../../../../src/app/[locale]/auth/register/page.tsx'),
+        resolve(__dirname, '../../../../../src/app/[locale]/auth/register/RegisterClient.tsx'),
         'utf8',
       );
 
@@ -167,7 +167,7 @@ describe('RegisterPage', () => {
   describe('layout и стилизация', () => {
     it('должен иметь responsive layout с max-width', () => {
       const content = readFileSync(
-        resolve(__dirname, '../../../../../src/app/[locale]/auth/register/page.tsx'),
+        resolve(__dirname, '../../../../../src/app/[locale]/auth/register/RegisterClient.tsx'),
         'utf8',
       );
 
@@ -178,7 +178,7 @@ describe('RegisterPage', () => {
 
     it('должен иметь консистентный background и spacing', () => {
       const content = readFileSync(
-        resolve(__dirname, '../../../../../src/app/[locale]/auth/register/page.tsx'),
+        resolve(__dirname, '../../../../../src/app/[locale]/auth/register/RegisterClient.tsx'),
         'utf8',
       );
 
@@ -192,7 +192,7 @@ describe('RegisterPage', () => {
   describe('интеграция с компонентами', () => {
     it('должен использовать RegisterForm из ui-features', () => {
       const content = readFileSync(
-        resolve(__dirname, '../../../../../src/app/[locale]/auth/register/page.tsx'),
+        resolve(__dirname, '../../../../../src/app/[locale]/auth/register/RegisterClient.tsx'),
         'utf8',
       );
 
@@ -204,7 +204,7 @@ describe('RegisterPage', () => {
 
     it('должен содержать onSubmit обработчик', () => {
       const content = readFileSync(
-        resolve(__dirname, '../../../../../src/app/[locale]/auth/register/page.tsx'),
+        resolve(__dirname, '../../../../../src/app/[locale]/auth/register/RegisterClient.tsx'),
         'utf8',
       );
 
@@ -216,7 +216,7 @@ describe('RegisterPage', () => {
   describe('навигация', () => {
     it('должен содержать ссылку на login страницу', () => {
       const content = readFileSync(
-        resolve(__dirname, '../../../../../src/app/[locale]/auth/register/page.tsx'),
+        resolve(__dirname, '../../../../../src/app/[locale]/auth/register/RegisterClient.tsx'),
         'utf8',
       );
 
@@ -228,13 +228,11 @@ describe('RegisterPage', () => {
   describe('комментарии TODO', () => {
     it('должен содержать TODO для registration flow', () => {
       const content = readFileSync(
-        resolve(__dirname, '../../../../../src/app/[locale]/auth/register/page.tsx'),
+        resolve(__dirname, '../../../../../src/app/[locale]/auth/register/RegisterClient.tsx'),
         'utf8',
       );
 
-      expect(content).toContain('TODO: Реализовать реальный registration flow');
-      expect(content).toContain('TODO: Добавить валидацию и обработку ошибок');
-      expect(content).toContain('TODO: Интегрировать с Zustand store');
+      expect(content).toContain('TODO (Фаза 2): подключить реальный registration flow');
       expect(content).toContain('TODO (Фаза 2): подключить реальный registration flow');
     });
   });

@@ -46,6 +46,15 @@ RESET="\033[0m"
 # ────────────────────────────────
 # Запуск Playwright E2E тестов
 # ────────────────────────────────
+function show_e2e_config_info() {
+  echo -e "${CYAN}🔧 E2E Parallelism: ENABLED, Workers: auto${RESET}"
+  echo -e "${YELLOW}⚠️  AI-heavy tests with high parallelism may cause system instability.${RESET}"
+  echo -e "${YELLOW}⚠️  Monitor CPU/memory usage during parallel AI tests.${RESET}"
+  echo -e "${MAGENTA}💡 AI tests enabled. Monitor system resources during execution.${RESET}"
+  echo -e "${CYAN}ℹ️  Report cleanup disabled (ES modules compatibility)${RESET}"
+  echo ""
+}
+
 function run_playwright_e2e() {
   echo -e "${MAGENTA}🎭 Running E2E Tests (Playwright)...${RESET}"
 
@@ -55,7 +64,7 @@ function run_playwright_e2e() {
     # Убиваем все существующие dev процессы перед запуском
     echo -e "${YELLOW}🧹 Cleaning up any existing dev servers...${RESET}"
     pkill -f "next dev" || true
-    rm -rf apps/web/.next
+    rm -rf ./apps/web/.next 2>/dev/null || true
     sleep 2
 
     # Проверяем доступность веб-сервера перед запуском тестов
@@ -97,6 +106,9 @@ function run_playwright_e2e() {
     fi
 
     echo -e "${GREEN}✅ Web server is available${RESET}"
+
+    # Показываем информацию о конфигурации один раз
+    show_e2e_config_info
 
     # Определяем команду Playwright
     local playwright_cmd="pnpm playwright test"

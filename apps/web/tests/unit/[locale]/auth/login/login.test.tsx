@@ -1,5 +1,5 @@
 /**
- * @file Тесты для LoginPage
+ * @file Тесты для LoginClient (клиентский компонент)
  */
 
 import { readFileSync } from 'fs';
@@ -37,7 +37,7 @@ vi.mock('../../../../../../i18n/routing.js', () => ({
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-describe('LoginPage', () => {
+describe('LoginClient (Client Component)', () => {
   const mockTranslations = {
     'login.title': 'Sign In',
     'login.submit': 'Sign In',
@@ -55,7 +55,7 @@ describe('LoginPage', () => {
   describe('структура кода', () => {
     it('должен импортировать useTranslations из next-intl', () => {
       const content = readFileSync(
-        resolve(__dirname, '../../../../../src/app/[locale]/auth/login/page.tsx'),
+        resolve(__dirname, '../../../../../src/app/[locale]/auth/login/LoginClient.tsx'),
         'utf8',
       );
 
@@ -65,29 +65,29 @@ describe('LoginPage', () => {
 
     it('должен импортировать тип Locale', () => {
       const content = readFileSync(
-        resolve(__dirname, '../../../../../src/app/[locale]/auth/login/page.tsx'),
+        resolve(__dirname, '../../../../../src/app/[locale]/auth/login/LoginClient.tsx'),
         'utf8',
       );
 
       expect(content).toContain('import type { Locale }');
-      expect(content).toContain('}: LoginPageProps');
+      expect(content).toContain('}: LoginClientProps');
     });
 
     it('должен содержать interface LoginPageProps', () => {
       const content = readFileSync(
-        resolve(__dirname, '../../../../../src/app/[locale]/auth/login/page.tsx'),
+        resolve(__dirname, '../../../../../src/app/[locale]/auth/login/LoginClient.tsx'),
         'utf8',
       );
 
-      expect(content).toContain('type LoginPageProps');
-      expect(content).toContain('}: LoginPageProps');
+      expect(content).toContain('type LoginClientProps');
+      expect(content).toContain('}: LoginClientProps');
     });
   });
 
   describe('i18n интеграция', () => {
     it("должен использовать useTranslations с типом 'auth'", () => {
       const content = readFileSync(
-        resolve(__dirname, '../../../../../src/app/[locale]/auth/login/page.tsx'),
+        resolve(__dirname, '../../../../../src/app/[locale]/auth/login/LoginClient.tsx'),
         'utf8',
       );
 
@@ -96,7 +96,7 @@ describe('LoginPage', () => {
 
     it('должен содержать все необходимые ключи переводов', () => {
       const content = readFileSync(
-        resolve(__dirname, '../../../../../src/app/[locale]/auth/login/page.tsx'),
+        resolve(__dirname, '../../../../../src/app/[locale]/auth/login/LoginClient.tsx'),
         'utf8',
       );
 
@@ -106,7 +106,7 @@ describe('LoginPage', () => {
 
     it('должен передавать t напрямую в LoginForm', () => {
       const content = readFileSync(
-        resolve(__dirname, '../../../../../src/app/[locale]/auth/login/page.tsx'),
+        resolve(__dirname, '../../../../../src/app/[locale]/auth/login/LoginClient.tsx'),
         'utf8',
       );
 
@@ -119,7 +119,7 @@ describe('LoginPage', () => {
   describe('структура JSX', () => {
     it('должен содержать правильную структуру HTML элементов', () => {
       const content = readFileSync(
-        resolve(__dirname, '../../../../../src/app/[locale]/auth/login/page.tsx'),
+        resolve(__dirname, '../../../../../src/app/[locale]/auth/login/LoginClient.tsx'),
         'utf8',
       );
 
@@ -133,7 +133,7 @@ describe('LoginPage', () => {
 
     it('должен использовать Tailwind классы вместо inline стилей', () => {
       const content = readFileSync(
-        resolve(__dirname, '../../../../../src/app/[locale]/auth/login/page.tsx'),
+        resolve(__dirname, '../../../../../src/app/[locale]/auth/login/LoginClient.tsx'),
         'utf8',
       );
 
@@ -154,7 +154,7 @@ describe('LoginPage', () => {
   describe('accessibility', () => {
     it('должен содержать role="main"', () => {
       const content = readFileSync(
-        resolve(__dirname, '../../../../../src/app/[locale]/auth/login/page.tsx'),
+        resolve(__dirname, '../../../../../src/app/[locale]/auth/login/LoginClient.tsx'),
         'utf8',
       );
 
@@ -163,7 +163,7 @@ describe('LoginPage', () => {
 
     it('должен содержать aria-label для заголовка', () => {
       const content = readFileSync(
-        resolve(__dirname, '../../../../../src/app/[locale]/auth/login/page.tsx'),
+        resolve(__dirname, '../../../../../src/app/[locale]/auth/login/LoginClient.tsx'),
         'utf8',
       );
 
@@ -174,7 +174,7 @@ describe('LoginPage', () => {
   describe('layout и стилизация', () => {
     it('должен иметь responsive layout с max-width', () => {
       const content = readFileSync(
-        resolve(__dirname, '../../../../../src/app/[locale]/auth/login/page.tsx'),
+        resolve(__dirname, '../../../../../src/app/[locale]/auth/login/LoginClient.tsx'),
         'utf8',
       );
 
@@ -185,7 +185,7 @@ describe('LoginPage', () => {
 
     it('должен иметь консистентный background и spacing', () => {
       const content = readFileSync(
-        resolve(__dirname, '../../../../../src/app/[locale]/auth/login/page.tsx'),
+        resolve(__dirname, '../../../../../src/app/[locale]/auth/login/LoginClient.tsx'),
         'utf8',
       );
 
@@ -199,7 +199,7 @@ describe('LoginPage', () => {
   describe('интеграция с компонентами', () => {
     it('должен использовать LoginForm из ui-features', () => {
       const content = readFileSync(
-        resolve(__dirname, '../../../../../src/app/[locale]/auth/login/page.tsx'),
+        resolve(__dirname, '../../../../../src/app/[locale]/auth/login/LoginClient.tsx'),
         'utf8',
       );
 
@@ -210,7 +210,7 @@ describe('LoginPage', () => {
 
     it('должен содержать onSubmit обработчик', () => {
       const content = readFileSync(
-        resolve(__dirname, '../../../../../src/app/[locale]/auth/login/page.tsx'),
+        resolve(__dirname, '../../../../../src/app/[locale]/auth/login/LoginClient.tsx'),
         'utf8',
       );
 
@@ -222,7 +222,7 @@ describe('LoginPage', () => {
   describe('навигация', () => {
     it('должен содержать ссылку на register страницу', () => {
       const content = readFileSync(
-        resolve(__dirname, '../../../../../src/app/[locale]/auth/login/page.tsx'),
+        resolve(__dirname, '../../../../../src/app/[locale]/auth/login/LoginClient.tsx'),
         'utf8',
       );
 
@@ -234,7 +234,7 @@ describe('LoginPage', () => {
   describe('комментарии TODO', () => {
     it('должен содержать TODO для auth flow', () => {
       const content = readFileSync(
-        resolve(__dirname, '../../../../../src/app/[locale]/auth/login/page.tsx'),
+        resolve(__dirname, '../../../../../src/app/[locale]/auth/login/LoginClient.tsx'),
         'utf8',
       );
 

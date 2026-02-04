@@ -97,42 +97,7 @@ const workers = getWorkers();
 // Таймауты для E2E тестов (настраиваемые через переменные окружения)
 const timeouts = getTimeouts();
 
-// Функция для оценки системных ресурсов и рекомендации по параллельности
-function assessSystemResources(): { recommendedWorkers: number; warnings: string[]; } {
-  const warnings: string[] = [];
-  const recommendedWorkers = workers || 4; // Default assumption
-
-  // AI тесты особенно требовательны к ресурсам
-  if (FULLY_PARALLEL && recommendedWorkers > 2) {
-    warnings.push('AI-heavy tests with high parallelism may cause system instability.');
-  }
-
-  if (FULLY_PARALLEL) {
-    warnings.push('Monitor CPU/memory usage during parallel AI tests.');
-  }
-
-  return { recommendedWorkers, warnings };
-}
-
-// Вывод информации о конфигурации параллельности (только локально для отладки)
-if (!isCI && process.env['E2E_VERBOSE'] !== 'false') {
-  const { recommendedWorkers, warnings } = assessSystemResources();
-
-  console.log(
-    `🔧 E2E Parallelism: ${FULLY_PARALLEL ? 'ENABLED' : 'DISABLED'}, Workers: ${workers || 'auto'}`,
-  );
-
-  if (FULLY_PARALLEL && !workers && recommendedWorkers < 4) {
-    console.warn(`⚠️  System assessment recommends ${recommendedWorkers} workers for stability.`);
-    console.warn(`   Set E2E_WORKERS=${recommendedWorkers} to optimize performance.`);
-  }
-
-  warnings.forEach((warning) => console.warn(`⚠️  ${warning}`));
-
-  if (FULLY_PARALLEL) {
-    console.log(`💡 AI tests enabled. Monitor system resources during execution.`);
-  }
-}
+// Информация о конфигурации теперь выводится в test-e2e.sh скрипте
 
 // Таймауты для E2E тестов (адаптированы для AI интеграций)
 // Таймауты теперь получаются из функции getTimeouts() с поддержкой переменных окружения
@@ -156,7 +121,6 @@ const WEBSERVER_URL = process.env['E2E_BASE_URL'] || 'http://localhost:3000';
 // Функция очистки старых отчетов отключена для совместимости с ES modules
 function cleanupOldReports(_baseDir: string, _maxAgeDays: number = 7): void {
   // Очистка отчетов отключена для избежания проблем с require() в ES modules
-  console.log(`ℹ️  Report cleanup disabled (ES modules compatibility)`);
 }
 
 // Директории для артефактов тестирования
@@ -250,16 +214,16 @@ export default {
         deviceScaleFactor: 1,
       },
       testMatch: [
-        '**/smoke/**/*.spec.ts',
-        '**/user-journeys/**/*.spec.ts',
-        '**/admin-panel/**/*.spec.ts',
+        '**/smoke/**/*.e2e.ts',
+        '**/user-journeys/**/*.e2e.ts',
+        '**/admin-panel/**/*.e2e.ts',
       ],
     },
 
     {
       name: 'Mobile Safari',
       use: { ...devices['iPhone 12'] },
-      testMatch: '**/mobile/**/*.spec.ts',
+      testMatch: '**/mobile/**/*.e2e.ts',
     },
 
     /* Тестирование в брендовых браузерах для расширенного покрытия */
@@ -272,9 +236,9 @@ export default {
         channel: 'msedge',
       },
       testMatch: [
-        '**/smoke/**/*.spec.ts',
-        '**/user-journeys/**/*.spec.ts',
-        '**/admin-panel/**/*.spec.ts',
+        '**/smoke/**/*.e2e.ts',
+        '**/user-journeys/**/*.e2e.ts',
+        '**/admin-panel/**/*.e2e.ts',
       ],
     },
 
@@ -287,9 +251,9 @@ export default {
         channel: 'chrome',
       },
       testMatch: [
-        '**/smoke/**/*.spec.ts',
-        '**/user-journeys/**/*.spec.ts',
-        '**/admin-panel/**/*.spec.ts',
+        '**/smoke/**/*.e2e.ts',
+        '**/user-journeys/**/*.e2e.ts',
+        '**/admin-panel/**/*.e2e.ts',
       ],
     },
 
@@ -302,7 +266,7 @@ export default {
         deviceScaleFactor: 1,
       },
       testMatch: [
-        '**/user-journeys/**/*.spec.ts',
+        '**/user-journeys/**/*.e2e.ts',
       ],
     },
 
@@ -314,7 +278,7 @@ export default {
         deviceScaleFactor: 1,
       },
       testMatch: [
-        '**/user-journeys/**/*.spec.ts',
+        '**/user-journeys/**/*.e2e.ts',
       ],
     },
 
@@ -324,7 +288,7 @@ export default {
         ...devices['Pixel 7'],
         deviceScaleFactor: 1,
       },
-      testMatch: '**/mobile/**/*.spec.ts',
+      testMatch: '**/mobile/**/*.e2e.ts',
     },
 
     {
@@ -332,7 +296,7 @@ export default {
       use: {
         ...devices['iPhone 13'],
       },
-      testMatch: '**/mobile/**/*.spec.ts',
+      testMatch: '**/mobile/**/*.e2e.ts',
     },
   ],
 

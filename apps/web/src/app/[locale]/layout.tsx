@@ -1,12 +1,10 @@
 import type { Metadata, Viewport } from 'next';
 import { notFound } from 'next/navigation';
-import { getMessages, getTranslations, setRequestLocale } from 'next-intl/server';
+import { getTranslations, setRequestLocale } from 'next-intl/server';
 import type { JSX, ReactNode } from 'react';
 
-import { IntlProvider } from './intl-provider';
 import { locales } from '../../../next-intl.config.js';
 import '../globals.css';
-import { Providers } from '../providers';
 
 /**
  * Генерирует статические параметры для всех поддерживаемых локалей
@@ -79,16 +77,11 @@ export default async function LocaleLayout({
   }
 
   setRequestLocale(locale);
-  const messages = await getMessages();
 
   return (
     <html lang={locale} suppressHydrationWarning>
       <body className='antialiased'>
-        <IntlProvider locale={locale} messages={messages}>
-          <Providers>
-            {children}
-          </Providers>
-        </IntlProvider>
+        {children}
       </body>
     </html>
   );

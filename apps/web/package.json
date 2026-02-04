@@ -33,7 +33,7 @@
     "@livai/ui-features": "workspace:*",
     "@tanstack/react-query": "^5.90.12",
     "effect": "3.19.15",
-    "next": "16.0.0",
+    "next": "16.1.6",
     "next-auth": "^5.0.0-beta.30",
     "next-intl": "4.8.2",
     "react": "19.2.3",
