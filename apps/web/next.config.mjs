@@ -1,6 +1,10 @@
 import { createRequire } from 'module';
+import createNextIntlPlugin from 'next-intl/plugin';
 
 const require = createRequire(import.meta.url);
+
+// Настройка next-intl плагина
+const withNextIntl = createNextIntlPlugin('./next-intl.config.ts');
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -88,4 +92,4 @@ const nextConfig = {
   },
 };
 
-export default nextConfig;
+export default withNextIntl(nextConfig);
