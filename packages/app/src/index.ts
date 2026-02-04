@@ -198,8 +198,18 @@ export {
  * 🎯 PROVIDERS — ПРОВАЙДЕРЫ
  * ========================================================================== */
 
+export * from './providers/AppProviders.js';
+export * from './providers/FeatureFlagsProvider.js';
 export * from './providers/intl-provider.js';
+export * from './providers/QueryClientProvider.js';
 export * from './providers/TelemetryProvider.js';
+export * from './providers/ToastProvider.js';
+
+/* ============================================================================
+ * 🚀 BOOTSTRAP — ЗАПУСК ПРИЛОЖЕНИЯ
+ * ========================================================================== */
+
+export * from './bootstrap.js';
 
 /* ============================================================================
  * 🏪 STORE — ГЛОБАЛЬНОЕ СОСТОЯНИЕ

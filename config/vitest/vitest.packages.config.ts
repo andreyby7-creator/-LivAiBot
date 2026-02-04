@@ -211,10 +211,12 @@ const ENVIRONMENT_CONFIGS = {
     },
   },
   app: {
-    environment: 'node',
+    environment: 'jsdom',
     environmentOptions: {
-      node: {
-        builtins: ['fs', 'path', 'crypto'],
+      jsdom: {
+        resources: 'usable',
+        url: 'http://localhost:3000',
+        pretendToBeVisual: process.env['CI'] !== 'true',
       },
     },
   },

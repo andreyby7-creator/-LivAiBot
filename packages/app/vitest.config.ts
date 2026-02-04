@@ -10,5 +10,5 @@ import { createPackageVitestConfig } from '../../config/vitest/vitest.packages.c
  */
 export default createPackageVitestConfig({
   packageName: '@livai/app',
-  packageType: 'ui', // Используем 'ui' тип для jsdom environment
+  packageType: 'app', // Используем 'app' тип для node environment
 });

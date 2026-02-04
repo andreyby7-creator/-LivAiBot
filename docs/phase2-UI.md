@@ -270,8 +270,8 @@ App state и hooks
 1️⃣2️⃣1️⃣ packages/app/src/providers/FeatureFlagsProvider.tsx 🟢 — ts+zustand — deps: lib/feature-flags.ts, types/common.ts
 1️⃣2️⃣2️⃣ packages/app/src/providers/QueryClientProvider.tsx 🟢 — ts+react — deps: state/query/query-client.ts
 1️⃣2️⃣3️⃣ packages/app/src/providers/ToastProvider.tsx 🟢 — ts+react — deps: ui-core/Toast.tsx, providers/TelemetryProvider.tsx
-1️⃣2️⃣4️⃣ packages/app/src/providers/AppProviders.tsx 🔴 — ts+react — deps: providers/TelemetryProvider.tsx, providers/FeatureFlagsProvider.tsx, providers/QueryClientProvider.tsx, providers/ToastProvider.tsx, state/store.ts
-1️⃣2️⃣5️⃣ packages/app/src/bootstrap.ts 🔴 — ts — deps: providers/AppProviders.tsx
+1️⃣2️⃣4️⃣ packages/app/src/providers/AppProviders.tsx 🟢 — ts+react — deps: ui/error-boundary.js, providers/intl-provider.js, providers/FeatureFlagsProvider.js, providers/TelemetryProvider.js, providers/QueryClientProvider.js, providers/ToastProvider.js, state/store.js
+1️⃣2️⃣5️⃣ packages/app/src/bootstrap.tsx 🟢 — ts+react — deps: providers/AppProviders.js
 1️⃣2️⃣6️⃣ packages/app/src/hooks/useApi.ts 🔴 — ts+react — deps: lib/api-client.ts
 1️⃣2️⃣7️⃣ packages/app/src/hooks/useToast.ts 🔴 — ts+react — deps: providers/ToastProvider.tsx
 1️⃣2️⃣8️⃣ packages/app/src/hooks/useFeatureFlags.ts 🔴 — ts+react — deps: providers/FeatureFlagsProvider.tsx
@@ -287,7 +287,7 @@ Feature Auth
 1️⃣3️⃣6️⃣ packages/feature-auth/src/effects/logout.ts 🔴 — ts+effect — Logout effect — api-client.ts (НЕТ)
 1️⃣3️⃣7️⃣ packages/feature-auth/src/effects/refresh.ts 🔴 — ts+effect — Refresh effect — api-client.ts (НЕТ)
 1️⃣3️⃣8️⃣ packages/feature-auth/src/hooks/useAuth.ts 🔴 — ts+react — Hook auth — stores/auth.ts, effects/* (НЕТ)
-1️⃣3️⃣9️⃣ packages/feature-auth/src/schemas.ts 🟢 — схемы на базе core-contracts (реализован полностью)
+1️⃣3️⃣9️⃣ packages/feature-auth/src/schemas.ts 🟢 — схемы на базе core-contracts
 
 Feature Bots
 1️⃣4️⃣0️⃣ packages/feature-bots/src/domain/Bot.ts 🔴 — ts — Bot entity (НЕТ)
