@@ -4,7 +4,7 @@ import { getMessages, getTranslations, setRequestLocale } from 'next-intl/server
 import type { JSX, ReactNode } from 'react';
 
 import { IntlProvider } from './intl-provider';
-import { locales } from '../../../next-intl.config';
+import { locales } from '../../../next-intl.config.js';
 import '../globals.css';
 import { Providers } from '../providers';
 

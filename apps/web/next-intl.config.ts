@@ -11,7 +11,8 @@ import enMessages from './messages/en.json';
 import ruMessages from './messages/ru.json';
 
 export const locales = ['en', 'ru'] as const;
-export const defaultLocale = 'en';
+export type Locale = (typeof locales)[number];
+export const defaultLocale: Locale = 'en';
 
 const messagesMap = {
   en: enMessages,

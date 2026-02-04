@@ -10,7 +10,7 @@
 import type { MiddlewareConfig } from 'next/server';
 import createMiddleware from 'next-intl/middleware';
 
-import { defaultLocale, locales } from './i18n/routing.js';
+import { defaultLocale, locales } from './next-intl.config.js';
 
 export default createMiddleware({
   locales,
