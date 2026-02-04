@@ -269,7 +269,7 @@ const QueryClientProvider: FC<PropsWithChildren> = ({ children }) => (
 
 ---
 
-### 6️⃣ **ToastProvider.tsx** 🔴
+### 6️⃣ **ToastProvider.tsx** 🟢
 
 **Расположение:** `packages/app/src/providers/ToastProvider.tsx`
 **Стек:** TS + React Context + useReducer
