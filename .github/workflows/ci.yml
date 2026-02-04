@@ -44,7 +44,7 @@ jobs:
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
-          version: 10.28.0
+          version: 10.28.2
 
       - name: Get pnpm store path
         id: pnpm-store
@@ -113,7 +113,7 @@ jobs:
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
-          version: 10.28.0
+          version: 10.28.2
 
       - name: Get pnpm store path
         id: pnpm-store
@@ -218,7 +218,7 @@ jobs:
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
-          version: 10.28.0
+          version: 10.28.2
 
       - name: Get pnpm store path
         id: pnpm-store
@@ -265,7 +265,7 @@ jobs:
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
-          version: 10.28.0
+          version: 10.28.2
 
       - name: Get pnpm store path
         id: pnpm-store
@@ -299,7 +299,7 @@ jobs:
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
-          version: 10.28.0
+          version: 10.28.2
 
       - name: Get pnpm store path
         id: pnpm-store
@@ -343,7 +343,7 @@ jobs:
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
-          version: 10.28.0
+          version: 10.28.2
 
       - name: Get pnpm store path
         id: pnpm-store
