@@ -58,7 +58,7 @@ function run_playwright_e2e() {
 
     # Проверяем доступность сервера с таймаутом 10 секунд
     if ! curl --max-time 10 --silent "$web_url" > /dev/null 2>&1; then
-      if [[ "$CI_MODE" == "true" && "$E2E_AUTO_START_SERVER" == "true" ]]; then
+      if [[ "$E2E_AUTO_START_SERVER" == "true" ]]; then
         echo -e "${YELLOW}⚠️  Web server not available, starting local dev server...${RESET}"
         cd apps/web && HOSTNAME=0.0.0.0 PORT=3000 pnpm run dev >"$DEV_LOG" 2>&1 &
         SERVER_PID=$!

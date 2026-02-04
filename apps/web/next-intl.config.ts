@@ -5,15 +5,30 @@
  * Он должен находиться в корне приложения (рядом с next.config.mjs).
  */
 
-import { defaultLocale, locales } from './i18n/routing.js';
+import { notFound } from 'next/navigation';
 
-export default {
-  locales,
-  defaultLocale,
+export const locales = ['en', 'ru'] as const;
+export const defaultLocale = 'en';
 
-  // Пути к файлам переводов
-  messages: {
-    en: () => import('./messages/en.json').then((m) => m.default),
-    ru: () => import('./messages/ru.json').then((m) => m.default),
-  },
-} as const;
+export default function getRequestConfig({ locale }: { readonly locale: string; }): {
+  locale: string;
+  messages: () => Promise<Record<string, unknown>>;
+} {
+  // Валидация locale
+  if (!locales.includes(locale as typeof locales[number])) {
+    notFound();
+  }
+
+  return {
+    locale,
+    messages: async (): Promise<Record<string, unknown>> => {
+      try {
+        const messages = await import(`./messages/${locale}.json`);
+        return messages.default ?? messages;
+      } catch {
+        // Возвращаем пустой объект как fallback
+        return {};
+      }
+    },
+  };
+}
