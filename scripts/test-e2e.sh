@@ -60,7 +60,7 @@ function run_playwright_e2e() {
     if ! curl --max-time 10 --silent "$web_url" > /dev/null 2>&1; then
       if [[ "$CI_MODE" == "true" && "$E2E_AUTO_START_SERVER" == "true" ]]; then
         echo -e "${YELLOW}⚠️  Web server not available, starting local dev server...${RESET}"
-        HOSTNAME=0.0.0.0 PORT=3000 pnpm --filter @livai/web run dev >"$DEV_LOG" 2>&1 &
+        cd apps/web && HOSTNAME=0.0.0.0 PORT=3000 pnpm run dev >"$DEV_LOG" 2>&1 &
         SERVER_PID=$!
         # ждём до 90 секунд
         for _ in {1..90}; do
