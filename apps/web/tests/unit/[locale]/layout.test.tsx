@@ -63,7 +63,7 @@ describe('LocaleLayout', () => {
     it('должен возвращать локализованные метаданные для en', async () => {
       const { generateMetadata } = await import('../../../src/app/[locale]/layout.js');
 
-      const result = await generateMetadata({ params: { locale: 'en' } });
+      const result = await generateMetadata({ params: Promise.resolve({ locale: 'en' }) });
 
       expect(result).toEqual({
         title: 'LivAi - AI Chatbot Platform',
@@ -93,7 +93,7 @@ describe('LocaleLayout', () => {
 
       const { generateMetadata } = await import('../../../src/app/[locale]/layout.js');
 
-      const result = await generateMetadata({ params: { locale: 'ru' } });
+      const result = await generateMetadata({ params: Promise.resolve({ locale: 'ru' }) });
 
       expect(result).toEqual({
         title: 'LivAi - Платформа ИИ-чатботов',
@@ -115,7 +115,7 @@ describe('LocaleLayout', () => {
     it('должен возвращать fallback метаданные для неподдерживаемой локали', async () => {
       const { generateMetadata } = await import('../../../src/app/[locale]/layout.js');
 
-      const result = await generateMetadata({ params: { locale: 'es' } });
+      const result = await generateMetadata({ params: Promise.resolve({ locale: 'es' }) });
 
       expect(result).toEqual({
         title: 'LivAi - AI Chatbot Platform',
@@ -130,7 +130,7 @@ describe('LocaleLayout', () => {
       const { generateMetadata } = await import('../../../src/app/[locale]/layout.js');
 
       // Для поддерживаемой локали - должен вызывать getTranslations
-      await generateMetadata({ params: { locale: 'en' } });
+      await generateMetadata({ params: Promise.resolve({ locale: 'en' }) });
       expect(mockGetTranslations).toHaveBeenCalledWith({
         locale: 'en',
         namespace: 'metadata',
@@ -139,7 +139,7 @@ describe('LocaleLayout', () => {
       vi.clearAllMocks();
 
       // Для неподдерживаемой локали - НЕ должен вызывать getTranslations
-      await generateMetadata({ params: { locale: 'es' } });
+      await generateMetadata({ params: Promise.resolve({ locale: 'es' }) });
       expect(mockGetTranslations).not.toHaveBeenCalled();
     });
 
@@ -161,7 +161,7 @@ describe('LocaleLayout', () => {
 
       const result = await LocaleLayout({
         children: mockChildren as any,
-        params: { locale: 'en' },
+        params: Promise.resolve({ locale: 'en' }),
       });
 
       expect(result).toBeDefined();
@@ -182,7 +182,7 @@ describe('LocaleLayout', () => {
       await expect(
         LocaleLayout({
           children: mockChildren as any,
-          params: { locale: 'es' },
+          params: Promise.resolve({ locale: 'es' }),
         }),
       ).rejects.toThrow();
 
@@ -198,7 +198,7 @@ describe('LocaleLayout', () => {
 
       const result = await LocaleLayout({
         children: mockChildren as any,
-        params: { locale: 'ru' },
+        params: Promise.resolve({ locale: 'ru' }),
       });
 
       expect(result.props.children).toBeDefined();
@@ -230,7 +230,7 @@ describe('LocaleLayout', () => {
 
       const { generateMetadata } = await import('../../../src/app/[locale]/layout.js');
 
-      await expect(generateMetadata({ params: { locale: 'en' } })).rejects.toThrow(
+      await expect(generateMetadata({ params: Promise.resolve({ locale: 'en' }) })).rejects.toThrow(
         'Failed to load translations',
       );
     });
@@ -245,7 +245,7 @@ describe('LocaleLayout', () => {
       await expect(
         LocaleLayout({
           children: mockChildren as any,
-          params: { locale: 'en' },
+          params: Promise.resolve({ locale: 'en' }),
         }),
       ).rejects.toThrow('Failed to load messages');
     });

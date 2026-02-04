@@ -19,10 +19,12 @@ function isLocale(value: string): value is (typeof locales)[number] {
  * Генерирует метаданные с локализацией
  */
 export async function generateMetadata({
-  params: { locale },
+  params,
 }: {
-  params: { locale: string; };
+  params: Promise<{ locale: string; }>;
 }): Promise<Metadata> {
+  const { locale } = await params;
+
   if (!isLocale(locale)) {
     return {
       title: 'LivAi - AI Chatbot Platform',
@@ -53,9 +55,9 @@ export default async function LocaleLayout({
   params,
 }: {
   children: ReactNode;
-  params: { locale: string; };
+  params: Promise<{ locale: string; }>;
 }): Promise<JSX.Element> {
-  const { locale } = params;
+  const { locale } = await params;
 
   if (!isLocale(locale)) {
     notFound();

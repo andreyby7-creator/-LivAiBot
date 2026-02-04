@@ -62,7 +62,7 @@ describe('HomePage', () => {
       );
 
       expect(content).toContain('import type { Locale }');
-      expect(content).toContain('params: { locale: Locale; }');
+      expect(content).toContain('params: Promise<{ locale: Locale; }>');
     });
   });
 
@@ -73,7 +73,7 @@ describe('HomePage', () => {
         'utf8',
       );
 
-      expect(content).toContain("useTranslations<'home' | 'auth'>");
+      expect(content).toContain('getTranslations');
     });
 
     it('должен содержать все необходимые ключи переводов', () => {
@@ -82,12 +82,12 @@ describe('HomePage', () => {
         'utf8',
       );
 
-      expect(content).toContain("t('home.title')");
-      expect(content).toContain("t('home.description')");
-      expect(content).toContain("t('home.dashboard')");
-      expect(content).toContain("t('home.e2eStatus')");
-      expect(content).toContain("t('auth.login.submit')");
-      expect(content).toContain("t('auth.register.submit')");
+      expect(content).toContain("tHome('title')");
+      expect(content).toContain("tHome('description')");
+      expect(content).toContain("tHome('dashboard')");
+      expect(content).toContain("tAuth('login.submit')");
+      expect(content).toContain("tAuth('register.submit')");
+      expect(content).toContain("tHome('e2eStatus')");
     });
   });
 
@@ -157,8 +157,8 @@ describe('HomePage', () => {
         'utf8',
       );
 
-      expect(content).toContain('params: { locale: Locale; }');
-      expect(content).toContain('JSX.Element');
+      expect(content).toContain('params: Promise<{ locale: Locale; }>');
+      expect(content).toContain('Promise<JSX.Element>');
     });
   });
 });
