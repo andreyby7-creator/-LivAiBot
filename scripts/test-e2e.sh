@@ -52,6 +52,12 @@ function run_playwright_e2e() {
   if [[ "$PROD_MODE" == "true" ]]; then
     echo -e "${YELLOW}Production mode: Running real E2E tests${RESET}"
 
+    # Убиваем все существующие dev процессы перед запуском
+    echo -e "${YELLOW}🧹 Cleaning up any existing dev servers...${RESET}"
+    pkill -f "next dev" || true
+    rm -rf apps/web/.next
+    sleep 2
+
     # Проверяем доступность веб-сервера перед запуском тестов
     local web_url="$E2E_BASE_URL"
     echo -e "${CYAN}Checking web server availability at: $web_url${RESET}"
