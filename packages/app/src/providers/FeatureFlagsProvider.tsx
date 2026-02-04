@@ -50,9 +50,11 @@ export type FeatureFlagsActions = Readonly<{
 }>;
 
 /** Полный контракт store. */
-export type FeatureFlagsStore = FeatureFlagsState & Readonly<{
-  readonly actions: FeatureFlagsActions;
-}>;
+export type FeatureFlagsStore =
+  & FeatureFlagsState
+  & Readonly<{
+    readonly actions: FeatureFlagsActions;
+  }>;
 
 /** Props FeatureFlagsProvider. */
 export type FeatureFlagsProviderProps = Readonly<

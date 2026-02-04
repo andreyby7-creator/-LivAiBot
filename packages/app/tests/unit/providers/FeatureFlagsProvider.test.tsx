@@ -5,11 +5,11 @@
 
 import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { render, renderHook, act } from '@testing-library/react';
+import { act, render, renderHook } from '@testing-library/react';
 
 import {
-  featureFlagsStore,
   FeatureFlagsProvider,
+  featureFlagsStore,
   useFeatureFlags,
 } from '../../../src/providers/FeatureFlagsProvider';
 import type { FeatureFlagName } from '../../../src/lib/feature-flags';
@@ -61,7 +61,7 @@ describe('FeatureFlagsProvider', () => {
 
   it('returns overridden value and clears overrides', () => {
     // eslint-disable-next-line @typescript-eslint/prefer-readonly-parameter-types
-    const wrapper = ({ children }: { children: React.ReactNode }) => (
+    const wrapper = ({ children }: { children: React.ReactNode; }) => (
       <FeatureFlagsProvider initialFlags={{ [FLAG_A]: true }}>
         {children}
       </FeatureFlagsProvider>

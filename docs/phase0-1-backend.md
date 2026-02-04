@@ -104,12 +104,12 @@
 8️⃣ services/api-gateway/api_src/middleware/rate_limit.py 🟢 — py+fastapi — Rate limiting middleware
 9️⃣ services/api-gateway/api_src/middleware/trace_id.py 🟢 — py+fastapi — Trace ID middleware
 🔟 services/api-gateway/api_src/security/jwt.py 🟢 — py — JWT утилиты
-1️⃣1️⃣ services/api-gateway/api_src/clients/__init__.py 🟢 — py — HTTP клиенты для прокси
-1️⃣2️⃣ services/api-gateway/api_src/adapters/__init__.py 🟢 — py — Адаптеры
-1️⃣3️⃣ services/api-gateway/api_src/domain/__init__.py 🟢 — py — Доменная модель
-1️⃣4️⃣ services/api-gateway/api_src/ports/__init__.py 🟢 — py — Порты (интерфейсы)
-1️⃣5️⃣ services/api-gateway/api_src/use_cases/__init__.py 🟢 — py — Use cases
-1️⃣6️⃣ services/api-gateway/api_src/observability/__init__.py 🟢 — py — Наблюдаемость
+1️⃣1️⃣ services/api-gateway/api_src/clients/**init**.py 🟢 — py — HTTP клиенты для прокси
+1️⃣2️⃣ services/api-gateway/api_src/adapters/**init**.py 🟢 — py — Адаптеры
+1️⃣3️⃣ services/api-gateway/api_src/domain/**init**.py 🟢 — py — Доменная модель
+1️⃣4️⃣ services/api-gateway/api_src/ports/**init**.py 🟢 — py — Порты (интерфейсы)
+1️⃣5️⃣ services/api-gateway/api_src/use_cases/**init**.py 🟢 — py — Use cases
+1️⃣6️⃣ services/api-gateway/api_src/observability/**init**.py 🟢 — py — Наблюдаемость
 1️⃣7️⃣ services/api-gateway/tests/test_health.py 🟢 — py+pytest — Health check тесты
 1️⃣8️⃣ services/api-gateway/Makefile 🟢 — make — Команды сборки
 1️⃣9️⃣ services/api-gateway/README.md 🟢 — md — Документация сервиса
@@ -131,9 +131,9 @@
 3️⃣2️⃣ services/auth-service/auth_src/adapters/db/base.py 🟢 — py+sqlalchemy — БД базовые классы
 3️⃣3️⃣ services/auth-service/auth_src/adapters/db/audit.py 🟢 — py+sqlalchemy — Audit лог модели
 3️⃣4️⃣ services/auth-service/auth_src/adapters/db/session.py 🟢 — py+sqlalchemy — Async сессии БД
-3️⃣5️⃣ services/auth-service/auth_src/domain/__init__.py 🟢 — py — Доменная модель
-3️⃣6️⃣ services/auth-service/auth_src/ports/__init__.py 🟢 — py — Порты (интерфейсы)
-3️⃣7️⃣ services/auth-service/auth_src/use_cases/__init__.py 🟢 — py — Use cases
+3️⃣5️⃣ services/auth-service/auth_src/domain/**init**.py 🟢 — py — Доменная модель
+3️⃣6️⃣ services/auth-service/auth_src/ports/**init**.py 🟢 — py — Порты (интерфейсы)
+3️⃣7️⃣ services/auth-service/auth_src/use_cases/**init**.py 🟢 — py — Use cases
 3️⃣8️⃣ services/auth-service/tests/test_health.py 🟢 — py+pytest — Health check тесты
 3️⃣9️⃣ services/auth-service/Makefile 🟢 — make — Команды сборки
 4️⃣0️⃣ services/auth-service/README.md 🟢 — md — Документация сервиса
@@ -204,7 +204,7 @@
 #### **Инфраструктура и конфигурация:**
 
 9️⃣8️⃣ infrastructure/compose/docker-compose.yml 🟢 — yaml — Docker Compose инфраструктура
-9️⃣9️⃣ infrastructure/compose/init-jobs/__init__.py 🟢 — py — Инициализация джобы
+9️⃣9️⃣ infrastructure/compose/init-jobs/**init**.py 🟢 — py — Инициализация джобы
 1️⃣0️⃣0️⃣ scripts/infra_check.py 🟢 — py — Проверка доступности инфраструктуры
 1️⃣0️⃣1️⃣ scripts/dev_up.sh 🟢 — sh — Поднять всю инфраструктуру и сервисы
 1️⃣0️⃣2️⃣ scripts/dev_down.sh 🟢 — sh — Остановить всю инфраструктуру

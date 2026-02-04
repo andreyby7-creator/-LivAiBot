@@ -236,7 +236,7 @@ export const useFeatureFlags = () => {
 
 ---
 
-### 5️⃣ **QueryClientProvider.tsx** 🔴
+### 5️⃣ **QueryClientProvider.tsx** 🟢
 
 **Расположение:** `packages/app/src/providers/QueryClientProvider.tsx`
 **Стек:** TS + React + @tanstack/react-query
