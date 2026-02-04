@@ -69,7 +69,6 @@ describe('LocaleLayout', () => {
         title: 'LivAi - AI Chatbot Platform',
         description: 'AI-powered chatbot platform with multi-tenant architecture',
         manifest: '/manifest.json',
-        themeColor: '#2563eb',
         appleWebApp: {
           capable: true,
           statusBarStyle: 'default',
@@ -99,7 +98,6 @@ describe('LocaleLayout', () => {
         title: 'LivAi - Платформа ИИ-чатботов',
         description: 'Платформа ИИ-чатботов с мульти-тенантной архитектурой',
         manifest: '/manifest.json',
-        themeColor: '#2563eb',
         appleWebApp: {
           capable: true,
           statusBarStyle: 'default',

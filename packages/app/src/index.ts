@@ -54,7 +54,7 @@ export * from './lib/api-client.js';
 export * from './lib/effect-utils.js';
 export * from './lib/error-mapping.js';
 export * from './lib/feature-flags.js';
-export * from './lib/i18n.js';
+// export * from './lib/i18n.js'; // Временно отключен для E2E из-за конфликта с next-intl
 // pipeEffects конфликтует с effect-utils, экспортируем явно
 export {
   type CacheEntry,

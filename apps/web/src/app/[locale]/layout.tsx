@@ -1,18 +1,34 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { notFound } from 'next/navigation';
 import { getMessages, getTranslations, setRequestLocale } from 'next-intl/server';
 import type { JSX, ReactNode } from 'react';
 
 import { IntlProvider } from './intl-provider';
-import { locales } from '../../../i18n/routing';
+import { locales } from '../../../next-intl.config';
 import '../globals.css';
 import { Providers } from '../providers';
+
+/**
+ * Генерирует статические параметры для всех поддерживаемых локалей
+ */
+export function generateStaticParams(): { locale: string; }[] {
+  return locales.map((locale) => ({ locale }));
+}
 
 /**
  * Type guard для валидации поддерживаемой локали
  */
 function isLocale(value: string): value is (typeof locales)[number] {
   return locales.includes(value as (typeof locales)[number]);
+}
+
+/**
+ * Генерирует viewport настройки
+ */
+export function generateViewport(): Viewport {
+  return {
+    themeColor: '#2563eb',
+  };
 }
 
 /**
@@ -38,7 +54,6 @@ export async function generateMetadata({
     title: t('title'),
     description: t('description'),
     manifest: '/manifest.json',
-    themeColor: '#2563eb',
     appleWebApp: {
       capable: true,
       statusBarStyle: 'default',
