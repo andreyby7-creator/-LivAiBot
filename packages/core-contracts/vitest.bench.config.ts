@@ -31,6 +31,8 @@ export default {
   benchmark: {
     // Репортеры для benchmark результатов
     reporters: ['default'],
+    // Ограничение времени выполнения bench
+    time: 10000, // 10 секунд максимум на bench
   },
 
   test: {
@@ -40,12 +42,17 @@ export default {
     // Node окружение для производительности (без jsdom)
     environment: 'node',
 
-    // Pool forks для microbench (threads искажают метрики)
-    pool: 'forks',
+    // Pool threads вместо forks (forks могут вызывать зависания)
+    pool: 'threads',
+    poolOptions: {
+      threads: {
+        singleThread: true, // Однопоточный режим для bench
+      },
+    },
 
-    // Таймауты для bench
-    testTimeout: 60_000,
-    hookTimeout: 30_000,
+    // Таймауты для bench (меньше для быстрого завершения)
+    testTimeout: 30_000,
+    hookTimeout: 10_000,
 
     // Покрытие отключено
     coverage: {

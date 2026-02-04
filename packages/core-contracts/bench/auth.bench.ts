@@ -12,16 +12,19 @@ const MINUTES_PER_HOUR = 60;
 const MS_PER_SECOND = 1000;
 const ONE_HOUR_MS = SECONDS_PER_MINUTE * MINUTES_PER_HOUR * MS_PER_SECOND;
 
+// Test password for benchmarks (can be overridden via environment variable)
+const TEST_PASSWORD = process.env['BENCH_TEST_PASSWORD'] ?? 'SecurePass123!';
+
 describe('Authentication Performance', () => {
   const registerRequest: RegisterRequest = {
     email: 'test@example.com',
-    password: 'SecurePass123!',
+    password: TEST_PASSWORD,
     workspace_name: 'Test Workspace',
   };
 
   const loginRequest: LoginRequest = {
     email: 'test@example.com',
-    password: 'SecurePass123!',
+    password: TEST_PASSWORD,
   };
 
   bench('RegisterRequest validation', () => {

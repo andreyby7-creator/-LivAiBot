@@ -21,3 +21,5 @@ redis==7.0.1
 
 # ClickHouse
 clickhouse-connect==0.10.0
+
+slowapi==0.1.9

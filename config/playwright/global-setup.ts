@@ -24,6 +24,9 @@ const API_BASE_URL = process.env['E2E_API_BASE_URL']
   ?? process.env['E2E_BASE_URL']
   ?? 'http://localhost:3000';
 
+// Тестовый пароль для создания пользователей в E2E тестах
+const TEST_USER_PASSWORD = process.env['E2E_TEST_USER_PASSWORD'] ?? 'testpass123';
+
 // Таймауты для E2E операций
 const PAGE_TIMEOUT =
   process.env['E2E_PAGE_TIMEOUT'] !== undefined && process.env['E2E_PAGE_TIMEOUT'] !== ''
@@ -286,7 +289,7 @@ class TestApiClient {
 
   async createTestUser(
     email: string,
-    password = 'testpass123',
+    password = TEST_USER_PASSWORD,
   ): Promise<{ userId: string; token: string; }> {
     const url = `${this.baseUrl}/api/auth/register`;
 
