@@ -1,5 +1,14 @@
 import { createPackageVitestConfig } from '../../config/vitest/vitest.packages.config.js';
 
+// Защита от случайного запуска bench с test-конфигом
+if (process.argv.includes('bench')) {
+  process.stderr.write(
+    '❌ Bench must be run with vitest.bench.config.ts, not vitest.config.ts\n'
+      + 'Use: pnpm run bench\n',
+  );
+  process.exit(1);
+}
+
 /**
  * Конфигурация Vitest для @livai/core-contracts
  *

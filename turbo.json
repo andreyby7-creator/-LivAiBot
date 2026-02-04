@@ -74,8 +74,8 @@
       "cache": false
     },
     "bench": {
-      "inputs": ["src/**", "bench/**", "**/*.config.*"],
-      "outputs": ["bench-results/**"],
+      "inputs": ["src/**", "bench/**", "**/*.bench.*", "vitest.bench.config.ts"],
+      "outputs": [],
       "cache": false
     },
     "clean": {},

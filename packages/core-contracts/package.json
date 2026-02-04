@@ -104,8 +104,8 @@
     "generate:zod": "node ../../scripts/generate-zod-schemas.mjs",
     "generate:contracts": "node -e \"process.exit(0)\"",
     "check:contracts": "git diff --exit-code -- ':(glob)services/*-service/openapi.json' 'packages/core-contracts/src/validation/zod/generated' || (echo \"\\n[contracts] contract drift detected\" && exit 1)",
-    "bench": "NODE_OPTIONS='--no-warnings' vitest bench",
-    "bench:ci": "NODE_OPTIONS='--no-warnings' vitest bench --run"
+    "bench": "NODE_OPTIONS='--no-warnings' vitest bench -c vitest.bench.config.ts",
+    "bench:ci": "NODE_OPTIONS='--no-warnings' vitest bench -c vitest.bench.config.ts --run"
   },
   "keywords": [
     "typescript",
