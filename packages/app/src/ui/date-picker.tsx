@@ -299,9 +299,7 @@ const DatePickerComponent = forwardRef<HTMLDivElement, AppDatePickerProps>(
     // SSR-safe: не вызывать side-effects на сервере
     useEffect(() => {
       if (locale !== undefined && typeof window !== 'undefined') {
-        setDayjsLocale(locale).catch(() => {
-          // Обработка ошибки уже происходит внутри setDayjsLocale
-        });
+        setDayjsLocale(locale);
       }
     }, [locale]);
 

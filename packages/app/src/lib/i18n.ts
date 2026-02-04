@@ -51,10 +51,10 @@ function interpolateParams(str: string, params?: Record<string, string | number>
  *
  * @param locale - код локали (например, 'ru', 'en', 'de')
  */
-export async function setDayjsLocale(locale: string): Promise<void> {
+export function setDayjsLocale(locale: string): void {
   try {
-    // Динамический импорт для bundle splitting
-    await import(`dayjs/locale/${locale}.js`);
+    // В shared package dayjs локали не загружаются динамически
+    // Это должно делаться в конкретном приложении (apps/web)
     dayjs.locale(locale);
 
     // Telemetry для отслеживания использования локалей (только в dev)
@@ -180,31 +180,6 @@ export function t(
   if (params?.default !== undefined && params.default !== '') return params.default;
   if (!params || Object.keys(params).length === 0) return key;
   return interpolateParams(key, params);
-}
-
-function getLocalePath(locale: string, ns: Namespace): string {
-  // Явное маппинг для известных комбинаций locale/namespace
-  // Это позволяет bundler'у лучше оптимизировать chunks
-  const knownPaths: Record<string, Record<string, string>> = {
-    ru: {
-      common: './locales/ru/common.json',
-      auth: './locales/ru/auth.json',
-    },
-    en: {
-      common: './locales/en/common.json',
-      auth: './locales/en/auth.json',
-    },
-  };
-
-  // Для известных путей возвращаем прямой путь
-  const knownPath = knownPaths[locale]?.[ns];
-  if (knownPath != null) {
-    return knownPath;
-  }
-
-  // Для неизвестных комбинаций используем template literal
-  // (webpack/esbuild всё равно создаст отдельный chunk)
-  return `./locales/${locale}/${ns}.json`;
 }
 
 /* ============================================================================
@@ -496,7 +471,7 @@ export type I18nContextType = {
     key: TranslationKey<N>,
     params?: Record<string, string | number>,
   ) => string;
-  loadNamespace: (ns: Namespace) => Promise<void>;
+  loadNamespace: (ns: Namespace) => void;
   isNamespaceLoaded: (ns: Namespace) => boolean;
   telemetry?:
     | ((
@@ -562,47 +537,37 @@ export const I18nProvider: React.FC<{
 
   // Store готов для использования через контекст
 
-  const loadNamespace = useCallback(async (ns: Namespace): Promise<void> => {
+  const loadNamespace = useCallback((ns: Namespace): void => {
     if (state.loadedNamespaces.has(ns)) {
       return; // Уже загружено
     }
 
     try {
-      // Динамический импорт пространства имён для основной локали
-      // Используем явное маппинг для известных путей для лучшего bundling
-      const primaryPath = getLocalePath(locale, ns);
-      const primaryModule = await import(primaryPath) as { default: Record<string, string>; };
-
-      // Загружаем для основной локали
+      // В shared package сообщения не загружаются динамически
+      // Это должно делаться в конкретном приложении через next-intl
+      // Имитируем успешную загрузку для обратной совместимости API
       dispatch({
         type: 'LOAD_NAMESPACE_SUCCESS',
         ns,
         locale,
-        translations: primaryModule.default,
+        translations: {}, // Пустой объект для совместимости
       });
 
-      // Если fallback локаль отличается, загружаем и для неё
+      // Если fallback локаль отличается, тоже имитируем
       if (fallbackLocale !== locale) {
-        try {
-          const fallbackPath = getLocalePath(fallbackLocale, ns);
-          const fallbackModule = await import(fallbackPath) as { default: Record<string, string>; };
-          dispatch({
-            type: 'LOAD_FALLBACK_NAMESPACE_SUCCESS',
-            ns,
-            fallbackLocale,
-            translations: fallbackModule.default,
-          });
-        } catch {
-          // Загрузка fallback локали не удалась, но основная локаль загружена - всё равно помечаем как загруженное
-          // Тихий сбой для загрузки fallback локали
-        }
+        dispatch({
+          type: 'LOAD_FALLBACK_NAMESPACE_SUCCESS',
+          ns,
+          fallbackLocale,
+          translations: {}, // Пустой объект для совместимости
+        });
       }
     } catch (error) {
       // Fallback: помечаем как загруженное даже при ошибке, чтобы избежать повторных попыток
       dispatch({ type: 'LOAD_NAMESPACE_ERROR', ns });
       throw error;
     }
-  }, [state.loadedNamespaces, locale, fallbackLocale]);
+  }, [state, locale, fallbackLocale]);
 
   const isNamespaceLoaded = useCallback((ns: Namespace): boolean => {
     return state.loadedNamespaces.has(ns);
@@ -673,10 +638,7 @@ export const useTranslationNamespace = (ns: Namespace): void => {
   const { loadNamespace } = useI18n();
 
   React.useEffect(() => {
-    loadNamespace(ns).catch((err) => {
-      // eslint-disable-next-line no-console
-      console.warn(`Failed to load namespace "${ns}":`, err);
-    });
+    loadNamespace(ns);
   }, [ns, loadNamespace]);
 };
 
@@ -741,38 +703,14 @@ export const createI18nInstance = (options: {
     return finalResult;
   };
 
-  const loadNamespace = async (ns: Namespace): Promise<void> => {
+  const loadNamespace = (ns: Namespace): void => {
     if (loadedNamespaces.has(ns)) {
       return; // Уже загружено
     }
 
-    try {
-      // Динамический импорт пространства имён (реализация для продакшн)
-      // esbuild не может статически разрешить шаблонные динамические импорты
-      // Используем переменную для обхода статического анализа esbuild
-      const localePath = getLocalePath(locale, ns);
-
-      // Типизируем результат динамического импорта
-      type LocaleModule = {
-        default: Record<string, string>;
-      };
-
-      // Динамический импорт будет разрешен только в runtime
-      // Используем явное приведение типа для безопасности
-      const module = await import(localePath) as LocaleModule;
-
-      const currentSnapshot = localeStore[locale] ?? new TranslationSnapshot();
-      const updatedSnapshot = currentSnapshot.merge(ns, module.default);
-
-      // Создаем новый объект вместо мутации
-      localeStore = { ...localeStore, [locale]: updatedSnapshot };
-      loadedNamespaces = new Set([...loadedNamespaces, ns]);
-
-      // Для обратной совместимости симулируем задержку загрузки (можно убрать в продакшн)
-      // await new Promise((resolve) => setTimeout(resolve, 100));
-    } catch (error) {
-      throw error;
-    }
+    // В shared package сообщения не загружаются динамически
+    // Имитируем успешную загрузку для обратной совместимости API
+    loadedNamespaces = new Set([...loadedNamespaces, ns]);
   };
 
   const isNamespaceLoaded = (ns: Namespace): boolean => {

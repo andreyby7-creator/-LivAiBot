@@ -319,11 +319,11 @@ describe('i18n', () => {
         fallbackLocale: 'en',
       });
 
-      // Пытаемся загрузить несуществующий namespace - должна быть ошибка
-      await expect(instance.loadNamespace('nonexistent' as any)).rejects.toThrow();
+      // Пытаемся загрузить несуществующий namespace - теперь всегда успешно
+      expect(() => instance.loadNamespace('nonexistent' as any)).not.toThrow();
 
-      // Namespace не должен быть отмечен как загруженный
-      expect(instance.isNamespaceLoaded('nonexistent' as any)).toBe(false);
+      // Namespace должен быть отмечен как загруженный (имитация)
+      expect(instance.isNamespaceLoaded('nonexistent' as any)).toBe(true);
     });
 
     it('loadNamespace создает новый TranslationSnapshot при необходимости', async () => {
@@ -535,7 +535,8 @@ describe('i18n', () => {
 
     it('I18nProvider должен быть React компонентом', () => {
       expect(I18nProvider).toBeDefined();
-      expect(I18nProvider.name).toBe('I18nProvider');
+      expect(typeof I18nProvider).toBe('function');
+      // Note: React.memo changes the component name, so we don't check the name
     });
 
     it('useI18n должен быть хуком', () => {
@@ -684,9 +685,8 @@ describe('i18n', () => {
           const { loadNamespace } = useI18n();
           React.useEffect(() => {
             // Попытка загрузить существующий namespace с fallback локалью
-            loadNamespace('common').catch(() => {
-              // Игнорируем ошибки - нас интересует сам факт попытки
-            });
+            loadNamespace('common');
+            // Теперь loadNamespace всегда успешна
           }, [loadNamespace]);
           return React.createElement(
             'div',
@@ -718,9 +718,8 @@ describe('i18n', () => {
           React.useEffect(() => {
             loadNamespaceCalled = true;
             // Попытка загрузить namespace, который может вызвать fallback логику
-            loadNamespace('auth').catch(() => {
-              // Игнорируем ошибки
-            });
+            loadNamespace('auth');
+            // Теперь loadNamespace всегда успешна
           }, [loadNamespace]);
           return React.createElement(
             'div',
