@@ -209,7 +209,7 @@ apps/web (тонкий композитор)
 6️⃣4️⃣ packages/app/src/providers/QueryClientProvider.tsx 🟢 — ts+react — deps: state/query/query-client.ts, types/ui-contracts.ts
 6️⃣5️⃣ packages/app/src/providers/ToastProvider.tsx 🟢 — ts+react — deps: providers/TelemetryProvider.tsx, types/ui-contracts.ts
 6️⃣6️⃣ packages/app/src/providers/UnifiedUIProvider.tsx 🟢 — ts+react — deps: providers/: FeatureFlagsProvider.tsx, intl-provider.tsx, TelemetryProvider.tsx, lib/i18n.ts, types/ui-contracts.ts
-6️⃣7️⃣ packages/app/src/providers/AppProviders.tsx 🟢 — ts+react — deps: providers/: intl-provider.tsx, FeatureFlagsProvider.tsx, TelemetryProvider.tsx, QueryClientProvider.tsx, ToastProvider.tsx, state/store.ts, types/ui-contracts.ts
+6️⃣7️⃣ packages/app/src/providers/AppProviders.tsx 🟢 — ts+react — deps: providers/: intl-provider.tsx, FeatureFlagsProvider.tsx, TelemetryProvider.tsx, QueryClientProvider.tsx, ToastProvider.tsx, UnifiedUIProvider.tsx, state/store.ts, types/ui-contracts.ts
 6️⃣8️⃣ packages/app/src/bootstrap.tsx 🟢 — ts+react — deps: providers/AppProviders.tsx
 6️⃣9️⃣ packages/app/src/hooks/useApi.ts 🟢 — ts+react+effect — deps: lib/api-client.ts, lib/api-schema-guard.ts, lib/error-mapping.ts, lib/telemetry.ts, types/api.ts, types/ui-contracts.ts
 7️⃣0️⃣ packages/app/src/hooks/useToast.ts 🟢 — ts+react — deps: providers/ToastProvider.tsx, lib/telemetry.ts, types/ui-contracts.ts

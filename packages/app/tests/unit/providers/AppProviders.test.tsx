@@ -32,14 +32,37 @@ const storeMocks = vi.hoisted(() => ({
 
 vi.mock('../../../src/providers/intl-provider', () => ({
   IntlProvider: providerMocks.IntlProvider,
+  useI18n: vi.fn(() => ({
+    locale: 'en',
+    direction: 'ltr' as const,
+    translate: vi.fn((ns, key, _params) => `${ns}:${key}`),
+    loadNamespace: vi.fn(),
+    isNamespaceLoaded: vi.fn(() => true),
+    t: vi.fn((key) => `t:${key}`),
+    formatDateLocalized: vi.fn(),
+    setDayjsLocale: vi.fn(),
+  })),
 }));
 
 vi.mock('../../../src/providers/FeatureFlagsProvider', () => ({
   FeatureFlagsProvider: providerMocks.FeatureFlagsProvider,
+  useFeatureFlags: vi.fn(() => ({
+    isEnabled: vi.fn(() => false),
+    setOverride: vi.fn(),
+    clearOverrides: vi.fn(),
+    getOverride: vi.fn(() => false),
+  })),
 }));
 
 vi.mock('../../../src/providers/TelemetryProvider', () => ({
   TelemetryProvider: providerMocks.TelemetryProvider,
+  useTelemetryContext: vi.fn(() => ({
+    track: vi.fn(),
+    infoFireAndForget: vi.fn(),
+    warnFireAndForget: vi.fn(),
+    errorFireAndForget: vi.fn(),
+    flush: vi.fn(),
+  })),
 }));
 
 vi.mock('../../../src/providers/QueryClientProvider', () => ({
@@ -48,6 +71,12 @@ vi.mock('../../../src/providers/QueryClientProvider', () => ({
 
 vi.mock('../../../src/providers/ToastProvider', () => ({
   ToastProvider: providerMocks.ToastProvider,
+}));
+
+vi.mock('../../../src/providers/UnifiedUIProvider', () => ({
+  UnifiedUIProvider: vi.fn(({ children }) => (
+    <div data-testid='unified-ui-provider'>{children}</div>
+  )),
 }));
 
 vi.mock('../../../src/state/store', () => ({
@@ -80,6 +109,7 @@ describe('AppProviders', () => {
     expect(screen.getByTestId('telemetry-provider')).toBeInTheDocument();
     expect(screen.getByTestId('query-client-provider')).toBeInTheDocument();
     expect(screen.getByTestId('toast-provider')).toBeInTheDocument();
+    expect(screen.getByTestId('unified-ui-provider')).toBeInTheDocument();
     expect(screen.getByTestId('child')).toBeInTheDocument();
 
     const intlProvider = screen.getByTestId('intl-provider');
@@ -87,11 +117,14 @@ describe('AppProviders', () => {
     const telemetryProvider = screen.getByTestId('telemetry-provider');
     const queryClientProvider = screen.getByTestId('query-client-provider');
     const toastProvider = screen.getByTestId('toast-provider');
+    const unifiedUIProvider = screen.getByTestId('unified-ui-provider');
 
     expect(intlProvider).toContainElement(featureFlagsProvider);
     expect(featureFlagsProvider).toContainElement(telemetryProvider);
     expect(telemetryProvider).toContainElement(queryClientProvider);
     expect(queryClientProvider).toContainElement(toastProvider);
+    expect(toastProvider).toContainElement(unifiedUIProvider);
+    expect(unifiedUIProvider).toContainElement(screen.getByTestId('child'));
   });
 
   it('passes props to providers and uses store selector', () => {

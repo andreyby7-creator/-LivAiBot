@@ -10,7 +10,7 @@
  * - SSR-safe обертка без бизнес-логики
  *
  * Порядок:
- * FeatureFlags → Telemetry → QueryClient → Toast
+ * FeatureFlags → Telemetry → QueryClient → Toast → UnifiedUI
  */
 
 'use client';
@@ -28,6 +28,7 @@ import { TelemetryProvider } from './TelemetryProvider.js';
 import type { TelemetryProviderProps } from './TelemetryProvider.js';
 import { ToastProvider } from './ToastProvider.js';
 import type { ToastProviderProps } from './ToastProvider.js';
+import { UnifiedUIProvider } from './UnifiedUIProvider.js';
 import { useAppStore } from '../state/store.js';
 import type { UiAuthContext } from '../types/ui-contracts.js';
 
@@ -84,12 +85,14 @@ function AppProvidersComponent({
 
   return (
     <IntlProvider {...intl}>
-      {/* Порядок важен: FeatureFlags → Telemetry → QueryClient → Toast */}
+      {/* Порядок важен: FeatureFlags → Telemetry → QueryClient → Toast → UnifiedUI */}
       <FeatureFlagsProvider {...(featureFlags ?? {})}>
         <TelemetryProvider {...(telemetry ?? {})}>
           <AppQueryClientProvider {...(queryClient ?? {})}>
             <ToastProvider {...(toast ?? {})}>
-              {children}
+              <UnifiedUIProvider>
+                {children}
+              </UnifiedUIProvider>
             </ToastProvider>
           </AppQueryClientProvider>
         </TelemetryProvider>
