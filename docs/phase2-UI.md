@@ -238,7 +238,7 @@ apps/web (тонкий композитор)
 9️⃣3️⃣ packages/app/src/ui/language-selector.tsx 🟢 — ts+react — deps: ui-core/components/LanguageSelector.tsx, app/lib/feature-flags.ts, app/lib/telemetry.ts, app/lib/i18n.ts
 9️⃣4️⃣ packages/app/src/ui/support-button.tsx 🟢 — ts+react — deps: ui-core/components/SupportButton.tsx, app/lib/feature-flags.ts, app/lib/telemetry.ts
 
-App state и hooks
+✅ App state и hooks
 9️⃣5️⃣ packages/app/src/state/store.ts 🟢 — ts+zustand — deps: types/common.ts
 9️⃣6️⃣ packages/app/src/state/query/query-client.ts 🟢 — ts+react — deps: lib/telemetry.ts
 9️⃣7️⃣ packages/app/src/providers/TelemetryProvider.tsx 🟢 — ts+react — deps: lib/telemetry.ts, types/telemetry.ts
@@ -249,8 +249,8 @@ App state и hooks
 1️⃣0️⃣2️⃣ packages/app/src/bootstrap.tsx 🟢 — ts+react — deps: providers/AppProviders.js
 1️⃣0️⃣3️⃣ packages/app/src/hooks/useApi.ts 🟢 — ts+react+effect — deps: lib/api-client.ts, lib/api-schema-guard.ts, lib/error-mapping.ts, lib/telemetry.ts, types/api.ts
 1️⃣0️⃣4️⃣ packages/app/src/hooks/useToast.ts 🟢 — ts+react — deps: providers/ToastProvider.tsx, lib/telemetry.ts
-1️⃣0️⃣5️⃣ packages/app/src/hooks/useFeatureFlags.ts 🔴 — ts+react — deps: providers/FeatureFlagsProvider.tsx
-1️⃣0️⃣6️⃣ packages/app/src/hooks/useOfflineCache.ts 🔴 — ts+react — deps: lib/offline-cache.ts
+1️⃣0️⃣5️⃣ packages/app/src/hooks/useFeatureFlags.ts 🟢 — ts+react — deps: providers/FeatureFlagsProvider.tsx, lib/feature-flags.ts, types/common.ts
+1️⃣0️⃣6️⃣ packages/app/src/hooks/useOfflineCache.ts 🟢 — ts+react+effect — deps: lib/effect-utils.ts, lib/offline-cache.ts
 
 Feature Auth
 1️⃣0️⃣7️⃣ packages/feature-auth/src/domain/LoginRequest.ts 🔴 — ts — DTO login (НЕТ)
