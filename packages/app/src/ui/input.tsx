@@ -24,10 +24,25 @@ import type { JSX } from 'react';
 
 import { Input as CoreInput } from '../../../ui-core/src/index.js';
 import type { InputProps as CoreInputProps } from '../../../ui-core/src/index.js';
-import { useFeatureFlagOverride } from '../lib/feature-flags.js';
-import { useI18n } from '../lib/i18n.js';
 import type { Namespace, TranslationKey } from '../lib/i18n.js';
-import { infoFireAndForget } from '../lib/telemetry.js';
+import { useUnifiedUI } from '../providers/UnifiedUIProvider.js';
+import type { Json } from '../types/common.js';
+import type {
+  AppWrapperProps,
+  MapCoreProps,
+  UiFeatureFlags,
+  UiPrimitiveProps,
+  UiTelemetryApi,
+} from '../types/ui-contracts.js';
+
+/** Алиас для UI feature flags в контексте input wrapper */
+export type InputUiFeatureFlags = UiFeatureFlags;
+
+/** Алиас для wrapper props в контексте input */
+export type InputWrapperProps<TData = Json> = AppWrapperProps<UiPrimitiveProps, TData>;
+
+/** Алиас для маппинга core props в контексте input */
+export type InputMapCoreProps<TData = Json> = MapCoreProps<UiPrimitiveProps, TData>;
 
 // Фильтруем бизнес-пропсы от DOM-пропсов
 function omit<T extends Record<string, unknown>, K extends readonly string[]>(
@@ -156,10 +171,9 @@ const EMPTY_PARAMS: Record<string, string | number> = Object.freeze({});
 const TELEMETRY_DEBOUNCE_DELAY = 300;
 
 /** Debounced telemetry hook для оптимизации сетевого трафика */
-const useDebouncedTelemetry = (): (
-  message: string,
-  data: InputTelemetryPayload,
-) => void => {
+const useDebouncedTelemetry = (
+  telemetry: UiTelemetryApi,
+): (message: string, data: InputTelemetryPayload) => void => {
   const timeoutRef = useRef<number | undefined>(undefined);
 
   const debouncedInfoFireAndForget = useCallback(
@@ -174,12 +188,12 @@ const useDebouncedTelemetry = (): (
 
       // eslint-disable-next-line functional/immutable-data
       timeoutRef.current = window.setTimeout(() => {
-        infoFireAndForget(message, data);
+        telemetry.infoFireAndForget(message, data);
         // eslint-disable-next-line functional/immutable-data
         timeoutRef.current = undefined;
       }, delay);
     },
-    [],
+    [telemetry],
   );
 
   useEffect(() => {
@@ -243,10 +257,11 @@ function InputComponent<T extends HTMLInputElement['value'] = string>(
     ...(value === undefined ? { defaultValue } : {}),
   };
 
-  const { translate } = useI18n();
+  const { i18n, featureFlags, telemetry } = useUnifiedUI();
+  const { translate } = i18n;
   const flagDisabled = Boolean(isDisabledByFeatureFlag);
   const flagHidden = Boolean(isHiddenByFeatureFlag);
-  const telemetryEnabled = useFeatureFlagOverride('SYSTEM_telemetry_enabled', true);
+  const telemetryEnabled = featureFlags.getOverride('SYSTEM_telemetry_enabled', true);
 
   // TODO: Runtime overrides для A/B тестирования
   // Нужен context provider для динамического переключения флагов на лету
@@ -256,7 +271,7 @@ function InputComponent<T extends HTMLInputElement['value'] = string>(
   const effectiveHidden = flagHidden;
   const inputId = useId();
   const hasLabel = Boolean(label?.trim());
-  const debouncedTelemetry = useDebouncedTelemetry();
+  const debouncedTelemetry = useDebouncedTelemetry(telemetry);
 
   /** Получить финальный placeholder с i18n fallback */
   const getPlaceholder = useCallback((): string => {
@@ -304,14 +319,14 @@ function InputComponent<T extends HTMLInputElement['value'] = string>(
       return;
     }
 
-    infoFireAndForget('Input focused', {
+    telemetry.infoFireAndForget('Input focused', {
       component: 'Input',
       action: 'focus',
       disabled: effectiveDisabled,
       value: event.currentTarget.value,
     });
     onFocus?.(event);
-  }, [telemetryEnabled, effectiveDisabled, onFocus]);
+  }, [telemetryEnabled, effectiveDisabled, onFocus, telemetry]);
 
   /** Blur handler с telemetry */
   const handleBlur = useCallback((event: React.FocusEvent<HTMLInputElement>) => {
@@ -320,14 +335,14 @@ function InputComponent<T extends HTMLInputElement['value'] = string>(
       return;
     }
 
-    infoFireAndForget('Input blurred', {
+    telemetry.infoFireAndForget('Input blurred', {
       component: 'Input',
       action: 'blur',
       disabled: effectiveDisabled,
       value: event.currentTarget.value,
     });
     onBlur?.(event);
-  }, [telemetryEnabled, effectiveDisabled, onBlur]);
+  }, [telemetryEnabled, effectiveDisabled, onBlur, telemetry]);
 
   // Feature flag: скрываем компонент полностью (с учетом runtime overrides)
   if (effectiveHidden) {

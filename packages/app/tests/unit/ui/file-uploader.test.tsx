@@ -184,15 +184,25 @@ vi.mock('../../../../ui-core/src/components/FileUploader', () => ({
   }),
 }));
 
-// Mock для telemetry
-vi.mock('../../../src/lib/telemetry', () => ({
-  infoFireAndForget: vi.fn(),
+// Mock для UnifiedUIProvider
+const mockInfoFireAndForget = vi.fn();
+
+vi.mock('../../../src/providers/UnifiedUIProvider', () => ({
+  useUnifiedUI: () => ({
+    featureFlags: {
+      isEnabled: () => false,
+      setOverride: vi.fn(),
+      clearOverrides: vi.fn(),
+      getOverride: () => false,
+    },
+    telemetry: {
+      track: vi.fn(),
+      infoFireAndForget: mockInfoFireAndForget,
+    },
+  }),
 }));
 
 import { FileUploader } from '../../../src/ui/file-uploader';
-import { infoFireAndForget } from '../../../src/lib/telemetry';
-
-const mockInfoFireAndForget = vi.mocked(infoFireAndForget);
 
 describe('App FileUploader', () => {
   let uuidCounter = 0;

@@ -36,7 +36,24 @@ import type {
 import { useAuthGuardContext } from '../lib/auth-guard.js';
 import { checkRoutePermission } from '../lib/route-permissions.js';
 import type { RoutePermissionContext } from '../lib/route-permissions.js';
-import { infoFireAndForget } from '../lib/telemetry.js';
+import { useUnifiedUI } from '../providers/UnifiedUIProvider.js';
+import type { Json } from '../types/common.js';
+import type {
+  AppWrapperProps,
+  MapCoreProps,
+  UiFeatureFlags,
+  UiPrimitiveProps,
+  UiTelemetryApi,
+} from '../types/ui-contracts.js';
+
+/** Алиас для UI feature flags в контексте user-profile-display wrapper */
+export type UserProfileDisplayUiFeatureFlags = UiFeatureFlags;
+
+/** Алиас для wrapper props в контексте user-profile-display */
+export type UserProfileDisplayWrapperProps<TData = Json> = AppWrapperProps<UiPrimitiveProps, TData>;
+
+/** Алиас для маппинга core props в контексте user-profile-display */
+export type UserProfileDisplayMapCoreProps<TData = Json> = MapCoreProps<UiPrimitiveProps, TData>;
 
 /* ============================================================================
  * 🛠️ УТИЛИТЫ
@@ -190,9 +207,10 @@ function useUserProfileDisplayPolicy(
  * =========================================================================== */
 
 function emitUserProfileDisplayTelemetry(
+  telemetry: UiTelemetryApi,
   payload: UserProfileDisplayTelemetryPayload,
 ): void {
-  infoFireAndForget(`UserProfileDisplay ${payload.action}`, payload);
+  telemetry.infoFireAndForget(`UserProfileDisplay ${payload.action}`, payload);
 }
 
 /** Формирование payload для UserProfileDisplay telemetry. */
@@ -274,6 +292,7 @@ const UserProfileDisplayComponent = forwardRef<HTMLDivElement, AppUserProfileDis
     props: AppUserProfileDisplayProps,
     ref: Ref<HTMLDivElement>,
   ): JSX.Element | null {
+    const { telemetry } = useUnifiedUI();
     const policy = useUserProfileDisplayPolicy(props);
 
     // Фильтруем бизнес-пропсы, оставляем только DOM-безопасные
@@ -348,10 +367,11 @@ const UserProfileDisplayComponent = forwardRef<HTMLDivElement, AppUserProfileDis
     useEffect(() => {
       if (!policy.telemetryEnabled) return;
 
-      emitUserProfileDisplayTelemetry(lifecyclePayload.mount);
+      emitUserProfileDisplayTelemetry(telemetry, lifecyclePayload.mount);
       return (): void => {
-        emitUserProfileDisplayTelemetry(lifecyclePayload.unmount);
+        emitUserProfileDisplayTelemetry(telemetry, lifecyclePayload.unmount);
       };
+      // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [policy.telemetryEnabled, lifecyclePayload]);
 
     // Telemetry для view - только при первом рендере, если компонент видим
@@ -368,6 +388,7 @@ const UserProfileDisplayComponent = forwardRef<HTMLDivElement, AppUserProfileDis
       }
 
       emitUserProfileDisplayTelemetry(
+        telemetry,
         getUserProfileDisplayPayload(
           UserProfileDisplayTelemetryAction.View,
           policy,
@@ -377,6 +398,7 @@ const UserProfileDisplayComponent = forwardRef<HTMLDivElement, AppUserProfileDis
 
       // eslint-disable-next-line functional/immutable-data
       hasEmittedViewRef.current = true;
+      // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [
       policy.telemetryEnabled,
       policy.isRendered,

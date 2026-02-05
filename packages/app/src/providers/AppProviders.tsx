@@ -29,8 +29,10 @@ import type { TelemetryProviderProps } from './TelemetryProvider.js';
 import { ToastProvider } from './ToastProvider.js';
 import type { ToastProviderProps } from './ToastProvider.js';
 import { useAppStore } from '../state/store.js';
-import type { AppErrorBoundaryProps } from '../ui/error-boundary.js';
-import { ErrorBoundary } from '../ui/error-boundary.js';
+import type { UiAuthContext } from '../types/ui-contracts.js';
+
+/** Алиас для UI auth context в контексте app providers */
+export type AppUiAuthContext = UiAuthContext;
 
 /* ============================================================================
  * 🧬 TYPES
@@ -40,8 +42,6 @@ export type AppProvidersProps = Readonly<
   PropsWithChildren<{
     /** Конфигурация IntlProvider. */
     readonly intl: IntlProviderProps;
-    /** Конфигурация ErrorBoundary. */
-    readonly errorBoundary?: AppErrorBoundaryProps;
     /** Конфигурация TelemetryProvider. */
     readonly telemetry?: TelemetryProviderProps;
     /** Конфигурация FeatureFlagsProvider. */
@@ -78,26 +78,23 @@ function AppProvidersComponent({
   queryClient,
   toast,
   intl,
-  errorBoundary,
 }: AppProvidersProps): JSX.Element {
   // SSR-safe инициализация глобального store без side effects
   useAppStoreInit();
 
   return (
-    <ErrorBoundary {...(errorBoundary ?? {})}>
-      <IntlProvider {...intl}>
-        {/* Порядок важен: FeatureFlags → Telemetry → QueryClient → Toast */}
-        <FeatureFlagsProvider {...(featureFlags ?? {})}>
-          <TelemetryProvider {...(telemetry ?? {})}>
-            <AppQueryClientProvider {...(queryClient ?? {})}>
-              <ToastProvider {...(toast ?? {})}>
-                {children}
-              </ToastProvider>
-            </AppQueryClientProvider>
-          </TelemetryProvider>
-        </FeatureFlagsProvider>
-      </IntlProvider>
-    </ErrorBoundary>
+    <IntlProvider {...intl}>
+      {/* Порядок важен: FeatureFlags → Telemetry → QueryClient → Toast */}
+      <FeatureFlagsProvider {...(featureFlags ?? {})}>
+        <TelemetryProvider {...(telemetry ?? {})}>
+          <AppQueryClientProvider {...(queryClient ?? {})}>
+            <ToastProvider {...(toast ?? {})}>
+              {children}
+            </ToastProvider>
+          </AppQueryClientProvider>
+        </TelemetryProvider>
+      </FeatureFlagsProvider>
+    </IntlProvider>
   );
 }
 

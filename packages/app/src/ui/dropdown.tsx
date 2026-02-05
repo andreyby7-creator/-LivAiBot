@@ -26,7 +26,24 @@ import type { JSX, KeyboardEvent, MouseEvent, Ref } from 'react';
 
 import { Dropdown as CoreDropdown } from '../../../ui-core/src/primitives/dropdown.js';
 import type { CoreDropdownProps } from '../../../ui-core/src/primitives/dropdown.js';
-import { infoFireAndForget } from '../lib/telemetry.js';
+import { useUnifiedUI } from '../providers/UnifiedUIProvider.js';
+import type { Json } from '../types/common.js';
+import type {
+  AppWrapperProps,
+  MapCoreProps,
+  UiFeatureFlags,
+  UiPrimitiveProps,
+  UiTelemetryApi,
+} from '../types/ui-contracts.js';
+
+/** Алиас для UI feature flags в контексте dropdown wrapper */
+export type DropdownUiFeatureFlags = UiFeatureFlags;
+
+/** Алиас для wrapper props в контексте dropdown */
+export type DropdownWrapperProps<TData = Json> = AppWrapperProps<UiPrimitiveProps, TData>;
+
+/** Алиас для маппинга core props в контексте dropdown */
+export type DropdownMapCoreProps<TData = Json> = MapCoreProps<UiPrimitiveProps, TData>;
 
 /* ============================================================================
  * 🛠️ УТИЛИТЫ
@@ -144,8 +161,8 @@ function useDropdownPolicy(props: AppDropdownProps): DropdownPolicy {
  * 📡 TELEMETRY
  * ========================================================================== */
 
-function emitDropdownTelemetry(payload: DropdownTelemetryPayload): void {
-  infoFireAndForget(`Dropdown ${payload.action}`, payload);
+function emitDropdownTelemetry(telemetry: UiTelemetryApi, payload: DropdownTelemetryPayload): void {
+  telemetry.infoFireAndForget(`Dropdown ${payload.action}`, payload);
 }
 
 // Базовое формирование payload для Dropdown telemetry (без visible)
@@ -197,6 +214,7 @@ const DropdownComponent = forwardRef<HTMLDivElement, AppDropdownProps>(
     props: AppDropdownProps,
     ref: Ref<HTMLDivElement>,
   ): JSX.Element | null {
+    const { telemetry } = useUnifiedUI();
     // Фильтруем бизнес-пропсы, оставляем только DOM-безопасные
     const domProps = omit(props, BUSINESS_PROPS);
 
@@ -266,11 +284,11 @@ const DropdownComponent = forwardRef<HTMLDivElement, AppDropdownProps>(
     useEffect(() => {
       if (!policy.telemetryEnabled) return;
 
-      emitDropdownTelemetry(lifecyclePayload.mount);
+      emitDropdownTelemetry(telemetry, lifecyclePayload.mount);
       return (): void => {
-        emitDropdownTelemetry(lifecyclePayload.unmount);
+        emitDropdownTelemetry(telemetry, lifecyclePayload.unmount);
       };
-    }, [policy.telemetryEnabled, lifecyclePayload]);
+    }, [policy.telemetryEnabled, lifecyclePayload, telemetry]);
 
     // Telemetry для видимости - only on changes, not on mount
     const prevVisibleRef = useRef<boolean | undefined>(undefined);
@@ -279,12 +297,10 @@ const DropdownComponent = forwardRef<HTMLDivElement, AppDropdownProps>(
     const emitVisibilityTelemetry = useCallback(
       (prevVisibility: boolean | undefined, currentVisibility: boolean): void => {
         if (prevVisibility !== undefined && prevVisibility !== currentVisibility) {
-          emitDropdownTelemetry(
-            currentVisibility ? showPayload : hidePayload,
-          );
+          emitDropdownTelemetry(telemetry, currentVisibility ? showPayload : hidePayload);
         }
       },
-      [showPayload, hidePayload],
+      [showPayload, hidePayload, telemetry],
     );
 
     useEffect(() => {
@@ -315,12 +331,12 @@ const DropdownComponent = forwardRef<HTMLDivElement, AppDropdownProps>(
               ...(placement !== undefined && { placement }),
             },
           );
-          emitDropdownTelemetry(togglePayload);
+          emitDropdownTelemetry(telemetry, togglePayload);
         }
 
         onToggle?.(newIsOpen, event);
       },
-      [policy, items.length, placement, onToggle],
+      [policy, items.length, placement, onToggle, telemetry],
     );
 
     // Обработчик select с telemetry
@@ -337,12 +353,12 @@ const DropdownComponent = forwardRef<HTMLDivElement, AppDropdownProps>(
               ...(placement !== undefined && { placement }),
             },
           );
-          emitDropdownTelemetry(selectPayload);
+          emitDropdownTelemetry(telemetry, selectPayload);
         }
 
         onSelect?.(itemId, event);
       },
-      [policy, items.length, isOpen, placement, onSelect],
+      [policy, items.length, isOpen, placement, onSelect, telemetry],
     );
 
     // CoreDropdown получает все необходимые пропсы

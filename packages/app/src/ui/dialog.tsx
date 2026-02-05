@@ -27,7 +27,8 @@ import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from '
 import type { JSX } from 'react';
 
 import { Dialog as CoreDialog } from '../../../ui-core/src/primitives/dialog.js';
-import { infoFireAndForget } from '../lib/telemetry.js';
+import { useUnifiedUI } from '../providers/UnifiedUIProvider.js';
+import type { UiTelemetryApi } from '../types/ui-contracts.js';
 
 /* ============================================================================
  * 🧬 TYPES
@@ -186,12 +187,13 @@ function useDialogPolicy(props: AppDialogProps): DialogPolicyController {
  * ========================================================================== */
 
 function emitDialogTelemetry(
+  telemetry: UiTelemetryApi,
   action: DialogTelemetryPayload['action'],
   policy: DialogPolicy,
 ): void {
   // Асинхронная telemetry для минимизации blocking при heavy logging
   queueMicrotask(() => {
-    infoFireAndForget(`Dialog ${action}`, {
+    telemetry.infoFireAndForget(`Dialog ${action}`, {
       component: 'Dialog',
       action,
       open: policy.open,
@@ -207,6 +209,7 @@ function emitDialogTelemetry(
  * ========================================================================== */
 
 function DialogComponent(props: AppDialogProps): JSX.Element | null {
+  const { telemetry } = useUnifiedUI();
   const {
     children,
     onOpen,
@@ -222,13 +225,13 @@ function DialogComponent(props: AppDialogProps): JSX.Element | null {
 
   /** Lifecycle telemetry */
   useEffect(() => {
-    emitDialogTelemetry('mount', policy);
+    emitDialogTelemetry(telemetry, 'mount', policy);
     return (): void => {
-      emitDialogTelemetry('unmount', policy);
+      emitDialogTelemetry(telemetry, 'unmount', policy);
     };
     // policy фиксируется на mount
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [telemetry]);
 
   /** Edge-based open/close telemetry */
   const prevOpenRef = useRef<boolean | null>(null);
@@ -246,7 +249,7 @@ function DialogComponent(props: AppDialogProps): JSX.Element | null {
     }
 
     if (policy.open !== prevOpenRef.current) {
-      emitDialogTelemetry(policy.open ? 'open' : 'close', policy);
+      emitDialogTelemetry(telemetry, policy.open ? 'open' : 'close', policy);
 
       // eslint-disable-next-line functional/immutable-data
       prevOpenRef.current = policy.open; // intentional side-effect для telemetry
@@ -257,7 +260,7 @@ function DialogComponent(props: AppDialogProps): JSX.Element | null {
         onClose?.();
       }
     }
-  }, [policy.open, policy, onOpen, onClose]);
+  }, [policy.open, policy, onOpen, onClose, telemetry]);
 
   /** Handlers (effects isolated here) */
   const handleClose = useCallback(() => {

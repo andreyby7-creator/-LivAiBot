@@ -31,7 +31,15 @@ import type { JSX } from 'react';
 
 import { Toggle as CoreToggle } from '../../../ui-core/src/primitives/toggle.js';
 import type { CoreToggleProps } from '../../../ui-core/src/primitives/toggle.js';
-import { infoFireAndForget } from '../lib/telemetry.js';
+import { useUnifiedUI } from '../providers/UnifiedUIProvider.js';
+import type { Json } from '../types/common.js';
+import type {
+  AppWrapperProps,
+  MapCoreProps,
+  UiFeatureFlags,
+  UiPrimitiveProps,
+  UiTelemetryApi,
+} from '../types/ui-contracts.js';
 
 /* ============================================================================
  * 🧬 TYPES
@@ -146,6 +154,7 @@ function useTogglePolicy(props: AppToggleProps): TogglePolicy {
  * ========================================================================== */
 
 function emitToggleTelemetry(
+  telemetry: UiTelemetryApi,
   action: ToggleTelemetryAction,
   policy: TogglePolicy,
   checked?: boolean,
@@ -161,8 +170,17 @@ function emitToggleTelemetry(
     ...(checked !== undefined && { checked }),
   };
 
-  infoFireAndForget(`Toggle ${action}`, payload);
+  telemetry.infoFireAndForget(`Toggle ${action}`, payload);
 }
+
+/** Алиас для UI feature flags в контексте toggle wrapper */
+export type ToggleUiFeatureFlags = UiFeatureFlags;
+
+/** Алиас для wrapper props в контексте toggle */
+export type ToggleWrapperProps<TData = Json> = AppWrapperProps<UiPrimitiveProps, TData>;
+
+/** Алиас для маппинга core props в контексте toggle */
+export type ToggleMapCoreProps<TData = Json> = MapCoreProps<UiPrimitiveProps, TData>;
 
 /* ============================================================================
  * 🎯 APP TOGGLE
@@ -170,6 +188,7 @@ function emitToggleTelemetry(
 
 const ToggleComponent = forwardRef<HTMLInputElement, AppToggleProps>(
   function ToggleComponent(props, ref): JSX.Element | null {
+    const { telemetry } = useUnifiedUI();
     // Сначала фильтруем бизнес-пропсы
     const filteredProps = omit(props, BUSINESS_PROPS);
 
@@ -199,9 +218,9 @@ const ToggleComponent = forwardRef<HTMLInputElement, AppToggleProps>(
     /** Жизненный цикл telemetry */
     useEffect(() => {
       if (policy.telemetryEnabled) {
-        emitToggleTelemetry('mount', policy, checkedRef.current);
+        emitToggleTelemetry(telemetry, 'mount', policy, checkedRef.current);
         return (): void => {
-          emitToggleTelemetry('unmount', policy, checkedRef.current);
+          emitToggleTelemetry(telemetry, 'unmount', policy, checkedRef.current);
         };
       }
       return undefined;
@@ -229,34 +248,34 @@ const ToggleComponent = forwardRef<HTMLInputElement, AppToggleProps>(
         if (policy.disabledByFeatureFlag) return;
 
         if (policy.telemetryOnChange) {
-          emitToggleTelemetry('change', policy, event.target.checked);
+          emitToggleTelemetry(telemetry, 'change', policy, event.target.checked);
         }
 
         onChange?.(event);
       },
-      [policy, onChange],
+      [policy, onChange, telemetry],
     );
 
     const handleFocus = useCallback(
       (event: React.FocusEvent<HTMLInputElement>) => {
         if (policy.telemetryOnFocus) {
-          emitToggleTelemetry('focus', policy, event.target.checked);
+          emitToggleTelemetry(telemetry, 'focus', policy, event.target.checked);
         }
 
         onFocus?.(event);
       },
-      [policy, onFocus],
+      [policy, onFocus, telemetry],
     );
 
     const handleBlur = useCallback(
       (event: React.FocusEvent<HTMLInputElement>) => {
         if (policy.telemetryOnBlur) {
-          emitToggleTelemetry('blur', policy, event.target.checked);
+          emitToggleTelemetry(telemetry, 'blur', policy, event.target.checked);
         }
 
         onBlur?.(event);
       },
-      [policy, onBlur],
+      [policy, onBlur, telemetry],
     );
 
     /** hidden */

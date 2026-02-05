@@ -39,6 +39,16 @@ import type {
   ApiServiceName,
   HttpMethod,
 } from '../types/api.js';
+import type { ComponentState, UiEvent, UiEventMap, UiMetrics } from '../types/ui-contracts.js';
+
+/** Алиас для UI событий в контексте API хуков */
+export type ApiUiEvent<TType extends keyof UiEventMap = keyof UiEventMap> = UiEvent<TType>;
+
+/** Алиас для состояния компонентов в контексте API хуков */
+export type ApiComponentState<T = unknown> = ComponentState<T>;
+
+/** Алиас для UI метрик в контексте API хуков */
+export type ApiUiMetrics = UiMetrics;
 
 /* ============================================================================
  * 🧬 TYPES

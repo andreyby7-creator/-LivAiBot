@@ -17,15 +17,13 @@
  */
 
 import type { ID, ISODateString, Json, Platform } from './common.js';
+import type { UiAuthContext } from './ui-contracts.js';
 
 /* ========================================================================== */
 /* 🧱 БАЗОВЫЕ HTTP КОНТРАКТЫ */
 /* ========================================================================== */
 
-/**
- * Поддерживаемые HTTP методы.
- * Используется api-client и эффектами.
- */
+/** Поддерживаемые HTTP методы. Используется api-client и эффектами. */
 export type HttpMethod =
   | 'GET'
   | 'POST'
@@ -46,10 +44,7 @@ export type ApiServiceName =
   | 'bots'
   | 'gateway';
 
-/**
- * Контекст API запроса.
- * Используется для трассировки и авторизации.
- */
+/** Контекст API запроса. Используется для трассировки и авторизации. */
 export type ApiRequestContext = {
   /** Уникальный trace-id запроса (для distributed tracing) */
   readonly traceId?: string;
@@ -71,10 +66,7 @@ export type ApiRequestContext = {
 /* 📦 API RESPONSE (УСИЛЕННЫЙ DISCRIMINATED UNION) */
 /* ========================================================================== */
 
-/**
- * Категории ошибок API.
- * Синхронизируются с backend контрактами.
- */
+/** Категории ошибок API. Синхронизируются с backend контрактами. */
 export type ApiErrorCategory =
   | 'VALIDATION'
   | 'AUTH'
@@ -86,10 +78,7 @@ export type ApiErrorCategory =
   | 'DEPENDENCY'
   | 'INTERNAL';
 
-/**
- * Источник ошибки.
- * Критично для микросервисных систем.
- */
+/** Источник ошибки. Критично для микросервисных систем. */
 export type ApiErrorSource =
   | 'CLIENT'
   | 'GATEWAY'
@@ -119,28 +108,21 @@ export type ApiError = {
   readonly details?: Json;
 };
 
-/**
- * Успешный ответ API.
- */
+/** Успешный ответ API. */
 export type ApiSuccessResponse<T> = {
   readonly success: true;
   readonly data: T;
   readonly meta?: Json;
 };
 
-/**
- * Ошибочный ответ API.
- */
+/** Ошибочный ответ API. */
 export type ApiFailureResponse = {
   readonly success: false;
   readonly error: ApiError;
   readonly meta?: Json;
 };
 
-/**
- * Универсальный ответ API.
- * Используется в api-client, effects и hooks.
- */
+/** Универсальный ответ API. Используется в api-client, effects и hooks. */
 export type ApiResponse<T> =
   | ApiSuccessResponse<T>
   | ApiFailureResponse;
@@ -149,17 +131,13 @@ export type ApiResponse<T> =
 /* 📊 ПАГИНАЦИЯ И СПИСКИ */
 /* ========================================================================== */
 
-/**
- * Параметры пагинации для API запросов.
- */
+/** Параметры пагинации для API запросов. */
 export type PaginationParams = {
   readonly limit: number;
   readonly offset: number;
 };
 
-/**
- * Контракт пагинированного ответа.
- */
+/** Контракт пагинированного ответа. */
 export type PaginatedResult<T> = {
   readonly items: readonly T[];
   readonly total: number;
@@ -192,9 +170,7 @@ export type RealtimeEvent<
   readonly payload: TPayload;
 };
 
-/**
- * Контракт подписки на realtime события.
- */
+/** Контракт подписки на realtime события. */
 export type RealtimeSubscription = {
   /** Имя канала */
   channel: string;
@@ -234,10 +210,7 @@ export type ApiRetryPolicy = {
   readonly backoffMs: number;
 };
 
-/**
- * Универсальный API handler.
- * Используется в эффектах.
- */
+/** Универсальный API handler. Используется в эффектах. */
 export type ApiHandler<TReq, TRes> = (
   request: TReq,
 ) => Promise<ApiResponse<TRes>>;
@@ -246,27 +219,19 @@ export type ApiHandler<TReq, TRes> = (
 /* 🧩 DOMAIN-AGNOSTIC DTO КОНТРАКТЫ */
 /* ========================================================================== */
 
-/**
- * Базовый DTO для всех API сущностей.
- * Все доменные DTO должны расширять этот контракт.
- */
+/** Базовый DTO для всех API сущностей. Все доменные DTO должны расширять этот контракт. */
 export type BaseApiDTO = {
   readonly id: ID;
   readonly createdAt: ISODateString;
   readonly updatedAt?: ISODateString;
 };
 
-/**
- * Контракт soft-delete сущностей.
- */
+/** Контракт soft-delete сущностей. */
 export type SoftDeletable = {
   readonly deletedAt?: ISODateString;
 };
 
-/**
- * Контракт версии сущности.
- * Используется для optimistic locking.
- */
+/** Контракт версии сущности. Используется для optimistic locking. */
 export type VersionedEntity = {
   readonly version: number;
 };
@@ -275,18 +240,10 @@ export type VersionedEntity = {
 /* 🔒 API SECURITY */
 /* ========================================================================== */
 
-/**
- * Контекст авторизации API.
- */
-export type ApiAuthContext = {
-  readonly accessToken?: string;
-  readonly refreshToken?: string;
-  readonly isAuthenticated: boolean;
-};
+/** Алиас для UiAuthContext для обратной совместимости */
+export type ApiAuthContext = UiAuthContext;
 
-/**
- * Заголовки, используемые во всех сервисах.
- */
+/** Заголовки, используемые во всех сервисах. */
 export type ApiHeaders = {
   readonly 'x-trace-id'?: string;
   readonly 'x-request-id'?: string;
@@ -297,9 +254,7 @@ export type ApiHeaders = {
 /* 🧠 OBSERVABILITY */
 /* ========================================================================== */
 
-/**
- * Метаданные для мониторинга запросов.
- */
+/** Метаданные для мониторинга запросов. */
 export type ApiMetrics = {
   /** Время выполнения запроса в мс */
   readonly durationMs: number;
@@ -315,10 +270,7 @@ export type ApiMetrics = {
 /* 🔧 API CLIENT CONFIGURATION */
 /* ========================================================================== */
 
-/**
- * Конфигурация API клиента.
- * Используется для создания экземпляра ApiClient.
- */
+/** Конфигурация API клиента. Используется для создания экземпляра ApiClient. */
 export type ApiClientConfig = {
   /** Базовый URL API */
   readonly baseUrl: string;

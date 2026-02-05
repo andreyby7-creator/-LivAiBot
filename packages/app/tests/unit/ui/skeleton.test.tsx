@@ -29,20 +29,25 @@ vi.mock('../../../../ui-core/src/components/Skeleton', () => ({
   ),
 }));
 
-// Mock для feature flags - возвращает переданное значение
-vi.mock('../../../src/lib/feature-flags', () => ({
-  useFeatureFlag: vi.fn((value: boolean) => value),
-}));
+// Mock для UnifiedUIProvider
+const mockInfoFireAndForget = vi.fn();
 
-// Mock для telemetry
-vi.mock('../../../src/lib/telemetry', () => ({
-  infoFireAndForget: vi.fn(),
+vi.mock('../../../src/providers/UnifiedUIProvider', () => ({
+  useUnifiedUI: () => ({
+    featureFlags: {
+      isEnabled: () => false,
+      setOverride: vi.fn(),
+      clearOverrides: vi.fn(),
+      getOverride: () => false,
+    },
+    telemetry: {
+      track: vi.fn(),
+      infoFireAndForget: mockInfoFireAndForget,
+    },
+  }),
 }));
 
 import { Skeleton } from '../../../src/ui/skeleton';
-import { infoFireAndForget } from '../../../src/lib/telemetry';
-
-const mockInfoFireAndForget = vi.mocked(infoFireAndForget);
 
 describe('App Skeleton', () => {
   beforeEach(() => {

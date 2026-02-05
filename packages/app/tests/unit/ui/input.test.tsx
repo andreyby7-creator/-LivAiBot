@@ -9,24 +9,41 @@ import '@testing-library/jest-dom/vitest';
 import { Input } from '../../../src/ui/input';
 import type { AppInputProps } from '../../../src/ui/input';
 
+// Импорт для правильного порядка моков
+import '../../../src/providers/UnifiedUIProvider';
+
 // Объявляем переменные моков перед vi.mock()
 const mockTranslate = vi.fn();
+const mockInfoFireAndForget = vi.fn();
 let mockFeatureFlagReturnValue = false;
 
-// Mock для useI18n
-vi.mock('../../../src/lib/i18n', () => ({
-  useI18n: () => ({
-    translate: mockTranslate,
+// Mock для UnifiedUIProvider
+vi.mock('../../../src/providers/UnifiedUIProvider', () => ({
+  useUnifiedUI: () => ({
+    i18n: {
+      translate: mockTranslate,
+      locale: 'en',
+      direction: 'ltr' as const,
+      loadNamespace: vi.fn(),
+      isNamespaceLoaded: vi.fn(() => true),
+    },
+    featureFlags: {
+      isEnabled: () => mockFeatureFlagReturnValue,
+      setOverride: vi.fn(),
+      clearOverrides: vi.fn(),
+      getOverride: vi.fn(() => true),
+    },
+    telemetry: {
+      track: vi.fn(),
+      infoFireAndForget: mockInfoFireAndForget,
+      warnFireAndForget: vi.fn(),
+      errorFireAndForget: vi.fn(),
+      flush: vi.fn(),
+    },
   }),
 }));
 
-// Mock для feature flags с возможностью настройки
-vi.mock('../../../src/lib/feature-flags', () => ({
-  useFeatureFlag: () => mockFeatureFlagReturnValue,
-  useFeatureFlagOverride: () => true,
-}));
-
-// Mock для telemetry
+// Mock для telemetry (для обратной совместимости)
 vi.mock('../../../src/lib/telemetry', () => ({
   infoFireAndForget: vi.fn(),
 }));
@@ -317,12 +334,11 @@ describe('Input', () => {
     });
 
     it('должен отправлять telemetry при получении фокуса', async () => {
-      const { infoFireAndForget } = await import('../../../src/lib/telemetry');
       render(<Input value='test' onFocus={mockOnFocus} />);
 
       fireEvent.focus(screen.getByRole('textbox'));
 
-      expect(vi.mocked(infoFireAndForget)).toHaveBeenCalledWith('Input focused', {
+      expect(mockInfoFireAndForget).toHaveBeenCalledWith('Input focused', {
         component: 'Input',
         action: 'focus',
         disabled: false,
@@ -331,12 +347,11 @@ describe('Input', () => {
     });
 
     it('должен отправлять telemetry при потере фокуса', async () => {
-      const { infoFireAndForget } = await import('../../../src/lib/telemetry');
       render(<Input value='test' onBlur={mockOnBlur} />);
 
       fireEvent.blur(screen.getByRole('textbox'));
 
-      expect(vi.mocked(infoFireAndForget)).toHaveBeenCalledWith('Input blurred', {
+      expect(mockInfoFireAndForget).toHaveBeenCalledWith('Input blurred', {
         component: 'Input',
         action: 'blur',
         disabled: false,
@@ -345,7 +360,6 @@ describe('Input', () => {
     });
 
     it('не должен отправлять telemetry для disabled input', async () => {
-      const { infoFireAndForget } = await import('../../../src/lib/telemetry');
       render(
         <Input
           disabled={true}
@@ -360,7 +374,7 @@ describe('Input', () => {
       fireEvent.focus(screen.getByRole('textbox'));
       fireEvent.blur(screen.getByRole('textbox'));
 
-      expect(vi.mocked(infoFireAndForget)).not.toHaveBeenCalled();
+      expect(mockInfoFireAndForget).not.toHaveBeenCalled();
     });
 
     it('должен отменять предыдущий timeout при быстром вводе', () => {

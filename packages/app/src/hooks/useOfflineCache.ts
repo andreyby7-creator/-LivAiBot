@@ -23,6 +23,10 @@ import type {
   OfflineCacheResult,
   OfflineCacheStore,
 } from '../lib/offline-cache.js';
+import type { ComponentState } from '../types/ui-contracts.js';
+
+/** Алиас для состояния компонентов в контексте offline cache хуков */
+export type OfflineCacheComponentState<T = unknown> = ComponentState<T>;
 
 /* ============================================================================
  * 🧬 ТИПЫ

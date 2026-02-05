@@ -192,7 +192,26 @@ export {
   TelemetryLevels,
   type TelemetryMetadata,
   type TelemetrySink,
+  type UiTelemetryMetrics,
 } from './types/telemetry.js';
+
+// Экспортируем UI контракты
+export {
+  type AppWrapperProps,
+  type ComponentState,
+  type ControlledFieldProps,
+  type MapCoreProps,
+  type UiAuthContext,
+  type UiEvent,
+  type UiEventHandler,
+  type UiEventMap,
+  type UiFeatureFlags,
+  type UiMetrics,
+  type UiPrimitiveProps,
+  type UiStatefulComponentProps,
+  type UiStatePolicy,
+  type UncontrolledFieldProps,
+} from './types/ui-contracts.js';
 
 /* ============================================================================
  * 🎯 PROVIDERS — ПРОВАЙДЕРЫ
@@ -204,6 +223,14 @@ export * from './providers/intl-provider.js';
 export * from './providers/QueryClientProvider.js';
 export * from './providers/TelemetryProvider.js';
 export * from './providers/ToastProvider.js';
+
+/* ============================================================================
+ * 🪝 HOOKS — REACT HOOKS
+ * ========================================================================== */
+
+export * from './hooks/useApi.js';
+// useFeatureFlags и useToast уже экспортированы из providers
+export * from './hooks/useOfflineCache.js';
 
 /* ============================================================================
  * 🚀 BOOTSTRAP — ЗАПУСК ПРИЛОЖЕНИЯ

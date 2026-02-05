@@ -15,21 +15,26 @@ vi.mock('../../../../ui-core/src/primitives/divider', () => ({
   ),
 }));
 
-// Mock для feature flags с возможностью настройки
+// Mock для UnifiedUIProvider
 let mockFeatureFlagReturnValue = false;
-vi.mock('../../../src/lib/feature-flags', () => ({
-  useFeatureFlag: () => mockFeatureFlagReturnValue,
-}));
+const mockInfoFireAndForget = vi.fn();
 
-// Mock для telemetry
-vi.mock('../../../src/lib/telemetry', () => ({
-  infoFireAndForget: vi.fn(),
+vi.mock('../../../src/providers/UnifiedUIProvider', () => ({
+  useUnifiedUI: () => ({
+    featureFlags: {
+      isEnabled: () => mockFeatureFlagReturnValue,
+      setOverride: vi.fn(),
+      clearOverrides: vi.fn(),
+      getOverride: () => mockFeatureFlagReturnValue,
+    },
+    telemetry: {
+      track: vi.fn(),
+      infoFireAndForget: mockInfoFireAndForget,
+    },
+  }),
 }));
 
 import { Divider } from '../../../src/ui/divider';
-import { infoFireAndForget } from '../../../src/lib/telemetry';
-
-const mockInfoFireAndForget = vi.mocked(infoFireAndForget);
 
 describe('App Divider', () => {
   beforeEach(() => {

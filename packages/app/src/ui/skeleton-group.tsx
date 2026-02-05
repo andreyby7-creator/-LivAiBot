@@ -39,7 +39,8 @@ import type { CSSProperties, JSX, Ref } from 'react';
 import { Skeleton as AppSkeleton } from './skeleton.js';
 import type { AppSkeletonProps } from './skeleton.js';
 import type { SkeletonVariant } from '../../../ui-core/src/components/Skeleton.js';
-import { infoFireAndForget } from '../lib/telemetry.js';
+import { useUnifiedUI } from '../providers/UnifiedUIProvider.js';
+import type { UiTelemetryApi } from '../types/ui-contracts.js';
 
 /* ============================================================================
  * 🧬 TYPES & CONSTANTS
@@ -167,8 +168,11 @@ function useSkeletonGroupPolicy(props: AppSkeletonGroupProps): SkeletonGroupPoli
  * Отправка telemetry SkeletonGroup.
  * Fire-and-forget, без ожиданий и побочных эффектов.
  */
-function emitSkeletonGroupTelemetry(payload: SkeletonGroupTelemetryPayload): void {
-  infoFireAndForget(`SkeletonGroup ${payload.action}`, payload);
+function emitSkeletonGroupTelemetry(
+  telemetry: UiTelemetryApi,
+  payload: SkeletonGroupTelemetryPayload,
+): void {
+  telemetry.infoFireAndForget(`SkeletonGroup ${payload.action}`, payload);
 }
 
 /**
@@ -224,6 +228,7 @@ const SkeletonGroupComponent = forwardRef<HTMLDivElement, AppSkeletonGroupProps>
     props: AppSkeletonGroupProps,
     ref: Ref<HTMLDivElement>,
   ): JSX.Element | null {
+    const { telemetry } = useUnifiedUI();
     const {
       count,
       variant,
@@ -311,12 +316,12 @@ const SkeletonGroupComponent = forwardRef<HTMLDivElement, AppSkeletonGroupProps>
     useEffect(() => {
       if (!policy.telemetryEnabled) return;
 
-      emitSkeletonGroupTelemetry(lifecyclePayload.mount);
+      emitSkeletonGroupTelemetry(telemetry, lifecyclePayload.mount);
 
       return (): void => {
-        emitSkeletonGroupTelemetry(lifecyclePayload.unmount);
+        emitSkeletonGroupTelemetry(telemetry, lifecyclePayload.unmount);
       };
-    }, [policy.telemetryEnabled, lifecyclePayload]);
+    }, [policy.telemetryEnabled, lifecyclePayload, telemetry]);
 
     const prevVisibilityRef = useRef<boolean | undefined>(undefined);
 
@@ -328,14 +333,12 @@ const SkeletonGroupComponent = forwardRef<HTMLDivElement, AppSkeletonGroupProps>
 
       // Emit only on actual visibility changes, not on mount
       if (prevVisibility !== undefined && prevVisibility !== currentVisibility) {
-        emitSkeletonGroupTelemetry(
-          currentVisibility ? showPayload : hidePayload,
-        );
+        emitSkeletonGroupTelemetry(telemetry, currentVisibility ? showPayload : hidePayload);
       }
 
       // eslint-disable-next-line functional/immutable-data
       prevVisibilityRef.current = currentVisibility;
-    }, [policy.telemetryEnabled, policy.isRendered, showPayload, hidePayload]);
+    }, [policy.telemetryEnabled, policy.isRendered, showPayload, hidePayload, telemetry]);
 
     /* ---------------- POLICY: HIDDEN ---------------- */
 

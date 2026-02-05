@@ -8,7 +8,6 @@ import { cleanup, render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom/vitest';
 
 const providerMocks = vi.hoisted(() => ({
-  ErrorBoundary: vi.fn(({ children }) => <div data-testid='error-boundary'>{children}</div>),
   IntlProvider: vi.fn(({ children }) => <div data-testid='intl-provider'>{children}</div>),
   FeatureFlagsProvider: vi.fn(({ children }) => (
     <div data-testid='feature-flags-provider'>{children}</div>
@@ -29,10 +28,6 @@ const storeMocks = vi.hoisted(() => ({
       subscribe: vi.fn(() => vi.fn()),
     },
   ),
-}));
-
-vi.mock('../../../src/ui/error-boundary', () => ({
-  ErrorBoundary: providerMocks.ErrorBoundary,
 }));
 
 vi.mock('../../../src/providers/intl-provider', () => ({
@@ -80,7 +75,6 @@ describe('AppProviders', () => {
       </AppProviders>,
     );
 
-    expect(screen.getByTestId('error-boundary')).toBeInTheDocument();
     expect(screen.getByTestId('intl-provider')).toBeInTheDocument();
     expect(screen.getByTestId('feature-flags-provider')).toBeInTheDocument();
     expect(screen.getByTestId('telemetry-provider')).toBeInTheDocument();
@@ -88,14 +82,12 @@ describe('AppProviders', () => {
     expect(screen.getByTestId('toast-provider')).toBeInTheDocument();
     expect(screen.getByTestId('child')).toBeInTheDocument();
 
-    const errorBoundary = screen.getByTestId('error-boundary');
     const intlProvider = screen.getByTestId('intl-provider');
     const featureFlagsProvider = screen.getByTestId('feature-flags-provider');
     const telemetryProvider = screen.getByTestId('telemetry-provider');
     const queryClientProvider = screen.getByTestId('query-client-provider');
     const toastProvider = screen.getByTestId('toast-provider');
 
-    expect(errorBoundary).toContainElement(intlProvider);
     expect(intlProvider).toContainElement(featureFlagsProvider);
     expect(featureFlagsProvider).toContainElement(telemetryProvider);
     expect(telemetryProvider).toContainElement(queryClientProvider);
@@ -129,10 +121,6 @@ describe('AppProviders', () => {
     );
     expect(providerMocks.ToastProvider).toHaveBeenCalledWith(
       expect.objectContaining({ maxToasts: 3 }),
-      undefined,
-    );
-    expect(providerMocks.ErrorBoundary).toHaveBeenCalledWith(
-      expect.objectContaining({}), // ErrorBoundary gets default empty props
       undefined,
     );
     expect(providerMocks.IntlProvider).toHaveBeenCalledWith(

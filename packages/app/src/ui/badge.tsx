@@ -22,7 +22,24 @@ import type { JSX, Ref } from 'react';
 
 import { Badge as CoreBadge } from '../../../ui-core/src/primitives/badge.js';
 import type { CoreBadgeProps } from '../../../ui-core/src/primitives/badge.js';
-import { infoFireAndForget } from '../lib/telemetry.js';
+import { useUnifiedUI } from '../providers/UnifiedUIProvider.js';
+import type { Json } from '../types/common.js';
+import type {
+  AppWrapperProps,
+  MapCoreProps,
+  UiFeatureFlags,
+  UiPrimitiveProps,
+  UiTelemetryApi,
+} from '../types/ui-contracts.js';
+
+/** Алиас для UI feature flags в контексте badge wrapper */
+export type BadgeUiFeatureFlags = UiFeatureFlags;
+
+/** Алиас для wrapper props в контексте badge */
+export type BadgeWrapperProps<TData = Json> = AppWrapperProps<UiPrimitiveProps, TData>;
+
+/** Алиас для маппинга core props в контексте badge */
+export type BadgeMapCoreProps<TData = Json> = MapCoreProps<UiPrimitiveProps, TData>;
 
 /* ============================================================================
  * 🛠️ УТИЛИТЫ
@@ -106,8 +123,8 @@ function useBadgePolicy(props: AppBadgeProps): BadgePolicy {
  * 📡 TELEMETRY
  * ========================================================================== */
 
-function emitBadgeTelemetry(payload: BadgeTelemetryPayload): void {
-  infoFireAndForget(`Badge ${payload.action}`, payload);
+function emitBadgeTelemetry(telemetry: UiTelemetryApi, payload: BadgeTelemetryPayload): void {
+  telemetry.infoFireAndForget(`Badge ${payload.action}`, payload);
 }
 
 /* ============================================================================
@@ -116,6 +133,7 @@ function emitBadgeTelemetry(payload: BadgeTelemetryPayload): void {
 
 const BadgeComponent = forwardRef<HTMLSpanElement, AppBadgeProps>(
   function BadgeComponent(props: AppBadgeProps, ref: Ref<HTMLSpanElement>): JSX.Element | null {
+    const { telemetry } = useUnifiedUI();
     // Фильтруем бизнес-пропсы, оставляем только DOM-безопасные
     const domProps = omit(props, BUSINESS_PROPS);
 
@@ -159,11 +177,13 @@ const BadgeComponent = forwardRef<HTMLSpanElement, AppBadgeProps>(
     useEffect(() => {
       if (!policy.telemetryEnabled) return;
 
-      emitBadgeTelemetry(lifecyclePayload.mount);
+      emitBadgeTelemetry(telemetry, lifecyclePayload.mount);
       return (): void => {
-        emitBadgeTelemetry(lifecyclePayload.unmount);
+        emitBadgeTelemetry(telemetry, lifecyclePayload.unmount);
       };
-    }, [policy.telemetryEnabled, lifecyclePayload]);
+      // Policy намеренно заморожена при монтировании
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     // Policy: hidden
     if (!policy.isRendered) return null;

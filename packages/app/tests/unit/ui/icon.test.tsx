@@ -8,20 +8,19 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom/vitest';
 
-// Mock для feature flags - useFeatureFlag просто возвращает Boolean(flagValue)
-vi.mock('../../../src/lib/feature-flags', () => ({
-  useFeatureFlag: (flagValue?: boolean) => Boolean(flagValue),
-}));
+// Mock для UnifiedUIProvider
+const mockInfoFireAndForget = vi.fn();
 
-// Mock для telemetry
-vi.mock('../../../src/lib/telemetry', () => ({
-  infoFireAndForget: vi.fn(),
+vi.mock('../../../src/providers/UnifiedUIProvider', () => ({
+  useUnifiedUI: () => ({
+    telemetry: {
+      track: vi.fn(),
+      infoFireAndForget: mockInfoFireAndForget,
+    },
+  }),
 }));
 
 import { Icon } from '../../../src/ui/icon';
-import { infoFireAndForget } from '../../../src/lib/telemetry';
-
-const mockInfoFireAndForget = vi.mocked(infoFireAndForget);
 
 describe('Icon', () => {
   beforeEach(() => {

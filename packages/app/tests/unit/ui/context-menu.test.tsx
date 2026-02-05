@@ -127,15 +127,25 @@ vi.mock('../../../../ui-core/src/primitives/context-menu', () => ({
   }),
 }));
 
-// Mock для telemetry
-vi.mock('../../../src/lib/telemetry', () => ({
-  infoFireAndForget: vi.fn(),
+// Mock для UnifiedUIProvider
+const mockInfoFireAndForget = vi.fn();
+
+vi.mock('../../../src/providers/UnifiedUIProvider', () => ({
+  useUnifiedUI: () => ({
+    featureFlags: {
+      isEnabled: () => false,
+      setOverride: vi.fn(),
+      clearOverrides: vi.fn(),
+      getOverride: () => false,
+    },
+    telemetry: {
+      track: vi.fn(),
+      infoFireAndForget: mockInfoFireAndForget,
+    },
+  }),
 }));
 
 import { ContextMenu } from '../../../src/ui/context-menu';
-import { infoFireAndForget } from '../../../src/lib/telemetry';
-
-const mockInfoFireAndForget = vi.mocked(infoFireAndForget);
 
 describe('App ContextMenu', () => {
   const testItems: readonly ContextMenuItem[] = [

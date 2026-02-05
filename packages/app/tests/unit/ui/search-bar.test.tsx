@@ -9,8 +9,19 @@ import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom/vitest';
 
 // Mock для telemetry
-vi.mock('../../../src/lib/telemetry', () => ({
-  infoFireAndForget: vi.fn(),
+vi.mock('../../../src/providers/UnifiedUIProvider', () => ({
+  useUnifiedUI: () => ({
+    featureFlags: {
+      isEnabled: () => false,
+      setOverride: vi.fn(),
+      clearOverrides: vi.fn(),
+      getOverride: () => false,
+    },
+    telemetry: {
+      track: vi.fn(),
+      infoFireAndForget: mockInfoFireAndForget,
+    },
+  }),
 }));
 
 // Mock для CoreSearchBar
@@ -125,9 +136,8 @@ vi.mock('../../../../ui-core/src/components/SearchBar', () => ({
 }));
 
 import { SearchBar } from '../../../src/ui/search-bar';
-import { infoFireAndForget } from '../../../src/lib/telemetry';
 
-const mockInfoFireAndForget = vi.mocked(infoFireAndForget);
+const mockInfoFireAndForget = vi.fn();
 
 describe('SearchBar', () => {
   const mockOnChange = vi.fn();

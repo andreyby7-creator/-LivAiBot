@@ -23,9 +23,25 @@ import type { JSX } from 'react';
 
 import { Button as CoreButton } from '../../../ui-core/src/primitives/button.js';
 import type { ButtonProps as CoreButtonProps } from '../../../ui-core/src/primitives/button.js';
-import { useI18n } from '../lib/i18n.js';
 import type { Namespace, TranslationKey } from '../lib/i18n.js';
-import { infoFireAndForget } from '../lib/telemetry.js';
+import { useUnifiedUI } from '../providers/UnifiedUIProvider.js';
+import type { Json } from '../types/common.js';
+import type {
+  AppWrapperProps,
+  MapCoreProps,
+  UiFeatureFlags,
+  UiPrimitiveProps,
+  UiTelemetryApi,
+} from '../types/ui-contracts.js';
+
+/** Алиас для UI feature flags в контексте button wrapper */
+export type ButtonUiFeatureFlags = UiFeatureFlags;
+
+/** Алиас для wrapper props в контексте button */
+export type ButtonWrapperProps<TData = Json> = AppWrapperProps<UiPrimitiveProps, TData>;
+
+/** Алиас для маппинга core props в контексте button */
+export type ButtonMapCoreProps<TData = Json> = MapCoreProps<UiPrimitiveProps, TData>;
 
 /* ============================================================================
  * 🛠️ УТИЛИТЫ
@@ -113,8 +129,8 @@ function useButtonPolicy(): ButtonPolicy {
  * 📡 TELEMETRY
  * ========================================================================== */
 
-function emitButtonTelemetry(payload: ButtonTelemetryPayload): void {
-  infoFireAndForget(`Button ${payload.action}`, payload);
+function emitButtonTelemetry(telemetry: UiTelemetryApi, payload: ButtonTelemetryPayload): void {
+  telemetry.infoFireAndForget(`Button ${payload.action}`, payload);
 }
 
 /* ============================================================================
@@ -127,7 +143,8 @@ const ButtonComponent = memo<AppButtonProps>(
     const domProps = omit(props, BUSINESS_PROPS);
 
     const { onClick, disabled = false, variant, ...filteredCoreProps } = domProps;
-    const { translate } = useI18n();
+    const { i18n, telemetry } = useUnifiedUI();
+    const { translate } = i18n;
     const policy = useButtonPolicy();
 
     // Текст кнопки: i18n → children → пусто
@@ -144,7 +161,7 @@ const ButtonComponent = memo<AppButtonProps>(
     const handleClick = useCallback<NonNullable<CoreButtonProps['onClick']>>(
       (event: React.MouseEvent<HTMLButtonElement>) => {
         if (!disabled && policy.telemetryEnabled) {
-          emitButtonTelemetry({
+          emitButtonTelemetry(telemetry, {
             component: 'Button',
             action: ButtonTelemetryAction.Click,
             variant: variant ?? null,
@@ -154,7 +171,7 @@ const ButtonComponent = memo<AppButtonProps>(
 
         onClick?.(event);
       },
-      [disabled, onClick, variant, policy.telemetryEnabled],
+      [disabled, onClick, variant, policy.telemetryEnabled, telemetry],
     );
 
     return (

@@ -22,7 +22,15 @@ import type { JSX, Ref } from 'react';
 
 import { Icon as CoreIcon } from '../../../ui-core/src/primitives/icon.js';
 import type { CoreIconProps } from '../../../ui-core/src/primitives/icon.js';
-import { infoFireAndForget } from '../lib/telemetry.js';
+import { useUnifiedUI } from '../providers/UnifiedUIProvider.js';
+import type { Json } from '../types/common.js';
+import type {
+  AppWrapperProps,
+  MapCoreProps,
+  UiFeatureFlags,
+  UiPrimitiveProps,
+  UiTelemetryApi,
+} from '../types/ui-contracts.js';
 
 // eslint-disable-next-line functional/immutable-data -- Мутация displayName - безопасная операция для улучшения debugging experience в DevTools
 CoreIcon.displayName = 'CoreIcon';
@@ -83,7 +91,12 @@ function useIconPolicy(props: AppIconProps): IconPolicy {
  * 📡 TELEMETRY
  * ========================================================================== */
 
-function emitIconTelemetry(action: IconTelemetryAction, policy: IconPolicy, name: string): void {
+function emitIconTelemetry(
+  telemetry: UiTelemetryApi,
+  action: IconTelemetryAction,
+  policy: IconPolicy,
+  name: string,
+): void {
   if (!policy.telemetryEnabled) return;
 
   const payload: IconTelemetryPayload = {
@@ -94,8 +107,17 @@ function emitIconTelemetry(action: IconTelemetryAction, policy: IconPolicy, name
     name,
   };
 
-  infoFireAndForget(`Icon ${action}`, payload);
+  telemetry.infoFireAndForget(`Icon ${action}`, payload);
 }
+
+/** Алиас для UI feature flags в контексте icon wrapper */
+export type IconUiFeatureFlags = UiFeatureFlags;
+
+/** Алиас для wrapper props в контексте icon */
+export type IconWrapperProps<TData = Json> = AppWrapperProps<UiPrimitiveProps, TData>;
+
+/** Алиас для маппинга core props в контексте icon */
+export type IconMapCoreProps<TData = Json> = MapCoreProps<UiPrimitiveProps, TData>;
 
 /* ============================================================================
  * 🎯 APP ICON
@@ -121,6 +143,7 @@ function omit<T extends Record<string, unknown>, K extends readonly string[]>(
 
 const IconComponent = forwardRef<HTMLElement | null, AppIconProps>(
   function IconComponent(props: AppIconProps, ref: Ref<HTMLElement | null>): JSX.Element | null {
+    const { telemetry } = useUnifiedUI();
     const filteredProps = omit(props, BUSINESS_PROPS);
     const { name, ...coreProps } = filteredProps;
     const policy = useIconPolicy(props);
@@ -157,9 +180,9 @@ const IconComponent = forwardRef<HTMLElement | null, AppIconProps>(
     /** Жизненный цикл telemetry */
     useEffect(() => {
       if (policy.telemetryEnabled) {
-        emitIconTelemetry('mount', policy, name);
+        emitIconTelemetry(telemetry, 'mount', policy, name);
         return (): void => {
-          emitIconTelemetry('unmount', policy, name);
+          emitIconTelemetry(telemetry, 'unmount', policy, name);
         };
       }
       return undefined;

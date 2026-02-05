@@ -33,6 +33,15 @@ import type { CSSProperties, JSX, KeyboardEvent, MouseEvent, Ref } from 'react';
  */
 const useIsomorphicLayoutEffect = typeof window !== 'undefined' ? useLayoutEffect : useEffect;
 
+/** Алиас для UI feature flags в контексте context-menu wrapper */
+export type ContextMenuUiFeatureFlags = UiFeatureFlags;
+
+/** Алиас для wrapper props в контексте context-menu */
+export type ContextMenuWrapperProps<TData = Json> = AppWrapperProps<UiPrimitiveProps, TData>;
+
+/** Алиас для маппинга core props в контексте context-menu */
+export type ContextMenuMapCoreProps<TData = Json> = MapCoreProps<UiPrimitiveProps, TData>;
+
 /* ============================================================================
  * 🛠️ УТИЛИТЫ
  * ========================================================================== */
@@ -53,7 +62,15 @@ import type {
   ContextMenuRef,
   CoreContextMenuProps,
 } from '../../../ui-core/src/primitives/context-menu.js';
-import { infoFireAndForget } from '../lib/telemetry.js';
+import { useUnifiedUI } from '../providers/UnifiedUIProvider.js';
+import type { Json } from '../types/common.js';
+import type {
+  AppWrapperProps,
+  MapCoreProps,
+  UiFeatureFlags,
+  UiPrimitiveProps,
+  UiTelemetryApi,
+} from '../types/ui-contracts.js';
 
 /* ============================================================================
  * 🧬 TYPES & CONSTANTS
@@ -159,8 +176,11 @@ function useContextMenuPolicy(props: AppContextMenuProps): ContextMenuPolicy {
  * 📡 TELEMETRY
  * ========================================================================== */
 
-function emitContextMenuTelemetry(payload: ContextMenuTelemetryPayload): void {
-  infoFireAndForget(`ContextMenu ${payload.action}`, payload);
+function emitContextMenuTelemetry(
+  telemetry: UiTelemetryApi,
+  payload: ContextMenuTelemetryPayload,
+): void {
+  telemetry.infoFireAndForget(`ContextMenu ${payload.action}`, payload);
 }
 
 /**
@@ -221,6 +241,7 @@ const ContextMenuComponent = forwardRef<HTMLDivElement, AppContextMenuProps>(
     props: AppContextMenuProps,
     ref: Ref<HTMLDivElement>,
   ): JSX.Element | null {
+    const { telemetry } = useUnifiedUI();
     // Фильтруем бизнес-пропсы, оставляем только DOM-безопасные
     const domProps = omit(props, BUSINESS_PROPS);
 
@@ -333,11 +354,11 @@ const ContextMenuComponent = forwardRef<HTMLDivElement, AppContextMenuProps>(
     useEffect(() => {
       if (!policy.telemetryEnabled) return;
 
-      emitContextMenuTelemetry(lifecyclePayload.mount);
+      emitContextMenuTelemetry(telemetry, lifecyclePayload.mount);
       return (): void => {
-        emitContextMenuTelemetry(lifecyclePayload.unmount);
+        emitContextMenuTelemetry(telemetry, lifecyclePayload.unmount);
       };
-    }, [policy.telemetryEnabled, lifecyclePayload]);
+    }, [policy.telemetryEnabled, lifecyclePayload, telemetry]);
 
     /** Telemetry для видимости - only on changes, not on mount */
     const prevVisibleRef = useRef<boolean | undefined>(undefined);
@@ -349,12 +370,10 @@ const ContextMenuComponent = forwardRef<HTMLDivElement, AppContextMenuProps>(
     const emitVisibilityTelemetry = useCallback(
       (prevVisibility: boolean | undefined, currentVisibility: boolean): void => {
         if (prevVisibility !== undefined && prevVisibility !== currentVisibility) {
-          emitContextMenuTelemetry(
-            currentVisibility ? showPayload : hidePayload,
-          );
+          emitContextMenuTelemetry(telemetry, currentVisibility ? showPayload : hidePayload);
         }
       },
-      [showPayload, hidePayload],
+      [showPayload, hidePayload, telemetry],
     );
 
     useEffect(() => {
@@ -383,14 +402,14 @@ const ContextMenuComponent = forwardRef<HTMLDivElement, AppContextMenuProps>(
               ...(position !== undefined && { position }),
             },
           );
-          emitContextMenuTelemetry(selectPayload);
+          emitContextMenuTelemetry(telemetry, selectPayload);
         }
 
         onSelect?.(itemId, event);
         // App-слой решает закрывать ли меню после выбора
         onClose?.();
       },
-      [policy, items.length, isOpen, position, onSelect, onClose],
+      [policy, items.length, isOpen, position, onSelect, onClose, telemetry],
     );
 
     /** Обработчик Escape с закрытием меню */

@@ -31,7 +31,24 @@ import type { JSX } from 'react';
 
 import { Select as CoreSelect } from '../../../ui-core/src/primitives/select.js';
 import type { CoreSelectProps } from '../../../ui-core/src/primitives/select.js';
-import { infoFireAndForget } from '../lib/telemetry.js';
+import { useUnifiedUI } from '../providers/UnifiedUIProvider.js';
+import type { Json } from '../types/common.js';
+import type {
+  AppWrapperProps,
+  MapCoreProps,
+  UiFeatureFlags,
+  UiPrimitiveProps,
+  UiTelemetryApi,
+} from '../types/ui-contracts.js';
+
+/** Алиас для UI feature flags в контексте select wrapper */
+export type SelectUiFeatureFlags = UiFeatureFlags;
+
+/** Алиас для wrapper props в контексте select */
+export type SelectWrapperProps<TData = Json> = AppWrapperProps<UiPrimitiveProps, TData>;
+
+/** Алиас для маппинга core props в контексте select */
+export type SelectMapCoreProps<TData = Json> = MapCoreProps<UiPrimitiveProps, TData>;
 
 /* ============================================================================
  * 🧬 TYPES
@@ -143,6 +160,7 @@ function useSelectPolicy(props: AppSelectProps): SelectPolicy {
  * ========================================================================== */
 
 function emitSelectTelemetry(
+  telemetry: UiTelemetryApi,
   action: SelectTelemetryAction,
   policy: SelectPolicy,
   value?: string,
@@ -156,7 +174,7 @@ function emitSelectTelemetry(
     ...(action === 'change' && value !== undefined && { value }),
   };
 
-  infoFireAndForget(`Select ${action}`, payload);
+  telemetry.infoFireAndForget(`Select ${action}`, payload);
 }
 
 /* ============================================================================
@@ -165,6 +183,7 @@ function emitSelectTelemetry(
 
 const SelectComponent = forwardRef<HTMLSelectElement, AppSelectProps>(
   function SelectComponent(props, ref): JSX.Element | null {
+    const { telemetry } = useUnifiedUI();
     // Сначала фильтруем бизнес-пропсы
     const filteredProps = omit(props, BUSINESS_PROPS);
 
@@ -187,9 +206,9 @@ const SelectComponent = forwardRef<HTMLSelectElement, AppSelectProps>(
     /** lifecycle telemetry */
     useEffect(() => {
       if (policy.telemetryEnabled) {
-        emitSelectTelemetry('mount', policy, String(props.value ?? ''));
+        emitSelectTelemetry(telemetry, 'mount', policy, String(props.value ?? ''));
         return (): void => {
-          emitSelectTelemetry('unmount', policy, String(props.value ?? ''));
+          emitSelectTelemetry(telemetry, 'unmount', policy, String(props.value ?? ''));
         };
       }
       return undefined;
@@ -204,34 +223,34 @@ const SelectComponent = forwardRef<HTMLSelectElement, AppSelectProps>(
         if (policy.disabledByFeatureFlag) return;
 
         if (policy.telemetryEnabled && policy.telemetryOnChange) {
-          emitSelectTelemetry('change', policy, event.target.value);
+          emitSelectTelemetry(telemetry, 'change', policy, event.target.value);
         }
 
         onChange?.(event);
       },
-      [policy, onChange],
+      [policy, onChange, telemetry],
     );
 
     const handleFocus = useCallback(
       (event: React.FocusEvent<HTMLSelectElement>) => {
         if (policy.telemetryEnabled && policy.telemetryOnFocus) {
-          emitSelectTelemetry('focus', policy);
+          emitSelectTelemetry(telemetry, 'focus', policy);
         }
 
         onFocus?.(event);
       },
-      [policy, onFocus],
+      [policy, onFocus, telemetry],
     );
 
     const handleBlur = useCallback(
       (event: React.FocusEvent<HTMLSelectElement>) => {
         if (policy.telemetryEnabled && policy.telemetryOnBlur) {
-          emitSelectTelemetry('blur', policy);
+          emitSelectTelemetry(telemetry, 'blur', policy);
         }
 
         onBlur?.(event);
       },
-      [policy, onBlur],
+      [policy, onBlur, telemetry],
     );
 
     /** hidden */

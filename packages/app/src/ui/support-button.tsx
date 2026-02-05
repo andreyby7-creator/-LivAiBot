@@ -31,7 +31,8 @@ import type {
   CoreSupportButtonProps,
   SupportButtonVariant,
 } from '../../../ui-core/src/components/SupportButton.js';
-import { infoFireAndForget } from '../lib/telemetry.js';
+import { useUnifiedUI } from '../providers/UnifiedUIProvider.js';
+import type { UiTelemetryApi } from '../types/ui-contracts.js';
 
 /** Тип элемента, который может рендерить SupportButton */
 type SupportButtonElement = HTMLButtonElement;
@@ -66,8 +67,11 @@ const DEFAULT_VARIANT: SupportButtonVariant = 'default';
  * 📡 TELEMETRY
  * ========================================================================== */
 
-function emitSupportButtonTelemetry(payload: SupportButtonTelemetryPayload): void {
-  infoFireAndForget(`SupportButton ${payload.action}`, payload);
+function emitSupportButtonTelemetry(
+  telemetry: UiTelemetryApi,
+  payload: SupportButtonTelemetryPayload,
+): void {
+  telemetry.infoFireAndForget(`SupportButton ${payload.action}`, payload);
 }
 
 /* ============================================================================
@@ -150,6 +154,7 @@ const AppSupportButtonComponent = forwardRef<SupportButtonElement, AppSupportBut
     props: AppSupportButtonProps,
     ref: Ref<SupportButtonElement>,
   ): JSX.Element | null {
+    const { telemetry } = useUnifiedUI();
     const {
       visible: _visible, // used in policy
       isHiddenByFeatureFlag: _isHiddenByFeatureFlag, // used in policy
@@ -211,18 +216,18 @@ const AppSupportButtonComponent = forwardRef<SupportButtonElement, AppSupportBut
     useEffect(() => {
       if (!policy.telemetryEnabled) return;
 
-      emitSupportButtonTelemetry({
+      emitSupportButtonTelemetry(telemetry, {
         ...lifecyclePayload.mount,
         timestamp: Date.now(),
       });
 
       return (): void => {
-        emitSupportButtonTelemetry({
+        emitSupportButtonTelemetry(telemetry, {
           ...lifecyclePayload.unmount,
           timestamp: Date.now(),
         });
       };
-    }, [policy.telemetryEnabled, lifecyclePayload]);
+    }, [policy.telemetryEnabled, lifecyclePayload, telemetry]);
 
     /** Объединяем стили для disabled состояния */
     const combinedDisabled = useMemo(
@@ -235,7 +240,7 @@ const AppSupportButtonComponent = forwardRef<SupportButtonElement, AppSupportBut
       (event: MouseEvent<HTMLButtonElement>) => {
         // Telemetry для клика
         if (policy.telemetryEnabled) {
-          emitSupportButtonTelemetry({
+          emitSupportButtonTelemetry(telemetry, {
             component: 'SupportButton' as const,
             action: SupportButtonTelemetryAction.Click,
             timestamp: Date.now(),
@@ -260,6 +265,7 @@ const AppSupportButtonComponent = forwardRef<SupportButtonElement, AppSupportBut
         telemetryProps,
         onSupportRequest,
         onSupportClick,
+        telemetry,
       ],
     );
 

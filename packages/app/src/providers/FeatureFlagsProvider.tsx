@@ -24,6 +24,10 @@ import { persist } from 'zustand/middleware';
 
 import type { FeatureFlagName } from '../lib/feature-flags.js';
 import type { FeatureFlags } from '../types/common.js';
+import type { UiFeatureFlags } from '../types/ui-contracts.js';
+
+/** Алиас для UI feature flags в контексте provider */
+export type UiFeatureFlagsAlias = UiFeatureFlags;
 
 /* ============================================================================
  * 🧬 TYPES & CONSTANTS

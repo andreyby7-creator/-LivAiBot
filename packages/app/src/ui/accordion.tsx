@@ -26,7 +26,24 @@ import type { JSX, MouseEvent, Ref } from 'react';
 
 import { Accordion as CoreAccordion } from '../../../ui-core/src/components/Accordion.js';
 import type { CoreAccordionProps } from '../../../ui-core/src/components/Accordion.js';
-import { infoFireAndForget } from '../lib/telemetry.js';
+import { useUnifiedUI } from '../providers/UnifiedUIProvider.js';
+import type { Json } from '../types/common.js';
+import type {
+  AppWrapperProps,
+  MapCoreProps,
+  UiFeatureFlags,
+  UiPrimitiveProps,
+  UiTelemetryApi,
+} from '../types/ui-contracts.js';
+
+/** Алиас для UI feature flags в контексте accordion wrapper */
+export type AccordionUiFeatureFlags = UiFeatureFlags;
+
+/** Алиас для wrapper props в контексте accordion */
+export type AccordionWrapperProps<TData = Json> = AppWrapperProps<UiPrimitiveProps, TData>;
+
+/** Алиас для маппинга core props в контексте accordion */
+export type AccordionMapCoreProps<TData = Json> = MapCoreProps<UiPrimitiveProps, TData>;
 
 /* ============================================================================
  * 🛠️ УТИЛИТЫ
@@ -128,7 +145,10 @@ function useAccordionPolicy(props: AppAccordionProps): AccordionPolicy {
  * 📡 TELEMETRY
  * ========================================================================== */
 
-function emitAccordionTelemetry(payload: AccordionTelemetryPayload): void {
+function emitAccordionTelemetry(
+  telemetry: UiTelemetryApi,
+  payload: AccordionTelemetryPayload,
+): void {
   /**
    * Преобразуем payload в формат, совместимый с telemetry API.
    * Примечание: telemetry API поддерживает только примитивные типы (string | number | boolean | null),
@@ -145,7 +165,7 @@ function emitAccordionTelemetry(payload: AccordionTelemetryPayload): void {
     ...(payload.openItemIds !== undefined && { openItemIds: JSON.stringify(payload.openItemIds) }),
     ...(payload.mode !== undefined && { mode: payload.mode }),
   };
-  infoFireAndForget(`Accordion ${payload.action}`, metadata);
+  telemetry.infoFireAndForget(`Accordion ${payload.action}`, metadata);
 }
 
 /**
@@ -202,6 +222,7 @@ const AccordionComponent = forwardRef<HTMLDivElement, AppAccordionProps>(
     props: AppAccordionProps,
     ref: Ref<HTMLDivElement>,
   ): JSX.Element | null {
+    const { telemetry } = useUnifiedUI();
     const policy = useAccordionPolicy(props);
 
     // Фильтруем бизнес-пропсы, оставляем только DOM-безопасные
@@ -298,23 +319,23 @@ const AccordionComponent = forwardRef<HTMLDivElement, AppAccordionProps>(
             policy,
             createTelemetrySnapshot(),
           );
-          emitAccordionTelemetry(beforeTogglePayload);
+          emitAccordionTelemetry(telemetry, beforeTogglePayload);
         }
 
         onChange?.(itemId, event);
       },
-      [policy, createTelemetrySnapshot, onChange],
+      [policy, createTelemetrySnapshot, onChange, telemetry],
     );
 
     /** Telemetry lifecycle */
     useEffect(() => {
       if (!policy.telemetryEnabled) return;
 
-      emitAccordionTelemetry(lifecyclePayload.mount);
+      emitAccordionTelemetry(telemetry, lifecyclePayload.mount);
       return (): void => {
-        emitAccordionTelemetry(lifecyclePayload.unmount);
+        emitAccordionTelemetry(telemetry, lifecyclePayload.unmount);
       };
-    }, [policy.telemetryEnabled, lifecyclePayload]);
+    }, [policy.telemetryEnabled, lifecyclePayload, telemetry]);
 
     /** Telemetry для видимости - only on changes, not on mount */
     const prevVisibleRef = useRef<boolean | undefined>(undefined);
@@ -326,12 +347,10 @@ const AccordionComponent = forwardRef<HTMLDivElement, AppAccordionProps>(
     const emitVisibilityTelemetry = useCallback(
       (prevVisibility: boolean | undefined, currentVisibility: boolean): void => {
         if (prevVisibility !== undefined && prevVisibility !== currentVisibility) {
-          emitAccordionTelemetry(
-            currentVisibility ? showPayload : hidePayload,
-          );
+          emitAccordionTelemetry(telemetry, currentVisibility ? showPayload : hidePayload);
         }
       },
-      [showPayload, hidePayload],
+      [showPayload, hidePayload, telemetry],
     );
 
     useEffect(() => {

@@ -42,8 +42,24 @@ import type {
   CalendarWeek,
   CoreDatePickerProps,
 } from '../../../ui-core/src/components/DatePicker.js';
-import { formatDateLocalized, setDayjsLocale, t } from '../lib/i18n.js';
-import { infoFireAndForget } from '../lib/telemetry.js';
+import { useUnifiedUI } from '../providers/UnifiedUIProvider.js';
+import type { Json } from '../types/common.js';
+import type {
+  AppWrapperProps,
+  MapCoreProps,
+  UiFeatureFlags,
+  UiPrimitiveProps,
+  UiTelemetryApi,
+} from '../types/ui-contracts.js';
+
+/** Алиас для UI feature flags в контексте date-picker wrapper */
+export type DatePickerUiFeatureFlags = UiFeatureFlags;
+
+/** Алиас для wrapper props в контексте date-picker */
+export type DatePickerWrapperProps<TData = Json> = AppWrapperProps<UiPrimitiveProps, TData>;
+
+/** Алиас для маппинга core props в контексте date-picker */
+export type DatePickerMapCoreProps<TData = Json> = MapCoreProps<UiPrimitiveProps, TData>;
 
 /* ============================================================================
  * 🧬 TYPES & CONSTANTS
@@ -172,7 +188,10 @@ function useDatePickerPolicy(props: AppDatePickerProps): DatePickerPolicy {
  * 📡 TELEMETRY
  * ========================================================================== */
 
-function emitDatePickerTelemetry(payload: DatePickerTelemetryPayload): void {
+function emitDatePickerTelemetry(
+  telemetry: UiTelemetryApi,
+  payload: DatePickerTelemetryPayload,
+): void {
   // Сериализуем payload для telemetry (format может быть undefined)
   const serializedPayload: Readonly<Record<string, string | number | boolean | null>> = {
     component: payload.component,
@@ -183,7 +202,7 @@ function emitDatePickerTelemetry(payload: DatePickerTelemetryPayload): void {
     value: payload.value,
     ...(payload.format !== undefined ? { format: payload.format } : {}),
   };
-  infoFireAndForget(`DatePicker ${payload.action}`, serializedPayload);
+  telemetry.infoFireAndForget(`DatePicker ${payload.action}`, serializedPayload);
 }
 
 /** Helper для безопасной конвертации в dayjs или null */
@@ -273,6 +292,7 @@ const DatePickerComponent = forwardRef<HTMLDivElement, AppDatePickerProps>(
     props: AppDatePickerProps,
     ref: Ref<HTMLDivElement>,
   ): JSX.Element | null {
+    const { i18n, telemetry } = useUnifiedUI();
     const filteredProps = omit(props, BUSINESS_PROPS);
     const {
       value: valueProp,
@@ -283,7 +303,7 @@ const DatePickerComponent = forwardRef<HTMLDivElement, AppDatePickerProps>(
       minDate: minDateProp,
       maxDate: maxDateProp,
       disabled = false,
-      placeholder = t('datepicker.placeholder', { default: 'Select date' }),
+      placeholder = 'Select date', // TODO: i18n placeholder через unified UI
       'data-testid': testId,
       ...coreProps
     } = filteredProps;
@@ -299,9 +319,9 @@ const DatePickerComponent = forwardRef<HTMLDivElement, AppDatePickerProps>(
     // SSR-safe: не вызывать side-effects на сервере
     useEffect(() => {
       if (locale !== undefined && typeof window !== 'undefined') {
-        setDayjsLocale(locale);
+        i18n.setDayjsLocale(locale);
       }
-    }, [locale]);
+    }, [locale, i18n]);
 
     // Нормализация дат
     const selectedDate = useMemo(() => toDayjsOrNull(valueProp), [valueProp]);
@@ -342,8 +362,8 @@ const DatePickerComponent = forwardRef<HTMLDivElement, AppDatePickerProps>(
 
     // Метка текущего месяца
     const currentMonthLabel = useMemo(() => {
-      return formatDateLocalized(currentMonth, 'MMMM YYYY');
-    }, [currentMonth]);
+      return i18n.formatDateLocalized(currentMonth, 'MMMM YYYY');
+    }, [currentMonth, i18n]);
 
     /** Минимальный набор telemetry-данных */
     const telemetryProps = useMemo(() => ({
@@ -424,11 +444,11 @@ const DatePickerComponent = forwardRef<HTMLDivElement, AppDatePickerProps>(
     useEffect(() => {
       if (!policy.telemetryEnabled) return;
 
-      emitDatePickerTelemetry(lifecyclePayload.mount);
+      emitDatePickerTelemetry(telemetry, lifecyclePayload.mount);
       return (): void => {
-        emitDatePickerTelemetry(lifecyclePayload.unmount);
+        emitDatePickerTelemetry(telemetry, lifecyclePayload.unmount);
       };
-    }, [policy.telemetryEnabled, lifecyclePayload]);
+    }, [policy.telemetryEnabled, lifecyclePayload, telemetry]);
 
     /** Telemetry для открытия/закрытия календаря */
     const prevIsOpenRef = useRef<boolean | undefined>(undefined);
@@ -442,13 +462,14 @@ const DatePickerComponent = forwardRef<HTMLDivElement, AppDatePickerProps>(
       // Emit only on actual open/close changes, not on mount
       if (prevIsOpen !== undefined && prevIsOpen !== currentIsOpen) {
         emitDatePickerTelemetry(
+          telemetry,
           currentIsOpen ? openPayload : closePayload,
         );
       }
 
       // eslint-disable-next-line functional/immutable-data
       prevIsOpenRef.current = currentIsOpen;
-    }, [policy.telemetryEnabled, isOpen, openPayload, closePayload]);
+    }, [policy.telemetryEnabled, isOpen, openPayload, closePayload, telemetry]);
 
     // Обработчики событий
     const handleToggle = useCallback((newIsOpen: boolean): void => {
@@ -461,7 +482,7 @@ const DatePickerComponent = forwardRef<HTMLDivElement, AppDatePickerProps>(
         onChange?.(date.toDate(), date.format(format));
 
         if (policy.telemetryEnabled) {
-          emitDatePickerTelemetry(selectPayload);
+          emitDatePickerTelemetry(telemetry, selectPayload);
         }
 
         // Закрываем календарь после выбора
@@ -470,7 +491,7 @@ const DatePickerComponent = forwardRef<HTMLDivElement, AppDatePickerProps>(
         // Обычно безопасно, т.к. закрытие происходит синхронно после onChange.
         setIsOpen(false);
       }
-    }, [onChange, format, policy.telemetryEnabled, selectPayload]);
+    }, [onChange, format, policy.telemetryEnabled, selectPayload, telemetry]);
 
     const handleNavigate = useCallback((direction: 'prev' | 'next'): void => {
       setCurrentMonth((prev) => {
@@ -495,7 +516,7 @@ const DatePickerComponent = forwardRef<HTMLDivElement, AppDatePickerProps>(
         onChange?.(parsedDate.toDate(), newValue);
 
         if (policy.telemetryEnabled) {
-          emitDatePickerTelemetry({
+          emitDatePickerTelemetry(telemetry, {
             ...changePayload,
             value: newValue, // Override with actual new value
           });
@@ -507,7 +528,7 @@ const DatePickerComponent = forwardRef<HTMLDivElement, AppDatePickerProps>(
         // Некорректный ввод (не пустой и не валидный)
         onInvalidInput?.(newValue);
       }
-    }, [onChange, onInvalidInput, format, policy, minDate, maxDate, changePayload]);
+    }, [onChange, onInvalidInput, format, policy, minDate, maxDate, changePayload, telemetry]);
 
     const coreDatePickerProps = useMemo((): CoreDatePickerProps => ({
       value: formattedValue,

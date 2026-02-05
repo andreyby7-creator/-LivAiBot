@@ -74,21 +74,26 @@ vi.mock('../../../../ui-core/src/components/SupportButton.js', () => ({
   }),
 }));
 
-// Mock для feature flags с возможностью настройки
+// Mock для UnifiedUIProvider
+const mockInfoFireAndForget = vi.fn();
 let mockFeatureFlagReturnValue = false;
-vi.mock('../../../src/lib/feature-flags', () => ({
-  useFeatureFlag: () => mockFeatureFlagReturnValue,
-}));
 
-// Mock для telemetry
-vi.mock('../../../src/lib/telemetry', () => ({
-  infoFireAndForget: vi.fn(),
+vi.mock('../../../src/providers/UnifiedUIProvider', () => ({
+  useUnifiedUI: () => ({
+    featureFlags: {
+      isEnabled: () => mockFeatureFlagReturnValue,
+      setOverride: vi.fn(),
+      clearOverrides: vi.fn(),
+      getOverride: () => mockFeatureFlagReturnValue,
+    },
+    telemetry: {
+      track: vi.fn(),
+      infoFireAndForget: mockInfoFireAndForget,
+    },
+  }),
 }));
 
 import { SupportButton } from '../../../src/ui/support-button';
-import { infoFireAndForget } from '../../../src/lib/telemetry';
-
-const mockInfoFireAndForget = vi.mocked(infoFireAndForget);
 
 describe('App SupportButton', () => {
   // Mock callbacks

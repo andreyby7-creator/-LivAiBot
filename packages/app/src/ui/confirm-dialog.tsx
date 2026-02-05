@@ -27,7 +27,24 @@ import type { JSX, Ref } from 'react';
 import { ConfirmDialog as CoreConfirmDialog } from '../../../ui-core/src/components/ConfirmDialog.js';
 import type { CoreConfirmDialogProps } from '../../../ui-core/src/components/ConfirmDialog.js';
 import type { ModalVariant } from '../../../ui-core/src/components/Modal.js';
-import { infoFireAndForget } from '../lib/telemetry.js';
+import { useUnifiedUI } from '../providers/UnifiedUIProvider.js';
+import type { Json } from '../types/common.js';
+import type {
+  AppWrapperProps,
+  MapCoreProps,
+  UiFeatureFlags,
+  UiPrimitiveProps,
+  UiTelemetryApi,
+} from '../types/ui-contracts.js';
+
+/** Алиас для UI feature flags в контексте confirm-dialog wrapper */
+export type ConfirmDialogUiFeatureFlags = UiFeatureFlags;
+
+/** Алиас для wrapper props в контексте confirm-dialog */
+export type ConfirmDialogWrapperProps<TData = Json> = AppWrapperProps<UiPrimitiveProps, TData>;
+
+/** Алиас для маппинга core props в контексте confirm-dialog */
+export type ConfirmDialogMapCoreProps<TData = Json> = MapCoreProps<UiPrimitiveProps, TData>;
 
 /* ============================================================================
  * 🛠️ УТИЛИТЫ
@@ -164,8 +181,11 @@ function useConfirmDialogPolicy(props: AppConfirmDialogProps): ConfirmDialogPoli
  * 📡 TELEMETRY
  * ========================================================================== */
 
-function emitConfirmDialogTelemetry(payload: ConfirmDialogTelemetryPayload): void {
-  infoFireAndForget(`ConfirmDialog ${payload.action}`, payload);
+function emitConfirmDialogTelemetry(
+  telemetry: UiTelemetryApi,
+  payload: ConfirmDialogTelemetryPayload,
+): void {
+  telemetry.infoFireAndForget(`ConfirmDialog ${payload.action}`, payload);
 }
 
 // Формирование payload для ConfirmDialog telemetry
@@ -199,6 +219,7 @@ const ConfirmDialogComponent = forwardRef<HTMLDivElement, AppConfirmDialogProps>
     props: AppConfirmDialogProps,
     ref: Ref<HTMLDivElement>,
   ): JSX.Element | null {
+    const { telemetry } = useUnifiedUI();
     // Фильтруем бизнес-пропсы, оставляем только DOM-безопасные
     const domProps = omit(props, BUSINESS_PROPS);
 
@@ -270,11 +291,11 @@ const ConfirmDialogComponent = forwardRef<HTMLDivElement, AppConfirmDialogProps>
           policy,
           telemetryProps,
         );
-        emitConfirmDialogTelemetry(confirmPayload);
+        emitConfirmDialogTelemetry(telemetry, confirmPayload);
       }
 
       onConfirm?.();
-    }, [policy, telemetryProps, onConfirm]);
+    }, [policy, telemetryProps, onConfirm, telemetry]);
 
     // Обработчик отмены с telemetry
     const handleCancel = useCallback((): void => {
@@ -284,21 +305,21 @@ const ConfirmDialogComponent = forwardRef<HTMLDivElement, AppConfirmDialogProps>
           policy,
           telemetryProps,
         );
-        emitConfirmDialogTelemetry(cancelPayload);
+        emitConfirmDialogTelemetry(telemetry, cancelPayload);
       }
 
       onCancel?.();
-    }, [policy, telemetryProps, onCancel]);
+    }, [policy, telemetryProps, onCancel, telemetry]);
 
     // Telemetry lifecycle
     useEffect(() => {
       if (!policy.telemetryEnabled) return;
 
-      emitConfirmDialogTelemetry(lifecyclePayload.mount);
+      emitConfirmDialogTelemetry(telemetry, lifecyclePayload.mount);
       return (): void => {
-        emitConfirmDialogTelemetry(lifecyclePayload.unmount);
+        emitConfirmDialogTelemetry(telemetry, lifecyclePayload.unmount);
       };
-    }, [policy.telemetryEnabled, lifecyclePayload]);
+    }, [policy.telemetryEnabled, lifecyclePayload, telemetry]);
 
     // Telemetry для видимости - only on changes, not on mount
     const prevVisibleRef = useRef<boolean | undefined>(undefined);
@@ -311,14 +332,12 @@ const ConfirmDialogComponent = forwardRef<HTMLDivElement, AppConfirmDialogProps>
 
       // Emit only on actual visibility changes, not on mount
       if (prevVisibility !== undefined && prevVisibility !== currentVisibility) {
-        emitConfirmDialogTelemetry(
-          currentVisibility ? showPayload : hidePayload,
-        );
+        emitConfirmDialogTelemetry(telemetry, currentVisibility ? showPayload : hidePayload);
       }
 
       // eslint-disable-next-line functional/immutable-data
       prevVisibleRef.current = currentVisibility;
-    }, [policy.telemetryEnabled, policy.isRendered, showPayload, hidePayload]);
+    }, [policy.telemetryEnabled, policy.isRendered, showPayload, hidePayload, telemetry]);
 
     // Policy: hidden
     if (!policy.isRendered) return null;

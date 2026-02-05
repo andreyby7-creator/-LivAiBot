@@ -29,7 +29,24 @@ import type {
   BreadcrumbItem,
   CoreBreadcrumbsProps,
 } from '../../../ui-core/src/components/Breadcrumbs.js';
-import { infoFireAndForget } from '../lib/telemetry.js';
+import { useUnifiedUI } from '../providers/UnifiedUIProvider.js';
+import type { Json } from '../types/common.js';
+import type {
+  AppWrapperProps,
+  MapCoreProps,
+  UiFeatureFlags,
+  UiPrimitiveProps,
+  UiTelemetryApi,
+} from '../types/ui-contracts.js';
+
+/** Алиас для UI feature flags в контексте breadcrumbs wrapper */
+export type BreadcrumbsUiFeatureFlags = UiFeatureFlags;
+
+/** Алиас для wrapper props в контексте breadcrumbs */
+export type BreadcrumbsWrapperProps<TData = Json> = AppWrapperProps<UiPrimitiveProps, TData>;
+
+/** Алиас для маппинга core props в контексте breadcrumbs */
+export type BreadcrumbsMapCoreProps<TData = Json> = MapCoreProps<UiPrimitiveProps, TData>;
 
 /* ============================================================================
  * 🛠️ УТИЛИТЫ
@@ -134,6 +151,7 @@ function useBreadcrumbsPolicy(props: AppBreadcrumbsProps): BreadcrumbsPolicy {
 function useBreadcrumbsItems(
   items: readonly BreadcrumbItem[],
   policy: BreadcrumbsPolicy,
+  telemetry: UiTelemetryApi,
 ): readonly BreadcrumbItem[] {
   // Optional optimization: если items часто меняются, можно добавить JSON.stringify(items) в зависимости
   // useMemo(() => ..., [items, policy, JSON.stringify(items)])
@@ -158,7 +176,7 @@ function useBreadcrumbsItems(
                 itemLabel: item.label,
               },
             );
-            emitBreadcrumbsTelemetry(clickPayload);
+            emitBreadcrumbsTelemetry(telemetry, clickPayload);
           }
 
           // Вызываем оригинальный обработчик
@@ -166,6 +184,7 @@ function useBreadcrumbsItems(
         },
       };
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [items, policy]);
 }
 
@@ -173,8 +192,11 @@ function useBreadcrumbsItems(
  * 📡 TELEMETRY
  * ========================================================================== */
 
-function emitBreadcrumbsTelemetry(payload: BreadcrumbsTelemetryPayload): void {
-  infoFireAndForget(`Breadcrumbs ${payload.action}`, payload);
+function emitBreadcrumbsTelemetry(
+  telemetry: UiTelemetryApi,
+  payload: BreadcrumbsTelemetryPayload,
+): void {
+  telemetry.infoFireAndForget(`Breadcrumbs ${payload.action}`, payload);
 }
 
 /**
@@ -214,6 +236,7 @@ const BreadcrumbsComponent = forwardRef<HTMLElement, AppBreadcrumbsProps>(
 
     const { items, ...filteredCoreProps } = domProps;
     const policy = useBreadcrumbsPolicy(props);
+    const { telemetry } = useUnifiedUI();
 
     // Минимальный набор telemetry-данных
     const telemetryProps = useMemo(() => ({
@@ -221,7 +244,7 @@ const BreadcrumbsComponent = forwardRef<HTMLElement, AppBreadcrumbsProps>(
     }), [items.length]);
 
     // Обогащаем items telemetry обработчиками через custom hook
-    const enrichedItems = useBreadcrumbsItems(items, policy);
+    const enrichedItems = useBreadcrumbsItems(items, policy, telemetry);
 
     // Lifecycle telemetry фиксирует состояние policy на момент первого рендера
     // Не реагирует на последующие изменения props или policy
@@ -252,12 +275,13 @@ const BreadcrumbsComponent = forwardRef<HTMLElement, AppBreadcrumbsProps>(
     useEffect(() => {
       if (!policy.telemetryEnabled) return;
 
-      emitBreadcrumbsTelemetry(lifecyclePayload.mount);
+      emitBreadcrumbsTelemetry(telemetry, lifecyclePayload.mount);
 
       return (): void => {
-        emitBreadcrumbsTelemetry(lifecyclePayload.unmount);
+        emitBreadcrumbsTelemetry(telemetry, lifecyclePayload.unmount);
       };
-    }, [policy.telemetryEnabled, lifecyclePayload]);
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     // Visibility telemetry - only on changes, not on mount
     const showPayload = useMemo(
@@ -293,14 +317,12 @@ const BreadcrumbsComponent = forwardRef<HTMLElement, AppBreadcrumbsProps>(
 
       // Emit only on actual visibility changes, not on mount
       if (prevVisibility !== undefined && prevVisibility !== currentVisibility) {
-        emitBreadcrumbsTelemetry(
-          currentVisibility ? showPayload : hidePayload,
-        );
+        emitBreadcrumbsTelemetry(telemetry, currentVisibility ? showPayload : hidePayload);
       }
 
       // eslint-disable-next-line functional/immutable-data
       prevVisibilityRef.current = currentVisibility;
-    }, [policy.telemetryEnabled, policy.isRendered, showPayload, hidePayload]);
+    }, [policy.telemetryEnabled, policy.isRendered, showPayload, hidePayload, telemetry]);
 
     // Policy: hidden (accessibility: элемент полностью удаляется из DOM)
     if (!policy.isRendered) return null;

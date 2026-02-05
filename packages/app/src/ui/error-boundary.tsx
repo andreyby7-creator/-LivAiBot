@@ -28,8 +28,25 @@ import type { ErrorInfo, ReactNode } from 'react';
 import { CoreErrorBoundary } from '../../../ui-core/src/components/ErrorBoundary.js';
 import type { CoreErrorBoundaryProps } from '../../../ui-core/src/components/ErrorBoundary.js';
 import { mapErrorBoundaryError } from '../lib/error-mapping.js';
-import { errorFireAndForget, infoFireAndForget } from '../lib/telemetry.js';
+import { useUnifiedUI } from '../providers/UnifiedUIProvider.js';
+import type { Json } from '../types/common.js';
 import type { AppError } from '../types/errors.js';
+import type {
+  AppWrapperProps,
+  MapCoreProps,
+  UiFeatureFlags,
+  UiPrimitiveProps,
+  UiTelemetryApi,
+} from '../types/ui-contracts.js';
+
+/** Алиас для UI feature flags в контексте error-boundary wrapper */
+export type ErrorBoundaryUiFeatureFlags = UiFeatureFlags;
+
+/** Алиас для wrapper props в контексте error-boundary */
+export type ErrorBoundaryWrapperProps<TData = Json> = AppWrapperProps<UiPrimitiveProps, TData>;
+
+/** Алиас для маппинга core props в контексте error-boundary */
+export type ErrorBoundaryMapCoreProps<TData = Json> = MapCoreProps<UiPrimitiveProps, TData>;
 
 /* ============================================================================
  * 🧬 TYPES & CONSTANTS
@@ -137,12 +154,15 @@ function useErrorBoundaryPolicy(props: AppErrorBoundaryProps): ErrorBoundaryPoli
  * 📡 TELEMETRY
  * ========================================================================== */
 
-function emitErrorBoundaryTelemetry(payload: ErrorBoundaryTelemetryPayload): void {
+function emitErrorBoundaryTelemetry(
+  telemetry: UiTelemetryApi,
+  payload: ErrorBoundaryTelemetryPayload,
+): void {
   try {
     if (payload.action === ErrorBoundaryTelemetryAction.Error) {
-      errorFireAndForget(`ErrorBoundary ${payload.action}`, payload);
+      telemetry.errorFireAndForget(`ErrorBoundary ${payload.action}`, payload);
     } else {
-      infoFireAndForget(`ErrorBoundary ${payload.action}`, payload);
+      telemetry.infoFireAndForget(`ErrorBoundary ${payload.action}`, payload);
     }
   } catch (telemetryError) {
     // Игнорируем ошибки telemetry, чтобы не ломать UI
@@ -179,6 +199,7 @@ function getErrorBoundaryPayload(
 type AppErrorBoundaryInnerProps = Readonly<{
   children: ReactNode;
   policy: ErrorBoundaryPolicy;
+  telemetry: UiTelemetryApi;
   fallback?: ReactNode | ((error: Error, errorInfo: ErrorInfo) => ReactNode);
   resetLabel?: string;
   showStack?: boolean;
@@ -233,13 +254,13 @@ class AppErrorBoundaryInner extends Component<
 
   override componentDidMount(): void {
     if (this.props.policy.telemetryEnabled && this.lifecyclePayloadRef) {
-      emitErrorBoundaryTelemetry(this.lifecyclePayloadRef.mount);
+      emitErrorBoundaryTelemetry(this.props.telemetry, this.lifecyclePayloadRef.mount);
     }
   }
 
   override componentWillUnmount(): void {
     if (this.props.policy.telemetryEnabled && this.lifecyclePayloadRef) {
-      emitErrorBoundaryTelemetry(this.lifecyclePayloadRef.unmount);
+      emitErrorBoundaryTelemetry(this.props.telemetry, this.lifecyclePayloadRef.unmount);
     }
   }
 
@@ -265,7 +286,7 @@ class AppErrorBoundaryInner extends Component<
           errorMessage, // Используем унифицированное сообщение ошибки
         },
       );
-      emitErrorBoundaryTelemetry(errorPayload);
+      emitErrorBoundaryTelemetry(this.props.telemetry, errorPayload);
     }
 
     this.props.onError?.(error, errorInfo);
@@ -288,7 +309,7 @@ class AppErrorBoundaryInner extends Component<
         this.props.policy,
         { hasError: false },
       );
-      emitErrorBoundaryTelemetry(resetPayload);
+      emitErrorBoundaryTelemetry(this.props.telemetry, resetPayload);
     }
 
     this.props.onReset?.();
@@ -458,6 +479,7 @@ function AppErrorBoundaryComponent(props: AppErrorBoundaryProps): ReactNode {
     'data-testid': dataTestId,
   } = props;
 
+  const { telemetry } = useUnifiedUI();
   const policy = useErrorBoundaryPolicy(props);
 
   if (policy.hiddenByFeatureFlag) {
@@ -467,6 +489,7 @@ function AppErrorBoundaryComponent(props: AppErrorBoundaryProps): ReactNode {
   return (
     <AppErrorBoundaryInner
       policy={policy}
+      telemetry={telemetry}
       {...(fallback !== undefined && { fallback })}
       {...(resetLabel !== undefined && { resetLabel })}
       {...(showStack !== undefined && { showStack })}

@@ -22,8 +22,25 @@ import type { JSX, Ref } from 'react';
 
 import { Toast as CoreToast } from '../../../ui-core/src/components/Toast.js';
 import type { CoreToastProps, ToastVariant } from '../../../ui-core/src/components/Toast.js';
-import { infoFireAndForget } from '../lib/telemetry.js';
+import { useUnifiedUI } from '../providers/UnifiedUIProvider.js';
+import type { Json } from '../types/common.js';
 import type { AppError } from '../types/errors.js';
+import type {
+  AppWrapperProps,
+  MapCoreProps,
+  UiFeatureFlags,
+  UiPrimitiveProps,
+  UiTelemetryApi,
+} from '../types/ui-contracts.js';
+
+/** Алиас для UI feature flags в контексте toast wrapper */
+export type ToastUiFeatureFlags = UiFeatureFlags;
+
+/** Алиас для wrapper props в контексте toast */
+export type ToastWrapperProps<TData = Json> = AppWrapperProps<UiPrimitiveProps, TData>;
+
+/** Алиас для маппинга core props в контексте toast */
+export type ToastMapCoreProps<TData = Json> = MapCoreProps<UiPrimitiveProps, TData>;
 
 /* ============================================================================
  * 🛠️ УТИЛИТЫ
@@ -151,8 +168,8 @@ function useToastPolicy(
  * 📡 TELEMETRY
  * ========================================================================== */
 
-function emitToastTelemetry(payload: ToastTelemetryPayload): void {
-  infoFireAndForget(`Toast ${payload.action}`, payload);
+function emitToastTelemetry(telemetry: UiTelemetryApi, payload: ToastTelemetryPayload): void {
+  telemetry.infoFireAndForget(`Toast ${payload.action}`, payload);
 }
 
 // Формирование payload для Toast telemetry
@@ -178,6 +195,7 @@ function getToastPayload(
 
 const ToastComponent = forwardRef<HTMLDivElement, AppToastProps>(
   function ToastComponent(props: AppToastProps, ref: Ref<HTMLDivElement>): JSX.Element | null {
+    const { telemetry } = useUnifiedUI();
     // Фильтруем бизнес-пропсы, оставляем только DOM-безопасные
     const domProps = omit(props, BUSINESS_PROPS);
 
@@ -231,11 +249,12 @@ const ToastComponent = forwardRef<HTMLDivElement, AppToastProps>(
     useEffect(() => {
       if (!policy.telemetryEnabled) return;
 
-      emitToastTelemetry(lifecyclePayload.mount);
+      emitToastTelemetry(telemetry, lifecyclePayload.mount);
       return (): void => {
-        emitToastTelemetry(lifecyclePayload.unmount);
+        emitToastTelemetry(telemetry, lifecyclePayload.unmount);
       };
-    }, [policy.telemetryEnabled, lifecyclePayload]);
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     // Telemetry для изменений видимости - только при изменениях, не при монтировании
     const prevVisibleRef = useRef<boolean | undefined>(undefined);
@@ -248,14 +267,12 @@ const ToastComponent = forwardRef<HTMLDivElement, AppToastProps>(
 
       // Отправляем только при реальных изменениях видимости, не при монтировании
       if (prevVisibility !== undefined && prevVisibility !== currentVisibility) {
-        emitToastTelemetry(
-          currentVisibility ? showPayload : hidePayload,
-        );
+        emitToastTelemetry(telemetry, currentVisibility ? showPayload : hidePayload);
       }
 
       // eslint-disable-next-line functional/immutable-data
       prevVisibleRef.current = currentVisibility;
-    }, [policy.telemetryEnabled, policy.isRendered, showPayload, hidePayload]);
+    }, [policy.telemetryEnabled, policy.isRendered, showPayload, hidePayload, telemetry]);
 
     // Policy: hidden
     if (!policy.isRendered) return null;

@@ -48,16 +48,33 @@ vi.mock('../../../../ui-core/src/components/ErrorBoundary', () => ({
   },
 }));
 
+// Mock для UnifiedUIProvider
+const mockInfoFireAndForget = vi.fn();
+const mockErrorFireAndForget = vi.fn();
+
+vi.mock('../../../src/providers/UnifiedUIProvider', () => ({
+  useUnifiedUI: () => ({
+    featureFlags: {
+      isEnabled: () => false,
+      setOverride: vi.fn(),
+      clearOverrides: vi.fn(),
+      getOverride: () => false,
+    },
+    telemetry: {
+      track: vi.fn(),
+      infoFireAndForget: mockInfoFireAndForget,
+      errorFireAndForget: mockErrorFireAndForget,
+    },
+  }),
+}));
+
+// Mock для lib/telemetry (используется в error-mapping.ts)
 vi.mock('../../../src/lib/telemetry', () => ({
   infoFireAndForget: vi.fn(),
   errorFireAndForget: vi.fn(),
 }));
 
 import { ErrorBoundary } from '../../../src/ui/error-boundary';
-import { errorFireAndForget, infoFireAndForget } from '../../../src/lib/telemetry';
-
-const mockInfoFireAndForget = vi.mocked(infoFireAndForget);
-const mockErrorFireAndForget = vi.mocked(errorFireAndForget);
 
 /* ============================================================================
  * Helpers
@@ -150,17 +167,10 @@ describe('ErrorBoundary (App UI)', () => {
     const core = screen.getByTestId('app-boundary');
     expect(core).toHaveAttribute('data-state', 'error');
 
-    expect(mockErrorFireAndForget).toHaveBeenCalledTimes(2);
+    expect(mockErrorFireAndForget).toHaveBeenCalledTimes(1);
 
-    // Первый вызов - маппинг ошибки
-    expect(mockErrorFireAndForget).toHaveBeenNthCalledWith(1, 'ErrorBoundary error mapped', {
-      originalErrorType: 'Error',
-      mappedErrorCode: 'UNKNOWN_ERROR',
-      errorMessage: 'Boom',
-    });
-
-    // Второй вызов - основная ошибка
-    expect(mockErrorFireAndForget).toHaveBeenNthCalledWith(2, 'ErrorBoundary error', {
+    // Единственный вызов - основная ошибка (маппинг теперь идет через другой mock)
+    expect(mockErrorFireAndForget).toHaveBeenNthCalledWith(1, 'ErrorBoundary error', {
       component: 'ErrorBoundary',
       action: 'error',
       hidden: false,

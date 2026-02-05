@@ -31,7 +31,24 @@ import type { JSX } from 'react';
 
 import { Radio as CoreRadio } from '../../../ui-core/src/primitives/radio.js';
 import type { CoreRadioProps } from '../../../ui-core/src/primitives/radio.js';
-import { infoFireAndForget } from '../lib/telemetry.js';
+import { useUnifiedUI } from '../providers/UnifiedUIProvider.js';
+import type { Json } from '../types/common.js';
+import type {
+  AppWrapperProps,
+  MapCoreProps,
+  UiFeatureFlags,
+  UiPrimitiveProps,
+  UiTelemetryApi,
+} from '../types/ui-contracts.js';
+
+/** Алиас для UI feature flags в контексте radio wrapper */
+export type RadioUiFeatureFlags = UiFeatureFlags;
+
+/** Алиас для props wrapper'а radio */
+export type RadioWrapperProps<TData = Json> = AppWrapperProps<UiPrimitiveProps, TData>;
+
+/** Алиас для маппинга props core radio */
+export type RadioMapCoreProps<TData = Json> = MapCoreProps<UiPrimitiveProps, TData>;
 
 /* ============================================================================
  * 🛠️ УТИЛИТЫ
@@ -142,6 +159,7 @@ function useRadioPolicy(props: AppRadioProps): RadioPolicy {
  * ========================================================================== */
 
 function emitRadioTelemetry(
+  telemetry: UiTelemetryApi,
   action: RadioTelemetryAction,
   policy: RadioPolicy,
   checked?: boolean,
@@ -157,7 +175,7 @@ function emitRadioTelemetry(
     ...(checked !== undefined && { checked }),
   };
 
-  infoFireAndForget(`Radio ${action}`, payload);
+  telemetry.infoFireAndForget(`Radio ${action}`, payload);
 }
 
 /* ============================================================================
@@ -166,6 +184,7 @@ function emitRadioTelemetry(
 
 const RadioComponent = forwardRef<HTMLInputElement, AppRadioProps>(
   function RadioComponent(props, ref): JSX.Element | null {
+    const { telemetry } = useUnifiedUI();
     // Фильтруем бизнес-пропсы, оставляем только DOM-безопасные
     const domProps = omit(props, BUSINESS_PROPS);
 
@@ -182,9 +201,9 @@ const RadioComponent = forwardRef<HTMLInputElement, AppRadioProps>(
     // Жизненный цикл telemetry
     useEffect(() => {
       if (policy.telemetryEnabled) {
-        emitRadioTelemetry('mount', policy, checked);
+        emitRadioTelemetry(telemetry, 'mount', policy, checked);
         return (): void => {
-          emitRadioTelemetry('unmount', policy, checked);
+          emitRadioTelemetry(telemetry, 'unmount', policy, checked);
         };
       }
       return undefined;
@@ -205,34 +224,34 @@ const RadioComponent = forwardRef<HTMLInputElement, AppRadioProps>(
         if (policy.disabledByFeatureFlag) return;
 
         if (policy.telemetryOnChange) {
-          emitRadioTelemetry('change', policy, event.target.checked);
+          emitRadioTelemetry(telemetry, 'change', policy, event.target.checked);
         }
 
         onChange?.(event);
       },
-      [policy, onChange],
+      [policy, onChange, telemetry],
     );
 
     const handleFocus = useCallback(
       (event: React.FocusEvent<HTMLInputElement>) => {
         if (policy.telemetryOnFocus) {
-          emitRadioTelemetry('focus', policy, event.target.checked);
+          emitRadioTelemetry(telemetry, 'focus', policy, event.target.checked);
         }
 
         onFocus?.(event);
       },
-      [policy, onFocus],
+      [policy, onFocus, telemetry],
     );
 
     const handleBlur = useCallback(
       (event: React.FocusEvent<HTMLInputElement>) => {
         if (policy.telemetryOnBlur) {
-          emitRadioTelemetry('blur', policy, event.target.checked);
+          emitRadioTelemetry(telemetry, 'blur', policy, event.target.checked);
         }
 
         onBlur?.(event);
       },
-      [policy, onBlur],
+      [policy, onBlur, telemetry],
     );
 
     // hidden

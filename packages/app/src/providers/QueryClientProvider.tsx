@@ -24,6 +24,10 @@ import type { JSX, PropsWithChildren } from 'react';
 
 import { createQueryClient } from '../state/query/query-client.js';
 import type { AppQueryClientOptions } from '../state/query/query-client.js';
+import type { ComponentState } from '../types/ui-contracts.js';
+
+/** Алиас для состояния компонентов в контексте query client provider */
+export type QueryComponentState<T = unknown> = ComponentState<T>;
 
 /* ============================================================================
  * 🧬 TYPES & CONSTANTS

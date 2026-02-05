@@ -34,8 +34,24 @@ import type {
   CoreLanguageSelectorProps,
   LanguageData,
 } from '../../../ui-core/src/components/LanguageSelector.js';
-import { useI18n } from '../lib/i18n.js';
-import { infoFireAndForget } from '../lib/telemetry.js';
+import { useUnifiedUI } from '../providers/UnifiedUIProvider.js';
+import type { Json } from '../types/common.js';
+import type {
+  AppWrapperProps,
+  MapCoreProps,
+  UiFeatureFlags,
+  UiPrimitiveProps,
+  UiTelemetryApi,
+} from '../types/ui-contracts.js';
+
+/** Алиас для UI feature flags в контексте language-selector wrapper */
+export type LanguageSelectorUiFeatureFlags = UiFeatureFlags;
+
+/** Алиас для wrapper props в контексте language-selector */
+export type LanguageSelectorWrapperProps<TData = Json> = AppWrapperProps<UiPrimitiveProps, TData>;
+
+/** Алиас для маппинга core props в контексте language-selector */
+export type LanguageSelectorMapCoreProps<TData = Json> = MapCoreProps<UiPrimitiveProps, TData>;
 
 /* ============================================================================
  * 🛠️ УТИЛИТЫ
@@ -193,9 +209,10 @@ function useLanguageSelectorPolicy(
  * =========================================================================== */
 
 function emitLanguageSelectorTelemetry(
+  telemetry: UiTelemetryApi,
   payload: LanguageSelectorTelemetryPayload,
 ): void {
-  infoFireAndForget(`LanguageSelector ${payload.action}`, payload);
+  telemetry.infoFireAndForget(`LanguageSelector ${payload.action}`, payload);
 }
 
 /**
@@ -275,6 +292,7 @@ const LanguageSelectorComponent = forwardRef<LanguageSelectorElement, AppLanguag
     props: AppLanguageSelectorProps,
     ref: Ref<LanguageSelectorElement>,
   ): JSX.Element | null {
+    const { telemetry, i18n } = useUnifiedUI();
     // Сначала извлекаем все нужные props
     const {
       languages,
@@ -301,7 +319,7 @@ const LanguageSelectorComponent = forwardRef<LanguageSelectorElement, AppLanguag
     const { onLanguageSelect } = props;
 
     // i18n интеграция для locale в telemetry и переводов
-    const { locale, translate } = useI18n();
+    const { locale, translate } = i18n;
 
     // Хелпер для динамических переводов языков
     const translateLanguageName = useCallback(
@@ -373,6 +391,7 @@ const LanguageSelectorComponent = forwardRef<LanguageSelectorElement, AppLanguag
       // Telemetry для открытия/закрытия dropdown
       if (policy.telemetryEnabled && nextIsOpen !== lastIsOpenRef.current) {
         emitLanguageSelectorTelemetry(
+          telemetry,
           getLanguageSelectorPayload(
             nextIsOpen
               ? LanguageSelectorTelemetryAction.Open
@@ -386,7 +405,7 @@ const LanguageSelectorComponent = forwardRef<LanguageSelectorElement, AppLanguag
       // Обновляем ref для стабильного сравнения
       // eslint-disable-next-line functional/immutable-data
       lastIsOpenRef.current = nextIsOpen;
-    }, [isOpen, isControlled, onOpenChange, setInternalIsOpen, policy, telemetryProps]);
+    }, [isOpen, isControlled, onOpenChange, setInternalIsOpen, policy, telemetryProps, telemetry]);
 
     /** Переведенные имена языков для отображения */
     const translatedLanguages = useMemo(
@@ -454,11 +473,11 @@ const LanguageSelectorComponent = forwardRef<LanguageSelectorElement, AppLanguag
     useEffect(() => {
       if (!policy.telemetryEnabled) return;
 
-      emitLanguageSelectorTelemetry(mountPayload);
+      emitLanguageSelectorTelemetry(telemetry, mountPayload);
       return (): void => {
-        emitLanguageSelectorTelemetry(unmountPayload);
+        emitLanguageSelectorTelemetry(telemetry, unmountPayload);
       };
-    }, [policy.telemetryEnabled, mountPayload, unmountPayload]);
+    }, [policy.telemetryEnabled, mountPayload, unmountPayload, telemetry]);
 
     // Объединяем стили для disabled состояния
     const combinedDisabled = useMemo<boolean>(
@@ -470,6 +489,7 @@ const LanguageSelectorComponent = forwardRef<LanguageSelectorElement, AppLanguag
     const emitLanguageChangeTelemetry = useCallback(() => {
       if (policy.telemetryEnabled) {
         emitLanguageSelectorTelemetry(
+          telemetry,
           getLanguageSelectorPayload(
             LanguageSelectorTelemetryAction.Change,
             policy,
@@ -477,7 +497,7 @@ const LanguageSelectorComponent = forwardRef<LanguageSelectorElement, AppLanguag
           ),
         );
       }
-    }, [policy, telemetryProps]);
+    }, [policy, telemetryProps, telemetry]);
 
     // Обработчик выбора языка с App-level логикой
     const handleLanguageChange = useCallback(

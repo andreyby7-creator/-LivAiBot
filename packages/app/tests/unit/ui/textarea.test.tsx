@@ -7,25 +7,41 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom/vitest';
 
-// Mock для telemetry
-vi.mock('../../../src/lib/telemetry', () => ({
-  infoFireAndForget: vi.fn(),
+// Mock для UnifiedUIProvider
+const mockInfoFireAndForget = vi.fn();
+
+vi.mock('../../../src/providers/UnifiedUIProvider', () => ({
+  useUnifiedUI: () => ({
+    featureFlags: {
+      isEnabled: vi.fn(() => true),
+      setOverride: vi.fn(),
+      clearOverrides: vi.fn(),
+      getOverride: vi.fn(() => true),
+    },
+    telemetry: {
+      track: vi.fn(),
+      infoFireAndForget: mockInfoFireAndForget,
+      warnFireAndForget: vi.fn(),
+      errorFireAndForget: vi.fn(),
+      flush: vi.fn(),
+    },
+    i18n: {
+      translate: vi.fn(),
+      locale: 'en',
+      direction: 'ltr' as const,
+      loadNamespace: vi.fn(),
+      isNamespaceLoaded: vi.fn(() => true),
+      t: vi.fn(),
+      formatDateLocalized: vi.fn(),
+      setDayjsLocale: vi.fn(),
+    },
+  }),
 }));
 
 import { Textarea } from '../../../src/ui/textarea';
-import { infoFireAndForget } from '../../../src/lib/telemetry';
 
-const mockInfoFireAndForget = vi.mocked(infoFireAndForget);
-
-// Mock для feature flags - useFeatureFlag просто возвращает Boolean(flagValue)
-vi.mock('../../../src/lib/feature-flags', () => ({
-  useFeatureFlag: (flagValue?: boolean) => Boolean(flagValue),
-}));
-
-// Mock для telemetry
-vi.mock('../../../src/lib/telemetry', () => ({
-  infoFireAndForget: vi.fn(),
-}));
+// Импорт для правильного порядка моков
+import '../../../src/providers/UnifiedUIProvider';
 
 describe('Textarea', () => {
   const mockOnChange = vi.fn();

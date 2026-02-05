@@ -27,7 +27,24 @@ import type { JSX, Ref } from 'react';
 import { Modal as CoreModal } from '../../../ui-core/src/components/Modal.js';
 import type { CoreModalProps, ModalVariant } from '../../../ui-core/src/components/Modal.js';
 import type { UIDuration } from '../../../ui-core/src/types/ui.js';
-import { infoFireAndForget } from '../lib/telemetry.js';
+import { useUnifiedUI } from '../providers/UnifiedUIProvider.js';
+import type { Json } from '../types/common.js';
+import type {
+  AppWrapperProps,
+  MapCoreProps,
+  UiFeatureFlags,
+  UiPrimitiveProps,
+  UiTelemetryApi,
+} from '../types/ui-contracts.js';
+
+/** Алиас для UI feature flags в контексте modal wrapper */
+export type ModalUiFeatureFlags = UiFeatureFlags;
+
+/** Алиас для wrapper props в контексте modal */
+export type ModalWrapperProps<TData = Json> = AppWrapperProps<UiPrimitiveProps, TData>;
+
+/** Алиас для маппинга core props в контексте modal */
+export type ModalMapCoreProps<TData = Json> = MapCoreProps<UiPrimitiveProps, TData>;
 
 /* ============================================================================
  * 🛠️ УТИЛИТЫ
@@ -134,8 +151,8 @@ function useModalPolicy(props: AppModalProps): ModalPolicy {
  * 📡 TELEMETRY
  * ========================================================================== */
 
-function emitModalTelemetry(payload: ModalTelemetryPayload): void {
-  infoFireAndForget(`Modal ${payload.action}`, payload);
+function emitModalTelemetry(telemetry: UiTelemetryApi, payload: ModalTelemetryPayload): void {
+  telemetry.infoFireAndForget(`Modal ${payload.action}`, payload);
 }
 
 /**
@@ -163,6 +180,7 @@ function getModalPayload(
 
 const ModalComponent = forwardRef<HTMLDivElement, AppModalProps>(
   function ModalComponent(props: AppModalProps, ref: Ref<HTMLDivElement>): JSX.Element | null {
+    const { telemetry } = useUnifiedUI();
     // Фильтруем бизнес-пропсы, оставляем только DOM-безопасные
     const domProps = omit(props, BUSINESS_PROPS);
 
@@ -218,11 +236,11 @@ const ModalComponent = forwardRef<HTMLDivElement, AppModalProps>(
     useEffect(() => {
       if (!policy.telemetryEnabled) return;
 
-      emitModalTelemetry(lifecyclePayload.mount);
+      emitModalTelemetry(telemetry, lifecyclePayload.mount);
       return (): void => {
-        emitModalTelemetry(lifecyclePayload.unmount);
+        emitModalTelemetry(telemetry, lifecyclePayload.unmount);
       };
-    }, [policy.telemetryEnabled, lifecyclePayload]);
+    }, [policy.telemetryEnabled, lifecyclePayload, telemetry]);
 
     // Telemetry для видимости - only on changes, not on mount
     const prevVisibleRef = useRef<boolean | undefined>(undefined);
@@ -235,14 +253,12 @@ const ModalComponent = forwardRef<HTMLDivElement, AppModalProps>(
 
       // Emit only on actual visibility changes, not on mount
       if (prevVisibility !== undefined && prevVisibility !== currentVisibility) {
-        emitModalTelemetry(
-          currentVisibility ? showPayload : hidePayload,
-        );
+        emitModalTelemetry(telemetry, currentVisibility ? showPayload : hidePayload);
       }
 
       // eslint-disable-next-line functional/immutable-data
       prevVisibleRef.current = currentVisibility;
-    }, [policy.telemetryEnabled, policy.isRendered, showPayload, hidePayload]);
+    }, [policy.telemetryEnabled, policy.isRendered, showPayload, hidePayload, telemetry]);
 
     // Policy: hidden
     if (!policy.isRendered) return null;

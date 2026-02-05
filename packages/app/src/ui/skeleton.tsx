@@ -30,7 +30,24 @@ import type {
   CoreSkeletonProps,
   SkeletonVariant,
 } from '../../../ui-core/src/components/Skeleton.js';
-import { infoFireAndForget } from '../lib/telemetry.js';
+import { useUnifiedUI } from '../providers/UnifiedUIProvider.js';
+import type { Json } from '../types/common.js';
+import type {
+  AppWrapperProps,
+  MapCoreProps,
+  UiFeatureFlags,
+  UiPrimitiveProps,
+  UiTelemetryApi,
+} from '../types/ui-contracts.js';
+
+/** Алиас для UI feature flags в контексте skeleton wrapper */
+export type SkeletonUiFeatureFlags = UiFeatureFlags;
+
+/** Алиас для wrapper props в контексте skeleton */
+export type SkeletonWrapperProps<TData = Json> = AppWrapperProps<UiPrimitiveProps, TData>;
+
+/** Алиас для маппинга core props в контексте skeleton */
+export type SkeletonMapCoreProps<TData = Json> = MapCoreProps<UiPrimitiveProps, TData>;
 
 /* ============================================================================
  * 🛠️ УТИЛИТЫ
@@ -150,8 +167,8 @@ function useSkeletonPolicy(props: AppSkeletonProps): SkeletonPolicy {
  * Fire-and-forget.
  * @param payload SkeletonTelemetryPayload
  */
-function emitSkeletonTelemetry(payload: SkeletonTelemetryPayload): void {
-  infoFireAndForget(`Skeleton ${payload.action}`, payload);
+function emitSkeletonTelemetry(telemetry: UiTelemetryApi, payload: SkeletonTelemetryPayload): void {
+  telemetry.infoFireAndForget(`Skeleton ${payload.action}`, payload);
 }
 
 /**
@@ -187,6 +204,7 @@ const SkeletonComponent = forwardRef<HTMLDivElement, AppSkeletonProps>(
     props: AppSkeletonProps,
     ref: Ref<HTMLDivElement>,
   ): JSX.Element | null {
+    const { telemetry } = useUnifiedUI();
     // Фильтруем бизнес-пропсы, оставляем только DOM-безопасные
     const domProps = omit(props, BUSINESS_PROPS);
 
@@ -222,12 +240,12 @@ const SkeletonComponent = forwardRef<HTMLDivElement, AppSkeletonProps>(
     useEffect(() => {
       if (!policy.telemetryEnabled) return;
 
-      emitSkeletonTelemetry(lifecyclePayload.mount);
+      emitSkeletonTelemetry(telemetry, lifecyclePayload.mount);
 
       return (): void => {
-        emitSkeletonTelemetry(lifecyclePayload.unmount);
+        emitSkeletonTelemetry(telemetry, lifecyclePayload.unmount);
       };
-    }, [policy.telemetryEnabled, lifecyclePayload]);
+    }, [policy.telemetryEnabled, lifecyclePayload, telemetry]);
 
     // Visibility telemetry - only on changes, not on mount
     const showPayload = useMemo(
@@ -249,14 +267,12 @@ const SkeletonComponent = forwardRef<HTMLDivElement, AppSkeletonProps>(
 
       // Emit only on actual visibility changes, not on mount
       if (prevVisibility !== undefined && prevVisibility !== currentVisibility) {
-        emitSkeletonTelemetry(
-          currentVisibility ? showPayload : hidePayload,
-        );
+        emitSkeletonTelemetry(telemetry, currentVisibility ? showPayload : hidePayload);
       }
 
       // eslint-disable-next-line functional/immutable-data
       prevVisibilityRef.current = currentVisibility;
-    }, [policy.telemetryEnabled, policy.isRendered, showPayload, hidePayload]);
+    }, [policy.telemetryEnabled, policy.isRendered, showPayload, hidePayload, telemetry]);
 
     // Policy: hidden → полностью удаляем из DOM
     if (!policy.isRendered) return null;

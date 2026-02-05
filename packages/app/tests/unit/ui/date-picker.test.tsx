@@ -178,12 +178,50 @@ vi.mock('../../../src/lib/telemetry', () => ({
 vi.mock('dayjs/locale/ru.js', () => ({}));
 vi.mock('dayjs/locale/en.js', () => ({}));
 
+// Переменная для мока telemetry
+const mockInfoFireAndForget = vi.fn();
+
+// Mock для UnifiedUIProvider
+vi.mock('../../../src/providers/UnifiedUIProvider', () => ({
+  useUnifiedUI: () => ({
+    i18n: {
+      translate: vi.fn(),
+      locale: 'en',
+      direction: 'ltr' as const,
+      loadNamespace: vi.fn(),
+      isNamespaceLoaded: vi.fn(() => true),
+      t: vi.fn((key, params) => params?.default ?? key),
+      formatDateLocalized: vi.fn((date, format) => {
+        // Правильно форматируем даты для тестов
+        if (format === 'MMMM YYYY') {
+          return date.format('MMMM YYYY');
+        }
+        return date.format(format);
+      }),
+      setDayjsLocale: vi.fn(),
+    },
+    featureFlags: {
+      isEnabled: vi.fn(() => true),
+      setOverride: vi.fn(),
+      clearOverrides: vi.fn(),
+      getOverride: vi.fn(() => true),
+    },
+    telemetry: {
+      track: vi.fn(),
+      infoFireAndForget: mockInfoFireAndForget,
+      warnFireAndForget: vi.fn(),
+      errorFireAndForget: vi.fn(),
+      flush: vi.fn(),
+    },
+  }),
+}));
+
 import dayjs from 'dayjs';
 import { DatePicker } from '../../../src/ui/date-picker';
 import type { AppDatePickerProps } from '../../../src/ui/date-picker';
-import { infoFireAndForget } from '../../../src/lib/telemetry';
 
-const mockInfoFireAndForget = vi.mocked(infoFireAndForget);
+// Импорт для правильного порядка моков
+import '../../../src/providers/UnifiedUIProvider';
 
 describe('App DatePicker', () => {
   beforeEach(() => {

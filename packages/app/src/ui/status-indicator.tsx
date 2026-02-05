@@ -36,7 +36,24 @@ import type {
   StatusIndicatorStatus,
   StatusIndicatorVariant,
 } from '../../../ui-core/src/primitives/status-indicator.js';
-import { infoFireAndForget } from '../lib/telemetry.js';
+import { useUnifiedUI } from '../providers/UnifiedUIProvider.js';
+import type { Json } from '../types/common.js';
+import type {
+  AppWrapperProps,
+  MapCoreProps,
+  UiFeatureFlags,
+  UiPrimitiveProps,
+  UiTelemetryApi,
+} from '../types/ui-contracts.js';
+
+/** Алиас для UI feature flags в контексте status-indicator wrapper */
+export type StatusIndicatorUiFeatureFlags = UiFeatureFlags;
+
+/** Алиас для wrapper props в контексте status-indicator */
+export type StatusIndicatorWrapperProps<TData = Json> = AppWrapperProps<UiPrimitiveProps, TData>;
+
+/** Алиас для маппинга core props в контексте status-indicator */
+export type StatusIndicatorMapCoreProps<TData = Json> = MapCoreProps<UiPrimitiveProps, TData>;
 
 /* ============================================================================
  * 🛠️ УТИЛИТЫ
@@ -167,9 +184,10 @@ function optionalProp<T extends object | undefined>(
  * ========================================================================== */
 
 function emitStatusIndicatorTelemetry(
+  telemetry: UiTelemetryApi,
   payload: StatusIndicatorTelemetryPayload,
 ): void {
-  infoFireAndForget(`StatusIndicator ${payload.action}`, payload);
+  telemetry.infoFireAndForget(`StatusIndicator ${payload.action}`, payload);
 }
 
 /* ============================================================================
@@ -183,6 +201,7 @@ const StatusIndicatorComponent = forwardRef<
   props: AppStatusIndicatorProps,
   ref: Ref<HTMLSpanElement>,
 ): JSX.Element | null {
+  const { telemetry } = useUnifiedUI();
   const policy = useStatusIndicatorPolicy(props);
 
   // Фильтруем бизнес-пропсы, оставляем только DOM-безопасные
@@ -242,11 +261,11 @@ const StatusIndicatorComponent = forwardRef<
   useEffect(() => {
     if (!policy.telemetryEnabled) return;
 
-    emitStatusIndicatorTelemetry(lifecyclePayload.mount);
+    emitStatusIndicatorTelemetry(telemetry, lifecyclePayload.mount);
     return (): void => {
-      emitStatusIndicatorTelemetry(lifecyclePayload.unmount);
+      emitStatusIndicatorTelemetry(telemetry, lifecyclePayload.unmount);
     };
-  }, [policy.telemetryEnabled, lifecyclePayload]);
+  }, [policy.telemetryEnabled, lifecyclePayload, telemetry]);
 
   // Visibility effect (единственный источник истины для show/hide telemetry)
   const previousIsRenderedRef = useRef<boolean | undefined>(undefined);
@@ -266,13 +285,14 @@ const StatusIndicatorComponent = forwardRef<
 
     if (wasRendered !== isRendered) {
       emitStatusIndicatorTelemetry(
+        telemetry,
         getStatusIndicatorPayloadBase(StatusIndicatorTelemetryAction.StatusChange),
       );
     }
 
     // eslint-disable-next-line functional/immutable-data
     previousIsRenderedRef.current = isRendered;
-  }, [policy.isRendered, policy.telemetryEnabled, getStatusIndicatorPayloadBase]);
+  }, [policy.isRendered, policy.telemetryEnabled, getStatusIndicatorPayloadBase, telemetry]);
 
   // Status change telemetry
   const previousStatusRef = useRef<StatusIndicatorStatus | undefined>(
@@ -294,6 +314,7 @@ const StatusIndicatorComponent = forwardRef<
 
     if (previousStatus !== currentStatus && policy.isRendered) {
       emitStatusIndicatorTelemetry(
+        telemetry,
         getStatusIndicatorPayloadBase(
           StatusIndicatorTelemetryAction.StatusChange,
         ),
@@ -307,6 +328,7 @@ const StatusIndicatorComponent = forwardRef<
     policy.isRendered,
     policy.telemetryEnabled,
     getStatusIndicatorPayloadBase,
+    telemetry,
   ]);
 
   // Core props (должен быть до early return для соблюдения правил хуков)

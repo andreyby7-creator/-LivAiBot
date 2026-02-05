@@ -28,7 +28,24 @@ import type {
   CoreDividerProps,
   DividerOrientation,
 } from '../../../ui-core/src/primitives/divider.js';
-import { infoFireAndForget } from '../lib/telemetry.js';
+import { useUnifiedUI } from '../providers/UnifiedUIProvider.js';
+import type { Json } from '../types/common.js';
+import type {
+  AppWrapperProps,
+  MapCoreProps,
+  UiFeatureFlags,
+  UiPrimitiveProps,
+  UiTelemetryApi,
+} from '../types/ui-contracts.js';
+
+/** Алиас для UI feature flags в контексте divider wrapper */
+export type DividerUiFeatureFlags = UiFeatureFlags;
+
+/** Алиас для wrapper props в контексте divider */
+export type DividerWrapperProps<TData = Json> = AppWrapperProps<UiPrimitiveProps, TData>;
+
+/** Алиас для маппинга core props в контексте divider */
+export type DividerMapCoreProps<TData = Json> = MapCoreProps<UiPrimitiveProps, TData>;
 
 /* ============================================================================
  * 🛠️ УТИЛИТЫ
@@ -102,8 +119,8 @@ function useDividerPolicy(props: AppDividerProps): DividerPolicy {
  * 📡 TELEMETRY
  * ========================================================================== */
 
-function emitDividerTelemetry(payload: DividerTelemetryPayload): void {
-  infoFireAndForget(`Divider ${payload.action}`, payload);
+function emitDividerTelemetry(telemetry: UiTelemetryApi, payload: DividerTelemetryPayload): void {
+  telemetry.infoFireAndForget(`Divider ${payload.action}`, payload);
 }
 
 function getDividerPayload(
@@ -126,6 +143,7 @@ function getDividerPayload(
 
 const DividerComponent = forwardRef<HTMLElement, AppDividerProps>(
   function DividerComponent(props: AppDividerProps, ref: Ref<HTMLElement>): JSX.Element | null {
+    const { telemetry } = useUnifiedUI();
     // Фильтруем бизнес-пропсы, оставляем только DOM-безопасные
     const domProps = omit(props, BUSINESS_PROPS);
 
@@ -150,11 +168,11 @@ const DividerComponent = forwardRef<HTMLElement, AppDividerProps>(
     useEffect(() => {
       if (!policy.telemetryEnabled) return;
 
-      emitDividerTelemetry(lifecyclePayload.mount);
+      emitDividerTelemetry(telemetry, lifecyclePayload.mount);
       return (): void => {
-        emitDividerTelemetry(lifecyclePayload.unmount);
+        emitDividerTelemetry(telemetry, lifecyclePayload.unmount);
       };
-    }, [policy.telemetryEnabled, lifecyclePayload]);
+    }, [policy.telemetryEnabled, lifecyclePayload, telemetry]);
 
     // Policy: hidden
     if (!policy.isRendered) return null;

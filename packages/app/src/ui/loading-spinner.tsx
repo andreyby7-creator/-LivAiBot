@@ -26,7 +26,24 @@ import type { JSX, Ref } from 'react';
 
 import { LoadingSpinner as CoreLoadingSpinner } from '../../../ui-core/src/primitives/loading-spinner.js';
 import type { CoreLoadingSpinnerProps } from '../../../ui-core/src/primitives/loading-spinner.js';
-import { infoFireAndForget } from '../lib/telemetry.js';
+import { useUnifiedUI } from '../providers/UnifiedUIProvider.js';
+import type { Json } from '../types/common.js';
+import type {
+  AppWrapperProps,
+  MapCoreProps,
+  UiFeatureFlags,
+  UiPrimitiveProps,
+  UiTelemetryApi,
+} from '../types/ui-contracts.js';
+
+/** Алиас для UI feature flags в контексте loading-spinner wrapper */
+export type LoadingSpinnerUiFeatureFlags = UiFeatureFlags;
+
+/** Алиас для wrapper props в контексте loading-spinner */
+export type LoadingSpinnerWrapperProps<TData = Json> = AppWrapperProps<UiPrimitiveProps, TData>;
+
+/** Алиас для маппинга core props в контексте loading-spinner */
+export type LoadingSpinnerMapCoreProps<TData = Json> = MapCoreProps<UiPrimitiveProps, TData>;
 
 /* ============================================================================
  * 🛠️ УТИЛИТЫ
@@ -129,8 +146,11 @@ function useLoadingSpinnerPolicy(
  * 📡 TELEMETRY
  * ========================================================================== */
 
-function emitLoadingSpinnerTelemetry(payload: LoadingSpinnerTelemetryPayload): void {
-  infoFireAndForget(`LoadingSpinner ${payload.action}`, payload);
+function emitLoadingSpinnerTelemetry(
+  telemetry: UiTelemetryApi,
+  payload: LoadingSpinnerTelemetryPayload,
+): void {
+  telemetry.infoFireAndForget(`LoadingSpinner ${payload.action}`, payload);
 }
 
 /**
@@ -181,6 +201,7 @@ const LoadingSpinnerComponent = forwardRef<HTMLDivElement, AppLoadingSpinnerProp
     props: AppLoadingSpinnerProps,
     ref: Ref<HTMLDivElement>,
   ): JSX.Element | null {
+    const { telemetry } = useUnifiedUI();
     // Фильтруем бизнес-пропсы, оставляем только DOM-безопасные
     const domProps = omit(props, BUSINESS_PROPS);
 
@@ -251,11 +272,11 @@ const LoadingSpinnerComponent = forwardRef<HTMLDivElement, AppLoadingSpinnerProp
     useEffect(() => {
       if (!policy.telemetryEnabled) return;
 
-      emitLoadingSpinnerTelemetry(lifecyclePayload.mount);
+      emitLoadingSpinnerTelemetry(telemetry, lifecyclePayload.mount);
       return (): void => {
-        emitLoadingSpinnerTelemetry(lifecyclePayload.unmount);
+        emitLoadingSpinnerTelemetry(telemetry, lifecyclePayload.unmount);
       };
-    }, [policy.telemetryEnabled, lifecyclePayload]);
+    }, [policy.telemetryEnabled, lifecyclePayload, telemetry]);
 
     // Telemetry для видимости - only on changes, not on mount
     const prevVisibleRef = useRef<boolean | undefined>(undefined);
@@ -265,12 +286,10 @@ const LoadingSpinnerComponent = forwardRef<HTMLDivElement, AppLoadingSpinnerProp
     const emitVisibilityTelemetry = useCallback(
       (prevVisibility: boolean | undefined, currentVisibility: boolean): void => {
         if (prevVisibility !== undefined && prevVisibility !== currentVisibility) {
-          emitLoadingSpinnerTelemetry(
-            currentVisibility ? showPayload : hidePayload,
-          );
+          emitLoadingSpinnerTelemetry(telemetry, currentVisibility ? showPayload : hidePayload);
         }
       },
-      [showPayload, hidePayload],
+      [showPayload, hidePayload, telemetry],
     );
 
     useEffect(() => {

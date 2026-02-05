@@ -21,6 +21,10 @@ import { useCallback, useMemo, useSyncExternalStore } from 'react';
 import type { FeatureFlagName } from '../lib/feature-flags.js';
 import { featureFlagsStore, useFeatureFlagsStore } from '../providers/FeatureFlagsProvider.js';
 import type { FeatureFlags } from '../types/common.js';
+import type { UiFeatureFlags } from '../types/ui-contracts.js';
+
+/** Алиас для UI feature flags в контексте feature flags хуков */
+export type UseFeatureFlagsUi = UiFeatureFlags;
 
 /* ============================================================================
  * 🧬 TYPES

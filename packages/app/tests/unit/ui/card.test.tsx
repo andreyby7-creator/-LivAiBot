@@ -10,16 +10,22 @@ import { Card } from '../../../src/ui/card';
 
 // Объявляем переменные моков перед vi.mock()
 let mockFeatureFlagReturnValue = false;
+const mockInfoFireAndForget = vi.fn();
 
-// Mock для feature flags с возможностью настройки
-vi.mock('../../../src/lib/feature-flags', () => ({
-  useFeatureFlag: () => mockFeatureFlagReturnValue,
-  useFeatureFlagOverride: () => true,
-}));
-
-// Mock для telemetry
-vi.mock('../../../src/lib/telemetry', () => ({
-  infoFireAndForget: vi.fn(),
+// Mock для UnifiedUIProvider
+vi.mock('../../../src/providers/UnifiedUIProvider', () => ({
+  useUnifiedUI: () => ({
+    featureFlags: {
+      isEnabled: () => mockFeatureFlagReturnValue,
+      setOverride: vi.fn(),
+      clearOverrides: vi.fn(),
+      getOverride: () => mockFeatureFlagReturnValue,
+    },
+    telemetry: {
+      track: vi.fn(),
+      infoFireAndForget: mockInfoFireAndForget,
+    },
+  }),
 }));
 
 describe('Card', () => {
@@ -265,10 +271,9 @@ describe('Card', () => {
 
   describe('Telemetry', () => {
     it('должен отправлять telemetry при mount', async () => {
-      const { infoFireAndForget } = await import('../../../src/lib/telemetry');
       render(<Card>Content</Card>);
 
-      expect(vi.mocked(infoFireAndForget)).toHaveBeenCalledWith('Card mount', {
+      expect(vi.mocked(mockInfoFireAndForget)).toHaveBeenCalledWith('Card mount', {
         component: 'Card',
         action: 'mount',
         variant: null,
@@ -278,12 +283,11 @@ describe('Card', () => {
     });
 
     it('должен отправлять telemetry при unmount', async () => {
-      const { infoFireAndForget } = await import('../../../src/lib/telemetry');
       const { unmount } = render(<Card>Content</Card>);
 
       unmount();
 
-      expect(vi.mocked(infoFireAndForget)).toHaveBeenCalledWith('Card unmount', {
+      expect(vi.mocked(mockInfoFireAndForget)).toHaveBeenCalledWith('Card unmount', {
         component: 'Card',
         action: 'unmount',
         variant: null,
@@ -293,13 +297,12 @@ describe('Card', () => {
     });
 
     it('должен отправлять telemetry при клике', async () => {
-      const { infoFireAndForget } = await import('../../../src/lib/telemetry');
       render(<Card onClick={mockOnClick}>Content</Card>);
 
       const card = screen.getByText('Content');
       fireEvent.click(card);
 
-      expect(vi.mocked(infoFireAndForget)).toHaveBeenCalledWith('Card click', {
+      expect(vi.mocked(mockInfoFireAndForget)).toHaveBeenCalledWith('Card click', {
         component: 'Card',
         action: 'click',
         variant: null,
@@ -309,13 +312,12 @@ describe('Card', () => {
     });
 
     it('должен отправлять telemetry при keyboard активации', async () => {
-      const { infoFireAndForget } = await import('../../../src/lib/telemetry');
       render(<Card onClick={mockOnClick}>Content</Card>);
 
       const card = screen.getByText('Content');
       fireEvent.keyDown(card, { key: 'Enter' });
 
-      expect(vi.mocked(infoFireAndForget)).toHaveBeenCalledWith('Card click', {
+      expect(vi.mocked(mockInfoFireAndForget)).toHaveBeenCalledWith('Card click', {
         component: 'Card',
         action: 'click',
         variant: null,
@@ -330,10 +332,9 @@ describe('Card', () => {
     });
 
     it('должен отправлять telemetry с правильным variant', async () => {
-      const { infoFireAndForget } = await import('../../../src/lib/telemetry');
       render(<Card variantByFeatureFlag='premium'>Content</Card>);
 
-      expect(vi.mocked(infoFireAndForget)).toHaveBeenCalledWith('Card mount', {
+      expect(vi.mocked(mockInfoFireAndForget)).toHaveBeenCalledWith('Card mount', {
         component: 'Card',
         action: 'mount',
         variant: 'premium',
@@ -343,11 +344,10 @@ describe('Card', () => {
     });
 
     it('должен отправлять telemetry с правильными флагами disabled/hidden', async () => {
-      const { infoFireAndForget } = await import('../../../src/lib/telemetry');
       mockFeatureFlagReturnValue = true;
       render(<Card isDisabledByFeatureFlag={true} isHiddenByFeatureFlag={true}>Content</Card>);
 
-      expect(vi.mocked(infoFireAndForget)).toHaveBeenCalledWith('Card mount', {
+      expect(vi.mocked(mockInfoFireAndForget)).toHaveBeenCalledWith('Card mount', {
         component: 'Card',
         action: 'mount',
         variant: null,
@@ -359,15 +359,17 @@ describe('Card', () => {
     });
 
     it('должен отключать telemetry если telemetryOnClick=false', async () => {
-      const { infoFireAndForget } = await import('../../../src/lib/telemetry');
       render(<Card telemetryOnClick={false} onClick={mockOnClick}>Content</Card>);
 
       const card = screen.getByText('Content');
       fireEvent.click(card);
 
       // Mount telemetry должен быть, но click telemetry не должен
-      expect(vi.mocked(infoFireAndForget)).toHaveBeenCalledTimes(1);
-      expect(vi.mocked(infoFireAndForget)).toHaveBeenCalledWith('Card mount', expect.any(Object));
+      expect(vi.mocked(mockInfoFireAndForget)).toHaveBeenCalledTimes(1);
+      expect(vi.mocked(mockInfoFireAndForget)).toHaveBeenCalledWith(
+        'Card mount',
+        expect.any(Object),
+      );
     });
   });
 
@@ -587,10 +589,9 @@ describe('Card', () => {
 
   describe('Улучшенные тесты: Telemetry', () => {
     it('отправляет telemetry при mount', async () => {
-      const { infoFireAndForget } = await import('../../../src/lib/telemetry');
       render(<Card>Content</Card>);
 
-      expect(vi.mocked(infoFireAndForget)).toHaveBeenCalledWith('Card mount', {
+      expect(vi.mocked(mockInfoFireAndForget)).toHaveBeenCalledWith('Card mount', {
         component: 'Card',
         action: 'mount',
         variant: null,
@@ -600,12 +601,11 @@ describe('Card', () => {
     });
 
     it('отправляет telemetry при unmount', async () => {
-      const { infoFireAndForget } = await import('../../../src/lib/telemetry');
       const { unmount } = render(<Card>Content</Card>);
 
       unmount();
 
-      expect(vi.mocked(infoFireAndForget)).toHaveBeenCalledWith('Card unmount', {
+      expect(vi.mocked(mockInfoFireAndForget)).toHaveBeenCalledWith('Card unmount', {
         component: 'Card',
         action: 'unmount',
         variant: null,
@@ -615,13 +615,12 @@ describe('Card', () => {
     });
 
     it('отправляет telemetry при клике', async () => {
-      const { infoFireAndForget } = await import('../../../src/lib/telemetry');
       render(<Card onClick={mockOnClick}>Content</Card>);
 
       const card = screen.getByText('Content');
       fireEvent.click(card);
 
-      expect(vi.mocked(infoFireAndForget)).toHaveBeenCalledWith('Card click', {
+      expect(vi.mocked(mockInfoFireAndForget)).toHaveBeenCalledWith('Card click', {
         component: 'Card',
         action: 'click',
         variant: null,
@@ -631,13 +630,12 @@ describe('Card', () => {
     });
 
     it('отправляет telemetry при keyboard активации', async () => {
-      const { infoFireAndForget } = await import('../../../src/lib/telemetry');
       render(<Card onClick={mockOnClick}>Content</Card>);
 
       const card = screen.getByText('Content');
       fireEvent.keyDown(card, { key: 'Enter' });
 
-      expect(vi.mocked(infoFireAndForget)).toHaveBeenCalledWith('Card click', {
+      expect(vi.mocked(mockInfoFireAndForget)).toHaveBeenCalledWith('Card click', {
         component: 'Card',
         action: 'click',
         variant: null,
@@ -647,7 +645,6 @@ describe('Card', () => {
     });
 
     it('не отправляет telemetry при клике если disabled', async () => {
-      const { infoFireAndForget } = await import('../../../src/lib/telemetry');
       render(
         <Card isDisabledByFeatureFlag={true} onClick={mockOnClick}>
           Content
@@ -658,13 +655,12 @@ describe('Card', () => {
       fireEvent.click(card);
 
       // Mount telemetry должен быть, но click telemetry не должен
-      const calls = vi.mocked(infoFireAndForget).mock.calls;
+      const calls = vi.mocked(mockInfoFireAndForget).mock.calls;
       const clickCalls = calls.filter((call) => call[0] === 'Card click');
       expect(clickCalls).toHaveLength(0);
     });
 
     it('не отправляет telemetry если telemetryOnClick=false', async () => {
-      const { infoFireAndForget } = await import('../../../src/lib/telemetry');
       render(
         <Card telemetryOnClick={false} onClick={mockOnClick}>
           Content
@@ -675,7 +671,7 @@ describe('Card', () => {
       fireEvent.click(card);
 
       // Mount telemetry должен быть, но click telemetry не должен
-      const calls = vi.mocked(infoFireAndForget).mock.calls;
+      const calls = vi.mocked(mockInfoFireAndForget).mock.calls;
       const clickCalls = calls.filter((call) => call[0] === 'Card click');
       expect(clickCalls).toHaveLength(0);
     });

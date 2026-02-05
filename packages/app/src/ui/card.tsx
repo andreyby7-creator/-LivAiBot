@@ -26,7 +26,24 @@ import type { JSX, KeyboardEvent, MouseEvent, Ref } from 'react';
 
 import { Card as CoreCard } from '../../../ui-core/src/primitives/card.js';
 import type { CoreCardProps } from '../../../ui-core/src/primitives/card.js';
-import { infoFireAndForget } from '../lib/telemetry.js';
+import { useUnifiedUI } from '../providers/UnifiedUIProvider.js';
+import type { Json } from '../types/common.js';
+import type {
+  AppWrapperProps,
+  MapCoreProps,
+  UiFeatureFlags,
+  UiPrimitiveProps,
+  UiTelemetryApi,
+} from '../types/ui-contracts.js';
+
+/** Алиас для UI feature flags в контексте card wrapper */
+export type CardUiFeatureFlags = UiFeatureFlags;
+
+/** Алиас для wrapper props в контексте card */
+export type CardWrapperProps<TData = Json> = AppWrapperProps<UiPrimitiveProps, TData>;
+
+/** Алиас для маппинга core props в контексте card */
+export type CardMapCoreProps<TData = Json> = MapCoreProps<UiPrimitiveProps, TData>;
 
 // Фильтруем бизнес-пропсы от DOM-пропсов
 function omit<T extends Record<string, unknown>, K extends readonly string[]>(
@@ -135,10 +152,11 @@ function useCardPolicy(props: AppCardProps): CardPolicy {
  * ========================================================================== */
 
 function emitCardTelemetry(
+  telemetry: UiTelemetryApi,
   action: CardTelemetryPayload['action'],
   policy: CardPolicy,
 ): void {
-  infoFireAndForget(`Card ${action}`, {
+  telemetry.infoFireAndForget(`Card ${action}`, {
     component: 'Card',
     action,
     variant: policy.variant,
@@ -153,6 +171,7 @@ function emitCardTelemetry(
 
 const CardComponent = forwardRef<HTMLDivElement, AppCardProps>(
   function CardComponent(props: AppCardProps, ref: Ref<HTMLDivElement>): JSX.Element | null {
+    const { telemetry } = useUnifiedUI();
     // Фильтруем бизнес-пропсы от DOM-пропсов
     const domProps = omit(props, BUSINESS_PROPS);
     const {
@@ -174,9 +193,9 @@ const CardComponent = forwardRef<HTMLDivElement, AppCardProps>(
     // Mount/unmount telemetry вызываются всегда для отслеживания lifecycle компонента.
     // Click telemetry контролируется через telemetryOnClick (policy.telemetryEnabled).
     useEffect((): () => void => {
-      emitCardTelemetry('mount', policy);
+      emitCardTelemetry(telemetry, 'mount', policy);
       return (): void => {
-        emitCardTelemetry('unmount', policy);
+        emitCardTelemetry(telemetry, 'unmount', policy);
       };
       // INTENTIONAL: policy намеренно фиксируется на mount для консистентности telemetry.
       // Policy не должен меняться после первого рендера, чтобы telemetry payload был стабильным.
@@ -189,7 +208,7 @@ const CardComponent = forwardRef<HTMLDivElement, AppCardProps>(
       //
       // @see useCardPolicy - policy вычисляется из props и feature flags один раз при mount.
       // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }, [telemetry]);
 
     /** Derived state */
     const isInteractive = Boolean(onClick) && !policy.disabledByFeatureFlag;
@@ -214,7 +233,7 @@ const CardComponent = forwardRef<HTMLDivElement, AppCardProps>(
     const handleActivation = useCallback(
       (event: MouseEvent<HTMLDivElement> | KeyboardEvent<HTMLDivElement>) => {
         if (policy.telemetryEnabled && !isDisabled) {
-          emitCardTelemetry('click', policy);
+          emitCardTelemetry(telemetry, 'click', policy);
         }
         if (!isDisabled && onClick) {
           // onClick типизирован как (event: MouseEvent | KeyboardEvent) => void
@@ -222,7 +241,7 @@ const CardComponent = forwardRef<HTMLDivElement, AppCardProps>(
           onClick(event);
         }
       },
-      [policy, onClick, isDisabled],
+      [policy, onClick, isDisabled, telemetry],
     );
 
     /** Hidden state */

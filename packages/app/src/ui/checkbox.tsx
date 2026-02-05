@@ -23,7 +23,15 @@ import type { JSX } from 'react';
 
 import { Checkbox as CoreCheckbox } from '../../../ui-core/src/primitives/checkbox.js';
 import type { CoreCheckboxProps } from '../../../ui-core/src/primitives/checkbox.js';
-import { infoFireAndForget } from '../lib/telemetry.js';
+import { useUnifiedUI } from '../providers/UnifiedUIProvider.js';
+import type { Json } from '../types/common.js';
+import type {
+  AppWrapperProps,
+  MapCoreProps,
+  UiFeatureFlags,
+  UiPrimitiveProps,
+  UiTelemetryApi,
+} from '../types/ui-contracts.js';
 
 /* ============================================================================
  * 🧬 TYPES
@@ -68,6 +76,15 @@ export type AppCheckboxProps = Readonly<
   & CoreCheckboxProps
   & AppCheckboxBusinessProps
 >;
+
+/** Алиас для UI feature flags в контексте checkbox wrapper */
+export type CheckboxUiFeatureFlags = UiFeatureFlags;
+
+/** Алиас для wrapper props в контексте checkbox */
+export type CheckboxWrapperProps<TData = Json> = AppWrapperProps<UiPrimitiveProps, TData>;
+
+/** Алиас для маппинга core props в контексте checkbox */
+export type CheckboxMapCoreProps<TData = Json> = MapCoreProps<UiPrimitiveProps, TData>;
 
 /* ============================================================================
  * 🛠️ УТИЛИТЫ
@@ -135,6 +152,7 @@ function useCheckboxPolicy(props: AppCheckboxProps): CheckboxPolicy {
  * ========================================================================== */
 
 function emitCheckboxTelemetry(
+  telemetry: UiTelemetryApi,
   action: CheckboxTelemetryAction,
   policy: CheckboxPolicy,
   checked?: boolean,
@@ -152,7 +170,7 @@ function emitCheckboxTelemetry(
     indeterminate: indeterminate ?? false, // Всегда включаем indeterminate для консистентности
   };
 
-  infoFireAndForget(`Checkbox ${action}`, payload);
+  telemetry.infoFireAndForget(`Checkbox ${action}`, payload);
 }
 
 /* ============================================================================
@@ -161,6 +179,7 @@ function emitCheckboxTelemetry(
 
 const CheckboxComponent = forwardRef<HTMLInputElement, AppCheckboxProps>(
   function CheckboxComponent(props, ref): JSX.Element | null {
+    const { telemetry } = useUnifiedUI();
     const policy = useCheckboxPolicy(props);
 
     // Фильтруем бизнес-пропсы, оставляем только DOM-безопасные
@@ -171,9 +190,9 @@ const CheckboxComponent = forwardRef<HTMLInputElement, AppCheckboxProps>(
     // Телеметрия жизненного цикла
     useEffect(() => {
       if (policy.telemetryEnabled) {
-        emitCheckboxTelemetry('mount', policy, checked, indeterminate);
+        emitCheckboxTelemetry(telemetry, 'mount', policy, checked, indeterminate);
         return (): void => {
-          emitCheckboxTelemetry('unmount', policy, checked, indeterminate);
+          emitCheckboxTelemetry(telemetry, 'unmount', policy, checked, indeterminate);
         };
       }
       return undefined;
@@ -187,34 +206,34 @@ const CheckboxComponent = forwardRef<HTMLInputElement, AppCheckboxProps>(
         if (policy.disabledByFeatureFlag) return;
 
         if (policy.telemetryEnabled && policy.telemetryOnChange) {
-          emitCheckboxTelemetry('change', policy, event.target.checked, indeterminate);
+          emitCheckboxTelemetry(telemetry, 'change', policy, event.target.checked, indeterminate);
         }
 
         onChange?.(event);
       },
-      [policy, onChange, indeterminate],
+      [policy, onChange, indeterminate, telemetry],
     );
 
     const handleFocus = useCallback(
       (event: React.FocusEvent<HTMLInputElement>) => {
         if (policy.telemetryEnabled && policy.telemetryOnFocus) {
-          emitCheckboxTelemetry('focus', policy, event.target.checked, indeterminate);
+          emitCheckboxTelemetry(telemetry, 'focus', policy, event.target.checked, indeterminate);
         }
 
         onFocus?.(event);
       },
-      [policy, onFocus, indeterminate],
+      [policy, onFocus, indeterminate, telemetry],
     );
 
     const handleBlur = useCallback(
       (event: React.FocusEvent<HTMLInputElement>) => {
         if (policy.telemetryEnabled && policy.telemetryOnBlur) {
-          emitCheckboxTelemetry('blur', policy, event.target.checked, indeterminate);
+          emitCheckboxTelemetry(telemetry, 'blur', policy, event.target.checked, indeterminate);
         }
 
         onBlur?.(event);
       },
-      [policy, onBlur, indeterminate],
+      [policy, onBlur, indeterminate, telemetry],
     );
 
     // Скрываем компонент по фиче-флагу

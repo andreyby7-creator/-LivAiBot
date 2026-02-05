@@ -21,6 +21,13 @@ import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { errorFireAndForget, warnFireAndForget } from '../lib/telemetry.js';
 import { useToast as useToastContext } from '../providers/ToastProvider.js';
 import type { AddToastParams, ToastType } from '../providers/ToastProvider.js';
+import type { ComponentState, UiEvent, UiEventMap } from '../types/ui-contracts.js';
+
+/** Алиас для UI событий в контексте toast хуков */
+export type ToastUiEvent<TType extends keyof UiEventMap = keyof UiEventMap> = UiEvent<TType>;
+
+/** Алиас для состояния компонентов в контексте toast хуков */
+export type ToastComponentState<T = unknown> = ComponentState<T>;
 
 /* ============================================================================
  * 🧬 TYPES

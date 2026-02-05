@@ -95,15 +95,25 @@ vi.mock('../../../../ui-core/src/components/ConfirmDialog', () => ({
   }),
 }));
 
-// Mock для telemetry
-vi.mock('../../../src/lib/telemetry', () => ({
-  infoFireAndForget: vi.fn(),
+// Mock для UnifiedUIProvider
+const mockInfoFireAndForgetTyped = vi.fn();
+
+vi.mock('../../../src/providers/UnifiedUIProvider', () => ({
+  useUnifiedUI: () => ({
+    featureFlags: {
+      isEnabled: () => false,
+      setOverride: vi.fn(),
+      clearOverrides: vi.fn(),
+      getOverride: () => false,
+    },
+    telemetry: {
+      track: vi.fn(),
+      infoFireAndForget: mockInfoFireAndForgetTyped,
+    },
+  }),
 }));
 
 import { ConfirmDialog } from '../../../src/ui/confirm-dialog';
-import { infoFireAndForget } from '../../../src/lib/telemetry';
-
-const mockInfoFireAndForgetTyped = vi.mocked(infoFireAndForget);
 
 describe('ConfirmDialog (App UI)', () => {
   const testTitle = 'Test Dialog Title';

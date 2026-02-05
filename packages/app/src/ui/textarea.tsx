@@ -23,7 +23,24 @@ import type { JSX } from 'react';
 
 import { Textarea as CoreTextarea } from '../../../ui-core/src/primitives/textarea.js';
 import type { CoreTextareaProps } from '../../../ui-core/src/primitives/textarea.js';
-import { infoFireAndForget } from '../lib/telemetry.js';
+import { useUnifiedUI } from '../providers/UnifiedUIProvider.js';
+import type { Json } from '../types/common.js';
+import type {
+  AppWrapperProps,
+  MapCoreProps,
+  UiFeatureFlags,
+  UiPrimitiveProps,
+  UiTelemetryApi,
+} from '../types/ui-contracts.js';
+
+/** Алиас для UI feature flags в контексте textarea wrapper */
+export type TextareaUiFeatureFlags = UiFeatureFlags;
+
+/** Алиас для wrapper props в контексте textarea */
+export type TextareaWrapperProps<TData = Json> = AppWrapperProps<UiPrimitiveProps, TData>;
+
+/** Алиас для маппинга core props в контексте textarea */
+export type TextareaMapCoreProps<TData = Json> = MapCoreProps<UiPrimitiveProps, TData>;
 
 /* ============================================================================
  * 🛠️ УТИЛИТЫ
@@ -126,6 +143,7 @@ function useTextareaPolicy(props: AppTextareaProps): TextareaPolicy {
  * ========================================================================== */
 
 function emitTextareaTelemetry(
+  telemetry: UiTelemetryApi,
   action: TextareaTelemetryAction,
   policy: TextareaPolicy,
 ): void {
@@ -137,7 +155,7 @@ function emitTextareaTelemetry(
     disabled: policy.disabledByFeatureFlag,
   };
 
-  infoFireAndForget(`Textarea ${action}`, payload);
+  telemetry.infoFireAndForget(`Textarea ${action}`, payload);
 }
 
 /* ============================================================================
@@ -156,13 +174,14 @@ function TextareaComponent(props: AppTextareaProps): JSX.Element | null {
   } = domProps;
 
   const policy = useTextareaPolicy(props);
+  const { telemetry } = useUnifiedUI();
 
   // lifecycle telemetry
   useEffect(() => {
     if (policy.telemetryEnabled) {
-      emitTextareaTelemetry('mount', policy);
+      emitTextareaTelemetry(telemetry, 'mount', policy);
       return (): void => {
-        emitTextareaTelemetry('unmount', policy);
+        emitTextareaTelemetry(telemetry, 'unmount', policy);
       };
     }
     return undefined;
@@ -177,34 +196,34 @@ function TextareaComponent(props: AppTextareaProps): JSX.Element | null {
       if (policy.disabledByFeatureFlag) return;
 
       if (policy.telemetryEnabled && policy.telemetryOnChange) {
-        emitTextareaTelemetry('change', policy);
+        emitTextareaTelemetry(telemetry, 'change', policy);
       }
 
       onChange?.(event);
     },
-    [policy, onChange],
+    [policy, onChange, telemetry],
   );
 
   const handleFocus = useCallback(
     (event: React.FocusEvent<HTMLTextAreaElement>) => {
       if (policy.telemetryEnabled && policy.telemetryOnFocus) {
-        emitTextareaTelemetry('focus', policy);
+        emitTextareaTelemetry(telemetry, 'focus', policy);
       }
 
       onFocus?.(event);
     },
-    [policy, onFocus],
+    [policy, onFocus, telemetry],
   );
 
   const handleBlur = useCallback(
     (event: React.FocusEvent<HTMLTextAreaElement>) => {
       if (policy.telemetryEnabled && policy.telemetryOnFocus) {
-        emitTextareaTelemetry('blur', policy);
+        emitTextareaTelemetry(telemetry, 'blur', policy);
       }
 
       onBlur?.(event);
     },
-    [policy, onBlur],
+    [policy, onBlur, telemetry],
   );
 
   // скрыт

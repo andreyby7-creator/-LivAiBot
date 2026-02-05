@@ -26,7 +26,24 @@ import type { JSX, Ref } from 'react';
 
 import { SideBar as CoreSideBar } from '../../../ui-core/src/components/SideBar.js';
 import type { CoreSideBarProps } from '../../../ui-core/src/components/SideBar.js';
-import { infoFireAndForget } from '../lib/telemetry.js';
+import { useUnifiedUI } from '../providers/UnifiedUIProvider.js';
+import type { Json } from '../types/common.js';
+import type {
+  AppWrapperProps,
+  MapCoreProps,
+  UiFeatureFlags,
+  UiPrimitiveProps,
+  UiTelemetryApi,
+} from '../types/ui-contracts.js';
+
+/** Алиас для UI feature flags в контексте sidebar wrapper */
+export type SidebarUiFeatureFlags = UiFeatureFlags;
+
+/** Алиас для wrapper props в контексте sidebar */
+export type SidebarWrapperProps<TData = Json> = AppWrapperProps<UiPrimitiveProps, TData>;
+
+/** Алиас для маппинга core props в контексте sidebar */
+export type SidebarMapCoreProps<TData = Json> = MapCoreProps<UiPrimitiveProps, TData>;
 
 /* ============================================================================
  * 🛠️ УТИЛИТЫ
@@ -154,8 +171,8 @@ function useSideBarPolicy(props: AppSideBarProps): SideBarPolicy {
  * 📡 TELEMETRY
  * ========================================================================== */
 
-function emitSideBarTelemetry(payload: SideBarTelemetryPayload): void {
-  infoFireAndForget(`SideBar ${payload.action}`, payload);
+function emitSideBarTelemetry(telemetry: UiTelemetryApi, payload: SideBarTelemetryPayload): void {
+  telemetry.infoFireAndForget(`SideBar ${payload.action}`, payload);
 }
 
 /**
@@ -207,6 +224,7 @@ function getSideBarPayload(
 
 const SideBarComponent = forwardRef<HTMLDivElement, AppSideBarProps>(
   function SideBarComponent(props: AppSideBarProps, ref: Ref<HTMLDivElement>): JSX.Element | null {
+    const { telemetry } = useUnifiedUI();
     const policy = useSideBarPolicy(props);
 
     // Фильтруем бизнес-пропсы, оставляем только DOM-безопасные
@@ -275,23 +293,23 @@ const SideBarComponent = forwardRef<HTMLDivElement, AppSideBarProps>(
               itemId,
             },
           );
-          emitSideBarTelemetry(itemClickPayload);
+          emitSideBarTelemetry(telemetry, itemClickPayload);
         }
 
         onItemClick?.(itemId);
       },
-      [policy, items.length, position, onItemClick],
+      [policy, items.length, position, onItemClick, telemetry],
     );
 
     // Telemetry lifecycle
     useEffect(() => {
       if (!policy.telemetryEnabled) return;
 
-      emitSideBarTelemetry(lifecyclePayload.mount);
+      emitSideBarTelemetry(telemetry, lifecyclePayload.mount);
       return (): void => {
-        emitSideBarTelemetry(lifecyclePayload.unmount);
+        emitSideBarTelemetry(telemetry, lifecyclePayload.unmount);
       };
-    }, [policy.telemetryEnabled, lifecyclePayload]);
+    }, [policy.telemetryEnabled, lifecyclePayload, telemetry]);
 
     // Telemetry для видимости - only on changes, not on mount
     const prevVisibleRef = useRef<boolean | undefined>(undefined);
@@ -304,14 +322,12 @@ const SideBarComponent = forwardRef<HTMLDivElement, AppSideBarProps>(
 
       // Emit only on actual visibility changes, not on mount
       if (prevVisibility !== undefined && prevVisibility !== currentVisibility) {
-        emitSideBarTelemetry(
-          currentVisibility ? showPayload : hidePayload,
-        );
+        emitSideBarTelemetry(telemetry, currentVisibility ? showPayload : hidePayload);
       }
 
       // eslint-disable-next-line functional/immutable-data
       prevVisibleRef.current = currentVisibility;
-    }, [policy.telemetryEnabled, policy.isRendered, showPayload, hidePayload]);
+    }, [policy.telemetryEnabled, policy.isRendered, showPayload, hidePayload, telemetry]);
 
     // Telemetry для свернутости - only on changes, not on mount
     useEffect(() => {
@@ -327,12 +343,12 @@ const SideBarComponent = forwardRef<HTMLDivElement, AppSideBarProps>(
           policy,
           telemetryProps,
         );
-        emitSideBarTelemetry(togglePayload);
+        emitSideBarTelemetry(telemetry, togglePayload);
       }
 
       // eslint-disable-next-line functional/immutable-data
       prevCollapsedRef.current = currentCollapsed;
-    }, [policy, telemetryProps]);
+    }, [policy, telemetryProps, telemetry]);
 
     // Policy: hidden
     if (!policy.isRendered) return null;

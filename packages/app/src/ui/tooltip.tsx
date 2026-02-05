@@ -22,7 +22,24 @@ import type { JSX, Ref } from 'react';
 
 import { Tooltip as CoreTooltip } from '../../../ui-core/src/primitives/tooltip.js';
 import type { CoreTooltipProps } from '../../../ui-core/src/primitives/tooltip.js';
-import { infoFireAndForget } from '../lib/telemetry.js';
+import { useUnifiedUI } from '../providers/UnifiedUIProvider.js';
+import type { Json } from '../types/common.js';
+import type {
+  AppWrapperProps,
+  MapCoreProps,
+  UiFeatureFlags,
+  UiPrimitiveProps,
+  UiTelemetryApi,
+} from '../types/ui-contracts.js';
+
+/** Алиас для UI feature flags в контексте tooltip wrapper */
+export type TooltipUiFeatureFlags = UiFeatureFlags;
+
+/** Алиас для wrapper props в контексте tooltip */
+export type TooltipWrapperProps<TData = Json> = AppWrapperProps<UiPrimitiveProps, TData>;
+
+/** Алиас для маппинга core props в контексте tooltip */
+export type TooltipMapCoreProps<TData = Json> = MapCoreProps<UiPrimitiveProps, TData>;
 
 /* ============================================================================
  * 🛠️ УТИЛИТЫ
@@ -121,8 +138,8 @@ function useTooltipPolicy(props: AppTooltipProps): TooltipPolicy {
  * 📡 TELEMETRY
  * ========================================================================== */
 
-function emitTooltipTelemetry(payload: TooltipTelemetryPayload): void {
-  infoFireAndForget(`Tooltip ${payload.action}`, payload);
+function emitTooltipTelemetry(telemetry: UiTelemetryApi, payload: TooltipTelemetryPayload): void {
+  telemetry.infoFireAndForget(`Tooltip ${payload.action}`, payload);
 }
 
 // Формирование payload для Tooltip telemetry
@@ -144,6 +161,7 @@ function getTooltipPayload(
 
 const TooltipComponent = forwardRef<HTMLDivElement, AppTooltipProps>(
   function TooltipComponent(props: AppTooltipProps, ref: Ref<HTMLDivElement>): JSX.Element | null {
+    const { telemetry } = useUnifiedUI();
     // Фильтруем бизнес-пропсы, оставляем только DOM-безопасные
     const domProps = omit(props, BUSINESS_PROPS);
 
@@ -173,8 +191,10 @@ const TooltipComponent = forwardRef<HTMLDivElement, AppTooltipProps>(
     // Payload для telemetry создаются по требованию
     const emitVisibilityChange = useMemo(
       () => (action: TooltipTelemetryAction): void => {
-        emitTooltipTelemetry(getTooltipPayload(action, policy));
+        emitTooltipTelemetry(telemetry, getTooltipPayload(action, policy));
       },
+      // telemetry намеренно не включаем, чтобы избежать лишних пересозданий
+      // eslint-disable-next-line react-hooks/exhaustive-deps
       [policy],
     );
 
@@ -182,11 +202,13 @@ const TooltipComponent = forwardRef<HTMLDivElement, AppTooltipProps>(
     useEffect(() => {
       if (!policy.telemetryEnabled) return;
 
-      emitTooltipTelemetry(lifecyclePayload.mount);
+      emitTooltipTelemetry(telemetry, lifecyclePayload.mount);
       return (): void => {
-        emitTooltipTelemetry(lifecyclePayload.unmount);
+        emitTooltipTelemetry(telemetry, lifecyclePayload.unmount);
       };
-    }, [policy.telemetryEnabled, lifecyclePayload]);
+      // Policy намеренно заморожена при монтировании
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     // Telemetry for visibility changes - only on changes, not on mount
     const prevVisibleRef = useRef<boolean | undefined>(undefined);

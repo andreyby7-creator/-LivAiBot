@@ -22,7 +22,24 @@ import type { JSX, Ref } from 'react';
 
 import { Avatar as CoreAvatar } from '../../../ui-core/src/primitives/avatar.js';
 import type { CoreAvatarProps } from '../../../ui-core/src/primitives/avatar.js';
-import { infoFireAndForget } from '../lib/telemetry.js';
+import { useUnifiedUI } from '../providers/UnifiedUIProvider.js';
+import type { Json } from '../types/common.js';
+import type {
+  AppWrapperProps,
+  MapCoreProps,
+  UiFeatureFlags,
+  UiPrimitiveProps,
+  UiTelemetryApi,
+} from '../types/ui-contracts.js';
+
+/** Алиас для UI feature flags в контексте avatar wrapper */
+export type AvatarUiFeatureFlags = UiFeatureFlags;
+
+/** Алиас для wrapper props в контексте avatar */
+export type AvatarWrapperProps<TData = Json> = AppWrapperProps<UiPrimitiveProps, TData>;
+
+/** Алиас для маппинга core props в контексте avatar */
+export type AvatarMapCoreProps<TData = Json> = MapCoreProps<UiPrimitiveProps, TData>;
 
 /* ============================================================================
  * 🛠️ УТИЛИТЫ
@@ -101,8 +118,8 @@ function useAvatarPolicy(props: AppAvatarProps): AvatarPolicy {
  * 📡 TELEMETRY
  * ========================================================================== */
 
-function emitAvatarTelemetry(payload: AvatarTelemetryPayload): void {
-  infoFireAndForget(`Avatar ${payload.action}`, payload);
+function emitAvatarTelemetry(telemetry: UiTelemetryApi, payload: AvatarTelemetryPayload): void {
+  telemetry.infoFireAndForget(`Avatar ${payload.action}`, payload);
 }
 
 /* ============================================================================
@@ -111,6 +128,7 @@ function emitAvatarTelemetry(payload: AvatarTelemetryPayload): void {
 
 const AvatarComponent = forwardRef<HTMLDivElement, AppAvatarProps>(
   function AvatarComponent(props: AppAvatarProps, ref: Ref<HTMLDivElement>): JSX.Element | null {
+    const { telemetry } = useUnifiedUI();
     // Фильтруем бизнес-пропсы, оставляем только DOM-безопасные
     const domProps = omit(props, BUSINESS_PROPS);
 
@@ -174,13 +192,15 @@ const AvatarComponent = forwardRef<HTMLDivElement, AppAvatarProps>(
     // Telemetry lifecycle
     useEffect(() => {
       if (policy.telemetryEnabled) {
-        emitAvatarTelemetry(lifecyclePayload.mount);
+        emitAvatarTelemetry(telemetry, lifecyclePayload.mount);
         return (): void => {
-          emitAvatarTelemetry(lifecyclePayload.unmount);
+          emitAvatarTelemetry(telemetry, lifecyclePayload.unmount);
         };
       }
       return undefined;
-    }, [policy.telemetryEnabled, lifecyclePayload]);
+      // Policy намеренно заморожена при монтировании
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     // hidden
     if (!policy.isRendered) return null;

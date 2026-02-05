@@ -13,9 +13,10 @@ import type { JSX } from 'react';
 
 import { Form as CoreForm } from '../../../ui-core/src/primitives/form.js';
 import type { CoreFormProps } from '../../../ui-core/src/primitives/form.js';
-import { infoFireAndForget } from '../lib/telemetry.js';
 import type { FormValidationResult, ValidationSchema } from '../lib/validation.js';
 import { validateForm } from '../lib/validation.js';
+import { useUnifiedUI } from '../providers/UnifiedUIProvider.js';
+import type { UiTelemetryApi } from '../types/ui-contracts.js';
 
 /* ============================================================================
  * 🛠️ УТИЛИТЫ
@@ -118,10 +119,11 @@ function useFormPolicy(props: AppFormProps): FormPolicy {
  * ========================================================================== */
 
 function emitFormTelemetry(
+  telemetry: UiTelemetryApi,
   action: FormTelemetryPayload['action'],
   policy: FormPolicy,
 ): void {
-  infoFireAndForget(`Form ${action}`, {
+  telemetry.infoFireAndForget(`Form ${action}`, {
     component: 'Form',
     action,
     variant: policy.variant,
@@ -135,6 +137,7 @@ function emitFormTelemetry(
  * ========================================================================== */
 
 function FormComponent(props: AppFormProps): JSX.Element | null {
+  const { telemetry } = useUnifiedUI();
   const policy = useFormPolicy(props);
 
   // Фильтруем бизнес-пропсы, оставляем только DOM-безопасные
@@ -152,15 +155,15 @@ function FormComponent(props: AppFormProps): JSX.Element | null {
   // Жизненный цикл
   useEffect((): (() => void) | undefined => {
     if (policy.telemetryEnabled) {
-      emitFormTelemetry('mount', policy);
+      emitFormTelemetry(telemetry, 'mount', policy);
       return (): void => {
-        emitFormTelemetry('unmount', policy);
+        emitFormTelemetry(telemetry, 'unmount', policy);
       };
     }
     return undefined;
     // policy является неизменяемой по дизайну (снимок feature flags)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [telemetry]);
 
   // Обработчики
   // CoreForm отвечает за preventDefault() - AppForm не вмешивается в native behavior
@@ -184,12 +187,12 @@ function FormComponent(props: AppFormProps): JSX.Element | null {
       }
 
       if (policy.telemetryEnabled && policy.telemetryOnSubmit) {
-        emitFormTelemetry('submit', policy);
+        emitFormTelemetry(telemetry, 'submit', policy);
       }
 
       onSubmit?.(event);
     },
-    [policy, onSubmit, validationSchema, onValidationError],
+    [policy, onSubmit, validationSchema, onValidationError, telemetry],
   );
 
   const handleReset = useCallback(
@@ -199,12 +202,12 @@ function FormComponent(props: AppFormProps): JSX.Element | null {
       }
 
       if (policy.telemetryEnabled && policy.telemetryOnReset) {
-        emitFormTelemetry('reset', policy);
+        emitFormTelemetry(telemetry, 'reset', policy);
       }
 
       onReset?.(event);
     },
-    [policy, onReset],
+    [policy, onReset, telemetry],
   );
 
   if (policy.hiddenByFeatureFlag) {

@@ -17,21 +17,32 @@ afterEach(() => {
 // Объявляем переменные моков перед vi.mock()
 let mockFeatureFlagReturnValue = false;
 let mockUseFeatureFlag: any;
-let mockInfoFireAndForget: any;
+const mockInfoFireAndForget = vi.fn();
 
-// Mock для feature flags с возможностью настройки
-vi.mock('../../../src/lib/feature-flags', () => ({
-  useFeatureFlag: (...args: readonly any[]) => {
-    if (mockUseFeatureFlag != null) {
-      return mockUseFeatureFlag(...args);
-    }
-    return mockFeatureFlagReturnValue;
-  },
-}));
-
-// Mock для telemetry
-vi.mock('../../../src/lib/telemetry', () => ({
-  infoFireAndForget: (...args: readonly any[]) => mockInfoFireAndForget?.(...args),
+// Mock для UnifiedUIProvider
+vi.mock('../../../src/providers/UnifiedUIProvider', () => ({
+  useUnifiedUI: () => ({
+    featureFlags: {
+      isEnabled: (...args: readonly any[]) => {
+        if (mockUseFeatureFlag != null) {
+          return mockUseFeatureFlag(...args);
+        }
+        return mockFeatureFlagReturnValue;
+      },
+      setOverride: vi.fn(),
+      clearOverrides: vi.fn(),
+      getOverride: (...args: readonly any[]) => {
+        if (mockUseFeatureFlag != null) {
+          return mockUseFeatureFlag(...args);
+        }
+        return mockFeatureFlagReturnValue;
+      },
+    },
+    telemetry: {
+      track: vi.fn(),
+      infoFireAndForget: mockInfoFireAndForget,
+    },
+  }),
 }));
 
 // Мок для queueMicrotask
@@ -43,7 +54,7 @@ describe('Dialog (App UI)', () => {
     // Сброс моков перед каждым тестом
     mockFeatureFlagReturnValue = false;
     mockUseFeatureFlag = undefined;
-    mockInfoFireAndForget = vi.fn();
+    vi.clearAllMocks();
   });
 
   describe('1.1. Базовый рендер и controlled/uncontrolled режимы', () => {

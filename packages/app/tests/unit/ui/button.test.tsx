@@ -9,11 +9,32 @@ import '@testing-library/jest-dom/vitest';
 import { Button } from '../../../src/ui/button';
 import type { AppButtonProps } from '../../../src/ui/button';
 
-// Mock для useI18n
+// Импорт для правильного порядка моков
+import '../../../src/providers/UnifiedUIProvider';
+
+// Mock для UnifiedUIProvider
 const mockTranslate = vi.fn();
-vi.mock('../../../src/lib/i18n', () => ({
-  useI18n: () => ({
-    translate: mockTranslate,
+vi.mock('../../../src/providers/UnifiedUIProvider', () => ({
+  useUnifiedUI: () => ({
+    i18n: {
+      translate: mockTranslate,
+      locale: 'en',
+      direction: 'ltr' as const,
+      loadNamespace: vi.fn(),
+      isNamespaceLoaded: vi.fn(() => true),
+    },
+    featureFlags: {
+      isEnabled: vi.fn(() => true),
+      setOverride: vi.fn(),
+      clearOverrides: vi.fn(),
+    },
+    telemetry: {
+      track: vi.fn(),
+      infoFireAndForget: vi.fn(),
+      warnFireAndForget: vi.fn(),
+      errorFireAndForget: vi.fn(),
+      flush: vi.fn(),
+    },
   }),
 }));
 

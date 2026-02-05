@@ -100,6 +100,16 @@ export function getCurrentDayjsLocale(): string {
 }
 
 /**
+ * Определяет направление текста для локали (LTR/RTL).
+ *
+ * @param locale - код локали
+ * @returns true если локаль использует RTL направление текста
+ */
+export function isRtlLocale(locale: string): boolean {
+  return ['ar', 'he', 'fa', 'ur', 'yi'].some((rtl) => locale.toLowerCase().startsWith(rtl));
+}
+
+/**
  * Проверяет доступна ли локаль для dayjs.
  *
  * @param locale - код локали для проверки

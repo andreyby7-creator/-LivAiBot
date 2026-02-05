@@ -27,17 +27,19 @@ import {
   useReducer,
   useRef,
 } from 'react';
-import type { CSSProperties, JSX, PropsWithChildren } from 'react';
+import type { JSX, PropsWithChildren } from 'react';
 
 import { useTelemetryContext } from './TelemetryProvider.js';
-import { Toast as CoreToast } from '../../../ui-core/src/components/Toast.js';
-import type { ToastVariant } from '../../../ui-core/src/components/Toast.js';
+import type { ComponentState } from '../types/ui-contracts.js';
+
+/** Алиас для состояния компонентов в контексте toast provider */
+export type ToastComponentState = ComponentState<string>;
 
 /* ============================================================================
  * 🧬 TYPES & CONSTANTS
  * ========================================================================== */
 
-export type ToastType = ToastVariant;
+export type ToastType = 'success' | 'error' | 'warning' | 'info';
 
 export type ToastItem = Readonly<{
   readonly id: string;
@@ -65,38 +67,13 @@ export type ToastProviderProps = Readonly<
   PropsWithChildren<{
     /** Максимальная длина очереди (старые удаляются первыми). */
     readonly maxToasts?: number;
-    /** Позиция контейнера. */
-    readonly position?: ToastPosition;
   }>
 >;
 
-export type ToastPosition =
-  | 'top-left'
-  | 'top-right'
-  | 'bottom-left'
-  | 'bottom-right';
-
 const DEFAULT_MAX_TOASTS = 5;
-const DEFAULT_POSITION: ToastPosition = 'bottom-right';
 const DEFAULT_DURATION_MS = 4000;
 const RANDOM_ID_BASE = 36;
 const RANDOM_ID_LENGTH = 9;
-
-const POSITION_STYLES: Record<ToastPosition, CSSProperties> = {
-  'top-left': { top: 16, left: 16, alignItems: 'flex-start' },
-  'top-right': { top: 16, right: 16, alignItems: 'flex-end' },
-  'bottom-left': { bottom: 16, left: 16, alignItems: 'flex-start' },
-  'bottom-right': { bottom: 16, right: 16, alignItems: 'flex-end' },
-};
-
-const CONTAINER_BASE_STYLE: CSSProperties = {
-  position: 'fixed',
-  display: 'flex',
-  flexDirection: 'column',
-  gap: 8,
-  zIndex: 9999,
-  pointerEvents: 'none',
-};
 
 const NOOP_CONTEXT: ToastContextType = Object.freeze({
   addToast: () => '',
@@ -167,7 +144,6 @@ export const ToastContext = createContext<ToastContextType>(NOOP_CONTEXT);
 function ToastProviderComponent({
   children,
   maxToasts = DEFAULT_MAX_TOASTS,
-  position = DEFAULT_POSITION,
 }: ToastProviderProps): JSX.Element {
   const { track } = useTelemetryContext();
   const [toasts, dispatch] = useReducer(toastReducer, []);
@@ -251,30 +227,9 @@ function ToastProviderComponent({
     clearAll,
   }), [addToast, clearAll, removeToast]);
 
-  const containerStyle = useMemo(
-    () => ({
-      ...CONTAINER_BASE_STYLE,
-      ...POSITION_STYLES[position],
-    }),
-    [position],
-  );
-
   return (
     <ToastContext.Provider value={contextValue}>
       {children}
-      {toasts.length > 0 && (
-        <div style={containerStyle} data-component='ToastContainer'>
-          {toasts.map((toast) => (
-            <CoreToast
-              key={toast.id}
-              content={toast.message}
-              variant={toast.type}
-              visible={true}
-              data-testid={`toast-${toast.id}`}
-            />
-          ))}
-        </div>
-      )}
     </ToastContext.Provider>
   );
 }

@@ -27,7 +27,8 @@ import type { ChangeEvent, JSX, KeyboardEvent, Ref } from 'react';
 
 import { SearchBar as CoreSearchBar } from '../../../ui-core/src/components/SearchBar.js';
 import type { CoreSearchBarProps } from '../../../ui-core/src/components/SearchBar.js';
-import { infoFireAndForget } from '../lib/telemetry.js';
+import { useUnifiedUI } from '../providers/UnifiedUIProvider.js';
+import type { UiTelemetryApi } from '../types/ui-contracts.js';
 
 /* ============================================================================
  * 🧬 TYPES & CONSTANTS
@@ -147,8 +148,11 @@ function useSearchBarPolicy(props: AppSearchBarProps): SearchBarPolicy {
  * 📡 TELEMETRY
  * ========================================================================== */
 
-function emitSearchBarTelemetry(payload: SearchBarTelemetryPayload): void {
-  infoFireAndForget(`SearchBar ${payload.action}`, payload);
+function emitSearchBarTelemetry(
+  telemetry: UiTelemetryApi,
+  payload: SearchBarTelemetryPayload,
+): void {
+  telemetry.infoFireAndForget(`SearchBar ${payload.action}`, payload);
 }
 
 /**
@@ -241,6 +245,7 @@ const SearchBarComponent = forwardRef<HTMLInputElement, AppSearchBarProps>(
     props: AppSearchBarProps,
     ref: Ref<HTMLInputElement>,
   ): JSX.Element | null {
+    const { telemetry } = useUnifiedUI();
     const filteredProps = omit(props, BUSINESS_PROPS);
     const {
       value: valueProp,
@@ -310,12 +315,12 @@ const SearchBarComponent = forwardRef<HTMLInputElement, AppSearchBarProps>(
             policy,
             makeTelemetryValueProps(newValue, size),
           );
-          emitSearchBarTelemetry(changePayload);
+          emitSearchBarTelemetry(telemetry, changePayload);
         }
 
         onChange?.(newValue, event);
       },
-      [policy, size, onChange],
+      [policy, size, onChange, telemetry],
     );
 
     /** Обработчик submit с telemetry */
@@ -330,12 +335,12 @@ const SearchBarComponent = forwardRef<HTMLInputElement, AppSearchBarProps>(
             policy,
             makeTelemetryValueProps(submitValue, size),
           );
-          emitSearchBarTelemetry(submitPayload);
+          emitSearchBarTelemetry(telemetry, submitPayload);
         }
 
         onSubmit?.(submitValue, event);
       },
-      [policy, size, onSubmit],
+      [policy, size, onSubmit, telemetry],
     );
 
     /** Обработчик очистки с telemetry */
@@ -346,21 +351,21 @@ const SearchBarComponent = forwardRef<HTMLInputElement, AppSearchBarProps>(
           policy,
           makeTelemetryValueProps('', size),
         );
-        emitSearchBarTelemetry(clearPayload);
+        emitSearchBarTelemetry(telemetry, clearPayload);
       }
 
       onClear?.();
-    }, [policy, size, onClear]);
+    }, [policy, size, onClear, telemetry]);
 
     /** Telemetry lifecycle */
     useEffect(() => {
       if (!policy.telemetryEnabled) return;
 
-      emitSearchBarTelemetry(lifecyclePayload.mount);
+      emitSearchBarTelemetry(telemetry, lifecyclePayload.mount);
       return (): void => {
-        emitSearchBarTelemetry(lifecyclePayload.unmount);
+        emitSearchBarTelemetry(telemetry, lifecyclePayload.unmount);
       };
-    }, [policy.telemetryEnabled, lifecyclePayload]);
+    }, [policy.telemetryEnabled, lifecyclePayload, telemetry]);
 
     /** Telemetry для видимости - only on changes, not on mount */
     const prevVisibleRef = useRef<boolean | undefined>(undefined);
@@ -373,14 +378,12 @@ const SearchBarComponent = forwardRef<HTMLInputElement, AppSearchBarProps>(
 
       // Emit only on actual visibility changes, not on mount
       if (prevVisibility !== undefined && prevVisibility !== currentVisibility) {
-        emitSearchBarTelemetry(
-          currentVisibility ? showPayload : hidePayload,
-        );
+        emitSearchBarTelemetry(telemetry, currentVisibility ? showPayload : hidePayload);
       }
 
       // eslint-disable-next-line functional/immutable-data
       prevVisibleRef.current = currentVisibility;
-    }, [policy.telemetryEnabled, policy.isRendered, showPayload, hidePayload]);
+    }, [policy.telemetryEnabled, policy.isRendered, showPayload, hidePayload, telemetry]);
 
     /** Policy: hidden */
     if (!policy.isRendered) return null;

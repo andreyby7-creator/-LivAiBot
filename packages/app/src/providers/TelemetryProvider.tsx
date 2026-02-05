@@ -29,6 +29,10 @@ import {
 } from '../lib/telemetry.js';
 import type { TelemetryClient } from '../lib/telemetry.js';
 import type { TelemetryConfig, TelemetryMetadata } from '../types/telemetry.js';
+import type { UiMetrics } from '../types/ui-contracts.js';
+
+/** Алиас для UI метрик в контексте telemetry provider */
+export type UiMetricsAlias = UiMetrics;
 
 /* ============================================================================
  * 🧬 TYPES & CONSTANTS

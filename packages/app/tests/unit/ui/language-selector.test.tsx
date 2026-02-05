@@ -124,21 +124,36 @@ const rerenderWithI18n = (
   );
 };
 
-// Mock для feature flags с возможностью настройки
+// Mock для UnifiedUIProvider
+const mockInfoFireAndForget = vi.fn();
 let mockFeatureFlagReturnValue = false;
-vi.mock('../../../src/lib/feature-flags', () => ({
-  useFeatureFlag: () => mockFeatureFlagReturnValue,
-}));
 
-// Mock для telemetry
-vi.mock('../../../src/lib/telemetry', () => ({
-  infoFireAndForget: vi.fn(),
+vi.mock('../../../src/providers/UnifiedUIProvider', () => ({
+  useUnifiedUI: () => ({
+    featureFlags: {
+      isEnabled: () => mockFeatureFlagReturnValue,
+      setOverride: vi.fn(),
+      clearOverrides: vi.fn(),
+      getOverride: () => mockFeatureFlagReturnValue,
+    },
+    telemetry: {
+      track: vi.fn(),
+      infoFireAndForget: mockInfoFireAndForget,
+    },
+    i18n: {
+      locale: 'en',
+      direction: 'ltr' as const,
+      translate: vi.fn((ns, key, params) => `${ns}:${key}:${JSON.stringify(params ?? {})}`),
+      loadNamespace: vi.fn(),
+      isNamespaceLoaded: vi.fn(() => true),
+      t: vi.fn((key, params) => `t:${key}:${JSON.stringify(params ?? {})}`),
+      formatDateLocalized: vi.fn(),
+      setDayjsLocale: vi.fn(),
+    },
+  }),
 }));
 
 import { LanguageSelector } from '../../../src/ui/language-selector';
-import { infoFireAndForget } from '../../../src/lib/telemetry';
-
-const mockInfoFireAndForget = vi.mocked(infoFireAndForget);
 
 describe('App LanguageSelector', () => {
   // Общие тестовые переменные

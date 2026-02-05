@@ -8,20 +8,41 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom/vitest';
 
-// Mock для feature flags - useFeatureFlag просто возвращает Boolean(flagValue)
-vi.mock('../../../src/lib/feature-flags', () => ({
-  useFeatureFlag: (flagValue?: boolean) => Boolean(flagValue),
-}));
+// Mock для UnifiedUIProvider
+const mockInfoFireAndForget = vi.fn();
 
-// Mock для telemetry
-vi.mock('../../../src/lib/telemetry', () => ({
-  infoFireAndForget: vi.fn(),
+vi.mock('../../../src/providers/UnifiedUIProvider', () => ({
+  useUnifiedUI: () => ({
+    featureFlags: {
+      isEnabled: vi.fn(() => true),
+      setOverride: vi.fn(),
+      clearOverrides: vi.fn(),
+      getOverride: vi.fn(() => true),
+    },
+    telemetry: {
+      track: vi.fn(),
+      infoFireAndForget: mockInfoFireAndForget,
+      warnFireAndForget: vi.fn(),
+      errorFireAndForget: vi.fn(),
+      flush: vi.fn(),
+    },
+    i18n: {
+      translate: vi.fn(),
+      locale: 'en',
+      direction: 'ltr' as const,
+      loadNamespace: vi.fn(),
+      isNamespaceLoaded: vi.fn(() => true),
+      t: vi.fn(),
+      formatDateLocalized: vi.fn(),
+      setDayjsLocale: vi.fn(),
+    },
+  }),
 }));
 
 import { Select } from '../../../src/ui/select';
-import { infoFireAndForget } from '../../../src/lib/telemetry';
 
-const mockInfoFireAndForget = vi.mocked(infoFireAndForget);
+// Импорт для правильного порядка моков
+import '../../../src/providers/UnifiedUIProvider';
 
 describe('Select', () => {
   const mockOnChange = vi.fn();

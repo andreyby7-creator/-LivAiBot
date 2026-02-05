@@ -26,7 +26,24 @@ import type { JSX, MouseEvent, Ref } from 'react';
 
 import { Tabs as CoreTabs } from '../../../ui-core/src/components/Tabs.js';
 import type { CoreTabsProps } from '../../../ui-core/src/components/Tabs.js';
-import { infoFireAndForget } from '../lib/telemetry.js';
+import { useUnifiedUI } from '../providers/UnifiedUIProvider.js';
+import type { Json } from '../types/common.js';
+import type {
+  AppWrapperProps,
+  MapCoreProps,
+  UiFeatureFlags,
+  UiPrimitiveProps,
+  UiTelemetryApi,
+} from '../types/ui-contracts.js';
+
+/** Алиас для UI feature flags в контексте tabs wrapper */
+export type TabsUiFeatureFlags = UiFeatureFlags;
+
+/** Алиас для wrapper props в контексте tabs */
+export type TabsWrapperProps<TData = Json> = AppWrapperProps<UiPrimitiveProps, TData>;
+
+/** Алиас для маппинга core props в контексте tabs */
+export type TabsMapCoreProps<TData = Json> = MapCoreProps<UiPrimitiveProps, TData>;
 
 /* ============================================================================
  * 🛠️ УТИЛИТЫ
@@ -127,8 +144,8 @@ function useTabsPolicy(props: AppTabsProps): TabsPolicy {
  * 📡 TELEMETRY
  * ========================================================================== */
 
-function emitTabsTelemetry(payload: TabsTelemetryPayload): void {
-  infoFireAndForget(`Tabs ${payload.action}`, payload);
+function emitTabsTelemetry(telemetry: UiTelemetryApi, payload: TabsTelemetryPayload): void {
+  telemetry.infoFireAndForget(`Tabs ${payload.action}`, payload);
 }
 
 // Базовое формирование payload для Tabs telemetry (без visible)
@@ -179,6 +196,7 @@ function getTabsPayload(
 
 const TabsComponent = forwardRef<HTMLDivElement, AppTabsProps>(
   function TabsComponent(props: AppTabsProps, ref: Ref<HTMLDivElement>): JSX.Element | null {
+    const { telemetry } = useUnifiedUI();
     const policy = useTabsPolicy(props);
 
     // Фильтруем бизнес-пропсы, оставляем только DOM-безопасные
@@ -249,7 +267,7 @@ const TabsComponent = forwardRef<HTMLDivElement, AppTabsProps>(
               ...(orientation !== undefined && { orientation }),
             },
           );
-          emitTabsTelemetry(changePayload);
+          emitTabsTelemetry(telemetry, changePayload);
         }
 
         // eslint-disable-next-line functional/immutable-data
@@ -257,18 +275,18 @@ const TabsComponent = forwardRef<HTMLDivElement, AppTabsProps>(
 
         onChange?.(tabId, event);
       },
-      [policy, items.length, orientation, onChange],
+      [policy, items.length, orientation, onChange, telemetry],
     );
 
     // Telemetry lifecycle
     useEffect(() => {
       if (!policy.telemetryEnabled) return;
 
-      emitTabsTelemetry(lifecyclePayload.mount);
+      emitTabsTelemetry(telemetry, lifecyclePayload.mount);
       return (): void => {
-        emitTabsTelemetry(lifecyclePayload.unmount);
+        emitTabsTelemetry(telemetry, lifecyclePayload.unmount);
       };
-    }, [policy.telemetryEnabled, lifecyclePayload]);
+    }, [policy.telemetryEnabled, lifecyclePayload, telemetry]);
 
     // Telemetry для видимости - only on changes, not on mount
     const prevVisibleRef = useRef<boolean | undefined>(undefined);
@@ -281,14 +299,12 @@ const TabsComponent = forwardRef<HTMLDivElement, AppTabsProps>(
 
       // Emit only on actual visibility changes, not on mount
       if (prevVisibility !== undefined && prevVisibility !== currentVisibility) {
-        emitTabsTelemetry(
-          currentVisibility ? showPayload : hidePayload,
-        );
+        emitTabsTelemetry(telemetry, currentVisibility ? showPayload : hidePayload);
       }
 
       // eslint-disable-next-line functional/immutable-data
       prevVisibleRef.current = currentVisibility;
-    }, [policy.telemetryEnabled, policy.isRendered, showPayload, hidePayload]);
+    }, [policy.telemetryEnabled, policy.isRendered, showPayload, hidePayload, telemetry]);
 
     // Policy: hidden
     if (!policy.isRendered) return null;

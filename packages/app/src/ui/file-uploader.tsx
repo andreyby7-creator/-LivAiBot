@@ -30,14 +30,15 @@ import type {
   CoreFileUploaderProps,
   FileInfo,
 } from '../../../ui-core/src/components/FileUploader.js';
-import { infoFireAndForget } from '../lib/telemetry.js';
 import { formatFileSize, validateFileBasic } from '../lib/validation.js';
+import { useUnifiedUI } from '../providers/UnifiedUIProvider.js';
 import type {
   AppFileStatus,
   FileValidationResult,
   InternalFileInfo,
   UploadDomainStatus,
 } from '../types/api.js';
+import type { UiTelemetryApi } from '../types/ui-contracts.js';
 
 /* ============================================================================
  * 🧬 TYPES & CONSTANTS
@@ -215,7 +216,10 @@ function makeTelemetryBase(
   };
 }
 
-function emitFileUploaderTelemetry(payload: FileUploaderTelemetryPayload): void {
+function emitFileUploaderTelemetry(
+  telemetry: UiTelemetryApi,
+  payload: FileUploaderTelemetryPayload,
+): void {
   const serializedPayload: Readonly<Record<string, string | number | boolean | null>> = {
     component: payload.component,
     action: payload.action,
@@ -228,7 +232,7 @@ function emitFileUploaderTelemetry(payload: FileUploaderTelemetryPayload): void 
     ...(payload.uploadProgress !== undefined ? { uploadProgress: payload.uploadProgress } : {}),
     ...(payload.errorMessage !== undefined ? { errorMessage: payload.errorMessage } : {}),
   };
-  infoFireAndForget(`FileUploader ${payload.action}`, serializedPayload);
+  telemetry.infoFireAndForget(`FileUploader ${payload.action}`, serializedPayload);
 }
 
 /* ============================================================================
@@ -302,6 +306,7 @@ const FileUploaderComponent = forwardRef<HTMLDivElement, AppFileUploaderProps>(
     props: AppFileUploaderProps,
     ref: Ref<HTMLDivElement>,
   ): JSX.Element | null {
+    const { telemetry } = useUnifiedUI();
     // Деструктурируем все пропсы
     const {
       onFilesSelected,
@@ -399,7 +404,7 @@ const FileUploaderComponent = forwardRef<HTMLDivElement, AppFileUploaderProps>(
       (fileName: string, errorMessage?: string): void => {
         if (policy.telemetryEnabled) {
           const baseTelemetry = makeTelemetryBase(policy, files);
-          emitFileUploaderTelemetry({
+          emitFileUploaderTelemetry(telemetry, {
             ...baseTelemetry,
             action: FileUploaderTelemetryAction.UploadError,
             // Явно переопределяем для validation-error: файл не добавлен в state
@@ -410,7 +415,7 @@ const FileUploaderComponent = forwardRef<HTMLDivElement, AppFileUploaderProps>(
           });
         }
       },
-      [policy, files],
+      [policy, files, telemetry],
     );
 
     // Валидация одного файла с telemetry
@@ -470,7 +475,7 @@ const FileUploaderComponent = forwardRef<HTMLDivElement, AppFileUploaderProps>(
           // Telemetry: начало загрузки (используем актуальное состояние из setFiles)
           if (policy.telemetryEnabled) {
             const baseTelemetry = makeTelemetryBase(policy, updatedFiles);
-            emitFileUploaderTelemetry({
+            emitFileUploaderTelemetry(telemetry, {
               ...baseTelemetry,
               action: FileUploaderTelemetryAction.UploadStart,
               totalSize: file.size,
@@ -495,7 +500,7 @@ const FileUploaderComponent = forwardRef<HTMLDivElement, AppFileUploaderProps>(
               // Telemetry: прогресс (используем актуальное состояние)
               if (policy.telemetryEnabled) {
                 const baseTelemetry = makeTelemetryBase(policy, updatedFiles);
-                emitFileUploaderTelemetry({
+                emitFileUploaderTelemetry(telemetry, {
                   ...baseTelemetry,
                   action: FileUploaderTelemetryAction.UploadProgress,
                   totalSize: file.size,
@@ -521,7 +526,7 @@ const FileUploaderComponent = forwardRef<HTMLDivElement, AppFileUploaderProps>(
             // Telemetry: успех (используем актуальное состояние)
             if (policy.telemetryEnabled) {
               const baseTelemetry = makeTelemetryBase(policy, updatedFiles);
-              emitFileUploaderTelemetry({
+              emitFileUploaderTelemetry(telemetry, {
                 ...baseTelemetry,
                 action: FileUploaderTelemetryAction.UploadSuccess,
                 totalSize: file.size,
@@ -551,7 +556,7 @@ const FileUploaderComponent = forwardRef<HTMLDivElement, AppFileUploaderProps>(
             // Telemetry: ошибка (используем актуальное состояние)
             if (policy.telemetryEnabled) {
               const baseTelemetry = makeTelemetryBase(policy, updatedFiles);
-              emitFileUploaderTelemetry({
+              emitFileUploaderTelemetry(telemetry, {
                 ...baseTelemetry,
                 action: FileUploaderTelemetryAction.UploadError,
                 totalSize: file.size,
@@ -566,7 +571,16 @@ const FileUploaderComponent = forwardRef<HTMLDivElement, AppFileUploaderProps>(
           onUploadError?.(fileId, error instanceof Error ? error : new Error(errorMessage));
         }
       },
-      [uploadFile, policy, files, onUploadStart, onUploadProgress, onUploadSuccess, onUploadError],
+      [
+        uploadFile,
+        policy,
+        files,
+        onUploadStart,
+        onUploadProgress,
+        onUploadSuccess,
+        onUploadError,
+        telemetry,
+      ],
     );
 
     // Обработка выбранных файлов
@@ -583,7 +597,7 @@ const FileUploaderComponent = forwardRef<HTMLDivElement, AppFileUploaderProps>(
           if (allowedCount <= 0) {
             if (policy.telemetryEnabled) {
               const baseTelemetry = makeTelemetryBase(policy, files);
-              emitFileUploaderTelemetry({
+              emitFileUploaderTelemetry(telemetry, {
                 ...baseTelemetry,
                 action: FileUploaderTelemetryAction.UploadError,
                 errorMessage: `Достигнут лимит файлов: ${maxFiles}`,
@@ -612,7 +626,7 @@ const FileUploaderComponent = forwardRef<HTMLDivElement, AppFileUploaderProps>(
           // Telemetry (используем актуальное состояние)
           if (policy.telemetryEnabled) {
             const baseTelemetry = makeTelemetryBase(policy, updatedFiles);
-            emitFileUploaderTelemetry({
+            emitFileUploaderTelemetry(telemetry, {
               ...baseTelemetry,
               action: telemetryAction,
             });
@@ -633,6 +647,7 @@ const FileUploaderComponent = forwardRef<HTMLDivElement, AppFileUploaderProps>(
         generateFileId,
         policy,
         onFilesSelected,
+        telemetry,
       ],
     );
 
@@ -703,7 +718,7 @@ const FileUploaderComponent = forwardRef<HTMLDivElement, AppFileUploaderProps>(
           // Telemetry (используем актуальное состояние после удаления)
           if (policy.telemetryEnabled) {
             const baseTelemetry = makeTelemetryBase(policy, updatedFiles);
-            emitFileUploaderTelemetry({
+            emitFileUploaderTelemetry(telemetry, {
               ...baseTelemetry,
               action: FileUploaderTelemetryAction.Remove,
               ...(fileToRemove?.file.name !== undefined
@@ -717,7 +732,7 @@ const FileUploaderComponent = forwardRef<HTMLDivElement, AppFileUploaderProps>(
 
         onFileRemove?.(fileId);
       },
-      [policy, files, onFileRemove],
+      [policy, files, onFileRemove, telemetry],
     );
 
     /**
@@ -750,11 +765,11 @@ const FileUploaderComponent = forwardRef<HTMLDivElement, AppFileUploaderProps>(
     useEffect(() => {
       if (!policy.telemetryEnabled) return;
 
-      emitFileUploaderTelemetry(lifecyclePayload.mount);
+      emitFileUploaderTelemetry(telemetry, lifecyclePayload.mount);
       return (): void => {
-        emitFileUploaderTelemetry(lifecyclePayload.unmount);
+        emitFileUploaderTelemetry(telemetry, lifecyclePayload.unmount);
       };
-    }, [policy.telemetryEnabled, lifecyclePayload]);
+    }, [policy.telemetryEnabled, lifecyclePayload, telemetry]);
 
     /** Автоматическая загрузка файлов со статусом 'idle' */
     useEffect(() => {

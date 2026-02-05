@@ -10,15 +10,22 @@ import { Form } from '../../../src/ui/form';
 
 // Объявляем переменные моков перед vi.mock()
 let mockFeatureFlagReturnValue = false;
+const mockInfoFireAndForget = vi.fn();
 
-// Mock для feature flags с возможностью настройки
-vi.mock('../../../src/lib/feature-flags', () => ({
-  useFeatureFlag: () => mockFeatureFlagReturnValue,
-}));
-
-// Mock для telemetry
-vi.mock('../../../src/lib/telemetry', () => ({
-  infoFireAndForget: vi.fn(),
+// Mock для UnifiedUIProvider
+vi.mock('../../../src/providers/UnifiedUIProvider', () => ({
+  useUnifiedUI: () => ({
+    featureFlags: {
+      isEnabled: () => mockFeatureFlagReturnValue,
+      setOverride: vi.fn(),
+      clearOverrides: vi.fn(),
+      getOverride: () => mockFeatureFlagReturnValue,
+    },
+    telemetry: {
+      track: vi.fn(),
+      infoFireAndForget: mockInfoFireAndForget,
+    },
+  }),
 }));
 
 describe('Form', () => {

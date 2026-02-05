@@ -30,7 +30,24 @@ import type {
   NavigationMenuItemData,
 } from '../../../ui-core/src/components/NavigationMenuItem.js';
 import { canAccessRoute } from '../lib/route-permissions.js';
-import { infoFireAndForget } from '../lib/telemetry.js';
+import { useUnifiedUI } from '../providers/UnifiedUIProvider.js';
+import type { Json } from '../types/common.js';
+import type {
+  AppWrapperProps,
+  MapCoreProps,
+  UiFeatureFlags,
+  UiPrimitiveProps,
+  UiTelemetryApi,
+} from '../types/ui-contracts.js';
+
+/** Алиас для UI feature flags в контексте navigation-menu-item wrapper */
+export type NavigationMenuItemUiFeatureFlags = UiFeatureFlags;
+
+/** Алиас для wrapper props в контексте navigation-menu-item */
+export type NavigationMenuItemWrapperProps<TData = Json> = AppWrapperProps<UiPrimitiveProps, TData>;
+
+/** Алиас для маппинга core props в контексте navigation-menu-item */
+export type NavigationMenuItemMapCoreProps<TData = Json> = MapCoreProps<UiPrimitiveProps, TData>;
 
 /* ============================================================================
  * 🛠️ УТИЛИТЫ
@@ -171,9 +188,10 @@ function useNavigationMenuItemPolicy(
  * =========================================================================== */
 
 function emitNavigationMenuItemTelemetry(
+  telemetry: UiTelemetryApi,
   payload: NavigationMenuItemTelemetryPayload,
 ): void {
-  infoFireAndForget(`NavigationMenuItem ${payload.action}`, payload);
+  telemetry.infoFireAndForget(`NavigationMenuItem ${payload.action}`, payload);
 }
 
 // Формирование payload для NavigationMenuItem telemetry
@@ -252,6 +270,7 @@ const NavigationMenuItemComponent = forwardRef<
     props: AppNavigationMenuItemProps,
     ref: Ref<NavigationMenuItemElement>,
   ): JSX.Element | null {
+    const { telemetry } = useUnifiedUI();
     // Фильтруем бизнес-пропсы, оставляем только DOM-безопасные
     const domProps = omit(props, BUSINESS_PROPS);
 
@@ -323,9 +342,9 @@ const NavigationMenuItemComponent = forwardRef<
     useEffect(() => {
       if (!policy.telemetryEnabled) return;
 
-      emitNavigationMenuItemTelemetry(mountPayload);
+      emitNavigationMenuItemTelemetry(telemetry, mountPayload);
       return (): void => {
-        emitNavigationMenuItemTelemetry(unmountPayload);
+        emitNavigationMenuItemTelemetry(telemetry, unmountPayload);
       };
       // mountPayload и unmountPayload immutable by contract (создаются один раз при первом рендере)
       // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -351,6 +370,7 @@ const NavigationMenuItemComponent = forwardRef<
 
         if (policy.telemetryEnabled) {
           emitNavigationMenuItemTelemetry(
+            telemetry,
             getNavigationMenuItemPayload(
               NavigationMenuItemTelemetryAction.Click,
               policy,
@@ -361,7 +381,7 @@ const NavigationMenuItemComponent = forwardRef<
 
         onClick?.(item, event);
       },
-      [policy, telemetryProps, onClick, item],
+      [policy, telemetryProps, onClick, item, telemetry],
     );
 
     // Policy: hidden
