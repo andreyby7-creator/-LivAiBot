@@ -248,7 +248,7 @@ App state и hooks
 1️⃣0️⃣1️⃣ packages/app/src/providers/AppProviders.tsx 🟢 — ts+react — deps: ui/error-boundary.js, providers/intl-provider.js, providers/FeatureFlagsProvider.js, providers/TelemetryProvider.js, providers/QueryClientProvider.js, providers/ToastProvider.js, state/store.js
 1️⃣0️⃣2️⃣ packages/app/src/bootstrap.tsx 🟢 — ts+react — deps: providers/AppProviders.js
 1️⃣0️⃣3️⃣ packages/app/src/hooks/useApi.ts 🟢 — ts+react+effect — deps: lib/api-client.ts, lib/api-schema-guard.ts, lib/error-mapping.ts, lib/telemetry.ts, types/api.ts
-1️⃣0️⃣4️⃣ packages/app/src/hooks/useToast.ts 🔴 — ts+react — deps: providers/ToastProvider.tsx
+1️⃣0️⃣4️⃣ packages/app/src/hooks/useToast.ts 🟢 — ts+react — deps: providers/ToastProvider.tsx, lib/telemetry.ts
 1️⃣0️⃣5️⃣ packages/app/src/hooks/useFeatureFlags.ts 🔴 — ts+react — deps: providers/FeatureFlagsProvider.tsx
 1️⃣0️⃣6️⃣ packages/app/src/hooks/useOfflineCache.ts 🔴 — ts+react — deps: lib/offline-cache.ts
 
