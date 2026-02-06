@@ -96,6 +96,13 @@ export * from './lib/performance.js';
 export * from './lib/auth-guard.js';
 export * from './lib/route-permissions.js';
 export * from './lib/logger.js';
+// Явный экспорт из auth-service для избежания конфликта с AuthError из auth-guard
+export {
+  type AuthError as AuthServiceError,
+  authService,
+  createAuthService,
+} from './lib/auth-service.js';
+export { telemetryBatchCore } from './lib/telemetry.batch-core.js';
 
 /* ============================================================================
  * 🧬 TYPES — ТИПЫ
@@ -223,12 +230,14 @@ export * from './providers/intl-provider.js';
 export * from './providers/QueryClientProvider.js';
 export * from './providers/TelemetryProvider.js';
 export * from './providers/ToastProvider.js';
+export * from './providers/UnifiedUIProvider.js';
 
 /* ============================================================================
  * 🪝 HOOKS — REACT HOOKS
  * ========================================================================== */
 
 export * from './hooks/useApi.js';
+export * from './hooks/useAuth.js';
 // useFeatureFlags и useToast уже экспортированы из providers
 export * from './hooks/useOfflineCache.js';
 

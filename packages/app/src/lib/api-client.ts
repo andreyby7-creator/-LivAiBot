@@ -228,7 +228,7 @@ export class ApiClient {
     });
   }
 
-  post<TResponse, TBody>(
+  post<TBody, TResponse>(
     url: string,
     body: TBody,
     headers?: ApiHeaders,
@@ -241,7 +241,7 @@ export class ApiClient {
     });
   }
 
-  put<TResponse, TBody>(
+  put<TBody, TResponse>(
     url: string,
     body: TBody,
     headers?: ApiHeaders,
@@ -254,7 +254,7 @@ export class ApiClient {
     });
   }
 
-  patch<TResponse, TBody>(
+  patch<TBody, TResponse>(
     url: string,
     body: TBody,
     headers?: ApiHeaders,

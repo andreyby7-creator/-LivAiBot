@@ -11,6 +11,7 @@
     "moduleResolution": "NodeNext",
     "resolveJsonModule": false,
     "declaration": true,
+    "declarationDir": "dist/esm",
     "declarationMap": false, // Отключаем .d.ts.map для скорости
     "emitDeclarationOnly": false,
     "allowJs": false,

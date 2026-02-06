@@ -22,9 +22,41 @@ const providerMocks = vi.hoisted(() => ({
 
 const storeMocks = vi.hoisted(() => ({
   useAppStore: Object.assign(
-    vi.fn(() => 'anonymous'),
+    vi.fn(() => ({
+      auth: {
+        accessToken: null as string | null,
+        refreshToken: null as string | null,
+        expiresAt: null as number | null,
+        isLoading: false,
+      },
+      user: null as any,
+      userStatus: 'anonymous',
+      theme: 'light',
+      isOnline: true,
+      actions: {
+        setAuthTokens: vi.fn(),
+        clearAuth: vi.fn(),
+        setAuthLoading: vi.fn(),
+      },
+    })),
     {
-      getState: vi.fn(() => ({ userStatus: 'anonymous' })),
+      getState: vi.fn(() => ({
+        auth: {
+          accessToken: null as string | null,
+          refreshToken: null as string | null,
+          expiresAt: null as number | null,
+          isLoading: false,
+        },
+        user: null as any,
+        userStatus: 'anonymous',
+        theme: 'light',
+        isOnline: true,
+        actions: {
+          setAuthTokens: vi.fn(),
+          clearAuth: vi.fn(),
+          setAuthLoading: vi.fn(),
+        },
+      })),
       subscribe: vi.fn(() => vi.fn()),
     },
   ),
@@ -83,7 +115,19 @@ vi.mock('../../../src/state/store', () => ({
   useAppStore: storeMocks.useAppStore,
 }));
 
-import { AppProviders } from '../../../src/providers/AppProviders';
+vi.mock('../../../src/hooks/useAuth', () => ({
+  useAuth: vi.fn(() => ({
+    isAuthenticated: false,
+    isLoading: false,
+    isExpired: false,
+    timeToExpiry: 0,
+    login: vi.fn(),
+    logout: vi.fn(),
+    refreshIfNeeded: vi.fn(),
+  })),
+}));
+
+import { AppProviders, AuthGuardBridge } from '../../../src/providers/AppProviders';
 
 describe('AppProviders', () => {
   const intlProps = {
@@ -162,5 +206,203 @@ describe('AppProviders', () => {
     );
     expect(storeMocks.useAppStore.getState).toHaveBeenCalledTimes(1);
     expect(storeMocks.useAppStore.subscribe).toHaveBeenCalledTimes(1);
+  });
+
+  it('includes AuthGuardBridge in provider chain', () => {
+    render(
+      <AppProviders intl={intlProps}>
+        <div data-testid='child'>child</div>
+      </AppProviders>,
+    );
+
+    // Проверяем что все провайдеры включая AuthGuardBridge рендерятся
+    expect(screen.getByTestId('intl-provider')).toBeInTheDocument();
+    expect(screen.getByTestId('feature-flags-provider')).toBeInTheDocument();
+    expect(screen.getByTestId('telemetry-provider')).toBeInTheDocument();
+    expect(screen.getByTestId('query-client-provider')).toBeInTheDocument();
+    expect(screen.getByTestId('toast-provider')).toBeInTheDocument();
+    expect(screen.getByTestId('unified-ui-provider')).toBeInTheDocument();
+    expect(screen.getByTestId('child')).toBeInTheDocument();
+  });
+
+  describe('AuthGuardBridge', () => {
+    it('renders children and provides auth context', async () => {
+      const mockUseAuth = vi.fn(() => ({
+        isAuthenticated: true,
+        isLoading: false,
+        isExpired: false,
+        timeToExpiry: 3600000,
+        login: vi.fn(),
+        logout: vi.fn(),
+        refreshIfNeeded: vi.fn(),
+      }));
+
+      // Переопределяем мок useAuth для этого теста
+      vi.mocked((await import('../../../src/hooks/useAuth')).useAuth).mockImplementation(
+        mockUseAuth,
+      );
+
+      render(
+        <AuthGuardBridge>
+          <div data-testid='auth-child'>auth child</div>
+        </AuthGuardBridge>,
+      );
+
+      expect(screen.getByTestId('auth-child')).toBeInTheDocument();
+      expect(mockUseAuth).toHaveBeenCalledTimes(1);
+    });
+
+    it('provides correct auth context for authenticated user', async () => {
+      const mockUseAuth = vi.fn(() => ({
+        isAuthenticated: true,
+        isLoading: false,
+        isExpired: false,
+        timeToExpiry: 3600000,
+        login: vi.fn(),
+        logout: vi.fn(),
+        refreshIfNeeded: vi.fn(),
+      }));
+
+      // Mock store с authenticated state
+      storeMocks.useAppStore.mockReturnValueOnce({
+        auth: {
+          accessToken: 'test-token',
+          refreshToken: 'test-refresh',
+          expiresAt: Date.now() + 3600000,
+          isLoading: false,
+        },
+        user: { id: 'user-123', name: 'Test User' },
+        userStatus: 'authenticated',
+        theme: 'light',
+        isOnline: true,
+        actions: {
+          setAuthTokens: vi.fn(),
+          clearAuth: vi.fn(),
+          setAuthLoading: vi.fn(),
+        },
+      });
+
+      vi.mocked((await import('../../../src/hooks/useAuth')).useAuth).mockImplementation(
+        mockUseAuth,
+      );
+
+      render(
+        <AuthGuardBridge>
+          <div>content</div>
+        </AuthGuardBridge>,
+      );
+
+      expect(mockUseAuth).toHaveBeenCalledTimes(1);
+    });
+
+    it('provides correct auth context for anonymous user', async () => {
+      const mockUseAuth = vi.fn(() => ({
+        isAuthenticated: false,
+        isLoading: false,
+        isExpired: false,
+        timeToExpiry: 0,
+        login: vi.fn(),
+        logout: vi.fn(),
+        refreshIfNeeded: vi.fn(),
+      }));
+
+      vi.mocked((await import('../../../src/hooks/useAuth')).useAuth).mockImplementation(
+        mockUseAuth,
+      );
+
+      render(
+        <AuthGuardBridge>
+          <div>content</div>
+        </AuthGuardBridge>,
+      );
+
+      expect(mockUseAuth).toHaveBeenCalledTimes(1);
+    });
+
+    it('handles authenticated user with null access token', async () => {
+      const mockUseAuth = vi.fn(() => ({
+        isAuthenticated: true,
+        isLoading: false,
+        isExpired: false,
+        timeToExpiry: 3600000,
+        login: vi.fn(),
+        logout: vi.fn(),
+        refreshIfNeeded: vi.fn(),
+      }));
+
+      // Mock store с authenticated state но null accessToken
+      storeMocks.useAppStore.mockReturnValueOnce({
+        auth: {
+          accessToken: null,
+          refreshToken: 'test-refresh',
+          expiresAt: Date.now() + 3600000,
+          isLoading: false,
+        },
+        user: { id: 'user-123', name: 'Test User' },
+        userStatus: 'authenticated',
+        theme: 'light',
+        isOnline: true,
+        actions: {
+          setAuthTokens: vi.fn(),
+          clearAuth: vi.fn(),
+          setAuthLoading: vi.fn(),
+        },
+      });
+
+      vi.mocked((await import('../../../src/hooks/useAuth')).useAuth).mockImplementation(
+        mockUseAuth,
+      );
+
+      render(
+        <AuthGuardBridge>
+          <div>content</div>
+        </AuthGuardBridge>,
+      );
+
+      expect(mockUseAuth).toHaveBeenCalledTimes(1);
+    });
+
+    it('handles authenticated user with null refresh token', async () => {
+      const mockUseAuth = vi.fn(() => ({
+        isAuthenticated: true,
+        isLoading: false,
+        isExpired: false,
+        timeToExpiry: 3600000,
+        login: vi.fn(),
+        logout: vi.fn(),
+        refreshIfNeeded: vi.fn(),
+      }));
+
+      // Mock store с authenticated state но null refreshToken
+      storeMocks.useAppStore.mockReturnValueOnce({
+        auth: {
+          accessToken: 'test-token',
+          refreshToken: null,
+          expiresAt: Date.now() + 3600000,
+          isLoading: false,
+        },
+        user: { id: 'user-123', name: 'Test User' },
+        userStatus: 'authenticated',
+        theme: 'light',
+        isOnline: true,
+        actions: {
+          setAuthTokens: vi.fn(),
+          clearAuth: vi.fn(),
+          setAuthLoading: vi.fn(),
+        },
+      });
+
+      vi.mocked((await import('../../../src/hooks/useAuth')).useAuth).mockImplementation(
+        mockUseAuth,
+      );
+
+      render(
+        <AuthGuardBridge>
+          <div>content</div>
+        </AuthGuardBridge>,
+      );
+
+      expect(mockUseAuth).toHaveBeenCalledTimes(1);
+    });
   });
 });

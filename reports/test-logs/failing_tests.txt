@@ -1,17 +1,11 @@
-/home/boss/Projects/livai/packages/app/tests/unit/providers/TelemetryProvider.test.tsx: flushes via interval timer
-Error: STACK_TRACE_ERROR
-    at task (file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.18/node_modules/@vitest/runner/dist/index.js:796:27)
-    at Object.<anonymous> (file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.18/node_modules/@vitest/runner/dist/index.js:823:16)
-    at Object.<anonymous> (file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.18/node_modules/@vitest/runner/dist/index.js:615:28)
-    at chain (file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.18/node_modules/@vitest/runner/dist/chunk-tasks.js:9:14)
-    at /home/boss/Projects/livai/packages/app/tests/unit/providers/TelemetryProvider.test.tsx:124:3
-    at file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.18/node_modules/@vitest/runner/dist/index.js:901:40
-    at runWithSuite (file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.18/node_modules/@vitest/runner/dist/index.js:1195:8)
-    at Object.collect (file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.18/node_modules/@vitest/runner/dist/index.js:901:10)
-    at Object.collect (file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.18/node_modules/@vitest/runner/dist/index.js:905:54)
-    at processTicksAndRejections (node:internal/process/task_queues:103:5)
-    at file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.18/node_modules/@vitest/runner/dist/index.js:1390:26
-    at collectTests (file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.18/node_modules/@vitest/runner/dist/index.js:1365:3)
-    at startTests (file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.18/node_modules/@vitest/runner/dist/index.js:1937:17)
-    at file:///home/boss/Projects/livai/node_modules/.pnpm/vitest@4.0.18_@opentelemetry+api@1.9.0_@types+node@25.2.0_jsdom@28.0.0_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vitest/dist/chunks/base.CJ0Y4ePK.js:86:26
-    at run (file:///home/boss/Projects/livai/node_modules/.pnpm/vitest@4.0.18_@opentelemetry+api@1.9.0_@types+node@25.2.0_jsdom@28.0.0_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vitest/dist/chunks/base.CJ0Y4ePK.js:79:2)
+/home/boss/Projects/livai/packages/app/tests/unit/hooks/useAuth.test.ts: бросает ошибку при null ответе от сервера
+AssertionError: expected 'TokenPair validation failed: expiresA…' to contain 'expected object, got object (null)'
+    at /home/boss/Projects/livai/packages/app/tests/unit/hooks/useAuth.test.ts:592:42
+    at file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.18/node_modules/@vitest/runner/dist/index.js:915:20
+
+---
+
+/home/boss/Projects/livai/packages/app/tests/unit/hooks/useAuth.test.ts: бросает ошибку при строковом ответе от сервера
+AssertionError: expected 'TokenPair validation failed: expiresA…' to contain 'expected object, got string ("invalid…'
+    at /home/boss/Projects/livai/packages/app/tests/unit/hooks/useAuth.test.ts:608:42
+    at file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.18/node_modules/@vitest/runner/dist/index.js:915:20

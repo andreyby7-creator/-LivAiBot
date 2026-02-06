@@ -47,6 +47,7 @@ import type {
   AppStoreActions,
   AppStoreState,
   AppUser,
+  AuthState,
   ThemeMode,
   UserStatus,
 } from '../../../src/state/store';
@@ -70,6 +71,19 @@ function createMockUser(overrides: Partial<AppUser> = {}): AppUser {
 }
 
 /**
+ * Создает mock AuthState для тестов
+ */
+function createMockAuthState(overrides: Partial<AuthState> = {}): AuthState {
+  return {
+    accessToken: null,
+    refreshToken: null,
+    expiresAt: null,
+    isLoading: false,
+    ...overrides,
+  };
+}
+
+/**
  * Создает mock store state для тестов
  */
 function createMockStoreState(overrides: Partial<AppStoreState> = {}): AppStoreState {
@@ -77,6 +91,7 @@ function createMockStoreState(overrides: Partial<AppStoreState> = {}): AppStoreS
     user: null,
     userStatus: 'anonymous',
     theme: 'light',
+    auth: createMockAuthState(),
     isOnline: true,
     ...overrides,
   };
@@ -92,6 +107,9 @@ function createMockStoreActions(): AppStoreActions {
     setTheme: vi.fn(),
     setOnline: vi.fn(),
     setAuthenticatedUser: vi.fn(),
+    setAuthTokens: vi.fn(),
+    clearAuth: vi.fn(),
+    setAuthLoading: vi.fn(),
     reset: vi.fn(),
   };
 }
@@ -143,12 +161,32 @@ describe('Type exports', () => {
     expect(user.role).toBe('admin');
   });
 
+  it('AuthState тип содержит ожидаемые поля', () => {
+    const auth: AuthState = createMockAuthState({
+      accessToken: 'token123',
+      refreshToken: 'refresh123',
+      expiresAt: 1234567890,
+      isLoading: true,
+    });
+
+    expect(auth.accessToken).toBe('token123');
+    expect(auth.refreshToken).toBe('refresh123');
+    expect(auth.expiresAt).toBe(1234567890);
+    expect(auth.isLoading).toBe(true);
+  });
+
   it('AppStoreState тип содержит ожидаемые поля', () => {
     const state: AppStoreState = createMockStoreState();
 
     expect(state.user).toBe(null);
     expect(state.userStatus).toBe('anonymous');
     expect(state.theme).toBe('light');
+    expect(state.auth).toEqual({
+      accessToken: null,
+      refreshToken: null,
+      expiresAt: null,
+      isLoading: false,
+    });
     expect(state.isOnline).toBe(true);
   });
 
@@ -160,6 +198,9 @@ describe('Type exports', () => {
     expect(typeof actions.setTheme).toBe('function');
     expect(typeof actions.setOnline).toBe('function');
     expect(typeof actions.setAuthenticatedUser).toBe('function');
+    expect(typeof actions.setAuthTokens).toBe('function');
+    expect(typeof actions.clearAuth).toBe('function');
+    expect(typeof actions.setAuthLoading).toBe('function');
     expect(typeof actions.reset).toBe('function');
   });
 
@@ -170,11 +211,13 @@ describe('Type exports', () => {
     expect(store.user).toBeDefined();
     expect(store.userStatus).toBeDefined();
     expect(store.theme).toBeDefined();
+    expect(store.auth).toBeDefined();
     expect(store.isOnline).toBeDefined();
 
     // Проверяем actions
     expect(store.actions).toBeDefined();
     expect(typeof store.actions.setUser).toBe('function');
+    expect(typeof store.actions.setAuthTokens).toBe('function');
   });
 });
 
@@ -232,6 +275,12 @@ describe('createInitialState', () => {
     expect(state.user).toBe(null);
     expect(state.userStatus).toBe('anonymous');
     expect(state.theme).toBe('light');
+    expect(state.auth).toEqual({
+      accessToken: null,
+      refreshToken: null,
+      expiresAt: null,
+      isLoading: false,
+    });
     expect(state.isOnline).toBe(true);
   });
 
@@ -357,12 +406,63 @@ describe('useAppStore - Unit Tests', () => {
       expect(useAppStore.getState().userStatus).toBe('authenticated');
     });
 
+    it('setAuthTokens устанавливает токены аутентификации', () => {
+      const tokens = {
+        accessToken: 'access123',
+        refreshToken: 'refresh456',
+        expiresAt: 1234567890000,
+      };
+
+      useAppStore.getState().actions.setAuthTokens(tokens);
+
+      const auth = useAppStore.getState().auth;
+      expect(auth.accessToken).toBe('access123');
+      expect(auth.refreshToken).toBe('refresh456');
+      expect(auth.expiresAt).toBe(1234567890000);
+      expect(auth.isLoading).toBe(false);
+    });
+
+    it('clearAuth очищает состояние аутентификации', () => {
+      // First set some auth state
+      const tokens = {
+        accessToken: 'access123',
+        refreshToken: 'refresh456',
+        expiresAt: 1234567890000,
+      };
+      useAppStore.getState().actions.setAuthTokens(tokens);
+      useAppStore.getState().actions.setAuthLoading(true);
+
+      // Clear auth
+      useAppStore.getState().actions.clearAuth();
+
+      const auth = useAppStore.getState().auth;
+      expect(auth.accessToken).toBe(null);
+      expect(auth.refreshToken).toBe(null);
+      expect(auth.expiresAt).toBe(null);
+      expect(auth.isLoading).toBe(false);
+    });
+
+    it('setAuthLoading устанавливает статус загрузки', () => {
+      // Set loading to true
+      useAppStore.getState().actions.setAuthLoading(true);
+      expect(useAppStore.getState().auth.isLoading).toBe(true);
+
+      // Set loading to false
+      useAppStore.getState().actions.setAuthLoading(false);
+      expect(useAppStore.getState().auth.isLoading).toBe(false);
+    });
+
     it('reset сбрасывает состояние к начальным значениям', () => {
       // First modify state
       const user = createMockUser();
       useAppStore.getState().actions.setAuthenticatedUser(user);
       useAppStore.getState().actions.setTheme('dark');
       useAppStore.getState().actions.setOnline(false);
+      useAppStore.getState().actions.setAuthTokens({
+        accessToken: 'test',
+        refreshToken: 'test',
+        expiresAt: 1234567890000,
+      });
 
       // Reset
       useAppStore.getState().actions.reset();
@@ -372,6 +472,12 @@ describe('useAppStore - Unit Tests', () => {
       expect(state.user).toBe(null);
       expect(state.userStatus).toBe('anonymous');
       expect(state.theme).toBe('light');
+      expect(state.auth).toEqual({
+        accessToken: null,
+        refreshToken: null,
+        expiresAt: null,
+        isLoading: false,
+      });
       expect(state.isOnline).toBe(true);
     });
   });
@@ -425,7 +531,7 @@ describe('useAppStore - Integration Tests (Persistence)', () => {
       expect(useAppStore.getState().theme).toBe('dark');
     });
 
-    it('user data does not persist', () => {
+    it('user data does not persist completely', () => {
       // Set user
       const user = createMockUser();
       useAppStore.getState().actions.setUser(user);
@@ -434,6 +540,37 @@ describe('useAppStore - Integration Tests (Persistence)', () => {
       // Reset to test persistence behavior (user should be cleared)
       useAppStore.getState().actions.reset();
       expect(useAppStore.getState().user).toBe(null);
+    });
+
+    it('user id persists for UX', () => {
+      // This test would require mocking localStorage persistence
+      // For now, we test the partialize/merge logic directly
+
+      const user = createMockUser();
+      const stateWithUser: AppStoreState = {
+        user,
+        userStatus: 'authenticated',
+        theme: 'light',
+        auth: createMockAuthState(),
+        isOnline: true,
+      };
+
+      const persisted = storePartialize(stateWithUser);
+      expect(persisted.userId).toBe(user.id);
+
+      // Test merge restores user from persisted userId
+      const currentState: AppStore = {
+        user: null, // No current user
+        userStatus: 'anonymous',
+        theme: 'light',
+        auth: createMockAuthState(),
+        isOnline: true,
+        actions: createMockStoreActions(),
+      };
+
+      const merged = storeMerge(persisted, currentState);
+      expect(merged.user?.id).toBe(user.id);
+      expect(merged.user?.name).toBeUndefined(); // Only id is restored
     });
 
     it('network status does not persist', () => {
@@ -446,37 +583,108 @@ describe('useAppStore - Integration Tests (Persistence)', () => {
       expect(useAppStore.getState().isOnline).toBe(true); // Initial value
     });
 
-    it('storePartialize function only persists theme', () => {
+    it('storePartialize function persists theme, userId and auth tokens', () => {
+      const user = createMockUser();
       const fullState: AppStoreState = {
-        user: createMockUser(),
+        user,
         userStatus: 'authenticated',
         theme: 'dark',
+        auth: createMockAuthState({
+          accessToken: 'access123',
+          refreshToken: 'refresh456',
+          expiresAt: 1234567890000,
+          isLoading: true,
+        }),
         isOnline: false,
       };
 
       const persisted = storePartialize(fullState);
-      expect(persisted).toEqual({ theme: 'dark' });
+      expect(persisted).toEqual({
+        theme: 'dark',
+        userId: user.id,
+        auth: {
+          accessToken: 'access123',
+          refreshToken: 'refresh456',
+          expiresAt: 1234567890000,
+          // isLoading не сохраняется
+        },
+      });
       expect(persisted).not.toHaveProperty('user');
       expect(persisted).not.toHaveProperty('userStatus');
       expect(persisted).not.toHaveProperty('isOnline');
+      expect(persisted.auth).not.toHaveProperty('isLoading');
+    });
+
+    it('storePartialize function handles null user', () => {
+      const fullState: AppStoreState = {
+        user: null,
+        userStatus: 'anonymous',
+        theme: 'light',
+        auth: createMockAuthState(),
+        isOnline: true,
+      };
+
+      const persisted = storePartialize(fullState);
+      expect(persisted.userId).toBe(null);
     });
 
     it('storeMerge function preserves actions and merges state', () => {
-      const persistedData = { theme: 'dark' };
+      const persistedData = {
+        theme: 'dark',
+        userId: 'user-123' as any,
+        auth: {
+          accessToken: 'persisted-token',
+          refreshToken: 'persisted-refresh',
+          expiresAt: 1234567890000,
+        },
+      };
       const currentStore: AppStore = {
         user: null,
         userStatus: 'anonymous',
         theme: 'light',
+        auth: createMockAuthState({
+          accessToken: null,
+          refreshToken: null,
+          expiresAt: null,
+          isLoading: true, // Это должно сохраниться
+        }),
         isOnline: true,
         actions: createMockStoreActions(),
       };
 
       const result = storeMerge(persistedData, currentStore);
       expect(result.theme).toBe('dark'); // Persisted data
-      expect(result.user).toBe(null); // Current data
+      expect(result.user?.id).toBe('user-123'); // UX: restored user from persisted userId
+      expect(result.auth.accessToken).toBe('persisted-token'); // Persisted auth
+      expect(result.auth.refreshToken).toBe('persisted-refresh'); // Persisted auth
+      expect(result.auth.expiresAt).toBe(1234567890000); // Persisted auth
+      expect(result.auth.isLoading).toBe(true); // Current runtime state preserved
       expect(result.userStatus).toBe('anonymous'); // Current data
       expect(result.isOnline).toBe(true); // Current data
       expect(result.actions).toBe(currentStore.actions); // Actions preserved
+    });
+
+    it('storeMerge function does not overwrite existing user', () => {
+      const persistedData = {
+        theme: 'dark',
+        userId: 'persisted-user' as any,
+        auth: {
+          accessToken: 'persisted-token',
+          refreshToken: 'persisted-refresh',
+          expiresAt: 1234567890000,
+        },
+      };
+      const currentStore: AppStore = {
+        user: createMockUser(), // Existing user
+        userStatus: 'authenticated',
+        theme: 'light',
+        auth: createMockAuthState(),
+        isOnline: true,
+        actions: createMockStoreActions(),
+      };
+
+      const result = storeMerge(persistedData, currentStore);
+      expect(result.user).toBe(currentStore.user); // Existing user preserved
     });
 
     it('persistence functions integration test', () => {
@@ -487,16 +695,27 @@ describe('useAppStore - Integration Tests (Persistence)', () => {
       useAppStore.getState().actions.setTheme('dark');
       expect(useAppStore.getState().theme).toBe('dark');
 
-      // Create a user and set it (won't persist)
+      // Set auth tokens and verify they are stored
+      useAppStore.getState().actions.setAuthTokens({
+        accessToken: 'test-access',
+        refreshToken: 'test-refresh',
+        expiresAt: 1234567890000,
+      });
+      expect(useAppStore.getState().auth.accessToken).toBe('test-access');
+      expect(useAppStore.getState().auth.refreshToken).toBe('test-refresh');
+
+      // Create a user and set it (user.id will persist for UX)
       const user = createMockUser();
       useAppStore.getState().actions.setUser(user);
       expect(useAppStore.getState().user).toEqual(user);
 
       // Reset - this should exercise the persistence logic
-      // Theme should go back to initial (since reset clears everything including persisted data)
+      // Theme and auth should go back to initial (since reset clears everything including persisted data)
       useAppStore.getState().actions.reset();
       expect(useAppStore.getState().user).toBe(null);
       expect(useAppStore.getState().theme).toBe('light');
+      expect(useAppStore.getState().auth.accessToken).toBe(null);
+      expect(useAppStore.getState().auth.refreshToken).toBe(null);
     });
   });
 });
@@ -527,6 +746,10 @@ describe('appStoreSelectors', () => {
 
   it('isOnline selector возвращает статус сети', () => {
     expect(appStoreSelectors.isOnline(store)).toBe(store.isOnline);
+  });
+
+  it('auth selector возвращает auth состояние', () => {
+    expect(appStoreSelectors.auth(store)).toBe(store.auth);
   });
 
   it('actions selector возвращает actions', () => {
@@ -569,6 +792,76 @@ describe('appStoreDerivedSelectors', () => {
     });
 
     expect(appStoreDerivedSelectors.isAuthenticated(store)).toBe(false);
+  });
+
+  it('hasAccessToken возвращает true если accessToken существует', () => {
+    const store = createMockStore({
+      auth: createMockAuthState({ accessToken: 'token123' }),
+    });
+
+    expect(appStoreDerivedSelectors.hasAccessToken(store)).toBe(true);
+  });
+
+  it('hasAccessToken возвращает false если accessToken null', () => {
+    const store = createMockStore({
+      auth: createMockAuthState({ accessToken: null }),
+    });
+
+    expect(appStoreDerivedSelectors.hasAccessToken(store)).toBe(false);
+  });
+
+  it('isTokenExpired возвращает true если токен истек', () => {
+    const pastTime = Date.now() - 10000; // 10 seconds ago
+    const store = createMockStore({
+      auth: createMockAuthState({ expiresAt: pastTime }),
+    });
+
+    expect(appStoreDerivedSelectors.isTokenExpired(store)).toBe(true);
+  });
+
+  it('isTokenExpired возвращает false если токен не истек', () => {
+    const futureTime = Date.now() + 3600000; // 1 hour from now
+    const store = createMockStore({
+      auth: createMockAuthState({ expiresAt: futureTime }),
+    });
+
+    expect(appStoreDerivedSelectors.isTokenExpired(store)).toBe(false);
+  });
+
+  it('isTokenExpired возвращает false если expiresAt null', () => {
+    const store = createMockStore({
+      auth: createMockAuthState({ expiresAt: null }),
+    });
+
+    expect(appStoreDerivedSelectors.isTokenExpired(store)).toBe(false);
+  });
+
+  it('timeToExpiry возвращает время до истечения в миллисекундах', () => {
+    const futureTime = Date.now() + 3600000; // 1 hour from now
+    const store = createMockStore({
+      auth: createMockAuthState({ expiresAt: futureTime }),
+    });
+
+    const timeToExpiry = appStoreDerivedSelectors.timeToExpiry(store);
+    expect(timeToExpiry).toBeGreaterThan(3500000); // Should be close to 1 hour
+    expect(timeToExpiry).toBeLessThanOrEqual(3600000);
+  });
+
+  it('timeToExpiry возвращает 0 если токен истек', () => {
+    const pastTime = Date.now() - 10000; // 10 seconds ago
+    const store = createMockStore({
+      auth: createMockAuthState({ expiresAt: pastTime }),
+    });
+
+    expect(appStoreDerivedSelectors.timeToExpiry(store)).toBe(0);
+  });
+
+  it('timeToExpiry возвращает 0 если expiresAt null', () => {
+    const store = createMockStore({
+      auth: createMockAuthState({ expiresAt: null }),
+    });
+
+    expect(appStoreDerivedSelectors.timeToExpiry(store)).toBe(0);
   });
 });
 
