@@ -2,7 +2,17 @@
  * @file Unit тесты для domain/common.ts
  */
 import { describe, expect, it } from 'vitest';
-import type { JsonObject, Settings, Timestamp, UUID } from '../../../src/domain/common.js';
+import type {
+  DurationMs,
+  JsonObject,
+  PolicyDecision,
+  PolicyViolation,
+  Settings,
+  Timestamp,
+  UnixTimestampMs,
+  UUID,
+} from '../../../src/domain/common.js';
+import { Decision, DecisionUtils } from '../../../src/domain/common.js';
 import { TEST_USER_ID } from '../../constants';
 
 describe('UUID type', () => {
@@ -168,5 +178,174 @@ describe('Интеграционные тесты типов', () => {
     };
 
     expect(exampleFixture).toMatchSnapshot();
+  });
+});
+
+describe('DurationMs type', () => {
+  it('принимает числовые значения', () => {
+    const duration: DurationMs = 5000; // 5 seconds
+    expect(typeof duration).toBe('number');
+    expect(duration).toBe(5000);
+  });
+
+  it('может использоваться в арифметических операциях', () => {
+    const duration1: DurationMs = 1000;
+    const duration2: DurationMs = 2000;
+    const total: DurationMs = duration1 + duration2;
+
+    expect(total).toBe(3000);
+  });
+});
+
+describe('UnixTimestampMs type', () => {
+  it('принимает числовые значения timestamp', () => {
+    const timestamp: UnixTimestampMs = Date.now();
+    expect(typeof timestamp).toBe('number');
+    expect(timestamp).toBeGreaterThan(0);
+  });
+
+  it('совместим с Date.now()', () => {
+    const now: UnixTimestampMs = Date.now();
+    expect(now).toBeGreaterThan(1609459200000); // 2021-01-01 timestamp
+  });
+});
+
+describe('PolicyViolation type', () => {
+  it('принимает объект с code и reason', () => {
+    const violation: PolicyViolation = {
+      code: 'TEST_VIOLATION',
+      reason: 'Test violation reason',
+    };
+
+    expect(violation.code).toBe('TEST_VIOLATION');
+    expect(violation.reason).toBe('Test violation reason');
+  });
+
+  it('reason является опциональным', () => {
+    const violation: PolicyViolation = {
+      code: 'MINIMAL_VIOLATION',
+    };
+
+    expect(violation.code).toBe('MINIMAL_VIOLATION');
+    expect(violation.reason).toBeUndefined();
+  });
+});
+
+describe('Decision class', () => {
+  describe('allow method', () => {
+    it('создает положительное решение', () => {
+      const decision = Decision.allow('SUCCESS');
+
+      expect(decision).toEqual({
+        allow: true,
+        reason: 'SUCCESS',
+      });
+    });
+
+    it('работает с любыми строковыми типами', () => {
+      const decision = Decision.allow('CUSTOM_SUCCESS' as const);
+
+      expect(decision).toEqual({
+        allow: true,
+        reason: 'CUSTOM_SUCCESS',
+      });
+    });
+  });
+
+  describe('deny method', () => {
+    it('создает отрицательное решение с violation', () => {
+      const violation: PolicyViolation = { code: 'TEST_DENY' };
+      const decision = Decision.deny('DENIED', violation);
+
+      expect(decision).toEqual({
+        allow: false,
+        reason: 'DENIED',
+        violation: { code: 'TEST_DENY' },
+      });
+    });
+  });
+
+  describe('denySimple method', () => {
+    it('создает отрицательное решение без violation', () => {
+      const decision = Decision.denySimple('SIMPLE_DENY');
+
+      expect(decision).toEqual({
+        allow: false,
+        reason: 'SIMPLE_DENY',
+      });
+    });
+  });
+
+  describe('denyOptional method', () => {
+    it('создает отрицательное решение с violation', () => {
+      const violation: PolicyViolation = { code: 'OPTIONAL_DENY' };
+      const decision = Decision.denyOptional('OPTIONAL_DENIED', violation);
+
+      expect(decision).toEqual({
+        allow: false,
+        reason: 'OPTIONAL_DENIED',
+        violation: { code: 'OPTIONAL_DENY' },
+      });
+    });
+
+    it('создает отрицательное решение без violation', () => {
+      const decision = Decision.denyOptional('OPTIONAL_DENIED_SIMPLE');
+
+      expect(decision).toEqual({
+        allow: false,
+        reason: 'OPTIONAL_DENIED_SIMPLE',
+      });
+    });
+  });
+});
+
+describe('DecisionUtils class', () => {
+  describe('isDenied method', () => {
+    it('возвращает true для deny решений', () => {
+      const decision = Decision.denySimple('DENIED');
+      expect(DecisionUtils.isDenied(decision)).toBe(true);
+    });
+
+    it('возвращает false для allow решений', () => {
+      const decision = Decision.allow('ALLOWED');
+      expect(DecisionUtils.isDenied(decision)).toBe(false);
+    });
+  });
+
+  describe('isAllowed method', () => {
+    it('возвращает true для allow решений', () => {
+      const decision = Decision.allow('ALLOWED');
+      expect(DecisionUtils.isAllowed(decision)).toBe(true);
+    });
+
+    it('возвращает false для deny решений', () => {
+      const decision = Decision.denySimple('DENIED');
+      expect(DecisionUtils.isAllowed(decision)).toBe(false);
+    });
+  });
+});
+
+describe('PolicyDecision type', () => {
+  it('принимает allow решения', () => {
+    const decision: PolicyDecision<string, string> = Decision.allow('SUCCESS');
+    expect(decision.allow).toBe(true);
+    expect(decision.reason).toBe('SUCCESS');
+  });
+
+  it('принимает deny решения с violation', () => {
+    const violation: PolicyViolation = { code: 'TEST' };
+    const decision: PolicyDecision<string, string> = Decision.deny('DENIED', violation);
+
+    expect(decision.allow).toBe(false);
+    expect(decision.reason).toBe('DENIED');
+    expect('violation' in decision && decision.violation).toEqual(violation);
+  });
+
+  it('принимает deny решения без violation', () => {
+    const decision: PolicyDecision<string, string> = Decision.denySimple('DENIED');
+
+    expect(decision.allow).toBe(false);
+    expect(decision.reason).toBe('DENIED');
+    expect('violation' in decision).toBe(false);
   });
 });

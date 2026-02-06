@@ -1,0 +1,98 @@
+{
+  "name": "@livai/core",
+  "version": "1.0.0",
+  "description": "Core domain logic and business policies for LivAI platform",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/livai/livai.git",
+    "directory": "packages/core"
+  },
+  "bugs": {
+    "url": "https://github.com/livai/livai/issues"
+  },
+  "homepage": "https://github.com/livai/livai/tree/main/packages/core#readme",
+  "main": "./dist/esm/index.js",
+  "module": "./dist/esm/index.js",
+  "types": "./dist/esm/index.d.ts",
+  "sideEffects": false,
+  "license": "MIT",
+  "type": "module",
+  "engines": {
+    "node": ">=24.0.0",
+    "pnpm": "10.28.2"
+  },
+  "files": [
+    "dist"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/esm/index.d.ts",
+      "import": "./dist/esm/index.js",
+      "default": "./dist/esm/index.js"
+    },
+    "./domain/*": {
+      "types": "./dist/esm/domain/*.d.ts",
+      "import": "./dist/esm/domain/*.js",
+      "default": "./dist/esm/domain/*.js"
+    }
+  },
+  "scripts": {
+    "build": "tsup",
+    "build:dev": "tsup --sourcemap --no-clean",
+    "build:watch": "tsup --watch",
+    "dev": "tsup --watch",
+    "lint": "pnpm run lint:dev",
+    "type-check": "tsc --noEmit",
+    "test": "NODE_OPTIONS='--no-warnings' vitest",
+    "test:watch": "vitest --watch",
+    "test:ui": "NODE_OPTIONS='--no-warnings' vitest --ui",
+    "test:coverage": "NODE_OPTIONS='--no-warnings' vitest run --coverage",
+    "test:coverage:html": "NODE_OPTIONS='--no-warnings' vitest run --coverage --coverage.reporter=html",
+    "test:coverage:watch": "NODE_OPTIONS='--no-warnings' vitest --coverage --watch",
+    "test:ci": "NODE_OPTIONS='--no-warnings' vitest run --coverage",
+    "clean": "rm -rf dist *.tsbuildinfo .eslintcache",
+    "lint:dev": "ESLINT_MODE=dev eslint --config ../../eslint.config.mjs src",
+    "lint:canary": "ESLINT_MODE=canary eslint --config ../../eslint.config.mjs src",
+    "lint:canary:fix": "ESLINT_MODE=canary eslint --config ../../eslint.config.mjs src --fix",
+    "check:deps": "cd ../.. && node scripts/check-circular-deps-monorepo.js",
+    "ci:check": "pnpm run type-check && pnpm run lint && pnpm run test:ci && pnpm run check:deps",
+    "lint:fix": "ESLINT_MODE=dev eslint --config ../../eslint.config.mjs src --fix",
+    "lint:ci": "ESLINT_MODE=canary eslint --config ../../eslint.config.mjs src --max-warnings 0"
+  },
+  "keywords": [
+    "typescript",
+    "domain-driven-design",
+    "business-logic",
+    "policies",
+    "core",
+    "foundation",
+    "auth",
+    "security"
+  ],
+  "peerDependencies": {
+    "effect": "^3.19.13",
+    "typescript": "5.9.3"
+  },
+  "peerDependenciesMeta": {
+    "effect": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@livai/vitest-config": "workspace:*",
+    "@vitest/coverage-v8": "4.0.18",
+    "eslint": "9.39.2",
+    "tsup": "8.5.1",
+    "typescript": "5.9.3",
+    "vitest": "4.0.18"
+  },
+  "tags": [
+    "node",
+    "critical",
+    "domain",
+    "business-logic"
+  ],
+  "dependencies": {
+    "@livai/core-contracts": "workspace:*"
+  }
+}
