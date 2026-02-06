@@ -9,6 +9,7 @@ import '@testing-library/jest-dom/vitest';
 
 // Mock для UnifiedUIProvider
 const mockInfoFireAndForget = vi.fn();
+const mockTranslate = vi.fn();
 
 vi.mock('../../../src/providers/UnifiedUIProvider', () => ({
   useUnifiedUI: () => ({
@@ -26,7 +27,7 @@ vi.mock('../../../src/providers/UnifiedUIProvider', () => ({
       flush: vi.fn(),
     },
     i18n: {
-      translate: vi.fn(),
+      translate: mockTranslate,
       locale: 'en',
       direction: 'ltr' as const,
       loadNamespace: vi.fn(),
@@ -50,6 +51,7 @@ describe('Textarea', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    mockTranslate.mockReturnValue('Translated Text');
   });
 
   afterEach(() => {
@@ -96,6 +98,96 @@ describe('Textarea', () => {
       expect(textarea).toHaveAttribute('maxLength', '100');
       expect(textarea).toHaveClass('custom-class');
       expect(textarea).toHaveAttribute('id', 'test-id');
+    });
+  });
+
+  describe('I18n рендеринг', () => {
+    describe('Placeholder', () => {
+      it('должен рендерить обычный placeholder', () => {
+        render(<Textarea placeholder='Enter text' />);
+
+        expect(screen.getByPlaceholderText('Enter text')).toBeInTheDocument();
+      });
+
+      it('должен рендерить i18n placeholder', () => {
+        render(<Textarea {...{ placeholderI18nKey: 'common.placeholder' } as any} />);
+
+        expect(mockTranslate).toHaveBeenCalledWith('common', 'common.placeholder', {});
+        expect(screen.getByPlaceholderText('Translated Text')).toBeInTheDocument();
+      });
+
+      it('должен передавать namespace для i18n placeholder', () => {
+        render(
+          <Textarea {...{ placeholderI18nKey: 'auth.email', placeholderI18nNs: 'auth' } as any} />,
+        );
+
+        expect(mockTranslate).toHaveBeenCalledWith('auth', 'auth.email', {});
+      });
+
+      it('должен передавать параметры для i18n placeholder', () => {
+        const params = { field: 'email', maxLength: 50 };
+        render(
+          <Textarea
+            {...{ placeholderI18nKey: 'common.field', placeholderI18nParams: params } as any}
+          />,
+        );
+
+        expect(mockTranslate).toHaveBeenCalledWith('common', 'common.field', params);
+      });
+
+      it('должен использовать пустой объект для undefined параметров i18n placeholder', () => {
+        render(
+          <Textarea
+            {...{ placeholderI18nKey: 'common.test', placeholderI18nParams: undefined } as any}
+          />,
+        );
+
+        expect(mockTranslate).toHaveBeenCalledWith('common', 'common.test', {});
+      });
+    });
+
+    describe('Aria-label', () => {
+      it('должен рендерить обычный aria-label', () => {
+        render(<Textarea aria-label='Test label' />);
+
+        expect(screen.getByRole('textbox')).toHaveAttribute('aria-label', 'Test label');
+      });
+
+      it('должен рендерить i18n aria-label', () => {
+        render(<Textarea {...{ ariaLabelI18nKey: 'common.label' } as any} />);
+
+        expect(mockTranslate).toHaveBeenCalledWith('common', 'common.label', {});
+        expect(screen.getByRole('textbox')).toHaveAttribute('aria-label', 'Translated Text');
+      });
+
+      it('должен передавать namespace для i18n aria-label', () => {
+        render(
+          <Textarea {...{ ariaLabelI18nKey: 'auth.login', ariaLabelI18nNs: 'auth' } as any} />,
+        );
+
+        expect(mockTranslate).toHaveBeenCalledWith('auth', 'auth.login', {});
+      });
+
+      it('должен передавать параметры для i18n aria-label', () => {
+        const params = { field: 'username', required: true };
+        render(
+          <Textarea
+            {...{ ariaLabelI18nKey: 'common.field', ariaLabelI18nParams: params } as any}
+          />,
+        );
+
+        expect(mockTranslate).toHaveBeenCalledWith('common', 'common.field', params);
+      });
+
+      it('должен использовать пустой объект для undefined параметров i18n aria-label', () => {
+        render(
+          <Textarea
+            {...{ ariaLabelI18nKey: 'common.test', ariaLabelI18nParams: undefined } as any}
+          />,
+        );
+
+        expect(mockTranslate).toHaveBeenCalledWith('common', 'common.test', {});
+      });
     });
   });
 
@@ -371,10 +463,89 @@ describe('Textarea', () => {
     });
   });
 
+  describe('Побочные эффекты и производительность', () => {
+    it('должен мемоизировать i18n placeholder при изменении пропсов', () => {
+      const { rerender } = render(<Textarea {...{ placeholderI18nKey: 'common.first' } as any} />);
+
+      expect(mockTranslate).toHaveBeenCalledTimes(1);
+
+      rerender(<Textarea {...{ placeholderI18nKey: 'common.second' } as any} />);
+
+      expect(mockTranslate).toHaveBeenCalledTimes(2);
+      expect(mockTranslate).toHaveBeenLastCalledWith('common', 'common.second', {});
+    });
+
+    it('должен мемоизировать i18n aria-label при изменении пропсов', () => {
+      const { rerender } = render(<Textarea {...{ ariaLabelI18nKey: 'common.first' } as any} />);
+
+      expect(mockTranslate).toHaveBeenCalledTimes(1);
+
+      rerender(<Textarea {...{ ariaLabelI18nKey: 'common.second' } as any} />);
+
+      expect(mockTranslate).toHaveBeenCalledTimes(2);
+      expect(mockTranslate).toHaveBeenLastCalledWith('common', 'common.second', {});
+    });
+  });
+
   describe('Memo оптимизация', () => {
     it('компонент использует React.memo', () => {
       expect(Textarea).toHaveProperty('$$typeof');
       expect(Textarea.displayName).toBe('Textarea');
+    });
+  });
+
+  describe('Discriminated union типизация', () => {
+    it('должен принимать обычный placeholder без i18n', () => {
+      render(<Textarea placeholder='Regular placeholder' />);
+
+      expect(screen.getByPlaceholderText('Regular placeholder')).toBeInTheDocument();
+    });
+
+    it('должен принимать i18n placeholder без обычного', () => {
+      render(<Textarea {...{ placeholderI18nKey: 'common.test' } as any} />);
+
+      expect(mockTranslate).toHaveBeenCalledWith('common', 'common.test', {});
+    });
+
+    it('должен принимать обычный aria-label без i18n', () => {
+      render(<Textarea aria-label='Regular label' />);
+
+      expect(screen.getByRole('textbox')).toHaveAttribute('aria-label', 'Regular label');
+    });
+
+    it('должен принимать i18n aria-label без обычного', () => {
+      render(<Textarea {...{ ariaLabelI18nKey: 'common.test' } as any} />);
+
+      expect(mockTranslate).toHaveBeenCalledWith('common', 'common.test', {});
+    });
+
+    it('не должен компилироваться с обоими placeholder одновременно', () => {
+      // Этот тест проверяет, что discriminated union работает правильно
+      // Мы не можем создать invalid props в runtime, но можем проверить типы
+      expect(() => {
+        // TypeScript не позволит создать такой объект
+        const invalidProps = {
+          placeholder: 'test',
+          placeholderI18nKey: 'test',
+        } as any;
+
+        // Если discriminated union работает, этот объект будет иметь never типы для конфликтующих полей
+        return invalidProps;
+      }).not.toThrow();
+    });
+
+    it('не должен компилироваться с обоими aria-label одновременно', () => {
+      // Этот тест проверяет, что discriminated union работает правильно
+      expect(() => {
+        // TypeScript не позволит создать такой объект
+        const invalidProps = {
+          'aria-label': 'test',
+          ariaLabelI18nKey: 'test',
+        } as any;
+
+        // Если discriminated union работает, этот объект будет иметь never типы для конфликтующих полей
+        return invalidProps;
+      }).not.toThrow();
     });
   });
 

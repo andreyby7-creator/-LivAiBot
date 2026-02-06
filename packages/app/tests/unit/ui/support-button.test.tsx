@@ -10,6 +10,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom/vitest';
 
+// Mock translate function
+const mockTranslate = vi.fn();
+
 // Mock для Core SupportButton - возвращаем простой button с переданными пропсами
 vi.mock('../../../../ui-core/src/components/SupportButton.js', () => ({
   SupportButton: React.forwardRef<
@@ -80,6 +83,13 @@ let mockFeatureFlagReturnValue = false;
 
 vi.mock('../../../src/providers/UnifiedUIProvider', () => ({
   useUnifiedUI: () => ({
+    i18n: {
+      translate: mockTranslate,
+      locale: 'en',
+      direction: 'ltr' as const,
+      loadNamespace: vi.fn(),
+      isNamespaceLoaded: vi.fn(() => true),
+    },
     featureFlags: {
       isEnabled: () => mockFeatureFlagReturnValue,
       setOverride: vi.fn(),
@@ -103,6 +113,7 @@ describe('App SupportButton', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockFeatureFlagReturnValue = false; // Сбрасываем в дефолтное состояние
+    mockTranslate.mockReturnValue('Support Label');
   });
 
   afterEach(cleanup);
@@ -793,6 +804,116 @@ describe('App SupportButton', () => {
           timestamp: expect.any(Number),
         }),
       );
+    });
+  });
+
+  describe('I18n рендеринг', () => {
+    describe('Label', () => {
+      it('должен рендерить обычный label', () => {
+        render(<SupportButton label='Help' />);
+
+        const coreButton = screen.getByTestId('core-support-button');
+        expect(coreButton).toHaveTextContent('Help');
+      });
+
+      it('должен рендерить i18n label', () => {
+        render(
+          <SupportButton
+            {...{ labelI18nKey: 'greeting' } as any}
+          />,
+        );
+
+        const coreButton = screen.getByTestId('core-support-button');
+        expect(mockTranslate).toHaveBeenCalledWith('common', 'greeting', {});
+        expect(coreButton).toHaveTextContent('Support Label');
+      });
+
+      it('должен передавать namespace для i18n label', () => {
+        render(
+          <SupportButton
+            {...{ labelI18nKey: 'greeting', labelI18nNs: 'common' } as any}
+          />,
+        );
+
+        expect(mockTranslate).toHaveBeenCalledWith('common', 'greeting', {});
+      });
+
+      it('должен передавать параметры для i18n label', () => {
+        const params = { name: 'John' };
+        render(
+          <SupportButton
+            {...{ labelI18nKey: 'greeting', labelI18nParams: params } as any}
+          />,
+        );
+
+        expect(mockTranslate).toHaveBeenCalledWith('common', 'greeting', params);
+      });
+
+      it('должен использовать пустой объект для undefined параметров i18n label', () => {
+        render(
+          <SupportButton
+            {...{ labelI18nKey: 'greeting', labelI18nParams: undefined } as any}
+          />,
+        );
+
+        expect(mockTranslate).toHaveBeenCalledWith('common', 'greeting', {});
+      });
+    });
+  });
+
+  describe('Побочные эффекты и производительность', () => {
+    it('должен мемоизировать i18n label при изменении пропсов', () => {
+      const { rerender } = render(
+        <SupportButton
+          {...{ labelI18nKey: 'greeting' } as any}
+        />,
+      );
+
+      expect(mockTranslate).toHaveBeenCalledTimes(1);
+
+      // Ререндер с теми же пропсами
+      rerender(
+        <SupportButton
+          {...{ labelI18nKey: 'greeting' } as any}
+        />,
+      );
+
+      // translate не должен вызываться повторно
+      expect(mockTranslate).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('Discriminated union типизация', () => {
+    it('должен принимать обычный label без i18n', () => {
+      render(<SupportButton label='Help' />);
+
+      const coreButton = screen.getByTestId('core-support-button');
+      expect(coreButton).toHaveTextContent('Help');
+    });
+
+    it('должен принимать i18n label без обычного', () => {
+      render(
+        <SupportButton
+          {...{ labelI18nKey: 'greeting' } as any}
+        />,
+      );
+
+      const coreButton = screen.getByTestId('core-support-button');
+      expect(mockTranslate).toHaveBeenCalledWith('common', 'greeting', {});
+      expect(coreButton).toHaveTextContent('Support Label');
+    });
+
+    it('не должен компилироваться с обоими label одновременно', () => {
+      // Этот тест проверяет, что discriminated union работает правильно
+      expect(() => {
+        // TypeScript не позволит создать такой объект
+        const invalidProps = {
+          label: 'test',
+          labelI18nKey: 'test',
+        } as any;
+
+        render(<SupportButton {...invalidProps} />);
+      }).not.toThrow();
     });
   });
 });

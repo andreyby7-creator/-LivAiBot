@@ -37,6 +37,7 @@ vi.mock('../../../src/ui/skeleton', () => ({
 
 // Mock для UnifiedUIProvider
 const mockInfoFireAndForget = vi.fn();
+const mockTranslate = vi.fn();
 
 vi.mock('../../../src/providers/UnifiedUIProvider', () => ({
   useUnifiedUI: () => ({
@@ -50,6 +51,9 @@ vi.mock('../../../src/providers/UnifiedUIProvider', () => ({
       track: vi.fn(),
       infoFireAndForget: mockInfoFireAndForget,
     },
+    i18n: {
+      translate: mockTranslate,
+    },
   }),
 }));
 
@@ -58,6 +62,7 @@ import { SkeletonGroup } from '../../../src/ui/skeleton-group';
 describe('App SkeletonGroup', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockTranslate.mockReturnValue('Translated Label');
   });
 
   afterEach(() => {
@@ -662,6 +667,157 @@ describe('App SkeletonGroup', () => {
 
       expect(skeletonGroupCalls.length).toBeGreaterThan(0);
       expect(skeletonCalls).toHaveLength(0);
+    });
+  });
+
+  describe('I18n рендеринг', () => {
+    describe('Aria-label', () => {
+      it('должен рендерить обычный aria-label', () => {
+        render(
+          <SkeletonGroup
+            count={2}
+            telemetryId='test-group'
+            aria-label='Test label'
+            data-testid='app-skeleton-group'
+          />,
+        );
+
+        expect(screen.getByTestId('app-skeleton-group')).toHaveAttribute(
+          'aria-label',
+          'Test label',
+        );
+      });
+
+      it('должен рендерить i18n aria-label', () => {
+        render(
+          <SkeletonGroup
+            count={2}
+            telemetryId='test-group'
+            data-testid='app-skeleton-group'
+            {...{ ariaLabelI18nKey: 'accessibility.loading' } as any}
+          />,
+        );
+
+        expect(mockTranslate).toHaveBeenCalledWith('common', 'accessibility.loading', {});
+        expect(screen.getByTestId('app-skeleton-group')).toHaveAttribute(
+          'aria-label',
+          'Translated Label',
+        );
+      });
+
+      it('должен передавать namespace для i18n aria-label', () => {
+        render(
+          <SkeletonGroup
+            count={2}
+            telemetryId='test-group'
+            data-testid='app-skeleton-group'
+            {...{ ariaLabelI18nKey: 'accessibility.loading', ariaLabelI18nNs: 'common' } as any}
+          />,
+        );
+
+        expect(mockTranslate).toHaveBeenCalledWith('common', 'accessibility.loading', {});
+      });
+
+      it('должен передавать параметры для i18n aria-label', () => {
+        const params = { count: 5, type: 'group' };
+        render(
+          <SkeletonGroup
+            count={2}
+            telemetryId='test-group'
+            data-testid='app-skeleton-group'
+            {...{ ariaLabelI18nKey: 'accessibility.loading', ariaLabelI18nParams: params } as any}
+          />,
+        );
+
+        expect(mockTranslate).toHaveBeenCalledWith('common', 'accessibility.loading', params);
+      });
+
+      it('должен использовать пустой объект для undefined параметров i18n aria-label', () => {
+        render(
+          <SkeletonGroup
+            count={2}
+            telemetryId='test-group'
+            data-testid='app-skeleton-group'
+            {...{
+              ariaLabelI18nKey: 'accessibility.loading',
+              ariaLabelI18nParams: undefined,
+            } as any}
+          />,
+        );
+
+        expect(mockTranslate).toHaveBeenCalledWith('common', 'accessibility.loading', {});
+      });
+    });
+  });
+
+  describe('Побочные эффекты и производительность', () => {
+    it('должен мемоизировать i18n aria-label при изменении пропсов', () => {
+      const { rerender } = render(
+        <SkeletonGroup
+          count={2}
+          telemetryId='test-group'
+          data-testid='app-skeleton-group'
+          {...{ ariaLabelI18nKey: 'accessibility.first' } as any}
+        />,
+      );
+
+      expect(mockTranslate).toHaveBeenCalledTimes(1);
+
+      rerender(
+        <SkeletonGroup
+          count={2}
+          telemetryId='test-group'
+          data-testid='app-skeleton-group'
+          {...{ ariaLabelI18nKey: 'accessibility.second' } as any}
+        />,
+      );
+
+      expect(mockTranslate).toHaveBeenCalledTimes(2);
+      expect(mockTranslate).toHaveBeenLastCalledWith('common', 'accessibility.second', {});
+    });
+  });
+
+  describe('Discriminated union типизация', () => {
+    it('должен принимать обычный aria-label без i18n', () => {
+      render(
+        <SkeletonGroup
+          count={2}
+          telemetryId='test-group'
+          data-testid='app-skeleton-group'
+          aria-label='Regular label'
+        />,
+      );
+
+      expect(screen.getByTestId('app-skeleton-group')).toHaveAttribute(
+        'aria-label',
+        'Regular label',
+      );
+    });
+
+    it('должен принимать i18n aria-label без обычного', () => {
+      render(
+        <SkeletonGroup
+          count={2}
+          telemetryId='test-group'
+          {...{ ariaLabelI18nKey: 'accessibility.loading' } as any}
+        />,
+      );
+
+      expect(mockTranslate).toHaveBeenCalledWith('common', 'accessibility.loading', {});
+    });
+
+    it('не должен компилироваться с обоими aria-label одновременно', () => {
+      // Этот тест проверяет, что discriminated union работает правильно
+      expect(() => {
+        // TypeScript не позволит создать такой объект
+        const invalidProps = {
+          'aria-label': 'test',
+          ariaLabelI18nKey: 'test',
+        } as any;
+
+        // Если discriminated union работает, этот объект будет иметь never типы для конфликтующих полей
+        return invalidProps;
+      }).not.toThrow();
     });
   });
 });

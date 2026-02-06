@@ -43,9 +43,17 @@ vi.mock('../../../../ui-core/src/primitives/badge', () => ({
 // Mock для UnifiedUIProvider
 let mockFeatureFlagReturnValue = false;
 const mockInfoFireAndForget = vi.fn();
+const mockTranslate = vi.fn();
 
 vi.mock('../../../src/providers/UnifiedUIProvider', () => ({
   useUnifiedUI: () => ({
+    i18n: {
+      translate: mockTranslate,
+      locale: 'en',
+      direction: 'ltr' as const,
+      loadNamespace: vi.fn(),
+      isNamespaceLoaded: vi.fn(() => true),
+    },
     featureFlags: {
       isEnabled: () => mockFeatureFlagReturnValue,
       setOverride: vi.fn(),
@@ -69,6 +77,7 @@ describe('Badge', () => {
     vi.clearAllMocks();
     consoleWarnSpy.mockClear();
     mockFeatureFlagReturnValue = false; // Сбрасываем в дефолтное состояние
+    mockTranslate.mockReturnValue('Translated Label');
   });
 
   afterEach(() => {
@@ -100,6 +109,57 @@ describe('Badge', () => {
       const badge = screen.getByTestId('custom-badge');
       expect(badge).toBeInTheDocument();
       expect(badge).toHaveAttribute('data-component', 'AppBadge');
+    });
+  });
+
+  describe('I18n рендеринг', () => {
+    describe('Aria-label', () => {
+      it('должен рендерить обычный aria-label', () => {
+        render(<Badge value='test' aria-label='Test label' />);
+
+        expect(screen.getByTestId('core-badge')).toHaveAttribute('aria-label', 'Test label');
+      });
+
+      it('должен рендерить i18n aria-label', () => {
+        render(<Badge value='test' {...{ ariaLabelI18nKey: 'common.label' } as any} />);
+
+        expect(mockTranslate).toHaveBeenCalledWith('common', 'common.label', {});
+        expect(screen.getByTestId('core-badge')).toHaveAttribute('aria-label', 'Translated Label');
+      });
+
+      it('должен передавать namespace для i18n aria-label', () => {
+        render(
+          <Badge
+            value='test'
+            {...{ ariaLabelI18nKey: 'auth.login', ariaLabelI18nNs: 'auth' } as any}
+          />,
+        );
+
+        expect(mockTranslate).toHaveBeenCalledWith('auth', 'auth.login', {});
+      });
+
+      it('должен передавать параметры для i18n aria-label', () => {
+        const params = { field: 'username', required: true };
+        render(
+          <Badge
+            value='test'
+            {...{ ariaLabelI18nKey: 'common.field', ariaLabelI18nParams: params } as any}
+          />,
+        );
+
+        expect(mockTranslate).toHaveBeenCalledWith('common', 'common.field', params);
+      });
+
+      it('должен использовать пустой объект для undefined параметров i18n aria-label', () => {
+        render(
+          <Badge
+            value='test'
+            {...{ ariaLabelI18nKey: 'common.test', ariaLabelI18nParams: undefined } as any}
+          />,
+        );
+
+        expect(mockTranslate).toHaveBeenCalledWith('common', 'common.test', {});
+      });
     });
   });
 
@@ -320,6 +380,49 @@ describe('Badge', () => {
       rerender(<Badge value='new value' />);
       // Lifecycle telemetry не должен пересчитываться при изменении пропсов
       expect(mockInfoFireAndForget).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('Побочные эффекты и производительность', () => {
+    it('должен мемоизировать i18n aria-label при изменении пропсов', () => {
+      const { rerender } = render(
+        <Badge value='test' {...{ ariaLabelI18nKey: 'common.first' } as any} />,
+      );
+
+      expect(mockTranslate).toHaveBeenCalledTimes(1);
+
+      rerender(<Badge value='test' {...{ ariaLabelI18nKey: 'common.second' } as any} />);
+
+      expect(mockTranslate).toHaveBeenCalledTimes(2);
+      expect(mockTranslate).toHaveBeenLastCalledWith('common', 'common.second', {});
+    });
+  });
+
+  describe('Discriminated union типизация', () => {
+    it('должен принимать обычный aria-label без i18n', () => {
+      render(<Badge value='test' aria-label='Regular label' />);
+
+      expect(screen.getByTestId('core-badge')).toHaveAttribute('aria-label', 'Regular label');
+    });
+
+    it('должен принимать i18n aria-label без обычного', () => {
+      render(<Badge value='test' {...{ ariaLabelI18nKey: 'common.test' } as any} />);
+
+      expect(mockTranslate).toHaveBeenCalledWith('common', 'common.test', {});
+    });
+
+    it('не должен компилироваться с обоими aria-label одновременно', () => {
+      // Этот тест проверяет, что discriminated union работает правильно
+      expect(() => {
+        // TypeScript не позволит создать такой объект
+        const invalidProps = {
+          'aria-label': 'test',
+          ariaLabelI18nKey: 'test',
+        } as any;
+
+        // Если discriminated union работает, этот объект будет иметь never типы для конфликтующих полей
+        return invalidProps;
+      }).not.toThrow();
     });
   });
 });

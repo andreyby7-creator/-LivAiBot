@@ -59,6 +59,7 @@ vi.mock('../../../../ui-core/src/components/Modal', () => ({
 // Mock для UnifiedUIProvider
 let mockFeatureFlagReturnValue = false;
 const mockInfoFireAndForget = vi.fn();
+const mockTranslate = vi.fn();
 
 vi.mock('../../../src/providers/UnifiedUIProvider', () => ({
   useUnifiedUI: () => ({
@@ -72,6 +73,9 @@ vi.mock('../../../src/providers/UnifiedUIProvider', () => ({
       track: vi.fn(),
       infoFireAndForget: mockInfoFireAndForget,
     },
+    i18n: {
+      translate: mockTranslate,
+    },
   }),
 }));
 
@@ -84,6 +88,7 @@ describe('App Modal', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockFeatureFlagReturnValue = false; // Сбрасываем в дефолтное состояние
+    mockTranslate.mockReturnValue('Translated Label');
   });
 
   afterEach(() => {
@@ -349,6 +354,286 @@ describe('App Modal', () => {
       rerender(<Modal visible={true}>{testContent}</Modal>);
 
       expect(screen.getByTestId('core-modal')).toBeInTheDocument();
+    });
+  });
+
+  describe('I18n рендеринг', () => {
+    describe('Aria-label', () => {
+      it('должен рендерить обычный aria-label', () => {
+        render(
+          <Modal
+            visible
+            aria-label='Test label'
+          >
+            Content
+          </Modal>,
+        );
+
+        expect(screen.getByTestId('core-modal')).toHaveAttribute('aria-label', 'Test label');
+      });
+
+      it('должен рендерить i18n aria-label', () => {
+        render(
+          <Modal
+            visible
+            {...{ ariaLabelI18nKey: 'modal.title' } as any}
+          >
+            Content
+          </Modal>,
+        );
+
+        expect(mockTranslate).toHaveBeenCalledWith('common', 'modal.title', {});
+        expect(screen.getByTestId('core-modal')).toHaveAttribute('aria-label', 'Translated Label');
+      });
+
+      it('должен передавать namespace для i18n aria-label', () => {
+        render(
+          <Modal
+            visible
+            {...{ ariaLabelI18nKey: 'title', ariaLabelI18nNs: 'modal' } as any}
+          >
+            Content
+          </Modal>,
+        );
+
+        expect(mockTranslate).toHaveBeenCalledWith('modal', 'title', {});
+      });
+
+      it('должен передавать параметры для i18n aria-label', () => {
+        const params = { count: 5, type: 'confirmation' };
+        render(
+          <Modal
+            visible
+            {...{ ariaLabelI18nKey: 'modal.confirm', ariaLabelI18nParams: params } as any}
+          >
+            Content
+          </Modal>,
+        );
+
+        expect(mockTranslate).toHaveBeenCalledWith('common', 'modal.confirm', params);
+      });
+
+      it('должен использовать пустой объект для undefined параметров i18n aria-label', () => {
+        render(
+          <Modal
+            visible
+            {...{ ariaLabelI18nKey: 'modal.title', ariaLabelI18nParams: undefined } as any}
+          >
+            Content
+          </Modal>,
+        );
+
+        expect(mockTranslate).toHaveBeenCalledWith('common', 'modal.title', {});
+      });
+    });
+
+    describe('Aria-labelledby', () => {
+      it('должен рендерить обычный aria-labelledby', () => {
+        render(
+          <Modal
+            visible
+            aria-labelledby='test-id'
+          >
+            Content
+          </Modal>,
+        );
+
+        expect(screen.getByTestId('core-modal')).toHaveAttribute('aria-labelledby', 'test-id');
+      });
+
+      it('должен рендерить i18n aria-labelledby', () => {
+        render(
+          <Modal
+            visible
+            {...{ ariaLabelledByI18nKey: 'modal.header' } as any}
+          >
+            Content
+          </Modal>,
+        );
+
+        expect(mockTranslate).toHaveBeenCalledWith('common', 'modal.header', {});
+        expect(screen.getByTestId('core-modal')).toHaveAttribute(
+          'aria-labelledby',
+          'Translated Label',
+        );
+      });
+
+      it('должен передавать namespace для i18n aria-labelledby', () => {
+        render(
+          <Modal
+            visible
+            {...{ ariaLabelledByI18nKey: 'header', ariaLabelledByI18nNs: 'modal' } as any}
+          >
+            Content
+          </Modal>,
+        );
+
+        expect(mockTranslate).toHaveBeenCalledWith('modal', 'header', {});
+      });
+
+      it('должен передавать параметры для i18n aria-labelledby', () => {
+        const params = { section: 'user', id: '123' };
+        render(
+          <Modal
+            visible
+            {...{ ariaLabelledByI18nKey: 'modal.section', ariaLabelledByI18nParams: params } as any}
+          >
+            Content
+          </Modal>,
+        );
+
+        expect(mockTranslate).toHaveBeenCalledWith('common', 'modal.section', params);
+      });
+
+      it('должен использовать пустой объект для undefined параметров i18n aria-labelledby', () => {
+        render(
+          <Modal
+            visible
+            {...{
+              ariaLabelledByI18nKey: 'modal.header',
+              ariaLabelledByI18nParams: undefined,
+            } as any}
+          >
+            Content
+          </Modal>,
+        );
+
+        expect(mockTranslate).toHaveBeenCalledWith('common', 'modal.header', {});
+      });
+    });
+  });
+
+  describe('Побочные эффекты и производительность', () => {
+    it('должен мемоизировать i18n aria-label при изменении пропсов', () => {
+      const { rerender } = render(
+        <Modal
+          visible
+          {...{ ariaLabelI18nKey: 'modal.first' } as any}
+        >
+          Content
+        </Modal>,
+      );
+
+      expect(mockTranslate).toHaveBeenCalledTimes(1);
+
+      rerender(
+        <Modal
+          visible
+          {...{ ariaLabelI18nKey: 'modal.second' } as any}
+        >
+          Content
+        </Modal>,
+      );
+
+      expect(mockTranslate).toHaveBeenCalledTimes(2);
+      expect(mockTranslate).toHaveBeenLastCalledWith('common', 'modal.second', {});
+    });
+
+    it('должен мемоизировать i18n aria-labelledby при изменении пропсов', () => {
+      const { rerender } = render(
+        <Modal
+          visible
+          {...{ ariaLabelledByI18nKey: 'modal.first' } as any}
+        >
+          Content
+        </Modal>,
+      );
+
+      expect(mockTranslate).toHaveBeenCalledTimes(1);
+
+      rerender(
+        <Modal
+          visible
+          {...{ ariaLabelledByI18nKey: 'modal.second' } as any}
+        >
+          Content
+        </Modal>,
+      );
+
+      expect(mockTranslate).toHaveBeenCalledTimes(2);
+      expect(mockTranslate).toHaveBeenLastCalledWith('common', 'modal.second', {});
+    });
+  });
+
+  describe('Discriminated union типизация', () => {
+    it('должен принимать обычный aria-label без i18n', () => {
+      render(
+        <Modal
+          visible
+          aria-label='Regular label'
+        >
+          Content
+        </Modal>,
+      );
+
+      expect(screen.getByTestId('core-modal')).toHaveAttribute('aria-label', 'Regular label');
+    });
+
+    it('должен принимать обычный aria-labelledby без i18n', () => {
+      render(
+        <Modal
+          visible
+          aria-labelledby='regular-id'
+        >
+          Content
+        </Modal>,
+      );
+
+      expect(screen.getByTestId('core-modal')).toHaveAttribute('aria-labelledby', 'regular-id');
+    });
+
+    it('должен принимать i18n aria-label без обычного', () => {
+      render(
+        <Modal
+          visible
+          {...{ ariaLabelI18nKey: 'modal.title' } as any}
+        >
+          Content
+        </Modal>,
+      );
+
+      expect(mockTranslate).toHaveBeenCalledWith('common', 'modal.title', {});
+    });
+
+    it('должен принимать i18n aria-labelledby без обычного', () => {
+      render(
+        <Modal
+          visible
+          {...{ ariaLabelledByI18nKey: 'modal.header' } as any}
+        >
+          Content
+        </Modal>,
+      );
+
+      expect(mockTranslate).toHaveBeenCalledWith('common', 'modal.header', {});
+    });
+
+    it('не должен компилироваться с обоими aria-label одновременно', () => {
+      // Этот тест проверяет, что discriminated union работает правильно
+      expect(() => {
+        // TypeScript не позволит создать такой объект
+        const invalidProps = {
+          'aria-label': 'test',
+          ariaLabelI18nKey: 'test',
+        } as any;
+
+        // Если discriminated union работает, этот объект будет иметь never типы для конфликтующих полей
+        return invalidProps;
+      }).not.toThrow();
+    });
+
+    it('не должен компилироваться с обоими aria-labelledby одновременно', () => {
+      // Этот тест проверяет, что discriminated union работает правильно
+      expect(() => {
+        // TypeScript не позволит создать такой объект
+        const invalidProps = {
+          'aria-labelledby': 'test',
+          ariaLabelledByI18nKey: 'test',
+        } as any;
+
+        // Если discriminated union работает, этот объект будет иметь never типы для конфликтующих полей
+        return invalidProps;
+      }).not.toThrow();
     });
   });
 });

@@ -262,6 +262,14 @@ describe('useAppStore - Unit Tests', () => {
       persist: vi.fn(() => (fn: any) => fn), // Return function unchanged
       subscribeWithSelector: vi.fn(() => (fn: any) => fn),
     }));
+
+    // Mock console.warn for zustand persist messages
+    vi.spyOn(console, 'warn').mockImplementation((message) => {
+      if (typeof message === 'string' && message.includes('[zustand persist middleware]')) {
+        return; // Suppress zustand persist warnings
+      }
+      console.warn(message); // Allow other warnings
+    });
   });
 
   afterAll(() => {
@@ -388,6 +396,14 @@ describe('useAppStore - Integration Tests (Persistence)', () => {
     Object.defineProperty(window, 'localStorage', {
       value: storageMock,
       configurable: true,
+    });
+
+    // Mock console.warn for zustand persist messages
+    vi.spyOn(console, 'warn').mockImplementation((message) => {
+      if (typeof message === 'string' && message.includes('[zustand persist middleware]')) {
+        return; // Suppress zustand persist warnings
+      }
+      console.warn(message); // Allow other warnings
     });
 
     vi.clearAllMocks();
@@ -572,6 +588,14 @@ describe('registerNetworkStatusListener', () => {
       removeEventListener: vi.fn(),
       localStorage: storageMock,
     } as any;
+
+    // Mock console.warn for zustand persist messages
+    vi.spyOn(console, 'warn').mockImplementation((message) => {
+      if (typeof message === 'string' && message.includes('[zustand persist middleware]')) {
+        return; // Suppress zustand persist warnings
+      }
+      console.warn(message); // Allow other warnings
+    });
 
     vi.clearAllMocks();
   });

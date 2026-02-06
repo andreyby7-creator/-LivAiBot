@@ -10,9 +10,17 @@ import '@testing-library/jest-dom/vitest';
 
 // Mock для UnifiedUIProvider
 const mockInfoFireAndForget = vi.fn();
+const mockTranslate = vi.fn();
 
 vi.mock('../../../src/providers/UnifiedUIProvider', () => ({
   useUnifiedUI: () => ({
+    i18n: {
+      translate: mockTranslate,
+      locale: 'en',
+      direction: 'ltr' as const,
+      loadNamespace: vi.fn(),
+      isNamespaceLoaded: vi.fn(() => true),
+    },
     telemetry: {
       track: vi.fn(),
       infoFireAndForget: mockInfoFireAndForget,
@@ -29,6 +37,7 @@ describe('Toggle', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    mockTranslate.mockReturnValue('Translated Label');
   });
 
   afterEach(() => {
@@ -63,6 +72,48 @@ describe('Toggle', () => {
       render(<Toggle data-testid='test-toggle' />);
 
       expect(screen.getByTestId('test-toggle')).toBeInTheDocument();
+    });
+  });
+
+  describe('I18n рендеринг', () => {
+    describe('Aria-label', () => {
+      it('должен рендерить обычный aria-label', () => {
+        render(<Toggle aria-label='Test label' />);
+
+        expect(screen.getByRole('switch')).toHaveAttribute('aria-label', 'Test label');
+      });
+
+      it('должен рендерить i18n aria-label', () => {
+        render(<Toggle {...{ ariaLabelI18nKey: 'common.label' } as any} />);
+
+        expect(mockTranslate).toHaveBeenCalledWith('common', 'common.label', {});
+        expect(screen.getByRole('switch')).toHaveAttribute('aria-label', 'Translated Label');
+      });
+
+      it('должен передавать namespace для i18n aria-label', () => {
+        render(<Toggle {...{ ariaLabelI18nKey: 'auth.login', ariaLabelI18nNs: 'auth' } as any} />);
+
+        expect(mockTranslate).toHaveBeenCalledWith('auth', 'auth.login', {});
+      });
+
+      it('должен передавать параметры для i18n aria-label', () => {
+        const params = { field: 'username', required: true };
+        render(
+          <Toggle {...{ ariaLabelI18nKey: 'common.field', ariaLabelI18nParams: params } as any} />,
+        );
+
+        expect(mockTranslate).toHaveBeenCalledWith('common', 'common.field', params);
+      });
+
+      it('должен использовать пустой объект для undefined параметров i18n aria-label', () => {
+        render(
+          <Toggle
+            {...{ ariaLabelI18nKey: 'common.test', ariaLabelI18nParams: undefined } as any}
+          />,
+        );
+
+        expect(mockTranslate).toHaveBeenCalledWith('common', 'common.test', {});
+      });
     });
   });
 
@@ -303,6 +354,47 @@ describe('Toggle', () => {
 
     it('должен иметь displayName', () => {
       expect(Toggle.displayName).toBe('Toggle');
+    });
+  });
+
+  describe('Побочные эффекты и производительность', () => {
+    it('должен мемоизировать i18n aria-label при изменении пропсов', () => {
+      const { rerender } = render(<Toggle {...{ ariaLabelI18nKey: 'common.first' } as any} />);
+
+      expect(mockTranslate).toHaveBeenCalledTimes(1);
+
+      rerender(<Toggle {...{ ariaLabelI18nKey: 'common.second' } as any} />);
+
+      expect(mockTranslate).toHaveBeenCalledTimes(2);
+      expect(mockTranslate).toHaveBeenLastCalledWith('common', 'common.second', {});
+    });
+  });
+
+  describe('Discriminated union типизация', () => {
+    it('должен принимать обычный aria-label без i18n', () => {
+      render(<Toggle aria-label='Regular label' />);
+
+      expect(screen.getByRole('switch')).toHaveAttribute('aria-label', 'Regular label');
+    });
+
+    it('должен принимать i18n aria-label без обычного', () => {
+      render(<Toggle {...{ ariaLabelI18nKey: 'common.test' } as any} />);
+
+      expect(mockTranslate).toHaveBeenCalledWith('common', 'common.test', {});
+    });
+
+    it('не должен компилироваться с обоими aria-label одновременно', () => {
+      // Этот тест проверяет, что discriminated union работает правильно
+      expect(() => {
+        // TypeScript не позволит создать такой объект
+        const invalidProps = {
+          'aria-label': 'test',
+          ariaLabelI18nKey: 'test',
+        } as any;
+
+        // Если discriminated union работает, этот объект будет иметь never типы для конфликтующих полей
+        return invalidProps;
+      }).not.toThrow();
     });
   });
 

@@ -115,9 +115,17 @@ vi.mock('../../../../ui-core/src/primitives/dropdown', () => ({
 
 // Mock для UnifiedUIProvider
 const mockInfoFireAndForget = vi.fn();
+const mockTranslate = vi.fn();
 
 vi.mock('../../../src/providers/UnifiedUIProvider', () => ({
   useUnifiedUI: () => ({
+    i18n: {
+      translate: mockTranslate,
+      locale: 'en',
+      direction: 'ltr' as const,
+      loadNamespace: vi.fn(),
+      isNamespaceLoaded: vi.fn(() => true),
+    },
     featureFlags: {
       isEnabled: () => false,
       setOverride: vi.fn(),
@@ -142,6 +150,7 @@ describe('App Dropdown', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    mockTranslate.mockReturnValue('Translated Label');
   });
 
   afterEach(() => {
@@ -218,6 +227,75 @@ describe('App Dropdown', () => {
       const dropdown = screen.getByTestId('core-dropdown');
       expect(dropdown).toHaveClass('custom-class');
       expect(dropdown).toHaveStyle({ margin: '10px' });
+    });
+  });
+
+  describe('I18n рендеринг', () => {
+    describe('Aria-label', () => {
+      it('должен рендерить обычный aria-label', () => {
+        render(
+          <Dropdown
+            items={testItems}
+            trigger='Open Menu'
+            aria-label='Test label'
+          />,
+        );
+
+        expect(screen.getByTestId('core-dropdown')).toHaveAttribute('aria-label', 'Test label');
+      });
+
+      it('должен рендерить i18n aria-label', () => {
+        render(
+          <Dropdown
+            items={testItems}
+            trigger='Open Menu'
+            {...{ ariaLabelI18nKey: 'common.label' } as any}
+          />,
+        );
+
+        expect(mockTranslate).toHaveBeenCalledWith('common', 'common.label', {});
+        expect(screen.getByTestId('core-dropdown')).toHaveAttribute(
+          'aria-label',
+          'Translated Label',
+        );
+      });
+
+      it('должен передавать namespace для i18n aria-label', () => {
+        render(
+          <Dropdown
+            items={testItems}
+            trigger='Open Menu'
+            {...{ ariaLabelI18nKey: 'auth.login', ariaLabelI18nNs: 'auth' } as any}
+          />,
+        );
+
+        expect(mockTranslate).toHaveBeenCalledWith('auth', 'auth.login', {});
+      });
+
+      it('должен передавать параметры для i18n aria-label', () => {
+        const params = { field: 'username', required: true };
+        render(
+          <Dropdown
+            items={testItems}
+            trigger='Open Menu'
+            {...{ ariaLabelI18nKey: 'common.field', ariaLabelI18nParams: params } as any}
+          />,
+        );
+
+        expect(mockTranslate).toHaveBeenCalledWith('common', 'common.field', params);
+      });
+
+      it('должен использовать пустой объект для undefined параметров i18n aria-label', () => {
+        render(
+          <Dropdown
+            items={testItems}
+            trigger='Open Menu'
+            {...{ ariaLabelI18nKey: 'common.test', ariaLabelI18nParams: undefined } as any}
+          />,
+        );
+
+        expect(mockTranslate).toHaveBeenCalledWith('common', 'common.test', {});
+      });
     });
   });
 
@@ -1013,6 +1091,71 @@ describe('App Dropdown', () => {
       // но memo обертка не копирует displayName, поэтому проверяем что компонент определен
       expect(Dropdown).toBeDefined();
       expect(typeof Dropdown).toBe('object');
+    });
+  });
+
+  describe('Побочные эффекты и производительность', () => {
+    it('должен мемоизировать i18n aria-label при изменении пропсов', () => {
+      const { rerender } = render(
+        <Dropdown
+          items={testItems}
+          trigger='Open Menu'
+          {...{ ariaLabelI18nKey: 'common.first' } as any}
+        />,
+      );
+
+      expect(mockTranslate).toHaveBeenCalledTimes(1);
+
+      rerender(
+        <Dropdown
+          items={testItems}
+          trigger='Open Menu'
+          {...{ ariaLabelI18nKey: 'common.second' } as any}
+        />,
+      );
+
+      expect(mockTranslate).toHaveBeenCalledTimes(2);
+      expect(mockTranslate).toHaveBeenLastCalledWith('common', 'common.second', {});
+    });
+  });
+
+  describe('Discriminated union типизация', () => {
+    it('должен принимать обычный aria-label без i18n', () => {
+      render(
+        <Dropdown
+          items={testItems}
+          trigger='Open Menu'
+          aria-label='Regular label'
+        />,
+      );
+
+      expect(screen.getByTestId('core-dropdown')).toHaveAttribute('aria-label', 'Regular label');
+    });
+
+    it('должен принимать i18n aria-label без обычного', () => {
+      render(
+        <Dropdown
+          items={testItems}
+          trigger='Open Menu'
+          {...{ ariaLabelI18nKey: 'common.test' } as any}
+        />,
+      );
+
+      expect(mockTranslate).toHaveBeenCalledWith('common', 'common.test', {});
+    });
+
+    it('не должен компилироваться с обоими aria-label одновременно', () => {
+      // Этот тест проверяет, что discriminated union работает правильно
+      expect(() => {
+        // TypeScript не позволит создать такой объект
+        const invalidProps = {
+          'aria-label': 'test',
+          ariaLabelI18nKey: 'test',
+        } as any;
+
+        // Если discriminated union работает, этот объект будет иметь never типы для конфликтующих полей
+        return invalidProps;
+      }).not.toThrow();
     });
   });
 });

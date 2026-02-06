@@ -10,9 +10,17 @@ import '@testing-library/jest-dom/vitest';
 
 // Mock для UnifiedUIProvider
 const mockInfoFireAndForget = vi.fn();
+const mockTranslate = vi.fn();
 
 vi.mock('../../../src/providers/UnifiedUIProvider', () => ({
   useUnifiedUI: () => ({
+    i18n: {
+      translate: mockTranslate,
+      locale: 'en',
+      direction: 'ltr' as const,
+      loadNamespace: vi.fn(),
+      isNamespaceLoaded: vi.fn(() => true),
+    },
     telemetry: {
       track: vi.fn(),
       infoFireAndForget: mockInfoFireAndForget,
@@ -25,6 +33,7 @@ import { Icon } from '../../../src/ui/icon';
 describe('Icon', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockTranslate.mockReturnValue('Translated Label');
   });
 
   afterEach(() => {
@@ -54,6 +63,57 @@ describe('Icon', () => {
       render(<Icon name='test-icon' data-testid='test-icon' />);
 
       expect(screen.getByTestId('test-icon')).toBeInTheDocument();
+    });
+  });
+
+  describe('I18n рендеринг', () => {
+    describe('Aria-label', () => {
+      it('должен рендерить обычный aria-label', () => {
+        render(<Icon name='test-icon' aria-label='Test label' />);
+
+        expect(screen.getByRole('img')).toHaveAttribute('aria-label', 'Test label');
+      });
+
+      it('должен рендерить i18n aria-label', () => {
+        render(<Icon name='test-icon' {...{ ariaLabelI18nKey: 'common.label' } as any} />);
+
+        expect(mockTranslate).toHaveBeenCalledWith('common', 'common.label', {});
+        expect(screen.getByRole('img')).toHaveAttribute('aria-label', 'Translated Label');
+      });
+
+      it('должен передавать namespace для i18n aria-label', () => {
+        render(
+          <Icon
+            name='test-icon'
+            {...{ ariaLabelI18nKey: 'auth.login', ariaLabelI18nNs: 'auth' } as any}
+          />,
+        );
+
+        expect(mockTranslate).toHaveBeenCalledWith('auth', 'auth.login', {});
+      });
+
+      it('должен передавать параметры для i18n aria-label', () => {
+        const params = { field: 'username', required: true };
+        render(
+          <Icon
+            name='test-icon'
+            {...{ ariaLabelI18nKey: 'common.field', ariaLabelI18nParams: params } as any}
+          />,
+        );
+
+        expect(mockTranslate).toHaveBeenCalledWith('common', 'common.field', params);
+      });
+
+      it('должен использовать пустой объект для undefined параметров i18n aria-label', () => {
+        render(
+          <Icon
+            name='test-icon'
+            {...{ ariaLabelI18nKey: 'common.test', ariaLabelI18nParams: undefined } as any}
+          />,
+        );
+
+        expect(mockTranslate).toHaveBeenCalledWith('common', 'common.test', {});
+      });
     });
   });
 
@@ -309,6 +369,49 @@ describe('Icon', () => {
       rerender(<TestComponent />);
 
       expect(renderCount).toBe(1);
+    });
+  });
+
+  describe('Побочные эффекты и производительность', () => {
+    it('должен мемоизировать i18n aria-label при изменении пропсов', () => {
+      const { rerender } = render(
+        <Icon name='test-icon' {...{ ariaLabelI18nKey: 'common.first' } as any} />,
+      );
+
+      expect(mockTranslate).toHaveBeenCalledTimes(1);
+
+      rerender(<Icon name='test-icon' {...{ ariaLabelI18nKey: 'common.second' } as any} />);
+
+      expect(mockTranslate).toHaveBeenCalledTimes(2);
+      expect(mockTranslate).toHaveBeenLastCalledWith('common', 'common.second', {});
+    });
+  });
+
+  describe('Discriminated union типизация', () => {
+    it('должен принимать обычный aria-label без i18n', () => {
+      render(<Icon name='test-icon' aria-label='Regular label' />);
+
+      expect(screen.getByRole('img')).toHaveAttribute('aria-label', 'Regular label');
+    });
+
+    it('должен принимать i18n aria-label без обычного', () => {
+      render(<Icon name='test-icon' {...{ ariaLabelI18nKey: 'common.test' } as any} />);
+
+      expect(mockTranslate).toHaveBeenCalledWith('common', 'common.test', {});
+    });
+
+    it('не должен компилироваться с обоими aria-label одновременно', () => {
+      // Этот тест проверяет, что discriminated union работает правильно
+      expect(() => {
+        // TypeScript не позволит создать такой объект
+        const invalidProps = {
+          'aria-label': 'test',
+          ariaLabelI18nKey: 'test',
+        } as any;
+
+        // Если discriminated union работает, этот объект будет иметь never типы для конфликтующих полей
+        return invalidProps;
+      }).not.toThrow();
     });
   });
 

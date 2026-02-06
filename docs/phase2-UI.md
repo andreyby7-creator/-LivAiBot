@@ -201,7 +201,7 @@ apps/web (тонкий композитор)
 5️⃣8️⃣ packages/app/src/lib/route-permissions.ts 🟢 — ts — deps: types/common.ts, lib/auth-guard.ts
 5️⃣9️⃣ packages/app/src/lib/logger.ts 🟢 — ts — deps: types/common.ts, lib/telemetry.ts
 
-✅ App state и hooks
+✅ App state, provider и hooks
 6️⃣0️⃣ packages/app/src/state/store.ts 🟢 — ts+zustand — deps: types/common.ts
 6️⃣1️⃣ packages/app/src/state/query/query-client.ts 🟢 — ts+react — deps: lib/telemetry.ts
 6️⃣2️⃣ packages/app/src/providers/TelemetryProvider.tsx 🟢 — ts+react — deps: lib/telemetry.ts, types/telemetry.ts, types/ui-contracts.ts
@@ -216,7 +216,7 @@ apps/web (тонкий композитор)
 7️⃣1️⃣ packages/app/src/hooks/useFeatureFlags.ts 🟢 — ts+react — deps: providers/FeatureFlagsProvider.tsx, lib/feature-flags.ts, types/common.ts, types/ui-contracts.ts
 7️⃣2️⃣ packages/app/src/hooks/useOfflineCache.ts 🟢 — ts+react+effect — deps: lib/effect-utils.ts, lib/offline-cache.ts, types/ui-contracts.ts
 
-✅ App UI wrappers
+✅ App UI wrappers (enabled: telemetry, feature-flags, i18n)
 7️⃣3️⃣ packages/app/src/ui/button.tsx 🟢 — ts+react — deps: ui-core/primitives/button.tsx, providers/UnifiedUIProvider.tsx, app/types/ui-contracts.ts
 7️⃣4️⃣ packages/app/src/ui/input.tsx 🟢 — ts+react — deps: ui-core/src/index.tsx, providers/UnifiedUIProvider.tsx, app/types/ui-contracts.ts
 7️⃣5️⃣ packages/app/src/ui/textarea.tsx 🟢 — ts+react — deps: ui-core/primitives/textarea.tsx, providers/UnifiedUIProvider.tsx, app/types/ui-contracts.ts
@@ -255,28 +255,29 @@ apps/web (тонкий композитор)
 1️⃣0️⃣8️⃣ packages/app/src/ui/support-button.tsx 🟢 — ts+react — deps: ui-core/components/SupportButton.tsx, providers/UnifiedUIProvider.tsx, app/types/ui-contracts.ts
 
 Feature Auth
-1️⃣0️⃣7️⃣ packages/feature-auth/src/domain/LoginRequest.ts 🔴 — ts — deps: — , (DTO login, только типы запроса)
-1️⃣0️⃣8️⃣ packages/feature-auth/src/domain/TokenPair.ts 🔴 — ts — deps: — , (DTO token pair: accessToken, refreshToken, expiresAt)
-1️⃣0️⃣9️⃣ packages/feature-auth/src/domain/MeResponse.ts 🔴 — ts — deps: — , (DTO ответа /me: данные пользователя, роли, permissions)
-1️⃣1️⃣0️⃣ packages/feature-auth/src/types/auth.ts 🔴 — ts — deps: domain/LoginRequest.ts, domain/TokenPair.ts, domain/MeResponse.ts , (агрегирующие типы auth: AuthState, AuthStatus, AuthError)
-1️⃣1️⃣1️⃣ packages/feature-auth/src/stores/auth.ts 🔴 — ts+zustand — deps: types/auth.ts , (Auth store, чистое состояние, без effects)
-1️⃣1️⃣2️⃣ packages/feature-auth/src/effects/login.ts 🔴 — ts+effect — deps: app/lib/api-client.ts, app/lib/error-mapping.ts, app/lib/telemetry.ts, types/auth.ts, stores/auth.ts , (выполняет login, обновляет store, логирует telemetry)
-1️⃣1️⃣3️⃣ packages/feature-auth/src/effects/logout.ts 🔴 — ts+effect — deps: app/lib/api-client.ts, app/lib/telemetry.ts, stores/auth.ts , (выполняет logout, очищает auth state)
-1️⃣1️⃣4️⃣ packages/feature-auth/src/effects/refresh.ts 🔴 — ts+effect — deps: app/lib/api-client.ts, app/lib/telemetry.ts, types/auth.ts, stores/auth.ts , (обновляет access token, синхронизирует store)
-1️⃣1️⃣5️⃣ packages/feature-auth/src/hooks/useAuth.ts 🔴 — ts+react — deps: stores/auth.ts, effects/login.ts, effects/logout.ts, effects/refresh.ts , (React-адаптер для auth состояния и эффектов)* (НЕТ)
-1️⃣1️⃣6️⃣ packages/feature-auth/src/schemas.ts 🟢 — ts+zod — deps: core-contracts , (Zod схемы для валидации auth данных: login request, token pair, me response на базе core-contracts DTO)
+1️⃣0️⃣9️⃣ packages/feature-auth/src/domain/LoginRequest.ts 🔴 — ts — deps: — , (DTO login, только типы запроса)
+1️⃣1️⃣0️⃣ packages/feature-auth/src/domain/TokenPair.ts 🔴 — ts — deps: — , (DTO token pair: accessToken, refreshToken, expiresAt)
+1️⃣1️⃣1️⃣ packages/feature-auth/src/domain/MeResponse.ts 🔴 — ts — deps: — , (DTO ответа /me: данные пользователя, роли, permissions)
+1️⃣1️⃣2️⃣ packages/feature-auth/src/types/auth.ts 🔴 — ts — deps: domain/LoginRequest.ts, domain/TokenPair.ts, domain/MeResponse.ts , (агрегирующие типы auth: AuthState, AuthStatus, AuthError)
+1️⃣1️⃣3️⃣ packages/feature-auth/src/stores/auth.ts 🔴 — ts+zustand — deps: types/auth.ts , (Auth store, чистое состояние, без effects)
+1️⃣1️⃣4️⃣ packages/feature-auth/src/effects/login.ts 🔴 — ts+effect — deps: app/lib/api-client.ts, app/lib/error-mapping.ts, app/lib/telemetry.ts, types/auth.ts, stores/auth.ts , (выполняет login, обновляет store, логирует telemetry)
+1️⃣1️⃣5️⃣ packages/feature-auth/src/effects/logout.ts 🔴 — ts+effect — deps: app/lib/api-client.ts, app/lib/telemetry.ts, stores/auth.ts , (выполняет logout, очищает auth state)
+1️⃣1️⃣6️⃣ packages/feature-auth/src/effects/refresh.ts 🔴 — ts+effect — deps: app/lib/api-client.ts, app/lib/telemetry.ts, types/auth.ts, stores/auth.ts , (обновляет access token, синхронизирует store)
+Feature Bots
+1️⃣1️⃣7️⃣ packages/feature-auth/src/hooks/useAuth.ts 🔴 — ts+react — deps: stores/auth.ts, effects/login.ts, effects/logout.ts, effects/refresh.ts , (React-адаптер для auth состояния и эффектов)* (НЕТ)
+1️⃣1️⃣8️⃣ packages/feature-auth/src/schemas.ts 🟢 — ts+zod — deps: core-contracts , (Zod схемы для валидации auth данных: login request, token pair, me response на базе core-contracts DTO)
 
 Feature Bots
-1️⃣1️⃣7️⃣ packages/feature-bots/src/domain/Bot.ts 🔴 — ts — deps: — , (Bot entity, основные поля бота: id, name, status, templateId, metadata)
-1️⃣1️⃣8️⃣ packages/feature-bots/src/domain/BotTemplate.ts 🔴 — ts — deps: — , (Bot template entity, описание шаблона, дефолтные параметры, capabilities)
-1️⃣1️⃣9️⃣ packages/feature-bots/src/domain/Prompt.ts 🔴 — ts — deps: — , (Prompt entity, системный/пользовательский prompt, параметры генерации)
-1️⃣2️⃣0️⃣ packages/feature-bots/src/types/bots.ts 🔴 — ts — deps: domain/Bot.ts, domain/BotTemplate.ts, domain/Prompt.ts , (агрегирующие типы bots: BotState, BotStatus, BotError, DTO для create/update)
-1️⃣2️⃣1️⃣ packages/feature-bots/src/stores/bots.ts 🔴 — ts+zustand — deps: types/bots.ts , (Bots store, список ботов, текущий бот, UI-состояние, без effects)
-1️⃣2️⃣2️⃣ packages/feature-bots/src/effects/createBot.ts 🔴 — ts+effect — deps: app/lib/api-client.ts, app/lib/error-mapping.ts, app/lib/telemetry.ts, stores/bots.ts, types/bots.ts , (создание бота через API, обновление store)
-1️⃣2️⃣3️⃣ packages/feature-bots/src/effects/updateBot.ts 🔴 — ts+effect — deps: app/lib/api-client.ts, app/lib/error-mapping.ts, app/lib/telemetry.ts, stores/bots.ts, types/bots.ts , (обновление бота, синхронизация состояния)
-1️⃣2️⃣4️⃣ packages/feature-bots/src/effects/deleteBot.ts 🔴 — ts+effect — deps: app/lib/api-client.ts, app/lib/telemetry.ts, stores/bots.ts , (удаление бота и очистка store)
-1️⃣2️⃣5️⃣ packages/feature-bots/src/hooks/useBots.ts 🔴 — ts+react — deps: stores/bots.ts, effects/createBot.ts, effects/updateBot.ts, effects/deleteBot.ts , (React-API для списка ботов и CRUD)
-1️⃣2️⃣6️⃣ packages/feature-bots/src/hooks/useBotWizard.ts 🔴 — ts+react — deps: stores/bots.ts, effects/createBot.ts , (пошаговый wizard создания бота, управление draft-состоянием)
+1️⃣1️⃣9️⃣ packages/feature-bots/src/domain/Bot.ts 🔴 — ts — deps: — , (Bot entity, основные поля бота: id, name, status, templateId, metadata)
+1️⃣2️⃣0️⃣ packages/feature-bots/src/domain/BotTemplate.ts 🔴 — ts — deps: — , (Bot template entity, описание шаблона, дефолтные параметры, capabilities)
+1️⃣2️⃣1️⃣ packages/feature-bots/src/domain/Prompt.ts 🔴 — ts — deps: — , (Prompt entity, системный/пользовательский prompt, параметры генерации)
+1️⃣2️⃣2️⃣ packages/feature-bots/src/types/bots.ts 🔴 — ts — deps: domain/Bot.ts, domain/BotTemplate.ts, domain/Prompt.ts , (агрегирующие типы bots: BotState, BotStatus, BotError, DTO для create/update)
+1️⃣2️⃣3️⃣ packages/feature-bots/src/stores/bots.ts 🔴 — ts+zustand — deps: types/bots.ts , (Bots store, список ботов, текущий бот, UI-состояние, без effects)
+1️⃣2️⃣4️⃣ packages/feature-bots/src/effects/createBot.ts 🔴 — ts+effect — deps: app/lib/api-client.ts, app/lib/error-mapping.ts, app/lib/telemetry.ts, stores/bots.ts, types/bots.ts , (создание бота через API, обновление store)
+1️⃣2️⃣5️⃣ packages/feature-bots/src/effects/updateBot.ts 🔴 — ts+effect — deps: app/lib/api-client.ts, app/lib/error-mapping.ts, app/lib/telemetry.ts, stores/bots.ts, types/bots.ts , (обновление бота, синхронизация состояния)
+1️⃣2️⃣6️⃣ packages/feature-bots/src/effects/deleteBot.ts 🔴 — ts+effect — deps: app/lib/api-client.ts, app/lib/telemetry.ts, stores/bots.ts , (удаление бота и очистка store)
+1️⃣2️⃣7️⃣ packages/feature-bots/src/hooks/useBots.ts 🔴 — ts+react — deps: stores/bots.ts, effects/createBot.ts, effects/updateBot.ts, effects/deleteBot.ts , (React-API для списка ботов и CRUD)
+1️⃣2️⃣8️⃣ packages/feature-bots/src/hooks/useBotWizard.ts 🔴 — ts+react — deps: stores/bots.ts, effects/createBot.ts , (пошаговый wizard создания бота, управление draft-состоянием)
 
 Feature Chat
 1️⃣2️⃣7️⃣ packages/feature-chat/src/domain/Message.ts 🔴 — ts — deps: — , (Message entity, текст, автор, timestamp, status доставки)

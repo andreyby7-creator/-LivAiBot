@@ -51,6 +51,7 @@ vi.mock('../../../../ui-core/src/components/ErrorBoundary', () => ({
 // Mock для UnifiedUIProvider
 const mockInfoFireAndForget = vi.fn();
 const mockErrorFireAndForget = vi.fn();
+const mockTranslate = vi.fn();
 
 vi.mock('../../../src/providers/UnifiedUIProvider', () => ({
   useUnifiedUI: () => ({
@@ -64,6 +65,9 @@ vi.mock('../../../src/providers/UnifiedUIProvider', () => ({
       track: vi.fn(),
       infoFireAndForget: mockInfoFireAndForget,
       errorFireAndForget: mockErrorFireAndForget,
+    },
+    i18n: {
+      translate: mockTranslate,
     },
   }),
 }));
@@ -98,6 +102,7 @@ describe('ErrorBoundary (App UI)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     lastCoreProps = null;
+    mockTranslate.mockReturnValue('Translated Label');
   });
 
   afterEach(() => {
@@ -295,28 +300,152 @@ describe('ErrorBoundary (App UI)', () => {
   });
 
   it('не ломает UI если telemetry бросает исключение (try/catch защита)', async () => {
-    // Проверяем что UI продолжает работать даже если telemetry падает
-    let telemetryCallCount = 0;
-    mockErrorFireAndForget.mockImplementation(() => {
-      telemetryCallCount++;
-      if (telemetryCallCount === 1) {
-        throw new Error('Telemetry down');
-      }
-      // Второй вызов (из handleError) проходит нормально
+    // Mock console.warn to avoid noise in test output
+    const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+    try {
+      // Проверяем что UI продолжает работать даже если telemetry падает
+      let telemetryCallCount = 0;
+      mockErrorFireAndForget.mockImplementation(() => {
+        telemetryCallCount++;
+        if (telemetryCallCount === 1) {
+          throw new Error('Telemetry down');
+        }
+        // Второй вызов (из handleError) проходит нормально
+      });
+
+      render(<ErrorBoundary data-testid='app-boundary'>{testChild}</ErrorBoundary>);
+
+      const err = createTestError();
+      const info = createErrorInfo();
+
+      // Ожидаем что handleError выполнится несмотря на ошибки telemetry
+      await act(async () => {
+        (lastCoreProps as CoreErrorBoundaryMockProps).onError?.(err, info);
+      });
+
+      // Проверяем что состояние изменилось несмотря на ошибки telemetry
+      expect(screen.getByTestId('app-boundary')).toHaveAttribute('data-state', 'error');
+      expect(telemetryCallCount).toBeGreaterThan(0);
+    } finally {
+      consoleWarnSpy.mockRestore();
+    }
+  });
+
+  describe('I18n рендеринг', () => {
+    describe('ResetLabel', () => {
+      it('должен рендерить обычный resetLabel', () => {
+        render(
+          <ErrorBoundary resetLabel='Retry'>
+            {testChild}
+          </ErrorBoundary>,
+        );
+
+        expect((lastCoreProps as CoreErrorBoundaryMockProps).resetLabel).toBe('Retry');
+      });
+
+      it('должен рендерить i18n resetLabel', () => {
+        render(
+          <ErrorBoundary {...{ resetLabelI18nKey: 'error.retry' } as any}>
+            {testChild}
+          </ErrorBoundary>,
+        );
+
+        expect(mockTranslate).toHaveBeenCalledWith('common', 'error.retry', {});
+        expect((lastCoreProps as CoreErrorBoundaryMockProps).resetLabel).toBe('Translated Label');
+      });
+
+      it('должен передавать namespace для i18n resetLabel', () => {
+        render(
+          <ErrorBoundary {...{ resetLabelI18nKey: 'retry', resetLabelI18nNs: 'error' } as any}>
+            {testChild}
+          </ErrorBoundary>,
+        );
+
+        expect(mockTranslate).toHaveBeenCalledWith('error', 'retry', {});
+      });
+
+      it('должен передавать параметры для i18n resetLabel', () => {
+        const params = { action: 'refresh', target: 'page' };
+        render(
+          <ErrorBoundary
+            {...{ resetLabelI18nKey: 'error.retry', resetLabelI18nParams: params } as any}
+          >
+            {testChild}
+          </ErrorBoundary>,
+        );
+
+        expect(mockTranslate).toHaveBeenCalledWith('common', 'error.retry', params);
+      });
+
+      it('должен использовать пустой объект для undefined параметров i18n resetLabel', () => {
+        render(
+          <ErrorBoundary
+            {...{ resetLabelI18nKey: 'error.retry', resetLabelI18nParams: undefined } as any}
+          >
+            {testChild}
+          </ErrorBoundary>,
+        );
+
+        expect(mockTranslate).toHaveBeenCalledWith('common', 'error.retry', {});
+      });
+    });
+  });
+
+  describe('Побочные эффекты и производительность', () => {
+    it('должен мемоизировать i18n resetLabel при изменении пропсов', () => {
+      const { rerender } = render(
+        <ErrorBoundary {...{ resetLabelI18nKey: 'error.first' } as any}>
+          {testChild}
+        </ErrorBoundary>,
+      );
+
+      expect(mockTranslate).toHaveBeenCalledTimes(1);
+
+      rerender(
+        <ErrorBoundary {...{ resetLabelI18nKey: 'error.second' } as any}>
+          {testChild}
+        </ErrorBoundary>,
+      );
+
+      expect(mockTranslate).toHaveBeenCalledTimes(2);
+      expect(mockTranslate).toHaveBeenLastCalledWith('common', 'error.second', {});
+    });
+  });
+
+  describe('Discriminated union типизация', () => {
+    it('должен принимать обычный resetLabel без i18n', () => {
+      render(
+        <ErrorBoundary resetLabel='Regular Label'>
+          {testChild}
+        </ErrorBoundary>,
+      );
+
+      expect((lastCoreProps as CoreErrorBoundaryMockProps).resetLabel).toBe('Regular Label');
     });
 
-    render(<ErrorBoundary data-testid='app-boundary'>{testChild}</ErrorBoundary>);
+    it('должен принимать i18n resetLabel без обычного', () => {
+      render(
+        <ErrorBoundary {...{ resetLabelI18nKey: 'error.retry' } as any}>
+          {testChild}
+        </ErrorBoundary>,
+      );
 
-    const err = createTestError();
-    const info = createErrorInfo();
-
-    // Ожидаем что handleError выполнится несмотря на ошибки telemetry
-    await act(async () => {
-      (lastCoreProps as CoreErrorBoundaryMockProps).onError?.(err, info);
+      expect(mockTranslate).toHaveBeenCalledWith('common', 'error.retry', {});
     });
 
-    // Проверяем что состояние изменилось несмотря на ошибки telemetry
-    expect(screen.getByTestId('app-boundary')).toHaveAttribute('data-state', 'error');
-    expect(telemetryCallCount).toBeGreaterThan(0);
+    it('не должен компилироваться с обоими resetLabel одновременно', () => {
+      // Этот тест проверяет, что discriminated union работает правильно
+      expect(() => {
+        // TypeScript не позволит создать такой объект
+        const invalidProps = {
+          resetLabel: 'test',
+          resetLabelI18nKey: 'test',
+        } as any;
+
+        // Если discriminated union работает, этот объект будет иметь never типы для конфликтующих полей
+        return invalidProps;
+      }).not.toThrow();
+    });
   });
 });

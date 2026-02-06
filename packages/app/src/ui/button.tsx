@@ -78,7 +78,7 @@ type ButtonTelemetryPayload = {
 
 /** App props для Button */
 export type AppButtonProps = Readonly<
-  & Omit<CoreButtonProps, 'children'>
+  & Omit<CoreButtonProps, 'children' | 'aria-label'>
   & (
     | {
       /** I18n режим: ключ локализации обязателен */
@@ -95,14 +95,33 @@ export type AppButtonProps = Readonly<
       children: React.ReactNode;
     }
   )
+  & (
+    | {
+      /** I18n aria-label режим */
+      ariaLabelI18nKey: TranslationKey;
+      ariaLabelI18nNs?: Namespace;
+      ariaLabelI18nParams?: Record<string, string | number>;
+      'aria-label'?: never;
+    }
+    | {
+      /** Обычный aria-label режим */
+      ariaLabelI18nKey?: never;
+      ariaLabelI18nNs?: never;
+      ariaLabelI18nParams?: never;
+      'aria-label'?: string;
+    }
+  )
 >;
 
 // Бизнес-пропсы, которые не должны попадать в DOM
-// i18n пропсы трансформируются в children, не должны протекать в Core
+// i18n пропсы трансформируются в соответствующие атрибуты, не должны протекать в Core
 const BUSINESS_PROPS = [
   'i18nKey',
   'i18nNs',
   'i18nParams',
+  'ariaLabelI18nKey',
+  'ariaLabelI18nNs',
+  'ariaLabelI18nParams',
 ] as const;
 
 /* ============================================================================
@@ -157,6 +176,21 @@ const ButtonComponent = memo<AppButtonProps>(
       return props.children;
     }, [props, translate]);
 
+    // Aria-label: i18n → обычный aria-label → undefined
+    const ariaLabel = useMemo<string | undefined>(() => {
+      // Narrowing через discriminated union для aria-label
+      if ('ariaLabelI18nKey' in props) {
+        const effectiveNs = props.ariaLabelI18nNs ?? 'common';
+        return translate(
+          effectiveNs,
+          props.ariaLabelI18nKey,
+          props.ariaLabelI18nParams ?? EMPTY_PARAMS,
+        );
+      }
+      // Проверяем наличие обычного aria-label в отфильтрованных пропсах
+      return filteredCoreProps['aria-label'];
+    }, [props, translate, filteredCoreProps]);
+
     // Click handler с централизованной telemetry
     const handleClick = useCallback<NonNullable<CoreButtonProps['onClick']>>(
       (event: React.MouseEvent<HTMLButtonElement>) => {
@@ -179,6 +213,7 @@ const ButtonComponent = memo<AppButtonProps>(
         disabled={disabled}
         onClick={handleClick}
         data-telemetry={policy.telemetryEnabled ? 'enabled' : 'disabled'}
+        {...(ariaLabel !== undefined && { 'aria-label': ariaLabel })}
         {...filteredCoreProps}
       >
         {label}

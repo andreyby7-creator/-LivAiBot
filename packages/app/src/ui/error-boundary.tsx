@@ -28,6 +28,7 @@ import type { ErrorInfo, ReactNode } from 'react';
 import { CoreErrorBoundary } from '../../../ui-core/src/components/ErrorBoundary.js';
 import type { CoreErrorBoundaryProps } from '../../../ui-core/src/components/ErrorBoundary.js';
 import { mapErrorBoundaryError } from '../lib/error-mapping.js';
+import type { Namespace, TranslationKey } from '../lib/i18n.js';
 import { useUnifiedUI } from '../providers/UnifiedUIProvider.js';
 import type { Json } from '../types/common.js';
 import type { AppError } from '../types/errors.js';
@@ -59,6 +60,9 @@ const ErrorBoundaryTelemetryAction = {
   Reset: 'reset',
 } as const;
 
+/** Стабильная ссылка на пустой объект параметров */
+const EMPTY_PARAMS: Record<string, string | number> = Object.freeze({});
+
 /** Дефолтный fallback UI для error-boundary. */
 const defaultFallback = (error: Error): ReactNode => (
   <div
@@ -89,7 +93,8 @@ type ErrorBoundaryTelemetryPayload = {
 };
 
 export type AppErrorBoundaryProps = Readonly<
-  Omit<CoreErrorBoundaryProps, 'onError' | 'onReset' | 'data-testid' | 'showStack'> & {
+  & Omit<CoreErrorBoundaryProps, 'onError' | 'onReset' | 'data-testid' | 'showStack' | 'resetLabel'>
+  & {
     /** Feature flag: скрыть ErrorBoundary */
     isHiddenByFeatureFlag?: boolean;
 
@@ -111,6 +116,22 @@ export type AppErrorBoundaryProps = Readonly<
     /** Test ID для автотестов */
     'data-testid'?: string;
   }
+  & (
+    | {
+      /** I18n resetLabel режим */
+      resetLabelI18nKey: TranslationKey;
+      resetLabelI18nNs?: Namespace;
+      resetLabelI18nParams?: Record<string, string | number>;
+      resetLabel?: never;
+    }
+    | {
+      /** Обычный resetLabel режим */
+      resetLabelI18nKey?: never;
+      resetLabelI18nNs?: never;
+      resetLabelI18nParams?: never;
+      resetLabel?: string;
+    }
+  )
 >;
 
 /* ============================================================================
@@ -472,15 +493,28 @@ function AppErrorBoundaryComponent(props: AppErrorBoundaryProps): ReactNode {
   const {
     children,
     fallback,
-    resetLabel,
     showStack,
     onError,
     onReset,
     'data-testid': dataTestId,
   } = props;
 
-  const { telemetry } = useUnifiedUI();
+  const { telemetry, i18n } = useUnifiedUI();
+  const { translate } = i18n;
   const policy = useErrorBoundaryPolicy(props);
+
+  // ResetLabel: i18n → обычный resetLabel → undefined
+  const resolvedResetLabel = React.useMemo<string | undefined>(() => {
+    if ('resetLabelI18nKey' in props) {
+      const effectiveNs = props.resetLabelI18nNs ?? 'common';
+      return translate(
+        effectiveNs,
+        props.resetLabelI18nKey,
+        props.resetLabelI18nParams ?? EMPTY_PARAMS,
+      );
+    }
+    return props.resetLabel;
+  }, [props, translate]);
 
   if (policy.hiddenByFeatureFlag) {
     return children;
@@ -491,7 +525,7 @@ function AppErrorBoundaryComponent(props: AppErrorBoundaryProps): ReactNode {
       policy={policy}
       telemetry={telemetry}
       {...(fallback !== undefined && { fallback })}
-      {...(resetLabel !== undefined && { resetLabel })}
+      {...(resolvedResetLabel !== undefined && { resetLabel: resolvedResetLabel })}
       {...(showStack !== undefined && { showStack })}
       {...(onError !== undefined && { onError })}
       {...(onReset !== undefined && { onReset })}

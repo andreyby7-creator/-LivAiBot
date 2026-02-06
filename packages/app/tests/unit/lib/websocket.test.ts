@@ -367,13 +367,16 @@ describe('WebSocket Client', () => {
       const originalWebSocket = global.WebSocket;
       let constructorCallCount = 0;
 
-      global.WebSocket = vi.fn().mockImplementation(() => {
+      // Mock WebSocket constructor
+      const mockWebSocketConstructor = function() {
         constructorCallCount++;
         if (constructorCallCount === 2) { // Второй вызов (reconnect) падает
           throw new Error('Reconnect failed');
         }
         return mockWebSocket;
-      }) as any;
+      };
+
+      global.WebSocket = vi.fn(mockWebSocketConstructor) as any;
 
       // Set static properties
       (global.WebSocket as any).OPEN = WebSocket.OPEN;

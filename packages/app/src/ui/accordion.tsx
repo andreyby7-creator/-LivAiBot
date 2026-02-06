@@ -26,6 +26,7 @@ import type { JSX, MouseEvent, Ref } from 'react';
 
 import { Accordion as CoreAccordion } from '../../../ui-core/src/components/Accordion.js';
 import type { CoreAccordionProps } from '../../../ui-core/src/components/Accordion.js';
+import type { Namespace, TranslationKey } from '../lib/i18n.js';
 import { useUnifiedUI } from '../providers/UnifiedUIProvider.js';
 import type { Json } from '../types/common.js';
 import type {
@@ -82,8 +83,12 @@ type AccordionTelemetryPayload = {
   mode?: 'single' | 'multiple';
 };
 
+/** Стабильная ссылка на пустой объект параметров */
+const EMPTY_PARAMS: Record<string, string | number> = Object.freeze({});
+
 export type AppAccordionProps = Readonly<
-  Omit<CoreAccordionProps, 'onChange' | 'data-testid'> & {
+  & Omit<CoreAccordionProps, 'onChange' | 'data-testid' | 'aria-label' | 'aria-labelledby'>
+  & {
     /** Видимость Accordion (App policy). Default = true */
     visible?: boolean;
 
@@ -99,6 +104,38 @@ export type AppAccordionProps = Readonly<
     /** Test ID для автотестов */
     'data-testid'?: string;
   }
+  & (
+    | {
+      /** I18n aria-label режим */
+      ariaLabelI18nKey: TranslationKey;
+      ariaLabelI18nNs?: Namespace;
+      ariaLabelI18nParams?: Record<string, string | number>;
+      'aria-label'?: never;
+    }
+    | {
+      /** Обычный aria-label режим */
+      ariaLabelI18nKey?: never;
+      ariaLabelI18nNs?: never;
+      ariaLabelI18nParams?: never;
+      'aria-label'?: string;
+    }
+  )
+  & (
+    | {
+      /** I18n aria-labelledby режим */
+      ariaLabelledByI18nKey: TranslationKey;
+      ariaLabelledByI18nNs?: Namespace;
+      ariaLabelledByI18nParams?: Record<string, string | number>;
+      'aria-labelledby'?: never;
+    }
+    | {
+      /** Обычный aria-labelledby режим */
+      ariaLabelledByI18nKey?: never;
+      ariaLabelledByI18nNs?: never;
+      ariaLabelledByI18nParams?: never;
+      'aria-labelledby'?: string;
+    }
+  )
 >;
 
 // 📦 Бизнес-пропсы, которые не должны попадать в DOM
@@ -106,6 +143,12 @@ const BUSINESS_PROPS = [
   'isHiddenByFeatureFlag',
   'telemetryEnabled',
   'visible',
+  'ariaLabelI18nKey',
+  'ariaLabelI18nNs',
+  'ariaLabelI18nParams',
+  'ariaLabelledByI18nKey',
+  'ariaLabelledByI18nNs',
+  'ariaLabelledByI18nParams',
 ] as const;
 
 /* ============================================================================
@@ -222,12 +265,39 @@ const AccordionComponent = forwardRef<HTMLDivElement, AppAccordionProps>(
     props: AppAccordionProps,
     ref: Ref<HTMLDivElement>,
   ): JSX.Element | null {
-    const { telemetry } = useUnifiedUI();
+    const { telemetry, i18n } = useUnifiedUI();
+    const { translate } = i18n;
     const policy = useAccordionPolicy(props);
 
     // Фильтруем бизнес-пропсы, оставляем только DOM-безопасные
     // onChange обрабатывается отдельно через handleChange
     const domProps = omit(props, [...BUSINESS_PROPS, 'onChange']);
+
+    // Aria-label: i18n → обычный aria-label → undefined
+    const ariaLabel = useMemo<string | undefined>(() => {
+      if ('ariaLabelI18nKey' in props) {
+        const effectiveNs = props.ariaLabelI18nNs ?? 'common';
+        return translate(
+          effectiveNs,
+          props.ariaLabelI18nKey,
+          props.ariaLabelI18nParams ?? EMPTY_PARAMS,
+        );
+      }
+      return domProps['aria-label'];
+    }, [props, translate, domProps]);
+
+    // Aria-labelledby: i18n → обычный aria-labelledby → undefined
+    const ariaLabelledBy = useMemo<string | undefined>(() => {
+      if ('ariaLabelledByI18nKey' in props) {
+        const effectiveNs = props.ariaLabelledByI18nNs ?? 'common';
+        return translate(
+          effectiveNs,
+          props.ariaLabelledByI18nKey,
+          props.ariaLabelledByI18nParams ?? EMPTY_PARAMS,
+        );
+      }
+      return domProps['aria-labelledby'];
+    }, [props, translate, domProps]);
 
     const {
       items,
@@ -408,6 +478,8 @@ const AccordionComponent = forwardRef<HTMLDivElement, AppAccordionProps>(
       <CoreAccordion
         ref={ref}
         {...coreAccordionProps}
+        aria-label={ariaLabel}
+        aria-labelledby={ariaLabelledBy}
         {...domProps}
       />
     );

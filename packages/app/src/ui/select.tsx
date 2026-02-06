@@ -31,6 +31,7 @@ import type { JSX } from 'react';
 
 import { Select as CoreSelect } from '../../../ui-core/src/primitives/select.js';
 import type { CoreSelectProps } from '../../../ui-core/src/primitives/select.js';
+import type { Namespace, TranslationKey } from '../lib/i18n.js';
 import { useUnifiedUI } from '../providers/UnifiedUIProvider.js';
 import type { Json } from '../types/common.js';
 import type {
@@ -63,6 +64,9 @@ const BUSINESS_PROPS = [
   'telemetryOnChange',
   'telemetryOnFocus',
   'telemetryOnBlur',
+  'ariaLabelI18nKey',
+  'ariaLabelI18nNs',
+  'ariaLabelI18nParams',
 ] as const;
 
 /** Функция для фильтрации бизнес-пропсов */
@@ -89,8 +93,11 @@ type SelectTelemetryPayload = Readonly<{
   value?: string; // для change событий
 }>;
 
+/** Стабильная ссылка на пустой объект параметров */
+const EMPTY_PARAMS: Record<string, string | number> = Object.freeze({});
+
 export type AppSelectProps = Readonly<
-  & CoreSelectProps
+  & Omit<CoreSelectProps, 'aria-label'>
   & {
     /** Feature flag: скрыть компонент */
     isHiddenByFeatureFlag?: boolean;
@@ -116,6 +123,22 @@ export type AppSelectProps = Readonly<
     /** Test ID for unit/e2e testing */
     'data-testid'?: string;
   }
+  & (
+    | {
+      /** I18n aria-label режим */
+      ariaLabelI18nKey: TranslationKey;
+      ariaLabelI18nNs?: Namespace;
+      ariaLabelI18nParams?: Record<string, string | number>;
+      'aria-label'?: never;
+    }
+    | {
+      /** Обычный aria-label режим */
+      ariaLabelI18nKey?: never;
+      ariaLabelI18nNs?: never;
+      ariaLabelI18nParams?: never;
+      'aria-label'?: string;
+    }
+  )
 >;
 
 /* ============================================================================
@@ -183,7 +206,8 @@ function emitSelectTelemetry(
 
 const SelectComponent = forwardRef<HTMLSelectElement, AppSelectProps>(
   function SelectComponent(props, ref): JSX.Element | null {
-    const { telemetry } = useUnifiedUI();
+    const { telemetry, i18n } = useUnifiedUI();
+    const { translate } = i18n;
     // Сначала фильтруем бизнес-пропсы
     const filteredProps = omit(props, BUSINESS_PROPS);
 
@@ -194,6 +218,19 @@ const SelectComponent = forwardRef<HTMLSelectElement, AppSelectProps>(
       'data-testid': dataTestId,
       ...coreProps
     } = filteredProps;
+
+    // Aria-label: i18n → обычный aria-label → undefined
+    const ariaLabel = useMemo<string | undefined>(() => {
+      if ('ariaLabelI18nKey' in props) {
+        const effectiveNs = props.ariaLabelI18nNs ?? 'common';
+        return translate(
+          effectiveNs,
+          props.ariaLabelI18nKey,
+          props.ariaLabelI18nParams ?? EMPTY_PARAMS,
+        );
+      }
+      return coreProps['aria-label'];
+    }, [props, translate, coreProps]);
 
     const policy = useSelectPolicy(props);
     const internalRef = useRef<HTMLSelectElement | null>(null);
@@ -272,6 +309,7 @@ const SelectComponent = forwardRef<HTMLSelectElement, AppSelectProps>(
         ref={internalRef}
         {...coreProps}
         {...(dataTestId != null ? { 'data-testid': dataTestId } : {})}
+        {...(ariaLabel !== undefined && { 'aria-label': ariaLabel })}
         data-component='AppSelect'
         disabled={policy.disabledByFeatureFlag || undefined}
         data-variant={policy.variant}

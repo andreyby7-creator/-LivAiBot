@@ -13,6 +13,7 @@ import type { JSX } from 'react';
 
 import { Form as CoreForm } from '../../../ui-core/src/primitives/form.js';
 import type { CoreFormProps } from '../../../ui-core/src/primitives/form.js';
+import type { Namespace, TranslationKey } from '../lib/i18n.js';
 import type { FormValidationResult, ValidationSchema } from '../lib/validation.js';
 import { validateForm } from '../lib/validation.js';
 import { useUnifiedUI } from '../providers/UnifiedUIProvider.js';
@@ -45,8 +46,11 @@ type FormTelemetryPayload = Readonly<{
   disabled: boolean;
 }>;
 
+/** Стабильная ссылка на пустой объект параметров */
+const EMPTY_PARAMS: Record<string, string | number> = Object.freeze({});
+
 export type AppFormProps = Readonly<
-  & CoreFormProps
+  & Omit<CoreFormProps, 'aria-label'>
   & {
     /* feature flags */
     isHiddenByFeatureFlag?: boolean;
@@ -65,6 +69,22 @@ export type AppFormProps = Readonly<
     /* async state */
     isSubmitting?: boolean;
   }
+  & (
+    | {
+      /** I18n aria-label режим */
+      ariaLabelI18nKey: TranslationKey;
+      ariaLabelI18nNs?: Namespace;
+      ariaLabelI18nParams?: Record<string, string | number>;
+      'aria-label'?: never;
+    }
+    | {
+      /** Обычный aria-label режим */
+      ariaLabelI18nKey?: never;
+      ariaLabelI18nNs?: never;
+      ariaLabelI18nParams?: never;
+      'aria-label'?: string;
+    }
+  )
 >;
 
 // Бизнес-пропсы, которые не должны попадать в DOM
@@ -78,6 +98,9 @@ const BUSINESS_PROPS = [
   'validationSchema',
   'onValidationError',
   'isSubmitting',
+  'ariaLabelI18nKey',
+  'ariaLabelI18nNs',
+  'ariaLabelI18nParams',
 ] as const;
 
 /* ============================================================================
@@ -137,11 +160,25 @@ function emitFormTelemetry(
  * ========================================================================== */
 
 function FormComponent(props: AppFormProps): JSX.Element | null {
-  const { telemetry } = useUnifiedUI();
+  const { telemetry, i18n } = useUnifiedUI();
+  const { translate } = i18n;
   const policy = useFormPolicy(props);
 
   // Фильтруем бизнес-пропсы, оставляем только DOM-безопасные
   const domProps = omit(props, BUSINESS_PROPS);
+
+  // Aria-label: i18n → обычный aria-label → undefined
+  const ariaLabel = useMemo<string | undefined>(() => {
+    if ('ariaLabelI18nKey' in props) {
+      const effectiveNs = props.ariaLabelI18nNs ?? 'common';
+      return translate(
+        effectiveNs,
+        props.ariaLabelI18nKey,
+        props.ariaLabelI18nParams ?? EMPTY_PARAMS,
+      );
+    }
+    return domProps['aria-label'];
+  }, [props, translate, domProps]);
 
   const {
     children,
@@ -217,6 +254,7 @@ function FormComponent(props: AppFormProps): JSX.Element | null {
   return (
     <CoreForm
       {...domProps}
+      {...(ariaLabel !== undefined && { 'aria-label': ariaLabel })}
       onSubmit={handleSubmit}
       onReset={handleReset}
       data-variant={policy.variant}

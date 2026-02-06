@@ -34,6 +34,7 @@ import type {
   UserProfileData,
 } from '../../../ui-core/src/components/UserProfileDisplay.js';
 import { useAuthGuardContext } from '../lib/auth-guard.js';
+import type { Namespace, TranslationKey } from '../lib/i18n.js';
 import { checkRoutePermission } from '../lib/route-permissions.js';
 import type { RoutePermissionContext } from '../lib/route-permissions.js';
 import { useUnifiedUI } from '../providers/UnifiedUIProvider.js';
@@ -101,7 +102,8 @@ type UserProfileDisplayTelemetryPayload = {
 };
 
 export type AppUserProfileDisplayProps = Readonly<
-  Omit<CoreUserProfileDisplayProps, 'data-testid'> & {
+  & Omit<CoreUserProfileDisplayProps, 'data-testid' | 'aria-label'>
+  & {
     /** Видимость UserProfileDisplay (App policy). Default = true */
     visible?: boolean;
 
@@ -117,6 +119,22 @@ export type AppUserProfileDisplayProps = Readonly<
     /** Test ID для автотестов */
     'data-testid'?: string;
   }
+  & (
+    | {
+      /** I18n aria-label режим */
+      ariaLabelI18nKey: TranslationKey;
+      ariaLabelI18nNs?: Namespace;
+      ariaLabelI18nParams?: Record<string, string | number>;
+      'aria-label'?: never;
+    }
+    | {
+      /** Обычный aria-label режим */
+      ariaLabelI18nKey?: never;
+      ariaLabelI18nNs?: never;
+      ariaLabelI18nParams?: never;
+      'aria-label'?: string;
+    }
+  )
 >;
 
 // Бизнес-пропсы, которые не должны попадать в DOM
@@ -127,7 +145,13 @@ const BUSINESS_PROPS = [
   'telemetryEnabled',
   'visible',
   'style',
+  'ariaLabelI18nKey',
+  'ariaLabelI18nNs',
+  'ariaLabelI18nParams',
 ] as const;
+
+/** Стабильная ссылка на пустой объект параметров */
+const EMPTY_PARAMS: Record<string, string | number> = Object.freeze({});
 
 /* ============================================================================
  * 🧠 POLICY
@@ -292,8 +316,22 @@ const UserProfileDisplayComponent = forwardRef<HTMLDivElement, AppUserProfileDis
     props: AppUserProfileDisplayProps,
     ref: Ref<HTMLDivElement>,
   ): JSX.Element | null {
-    const { telemetry } = useUnifiedUI();
+    const { telemetry, i18n } = useUnifiedUI();
+    const { translate } = i18n;
     const policy = useUserProfileDisplayPolicy(props);
+
+    // Aria-label: i18n → обычный aria-label → undefined
+    const ariaLabel = useMemo<string | undefined>(() => {
+      if ('ariaLabelI18nKey' in props) {
+        const effectiveNs = props.ariaLabelI18nNs ?? 'common';
+        return translate(
+          effectiveNs,
+          props.ariaLabelI18nKey,
+          props.ariaLabelI18nParams ?? EMPTY_PARAMS,
+        );
+      }
+      return props['aria-label'];
+    }, [props, translate]);
 
     // Фильтруем бизнес-пропсы, оставляем только DOM-безопасные
     const {
@@ -434,6 +472,7 @@ const UserProfileDisplayComponent = forwardRef<HTMLDivElement, AppUserProfileDis
         customAvatar={customAvatar}
         style={combinedStyle}
         className={className}
+        {...(ariaLabel !== undefined && { 'aria-label': ariaLabel })}
         data-component='AppUserProfileDisplay'
         data-state={policy.disabledByFeatureFlag ? 'disabled' : 'active'}
         data-feature-flag={policy.hiddenByFeatureFlag ? 'hidden' : 'visible'}

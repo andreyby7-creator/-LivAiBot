@@ -27,6 +27,7 @@ import type { JSX, Ref } from 'react';
 import { Modal as CoreModal } from '../../../ui-core/src/components/Modal.js';
 import type { CoreModalProps, ModalVariant } from '../../../ui-core/src/components/Modal.js';
 import type { UIDuration } from '../../../ui-core/src/types/ui.js';
+import type { Namespace, TranslationKey } from '../lib/i18n.js';
 import { useUnifiedUI } from '../providers/UnifiedUIProvider.js';
 import type { Json } from '../types/common.js';
 import type {
@@ -82,8 +83,12 @@ type ModalTelemetryPayload = {
   variant: ModalVariant;
 };
 
+/** Стабильная ссылка на пустой объект параметров */
+const EMPTY_PARAMS: Record<string, string | number> = Object.freeze({});
+
 export type AppModalProps = Readonly<
-  Omit<CoreModalProps, 'visible'> & {
+  & Omit<CoreModalProps, 'visible' | 'aria-label' | 'aria-labelledby'>
+  & {
     /** Видимость модалки (App policy) */
     visible?: boolean;
 
@@ -93,18 +98,44 @@ export type AppModalProps = Readonly<
     /** Telemetry master switch */
     telemetryEnabled?: boolean;
 
-    /** ARIA: основной лейбл для модального окна */
-    'aria-label'?: string;
-
-    /** ARIA: ID элемента с описанием модального окна */
-    'aria-labelledby'?: string;
-
     /**
      * Длительность анимаций (для будущих transition эффектов в App слое).
      * Пока не используется, но оставлено для обратной совместимости.
      */
     duration?: UIDuration;
   }
+  & (
+    | {
+      /** I18n aria-label режим */
+      ariaLabelI18nKey: TranslationKey;
+      ariaLabelI18nNs?: Namespace;
+      ariaLabelI18nParams?: Record<string, string | number>;
+      'aria-label'?: never;
+    }
+    | {
+      /** Обычный aria-label режим */
+      ariaLabelI18nKey?: never;
+      ariaLabelI18nNs?: never;
+      ariaLabelI18nParams?: never;
+      'aria-label'?: string;
+    }
+  )
+  & (
+    | {
+      /** I18n aria-labelledby режим */
+      ariaLabelledByI18nKey: TranslationKey;
+      ariaLabelledByI18nNs?: Namespace;
+      ariaLabelledByI18nParams?: Record<string, string | number>;
+      'aria-labelledby'?: never;
+    }
+    | {
+      /** Обычный aria-labelledby режим */
+      ariaLabelledByI18nKey?: never;
+      ariaLabelledByI18nNs?: never;
+      ariaLabelledByI18nParams?: never;
+      'aria-labelledby'?: string;
+    }
+  )
 >;
 
 // Бизнес-пропсы, которые не должны попадать в DOM
@@ -112,6 +143,12 @@ const BUSINESS_PROPS = [
   'visible',
   'isHiddenByFeatureFlag',
   'telemetryEnabled',
+  'ariaLabelI18nKey',
+  'ariaLabelI18nNs',
+  'ariaLabelI18nParams',
+  'ariaLabelledByI18nKey',
+  'ariaLabelledByI18nNs',
+  'ariaLabelledByI18nParams',
 ] as const;
 
 /* ============================================================================
@@ -180,14 +217,39 @@ function getModalPayload(
 
 const ModalComponent = forwardRef<HTMLDivElement, AppModalProps>(
   function ModalComponent(props: AppModalProps, ref: Ref<HTMLDivElement>): JSX.Element | null {
-    const { telemetry } = useUnifiedUI();
+    const { telemetry, i18n } = useUnifiedUI();
+    const { translate } = i18n;
     // Фильтруем бизнес-пропсы, оставляем только DOM-безопасные
     const domProps = omit(props, BUSINESS_PROPS);
 
+    // Aria-label: i18n → обычный aria-label → undefined
+    const ariaLabel = useMemo<string | undefined>(() => {
+      if ('ariaLabelI18nKey' in props) {
+        const effectiveNs = props.ariaLabelI18nNs ?? 'common';
+        return translate(
+          effectiveNs,
+          props.ariaLabelI18nKey,
+          props.ariaLabelI18nParams ?? EMPTY_PARAMS,
+        );
+      }
+      return domProps['aria-label'];
+    }, [props, translate, domProps]);
+
+    // Aria-labelledby: i18n → обычный aria-labelledby → undefined
+    const ariaLabelledBy = useMemo<string | undefined>(() => {
+      if ('ariaLabelledByI18nKey' in props) {
+        const effectiveNs = props.ariaLabelledByI18nNs ?? 'common';
+        return translate(
+          effectiveNs,
+          props.ariaLabelledByI18nKey,
+          props.ariaLabelledByI18nParams ?? EMPTY_PARAMS,
+        );
+      }
+      return domProps['aria-labelledby'];
+    }, [props, translate, domProps]);
+
     const {
       variant = DEFAULT_VARIANT,
-      'aria-label': ariaLabel,
-      'aria-labelledby': ariaLabelledBy,
       duration, // TODO: использовать для будущих transition эффектов в App слое
       ...filteredCoreProps
     } = domProps;

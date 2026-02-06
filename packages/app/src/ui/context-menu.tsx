@@ -27,6 +27,22 @@
 import { forwardRef, memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef } from 'react';
 import type { CSSProperties, JSX, KeyboardEvent, MouseEvent, Ref } from 'react';
 
+import { ContextMenu as CoreContextMenu } from '../../../ui-core/src/primitives/context-menu.js';
+import type {
+  ContextMenuRef,
+  CoreContextMenuProps,
+} from '../../../ui-core/src/primitives/context-menu.js';
+import type { Namespace, TranslationKey } from '../lib/i18n.js';
+import { useUnifiedUI } from '../providers/UnifiedUIProvider.js';
+import type { Json } from '../types/common.js';
+import type {
+  AppWrapperProps,
+  MapCoreProps,
+  UiFeatureFlags,
+  UiPrimitiveProps,
+  UiTelemetryApi,
+} from '../types/ui-contracts.js';
+
 /**
  * Isomorphic layout effect hook для SSR-safe использования.
  * В SSR использует useEffect, в браузере - useLayoutEffect.
@@ -57,21 +73,6 @@ function omit<T extends Record<string, unknown>, K extends keyof T>(
   ) as Omit<T, K>;
 }
 
-import { ContextMenu as CoreContextMenu } from '../../../ui-core/src/primitives/context-menu.js';
-import type {
-  ContextMenuRef,
-  CoreContextMenuProps,
-} from '../../../ui-core/src/primitives/context-menu.js';
-import { useUnifiedUI } from '../providers/UnifiedUIProvider.js';
-import type { Json } from '../types/common.js';
-import type {
-  AppWrapperProps,
-  MapCoreProps,
-  UiFeatureFlags,
-  UiPrimitiveProps,
-  UiTelemetryApi,
-} from '../types/ui-contracts.js';
-
 /* ============================================================================
  * 🧬 TYPES & CONSTANTS
  * ========================================================================== */
@@ -97,7 +98,8 @@ type ContextMenuTelemetryPayload = {
 };
 
 export type AppContextMenuProps = Readonly<
-  Omit<CoreContextMenuProps, 'onSelect' | 'onEscape' | 'data-testid' | 'style'> & {
+  & Omit<CoreContextMenuProps, 'onSelect' | 'onEscape' | 'data-testid' | 'style'>
+  & {
     /** Видимость ContextMenu (App policy). Default = true */
     visible?: boolean;
 
@@ -125,13 +127,35 @@ export type AppContextMenuProps = Readonly<
     /** Дополнительные стили (позиционирование передается через position prop) */
     style?: CSSProperties;
   }
+  & (
+    | {
+      /** I18n aria-label режим */
+      ariaLabelI18nKey: TranslationKey;
+      ariaLabelI18nNs?: Namespace;
+      ariaLabelI18nParams?: Record<string, string | number>;
+      'aria-label'?: never;
+    }
+    | {
+      /** Обычный aria-label режим */
+      ariaLabelI18nKey?: never;
+      ariaLabelI18nNs?: never;
+      ariaLabelI18nParams?: never;
+      'aria-label'?: string;
+    }
+  )
 >;
 
 // Бизнес-пропсы, которые не должны попадать в DOM
 const BUSINESS_PROPS = [
   'visible',
   'isHiddenByFeatureFlag',
+  'ariaLabelI18nKey',
+  'ariaLabelI18nNs',
+  'ariaLabelI18nParams',
 ] as const;
+
+/** Стабильная ссылка на пустой объект параметров */
+const EMPTY_PARAMS: Record<string, string | number> = Object.freeze({});
 
 /* ============================================================================
  * 🧠 POLICY
@@ -241,9 +265,23 @@ const ContextMenuComponent = forwardRef<HTMLDivElement, AppContextMenuProps>(
     props: AppContextMenuProps,
     ref: Ref<HTMLDivElement>,
   ): JSX.Element | null {
-    const { telemetry } = useUnifiedUI();
+    const { telemetry, i18n } = useUnifiedUI();
+    const { translate } = i18n;
     // Фильтруем бизнес-пропсы, оставляем только DOM-безопасные
     const domProps = omit(props, BUSINESS_PROPS);
+
+    // Aria-label: i18n → обычный aria-label → undefined
+    const ariaLabel = useMemo<string | undefined>(() => {
+      if ('ariaLabelI18nKey' in props) {
+        const effectiveNs = props.ariaLabelI18nNs ?? 'common';
+        return translate(
+          effectiveNs,
+          props.ariaLabelI18nKey,
+          props.ariaLabelI18nParams ?? EMPTY_PARAMS,
+        );
+      }
+      return domProps['aria-label'];
+    }, [props, translate, domProps]);
 
     const {
       items,
@@ -469,6 +507,7 @@ const ContextMenuComponent = forwardRef<HTMLDivElement, AppContextMenuProps>(
     const coreContextMenuProps: CoreContextMenuProps = useMemo(() => ({
       items,
       ...(isOpen !== undefined && { isOpen }),
+      ...(ariaLabel !== undefined && { 'aria-label': ariaLabel }),
       onSelect: handleSelect,
       onEscape: handleEscape,
       onArrowNavigation: handleArrowNavigation,
@@ -483,6 +522,7 @@ const ContextMenuComponent = forwardRef<HTMLDivElement, AppContextMenuProps>(
     }), [
       items,
       isOpen,
+      ariaLabel,
       handleSelect,
       handleEscape,
       handleArrowNavigation,

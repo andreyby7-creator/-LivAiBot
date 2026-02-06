@@ -27,6 +27,7 @@ import type { ChangeEvent, JSX, KeyboardEvent, Ref } from 'react';
 
 import { SearchBar as CoreSearchBar } from '../../../ui-core/src/components/SearchBar.js';
 import type { CoreSearchBarProps } from '../../../ui-core/src/components/SearchBar.js';
+import type { Namespace, TranslationKey } from '../lib/i18n.js';
 import { useUnifiedUI } from '../providers/UnifiedUIProvider.js';
 import type { UiTelemetryApi } from '../types/ui-contracts.js';
 
@@ -60,8 +61,12 @@ type SearchBarTelemetryPayload = {
   size?: SearchBarSize;
 };
 
+/** Стабильная ссылка на пустой объект параметров */
+const EMPTY_PARAMS: Record<string, string | number> = Object.freeze({});
+
 export type AppSearchBarProps = Readonly<
-  Omit<CoreSearchBarProps, 'onChange' | 'onSubmit' | 'onClear' | 'data-testid'> & {
+  & Omit<CoreSearchBarProps, 'onChange' | 'onSubmit' | 'onClear' | 'data-testid'>
+  & {
     /** Видимость SearchBar (App policy). Default = true */
     visible?: boolean;
 
@@ -89,6 +94,38 @@ export type AppSearchBarProps = Readonly<
     /** Test ID для автотестов */
     'data-testid'?: string;
   }
+  & (
+    | {
+      /** I18n placeholder режим */
+      placeholderI18nKey: TranslationKey;
+      placeholderI18nNs?: Namespace;
+      placeholderI18nParams?: Record<string, string | number>;
+      placeholder?: never;
+    }
+    | {
+      /** Обычный placeholder режим */
+      placeholderI18nKey?: never;
+      placeholderI18nNs?: never;
+      placeholderI18nParams?: never;
+      placeholder?: string;
+    }
+  )
+  & (
+    | {
+      /** I18n aria-label режим */
+      ariaLabelI18nKey: TranslationKey;
+      ariaLabelI18nNs?: Namespace;
+      ariaLabelI18nParams?: Record<string, string | number>;
+      'aria-label'?: never;
+    }
+    | {
+      /** Обычный aria-label режим */
+      ariaLabelI18nKey?: never;
+      ariaLabelI18nNs?: never;
+      ariaLabelI18nParams?: never;
+      'aria-label'?: string;
+    }
+  )
 >;
 
 /* ============================================================================
@@ -226,6 +263,12 @@ const BUSINESS_PROPS = [
   'isHiddenByFeatureFlag',
   'isDisabledByFeatureFlag',
   'telemetryEnabled',
+  'placeholderI18nKey',
+  'placeholderI18nNs',
+  'placeholderI18nParams',
+  'ariaLabelI18nKey',
+  'ariaLabelI18nNs',
+  'ariaLabelI18nParams',
 ] as const;
 
 function omit<T extends Record<string, unknown>, K extends readonly string[]>(
@@ -245,8 +288,35 @@ const SearchBarComponent = forwardRef<HTMLInputElement, AppSearchBarProps>(
     props: AppSearchBarProps,
     ref: Ref<HTMLInputElement>,
   ): JSX.Element | null {
-    const { telemetry } = useUnifiedUI();
+    const { telemetry, i18n } = useUnifiedUI();
+    const { translate } = i18n;
     const filteredProps = omit(props, BUSINESS_PROPS);
+
+    // Placeholder: i18n → обычный placeholder → undefined
+    const placeholder = useMemo<string | undefined>(() => {
+      if ('placeholderI18nKey' in props) {
+        const effectiveNs = props.placeholderI18nNs ?? 'common';
+        return translate(
+          effectiveNs,
+          props.placeholderI18nKey,
+          props.placeholderI18nParams ?? EMPTY_PARAMS,
+        );
+      }
+      return props.placeholder;
+    }, [props, translate]);
+
+    // Aria-label: i18n → обычный aria-label → undefined
+    const ariaLabel = useMemo<string | undefined>(() => {
+      if ('ariaLabelI18nKey' in props) {
+        const effectiveNs = props.ariaLabelI18nNs ?? 'common';
+        return translate(
+          effectiveNs,
+          props.ariaLabelI18nKey,
+          props.ariaLabelI18nParams ?? EMPTY_PARAMS,
+        );
+      }
+      return props['aria-label'];
+    }, [props, translate]);
     const {
       value: valueProp,
       onChange,
@@ -398,6 +468,8 @@ const SearchBarComponent = forwardRef<HTMLInputElement, AppSearchBarProps>(
         disabled={policy.isDisabled}
         showClearButton={policy.showClearByPolicy}
         showSearchButton={policy.showSearchByPolicy}
+        {...(placeholder !== undefined && { placeholder })}
+        {...(ariaLabel !== undefined && { 'aria-label': ariaLabel })}
         {...(size !== undefined && { size })}
         data-component='AppSearchBar'
         data-state='visible'

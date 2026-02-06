@@ -34,6 +34,7 @@ import type {
   CoreLanguageSelectorProps,
   LanguageData,
 } from '../../../ui-core/src/components/LanguageSelector.js';
+import type { Namespace, TranslationKey } from '../lib/i18n.js';
 import { useUnifiedUI } from '../providers/UnifiedUIProvider.js';
 import type { Json } from '../types/common.js';
 import type {
@@ -109,7 +110,8 @@ type LanguageSelectorTelemetryPayload = {
 };
 
 export type AppLanguageSelectorProps = Readonly<
-  Omit<CoreLanguageSelectorProps, 'data-testid'> & {
+  & Omit<CoreLanguageSelectorProps, 'data-testid' | 'placeholder'>
+  & {
     /** Видимость LanguageSelector (App policy). Default = true */
     visible?: boolean;
 
@@ -137,18 +139,39 @@ export type AppLanguageSelectorProps = Readonly<
     /** Test ID для автотестов */
     'data-testid'?: string;
   }
+  & (
+    | {
+      /** I18n placeholder режим */
+      placeholderI18nKey: TranslationKey;
+      placeholderI18nNs?: Namespace;
+      placeholderI18nParams?: Record<string, string | number>;
+      placeholder?: never;
+    }
+    | {
+      /** Обычный placeholder режим */
+      placeholderI18nKey?: never;
+      placeholderI18nNs?: never;
+      placeholderI18nParams?: never;
+      placeholder?: string;
+    }
+  )
 >;
 
 // Бизнес-пропсы, которые не должны попадать в DOM
 // style исключается из domProps, так как комбинируется policy-слоем
 // ariaLabel трансформируется в aria-label, не должен протекать в Core
 // languages, selectedLanguageCode, isOpen указываются явно в JSX
+const EMPTY_PARAMS: Record<string, string | number> = Object.freeze({});
+
 const BUSINESS_PROPS = [
   'isHiddenByFeatureFlag',
   'isDisabledByFeatureFlag',
   'telemetryEnabled',
   'visible',
   'style',
+  'placeholderI18nKey',
+  'placeholderI18nNs',
+  'placeholderI18nParams',
   'onLanguageSelect',
   'ariaLabel',
   'onToggle',
@@ -320,6 +343,23 @@ const LanguageSelectorComponent = forwardRef<LanguageSelectorElement, AppLanguag
 
     // i18n интеграция для locale в telemetry и переводов
     const { locale, translate } = i18n;
+
+    // Placeholder: i18n → обычный placeholder → undefined
+    const resolvedPlaceholder = useMemo<string | undefined>(() => {
+      if ('placeholderI18nKey' in props) {
+        const effectiveNs = props.placeholderI18nNs ?? 'common';
+        return translate(
+          effectiveNs,
+          props.placeholderI18nKey,
+          props.placeholderI18nParams ?? EMPTY_PARAMS,
+        );
+      }
+      return placeholder;
+    }, [
+      props,
+      placeholder,
+      translate,
+    ]);
 
     // Хелпер для динамических переводов языков
     const translateLanguageName = useCallback(
@@ -679,7 +719,7 @@ const LanguageSelectorComponent = forwardRef<LanguageSelectorElement, AppLanguag
         {...(variant !== undefined && { variant })}
         {...(showFlags !== undefined && { showFlags })}
         {...(showCodes !== undefined && { showCodes })}
-        {...(placeholder !== undefined && { placeholder })}
+        {...(resolvedPlaceholder !== undefined && { placeholder: resolvedPlaceholder })}
         disabled={combinedDisabled}
         onLanguageChange={handleLanguageChange}
         data-component='AppLanguageSelector'

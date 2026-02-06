@@ -225,13 +225,20 @@ describe('UnifiedUIProvider', () => {
       });
 
       it('throws error when provider is missing', () => {
-        // useRequiredUnifiedUI should throw when no provider is present
-        expect(() => {
-          renderHook(() => useRequiredUnifiedUI());
-        }).toThrow(
-          'UnifiedUIProvider является обязательным, но отсутствует в дереве компонентов. '
-            + 'Убедитесь что UnifiedUIProvider обернут вокруг вашего приложения.',
-        );
+        // Mock console.warn to avoid noise in test output
+        const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+        try {
+          // useRequiredUnifiedUI should throw when no provider is present
+          expect(() => {
+            renderHook(() => useRequiredUnifiedUI());
+          }).toThrow(
+            'UnifiedUIProvider является обязательным, но отсутствует в дереве компонентов. '
+              + 'Убедитесь что UnifiedUIProvider обернут вокруг вашего приложения.',
+          );
+        } finally {
+          consoleWarnSpy.mockRestore();
+        }
       });
     });
 
@@ -301,37 +308,44 @@ describe('UnifiedUIProvider', () => {
 
   describe('NOOP Implementations', () => {
     it('provides callable NOOP functions when hooks fail', () => {
-      // Test that NOOP implementations are callable and return expected values
-      const { result } = renderHook(() => useUnifiedUI());
+      // Mock console.warn to avoid noise in test output
+      const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
 
-      // Should return NOOP context when provider is missing
-      expect(result.current).toHaveProperty('__status');
+      try {
+        // Test that NOOP implementations are callable and return expected values
+        const { result } = renderHook(() => useUnifiedUI());
 
-      // NOOP feature flags should be callable
-      expect(typeof result.current.featureFlags.isEnabled).toBe('function');
-      expect(result.current.featureFlags.isEnabled('SYSTEM_telemetry_enabled')).toBe(false);
+        // Should return NOOP context when provider is missing
+        expect(result.current).toHaveProperty('__status');
 
-      // NOOP telemetry should be callable
-      expect(typeof result.current.telemetry.track).toBe('function');
-      expect(typeof result.current.telemetry.infoFireAndForget).toBe('function');
-      expect(typeof result.current.telemetry.warnFireAndForget).toBe('function');
-      expect(typeof result.current.telemetry.errorFireAndForget).toBe('function');
-      expect(typeof result.current.telemetry.flush).toBe('function');
+        // NOOP feature flags should be callable
+        expect(typeof result.current.featureFlags.isEnabled).toBe('function');
+        expect(result.current.featureFlags.isEnabled('SYSTEM_telemetry_enabled')).toBe(false);
 
-      // NOOP i18n should be callable
-      expect(typeof result.current.i18n.translate).toBe('function');
-      expect(result.current.i18n.translate('common', 'greeting')).toBe('');
-      expect(typeof result.current.i18n.loadNamespace).toBe('function');
-      expect(typeof result.current.i18n.isNamespaceLoaded).toBe('function');
-      expect(result.current.i18n.isNamespaceLoaded('common')).toBe(false);
+        // NOOP telemetry should be callable
+        expect(typeof result.current.telemetry.track).toBe('function');
+        expect(typeof result.current.telemetry.infoFireAndForget).toBe('function');
+        expect(typeof result.current.telemetry.warnFireAndForget).toBe('function');
+        expect(typeof result.current.telemetry.errorFireAndForget).toBe('function');
+        expect(typeof result.current.telemetry.flush).toBe('function');
 
-      // Call NOOP telemetry functions to ensure they're covered
-      result.current.telemetry.infoFireAndForget('test');
-      result.current.telemetry.warnFireAndForget('test');
-      result.current.telemetry.errorFireAndForget('test');
+        // NOOP i18n should be callable
+        expect(typeof result.current.i18n.translate).toBe('function');
+        expect(result.current.i18n.translate('common', 'greeting')).toBe('');
+        expect(typeof result.current.i18n.loadNamespace).toBe('function');
+        expect(typeof result.current.i18n.isNamespaceLoaded).toBe('function');
+        expect(result.current.i18n.isNamespaceLoaded('common')).toBe(false);
 
-      // Call NOOP i18n loadNamespace to ensure it's covered
-      result.current.i18n.loadNamespace('auth');
+        // Call NOOP telemetry functions to ensure they're covered
+        result.current.telemetry.infoFireAndForget('test');
+        result.current.telemetry.warnFireAndForget('test');
+        result.current.telemetry.errorFireAndForget('test');
+
+        // Call NOOP i18n loadNamespace to ensure it's covered
+        result.current.i18n.loadNamespace('auth');
+      } finally {
+        consoleWarnSpy.mockRestore();
+      }
     });
   });
 

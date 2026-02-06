@@ -23,6 +23,7 @@ import type { JSX } from 'react';
 
 import { Textarea as CoreTextarea } from '../../../ui-core/src/primitives/textarea.js';
 import type { CoreTextareaProps } from '../../../ui-core/src/primitives/textarea.js';
+import type { Namespace, TranslationKey } from '../lib/i18n.js';
 import { useUnifiedUI } from '../providers/UnifiedUIProvider.js';
 import type { Json } from '../types/common.js';
 import type {
@@ -71,8 +72,11 @@ type TextareaTelemetryPayload = Readonly<{
   disabled: boolean;
 }>;
 
+/** Стабильная ссылка на пустой объект параметров */
+const EMPTY_PARAMS: Record<string, string | number> = Object.freeze({});
+
 export type AppTextareaProps = Readonly<
-  & CoreTextareaProps
+  & Omit<CoreTextareaProps, 'placeholder' | 'aria-label'>
   & {
     /** Feature flag: скрыть компонент */
     isHiddenByFeatureFlag?: boolean;
@@ -92,6 +96,38 @@ export type AppTextareaProps = Readonly<
     /** Telemetry for focus/blur */
     telemetryOnFocus?: boolean;
   }
+  & (
+    | {
+      /** I18n placeholder режим */
+      placeholderI18nKey: TranslationKey;
+      placeholderI18nNs?: Namespace;
+      placeholderI18nParams?: Record<string, string | number>;
+      placeholder?: never;
+    }
+    | {
+      /** Обычный placeholder режим */
+      placeholderI18nKey?: never;
+      placeholderI18nNs?: never;
+      placeholderI18nParams?: never;
+      placeholder?: string;
+    }
+  )
+  & (
+    | {
+      /** I18n aria-label режим */
+      ariaLabelI18nKey: TranslationKey;
+      ariaLabelI18nNs?: Namespace;
+      ariaLabelI18nParams?: Record<string, string | number>;
+      'aria-label'?: never;
+    }
+    | {
+      /** Обычный aria-label режим */
+      ariaLabelI18nKey?: never;
+      ariaLabelI18nNs?: never;
+      ariaLabelI18nParams?: never;
+      'aria-label'?: string;
+    }
+  )
 >;
 
 // Бизнес-пропсы, которые не должны попадать в DOM
@@ -102,6 +138,12 @@ const BUSINESS_PROPS = [
   'telemetryEnabled',
   'telemetryOnChange',
   'telemetryOnFocus',
+  'placeholderI18nKey',
+  'placeholderI18nNs',
+  'placeholderI18nParams',
+  'ariaLabelI18nKey',
+  'ariaLabelI18nNs',
+  'ariaLabelI18nParams',
 ] as const;
 
 /* ============================================================================
@@ -174,7 +216,34 @@ function TextareaComponent(props: AppTextareaProps): JSX.Element | null {
   } = domProps;
 
   const policy = useTextareaPolicy(props);
-  const { telemetry } = useUnifiedUI();
+  const { telemetry, i18n } = useUnifiedUI();
+  const { translate } = i18n;
+
+  // Placeholder: i18n → обычный placeholder → undefined
+  const placeholder = useMemo<string | undefined>(() => {
+    if ('placeholderI18nKey' in props) {
+      const effectiveNs = props.placeholderI18nNs ?? 'common';
+      return translate(
+        effectiveNs,
+        props.placeholderI18nKey,
+        props.placeholderI18nParams ?? EMPTY_PARAMS,
+      );
+    }
+    return filteredCoreProps.placeholder;
+  }, [props, translate, filteredCoreProps.placeholder]);
+
+  // Aria-label: i18n → обычный aria-label → undefined
+  const ariaLabel = useMemo<string | undefined>(() => {
+    if ('ariaLabelI18nKey' in props) {
+      const effectiveNs = props.ariaLabelI18nNs ?? 'common';
+      return translate(
+        effectiveNs,
+        props.ariaLabelI18nKey,
+        props.ariaLabelI18nParams ?? EMPTY_PARAMS,
+      );
+    }
+    return filteredCoreProps['aria-label'];
+  }, [props, translate, filteredCoreProps]);
 
   // lifecycle telemetry
   useEffect(() => {
@@ -240,6 +309,8 @@ function TextareaComponent(props: AppTextareaProps): JSX.Element | null {
       data-disabled={policy.disabledByFeatureFlag || undefined}
       aria-disabled={policy.disabledByFeatureFlag || undefined}
       aria-busy={policy.disabledByFeatureFlag || undefined}
+      {...(placeholder !== undefined && { placeholder })}
+      {...(ariaLabel !== undefined && { 'aria-label': ariaLabel })}
       onChange={handleChange}
       onFocus={handleFocus}
       onBlur={handleBlur}

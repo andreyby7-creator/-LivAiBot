@@ -26,6 +26,7 @@ import type { JSX, Ref } from 'react';
 
 import { LoadingSpinner as CoreLoadingSpinner } from '../../../ui-core/src/primitives/loading-spinner.js';
 import type { CoreLoadingSpinnerProps } from '../../../ui-core/src/primitives/loading-spinner.js';
+import type { Namespace, TranslationKey } from '../lib/i18n.js';
 import { useUnifiedUI } from '../providers/UnifiedUIProvider.js';
 import type { Json } from '../types/common.js';
 import type {
@@ -80,8 +81,12 @@ type LoadingSpinnerTelemetryPayload = {
   size?: string;
 };
 
+/** Стабильная ссылка на пустой объект параметров */
+const EMPTY_PARAMS: Record<string, string | number> = Object.freeze({});
+
 export type AppLoadingSpinnerProps = Readonly<
-  Omit<CoreLoadingSpinnerProps, 'data-testid'> & {
+  & Omit<CoreLoadingSpinnerProps, 'data-testid' | 'aria-label'>
+  & {
     /** Видимость Loading Spinner (App policy). Default = true */
     visible?: boolean;
 
@@ -94,6 +99,22 @@ export type AppLoadingSpinnerProps = Readonly<
     /** Test ID для автотестов */
     'data-testid'?: string;
   }
+  & (
+    | {
+      /** I18n aria-label режим */
+      ariaLabelI18nKey: TranslationKey;
+      ariaLabelI18nNs?: Namespace;
+      ariaLabelI18nParams?: Record<string, string | number>;
+      'aria-label'?: never;
+    }
+    | {
+      /** Обычный aria-label режим */
+      ariaLabelI18nKey?: never;
+      ariaLabelI18nNs?: never;
+      ariaLabelI18nParams?: never;
+      'aria-label'?: string;
+    }
+  )
 >;
 
 // Бизнес-пропсы, которые не должны попадать в DOM
@@ -102,7 +123,9 @@ const BUSINESS_PROPS = [
   'visible',
   'isHiddenByFeatureFlag',
   'telemetryEnabled',
-  'aria-label',
+  'ariaLabelI18nKey',
+  'ariaLabelI18nNs',
+  'ariaLabelI18nParams',
 ] as const;
 
 /* ============================================================================
@@ -201,7 +224,8 @@ const LoadingSpinnerComponent = forwardRef<HTMLDivElement, AppLoadingSpinnerProp
     props: AppLoadingSpinnerProps,
     ref: Ref<HTMLDivElement>,
   ): JSX.Element | null {
-    const { telemetry } = useUnifiedUI();
+    const { telemetry, i18n } = useUnifiedUI();
+    const { translate } = i18n;
     // Фильтруем бизнес-пропсы, оставляем только DOM-безопасные
     const domProps = omit(props, BUSINESS_PROPS);
 
@@ -212,8 +236,19 @@ const LoadingSpinnerComponent = forwardRef<HTMLDivElement, AppLoadingSpinnerProp
       ...filteredCoreProps
     } = domProps;
 
-    // aria-label - бизнес-проп, берем из оригинальных props
-    const { 'aria-label': ariaLabel } = props;
+    // Aria-label: i18n → обычный aria-label → undefined
+    const ariaLabelValue = useMemo<string | undefined>(() => {
+      if ('ariaLabelI18nKey' in props) {
+        const effectiveNs = props.ariaLabelI18nNs ?? 'common';
+        return translate(
+          effectiveNs,
+          props.ariaLabelI18nKey,
+          props.ariaLabelI18nParams ?? EMPTY_PARAMS,
+        );
+      }
+      return domProps['aria-label'];
+    }, [props, translate, domProps]);
+
     const policy = useLoadingSpinnerPolicy(props);
 
     // Минимальный набор telemetry-данных
@@ -321,7 +356,7 @@ const LoadingSpinnerComponent = forwardRef<HTMLDivElement, AppLoadingSpinnerProp
         {...(variant !== undefined && { variant })}
         {...(size !== undefined && { size })}
         {...(color !== undefined && { color })}
-        {...(ariaLabel !== undefined && { 'aria-label': ariaLabel })}
+        {...(ariaLabelValue !== undefined && { 'aria-label': ariaLabelValue })}
         data-component='AppLoadingSpinner'
         data-state='visible'
         data-feature-flag={policy.hiddenByFeatureFlag ? 'hidden' : 'visible'}

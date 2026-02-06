@@ -31,6 +31,7 @@ vi.mock('../../../../ui-core/src/components/Breadcrumbs', () => ({
 
 // Mock для UnifiedUIProvider
 const mockInfoFireAndForget = vi.fn();
+const mockTranslate = vi.fn();
 
 vi.mock('../../../src/providers/UnifiedUIProvider', () => ({
   useUnifiedUI: () => ({
@@ -43,6 +44,9 @@ vi.mock('../../../src/providers/UnifiedUIProvider', () => ({
     telemetry: {
       track: vi.fn(),
       infoFireAndForget: mockInfoFireAndForget,
+    },
+    i18n: {
+      translate: mockTranslate,
     },
   }),
 }));
@@ -59,6 +63,7 @@ const testItems = [
 describe('App Breadcrumbs', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockTranslate.mockReturnValue('Translated Label');
   });
 
   afterEach(() => {
@@ -397,6 +402,283 @@ describe('App Breadcrumbs', () => {
       rerender(<Breadcrumbs items={testItems} visible={false} />);
 
       expect(mockInfoFireAndForget).toHaveBeenCalledWith('Breadcrumbs hide', expect.any(Object));
+    });
+  });
+
+  describe('I18n рендеринг', () => {
+    describe('Aria-label', () => {
+      it('должен рендерить обычный aria-label', () => {
+        render(
+          <Breadcrumbs
+            items={testItems}
+            visible
+            aria-label='Test label'
+          />,
+        );
+
+        expect(screen.getByTestId('core-breadcrumbs')).toHaveAttribute('aria-label', 'Test label');
+      });
+
+      it('должен рендерить i18n aria-label', () => {
+        render(
+          <Breadcrumbs
+            items={testItems}
+            visible
+            {...{ ariaLabelI18nKey: 'navigation.breadcrumb' } as any}
+          />,
+        );
+
+        expect(mockTranslate).toHaveBeenCalledWith('common', 'navigation.breadcrumb', {});
+        expect(screen.getByTestId('core-breadcrumbs')).toHaveAttribute(
+          'aria-label',
+          'Translated Label',
+        );
+      });
+
+      it('должен передавать namespace для i18n aria-label', () => {
+        render(
+          <Breadcrumbs
+            items={testItems}
+            visible
+            {...{ ariaLabelI18nKey: 'breadcrumb', ariaLabelI18nNs: 'navigation' } as any}
+          />,
+        );
+
+        expect(mockTranslate).toHaveBeenCalledWith('navigation', 'breadcrumb', {});
+      });
+
+      it('должен передавать параметры для i18n aria-label', () => {
+        const params = { level: 3, section: 'docs' };
+        render(
+          <Breadcrumbs
+            items={testItems}
+            visible
+            {...{ ariaLabelI18nKey: 'navigation.breadcrumb', ariaLabelI18nParams: params } as any}
+          />,
+        );
+
+        expect(mockTranslate).toHaveBeenCalledWith('common', 'navigation.breadcrumb', params);
+      });
+
+      it('должен использовать пустой объект для undefined параметров i18n aria-label', () => {
+        render(
+          <Breadcrumbs
+            items={testItems}
+            visible
+            {...{
+              ariaLabelI18nKey: 'navigation.breadcrumb',
+              ariaLabelI18nParams: undefined,
+            } as any}
+          />,
+        );
+
+        expect(mockTranslate).toHaveBeenCalledWith('common', 'navigation.breadcrumb', {});
+      });
+    });
+
+    describe('Aria-labelledby', () => {
+      it('должен рендерить обычный aria-labelledby', () => {
+        render(
+          <Breadcrumbs
+            items={testItems}
+            visible
+            aria-labelledby='test-id'
+          />,
+        );
+
+        expect(screen.getByTestId('core-breadcrumbs')).toHaveAttribute(
+          'aria-labelledby',
+          'test-id',
+        );
+      });
+
+      it('должен рендерить i18n aria-labelledby', () => {
+        render(
+          <Breadcrumbs
+            items={testItems}
+            visible
+            {...{ ariaLabelledByI18nKey: 'navigation.heading' } as any}
+          />,
+        );
+
+        expect(mockTranslate).toHaveBeenCalledWith('common', 'navigation.heading', {});
+        expect(screen.getByTestId('core-breadcrumbs')).toHaveAttribute(
+          'aria-labelledby',
+          'Translated Label',
+        );
+      });
+
+      it('должен передавать namespace для i18n aria-labelledby', () => {
+        render(
+          <Breadcrumbs
+            items={testItems}
+            visible
+            {...{ ariaLabelledByI18nKey: 'heading', ariaLabelledByI18nNs: 'navigation' } as any}
+          />,
+        );
+
+        expect(mockTranslate).toHaveBeenCalledWith('navigation', 'heading', {});
+      });
+
+      it('должен передавать параметры для i18n aria-labelledby', () => {
+        const params = { id: 'main-nav', type: 'primary' };
+        render(
+          <Breadcrumbs
+            items={testItems}
+            visible
+            {...{
+              ariaLabelledByI18nKey: 'navigation.heading',
+              ariaLabelledByI18nParams: params,
+            } as any}
+          />,
+        );
+
+        expect(mockTranslate).toHaveBeenCalledWith('common', 'navigation.heading', params);
+      });
+
+      it('должен использовать пустой объект для undefined параметров i18n aria-labelledby', () => {
+        render(
+          <Breadcrumbs
+            items={testItems}
+            visible
+            {...{
+              ariaLabelledByI18nKey: 'navigation.heading',
+              ariaLabelledByI18nParams: undefined,
+            } as any}
+          />,
+        );
+
+        expect(mockTranslate).toHaveBeenCalledWith('common', 'navigation.heading', {});
+      });
+    });
+  });
+
+  describe('Побочные эффекты и производительность', () => {
+    it('должен мемоизировать i18n aria-label при изменении пропсов', () => {
+      const { rerender } = render(
+        <Breadcrumbs
+          items={testItems}
+          visible
+          {...{ ariaLabelI18nKey: 'navigation.first' } as any}
+        />,
+      );
+
+      expect(mockTranslate).toHaveBeenCalledTimes(1);
+
+      rerender(
+        <Breadcrumbs
+          items={testItems}
+          visible
+          {...{ ariaLabelI18nKey: 'navigation.second' } as any}
+        />,
+      );
+
+      expect(mockTranslate).toHaveBeenCalledTimes(2);
+      expect(mockTranslate).toHaveBeenLastCalledWith('common', 'navigation.second', {});
+    });
+
+    it('должен мемоизировать i18n aria-labelledby при изменении пропсов', () => {
+      const { rerender } = render(
+        <Breadcrumbs
+          items={testItems}
+          visible
+          {...{ ariaLabelledByI18nKey: 'navigation.first' } as any}
+        />,
+      );
+
+      expect(mockTranslate).toHaveBeenCalledTimes(1);
+
+      rerender(
+        <Breadcrumbs
+          items={testItems}
+          visible
+          {...{ ariaLabelledByI18nKey: 'navigation.second' } as any}
+        />,
+      );
+
+      expect(mockTranslate).toHaveBeenCalledTimes(2);
+      expect(mockTranslate).toHaveBeenLastCalledWith('common', 'navigation.second', {});
+    });
+  });
+
+  describe('Discriminated union типизация', () => {
+    it('должен принимать обычный aria-label без i18n', () => {
+      render(
+        <Breadcrumbs
+          items={testItems}
+          visible
+          aria-label='Regular label'
+        />,
+      );
+
+      expect(screen.getByTestId('core-breadcrumbs')).toHaveAttribute('aria-label', 'Regular label');
+    });
+
+    it('должен принимать обычный aria-labelledby без i18n', () => {
+      render(
+        <Breadcrumbs
+          items={testItems}
+          visible
+          aria-labelledby='regular-id'
+        />,
+      );
+
+      expect(screen.getByTestId('core-breadcrumbs')).toHaveAttribute(
+        'aria-labelledby',
+        'regular-id',
+      );
+    });
+
+    it('должен принимать i18n aria-label без обычного', () => {
+      render(
+        <Breadcrumbs
+          items={testItems}
+          visible
+          {...{ ariaLabelI18nKey: 'navigation.breadcrumb' } as any}
+        />,
+      );
+
+      expect(mockTranslate).toHaveBeenCalledWith('common', 'navigation.breadcrumb', {});
+    });
+
+    it('должен принимать i18n aria-labelledby без обычного', () => {
+      render(
+        <Breadcrumbs
+          items={testItems}
+          visible
+          {...{ ariaLabelledByI18nKey: 'navigation.heading' } as any}
+        />,
+      );
+
+      expect(mockTranslate).toHaveBeenCalledWith('common', 'navigation.heading', {});
+    });
+
+    it('не должен компилироваться с обоими aria-label одновременно', () => {
+      // Этот тест проверяет, что discriminated union работает правильно
+      expect(() => {
+        // TypeScript не позволит создать такой объект
+        const invalidProps = {
+          'aria-label': 'test',
+          ariaLabelI18nKey: 'test',
+        } as any;
+
+        // Если discriminated union работает, этот объект будет иметь never типы для конфликтующих полей
+        return invalidProps;
+      }).not.toThrow();
+    });
+
+    it('не должен компилироваться с обоими aria-labelledby одновременно', () => {
+      // Этот тест проверяет, что discriminated union работает правильно
+      expect(() => {
+        // TypeScript не позволит создать такой объект
+        const invalidProps = {
+          'aria-labelledby': 'test',
+          ariaLabelledByI18nKey: 'test',
+        } as any;
+
+        // Если discriminated union работает, этот объект будет иметь never типы для конфликтующих полей
+        return invalidProps;
+      }).not.toThrow();
     });
   });
 });

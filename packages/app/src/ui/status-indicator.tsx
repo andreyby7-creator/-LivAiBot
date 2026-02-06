@@ -36,6 +36,7 @@ import type {
   StatusIndicatorStatus,
   StatusIndicatorVariant,
 } from '../../../ui-core/src/primitives/status-indicator.js';
+import type { Namespace, TranslationKey } from '../lib/i18n.js';
 import { useUnifiedUI } from '../providers/UnifiedUIProvider.js';
 import type { Json } from '../types/common.js';
 import type {
@@ -90,6 +91,9 @@ const VALID_STATUSES: readonly StatusIndicatorStatus[] = [
   'error',
 ] as const;
 
+/** Стабильная ссылка на пустой объект параметров */
+const EMPTY_PARAMS: Record<string, string | number> = Object.freeze({});
+
 type StatusIndicatorTelemetryPayload = {
   component: 'StatusIndicator';
   action: StatusIndicatorTelemetryAction;
@@ -101,7 +105,8 @@ type StatusIndicatorTelemetryPayload = {
 };
 
 export type AppStatusIndicatorProps = Readonly<
-  Omit<CoreStatusIndicatorProps, 'data-testid'> & {
+  & Omit<CoreStatusIndicatorProps, 'data-testid' | 'aria-label'>
+  & {
     /** Видимость Status Indicator (App policy). Default = true */
     visible?: boolean;
 
@@ -114,6 +119,22 @@ export type AppStatusIndicatorProps = Readonly<
     /** Test ID для автотестов */
     'data-testid'?: string;
   }
+  & (
+    | {
+      /** I18n aria-label режим */
+      ariaLabelI18nKey: TranslationKey;
+      ariaLabelI18nNs?: Namespace;
+      ariaLabelI18nParams?: Record<string, string | number>;
+      'aria-label'?: never;
+    }
+    | {
+      /** Обычный aria-label режим */
+      ariaLabelI18nKey?: never;
+      ariaLabelI18nNs?: never;
+      ariaLabelI18nParams?: never;
+      'aria-label'?: string;
+    }
+  )
 >;
 
 // Бизнес-пропсы, которые не должны попадать в DOM
@@ -121,6 +142,9 @@ const BUSINESS_PROPS = [
   'isHiddenByFeatureFlag',
   'telemetryEnabled',
   'visible',
+  'ariaLabelI18nKey',
+  'ariaLabelI18nNs',
+  'ariaLabelI18nParams',
 ] as const;
 
 /* ============================================================================
@@ -201,11 +225,25 @@ const StatusIndicatorComponent = forwardRef<
   props: AppStatusIndicatorProps,
   ref: Ref<HTMLSpanElement>,
 ): JSX.Element | null {
-  const { telemetry } = useUnifiedUI();
+  const { telemetry, i18n } = useUnifiedUI();
+  const { translate } = i18n;
   const policy = useStatusIndicatorPolicy(props);
 
   // Фильтруем бизнес-пропсы, оставляем только DOM-безопасные
   const domProps = omit(props, BUSINESS_PROPS);
+
+  // Aria-label: i18n → обычный aria-label → undefined
+  const ariaLabel = useMemo<string | undefined>(() => {
+    if ('ariaLabelI18nKey' in props) {
+      const effectiveNs = props.ariaLabelI18nNs ?? 'common';
+      return translate(
+        effectiveNs,
+        props.ariaLabelI18nKey,
+        props.ariaLabelI18nParams ?? EMPTY_PARAMS,
+      );
+    }
+    return domProps['aria-label'];
+  }, [props, translate, domProps]);
 
   const {
     status = 'idle',
@@ -339,6 +377,7 @@ const StatusIndicatorComponent = forwardRef<
       ...optionalProp(size !== undefined, { size }),
       ...optionalProp(color !== undefined, { color }),
       ...optionalProp(text !== undefined, { text }),
+      ...(ariaLabel !== undefined && { 'aria-label': ariaLabel }),
       'data-component': 'AppStatusIndicator',
       'data-state': policy.isRendered ? 'visible' : 'hidden',
       'data-feature-flag': policy.hiddenByFeatureFlag ? 'hidden' : 'visible',
@@ -354,6 +393,7 @@ const StatusIndicatorComponent = forwardRef<
       size,
       color,
       text,
+      ariaLabel,
       testId,
       policy.isRendered,
       policy.hiddenByFeatureFlag,

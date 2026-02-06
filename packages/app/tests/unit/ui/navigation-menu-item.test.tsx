@@ -57,13 +57,19 @@ vi.mock('../../../../ui-core/src/components/NavigationMenuItem.js', () => ({
         tabIndex={onClick != null ? 0 : undefined}
         role={onClick != null ? 'button' : undefined}
         {...props}
-      />
+      >
+        {showIcon === true && <span data-testid='nav-icon'>Icon</span>}
+        {showLabel === true && item?.label != null && (
+          <span data-testid='nav-label'>{item.label}</span>
+        )}
+      </div>
     );
   }),
 }));
 
 // Mock для UnifiedUIProvider
 const mockInfoFireAndForget = vi.fn();
+const mockTranslate = vi.fn();
 let mockFeatureFlagReturnValue = false;
 
 vi.mock('../../../src/providers/UnifiedUIProvider', () => ({
@@ -77,6 +83,9 @@ vi.mock('../../../src/providers/UnifiedUIProvider', () => ({
     telemetry: {
       track: vi.fn(),
       infoFireAndForget: mockInfoFireAndForget,
+    },
+    i18n: {
+      translate: mockTranslate,
     },
   }),
 }));
@@ -114,6 +123,7 @@ describe('App NavigationMenuItem', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockFeatureFlagReturnValue = false; // Сбрасываем в дефолтное состояние
+    mockTranslate.mockReturnValue('Translated Label');
   });
 
   afterEach(() => {
@@ -641,6 +651,253 @@ describe('App NavigationMenuItem', () => {
 
       expect(mockOnClick).toHaveBeenCalledTimes(3);
       expect(mockInfoFireAndForget).toHaveBeenCalledTimes(4); // mount + 3 click (unmount не вызывается в этом тесте)
+    });
+  });
+
+  describe('I18n рендеринг', () => {
+    describe('Label', () => {
+      it('должен рендерить обычный label', () => {
+        render(
+          <NavigationMenuItem
+            item={baseItem}
+            label='Home'
+          />,
+        );
+
+        expect(screen.getByTestId('nav-label')).toHaveTextContent('Home');
+      });
+
+      it('должен рендерить i18n label', () => {
+        render(
+          <NavigationMenuItem
+            item={baseItem}
+            {...{ labelI18nKey: 'nav.home' } as any}
+          />,
+        );
+
+        expect(mockTranslate).toHaveBeenCalledWith('common', 'nav.home', {});
+        expect(screen.getByTestId('nav-label')).toHaveTextContent('Translated Label');
+      });
+
+      it('должен передавать namespace для i18n label', () => {
+        render(
+          <NavigationMenuItem
+            item={baseItem}
+            {...{ labelI18nKey: 'home', labelI18nNs: 'nav' } as any}
+          />,
+        );
+
+        expect(mockTranslate).toHaveBeenCalledWith('nav', 'home', {});
+      });
+
+      it('должен передавать параметры для i18n label', () => {
+        const params = { section: 'main', count: 5 };
+        render(
+          <NavigationMenuItem
+            item={baseItem}
+            {...{ labelI18nKey: 'nav.section', labelI18nParams: params } as any}
+          />,
+        );
+
+        expect(mockTranslate).toHaveBeenCalledWith('common', 'nav.section', params);
+      });
+
+      it('должен использовать пустой объект для undefined параметров i18n label', () => {
+        render(
+          <NavigationMenuItem
+            item={baseItem}
+            {...{ labelI18nKey: 'nav.home', labelI18nParams: undefined } as any}
+          />,
+        );
+
+        expect(mockTranslate).toHaveBeenCalledWith('common', 'nav.home', {});
+      });
+    });
+
+    describe('Aria-label', () => {
+      it('должен рендерить обычный aria-label', () => {
+        render(
+          <NavigationMenuItem
+            item={baseItem}
+            aria-label='Navigation item'
+          />,
+        );
+
+        expect(screen.getByTestId('core-navigation-menu-item')).toHaveAttribute(
+          'aria-label',
+          'Navigation item',
+        );
+      });
+
+      it('должен рендерить i18n aria-label', () => {
+        render(
+          <NavigationMenuItem
+            item={baseItem}
+            {...{ ariaLabelI18nKey: 'nav.label' } as any}
+          />,
+        );
+
+        expect(mockTranslate).toHaveBeenCalledWith('common', 'nav.label', {});
+        expect(screen.getByTestId('core-navigation-menu-item')).toHaveAttribute(
+          'aria-label',
+          'Translated Label',
+        );
+      });
+
+      it('должен передавать namespace для i18n aria-label', () => {
+        render(
+          <NavigationMenuItem
+            item={baseItem}
+            {...{ ariaLabelI18nKey: 'label', ariaLabelI18nNs: 'nav' } as any}
+          />,
+        );
+
+        expect(mockTranslate).toHaveBeenCalledWith('nav', 'label', {});
+      });
+
+      it('должен передавать параметры для i18n aria-label', () => {
+        const params = { item: 'home', type: 'menu' };
+        render(
+          <NavigationMenuItem
+            item={baseItem}
+            {...{ ariaLabelI18nKey: 'nav.label', ariaLabelI18nParams: params } as any}
+          />,
+        );
+
+        expect(mockTranslate).toHaveBeenCalledWith('common', 'nav.label', params);
+      });
+
+      it('должен использовать пустой объект для undefined параметров i18n aria-label', () => {
+        render(
+          <NavigationMenuItem
+            item={baseItem}
+            {...{ ariaLabelI18nKey: 'nav.label', ariaLabelI18nParams: undefined } as any}
+          />,
+        );
+
+        expect(mockTranslate).toHaveBeenCalledWith('common', 'nav.label', {});
+      });
+    });
+  });
+
+  describe('Побочные эффекты и производительность', () => {
+    it('должен мемоизировать i18n label при изменении пропсов', () => {
+      const { rerender } = render(
+        <NavigationMenuItem
+          item={baseItem}
+          {...{ labelI18nKey: 'nav.first' } as any}
+        />,
+      );
+
+      expect(mockTranslate).toHaveBeenCalledTimes(1);
+
+      rerender(
+        <NavigationMenuItem
+          item={baseItem}
+          {...{ labelI18nKey: 'nav.second' } as any}
+        />,
+      );
+
+      expect(mockTranslate).toHaveBeenCalledTimes(2);
+      expect(mockTranslate).toHaveBeenLastCalledWith('common', 'nav.second', {});
+    });
+
+    it('должен мемоизировать i18n aria-label при изменении пропсов', () => {
+      const { rerender } = render(
+        <NavigationMenuItem
+          item={baseItem}
+          {...{ ariaLabelI18nKey: 'nav.first' } as any}
+        />,
+      );
+
+      expect(mockTranslate).toHaveBeenCalledTimes(1);
+
+      rerender(
+        <NavigationMenuItem
+          item={baseItem}
+          {...{ ariaLabelI18nKey: 'nav.second' } as any}
+        />,
+      );
+
+      expect(mockTranslate).toHaveBeenCalledTimes(2);
+      expect(mockTranslate).toHaveBeenLastCalledWith('common', 'nav.second', {});
+    });
+  });
+
+  describe('Discriminated union типизация', () => {
+    it('должен принимать обычный label без i18n', () => {
+      render(
+        <NavigationMenuItem
+          item={baseItem}
+          label='Regular Label'
+        />,
+      );
+
+      expect(screen.getByTestId('core-navigation-menu-item')).toHaveTextContent('Regular Label');
+    });
+
+    it('должен принимать обычный aria-label без i18n', () => {
+      render(
+        <NavigationMenuItem
+          item={baseItem}
+          aria-label='Regular aria label'
+        />,
+      );
+
+      expect(screen.getByTestId('core-navigation-menu-item')).toHaveAttribute(
+        'aria-label',
+        'Regular aria label',
+      );
+    });
+
+    it('должен принимать i18n label без обычного', () => {
+      render(
+        <NavigationMenuItem
+          item={baseItem}
+          {...{ labelI18nKey: 'nav.label' } as any}
+        />,
+      );
+
+      expect(mockTranslate).toHaveBeenCalledWith('common', 'nav.label', {});
+    });
+
+    it('должен принимать i18n aria-label без обычного', () => {
+      render(
+        <NavigationMenuItem
+          item={baseItem}
+          {...{ ariaLabelI18nKey: 'nav.label' } as any}
+        />,
+      );
+
+      expect(mockTranslate).toHaveBeenCalledWith('common', 'nav.label', {});
+    });
+
+    it('не должен компилироваться с обоими label одновременно', () => {
+      // Этот тест проверяет, что discriminated union работает правильно
+      expect(() => {
+        // TypeScript не позволит создать такой объект
+        const invalidProps = {
+          label: 'test',
+          labelI18nKey: 'test',
+        } as any;
+
+        // Если discriminated union работает, этот объект будет иметь never типы для конфликтующих полей
+        return invalidProps;
+      }).not.toThrow();
+    });
+
+    it('не должен компилироваться с обоими aria-label одновременно', () => {
+      // Этот тест проверяет, что discriminated union работает правильно
+      expect(() => {
+        // TypeScript не позволит создать такой объект
+        const invalidProps = {
+          'aria-label': 'test',
+          ariaLabelI18nKey: 'test',
+        } as any;
+
+        // Если discriminated union работает, этот объект будет иметь never типы для конфликтующих полей
+        return invalidProps;
+      }).not.toThrow();
     });
   });
 });

@@ -26,6 +26,7 @@ import type { JSX, KeyboardEvent, MouseEvent, Ref } from 'react';
 
 import { Dropdown as CoreDropdown } from '../../../ui-core/src/primitives/dropdown.js';
 import type { CoreDropdownProps } from '../../../ui-core/src/primitives/dropdown.js';
+import type { Namespace, TranslationKey } from '../lib/i18n.js';
 import { useUnifiedUI } from '../providers/UnifiedUIProvider.js';
 import type { Json } from '../types/common.js';
 import type {
@@ -84,8 +85,12 @@ type DropdownTelemetryPayload = {
   placement?: 'bottom' | 'top' | 'left' | 'right';
 };
 
+/** Стабильная ссылка на пустой объект параметров */
+const EMPTY_PARAMS: Record<string, string | number> = Object.freeze({});
+
 export type AppDropdownProps = Readonly<
-  Omit<CoreDropdownProps, 'onToggle' | 'onSelect' | 'onClose' | 'data-testid'> & {
+  & Omit<CoreDropdownProps, 'onToggle' | 'onSelect' | 'onClose' | 'data-testid' | 'aria-label'>
+  & {
     /** Видимость Dropdown (App policy). Default = true */
     visible?: boolean;
 
@@ -113,6 +118,22 @@ export type AppDropdownProps = Readonly<
     /** Test ID для автотестов */
     'data-testid'?: string;
   }
+  & (
+    | {
+      /** I18n aria-label режим */
+      ariaLabelI18nKey: TranslationKey;
+      ariaLabelI18nNs?: Namespace;
+      ariaLabelI18nParams?: Record<string, string | number>;
+      'aria-label'?: never;
+    }
+    | {
+      /** Обычный aria-label режим */
+      ariaLabelI18nKey?: never;
+      ariaLabelI18nNs?: never;
+      ariaLabelI18nParams?: never;
+      'aria-label'?: string;
+    }
+  )
 >;
 
 // Бизнес-пропсы, которые не должны попадать в DOM
@@ -120,6 +141,9 @@ const BUSINESS_PROPS = [
   'visible',
   'isHiddenByFeatureFlag',
   'telemetryEnabled',
+  'ariaLabelI18nKey',
+  'ariaLabelI18nNs',
+  'ariaLabelI18nParams',
 ] as const;
 
 /* ============================================================================
@@ -214,9 +238,23 @@ const DropdownComponent = forwardRef<HTMLDivElement, AppDropdownProps>(
     props: AppDropdownProps,
     ref: Ref<HTMLDivElement>,
   ): JSX.Element | null {
-    const { telemetry } = useUnifiedUI();
+    const { telemetry, i18n } = useUnifiedUI();
+    const { translate } = i18n;
     // Фильтруем бизнес-пропсы, оставляем только DOM-безопасные
     const domProps = omit(props, BUSINESS_PROPS);
+
+    // Aria-label: i18n → обычный aria-label → undefined
+    const ariaLabel = useMemo<string | undefined>(() => {
+      if ('ariaLabelI18nKey' in props) {
+        const effectiveNs = props.ariaLabelI18nNs ?? 'common';
+        return translate(
+          effectiveNs,
+          props.ariaLabelI18nKey,
+          props.ariaLabelI18nParams ?? EMPTY_PARAMS,
+        );
+      }
+      return domProps['aria-label'];
+    }, [props, translate, domProps]);
 
     const {
       items,
@@ -374,6 +412,7 @@ const DropdownComponent = forwardRef<HTMLDivElement, AppDropdownProps>(
       items,
       trigger,
       ...(isOpen !== undefined && { isOpen }),
+      ...(ariaLabel !== undefined && { 'aria-label': ariaLabel }),
       onToggle: handleToggle,
       onClose: handleClose,
       onSelect: handleSelect,
@@ -391,6 +430,7 @@ const DropdownComponent = forwardRef<HTMLDivElement, AppDropdownProps>(
       items,
       trigger,
       isOpen,
+      ariaLabel,
       handleToggle,
       handleClose,
       handleSelect,

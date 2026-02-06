@@ -31,6 +31,7 @@ import type { JSX } from 'react';
 
 import { Toggle as CoreToggle } from '../../../ui-core/src/primitives/toggle.js';
 import type { CoreToggleProps } from '../../../ui-core/src/primitives/toggle.js';
+import type { Namespace, TranslationKey } from '../lib/i18n.js';
 import { useUnifiedUI } from '../providers/UnifiedUIProvider.js';
 import type { Json } from '../types/common.js';
 import type {
@@ -54,6 +55,9 @@ const BUSINESS_PROPS = [
   'telemetryOnChange',
   'telemetryOnFocus',
   'telemetryOnBlur',
+  'ariaLabelI18nKey',
+  'ariaLabelI18nNs',
+  'ariaLabelI18nParams',
 ] as const;
 
 /** Функция для фильтрации бизнес-пропсов */
@@ -80,8 +84,11 @@ type ToggleTelemetryPayload = {
   checked?: boolean;
 };
 
+/** Стабильная ссылка на пустой объект параметров */
+const EMPTY_PARAMS: Record<string, string | number> = Object.freeze({});
+
 export type AppToggleProps = Readonly<
-  & Omit<CoreToggleProps, 'checked'> // Исключаем checked из CoreToggleProps
+  & Omit<CoreToggleProps, 'checked' | 'aria-label'> // Исключаем checked и aria-label из CoreToggleProps
   & {
     /** Состояние toggle (controlled mode) */
     checked?: boolean;
@@ -110,6 +117,22 @@ export type AppToggleProps = Readonly<
     /** Telemetry for blur events */
     telemetryOnBlur?: boolean;
   }
+  & (
+    | {
+      /** I18n aria-label режим */
+      ariaLabelI18nKey: TranslationKey;
+      ariaLabelI18nNs?: Namespace;
+      ariaLabelI18nParams?: Record<string, string | number>;
+      'aria-label'?: never;
+    }
+    | {
+      /** Обычный aria-label режим */
+      ariaLabelI18nKey?: never;
+      ariaLabelI18nNs?: never;
+      ariaLabelI18nParams?: never;
+      'aria-label'?: string;
+    }
+  )
 >;
 
 /* ============================================================================
@@ -188,7 +211,8 @@ export type ToggleMapCoreProps<TData = Json> = MapCoreProps<UiPrimitiveProps, TD
 
 const ToggleComponent = forwardRef<HTMLInputElement, AppToggleProps>(
   function ToggleComponent(props, ref): JSX.Element | null {
-    const { telemetry } = useUnifiedUI();
+    const { telemetry, i18n } = useUnifiedUI();
+    const { translate } = i18n;
     // Сначала фильтруем бизнес-пропсы
     const filteredProps = omit(props, BUSINESS_PROPS);
 
@@ -201,6 +225,19 @@ const ToggleComponent = forwardRef<HTMLInputElement, AppToggleProps>(
       indeterminate = false,
       ...coreProps
     } = filteredProps;
+
+    // Aria-label: i18n → обычный aria-label → undefined
+    const ariaLabel = useMemo<string | undefined>(() => {
+      if ('ariaLabelI18nKey' in props) {
+        const effectiveNs = props.ariaLabelI18nNs ?? 'common';
+        return translate(
+          effectiveNs,
+          props.ariaLabelI18nKey,
+          props.ariaLabelI18nParams ?? EMPTY_PARAMS,
+        );
+      }
+      return filteredProps['aria-label'];
+    }, [props, translate, filteredProps]);
 
     const policy = useTogglePolicy(props);
     const internalRef = useRef<HTMLInputElement | null>(null);
@@ -287,6 +324,7 @@ const ToggleComponent = forwardRef<HTMLInputElement, AppToggleProps>(
         ref={internalRef}
         {...coreProps}
         {...(checked !== undefined ? { checked } : { defaultChecked })}
+        {...(ariaLabel !== undefined && { 'aria-label': ariaLabel })}
         indeterminate={indeterminate}
         data-component='AppToggle'
         disabled={policy.disabledByFeatureFlag || undefined}

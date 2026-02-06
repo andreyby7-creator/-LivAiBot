@@ -22,11 +22,12 @@
  */
 
 import { forwardRef, memo, useCallback, useEffect, useMemo, useRef } from 'react';
-import type { JSX, Ref } from 'react';
+import type { JSX, ReactNode, Ref } from 'react';
 
 import { ConfirmDialog as CoreConfirmDialog } from '../../../ui-core/src/components/ConfirmDialog.js';
 import type { CoreConfirmDialogProps } from '../../../ui-core/src/components/ConfirmDialog.js';
 import type { ModalVariant } from '../../../ui-core/src/components/Modal.js';
+import type { Namespace, TranslationKey } from '../lib/i18n.js';
 import { useUnifiedUI } from '../providers/UnifiedUIProvider.js';
 import type { Json } from '../types/common.js';
 import type {
@@ -88,8 +89,15 @@ type ConfirmDialogTelemetryPayload = {
   hasMessage: boolean;
 };
 
+/** Стабильная ссылка на пустой объект параметров */
+const EMPTY_PARAMS: Record<string, string | number> = Object.freeze({});
+
 export type AppConfirmDialogProps = Readonly<
-  Omit<CoreConfirmDialogProps, 'visible' | 'onConfirm' | 'onCancel' | 'data-testid'> & {
+  & Omit<
+    CoreConfirmDialogProps,
+    'visible' | 'onConfirm' | 'onCancel' | 'data-testid' | 'title' | 'message' | 'aria-label'
+  >
+  & {
     /**
      * Видимость ConfirmDialog (App policy).
      * Опционально для удобства App слоя. Если не указано, считается false.
@@ -115,6 +123,54 @@ export type AppConfirmDialogProps = Readonly<
     /** Test ID для автотестов */
     'data-testid'?: string;
   }
+  & (
+    | {
+      /** I18n title режим */
+      titleI18nKey: TranslationKey;
+      titleI18nNs?: Namespace;
+      titleI18nParams?: Record<string, string | number>;
+      title?: never;
+    }
+    | {
+      /** Обычный title режим */
+      titleI18nKey?: never;
+      titleI18nNs?: never;
+      titleI18nParams?: never;
+      title?: string;
+    }
+  )
+  & (
+    | {
+      /** I18n message режим */
+      messageI18nKey: TranslationKey;
+      messageI18nNs?: Namespace;
+      messageI18nParams?: Record<string, string | number>;
+      message?: never;
+    }
+    | {
+      /** Обычный message режим */
+      messageI18nKey?: never;
+      messageI18nNs?: never;
+      messageI18nParams?: never;
+      message?: ReactNode;
+    }
+  )
+  & (
+    | {
+      /** I18n aria-label режим */
+      ariaLabelI18nKey: TranslationKey;
+      ariaLabelI18nNs?: Namespace;
+      ariaLabelI18nParams?: Record<string, string | number>;
+      'aria-label'?: never;
+    }
+    | {
+      /** Обычный aria-label режим */
+      ariaLabelI18nKey?: never;
+      ariaLabelI18nNs?: never;
+      ariaLabelI18nParams?: never;
+      'aria-label'?: string;
+    }
+  )
 >;
 
 // Бизнес-пропсы, которые не должны попадать в DOM
@@ -123,6 +179,15 @@ const BUSINESS_PROPS = [
   'isHiddenByFeatureFlag',
   'isDisabledByFeatureFlag',
   'telemetryEnabled',
+  'titleI18nKey',
+  'titleI18nNs',
+  'titleI18nParams',
+  'messageI18nKey',
+  'messageI18nNs',
+  'messageI18nParams',
+  'ariaLabelI18nKey',
+  'ariaLabelI18nNs',
+  'ariaLabelI18nParams',
 ] as const;
 
 /* ============================================================================
@@ -219,13 +284,47 @@ const ConfirmDialogComponent = forwardRef<HTMLDivElement, AppConfirmDialogProps>
     props: AppConfirmDialogProps,
     ref: Ref<HTMLDivElement>,
   ): JSX.Element | null {
-    const { telemetry } = useUnifiedUI();
+    const { telemetry, i18n } = useUnifiedUI();
+    const { translate } = i18n;
     // Фильтруем бизнес-пропсы, оставляем только DOM-безопасные
     const domProps = omit(props, BUSINESS_PROPS);
 
+    // Title: i18n → обычный title → undefined
+    const title = useMemo<string | undefined>(() => {
+      if ('titleI18nKey' in props) {
+        const effectiveNs = props.titleI18nNs ?? 'common';
+        return translate(effectiveNs, props.titleI18nKey, props.titleI18nParams ?? EMPTY_PARAMS);
+      }
+      return props.title;
+    }, [props, translate]);
+
+    // Message: i18n → обычный message → undefined
+    const message = useMemo<ReactNode | undefined>(() => {
+      if ('messageI18nKey' in props) {
+        const effectiveNs = props.messageI18nNs ?? 'common';
+        return translate(
+          effectiveNs,
+          props.messageI18nKey,
+          props.messageI18nParams ?? EMPTY_PARAMS,
+        );
+      }
+      return props.message;
+    }, [props, translate]);
+
+    // Aria-label: i18n → обычный aria-label → undefined
+    const ariaLabel = useMemo<string | undefined>(() => {
+      if ('ariaLabelI18nKey' in props) {
+        const effectiveNs = props.ariaLabelI18nNs ?? 'common';
+        return translate(
+          effectiveNs,
+          props.ariaLabelI18nKey,
+          props.ariaLabelI18nParams ?? EMPTY_PARAMS,
+        );
+      }
+      return props['aria-label'];
+    }, [props, translate]);
+
     const {
-      title,
-      message,
       variant = 'default',
       confirmLabel,
       cancelLabel,
@@ -348,6 +447,7 @@ const ConfirmDialogComponent = forwardRef<HTMLDivElement, AppConfirmDialogProps>
       visible: policy.isRendered,
       ...(title !== undefined && { title }),
       ...(message !== undefined && { message }),
+      ...(ariaLabel !== undefined && { 'aria-label': ariaLabel }),
       variant,
       ...(confirmLabel !== undefined && { confirmLabel }),
       ...(cancelLabel !== undefined && { cancelLabel }),

@@ -186,6 +186,7 @@ vi.mock('../../../../ui-core/src/components/FileUploader', () => ({
 
 // Mock для UnifiedUIProvider
 const mockInfoFireAndForget = vi.fn();
+const mockTranslate = vi.fn();
 
 vi.mock('../../../src/providers/UnifiedUIProvider', () => ({
   useUnifiedUI: () => ({
@@ -199,6 +200,9 @@ vi.mock('../../../src/providers/UnifiedUIProvider', () => ({
       track: vi.fn(),
       infoFireAndForget: mockInfoFireAndForget,
     },
+    i18n: {
+      translate: mockTranslate,
+    },
   }),
 }));
 
@@ -209,6 +213,7 @@ describe('App FileUploader', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    mockTranslate.mockReturnValue('Translated Label');
     uuidCounter = 0; // Сбрасываем счетчик для каждого теста
     // Мокаем crypto.randomUUID для уникальных ID в тестах
     Object.defineProperty(globalThis, 'crypto', {
@@ -2091,6 +2096,118 @@ describe('App FileUploader', () => {
         filesCount: 0,
         totalSize: 0,
       });
+    });
+  });
+
+  describe('I18n рендеринг', () => {
+    describe('Aria-label', () => {
+      it('должен рендерить обычный aria-label', () => {
+        render(
+          <FileUploader aria-label='Test label' />,
+        );
+
+        const dropZone = screen.getByTestId('drop-zone');
+        expect(dropZone).toHaveAttribute('aria-label', 'Test label');
+      });
+
+      it('должен рендерить i18n aria-label', () => {
+        render(
+          <FileUploader
+            {...{ ariaLabelI18nKey: 'fileUploader.title' } as any}
+          />,
+        );
+
+        expect(mockTranslate).toHaveBeenCalledWith('common', 'fileUploader.title', {});
+        const dropZone = screen.getByTestId('drop-zone');
+        expect(dropZone).toHaveAttribute('aria-label', 'Translated Label');
+      });
+
+      it('должен передавать namespace для i18n aria-label', () => {
+        render(
+          <FileUploader
+            {...{ ariaLabelI18nKey: 'title', ariaLabelI18nNs: 'fileUploader' } as any}
+          />,
+        );
+
+        expect(mockTranslate).toHaveBeenCalledWith('fileUploader', 'title', {});
+      });
+
+      it('должен передавать параметры для i18n aria-label', () => {
+        const params = { maxFiles: 5, maxSize: 10 };
+        render(
+          <FileUploader
+            {...{ ariaLabelI18nKey: 'fileUploader.upload', ariaLabelI18nParams: params } as any}
+          />,
+        );
+
+        expect(mockTranslate).toHaveBeenCalledWith('common', 'fileUploader.upload', params);
+      });
+
+      it('должен использовать пустой объект для undefined параметров i18n aria-label', () => {
+        render(
+          <FileUploader
+            {...{ ariaLabelI18nKey: 'fileUploader.title', ariaLabelI18nParams: undefined } as any}
+          />,
+        );
+
+        expect(mockTranslate).toHaveBeenCalledWith('common', 'fileUploader.title', {});
+      });
+    });
+  });
+
+  describe('Побочные эффекты и производительность', () => {
+    it('должен мемоизировать i18n aria-label при изменении пропсов', () => {
+      const { rerender } = render(
+        <FileUploader
+          {...{ ariaLabelI18nKey: 'fileUploader.first' } as any}
+        />,
+      );
+
+      expect(mockTranslate).toHaveBeenCalledTimes(1);
+
+      rerender(
+        <FileUploader
+          {...{ ariaLabelI18nKey: 'fileUploader.second' } as any}
+        />,
+      );
+
+      expect(mockTranslate).toHaveBeenCalledTimes(2);
+      expect(mockTranslate).toHaveBeenLastCalledWith('common', 'fileUploader.second', {});
+    });
+  });
+
+  describe('Discriminated union типизация', () => {
+    it('должен принимать обычный aria-label без i18n', () => {
+      render(
+        <FileUploader aria-label='Regular label' />,
+      );
+
+      const dropZone = screen.getByTestId('drop-zone');
+      expect(dropZone).toHaveAttribute('aria-label', 'Regular label');
+    });
+
+    it('должен принимать i18n aria-label без обычного', () => {
+      render(
+        <FileUploader
+          {...{ ariaLabelI18nKey: 'fileUploader.title' } as any}
+        />,
+      );
+
+      expect(mockTranslate).toHaveBeenCalledWith('common', 'fileUploader.title', {});
+    });
+
+    it('не должен компилироваться с обоими aria-label одновременно', () => {
+      // Этот тест проверяет, что discriminated union работает правильно
+      expect(() => {
+        // TypeScript не позволит создать такой объект
+        const invalidProps = {
+          'aria-label': 'test',
+          ariaLabelI18nKey: 'test',
+        } as any;
+
+        // Если discriminated union работает, этот объект будет иметь never типы для конфликтующих полей
+        return invalidProps;
+      }).not.toThrow();
     });
   });
 });

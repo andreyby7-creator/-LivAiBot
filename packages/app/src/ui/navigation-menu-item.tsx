@@ -29,6 +29,7 @@ import type {
   CoreNavigationMenuItemProps,
   NavigationMenuItemData,
 } from '../../../ui-core/src/components/NavigationMenuItem.js';
+import type { Namespace, TranslationKey } from '../lib/i18n.js';
 import { canAccessRoute } from '../lib/route-permissions.js';
 import { useUnifiedUI } from '../providers/UnifiedUIProvider.js';
 import type { Json } from '../types/common.js';
@@ -99,7 +100,8 @@ type NavigationMenuItemTelemetryPayload = {
 };
 
 export type AppNavigationMenuItemProps = Readonly<
-  Omit<CoreNavigationMenuItemProps, 'data-testid'> & {
+  & Omit<CoreNavigationMenuItemProps, 'data-testid' | 'aria-label'>
+  & {
     /** Видимость NavigationMenuItem (App policy). Default = true */
     visible?: boolean;
 
@@ -118,6 +120,38 @@ export type AppNavigationMenuItemProps = Readonly<
     /** Test ID для автотестов */
     'data-testid'?: string;
   }
+  & (
+    | {
+      /** I18n label режим */
+      labelI18nKey: TranslationKey;
+      labelI18nNs?: Namespace;
+      labelI18nParams?: Record<string, string | number>;
+      label?: never;
+    }
+    | {
+      /** Обычный label режим */
+      labelI18nKey?: never;
+      labelI18nNs?: never;
+      labelI18nParams?: never;
+      label?: string;
+    }
+  )
+  & (
+    | {
+      /** I18n aria-label режим */
+      ariaLabelI18nKey: TranslationKey;
+      ariaLabelI18nNs?: Namespace;
+      ariaLabelI18nParams?: Record<string, string | number>;
+      'aria-label'?: never;
+    }
+    | {
+      /** Обычный aria-label режим */
+      ariaLabelI18nKey?: never;
+      ariaLabelI18nNs?: never;
+      ariaLabelI18nParams?: never;
+      'aria-label'?: string;
+    }
+  )
 >;
 
 // Бизнес-пропсы, которые не должны попадать в DOM
@@ -126,7 +160,16 @@ const BUSINESS_PROPS = [
   'isHiddenByFeatureFlag',
   'isDisabledByFeatureFlag',
   'telemetryEnabled',
+  'labelI18nKey',
+  'labelI18nNs',
+  'labelI18nParams',
+  'ariaLabelI18nKey',
+  'ariaLabelI18nNs',
+  'ariaLabelI18nParams',
 ] as const;
+
+/** Стабильная ссылка на пустой объект параметров */
+const EMPTY_PARAMS: Record<string, string | number> = Object.freeze({});
 
 /* ============================================================================
  * 🧠 POLICY
@@ -270,7 +313,8 @@ const NavigationMenuItemComponent = forwardRef<
     props: AppNavigationMenuItemProps,
     ref: Ref<NavigationMenuItemElement>,
   ): JSX.Element | null {
-    const { telemetry } = useUnifiedUI();
+    const { telemetry, i18n } = useUnifiedUI();
+    const { translate } = i18n;
     // Фильтруем бизнес-пропсы, оставляем только DOM-безопасные
     const domProps = omit(props, BUSINESS_PROPS);
 
@@ -287,6 +331,34 @@ const NavigationMenuItemComponent = forwardRef<
       'data-testid': dataTestId,
       ...filteredCoreProps
     } = domProps;
+
+    // Label: i18n → обычный label → item.label
+    const label = useMemo<string>(() => {
+      if ('labelI18nKey' in props) {
+        const effectiveNs = props.labelI18nNs ?? 'common';
+        return translate(effectiveNs, props.labelI18nKey, props.labelI18nParams ?? EMPTY_PARAMS);
+      }
+      return props.label ?? item.label;
+    }, [props, translate, item.label]);
+
+    // Aria-label: i18n → обычный aria-label → undefined
+    const ariaLabel = useMemo<string | undefined>(() => {
+      if ('ariaLabelI18nKey' in props) {
+        const effectiveNs = props.ariaLabelI18nNs ?? 'common';
+        return translate(
+          effectiveNs,
+          props.ariaLabelI18nKey,
+          props.ariaLabelI18nParams ?? EMPTY_PARAMS,
+        );
+      }
+      return props['aria-label'];
+    }, [props, translate]);
+
+    // Создаем обновленный item с i18n label
+    const translatedItem = useMemo<NavigationMenuItemData>(() => ({
+      ...item,
+      label,
+    }), [item, label]);
 
     const policy = useNavigationMenuItemPolicy(props);
 
@@ -391,19 +463,20 @@ const NavigationMenuItemComponent = forwardRef<
       <CoreNavigationMenuItem
         ref={ref}
         item={{
-          ...item,
-          isDisabled: item.isDisabled === true
+          ...translatedItem,
+          isDisabled: translatedItem.isDisabled === true
             || policy.disabledByFeatureFlag
             || !policy.routeAccessible,
         }}
         {...(size !== undefined && { size })}
         {...(variant !== undefined && { variant })}
         {...(showIcon !== undefined && { showIcon })}
-        {...(showLabel !== undefined && { showLabel })}
+        showLabel={showLabel ?? true}
         {...(customIcon !== undefined && { customIcon })}
         style={combinedStyle}
         className={className}
         onClick={onClick ? handleClick : undefined}
+        {...(ariaLabel !== undefined && { 'aria-label': ariaLabel })}
         aria-disabled={policy.disabledByFeatureFlag || !policy.routeAccessible}
         data-component='AppNavigationMenuItem'
         data-state={policy.disabledByFeatureFlag || !policy.routeAccessible ? 'disabled' : 'active'}

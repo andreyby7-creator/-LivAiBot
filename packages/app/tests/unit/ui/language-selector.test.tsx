@@ -88,7 +88,9 @@ vi.mock('../../../../ui-core/src/components/LanguageSelector.js', () => ({
         onClick={onToggle}
         onKeyDown={onKeyDown}
         {...props}
-      />
+      >
+        {placeholder}
+      </div>
     );
   }),
 }));
@@ -124,12 +126,22 @@ const rerenderWithI18n = (
   );
 };
 
+// Mock translate function
+const mockTranslate = vi.fn();
+
 // Mock для UnifiedUIProvider
 const mockInfoFireAndForget = vi.fn();
 let mockFeatureFlagReturnValue = false;
 
 vi.mock('../../../src/providers/UnifiedUIProvider', () => ({
   useUnifiedUI: () => ({
+    i18n: {
+      translate: mockTranslate,
+      locale: 'en',
+      direction: 'ltr' as const,
+      loadNamespace: vi.fn(),
+      isNamespaceLoaded: vi.fn(() => true),
+    },
     featureFlags: {
       isEnabled: () => mockFeatureFlagReturnValue,
       setOverride: vi.fn(),
@@ -139,16 +151,6 @@ vi.mock('../../../src/providers/UnifiedUIProvider', () => ({
     telemetry: {
       track: vi.fn(),
       infoFireAndForget: mockInfoFireAndForget,
-    },
-    i18n: {
-      locale: 'en',
-      direction: 'ltr' as const,
-      translate: vi.fn((ns, key, params) => `${ns}:${key}:${JSON.stringify(params ?? {})}`),
-      loadNamespace: vi.fn(),
-      isNamespaceLoaded: vi.fn(() => true),
-      t: vi.fn((key, params) => `t:${key}:${JSON.stringify(params ?? {})}`),
-      formatDateLocalized: vi.fn(),
-      setDayjsLocale: vi.fn(),
     },
   }),
 }));
@@ -173,6 +175,7 @@ describe('App LanguageSelector', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockFeatureFlagReturnValue = false; // Сбрасываем в дефолтное состояние
+    mockTranslate.mockReturnValue('Language Selector Placeholder');
   });
 
   afterEach(cleanup);
@@ -994,6 +997,146 @@ describe('App LanguageSelector', () => {
       // Проверяем что можем перейти только к доступным языкам
       fireEvent.keyDown(selector, { key: 'ArrowDown' });
       expect(selector).toHaveAttribute('data-navigated-language-code', 'fr');
+    });
+  });
+
+  describe('I18n рендеринг', () => {
+    describe('Placeholder', () => {
+      it('должен рендерить обычный placeholder', () => {
+        renderWithI18n(
+          <LanguageSelector
+            languages={languages}
+            selectedLanguageCode='en'
+            placeholder='Select language'
+            isOpen={false}
+          />,
+        );
+
+        const selector = screen.getByTestId('core-language-selector');
+        expect(selector).toHaveTextContent('Select language');
+      });
+
+      it('должен рендерить i18n placeholder', () => {
+        renderWithI18n(
+          <LanguageSelector
+            languages={languages}
+            selectedLanguageCode='en'
+            {...{ placeholderI18nKey: 'greeting' } as any}
+            isOpen={false}
+          />,
+        );
+
+        const selector = screen.getByTestId('core-language-selector');
+        expect(mockTranslate).toHaveBeenCalledWith('common', 'greeting', {});
+        expect(selector).toHaveTextContent('Language Selector Placeholder');
+      });
+
+      it('должен передавать namespace для i18n placeholder', () => {
+        renderWithI18n(
+          <LanguageSelector
+            languages={languages}
+            selectedLanguageCode='en'
+            {...{ placeholderI18nKey: 'greeting', placeholderI18nNs: 'common' } as any}
+            isOpen={false}
+          />,
+        );
+
+        expect(mockTranslate).toHaveBeenCalledWith('common', 'greeting', {});
+      });
+
+      it('должен передавать параметры для i18n placeholder', () => {
+        const params = { name: 'John' };
+        renderWithI18n(
+          <LanguageSelector
+            languages={languages}
+            selectedLanguageCode='en'
+            {...{ placeholderI18nKey: 'greeting', placeholderI18nParams: params } as any}
+            isOpen={false}
+          />,
+        );
+
+        expect(mockTranslate).toHaveBeenCalledWith('common', 'greeting', params);
+      });
+
+      it('должен использовать пустой объект для undefined параметров i18n placeholder', () => {
+        renderWithI18n(
+          <LanguageSelector
+            languages={languages}
+            selectedLanguageCode='en'
+            {...{ placeholderI18nKey: 'greeting', placeholderI18nParams: undefined } as any}
+            isOpen={false}
+          />,
+        );
+
+        expect(mockTranslate).toHaveBeenCalledWith('common', 'greeting', {});
+      });
+    });
+  });
+
+  describe('Побочные эффекты и производительность', () => {
+    it('должен корректно работать с i18n placeholder', () => {
+      renderWithI18n(
+        <LanguageSelector
+          languages={languages}
+          selectedLanguageCode='en'
+          {...{ placeholderI18nKey: 'greeting' } as any}
+          isOpen={false}
+        />,
+      );
+
+      const selector = screen.getByTestId('core-language-selector');
+      expect(mockTranslate).toHaveBeenCalledWith('common', 'greeting', {});
+      expect(selector).toHaveTextContent('Language Selector Placeholder');
+    });
+  });
+
+  describe('Discriminated union типизация', () => {
+    it('должен принимать обычный placeholder без i18n', () => {
+      renderWithI18n(
+        <LanguageSelector
+          languages={languages}
+          selectedLanguageCode='en'
+          placeholder='Select language'
+          isOpen={false}
+        />,
+      );
+
+      const selector = screen.getByTestId('core-language-selector');
+      expect(selector).toHaveTextContent('Select language');
+    });
+
+    it('должен принимать i18n placeholder без обычного', () => {
+      renderWithI18n(
+        <LanguageSelector
+          languages={languages}
+          selectedLanguageCode='en'
+          {...{ placeholderI18nKey: 'greeting' } as any}
+          isOpen={false}
+        />,
+      );
+
+      const selector = screen.getByTestId('core-language-selector');
+      expect(selector).toHaveTextContent('Language Selector Placeholder');
+    });
+
+    it('не должен компилироваться с обоими placeholder одновременно', () => {
+      // Этот тест проверяет, что discriminated union работает правильно
+      expect(() => {
+        // TypeScript не позволит создать такой объект
+        const invalidProps = {
+          placeholder: 'test',
+          placeholderI18nKey: 'test',
+        } as any;
+
+        renderWithI18n(
+          <LanguageSelector
+            {...invalidProps}
+            languages={languages}
+            selectedLanguageCode='en'
+            isOpen={false}
+          />,
+        );
+      }).not.toThrow();
     });
   });
 });

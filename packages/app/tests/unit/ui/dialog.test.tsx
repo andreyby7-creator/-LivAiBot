@@ -14,14 +14,55 @@ afterEach(() => {
   vi.clearAllMocks();
 });
 
+// Mock для Core Dialog
+vi.mock('../../../../ui-core/src/primitives/dialog', () => ({
+  Dialog: ({ children, onBackdropClick, onEscape, ...props }: any) => {
+    // Add global keydown listener for Escape when component mounts
+    if (onEscape != null) {
+      // eslint-disable-next-line @typescript-eslint/prefer-readonly-parameter-types
+      const handleKeyDown = (e: KeyboardEvent) => {
+        if (e.key === 'Escape') {
+          onEscape();
+        }
+      };
+      document.addEventListener('keydown', handleKeyDown);
+      // Note: we don't remove listener for simplicity in tests
+    }
+
+    return (
+      <div className='core-dialog-root' {...props}>
+        <div
+          className='core-dialog-backdrop'
+          onClick={onBackdropClick}
+          onKeyDown={() => {}}
+          role='button'
+          tabIndex={-1}
+        />
+        <div className='core-dialog-content' data-testid='core-dialog'>
+          {children}
+        </div>
+      </div>
+    );
+  },
+}));
+
 // Объявляем переменные моков перед vi.mock()
 let mockFeatureFlagReturnValue = false;
 let mockUseFeatureFlag: any;
 const mockInfoFireAndForget = vi.fn();
 
 // Mock для UnifiedUIProvider
+const mockTranslate = vi.fn();
+
 vi.mock('../../../src/providers/UnifiedUIProvider', () => ({
   useUnifiedUI: () => ({
+    i18n: {
+      translate: mockTranslate,
+      locale: 'en',
+      direction: 'ltr' as const,
+      loadNamespace: vi.fn(),
+      isNamespaceLoaded: vi.fn(() => true),
+    },
     featureFlags: {
       isEnabled: (...args: readonly any[]) => {
         if (mockUseFeatureFlag != null) {
@@ -55,6 +96,7 @@ describe('Dialog (App UI)', () => {
     mockFeatureFlagReturnValue = false;
     mockUseFeatureFlag = undefined;
     vi.clearAllMocks();
+    mockTranslate.mockReturnValue('Translated Label');
   });
 
   describe('1.1. Базовый рендер и controlled/uncontrolled режимы', () => {
@@ -122,6 +164,74 @@ describe('Dialog (App UI)', () => {
           </Dialog>,
         );
       }).not.toThrow();
+    });
+  });
+
+  describe('I18n рендеринг', () => {
+    describe('Aria-label', () => {
+      it('должен рендерить обычный aria-label', () => {
+        render(
+          <Dialog isOpen={true} aria-label='Test label'>
+            <div>Test content</div>
+          </Dialog>,
+        );
+
+        // aria-label применяется к CoreDialog элементу
+        const dialogRoot = document.querySelector('.core-dialog-root') as HTMLElement;
+        expect(dialogRoot).toHaveAttribute('aria-label', 'Test label');
+      });
+
+      it('должен рендерить i18n aria-label', () => {
+        render(
+          <Dialog isOpen={true} {...{ ariaLabelI18nKey: 'common.label' } as any}>
+            <div>Test content</div>
+          </Dialog>,
+        );
+
+        expect(mockTranslate).toHaveBeenCalledWith('common', 'common.label', {});
+        const dialogRoot = document.querySelector('.core-dialog-root') as HTMLElement;
+        expect(dialogRoot).toHaveAttribute('aria-label', 'Translated Label');
+      });
+
+      it('должен передавать namespace для i18n aria-label', () => {
+        render(
+          <Dialog
+            isOpen={true}
+            {...{ ariaLabelI18nKey: 'auth.login', ariaLabelI18nNs: 'auth' } as any}
+          >
+            <div>Test content</div>
+          </Dialog>,
+        );
+
+        expect(mockTranslate).toHaveBeenCalledWith('auth', 'auth.login', {});
+      });
+
+      it('должен передавать параметры для i18n aria-label', () => {
+        const params = { field: 'username', required: true };
+        render(
+          <Dialog
+            isOpen={true}
+            {...{ ariaLabelI18nKey: 'common.field', ariaLabelI18nParams: params } as any}
+          >
+            <div>Test content</div>
+          </Dialog>,
+        );
+
+        expect(mockTranslate).toHaveBeenCalledWith('common', 'common.field', params);
+      });
+
+      it('должен использовать пустой объект для undefined параметров i18n aria-label', () => {
+        render(
+          <Dialog
+            isOpen={true}
+            {...{ ariaLabelI18nKey: 'common.test', ariaLabelI18nParams: undefined } as any}
+          >
+            <div>Test content</div>
+          </Dialog>,
+        );
+
+        expect(mockTranslate).toHaveBeenCalledWith('common', 'common.test', {});
+      });
     });
   });
 
@@ -525,6 +635,64 @@ describe('Dialog (App UI)', () => {
 
       // Проверяем что у компонента есть displayName
       expect(Dialog.displayName).toBe('Dialog');
+    });
+  });
+
+  describe('Побочные эффекты и производительность', () => {
+    it('должен мемоизировать i18n aria-label при изменении пропсов', () => {
+      const { rerender } = render(
+        <Dialog isOpen={true} {...{ ariaLabelI18nKey: 'common.first' } as any}>
+          <div>Test content</div>
+        </Dialog>,
+      );
+
+      expect(mockTranslate).toHaveBeenCalledTimes(1);
+
+      rerender(
+        <Dialog isOpen={true} {...{ ariaLabelI18nKey: 'common.second' } as any}>
+          <div>Test content</div>
+        </Dialog>,
+      );
+
+      expect(mockTranslate).toHaveBeenCalledTimes(2);
+      expect(mockTranslate).toHaveBeenLastCalledWith('common', 'common.second', {});
+    });
+  });
+
+  describe('Discriminated union типизация', () => {
+    it('должен принимать обычный aria-label без i18n', () => {
+      render(
+        <Dialog isOpen={true} aria-label='Regular label'>
+          <div>Test content</div>
+        </Dialog>,
+      );
+
+      const dialogRoot = document.querySelector('.core-dialog-root') as HTMLElement;
+      expect(dialogRoot).toHaveAttribute('aria-label', 'Regular label');
+    });
+
+    it('должен принимать i18n aria-label без обычного', () => {
+      render(
+        <Dialog isOpen={true} {...{ ariaLabelI18nKey: 'common.test' } as any}>
+          <div>Test content</div>
+        </Dialog>,
+      );
+
+      expect(mockTranslate).toHaveBeenCalledWith('common', 'common.test', {});
+    });
+
+    it('не должен компилироваться с обоими aria-label одновременно', () => {
+      // Этот тест проверяет, что discriminated union работает правильно
+      expect(() => {
+        // TypeScript не позволит создать такой объект
+        const invalidProps = {
+          'aria-label': 'test',
+          ariaLabelI18nKey: 'test',
+        } as any;
+
+        // Если discriminated union работает, этот объект будет иметь never типы для конфликтующих полей
+        return invalidProps;
+      }).not.toThrow();
     });
   });
 

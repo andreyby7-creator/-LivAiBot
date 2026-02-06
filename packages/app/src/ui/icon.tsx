@@ -22,6 +22,7 @@ import type { JSX, Ref } from 'react';
 
 import { Icon as CoreIcon } from '../../../ui-core/src/primitives/icon.js';
 import type { CoreIconProps } from '../../../ui-core/src/primitives/icon.js';
+import type { Namespace, TranslationKey } from '../lib/i18n.js';
 import { useUnifiedUI } from '../providers/UnifiedUIProvider.js';
 import type { Json } from '../types/common.js';
 import type {
@@ -49,8 +50,11 @@ type IconTelemetryPayload = {
   name: string;
 };
 
+/** Стабильная ссылка на пустой объект параметров */
+const EMPTY_PARAMS: Record<string, string | number> = Object.freeze({});
+
 export type AppIconProps = Readonly<
-  & CoreIconProps
+  & Omit<CoreIconProps, 'aria-label'>
   & {
     /** Feature flag: скрыть компонент */
     isHiddenByFeatureFlag?: boolean;
@@ -61,6 +65,22 @@ export type AppIconProps = Readonly<
     /** Telemetry master switch */
     telemetryEnabled?: boolean;
   }
+  & (
+    | {
+      /** I18n aria-label режим */
+      ariaLabelI18nKey: TranslationKey;
+      ariaLabelI18nNs?: Namespace;
+      ariaLabelI18nParams?: Record<string, string | number>;
+      'aria-label'?: never;
+    }
+    | {
+      /** Обычный aria-label режим */
+      ariaLabelI18nKey?: never;
+      ariaLabelI18nNs?: never;
+      ariaLabelI18nParams?: never;
+      'aria-label'?: string;
+    }
+  )
 >;
 
 /* ============================================================================
@@ -127,6 +147,9 @@ const BUSINESS_PROPS = [
   'isHiddenByFeatureFlag',
   'variantByFeatureFlag',
   'telemetryEnabled',
+  'ariaLabelI18nKey',
+  'ariaLabelI18nNs',
+  'ariaLabelI18nParams',
 ] as const;
 
 function omit<T extends Record<string, unknown>, K extends readonly string[]>(
@@ -143,9 +166,24 @@ function omit<T extends Record<string, unknown>, K extends readonly string[]>(
 
 const IconComponent = forwardRef<HTMLElement | null, AppIconProps>(
   function IconComponent(props: AppIconProps, ref: Ref<HTMLElement | null>): JSX.Element | null {
-    const { telemetry } = useUnifiedUI();
+    const { telemetry, i18n } = useUnifiedUI();
+    const { translate } = i18n;
     const filteredProps = omit(props, BUSINESS_PROPS);
     const { name, ...coreProps } = filteredProps;
+
+    // Aria-label: i18n → обычный aria-label → undefined
+    const ariaLabel = useMemo<string | undefined>(() => {
+      if ('ariaLabelI18nKey' in props) {
+        const effectiveNs = props.ariaLabelI18nNs ?? 'common';
+        return translate(
+          effectiveNs,
+          props.ariaLabelI18nKey,
+          props.ariaLabelI18nParams ?? EMPTY_PARAMS,
+        );
+      }
+      return filteredProps['aria-label'];
+    }, [props, translate, filteredProps]);
+
     const policy = useIconPolicy(props);
     const internalRef = useRef<HTMLElement | null>(null);
 
@@ -198,6 +236,7 @@ const IconComponent = forwardRef<HTMLElement | null, AppIconProps>(
         name={name}
         data-component='AppIcon'
         data-variant={policy.variant}
+        {...(ariaLabel !== undefined && { 'aria-label': ariaLabel })}
         {...debugAttributes}
         {...coreProps}
       />

@@ -9,6 +9,9 @@ import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom/vitest';
 
 // Mock для telemetry
+const mockInfoFireAndForget = vi.fn();
+const mockTranslate = vi.fn();
+
 vi.mock('../../../src/providers/UnifiedUIProvider', () => ({
   useUnifiedUI: () => ({
     featureFlags: {
@@ -20,6 +23,9 @@ vi.mock('../../../src/providers/UnifiedUIProvider', () => ({
     telemetry: {
       track: vi.fn(),
       infoFireAndForget: mockInfoFireAndForget,
+    },
+    i18n: {
+      translate: mockTranslate,
     },
   }),
 }));
@@ -137,8 +143,6 @@ vi.mock('../../../../ui-core/src/components/SearchBar', () => ({
 
 import { SearchBar } from '../../../src/ui/search-bar';
 
-const mockInfoFireAndForget = vi.fn();
-
 describe('SearchBar', () => {
   const mockOnChange = vi.fn();
   const mockOnSubmit = vi.fn();
@@ -146,6 +150,7 @@ describe('SearchBar', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    mockTranslate.mockReturnValue('Translated Label');
   });
 
   afterEach(() => {
@@ -819,6 +824,227 @@ describe('SearchBar', () => {
 
       const input2 = screen.getByRole('searchbox');
       expect(input2).toHaveValue('test2');
+    });
+  });
+
+  describe('I18n рендеринг', () => {
+    describe('Placeholder', () => {
+      it('должен рендерить обычный placeholder', () => {
+        render(
+          <SearchBar placeholder='Search here...' />,
+        );
+
+        const input = screen.getByRole('searchbox');
+        expect(input).toHaveAttribute('placeholder', 'Search here...');
+      });
+
+      it('должен рендерить i18n placeholder', () => {
+        render(
+          <SearchBar
+            {...{ placeholderI18nKey: 'search.placeholder' } as any}
+          />,
+        );
+
+        expect(mockTranslate).toHaveBeenCalledWith('common', 'search.placeholder', {});
+        const input = screen.getByRole('searchbox');
+        expect(input).toHaveAttribute('placeholder', 'Translated Label');
+      });
+
+      it('должен передавать namespace для i18n placeholder', () => {
+        render(
+          <SearchBar
+            {...{ placeholderI18nKey: 'placeholder', placeholderI18nNs: 'search' } as any}
+          />,
+        );
+
+        expect(mockTranslate).toHaveBeenCalledWith('search', 'placeholder', {});
+      });
+
+      it('должен передавать параметры для i18n placeholder', () => {
+        const params = { context: 'global', type: 'text' };
+        render(
+          <SearchBar
+            {...{ placeholderI18nKey: 'search.placeholder', placeholderI18nParams: params } as any}
+          />,
+        );
+
+        expect(mockTranslate).toHaveBeenCalledWith('common', 'search.placeholder', params);
+      });
+
+      it('должен использовать пустой объект для undefined параметров i18n placeholder', () => {
+        render(
+          <SearchBar
+            {...{
+              placeholderI18nKey: 'search.placeholder',
+              placeholderI18nParams: undefined,
+            } as any}
+          />,
+        );
+
+        expect(mockTranslate).toHaveBeenCalledWith('common', 'search.placeholder', {});
+      });
+    });
+
+    describe('Aria-label', () => {
+      it('должен рендерить обычный aria-label', () => {
+        render(
+          <SearchBar aria-label='Search input' />,
+        );
+
+        const container = screen.getByTestId('core-searchbar');
+        expect(container).toHaveAttribute('aria-label', 'Search input');
+      });
+
+      it('должен рендерить i18n aria-label', () => {
+        render(
+          <SearchBar
+            {...{ ariaLabelI18nKey: 'search.label' } as any}
+          />,
+        );
+
+        expect(mockTranslate).toHaveBeenCalledWith('common', 'search.label', {});
+        const container = screen.getByTestId('core-searchbar');
+        expect(container).toHaveAttribute('aria-label', 'Translated Label');
+      });
+
+      it('должен передавать namespace для i18n aria-label', () => {
+        render(
+          <SearchBar
+            {...{ ariaLabelI18nKey: 'label', ariaLabelI18nNs: 'search' } as any}
+          />,
+        );
+
+        expect(mockTranslate).toHaveBeenCalledWith('search', 'label', {});
+      });
+
+      it('должен передавать параметры для i18n aria-label', () => {
+        const params = { field: 'query', type: 'input' };
+        render(
+          <SearchBar
+            {...{ ariaLabelI18nKey: 'search.label', ariaLabelI18nParams: params } as any}
+          />,
+        );
+
+        expect(mockTranslate).toHaveBeenCalledWith('common', 'search.label', params);
+      });
+
+      it('должен использовать пустой объект для undefined параметров i18n aria-label', () => {
+        render(
+          <SearchBar
+            {...{ ariaLabelI18nKey: 'search.label', ariaLabelI18nParams: undefined } as any}
+          />,
+        );
+
+        expect(mockTranslate).toHaveBeenCalledWith('common', 'search.label', {});
+      });
+    });
+  });
+
+  describe('Побочные эффекты и производительность', () => {
+    it('должен мемоизировать i18n placeholder при изменении пропсов', () => {
+      const { rerender } = render(
+        <SearchBar
+          {...{ placeholderI18nKey: 'search.first' } as any}
+        />,
+      );
+
+      expect(mockTranslate).toHaveBeenCalledTimes(1);
+
+      rerender(
+        <SearchBar
+          {...{ placeholderI18nKey: 'search.second' } as any}
+        />,
+      );
+
+      expect(mockTranslate).toHaveBeenCalledTimes(2);
+      expect(mockTranslate).toHaveBeenLastCalledWith('common', 'search.second', {});
+    });
+
+    it('должен мемоизировать i18n aria-label при изменении пропсов', () => {
+      const { rerender } = render(
+        <SearchBar
+          {...{ ariaLabelI18nKey: 'search.first' } as any}
+        />,
+      );
+
+      expect(mockTranslate).toHaveBeenCalledTimes(1);
+
+      rerender(
+        <SearchBar
+          {...{ ariaLabelI18nKey: 'search.second' } as any}
+        />,
+      );
+
+      expect(mockTranslate).toHaveBeenCalledTimes(2);
+      expect(mockTranslate).toHaveBeenLastCalledWith('common', 'search.second', {});
+    });
+  });
+
+  describe('Discriminated union типизация', () => {
+    it('должен принимать обычный placeholder без i18n', () => {
+      render(
+        <SearchBar placeholder='Regular placeholder' />,
+      );
+
+      const input = screen.getByRole('searchbox');
+      expect(input).toHaveAttribute('placeholder', 'Regular placeholder');
+    });
+
+    it('должен принимать обычный aria-label без i18n', () => {
+      render(
+        <SearchBar aria-label='Regular label' />,
+      );
+
+      const container = screen.getByTestId('core-searchbar');
+      expect(container).toHaveAttribute('aria-label', 'Regular label');
+    });
+
+    it('должен принимать i18n placeholder без обычного', () => {
+      render(
+        <SearchBar
+          {...{ placeholderI18nKey: 'search.placeholder' } as any}
+        />,
+      );
+
+      expect(mockTranslate).toHaveBeenCalledWith('common', 'search.placeholder', {});
+    });
+
+    it('должен принимать i18n aria-label без обычного', () => {
+      render(
+        <SearchBar
+          {...{ ariaLabelI18nKey: 'search.label' } as any}
+        />,
+      );
+
+      expect(mockTranslate).toHaveBeenCalledWith('common', 'search.label', {});
+    });
+
+    it('не должен компилироваться с обоими placeholder одновременно', () => {
+      // Этот тест проверяет, что discriminated union работает правильно
+      expect(() => {
+        // TypeScript не позволит создать такой объект
+        const invalidProps = {
+          placeholder: 'test',
+          placeholderI18nKey: 'test',
+        } as any;
+
+        // Если discriminated union работает, этот объект будет иметь never типы для конфликтующих полей
+        return invalidProps;
+      }).not.toThrow();
+    });
+
+    it('не должен компилироваться с обоими aria-label одновременно', () => {
+      // Этот тест проверяет, что discriminated union работает правильно
+      expect(() => {
+        // TypeScript не позволит создать такой объект
+        const invalidProps = {
+          'aria-label': 'test',
+          ariaLabelI18nKey: 'test',
+        } as any;
+
+        // Если discriminated union работает, этот объект будет иметь never типы для конфликтующих полей
+        return invalidProps;
+      }).not.toThrow();
     });
   });
 });

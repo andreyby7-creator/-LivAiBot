@@ -31,8 +31,23 @@ import type {
   CoreSupportButtonProps,
   SupportButtonVariant,
 } from '../../../ui-core/src/components/SupportButton.js';
+import type { Namespace, TranslationKey } from '../lib/i18n.js';
 import { useUnifiedUI } from '../providers/UnifiedUIProvider.js';
 import type { UiTelemetryApi } from '../types/ui-contracts.js';
+
+/* ============================================================================
+ * 🧰 UTILITY FUNCTIONS
+ * ========================================================================== */
+
+function omit<T extends Record<string, unknown>>(
+  obj: T,
+  keys: readonly string[],
+): Partial<T> {
+  const keySet = new Set(keys);
+  return Object.fromEntries(
+    Object.entries(obj).filter(([key]) => !keySet.has(key)),
+  ) as Partial<T>;
+}
 
 /** Тип элемента, который может рендерить SupportButton */
 type SupportButtonElement = HTMLButtonElement;
@@ -62,6 +77,16 @@ type SupportButtonTelemetryPayload = {
 };
 
 const DEFAULT_VARIANT: SupportButtonVariant = 'default';
+
+const EMPTY_PARAMS: Record<string, string | number> = Object.freeze({});
+
+const BUSINESS_PROPS = [
+  'visible',
+  'isHiddenByFeatureFlag',
+  'isDisabledByFeatureFlag',
+  'telemetryEnabled',
+  'onSupportRequest',
+] as const;
 
 /* ============================================================================
  * 📡 TELEMETRY
@@ -128,7 +153,8 @@ function useSupportButtonPolicy(props: {
  * ========================================================================== */
 
 export type AppSupportButtonProps = Readonly<
-  Omit<CoreSupportButtonProps, 'data-testid'> & {
+  & Omit<CoreSupportButtonProps, 'data-testid' | 'label'>
+  & {
     /** Видимость SupportButton (App policy). Default = true */
     visible?: boolean;
 
@@ -147,6 +173,22 @@ export type AppSupportButtonProps = Readonly<
     /** Test ID для автотестов */
     'data-testid'?: string;
   }
+  & (
+    | {
+      /** I18n label режим */
+      labelI18nKey: TranslationKey;
+      labelI18nNs?: Namespace;
+      labelI18nParams?: Record<string, string | number>;
+      label?: never;
+    }
+    | {
+      /** Обычный label режим */
+      labelI18nKey?: never;
+      labelI18nNs?: never;
+      labelI18nParams?: never;
+      label?: string;
+    }
+  )
 >;
 
 const AppSupportButtonComponent = forwardRef<SupportButtonElement, AppSupportButtonProps>(
@@ -154,7 +196,9 @@ const AppSupportButtonComponent = forwardRef<SupportButtonElement, AppSupportBut
     props: AppSupportButtonProps,
     ref: Ref<SupportButtonElement>,
   ): JSX.Element | null {
-    const { telemetry } = useUnifiedUI();
+    const { telemetry, i18n } = useUnifiedUI();
+    const { translate } = i18n;
+
     const {
       visible: _visible, // used in policy
       isHiddenByFeatureFlag: _isHiddenByFeatureFlag, // used in policy
@@ -165,8 +209,17 @@ const AppSupportButtonComponent = forwardRef<SupportButtonElement, AppSupportBut
       variant = DEFAULT_VARIANT,
       size = 'medium',
       'data-testid': dataTestId,
-      ...coreProps
+      ...domProps
     } = props;
+
+    // Label: i18n → обычный label → undefined
+    const label = useMemo<string | undefined>(() => {
+      if ('labelI18nKey' in props) {
+        const effectiveNs = props.labelI18nNs ?? 'common';
+        return translate(effectiveNs, props.labelI18nKey, props.labelI18nParams ?? EMPTY_PARAMS);
+      }
+      return domProps.label;
+    }, [props, translate, domProps.label]);
 
     const policy = useSupportButtonPolicy({
       visible: _visible,
@@ -279,12 +332,13 @@ const AppSupportButtonComponent = forwardRef<SupportButtonElement, AppSupportBut
         size={size}
         disabled={combinedDisabled}
         onSupportClick={handleSupportClick}
+        {...(label !== undefined && { label })}
         data-component='AppSupportButton'
         data-state={policy.disabledByFeatureFlag ? 'disabled' : 'active'}
         data-feature-flag={policy.hiddenByFeatureFlag ? 'hidden' : 'visible'}
         data-telemetry={policy.telemetryEnabled ? 'enabled' : 'disabled'}
         {...(dataTestId != null && dataTestId !== '' && { 'data-testid': dataTestId })}
-        {...coreProps}
+        {...omit(domProps, BUSINESS_PROPS)}
       />
     );
   },

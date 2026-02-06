@@ -39,6 +39,7 @@ import type { CSSProperties, JSX, Ref } from 'react';
 import { Skeleton as AppSkeleton } from './skeleton.js';
 import type { AppSkeletonProps } from './skeleton.js';
 import type { SkeletonVariant } from '../../../ui-core/src/components/Skeleton.js';
+import type { Namespace, TranslationKey } from '../lib/i18n.js';
 import { useUnifiedUI } from '../providers/UnifiedUIProvider.js';
 import type { UiTelemetryApi } from '../types/ui-contracts.js';
 
@@ -74,55 +75,76 @@ type SkeletonGroupTelemetryPayload = {
   animated: boolean;
 };
 
+/** Стабильная ссылка на пустой объект параметров */
+const EMPTY_PARAMS: Record<string, string | number> = Object.freeze({});
+
 /**
  * App props для SkeletonGroup.
  *
  * ⚠️ telemetryId обязателен.
  * Без него SkeletonGroup считается архитектурно неполноценным.
  */
-export type AppSkeletonGroupProps = Readonly<{
-  /**
-   * Количество Skeleton элементов.
-   * Может быть любым числом, SkeletonGroup сам нормализует его в safeCount ≥ 0.
-   */
-  count: number;
+export type AppSkeletonGroupProps = Readonly<
+  & {
+    /**
+     * Количество Skeleton элементов.
+     * Может быть любым числом, SkeletonGroup сам нормализует его в safeCount ≥ 0.
+     */
+    count: number;
 
-  /** Вариант формы Skeleton */
-  variant?: SkeletonVariant;
+    /** Вариант формы Skeleton */
+    variant?: SkeletonVariant;
 
-  /** Ширина Skeleton */
-  width?: AppSkeletonProps['width'];
+    /** Ширина Skeleton */
+    width?: AppSkeletonProps['width'];
 
-  /** Высота Skeleton */
-  height?: AppSkeletonProps['height'];
+    /** Высота Skeleton */
+    height?: AppSkeletonProps['height'];
 
-  /** Расстояние между Skeleton элементами (px) */
-  gap?: number;
+    /** Расстояние между Skeleton элементами (px) */
+    gap?: number;
 
-  /** Видимость SkeletonGroup (App policy). Default = true */
-  visible?: boolean;
+    /** Видимость SkeletonGroup (App policy). Default = true */
+    visible?: boolean;
 
-  /** Feature flag: скрыть всю группу Skeleton */
-  isHiddenByFeatureFlag?: boolean;
+    /** Feature flag: скрыть всю группу Skeleton */
+    isHiddenByFeatureFlag?: boolean;
 
-  /** Telemetry master switch */
-  telemetryEnabled?: boolean;
+    /** Telemetry master switch */
+    telemetryEnabled?: boolean;
 
-  /** Включить shimmer-анимацию для всей группы */
-  animated?: boolean;
+    /** Включить shimmer-анимацию для всей группы */
+    animated?: boolean;
 
-  /**
-   * Логический идентификатор группы для telemetry.
-   * Примеры:
-   * - "users-list"
-   * - "products-table"
-   * - "dashboard-cards"
-   */
-  telemetryId: string;
+    /**
+     * Логический идентификатор группы для telemetry.
+     * Примеры:
+     * - "users-list"
+     * - "products-table"
+     * - "dashboard-cards"
+     */
+    telemetryId: string;
 
-  /** Test ID для автотестов */
-  'data-testid'?: string;
-}>;
+    /** Test ID для автотестов */
+    'data-testid'?: string;
+  }
+  & (
+    | {
+      /** I18n aria-label режим */
+      ariaLabelI18nKey: TranslationKey;
+      ariaLabelI18nNs?: Namespace;
+      ariaLabelI18nParams?: Record<string, string | number>;
+      'aria-label'?: never;
+    }
+    | {
+      /** Обычный aria-label режим */
+      ariaLabelI18nKey?: never;
+      ariaLabelI18nNs?: never;
+      ariaLabelI18nParams?: never;
+      'aria-label'?: string;
+    }
+  )
+>;
 
 /* ============================================================================
  * 🧠 POLICY
@@ -228,7 +250,8 @@ const SkeletonGroupComponent = forwardRef<HTMLDivElement, AppSkeletonGroupProps>
     props: AppSkeletonGroupProps,
     ref: Ref<HTMLDivElement>,
   ): JSX.Element | null {
-    const { telemetry } = useUnifiedUI();
+    const { telemetry, i18n } = useUnifiedUI();
+    const { translate } = i18n;
     const {
       count,
       variant,
@@ -238,6 +261,19 @@ const SkeletonGroupComponent = forwardRef<HTMLDivElement, AppSkeletonGroupProps>
       telemetryId,
       ...rest
     } = props;
+
+    // Aria-label: i18n → обычный aria-label → undefined
+    const ariaLabel = useMemo<string | undefined>(() => {
+      if ('ariaLabelI18nKey' in props) {
+        const effectiveNs = props.ariaLabelI18nNs ?? 'common';
+        return translate(
+          effectiveNs,
+          props.ariaLabelI18nKey,
+          props.ariaLabelI18nParams ?? EMPTY_PARAMS,
+        );
+      }
+      return props['aria-label'];
+    }, [props, translate]);
 
     const policy = useSkeletonGroupPolicy(props);
 
@@ -347,6 +383,7 @@ const SkeletonGroupComponent = forwardRef<HTMLDivElement, AppSkeletonGroupProps>
     return (
       <div
         ref={ref}
+        {...(ariaLabel !== undefined && { 'aria-label': ariaLabel })}
         data-component='AppSkeletonGroup'
         data-feature-flag={policy.hiddenByFeatureFlag ? 'hidden' : 'visible'}
         data-telemetry={policy.telemetryEnabled ? 'enabled' : 'disabled'}

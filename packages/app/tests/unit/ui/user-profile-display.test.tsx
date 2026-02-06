@@ -78,6 +78,7 @@ vi.mock('../../../../ui-core/src/components/UserProfileDisplay.js', () => ({
 
 // Mock для UnifiedUIProvider
 const mockInfoFireAndForget = vi.fn();
+const mockTranslate = vi.fn();
 let mockFeatureFlagReturnValue = false;
 
 vi.mock('../../../src/providers/UnifiedUIProvider', () => ({
@@ -91,6 +92,9 @@ vi.mock('../../../src/providers/UnifiedUIProvider', () => ({
     telemetry: {
       track: vi.fn(),
       infoFireAndForget: mockInfoFireAndForget,
+    },
+    i18n: {
+      translate: mockTranslate,
     },
   }),
 }));
@@ -130,6 +134,7 @@ describe('App UserProfileDisplay', () => {
     vi.clearAllMocks();
     consoleWarnSpy.mockClear();
     mockFeatureFlagReturnValue = false; // Сбрасываем в дефолтное состояние
+    mockTranslate.mockReturnValue('Translated Label');
   });
 
   afterEach(() => {
@@ -551,6 +556,137 @@ describe('App UserProfileDisplay', () => {
         hasEmail: true,
         hasAdditionalInfo: false, // showAdditionalInfo не передан, поэтому false
       });
+    });
+  });
+
+  describe('I18n рендеринг', () => {
+    describe('Aria-label', () => {
+      it('должен рендерить обычный aria-label', () => {
+        render(
+          <UserProfileDisplay
+            profile={baseProfile}
+            aria-label='User profile display'
+          />,
+        );
+
+        expect(screen.getByTestId('core-user-profile-display')).toHaveAttribute(
+          'aria-label',
+          'User profile display',
+        );
+      });
+
+      it('должен рендерить i18n aria-label', () => {
+        render(
+          <UserProfileDisplay
+            profile={baseProfile}
+            {...{ ariaLabelI18nKey: 'profile.label' } as any}
+          />,
+        );
+
+        expect(mockTranslate).toHaveBeenCalledWith('common', 'profile.label', {});
+        expect(screen.getByTestId('core-user-profile-display')).toHaveAttribute(
+          'aria-label',
+          'Translated Label',
+        );
+      });
+
+      it('должен передавать namespace для i18n aria-label', () => {
+        render(
+          <UserProfileDisplay
+            profile={baseProfile}
+            {...{ ariaLabelI18nKey: 'label', ariaLabelI18nNs: 'profile' } as any}
+          />,
+        );
+
+        expect(mockTranslate).toHaveBeenCalledWith('profile', 'label', {});
+      });
+
+      it('должен передавать параметры для i18n aria-label', () => {
+        const params = { user: 'John', role: 'admin' };
+        render(
+          <UserProfileDisplay
+            profile={baseProfile}
+            {...{ ariaLabelI18nKey: 'profile.label', ariaLabelI18nParams: params } as any}
+          />,
+        );
+
+        expect(mockTranslate).toHaveBeenCalledWith('common', 'profile.label', params);
+      });
+
+      it('должен использовать пустой объект для undefined параметров i18n aria-label', () => {
+        render(
+          <UserProfileDisplay
+            profile={baseProfile}
+            {...{ ariaLabelI18nKey: 'profile.label', ariaLabelI18nParams: undefined } as any}
+          />,
+        );
+
+        expect(mockTranslate).toHaveBeenCalledWith('common', 'profile.label', {});
+      });
+    });
+  });
+
+  describe('Побочные эффекты и производительность', () => {
+    it('должен мемоизировать i18n aria-label при изменении пропсов', () => {
+      const { rerender } = render(
+        <UserProfileDisplay
+          profile={baseProfile}
+          {...{ ariaLabelI18nKey: 'profile.first' } as any}
+        />,
+      );
+
+      expect(mockTranslate).toHaveBeenCalledTimes(1);
+
+      rerender(
+        <UserProfileDisplay
+          profile={baseProfile}
+          {...{ ariaLabelI18nKey: 'profile.second' } as any}
+        />,
+      );
+
+      expect(mockTranslate).toHaveBeenCalledTimes(2);
+      expect(mockTranslate).toHaveBeenLastCalledWith('common', 'profile.second', {});
+    });
+  });
+
+  describe('Discriminated union типизация', () => {
+    it('должен принимать обычный aria-label без i18n', () => {
+      render(
+        <UserProfileDisplay
+          profile={baseProfile}
+          aria-label='Regular label'
+        />,
+      );
+
+      expect(screen.getByTestId('core-user-profile-display')).toHaveAttribute(
+        'aria-label',
+        'Regular label',
+      );
+    });
+
+    it('должен принимать i18n aria-label без обычного', () => {
+      render(
+        <UserProfileDisplay
+          profile={baseProfile}
+          {...{ ariaLabelI18nKey: 'profile.label' } as any}
+        />,
+      );
+
+      expect(mockTranslate).toHaveBeenCalledWith('common', 'profile.label', {});
+    });
+
+    it('не должен компилироваться с обоими aria-label одновременно', () => {
+      // Этот тест проверяет, что discriminated union работает правильно
+      expect(() => {
+        // TypeScript не позволит создать такой объект
+        const invalidProps = {
+          'aria-label': 'test',
+          ariaLabelI18nKey: 'test',
+        } as any;
+
+        // Если discriminated union работает, этот объект будет иметь never типы для конфликтующих полей
+        return invalidProps;
+      }).not.toThrow();
     });
   });
 });

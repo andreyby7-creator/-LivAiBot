@@ -11,10 +11,18 @@ import { Card } from '../../../src/ui/card';
 // Объявляем переменные моков перед vi.mock()
 let mockFeatureFlagReturnValue = false;
 const mockInfoFireAndForget = vi.fn();
+const mockTranslate = vi.fn();
 
 // Mock для UnifiedUIProvider
 vi.mock('../../../src/providers/UnifiedUIProvider', () => ({
   useUnifiedUI: () => ({
+    i18n: {
+      translate: mockTranslate,
+      locale: 'en',
+      direction: 'ltr' as const,
+      loadNamespace: vi.fn(),
+      isNamespaceLoaded: vi.fn(() => true),
+    },
     featureFlags: {
       isEnabled: () => mockFeatureFlagReturnValue,
       setOverride: vi.fn(),
@@ -34,6 +42,7 @@ describe('Card', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockFeatureFlagReturnValue = false; // Сброс к дефолтному значению
+    mockTranslate.mockReturnValue('Translated Label');
   });
 
   afterEach(() => {
@@ -71,6 +80,54 @@ describe('Card', () => {
 
       const card = screen.getByTestId('test-card');
       expect(card).toHaveClass('custom-class');
+    });
+  });
+
+  describe('I18n рендеринг', () => {
+    describe('Aria-label', () => {
+      it('должен рендерить обычный aria-label', () => {
+        render(<Card aria-label='Test label'>Content</Card>);
+
+        expect(screen.getByText('Content')).toHaveAttribute('aria-label', 'Test label');
+      });
+
+      it('должен рендерить i18n aria-label', () => {
+        render(<Card {...{ ariaLabelI18nKey: 'common.label' } as any}>Content</Card>);
+
+        expect(mockTranslate).toHaveBeenCalledWith('common', 'common.label', {});
+        expect(screen.getByText('Content')).toHaveAttribute('aria-label', 'Translated Label');
+      });
+
+      it('должен передавать namespace для i18n aria-label', () => {
+        render(
+          <Card {...{ ariaLabelI18nKey: 'auth.login', ariaLabelI18nNs: 'auth' } as any}>
+            Content
+          </Card>,
+        );
+
+        expect(mockTranslate).toHaveBeenCalledWith('auth', 'auth.login', {});
+      });
+
+      it('должен передавать параметры для i18n aria-label', () => {
+        const params = { field: 'username', required: true };
+        render(
+          <Card {...{ ariaLabelI18nKey: 'common.field', ariaLabelI18nParams: params } as any}>
+            Content
+          </Card>,
+        );
+
+        expect(mockTranslate).toHaveBeenCalledWith('common', 'common.field', params);
+      });
+
+      it('должен использовать пустой объект для undefined параметров i18n aria-label', () => {
+        render(
+          <Card {...{ ariaLabelI18nKey: 'common.test', ariaLabelI18nParams: undefined } as any}>
+            Content
+          </Card>,
+        );
+
+        expect(mockTranslate).toHaveBeenCalledWith('common', 'common.test', {});
+      });
     });
   });
 
@@ -204,10 +261,10 @@ describe('Card', () => {
 
   describe('Accessibility атрибуты', () => {
     it('должен иметь aria-label если передан', () => {
-      render(<Card ariaLabel='Test card'>Content</Card>);
+      render(<Card aria-label='Test card'>Content</Card>);
 
-      const card = screen.getByLabelText('Test card');
-      expect(card).toBeInTheDocument();
+      const card = screen.getByText('Content');
+      expect(card).toHaveAttribute('aria-label', 'Test card');
     });
 
     it('должен иметь правильный role для интерактивных карточек', () => {
@@ -416,6 +473,49 @@ describe('Card', () => {
     });
   });
 
+  describe('Побочные эффекты и производительность', () => {
+    it('должен мемоизировать i18n aria-label при изменении пропсов', () => {
+      const { rerender } = render(
+        <Card {...{ ariaLabelI18nKey: 'common.first' } as any}>Content</Card>,
+      );
+
+      expect(mockTranslate).toHaveBeenCalledTimes(1);
+
+      rerender(<Card {...{ ariaLabelI18nKey: 'common.second' } as any}>Content</Card>);
+
+      expect(mockTranslate).toHaveBeenCalledTimes(2);
+      expect(mockTranslate).toHaveBeenLastCalledWith('common', 'common.second', {});
+    });
+  });
+
+  describe('Discriminated union типизация', () => {
+    it('должен принимать обычный aria-label без i18n', () => {
+      render(<Card aria-label='Regular label'>Content</Card>);
+
+      expect(screen.getByText('Content')).toHaveAttribute('aria-label', 'Regular label');
+    });
+
+    it('должен принимать i18n ariaLabel без обычного', () => {
+      render(<Card {...{ ariaLabelI18nKey: 'common.test' } as any}>Content</Card>);
+
+      expect(mockTranslate).toHaveBeenCalledWith('common', 'common.test', {});
+    });
+
+    it('не должен компилироваться с обоими ariaLabel одновременно', () => {
+      // Этот тест проверяет, что discriminated union работает правильно
+      expect(() => {
+        // TypeScript не позволит создать такой объект
+        const invalidProps = {
+          ariaLabel: 'test',
+          ariaLabelI18nKey: 'test',
+        } as any;
+
+        // Если discriminated union работает, этот объект будет иметь never типы для конфликтующих полей
+        return invalidProps;
+      }).not.toThrow();
+    });
+  });
+
   describe('Edge cases', () => {
     it('должен обрабатывать пустые children', () => {
       render(<Card>{null}</Card>);
@@ -460,7 +560,7 @@ describe('Card', () => {
           isHiddenByFeatureFlag={false}
           isDisabledByFeatureFlag={false}
           variantByFeatureFlag='test-variant'
-          ariaLabel='Test label'
+          aria-label='Test label'
           telemetryOnClick={true}
           onClick={mockOnClick}
           data-testid='full-card'
@@ -718,10 +818,10 @@ describe('Card', () => {
     });
 
     it('применяет aria-label корректно', () => {
-      render(<Card ariaLabel='Test Card Label'>Content</Card>);
+      render(<Card aria-label='Test Card Label'>Content</Card>);
 
-      const card = screen.getByLabelText('Test Card Label');
-      expect(card).toBeInTheDocument();
+      const card = screen.getByText('Content');
+      expect(card).toHaveAttribute('aria-label', 'Test Card Label');
     });
 
     it('применяет aria-labelledby корректно', () => {

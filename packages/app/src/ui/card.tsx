@@ -26,6 +26,7 @@ import type { JSX, KeyboardEvent, MouseEvent, Ref } from 'react';
 
 import { Card as CoreCard } from '../../../ui-core/src/primitives/card.js';
 import type { CoreCardProps } from '../../../ui-core/src/primitives/card.js';
+import type { Namespace, TranslationKey } from '../lib/i18n.js';
 import { useUnifiedUI } from '../providers/UnifiedUIProvider.js';
 import type { Json } from '../types/common.js';
 import type {
@@ -64,6 +65,9 @@ const BUSINESS_PROPS = [
   'isDisabledByFeatureFlag',
   'variantByFeatureFlag',
   'telemetryOnClick',
+  'ariaLabelI18nKey',
+  'ariaLabelI18nNs',
+  'ariaLabelI18nParams',
 ] as const;
 
 /* ============================================================================
@@ -79,9 +83,12 @@ type CardTelemetryPayload = Readonly<{
   disabled: boolean;
 }>;
 
+/** Стабильная ссылка на пустой объект параметров */
+const EMPTY_PARAMS: Record<string, string | number> = Object.freeze({});
+
 /** App-уровневые пропсы Card. */
 export type AppCardProps = Readonly<
-  & Omit<CoreCardProps, 'data-component' | 'data-variant' | 'data-size' | 'onClick'>
+  & Omit<CoreCardProps, 'data-component' | 'data-variant' | 'data-size' | 'onClick' | 'aria-label'>
   & {
     /** Feature flag: скрыть карточку полностью */
     isHiddenByFeatureFlag?: boolean;
@@ -91,9 +98,6 @@ export type AppCardProps = Readonly<
 
     /** Feature flag: вариант карточки (data-variant) */
     variantByFeatureFlag?: string;
-
-    /** Accessibility: aria-label, если нет семантического заголовка */
-    ariaLabel?: string;
 
     /** Accessibility: ID элемента с заголовком карточки */
     ariaLabelledBy?: string;
@@ -117,6 +121,22 @@ export type AppCardProps = Readonly<
      */
     onClick?: (event: MouseEvent<HTMLDivElement> | KeyboardEvent<HTMLDivElement>) => void;
   }
+  & (
+    | {
+      /** I18n aria-label режим */
+      ariaLabelI18nKey: TranslationKey;
+      ariaLabelI18nNs?: Namespace;
+      ariaLabelI18nParams?: Record<string, string | number>;
+      'aria-label'?: never;
+    }
+    | {
+      /** Обычный aria-label режим */
+      ariaLabelI18nKey?: never;
+      ariaLabelI18nNs?: never;
+      ariaLabelI18nParams?: never;
+      'aria-label'?: string;
+    }
+  )
 >;
 
 /* ============================================================================
@@ -171,13 +191,27 @@ function emitCardTelemetry(
 
 const CardComponent = forwardRef<HTMLDivElement, AppCardProps>(
   function CardComponent(props: AppCardProps, ref: Ref<HTMLDivElement>): JSX.Element | null {
-    const { telemetry } = useUnifiedUI();
+    const { telemetry, i18n } = useUnifiedUI();
+    const { translate } = i18n;
     // Фильтруем бизнес-пропсы от DOM-пропсов
     const domProps = omit(props, BUSINESS_PROPS);
+
+    // Aria-label: i18n → обычный aria-label → undefined
+    const ariaLabel = useMemo<string | undefined>(() => {
+      if ('ariaLabelI18nKey' in props) {
+        const effectiveNs = props.ariaLabelI18nNs ?? 'common';
+        return translate(
+          effectiveNs,
+          props.ariaLabelI18nKey,
+          props.ariaLabelI18nParams ?? EMPTY_PARAMS,
+        );
+      }
+      return domProps['aria-label'];
+    }, [props, translate, domProps]);
+
     const {
       children,
       onClick,
-      ariaLabel,
       ariaLabelledBy,
       ariaDescribedBy,
       variant,
@@ -262,7 +296,7 @@ const CardComponent = forwardRef<HTMLDivElement, AppCardProps>(
         role={isInteractive ? 'button' : 'group'}
         tabIndex={isInteractive ? 0 : undefined}
         aria-disabled={isDisabled || undefined}
-        aria-label={ariaLabel}
+        {...(ariaLabel !== undefined && { 'aria-label': ariaLabel })}
         aria-labelledby={ariaLabelledBy}
         aria-describedby={ariaDescribedBy}
         onClick={onClick ? handleActivation : undefined}

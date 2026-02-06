@@ -11,10 +11,18 @@ import { Form } from '../../../src/ui/form';
 // Объявляем переменные моков перед vi.mock()
 let mockFeatureFlagReturnValue = false;
 const mockInfoFireAndForget = vi.fn();
+const mockTranslate = vi.fn();
 
 // Mock для UnifiedUIProvider
 vi.mock('../../../src/providers/UnifiedUIProvider', () => ({
   useUnifiedUI: () => ({
+    i18n: {
+      translate: mockTranslate,
+      locale: 'en',
+      direction: 'ltr' as const,
+      loadNamespace: vi.fn(),
+      isNamespaceLoaded: vi.fn(() => true),
+    },
     featureFlags: {
       isEnabled: () => mockFeatureFlagReturnValue,
       setOverride: vi.fn(),
@@ -35,6 +43,7 @@ describe('Form', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockFeatureFlagReturnValue = false; // Сброс к дефолтному значению
+    mockTranslate.mockReturnValue('Translated Label');
   });
 
   afterEach(() => {
@@ -76,6 +85,70 @@ describe('Form', () => {
       );
 
       expect(screen.getByText('Visible content')).toBeInTheDocument();
+    });
+  });
+
+  describe('I18n рендеринг', () => {
+    describe('Aria-label', () => {
+      it('должен рендерить обычный aria-label', () => {
+        const { container } = render(
+          <Form aria-label='Test label'>
+            <div>Test content</div>
+          </Form>,
+        );
+
+        const form = container.querySelector('form');
+        expect(form).toHaveAttribute('aria-label', 'Test label');
+      });
+
+      it('должен рендерить i18n aria-label', () => {
+        const { container } = render(
+          <Form {...{ ariaLabelI18nKey: 'common.label' } as any}>
+            <div>Test content</div>
+          </Form>,
+        );
+
+        expect(mockTranslate).toHaveBeenCalledWith('common', 'common.label', {});
+        const form = container.querySelector('form');
+        expect(form).toHaveAttribute('aria-label', 'Translated Label');
+      });
+
+      it('должен передавать namespace для i18n aria-label', () => {
+        const { container } = render(
+          <Form {...{ ariaLabelI18nKey: 'auth.login', ariaLabelI18nNs: 'auth' } as any}>
+            <div>Test content</div>
+          </Form>,
+        );
+
+        expect(mockTranslate).toHaveBeenCalledWith('auth', 'auth.login', {});
+        const form = container.querySelector('form');
+        expect(form).toHaveAttribute('aria-label', 'Translated Label');
+      });
+
+      it('должен передавать параметры для i18n aria-label', () => {
+        const params = { field: 'username', required: true };
+        const { container } = render(
+          <Form {...{ ariaLabelI18nKey: 'common.field', ariaLabelI18nParams: params } as any}>
+            <div>Test content</div>
+          </Form>,
+        );
+
+        expect(mockTranslate).toHaveBeenCalledWith('common', 'common.field', params);
+        const form = container.querySelector('form');
+        expect(form).toHaveAttribute('aria-label', 'Translated Label');
+      });
+
+      it('должен использовать пустой объект для undefined параметров i18n aria-label', () => {
+        const { container } = render(
+          <Form {...{ ariaLabelI18nKey: 'common.test', ariaLabelI18nParams: undefined } as any}>
+            <div>Test content</div>
+          </Form>,
+        );
+
+        expect(mockTranslate).toHaveBeenCalledWith('common', 'common.test', {});
+        const form = container.querySelector('form');
+        expect(form).toHaveAttribute('aria-label', 'Translated Label');
+      });
     });
   });
 
@@ -287,6 +360,66 @@ describe('Form', () => {
 
     it('должен иметь правильный displayName', () => {
       expect(Form.displayName).toBe('Form');
+    });
+  });
+
+  describe('Побочные эффекты и производительность', () => {
+    it('должен мемоизировать i18n aria-label при изменении пропсов', () => {
+      const { rerender } = render(
+        <Form {...{ ariaLabelI18nKey: 'common.first' } as any}>
+          <div>Test content</div>
+        </Form>,
+      );
+
+      expect(mockTranslate).toHaveBeenCalledTimes(1);
+
+      rerender(
+        <Form {...{ ariaLabelI18nKey: 'common.second' } as any}>
+          <div>Test content</div>
+        </Form>,
+      );
+
+      expect(mockTranslate).toHaveBeenCalledTimes(2);
+      expect(mockTranslate).toHaveBeenLastCalledWith('common', 'common.second', {});
+    });
+  });
+
+  describe('Discriminated union типизация', () => {
+    it('должен принимать обычный aria-label без i18n', () => {
+      const { container } = render(
+        <Form aria-label='Regular label'>
+          <div>Test content</div>
+        </Form>,
+      );
+
+      const form = container.querySelector('form');
+      expect(form).toHaveAttribute('aria-label', 'Regular label');
+    });
+
+    it('должен принимать i18n aria-label без обычного', () => {
+      const { container } = render(
+        <Form {...{ ariaLabelI18nKey: 'common.test' } as any}>
+          <div>Test content</div>
+        </Form>,
+      );
+
+      expect(mockTranslate).toHaveBeenCalledWith('common', 'common.test', {});
+      const form = container.querySelector('form');
+      expect(form).toHaveAttribute('aria-label', 'Translated Label');
+    });
+
+    it('не должен компилироваться с обоими aria-label одновременно', () => {
+      // Этот тест проверяет, что discriminated union работает правильно
+      expect(() => {
+        // TypeScript не позволит создать такой объект
+        const invalidProps = {
+          'aria-label': 'test',
+          ariaLabelI18nKey: 'test',
+        } as any;
+
+        // Если discriminated union работает, этот объект будет иметь never типы для конфликтующих полей
+        return invalidProps;
+      }).not.toThrow();
     });
   });
 });

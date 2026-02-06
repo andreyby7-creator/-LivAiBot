@@ -18,10 +18,11 @@
  */
 
 import { forwardRef, memo, useEffect, useMemo, useRef } from 'react';
-import type { JSX, Ref } from 'react';
+import type { JSX, ReactNode, Ref } from 'react';
 
 import { Toast as CoreToast } from '../../../ui-core/src/components/Toast.js';
 import type { CoreToastProps, ToastVariant } from '../../../ui-core/src/components/Toast.js';
+import type { Namespace, TranslationKey } from '../lib/i18n.js';
 import { useUnifiedUI } from '../providers/UnifiedUIProvider.js';
 import type { Json } from '../types/common.js';
 import type { AppError } from '../types/errors.js';
@@ -105,8 +106,12 @@ type ToastTelemetryPayload = Readonly<{
   readonly variant: ToastVariant;
 }>;
 
+/** Стабильная ссылка на пустой объект параметров */
+const EMPTY_PARAMS: Record<string, string | number> = Object.freeze({});
+
 export type AppToastProps = Readonly<
-  Omit<CoreToastProps, 'visible'> & {
+  & Omit<CoreToastProps, 'visible' | 'aria-label'>
+  & {
     /** Видимость Toast (App policy) */
     visible?: boolean;
 
@@ -119,6 +124,38 @@ export type AppToastProps = Readonly<
     /** Типизированная ошибка для автоматического определения variant */
     error?: AppError;
   }
+  & (
+    | {
+      /** I18n content режим */
+      contentI18nKey: TranslationKey;
+      contentI18nNs?: Namespace;
+      contentI18nParams?: Record<string, string | number>;
+      content?: never;
+    }
+    | {
+      /** Обычный content режим */
+      contentI18nKey?: never;
+      contentI18nNs?: never;
+      contentI18nParams?: never;
+      content: ReactNode;
+    }
+  )
+  & (
+    | {
+      /** I18n aria-label режим */
+      ariaLabelI18nKey: TranslationKey;
+      ariaLabelI18nNs?: Namespace;
+      ariaLabelI18nParams?: Record<string, string | number>;
+      'aria-label'?: never;
+    }
+    | {
+      /** Обычный aria-label режим */
+      ariaLabelI18nKey?: never;
+      ariaLabelI18nNs?: never;
+      ariaLabelI18nParams?: never;
+      'aria-label'?: string;
+    }
+  )
 >;
 
 // Бизнес-пропсы, которые не должны попадать в DOM
@@ -126,6 +163,12 @@ const BUSINESS_PROPS = [
   'visible',
   'isHiddenByFeatureFlag',
   'telemetryEnabled',
+  'contentI18nKey',
+  'contentI18nNs',
+  'contentI18nParams',
+  'ariaLabelI18nKey',
+  'ariaLabelI18nNs',
+  'ariaLabelI18nParams',
 ] as const;
 
 /* ============================================================================
@@ -195,11 +238,40 @@ function getToastPayload(
 
 const ToastComponent = forwardRef<HTMLDivElement, AppToastProps>(
   function ToastComponent(props: AppToastProps, ref: Ref<HTMLDivElement>): JSX.Element | null {
-    const { telemetry } = useUnifiedUI();
+    const { telemetry, i18n } = useUnifiedUI();
+    const { translate } = i18n;
     // Фильтруем бизнес-пропсы, оставляем только DOM-безопасные
     const domProps = omit(props, BUSINESS_PROPS);
 
-    const { error, ...filteredCoreProps } = domProps;
+    // Извлекаем content из domProps для обработки
+    const { error, content: rawContent, ...filteredCoreProps } = domProps;
+
+    // Content: i18n → обычный content
+    const content = useMemo(() => {
+      if ('contentI18nKey' in props) {
+        const effectiveNs = props.contentI18nNs ?? 'common';
+        return translate(
+          effectiveNs,
+          props.contentI18nKey,
+          props.contentI18nParams ?? EMPTY_PARAMS,
+        );
+      }
+      // Для обычного режима content берется из rawContent как есть
+      return rawContent ?? '';
+    }, [props, translate, rawContent]);
+
+    // Aria-label: i18n → обычный aria-label → undefined
+    const ariaLabel = useMemo<string | undefined>(() => {
+      if ('ariaLabelI18nKey' in props) {
+        const effectiveNs = props.ariaLabelI18nNs ?? 'common';
+        return translate(
+          effectiveNs,
+          props.ariaLabelI18nKey,
+          props.ariaLabelI18nParams ?? EMPTY_PARAMS,
+        );
+      }
+      return domProps['aria-label'];
+    }, [props, translate, domProps]);
     const policy = useToastPolicy(props);
 
     const variant = getToastVariant({ error, variant: props.variant });
@@ -281,6 +353,8 @@ const ToastComponent = forwardRef<HTMLDivElement, AppToastProps>(
       <CoreToast
         ref={ref}
         visible={policy.isRendered}
+        content={content}
+        {...(ariaLabel !== undefined && { 'aria-label': ariaLabel })}
         data-component='AppToast'
         data-variant={variant}
         data-telemetry={policy.telemetryEnabled ? 'enabled' : 'disabled'}

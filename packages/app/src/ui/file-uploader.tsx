@@ -30,6 +30,7 @@ import type {
   CoreFileUploaderProps,
   FileInfo,
 } from '../../../ui-core/src/components/FileUploader.js';
+import type { Namespace, TranslationKey } from '../lib/i18n.js';
 import { formatFileSize, validateFileBasic } from '../lib/validation.js';
 import { useUnifiedUI } from '../providers/UnifiedUIProvider.js';
 import type {
@@ -59,6 +60,9 @@ const BUSINESS_PROPS = [
   'validateFile',
   'maxSize',
   'maxFiles',
+  'ariaLabelI18nKey',
+  'ariaLabelI18nNs',
+  'ariaLabelI18nParams',
 ] as const;
 
 /** Функция для фильтрации бизнес-пропсов */
@@ -99,6 +103,9 @@ type FileUploaderTelemetryPayload = Readonly<{
   errorMessage?: string;
 }>;
 
+/** Стабильная ссылка на пустой объект параметров */
+const EMPTY_PARAMS: Record<string, string | number> = Object.freeze({});
+
 /** Базовые поля для telemetry payload */
 type TelemetryBase = Readonly<{
   component: 'FileUploader';
@@ -109,10 +116,11 @@ type TelemetryBase = Readonly<{
 }>;
 
 export type AppFileUploaderProps = Readonly<
-  Omit<
+  & Omit<
     CoreFileUploaderProps,
-    'files' | 'onChange' | 'onDrop' | 'onRemove' | 'isDragActive' | 'hint'
-  > & {
+    'files' | 'onChange' | 'onDrop' | 'onRemove' | 'isDragActive' | 'hint' | 'aria-label'
+  >
+  & {
     /** Callback при успешном выборе файлов (после валидации) */
     onFilesSelected?: (files: File[]) => void;
 
@@ -158,6 +166,22 @@ export type AppFileUploaderProps = Readonly<
     /** Test ID для автотестов */
     'data-testid'?: string;
   }
+  & (
+    | {
+      /** I18n aria-label режим */
+      ariaLabelI18nKey: TranslationKey;
+      ariaLabelI18nNs?: Namespace;
+      ariaLabelI18nParams?: Record<string, string | number>;
+      'aria-label'?: never;
+    }
+    | {
+      /** Обычный aria-label режим */
+      ariaLabelI18nKey?: never;
+      ariaLabelI18nNs?: never;
+      ariaLabelI18nParams?: never;
+      'aria-label'?: string;
+    }
+  )
 >;
 
 /* ============================================================================
@@ -306,7 +330,22 @@ const FileUploaderComponent = forwardRef<HTMLDivElement, AppFileUploaderProps>(
     props: AppFileUploaderProps,
     ref: Ref<HTMLDivElement>,
   ): JSX.Element | null {
-    const { telemetry } = useUnifiedUI();
+    const { telemetry, i18n } = useUnifiedUI();
+    const { translate } = i18n;
+
+    // Aria-label: i18n → обычный aria-label → undefined
+    const ariaLabel = useMemo<string | undefined>(() => {
+      if ('ariaLabelI18nKey' in props) {
+        const effectiveNs = props.ariaLabelI18nNs ?? 'common';
+        return translate(
+          effectiveNs,
+          props.ariaLabelI18nKey,
+          props.ariaLabelI18nParams ?? EMPTY_PARAMS,
+        );
+      }
+      return props['aria-label'];
+    }, [props, translate]);
+
     // Деструктурируем все пропсы
     const {
       onFilesSelected,
@@ -325,7 +364,6 @@ const FileUploaderComponent = forwardRef<HTMLDivElement, AppFileUploaderProps>(
       buttonLabel = 'Выбрать файлы',
       dropZoneLabel = 'Перетащите файлы сюда или',
       dropZoneLabelActive = 'Отпустите файлы для загрузки',
-      'aria-label': ariaLabel,
       buttonAriaLabel,
       dropZoneAriaLabel,
       'data-testid': testId,

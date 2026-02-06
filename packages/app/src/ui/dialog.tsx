@@ -27,6 +27,7 @@ import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from '
 import type { JSX } from 'react';
 
 import { Dialog as CoreDialog } from '../../../ui-core/src/primitives/dialog.js';
+import type { Namespace, TranslationKey } from '../lib/i18n.js';
 import { useUnifiedUI } from '../providers/UnifiedUIProvider.js';
 import type { UiTelemetryApi } from '../types/ui-contracts.js';
 
@@ -44,51 +45,72 @@ type DialogTelemetryPayload = Readonly<{
   disabled: boolean;
 }>;
 
+/** Стабильная ссылка на пустой объект параметров */
+const EMPTY_PARAMS: Record<string, string | number> = Object.freeze({});
+
 /** App-уровневые пропсы Dialog. */
-export type AppDialogProps = Readonly<{
-  /** Controlled mode: внешнее управление открытием */
-  isOpen?: boolean;
+export type AppDialogProps = Readonly<
+  & {
+    /** Controlled mode: внешнее управление открытием */
+    isOpen?: boolean;
 
-  /** Uncontrolled mode: начальное состояние */
-  defaultOpen?: boolean;
+    /** Uncontrolled mode: начальное состояние */
+    defaultOpen?: boolean;
 
-  /** Feature flag: скрыть диалог полностью */
-  isHiddenByFeatureFlag?: boolean;
+    /** Feature flag: скрыть диалог полностью */
+    isHiddenByFeatureFlag?: boolean;
 
-  /** Feature flag: запретить интерактивность */
-  isDisabledByFeatureFlag?: boolean;
+    /** Feature flag: запретить интерактивность */
+    isDisabledByFeatureFlag?: boolean;
 
-  /** Feature flag: вариант диалога (data-variant) */
-  variantByFeatureFlag?: string;
+    /** Feature flag: вариант диалога (data-variant) */
+    variantByFeatureFlag?: string;
 
-  /** Поведение: закрывать по клику на backdrop */
-  closeOnBackdropClick?: boolean;
+    /** Поведение: закрывать по клику на backdrop */
+    closeOnBackdropClick?: boolean;
 
-  /** Поведение: закрывать по Escape */
-  closeOnEscape?: boolean;
+    /** Поведение: закрывать по Escape */
+    closeOnEscape?: boolean;
 
-  /** Telemetry: включена ли аналитика (по умолчанию true) */
-  telemetryEnabled?: boolean;
+    /** Telemetry: включена ли аналитика (по умолчанию true) */
+    telemetryEnabled?: boolean;
 
-  /** Callback: диалог открылся */
-  onOpen?: () => void;
+    /** Callback: диалог открылся */
+    onOpen?: () => void;
 
-  /** Callback: диалог закрылся */
-  onClose?: () => void;
+    /** Callback: диалог закрылся */
+    onClose?: () => void;
 
-  /** Children — контент диалога */
-  children: React.ReactNode;
+    /** Children — контент диалога */
+    children: React.ReactNode;
 
-  /** Optional id / test attributes */
-  id?: string;
-  'data-testid'?: string;
+    /** Optional id / test attributes */
+    id?: string;
+    'data-testid'?: string;
 
-  /** Accessibility: ID элемента с заголовком диалога */
-  'aria-labelledby'?: string;
+    /** Accessibility: ID элемента с заголовком диалога */
+    'aria-labelledby'?: string;
 
-  /** Accessibility: ID элемента с описанием диалога */
-  'aria-describedby'?: string;
-}>;
+    /** Accessibility: ID элемента с описанием диалога */
+    'aria-describedby'?: string;
+  }
+  & (
+    | {
+      /** I18n aria-label режим */
+      ariaLabelI18nKey: TranslationKey;
+      ariaLabelI18nNs?: Namespace;
+      ariaLabelI18nParams?: Record<string, string | number>;
+      'aria-label'?: never;
+    }
+    | {
+      /** Обычный aria-label режим */
+      ariaLabelI18nKey?: never;
+      ariaLabelI18nNs?: never;
+      ariaLabelI18nParams?: never;
+      'aria-label'?: string;
+    }
+  )
+>;
 
 /* ============================================================================
  * 🧠 POLICY LAYER
@@ -209,7 +231,8 @@ function emitDialogTelemetry(
  * ========================================================================== */
 
 function DialogComponent(props: AppDialogProps): JSX.Element | null {
-  const { telemetry } = useUnifiedUI();
+  const { telemetry, i18n } = useUnifiedUI();
+  const { translate } = i18n;
   const {
     children,
     onOpen,
@@ -219,6 +242,19 @@ function DialogComponent(props: AppDialogProps): JSX.Element | null {
     'aria-labelledby': ariaLabelledBy,
     'aria-describedby': ariaDescribedBy,
   } = props;
+
+  // Aria-label: i18n → обычный aria-label → undefined
+  const ariaLabel = useMemo<string | undefined>(() => {
+    if ('ariaLabelI18nKey' in props) {
+      const effectiveNs = props.ariaLabelI18nNs ?? 'common';
+      return translate(
+        effectiveNs,
+        props.ariaLabelI18nKey,
+        props.ariaLabelI18nParams ?? EMPTY_PARAMS,
+      );
+    }
+    return props['aria-label'];
+  }, [props, translate]);
 
   const controller = useDialogPolicy(props);
   const { policy, setOpen } = controller;
@@ -293,6 +329,7 @@ function DialogComponent(props: AppDialogProps): JSX.Element | null {
       {...(policy.disabledByFeatureFlag && { 'data-disabled': policy.disabledByFeatureFlag })}
       {...(id != null ? { id } : {})}
       {...(dataTestId != null ? { 'data-testid': dataTestId } : {})}
+      {...(ariaLabel !== undefined && { 'aria-label': ariaLabel })}
       {...(ariaLabelledBy != null ? { 'aria-labelledby': ariaLabelledBy } : {})}
       {...(ariaDescribedBy != null ? { 'aria-describedby': ariaDescribedBy } : {})}
     >
