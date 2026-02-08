@@ -6,106 +6,6 @@
  */
 
 /* ============================================================================
- * 🧩 UI — UI КОМПОНЕНТЫ
- * ========================================================================== */
-
-export * from './ui/accordion.js';
-export * from './ui/avatar.js';
-export * from './ui/badge.js';
-export * from './ui/breadcrumbs.js';
-export * from './ui/button.js';
-export * from './ui/card.js';
-export * from './ui/checkbox.js';
-export * from './ui/confirm-dialog.js';
-export * from './ui/context-menu.js';
-export * from './ui/date-picker.js';
-export * from './ui/dialog.js';
-export * from './ui/divider.js';
-export * from './ui/dropdown.js';
-export * from './ui/error-boundary.js';
-export * from './ui/file-uploader.js';
-export * from './ui/form.js';
-export * from './ui/icon.js';
-export * from './ui/input.js';
-export * from './ui/language-selector.js';
-export * from './ui/loading-spinner.js';
-export * from './ui/modal.js';
-export * from './ui/navigation-menu-item.js';
-export * from './ui/radio.js';
-export * from './ui/search-bar.js';
-export * from './ui/select.js';
-export * from './ui/sidebar.js';
-export * from './ui/skeleton-group.js';
-export * from './ui/skeleton.js';
-export * from './ui/status-indicator.js';
-export * from './ui/support-button.js';
-export * from './ui/tabs.js';
-export * from './ui/textarea.js';
-export * from './ui/toast.js';
-export * from './ui/toggle.js';
-export * from './ui/tooltip.js';
-export * from './ui/user-profile-display.js';
-
-/* ============================================================================
- * 🛠️ LIB — УТИЛИТЫ И КЛИЕНТЫ
- * ========================================================================== */
-
-export * from './lib/api-client.js';
-export * from './lib/effect-utils.js';
-export * from './lib/error-mapping.js';
-export * from './lib/feature-flags.js';
-// export * from './lib/i18n.js'; // Временно отключен для E2E из-за конфликта с next-intl
-// pipeEffects конфликтует с effect-utils, экспортируем явно
-export {
-  type CacheEntry,
-  type CacheKey,
-  createInMemoryOfflineCacheStore,
-  createOfflineCache,
-  type OfflineCacheContext,
-  type OfflineCacheEvents,
-  type OfflineCacheOptions,
-  type OfflineCacheResult,
-  type OfflineCacheStore,
-} from './lib/offline-cache.js';
-export {
-  type Client,
-  type Clients,
-  decommissionServiceWorker,
-  type ExtendableEvent,
-  type ExtendableMessageEvent,
-  type FetchEvent,
-  handleBackgroundSync,
-  handleNotificationClick,
-  handlePushNotification,
-  handleRequest,
-  mainCacheName,
-  precacheMainUrls,
-  precacheStaticUrls,
-  type ServiceWorkerGlobalScope,
-  staticCacheName,
-  swDisabled,
-  swSelf,
-  type WindowClient,
-} from './lib/service-worker.js';
-export * from './lib/sse-client.js';
-export * from './lib/telemetry.js';
-export * from './lib/validation.js';
-export * from './lib/websocket.js';
-export * from './lib/api-schema-guard.js';
-export * from './lib/performance.js';
-export * from './lib/auth-guard.js';
-export * from './lib/route-permissions.js';
-export * from './lib/logger.js';
-export * from './routes/routes.js';
-// Явный экспорт из auth-service для избежания конфликта с AuthError из auth-guard
-export {
-  type AuthError as AuthServiceError,
-  authService,
-  createAuthService,
-} from './lib/auth-service.js';
-export { telemetryBatchCore } from './lib/telemetry.batch-core.js';
-
-/* ============================================================================
  * 🧬 TYPES — ТИПЫ
  * ========================================================================== */
 
@@ -230,6 +130,128 @@ export {
 } from './types/ui-contracts.js';
 
 /* ============================================================================
+ * 🛠️ LIB — УТИЛИТЫ И КЛИЕНТЫ
+ * ========================================================================== */
+
+export * from './lib/api-client.js';
+export * from './lib/effect-utils.js';
+export * from './lib/error-mapping.js';
+export * from './lib/feature-flags.js';
+// export * from './lib/i18n.js'; // Временно отключен для E2E из-за конфликта с next-intl
+// pipeEffects конфликтует с effect-utils, экспортируем явно
+export {
+  type CacheEntry,
+  type CacheKey,
+  createInMemoryOfflineCacheStore,
+  createOfflineCache,
+  type OfflineCacheContext,
+  type OfflineCacheEvents,
+  type OfflineCacheOptions,
+  type OfflineCacheResult,
+  type OfflineCacheStore,
+} from './lib/offline-cache.js';
+export {
+  type Client,
+  type Clients,
+  decommissionServiceWorker,
+  type ExtendableEvent,
+  type ExtendableMessageEvent,
+  type FetchEvent,
+  handleBackgroundSync,
+  handleNotificationClick,
+  handlePushNotification,
+  handleRequest,
+  mainCacheName,
+  precacheMainUrls,
+  precacheStaticUrls,
+  type ServiceWorkerGlobalScope,
+  staticCacheName,
+  swDisabled,
+  swSelf,
+  type WindowClient,
+} from './lib/service-worker.js';
+export * from './lib/sse-client.js';
+export * from './lib/telemetry.js';
+export * from './lib/validation.js';
+export * from './lib/websocket.js';
+export * from './lib/api-schema-guard.js';
+export * from './lib/performance.js';
+export * from './lib/auth-guard.js';
+export * from './lib/route-permissions.js';
+export * from './lib/logger.js';
+// Явный экспорт из auth-service для избежания конфликта с AuthError из auth-guard
+export {
+  type AuthError as AuthServiceError,
+  authService,
+  createAuthService,
+} from './lib/auth-service.js';
+export { telemetryBatchCore } from './lib/telemetry.batch-core.js';
+
+/* ============================================================================
+ * 🏪 STORE — ГЛОБАЛЬНОЕ СОСТОЯНИЕ
+ * ========================================================================== */
+
+export * from './state/store.js';
+export * from './state/query/query-client.js';
+
+/* ============================================================================
+ * 🛤️ ROUTES — МАРШРУТЫ И МЕТАДАННЫЕ
+ * ========================================================================== */
+
+export * from './routes/routes.js';
+export * from './routes/route-meta.js';
+export * from './routes/navigation.js';
+
+/* ============================================================================
+ * 🧩 UI — UI КОМПОНЕНТЫ
+ * ========================================================================== */
+
+export * from './ui/accordion.js';
+export * from './ui/avatar.js';
+export * from './ui/badge.js';
+export * from './ui/breadcrumbs.js';
+export * from './ui/button.js';
+export * from './ui/card.js';
+export * from './ui/checkbox.js';
+export * from './ui/confirm-dialog.js';
+export * from './ui/context-menu.js';
+export * from './ui/date-picker.js';
+export * from './ui/dialog.js';
+export * from './ui/divider.js';
+export * from './ui/dropdown.js';
+export * from './ui/error-boundary.js';
+export * from './ui/file-uploader.js';
+export * from './ui/form.js';
+export * from './ui/icon.js';
+export * from './ui/input.js';
+export * from './ui/language-selector.js';
+export * from './ui/loading-spinner.js';
+export * from './ui/modal.js';
+export * from './ui/navigation-menu-item.js';
+export * from './ui/radio.js';
+export * from './ui/search-bar.js';
+export * from './ui/select.js';
+export * from './ui/sidebar.js';
+export * from './ui/skeleton-group.js';
+export * from './ui/skeleton.js';
+export * from './ui/status-indicator.js';
+export * from './ui/support-button.js';
+export * from './ui/tabs.js';
+export * from './ui/textarea.js';
+export * from './ui/toast.js';
+export * from './ui/toggle.js';
+export * from './ui/tooltip.js';
+export * from './ui/user-profile-display.js';
+
+/* ============================================================================
+ * 📡 EVENTS — СОБЫТИЯ ПРИЛОЖЕНИЯ
+ * ========================================================================== */
+
+export * from './events/app-events.js';
+export * from './events/event-bus.js';
+// Контракты событий документированы в ./events/event-contracts.md
+
+/* ============================================================================
  * 🎯 PROVIDERS — ПРОВАЙДЕРЫ
  * ========================================================================== */
 
@@ -255,10 +277,3 @@ export * from './hooks/useOfflineCache.js';
  * ========================================================================== */
 
 export * from './bootstrap.js';
-
-/* ============================================================================
- * 🏪 STORE — ГЛОБАЛЬНОЕ СОСТОЯНИЕ
- * ========================================================================== */
-
-export * from './state/store.js';
-export * from './state/query/query-client.js';

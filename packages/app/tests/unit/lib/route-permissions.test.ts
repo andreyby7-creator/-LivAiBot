@@ -12,6 +12,7 @@
 
 import { describe, expect, it } from 'vitest';
 import type { ID } from '../../../src/types/common';
+import { UserRoles } from '../../../src/types/common';
 import {
   checkRoutePermission,
   createProtectedRoute,
@@ -163,7 +164,7 @@ describe('Route Permissions - Enterprise Grade', () => {
       it('должен запрещать доступ к маршрутам аутентификации авторизованным пользователям', () => {
         const authenticatedContext = createMockRouteContext({
           isAuthenticated: true,
-          userRoles: createMockRoles('USER'),
+          userRoles: createMockRoles(UserRoles.USER),
         });
 
         const result = checkRoutePermission(authRoute, authenticatedContext);
@@ -185,11 +186,11 @@ describe('Route Permissions - Enterprise Grade', () => {
 
       it('должен разрешать доступ к dashboard авторизованным пользователям с правильными ролями', () => {
         const validRoles: UserRole[] = [
-          'USER',
-          'PREMIUM_USER',
-          'MODERATOR',
-          'ADMIN',
-          'SUPER_ADMIN',
+          UserRoles.USER,
+          UserRoles.PREMIUM_USER,
+          UserRoles.MODERATOR,
+          UserRoles.ADMIN,
+          UserRoles.SUPER_ADMIN,
         ];
 
         for (const role of validRoles) {
@@ -206,7 +207,7 @@ describe('Route Permissions - Enterprise Grade', () => {
       });
 
       it('должен запрещать доступ к dashboard пользователям без требуемых ролей', () => {
-        const invalidRoles: UserRole[] = ['GUEST'];
+        const invalidRoles: UserRole[] = [UserRoles.GUEST];
 
         for (const role of invalidRoles) {
           const context = createMockRouteContext({
@@ -218,11 +219,11 @@ describe('Route Permissions - Enterprise Grade', () => {
           const result = checkRoutePermission(dashboardRoute, context);
 
           expectRouteDenied(result, 'INSUFFICIENT_ROLE_PRIVILEGES', [
-            'USER',
-            'PREMIUM_USER',
-            'MODERATOR',
-            'ADMIN',
-            'SUPER_ADMIN',
+            UserRoles.USER,
+            UserRoles.PREMIUM_USER,
+            UserRoles.MODERATOR,
+            UserRoles.ADMIN,
+            UserRoles.SUPER_ADMIN,
           ]);
         }
       });
@@ -240,7 +241,11 @@ describe('Route Permissions - Enterprise Grade', () => {
       });
 
       it('должен требовать правильные роли для доступа к admin панели', () => {
-        const invalidRoles: UserRole[] = ['USER', 'PREMIUM_USER', 'MODERATOR'];
+        const invalidRoles: UserRole[] = [
+          UserRoles.USER,
+          UserRoles.PREMIUM_USER,
+          UserRoles.MODERATOR,
+        ];
 
         for (const role of invalidRoles) {
           const context = createMockRouteContext({
@@ -252,9 +257,9 @@ describe('Route Permissions - Enterprise Grade', () => {
           const result = checkRoutePermission(adminRoute, context);
 
           expectRouteDenied(result, 'INSUFFICIENT_ROLE_PRIVILEGES', [
-            'ADMIN',
-            'SUPER_ADMIN',
-            'SYSTEM',
+            UserRoles.ADMIN,
+            UserRoles.SUPER_ADMIN,
+            UserRoles.SYSTEM,
           ]);
         }
       });
@@ -262,7 +267,7 @@ describe('Route Permissions - Enterprise Grade', () => {
       it('должен требовать правильные разрешения для доступа к admin панели', () => {
         const context = createMockRouteContext({
           isAuthenticated: true,
-          userRoles: createMockRoles('ADMIN'),
+          userRoles: createMockRoles(UserRoles.ADMIN),
           userPermissions: createMockPermissions('READ_PUBLIC'), // Нет требуемых разрешений
         });
 
@@ -275,7 +280,7 @@ describe('Route Permissions - Enterprise Grade', () => {
       });
 
       it('должен разрешать доступ к admin панели пользователям с правильными ролями и разрешениями', () => {
-        const validRoles: UserRole[] = ['ADMIN', 'SUPER_ADMIN', 'SYSTEM'];
+        const validRoles: UserRole[] = [UserRoles.ADMIN, UserRoles.SUPER_ADMIN, UserRoles.SYSTEM];
 
         for (const role of validRoles) {
           const context = createMockRouteContext({
@@ -305,7 +310,7 @@ describe('Route Permissions - Enterprise Grade', () => {
       it('должен разрешать доступ к API авторизованным пользователям', () => {
         const context = createMockRouteContext({
           isAuthenticated: true,
-          userRoles: createMockRoles('USER'),
+          userRoles: createMockRoles(UserRoles.USER),
           userPermissions: createMockPermissions(),
         });
 
@@ -327,7 +332,7 @@ describe('Route Permissions - Enterprise Grade', () => {
       });
 
       it('должен требовать правильные роли для доступа к настройкам', () => {
-        const invalidRoles: UserRole[] = ['GUEST'];
+        const invalidRoles: UserRole[] = [UserRoles.GUEST];
 
         for (const role of invalidRoles) {
           const context = createMockRouteContext({
@@ -339,22 +344,22 @@ describe('Route Permissions - Enterprise Grade', () => {
           const result = checkRoutePermission(settingsRoute, context);
 
           expectRouteDenied(result, 'INSUFFICIENT_ROLE_PRIVILEGES', [
-            'USER',
-            'PREMIUM_USER',
-            'MODERATOR',
-            'ADMIN',
-            'SUPER_ADMIN',
+            UserRoles.USER,
+            UserRoles.PREMIUM_USER,
+            UserRoles.MODERATOR,
+            UserRoles.ADMIN,
+            UserRoles.SUPER_ADMIN,
           ]);
         }
       });
 
       it('должен разрешать доступ к настройкам авторизованным пользователям с правильными ролями', () => {
         const validRoles: UserRole[] = [
-          'USER',
-          'PREMIUM_USER',
-          'MODERATOR',
-          'ADMIN',
-          'SUPER_ADMIN',
+          UserRoles.USER,
+          UserRoles.PREMIUM_USER,
+          UserRoles.MODERATOR,
+          UserRoles.ADMIN,
+          UserRoles.SUPER_ADMIN,
         ];
 
         for (const role of validRoles) {
@@ -383,7 +388,7 @@ describe('Route Permissions - Enterprise Grade', () => {
       });
 
       it('должен требовать правильные роли для доступа к профилю', () => {
-        const invalidRoles: UserRole[] = ['GUEST'];
+        const invalidRoles: UserRole[] = [UserRoles.GUEST];
 
         for (const role of invalidRoles) {
           const context = createMockRouteContext({
@@ -395,22 +400,22 @@ describe('Route Permissions - Enterprise Grade', () => {
           const result = checkRoutePermission(profileRoute, context);
 
           expectRouteDenied(result, 'INSUFFICIENT_ROLE_PRIVILEGES', [
-            'USER',
-            'PREMIUM_USER',
-            'MODERATOR',
-            'ADMIN',
-            'SUPER_ADMIN',
+            UserRoles.USER,
+            UserRoles.PREMIUM_USER,
+            UserRoles.MODERATOR,
+            UserRoles.ADMIN,
+            UserRoles.SUPER_ADMIN,
           ]);
         }
       });
 
       it('должен разрешать доступ к профилю авторизованным пользователям с правильными ролями', () => {
         const validRoles: UserRole[] = [
-          'USER',
-          'PREMIUM_USER',
-          'MODERATOR',
-          'ADMIN',
-          'SUPER_ADMIN',
+          UserRoles.USER,
+          UserRoles.PREMIUM_USER,
+          UserRoles.MODERATOR,
+          UserRoles.ADMIN,
+          UserRoles.SUPER_ADMIN,
         ];
 
         for (const role of validRoles) {
@@ -504,17 +509,38 @@ describe('Route Permissions - Enterprise Grade', () => {
           { routeType: 'auth' as RouteType, expectedRoles: [] },
           {
             routeType: 'dashboard' as RouteType,
-            expectedRoles: ['USER', 'PREMIUM_USER', 'MODERATOR', 'ADMIN', 'SUPER_ADMIN'],
+            expectedRoles: [
+              UserRoles.USER,
+              UserRoles.PREMIUM_USER,
+              UserRoles.MODERATOR,
+              UserRoles.ADMIN,
+              UserRoles.SUPER_ADMIN,
+            ],
           },
-          { routeType: 'admin' as RouteType, expectedRoles: ['ADMIN', 'SUPER_ADMIN', 'SYSTEM'] },
+          {
+            routeType: 'admin' as RouteType,
+            expectedRoles: [UserRoles.ADMIN, UserRoles.SUPER_ADMIN, UserRoles.SYSTEM],
+          },
           { routeType: 'api' as RouteType, expectedRoles: [] },
           {
             routeType: 'settings' as RouteType,
-            expectedRoles: ['USER', 'PREMIUM_USER', 'MODERATOR', 'ADMIN', 'SUPER_ADMIN'],
+            expectedRoles: [
+              UserRoles.USER,
+              UserRoles.PREMIUM_USER,
+              UserRoles.MODERATOR,
+              UserRoles.ADMIN,
+              UserRoles.SUPER_ADMIN,
+            ],
           },
           {
             routeType: 'profile' as RouteType,
-            expectedRoles: ['USER', 'PREMIUM_USER', 'MODERATOR', 'ADMIN', 'SUPER_ADMIN'],
+            expectedRoles: [
+              UserRoles.USER,
+              UserRoles.PREMIUM_USER,
+              UserRoles.MODERATOR,
+              UserRoles.ADMIN,
+              UserRoles.SUPER_ADMIN,
+            ],
           },
         ];
 
@@ -658,7 +684,7 @@ describe('Route Permissions - Enterprise Grade', () => {
         const route = createMockRouteInfo('admin', '/admin');
         const context = createMockRouteContext({
           isAuthenticated: true,
-          userRoles: createMockRoles('ADMIN'),
+          userRoles: createMockRoles(UserRoles.ADMIN),
           userPermissions: undefined,
         });
 
@@ -673,7 +699,7 @@ describe('Route Permissions - Enterprise Grade', () => {
         const authRoute = createMockRouteInfo('auth', '/login');
         const authenticatedContext = createMockRouteContext({
           isAuthenticated: true,
-          userRoles: createMockRoles('USER'),
+          userRoles: createMockRoles(UserRoles.USER),
         });
 
         const result = checkRoutePermission(authRoute, authenticatedContext);
@@ -689,7 +715,7 @@ describe('Route Permissions - Enterprise Grade', () => {
           isAuthenticated: true,
           platform: 'mobile',
           isAdminMode: true,
-          userRoles: createMockRoles('USER'),
+          userRoles: createMockRoles(UserRoles.USER),
         });
 
         const result = checkRoutePermission(route, context);
@@ -705,7 +731,7 @@ describe('Route Permissions - Enterprise Grade', () => {
         const route = createProtectedRoute('dashboard', '/dashboard/analytics');
         const context = createMockRouteContext({
           isAuthenticated: true,
-          userRoles: createMockRoles('PREMIUM_USER'),
+          userRoles: createMockRoles(UserRoles.PREMIUM_USER),
           platform: 'web',
         });
 
@@ -718,7 +744,7 @@ describe('Route Permissions - Enterprise Grade', () => {
         const route = createProtectedRoute('admin', '/admin/system');
         const context = createMockRouteContext({
           isAuthenticated: true,
-          userRoles: createMockRoles('ADMIN'),
+          userRoles: createMockRoles(UserRoles.ADMIN),
           userPermissions: createMockPermissions('READ_PUBLIC', 'WRITE_PUBLIC'), // Нет системных разрешений
         });
 
@@ -734,7 +760,7 @@ describe('Route Permissions - Enterprise Grade', () => {
         const route = createProtectedRoute('api', '/api/v1/users', 'GET', 'user-456');
         const context = createMockRouteContext({
           isAuthenticated: true,
-          userRoles: createMockRoles('MODERATOR'),
+          userRoles: createMockRoles(UserRoles.MODERATOR),
           platform: 'api',
         });
 
@@ -757,7 +783,7 @@ describe('Route Permissions - Enterprise Grade', () => {
         const protectedRoute = createProtectedRoute('settings', '/settings/preferences');
         const userContext = createMockRouteContext({
           isAuthenticated: true,
-          userRoles: createMockRoles('USER'),
+          userRoles: createMockRoles(UserRoles.USER),
         });
 
         const protectedResult = checkRoutePermission(protectedRoute, userContext);
@@ -767,7 +793,7 @@ describe('Route Permissions - Enterprise Grade', () => {
         const adminRoute = createProtectedRoute('admin', '/admin/config');
         const adminContext = createMockRouteContext({
           isAuthenticated: true,
-          userRoles: createMockRoles('SUPER_ADMIN'),
+          userRoles: createMockRoles(UserRoles.SUPER_ADMIN),
           userPermissions: createMockPermissions('SYSTEM_ADMIN', 'MANAGE_USERS'),
           isAdminMode: true,
         });

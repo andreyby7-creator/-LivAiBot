@@ -33,6 +33,7 @@
  */
 
 import type { AuthGuardContext, Permission, UserRole } from './auth-guard.js';
+import { UserRoles } from '../types/common.js';
 
 // Re-export types for convenience
 export type { Permission, UserRole };
@@ -134,7 +135,13 @@ const ROUTE_PERMISSION_POLICIES = {
     routeType: 'dashboard',
     allow: true,
     allowAuthenticated: true,
-    requiredRoles: ['USER', 'PREMIUM_USER', 'MODERATOR', 'ADMIN', 'SUPER_ADMIN'] as const,
+    requiredRoles: [
+      UserRoles.USER,
+      UserRoles.PREMIUM_USER,
+      UserRoles.MODERATOR,
+      UserRoles.ADMIN,
+      UserRoles.SUPER_ADMIN,
+    ] as const,
   } satisfies RoutePermissionRule,
 
   // Админ-панель - только для администраторов
@@ -142,7 +149,7 @@ const ROUTE_PERMISSION_POLICIES = {
     routeType: 'admin',
     allow: true,
     allowAuthenticated: true,
-    requiredRoles: ['ADMIN', 'SUPER_ADMIN', 'SYSTEM'] as const,
+    requiredRoles: [UserRoles.ADMIN, UserRoles.SUPER_ADMIN, UserRoles.SYSTEM] as const,
     requiredPermissions: ['SYSTEM_ADMIN', 'MANAGE_USERS'] as const,
   } satisfies RoutePermissionRule,
 
@@ -158,7 +165,13 @@ const ROUTE_PERMISSION_POLICIES = {
     routeType: 'settings',
     allow: true,
     allowAuthenticated: true,
-    requiredRoles: ['USER', 'PREMIUM_USER', 'MODERATOR', 'ADMIN', 'SUPER_ADMIN'] as const,
+    requiredRoles: [
+      UserRoles.USER,
+      UserRoles.PREMIUM_USER,
+      UserRoles.MODERATOR,
+      UserRoles.ADMIN,
+      UserRoles.SUPER_ADMIN,
+    ] as const,
   } satisfies RoutePermissionRule,
 
   // Профиль - для авторизованных пользователей
@@ -166,7 +179,13 @@ const ROUTE_PERMISSION_POLICIES = {
     routeType: 'profile',
     allow: true,
     allowAuthenticated: true,
-    requiredRoles: ['USER', 'PREMIUM_USER', 'MODERATOR', 'ADMIN', 'SUPER_ADMIN'] as const,
+    requiredRoles: [
+      UserRoles.USER,
+      UserRoles.PREMIUM_USER,
+      UserRoles.MODERATOR,
+      UserRoles.ADMIN,
+      UserRoles.SUPER_ADMIN,
+    ] as const,
   } satisfies RoutePermissionRule,
 } as const;
 

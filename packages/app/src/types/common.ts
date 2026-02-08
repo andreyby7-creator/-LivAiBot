@@ -296,13 +296,17 @@ export type AsyncFn<T> = () => Promise<T>;
 
 /** Роли пользователей в системе. Enum обеспечивает лучшую автокомплитацию и предотвращает опечатки. */
 export enum UserRoles {
-  USER = 'user',
-  ADMIN = 'admin',
-  OWNER = 'owner',
-  EDITOR = 'editor',
-  VIEWER = 'viewer',
-  MODERATOR = 'moderator',
-  PARTICIPANT = 'participant',
+  GUEST = 'GUEST',
+  USER = 'USER',
+  PREMIUM_USER = 'PREMIUM_USER',
+  MODERATOR = 'MODERATOR',
+  ADMIN = 'ADMIN',
+  OWNER = 'OWNER',
+  EDITOR = 'EDITOR',
+  VIEWER = 'VIEWER',
+  PARTICIPANT = 'PARTICIPANT',
+  SUPER_ADMIN = 'SUPER_ADMIN',
+  SYSTEM = 'SYSTEM',
 }
 
 /** @deprecated Используйте UserRoles enum вместо UserRole type */

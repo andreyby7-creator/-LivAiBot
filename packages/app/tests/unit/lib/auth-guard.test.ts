@@ -20,6 +20,7 @@ import {
   requireRole,
 } from '../../../src/lib/auth-guard';
 import type { ID } from '../../../src/types/common';
+import { UserRoles } from '../../../src/types/common';
 import type {
   Action,
   AuthDecision,
@@ -156,7 +157,7 @@ describe('Auth Guard - Enterprise Grade', () => {
     });
 
     it('должен разрешить гостям чтение публичных ресурсов', () => {
-      const userRoles = createMockRoles('GUEST');
+      const userRoles = createMockRoles(UserRoles.GUEST);
       const userPermissions = createMockPermissions('READ_PUBLIC');
       const resource = createMockResource('public');
       const action: Action = 'READ';
@@ -167,7 +168,7 @@ describe('Auth Guard - Enterprise Grade', () => {
     });
 
     it('должен отказать гостям в записи публичных ресурсов', () => {
-      const userRoles = createMockRoles('GUEST');
+      const userRoles = createMockRoles(UserRoles.GUEST);
       const userPermissions = createMockPermissions();
       const resource = createMockResource('public');
       const action: Action = 'WRITE';
@@ -179,10 +180,10 @@ describe('Auth Guard - Enterprise Grade', () => {
     });
 
     it('должен разрешить SYSTEM роли полный доступ', () => {
-      const userRoles = createMockRoles('SYSTEM');
+      const userRoles = createMockRoles(UserRoles.SYSTEM);
       const userPermissions = createMockPermissions();
       const resource = createMockResource('private');
-      const action: Action = 'ADMIN';
+      const action: Action = UserRoles.ADMIN;
 
       const result = checkAuthorization(userRoles, userPermissions, action, resource, context);
 
@@ -190,10 +191,10 @@ describe('Auth Guard - Enterprise Grade', () => {
     });
 
     it('должен разрешить ADMIN роли административные действия', () => {
-      const userRoles = createMockRoles('ADMIN');
+      const userRoles = createMockRoles(UserRoles.ADMIN);
       const userPermissions = createMockPermissions();
       const resource = createMockResource('public');
-      const action: Action = 'ADMIN';
+      const action: Action = UserRoles.ADMIN;
 
       const result = checkAuthorization(userRoles, userPermissions, action, resource, context);
 
@@ -201,7 +202,7 @@ describe('Auth Guard - Enterprise Grade', () => {
     });
 
     it('должен разрешить MODERATOR роли модераторские действия', () => {
-      const userRoles = createMockRoles('MODERATOR');
+      const userRoles = createMockRoles(UserRoles.MODERATOR);
       const userPermissions = createMockPermissions();
       const resource = createMockResource('public');
       const action: Action = 'MODERATE';
@@ -212,7 +213,7 @@ describe('Auth Guard - Enterprise Grade', () => {
     });
 
     it('должен отказать в доступе при недостаточных разрешениях', () => {
-      const userRoles = createMockRoles('USER');
+      const userRoles = createMockRoles(UserRoles.USER);
       const userPermissions = createMockPermissions('READ_PUBLIC'); // Нет WRITE_PRIVATE
       const resource = createMockResource('private');
       const action: Action = 'WRITE';
@@ -229,7 +230,7 @@ describe('Auth Guard - Enterprise Grade', () => {
     });
 
     it('должен разрешить доступ при наличии всех необходимых разрешений', () => {
-      const userRoles = createMockRoles('USER');
+      const userRoles = createMockRoles(UserRoles.USER);
       const userPermissions = createMockPermissions('READ_PRIVATE', 'WRITE_PRIVATE');
       const resource = createMockResource('private', { ownerId: createMockID('test-user-123') }); // Владелец совпадает с userId
       const action: Action = 'WRITE';
@@ -240,7 +241,7 @@ describe('Auth Guard - Enterprise Grade', () => {
     });
 
     it('должен проверять владение ресурсом для приватных операций', () => {
-      const userRoles = createMockRoles('USER');
+      const userRoles = createMockRoles(UserRoles.USER);
       const userPermissions = createMockPermissions('WRITE_PRIVATE');
       const resource = createMockResource('private', { ownerId: createMockID('different-owner') });
       const action: Action = 'WRITE';
@@ -256,7 +257,7 @@ describe('Auth Guard - Enterprise Grade', () => {
     });
 
     it('должен разрешить доступ владельцу приватного ресурса', () => {
-      const userRoles = createMockRoles('USER');
+      const userRoles = createMockRoles(UserRoles.USER);
       const userPermissions = createMockPermissions('WRITE_PRIVATE');
       const resource = createMockResource('private', { ownerId: createMockID('current-user') });
       const action: Action = 'WRITE';
@@ -271,7 +272,7 @@ describe('Auth Guard - Enterprise Grade', () => {
     });
 
     it('должен разрешить модераторам доступ к чужим приватным ресурсам', () => {
-      const userRoles = createMockRoles('MODERATOR');
+      const userRoles = createMockRoles(UserRoles.MODERATOR);
       const userPermissions = createMockPermissions('WRITE_PRIVATE'); // Добавляем требуемое разрешение
       const resource = createMockResource('private', { ownerId: createMockID('different-owner') });
       const action: Action = 'WRITE';
@@ -286,7 +287,7 @@ describe('Auth Guard - Enterprise Grade', () => {
     });
 
     it('должен применять deny-by-default политику для неизвестных случаев', () => {
-      const userRoles = createMockRoles('USER');
+      const userRoles = createMockRoles(UserRoles.USER);
       const userPermissions = createMockPermissions('READ_PUBLIC');
       const resource = createMockResource('public');
       const action: Action = 'READ';
@@ -313,7 +314,7 @@ describe('Auth Guard - Enterprise Grade', () => {
       const action: Action = 'WRITE';
       const context = createMockAuthGuardContext({
         isAuthenticated: true,
-        roles: createMockRoles('USER'),
+        roles: createMockRoles(UserRoles.USER),
         permissions: createMockPermissions('WRITE_PRIVATE'),
         userId: createMockID('owner-id'),
       });
@@ -344,18 +345,18 @@ describe('Auth Guard - Enterprise Grade', () => {
   describe('combineGuards - AND Composition', () => {
     const adminContext = createMockAuthGuardContext({
       isAuthenticated: true,
-      roles: createMockRoles('ADMIN'),
+      roles: createMockRoles(UserRoles.ADMIN),
       permissions: createMockPermissions('SYSTEM_ADMIN'),
     });
 
     const userContext = createMockAuthGuardContext({
       isAuthenticated: true,
-      roles: createMockRoles('USER'),
+      roles: createMockRoles(UserRoles.USER),
       permissions: createMockPermissions('READ_PUBLIC'),
     });
 
     it("должен разрешить доступ если все guard'ы возвращают allow", () => {
-      const adminGuard = requireRole('ADMIN');
+      const adminGuard = requireRole(UserRoles.ADMIN);
       const permissionGuard = requirePermission('SYSTEM_ADMIN');
       const combinedGuard = combineGuards(adminGuard, permissionGuard);
 
@@ -365,8 +366,8 @@ describe('Auth Guard - Enterprise Grade', () => {
     });
 
     it('должен отказать доступ если хотя бы один guard возвращает deny', () => {
-      const adminGuard = requireRole('ADMIN');
-      const superAdminGuard = requireRole('SUPER_ADMIN'); // У пользователя нет этой роли
+      const adminGuard = requireRole(UserRoles.ADMIN);
+      const superAdminGuard = requireRole(UserRoles.SUPER_ADMIN); // У пользователя нет этой роли
       const combinedGuard = combineGuards(adminGuard, superAdminGuard);
 
       const result = combinedGuard(adminContext);
@@ -376,8 +377,8 @@ describe('Auth Guard - Enterprise Grade', () => {
     });
 
     it("должен вернуть deny первого guard'а который отказал", () => {
-      const unauthGuard = requireRole('ADMIN'); // Первый guard откажет
-      const neverReachedGuard = requireRole('USER'); // Этот не будет вызван
+      const unauthGuard = requireRole(UserRoles.ADMIN); // Первый guard откажет
+      const neverReachedGuard = requireRole(UserRoles.USER); // Этот не будет вызван
       const combinedGuard = combineGuards(unauthGuard, neverReachedGuard);
 
       const result = combinedGuard(userContext);
@@ -394,7 +395,7 @@ describe('Auth Guard - Enterprise Grade', () => {
     });
 
     it("должен работать с одним guard'ом", () => {
-      const adminGuard = requireRole('ADMIN');
+      const adminGuard = requireRole(UserRoles.ADMIN);
       const combinedGuard = combineGuards(adminGuard);
 
       const result = combinedGuard(adminContext);
@@ -406,17 +407,17 @@ describe('Auth Guard - Enterprise Grade', () => {
   describe('eitherGuard - OR Composition', () => {
     const adminContext = createMockAuthGuardContext({
       isAuthenticated: true,
-      roles: createMockRoles('ADMIN'),
+      roles: createMockRoles(UserRoles.ADMIN),
     });
 
     const userContext = createMockAuthGuardContext({
       isAuthenticated: true,
-      roles: createMockRoles('USER'),
+      roles: createMockRoles(UserRoles.USER),
     });
 
     it('должен разрешить доступ если хотя бы один guard возвращает allow', () => {
-      const adminGuard = requireRole('ADMIN');
-      const userGuard = requireRole('USER');
+      const adminGuard = requireRole(UserRoles.ADMIN);
+      const userGuard = requireRole(UserRoles.USER);
       const eitherGuardFn = eitherGuard(adminGuard, userGuard);
 
       const result1 = eitherGuardFn(adminContext);
@@ -427,8 +428,8 @@ describe('Auth Guard - Enterprise Grade', () => {
     });
 
     it("должен отказать доступ если все guard'ы возвращают deny", () => {
-      const adminGuard = requireRole('ADMIN');
-      const superAdminGuard = requireRole('SUPER_ADMIN');
+      const adminGuard = requireRole(UserRoles.ADMIN);
+      const superAdminGuard = requireRole(UserRoles.SUPER_ADMIN);
       const eitherGuardFn = eitherGuard(adminGuard, superAdminGuard);
 
       const result = eitherGuardFn(userContext);
@@ -438,9 +439,9 @@ describe('Auth Guard - Enterprise Grade', () => {
     });
 
     it("должен вернуть allow первого guard'а который разрешил", () => {
-      const adminGuard = requireRole('ADMIN');
-      const userGuard = requireRole('USER');
-      const neverReachedGuard = requireRole('GUEST'); // Этот не будет вызван
+      const adminGuard = requireRole(UserRoles.ADMIN);
+      const userGuard = requireRole(UserRoles.USER);
+      const neverReachedGuard = requireRole(UserRoles.GUEST); // Этот не будет вызван
       const eitherGuardFn = eitherGuard(adminGuard, userGuard, neverReachedGuard);
 
       const result = eitherGuardFn(adminContext);
@@ -457,7 +458,7 @@ describe('Auth Guard - Enterprise Grade', () => {
     });
 
     it("должен работать с одним guard'ом", () => {
-      const adminGuard = requireRole('ADMIN');
+      const adminGuard = requireRole(UserRoles.ADMIN);
       const eitherGuardFn = eitherGuard(adminGuard);
 
       const result = eitherGuardFn(adminContext);
@@ -466,8 +467,8 @@ describe('Auth Guard - Enterprise Grade', () => {
     });
 
     it('должен собирать ошибки из всех deny решений', () => {
-      const adminGuard = requireRole('ADMIN');
-      const superAdminGuard = requireRole('SUPER_ADMIN');
+      const adminGuard = requireRole(UserRoles.ADMIN);
+      const superAdminGuard = requireRole(UserRoles.SUPER_ADMIN);
       const eitherGuardFn = eitherGuard(adminGuard, superAdminGuard);
 
       const result = eitherGuardFn(userContext);
@@ -481,7 +482,7 @@ describe('Auth Guard - Enterprise Grade', () => {
 
   describe('requireRole - Single Role Guard', () => {
     it('должен отказать неаутентифицированным пользователям', () => {
-      const adminGuard = requireRole('ADMIN');
+      const adminGuard = requireRole(UserRoles.ADMIN);
       const context = createMockAuthGuardContext({ isAuthenticated: false });
 
       const result = adminGuard(context);
@@ -491,10 +492,10 @@ describe('Auth Guard - Enterprise Grade', () => {
     });
 
     it('должен разрешить доступ если пользователь имеет требуемую роль', () => {
-      const adminGuard = requireRole('ADMIN');
+      const adminGuard = requireRole(UserRoles.ADMIN);
       const context = createMockAuthGuardContext({
         isAuthenticated: true,
-        roles: createMockRoles('ADMIN'),
+        roles: createMockRoles(UserRoles.ADMIN),
       });
 
       const result = adminGuard(context);
@@ -503,10 +504,10 @@ describe('Auth Guard - Enterprise Grade', () => {
     });
 
     it('должен отказать доступ если пользователь не имеет требуемую роль', () => {
-      const adminGuard = requireRole('ADMIN');
+      const adminGuard = requireRole(UserRoles.ADMIN);
       const context = createMockAuthGuardContext({
         isAuthenticated: true,
-        roles: createMockRoles('USER'),
+        roles: createMockRoles(UserRoles.USER),
       });
 
       const result = adminGuard(context);
@@ -514,12 +515,12 @@ describe('Auth Guard - Enterprise Grade', () => {
       expectDeny(result, 'INVALID_ROLE');
       expectError(result, 'AUTH_INVALID_ROLE');
       if (!result.allow && result.error) {
-        expect(result.error.requiredRole).toBe('ADMIN');
+        expect(result.error.requiredRole).toBe(UserRoles.ADMIN);
       }
     });
 
     it('должен работать с пустым набором ролей в контексте', () => {
-      const adminGuard = requireRole('ADMIN');
+      const adminGuard = requireRole(UserRoles.ADMIN);
       const context = createMockAuthGuardContext({
         isAuthenticated: true,
         roles: new Set<UserRole>(),
@@ -589,7 +590,7 @@ describe('Auth Guard - Enterprise Grade', () => {
 
     describe('isGuestActionAllowed', () => {
       it('должен разрешать гостям чтение публичных ресурсов', () => {
-        const userRoles = createMockRoles('GUEST');
+        const userRoles = createMockRoles(UserRoles.GUEST);
         const userPermissions = createMockPermissions('READ_PUBLIC');
         const resource = createMockResource('public');
         const action: Action = 'READ';
@@ -600,8 +601,8 @@ describe('Auth Guard - Enterprise Grade', () => {
       });
 
       it('должен запрещать гостям любые другие действия', () => {
-        const actions: Action[] = ['WRITE', 'DELETE', 'MODERATE', 'ADMIN'];
-        const userRoles = createMockRoles('GUEST');
+        const actions: Action[] = ['WRITE', 'DELETE', 'MODERATE', UserRoles.ADMIN];
+        const userRoles = createMockRoles(UserRoles.GUEST);
         const userPermissions = createMockPermissions();
         const resource = createMockResource('public');
 
@@ -612,7 +613,7 @@ describe('Auth Guard - Enterprise Grade', () => {
       });
 
       it('должен запрещать гостям доступ к приватным ресурсам', () => {
-        const userRoles = createMockRoles('GUEST');
+        const userRoles = createMockRoles(UserRoles.GUEST);
         const userPermissions = createMockPermissions();
         const resource = createMockResource('private');
         const action: Action = 'READ';
@@ -625,7 +626,7 @@ describe('Auth Guard - Enterprise Grade', () => {
 
     describe('Role Hierarchy', () => {
       it('должен проверять SYSTEM роль имеет полный доступ', () => {
-        const userRoles = createMockRoles('SYSTEM');
+        const userRoles = createMockRoles(UserRoles.SYSTEM);
         const userPermissions = createMockPermissions();
         const resource = createMockResource('private');
         const authContext = createMockAuthGuardContext({
@@ -633,7 +634,7 @@ describe('Auth Guard - Enterprise Grade', () => {
           isAuthenticated: true,
         });
 
-        const actions: Action[] = ['READ', 'WRITE', 'DELETE', 'MODERATE', 'ADMIN'];
+        const actions: Action[] = ['READ', 'WRITE', 'DELETE', 'MODERATE', UserRoles.ADMIN];
 
         for (const action of actions) {
           const result = checkAuthorization(
@@ -649,8 +650,14 @@ describe('Auth Guard - Enterprise Grade', () => {
 
       it('должен проверять ADMIN роли имеют административный доступ', () => {
         const testCases = [
-          { roles: ['SUPER_ADMIN'], actions: ['READ', 'WRITE', 'DELETE', 'MODERATE', 'ADMIN'] },
-          { roles: ['ADMIN'], actions: ['READ', 'WRITE', 'DELETE', 'MODERATE', 'ADMIN'] },
+          {
+            roles: [UserRoles.SUPER_ADMIN],
+            actions: ['READ', 'WRITE', 'DELETE', 'MODERATE', UserRoles.ADMIN],
+          },
+          {
+            roles: [UserRoles.ADMIN],
+            actions: ['READ', 'WRITE', 'DELETE', 'MODERATE', UserRoles.ADMIN],
+          },
         ];
 
         const resource = createMockResource('private');
@@ -661,7 +668,7 @@ describe('Auth Guard - Enterprise Grade', () => {
         );
 
         for (const { roles, actions } of testCases) {
-          const userRoles = createMockRoles(...roles as UserRole[]);
+          const userRoles = createMockRoles(...roles);
           const authContext = createMockAuthGuardContext({
             userId: createMockID('owner'),
             isAuthenticated: true,
@@ -681,7 +688,7 @@ describe('Auth Guard - Enterprise Grade', () => {
       });
 
       it('должен проверять MODERATOR роль имеет модераторский доступ', () => {
-        const userRoles = createMockRoles('MODERATOR');
+        const userRoles = createMockRoles(UserRoles.MODERATOR);
         const userPermissions = createMockPermissions(
           'READ_PRIVATE',
           'WRITE_PRIVATE',
@@ -710,12 +717,12 @@ describe('Auth Guard - Enterprise Grade', () => {
 
       it('должен проверять USER роли имеют пользовательский доступ', () => {
         const testCases = [
-          { roles: ['USER'], actions: ['READ', 'WRITE', 'DELETE'] },
-          { roles: ['PREMIUM_USER'], actions: ['READ', 'WRITE', 'DELETE'] },
+          { roles: [UserRoles.USER], actions: ['READ', 'WRITE', 'DELETE'] },
+          { roles: [UserRoles.PREMIUM_USER], actions: ['READ', 'WRITE', 'DELETE'] },
         ];
 
         for (const { roles, actions } of testCases) {
-          const userRoles = createMockRoles(...roles as UserRole[]);
+          const userRoles = createMockRoles(...roles);
           const userPermissions = createMockPermissions(
             'READ_PRIVATE',
             'WRITE_PRIVATE',
@@ -756,12 +763,16 @@ describe('Auth Guard - Enterprise Grade', () => {
             publicPerm: 'MODERATE_CONTENT',
             privatePerm: 'MODERATE_CONTENT',
           },
-          { action: 'ADMIN' as Action, publicPerm: 'SYSTEM_ADMIN', privatePerm: 'SYSTEM_ADMIN' },
+          {
+            action: UserRoles.ADMIN as Action,
+            publicPerm: 'SYSTEM_ADMIN',
+            privatePerm: 'SYSTEM_ADMIN',
+          },
         ];
 
         for (const { action, publicPerm, privatePerm } of testCases) {
           // Публичный ресурс
-          const userRoles = createMockRoles('USER');
+          const userRoles = createMockRoles(UserRoles.USER);
           const publicPermissions = createMockPermissions(publicPerm as Permission);
           const privatePermissions = createMockPermissions(privatePerm as Permission);
           const publicResource = createMockResource('public');
@@ -792,7 +803,7 @@ describe('Auth Guard - Enterprise Grade', () => {
 
     describe('Private Resource Ownership', () => {
       it('должен проверять владение только для WRITE и DELETE операций', () => {
-        const userRoles = createMockRoles('USER');
+        const userRoles = createMockRoles(UserRoles.USER);
         const userPermissions = createMockPermissions(
           'READ_PRIVATE',
           'WRITE_PRIVATE',
@@ -838,7 +849,7 @@ describe('Auth Guard - Enterprise Grade', () => {
 
   describe('Error Handling и Type Safety', () => {
     it('должен создавать типизированные ошибки с правильными полями', () => {
-      const userRoles = createMockRoles('USER');
+      const userRoles = createMockRoles(UserRoles.USER);
       const userPermissions = createMockPermissions('READ_PUBLIC');
       const resource = createMockResource('private');
       const action: Action = 'WRITE';
@@ -866,9 +877,9 @@ describe('Auth Guard - Enterprise Grade', () => {
     });
 
     it('должен обеспечивать type safety для AuthDecision union', () => {
-      const userRoles = createMockRoles('ADMIN');
+      const userRoles = createMockRoles(UserRoles.ADMIN);
       const userPermissions = createMockPermissions();
-      const action: Action = 'ADMIN';
+      const action: Action = UserRoles.ADMIN;
       const context = createMockAuthGuardContext();
 
       const result = checkAuthorization(
@@ -902,13 +913,13 @@ describe('Auth Guard - Enterprise Grade', () => {
 
     it('должен поддерживать все типы UserRole', () => {
       const roles: UserRole[] = [
-        'GUEST',
-        'USER',
-        'PREMIUM_USER',
-        'MODERATOR',
-        'ADMIN',
-        'SUPER_ADMIN',
-        'SYSTEM',
+        UserRoles.GUEST,
+        UserRoles.USER,
+        UserRoles.PREMIUM_USER,
+        UserRoles.MODERATOR,
+        UserRoles.ADMIN,
+        UserRoles.SUPER_ADMIN,
+        UserRoles.SYSTEM,
       ];
 
       for (const role of roles) {
@@ -938,7 +949,7 @@ describe('Auth Guard - Enterprise Grade', () => {
       ];
 
       for (const permission of permissions) {
-        const userRoles = createMockRoles('USER');
+        const userRoles = createMockRoles(UserRoles.USER);
         const userPermissions = createMockPermissions(permission);
         const resource = createMockResource('public');
         const action: Action = 'READ';
@@ -953,7 +964,7 @@ describe('Auth Guard - Enterprise Grade', () => {
 
   describe('Edge Cases и Boundary Conditions', () => {
     it('должен корректно обрабатывать undefined/null значения в контексте', () => {
-      const userRoles = createMockRoles('USER');
+      const userRoles = createMockRoles(UserRoles.USER);
       const userPermissions = createMockPermissions('READ_PUBLIC');
       const resource = createMockResource('public');
       const action: Action = 'READ';
@@ -971,7 +982,7 @@ describe('Auth Guard - Enterprise Grade', () => {
     });
 
     it('должен корректно обрабатывать пустые resources', () => {
-      const userRoles = createMockRoles('USER');
+      const userRoles = createMockRoles(UserRoles.USER);
       const userPermissions = createMockPermissions('READ_PUBLIC');
       const resource = createMockResource('public', {});
       const action: Action = 'READ';
@@ -983,7 +994,7 @@ describe('Auth Guard - Enterprise Grade', () => {
     });
 
     it('должен корректно обрабатывать аутентификацию без userId', () => {
-      const userRoles = createMockRoles('USER');
+      const userRoles = createMockRoles(UserRoles.USER);
       const userPermissions = createMockPermissions('WRITE_PRIVATE');
       const resource = createMockResource('private', { ownerId: createMockID('some-owner') });
       const action: Action = 'WRITE';
@@ -1010,10 +1021,10 @@ describe('Auth Guard - Enterprise Grade', () => {
     });
 
     it('должен корректно обрабатывать SUPER_ADMIN роль (наследует ADMIN)', () => {
-      const userRoles = createMockRoles('SUPER_ADMIN');
+      const userRoles = createMockRoles(UserRoles.SUPER_ADMIN);
       const userPermissions = createMockPermissions();
       const resource = createMockResource('public');
-      const action: Action = 'ADMIN';
+      const action: Action = UserRoles.ADMIN;
       const context = createMockAuthGuardContext();
 
       const result = checkAuthorization(userRoles, userPermissions, action, resource, context);
@@ -1022,7 +1033,7 @@ describe('Auth Guard - Enterprise Grade', () => {
     });
 
     it('должен корректно обрабатывать PREMIUM_USER роль (наследует USER)', () => {
-      const userRoles = createMockRoles('PREMIUM_USER');
+      const userRoles = createMockRoles(UserRoles.PREMIUM_USER);
       const userPermissions = createMockPermissions('READ_PUBLIC', 'WRITE_PUBLIC');
       const resource = createMockResource('public');
       const action: Action = 'WRITE';
@@ -1034,7 +1045,7 @@ describe('Auth Guard - Enterprise Grade', () => {
     });
 
     it('должен корректно обрабатывать комбинацию ролей', () => {
-      const userRoles = createMockRoles('USER', 'MODERATOR');
+      const userRoles = createMockRoles(UserRoles.USER, UserRoles.MODERATOR);
       const userPermissions = createMockPermissions('READ_PUBLIC', 'MODERATE_CONTENT');
       const resource = createMockResource('public');
       const context = createMockAuthGuardContext();
@@ -1054,7 +1065,7 @@ describe('Auth Guard - Enterprise Grade', () => {
     });
 
     it('должен корректно обрабатывать пустые sets разрешений', () => {
-      const userRoles = createMockRoles('USER');
+      const userRoles = createMockRoles(UserRoles.USER);
       const userPermissions = createMockPermissions();
       const resource = createMockResource('public');
       const action: Action = 'READ';
@@ -1071,7 +1082,7 @@ describe('Auth Guard - Enterprise Grade', () => {
       // Сценарий: пользователь хочет прочитать публичный ресурс
       const context = createMockAuthGuardContext({
         isAuthenticated: true,
-        roles: createMockRoles('USER'),
+        roles: createMockRoles(UserRoles.USER),
         permissions: createMockPermissions('READ_PUBLIC'),
       });
       const resource = createMockResource('public');
@@ -1100,13 +1111,13 @@ describe('Auth Guard - Enterprise Grade', () => {
       // Сценарий: требуется либо ADMIN роль, либо MODERATOR + SYSTEM_ADMIN разрешение
       const context = createMockAuthGuardContext({
         isAuthenticated: true,
-        roles: createMockRoles('MODERATOR'),
+        roles: createMockRoles(UserRoles.MODERATOR),
         permissions: createMockPermissions('SYSTEM_ADMIN'),
       });
 
-      const adminOnlyGuard = requireRole('ADMIN');
+      const adminOnlyGuard = requireRole(UserRoles.ADMIN);
       const moderatorWithAdminPermGuard = combineGuards(
-        requireRole('MODERATOR'),
+        requireRole(UserRoles.MODERATOR),
         requirePermission('SYSTEM_ADMIN'),
       );
 

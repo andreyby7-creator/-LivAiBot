@@ -270,12 +270,12 @@ apps/web (тонкий композитор)
 
 App routing & navigation
 1️⃣1️⃣7️⃣ packages/app/src/routes/routes.ts 🟢 — ts — deps: types/common.ts — (декларативный список всех routes)
-1️⃣1️⃣8️⃣ packages/app/src/routes/route-meta.ts 🔴 — ts — deps: routes.ts, route-permissions.ts — (permissions, flags, auth-required)
-1️⃣1️⃣9️⃣ packages/app/src/routes/navigation.ts 🔴 — ts — deps: route-meta.ts — (sidebar/menu/navigation config)
+1️⃣1️⃣8️⃣ packages/app/src/routes/route-meta.ts 🟢 — ts — deps: routes.ts, route-permissions.ts, types/common.ts — (permissions, flags, auth-required)
+1️⃣1️⃣9️⃣ packages/app/src/routes/navigation.ts 🟢 — ts — deps: route-meta.ts, routes.ts, types/common.ts — (sidebar/menu/navigation config)
 
 App events / signals
-1️⃣2️⃣0️⃣ packages/app/src/events/app-events.ts 🔴 — ts — deps: types/common.ts — (logout, authExpired, billingChanged)
-1️⃣2️⃣1️⃣ packages/app/src/events/event-bus.ts 🔴 — ts — deps: app-events.ts — (typed event bus)
+1️⃣2️⃣0️⃣ packages/app/src/events/app-events.ts 🟢 — ts — deps: types/common.ts, zod, uuid — (logout, authExpired, billingChanged)
+1️⃣2️⃣1️⃣ packages/app/src/events/event-bus.ts 🟢 — ts — deps: app-events.ts — (typed event bus)
 
 App background & scheduler
 1️⃣2️⃣2️⃣ packages/app/src/background/scheduler.ts 🔴 — ts+effect — deps: lib/telemetry.ts — (планировщик периодических задач)

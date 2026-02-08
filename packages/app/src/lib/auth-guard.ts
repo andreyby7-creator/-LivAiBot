@@ -36,6 +36,7 @@ import React, { createContext, useContext } from 'react';
 
 import type { TaggedError } from './error-mapping.js';
 import type { AuthContext, ID } from '../types/common.js';
+import { UserRoles } from '../types/common.js';
 
 /* ============================================================================
  * 🧠 КОНТЕКСТ АВТОРИЗАЦИИ
@@ -65,14 +66,7 @@ export type AuthGuardContext = AuthContext & {
  * ========================================================================== */
 
 /** Система ролей с иерархией для enterprise приложений */
-export type UserRole =
-  | 'GUEST'
-  | 'USER'
-  | 'PREMIUM_USER'
-  | 'MODERATOR'
-  | 'ADMIN'
-  | 'SUPER_ADMIN'
-  | 'SYSTEM';
+export type UserRole = UserRoles;
 
 /** Разрешения для детального контроля доступа */
 export type Permission =
@@ -210,7 +204,7 @@ export function checkAuthorization(
   }
 
   // 2. Проверяем блокировку пользователя
-  if (userRoles.has('GUEST') && !isGuestActionAllowed(action, resource)) {
+  if (userRoles.has(UserRoles.GUEST) && !isGuestActionAllowed(action, resource)) {
     return deny(
       'GUEST_RESTRICTED',
       createAuthError('AUTH_RESOURCE_ACCESS_DENIED', undefined, resource),
@@ -310,17 +304,17 @@ function isGuestActionAllowed(action: Action, resource: Resource): boolean {
 
 /** Проверяет наличие системного доступа. */
 function hasSystemAccess(roles: ReadonlySet<UserRole>): boolean {
-  return roles.has('SYSTEM');
+  return roles.has(UserRoles.SYSTEM);
 }
 
 /** Проверяет наличие административного доступа. */
 function hasAdminAccess(roles: ReadonlySet<UserRole>): boolean {
-  return roles.has('ADMIN') || roles.has('SUPER_ADMIN') || hasSystemAccess(roles);
+  return roles.has(UserRoles.ADMIN) || roles.has(UserRoles.SUPER_ADMIN) || hasSystemAccess(roles);
 }
 
 /** Проверяет наличие модераторского доступа. */
 function hasModeratorAccess(roles: ReadonlySet<UserRole>): boolean {
-  return roles.has('MODERATOR') || hasAdminAccess(roles);
+  return roles.has(UserRoles.MODERATOR) || hasAdminAccess(roles);
 }
 
 /** Проверяет наличие повышенного доступа. */

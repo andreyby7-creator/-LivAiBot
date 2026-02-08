@@ -749,13 +749,17 @@ describe('UserRoles enum', () => {
   });
 
   it('каждая роль соответствует строковому значению', () => {
-    expect(UserRoles.USER).toBe('user');
-    expect(UserRoles.ADMIN).toBe('admin');
-    expect(UserRoles.OWNER).toBe('owner');
-    expect(UserRoles.EDITOR).toBe('editor');
-    expect(UserRoles.VIEWER).toBe('viewer');
-    expect(UserRoles.MODERATOR).toBe('moderator');
-    expect(UserRoles.PARTICIPANT).toBe('participant');
+    expect(UserRoles.USER).toBe('USER');
+    expect(UserRoles.ADMIN).toBe('ADMIN');
+    expect(UserRoles.OWNER).toBe('OWNER');
+    expect(UserRoles.EDITOR).toBe('EDITOR');
+    expect(UserRoles.VIEWER).toBe('VIEWER');
+    expect(UserRoles.MODERATOR).toBe('MODERATOR');
+    expect(UserRoles.PARTICIPANT).toBe('PARTICIPANT');
+    expect(UserRoles.PREMIUM_USER).toBe('PREMIUM_USER');
+    expect(UserRoles.SUPER_ADMIN).toBe('SUPER_ADMIN');
+    expect(UserRoles.SYSTEM).toBe('SYSTEM');
+    expect(UserRoles.GUEST).toBe('GUEST');
   });
 });
 
