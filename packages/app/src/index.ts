@@ -96,6 +96,7 @@ export * from './lib/performance.js';
 export * from './lib/auth-guard.js';
 export * from './lib/route-permissions.js';
 export * from './lib/logger.js';
+export * from './routes/routes.js';
 // Явный экспорт из auth-service для избежания конфликта с AuthError из auth-guard
 export {
   type AuthError as AuthServiceError,
@@ -137,9 +138,13 @@ export {
 } from './types/api.js';
 // Экспортируем из common.js остальные типы, исключая конфликтующие
 export {
+  AllUserRoles,
   type ApiFailure,
   type ApiSuccess,
   type AppContext,
+  // Routing types
+  type AppModule,
+  AppModules,
   type AsyncError,
   type AsyncFn,
   type AsyncIdle,
@@ -151,6 +156,7 @@ export {
   type BaseDTO,
   type ErrorCategory,
   type ErrorSource,
+  type ExhaustiveRoleCheck,
   type FeatureFlags,
   type Handler,
   type ID,
@@ -168,7 +174,10 @@ export {
   type Optional,
   type PaginatedResponse,
   type Platform,
+  type RouteConfig,
   type Subscription,
+  type UserRole,
+  UserRoles,
   type VoidFn,
 } from './types/common.js';
 

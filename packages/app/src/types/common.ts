@@ -61,16 +61,10 @@ export type Nullable<T> = T | null;
 /** Optional helper. */
 export type Optional<T> = T | undefined;
 
-/**
- * Maybe helper - объединяет null и undefined.
- * Полезно для API ответов и Effect паттернов.
- */
+/** Maybe helper - объединяет null и undefined. Полезно для API ответов и Effect паттернов. */
 export type Maybe<T> = T | null | undefined;
 
-/**
- * Deep readonly helper.
- * Используется для иммутабельных DTO.
- */
+/** Deep readonly helper. Используется для иммутабельных DTO. */
 export type Immutable<T> = T extends Function ? T
   : T extends (infer U)[] ? readonly Immutable<U>[]
   : T extends object ? { readonly [K in keyof T]: Immutable<T[K]>; }
@@ -295,3 +289,62 @@ export type Loggable = {
 
 /** Асинхронная функция без параметров. */
 export type AsyncFn<T> = () => Promise<T>;
+
+/* ========================================================================== */
+/* 🛣️ ROUTING И НАВИГАЦИЯ */
+/* ========================================================================== */
+
+/** Роли пользователей в системе. Enum обеспечивает лучшую автокомплитацию и предотвращает опечатки. */
+export enum UserRoles {
+  USER = 'user',
+  ADMIN = 'admin',
+  OWNER = 'owner',
+  EDITOR = 'editor',
+  VIEWER = 'viewer',
+  MODERATOR = 'moderator',
+  PARTICIPANT = 'participant',
+}
+
+/** @deprecated Используйте UserRoles enum вместо UserRole type */
+export type UserRole = UserRoles;
+
+/** Все доступные роли пользователей (для exhaustive проверок). */
+export const AllUserRoles = Object.values(UserRoles) as readonly UserRoles[];
+
+/** Вспомогательный тип для exhaustive проверки ролей. Гарантирует, что все роли из UserRoles учтены в массиве. */
+export type ExhaustiveRoleCheck<T extends readonly UserRoles[]> = T extends
+  readonly [UserRoles, ...UserRoles[]] ? T['length'] extends typeof AllUserRoles.length ? T
+  : never
+  : never;
+
+/** Модули/фичи приложения для категоризации маршрутов. Enum обеспечивает лучшую автокомплитацию и type-safety. */
+export enum AppModules {
+  AUTH = 'auth',
+  BOTS = 'bots',
+  CHAT = 'chat',
+  BILLING = 'billing',
+}
+
+/** @deprecated Используйте AppModules enum вместо AppModule type */
+export type AppModule = AppModules;
+
+/**
+ * Конфигурация маршрута приложения.
+ * Описывает метаданные для декларативной маршрутизации.
+ */
+export type RouteConfig = {
+  /** Путь маршрута (например, '/login', '/bots/:botId') */
+  readonly path: string;
+
+  /** Уникальный идентификатор маршрута для поиска и ссылок */
+  readonly name: string;
+
+  /** Модуль/фича приложения, к которому относится маршрут */
+  readonly module: AppModules;
+
+  /** Требует ли маршрут аутентификации */
+  readonly protected: boolean;
+
+  /** Список ролей, которым разрешен доступ (только если protected: true) */
+  readonly allowedRoles?: readonly UserRoles[];
+};

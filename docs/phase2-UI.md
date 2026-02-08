@@ -269,7 +269,7 @@ apps/web (тонкий композитор)
 1️⃣1️⃣6️⃣ packages/app/src/ui/support-button.tsx 🟢 — ts+react — deps: ui-core/components/SupportButton.tsx, providers/UnifiedUIProvider.tsx, app/types/ui-contracts.ts
 
 App routing & navigation
-1️⃣1️⃣7️⃣ packages/app/src/routes/routes.ts 🔴 — ts — deps: types/common.ts — (декларативный список всех routes)
+1️⃣1️⃣7️⃣ packages/app/src/routes/routes.ts 🟢 — ts — deps: types/common.ts — (декларативный список всех routes)
 1️⃣1️⃣8️⃣ packages/app/src/routes/route-meta.ts 🔴 — ts — deps: routes.ts, route-permissions.ts — (permissions, flags, auth-required)
 1️⃣1️⃣9️⃣ packages/app/src/routes/navigation.ts 🔴 — ts — deps: route-meta.ts — (sidebar/menu/navigation config)
 

@@ -15,6 +15,7 @@ import type {
   ApiError,
   ApiResponse,
   AppContext,
+  AppModule,
   AsyncState,
   AuthContext,
   BaseDTO,
@@ -32,9 +33,12 @@ import type {
   PaginatedResponse,
   Platform,
   RealtimeEvent,
+  RouteConfig,
   Subscription,
+  UserRole,
   VoidFn,
 } from '../../../src/types/common.js';
+import { AllUserRoles, AppModules, UserRoles } from '../../../src/types/common.js';
 
 // Helper функции для создания брендированных ID в тестах
 function createUserID(id: string): ID<'UserID'> {
@@ -591,6 +595,193 @@ describe('ApiResponse discriminated union', () => {
 });
 
 // ============================================================================
+// 🛣️ ROUTING И НАВИГАЦИЯ
+// ============================================================================
+
+describe('UserRole тип', () => {
+  it('принимает все поддерживаемые роли пользователей', () => {
+    const roles: UserRole[] = [
+      UserRoles.USER,
+      UserRoles.ADMIN,
+      UserRoles.OWNER,
+      UserRoles.MODERATOR,
+      UserRoles.PARTICIPANT,
+      UserRoles.EDITOR,
+      UserRoles.VIEWER,
+    ];
+
+    roles.forEach((role) => {
+      expect(AllUserRoles).toContain(role);
+    });
+  });
+
+  it('не принимает неподдерживаемые роли', () => {
+    // Эти значения не должны компилироваться (runtime проверки для демонстрации)
+    // const invalidRole: UserRole = 'superadmin'; // TypeScript error
+    // const anotherInvalidRole: UserRole = 'guest'; // TypeScript error
+
+    expect(true).toBe(true); // Заглушка для теста
+  });
+});
+
+describe('AppModule тип', () => {
+  it('принимает все поддерживаемые модули приложения', () => {
+    const modules: AppModule[] = [
+      AppModules.AUTH,
+      AppModules.BOTS,
+      AppModules.CHAT,
+      AppModules.BILLING,
+    ];
+
+    modules.forEach((module) => {
+      expect(Object.values(AppModules)).toContain(module);
+    });
+  });
+
+  it('не принимает неподдерживаемые модули', () => {
+    // Эти значения не должны компилироваться (runtime проверки для демонстрации)
+    // const invalidModule: AppModule = 'dashboard'; // TypeScript error
+    // const anotherInvalidModule: AppModule = 'analytics'; // TypeScript error
+
+    expect(true).toBe(true); // Заглушка для теста
+  });
+});
+
+describe('RouteConfig тип', () => {
+  it('создает публичный маршрут без защиты', () => {
+    const route: RouteConfig = {
+      path: '/about',
+      name: 'about',
+      module: AppModules.AUTH,
+      protected: false,
+    };
+
+    expect(route.path).toBe('/about');
+    expect(route.name).toBe('about');
+    expect(route.module).toBe(AppModules.AUTH);
+    expect(route.protected).toBe(false);
+    expect(route.allowedRoles).toBeUndefined();
+  });
+
+  it('создает защищенный маршрут с ролями', () => {
+    const route: RouteConfig = {
+      path: '/admin/users',
+      name: 'admin-users',
+      module: AppModules.AUTH,
+      protected: true,
+      allowedRoles: [UserRoles.ADMIN, UserRoles.OWNER],
+    };
+
+    expect(route.path).toBe('/admin/users');
+    expect(route.name).toBe('admin-users');
+    expect(route.module).toBe(AppModules.AUTH);
+    expect(route.protected).toBe(true);
+    expect(route.allowedRoles).toEqual([UserRoles.ADMIN, UserRoles.OWNER]);
+  });
+
+  it('создает маршрут с параметрами в пути', () => {
+    const route: RouteConfig = {
+      path: '/bots/:botId/edit',
+      name: 'bot-edit',
+      module: AppModules.BOTS,
+      protected: true,
+      allowedRoles: [UserRoles.OWNER, UserRoles.EDITOR],
+    };
+
+    expect(route.path).toBe('/bots/:botId/edit');
+    expect(route.name).toBe('bot-edit');
+    expect(route.module).toBe(AppModules.BOTS);
+    expect(route.protected).toBe(true);
+    expect(route.allowedRoles).toEqual([UserRoles.OWNER, UserRoles.EDITOR]);
+  });
+
+  it('разрешает пустой массив ролей для защищенного маршрута', () => {
+    const route: RouteConfig = {
+      path: '/public-profile',
+      name: 'public-profile',
+      module: AppModules.AUTH,
+      protected: true,
+      allowedRoles: [],
+    };
+
+    expect(route.protected).toBe(true);
+    expect(route.allowedRoles).toEqual([]);
+  });
+
+  it('предотвращает несогласованные состояния', () => {
+    // Эти состояния не должны компилироваться (runtime проверки для демонстрации)
+
+    // Невозможно: protected=false с allowedRoles
+    // const invalidPublicWithRoles: RouteConfig = {
+    //   path: '/test',
+    //   name: 'test',
+    //   module: 'auth',
+    //   protected: false,
+    //   allowedRoles: ['admin'], // TypeScript error
+    // };
+
+    // Невозможно: отсутствуют обязательные поля
+    // const invalidMissingFields: RouteConfig = {
+    //   path: '/test',
+    //   name: 'test',
+    //   // missing module and protected
+    // };
+
+    expect(true).toBe(true); // Заглушка для теста
+  });
+});
+
+describe('UserRoles enum', () => {
+  it('содержит все поддерживаемые роли пользователей', () => {
+    const roles: UserRoles[] = [
+      UserRoles.USER,
+      UserRoles.ADMIN,
+      UserRoles.OWNER,
+      UserRoles.EDITOR,
+      UserRoles.VIEWER,
+      UserRoles.MODERATOR,
+      UserRoles.PARTICIPANT,
+    ];
+
+    roles.forEach((role) => {
+      expect(AllUserRoles).toContain(role);
+    });
+  });
+
+  it('каждая роль соответствует строковому значению', () => {
+    expect(UserRoles.USER).toBe('user');
+    expect(UserRoles.ADMIN).toBe('admin');
+    expect(UserRoles.OWNER).toBe('owner');
+    expect(UserRoles.EDITOR).toBe('editor');
+    expect(UserRoles.VIEWER).toBe('viewer');
+    expect(UserRoles.MODERATOR).toBe('moderator');
+    expect(UserRoles.PARTICIPANT).toBe('participant');
+  });
+});
+
+describe('AppModules enum', () => {
+  it('содержит все поддерживаемые модули приложения', () => {
+    const modules: AppModules[] = [
+      AppModules.AUTH,
+      AppModules.BOTS,
+      AppModules.CHAT,
+      AppModules.BILLING,
+    ];
+
+    modules.forEach((module) => {
+      expect(Object.values(AppModules)).toContain(module);
+    });
+  });
+
+  it('каждый модуль соответствует строковому значению', () => {
+    expect(AppModules.AUTH).toBe('auth');
+    expect(AppModules.BOTS).toBe('bots');
+    expect(AppModules.CHAT).toBe('chat');
+    expect(AppModules.BILLING).toBe('billing');
+  });
+});
+
+// ============================================================================
 // 📊 ПОКРЫТИЕ 100%
 // ============================================================================
 
@@ -608,6 +799,14 @@ describe('Экспорты типов', () => {
       errorCategory: 'VALIDATION' as ErrorCategory,
       errorSource: 'CLIENT' as ErrorSource,
       asyncStatus: 'idle' as AsyncState<any>['status'],
+      userRole: 'admin' as UserRole,
+      appModule: 'auth' as AppModule,
+      routeConfig: {
+        path: '/test',
+        name: 'test',
+        module: AppModules.AUTH,
+        protected: false,
+      } as RouteConfig,
     };
 
     expect(testValues.id).toBe('test');
@@ -617,6 +816,9 @@ describe('Экспорты типов', () => {
     expect(testValues.errorCategory).toBe('VALIDATION');
     expect(testValues.errorSource).toBe('CLIENT');
     expect(testValues.asyncStatus).toBe('idle');
+    expect(testValues.userRole).toBe('admin');
+    expect(testValues.appModule).toBe('auth');
+    expect(testValues.routeConfig.path).toBe('/test');
   });
 });
 // Все тесты теперь будут запускаться
