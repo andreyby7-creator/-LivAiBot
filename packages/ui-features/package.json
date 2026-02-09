@@ -91,7 +91,7 @@
     "@livai/ui-core": "workspace:*",
     "@livai/ui-shared": "workspace:*",
     "react-hook-form": "^7.70.0",
-    "zod": "^4.3.5"
+    "zod": "^4.3.6"
   },
   "optionalDependencies": {
     "lru-cache": "11.2.4"
