@@ -6,7 +6,7 @@ import { createPackageVitestConfig } from '@livai/vitest-config/vitest.packages.
  * Core пакет: доменная бизнес-логика с максимальными требованиями качества
  * Контракт качества: 90% statements, 85% branches, 95% functions, 90% lines
  */
-export default createPackageVitestConfig({
+export const config = createPackageVitestConfig({
   packageName: '@livai/core',
   packageType: 'core',
 });

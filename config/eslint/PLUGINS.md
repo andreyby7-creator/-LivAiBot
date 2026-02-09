@@ -4,7 +4,15 @@
 
 Этот документ содержит полный список всех ESLint плагинов, используемых в системе LivAi. Здесь перечислены как установленные (обязательные), так и опциональные плагины с подробными описаниями их назначения.
 
-✅ УСТАНОВЛЕН\
+**ESLint 10 будет установлен когда для плагинов будут обновления для совместимости:**
+
+- `eslint-plugin-import`: API breaking changes в ESLint 10.0.0
+- `eslint-plugin-tsdoc` (0.5.0): Полная несовместимость с ESLint 10.0.0
+- `eslint-plugin-eslint-comments` (3.2.0): `context.getSourceCode` API удален
+- `eslint-plugin-no-secrets` (2.2.1): `context.getSourceCode` API удален
+- `eslint-plugin-security` (3.0.1): `context.getSourceCode` API удален
+
+✅ УСТАНОВЛЕН
 ❌ НЕ УСТАНОВЛЕН
 
 ## Обязательные плагины

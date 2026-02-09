@@ -188,6 +188,33 @@ export {
 export { telemetryBatchCore } from './lib/telemetry.batch-core.js';
 
 /* ============================================================================
+ * ⚙️ BACKGROUND — ФОНОВЫЕ ЗАДАЧИ И ПЛАНИРОВЩИК
+ * ========================================================================== */
+
+export {
+  type BackgroundTask,
+  getGlobalScheduler,
+  MeldablePriorityQueue,
+  type PriorityType,
+  type QueueItem,
+  Scheduler,
+  scheduler,
+  type SchedulerDI,
+  type TaskFn,
+} from './background/scheduler.js';
+
+export {
+  backgroundTasks,
+  type BackgroundTasksDI,
+  createTasks,
+  initBackgroundTasks,
+  PermanentError,
+  type TaskEffect,
+  TaskError,
+  TransientError,
+} from './background/tasks.js';
+
+/* ============================================================================
  * 🏪 STORE — ГЛОБАЛЬНОЕ СОСТОЯНИЕ
  * ========================================================================== */
 

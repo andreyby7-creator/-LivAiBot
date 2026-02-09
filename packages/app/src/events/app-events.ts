@@ -20,6 +20,8 @@ import { UserRoles } from '../types/common.js';
 
 /** Типы событий приложения (enum для автокомплита и защиты от опечаток) */
 export const enum AppEventType {
+  /** Пользователь вошёл в систему */
+  AuthLogin = 'auth.login',
   /** Пользователь вышел из системы */
   AuthLogout = 'auth.logout',
   /** Истёк токен авторизации */
@@ -30,6 +32,7 @@ export const enum AppEventType {
 
 /** Версии схем событий для evolution */
 export const eventSchemaVersions = {
+  [AppEventType.AuthLogin]: 1,
   [AppEventType.AuthLogout]: 1,
   [AppEventType.AuthExpired]: 1,
   [AppEventType.BillingChanged]: 1,
@@ -48,6 +51,19 @@ export type EventInitiator = string;
 /* ========================================================================== */
 /* 🔐 SCHEMAS PAYLOAD */
 /* ========================================================================== */
+
+/**
+ * Схема payload события входа пользователя
+ * @version 1 - Начальная версия схемы
+ * При изменении структуры payload повышать payloadVersion
+ */
+export const LoginEventPayloadSchema = z.object({
+  payloadVersion: z.literal(1),
+  userId: z.string(),
+  roles: z.array(z.enum(Object.values(UserRoles))),
+  method: z.enum(['email', 'oauth', 'sso', 'api_key']),
+  source: z.string().optional(),
+});
 
 /**
  * Схема payload события выхода пользователя
@@ -92,6 +108,7 @@ export const BillingChangedEventPayloadSchema = z.object({
 /* 🔗 TYPES FROM SCHEMA */
 /* ========================================================================== */
 
+export type LoginEventPayload = z.infer<typeof LoginEventPayloadSchema>;
 export type LogoutEventPayload = z.infer<typeof LogoutEventPayloadSchema>;
 export type AuthExpiredEventPayload = z.infer<typeof AuthExpiredEventPayloadSchema>;
 export type BillingChangedEventPayload = z.infer<typeof BillingChangedEventPayloadSchema>;
@@ -115,13 +132,14 @@ export type BaseAppEvent<TType extends AppEventType, TPayload> = {
 /* 🔐 EVENTS */
 /* ========================================================================== */
 
+export type LoginEvent = BaseAppEvent<AppEventType.AuthLogin, LoginEventPayload>;
 export type LogoutEvent = BaseAppEvent<AppEventType.AuthLogout, LogoutEventPayload>;
 export type AuthExpiredEvent = BaseAppEvent<AppEventType.AuthExpired, AuthExpiredEventPayload>;
 export type BillingChangedEvent = BaseAppEvent<
   AppEventType.BillingChanged,
   BillingChangedEventPayload
 >;
-export type AppEvent = LogoutEvent | AuthExpiredEvent | BillingChangedEvent;
+export type AppEvent = LoginEvent | LogoutEvent | AuthExpiredEvent | BillingChangedEvent;
 
 /* ========================================================================== */
 /* 🏭 EVENT FACTORIES + AUDIT LOG MICROSERVICE PUSH */
@@ -215,6 +233,13 @@ async function createEvent<TType extends AppEventType, TPayload>(
   return event;
 }
 
+/** Создаёт событие входа пользователя */
+export const createLoginEvent = (
+  payload: LoginEventPayload,
+  meta?: LoginEvent['meta'],
+): Promise<LoginEvent> =>
+  createEvent(AppEventType.AuthLogin, payload, LoginEventPayloadSchema, meta);
+
 /** Создаёт событие выхода пользователя */
 export const createLogoutEvent = (
   payload: LogoutEventPayload,
@@ -239,6 +264,20 @@ export const createBillingChangedEvent = (
 /* ========================================================================== */
 /* 🔍 TYPE GUARDS */
 /* ========================================================================== */
+
+/** Проверка события входа пользователя */
+export function isLoginEvent(event: AppEvent): event is LoginEvent {
+  const parseResult = LoginEventPayloadSchema.safeParse(event.payload);
+  if (
+    !parseResult.success
+    && process.env['NODE_ENV'] !== 'production'
+    && process.env['NODE_ENV'] !== 'test'
+  ) {
+    // eslint-disable-next-line no-console
+    console.warn('Invalid LoginEvent payload', event.payload);
+  }
+  return event.type === AppEventType.AuthLogin && parseResult.success;
+}
 
 /** Проверка события выхода пользователя */
 export function isLogoutEvent(event: AppEvent): event is LogoutEvent {

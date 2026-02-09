@@ -842,38 +842,94 @@ function resolveCoveragePolicy(configPath) {
 // Вычисляет разницу покрытия между текущей и базовой веткой
 async function getCoverageDiff(baseBranch = 'main') {
   try {
-    // Получаем текущее покрытие
-    const currentCoveragePath = path.join(ROOT, "coverage", "coverage-final.json");
-    if (!fs.existsSync(currentCoveragePath)) {
+    // Получаем текущее покрытие из clover.xml
+    const currentCloverPath = path.join(ROOT, "coverage", "clover.xml");
+    if (!fs.existsSync(currentCloverPath)) {
       return null;
     }
 
-    const currentCoverage = JSON.parse(fs.readFileSync(currentCoveragePath, 'utf8'));
-    const currentTotal = currentCoverage.total || {};
+    const currentTotal = parseCloverCoverage(currentCloverPath);
+    if (!currentTotal) {
+      return null;
+    }
 
     // Пытаемся получить покрытие из базовой ветки
     // Это упрощенная версия - в реальности нужно сохранять покрытие из предыдущих запусков
-    const baseCoveragePath = path.join(ROOT, "coverage", `coverage-${baseBranch}.json`);
+    const baseCloverPath = path.join(ROOT, "coverage", `clover-${baseBranch}.xml`);
 
-    if (!fs.existsSync(baseCoveragePath)) {
-      console.log(`ℹ️  Покрытие базовой ветки не найдено в ${baseCoveragePath}`);
-      console.log(`💡 Для включения diff покрытия, сохраните покрытие из ветки ${baseBranch}`);
+    if (!fs.existsSync(baseCloverPath)) {
+      console.log(`ℹ️  Покрытие базовой ветки не найдено в ${baseCloverPath}`);
+      console.log(`💡 Для включения diff покрытия, сохраните clover.xml из ветки ${baseBranch} как clover-${baseBranch}.xml`);
       return null;
     }
 
-    const baseCoverage = JSON.parse(fs.readFileSync(baseCoveragePath, 'utf8'));
-    const baseTotal = baseCoverage.total || {};
+    const baseTotal = parseCloverCoverage(baseCloverPath);
+    if (!baseTotal) {
+      return null;
+    }
 
     const diff = {
-      lines: (currentTotal.lines?.pct || 0) - (baseTotal.lines?.pct || 0),
-      functions: (currentTotal.functions?.pct || 0) - (baseTotal.functions?.pct || 0),
-      branches: (currentTotal.branches?.pct || 0) - (baseTotal.branches?.pct || 0),
-      statements: (currentTotal.statements?.pct || 0) - (baseTotal.statements?.pct || 0)
+      lines: currentTotal.lines.pct - baseTotal.lines.pct,
+      functions: currentTotal.functions.pct - baseTotal.functions.pct,
+      branches: currentTotal.branches.pct - baseTotal.branches.pct,
+      statements: currentTotal.statements.pct - baseTotal.statements.pct
     };
 
     return diff;
   } catch (error) {
     console.warn(`Ошибка вычисления разницы покрытия: ${error.message}`);
+    return null;
+  }
+}
+
+// Парсит суммарное покрытие из clover.xml (генерируется Vitest)
+function parseCloverCoverage(cloverPath) {
+  try {
+    const cloverContent = fs.readFileSync(cloverPath, 'utf8');
+
+    // Ищем метрики проекта: <metrics statements="..." coveredstatements="..." conditionals="..." coveredconditionals="..." methods="..." coveredmethods="..." />
+    const metricsMatch = cloverContent.match(/<metrics[^>]*statements="(\d+)"[^>]*coveredstatements="(\d+)"[^>]*conditionals="(\d+)"[^>]*coveredconditionals="(\d+)"[^>]*methods="(\d+)"[^>]*coveredmethods="(\d+)"/);
+
+    if (!metricsMatch) {
+      console.warn("Не удалось найти метрики покрытия в clover.xml");
+      return null;
+    }
+
+    const [, statementsTotal, statementsCovered, conditionalsTotal, conditionalsCovered, methodsTotal, methodsCovered] = metricsMatch;
+
+    const totalStatements = parseInt(statementsTotal, 10);
+    const coveredStatements = parseInt(statementsCovered, 10);
+    const totalBranches = parseInt(conditionalsTotal, 10);
+    const coveredBranches = parseInt(conditionalsCovered, 10);
+    const totalFunctions = parseInt(methodsTotal, 10);
+    const coveredFunctions = parseInt(methodsCovered, 10);
+    const totalLines = totalStatements; // В clover statements = lines
+    const coveredLines = coveredStatements;
+
+    return {
+      lines: {
+        total: totalLines,
+        covered: coveredLines,
+        pct: totalLines > 0 ? (coveredLines / totalLines) * 100 : 0
+      },
+      functions: {
+        total: totalFunctions,
+        covered: coveredFunctions,
+        pct: totalFunctions > 0 ? (coveredFunctions / totalFunctions) * 100 : 0
+      },
+      branches: {
+        total: totalBranches,
+        covered: coveredBranches,
+        pct: totalBranches > 0 ? (coveredBranches / totalBranches) * 100 : 0
+      },
+      statements: {
+        total: totalStatements,
+        covered: coveredStatements,
+        pct: totalStatements > 0 ? (coveredStatements / totalStatements) * 100 : 0
+      }
+    };
+  } catch (error) {
+    console.warn(`Ошибка парсинга clover.xml: ${error.message}`);
     return null;
   }
 }
@@ -1139,22 +1195,27 @@ if (CI_MODE) {
 async function checkCoverageThresholds() {
   if (!coverageEnabled) return { enabled: false, reportFound: false, thresholdsStatus: 'not_applicable' };
 
-  const coverageJsonPath = locateCoverageFile();
-  if (!coverageJsonPath || !fs.existsSync(coverageJsonPath)) {
-    console.warn("⚠️ Coverage report not found; skipping threshold checks. Vitest may not have produced coverage-final.json.");
+  // Проверяем наличие clover.xml (суммарные метрики в удобном формате)
+  const cloverPath = path.join(ROOT, 'coverage', 'clover.xml');
+  if (!fs.existsSync(cloverPath)) {
+    console.warn("⚠️ Coverage clover.xml not found; skipping threshold checks.");
     return { enabled: true, reportFound: false, thresholdsStatus: 'skipped' };
   }
 
   try {
-    const coverage = JSON.parse(fs.readFileSync(coverageJsonPath, 'utf8'));
-    const total = coverage.total || {};
+    // Парсим суммарное покрытие из clover.xml
+    const total = parseCloverCoverage(cloverPath);
+    if (!total) {
+      console.warn("⚠️ Failed to parse coverage from clover.xml; skipping threshold checks.");
+      return { enabled: true, reportFound: true, thresholdsStatus: 'skipped' };
+    }
 
     // Если отчет пустой (нет строк/функций/веток), пропускаем проверку порогов
     const noData =
-      (total.lines?.total ?? 0) === 0 &&
-      (total.functions?.total ?? 0) === 0 &&
-      (total.branches?.total ?? 0) === 0 &&
-      (total.statements?.total ?? 0) === 0;
+      total.lines.total === 0 &&
+      total.functions.total === 0 &&
+      total.branches.total === 0 &&
+      total.statements.total === 0;
     if (noData) {
       console.warn("⚠️ Coverage report is empty; skipping threshold checks.");
       return { enabled: true, reportFound: true, thresholdsStatus: 'skipped' };
@@ -1165,12 +1226,13 @@ async function checkCoverageThresholds() {
 
     console.log("\n📊 Проверка порогов покрытия:");
     console.log(`   Требуется: ${thresholds.lines}% строк, ${thresholds.functions}% функций, ${thresholds.branches}% ветвей, ${thresholds.statements}% выражений`);
+    console.log(`   Текущее: ${total.lines.pct.toFixed(1)}% строк, ${total.functions.pct.toFixed(1)}% функций, ${total.branches.pct.toFixed(1)}% ветвей, ${total.statements.pct.toFixed(1)}% выражений`);
 
     const results = {
-      lines: (total.lines?.pct || 0) >= thresholds.lines,
-      functions: (total.functions?.pct || 0) >= thresholds.functions,
-      branches: (total.branches?.pct || 0) >= thresholds.branches,
-      statements: (total.statements?.pct || 0) >= thresholds.statements,
+      lines: total.lines.pct >= thresholds.lines,
+      functions: total.functions.pct >= thresholds.functions,
+      branches: total.branches.pct >= thresholds.branches,
+      statements: total.statements.pct >= thresholds.statements,
     };
 
     const allPassed = Object.values(results).every(Boolean);
@@ -1180,10 +1242,10 @@ async function checkCoverageThresholds() {
     } else {
       const message = CI_MODE ? "❌ Пороги покрытия не достигнуты:" : "⚠️  Пороги покрытия не достигнуты (локальная разработка):";
       console.log(message);
-      if (!results.lines) console.log(`   • Строки: ${(total.lines?.pct || 0).toFixed(1)}% < ${thresholds.lines}%`);
-      if (!results.functions) console.log(`   • Функции: ${(total.functions?.pct || 0).toFixed(1)}% < ${thresholds.functions}%`);
-      if (!results.branches) console.log(`   • Ветви: ${(total.branches?.pct || 0).toFixed(1)}% < ${thresholds.branches}%`);
-      if (!results.statements) console.log(`   • Выражения: ${(total.statements?.pct || 0).toFixed(1)}% < ${thresholds.statements}%`);
+      if (!results.lines) console.log(`   • Строки: ${total.lines.pct.toFixed(1)}% < ${thresholds.lines}%`);
+      if (!results.functions) console.log(`   • Функции: ${total.functions.pct.toFixed(1)}% < ${thresholds.functions}%`);
+      if (!results.branches) console.log(`   • Ветви: ${total.branches.pct.toFixed(1)}% < ${thresholds.branches}%`);
+      if (!results.statements) console.log(`   • Выражения: ${total.statements.pct.toFixed(1)}% < ${thresholds.statements}%`);
 
       if (!CI_MODE) {
         console.log("ℹ️  Пороги применяются только в CI режиме");

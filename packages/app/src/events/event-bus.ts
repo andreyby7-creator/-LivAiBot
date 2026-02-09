@@ -61,7 +61,7 @@ type EventBatch = {
 };
 
 /** Тип структурированного логгера */
-type StructuredLogger = {
+export type StructuredLogger = {
   info(message: string, context?: Record<string, unknown>): void;
   warn(message: string, context?: Record<string, unknown>): void;
   error(message: string, context?: Record<string, unknown>): void;
@@ -69,7 +69,7 @@ type StructuredLogger = {
 
 /* eslint-disable no-console */
 /** Простой console-based logger для разработки */
-class ConsoleLogger implements StructuredLogger {
+export class ConsoleLogger implements StructuredLogger {
   info(message: string, context?: Record<string, unknown>): void {
     if (context) {
       console.log(`[INFO] ${message}`, context);
