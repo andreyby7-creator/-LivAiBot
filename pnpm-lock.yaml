@@ -274,10 +274,10 @@ importers:
         specifier: ^7.70.0
         version: 7.71.1(react@19.2.3)
       zod:
-        specifier: ^4.3.5
+        specifier: ^4.3.6
         version: 4.3.6
       zustand:
-        specifier: ^5.0.9
+        specifier: ^5.0.11
         version: 5.0.11(@types/react@19.2.13)(react@19.2.3)
     devDependencies:
       '@playwright/test':
@@ -473,7 +473,7 @@ importers:
         specifier: ^0.74.0
         version: 0.74.0(@effect/platform@0.94.1(effect@3.19.16))(effect@3.19.16)
       '@effect/platform-bun':
-        specifier: ^0.87.0
+        specifier: ^0.87.1
         version: 0.87.1(@effect/cluster@0.56.3(@effect/platform@0.94.1(effect@3.19.16))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.16))(effect@3.19.16))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.16))(effect@3.19.16)(ioredis@5.9.2))(@effect/platform@0.94.1(effect@3.19.16))(effect@3.19.16))(@effect/workflow@0.16.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.16))(effect@3.19.16)(ioredis@5.9.2))(@effect/platform@0.94.1(effect@3.19.16))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.16))(effect@3.19.16))(effect@3.19.16))(effect@3.19.16))(@effect/platform@0.94.1(effect@3.19.16))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.16))(effect@3.19.16))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.16))(effect@3.19.16)(ioredis@5.9.2))(@effect/platform@0.94.1(effect@3.19.16))(effect@3.19.16))(effect@3.19.16)
       '@effect/platform-node':
         specifier: 0.104.1
@@ -515,7 +515,7 @@ importers:
         specifier: ^0.50.0
         version: 0.50.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.16))(effect@3.19.16)(ioredis@5.9.2))(@effect/platform@0.94.1(effect@3.19.16))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.16))(effect@3.19.16)(ioredis@5.9.2))(@effect/platform@0.94.1(effect@3.19.16))(effect@3.19.16))(effect@3.19.16)
       '@effect/sql-pg':
-        specifier: ^0.50.0
+        specifier: ^0.50.3
         version: 0.50.3(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.16))(effect@3.19.16)(ioredis@5.9.2))(@effect/platform@0.94.1(effect@3.19.16))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.16))(effect@3.19.16)(ioredis@5.9.2))(@effect/platform@0.94.1(effect@3.19.16))(effect@3.19.16))(effect@3.19.16)
       '@effect/sql-sqlite-bun':
         specifier: ^0.50.0
@@ -545,7 +545,7 @@ importers:
         specifier: ^3.19.15
         version: 3.19.16
       zod:
-        specifier: ^4.3.5
+        specifier: ^4.3.6
         version: 4.3.6
     devDependencies:
       '@vitest/coverage-v8':
@@ -580,7 +580,7 @@ importers:
         specifier: ^3.19.13
         version: 3.19.16
       zod:
-        specifier: ^4.3.5
+        specifier: ^4.3.6
         version: 4.3.6
     devDependencies:
       '@livai/vitest-config':
@@ -639,7 +639,7 @@ importers:
         specifier: ^0.74.0
         version: 0.74.0(@effect/platform@0.94.1(effect@3.19.16))(effect@3.19.16)
       '@effect/platform-bun':
-        specifier: ^0.87.0
+        specifier: ^0.87.1
         version: 0.87.1(@effect/cluster@0.56.3(@effect/platform@0.94.1(effect@3.19.16))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.16))(effect@3.19.16))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.16))(effect@3.19.16)(ioredis@5.9.2))(@effect/platform@0.94.1(effect@3.19.16))(effect@3.19.16))(@effect/workflow@0.16.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.16))(effect@3.19.16)(ioredis@5.9.2))(@effect/platform@0.94.1(effect@3.19.16))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.16))(effect@3.19.16))(effect@3.19.16))(effect@3.19.16))(@effect/platform@0.94.1(effect@3.19.16))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.16))(effect@3.19.16))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.16))(effect@3.19.16)(ioredis@5.9.2))(@effect/platform@0.94.1(effect@3.19.16))(effect@3.19.16))(effect@3.19.16)
       '@effect/platform-node':
         specifier: 0.104.1
@@ -681,7 +681,7 @@ importers:
         specifier: ^0.50.0
         version: 0.50.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.16))(effect@3.19.16)(ioredis@5.9.2))(@effect/platform@0.94.1(effect@3.19.16))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.16))(effect@3.19.16)(ioredis@5.9.2))(@effect/platform@0.94.1(effect@3.19.16))(effect@3.19.16))(effect@3.19.16)
       '@effect/sql-pg':
-        specifier: ^0.50.0
+        specifier: ^0.50.3
         version: 0.50.3(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.16))(effect@3.19.16)(ioredis@5.9.2))(@effect/platform@0.94.1(effect@3.19.16))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.16))(effect@3.19.16)(ioredis@5.9.2))(@effect/platform@0.94.1(effect@3.19.16))(effect@3.19.16))(effect@3.19.16)
       '@effect/sql-sqlite-bun':
         specifier: ^0.50.0
@@ -767,7 +767,7 @@ importers:
         specifier: ^0.74.0
         version: 0.74.0(@effect/platform@0.94.1(effect@3.19.16))(effect@3.19.16)
       '@effect/platform-bun':
-        specifier: ^0.87.0
+        specifier: ^0.87.1
         version: 0.87.1(@effect/cluster@0.56.3(@effect/platform@0.94.1(effect@3.19.16))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.16))(effect@3.19.16))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.16))(effect@3.19.16)(ioredis@5.9.2))(@effect/platform@0.94.1(effect@3.19.16))(effect@3.19.16))(@effect/workflow@0.16.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.16))(effect@3.19.16)(ioredis@5.9.2))(@effect/platform@0.94.1(effect@3.19.16))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.16))(effect@3.19.16))(effect@3.19.16))(effect@3.19.16))(@effect/platform@0.94.1(effect@3.19.16))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.16))(effect@3.19.16))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.16))(effect@3.19.16)(ioredis@5.9.2))(@effect/platform@0.94.1(effect@3.19.16))(effect@3.19.16))(effect@3.19.16)
       '@effect/platform-node':
         specifier: 0.104.1
@@ -809,7 +809,7 @@ importers:
         specifier: ^0.50.0
         version: 0.50.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.16))(effect@3.19.16)(ioredis@5.9.2))(@effect/platform@0.94.1(effect@3.19.16))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.16))(effect@3.19.16)(ioredis@5.9.2))(@effect/platform@0.94.1(effect@3.19.16))(effect@3.19.16))(effect@3.19.16)
       '@effect/sql-pg':
-        specifier: ^0.50.0
+        specifier: ^0.50.3
         version: 0.50.3(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.16))(effect@3.19.16)(ioredis@5.9.2))(@effect/platform@0.94.1(effect@3.19.16))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.16))(effect@3.19.16)(ioredis@5.9.2))(@effect/platform@0.94.1(effect@3.19.16))(effect@3.19.16))(effect@3.19.16)
       '@effect/sql-sqlite-bun':
         specifier: ^0.50.0
@@ -895,7 +895,7 @@ importers:
         specifier: ^0.74.0
         version: 0.74.0(@effect/platform@0.94.1(effect@3.19.16))(effect@3.19.16)
       '@effect/platform-bun':
-        specifier: ^0.87.0
+        specifier: ^0.87.1
         version: 0.87.1(@effect/cluster@0.56.3(@effect/platform@0.94.1(effect@3.19.16))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.16))(effect@3.19.16))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.16))(effect@3.19.16)(ioredis@5.9.2))(@effect/platform@0.94.1(effect@3.19.16))(effect@3.19.16))(@effect/workflow@0.16.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.16))(effect@3.19.16)(ioredis@5.9.2))(@effect/platform@0.94.1(effect@3.19.16))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.16))(effect@3.19.16))(effect@3.19.16))(effect@3.19.16))(@effect/platform@0.94.1(effect@3.19.16))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.16))(effect@3.19.16))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.16))(effect@3.19.16)(ioredis@5.9.2))(@effect/platform@0.94.1(effect@3.19.16))(effect@3.19.16))(effect@3.19.16)
       '@effect/platform-node':
         specifier: 0.104.1
@@ -937,7 +937,7 @@ importers:
         specifier: ^0.50.0
         version: 0.50.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.16))(effect@3.19.16)(ioredis@5.9.2))(@effect/platform@0.94.1(effect@3.19.16))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.16))(effect@3.19.16)(ioredis@5.9.2))(@effect/platform@0.94.1(effect@3.19.16))(effect@3.19.16))(effect@3.19.16)
       '@effect/sql-pg':
-        specifier: ^0.50.0
+        specifier: ^0.50.3
         version: 0.50.3(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.16))(effect@3.19.16)(ioredis@5.9.2))(@effect/platform@0.94.1(effect@3.19.16))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.16))(effect@3.19.16)(ioredis@5.9.2))(@effect/platform@0.94.1(effect@3.19.16))(effect@3.19.16))(effect@3.19.16)
       '@effect/sql-sqlite-bun':
         specifier: ^0.50.0
@@ -1051,7 +1051,7 @@ importers:
         specifier: ^7.70.0
         version: 7.71.1(react@19.2.3)
       zod:
-        specifier: ^4.3.5
+        specifier: ^4.3.6
         version: 4.3.6
     devDependencies:
       '@testing-library/jest-dom':
@@ -1092,7 +1092,7 @@ importers:
         specifier: ^7.70.0
         version: 7.71.1(react@19.2.3)
       zod:
-        specifier: ^4.3.5
+        specifier: ^4.3.6
         version: 4.3.6
     devDependencies:
       '@testing-library/jest-dom':
@@ -6048,7 +6048,7 @@ packages:
   next-intl@4.8.2:
     resolution: {integrity: sha512-GuuwyvyEI49/oehQbBXEoY8KSIYCzmfMLhmIwhMXTb+yeBmly1PnJcpgph3KczQ+HTJMXwXCmkizgtT8jBMf3A==}
     peerDependencies:
-      next: '>=16.0.11'
+      next: '>=16.1.5'
       react: ^16.8.0 || ^17.0.0 || ^18.0.0 || >=19.0.0-rc <19.0.0 || ^19.0.0
       typescript: ^5.0.0
     peerDependenciesMeta:
