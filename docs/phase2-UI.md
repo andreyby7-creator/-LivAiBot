@@ -278,7 +278,7 @@ App events / signals
 1️⃣2️⃣1️⃣ packages/app/src/events/event-bus.ts 🟢 — ts — deps: app-events.ts — (typed event bus)
 
 App background & scheduler
-1️⃣2️⃣2️⃣ packages/app/src/background/scheduler.ts 🔴 — ts+effect — deps: lib/telemetry.ts — (планировщик периодических задач)
+1️⃣2️⃣2️⃣ packages/app/src/background/scheduler.ts 🟢 — ts+effect — deps: lib/telemetry.ts — (планировщик периодических задач)
 1️⃣2️⃣3️⃣ packages/app/src/background/tasks.ts 🔴 — ts+effect — deps: scheduler.ts, offline-cache.ts, auth-service.ts — (refresh, sync, retry)
 
 App lifecycle

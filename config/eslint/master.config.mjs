@@ -509,14 +509,15 @@ function createZoneConfig(files, rules, additionalSettings = {}) {
       return otherPlugins; // Убираем boundaries плагин - используем no-restricted-imports
     })(),
     settings: {
-      'import/resolver': {
-        typescript: {
-          alwaysTryTypes: true,
-        },
-        node: {
-          extensions: ['.js', '.jsx', '.ts', '.tsx'],
-        },
-      },
+      // ❌ Отключено: eslint-plugin-import несовместим с ESLint 10.0.0
+      // 'import/resolver': {
+      //   typescript: {
+      //     alwaysTryTypes: true,
+      //   },
+      //   node: {
+      //     extensions: ['.js', '.jsx', '.ts', '.tsx'],
+      //   },
+      // },
       ...additionalSettings
     },
     rules: { ...rules, ...tezRules },
@@ -585,7 +586,7 @@ const testFilesOverrides = [
       'fp/no-throw':'off',
       'no-magic-numbers':'off',
       'max-lines-per-function':'off',
-      'import/no-default-export':'off',
+      // 'import/no-default-export':'off', // ❌ Отключено: eslint-plugin-import несовместим с ESLint 10.0.0
       'no-secrets/no-secrets':'off',
       // В тестах допустимы повторяющиеся литералы и type-only void инварианты.
       'sonarjs/no-duplicate-string': 'off',

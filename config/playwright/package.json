@@ -12,11 +12,11 @@
     "test:e2e:headed": "playwright test --headed"
   },
   "devDependencies": {
-    "@playwright/test": "^1.57.0",
-    "@types/node": "25.2.0",
+    "@playwright/test": "^1.58.2",
+    "@types/node": "25.2.2",
     "typescript": "^5.9.3"
   },
   "dependencies": {
-    "playwright": "^1.58.1"
+    "playwright": "^1.58.2"
   }
 }

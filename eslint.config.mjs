@@ -120,7 +120,7 @@ export default [
   {
     files: ['**/vitest.config.{ts,js,mjs,cjs}'],
     rules: {
-      'import/no-default-export': 'off',
+      // 'import/no-default-export': 'off', // ❌ Отключено: eslint-plugin-import несовместим с ESLint 10.0.0
     },
   },
 ];

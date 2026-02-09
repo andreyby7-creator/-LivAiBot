@@ -169,6 +169,26 @@ export class TelemetryClient<
     return this.log('ERROR', message, metadata);
   }
 
+  // Метрика для измерения производительности
+  recordMetric(
+    name: string,
+    value: number,
+    metadata?: TMetadata,
+  ): Promise<void> {
+    const metricMetadata = { value, ...metadata } as TMetadata;
+    return this.log('INFO', `metric:${name}`, metricMetadata);
+  }
+
+  // Начало отслеживания операции
+  startSpan(name: string, metadata?: TMetadata): Promise<void> {
+    return this.log('INFO', `span:start:${name}`, metadata);
+  }
+
+  // Завершение отслеживания операции
+  endSpan(name: string, metadata?: TMetadata): Promise<void> {
+    return this.log('INFO', `span:end:${name}`, metadata);
+  }
+
   // Проверка, нужно ли отправлять событие данного уровня
   private shouldEmit(level: TelemetryLevel): boolean {
     return levelPriority[level] >= levelPriority[this.levelThreshold];

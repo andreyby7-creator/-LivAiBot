@@ -163,7 +163,8 @@ export const effectFpNamingRules = [
       ],
 
       // Запрет default export для всех Effect/FP файлов
-      'import/no-default-export': 'error',
+      // ❌ Отключено: eslint-plugin-import несовместим с ESLint 10.0.0
+      // 'import/no-default-export': 'error',
     },
   },
 ];

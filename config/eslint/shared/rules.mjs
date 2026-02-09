@@ -67,11 +67,12 @@ export const QUALITY_WITH_SEVERITY = {
   },
 
   // AI-specific: Import cycles (can break AI orchestration)
-  'import/no-cycle': {
-    dev: 'warn',    // Предупреждать о циклических зависимостях
-    canary: 'error', // Запретить в продакшене (ломает AI workflows)
-    test: 'off',    // В тестах циклы менее критичны
-  },
+  // ❌ Отключено: eslint-plugin-import несовместим с ESLint 10.0.0
+  // 'import/no-cycle': {
+  //   dev: 'warn',    // Предупреждать о циклических зависимостях
+  //   canary: 'error', // Запретить в продакшене (ломает AI workflows)
+  //   test: 'off',    // В тестах циклы менее критичны
+  // },
 
   // sonarjs/cognitive-complexity убрано - используется статично в domain rules
   // с разными порогами для разных зон (core: 10, pipeline: 15, etc.)
@@ -96,8 +97,9 @@ export const CONFIG_FILES_RULES = {
   '@typescript-eslint/no-unused-vars': 'error',
 
   // Отключить правила, конфликтующие с конфиг-форматом
-  'import/no-default-export': 'off', // module.exports = {} - норма для конфигов
-  'import/prefer-default-export': 'off',
+  // ❌ Отключено: eslint-plugin-import несовместим с ESLint 10.0.0
+  // 'import/no-default-export': 'off', // module.exports = {} - норма для конфигов
+  // 'import/prefer-default-export': 'off',
 
   // Добавить безопасность даже для конфигов
   'no-eval': 'error',           // Запретить eval в конфигах

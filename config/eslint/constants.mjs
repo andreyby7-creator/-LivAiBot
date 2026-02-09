@@ -32,7 +32,8 @@ const warnedPlugins = new Set();
 
 import typescriptEslint from '@typescript-eslint/eslint-plugin';
 import typescriptParser from '@typescript-eslint/parser';
-import importPlugin from 'eslint-plugin-import';
+// import importPlugin from 'eslint-plugin-import'; // ❌ Отключен: несовместим с ESLint 10.0.0
+const importPlugin = null;
 import jsxA11yPlugin from 'eslint-plugin-jsx-a11y';
 import promisePlugin from 'eslint-plugin-promise';
 import reactPlugin from 'eslint-plugin-react';
@@ -73,14 +74,18 @@ async function tryImport(pluginName, verbose = ESLINT_VERBOSE) {
 // ==================== Асинхронная загрузка плагинов ====================
 
 // Общая веб-безопасность (object injection, eval, fs access и т.д.)
-const securityPlugin = await tryImport('eslint-plugin-security');
-const noSecretsPlugin = await tryImport('eslint-plugin-no-secrets');
+// const securityPlugin = await tryImport('eslint-plugin-security'); // ❌ Отключен: несовместим с ESLint 10.0.0
+const securityPlugin = null;
+// const noSecretsPlugin = await tryImport('eslint-plugin-no-secrets'); // ❌ Отключен: несовместим с ESLint 10.0.0
+const noSecretsPlugin = null;
 const sonarjsPlugin = await tryImport('eslint-plugin-sonarjs');
 const boundariesPlugin = await tryImport('eslint-plugin-boundaries');
-const tsdocPlugin = await tryImport('eslint-plugin-tsdoc');
+// const tsdocPlugin = await tryImport('eslint-plugin-tsdoc'); // ❌ Отключен: несовместим с ESLint 10.0.0
+const tsdocPlugin = null;
 const reactPerfPlugin = await tryImport('eslint-plugin-react-perf');
 const nextPlugin = await tryImport('@next/eslint-plugin-next');
-const eslintCommentsPlugin = await tryImport('eslint-plugin-eslint-comments');
+// const eslintCommentsPlugin = await tryImport('eslint-plugin-eslint-comments'); // ❌ Отключен: несовместим с ESLint 10.0.0
+const eslintCommentsPlugin = null;
 
 // AI Security - first-class citizen
 const aiSecurityPlugin = await tryImport('./plugins/ai-security/index.js');
@@ -106,7 +111,7 @@ export const PLUGINS = {
   '@typescript-eslint': typescriptEslint,
 
   // Web/UI Layer
-  import: importPlugin,
+  // import: importPlugin, // ❌ Отключен: несовместим с ESLint 10.0.0
   'jsx-a11y': jsxA11yPlugin,
   react: reactPlugin,
   'react-hooks': reactHooksPlugin,
@@ -115,10 +120,10 @@ export const PLUGINS = {
 
   // Ядро безопасности (включая AI Security как first-class)
   // security: общая веб-безопасность (object injection, eval, fs access)
-  security: securityPlugin || {},
+  // security: securityPlugin || {}, // ❌ Отключен: несовместим с ESLint 10.0.0
   // security-node: безопасность Node.js runtime (CRLF, tainted data)
   'security-node': securityNodePlugin,
-  'no-secrets': noSecretsPlugin || {},
+  // 'no-secrets': noSecretsPlugin || {}, // ❌ Отключен: несовместим с ESLint 10.0.0
   'ai-security': aiSecurityPlugin || {},
 
   // Functional Programming (Effect-TS как execution model)
@@ -133,10 +138,10 @@ export const PLUGINS = {
   // Quality & Documentation
   sonarjs: sonarjsPlugin || {},
   boundaries: boundariesPlugin || {},
-  tsdoc: tsdocPlugin || {},
+  // tsdoc: tsdocPlugin || {}, // ❌ Отключен: несовместим с ESLint 10.0.0
   'react-perf': reactPerfPlugin || {},
   '@next/next': nextPlugin || {},
-  'eslint-comments': eslintCommentsPlugin || {},
+  // 'eslint-comments': eslintCommentsPlugin || {}, // ❌ Отключен: несовместим с ESLint 10.0.0
 };
 
 // ==================== Кэширование правил ESLint ====================
@@ -177,30 +182,10 @@ export const commonLanguageOptions = {
 
 // ==================== Базовые правила безопасности ====================
 
+// ❌ Отключено: eslint-plugin-security несовместим с ESLint 10.0.0
 const SECURITY_BASELINE_RULES = (() => {
   const rules = {};
-
-  if (securityPlugin) {
-    Object.assign(rules, {
-      'security/detect-object-injection': 'error',     // Предотвращение инъекций объектов
-      'security/detect-non-literal-fs-filename': 'error', // Безопасность файловых операций
-      'security/detect-non-literal-regexp': 'error',    // Защита от ReDoS атак
-      'security/detect-eval-with-expression': 'error',  // Запрет eval() с выражениями
-      'security/detect-possible-timing-attacks': 'error', // Предотвращение timing атак
-      'security/detect-unsafe-regex': 'error',          // Безопасные регулярные выражения
-      'security/detect-buffer-noassert': 'error',       // Корректная работа с буферами
-      'security/detect-child-process': 'warn',          // Контроль дочерних процессов
-      'security/detect-disable-mustache-escape': 'error', // Предотвращение XSS в шаблонах
-      'security/detect-new-buffer': 'error',            // Использование Buffer.alloc вместо new Buffer
-    });
-  }
-
-  if (noSecretsPlugin) {
-    Object.assign(rules, {
-      'no-secrets/no-secrets': 'error', // Повышен до error для production
-    });
-  }
-
+  // Пустые правила безопасности - плагин отключен
   return rules;
 })();
 
@@ -228,8 +213,9 @@ export const NODE_RUNTIME_RULES = {
 
 export const CRITICAL_RULES = {
   '@typescript-eslint/consistent-type-imports': 'error', // Строгие type imports
-  'import/no-cycle': 'error',                      // Запрет циклических зависимостей
-  'import/no-relative-packages': 'error',          // Запрет относительных импортов пакетов
+  // ❌ Отключено: eslint-plugin-import несовместим с ESLint 10.0.0
+  // 'import/no-cycle': 'error',                      // Запрет циклических зависимостей
+  // 'import/no-relative-packages': 'error',          // Запрет относительных импортов пакетов
   'no-return-await': 'error',                      // Запрет избыточного return await
   // fp/no-throw определен в EFFECT_TS_RULES как часть execution model
   ...SECURITY_CRITICAL_RULES,
@@ -313,31 +299,33 @@ export const BASE_RULES = {
     'ts-expect-error': { descriptionFormat: '^.*$' },
   }],
 
-  'import/order': [
-    'error',
-    {
-      groups: [
-        ['builtin', 'external'],
-        'internal',
-        ['parent', 'sibling', 'index'],
-      ],
-      'newlines-between': 'always',
-      alphabetize: { order: 'asc', caseInsensitive: true },
-    },
-  ],
-  'import/no-duplicates': 'error',                       // Дублирование импортов
-  'import/no-unused-modules': 'warn',                    // Неиспользуемые модули
-  'import/no-unresolved': ['warn', {
-    ignore: ['^@livai/']  // Игнорировать workspace пакеты LivAi
-  }],
-  'import/consistent-type-specifier-style': ['error', 'prefer-top-level'], // Стиль type imports
+  // ❌ Отключено: eslint-plugin-import несовместим с ESLint 10.0.0
+  // 'import/order': [
+  //   'error',
+  //   {
+  //     groups: [
+  //       ['builtin', 'external'],
+  //       'internal',
+  //       ['parent', 'sibling', 'index'],
+  //     ],
+  //     'newlines-between': 'always',
+  //     alphabetize: { order: 'asc', caseInsensitive: true },
+  //   },
+  // ],
+  // 'import/no-duplicates': 'error',                       // Дублирование импортов
+  // 'import/no-unused-modules': 'warn',                    // Неиспользуемые модули
+  // 'import/no-unresolved': ['warn', {
+  //   ignore: ['^@livai/']  // Игнорировать workspace пакеты LivAi
+  // }],
+  // 'import/consistent-type-specifier-style': ['error', 'prefer-top-level'], // Стиль type imports
 
   // Контроль отключений ESLint
-  ...(eslintCommentsPlugin ? {
-    'eslint-comments/no-unlimited-disable': 'error',     // Запрет глобального отключения ESLint
-    'eslint-comments/no-restricted-disable': 'error', // Ограничение отключений
-    'eslint-comments/disable-enable-pair': 'error',      // Парные отключения ESLint
-  } : {}),
+  // ❌ Отключено: eslint-plugin-eslint-comments несовместим с ESLint 10.0.0
+  // ...(eslintCommentsPlugin ? {
+  //   'eslint-comments/no-unlimited-disable': 'error',     // Запрет глобального отключения ESLint
+  //   'eslint-comments/no-restricted-disable': 'error', // Ограничение отключений
+  //   'eslint-comments/disable-enable-pair': 'error',      // Парные отключения ESLint
+  // } : {}),
 
   'no-var': 'warn',                                      // Предпочтение let/const перед var
   'prefer-const': 'warn',                                // Предпочтение const перед let
@@ -354,6 +342,7 @@ export const BASE_RULES = {
   'no-void': 'warn',                                     // Использование void
 
   // Дополнительные правила качества кода
+  // ❌ Отключено: eslint-plugin-no-secrets несовместим с ESLint 10.0.0
   // no-secrets/no-secrets определен в SECURITY_BASELINE_RULES как 'error'
   // SonarJS правила определены в ENTERPRISE_RULES (error уровень)
 };
@@ -588,17 +577,18 @@ export const commonSettings = {
   next: {
     rootDir: ['apps/web', 'apps/admin', 'apps/mobile', 'apps/pwa'],
   },
-  'import/resolver': {
-    typescript: {
-      alwaysTryTypes: true,
-      project: [
-        './tsconfig.json',
-        './apps/*/tsconfig.json',
-        './packages/*/tsconfig.json',
-      ],
-    },
-    node: {
-      extensions: ['.js', '.jsx', '.ts', '.tsx'],
-    },
-  },
+  // ❌ Отключено: eslint-plugin-import несовместим с ESLint 10.0.0
+  // 'import/resolver': {
+  //   typescript: {
+  //     alwaysTryTypes: true,
+  //     project: [
+  //       './tsconfig.json',
+  //       './apps/*/tsconfig.json',
+  //       './packages/*/tsconfig.json',
+  //     ],
+  //   },
+  //   node: {
+  //     extensions: ['.js', '.jsx', '.ts', '.tsx'],
+  //   },
+  // },
 };

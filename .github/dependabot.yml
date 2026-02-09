@@ -19,6 +19,20 @@ updates:
     labels:
       - 'dependencies'
       - 'automated'
+    ignore:
+      # Игнорируем пакеты, которые обновляем вручную из-за сложности миграции
+      - dependency-name: "eslint"
+        versions: ["10.x"] # Уже обновлено, игнорируем мажорные версии
+      - dependency-name: "@playwright/test"
+        versions: ["1.x"] # Уже обновлено до 1.58.2
+      - dependency-name: "@types/node"
+        versions: ["25.x"] # Уже обновлено до 25.2.2
+      - dependency-name: "@types/react"
+        versions: ["19.x"] # Уже обновлено до 19.2.13
+      - dependency-name: "dotenv"
+        versions: ["17.x"] # Уже обновлено до 17.2.4
+      - dependency-name: "type-fest"
+        versions: ["5.x"] # Уже обновлено до 5.4.4
     groups:
       typescript:
         patterns:

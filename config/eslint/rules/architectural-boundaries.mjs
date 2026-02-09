@@ -139,23 +139,28 @@ export const architecturalBoundariesRules = generateArchitecturalBoundaries();
  * Предотвращает архитектурные проблемы с циклами импортов
  * Увеличенная глубина для большого монорепо
  */
+// ❌ Отключено: eslint-plugin-import несовместим с ESLint 10.0.0
+// export const cyclicDependencyRules = {
+//   files: ['**/*.{ts,tsx}'],
+//   ignores: ['**/*.generated.{ts,tsx}', '**/node_modules/**'],
+//   plugins: {
+//     /** @type {any} */
+//     import: (await import('eslint-plugin-import')).default,
+//   },
+//   rules: {
+//     'import/no-cycle': [
+//       'error',
+//       {
+//         maxDepth: 7, // увеличено для большого монорепо с зонами
+//         ignoreExternal: true,
+//         allowUnsafeDynamicCyclicDependency: false,
+//       },
+//     ],
+//   },
+// };
+
 export const cyclicDependencyRules = {
-  files: ['**/*.{ts,tsx}'],
-  ignores: ['**/*.generated.{ts,tsx}', '**/node_modules/**'],
-  plugins: {
-    /** @type {any} */
-    import: (await import('eslint-plugin-import')).default,
-  },
-  rules: {
-    'import/no-cycle': [
-      'error',
-      {
-        maxDepth: 7, // увеличено для большого монорепо с зонами
-        ignoreExternal: true,
-        allowUnsafeDynamicCyclicDependency: false,
-      },
-    ],
-  },
+  // Пустой объект - правило отключено до обновления плагина
 };
 
 
