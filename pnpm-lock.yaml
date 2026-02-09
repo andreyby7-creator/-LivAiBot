@@ -37,10 +37,10 @@ importers:
         version: 3.19.16
       next:
         specifier: ^16.1.6
-        version: 16.1.6(@babel/core@7.29.0)(@opentelemetry/api@1.9.0)(@playwright/test@1.58.1)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
+        version: 16.1.6(@babel/core@7.29.0)(@opentelemetry/api@1.9.0)(@playwright/test@1.58.1)(react-dom@19.2.3(react@19.2.4))(react@19.2.4)
       zustand:
         specifier: ^5.0.11
-        version: 5.0.11(@types/react@19.2.11)(react@19.2.3)
+        version: 5.0.11(@types/react@19.2.13)(react@19.2.4)
     devDependencies:
       '@effect/eslint-plugin':
         specifier: ^0.3.2
@@ -53,7 +53,7 @@ importers:
         version: 1.58.1
       '@testing-library/react':
         specifier: 16.3.2
-        version: 16.3.2(@testing-library/dom@10.4.1)(@types/react-dom@19.2.3(@types/react@19.2.11))(@types/react@19.2.11)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
+        version: 16.3.2(@testing-library/dom@10.4.1)(@types/react-dom@19.2.3(@types/react@19.2.13))(@types/react@19.2.13)(react-dom@19.2.3(react@19.2.4))(react@19.2.4)
       '@types/estree':
         specifier: ^1.0.8
         version: 1.0.8
@@ -64,11 +64,11 @@ importers:
         specifier: 25.2.0
         version: 25.2.0
       '@types/react':
-        specifier: 19.2.11
-        version: 19.2.11
+        specifier: 19.2.13
+        version: 19.2.13
       '@types/react-dom':
         specifier: 19.2.3
-        version: 19.2.3(@types/react@19.2.11)
+        version: 19.2.3(@types/react@19.2.13)
       '@typescript-eslint/eslint-plugin':
         specifier: ^8.54.0
         version: 8.54.0(@typescript-eslint/parser@8.54.0(eslint@9.39.2)(typescript@5.9.3))(eslint@9.39.2)(typescript@5.9.3)
@@ -206,7 +206,7 @@ importers:
         version: 8.0.0(typescript@5.9.3)
       next-intl:
         specifier: 4.8.2
-        version: 4.8.2(next@16.1.6(@babel/core@7.29.0)(@opentelemetry/api@1.9.0)(@playwright/test@1.58.1)(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react@19.2.3)(typescript@5.9.3)
+        version: 4.8.2(next@16.1.6(@babel/core@7.29.0)(@opentelemetry/api@1.9.0)(@playwright/test@1.58.1)(react-dom@19.2.3(react@19.2.4))(react@19.2.4))(react@19.2.4)(typescript@5.9.3)
       rollup:
         specifier: ^4.57.1
         version: 4.57.1
@@ -242,7 +242,7 @@ importers:
     dependencies:
       '@hookform/resolvers':
         specifier: ^5.2.2
-        version: 5.2.2(react-hook-form@7.71.1(react@19.2.3))
+        version: 5.2.2(react-hook-form@7.71.1(react@19.2.4))
       '@livai/app':
         specifier: workspace:*
         version: link:../../packages/app
@@ -254,34 +254,34 @@ importers:
         version: link:../../packages/ui-features
       '@tanstack/react-query':
         specifier: ^5.90.12
-        version: 5.90.20(react@19.2.3)
+        version: 5.90.20(react@19.2.4)
       effect:
         specifier: 3.19.15
         version: 3.19.15
       next:
         specifier: 16.1.6
-        version: 16.1.6(@babel/core@7.29.0)(@opentelemetry/api@1.9.0)(@playwright/test@1.57.0)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
+        version: 16.1.6(@babel/core@7.29.0)(@opentelemetry/api@1.9.0)(@playwright/test@1.57.0)(react-dom@19.2.3(react@19.2.4))(react@19.2.4)
       next-auth:
         specifier: ^5.0.0-beta.30
-        version: 5.0.0-beta.30(next@16.1.6(@babel/core@7.29.0)(@opentelemetry/api@1.9.0)(@playwright/test@1.57.0)(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react@19.2.3)
+        version: 5.0.0-beta.30(next@16.1.6(@babel/core@7.29.0)(@opentelemetry/api@1.9.0)(@playwright/test@1.57.0)(react-dom@19.2.3(react@19.2.4))(react@19.2.4))(react@19.2.4)
       next-intl:
         specifier: 4.8.2
-        version: 4.8.2(next@16.1.6(@babel/core@7.29.0)(@opentelemetry/api@1.9.0)(@playwright/test@1.57.0)(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react@19.2.3)(typescript@5.9.3)
+        version: 4.8.2(next@16.1.6(@babel/core@7.29.0)(@opentelemetry/api@1.9.0)(@playwright/test@1.57.0)(react-dom@19.2.3(react@19.2.4))(react@19.2.4))(react@19.2.4)(typescript@5.9.3)
       react:
-        specifier: 19.2.3
-        version: 19.2.3
+        specifier: 19.2.4
+        version: 19.2.4
       react-dom:
         specifier: 19.2.3
-        version: 19.2.3(react@19.2.3)
+        version: 19.2.3(react@19.2.4)
       react-hook-form:
         specifier: ^7.70.0
-        version: 7.71.1(react@19.2.3)
+        version: 7.71.1(react@19.2.4)
       zod:
         specifier: ^4.3.5
         version: 4.3.5
       zustand:
         specifier: ^5.0.9
-        version: 5.0.10(@types/react@19.2.10)(react@19.2.3)
+        version: 5.0.10(@types/react@19.2.13)(react@19.2.4)
     devDependencies:
       '@playwright/test':
         specifier: ^1.57.0
@@ -291,16 +291,16 @@ importers:
         version: 6.9.1
       '@testing-library/react':
         specifier: 16.3.2
-        version: 16.3.2(@testing-library/dom@10.4.1)(@types/react-dom@19.2.3(@types/react@19.2.10))(@types/react@19.2.10)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
+        version: 16.3.2(@testing-library/dom@10.4.1)(@types/react-dom@19.2.3(@types/react@19.2.13))(@types/react@19.2.13)(react-dom@19.2.3(react@19.2.4))(react@19.2.4)
       '@types/node':
         specifier: 25.2.0
         version: 25.2.0
       '@types/react':
-        specifier: 19.2.10
-        version: 19.2.10
+        specifier: 19.2.13
+        version: 19.2.13
       '@types/react-dom':
         specifier: 19.2.3
-        version: 19.2.3(@types/react@19.2.10)
+        version: 19.2.3(@types/react@19.2.13)
       '@types/testing-library__jest-dom':
         specifier: ^6.0.0
         version: 6.0.0
@@ -389,7 +389,7 @@ importers:
         version: 6.9.1
       '@testing-library/react':
         specifier: 16.3.2
-        version: 16.3.2(@testing-library/dom@10.4.1)(@types/react-dom@19.2.3(@types/react@19.2.11))(@types/react@19.2.11)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
+        version: 16.3.2(@testing-library/dom@10.4.1)(@types/react-dom@19.2.3(@types/react@19.2.13))(@types/react@19.2.13)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
       '@vitest/coverage-v8':
         specifier: 4.0.18
         version: 4.0.18(vitest@4.0.18)
@@ -504,7 +504,7 @@ importers:
         version: 0.47.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)(ioredis@5.9.2))(@effect/platform@0.94.1(effect@3.19.15))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)(ioredis@5.9.2))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(effect@3.19.15)
       '@effect/sql-drizzle':
         specifier: ^0.48.0
-        version: 0.48.0(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)(ioredis@5.9.2))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(drizzle-orm@0.45.1(@cloudflare/workers-types@4.20260116.0)(@libsql/client@0.12.0)(@op-engineering/op-sqlite@7.1.0(react-native@0.83.1(@babel/core@7.28.6)(@types/react@19.2.11)(react@19.2.3))(react@19.2.3))(@opentelemetry/api@1.9.0)(better-sqlite3@11.10.0)(kysely@0.28.9)(mysql2@3.16.1)(pg@8.17.1))(effect@3.19.15)
+        version: 0.48.0(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)(ioredis@5.9.2))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(drizzle-orm@0.45.1(@cloudflare/workers-types@4.20260116.0)(@libsql/client@0.12.0)(@op-engineering/op-sqlite@7.1.0(react-native@0.83.1(@babel/core@7.28.6)(@types/react@19.2.13)(react@19.2.4))(react@19.2.4))(@opentelemetry/api@1.9.0)(better-sqlite3@11.10.0)(kysely@0.28.9)(mysql2@3.16.1)(pg@8.17.1))(effect@3.19.15)
       '@effect/sql-kysely':
         specifier: ^0.45.0
         version: 0.45.0(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)(ioredis@5.9.2))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(effect@3.19.15)(kysely@0.28.9)
@@ -531,7 +531,7 @@ importers:
         version: 0.50.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)(ioredis@5.9.2))(@effect/platform@0.94.1(effect@3.19.15))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)(ioredis@5.9.2))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(effect@3.19.15)
       '@effect/sql-sqlite-react-native':
         specifier: ^0.52.0
-        version: 0.52.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)(ioredis@5.9.2))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)(ioredis@5.9.2))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@op-engineering/op-sqlite@7.1.0(react-native@0.83.1(@babel/core@7.28.6)(@types/react@19.2.11)(react@19.2.3))(react@19.2.3))(effect@3.19.15)
+        version: 0.52.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)(ioredis@5.9.2))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)(ioredis@5.9.2))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@op-engineering/op-sqlite@7.1.0(react-native@0.83.1(@babel/core@7.28.6)(@types/react@19.2.13)(react@19.2.4))(react@19.2.4))(effect@3.19.15)
       '@effect/sql-sqlite-wasm':
         specifier: ^0.50.0
         version: 0.50.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)(ioredis@5.9.2))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)(ioredis@5.9.2))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/wa-sqlite@0.1.2)(effect@3.19.15)
@@ -559,7 +559,7 @@ importers:
         version: 9.39.2
       openapi-zod-client:
         specifier: 1.18.3
-        version: 1.18.3(react@19.2.3)
+        version: 1.18.3(react@19.2.4)
       tsup:
         specifier: 8.5.1
         version: 8.5.1(@swc/core@1.15.11)(postcss@8.5.6)(tsx@4.21.0)(typescript@5.9.3)(yaml@2.8.2)
@@ -670,7 +670,7 @@ importers:
         version: 0.47.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)(ioredis@5.9.2))(@effect/platform@0.94.1(effect@3.19.15))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)(ioredis@5.9.2))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(effect@3.19.15)
       '@effect/sql-drizzle':
         specifier: ^0.48.0
-        version: 0.48.0(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)(ioredis@5.9.2))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(drizzle-orm@0.45.1(@cloudflare/workers-types@4.20260116.0)(@libsql/client@0.12.0)(@op-engineering/op-sqlite@7.1.0(react-native@0.83.1(@babel/core@7.29.0)(@types/react@19.2.11)(react@19.2.3))(react@19.2.3))(@opentelemetry/api@1.9.0)(better-sqlite3@11.10.0)(kysely@0.28.9)(mysql2@3.16.1)(pg@8.17.1))(effect@3.19.15)
+        version: 0.48.0(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)(ioredis@5.9.2))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(drizzle-orm@0.45.1(@cloudflare/workers-types@4.20260116.0)(@libsql/client@0.12.0)(@op-engineering/op-sqlite@7.1.0(react-native@0.83.1(@babel/core@7.29.0)(@types/react@19.2.13)(react@19.2.4))(react@19.2.4))(@opentelemetry/api@1.9.0)(better-sqlite3@11.10.0)(kysely@0.28.9)(mysql2@3.16.1)(pg@8.17.1))(effect@3.19.15)
       '@effect/sql-kysely':
         specifier: ^0.45.0
         version: 0.45.0(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)(ioredis@5.9.2))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(effect@3.19.15)(kysely@0.28.9)
@@ -697,7 +697,7 @@ importers:
         version: 0.50.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)(ioredis@5.9.2))(@effect/platform@0.94.1(effect@3.19.15))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)(ioredis@5.9.2))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(effect@3.19.15)
       '@effect/sql-sqlite-react-native':
         specifier: ^0.52.0
-        version: 0.52.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)(ioredis@5.9.2))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)(ioredis@5.9.2))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@op-engineering/op-sqlite@7.1.0(react-native@0.83.1(@babel/core@7.29.0)(@types/react@19.2.11)(react@19.2.3))(react@19.2.3))(effect@3.19.15)
+        version: 0.52.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)(ioredis@5.9.2))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)(ioredis@5.9.2))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@op-engineering/op-sqlite@7.1.0(react-native@0.83.1(@babel/core@7.29.0)(@types/react@19.2.13)(react@19.2.4))(react@19.2.4))(effect@3.19.15)
       '@effect/sql-sqlite-wasm':
         specifier: ^0.50.0
         version: 0.50.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)(ioredis@5.9.2))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)(ioredis@5.9.2))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/wa-sqlite@0.1.2)(effect@3.19.15)
@@ -798,7 +798,7 @@ importers:
         version: 0.47.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)(ioredis@5.9.2))(@effect/platform@0.94.1(effect@3.19.15))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)(ioredis@5.9.2))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(effect@3.19.15)
       '@effect/sql-drizzle':
         specifier: ^0.48.0
-        version: 0.48.0(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)(ioredis@5.9.2))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(drizzle-orm@0.45.1(@cloudflare/workers-types@4.20260116.0)(@libsql/client@0.12.0)(@op-engineering/op-sqlite@7.1.0(react-native@0.83.1(@babel/core@7.29.0)(@types/react@19.2.11)(react@19.2.3))(react@19.2.3))(@opentelemetry/api@1.9.0)(better-sqlite3@11.10.0)(kysely@0.28.9)(mysql2@3.16.1)(pg@8.17.1))(effect@3.19.15)
+        version: 0.48.0(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)(ioredis@5.9.2))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(drizzle-orm@0.45.1(@cloudflare/workers-types@4.20260116.0)(@libsql/client@0.12.0)(@op-engineering/op-sqlite@7.1.0(react-native@0.83.1(@babel/core@7.29.0)(@types/react@19.2.13)(react@19.2.4))(react@19.2.4))(@opentelemetry/api@1.9.0)(better-sqlite3@11.10.0)(kysely@0.28.9)(mysql2@3.16.1)(pg@8.17.1))(effect@3.19.15)
       '@effect/sql-kysely':
         specifier: ^0.45.0
         version: 0.45.0(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)(ioredis@5.9.2))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(effect@3.19.15)(kysely@0.28.9)
@@ -825,7 +825,7 @@ importers:
         version: 0.50.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)(ioredis@5.9.2))(@effect/platform@0.94.1(effect@3.19.15))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)(ioredis@5.9.2))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(effect@3.19.15)
       '@effect/sql-sqlite-react-native':
         specifier: ^0.52.0
-        version: 0.52.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)(ioredis@5.9.2))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)(ioredis@5.9.2))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@op-engineering/op-sqlite@7.1.0(react-native@0.83.1(@babel/core@7.29.0)(@types/react@19.2.11)(react@19.2.3))(react@19.2.3))(effect@3.19.15)
+        version: 0.52.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)(ioredis@5.9.2))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)(ioredis@5.9.2))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@op-engineering/op-sqlite@7.1.0(react-native@0.83.1(@babel/core@7.29.0)(@types/react@19.2.13)(react@19.2.4))(react@19.2.4))(effect@3.19.15)
       '@effect/sql-sqlite-wasm':
         specifier: ^0.50.0
         version: 0.50.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)(ioredis@5.9.2))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)(ioredis@5.9.2))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/wa-sqlite@0.1.2)(effect@3.19.15)
@@ -926,7 +926,7 @@ importers:
         version: 0.47.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)(ioredis@5.9.2))(@effect/platform@0.94.1(effect@3.19.15))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)(ioredis@5.9.2))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(effect@3.19.15)
       '@effect/sql-drizzle':
         specifier: ^0.48.0
-        version: 0.48.0(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)(ioredis@5.9.2))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(drizzle-orm@0.45.1(@cloudflare/workers-types@4.20260116.0)(@libsql/client@0.12.0)(@op-engineering/op-sqlite@7.1.0(react-native@0.83.1(@babel/core@7.29.0)(@types/react@19.2.11)(react@19.2.3))(react@19.2.3))(@opentelemetry/api@1.9.0)(better-sqlite3@11.10.0)(kysely@0.28.9)(mysql2@3.16.1)(pg@8.17.1))(effect@3.19.15)
+        version: 0.48.0(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)(ioredis@5.9.2))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(drizzle-orm@0.45.1(@cloudflare/workers-types@4.20260116.0)(@libsql/client@0.12.0)(@op-engineering/op-sqlite@7.1.0(react-native@0.83.1(@babel/core@7.29.0)(@types/react@19.2.13)(react@19.2.4))(react@19.2.4))(@opentelemetry/api@1.9.0)(better-sqlite3@11.10.0)(kysely@0.28.9)(mysql2@3.16.1)(pg@8.17.1))(effect@3.19.15)
       '@effect/sql-kysely':
         specifier: ^0.45.0
         version: 0.45.0(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)(ioredis@5.9.2))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(effect@3.19.15)(kysely@0.28.9)
@@ -953,7 +953,7 @@ importers:
         version: 0.50.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)(ioredis@5.9.2))(@effect/platform@0.94.1(effect@3.19.15))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)(ioredis@5.9.2))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(effect@3.19.15)
       '@effect/sql-sqlite-react-native':
         specifier: ^0.52.0
-        version: 0.52.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)(ioredis@5.9.2))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)(ioredis@5.9.2))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@op-engineering/op-sqlite@7.1.0(react-native@0.83.1(@babel/core@7.29.0)(@types/react@19.2.11)(react@19.2.3))(react@19.2.3))(effect@3.19.15)
+        version: 0.52.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)(ioredis@5.9.2))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)(ioredis@5.9.2))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@op-engineering/op-sqlite@7.1.0(react-native@0.83.1(@babel/core@7.29.0)(@types/react@19.2.13)(react@19.2.4))(react@19.2.4))(effect@3.19.15)
       '@effect/sql-sqlite-wasm':
         specifier: ^0.50.0
         version: 0.50.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)(ioredis@5.9.2))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)(ioredis@5.9.2))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/wa-sqlite@0.1.2)(effect@3.19.15)
@@ -1010,7 +1010,7 @@ importers:
         version: 6.9.1
       '@testing-library/react':
         specifier: 16.3.2
-        version: 16.3.2(@testing-library/dom@10.4.1)(@types/react-dom@19.2.3(@types/react@19.2.11))(@types/react@19.2.11)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
+        version: 16.3.2(@testing-library/dom@10.4.1)(@types/react-dom@19.2.3(@types/react@19.2.13))(@types/react@19.2.13)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
       '@vitest/coverage-v8':
         specifier: 4.0.18
         version: 4.0.18(vitest@4.0.18)
@@ -1062,7 +1062,7 @@ importers:
         version: 6.9.1
       '@testing-library/react':
         specifier: 16.3.2
-        version: 16.3.2(@testing-library/dom@10.4.1)(@types/react-dom@19.2.3(@types/react@19.2.11))(@types/react@19.2.11)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
+        version: 16.3.2(@testing-library/dom@10.4.1)(@types/react-dom@19.2.3(@types/react@19.2.13))(@types/react@19.2.13)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
       '@vitest/coverage-v8':
         specifier: 4.0.18
         version: 4.0.18(vitest@4.0.18)
@@ -1103,7 +1103,7 @@ importers:
         version: 6.9.1
       '@testing-library/react':
         specifier: 16.3.2
-        version: 16.3.2(@testing-library/dom@10.4.1)(@types/react-dom@19.2.3(@types/react@19.2.11))(@types/react@19.2.11)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
+        version: 16.3.2(@testing-library/dom@10.4.1)(@types/react-dom@19.2.3(@types/react@19.2.13))(@types/react@19.2.13)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
       '@vitest/coverage-v8':
         specifier: 4.0.18
         version: 4.0.18(vitest@4.0.18)
@@ -3300,11 +3300,8 @@ packages:
     peerDependencies:
       '@types/react': ^19.2.0
 
-  '@types/react@19.2.10':
-    resolution: {integrity: sha512-WPigyYuGhgZ/cTPRXB2EwUw+XvsRA3GqHlsP4qteqrnnjDrApbS7MxcGr/hke5iUoeB7E/gQtrs9I37zAJ0Vjw==}
-
-  '@types/react@19.2.11':
-    resolution: {integrity: sha512-tORuanb01iEzWvMGVGv2ZDhYZVeRMrw453DCSAIn/5yvcSVnMoUMTyf33nQJLahYEnv9xqrTNbgz4qY5EfSh0g==}
+  '@types/react@19.2.13':
+    resolution: {integrity: sha512-KkiJeU6VbYbUOp5ITMIc7kBfqlYkKA5KhEHVrGMmUUMt7NeaZg65ojdPk+FtNrBAOXNVM5QM72jnADjM+XVRAQ==}
 
   '@types/readable-stream@4.0.23':
     resolution: {integrity: sha512-wwXrtQvbMHxCbBgjHaMGEmImFTQxxpfMOR/ZoQnXxB1woqkUbdLGFDgauo00Py9IudiaqSeiBiulSV9i6XIPig==}
@@ -6700,6 +6697,10 @@ packages:
     resolution: {integrity: sha512-Ku/hhYbVjOQnXDZFv2+RibmLFGwFdeeKHFcOTlrt7xplBnya5OGn/hIRDsqDiSUcfORsDC7MPxwork8jBwsIWA==}
     engines: {node: '>=0.10.0'}
 
+  react@19.2.4:
+    resolution: {integrity: sha512-9nfp2hYpCwOjAN+8TZFGhtWEwgvWHXqESH8qT89AT/lWklpLON22Lc8pEtnpsZz7VmawabSU0gCjnj8aC0euHQ==}
+    engines: {node: '>=0.10.0'}
+
   read-installed@4.0.3:
     resolution: {integrity: sha512-O03wg/IYuV/VtnK2h/KXEt9VIbMUFbk3ERG0Iu4FhLZw0EP0T9znqrYDGn6ncbEsXUFaUjiVAWXHzxwt3lhRPQ==}
     deprecated: This package is no longer supported.
@@ -8745,16 +8746,16 @@ snapshots:
       '@effect/sql': 0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)(ioredis@5.9.2))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)
       effect: 3.19.15
 
-  '@effect/sql-drizzle@0.48.0(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)(ioredis@5.9.2))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(drizzle-orm@0.45.1(@cloudflare/workers-types@4.20260116.0)(@libsql/client@0.12.0)(@op-engineering/op-sqlite@7.1.0(react-native@0.83.1(@babel/core@7.28.6)(@types/react@19.2.11)(react@19.2.3))(react@19.2.3))(@opentelemetry/api@1.9.0)(better-sqlite3@11.10.0)(kysely@0.28.9)(mysql2@3.16.1)(pg@8.17.1))(effect@3.19.15)':
+  '@effect/sql-drizzle@0.48.0(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)(ioredis@5.9.2))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(drizzle-orm@0.45.1(@cloudflare/workers-types@4.20260116.0)(@libsql/client@0.12.0)(@op-engineering/op-sqlite@7.1.0(react-native@0.83.1(@babel/core@7.28.6)(@types/react@19.2.13)(react@19.2.4))(react@19.2.4))(@opentelemetry/api@1.9.0)(better-sqlite3@11.10.0)(kysely@0.28.9)(mysql2@3.16.1)(pg@8.17.1))(effect@3.19.15)':
     dependencies:
       '@effect/sql': 0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)(ioredis@5.9.2))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)
-      drizzle-orm: 0.45.1(@cloudflare/workers-types@4.20260116.0)(@libsql/client@0.12.0)(@op-engineering/op-sqlite@7.1.0(react-native@0.83.1(@babel/core@7.28.6)(@types/react@19.2.11)(react@19.2.3))(react@19.2.3))(@opentelemetry/api@1.9.0)(better-sqlite3@11.10.0)(kysely@0.28.9)(mysql2@3.16.1)(pg@8.17.1)
+      drizzle-orm: 0.45.1(@cloudflare/workers-types@4.20260116.0)(@libsql/client@0.12.0)(@op-engineering/op-sqlite@7.1.0(react-native@0.83.1(@babel/core@7.28.6)(@types/react@19.2.13)(react@19.2.4))(react@19.2.4))(@opentelemetry/api@1.9.0)(better-sqlite3@11.10.0)(kysely@0.28.9)(mysql2@3.16.1)(pg@8.17.1)
       effect: 3.19.15
 
-  '@effect/sql-drizzle@0.48.0(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)(ioredis@5.9.2))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(drizzle-orm@0.45.1(@cloudflare/workers-types@4.20260116.0)(@libsql/client@0.12.0)(@op-engineering/op-sqlite@7.1.0(react-native@0.83.1(@babel/core@7.29.0)(@types/react@19.2.11)(react@19.2.3))(react@19.2.3))(@opentelemetry/api@1.9.0)(better-sqlite3@11.10.0)(kysely@0.28.9)(mysql2@3.16.1)(pg@8.17.1))(effect@3.19.15)':
+  '@effect/sql-drizzle@0.48.0(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)(ioredis@5.9.2))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(drizzle-orm@0.45.1(@cloudflare/workers-types@4.20260116.0)(@libsql/client@0.12.0)(@op-engineering/op-sqlite@7.1.0(react-native@0.83.1(@babel/core@7.29.0)(@types/react@19.2.13)(react@19.2.4))(react@19.2.4))(@opentelemetry/api@1.9.0)(better-sqlite3@11.10.0)(kysely@0.28.9)(mysql2@3.16.1)(pg@8.17.1))(effect@3.19.15)':
     dependencies:
       '@effect/sql': 0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)(ioredis@5.9.2))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)
-      drizzle-orm: 0.45.1(@cloudflare/workers-types@4.20260116.0)(@libsql/client@0.12.0)(@op-engineering/op-sqlite@7.1.0(react-native@0.83.1(@babel/core@7.29.0)(@types/react@19.2.11)(react@19.2.3))(react@19.2.3))(@opentelemetry/api@1.9.0)(better-sqlite3@11.10.0)(kysely@0.28.9)(mysql2@3.16.1)(pg@8.17.1)
+      drizzle-orm: 0.45.1(@cloudflare/workers-types@4.20260116.0)(@libsql/client@0.12.0)(@op-engineering/op-sqlite@7.1.0(react-native@0.83.1(@babel/core@7.29.0)(@types/react@19.2.13)(react@19.2.4))(react@19.2.4))(@opentelemetry/api@1.9.0)(better-sqlite3@11.10.0)(kysely@0.28.9)(mysql2@3.16.1)(pg@8.17.1)
       effect: 3.19.15
 
   '@effect/sql-kysely@0.45.0(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)(ioredis@5.9.2))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(effect@3.19.15)(kysely@0.28.9)':
@@ -8827,18 +8828,18 @@ snapshots:
       better-sqlite3: 11.10.0
       effect: 3.19.15
 
-  '@effect/sql-sqlite-react-native@0.52.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)(ioredis@5.9.2))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)(ioredis@5.9.2))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@op-engineering/op-sqlite@7.1.0(react-native@0.83.1(@babel/core@7.28.6)(@types/react@19.2.11)(react@19.2.3))(react@19.2.3))(effect@3.19.15)':
+  '@effect/sql-sqlite-react-native@0.52.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)(ioredis@5.9.2))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)(ioredis@5.9.2))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@op-engineering/op-sqlite@7.1.0(react-native@0.83.1(@babel/core@7.28.6)(@types/react@19.2.13)(react@19.2.4))(react@19.2.4))(effect@3.19.15)':
     dependencies:
       '@effect/experimental': 0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)(ioredis@5.9.2)
       '@effect/sql': 0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)(ioredis@5.9.2))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)
-      '@op-engineering/op-sqlite': 7.1.0(react-native@0.83.1(@babel/core@7.28.6)(@types/react@19.2.11)(react@19.2.3))(react@19.2.3)
+      '@op-engineering/op-sqlite': 7.1.0(react-native@0.83.1(@babel/core@7.28.6)(@types/react@19.2.13)(react@19.2.4))(react@19.2.4)
       effect: 3.19.15
 
-  '@effect/sql-sqlite-react-native@0.52.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)(ioredis@5.9.2))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)(ioredis@5.9.2))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@op-engineering/op-sqlite@7.1.0(react-native@0.83.1(@babel/core@7.29.0)(@types/react@19.2.11)(react@19.2.3))(react@19.2.3))(effect@3.19.15)':
+  '@effect/sql-sqlite-react-native@0.52.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)(ioredis@5.9.2))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)(ioredis@5.9.2))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@op-engineering/op-sqlite@7.1.0(react-native@0.83.1(@babel/core@7.29.0)(@types/react@19.2.13)(react@19.2.4))(react@19.2.4))(effect@3.19.15)':
     dependencies:
       '@effect/experimental': 0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)(ioredis@5.9.2)
       '@effect/sql': 0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)(ioredis@5.9.2))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)
-      '@op-engineering/op-sqlite': 7.1.0(react-native@0.83.1(@babel/core@7.29.0)(@types/react@19.2.11)(react@19.2.3))(react@19.2.3)
+      '@op-engineering/op-sqlite': 7.1.0(react-native@0.83.1(@babel/core@7.29.0)(@types/react@19.2.13)(react@19.2.4))(react@19.2.4)
       effect: 3.19.15
 
   '@effect/sql-sqlite-wasm@0.50.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)(ioredis@5.9.2))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15)(ioredis@5.9.2))(@effect/platform@0.94.1(effect@3.19.15))(effect@3.19.15))(@effect/wa-sqlite@0.1.2)(effect@3.19.15)':
@@ -9064,6 +9065,11 @@ snapshots:
     dependencies:
       '@standard-schema/utils': 0.3.0
       react-hook-form: 7.71.1(react@19.2.3)
+
+  '@hookform/resolvers@5.2.2(react-hook-form@7.71.1(react@19.2.4))':
+    dependencies:
+      '@standard-schema/utils': 0.3.0
+      react-hook-form: 7.71.1(react@19.2.4)
 
   '@humanfs/core@0.19.1': {}
 
@@ -9426,15 +9432,15 @@ snapshots:
 
   '@nolyfill/is-core-module@1.0.39': {}
 
-  '@op-engineering/op-sqlite@7.1.0(react-native@0.83.1(@babel/core@7.28.6)(@types/react@19.2.11)(react@19.2.3))(react@19.2.3)':
+  '@op-engineering/op-sqlite@7.1.0(react-native@0.83.1(@babel/core@7.28.6)(@types/react@19.2.13)(react@19.2.4))(react@19.2.4)':
     dependencies:
-      react: 19.2.3
-      react-native: 0.83.1(@babel/core@7.28.6)(@types/react@19.2.11)(react@19.2.3)
+      react: 19.2.4
+      react-native: 0.83.1(@babel/core@7.28.6)(@types/react@19.2.13)(react@19.2.4)
 
-  '@op-engineering/op-sqlite@7.1.0(react-native@0.83.1(@babel/core@7.29.0)(@types/react@19.2.11)(react@19.2.3))(react@19.2.3)':
+  '@op-engineering/op-sqlite@7.1.0(react-native@0.83.1(@babel/core@7.29.0)(@types/react@19.2.13)(react@19.2.4))(react@19.2.4)':
     dependencies:
-      react: 19.2.3
-      react-native: 0.83.1(@babel/core@7.29.0)(@types/react@19.2.11)(react@19.2.3)
+      react: 19.2.4
+      react-native: 0.83.1(@babel/core@7.29.0)(@types/react@19.2.13)(react@19.2.4)
 
   '@opentelemetry/api-logs@0.211.0':
     dependencies:
@@ -9837,23 +9843,23 @@ snapshots:
 
   '@react-native/normalize-colors@0.83.1': {}
 
-  '@react-native/virtualized-lists@0.83.1(@types/react@19.2.11)(react-native@0.83.1(@babel/core@7.28.6)(@types/react@19.2.11)(react@19.2.3))(react@19.2.3)':
+  '@react-native/virtualized-lists@0.83.1(@types/react@19.2.13)(react-native@0.83.1(@babel/core@7.28.6)(@types/react@19.2.13)(react@19.2.4))(react@19.2.4)':
     dependencies:
       invariant: 2.2.4
       nullthrows: 1.1.1
-      react: 19.2.3
-      react-native: 0.83.1(@babel/core@7.28.6)(@types/react@19.2.11)(react@19.2.3)
+      react: 19.2.4
+      react-native: 0.83.1(@babel/core@7.28.6)(@types/react@19.2.13)(react@19.2.4)
     optionalDependencies:
-      '@types/react': 19.2.11
+      '@types/react': 19.2.13
 
-  '@react-native/virtualized-lists@0.83.1(@types/react@19.2.11)(react-native@0.83.1(@babel/core@7.29.0)(@types/react@19.2.11)(react@19.2.3))(react@19.2.3)':
+  '@react-native/virtualized-lists@0.83.1(@types/react@19.2.13)(react-native@0.83.1(@babel/core@7.29.0)(@types/react@19.2.13)(react@19.2.4))(react@19.2.4)':
     dependencies:
       invariant: 2.2.4
       nullthrows: 1.1.1
-      react: 19.2.3
-      react-native: 0.83.1(@babel/core@7.29.0)(@types/react@19.2.11)(react@19.2.3)
+      react: 19.2.4
+      react-native: 0.83.1(@babel/core@7.29.0)(@types/react@19.2.13)(react@19.2.4)
     optionalDependencies:
-      '@types/react': 19.2.11
+      '@types/react': 19.2.13
 
   '@rolldown/pluginutils@1.0.0-rc.2': {}
 
@@ -10088,6 +10094,11 @@ snapshots:
       '@tanstack/query-core': 5.90.20
       react: 19.2.3
 
+  '@tanstack/react-query@5.90.20(react@19.2.4)':
+    dependencies:
+      '@tanstack/query-core': 5.90.20
+      react: 19.2.4
+
   '@testing-library/dom@10.4.1':
     dependencies:
       '@babel/code-frame': 7.29.0
@@ -10108,25 +10119,25 @@ snapshots:
       picocolors: 1.1.1
       redent: 3.0.0
 
-  '@testing-library/react@16.3.2(@testing-library/dom@10.4.1)(@types/react-dom@19.2.3(@types/react@19.2.10))(@types/react@19.2.10)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)':
+  '@testing-library/react@16.3.2(@testing-library/dom@10.4.1)(@types/react-dom@19.2.3(@types/react@19.2.13))(@types/react@19.2.13)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)':
     dependencies:
       '@babel/runtime': 7.28.6
       '@testing-library/dom': 10.4.1
       react: 19.2.3
       react-dom: 19.2.3(react@19.2.3)
     optionalDependencies:
-      '@types/react': 19.2.10
-      '@types/react-dom': 19.2.3(@types/react@19.2.10)
+      '@types/react': 19.2.13
+      '@types/react-dom': 19.2.3(@types/react@19.2.13)
 
-  '@testing-library/react@16.3.2(@testing-library/dom@10.4.1)(@types/react-dom@19.2.3(@types/react@19.2.11))(@types/react@19.2.11)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)':
+  '@testing-library/react@16.3.2(@testing-library/dom@10.4.1)(@types/react-dom@19.2.3(@types/react@19.2.13))(@types/react@19.2.13)(react-dom@19.2.3(react@19.2.4))(react@19.2.4)':
     dependencies:
       '@babel/runtime': 7.28.6
       '@testing-library/dom': 10.4.1
-      react: 19.2.3
-      react-dom: 19.2.3(react@19.2.3)
+      react: 19.2.4
+      react-dom: 19.2.3(react@19.2.4)
     optionalDependencies:
-      '@types/react': 19.2.11
-      '@types/react-dom': 19.2.3(@types/react@19.2.11)
+      '@types/react': 19.2.13
+      '@types/react-dom': 19.2.3(@types/react@19.2.13)
 
   '@ts-graphviz/adapter@2.0.6':
     dependencies:
@@ -10230,19 +10241,11 @@ snapshots:
 
   '@types/parse-json@4.0.2': {}
 
-  '@types/react-dom@19.2.3(@types/react@19.2.10)':
+  '@types/react-dom@19.2.3(@types/react@19.2.13)':
     dependencies:
-      '@types/react': 19.2.10
+      '@types/react': 19.2.13
 
-  '@types/react-dom@19.2.3(@types/react@19.2.11)':
-    dependencies:
-      '@types/react': 19.2.11
-
-  '@types/react@19.2.10':
-    dependencies:
-      csstype: 3.2.3
-
-  '@types/react@19.2.11':
+  '@types/react@19.2.13':
     dependencies:
       csstype: 3.2.3
 
@@ -11475,22 +11478,22 @@ snapshots:
       '@dprint/win32-arm64': 0.51.1
       '@dprint/win32-x64': 0.51.1
 
-  drizzle-orm@0.45.1(@cloudflare/workers-types@4.20260116.0)(@libsql/client@0.12.0)(@op-engineering/op-sqlite@7.1.0(react-native@0.83.1(@babel/core@7.28.6)(@types/react@19.2.11)(react@19.2.3))(react@19.2.3))(@opentelemetry/api@1.9.0)(better-sqlite3@11.10.0)(kysely@0.28.9)(mysql2@3.16.1)(pg@8.17.1):
+  drizzle-orm@0.45.1(@cloudflare/workers-types@4.20260116.0)(@libsql/client@0.12.0)(@op-engineering/op-sqlite@7.1.0(react-native@0.83.1(@babel/core@7.28.6)(@types/react@19.2.13)(react@19.2.4))(react@19.2.4))(@opentelemetry/api@1.9.0)(better-sqlite3@11.10.0)(kysely@0.28.9)(mysql2@3.16.1)(pg@8.17.1):
     optionalDependencies:
       '@cloudflare/workers-types': 4.20260116.0
       '@libsql/client': 0.12.0
-      '@op-engineering/op-sqlite': 7.1.0(react-native@0.83.1(@babel/core@7.28.6)(@types/react@19.2.11)(react@19.2.3))(react@19.2.3)
+      '@op-engineering/op-sqlite': 7.1.0(react-native@0.83.1(@babel/core@7.28.6)(@types/react@19.2.13)(react@19.2.4))(react@19.2.4)
       '@opentelemetry/api': 1.9.0
       better-sqlite3: 11.10.0
       kysely: 0.28.9
       mysql2: 3.16.1
       pg: 8.17.1
 
-  drizzle-orm@0.45.1(@cloudflare/workers-types@4.20260116.0)(@libsql/client@0.12.0)(@op-engineering/op-sqlite@7.1.0(react-native@0.83.1(@babel/core@7.29.0)(@types/react@19.2.11)(react@19.2.3))(react@19.2.3))(@opentelemetry/api@1.9.0)(better-sqlite3@11.10.0)(kysely@0.28.9)(mysql2@3.16.1)(pg@8.17.1):
+  drizzle-orm@0.45.1(@cloudflare/workers-types@4.20260116.0)(@libsql/client@0.12.0)(@op-engineering/op-sqlite@7.1.0(react-native@0.83.1(@babel/core@7.29.0)(@types/react@19.2.13)(react@19.2.4))(react@19.2.4))(@opentelemetry/api@1.9.0)(better-sqlite3@11.10.0)(kysely@0.28.9)(mysql2@3.16.1)(pg@8.17.1):
     optionalDependencies:
       '@cloudflare/workers-types': 4.20260116.0
       '@libsql/client': 0.12.0
-      '@op-engineering/op-sqlite': 7.1.0(react-native@0.83.1(@babel/core@7.29.0)(@types/react@19.2.11)(react@19.2.3))(react@19.2.3)
+      '@op-engineering/op-sqlite': 7.1.0(react-native@0.83.1(@babel/core@7.29.0)(@types/react@19.2.13)(react@19.2.4))(react@19.2.4)
       '@opentelemetry/api': 1.9.0
       better-sqlite3: 11.10.0
       kysely: 0.28.9
@@ -13506,26 +13509,26 @@ snapshots:
 
   neo-async@2.6.2: {}
 
-  next-auth@5.0.0-beta.30(next@16.1.6(@babel/core@7.29.0)(@opentelemetry/api@1.9.0)(@playwright/test@1.57.0)(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react@19.2.3):
+  next-auth@5.0.0-beta.30(next@16.1.6(@babel/core@7.29.0)(@opentelemetry/api@1.9.0)(@playwright/test@1.57.0)(react-dom@19.2.3(react@19.2.4))(react@19.2.4))(react@19.2.4):
     dependencies:
       '@auth/core': 0.41.1
-      next: 16.1.6(@babel/core@7.29.0)(@opentelemetry/api@1.9.0)(@playwright/test@1.57.0)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
-      react: 19.2.3
+      next: 16.1.6(@babel/core@7.29.0)(@opentelemetry/api@1.9.0)(@playwright/test@1.57.0)(react-dom@19.2.3(react@19.2.4))(react@19.2.4)
+      react: 19.2.4
 
   next-intl-swc-plugin-extractor@4.8.2: {}
 
-  next-intl@4.8.2(next@16.1.6(@babel/core@7.29.0)(@opentelemetry/api@1.9.0)(@playwright/test@1.57.0)(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react@19.2.3)(typescript@5.9.3):
+  next-intl@4.8.2(next@16.1.6(@babel/core@7.29.0)(@opentelemetry/api@1.9.0)(@playwright/test@1.57.0)(react-dom@19.2.3(react@19.2.4))(react@19.2.4))(react@19.2.4)(typescript@5.9.3):
     dependencies:
       '@formatjs/intl-localematcher': 0.5.10
       '@parcel/watcher': 2.5.6
       '@swc/core': 1.15.11
       icu-minify: 4.8.2
       negotiator: 1.0.0
-      next: 16.1.6(@babel/core@7.29.0)(@opentelemetry/api@1.9.0)(@playwright/test@1.57.0)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
+      next: 16.1.6(@babel/core@7.29.0)(@opentelemetry/api@1.9.0)(@playwright/test@1.57.0)(react-dom@19.2.3(react@19.2.4))(react@19.2.4)
       next-intl-swc-plugin-extractor: 4.8.2
       po-parser: 2.1.1
-      react: 19.2.3
-      use-intl: 4.8.2(react@19.2.3)
+      react: 19.2.4
+      use-intl: 4.8.2(react@19.2.4)
     optionalDependencies:
       typescript: 5.9.3
     transitivePeerDependencies:
@@ -13548,16 +13551,33 @@ snapshots:
     transitivePeerDependencies:
       - '@swc/helpers'
 
-  next@16.1.6(@babel/core@7.29.0)(@opentelemetry/api@1.9.0)(@playwright/test@1.57.0)(react-dom@19.2.3(react@19.2.3))(react@19.2.3):
+  next-intl@4.8.2(next@16.1.6(@babel/core@7.29.0)(@opentelemetry/api@1.9.0)(@playwright/test@1.58.1)(react-dom@19.2.3(react@19.2.4))(react@19.2.4))(react@19.2.4)(typescript@5.9.3):
+    dependencies:
+      '@formatjs/intl-localematcher': 0.5.10
+      '@parcel/watcher': 2.5.6
+      '@swc/core': 1.15.11
+      icu-minify: 4.8.2
+      negotiator: 1.0.0
+      next: 16.1.6(@babel/core@7.29.0)(@opentelemetry/api@1.9.0)(@playwright/test@1.58.1)(react-dom@19.2.3(react@19.2.4))(react@19.2.4)
+      next-intl-swc-plugin-extractor: 4.8.2
+      po-parser: 2.1.1
+      react: 19.2.4
+      use-intl: 4.8.2(react@19.2.4)
+    optionalDependencies:
+      typescript: 5.9.3
+    transitivePeerDependencies:
+      - '@swc/helpers'
+
+  next@16.1.6(@babel/core@7.29.0)(@opentelemetry/api@1.9.0)(@playwright/test@1.57.0)(react-dom@19.2.3(react@19.2.4))(react@19.2.4):
     dependencies:
       '@next/env': 16.1.6
       '@swc/helpers': 0.5.15
       baseline-browser-mapping: 2.9.19
       caniuse-lite: 1.0.30001766
       postcss: 8.4.31
-      react: 19.2.3
-      react-dom: 19.2.3(react@19.2.3)
-      styled-jsx: 5.1.6(@babel/core@7.29.0)(react@19.2.3)
+      react: 19.2.4
+      react-dom: 19.2.3(react@19.2.4)
+      styled-jsx: 5.1.6(@babel/core@7.29.0)(react@19.2.4)
     optionalDependencies:
       '@next/swc-darwin-arm64': 16.1.6
       '@next/swc-darwin-x64': 16.1.6
@@ -13584,6 +13604,32 @@ snapshots:
       react: 19.2.3
       react-dom: 19.2.3(react@19.2.3)
       styled-jsx: 5.1.6(@babel/core@7.29.0)(react@19.2.3)
+    optionalDependencies:
+      '@next/swc-darwin-arm64': 16.1.6
+      '@next/swc-darwin-x64': 16.1.6
+      '@next/swc-linux-arm64-gnu': 16.1.6
+      '@next/swc-linux-arm64-musl': 16.1.6
+      '@next/swc-linux-x64-gnu': 16.1.6
+      '@next/swc-linux-x64-musl': 16.1.6
+      '@next/swc-win32-arm64-msvc': 16.1.6
+      '@next/swc-win32-x64-msvc': 16.1.6
+      '@opentelemetry/api': 1.9.0
+      '@playwright/test': 1.58.1
+      sharp: 0.34.5
+    transitivePeerDependencies:
+      - '@babel/core'
+      - babel-plugin-macros
+
+  next@16.1.6(@babel/core@7.29.0)(@opentelemetry/api@1.9.0)(@playwright/test@1.58.1)(react-dom@19.2.3(react@19.2.4))(react@19.2.4):
+    dependencies:
+      '@next/env': 16.1.6
+      '@swc/helpers': 0.5.15
+      baseline-browser-mapping: 2.9.19
+      caniuse-lite: 1.0.30001766
+      postcss: 8.4.31
+      react: 19.2.4
+      react-dom: 19.2.3(react@19.2.4)
+      styled-jsx: 5.1.6(@babel/core@7.29.0)(react@19.2.4)
     optionalDependencies:
       '@next/swc-darwin-arm64': 16.1.6
       '@next/swc-darwin-x64': 16.1.6
@@ -13737,7 +13783,7 @@ snapshots:
 
   openapi-types@12.1.3: {}
 
-  openapi-zod-client@1.18.3(react@19.2.3):
+  openapi-zod-client@1.18.3(react@19.2.4):
     dependencies:
       '@apidevtools/swagger-parser': 10.1.1(openapi-types@12.1.3)
       '@liuli-util/fs-extra': 0.1.0
@@ -13747,7 +13793,7 @@ snapshots:
       handlebars: 4.7.8
       openapi-types: 12.1.3
       openapi3-ts: 3.1.0
-      pastable: 2.2.1(react@19.2.3)
+      pastable: 2.2.1(react@19.2.4)
       prettier: 2.8.8
       tanu: 0.1.13
       ts-pattern: 5.9.0
@@ -13844,13 +13890,13 @@ snapshots:
 
   parseurl@1.3.3: {}
 
-  pastable@2.2.1(react@19.2.3):
+  pastable@2.2.1(react@19.2.4):
     dependencies:
       '@babel/core': 7.28.6
       ts-toolbelt: 9.6.0
       type-fest: 3.13.1
     optionalDependencies:
-      react: 19.2.3
+      react: 19.2.4
     transitivePeerDependencies:
       - supports-color
 
@@ -14176,9 +14222,18 @@ snapshots:
       react: 19.2.3
       scheduler: 0.27.0
 
+  react-dom@19.2.3(react@19.2.4):
+    dependencies:
+      react: 19.2.4
+      scheduler: 0.27.0
+
   react-hook-form@7.71.1(react@19.2.3):
     dependencies:
       react: 19.2.3
+
+  react-hook-form@7.71.1(react@19.2.4):
+    dependencies:
+      react: 19.2.4
 
   react-is@16.13.1: {}
 
@@ -14186,7 +14241,7 @@ snapshots:
 
   react-is@18.3.1: {}
 
-  react-native@0.83.1(@babel/core@7.28.6)(@types/react@19.2.11)(react@19.2.3):
+  react-native@0.83.1(@babel/core@7.28.6)(@types/react@19.2.13)(react@19.2.4):
     dependencies:
       '@jest/create-cache-key-function': 29.7.0
       '@react-native/assets-registry': 0.83.1
@@ -14195,7 +14250,7 @@ snapshots:
       '@react-native/gradle-plugin': 0.83.1
       '@react-native/js-polyfills': 0.83.1
       '@react-native/normalize-colors': 0.83.1
-      '@react-native/virtualized-lists': 0.83.1(@types/react@19.2.11)(react-native@0.83.1(@babel/core@7.28.6)(@types/react@19.2.11)(react@19.2.3))(react@19.2.3)
+      '@react-native/virtualized-lists': 0.83.1(@types/react@19.2.13)(react-native@0.83.1(@babel/core@7.28.6)(@types/react@19.2.13)(react@19.2.4))(react@19.2.4)
       abort-controller: 3.0.0
       anser: 1.4.10
       ansi-regex: 5.0.1
@@ -14214,7 +14269,7 @@ snapshots:
       nullthrows: 1.1.1
       pretty-format: 29.7.0
       promise: 8.3.0
-      react: 19.2.3
+      react: 19.2.4
       react-devtools-core: 6.1.5
       react-refresh: 0.14.2
       regenerator-runtime: 0.13.11
@@ -14225,7 +14280,7 @@ snapshots:
       ws: 7.5.10
       yargs: 17.7.2
     optionalDependencies:
-      '@types/react': 19.2.11
+      '@types/react': 19.2.13
     transitivePeerDependencies:
       - '@babel/core'
       - '@react-native-community/cli'
@@ -14234,7 +14289,7 @@ snapshots:
       - supports-color
       - utf-8-validate
 
-  react-native@0.83.1(@babel/core@7.29.0)(@types/react@19.2.11)(react@19.2.3):
+  react-native@0.83.1(@babel/core@7.29.0)(@types/react@19.2.13)(react@19.2.4):
     dependencies:
       '@jest/create-cache-key-function': 29.7.0
       '@react-native/assets-registry': 0.83.1
@@ -14243,7 +14298,7 @@ snapshots:
       '@react-native/gradle-plugin': 0.83.1
       '@react-native/js-polyfills': 0.83.1
       '@react-native/normalize-colors': 0.83.1
-      '@react-native/virtualized-lists': 0.83.1(@types/react@19.2.11)(react-native@0.83.1(@babel/core@7.29.0)(@types/react@19.2.11)(react@19.2.3))(react@19.2.3)
+      '@react-native/virtualized-lists': 0.83.1(@types/react@19.2.13)(react-native@0.83.1(@babel/core@7.29.0)(@types/react@19.2.13)(react@19.2.4))(react@19.2.4)
       abort-controller: 3.0.0
       anser: 1.4.10
       ansi-regex: 5.0.1
@@ -14262,7 +14317,7 @@ snapshots:
       nullthrows: 1.1.1
       pretty-format: 29.7.0
       promise: 8.3.0
-      react: 19.2.3
+      react: 19.2.4
       react-devtools-core: 6.1.5
       react-refresh: 0.14.2
       regenerator-runtime: 0.13.11
@@ -14273,7 +14328,7 @@ snapshots:
       ws: 7.5.10
       yargs: 17.7.2
     optionalDependencies:
-      '@types/react': 19.2.11
+      '@types/react': 19.2.13
     transitivePeerDependencies:
       - '@babel/core'
       - '@react-native-community/cli'
@@ -14287,6 +14342,8 @@ snapshots:
   react-refresh@0.18.0: {}
 
   react@19.2.3: {}
+
+  react@19.2.4: {}
 
   read-installed@4.0.3:
     dependencies:
@@ -14908,6 +14965,13 @@ snapshots:
     optionalDependencies:
       '@babel/core': 7.29.0
 
+  styled-jsx@5.1.6(@babel/core@7.29.0)(react@19.2.4):
+    dependencies:
+      client-only: 0.0.1
+      react: 19.2.4
+    optionalDependencies:
+      '@babel/core': 7.29.0
+
   stylus-lookup@6.1.0:
     dependencies:
       commander: 12.1.0
@@ -15318,6 +15382,14 @@ snapshots:
       intl-messageformat: 11.1.2
       react: 19.2.3
 
+  use-intl@4.8.2(react@19.2.4):
+    dependencies:
+      '@formatjs/fast-memoize': 3.1.0
+      '@schummar/icu-type-parser': 1.21.5
+      icu-minify: 4.8.2
+      intl-messageformat: 11.1.2
+      react: 19.2.4
+
   util-deprecate@1.0.2: {}
 
   util-extend@1.0.3: {}
@@ -15644,12 +15716,12 @@ snapshots:
 
   zod@4.3.6: {}
 
-  zustand@5.0.10(@types/react@19.2.10)(react@19.2.3):
+  zustand@5.0.10(@types/react@19.2.13)(react@19.2.4):
     optionalDependencies:
-      '@types/react': 19.2.10
-      react: 19.2.3
+      '@types/react': 19.2.13
+      react: 19.2.4
 
-  zustand@5.0.11(@types/react@19.2.11)(react@19.2.3):
+  zustand@5.0.11(@types/react@19.2.13)(react@19.2.4):
     optionalDependencies:
-      '@types/react': 19.2.11
-      react: 19.2.3
+      '@types/react': 19.2.13
+      react: 19.2.4
