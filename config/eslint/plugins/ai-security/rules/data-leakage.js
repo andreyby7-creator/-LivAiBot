@@ -199,7 +199,15 @@ export default {
       }
 
       if (node.type === 'ObjectExpression') {
-        return node.properties.some(prop => containsSensitiveData(prop.value));
+        return node.properties.some(prop => {
+          if (prop.type === 'Property') {
+            return containsSensitiveData(prop.value);
+          }
+          if (prop.type === 'SpreadElement') {
+            return containsSensitiveData(prop.argument);
+          }
+          return false;
+        });
       }
 
       return false;

@@ -188,7 +188,7 @@ export default {
       const hasIsolation = args.some(arg => {
         if (arg.type === 'ObjectExpression') {
           return arg.properties.some(prop => {
-            if (prop.key.type === 'Identifier') {
+            if (prop.type === 'Property' && prop.key && prop.key.type === 'Identifier') {
               return ['isolated', 'sandbox', 'context', 'namespace'].includes(prop.key.name);
             }
             return false;
@@ -255,7 +255,7 @@ export default {
       const hasAccessControl = args.some(arg => {
         if (arg.type === 'ObjectExpression') {
           return arg.properties.some(prop => {
-            if (prop.key.type === 'Identifier') {
+            if (prop.type === 'Property' && prop.key && prop.key.type === 'Identifier') {
               return ['permissions', 'access', 'allowed', 'recipients'].includes(prop.key.name);
             }
             return false;
@@ -296,7 +296,8 @@ export default {
 
       if (node.type === 'ObjectExpression') {
         return node.properties.some(prop => {
-          if (prop.key.type === 'Identifier') {
+          // Проверяем только Property узлы (не SpreadElement)
+          if (prop.type === 'Property' && prop.key && prop.key.type === 'Identifier') {
             const propName = prop.key.name.toLowerCase();
             return /(state|context|memory|internal)/.test(propName);
           }
@@ -304,6 +305,7 @@ export default {
         });
       }
 
+      
       return false;
     }
 

@@ -78,6 +78,8 @@ devConfigWithRules.push({
   files: ['**/*.{test,spec}.{ts,tsx,js,jsx,mjs,cjs}'],
   rules: {
     'import/order': 'off', // Тестовые файлы могут иметь свободный порядок импортов
+    'fp/no-unused-expression': 'off', // expect() выражения в тестах - нормальная практика
+    'functional/prefer-immutable-types': 'off', // Тесты часто нуждаются в мутабельных данных
     ...applySeverityAwareRules(QUALITY_WITH_SEVERITY, 'test'), // explicit-function-return-type: off
   },
 });

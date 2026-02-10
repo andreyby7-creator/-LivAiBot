@@ -1,0 +1,131 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`AuthAuditEvent comprehensive snapshots > MFA success event - полный snapshot 1`] = `
+{
+  "clientApp": "web",
+  "context": {
+    "deviceName": "iPhone 14",
+    "mfaProvider": "authy",
+    "pushNotificationId": "push-notif-789",
+    "responseTimeMs": 2500,
+  },
+  "correlationId": "mfa-flow-456",
+  "deviceId": "device-789",
+  "eventId": "evt-test-123",
+  "geo": {
+    "city": "San Francisco",
+    "country": "US",
+    "lat": 37.7749,
+    "lng": -122.4194,
+    "region": "CA",
+  },
+  "ip": "192.168.1.1",
+  "mfaMethod": "push",
+  "sessionId": "session-456",
+  "timestamp": "2026-01-15T10:30:00.000Z",
+  "type": "mfa_success",
+  "userAgent": "Mozilla/5.0",
+  "userId": "user-123",
+}
+`;
+
+exports[`AuthAuditEvent comprehensive snapshots > login success event - полный snapshot 1`] = `
+{
+  "clientApp": "web",
+  "context": {
+    "browserFingerprint": "fp-abc123def456",
+    "deviceType": "desktop",
+    "loginMethod": "password",
+  },
+  "correlationId": "login-trace-123",
+  "deviceId": "device-789",
+  "eventId": "evt-test-123",
+  "geo": {
+    "city": "San Francisco",
+    "country": "US",
+    "lat": 37.7749,
+    "lng": -122.4194,
+    "region": "CA",
+  },
+  "ip": "192.168.1.1",
+  "riskScore": 10,
+  "sessionId": "session-456",
+  "timestamp": "2026-01-15T10:30:00.000Z",
+  "type": "login_success",
+  "userAgent": "Mozilla/5.0",
+  "userId": "user-123",
+}
+`;
+
+exports[`AuthAuditEvent comprehensive snapshots > risk detected event - полный snapshot 1`] = `
+{
+  "clientApp": "web",
+  "context": {
+    "confidence": 0.94,
+    "recommendedActions": [
+      "require_mfa",
+      "send_notification",
+      "flag_for_review",
+    ],
+    "riskFactors": [
+      "new_device",
+      "unusual_location",
+      "unusual_time",
+      "ip_velocity_high",
+    ],
+    "riskModel": "advanced_ml_v2",
+  },
+  "correlationId": "risk-analysis-789",
+  "deviceId": "device-789",
+  "eventId": "evt-test-123",
+  "geo": {
+    "city": "San Francisco",
+    "country": "US",
+    "lat": 37.7749,
+    "lng": -122.4194,
+    "region": "CA",
+  },
+  "ip": "192.168.1.1",
+  "riskScore": 87,
+  "sessionId": "session-456",
+  "timestamp": "2026-01-15T10:30:00.000Z",
+  "type": "risk_detected",
+  "userAgent": "Mozilla/5.0",
+  "userId": "user-123",
+}
+`;
+
+exports[`AuthAuditEvent comprehensive snapshots > security violation event - полный snapshot 1`] = `
+{
+  "clientApp": "web",
+  "context": {
+    "allowedCountries": [
+      "US",
+      "CA",
+      "GB",
+    ],
+    "blockedCountry": "RU",
+    "remediation": "block_ip",
+    "violationType": "geographic_restriction",
+  },
+  "correlationId": "corr-abc",
+  "deviceId": "device-789",
+  "errorCode": "GEO_BLOCKED",
+  "eventId": "evt-test-123",
+  "geo": {
+    "city": "San Francisco",
+    "country": "US",
+    "lat": 37.7749,
+    "lng": -122.4194,
+    "region": "CA",
+  },
+  "ip": "192.168.1.1",
+  "policyId": "geo-security-policy",
+  "riskScore": 100,
+  "sessionId": "session-456",
+  "timestamp": "2026-01-15T10:30:00.000Z",
+  "type": "policy_violation",
+  "userAgent": "Mozilla/5.0",
+  "userId": "user-123",
+}
+`;

@@ -1,0 +1,94 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`LoginRequest discriminated union - Email > email login request - snapshot 1`] = `
+{
+  "clientContext": {
+    "appVersion": "1.0.0",
+    "deviceId": "device-123",
+    "ip": "192.168.1.1",
+    "locale": "en-US",
+    "sessionId": "session-abc",
+    "timezone": "UTC",
+    "userAgent": "Mozilla/5.0",
+  },
+  "dtoVersion": "1.1",
+  "identifier": {
+    "type": "email",
+    "value": "test@example.com",
+  },
+  "mfa": {
+    "token": "123456",
+    "type": "totp",
+  },
+  "password": "testpass",
+  "rememberMe": false,
+}
+`;
+
+exports[`LoginRequest discriminated union - OAuth > oauth login request - snapshot 1`] = `
+{
+  "clientContext": {
+    "appVersion": "1.0.0",
+    "deviceId": "device-123",
+    "ip": "192.168.1.1",
+    "locale": "en-US",
+    "sessionId": "session-abc",
+    "timezone": "UTC",
+    "userAgent": "Mozilla/5.0",
+  },
+  "identifier": {
+    "type": "oauth",
+    "value": "oauth-123",
+  },
+  "mfa": [
+    {
+      "token": "111222",
+      "type": "sms",
+    },
+    {
+      "deviceId": "mobile-1",
+      "token": "push-token",
+      "type": "push",
+    },
+  ],
+  "password": "backup-pass",
+  "provider": "github",
+  "providerToken": "gh-token-xyz",
+  "rememberMe": true,
+}
+`;
+
+exports[`LoginRequest discriminated union - Phone > phone login request - snapshot 1`] = `
+{
+  "clientContext": {
+    "appVersion": "1.0.0",
+    "deviceId": "device-123",
+    "ip": "192.168.1.1",
+    "locale": "en-US",
+    "sessionId": "session-abc",
+    "timezone": "UTC",
+    "userAgent": "Mozilla/5.0",
+  },
+  "identifier": {
+    "type": "phone",
+    "value": "+1234567890",
+  },
+  "mfa": {
+    "deviceId": "phone-device",
+    "token": "123456",
+    "type": "sms",
+  },
+  "password": "testpass",
+}
+`;
+
+exports[`LoginRequest discriminated union - Username > username login request - snapshot 1`] = `
+{
+  "identifier": {
+    "type": "username",
+    "value": "testuser",
+  },
+  "password": "testpass",
+  "rememberMe": true,
+}
+`;
