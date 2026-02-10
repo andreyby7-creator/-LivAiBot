@@ -1,0 +1,90 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`EmailTemplateRequest comprehensive snapshots > login_alert template - полный snapshot 1`] = `
+{
+  "clientApp": "web",
+  "locale": "en-US",
+  "meta": {
+    "provider": "sendgrid",
+    "reason": "email_verification",
+  },
+  "templateId": "login-alert",
+  "timestamp": "2026-01-15T10:30:00.000Z",
+  "to": "user@example.com",
+  "type": "login_alert",
+  "userId": "user-123",
+  "variables": {
+    "device": "Chrome on Windows",
+    "location": "New York, US",
+    "timestamp": "2026-01-15T10:30:00Z",
+  },
+}
+`;
+
+exports[`EmailTemplateRequest comprehensive snapshots > mfa_code template - полный snapshot 1`] = `
+{
+  "clientApp": "web",
+  "locale": "en-US",
+  "meta": {
+    "provider": "sendgrid",
+    "reason": "email_verification",
+  },
+  "templateId": "mfa-code",
+  "timestamp": "2026-01-15T10:30:00.000Z",
+  "to": "user@example.com",
+  "type": "mfa_code",
+  "userId": "user-123",
+  "variables": {
+    "code": "123456",
+    "expiresIn": 300,
+  },
+}
+`;
+
+exports[`EmailTemplateRequest comprehensive snapshots > minimal template - полный snapshot 1`] = `
+{
+  "templateId": "minimal-template",
+  "to": "minimal@example.com",
+  "variables": {},
+}
+`;
+
+exports[`EmailTemplateRequest comprehensive snapshots > password_reset template - полный snapshot 1`] = `
+{
+  "clientApp": "web",
+  "locale": "en-US",
+  "meta": {
+    "flowId": "reset-flow-123",
+    "reason": "password_reset",
+  },
+  "templateId": "password-reset",
+  "timestamp": "2026-01-15T10:30:00.000Z",
+  "to": "user@example.com",
+  "type": "password_reset",
+  "userId": "user-123",
+  "variables": {
+    "expiresIn": 3600,
+    "resetLink": "https://app.example.com/reset?token=xyz789",
+  },
+}
+`;
+
+exports[`EmailTemplateRequest comprehensive snapshots > verify_email template - полный snapshot 1`] = `
+{
+  "clientApp": "web",
+  "locale": "en-US",
+  "meta": {
+    "provider": "sendgrid",
+    "reason": "email_verification",
+  },
+  "templateId": "verify-email",
+  "timestamp": "2026-01-15T10:30:00.000Z",
+  "to": "user@example.com",
+  "type": "verify_email",
+  "userId": "user-123",
+  "variables": {
+    "userName": "John Doe",
+    "verificationLink": "https://app.example.com/verify?token=abc123",
+  },
+}
+`;

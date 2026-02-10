@@ -1,0 +1,76 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`DeviceInfo comprehensive snapshots > IoT device - полный snapshot 1`] = `
+{
+  "appVersion": "1.0.0",
+  "browser": "Chrome 112.0.0.0",
+  "deviceId": "device-iot-abc",
+  "deviceType": "iot",
+  "geo": {
+    "lat": 55.7558,
+    "lng": 37.6173,
+  },
+  "ip": "192.168.1.100",
+  "lastUsedAt": "2026-01-15T10:30:00.000Z",
+  "os": "Linux 5.15",
+  "userAgent": "IoT-Device/1.0",
+}
+`;
+
+exports[`DeviceInfo comprehensive snapshots > desktop device - полный snapshot 1`] = `
+{
+  "appVersion": "1.0.3",
+  "browser": "Chrome 112.0.0.0",
+  "deviceId": "device-desktop-123",
+  "deviceType": "desktop",
+  "geo": {
+    "lat": 55.7558,
+    "lng": 37.6173,
+  },
+  "ip": "192.168.1.100",
+  "lastUsedAt": "2026-01-15T10:30:00.000Z",
+  "os": "Windows 11",
+  "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+}
+`;
+
+exports[`DeviceInfo comprehensive snapshots > minimal device - полный snapshot 1`] = `
+{
+  "deviceId": "device-minimal-snapshot",
+  "deviceType": "unknown",
+}
+`;
+
+exports[`DeviceInfo comprehensive snapshots > mobile device - полный snapshot 1`] = `
+{
+  "appVersion": "1.0.3",
+  "browser": "Safari 17.0",
+  "deviceId": "device-mobile-456",
+  "deviceType": "mobile",
+  "geo": {
+    "lat": 40.7128,
+    "lng": -74.006,
+  },
+  "ip": "10.0.0.1",
+  "lastUsedAt": "2026-01-15T10:30:00.000Z",
+  "os": "iOS 17.0",
+  "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+}
+`;
+
+exports[`DeviceInfo comprehensive snapshots > tablet device - полный snapshot 1`] = `
+{
+  "appVersion": "2.1.0",
+  "browser": "Safari 17.0",
+  "deviceId": "device-tablet-789",
+  "deviceType": "tablet",
+  "geo": {
+    "lat": 55.7558,
+    "lng": 37.6173,
+  },
+  "ip": "192.168.1.100",
+  "lastUsedAt": "2026-01-15T10:30:00.000Z",
+  "os": "iPadOS 17.0",
+  "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+}
+`;

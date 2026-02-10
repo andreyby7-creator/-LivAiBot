@@ -241,6 +241,7 @@ canaryConfig.push({
     'import/order': 'off', // Тестовые файлы могут иметь свободный порядок импортов
     'fp/no-unused-expression': 'off', // expect() выражения в тестах - нормальная практика
     'functional/prefer-immutable-types': 'off', // Тесты часто нуждаются в мутабельных данных
+    'ai-security/pii-detection': 'off', // Тестовые данные не являются реальными PII
     ...applySeverityAwareRules(QUALITY_WITH_SEVERITY, 'test'), // explicit-function-return-type: off
   },
 });

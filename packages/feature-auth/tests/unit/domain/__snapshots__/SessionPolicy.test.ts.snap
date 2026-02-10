@@ -1,0 +1,152 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`SessionPolicy comprehensive snapshots > full session policy - полный snapshot 1`] = `
+{
+  "geoPolicy": {
+    "allowCountries": [
+      "US",
+      "CA",
+      "GB",
+      "AU",
+      "NZ",
+    ],
+    "denyCountries": [
+      "RU",
+      "CN",
+      "KP",
+    ],
+  },
+  "idleTimeoutSeconds": 3600,
+  "ipPolicy": {
+    "allow": [
+      "192.168.0.0/16",
+      "10.0.0.0/8",
+      "172.16.0.0/12",
+    ],
+    "deny": [
+      "0.0.0.0/0",
+    ],
+  },
+  "maxConcurrentSessions": 10,
+  "meta": {
+    "origin": "api",
+    "priority": "high",
+    "tags": [
+      "enterprise",
+      "security",
+    ],
+    "version": "2.0",
+  },
+  "requireSameDeviceForRefresh": true,
+  "requireSameIpForRefresh": true,
+  "revokeOldestOnLimitExceeded": true,
+  "sessionTtlSeconds": 604800,
+}
+`;
+
+exports[`SessionPolicy comprehensive snapshots > minimal session policy - полный snapshot 1`] = `{}`;
+
+exports[`SessionPolicy comprehensive snapshots > session policy with geoPolicy - полный snapshot 1`] = `
+{
+  "geoPolicy": {
+    "allowCountries": [
+      "US",
+      "CA",
+      "GB",
+    ],
+    "denyCountries": [
+      "RU",
+      "CN",
+    ],
+  },
+  "idleTimeoutSeconds": 1800,
+  "ipPolicy": {
+    "allow": [
+      "192.168.1.0/24",
+      "10.0.0.0/8",
+    ],
+    "deny": [
+      "172.16.0.0/12",
+    ],
+  },
+  "maxConcurrentSessions": 5,
+  "meta": {
+    "origin": "admin-panel",
+    "version": "1.0",
+  },
+  "requireSameDeviceForRefresh": false,
+  "requireSameIpForRefresh": true,
+  "revokeOldestOnLimitExceeded": true,
+  "sessionTtlSeconds": 86400,
+}
+`;
+
+exports[`SessionPolicy comprehensive snapshots > session policy with ipPolicy - полный snapshot 1`] = `
+{
+  "geoPolicy": {
+    "allowCountries": [
+      "US",
+      "CA",
+      "GB",
+    ],
+    "denyCountries": [
+      "RU",
+      "CN",
+    ],
+  },
+  "idleTimeoutSeconds": 1800,
+  "ipPolicy": {
+    "allow": [
+      "192.168.1.0/24",
+      "10.0.0.0/8",
+    ],
+    "deny": [
+      "172.16.0.0/12",
+    ],
+  },
+  "maxConcurrentSessions": 5,
+  "meta": {
+    "origin": "admin-panel",
+    "version": "1.0",
+  },
+  "requireSameDeviceForRefresh": false,
+  "requireSameIpForRefresh": true,
+  "revokeOldestOnLimitExceeded": true,
+  "sessionTtlSeconds": 86400,
+}
+`;
+
+exports[`SessionPolicy comprehensive snapshots > session policy with maxConcurrentSessions - полный snapshot 1`] = `
+{
+  "geoPolicy": {
+    "allowCountries": [
+      "US",
+      "CA",
+      "GB",
+    ],
+    "denyCountries": [
+      "RU",
+      "CN",
+    ],
+  },
+  "idleTimeoutSeconds": 1800,
+  "ipPolicy": {
+    "allow": [
+      "192.168.1.0/24",
+      "10.0.0.0/8",
+    ],
+    "deny": [
+      "172.16.0.0/12",
+    ],
+  },
+  "maxConcurrentSessions": 3,
+  "meta": {
+    "origin": "admin-panel",
+    "version": "1.0",
+  },
+  "requireSameDeviceForRefresh": false,
+  "requireSameIpForRefresh": true,
+  "revokeOldestOnLimitExceeded": true,
+  "sessionTtlSeconds": 86400,
+}
+`;

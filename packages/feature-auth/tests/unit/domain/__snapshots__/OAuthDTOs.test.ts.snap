@@ -1,0 +1,92 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`OAuth requests comprehensive snapshots > full OAuthErrorResponse - полный snapshot 1`] = `
+{
+  "context": {
+    "redirectUri": "https://example.com/callback",
+    "scope": "openid profile email",
+  },
+  "correlationId": "corr-abc-123",
+  "error": "invalid_token",
+  "message": "OAuth access token is invalid or expired",
+  "provider": "google",
+  "providerErrorCode": "invalid_grant",
+  "retryable": false,
+  "statusCode": 401,
+  "timestamp": "2026-01-15T10:30:00.000Z",
+}
+`;
+
+exports[`OAuth requests comprehensive snapshots > full OAuthLoginRequest - полный snapshot 1`] = `
+{
+  "clientContext": {
+    "appVersion": "1.0.3",
+    "deviceId": "device-abc",
+    "geo": {
+      "lat": 55.7558,
+      "lng": 37.6173,
+    },
+    "ip": "192.168.1.1",
+    "locale": "en-US",
+    "sessionId": "session-abc",
+    "timezone": "UTC",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
+  },
+  "dtoVersion": "1.0",
+  "meta": {
+    "step": "oauth-login",
+  },
+  "provider": "google",
+  "providerToken": "oauth-access-token-123",
+}
+`;
+
+exports[`OAuth requests comprehensive snapshots > full OAuthRegisterRequest - полный snapshot 1`] = `
+{
+  "clientContext": {
+    "appVersion": "1.0.3",
+    "deviceId": "device-abc",
+    "geo": {
+      "lat": 55.7558,
+      "lng": 37.6173,
+    },
+    "ip": "192.168.1.1",
+    "locale": "en-US",
+    "sessionId": "session-abc",
+    "timezone": "UTC",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
+  },
+  "displayName": "John Doe",
+  "dtoVersion": "1.0",
+  "email": "user@example.com",
+  "meta": {
+    "step": "oauth-register",
+  },
+  "provider": "google",
+  "providerData": {
+    "id": "provider-user-id",
+    "picture": "https://example.com/avatar.jpg",
+  },
+  "providerToken": "oauth-access-token-456",
+}
+`;
+
+exports[`OAuth requests comprehensive snapshots > minimal OAuthErrorResponse - полный snapshot 1`] = `
+{
+  "error": "invalid_token",
+}
+`;
+
+exports[`OAuth requests comprehensive snapshots > minimal OAuthLoginRequest - полный snapshot 1`] = `
+{
+  "provider": "google",
+  "providerToken": "oauth-access-token-123",
+}
+`;
+
+exports[`OAuth requests comprehensive snapshots > minimal OAuthRegisterRequest - полный snapshot 1`] = `
+{
+  "provider": "google",
+  "providerToken": "oauth-access-token-456",
+}
+`;

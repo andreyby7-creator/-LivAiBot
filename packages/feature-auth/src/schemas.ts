@@ -35,12 +35,16 @@ const ERROR_INVALID_URL_FORMAT = 'Invalid URL format';
 // Константы для ограничений длины (защита от ReDoS)
 const MAX_ISO_8601_DATETIME_LENGTH = 30; // Максимальная длина ISO 8601 datetime строки
 const MAX_EMAIL_LENGTH = 320; // Максимальная длина email (RFC 5321)
+const MIN_PHONE_CODE_LENGTH = 4; // Минимальная длина SMS кода подтверждения
+const MAX_PHONE_CODE_LENGTH = 8; // Максимальная длина SMS кода подтверждения
 
 // Безопасные регулярные выражения (с ограничением длины для предотвращения ReDoS)
 // eslint-disable-next-line functional/prefer-immutable-types, security/detect-unsafe-regex -- Regex константы неизменяемы по определению; безопасен благодаря ограничению длины строки (MAX_ISO_8601_DATETIME_LENGTH)
 const ISO_8601_DATETIME_REGEX = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{3})?Z$/;
 // eslint-disable-next-line functional/prefer-immutable-types -- Regex константы неизменяемы по определению
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+// eslint-disable-next-line functional/prefer-immutable-types -- Regex константы неизменяемы по определению
+const NUMERIC_CODE_REGEX = /^\d+$/; // Только цифры для SMS кода подтверждения
 
 /* ============================================================================
  * 🔧 ESLINT CONFIGURATION
@@ -400,8 +404,39 @@ export type VerifyEmailRequestValues = ZodType.infer<typeof verifyEmailRequestSc
 
 // Phone verification request schema
 export const verifyPhoneRequestSchema = z.object({
-  token: z.string(), // Токен верификации телефона
-  phoneNumber: z.string(), // Номер телефона для верификации
+  dtoVersion: z.enum(['1.0', '1.1']).optional(), // Версия DTO для безопасного evolution API
+  phone: z.string(), // Номер телефона в международном формате (E.164)
+  code: z.string().min(MIN_PHONE_CODE_LENGTH).max(MAX_PHONE_CODE_LENGTH).refine(
+    (val) => NUMERIC_CODE_REGEX.test(val),
+    {
+      message: 'Code must contain only digits',
+    },
+  ), // Код подтверждения, выданный через SMS (numeric, 4-8 цифр)
+  /* eslint-disable-next-line @livai/rag/context-leakage -- Клиентский контекст для безопасности и аудита */
+  clientContext: z.object({ // Опциональные метаданные клиента
+    ip: z.string().optional(), // IP адрес клиента
+    deviceId: z.string().optional(), // Идентификатор устройства
+    userAgent: z.string().optional(), // User-Agent клиента
+    locale: z.string().optional(), // Локаль клиента
+    timezone: z.string().optional(), // Часовой пояс клиента
+    geo: z.object({ // Геолокационная информация
+      lat: z.number(), // Широта
+      lng: z.number(), // Долгота
+    }).optional(),
+    /* eslint-disable-next-line @livai/rag/context-leakage -- Идентификатор сессии для безопасности и аудита */
+    sessionId: z.string().optional(), // Идентификатор сессии
+    appVersion: z.string().optional(), // Версия приложения
+  }).optional(),
+  redirectUrl: z.string().refine((val) => {
+    try {
+      const _url = new URL(val);
+      return Boolean(_url);
+    } catch {
+      return false;
+    }
+  }, {
+    message: ERROR_INVALID_URL_FORMAT,
+  }).optional(), // Опциональная ссылка для redirect после подтверждения
 }).strict();
 
 export type VerifyPhoneRequestValues = ZodType.infer<typeof verifyPhoneRequestSchema>;

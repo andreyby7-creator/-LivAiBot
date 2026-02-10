@@ -57,8 +57,8 @@ export type EmailTemplateRequest = {
   /** Язык / локаль шаблона */
   readonly locale?: string;
 
-  /** Переменные, подставляемые в шаблон */
-  readonly variables?: Record<string, string | number | boolean>;
+  /** Переменные, подставляемые в шаблон (может быть пустым объектом для шаблонов без переменных) */
+  readonly variables: Record<string, string | number | boolean>;
 
   /** Клиентское приложение-инициатор */
   readonly clientApp?: string;
