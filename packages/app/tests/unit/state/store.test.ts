@@ -111,6 +111,7 @@ function createMockStoreActions(): AppStoreActions {
     clearAuth: vi.fn(),
     setAuthLoading: vi.fn(),
     reset: vi.fn(),
+    resetSoft: vi.fn(),
   };
 }
 
@@ -202,6 +203,7 @@ describe('Type exports', () => {
     expect(typeof actions.clearAuth).toBe('function');
     expect(typeof actions.setAuthLoading).toBe('function');
     expect(typeof actions.reset).toBe('function');
+    expect(typeof actions.resetSoft).toBe('function');
   });
 
   it('AppStore тип комбинирует state и actions', () => {
@@ -344,6 +346,7 @@ describe('useAppStore - Unit Tests', () => {
     expect(store.actions).toHaveProperty('setOnline');
     expect(store.actions).toHaveProperty('setAuthenticatedUser');
     expect(store.actions).toHaveProperty('reset');
+    expect(store.actions).toHaveProperty('resetSoft');
   });
 
   it('инициализируется с правильными начальными значениями', () => {
@@ -479,6 +482,36 @@ describe('useAppStore - Unit Tests', () => {
         isLoading: false,
       });
       expect(state.isOnline).toBe(true);
+    });
+
+    it('resetSoft сбрасывает только runtime состояние', () => {
+      // First modify state - set persistent and runtime values
+      const user = createMockUser();
+      useAppStore.getState().actions.setAuthenticatedUser(user);
+      useAppStore.getState().actions.setTheme('dark'); // persistent
+      useAppStore.getState().actions.setOnline(false); // runtime
+      useAppStore.getState().actions.setAuthTokens({
+        accessToken: 'test-access',
+        refreshToken: 'test-refresh',
+        expiresAt: 1234567890000,
+      });
+      useAppStore.getState().actions.setAuthLoading(true); // runtime
+
+      // Soft reset
+      useAppStore.getState().actions.resetSoft();
+
+      // Check that persistent state is preserved
+      const state = useAppStore.getState();
+      expect(state.theme).toBe('dark'); // persistent - should remain
+      expect(state.auth.accessToken).toBe('test-access'); // persistent - should remain
+      expect(state.auth.refreshToken).toBe('test-refresh'); // persistent - should remain
+      expect(state.auth.expiresAt).toBe(1234567890000); // persistent - should remain
+
+      // Check that runtime state is reset
+      expect(state.user).toBe(null); // runtime - should be reset
+      expect(state.userStatus).toBe('anonymous'); // runtime - should be reset
+      expect(state.isOnline).toBe(false); // current network status - should remain (not reset)
+      expect(state.auth.isLoading).toBe(false); // runtime - should be reset
     });
   });
 });

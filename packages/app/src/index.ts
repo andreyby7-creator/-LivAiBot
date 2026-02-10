@@ -219,6 +219,7 @@ export {
  * ========================================================================== */
 
 export * from './state/store.js';
+export * from './state/reset.js';
 export * from './state/query/query-client.js';
 
 /* ============================================================================
@@ -275,6 +276,7 @@ export * from './ui/user-profile-display.js';
  * ========================================================================== */
 
 export * from './events/app-events.js';
+export * from './events/app-lifecycle-events.js';
 export * from './events/event-bus.js';
 // Контракты событий документированы в ./events/event-contracts.md
 

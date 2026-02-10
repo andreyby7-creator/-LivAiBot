@@ -106,6 +106,7 @@ describe('useAuth hook', () => {
     setOnline: vi.fn(),
     setAuthenticatedUser: vi.fn(),
     reset: vi.fn(),
+    resetSoft: vi.fn(),
   };
 
   const mockStore: AppStore = {

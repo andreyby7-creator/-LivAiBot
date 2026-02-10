@@ -131,6 +131,9 @@ export type AppStoreActions = Readonly<{
 
   /** Сбрасывает состояние к безопасному baseline. */
   readonly reset: () => void;
+
+  /** Минимальный сброс только runtime состояния (пользователь, статусы загрузки). */
+  readonly resetSoft: () => void;
 }>;
 
 /* ========================================================================== */
@@ -260,6 +263,18 @@ export const useAppStore = create<AppStore>()(
 
         reset: (): void => {
           set(createInitialState());
+        },
+
+        resetSoft: (): void => {
+          set((state) => ({
+            ...state,
+            user: null,
+            userStatus: 'anonymous',
+            auth: {
+              ...state.auth,
+              isLoading: false,
+            },
+          }));
         },
       },
     })),

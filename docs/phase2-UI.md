@@ -268,22 +268,23 @@ apps/web (тонкий композитор)
 1️⃣1️⃣5️⃣ packages/app/src/ui/language-selector.tsx 🟢 — ts+react — deps: ui-core/components/LanguageSelector.tsx, providers/UnifiedUIProvider.tsx, app/types/ui-contracts.ts
 1️⃣1️⃣6️⃣ packages/app/src/ui/support-button.tsx 🟢 — ts+react — deps: ui-core/components/SupportButton.tsx, providers/UnifiedUIProvider.tsx, app/types/ui-contracts.ts
 
-App routing & navigation
+✅ App routing & navigation
 1️⃣1️⃣7️⃣ packages/app/src/routes/routes.ts 🟢 — ts — deps: types/common.ts — (декларативный список всех routes)
 1️⃣1️⃣8️⃣ packages/app/src/routes/route-meta.ts 🟢 — ts — deps: routes.ts, route-permissions.ts, types/common.ts — (permissions, flags, auth-required)
 1️⃣1️⃣9️⃣ packages/app/src/routes/navigation.ts 🟢 — ts — deps: route-meta.ts, routes.ts, types/common.ts — (sidebar/menu/navigation config)
 
-App events / signals
-1️⃣2️⃣0️⃣ packages/app/src/events/app-events.ts 🟢 — ts — deps: types/common.ts, zod, uuid — (logout, authExpired, billingChanged)
-1️⃣2️⃣1️⃣ packages/app/src/events/event-bus.ts 🟢 — ts — deps: app-events.ts — (typed event bus)
+✅ App events / signals
+1️⃣2️⃣0️⃣ packages/app/src/events/app-lifecycle-events.ts 🟢 — ts — deps: types/common.ts — (lifecycle event hub)
+1️⃣2️⃣1️⃣ packages/app/src/events/app-events.ts 🟢 — ts — deps: types/common.ts, zod, uuid — (logout, authExpired, billingChanged)
+1️⃣2️⃣2️⃣ packages/app/src/events/event-bus.ts 🟢 — ts — deps: app-events.ts — (typed event bus)
 
-App background & scheduler
-1️⃣2️⃣2️⃣ packages/app/src/background/scheduler.ts 🟢 — ts+effect — deps: events/app-events.ts, events/event-bus.ts, lib/telemetry.ts — (адаптивный планировщик задач с приоритетами)
-1️⃣2️⃣3️⃣ packages/app/src/background/tasks.ts 🟢 — ts+effect — deps: scheduler.ts, events/app-events.ts, events/event-bus.ts — (refresh, sync, retry via scheduler)
+✅ App background & scheduler
+1️⃣2️⃣3️⃣ packages/app/src/background/scheduler.ts 🟢 — ts+effect — deps: events/app-events.ts, events/event-bus.ts, lib/telemetry.ts — (адаптивный планировщик задач с приоритетами)
+1️⃣2️⃣4️⃣ packages/app/src/background/tasks.ts 🟢 — ts+effect — deps: scheduler.ts, events/app-events.ts, events/event-bus.ts — (refresh, sync, retry via scheduler)
 
 App lifecycle
-1️⃣2️⃣4️⃣ packages/app/src/state/reset.ts 🔴 — ts — deps: state/store.ts, events/app-events.ts — (глобальный reset state при logout)
-1️⃣2️⃣5️⃣ packages/app/src/lib/app-lifecycle.ts 🔴 — ts — deps: background/tasks.ts, events/app-events.ts — (bootstrap / teardown lifecycle)
+1️⃣2️⃣5️⃣ packages/app/src/state/reset.ts 🟢 — ts — deps: state/store.ts, events/app-lifecycle-events.ts — (глобальный reset state при logout)
+1️⃣2️⃣6️⃣ packages/app/src/lib/app-lifecycle.ts 🔴 — ts — deps: background/tasks.ts, events/app-lifecycle-events.ts — (bootstrap / teardown lifecycle)
 
 Feature Auth
 1️⃣2️⃣6️⃣ packages/feature-auth/src/domain/LoginRequest.ts 🔴 — ts — deps: — , (DTO login, только типы запроса)
