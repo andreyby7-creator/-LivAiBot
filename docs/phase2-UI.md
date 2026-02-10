@@ -282,9 +282,9 @@ apps/web (тонкий композитор)
 1️⃣2️⃣3️⃣ packages/app/src/background/scheduler.ts 🟢 — ts+effect — deps: events/app-events.ts, events/event-bus.ts, lib/telemetry.ts — (адаптивный планировщик задач с приоритетами)
 1️⃣2️⃣4️⃣ packages/app/src/background/tasks.ts 🟢 — ts+effect — deps: scheduler.ts, events/app-events.ts, events/event-bus.ts — (refresh, sync, retry via scheduler)
 
-App lifecycle
+✅ App lifecycle
 1️⃣2️⃣5️⃣ packages/app/src/state/reset.ts 🟢 — ts — deps: state/store.ts, events/app-lifecycle-events.ts — (глобальный reset state при logout)
-1️⃣2️⃣6️⃣ packages/app/src/lib/app-lifecycle.ts 🔴 — ts — deps: background/tasks.ts, events/app-lifecycle-events.ts — (bootstrap / teardown lifecycle)
+1️⃣2️⃣6️⃣ packages/app/src/lib/app-lifecycle.ts 🟢 — ts — deps: background/tasks.ts, events/app-lifecycle-events.ts, types/common.ts — (app lifecycle orchestrator: bootstrap/teardown, staged execution, event subscriptions)
 
 Feature Auth
 1️⃣2️⃣6️⃣ packages/feature-auth/src/domain/LoginRequest.ts 🔴 — ts — deps: — , (DTO login, только типы запроса)

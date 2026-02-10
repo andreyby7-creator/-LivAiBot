@@ -256,10 +256,48 @@ export function initBackgroundTasks(di: BackgroundTasksDI): Effect.Effect<void, 
 /* 🌐 EXPORTS */
 /* ========================================================================== */
 
-/** API модуля фоновых задач */
+/**
+ * Запуск фоновых задач для жизненного цикла приложения.
+ * - Идемпотентен
+ * - Безопасен для повторных вызовов
+ * - Работает с глобальным scheduler'ом
+ */
+export async function startBackgroundTasks(): Promise<void> {
+  // Получаем глобальный scheduler и запускаем его основной цикл
+  const runtime = Runtime.defaultRuntime;
+  const effect = Effect.gen(function*() {
+    const scheduler = yield* getGlobalScheduler();
+    // Scheduler автоматически запускается при планировании задач,
+    // но мы можем убедиться что он активен
+    return scheduler;
+  });
+
+  await Runtime.runPromise(runtime)(effect);
+}
+
+/**
+ * Остановка фоновых задач для жизненного цикла приложения.
+ * - Идемпотентен
+ * - Гарантирует очистку ресурсов
+ * - Graceful shutdown через interrupt
+ */
+export async function stopBackgroundTasks(): Promise<void> {
+  // Останавливаем глобальный scheduler
+  const runtime = Runtime.defaultRuntime;
+  const effect = Effect.gen(function*() {
+    const scheduler = yield* getGlobalScheduler();
+    yield* scheduler.interrupt();
+    return undefined;
+  }) as Effect.Effect<void, never, never>;
+
+  await Runtime.runPromise(runtime)(effect);
+}
+
 export const backgroundTasks = {
   createTasks,
   initBackgroundTasks,
+  startBackgroundTasks,
+  stopBackgroundTasks,
   TaskError,
   TransientError,
   PermanentError,

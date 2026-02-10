@@ -73,6 +73,9 @@ export enum AppLifecycleEvent {
 
   /** Глобальный reset состояния приложения */
   APP_RESET = 'app:reset',
+
+  /** Ошибка в lifecycle handler'е */
+  APP_LIFECYCLE_HANDLER_ERROR = 'app:lifecycle-handler-error',
 }
 
 /* ============================================================================

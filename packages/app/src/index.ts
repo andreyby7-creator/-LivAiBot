@@ -129,15 +129,32 @@ export {
   type UncontrolledFieldProps,
 } from './types/ui-contracts.js';
 
+// Экспортируем типы lifecycle
+export {
+  type LifecycleHookEvent,
+  type LifecycleHookHandler,
+  type LifecycleStage,
+} from './lib/app-lifecycle.js';
+
 /* ============================================================================
  * 🛠️ LIB — УТИЛИТЫ И КЛИЕНТЫ
  * ========================================================================== */
 
 export * from './lib/api-client.js';
+export * from './lib/api-schema-guard.js';
+export * from './lib/auth-guard.js';
+// Явный экспорт из auth-service для избежания конфликта с AuthError из auth-guard
+export {
+  type AuthError as AuthServiceError,
+  authService,
+  createAuthService,
+} from './lib/auth-service.js';
+export { appLifecycle } from './lib/app-lifecycle.js';
 export * from './lib/effect-utils.js';
 export * from './lib/error-mapping.js';
 export * from './lib/feature-flags.js';
 // export * from './lib/i18n.js'; // Временно отключен для E2E из-за конфликта с next-intl
+export * from './lib/logger.js';
 // pipeEffects конфликтует с effect-utils, экспортируем явно
 export {
   type CacheEntry,
@@ -150,6 +167,8 @@ export {
   type OfflineCacheResult,
   type OfflineCacheStore,
 } from './lib/offline-cache.js';
+export * from './lib/performance.js';
+export * from './lib/route-permissions.js';
 export {
   type Client,
   type Clients,
@@ -171,21 +190,10 @@ export {
   type WindowClient,
 } from './lib/service-worker.js';
 export * from './lib/sse-client.js';
+export { telemetryBatchCore } from './lib/telemetry.batch-core.js';
 export * from './lib/telemetry.js';
 export * from './lib/validation.js';
 export * from './lib/websocket.js';
-export * from './lib/api-schema-guard.js';
-export * from './lib/performance.js';
-export * from './lib/auth-guard.js';
-export * from './lib/route-permissions.js';
-export * from './lib/logger.js';
-// Явный экспорт из auth-service для избежания конфликта с AuthError из auth-guard
-export {
-  type AuthError as AuthServiceError,
-  authService,
-  createAuthService,
-} from './lib/auth-service.js';
-export { telemetryBatchCore } from './lib/telemetry.batch-core.js';
 
 /* ============================================================================
  * ⚙️ BACKGROUND — ФОНОВЫЕ ЗАДАЧИ И ПЛАНИРОВЩИК

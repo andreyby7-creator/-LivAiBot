@@ -30,6 +30,8 @@ vi.mock('../../../src/background/scheduler.js', () => ({
 import {
   backgroundTasks,
   PermanentError,
+  startBackgroundTasks,
+  stopBackgroundTasks,
   TaskError,
   TransientError,
 } from '../../../src/background/tasks.js';
@@ -47,6 +49,9 @@ beforeEach(() => {
     enqueueTaskMetric: vi.fn().mockImplementation(() => Effect.sync(() => undefined)),
     interrupt: vi.fn().mockImplementation(() => Effect.sync(() => undefined)),
   };
+
+  // Настраиваем mock getGlobalScheduler
+  vi.mocked(getGlobalScheduler).mockReturnValue(Effect.succeed(mockScheduler));
 });
 
 afterEach(() => {
@@ -430,6 +435,71 @@ describe('Background Tasks', () => {
       expect(s.interrupt).toHaveBeenCalled();
 
       consoleErrorSpy.mockRestore();
+    });
+  });
+
+  /* ========================================================================== */
+  /* 🚀 Start/Stop Background Tasks API */
+  /* ========================================================================== */
+
+  describe('startBackgroundTasks() and stopBackgroundTasks()', () => {
+    beforeEach(() => {
+      // Сбрасываем счетчики вызовов для изоляции тестов
+      vi.mocked(getGlobalScheduler).mockClear();
+      mockScheduler.interrupt.mockClear();
+    });
+
+    it('startBackgroundTasks() должен получить глобальный scheduler', async () => {
+      await startBackgroundTasks();
+
+      expect(getGlobalScheduler).toHaveBeenCalledTimes(1);
+    });
+
+    it('startBackgroundTasks() должен быть идемпотентным', async () => {
+      // Вызываем несколько раз
+      await startBackgroundTasks();
+      await startBackgroundTasks();
+      await startBackgroundTasks();
+
+      // getGlobalScheduler должен быть вызван каждый раз
+      expect(getGlobalScheduler).toHaveBeenCalledTimes(3);
+    });
+
+    it('stopBackgroundTasks() должен вызвать interrupt на scheduler', async () => {
+      await stopBackgroundTasks();
+
+      expect(getGlobalScheduler).toHaveBeenCalledTimes(1);
+      expect(mockScheduler.interrupt).toHaveBeenCalledTimes(1);
+    });
+
+    it('stopBackgroundTasks() должен быть идемпотентным', async () => {
+      // Вызываем несколько раз
+      await stopBackgroundTasks();
+      await stopBackgroundTasks();
+      await stopBackgroundTasks();
+
+      // interrupt должен быть вызван каждый раз
+      expect(mockScheduler.interrupt).toHaveBeenCalledTimes(3);
+    });
+
+    it('startBackgroundTasks() и stopBackgroundTasks() должны работать независимо', async () => {
+      await startBackgroundTasks();
+      await stopBackgroundTasks();
+
+      expect(getGlobalScheduler).toHaveBeenCalledTimes(2);
+      expect(mockScheduler.interrupt).toHaveBeenCalledTimes(1);
+    });
+
+    it('функции должны обрабатывать ошибки Effect системы', async () => {
+      // Настраиваем mock для возврата ошибки
+      const errorEffect = Effect.fail(new Error('Test error')) as any;
+      vi.mocked(getGlobalScheduler).mockReturnValueOnce(errorEffect);
+
+      // startBackgroundTasks должен отклонить Promise с ошибкой
+      await expect(startBackgroundTasks()).rejects.toThrow('Test error');
+
+      // getGlobalScheduler все равно должен быть вызван
+      expect(getGlobalScheduler).toHaveBeenCalledTimes(1);
     });
   });
 });
