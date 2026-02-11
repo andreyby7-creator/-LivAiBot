@@ -214,108 +214,112 @@ apps/web (тонкий композитор)
 6️⃣5️⃣ packages/app/src/lib/route-permissions.ts 🟢 — ts — deps: lib/auth-guard.ts — (декларативная конфигурация: requiresAuth, permissions, roles)
 6️⃣6️⃣ packages/app/src/lib/logger.ts 🟢 — ts — deps: types/common.ts, lib/telemetry.ts
 6️⃣7️⃣ packages/app/src/lib/effect-timeout.ts 🟢 — ts+effect — deps: lib/effect-utils.ts
+6️⃣8️⃣ packages/app/src/lib/effect-isolation.ts 🟢 — ts+effect — deps: lib/effect-utils.ts
+6️⃣9️⃣ packages/app/src/lib/schema-validated-effect.ts 🟢 — ts+effect — deps: lib/api-schema-guard.ts, lib/error-mapping.ts, lib/effect-utils.ts
+7️⃣0️⃣ packages/app/src/lib/orchestrator.ts 🟢 — ts+effect — deps: lib/effect-timeout.ts, lib/effect-isolation.ts, lib/telemetry.ts, lib/effect-utils.ts
 
 ✅ App state, provider и hooks
-6️⃣7️⃣ packages/app/src/state/store.ts 🟢 — ts+zustand — deps: types/common.ts
-6️⃣8️⃣ packages/app/src/state/query/query-client.ts 🟢 — ts+react — deps: lib/telemetry.ts
-6️⃣9️⃣ packages/app/src/providers/TelemetryProvider.tsx 🟢 — ts+react — deps: lib/telemetry.ts, types/telemetry.ts, types/ui-contracts.ts
-7️⃣0️⃣ packages/app/src/providers/FeatureFlagsProvider.tsx 🟢 — ts+zustand — deps: lib/feature-flags.ts, types/common.ts, types/ui-contracts.ts
-7️⃣1️⃣ packages/app/src/providers/QueryClientProvider.tsx 🟢 — ts+react — deps: state/query/query-client.ts, types/ui-contracts.ts
-7️⃣2️⃣ packages/app/src/providers/ToastProvider.tsx 🟢 — ts+react — deps: providers/TelemetryProvider.tsx, types/ui-contracts.ts
-7️⃣3️⃣ packages/app/src/providers/UnifiedUIProvider.tsx 🟢 — ts+react — deps: providers/: FeatureFlagsProvider.tsx, intl-provider.tsx, TelemetryProvider.tsx, lib/i18n.ts, types/ui-contracts.ts
-7️⃣4️⃣ packages/app/src/providers/AppProviders.tsx 🟢 — ts+react — deps: providers/intl-provider.tsx, providers/FeatureFlagsProvider.tsx, providers/TelemetryProvider.tsx, providers/QueryClientProvider.tsx, providers/ToastProvider.tsx, providers/UnifiedUIProvider.tsx, hooks/useAuth.ts, lib/auth-guard.ts, state/store.ts, types/ui-contracts.ts
-7️⃣5️⃣ packages/app/src/bootstrap.tsx 🟢 — ts+react — deps: providers/AppProviders.tsx
-7️⃣6️⃣ packages/app/src/hooks/useApi.ts 🟢 — ts+react+effect — deps: lib/api-client.ts, lib/api-schema-guard.ts, lib/error-mapping.ts, lib/telemetry.ts, types/api.ts, types/ui-contracts.ts
-7️⃣7️⃣ packages/app/src/hooks/useAuth.ts 🟢 — ts+react+effect — deps: lib/auth-service.ts, state/store.ts
-7️⃣8️⃣ packages/app/src/hooks/useToast.ts 🟢 — ts+react — deps: providers/ToastProvider.tsx, lib/telemetry.ts, types/ui-contracts.ts
-7️⃣9️⃣ packages/app/src/hooks/useFeatureFlags.ts 🟢 — ts+react — deps: providers/FeatureFlagsProvider.tsx, lib/feature-flags.ts, types/common.ts, types/ui-contracts.ts
-8️⃣0️⃣ packages/app/src/hooks/useOfflineCache.ts 🟢 — ts+react+effect — deps: lib/effect-utils.ts, lib/offline-cache.ts, types/ui-contracts.ts
+7️⃣1️⃣ packages/app/src/state/store-utils.ts 🟢 — ts — deps: state/store.ts
+7️⃣2️⃣ packages/app/src/state/store.ts 🟢 — ts+zustand — deps: types/common.ts
+7️⃣3️⃣ packages/app/src/state/query/query-client.ts 🟢 — ts+react — deps: lib/telemetry.ts
+7️⃣4️⃣ packages/app/src/providers/TelemetryProvider.tsx 🟢 — ts+react — deps: lib/telemetry.ts, types/telemetry.ts, types/ui-contracts.ts
+7️⃣5️⃣ packages/app/src/providers/FeatureFlagsProvider.tsx 🟢 — ts+zustand — deps: lib/feature-flags.ts, types/common.ts, types/ui-contracts.ts
+7️⃣6️⃣ packages/app/src/providers/QueryClientProvider.tsx 🟢 — ts+react — deps: state/query/query-client.ts, types/ui-contracts.ts
+7️⃣7️⃣ packages/app/src/providers/ToastProvider.tsx 🟢 — ts+react — deps: providers/TelemetryProvider.tsx, types/ui-contracts.ts
+7️⃣8️⃣ packages/app/src/providers/UnifiedUIProvider.tsx 🟢 — ts+react — deps: providers/: FeatureFlagsProvider.tsx, intl-provider.tsx, TelemetryProvider.tsx, lib/i18n.ts, types/ui-contracts.ts
+7️⃣9️⃣ packages/app/src/providers/AppProviders.tsx 🟢 — ts+react — deps: providers/intl-provider.tsx, providers/FeatureFlagsProvider.tsx, providers/TelemetryProvider.tsx, providers/QueryClientProvider.tsx, providers/ToastProvider.tsx, providers/UnifiedUIProvider.tsx, hooks/useAuth.ts, lib/auth-guard.ts, state/store.ts, types/ui-contracts.ts
+8️⃣0️⃣ packages/app/src/bootstrap.tsx 🟢 — ts+react — deps: providers/AppProviders.tsx
+8️⃣1️⃣ packages/app/src/hooks/useApi.ts 🟢 — ts+react+effect — deps: lib/api-client.ts, lib/api-schema-guard.ts, lib/error-mapping.ts, lib/telemetry.ts, types/api.ts, types/ui-contracts.ts
+8️⃣2️⃣ packages/app/src/hooks/useAuth.ts 🟢 — ts+react+effect — deps: lib/auth-service.ts, state/store.ts
+8️⃣3️⃣ packages/app/src/hooks/useToast.ts 🟢 — ts+react — deps: providers/ToastProvider.tsx, lib/telemetry.ts, types/ui-contracts.ts
+8️⃣4️⃣ packages/app/src/hooks/useFeatureFlags.ts 🟢 — ts+react — deps: providers/FeatureFlagsProvider.tsx, lib/feature-flags.ts, types/common.ts, types/ui-contracts.ts
+8️⃣5️⃣ packages/app/src/hooks/useOfflineCache.ts 🟢 — ts+react+effect — deps: lib/effect-utils.ts, lib/offline-cache.ts, types/ui-contracts.ts
 
 ✅ App UI wrappers (enabled: telemetry, feature-flags, i18n)
-8️⃣1️⃣ packages/app/src/ui/button.tsx 🟢 — ts+react — deps: ui-core/primitives/button.tsx, providers/UnifiedUIProvider.tsx, app/types/ui-contracts.ts
-8️⃣2️⃣ packages/app/src/ui/input.tsx 🟢 — ts+react — deps: ui-core/src/index.tsx, providers/UnifiedUIProvider.tsx, app/types/ui-contracts.ts
-8️⃣3️⃣ packages/app/src/ui/textarea.tsx 🟢 — ts+react — deps: ui-core/primitives/textarea.tsx, providers/UnifiedUIProvider.tsx, app/types/ui-contracts.ts
-8️⃣4️⃣ packages/app/src/ui/select.tsx 🟢 — ts+react — deps: ui-core/primitives/select.tsx, providers/UnifiedUIProvider.tsx, app/types/ui-contracts.ts
-8️⃣5️⃣ packages/app/src/ui/checkbox.tsx 🟢 — ts+react — deps: ui-core/primitives/checkbox.tsx, providers/UnifiedUIProvider.tsx, app/types/ui-contracts.ts
-8️⃣6️⃣ packages/app/src/ui/radio.tsx 🟢 — ts+react — deps: ui-core/primitives/radio.tsx, providers/UnifiedUIProvider.tsx, app/types/ui-contracts.ts
-8️⃣7️⃣ packages/app/src/ui/toggle.tsx 🟢 — ts+react — deps: ui-core/primitives/toggle.tsx, providers/UnifiedUIProvider.tsx, app/types/ui-contracts.ts
-8️⃣8️⃣ packages/app/src/ui/icon.tsx 🟢 — ts+react — deps: ui-core/primitives/icon.tsx, providers/UnifiedUIProvider.tsx, app/types/ui-contracts.ts
-8️⃣9️⃣ packages/app/src/ui/avatar.tsx 🟢 — ts+react — deps: ui-core/primitives/avatar.tsx, providers/UnifiedUIProvider.tsx, app/types/ui-contracts.ts
-9️⃣0️⃣ packages/app/src/ui/badge.tsx 🟢 — ts+react — deps: ui-core/primitives/badge.tsx, providers/UnifiedUIProvider.tsx, app/types/ui-contracts.ts
-9️⃣1️⃣ packages/app/src/ui/tooltip.tsx 🟢 — ts+react — deps: ui-core/primitives/tooltip.tsx, providers/UnifiedUIProvider.tsx, app/types/ui-contracts.ts
-9️⃣2️⃣ packages/app/src/ui/divider.tsx 🟢 — ts+react — deps: ui-core/primitives/divider.tsx, providers/UnifiedUIProvider.tsx, app/types/ui-contracts.ts
-9️⃣3️⃣ packages/app/src/ui/card.tsx 🟢 — ts+react — deps: ui-core/primitives/card.tsx, providers/UnifiedUIProvider.tsx, app/types/ui-contracts.ts
-9️⃣4️⃣ packages/app/src/ui/dialog.tsx 🟢 — ts+react — deps: ui-core/primitives/dialog.tsx, providers/UnifiedUIProvider.tsx
-9️⃣5️⃣ packages/app/src/ui/form.tsx 🟢 — ts+react — deps: ui-core/primitives/form.tsx, providers/UnifiedUIProvider.tsx, app/lib/validation.ts, app/types/ui-contracts.ts
-9️⃣6️⃣ packages/app/src/ui/loading-spinner.tsx 🟢 — ts+react — deps: ui-core/primitives/loading-spinner.tsx, providers/UnifiedUIProvider.tsx, app/types/ui-contracts.ts
-9️⃣7️⃣ packages/app/src/ui/dropdown.tsx 🟢 — ts+react — deps: ui-core/primitives/dropdown.tsx, providers/UnifiedUIProvider.tsx, app/types/ui-contracts.ts
-9️⃣8️⃣ packages/app/src/ui/context-menu.tsx 🟢 — ts+react — deps: ui-core/primitives/context-menu.tsx, providers/UnifiedUIProvider.tsx, app/types/ui-contracts.ts
-9️⃣9️⃣ packages/app/src/ui/status-indicator.tsx 🟢 — ts+react — deps: ui-core/primitives/status-indicator.tsx, providers/UnifiedUIProvider.tsx, app/types/ui-contracts.ts
-1️⃣0️⃣0️⃣ packages/app/src/ui/toast.tsx 🟢 — ts+react — deps: ui-core/components/Toast.tsx, providers/UnifiedUIProvider.tsx, app/types/errors.ts, app/types/ui-contracts.ts
-1️⃣0️⃣1️⃣ packages/app/src/ui/skeleton.tsx 🟢 — ts+react — deps: ui-core/components/Skeleton.tsx, providers/UnifiedUIProvider.tsx, app/types/ui-contracts.ts
-1️⃣0️⃣2️⃣ packages/app/src/ui/skeleton-group.tsx 🟢 — ts+react — deps: ui-core/components/Skeleton.tsx, providers/UnifiedUIProvider.tsx, app/types/ui-contracts.ts
-1️⃣0️⃣3️⃣ packages/app/src/ui/modal.tsx 🟢 — ts+react — deps: ui-core/components/Modal.tsx, ui-core/types/ui.ts, providers/UnifiedUIProvider.tsx, app/types/ui-contracts.ts
-1️⃣0️⃣4️⃣ packages/app/src/ui/breadcrumbs.tsx 🟢 — ts+react — deps: ui-core/components/Breadcrumbs.tsx, providers/UnifiedUIProvider.tsx, app/types/ui-contracts.ts
-1️⃣0️⃣5️⃣ packages/app/src/ui/tabs.tsx 🟢 — ts+react — deps: ui-core/components/Tabs.tsx, providers/UnifiedUIProvider.tsx, app/types/ui-contracts.ts
-1️⃣0️⃣6️⃣ packages/app/src/ui/accordion.tsx 🟢 — ts+react — deps: ui-core/components/Accordion.tsx, providers/UnifiedUIProvider.tsx, app/types/ui-contracts.ts
-1️⃣0️⃣7️⃣ packages/app/src/ui/date-picker.tsx 🟢 — ts+react — deps: ui-core/components/DatePicker.tsx, providers/UnifiedUIProvider.tsx, app/types/ui-contracts.ts
-1️⃣0️⃣8️⃣ packages/app/src/ui/file-uploader.tsx 🟢 — ts+react — deps: ui-core/components/FileUploader.tsx, providers/UnifiedUIProvider.tsx, app/types/api.ts, app/lib/validation.ts, app/types/ui-contracts.ts
-1️⃣0️⃣9️⃣ packages/app/src/ui/sidebar.tsx 🟢 — ts+react — deps: ui-core/components/SideBar.tsx, providers/UnifiedUIProvider.tsx, app/types/ui-contracts.ts
-1️⃣1️⃣0️⃣ packages/app/src/ui/search-bar.tsx 🟢 — ts+react — deps: ui-core/components/SearchBar.tsx, providers/UnifiedUIProvider.tsx, app/types/ui-contracts.ts
-1️⃣1️⃣1️⃣ packages/app/src/ui/confirm-dialog.tsx 🟢 — ts+react — deps: ui-core/components/ConfirmDialog.tsx, ui-core/components/Modal.tsx, providers/UnifiedUIProvider.tsx, app/types/ui-contracts.ts
-1️⃣1️⃣2️⃣ packages/app/src/ui/error-boundary.tsx 🟢 — ts+react — deps: ui-core/components/ErrorBoundary.tsx, providers/UnifiedUIProvider.tsx, app/lib/error-mapping.ts, app/types/errors.ts, app/types/ui-contracts.ts
-1️⃣1️⃣3️⃣ packages/app/src/ui/user-profile-display.tsx 🟢 — ts+react — deps: ui-core/components/UserProfileDisplay.tsx, providers/UnifiedUIProvider.tsx, app/lib/auth-guard.ts, app/lib/route-permissions.ts, app/types/ui-contracts.ts
-1️⃣1️⃣4️⃣ packages/app/src/ui/navigation-menu-item.tsx 🟢 — ts+react — deps: ui-core/components/NavigationMenuItem.tsx, providers/UnifiedUIProvider.tsx, app/lib/route-permissions.ts, app/types/ui-contracts.ts
-1️⃣1️⃣5️⃣ packages/app/src/ui/language-selector.tsx 🟢 — ts+react — deps: ui-core/components/LanguageSelector.tsx, providers/UnifiedUIProvider.tsx, app/types/ui-contracts.ts
-1️⃣1️⃣6️⃣ packages/app/src/ui/support-button.tsx 🟢 — ts+react — deps: ui-core/components/SupportButton.tsx, providers/UnifiedUIProvider.tsx, app/types/ui-contracts.ts
+8️⃣6️⃣ packages/app/src/ui/button.tsx 🟢 — ts+react — deps: ui-core/primitives/button.tsx, providers/UnifiedUIProvider.tsx, app/types/ui-contracts.ts
+8️⃣7️⃣ packages/app/src/ui/input.tsx 🟢 — ts+react — deps: ui-core/src/index.tsx, providers/UnifiedUIProvider.tsx, app/types/ui-contracts.ts
+8️⃣8️⃣ packages/app/src/ui/textarea.tsx 🟢 — ts+react — deps: ui-core/primitives/textarea.tsx, providers/UnifiedUIProvider.tsx, app/types/ui-contracts.ts
+8️⃣9️⃣ packages/app/src/ui/select.tsx 🟢 — ts+react — deps: ui-core/primitives/select.tsx, providers/UnifiedUIProvider.tsx, app/types/ui-contracts.ts
+9️⃣0️⃣ packages/app/src/ui/checkbox.tsx 🟢 — ts+react — deps: ui-core/primitives/checkbox.tsx, providers/UnifiedUIProvider.tsx, app/types/ui-contracts.ts
+9️⃣1️⃣ packages/app/src/ui/radio.tsx 🟢 — ts+react — deps: ui-core/primitives/radio.tsx, providers/UnifiedUIProvider.tsx, app/types/ui-contracts.ts
+9️⃣2️⃣ packages/app/src/ui/toggle.tsx 🟢 — ts+react — deps: ui-core/primitives/toggle.tsx, providers/UnifiedUIProvider.tsx, app/types/ui-contracts.ts
+9️⃣3️⃣ packages/app/src/ui/icon.tsx 🟢 — ts+react — deps: ui-core/primitives/icon.tsx, providers/UnifiedUIProvider.tsx, app/types/ui-contracts.ts
+9️⃣4️⃣ packages/app/src/ui/avatar.tsx 🟢 — ts+react — deps: ui-core/primitives/avatar.tsx, providers/UnifiedUIProvider.tsx, app/types/ui-contracts.ts
+9️⃣5️⃣ packages/app/src/ui/badge.tsx 🟢 — ts+react — deps: ui-core/primitives/badge.tsx, providers/UnifiedUIProvider.tsx, app/types/ui-contracts.ts
+9️⃣6️⃣ packages/app/src/ui/tooltip.tsx 🟢 — ts+react — deps: ui-core/primitives/tooltip.tsx, providers/UnifiedUIProvider.tsx, app/types/ui-contracts.ts
+9️⃣7️⃣ packages/app/src/ui/divider.tsx 🟢 — ts+react — deps: ui-core/primitives/divider.tsx, providers/UnifiedUIProvider.tsx, app/types/ui-contracts.ts
+9️⃣8️⃣ packages/app/src/ui/card.tsx 🟢 — ts+react — deps: ui-core/primitives/card.tsx, providers/UnifiedUIProvider.tsx, app/types/ui-contracts.ts
+9️⃣9️⃣ packages/app/src/ui/dialog.tsx 🟢 — ts+react — deps: ui-core/primitives/dialog.tsx, providers/UnifiedUIProvider.tsx
+1️⃣0️⃣0️⃣ packages/app/src/ui/form.tsx 🟢 — ts+react — deps: ui-core/primitives/form.tsx, providers/UnifiedUIProvider.tsx, app/lib/validation.ts, app/types/ui-contracts.ts
+1️⃣0️⃣1️⃣ packages/app/src/ui/loading-spinner.tsx 🟢 — ts+react — deps: ui-core/primitives/loading-spinner.tsx, providers/UnifiedUIProvider.tsx, app/types/ui-contracts.ts
+1️⃣0️⃣2️⃣ packages/app/src/ui/dropdown.tsx 🟢 — ts+react — deps: ui-core/primitives/dropdown.tsx, providers/UnifiedUIProvider.tsx, app/types/ui-contracts.ts
+1️⃣0️⃣3️⃣ packages/app/src/ui/context-menu.tsx 🟢 — ts+react — deps: ui-core/primitives/context-menu.tsx, providers/UnifiedUIProvider.tsx, app/types/ui-contracts.ts
+1️⃣0️⃣4️⃣ packages/app/src/ui/status-indicator.tsx 🟢 — ts+react — deps: ui-core/primitives/status-indicator.tsx, providers/UnifiedUIProvider.tsx, app/types/ui-contracts.ts
+1️⃣0️⃣5️⃣ packages/app/src/ui/toast.tsx 🟢 — ts+react — deps: ui-core/components/Toast.tsx, providers/UnifiedUIProvider.tsx, app/types/errors.ts, app/types/ui-contracts.ts
+1️⃣0️⃣6️⃣ packages/app/src/ui/skeleton.tsx 🟢 — ts+react — deps: ui-core/components/Skeleton.tsx, providers/UnifiedUIProvider.tsx, app/types/ui-contracts.ts
+1️⃣0️⃣7️⃣ packages/app/src/ui/skeleton-group.tsx 🟢 — ts+react — deps: ui-core/components/Skeleton.tsx, providers/UnifiedUIProvider.tsx, app/types/ui-contracts.ts
+1️⃣0️⃣8️⃣ packages/app/src/ui/modal.tsx 🟢 — ts+react — deps: ui-core/components/Modal.tsx, ui-core/types/ui.ts, providers/UnifiedUIProvider.tsx, app/types/ui-contracts.ts
+1️⃣0️⃣9️⃣ packages/app/src/ui/breadcrumbs.tsx 🟢 — ts+react — deps: ui-core/components/Breadcrumbs.tsx, providers/UnifiedUIProvider.tsx, app/types/ui-contracts.ts
+1️⃣1️⃣0️⃣ packages/app/src/ui/tabs.tsx 🟢 — ts+react — deps: ui-core/components/Tabs.tsx, providers/UnifiedUIProvider.tsx, app/types/ui-contracts.ts
+1️⃣1️⃣1️⃣ packages/app/src/ui/accordion.tsx 🟢 — ts+react — deps: ui-core/components/Accordion.tsx, providers/UnifiedUIProvider.tsx, app/types/ui-contracts.ts
+1️⃣1️⃣2️⃣ packages/app/src/ui/date-picker.tsx 🟢 — ts+react — deps: ui-core/components/DatePicker.tsx, providers/UnifiedUIProvider.tsx, app/types/ui-contracts.ts
+1️⃣1️⃣3️⃣ packages/app/src/ui/file-uploader.tsx 🟢 — ts+react — deps: ui-core/components/FileUploader.tsx, providers/UnifiedUIProvider.tsx, app/types/api.ts, app/lib/validation.ts, app/types/ui-contracts.ts
+1️⃣1️⃣4️⃣ packages/app/src/ui/sidebar.tsx 🟢 — ts+react — deps: ui-core/components/SideBar.tsx, providers/UnifiedUIProvider.tsx, app/types/ui-contracts.ts
+1️⃣1️⃣5️⃣ packages/app/src/ui/search-bar.tsx 🟢 — ts+react — deps: ui-core/components/SearchBar.tsx, providers/UnifiedUIProvider.tsx, app/types/ui-contracts.ts
+1️⃣1️⃣6️⃣ packages/app/src/ui/confirm-dialog.tsx 🟢 — ts+react — deps: ui-core/components/ConfirmDialog.tsx, ui-core/components/Modal.tsx, providers/UnifiedUIProvider.tsx, app/types/ui-contracts.ts
+1️⃣1️⃣7️⃣ packages/app/src/ui/error-boundary.tsx 🟢 — ts+react — deps: ui-core/components/ErrorBoundary.tsx, providers/UnifiedUIProvider.tsx, app/lib/error-mapping.ts, app/types/errors.ts, app/types/ui-contracts.ts
+1️⃣1️⃣8️⃣ packages/app/src/ui/user-profile-display.tsx 🟢 — ts+react — deps: ui-core/components/UserProfileDisplay.tsx, providers/UnifiedUIProvider.tsx, app/lib/auth-guard.ts, app/lib/route-permissions.ts, app/types/ui-contracts.ts
+1️⃣1️⃣9️⃣ packages/app/src/ui/navigation-menu-item.tsx 🟢 — ts+react — deps: ui-core/components/NavigationMenuItem.tsx, providers/UnifiedUIProvider.tsx, app/lib/route-permissions.ts, app/types/ui-contracts.ts
+1️⃣2️⃣0️⃣ packages/app/src/ui/language-selector.tsx 🟢 — ts+react — deps: ui-core/components/LanguageSelector.tsx, providers/UnifiedUIProvider.tsx, app/types/ui-contracts.ts
+1️⃣2️⃣1️⃣ packages/app/src/ui/support-button.tsx 🟢 — ts+react — deps: ui-core/components/SupportButton.tsx, providers/UnifiedUIProvider.tsx, app/types/ui-contracts.ts
 
 ✅ App routing & navigation
-1️⃣1️⃣7️⃣ packages/app/src/routes/routes.ts 🟢 — ts — deps: types/common.ts — (декларативный список всех routes)
-1️⃣1️⃣8️⃣ packages/app/src/routes/route-meta.ts 🟢 — ts — deps: routes.ts, route-permissions.ts, types/common.ts — (permissions, flags, auth-required)
-1️⃣1️⃣9️⃣ packages/app/src/routes/navigation.ts 🟢 — ts — deps: route-meta.ts, routes.ts, types/common.ts — (sidebar/menu/navigation config)
+1️⃣2️⃣2️⃣ packages/app/src/routes/routes.ts 🟢 — ts — deps: types/common.ts — (декларативный список всех routes)
+1️⃣2️⃣3️⃣ packages/app/src/routes/route-meta.ts 🟢 — ts — deps: routes.ts, route-permissions.ts, types/common.ts — (permissions, flags, auth-required)
+1️⃣2️⃣4️⃣ packages/app/src/routes/navigation.ts 🟢 — ts — deps: route-meta.ts, routes.ts, types/common.ts — (sidebar/menu/navigation config)
 
 ✅ App events / signals
-1️⃣2️⃣0️⃣ packages/app/src/events/app-lifecycle-events.ts 🟢 — ts — deps: types/common.ts — (lifecycle event hub)
-1️⃣2️⃣1️⃣ packages/app/src/events/app-events.ts 🟢 — ts — deps: types/common.ts, zod, uuid — (logout, authExpired, billingChanged)
-1️⃣2️⃣2️⃣ packages/app/src/events/event-bus.ts 🟢 — ts — deps: app-events.ts — (typed event bus)
+1️⃣2️⃣5️⃣ packages/app/src/events/app-lifecycle-events.ts 🟢 — ts — deps: types/common.ts — (lifecycle event hub)
+1️⃣2️⃣6️⃣ packages/app/src/events/app-events.ts 🟢 — ts — deps: types/common.ts, zod, uuid — (logout, authExpired, billingChanged)
+1️⃣2️⃣7️⃣ packages/app/src/events/event-bus.ts 🟢 — ts — deps: app-events.ts — (typed event bus)
 
 ✅ App background & scheduler
-1️⃣2️⃣3️⃣ packages/app/src/background/scheduler.ts 🟢 — ts+effect — deps: events/app-events.ts, events/event-bus.ts, lib/telemetry.ts — (адаптивный планировщик задач с приоритетами)
-1️⃣2️⃣4️⃣ packages/app/src/background/tasks.ts 🟢 — ts+effect — deps: scheduler.ts, events/app-events.ts, events/event-bus.ts — (refresh, sync, retry via scheduler)
+1️⃣2️⃣8️⃣ packages/app/src/background/scheduler.ts 🟢 — ts+effect — deps: events/app-events.ts, events/event-bus.ts, lib/telemetry.ts — (адаптивный планировщик задач с приоритетами)
+1️⃣2️⃣9️⃣ packages/app/src/background/tasks.ts 🟢 — ts+effect — deps: scheduler.ts, events/app-events.ts, events/event-bus.ts — (refresh, sync, retry via scheduler)
 
 ✅ App lifecycle
-1️⃣2️⃣5️⃣ packages/app/src/state/reset.ts 🟢 — ts — deps: state/store.ts, events/app-lifecycle-events.ts — (глобальный reset state при logout)
-1️⃣2️⃣6️⃣ packages/app/src/lib/app-lifecycle.ts 🟢 — ts — deps: background/tasks.ts, events/app-lifecycle-events.ts, types/common.ts — (app lifecycle orchestrator: bootstrap/teardown, staged execution, event subscriptions)
+1️⃣3️⃣0️⃣ packages/app/src/state/reset.ts 🟢 — ts — deps: state/store.ts, events/app-lifecycle-events.ts — (глобальный reset state при logout)
+1️⃣3️⃣1️⃣ packages/app/src/lib/app-lifecycle.ts 🟢 — ts — deps: background/tasks.ts, events/app-lifecycle-events.ts, types/common.ts — (app lifecycle orchestrator: bootstrap/teardown, staged execution, event subscriptions)
 
 Feature Auth
-1️⃣2️⃣7️⃣ packages/feature-auth/src/domain/LoginRequest.ts 🟢 — ts — deps: — , (DTO login, только типы запроса)
-1️⃣2️⃣8️⃣ packages/feature-auth/src/domain/RegisterRequest.ts 🟢 — ts — deps: — , (DTO register, данные для регистрации пользователя)
-1️⃣2️⃣9️⃣ packages/feature-auth/src/domain/RegisterResponse.ts 🟢 — ts — deps: TokenPair, MfaInfo , (DTO ответа регистрации, подтверждение создания аккаунта)
-1️⃣3️⃣0️⃣ packages/feature-auth/src/domain/PasswordResetRequest.ts 🟢 — ts — deps: — , (DTO запрос сброса пароля, email/username)
-1️⃣3️⃣1️⃣ packages/feature-auth/src/domain/PasswordResetConfirm.ts 🟢 — ts — deps: — , (DTO подтверждение сброса пароля, token + новый пароль)
-1️⃣3️⃣2️⃣ packages/feature-auth/src/domain/VerifyEmailRequest.ts 🟢 — ts — deps: — , (DTO верификация email, confirmation token)
-1️⃣3️⃣3️⃣ packages/feature-auth/src/domain/VerifyPhoneRequest.ts 🟢 — ts — deps: — , (DTO верификация телефона, SMS code)
-1️⃣3️⃣4️⃣ packages/feature-auth/src/domain/RefreshTokenRequest.ts 🟢 — ts — deps: — , (DTO обновления токена, refresh token)
-1️⃣3️⃣5️⃣ packages/feature-auth/src/domain/LogoutRequest.ts 🟢 — ts — deps: — , (DTO выхода из системы, опционально refresh token)
-1️⃣3️⃣6️⃣ packages/feature-auth/src/domain/DeviceInfo.ts 🟢 — ts — deps: — , (DTO информация об устройстве для аудита)
-1️⃣3️⃣7️⃣ packages/feature-auth/src/domain/SessionRevokeRequest.ts 🟢 — ts — deps: — , (DTO отзыв сессии, session ID)
-1️⃣3️⃣8️⃣ packages/feature-auth/src/domain/MfaChallengeRequest.ts 🟢 — ts — deps: — , (DTO запрос MFA вызова, тип аутентификации)
-1️⃣3️⃣9️⃣ packages/feature-auth/src/domain/MfaSetupRequest.ts 🟢 — ts — deps: — , (DTO настройки MFA, секрет и метод)
-1️⃣4️⃣0️⃣ packages/feature-auth/src/domain/MfaBackupCodeRequest.ts 🟢 — ts — deps: — , (DTO резервных кодов MFA для recovery)
-1️⃣4️⃣1️⃣ packages/feature-auth/src/domain/OAuthLoginRequest.ts 🟢 — ts — deps: — , (DTO OAuth login, provider token: Google/Yandex/FB/VK)
-1️⃣4️⃣2️⃣ packages/feature-auth/src/domain/OAuthRegisterRequest.ts 🟢 — ts — deps: — , (DTO OAuth register, provider data для создания аккаунта)
-1️⃣4️⃣3️⃣ packages/feature-auth/src/domain/LoginRiskAssessment.ts 🟢 — ts — deps: — , (DTO оценки риска логина: гео, device fingerprint, IP)
-1️⃣4️⃣4️⃣ packages/feature-auth/src/domain/SessionPolicy.ts 🟢 — ts — deps: — , (DTO политик сессии: ограничения по IP, concurrent sessions)
-1️⃣4️⃣5️⃣ packages/feature-auth/src/domain/AuthAuditEvent.ts 🟢 — ts — deps: — , (DTO событий аудита: client app, IP, deviceId, geo, timestamp)
-1️⃣4️⃣6️⃣ packages/feature-auth/src/domain/EmailTemplateRequest.ts 🟢 — ts — deps: — , (DTO кастомных email шаблонов для верификации/уведомлений)
-1️⃣4️⃣7️⃣ packages/feature-auth/src/domain/SmsTemplateRequest.ts 🟢 — ts — deps: — , (DTO кастомных SMS шаблонов для верификации)
-1️⃣4️⃣8️⃣ packages/feature-auth/src/domain/MfaRecoveryRequest.ts 🟢 — ts — deps: — , (DTO восстановления MFA доступа при потере устройства)
-1️⃣4️⃣9️⃣ packages/feature-auth/src/domain/OAuthErrorResponse.ts 🟢 — ts — deps: — , (DTO ошибок OAuth: invalid_token, provider_unavailable, user_denied)
-1️⃣5️⃣0️⃣ packages/feature-auth/src/domain/AuthErrorResponse.ts 🟢 — ts — deps: — , (DTO кастомных ошибок: invalid_credentials, account_locked, rate_limited)
-1️⃣5️⃣1️⃣ packages/feature-auth/src/domain/TokenPair.ts 🟢 — ts — deps: — , (DTO token pair: accessToken, refreshToken, expiresAt)
-1️⃣5️⃣2️⃣ packages/feature-auth/src/domain/MeResponse.ts 🟢 — ts — deps: — , (DTO ответа /me: данные пользователя, роли, permissions)
-1️⃣5️⃣3️⃣ packages/feature-auth/src/types/auth.ts 🟢 — ts — deps: domain/LoginRequest.ts, domain/RegisterRequest.ts, domain/RegisterResponse.ts, domain/PasswordResetRequest.ts, domain/PasswordResetConfirm.ts, domain/VerifyEmailRequest.ts, domain/VerifyPhoneRequest.ts, domain/MfaChallengeRequest.ts, domain/MfaSetupRequest.ts, domain/MfaBackupCodeRequest.ts, domain/MfaRecoveryRequest.ts, domain/OAuthLoginRequest.ts, domain/OAuthRegisterRequest.ts, domain/OAuthErrorResponse.ts, domain/AuthErrorResponse.ts, domain/SessionPolicy.ts, domain/SessionRevokeRequest.ts, domain/LoginRiskAssessment.ts, domain/AuthAuditEvent.ts, domain/DeviceInfo.ts, domain/TokenPair.ts, domain/RefreshTokenRequest.ts, domain/LogoutRequest.ts, domain/MeResponse.ts, domain/EmailTemplateRequest.ts, domain/SmsTemplateRequest.ts , (агрегирующие типы auth: AuthState, AuthStatus, AuthError, MFA types, OAuth types, Security types, Recovery types)
-1️⃣5️⃣4️⃣ packages/feature-auth/src/stores/auth.ts 🟢 — ts+zustand — deps: types/auth.ts , (Auth store, чистое состояние, без effects)
+1️⃣3️⃣2️⃣ packages/feature-auth/src/domain/LoginRequest.ts 🟢 — ts — deps: — , (DTO login, только типы запроса)
+1️⃣3️⃣3️⃣ packages/feature-auth/src/domain/RegisterRequest.ts 🟢 — ts — deps: — , (DTO register, данные для регистрации пользователя)
+1️⃣3️⃣4️⃣ packages/feature-auth/src/domain/RegisterResponse.ts 🟢 — ts — deps: TokenPair, MfaInfo , (DTO ответа регистрации, подтверждение создания аккаунта)
+1️⃣3️⃣5️⃣ packages/feature-auth/src/domain/PasswordResetRequest.ts 🟢 — ts — deps: — , (DTO запрос сброса пароля, email/username)
+1️⃣3️⃣6️⃣ packages/feature-auth/src/domain/PasswordResetConfirm.ts 🟢 — ts — deps: — , (DTO подтверждение сброса пароля, token + новый пароль)
+1️⃣3️⃣7️⃣ packages/feature-auth/src/domain/VerifyEmailRequest.ts 🟢 — ts — deps: — , (DTO верификация email, confirmation token)
+1️⃣3️⃣8️⃣ packages/feature-auth/src/domain/VerifyPhoneRequest.ts 🟢 — ts — deps: — , (DTO верификация телефона, SMS code)
+1️⃣3️⃣9️⃣ packages/feature-auth/src/domain/RefreshTokenRequest.ts 🟢 — ts — deps: — , (DTO обновления токена, refresh token)
+1️⃣4️⃣0️⃣ packages/feature-auth/src/domain/LogoutRequest.ts 🟢 — ts — deps: — , (DTO выхода из системы, опционально refresh token)
+1️⃣4️⃣1️⃣ packages/feature-auth/src/domain/DeviceInfo.ts 🟢 — ts — deps: — , (DTO информация об устройстве для аудита)
+1️⃣4️⃣2️⃣ packages/feature-auth/src/domain/SessionRevokeRequest.ts 🟢 — ts — deps: — , (DTO отзыв сессии, session ID)
+1️⃣4️⃣3️⃣ packages/feature-auth/src/domain/MfaChallengeRequest.ts 🟢 — ts — deps: — , (DTO запрос MFA вызова, тип аутентификации)
+1️⃣4️⃣4️⃣ packages/feature-auth/src/domain/MfaSetupRequest.ts 🟢 — ts — deps: — , (DTO настройки MFA, секрет и метод)
+1️⃣4️⃣5️⃣ packages/feature-auth/src/domain/MfaBackupCodeRequest.ts 🟢 — ts — deps: — , (DTO резервных кодов MFA для recovery)
+1️⃣4️⃣6️⃣ packages/feature-auth/src/domain/OAuthLoginRequest.ts 🟢 — ts — deps: — , (DTO OAuth login, provider token: Google/Yandex/FB/VK)
+1️⃣4️⃣7️⃣ packages/feature-auth/src/domain/OAuthRegisterRequest.ts 🟢 — ts — deps: — , (DTO OAuth register, provider data для создания аккаунта)
+1️⃣4️⃣8️⃣ packages/feature-auth/src/domain/LoginRiskAssessment.ts 🟢 — ts — deps: — , (DTO оценки риска логина: гео, device fingerprint, IP)
+1️⃣4️⃣9️⃣ packages/feature-auth/src/domain/SessionPolicy.ts 🟢 — ts — deps: — , (DTO политик сессии: ограничения по IP, concurrent sessions)
+1️⃣5️⃣0️⃣ packages/feature-auth/src/domain/AuthAuditEvent.ts 🟢 — ts — deps: — , (DTO событий аудита: client app, IP, deviceId, geo, timestamp)
+1️⃣5️⃣1️⃣ packages/feature-auth/src/domain/EmailTemplateRequest.ts 🟢 — ts — deps: — , (DTO кастомных email шаблонов для верификации/уведомлений)
+1️⃣5️⃣2️⃣ packages/feature-auth/src/domain/SmsTemplateRequest.ts 🟢 — ts — deps: — , (DTO кастомных SMS шаблонов для верификации)
+1️⃣5️⃣3️⃣ packages/feature-auth/src/domain/MfaRecoveryRequest.ts 🟢 — ts — deps: — , (DTO восстановления MFA доступа при потере устройства)
+1️⃣5️⃣4️⃣ packages/feature-auth/src/domain/OAuthErrorResponse.ts 🟢 — ts — deps: — , (DTO ошибок OAuth: invalid_token, provider_unavailable, user_denied)
+1️⃣5️⃣5️⃣ packages/feature-auth/src/domain/AuthErrorResponse.ts 🟢 — ts — deps: — , (DTO кастомных ошибок: invalid_credentials, account_locked, rate_limited)
+1️⃣5️⃣6️⃣ packages/feature-auth/src/domain/TokenPair.ts 🟢 — ts — deps: — , (DTO token pair: accessToken, refreshToken, expiresAt)
+1️⃣5️⃣7️⃣ packages/feature-auth/src/domain/MeResponse.ts 🟢 — ts — deps: — , (DTO ответа /me: данные пользователя, роли, permissions)
+1️⃣5️⃣8️⃣ packages/feature-auth/src/types/auth.ts 🟢 — ts — deps: domain/LoginRequest.ts, domain/RegisterRequest.ts, domain/RegisterResponse.ts, domain/PasswordResetRequest.ts, domain/PasswordResetConfirm.ts, domain/VerifyEmailRequest.ts, domain/VerifyPhoneRequest.ts, domain/MfaChallengeRequest.ts, domain/MfaSetupRequest.ts, domain/MfaBackupCodeRequest.ts, domain/MfaRecoveryRequest.ts, domain/OAuthLoginRequest.ts, domain/OAuthRegisterRequest.ts, domain/OAuthErrorResponse.ts, domain/AuthErrorResponse.ts, domain/SessionPolicy.ts, domain/SessionRevokeRequest.ts, domain/LoginRiskAssessment.ts, domain/AuthAuditEvent.ts, domain/DeviceInfo.ts, domain/TokenPair.ts, domain/RefreshTokenRequest.ts, domain/LogoutRequest.ts, domain/MeResponse.ts, domain/EmailTemplateRequest.ts, domain/SmsTemplateRequest.ts , (агрегирующие типы auth: AuthState, AuthStatus, AuthError, MFA types, OAuth types, Security types, Recovery types)
+1️⃣5️⃣4️⃣ packages/feature-auth/src/stores/auth.ts 🔴 — ts+zustand — deps: types/auth.ts , (Auth store, чистое состояние, без effects)
 1️⃣5️⃣5️⃣ packages/feature-auth/src/effects/login.ts 🔴 — ts+effect — deps: app/lib/api-client.ts, app/lib/error-mapping.ts, app/lib/telemetry.ts, types/auth.ts, stores/auth.ts, domain/LoginRiskAssessment.ts, domain/DeviceInfo.ts , (выполняет login с оценкой риска, обновляет store, логирует telemetry, device fingerprinting)
 1️⃣5️⃣6️⃣ packages/feature-auth/src/effects/logout.ts 🔴 — ts+effect — deps: app/lib/api-client.ts, app/lib/telemetry.ts, stores/auth.ts , (выполняет logout, очищает auth state)
 1️⃣5️⃣7️⃣ packages/feature-auth/src/effects/refresh.ts 🔴 — ts+effect — deps: app/lib/api-client.ts, app/lib/telemetry.ts, types/auth.ts, stores/auth.ts, core/domain/AuthPolicy , (обновляет access token, синхронизирует store)

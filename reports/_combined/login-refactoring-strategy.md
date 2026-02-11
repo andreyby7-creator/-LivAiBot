@@ -262,7 +262,7 @@
 
 ---
 
-### 6️⃣8️⃣ `effect-isolation.ts` (NEW)
+### 6️⃣8️⃣ `effect-isolation.ts` (NEW) ✅
 
 **📁 Path:** `packages/app/src/lib/effect-isolation.ts`\
 **🔧 Тип:** `ts+effect`\
@@ -272,7 +272,7 @@
 
 Минимальный, чистый boundary-модуль для изоляции ошибок и предотвращения cascading failures.
 
-#### 📦 Эталонный набор функций (FAANG-ready)
+#### 📦 Эталонный набор функций
 
 **1️⃣ `runIsolated`** — основной API (effect, label?)\
 **2️⃣ `IsolationError`** — типизированная ошибка (опционально)\
@@ -299,7 +299,7 @@
 
 ---
 
-### 6️⃣9️⃣ `schema-validated-effect.ts` (NEW)
+### 6️⃣9️⃣ `schema-validated-effect.ts` (NEW) ✅
 
 **📁 Path:** `packages/app/src/lib/schema-validated-effect.ts`\
 **🔧 Тип:** `ts+effect`\
@@ -400,7 +400,7 @@ orchestrator → orchestration boundary
 
 ---
 
-### 7️⃣0️⃣ `orchestrator.ts` (NEW)
+### 7️⃣0️⃣ `orchestrator.ts` (NEW) ✅
 
 **📁 Path:** `packages/app/src/lib/orchestrator.ts`\
 **🔧 Тип:** `ts+effect`\
@@ -475,7 +475,7 @@ api-client → transport (бросает ошибки, не глотает)
 
 ---
 
-### 7️⃣1️⃣ `store-utils.ts` (NEW)
+### 7️⃣1️⃣ `store-utils.ts` (NEW) ✅
 
 **📁 Path:** `packages/app/src/state/store-utils.ts`\
 **🔧 Тип:** `ts`\

@@ -182,6 +182,24 @@ export {
   withRetry,
   withTimeout,
 } from './lib/effect-utils.js';
+export {
+  isIsolationError,
+  IsolationError,
+  type IsolationOptions,
+  runIsolated,
+} from './lib/effect-isolation.js';
+
+// Schema validated effect
+export {
+  createValidationError,
+  isSchemaValidationError,
+  SchemaValidationError,
+  validatedEffect,
+  type ValidatedEffectOptions,
+} from './lib/schema-validated-effect.js';
+
+// Orchestrator
+export { orchestrate, type Step, step, type StepResult } from './lib/orchestrator.js';
 export * from './lib/error-mapping.js';
 export * from './lib/feature-flags.js';
 // export * from './lib/i18n.js'; // Временно отключен для E2E из-за конфликта с next-intl
@@ -284,6 +302,7 @@ export {
  * ========================================================================== */
 
 export * from './state/store.js';
+export * from './state/store-utils.js';
 export * from './state/reset.js';
 export * from './state/query/query-client.js';
 
