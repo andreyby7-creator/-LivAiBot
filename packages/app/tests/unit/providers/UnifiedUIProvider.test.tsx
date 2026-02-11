@@ -169,7 +169,6 @@ describe('UnifiedUIProvider', () => {
   describe('Hook API', () => {
     describe('useUnifiedUI', () => {
       it('returns complete unified context', () => {
-        // eslint-disable-next-line @typescript-eslint/prefer-readonly-parameter-types
         const wrapper = ({ children }: { children: React.ReactNode; }) => (
           <UnifiedUIProvider>{children}</UnifiedUIProvider>
         );
@@ -206,7 +205,6 @@ describe('UnifiedUIProvider', () => {
 
     describe('useRequiredUnifiedUI', () => {
       it('returns context when provider is present', () => {
-        // eslint-disable-next-line @typescript-eslint/prefer-readonly-parameter-types
         const wrapper = ({ children }: { children: React.ReactNode; }) => (
           <UnifiedUIProvider>{children}</UnifiedUIProvider>
         );
@@ -244,7 +242,6 @@ describe('UnifiedUIProvider', () => {
 
     describe('useUnifiedFeatureFlags', () => {
       it('returns only feature flags API', () => {
-        // eslint-disable-next-line @typescript-eslint/prefer-readonly-parameter-types
         const wrapper = ({ children }: { children: React.ReactNode; }) => (
           <UnifiedUIProvider>{children}</UnifiedUIProvider>
         );
@@ -260,7 +257,6 @@ describe('UnifiedUIProvider', () => {
 
     describe('useUnifiedTelemetry', () => {
       it('returns only telemetry API', () => {
-        // eslint-disable-next-line @typescript-eslint/prefer-readonly-parameter-types
         const wrapper = ({ children }: { children: React.ReactNode; }) => (
           <UnifiedUIProvider>{children}</UnifiedUIProvider>
         );
@@ -276,7 +272,6 @@ describe('UnifiedUIProvider', () => {
 
     describe('useUnifiedI18n', () => {
       it('returns only i18n context', () => {
-        // eslint-disable-next-line @typescript-eslint/prefer-readonly-parameter-types
         const wrapper = ({ children }: { children: React.ReactNode; }) => (
           <UnifiedUIProvider>{children}</UnifiedUIProvider>
         );
@@ -432,7 +427,6 @@ describe('UnifiedUIProvider', () => {
     });
 
     it('provides type-safe context access', () => {
-      // eslint-disable-next-line @typescript-eslint/prefer-readonly-parameter-types
       const wrapper = ({ children }: { children: React.ReactNode; }) => (
         <UnifiedUIProvider>{children}</UnifiedUIProvider>
       );

@@ -294,7 +294,6 @@ const CoreLoadingSpinnerComponent = forwardRef<HTMLDivElement, CoreLoadingSpinne
   },
 );
 
-// eslint-disable-next-line functional/immutable-data
 CoreLoadingSpinnerComponent.displayName = 'CoreLoadingSpinner';
 
 /**

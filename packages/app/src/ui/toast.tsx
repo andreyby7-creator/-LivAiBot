@@ -293,7 +293,6 @@ const ToastComponent = forwardRef<HTMLDivElement, AppToastProps>(
       } | undefined
     >(undefined);
 
-    // eslint-disable-next-line functional/immutable-data
     lifecyclePayloadRef.current ??= {
       mount: getToastPayload(ToastTelemetryAction.Mount, policy, telemetryProps),
       unmount: getToastPayload(ToastTelemetryAction.Unmount, policy, telemetryProps),
@@ -342,7 +341,6 @@ const ToastComponent = forwardRef<HTMLDivElement, AppToastProps>(
         emitToastTelemetry(telemetry, currentVisibility ? showPayload : hidePayload);
       }
 
-      // eslint-disable-next-line functional/immutable-data
       prevVisibleRef.current = currentVisibility;
     }, [policy.telemetryEnabled, policy.isRendered, showPayload, hidePayload, telemetry]);
 
@@ -364,7 +362,6 @@ const ToastComponent = forwardRef<HTMLDivElement, AppToastProps>(
   },
 );
 
-// eslint-disable-next-line functional/immutable-data
 ToastComponent.displayName = 'Toast';
 
 /**

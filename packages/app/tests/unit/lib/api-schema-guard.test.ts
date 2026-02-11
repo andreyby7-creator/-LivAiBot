@@ -31,6 +31,7 @@ import {
   combineRequestValidators,
   combineResponseValidators,
   createRestApiSchema,
+  enforceStrictValidation,
   validateApiInteraction,
   validateApiRequest,
   validateApiResponse,
@@ -798,6 +799,159 @@ describe('API Schema Guard - Enterprise Grade', () => {
 
       expect(config.maxRequestSize).toBe(1024 * 1024); // DEFAULT_REQUEST_SIZE_LIMIT
       expect(config.maxResponseSize).toBe(10 * 1024 * 1024); // DEFAULT_RESPONSE_SIZE_LIMIT
+    });
+  });
+
+  describe('Strict Mode', () => {
+    it('должен требовать requestValidator в strict mode для validateApiRequest', async () => {
+      const config: ApiSchemaConfig = {
+        service: 'auth',
+        method: 'POST',
+        endpoint: '/login',
+        strictMode: true,
+        // requestValidator отсутствует
+      };
+
+      const context = createMockApiValidationContext();
+
+      await expectEffectFailure(
+        validateApiRequest({ email: 'test@example.com' }, config, context),
+        {
+          code: 'SYSTEM_VALIDATION_REQUEST_SCHEMA_INVALID',
+        },
+      );
+    });
+
+    it('должен требовать responseValidator в strict mode для validateApiResponse', async () => {
+      const config: ApiSchemaConfig<unknown, { token: string; }> = {
+        service: 'auth',
+        method: 'POST',
+        endpoint: '/login',
+        strictMode: true,
+        // responseValidator отсутствует
+      };
+
+      const context = createMockApiValidationContext();
+
+      await expectEffectFailure(
+        validateApiResponse({ token: 'abc123' }, config, context),
+        {
+          code: 'SYSTEM_VALIDATION_RESPONSE_SCHEMA_INVALID',
+        },
+      );
+    });
+
+    it('не должен требовать валидаторы когда strict mode выключен', async () => {
+      const config: ApiSchemaConfig = {
+        service: 'auth',
+        method: 'POST',
+        endpoint: '/login',
+        strictMode: false,
+        // валидаторы отсутствуют
+      };
+
+      const context = createMockApiValidationContext();
+
+      const result = await EffectLib.runPromise(
+        validateApiRequest({ email: 'test@example.com' }, config, context),
+      );
+
+      expect(result).toEqual({ email: 'test@example.com' });
+    });
+
+    it('должен работать в strict mode когда валидаторы присутствуют', async () => {
+      const expectedValue = { email: 'test@example.com' };
+      const requestValidator = createMockSuccessValidator(expectedValue);
+
+      const config: ApiSchemaConfig<{ email: string; }> = {
+        service: 'auth',
+        method: 'POST',
+        endpoint: '/login',
+        strictMode: true,
+        requestValidator,
+      };
+
+      const context = createMockApiValidationContext();
+
+      const result = await EffectLib.runPromise(
+        validateApiRequest({ email: 'test@example.com' }, config, context),
+      );
+
+      expect(result).toEqual(expectedValue);
+    });
+
+    it('enforceStrictValidation должен выбрасывать ошибку если requestValidator отсутствует', () => {
+      const config: ApiSchemaConfig = {
+        service: 'auth',
+        method: 'POST',
+        endpoint: '/login',
+        strictMode: true,
+        // requestValidator отсутствует
+      };
+
+      expect(() => enforceStrictValidation(config)).toThrow(
+        'Strict mode requires requestValidator for auth POST /login',
+      );
+    });
+
+    it('enforceStrictValidation должен выбрасывать ошибку если responseValidator отсутствует', () => {
+      const expectedValue = { email: 'test@example.com' };
+      const requestValidator = createMockSuccessValidator(expectedValue);
+
+      const config: ApiSchemaConfig<{ email: string; }, { token: string; }> = {
+        service: 'auth',
+        method: 'POST',
+        endpoint: '/login',
+        strictMode: true,
+        requestValidator,
+        // responseValidator отсутствует
+      };
+
+      expect(() => enforceStrictValidation(config)).toThrow(
+        'Strict mode requires responseValidator for auth POST /login',
+      );
+    });
+
+    it('enforceStrictValidation не должен выбрасывать ошибку если strict mode выключен', () => {
+      const config: ApiSchemaConfig = {
+        service: 'auth',
+        method: 'POST',
+        endpoint: '/login',
+        strictMode: false,
+        // валидаторы отсутствуют
+      };
+
+      expect(() => enforceStrictValidation(config)).not.toThrow();
+    });
+
+    it('enforceStrictValidation не должен выбрасывать ошибку если все валидаторы присутствуют', () => {
+      const requestValue = { email: 'test@example.com' };
+      const responseValue = { token: 'abc123' };
+      const requestValidator = createMockSuccessValidator(requestValue);
+      const responseValidator = createMockSuccessValidator(responseValue);
+
+      const config: ApiSchemaConfig<{ email: string; }, { token: string; }> = {
+        service: 'auth',
+        method: 'POST',
+        endpoint: '/login',
+        strictMode: true,
+        requestValidator,
+        responseValidator,
+      };
+
+      expect(() => enforceStrictValidation(config)).not.toThrow();
+    });
+
+    it('createRestApiSchema должен поддерживать strictMode', () => {
+      const expectedValue = { email: 'test@example.com' };
+      const requestValidator = createMockSuccessValidator(expectedValue);
+
+      const config = createRestApiSchema('auth', 'POST', '/login', {
+        requestValidator,
+        strictMode: true,
+      });
+
+      expect(config.strictMode).toBe(true);
     });
   });
 });

@@ -100,7 +100,6 @@ export class ConsoleLogger implements StructuredLogger {
 /* 🏭 EVENT BUS IMPLEMENTATION */
 /* ========================================================================== */
 
-/* eslint-disable functional/immutable-data */
 export class EventBus {
   private subscribers: Subscriber[] = [];
   private retryQueue: RetryItem[] = [];
@@ -327,8 +326,6 @@ export class EventBus {
     }
   }
 }
-/* eslint-enable functional/immutable-data */
-
 /* ========================================================================== */
 /* 🌐 GLOBAL INSTANCE */
 /* ========================================================================== */

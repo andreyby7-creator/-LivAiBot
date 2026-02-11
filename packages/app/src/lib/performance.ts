@@ -609,7 +609,6 @@ export function addMetricToBuffer(
         return;
       }
 
-      // eslint-disable-next-line functional/immutable-data
       metricsBuffer.push(metric);
 
       // Проверяем переполнение буфера
@@ -642,7 +641,7 @@ export function flushMetricsBuffer(): EffectLib.Effect<never, PerformanceError, 
   }
 
   const metricsToSend = [...metricsBuffer];
-  // eslint-disable-next-line functional/immutable-data
+
   metricsBuffer.length = 0;
 
   // Очищаем таймер
@@ -684,7 +683,6 @@ export function usePerformanceProfiling(componentName: string): void {
   const renderStartRef = React.useRef<number | undefined>(undefined);
 
   React.useEffect(() => {
-    // eslint-disable-next-line functional/immutable-data
     renderStartRef.current = performance.now();
   });
 

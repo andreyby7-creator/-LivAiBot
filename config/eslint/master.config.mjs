@@ -674,6 +674,18 @@ export default [
 
   // 7. Переопределения для тестовых файлов
   ...testFilesOverrides,
+  // 8. Отключаем prefer-readonly-parameter-types для тестов (упрощает helper-функции)
+  {
+    files: [
+      '**/*.test.{ts,tsx,js,jsx}',
+      '**/*.spec.{ts,tsx,js,jsx}',
+      '**/__tests__/**/*.{ts,tsx,js,jsx}',
+      '**/test/**/*.{ts,tsx,js,jsx}',
+    ],
+    rules: {
+      '@typescript-eslint/prefer-readonly-parameter-types': 'off',
+    },
+  },
 ];
 
 // ==================== ZONE VALIDATION ====================

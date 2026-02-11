@@ -295,7 +295,6 @@ const TabsComponent = forwardRef<HTMLDivElement, AppTabsProps>(
       } | undefined
     >(undefined);
 
-    // eslint-disable-next-line functional/immutable-data
     lifecyclePayloadRef.current ??= {
       mount: getTabsPayload(TabsTelemetryAction.Mount, policy, telemetryProps),
       unmount: getTabsPayload(TabsTelemetryAction.Unmount, policy, telemetryProps),
@@ -340,7 +339,6 @@ const TabsComponent = forwardRef<HTMLDivElement, AppTabsProps>(
           emitTabsTelemetry(telemetry, changePayload);
         }
 
-        // eslint-disable-next-line functional/immutable-data
         prevActiveTabIdRef.current = tabId;
 
         onChange?.(tabId, event);
@@ -372,7 +370,6 @@ const TabsComponent = forwardRef<HTMLDivElement, AppTabsProps>(
         emitTabsTelemetry(telemetry, currentVisibility ? showPayload : hidePayload);
       }
 
-      // eslint-disable-next-line functional/immutable-data
       prevVisibleRef.current = currentVisibility;
     }, [policy.telemetryEnabled, policy.isRendered, showPayload, hidePayload, telemetry]);
 
@@ -397,7 +394,6 @@ const TabsComponent = forwardRef<HTMLDivElement, AppTabsProps>(
   },
 );
 
-// eslint-disable-next-line functional/immutable-data
 TabsComponent.displayName = 'Tabs';
 
 /**

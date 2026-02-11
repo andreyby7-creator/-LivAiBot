@@ -491,7 +491,7 @@ describe('TelemetryConfig тип', () => {
     type CustomMetadata = { traceId: string; };
 
     const customSink: TelemetrySink<CustomMetadata> = () => {};
-    // eslint-disable-next-line @typescript-eslint/prefer-readonly-parameter-types
+
     const onError = (error: unknown, event: TelemetryEvent<CustomMetadata>) => {
       console.error(error, event);
     };

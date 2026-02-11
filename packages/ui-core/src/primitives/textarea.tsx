@@ -61,7 +61,7 @@ function CoreTextareaComponent(props: CoreTextareaProps): JSX.Element {
     textareaRef.current.focus({ preventScroll: true });
     // Намеренная мутация:
     // useRef используется как guard жизненного цикла, а не как состояние приложения.
-    // eslint-disable-next-line functional/immutable-data
+
     hasFocusedRef.current = true;
   }, [autoFocus]);
 

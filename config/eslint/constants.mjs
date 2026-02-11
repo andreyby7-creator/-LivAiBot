@@ -475,6 +475,9 @@ export const EFFECT_ZONE_GUARDS = {
 /**
  * Foundation Rules - контракты между Python и TypeScript
  * Протоколы, интерфейсы, type definitions (не реализации)
+ * 
+ * ⚠️ СТРОГИЙ FP: foundation зона - единственное место, где применяется functional/immutable-data
+ * Это гарантирует чистоту core/domain логики без конфликтов с UI/state management
  */
 export const FOUNDATION_RULES = {
   ...BASE_RULES,
@@ -484,6 +487,12 @@ export const FOUNDATION_RULES = {
 
   '@typescript-eslint/consistent-type-definitions': ['error', 'interface'], // API contracts
   '@typescript-eslint/no-explicit-any': 'error', // Strict typing в контрактах
+  
+  // Строгий FP только в foundation (core, contracts, events, observability)
+  // UI/Apps/тесты имеют явные overrides для отключения
+  ...(functionalPlugin ? {
+    'functional/immutable-data': 'error', // Запрет мутаций данных в foundation
+  } : {}),
 };
 
 /**
@@ -548,6 +557,9 @@ export const API_GATEWAY_DOMAIN_RULES = {
 /**
  * UI/Experience Domain Rules - React, Next.js, accessibility
  * AI-first интерфейсы с WCAG compliance
+ * 
+ * ⚠️ FP ПРАВИЛА ОТКЛЮЧЕНЫ: UI зона использует React/Zustand, где мутации неизбежны
+ * (setState, Zustand set(), временные объекты для props)
  */
 export const UI_DOMAIN_RULES = {
   ...REACT_RULES,
@@ -565,11 +577,18 @@ export const UI_DOMAIN_RULES = {
     'react-perf/jsx-no-new-array-as-prop': 'error',  // Оптимизация массивов в props
     'react-perf/jsx-no-new-function-as-prop': 'error', // Предотвращение создания функций в render
   } : {}),
+  
+  // Явное отключение FP правил, конфликтующих с React/Zustand
+  ...(functionalPlugin ? {
+    'functional/immutable-data': 'off', // React setState, Zustand stores требуют мутаций
+  } : {}),
 };
 
 /**
  * Apps Domain Rules - финальные приложения (тонкий слой)
  * Минимальные правила для быстрой разработки PWA
+ * 
+ * ⚠️ FP ПРАВИЛА ОТКЛЮЧЕНЫ: Apps используют React/Zustand, где мутации неизбежны
  */
 export const APPS_DOMAIN_RULES = {
   ...BASE_RULES,
@@ -577,6 +596,11 @@ export const APPS_DOMAIN_RULES = {
   // Таргетированные ослабления для быстрой итерации в apps (production всё равно!)
   '@typescript-eslint/no-explicit-any': ['warn', { ignoreRestArgs: true }], // Разрешить any только в rest args
   'sonarjs/cognitive-complexity': ['warn', 15], // Более мягкие требования для прототипов
+  
+  // Явное отключение FP правил, конфликтующих с React/Zustand
+  ...(functionalPlugin ? {
+    'functional/immutable-data': 'off', // React setState, Zustand stores требуют мутаций
+  } : {}),
 };
 
 // ==================== Общие настройки ESLint ====================

@@ -64,7 +64,7 @@ const CoreRadioComponent = forwardRef<HTMLInputElement, CoreRadioProps>(
         node.focus({ preventScroll: true });
       }, 0);
 
-      hasFocusedRef.current = true; // eslint-disable-line functional/immutable-data
+      hasFocusedRef.current = true;
       return (): void => {
         clearTimeout(id);
       };

@@ -326,7 +326,6 @@ const BreadcrumbsComponent = forwardRef<HTMLElement, AppBreadcrumbsProps>(
       } | undefined
     >(undefined);
 
-    // eslint-disable-next-line functional/immutable-data
     lifecyclePayloadRef.current ??= {
       mount: getBreadcrumbsPayload(
         BreadcrumbsTelemetryAction.Mount,
@@ -390,7 +389,6 @@ const BreadcrumbsComponent = forwardRef<HTMLElement, AppBreadcrumbsProps>(
         emitBreadcrumbsTelemetry(telemetry, currentVisibility ? showPayload : hidePayload);
       }
 
-      // eslint-disable-next-line functional/immutable-data
       prevVisibilityRef.current = currentVisibility;
     }, [policy.telemetryEnabled, policy.isRendered, showPayload, hidePayload, telemetry]);
 
@@ -413,7 +411,6 @@ const BreadcrumbsComponent = forwardRef<HTMLElement, AppBreadcrumbsProps>(
   },
 );
 
-// eslint-disable-next-line functional/immutable-data
 BreadcrumbsComponent.displayName = 'Breadcrumbs';
 
 /**

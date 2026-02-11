@@ -19,7 +19,6 @@ vi.mock('../../../../ui-core/src/primitives/dialog', () => ({
   Dialog: ({ children, onBackdropClick, onEscape, ...props }: any) => {
     // Add global keydown listener for Escape when component mounts
     if (onEscape != null) {
-      // eslint-disable-next-line @typescript-eslint/prefer-readonly-parameter-types
       const handleKeyDown = (e: KeyboardEvent) => {
         if (e.key === 'Escape') {
           onEscape();

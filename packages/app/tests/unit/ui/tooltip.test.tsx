@@ -10,7 +10,6 @@ import '@testing-library/jest-dom/vitest';
 
 // Mock для Core Tooltip - возвращаем простой div, но фильтруем внутренние пропсы
 vi.mock('../../../../ui-core/src/primitives/tooltip', () => ({
-  // eslint-disable-next-line @typescript-eslint/prefer-readonly-parameter-types
   Tooltip: ({
     'data-testid': testId,
     visible,

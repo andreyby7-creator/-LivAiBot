@@ -67,7 +67,6 @@ function omit<T extends Record<string, unknown>, K extends readonly string[]>(
 ): Omit<T, K[number]> {
   const result = { ...obj };
   for (const key of keys) {
-    // eslint-disable-next-line functional/immutable-data
     delete result[key];
   }
   return result;
@@ -244,7 +243,7 @@ const ToggleComponent = forwardRef<HTMLInputElement, AppToggleProps>(
     const checkedRef = useRef<boolean>(checked ?? defaultChecked);
 
     // Синхронизируем ref с актуальным значением checked для telemetry
-    // eslint-disable-next-line functional/immutable-data
+
     checkedRef.current = checked ?? defaultChecked;
 
     /** Безопасная пересылка ref */
@@ -268,14 +267,14 @@ const ToggleComponent = forwardRef<HTMLInputElement, AppToggleProps>(
     /** Синхронизация checked для безопасности concurrent rendering */
     useEffect(() => {
       if (internalRef.current) {
-        internalRef.current.checked = Boolean(checked); // eslint-disable-line functional/immutable-data
+        internalRef.current.checked = Boolean(checked);
       }
     }, [checked]);
 
     /** Синхронизация indeterminate для безопасности concurrent rendering */
     useEffect(() => {
       if (internalRef.current) {
-        internalRef.current.indeterminate = Boolean(indeterminate); // eslint-disable-line functional/immutable-data
+        internalRef.current.indeterminate = Boolean(indeterminate);
       }
     }, [indeterminate]);
 

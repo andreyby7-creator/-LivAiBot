@@ -443,7 +443,7 @@ const LanguageSelectorComponent = forwardRef<LanguageSelectorElement, AppLanguag
       }
 
       // Обновляем ref для стабильного сравнения
-      // eslint-disable-next-line functional/immutable-data
+
       lastIsOpenRef.current = nextIsOpen;
     }, [isOpen, isControlled, onOpenChange, setInternalIsOpen, policy, telemetryProps, telemetry]);
 
@@ -489,7 +489,6 @@ const LanguageSelectorComponent = forwardRef<LanguageSelectorElement, AppLanguag
 
     const lifecyclePayloadRef = useRef<LifecyclePayload | null>(null);
 
-    // eslint-disable-next-line functional/immutable-data
     lifecyclePayloadRef.current ??= {
       mount: getLanguageSelectorPayload(
         LanguageSelectorTelemetryAction.Mount,
@@ -735,7 +734,6 @@ const LanguageSelectorComponent = forwardRef<LanguageSelectorElement, AppLanguag
   },
 );
 
-// eslint-disable-next-line functional/immutable-data
 LanguageSelectorComponent.displayName = 'LanguageSelector';
 
 /**

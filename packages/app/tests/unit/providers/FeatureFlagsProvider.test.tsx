@@ -60,7 +60,6 @@ describe('FeatureFlagsProvider', () => {
   });
 
   it('returns overridden value and clears overrides', () => {
-    // eslint-disable-next-line @typescript-eslint/prefer-readonly-parameter-types
     const wrapper = ({ children }: { children: React.ReactNode; }) => (
       <FeatureFlagsProvider initialFlags={{ [FLAG_A]: true }}>
         {children}

@@ -57,7 +57,7 @@ const CoreSelectComponent = forwardRef<HTMLSelectElement, CoreSelectProps>(
       if (!autoFocus || hasFocusedRef.current || !internalRef.current) return;
 
       internalRef.current.focus({ preventScroll: true });
-      // eslint-disable-next-line functional/immutable-data
+
       hasFocusedRef.current = true;
     }, [autoFocus]);
 

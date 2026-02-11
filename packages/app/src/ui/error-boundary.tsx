@@ -461,7 +461,7 @@ class AppErrorBoundaryInner extends Component<
     // Пересоздаём props только если изменились зависимости (memoization)
     if (!this.cachedCoreProps || depsChanged) {
       // Кэширование в instance переменных допустимо для оптимизации рендеринга
-      // eslint-disable-next-line functional/immutable-data
+
       this.cachedCoreProps = this.createCoreProps(
         children,
         policy,
@@ -470,7 +470,7 @@ class AppErrorBoundaryInner extends Component<
         showStack,
         dataTestId,
       );
-      // eslint-disable-next-line functional/immutable-data
+
       this.cachedPropsDeps = {
         children: currentDeps.children,
         hasError: currentDeps.hasError,

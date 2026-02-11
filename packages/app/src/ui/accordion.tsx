@@ -346,7 +346,6 @@ const AccordionComponent = forwardRef<HTMLDivElement, AppAccordionProps>(
       } | undefined
     >(undefined);
 
-    // eslint-disable-next-line functional/immutable-data
     lifecyclePayloadRef.current ??= {
       mount: getAccordionPayload(AccordionTelemetryAction.Mount, policy, telemetryProps),
       unmount: getAccordionPayload(AccordionTelemetryAction.Unmount, policy, telemetryProps),
@@ -431,7 +430,6 @@ const AccordionComponent = forwardRef<HTMLDivElement, AppAccordionProps>(
 
       emitVisibilityTelemetry(prevVisibility, currentVisibility);
 
-      // eslint-disable-next-line functional/immutable-data
       prevVisibleRef.current = currentVisibility;
     }, [policy.telemetryEnabled, policy.isRendered, emitVisibilityTelemetry]);
 
@@ -486,7 +484,6 @@ const AccordionComponent = forwardRef<HTMLDivElement, AppAccordionProps>(
   },
 );
 
-// eslint-disable-next-line functional/immutable-data
 AccordionComponent.displayName = 'Accordion';
 
 /**

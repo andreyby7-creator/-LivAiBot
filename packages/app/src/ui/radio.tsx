@@ -251,7 +251,7 @@ const RadioComponent = forwardRef<HTMLInputElement, AppRadioProps>(
     // Синхронизация checked для безопасного concurrent rendering
     useEffect(() => {
       if (internalRef.current) {
-        internalRef.current.checked = Boolean(checked); // eslint-disable-line functional/immutable-data
+        internalRef.current.checked = Boolean(checked);
       }
     }, [checked]);
 

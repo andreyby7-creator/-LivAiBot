@@ -76,7 +76,6 @@ function omit<T extends Record<string, unknown>, K extends readonly string[]>(
 ): Omit<T, K[number]> {
   const result = { ...obj };
   for (const key of keys) {
-    // eslint-disable-next-line functional/immutable-data
     delete result[key];
   }
   return result;

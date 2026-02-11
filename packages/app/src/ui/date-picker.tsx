@@ -142,7 +142,6 @@ function omit<T extends Record<string, unknown>, K extends readonly string[]>(
 ): Omit<T, K[number]> {
   const result = { ...obj };
   for (const key of keys) {
-    // eslint-disable-next-line functional/immutable-data
     delete result[key];
   }
   return result;
@@ -263,7 +262,6 @@ function generateCalendar(
       const isDisabled = (minDate !== null && currentDate.isBefore(minDate, 'day'))
         || (maxDate !== null && currentDate.isAfter(maxDate, 'day'));
 
-      // eslint-disable-next-line functional/immutable-data
       week.push({
         date: currentDate.format('YYYY-MM-DD'),
         day: currentDate.date(),
@@ -276,7 +274,6 @@ function generateCalendar(
       currentDate = currentDate.add(1, 'day');
     }
 
-    // eslint-disable-next-line functional/immutable-data
     weeks.push([...week]);
   }
 
@@ -384,7 +381,6 @@ const DatePickerComponent = forwardRef<HTMLDivElement, AppDatePickerProps>(
       } | undefined
     >(undefined);
 
-    // eslint-disable-next-line functional/immutable-data
     lifecyclePayloadRef.current ??= {
       mount: getDatePickerPayload(DatePickerTelemetryAction.Mount, policy, telemetryProps),
       unmount: getDatePickerPayload(DatePickerTelemetryAction.Unmount, policy, telemetryProps),
@@ -399,7 +395,6 @@ const DatePickerComponent = forwardRef<HTMLDivElement, AppDatePickerProps>(
      */
     const policySnapshotRef = useRef<DatePickerPolicy | undefined>(undefined);
 
-    // eslint-disable-next-line functional/immutable-data
     policySnapshotRef.current ??= policy;
 
     const policySnapshot = policySnapshotRef.current;
@@ -467,7 +462,6 @@ const DatePickerComponent = forwardRef<HTMLDivElement, AppDatePickerProps>(
         );
       }
 
-      // eslint-disable-next-line functional/immutable-data
       prevIsOpenRef.current = currentIsOpen;
     }, [policy.telemetryEnabled, isOpen, openPayload, closePayload, telemetry]);
 

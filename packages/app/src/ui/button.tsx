@@ -222,10 +222,7 @@ const ButtonComponent = memo<AppButtonProps>(
   },
 );
 
-/* eslint-disable functional/immutable-data */
 ButtonComponent.displayName = 'Button';
-/* eslint-enable functional/immutable-data */
-
 /**
  * UI-контракт кнопки приложения.
  *

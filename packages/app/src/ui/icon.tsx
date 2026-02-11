@@ -33,7 +33,6 @@ import type {
   UiTelemetryApi,
 } from '../types/ui-contracts.js';
 
-// eslint-disable-next-line functional/immutable-data -- Мутация displayName - безопасная операция для улучшения debugging experience в DevTools
 CoreIcon.displayName = 'CoreIcon';
 
 /* ============================================================================
@@ -158,7 +157,6 @@ function omit<T extends Record<string, unknown>, K extends readonly string[]>(
 ): Omit<T, K[number]> {
   const result = { ...obj };
   for (const key of keys) {
-    // eslint-disable-next-line functional/immutable-data
     delete result[key];
   }
   return result;
@@ -198,13 +196,11 @@ const IconComponent = forwardRef<HTMLElement | null, AppIconProps>(
      * Гарантирует корректную работу ref forwarding даже при серверном рендеринге.
      */
     const setRef = useCallback((element: HTMLElement | null) => {
-      // eslint-disable-next-line functional/immutable-data -- Мутация internalRef.current - безопасная операция для React ref'ов
       internalRef.current = element;
       if (ref) {
         if (typeof ref === 'function') {
           ref(element);
         } else {
-          // eslint-disable-next-line functional/immutable-data -- Мутация ref.current - стандартная операция для React ref forwarding
           ref.current = element;
         }
       }

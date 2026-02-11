@@ -277,7 +277,6 @@ function omit<T extends Record<string, unknown>, K extends readonly string[]>(
 ): Omit<T, K[number]> {
   const result = { ...obj };
   for (const key of keys) {
-    // eslint-disable-next-line functional/immutable-data
     delete result[key];
   }
   return result;
@@ -352,7 +351,6 @@ const SearchBarComponent = forwardRef<HTMLInputElement, AppSearchBarProps>(
       } | undefined
     >(undefined);
 
-    // eslint-disable-next-line functional/immutable-data
     lifecyclePayloadRef.current ??= {
       mount: getSearchBarPayload(SearchBarTelemetryAction.Mount, policy, telemetryProps),
       unmount: getSearchBarPayload(SearchBarTelemetryAction.Unmount, policy, telemetryProps),
@@ -451,7 +449,6 @@ const SearchBarComponent = forwardRef<HTMLInputElement, AppSearchBarProps>(
         emitSearchBarTelemetry(telemetry, currentVisibility ? showPayload : hidePayload);
       }
 
-      // eslint-disable-next-line functional/immutable-data
       prevVisibleRef.current = currentVisibility;
     }, [policy.telemetryEnabled, policy.isRendered, showPayload, hidePayload, telemetry]);
 
@@ -481,7 +478,6 @@ const SearchBarComponent = forwardRef<HTMLInputElement, AppSearchBarProps>(
   },
 );
 
-// eslint-disable-next-line functional/immutable-data
 SearchBarComponent.displayName = 'SearchBar';
 
 /**

@@ -150,7 +150,38 @@ export {
   createAuthService,
 } from './lib/auth-service.js';
 export { appLifecycle } from './lib/app-lifecycle.js';
-export * from './lib/effect-utils.js';
+// Явный экспорт из effect-utils для избежания конфликтов с error-mapping и validation
+export {
+  asApiEffect,
+  createEffectAbortController,
+  type Effect,
+  type EffectAbortController,
+  type EffectContext,
+  type EffectError,
+  type EffectErrorKind,
+  type EffectFn,
+  type EffectLogger,
+  type EffectResult,
+  fail as resultFail,
+  flatMap,
+  isFail,
+  isOk,
+  map as resultMap,
+  mapError as resultMapError,
+  ok as resultOk,
+  pipeEffects,
+  type Result,
+  type RetryPolicy,
+  safeExecute,
+  sleep,
+  TimeoutError,
+  unwrap,
+  unwrapOr,
+  unwrapOrElse,
+  withLogging,
+  withRetry,
+  withTimeout,
+} from './lib/effect-utils.js';
 export * from './lib/error-mapping.js';
 export * from './lib/feature-flags.js';
 // export * from './lib/i18n.js'; // Временно отключен для E2E из-за конфликта с next-intl
@@ -192,7 +223,33 @@ export {
 export * from './lib/sse-client.js';
 export { telemetryBatchCore } from './lib/telemetry.batch-core.js';
 export * from './lib/telemetry.js';
-export * from './lib/validation.js';
+// Явный экспорт из validation для избежания конфликтов с effect-utils
+// ValidationError уже экспортируется из types/errors.js, поэтому не экспортируем из validation
+export {
+  asyncPipe,
+  type AsyncValidator,
+  fail as validationFail,
+  formatFileSize,
+  type FormValidationResult,
+  isNumber,
+  isString,
+  nullable,
+  type ObjectSchema,
+  ok as validationOk,
+  optional,
+  pipe,
+  pipeMany,
+  refine,
+  required,
+  toAsync,
+  validateFileBasic,
+  validateForm,
+  validateObject,
+  type ValidationContext,
+  type ValidationResult,
+  type ValidationSchema,
+  type Validator,
+} from './lib/validation.js';
 export * from './lib/websocket.js';
 
 /* ============================================================================

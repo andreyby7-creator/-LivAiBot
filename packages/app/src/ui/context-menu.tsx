@@ -348,7 +348,6 @@ const ContextMenuComponent = forwardRef<HTMLDivElement, AppContextMenuProps>(
       } | undefined
     >(undefined);
 
-    // eslint-disable-next-line functional/immutable-data
     lifecyclePayloadRef.current ??= {
       mount: getContextMenuPayload(
         ContextMenuTelemetryAction.Mount,
@@ -422,7 +421,6 @@ const ContextMenuComponent = forwardRef<HTMLDivElement, AppContextMenuProps>(
 
       emitVisibilityTelemetry(prevVisibility, currentVisibility);
 
-      // eslint-disable-next-line functional/immutable-data
       prevVisibleRef.current = currentVisibility;
     }, [policy.telemetryEnabled, policy.isRendered, emitVisibilityTelemetry]);
 
@@ -551,7 +549,6 @@ const ContextMenuComponent = forwardRef<HTMLDivElement, AppContextMenuProps>(
   },
 );
 
-// eslint-disable-next-line functional/immutable-data
 ContextMenuComponent.displayName = 'ContextMenu';
 
 /**

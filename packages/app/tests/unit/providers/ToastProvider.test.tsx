@@ -20,7 +20,6 @@ vi.mock('../../../src/providers/TelemetryProvider', () => ({
 import { ToastProvider, useToast } from '../../../src/providers/ToastProvider';
 
 describe('ToastProvider', () => {
-  // eslint-disable-next-line @typescript-eslint/prefer-readonly-parameter-types
   const wrapper = ({ children }: { children: React.ReactNode; }) => (
     <ToastProvider key='test-wrapper'>{children}</ToastProvider>
   );
@@ -88,7 +87,6 @@ describe('ToastProvider', () => {
 
   it('работает с maxToasts ограничением', () => {
     const { result } = renderHook(() => useToast(), {
-      // eslint-disable-next-line @typescript-eslint/prefer-readonly-parameter-types
       wrapper: ({ children }: { children: React.ReactNode; }) => (
         <ToastProvider maxToasts={1}>{children}</ToastProvider>
       ),

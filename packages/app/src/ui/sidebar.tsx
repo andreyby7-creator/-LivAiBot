@@ -291,7 +291,6 @@ const SideBarComponent = forwardRef<HTMLDivElement, AppSideBarProps>(
       } | undefined
     >(undefined);
 
-    // eslint-disable-next-line functional/immutable-data
     lifecyclePayloadRef.current ??= {
       mount: getSideBarPayload(SideBarTelemetryAction.Mount, policy, telemetryProps),
       unmount: getSideBarPayload(SideBarTelemetryAction.Unmount, policy, telemetryProps),
@@ -363,7 +362,6 @@ const SideBarComponent = forwardRef<HTMLDivElement, AppSideBarProps>(
         emitSideBarTelemetry(telemetry, currentVisibility ? showPayload : hidePayload);
       }
 
-      // eslint-disable-next-line functional/immutable-data
       prevVisibleRef.current = currentVisibility;
     }, [policy.telemetryEnabled, policy.isRendered, showPayload, hidePayload, telemetry]);
 
@@ -384,7 +382,6 @@ const SideBarComponent = forwardRef<HTMLDivElement, AppSideBarProps>(
         emitSideBarTelemetry(telemetry, togglePayload);
       }
 
-      // eslint-disable-next-line functional/immutable-data
       prevCollapsedRef.current = currentCollapsed;
     }, [policy, telemetryProps, telemetry]);
 
@@ -410,7 +407,6 @@ const SideBarComponent = forwardRef<HTMLDivElement, AppSideBarProps>(
   },
 );
 
-// eslint-disable-next-line functional/immutable-data
 SideBarComponent.displayName = 'SideBar';
 
 /**

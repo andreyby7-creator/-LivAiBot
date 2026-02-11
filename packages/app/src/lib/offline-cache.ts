@@ -199,7 +199,7 @@ export function createOfflineCache(
           cleanupFetch(namespacedKey);
         });
       }
-      // eslint-disable-next-line functional/immutable-data
+
       delete ongoingFetches[namespacedKey];
     }
   }
@@ -289,16 +289,14 @@ export function createOfflineCache(
           const timeoutId = setTimeout(() => {
             // Fetch уже создан в createFetchPromise, просто убираем timeoutId
             if (namespacedKey in ongoingFetches) {
-              // eslint-disable-next-line functional/immutable-data
               ongoingFetches[namespacedKey] = { promise: fetchPromise };
             }
           }, staleWhileRevalidateDelay);
 
-          // eslint-disable-next-line functional/immutable-data
           ongoingFetches[namespacedKey] = { promise: fetchPromise, timeoutId };
         } else {
           // Запускаем немедленно
-          // eslint-disable-next-line functional/immutable-data
+
           ongoingFetches[namespacedKey] = { promise: fetchPromise };
         }
 
@@ -384,7 +382,7 @@ export function createOfflineCache(
   ): Promise<OfflineCacheResult<T>> {
     try {
       const fetchPromise = createFetchPromise(namespacedKey, fetcher, signal, requestContext);
-      // eslint-disable-next-line functional/immutable-data
+
       ongoingFetches[namespacedKey] = { promise: fetchPromise };
       const value = await fetchPromise;
       const result = createCacheResult(key, value, 'REMOTE', timestamp, undefined, requestContext);
@@ -569,21 +567,18 @@ export function createInMemoryOfflineCacheStore(): OfflineCacheStore {
     },
     set<T>(entry: CacheEntry<T>): Effect<void> {
       return (): Promise<void> => {
-        // eslint-disable-next-line functional/immutable-data
         cache.set(entry.key, freeze(entry));
         return Promise.resolve();
       };
     },
     delete(key: CacheKey): Effect<void> {
       return (): Promise<void> => {
-        // eslint-disable-next-line functional/immutable-data
         cache.delete(key);
         return Promise.resolve();
       };
     },
     clear(): Effect<void> {
       return (): Promise<void> => {
-        // eslint-disable-next-line functional/immutable-data
         cache.clear();
         return Promise.resolve();
       };

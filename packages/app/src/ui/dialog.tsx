@@ -279,7 +279,6 @@ function DialogComponent(props: AppDialogProps): JSX.Element | null {
     */
 
     if (prevOpenRef.current === null) {
-      // eslint-disable-next-line functional/immutable-data
       prevOpenRef.current = policy.open; // intentional side-effect для telemetry
       return;
     }
@@ -287,7 +286,6 @@ function DialogComponent(props: AppDialogProps): JSX.Element | null {
     if (policy.open !== prevOpenRef.current) {
       emitDialogTelemetry(telemetry, policy.open ? 'open' : 'close', policy);
 
-      // eslint-disable-next-line functional/immutable-data
       prevOpenRef.current = policy.open; // intentional side-effect для telemetry
 
       if (policy.open) {

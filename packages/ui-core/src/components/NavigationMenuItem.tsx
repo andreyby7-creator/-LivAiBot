@@ -331,7 +331,6 @@ const CoreNavigationMenuItemComponent = forwardRef<HTMLElement, CoreNavigationMe
   },
 );
 
-// eslint-disable-next-line functional/immutable-data
 CoreNavigationMenuItemComponent.displayName = 'CoreNavigationMenuItem';
 
 /**

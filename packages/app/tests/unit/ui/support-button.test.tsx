@@ -3,8 +3,6 @@
  * @file Тесты для App SupportButton компонента с полным покрытием
  */
 
-/* eslint-disable @typescript-eslint/prefer-readonly-parameter-types -- Для unit-тестов это избыточно. */
-
 import React from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
@@ -917,5 +915,3 @@ describe('App SupportButton', () => {
     });
   });
 });
-
-/* eslint-enable @typescript-eslint/prefer-readonly-parameter-types */

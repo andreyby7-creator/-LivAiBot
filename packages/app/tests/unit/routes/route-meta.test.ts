@@ -51,7 +51,7 @@ describe('routeMeta константа', () => {
     expect(typeof routeMeta).toBe('object');
     expect(Object.keys(routeMeta).length).toBeGreaterThan(0);
 
-    Object.values(routeMeta).forEach((meta: RouteMeta) => { // eslint-disable-line @typescript-eslint/prefer-readonly-parameter-types
+    Object.values(routeMeta).forEach((meta: RouteMeta) => {
       expect(meta).toHaveProperty('name');
       expect(meta).toHaveProperty('authRequired');
       expect(typeof meta.authRequired).toBe('boolean');
@@ -69,7 +69,7 @@ describe('routeMeta константа', () => {
   });
 
   it('все метаданные имеют корректную структуру RouteMeta', () => {
-    Object.values(routeMeta).forEach((meta: RouteMeta) => { // eslint-disable-line @typescript-eslint/prefer-readonly-parameter-types
+    Object.values(routeMeta).forEach((meta: RouteMeta) => {
       expect(typeof meta.name).toBe('string');
       expect(typeof meta.authRequired).toBe('boolean');
 
@@ -590,7 +590,7 @@ describe('Валидация консистентности', () => {
   });
 
   it('все метаданные соответствуют типу RouteMeta', () => {
-    Object.values(routeMeta).forEach((meta: RouteMeta) => { // eslint-disable-line @typescript-eslint/prefer-readonly-parameter-types
+    Object.values(routeMeta).forEach((meta: RouteMeta) => {
       expect(typeof meta.name).toBe('string');
       expect(typeof meta.authRequired).toBe('boolean');
 
@@ -607,7 +607,7 @@ describe('Валидация консистентности', () => {
   it('feature flags валидны и уникальны', () => {
     const allFlags = new Set<string>();
 
-    Object.values(routeMeta).forEach((meta: RouteMeta) => { // eslint-disable-line @typescript-eslint/prefer-readonly-parameter-types
+    Object.values(routeMeta).forEach((meta: RouteMeta) => {
       meta.featureFlags?.forEach((flag) => allFlags.add(flag));
     });
 
@@ -618,7 +618,7 @@ describe('Валидация консистентности', () => {
   });
 
   it('структурная валидация мета-данных', () => {
-    Object.values(routeMeta).forEach((meta: RouteMeta) => { // eslint-disable-line @typescript-eslint/prefer-readonly-parameter-types
+    Object.values(routeMeta).forEach((meta: RouteMeta) => {
       // Проверяем что опциональные поля имеют правильный тип
       if (meta.allowedRoles !== undefined) {
         expect(Array.isArray(meta.allowedRoles)).toBe(true);
@@ -661,7 +661,7 @@ describe('Экспорты модуля', () => {
     expect(typeof routeMeta).toBe('object');
     expect(Object.keys(routeMeta).length).toBeGreaterThan(0);
 
-    Object.values(routeMeta).forEach((meta: RouteMeta) => { // eslint-disable-line @typescript-eslint/prefer-readonly-parameter-types
+    Object.values(routeMeta).forEach((meta: RouteMeta) => {
       expect(meta).toHaveProperty('name');
       expect(meta).toHaveProperty('authRequired');
     });
@@ -719,7 +719,7 @@ describe('Экспорты модуля', () => {
   });
 
   it('routeMeta содержит маршруты со всеми необходимыми свойствами', () => {
-    Object.values(routeMeta).forEach((meta: RouteMeta) => { // eslint-disable-line @typescript-eslint/prefer-readonly-parameter-types
+    Object.values(routeMeta).forEach((meta: RouteMeta) => {
       // Проверяем что все обязательные поля присутствуют
       expect(meta.name).toBeDefined();
       expect(typeof meta.authRequired).toBe('boolean');

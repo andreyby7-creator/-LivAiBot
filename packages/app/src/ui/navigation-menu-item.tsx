@@ -390,7 +390,6 @@ const NavigationMenuItemComponent = forwardRef<
 
     const lifecyclePayloadRef = useRef<LifecyclePayload | null>(null);
 
-    // eslint-disable-next-line functional/immutable-data
     lifecyclePayloadRef.current ??= {
       mount: getNavigationMenuItemPayload(
         NavigationMenuItemTelemetryAction.Mount,
@@ -489,7 +488,6 @@ const NavigationMenuItemComponent = forwardRef<
   },
 );
 
-// eslint-disable-next-line functional/immutable-data
 NavigationMenuItemComponent.displayName = 'NavigationMenuItem';
 
 /**

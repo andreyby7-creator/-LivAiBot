@@ -720,7 +720,7 @@ describe('favicon.ts - Favicon Service', () => {
       const mockNodeList = {
         length: 1,
         item: vi.fn((index: number) => (index === 0 ? existingLink : null)),
-        // eslint-disable-next-line @typescript-eslint/prefer-readonly-parameter-types -- mock для тестирования
+
         forEach: vi.fn((callback: (el: HTMLLinkElement) => void) => {
           callback(existingLink);
         }),

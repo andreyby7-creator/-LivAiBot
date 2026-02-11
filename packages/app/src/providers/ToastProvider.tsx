@@ -154,7 +154,7 @@ function ToastProviderComponent({
     const timeoutId = currentMap.get(id);
     if (timeoutId) {
       globalThis.clearTimeout(timeoutId);
-      // eslint-disable-next-line functional/immutable-data
+
       currentMap.delete(id);
     }
     dispatch({ type: 'REMOVE', id });
@@ -180,7 +180,7 @@ function ToastProviderComponent({
     currentMap.forEach((timeoutId) => {
       globalThis.clearTimeout(timeoutId);
     });
-    // eslint-disable-next-line functional/immutable-data
+
     currentMap.clear();
     dispatch({ type: 'CLEAR' });
     track('Toast clearAll', {});
@@ -194,7 +194,7 @@ function ToastProviderComponent({
     currentMap.forEach((timeoutId, id) => {
       if (!activeIds.has(id)) {
         globalThis.clearTimeout(timeoutId);
-        // eslint-disable-next-line functional/immutable-data
+
         currentMap.delete(id);
       }
     });
@@ -206,7 +206,7 @@ function ToastProviderComponent({
         const timeoutId = globalThis.setTimeout(() => {
           removeToast(toast.id);
         }, duration);
-        // eslint-disable-next-line functional/immutable-data
+
         currentMap.set(toast.id, timeoutId);
       }
     });

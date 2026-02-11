@@ -101,7 +101,7 @@ function createMockPermissions(...permissions: readonly Permission[]): ReadonlyS
 /**
  * Проверяет, что решение является AllowDecision
  */
-// eslint-disable-next-line @typescript-eslint/prefer-readonly-parameter-types
+
 function expectAllow(decision: AuthDecision, expectedReason?: string): void {
   expect(decision.allow).toBe(true);
   if (expectedReason != null) {
@@ -112,7 +112,7 @@ function expectAllow(decision: AuthDecision, expectedReason?: string): void {
 /**
  * Проверяет, что решение является DenyDecision
  */
-// eslint-disable-next-line @typescript-eslint/prefer-readonly-parameter-types
+
 function expectDeny(decision: AuthDecision, expectedReason?: string): void {
   expect(decision.allow).toBe(false);
   if (expectedReason != null) {
@@ -123,7 +123,7 @@ function expectDeny(decision: AuthDecision, expectedReason?: string): void {
 /**
  * Проверяет, что решение содержит определенную ошибку
  */
-// eslint-disable-next-line @typescript-eslint/prefer-readonly-parameter-types
+
 function expectError(decision: AuthDecision, expectedCode: string): void {
   expect(decision.allow).toBe(false);
   if (!decision.allow && decision.error) {

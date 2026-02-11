@@ -100,7 +100,7 @@ function useOfflineCacheBroadcast<T, V extends number>(
 
     try {
       const bc = new BroadcastChannel('offline-cache');
-      // eslint-disable-next-line functional/immutable-data
+
       broadcastRef.current = bc;
 
       const handler = (ev: MessageEvent): void => {
@@ -165,10 +165,9 @@ function mergePartialData<T>(prev: T | undefined, partial: PartialDeep<T>): T {
         const partialValue = (partial as Record<string, unknown>)[key];
         if (partialValue !== undefined) {
           const prevValue = (prev as Record<string, unknown>)[key];
-          // eslint-disable-next-line functional/immutable-data
+
           result[key] = mergePartialData(prevValue, partialValue as PartialDeep<unknown>);
         } else {
-          // eslint-disable-next-line functional/immutable-data
           delete result[key];
         }
       }
@@ -193,13 +192,11 @@ function deepMerge<T>(prev: T | undefined, next: T): T {
     const result = { ...prev } as Record<string, unknown>;
     for (const key in next) {
       if (Object.prototype.hasOwnProperty.call(prev, key)) {
-        // eslint-disable-next-line functional/immutable-data
         result[key] = deepMerge(
           (prev as Record<string, unknown>)[key],
           (next as Record<string, unknown>)[key],
         );
       } else {
-        // eslint-disable-next-line functional/immutable-data
         result[key] = (next as Record<string, unknown>)[key];
       }
     }
@@ -227,14 +224,12 @@ function useThrottledCallback(
 
     if (elapsed < throttleMs) {
       if (timerRef.current) clearTimeout(timerRef.current);
-      // eslint-disable-next-line functional/immutable-data
+
       timerRef.current = setTimeout((): void => {
-        // eslint-disable-next-line functional/immutable-data
         lastCallRef.current = Date.now();
         callback();
       }, throttleMs - elapsed);
     } else {
-      // eslint-disable-next-line functional/immutable-data
       lastCallRef.current = now;
       callback();
     }
@@ -275,7 +270,6 @@ export function useOfflineCache<T, V extends number = number>(
   const isMountedRef = useRef(true);
   useEffect((): () => void => {
     return (): void => {
-      // eslint-disable-next-line functional/immutable-data
       isMountedRef.current = false;
     };
   }, []);
@@ -291,19 +285,15 @@ export function useOfflineCache<T, V extends number = number>(
     () => {
       const options: Record<string, unknown> = {};
       if (ttl !== undefined) {
-        // eslint-disable-next-line functional/immutable-data
         options['ttl'] = ttl;
       }
       if (staleTtl !== undefined) {
-        // eslint-disable-next-line functional/immutable-data
         options['staleTtl'] = staleTtl;
       }
       if (version !== undefined) {
-        // eslint-disable-next-line functional/immutable-data
         options['version'] = version;
       }
       if (context !== undefined) {
-        // eslint-disable-next-line functional/immutable-data
         options['context'] = context;
       }
       return createOfflineCache(store, Object.keys(options).length > 0 ? options : undefined);
@@ -342,7 +332,7 @@ export function useOfflineCache<T, V extends number = number>(
       }));
 
       const controller = new AbortController();
-      // eslint-disable-next-line functional/immutable-data
+
       ongoingFetches.current = { ...ongoingFetches.current, [keyStr]: controller };
 
       try {
@@ -375,7 +365,6 @@ export function useOfflineCache<T, V extends number = number>(
         }));
         onError?.(error);
       } finally {
-        // eslint-disable-next-line functional/immutable-data
         delete ongoingFetches.current[keyStr];
         onLoading?.(false);
       }
@@ -395,7 +384,7 @@ export function useOfflineCache<T, V extends number = number>(
   );
 
   // Устанавливаем ref для инвалидации через broadcast
-  // eslint-disable-next-line functional/immutable-data
+
   scheduleFetchRef.current = scheduleFetch;
 
   useEffect((): void => {
@@ -425,13 +414,13 @@ export function useOfflineCache<T, V extends number = number>(
   const cancel = useCallback((keyStr?: CacheKey): void => {
     if (keyStr !== undefined) {
       ongoingFetches.current[keyStr]?.abort();
-      // eslint-disable-next-line functional/immutable-data
+
       delete ongoingFetches.current[keyStr];
     } else {
       Object.values(ongoingFetches.current).forEach((ctrl: AbortController) => {
         ctrl.abort();
       });
-      // eslint-disable-next-line functional/immutable-data
+
       ongoingFetches.current = {};
     }
   }, []);

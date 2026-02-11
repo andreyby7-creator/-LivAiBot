@@ -267,7 +267,6 @@ const LoadingSpinnerComponent = forwardRef<HTMLDivElement, AppLoadingSpinnerProp
       } | undefined
     >(undefined);
 
-    // eslint-disable-next-line functional/immutable-data
     lifecyclePayloadRef.current ??= {
       mount: getLoadingSpinnerPayload(
         LoadingSpinnerTelemetryAction.Mount,
@@ -335,7 +334,6 @@ const LoadingSpinnerComponent = forwardRef<HTMLDivElement, AppLoadingSpinnerProp
 
       emitVisibilityTelemetry(prevVisibility, currentVisibility);
 
-      // eslint-disable-next-line functional/immutable-data
       prevVisibleRef.current = currentVisibility;
     }, [policy.telemetryEnabled, policy.isRendered, emitVisibilityTelemetry]);
 
@@ -368,7 +366,6 @@ const LoadingSpinnerComponent = forwardRef<HTMLDivElement, AppLoadingSpinnerProp
   },
 );
 
-// eslint-disable-next-line functional/immutable-data
 LoadingSpinnerComponent.displayName = 'LoadingSpinner';
 
 /**

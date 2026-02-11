@@ -10,7 +10,6 @@ import '@testing-library/jest-dom/vitest';
 
 // Mock для Core Badge - возвращаем простой span, но фильтруем внутренние пропсы
 vi.mock('../../../../ui-core/src/primitives/badge', () => ({
-  // eslint-disable-next-line @typescript-eslint/prefer-readonly-parameter-types
   Badge: ({
     'data-testid': testId,
     value,

@@ -6,14 +6,18 @@
  * Архитектурная роль:
  * - Единая точка общения с backend/microservices.
  * - Полная изоляция транспорта (fetch, headers, tokens, errors).
- * - Совместим с Effect-подходом и retry/timeout/cancel логикой.
+ * - Совместим с Effect-подходом и retry/cancel логикой.
  * - Не содержит доменных зависимостей.
+ *
+ * ⚠️ Важно: НЕ устанавливает hard timeout — timeout живет только в orchestrator.
+ * - Поддерживает AbortSignal для cancellation из orchestrator.
+ * - Только HTTP transport (не знает про zod, не делает inline parse).
  *
  * Этот файл — «ворота» между UI/Features и распределённой системой.
  */
 
-import { withLogging, withRetry, withTimeout } from './effect-utils.js';
-import type { EffectError, EffectLogger } from './effect-utils.js';
+import { withLogging, withRetry } from './effect-utils.js';
+import type { EffectContext, EffectError, EffectLogger } from './effect-utils.js';
 import { infoFireAndForget, logFireAndForget } from './telemetry.js';
 import type {
   ApiClientConfig,
@@ -27,7 +31,6 @@ import type {
  * 🧩 Внутренние типы и конфигурации
  * ========================================================================== */
 
-const DEFAULT_TIMEOUT_MS = 15_000;
 const SERVER_ERROR_STATUS_MIN = 500;
 const RETRY_DELAY_MS = 1000;
 
@@ -66,7 +69,6 @@ function createApiLogger(): EffectLogger {
 export type ApiClientOptions = {
   baseUrl: string;
   defaultHeaders?: ApiHeaders;
-  timeoutMs?: number;
   retries?: number;
   fetchImpl?: typeof fetch;
 };
@@ -138,14 +140,12 @@ export function mapHttpError(
 export class ApiClient {
   private readonly baseUrl: string;
   private readonly defaultHeaders: ApiHeaders;
-  private readonly timeoutMs: number;
   private readonly retries: number;
   private readonly fetchImpl: typeof fetch;
 
   constructor(options: ApiClientOptions) {
     this.baseUrl = options.baseUrl;
     this.defaultHeaders = options.defaultHeaders ?? {};
-    this.timeoutMs = options.timeoutMs ?? DEFAULT_TIMEOUT_MS;
     this.retries = options.retries ?? 2;
     this.fetchImpl = options.fetchImpl ?? fetch;
   }
@@ -155,7 +155,10 @@ export class ApiClient {
    * Базовый универсальный HTTP-запрос.
    *
    * Используется всеми методами (get/post/put/delete).
-   * Обёрнут в retry + timeout + tracing.
+   * Обёрнут в retry + tracing.
+   *
+   * ⚠️ Важно: НЕ устанавливает hard timeout — timeout живет только в orchestrator.
+   * Поддерживает AbortSignal для cancellation из orchestrator.
    */
   /* ------------------------------------------------------------------------ */
 
@@ -171,11 +174,14 @@ export class ApiClient {
         method: req.method,
       });
 
+      // Поддержка AbortSignal: из req.signal или из req.context (если это EffectContext)
+      const abortSignal = req.signal ?? (req.context as EffectContext | undefined)?.abortSignal;
+
       const response = await this.fetchImpl(url, {
         method: req.method,
         headers: buildHeaders(this.defaultHeaders, req.headers),
         body: req.body !== undefined ? JSON.stringify(req.body) : null,
-        ...(req.signal && { signal: req.signal }),
+        ...(abortSignal && { signal: abortSignal }),
       });
 
       const data = await parseJsonSafe<TResponse>(response);
@@ -190,25 +196,28 @@ export class ApiClient {
       };
     };
 
-    const retryEffect = withRetry(
-      withTimeout(effect, this.timeoutMs),
-      {
-        retries: this.retries,
-        delayMs: RETRY_DELAY_MS,
-        shouldRetry: (error) => (error as EffectError).retriable ?? false,
-      },
-    );
+    // Только retry, без timeout (timeout только в orchestrator)
+    const retryEffect = withRetry(effect, {
+      retries: this.retries,
+      delayMs: RETRY_DELAY_MS,
+      shouldRetry: (error) => (error as EffectError).retriable ?? false,
+    });
 
     // Добавляем tracing для observability
-    const tracedEffect = withLogging(
-      retryEffect,
-      createApiLogger(),
-      {
-        source: 'ApiClient',
-        description: `${req.method} ${req.url}`,
-        ...(req.context?.traceId != null && { traceId: req.context.traceId }),
-      },
-    );
+    const context: EffectContext = {
+      source: 'ApiClient',
+      description: `${req.method} ${req.url}`,
+      ...(req.context?.traceId != null && { traceId: req.context.traceId }),
+      ...(req.context?.locale != null && { locale: req.context.locale }),
+      ...(req.context?.authToken != null && { authToken: req.context.authToken }),
+      ...(req.context?.platform != null && { platform: req.context.platform }),
+      ...(req.signal && { abortSignal: req.signal }),
+      ...((req.context as EffectContext | undefined)?.abortSignal && {
+        abortSignal: (req.context as EffectContext).abortSignal,
+      }),
+    };
+
+    const tracedEffect = withLogging(retryEffect, createApiLogger(), context);
 
     return tracedEffect();
   }
@@ -286,13 +295,16 @@ export class ApiClient {
 /**
  * Создание стандартного API-клиента приложения.
  * Используется в app layer, DI контейнерах, тестах и сторе.
+ *
+ * ⚠️ Важно: timeoutMs из конфига игнорируется (оставлен для обратной совместимости) —
+ * timeout живет только в orchestrator.
  */
 export function createApiClient(config: ApiClientConfig): ApiClient {
   return new ApiClient({
     baseUrl: config.baseUrl,
     defaultHeaders: config.defaultHeaders ?? {},
-    timeoutMs: config.timeoutMs ?? DEFAULT_TIMEOUT_MS,
     retries: config.retries ?? 2,
     ...(config.fetchImpl && { fetchImpl: config.fetchImpl }),
+    // timeoutMs игнорируется — timeout только в orchestrator
   });
 }

@@ -80,7 +80,7 @@ const CoreToggleComponent = forwardRef<HTMLInputElement, CoreToggleProps>(
         node.focus({ preventScroll: true });
       }, 0);
 
-      hasFocusedRef.current = true; // eslint-disable-line functional/immutable-data
+      hasFocusedRef.current = true;
       return (): void => {
         clearTimeout(id);
       };
@@ -89,7 +89,7 @@ const CoreToggleComponent = forwardRef<HTMLInputElement, CoreToggleProps>(
     /** Indeterminate state management */
     useEffect(() => {
       if (internalRef.current && 'indeterminate' in internalRef.current) {
-        internalRef.current.indeterminate = Boolean(indeterminate); // eslint-disable-line functional/immutable-data
+        internalRef.current.indeterminate = Boolean(indeterminate);
       }
     }, [indeterminate]);
 

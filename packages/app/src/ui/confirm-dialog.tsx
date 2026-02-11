@@ -354,7 +354,6 @@ const ConfirmDialogComponent = forwardRef<HTMLDivElement, AppConfirmDialogProps>
       } | undefined
     >(undefined);
 
-    // eslint-disable-next-line functional/immutable-data
     lifecyclePayloadRef.current ??= {
       mount: getConfirmDialogPayload(ConfirmDialogTelemetryAction.Mount, policy, telemetryProps),
       unmount: getConfirmDialogPayload(
@@ -434,7 +433,6 @@ const ConfirmDialogComponent = forwardRef<HTMLDivElement, AppConfirmDialogProps>
         emitConfirmDialogTelemetry(telemetry, currentVisibility ? showPayload : hidePayload);
       }
 
-      // eslint-disable-next-line functional/immutable-data
       prevVisibleRef.current = currentVisibility;
     }, [policy.telemetryEnabled, policy.isRendered, showPayload, hidePayload, telemetry]);
 
@@ -468,7 +466,6 @@ const ConfirmDialogComponent = forwardRef<HTMLDivElement, AppConfirmDialogProps>
   },
 );
 
-// eslint-disable-next-line functional/immutable-data
 ConfirmDialogComponent.displayName = 'ConfirmDialog';
 
 /**

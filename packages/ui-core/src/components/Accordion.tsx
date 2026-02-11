@@ -265,7 +265,6 @@ const CoreAccordionComponent = forwardRef<HTMLDivElement, CoreAccordionProps>(
   },
 );
 
-// eslint-disable-next-line functional/immutable-data
 CoreAccordionComponent.displayName = 'CoreAccordion';
 
 /**

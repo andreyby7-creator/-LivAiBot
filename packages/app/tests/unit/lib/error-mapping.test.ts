@@ -17,6 +17,7 @@ import {
   getErrorLocale,
   kindToErrorCode,
   mapError,
+  mapErrorBoundaryError,
   setErrorLocale,
 } from '../../../src/lib/error-mapping';
 import type {
@@ -165,7 +166,8 @@ describe('Error Mapping - Enterprise Grade', () => {
         ['auth/login-failed', 'AUTH'],
         ['billing/payment-error', 'BILLING'],
         ['ai/model-timeout', 'AI'],
-        ['system/database-error', undefined], // неизвестный префикс
+        ['system/database-error', 'SYSTEM'], // SYSTEM есть в SERVICES
+        ['unknown/service-error', undefined], // неизвестный префикс
       ];
 
       testCases.forEach(([kind, expectedService]) => {
@@ -201,6 +203,25 @@ describe('Error Mapping - Enterprise Grade', () => {
 
       const result3 = mapError(undefined);
       expect(result3.code).toBe('SYSTEM_UNKNOWN_ERROR');
+    });
+
+    it('должен использовать locale из параметра, глобальную локаль или дефолт ru', () => {
+      // Тест для покрытия ветки locale ?? getErrorLocale() ?? 'ru'
+      setErrorLocale(undefined);
+
+      // Случай 1: переданная локаль
+      const result1 = mapError('error', undefined, 'en');
+      expect(result1.message).toBe('Unknown error');
+
+      // Случай 2: глобальная локаль
+      setErrorLocale('ru');
+      const result2 = mapError('error');
+      expect(result2.message).toBe('Неизвестная ошибка');
+
+      // Случай 3: дефолт ru (нет ни переданной, ни глобальной)
+      setErrorLocale(undefined);
+      const result3 = mapError('error');
+      expect(result3.message).toBe('Неизвестная ошибка');
     });
   });
 
@@ -354,18 +375,23 @@ describe('Error Mapping - Enterprise Grade', () => {
 
       const chainedMapper = chainMappers(mockMapper1, mockMapper2);
 
-      // Проверяем английскую локаль
+      // Проверяем английскую локаль (переданная локаль)
       const resultEn = chainedMapper(createMockError(), undefined, 'en');
       expect(resultEn.message).toBe('Unknown error'); // английское сообщение
 
-      // Проверяем русскую локаль
+      // Проверяем русскую локаль (переданная локаль)
       const resultRu = chainedMapper(createMockError(), undefined, 'ru');
       expect(resultRu.message).toBe('Неизвестная ошибка'); // русское сообщение
 
-      // Проверяем использование глобальной локали
+      // Проверяем использование глобальной локали (locale не передан, используется getErrorLocale())
       setErrorLocale('en');
       const resultGlobal = chainedMapper(createMockError());
       expect(resultGlobal.message).toBe('Unknown error'); // глобальная английская
+
+      // Проверяем дефолт ru (locale не передан, getErrorLocale() возвращает undefined)
+      setErrorLocale(undefined);
+      const resultDefault = chainedMapper(createMockError());
+      expect(resultDefault.message).toBe('Неизвестная ошибка'); // дефолт ru
 
       // Проверяем, что service правильно передается
       const resultWithService = chainedMapper(createMockError(), undefined, 'en', 'AUTH');
@@ -450,6 +476,195 @@ describe('Error Mapping - Enterprise Grade', () => {
       expect(result.details).toEqual(details);
       expect(result.details?.amount).toBe(100);
       expect(result.details?.currency).toBe('USD');
+    });
+  });
+
+  describe('mapError - SYSTEM_VALIDATION_* codes', () => {
+    it('должен поддерживать все SYSTEM_VALIDATION_* коды ошибок', () => {
+      const validationCodes: ServiceErrorCode[] = [
+        'SYSTEM_VALIDATION_REQUEST_SCHEMA_INVALID',
+        'SYSTEM_VALIDATION_RESPONSE_SCHEMA_INVALID',
+        'SYSTEM_VALIDATION_REQUEST_PAYLOAD_TOO_LARGE',
+        'SYSTEM_VALIDATION_RESPONSE_PAYLOAD_TOO_LARGE',
+        'SYSTEM_VALIDATION_REQUEST_HEADERS_INVALID',
+        'SYSTEM_VALIDATION_RESPONSE_HEADERS_INVALID',
+        'SYSTEM_VALIDATION_SCHEMA_VERSION_MISMATCH',
+        'SYSTEM_VALIDATION_TIMEOUT_EXCEEDED',
+      ];
+
+      validationCodes.forEach((code) => {
+        const error = createMockTaggedError(code);
+        const result = mapError(error, undefined, 'en');
+
+        expect(result.code).toBe(code);
+        expect(result.message).toBeTruthy();
+        expect(typeof result.message).toBe('string');
+        expect(result.message.length).toBeGreaterThan(0);
+      });
+    });
+
+    it('должен локализовать все SYSTEM_VALIDATION_* сообщения на en и ru', () => {
+      const testCases: [ServiceErrorCode, string, string][] = [
+        [
+          'SYSTEM_VALIDATION_REQUEST_SCHEMA_INVALID',
+          'Request schema validation failed',
+          'Ошибка валидации схемы запроса',
+        ],
+        [
+          'SYSTEM_VALIDATION_RESPONSE_SCHEMA_INVALID',
+          'Response schema validation failed',
+          'Ошибка валидации схемы ответа',
+        ],
+        [
+          'SYSTEM_VALIDATION_REQUEST_PAYLOAD_TOO_LARGE',
+          'Request payload too large',
+          'Размер запроса превышает допустимый',
+        ],
+        [
+          'SYSTEM_VALIDATION_RESPONSE_PAYLOAD_TOO_LARGE',
+          'Response payload too large',
+          'Размер ответа превышает допустимый',
+        ],
+        [
+          'SYSTEM_VALIDATION_REQUEST_HEADERS_INVALID',
+          'Request headers validation failed',
+          'Ошибка валидации заголовков запроса',
+        ],
+        [
+          'SYSTEM_VALIDATION_RESPONSE_HEADERS_INVALID',
+          'Response headers validation failed',
+          'Ошибка валидации заголовков ответа',
+        ],
+        [
+          'SYSTEM_VALIDATION_SCHEMA_VERSION_MISMATCH',
+          'Schema version mismatch',
+          'Несовпадение версии схемы',
+        ],
+        [
+          'SYSTEM_VALIDATION_TIMEOUT_EXCEEDED',
+          'Validation timeout exceeded',
+          'Превышено время ожидания валидации',
+        ],
+      ];
+
+      testCases.forEach(([code, enMessage, ruMessage]) => {
+        const error = createMockTaggedError(code);
+
+        const resultEn = mapError(error, undefined, 'en');
+        expect(resultEn.message).toBe(enMessage);
+
+        const resultRu = mapError(error, undefined, 'ru');
+        expect(resultRu.message).toBe(ruMessage);
+      });
+    });
+  });
+
+  describe('mapErrorBoundaryError', () => {
+    it('должен маппить Network ошибки', () => {
+      const error = new Error('Network request failed');
+      const result = mapErrorBoundaryError(error);
+
+      expect(result.type).toBe('UnknownError');
+      if (result.type === 'UnknownError') {
+        expect(result.severity).toBe('error');
+        expect(result.message).toBe('Network request failed');
+        expect(result.original).toBe(error);
+        expect(result.timestamp).toBeTruthy();
+      }
+    });
+
+    it('должен маппить Validation ошибки', () => {
+      const error = new Error('Validation failed');
+      const result = mapErrorBoundaryError(error);
+
+      expect(result.type).toBe('UnknownError');
+      if (result.type === 'UnknownError') {
+        expect(result.message).toBe('Validation failed');
+      }
+    });
+
+    it('должен маппить fetch ошибки как Network', () => {
+      const error = new Error('fetch error occurred');
+      const result = mapErrorBoundaryError(error);
+
+      expect(result.type).toBe('UnknownError');
+      if (result.type === 'UnknownError') {
+        expect(result.message).toBe('fetch error occurred');
+      }
+    });
+
+    it('должен маппить validation ошибки (case insensitive)', () => {
+      const error = new Error('VALIDATION error');
+      const result = mapErrorBoundaryError(error);
+
+      expect(result.type).toBe('UnknownError');
+      if (result.type === 'UnknownError') {
+        expect(result.message).toBe('VALIDATION error');
+      }
+    });
+
+    it('должен маппить неизвестные ошибки как UNKNOWN_ERROR', () => {
+      const error = new Error('Some other error');
+      const result = mapErrorBoundaryError(error);
+
+      expect(result.type).toBe('UnknownError');
+      if (result.type === 'UnknownError') {
+        expect(result.message).toBe('Some other error');
+      }
+    });
+
+    it('должен логировать ошибку когда telemetry включена', async () => {
+      const error = new Error('Test error');
+      const telemetryModule = await import('../../../src/lib/telemetry');
+      const errorFireAndForgetSpy = vi.spyOn(telemetryModule, 'errorFireAndForget');
+
+      mapErrorBoundaryError(error, true);
+
+      expect(errorFireAndForgetSpy).toHaveBeenCalledWith(
+        'ErrorBoundary error mapped',
+        expect.objectContaining({
+          originalErrorType: 'Error',
+          mappedErrorCode: expect.any(String),
+          errorMessage: 'Test error',
+        }),
+      );
+
+      errorFireAndForgetSpy.mockRestore();
+    });
+
+    it('не должен логировать ошибку когда telemetry выключена', async () => {
+      const error = new Error('Test error');
+      const telemetryModule = await import('../../../src/lib/telemetry');
+      const errorFireAndForgetSpy = vi.spyOn(telemetryModule, 'errorFireAndForget');
+
+      mapErrorBoundaryError(error, false);
+
+      expect(errorFireAndForgetSpy).not.toHaveBeenCalled();
+
+      errorFireAndForgetSpy.mockRestore();
+    });
+
+    it('должен обрабатывать ошибки telemetry gracefully', async () => {
+      const error = new Error('Test error');
+      const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      const telemetryModule = await import('../../../src/lib/telemetry');
+      const errorFireAndForgetSpy = vi
+        .spyOn(telemetryModule, 'errorFireAndForget')
+        .mockImplementation(() => {
+          throw new Error('Telemetry error');
+        });
+
+      // Не должно бросить исключение
+      const result = mapErrorBoundaryError(error, true);
+
+      expect(result).toBeTruthy();
+      expect(consoleWarnSpy).toHaveBeenCalledWith(
+        'ErrorBoundary mapping telemetry failed:',
+        expect.any(Error),
+      );
+
+      errorFireAndForgetSpy.mockRestore();
+      consoleWarnSpy.mockRestore();
     });
   });
 });

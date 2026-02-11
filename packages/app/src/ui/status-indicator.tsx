@@ -285,7 +285,6 @@ const StatusIndicatorComponent = forwardRef<
     } | undefined
   >(undefined);
 
-  // eslint-disable-next-line functional/immutable-data
   lifecyclePayloadRef.current ??= {
     mount: getStatusIndicatorPayloadBase(StatusIndicatorTelemetryAction.Mount),
     unmount: getStatusIndicatorPayloadBase(
@@ -316,7 +315,7 @@ const StatusIndicatorComponent = forwardRef<
 
     if (wasRendered === undefined) {
       // Первый рендер - telemetry отправляется только после mount через lifecycle effect
-      // eslint-disable-next-line functional/immutable-data
+
       previousIsRenderedRef.current = isRendered;
       return;
     }
@@ -328,7 +327,6 @@ const StatusIndicatorComponent = forwardRef<
       );
     }
 
-    // eslint-disable-next-line functional/immutable-data
     previousIsRenderedRef.current = isRendered;
   }, [policy.isRendered, policy.telemetryEnabled, getStatusIndicatorPayloadBase, telemetry]);
 
@@ -345,7 +343,7 @@ const StatusIndicatorComponent = forwardRef<
 
     if (previousStatus === undefined) {
       // Первый рендер - не отправляем status-change
-      // eslint-disable-next-line functional/immutable-data
+
       previousStatusRef.current = currentStatus;
       return;
     }
@@ -359,7 +357,6 @@ const StatusIndicatorComponent = forwardRef<
       );
     }
 
-    // eslint-disable-next-line functional/immutable-data
     previousStatusRef.current = currentStatus;
   }, [
     status,
@@ -408,7 +405,6 @@ const StatusIndicatorComponent = forwardRef<
   return <CoreStatusIndicator ref={ref} {...coreStatusIndicatorProps} />;
 });
 
-// eslint-disable-next-line functional/immutable-data
 StatusIndicatorComponent.displayName = 'StatusIndicator';
 
 /**

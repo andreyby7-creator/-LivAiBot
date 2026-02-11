@@ -172,7 +172,7 @@ export function useAuth(options?: {
         }
       } finally {
         actions.setAuthLoading(false);
-        // eslint-disable-next-line functional/immutable-data
+
         refreshPromiseRef.current = null;
       }
     },
@@ -307,9 +307,8 @@ export function useAuth(options?: {
     }
 
     // Создаем Promise для ожидания компонентами
-    // eslint-disable-next-line functional/immutable-data
+
     refreshPromiseRef.current = performRefresh(refreshToken, false).finally(() => {
-      // eslint-disable-next-line functional/immutable-data
       refreshPromiseRef.current = null;
       // Сообщаем другим вкладкам об окончании refresh
       if (refreshChannelRef.current) {
@@ -351,9 +350,8 @@ export function useAuth(options?: {
     }
 
     // Создаем Promise для ожидания компонентами
-    // eslint-disable-next-line functional/immutable-data
+
     refreshPromiseRef.current = performRefresh(refreshToken, true).finally(() => {
-      // eslint-disable-next-line functional/immutable-data
       refreshPromiseRef.current = null;
     });
 
@@ -375,20 +373,18 @@ export function useAuth(options?: {
   useEffect(() => {
     // Создаем BroadcastChannel для координации refresh между вкладками
     try {
-      // eslint-disable-next-line functional/immutable-data
       refreshChannelRef.current = new BroadcastChannel('auth-refresh-channel');
 
-      // eslint-disable-next-line functional/immutable-data
       refreshChannelRef.current.onmessage = (event: MessageEvent): void => {
         const data = event.data as { type: string; tabId: string; };
 
         if (data.type === 'refresh-started' && data.tabId !== window.location.href) {
           // Другая вкладка начала refresh - ждем
-          // eslint-disable-next-line functional/immutable-data
+
           isCrossTabLockedRef.current = true;
         } else if (data.type === 'refresh-finished' && data.tabId !== window.location.href) {
           // Другая вкладка закончила refresh - можно продолжать
-          // eslint-disable-next-line functional/immutable-data
+
           isCrossTabLockedRef.current = false;
         }
       };
@@ -400,7 +396,7 @@ export function useAuth(options?: {
     return (): void => {
       if (refreshChannelRef.current) {
         refreshChannelRef.current.close();
-        // eslint-disable-next-line functional/immutable-data
+
         refreshChannelRef.current = null;
       }
     };
@@ -411,7 +407,7 @@ export function useAuth(options?: {
     // Очищаем предыдущий таймер
     if (refreshTimeoutRef.current) {
       clearTimeout(refreshTimeoutRef.current);
-      // eslint-disable-next-line functional/immutable-data
+
       refreshTimeoutRef.current = null;
     }
 
@@ -426,7 +422,6 @@ export function useAuth(options?: {
       if (timeToExpiry > 0 && timeToExpiry <= EXPIRING_SOON_THRESHOLD_MS) {
         const refreshDelay = Math.max(1000, timeToExpiry - EARLY_REFRESH_MS); // Refresh за 1 мин до истечения, минимум 1 сек
 
-        // eslint-disable-next-line functional/immutable-data
         refreshTimeoutRef.current = setTimeout(() => {
           silentRefresh().catch(() => {
             // Тихий refresh - игнорируем ошибки
@@ -439,7 +434,7 @@ export function useAuth(options?: {
     return (): void => {
       if (refreshTimeoutRef.current) {
         clearTimeout(refreshTimeoutRef.current);
-        // eslint-disable-next-line functional/immutable-data
+
         refreshTimeoutRef.current = null;
       }
     };

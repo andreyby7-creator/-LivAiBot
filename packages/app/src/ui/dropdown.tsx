@@ -284,7 +284,6 @@ const DropdownComponent = forwardRef<HTMLDivElement, AppDropdownProps>(
       } | undefined
     >(undefined);
 
-    // eslint-disable-next-line functional/immutable-data
     lifecyclePayloadRef.current ??= {
       mount: getDropdownPayload(
         DropdownTelemetryAction.Mount,
@@ -349,7 +348,6 @@ const DropdownComponent = forwardRef<HTMLDivElement, AppDropdownProps>(
 
       emitVisibilityTelemetry(prevVisibility, currentVisibility);
 
-      // eslint-disable-next-line functional/immutable-data
       prevVisibleRef.current = currentVisibility;
     }, [policy.telemetryEnabled, policy.isRendered, emitVisibilityTelemetry]);
 
@@ -454,7 +452,6 @@ const DropdownComponent = forwardRef<HTMLDivElement, AppDropdownProps>(
   },
 );
 
-// eslint-disable-next-line functional/immutable-data
 DropdownComponent.displayName = 'Dropdown';
 
 /**

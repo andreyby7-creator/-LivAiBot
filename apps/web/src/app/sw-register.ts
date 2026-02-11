@@ -216,11 +216,9 @@ export async function registerServiceWorker(): Promise<void> {
         }
       };
 
-      // eslint-disable-next-line functional/immutable-data
       newWorker.onstatechange = handleStateChange;
     };
 
-    // eslint-disable-next-line functional/immutable-data
     registration.onupdatefound = handleUpdateFound;
   } catch (error: unknown) {
     // eslint-disable-next-line no-console

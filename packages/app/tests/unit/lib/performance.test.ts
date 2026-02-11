@@ -166,7 +166,7 @@ function createMockCrypto(): Crypto {
 /**
  * Настраивает глобальное окружение для тестов
  */
-// eslint-disable-next-line @typescript-eslint/prefer-readonly-parameter-types
+
 function setupTestEnvironment(mockWindow?: Window, mockCrypto?: Crypto): void {
   if (mockWindow) {
     vi.stubGlobal('window', mockWindow);

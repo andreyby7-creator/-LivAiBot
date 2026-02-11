@@ -255,7 +255,6 @@ const CoreTabsComponent = forwardRef<HTMLDivElement, CoreTabsProps>(
   },
 );
 
-// eslint-disable-next-line functional/immutable-data
 CoreTabsComponent.displayName = 'CoreTabs';
 
 /**

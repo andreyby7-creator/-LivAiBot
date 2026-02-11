@@ -30,13 +30,11 @@ const generateSecret = (length: number = SECRET_MIN_LENGTH): string =>
 // Dev: генерируем секреты если не заданы
 if (process.env.NODE_ENV === 'development') {
   if (process.env['NEXTAUTH_SECRET'] === undefined || process.env['NEXTAUTH_SECRET'] === '') {
-    // eslint-disable-next-line functional/immutable-data
     Object.assign(process.env, { NEXTAUTH_SECRET: generateSecret() });
     // eslint-disable-next-line no-console
     console.warn('⚠️ NEXTAUTH_SECRET автоматически сгенерирован для DEV. Не использовать в PROD!');
   }
   if (process.env['JWT_SECRET'] === undefined || process.env['JWT_SECRET'] === '') {
-    // eslint-disable-next-line functional/immutable-data
     Object.assign(process.env, { JWT_SECRET: generateSecret() });
     // eslint-disable-next-line no-console
     console.warn('⚠️ JWT_SECRET автоматически сгенерирован для DEV. Не использовать в PROD!');
@@ -132,7 +130,6 @@ if (process.env.NODE_ENV === 'development') {
         const match = line.match(/^\s*([\w_]+)\s*=/);
         const key = match?.[1];
         if (key !== undefined && key !== '') {
-          // eslint-disable-next-line functional/immutable-data
           Object.assign(localEnv, { [key]: line });
         }
       });

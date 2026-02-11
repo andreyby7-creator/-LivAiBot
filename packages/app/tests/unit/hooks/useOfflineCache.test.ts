@@ -13,9 +13,9 @@ class MockBroadcastChannel {
   addEventListener = vi.fn();
   removeEventListener = vi.fn();
   close = vi.fn();
-  // eslint-disable-next-line @typescript-eslint/prefer-readonly-parameter-types
+
   onmessage: ((this: BroadcastChannel, ev: MessageEvent) => any) | null = null;
-  // eslint-disable-next-line @typescript-eslint/prefer-readonly-parameter-types
+
   onmessageerror: ((this: BroadcastChannel, ev: MessageEvent) => any) | null = null;
   dispatchEvent = vi.fn();
 }

@@ -36,7 +36,6 @@ const createStorageMock = () => {
   };
 };
 /* eslint-enable fp/no-mutation, security/detect-object-injection */
-
 // Import everything
 import {
   authStoreVersion,
@@ -89,7 +88,6 @@ import type {
 const createISODateString = (): string => '2026-01-01T00:00:00.000Z';
 
 // Для discriminated union нужно правильно создавать объекты
-/* eslint-disable @typescript-eslint/prefer-readonly-parameter-types -- Тестовые helper функции */
 /* eslint-disable @livai/rag/context-leakage -- Тестовые helper функции, не используются в production */
 const createAuthenticatedState = (overrides: Readonly<Partial<AuthState>>): AuthState => ({
   status: 'authenticated',
@@ -157,8 +155,6 @@ const getStateCreator = (
     // eslint-disable-next-line security/detect-object-injection -- status проверен через type guard, безопасный доступ к Record с известными ключами
     : STATE_CREATOR_MAP[status];
 };
-/* eslint-enable @livai/rag/context-leakage */
-
 const createMockAuthState = (
   overrides: Readonly<Partial<AuthState>> = {},
 ): AuthState => {
@@ -166,8 +162,6 @@ const createMockAuthState = (
   const creator = getStateCreator(status);
   return creator ? creator(overrides) : ({ status: 'unauthenticated', ...overrides } as AuthState);
 };
-/* eslint-enable @typescript-eslint/prefer-readonly-parameter-types */
-
 const createMockMfaState = (overrides: Partial<MfaState> = {}): MfaState => {
   const base: MfaState = { status: 'not_setup' };
   return { ...base, ...overrides } as MfaState;
@@ -183,7 +177,6 @@ const createMockSecurityState = (overrides: Partial<SecurityState> = {}): Securi
   return { ...base, ...overrides } as SecurityState;
 };
 
-/* eslint-disable @livai/rag/context-leakage -- Тестовые данные для unit тестов, не используются в production */
 const createMockSessionState = (overrides: Partial<SessionState> = {}): SessionState => {
   const base: SessionState = {
     status: 'active',
@@ -194,7 +187,6 @@ const createMockSessionState = (overrides: Partial<SessionState> = {}): SessionS
   return { ...base, ...overrides } as SessionState;
 };
 /* eslint-enable @livai/rag/context-leakage */
-
 const createMockPasswordRecoveryState = (
   overrides: Partial<PasswordRecoveryState> = {},
 ): PasswordRecoveryState => {

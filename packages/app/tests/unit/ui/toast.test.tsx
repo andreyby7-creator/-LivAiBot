@@ -10,7 +10,7 @@ import '@testing-library/jest-dom/vitest';
 
 // Mock для Core Toast - возвращаем простой div
 vi.mock('../../../../ui-core/src/components/Toast', () => ({
-  Toast: ( // eslint-disable-next-line @typescript-eslint/prefer-readonly-parameter-types
+  Toast: (
     { 'data-testid': testId, visible, content, ...props }: Readonly<
       Record<string, unknown> & {
         content?: React.ReactNode;

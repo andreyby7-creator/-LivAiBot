@@ -208,12 +208,12 @@ export const appLifecycle = {
     let bucket = lifecycleHooks.get(event);
     if (!bucket) {
       bucket = new Set();
-      // eslint-disable-next-line functional/immutable-data
+
       lifecycleHooks.set(event, bucket);
     }
 
     const wasAlreadySubscribed = bucket.has(handler);
-    // eslint-disable-next-line functional/immutable-data
+
     bucket.add(handler);
 
     // Логирование повторной подписки в dev-mode
@@ -223,10 +223,8 @@ export const appLifecycle = {
     }
 
     return () => {
-      // eslint-disable-next-line functional/immutable-data
       bucket.delete(handler);
       if (bucket.size === 0) {
-        // eslint-disable-next-line functional/immutable-data
         lifecycleHooks.delete(event);
       }
     };
@@ -236,7 +234,7 @@ export const appLifecycle = {
   resetInternalState(): void {
     isBootstrapped = false;
     isTornDown = false;
-    // eslint-disable-next-line functional/immutable-data
+
     lifecycleHooks.clear();
   },
 };

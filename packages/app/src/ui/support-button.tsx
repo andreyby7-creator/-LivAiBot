@@ -344,7 +344,6 @@ const AppSupportButtonComponent = forwardRef<SupportButtonElement, AppSupportBut
   },
 );
 
-// eslint-disable-next-line functional/immutable-data
 AppSupportButtonComponent.displayName = 'SupportButton';
 
 /**

@@ -60,7 +60,6 @@ function validateFeatureFlags(): void {
   // Собираем все используемые feature flags из routeMeta
   Object.values(routeMeta).forEach((meta) => {
     meta.featureFlags?.forEach((flag) => {
-      // eslint-disable-next-line functional/immutable-data
       usedFlags.add(flag);
     });
   });

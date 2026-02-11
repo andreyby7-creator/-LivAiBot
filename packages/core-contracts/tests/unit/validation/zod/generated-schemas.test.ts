@@ -2,8 +2,6 @@
  * @file Unit тесты для автосгенерированных Zod-схем (generated/*).
  */
 
-/* eslint-disable @typescript-eslint/prefer-readonly-parameter-types -- Для unit-тестов это избыточно. */
-
 import { describe, expect, it } from 'vitest';
 
 import * as auth from '../../../../src/validation/zod/generated/auth.js';
@@ -343,5 +341,3 @@ describe('generated schemas: parse + ошибки', () => {
     expect(conversations.HTTPValidationErrorSchema.safeParse({}).success).toBe(true);
   });
 });
-
-/* eslint-enable @typescript-eslint/prefer-readonly-parameter-types */

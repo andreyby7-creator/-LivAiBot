@@ -213,6 +213,7 @@ apps/web (тонкий композитор)
 6️⃣4️⃣ packages/app/src/lib/auth-service.ts 🟢 — ts+effect — deps: lib/api-client.ts, lib/telemetry.ts, @livai/core-contracts
 6️⃣5️⃣ packages/app/src/lib/route-permissions.ts 🟢 — ts — deps: lib/auth-guard.ts — (декларативная конфигурация: requiresAuth, permissions, roles)
 6️⃣6️⃣ packages/app/src/lib/logger.ts 🟢 — ts — deps: types/common.ts, lib/telemetry.ts
+6️⃣7️⃣ packages/app/src/lib/effect-timeout.ts 🟢 — ts+effect — deps: lib/effect-utils.ts
 
 ✅ App state, provider и hooks
 6️⃣7️⃣ packages/app/src/state/store.ts 🟢 — ts+zustand — deps: types/common.ts

@@ -252,7 +252,6 @@ const TooltipComponent = forwardRef<HTMLDivElement, AppTooltipProps>(
       } | undefined
     >(undefined);
 
-    // eslint-disable-next-line functional/immutable-data
     lifecyclePayloadRef.current ??= {
       mount: getTooltipPayload(TooltipTelemetryAction.Mount, policy),
       unmount: getTooltipPayload(TooltipTelemetryAction.Unmount, policy),
@@ -292,7 +291,6 @@ const TooltipComponent = forwardRef<HTMLDivElement, AppTooltipProps>(
 
       // Инициализируем prevVisibleRef при первом рендере
       if (prevVisibleRef.current === undefined) {
-        // eslint-disable-next-line functional/immutable-data
         prevVisibleRef.current = currentVisibility;
         return;
       }
@@ -304,7 +302,6 @@ const TooltipComponent = forwardRef<HTMLDivElement, AppTooltipProps>(
         );
       }
 
-      // eslint-disable-next-line functional/immutable-data
       prevVisibleRef.current = currentVisibility;
     }, [policy.telemetryEnabled, policy.isRendered, emitVisibilityChange]);
 
@@ -325,7 +322,6 @@ const TooltipComponent = forwardRef<HTMLDivElement, AppTooltipProps>(
   },
 );
 
-// eslint-disable-next-line functional/immutable-data
 TooltipComponent.displayName = 'Tooltip';
 
 /**

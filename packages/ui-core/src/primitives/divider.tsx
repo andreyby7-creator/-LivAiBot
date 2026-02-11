@@ -97,7 +97,6 @@ const CoreDividerComponent = forwardRef<HTMLElement, CoreDividerProps>(
         if (typeof ref === 'function') {
           ref(element);
         } else {
-          // eslint-disable-next-line functional/immutable-data
           ref.current = element;
         }
       }

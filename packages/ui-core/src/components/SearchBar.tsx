@@ -497,7 +497,6 @@ const CoreSearchBarComponent = forwardRef<HTMLInputElement, CoreSearchBarProps>(
   },
 );
 
-// eslint-disable-next-line functional/immutable-data
 CoreSearchBarComponent.displayName = 'CoreSearchBar';
 
 /**

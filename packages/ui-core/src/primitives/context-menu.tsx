@@ -222,7 +222,6 @@ const CoreContextMenuComponent = forwardRef<HTMLDivElement, CoreContextMenuProps
       if (typeof menuRef === 'function') {
         menuRef(refValue);
       } else if ('current' in menuRef) {
-        // eslint-disable-next-line functional/immutable-data
         (menuRef as { current: ContextMenuRef; }).current = refValue;
       }
     }, [menuRef, items, menuId]);

@@ -430,7 +430,6 @@ const CoreFileUploaderComponent = forwardRef<HTMLDivElement, CoreFileUploaderPro
       }
       // Сбрасываем значение input для возможности повторного выбора того же файла
       if (fileInputRef.current !== null) {
-        // eslint-disable-next-line functional/immutable-data
         fileInputRef.current.value = '';
       }
     }, [onChange]);

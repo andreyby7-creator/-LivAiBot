@@ -82,7 +82,7 @@ const CoreCheckboxComponent = forwardRef<HTMLInputElement, CoreCheckboxProps>(
     /** Indeterminate state management */
     useEffect(() => {
       if (internalRef.current && 'indeterminate' in internalRef.current) {
-        internalRef.current.indeterminate = Boolean(indeterminate); // eslint-disable-line functional/immutable-data
+        internalRef.current.indeterminate = Boolean(indeterminate);
       }
     }, [indeterminate]);
 

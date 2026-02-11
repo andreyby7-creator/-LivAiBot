@@ -62,8 +62,10 @@ const FULL_TYPE_AWARE_RULES = {
   '@typescript-eslint/triple-slash-reference': 'error', // Triple slash reference
 
   // 🔴 ЗАЩИТА ОТ МУТАЦИЙ (реальная, не типовая)
+  // ⚠️ ВАЖНО: functional/immutable-data убран из глобальных правил
+  // Применяется только в foundation зоне (см. constants.mjs -> FOUNDATION_RULES)
+  // UI/Apps/тесты имеют явные overrides для отключения
   'no-param-reassign': 'error', // Запрет переприсваивания параметров
-  'functional/immutable-data': 'error', // Запрет мутаций данных
 
   // 🔴 REACT СТРОГИЕ ПРАВИЛА
   'react/jsx-no-useless-fragment': 'error', // Бессмысленные фрагменты
@@ -187,9 +189,7 @@ canaryConfig.push({
     // ...FUNCTIONAL_RULES, // Отключено - пустой объект
     // ...FP_RULES, // Отключено - пустой объект
 
-    // ==================== NEXT.JS ПРАВИЛА ====================
-    '@next/next/no-html-link-for-pages': 'off', // App Router (Next 13+) doesn't use pages/
-  },
+      },
 });
 
 // ==================== DEV-ONLY ФАЙЛЫ: ТАКЖЕ СТРОГИЕ ПРАВИЛА ====================
@@ -241,6 +241,7 @@ canaryConfig.push({
     'import/order': 'off', // Тестовые файлы могут иметь свободный порядок импортов
     'fp/no-unused-expression': 'off', // expect() выражения в тестах - нормальная практика
     'functional/prefer-immutable-types': 'off', // Тесты часто нуждаются в мутабельных данных
+    'functional/immutable-data': 'off', // Тесты используют моки, мутации объектов - нормальная практика
     'ai-security/pii-detection': 'off', // Тестовые данные не являются реальными PII
     ...applySeverityAwareRules(QUALITY_WITH_SEVERITY, 'test'), // explicit-function-return-type: off
   },
@@ -263,19 +264,28 @@ canaryConfig.push({
 });
 
 
-// Отключаем правило Pages Router для Next.js App Router приложений
-canaryConfig.push({
-  files: ['apps/**/*.{ts,tsx,js,jsx}'],
-  rules: {
-    '@next/next/no-html-link-for-pages': 'off', // App Router не использует pages директорию
-  },
-});
 
-// Минимальные исключения для Playwright setup файлов (тестовый код)
+// ==================== EFFECTS / STORES EXCEPTIONS ====================
+// Effects, stores и setup файлы используют императивные паттерны (if, let, мутации)
+// Domain/DTO остаются строгими - это ядро системы
 canaryConfig.push({
-  files: ['config/playwright/global-setup.ts', 'config/playwright/global-teardown.ts'],
+  files: [
+    'packages/feature-*/src/effects/**/*.{ts,tsx}',
+    'packages/feature-*/src/lib/**/*.{ts,tsx}',
+    'packages/feature-*/src/stores/**/*.{ts,tsx}',
+    'packages/app/src/state/**/*.{ts,tsx}',
+    'config/playwright/global-setup.ts',
+    'config/playwright/global-teardown.ts',
+  ],
   rules: {
-    'functional/immutable-data': 'off', // Допустима модификация глобального состояния в setup
+    'functional/immutable-data': 'off',
+    'fp/no-mutation': 'off',
+    'functional/no-let': 'off',
+    'functional/no-conditional-statements': 'off',
+    'functional/no-loop-statements': 'off',
+    'fp/no-throw': 'off',
+    'fp/no-unused-expression': 'off',
+    'functional/prefer-immutable-types': 'off',
   },
 });
 
@@ -299,12 +309,13 @@ canaryConfig.push({
   },
 });
 
+// ==================== NEXT.JS APP ROUTER ====================
 // Next.js App Router: pages/ директории нет по дизайну, поэтому правило создаёт шум
-// Отключаем глобально (не только для apps/*), чтобы не получать предупреждение на старте линта
+// Отключаем глобально, чтобы не получать предупреждение на старте линта
 canaryConfig.push({
   plugins: PLUGINS,
   rules: {
-    '@next/next/no-html-link-for-pages': 'off',
+    '@next/next/no-html-link-for-pages': 'off', // App Router (Next 13+) не использует pages/
   },
 });
 

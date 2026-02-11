@@ -471,7 +471,6 @@ const CoreDropdownComponent = forwardRef<HTMLDivElement, CoreDropdownProps>(
   },
 );
 
-// eslint-disable-next-line functional/immutable-data
 CoreDropdownComponent.displayName = 'CoreDropdown';
 
 /**

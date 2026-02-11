@@ -194,7 +194,6 @@ const DividerComponent = forwardRef<HTMLElement, AppDividerProps>(
       } | undefined
     >(undefined);
 
-    // eslint-disable-next-line functional/immutable-data
     lifecyclePayloadRef.current ??= {
       mount: getDividerPayload(DividerTelemetryAction.Mount, policy, domProps),
       unmount: getDividerPayload(DividerTelemetryAction.Unmount, policy, domProps),
@@ -226,7 +225,6 @@ const DividerComponent = forwardRef<HTMLElement, AppDividerProps>(
   },
 );
 
-// eslint-disable-next-line functional/immutable-data
 DividerComponent.displayName = 'Divider';
 
 /**

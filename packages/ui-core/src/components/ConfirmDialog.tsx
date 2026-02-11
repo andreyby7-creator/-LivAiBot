@@ -229,7 +229,6 @@ const CoreConfirmDialogComponent = forwardRef<HTMLDivElement, CoreConfirmDialogP
   },
 );
 
-// eslint-disable-next-line functional/immutable-data
 CoreConfirmDialogComponent.displayName = 'CoreConfirmDialog';
 
 /**

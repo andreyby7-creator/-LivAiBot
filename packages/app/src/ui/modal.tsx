@@ -270,7 +270,6 @@ const ModalComponent = forwardRef<HTMLDivElement, AppModalProps>(
       } | undefined
     >(undefined);
 
-    // eslint-disable-next-line functional/immutable-data
     lifecyclePayloadRef.current ??= {
       mount: getModalPayload(ModalTelemetryAction.Mount, policy, telemetryProps),
       unmount: getModalPayload(ModalTelemetryAction.Unmount, policy, telemetryProps),
@@ -318,7 +317,6 @@ const ModalComponent = forwardRef<HTMLDivElement, AppModalProps>(
         emitModalTelemetry(telemetry, currentVisibility ? showPayload : hidePayload);
       }
 
-      // eslint-disable-next-line functional/immutable-data
       prevVisibleRef.current = currentVisibility;
     }, [policy.telemetryEnabled, policy.isRendered, showPayload, hidePayload, telemetry]);
 
@@ -342,7 +340,6 @@ const ModalComponent = forwardRef<HTMLDivElement, AppModalProps>(
   },
 );
 
-// eslint-disable-next-line functional/immutable-data
 ModalComponent.displayName = 'Modal';
 
 /**

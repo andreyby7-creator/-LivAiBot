@@ -544,7 +544,6 @@ const CoreLanguageSelectorComponent = forwardRef<HTMLDivElement, CoreLanguageSel
   },
 );
 
-// eslint-disable-next-line functional/immutable-data
 CoreLanguageSelectorComponent.displayName = 'CoreLanguageSelector';
 
 /**

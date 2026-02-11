@@ -80,25 +80,34 @@ devConfigWithRules.push({
     'import/order': 'off', // Тестовые файлы могут иметь свободный порядок импортов
     'fp/no-unused-expression': 'off', // expect() выражения в тестах - нормальная практика
     'functional/prefer-immutable-types': 'off', // Тесты часто нуждаются в мутабельных данных
+    'functional/immutable-data': 'off', // Тесты используют моки, мутации объектов - нормальная практика
     'ai-security/pii-detection': 'off', // Тестовые данные не являются реальными PII
     ...applySeverityAwareRules(QUALITY_WITH_SEVERITY, 'test'), // explicit-function-return-type: off
   },
 });
 
 
-// Отключаем правило Pages Router для Next.js App Router приложений
+// ==================== EFFECTS / STORES EXCEPTIONS ====================
+// Effects, stores и setup файлы используют императивные паттерны (if, let, мутации)
+// Domain/DTO остаются строгими - это ядро системы
 devConfigWithRules.push({
-  files: ['apps/**/*.{ts,tsx,js,jsx}'],
+  files: [
+    'packages/feature-*/src/effects/**/*.{ts,tsx}',
+    'packages/feature-*/src/lib/**/*.{ts,tsx}',
+    'packages/feature-*/src/stores/**/*.{ts,tsx}',
+    'packages/app/src/state/**/*.{ts,tsx}',
+    'config/playwright/global-setup.ts',
+    'config/playwright/global-teardown.ts',
+  ],
   rules: {
-    '@next/next/no-html-link-for-pages': 'off', // App Router не использует pages директорию
-  },
-});
-
-// Минимальные исключения для Playwright setup файлов (тестовый код)
-devConfigWithRules.push({
-  files: ['config/playwright/global-setup.ts', 'config/playwright/global-teardown.ts'],
-  rules: {
-    'functional/immutable-data': 'off', // Допустима модификация глобального состояния в setup
+    'functional/immutable-data': 'off',
+    'fp/no-mutation': 'off',
+    'functional/no-let': 'off',
+    'functional/no-conditional-statements': 'off',
+    'functional/no-loop-statements': 'off',
+    'fp/no-throw': 'off',
+    'fp/no-unused-expression': 'off',
+    'functional/prefer-immutable-types': 'off',
   },
 });
 
@@ -142,6 +151,16 @@ devConfigWithRules.push({
   ],
   rules: {
     '@typescript-eslint/no-explicit-any': 'off',
+  },
+});
+
+// ==================== NEXT.JS APP ROUTER ====================
+// Next.js App Router: pages/ директории нет по дизайну, поэтому правило создаёт шум
+// Отключаем глобально, чтобы не получать предупреждение на старте линта
+devConfigWithRules.push({
+  plugins: PLUGINS,
+  rules: {
+    '@next/next/no-html-link-for-pages': 'off', // App Router (Next 13+) не использует pages/
   },
 });
 

@@ -424,16 +424,13 @@ type PersistedAuthStoreState = Readonly<
  *
  * @returns UseBoundStore для использования в React hooks
  */
-// eslint-disable-next-line functional/prefer-immutable-types -- Zustand типы (UseBoundStore, StoreApi) не поддерживают Immutable - это внешние типы библиотеки
 export function createAuthStore(): UseBoundStore<StoreApi<AuthStore>> {
   return create<AuthStore>()(
     persist(
-      // eslint-disable-next-line functional/prefer-immutable-types -- Zustand subscribeWithSelector возвращает тип, который не поддерживает Immutable
       subscribeWithSelector((set) => ({
         ...createInitialAuthStoreState(),
 
         actions: {
-          /* eslint-disable fp/no-unused-expression */
           // Zustand set() возвращает значение, которое не используется - это известная особенность API Zustand
           setAuthState: (next: ReadonlyDeep<AuthState>): void => {
             set((state: ReadonlyDeep<AuthStore>) => enforceInvariants({ ...state, auth: next }));
@@ -482,7 +479,6 @@ export function createAuthStore(): UseBoundStore<StoreApi<AuthStore>> {
             set(createInitialAuthStoreState());
             return undefined;
           },
-          /* eslint-enable fp/no-unused-expression */
         },
       })),
       {
@@ -490,7 +486,6 @@ export function createAuthStore(): UseBoundStore<StoreApi<AuthStore>> {
         version: authStoreVersion,
         // SSR-safe: используем localStorage только на клиенте (typeof window !== 'undefined')
         // На сервере создаем noop storage для безопасной работы persist middleware
-        // eslint-disable-next-line functional/prefer-immutable-types -- Zustand createJSONStorage возвращает тип, который не поддерживает Immutable - это внешний тип библиотеки
         storage: createJSONStorage(() =>
           typeof window !== 'undefined'
             ? localStorage

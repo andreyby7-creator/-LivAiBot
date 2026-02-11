@@ -108,7 +108,6 @@ export function useToast(): UseToastApi {
 
   useEffect((): () => void => {
     return (): void => {
-      // eslint-disable-next-line functional/immutable-data
       isMountedRef.current = false;
     };
   }, []);

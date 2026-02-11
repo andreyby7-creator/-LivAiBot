@@ -61,7 +61,6 @@ const GLOBAL_CLIENT_KEY = '__telemetryClient';
  */
 const setGlobalClientForDebug = (client: TelemetryClient): void => {
   if (typeof globalThis !== 'undefined') {
-    // eslint-disable-next-line functional/immutable-data
     (globalThis as typeof globalThis & Record<string, unknown>)[GLOBAL_CLIENT_KEY] = client;
   }
 };
@@ -487,7 +486,7 @@ const TelemetryBatchProviderComponent: React.FC<{
     if (currentState.batch.length === 0) return;
 
     const [newState, eventsToFlush] = telemetryBatchCore.flush(currentState);
-    // eslint-disable-next-line functional/immutable-data
+
     batchStateRef.current = newState;
 
     // Отправка всех событий в batch
@@ -509,7 +508,7 @@ const TelemetryBatchProviderComponent: React.FC<{
     }
 
     // Используем чистое ядро для обновления состояния
-    // eslint-disable-next-line functional/immutable-data
+
     batchStateRef.current = telemetryBatchCore.addEvent(
       level,
       message,
@@ -526,10 +525,10 @@ const TelemetryBatchProviderComponent: React.FC<{
     if (timeoutIdRef.current === null) {
       const newTimeoutId = globalThis.setTimeout(() => {
         flushBatch();
-        // eslint-disable-next-line functional/immutable-data
+
         timeoutIdRef.current = null;
       }, flushInterval);
-      // eslint-disable-next-line functional/immutable-data
+
       timeoutIdRef.current = newTimeoutId;
     }
   }, [flushInterval, flushBatch, enabled]);
@@ -539,7 +538,7 @@ const TelemetryBatchProviderComponent: React.FC<{
     return (): void => {
       if (timeoutIdRef.current !== null) {
         globalThis.clearTimeout(timeoutIdRef.current);
-        // eslint-disable-next-line functional/immutable-data
+
         timeoutIdRef.current = null;
         flushBatch();
       }

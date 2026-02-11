@@ -152,17 +152,16 @@ function createLink(icon: IconConfig): HTMLLinkElement {
   const href = icon.version !== undefined && icon.version !== ''
     ? `${icon.url}?v=${icon.version}`
     : icon.url;
-  // eslint-disable-next-line functional/immutable-data -- DOM API требует мутации элементов
+
   Object.assign(link, {
     rel,
     type,
     href,
   });
   if (icon.sizes !== undefined && icon.sizes !== '') {
-    // eslint-disable-next-line functional/immutable-data -- DOM API требует мутации элементов
     link.sizes = icon.sizes;
   }
-  // eslint-disable-next-line functional/immutable-data -- DOM API требует мутации элементов
+
   link.dataset['faviconService'] = 'true';
   return link;
 }
@@ -177,12 +176,12 @@ function createManifestLink(manifest: ManifestConfig): HTMLLinkElement {
   const href = manifest.version !== undefined && manifest.version !== ''
     ? `${manifest.url}?v=${manifest.version}`
     : manifest.url;
-  // eslint-disable-next-line functional/immutable-data -- DOM API требует мутации элементов
+
   Object.assign(link, {
     rel: 'manifest',
     href,
   });
-  // eslint-disable-next-line functional/immutable-data -- DOM API требует мутации элементов
+
   link.dataset['faviconService'] = 'true';
   return link;
 }
@@ -197,13 +196,13 @@ function createSplashLink(splash: SplashConfig): HTMLLinkElement {
   const href = splash.version !== undefined && splash.version !== ''
     ? `${splash.url}?v=${splash.version}`
     : splash.url;
-  // eslint-disable-next-line functional/immutable-data -- DOM API требует мутации элементов
+
   Object.assign(link, {
     rel: 'apple-touch-startup-image',
     media: splash.media,
     href,
   });
-  // eslint-disable-next-line functional/immutable-data -- DOM API требует мутации элементов
+
   link.dataset['faviconService'] = 'true';
   return link;
 }
@@ -518,7 +517,7 @@ export function initFaviconService(config?: FaviconServiceConfig): UnsubscribeFu
   activeSubscriptions.forEach((unsubscribe) => {
     unsubscribe();
   });
-  // eslint-disable-next-line functional/immutable-data -- Set операции необходимы для управления подписками
+
   activeSubscriptions.clear();
 
   // Первоначальная вставка
@@ -533,7 +532,7 @@ export function initFaviconService(config?: FaviconServiceConfig): UnsubscribeFu
       cfg.onError,
       cfg.debug,
     );
-    // eslint-disable-next-line functional/immutable-data -- Set операции необходимы для управления подписками
+
     activeSubscriptions.add(unsubscribe);
     return unsubscribe;
   }
@@ -566,6 +565,6 @@ export function cleanupFaviconService(): void {
   activeSubscriptions.forEach((unsubscribe) => {
     unsubscribe();
   });
-  // eslint-disable-next-line functional/immutable-data -- Set операции необходимы для управления подписками
+
   activeSubscriptions.clear();
 }

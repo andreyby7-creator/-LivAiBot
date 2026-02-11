@@ -158,6 +158,9 @@ export type ApiSchemaConfig<TRequest = unknown, TResponse = unknown> = {
   // Версионирование схем
   readonly schemaVersion?: string | undefined;
   readonly supportedVersions?: readonly string[] | undefined;
+
+  // Strict mode — обязательная валидация для всех effects
+  readonly strictMode?: boolean | undefined;
 };
 
 /* ============================================================================
@@ -174,6 +177,19 @@ export function validateApiRequest<T>(
 ): EffectLib.Effect<T, ApiValidationError, never> {
   return castValidationEffect<T>(
     EffectLib.gen(function*() {
+      // Strict mode: обязательная валидация для всех effects
+      if (config.strictMode === true && config.requestValidator === undefined) {
+        return yield* createApiValidationError(
+          'SYSTEM_VALIDATION_REQUEST_SCHEMA_INVALID',
+          [{
+            code: 'SYSTEM_VALIDATION_REQUEST_SCHEMA_INVALID',
+            field: 'request',
+            message: 'Request validator is required in strict mode',
+          }],
+          context,
+        );
+      }
+
       // 1. Проверяем размер запроса
       if (config.maxRequestSize !== undefined) {
         yield* validateRequestSize(request, config.maxRequestSize, context);
@@ -210,6 +226,19 @@ export function validateApiResponse<T>(
 ): EffectLib.Effect<T, ApiValidationError, never> {
   return castValidationEffect<T>(
     EffectLib.gen(function*() {
+      // Strict mode: обязательная валидация для всех effects
+      if (config.strictMode === true && config.responseValidator === undefined) {
+        return yield* createApiValidationError(
+          'SYSTEM_VALIDATION_RESPONSE_SCHEMA_INVALID',
+          [{
+            code: 'SYSTEM_VALIDATION_RESPONSE_SCHEMA_INVALID',
+            field: 'response',
+            message: 'Response validator is required in strict mode',
+          }],
+          context,
+        );
+      }
+
       // 1. Проверяем размер ответа
       if (config.maxResponseSize !== undefined) {
         yield* validateResponseSize(response, config.maxResponseSize, context);
@@ -519,6 +548,32 @@ function createApiValidationError(
 }
 
 /* ============================================================================
+ * 🔒 STRICT MODE И ENFORCE
+ * ========================================================================== */
+
+/**
+ * Проверяет, что в strict mode валидаторы присутствуют.
+ * Используется для enforce обязательной валидации на уровне инфраструктуры.
+ * @throws Error если в strict mode отсутствуют обязательные валидаторы
+ */
+export function enforceStrictValidation<TRequest = unknown, TResponse = unknown>(
+  config: ApiSchemaConfig<TRequest, TResponse>,
+): void {
+  if (config.strictMode === true) {
+    if (config.requestValidator === undefined) {
+      throw new Error(
+        `Strict mode requires requestValidator for ${config.service} ${config.method} ${config.endpoint}`,
+      );
+    }
+    if (config.responseValidator === undefined) {
+      throw new Error(
+        `Strict mode requires responseValidator for ${config.service} ${config.method} ${config.endpoint}`,
+      );
+    }
+  }
+}
+
+/* ============================================================================
  * 🎯 УТИЛИТЫ ДЛЯ МИКРОСЕРВИСОВ
  * ========================================================================== */
 
@@ -536,6 +591,7 @@ export function createRestApiSchema<TRequest = unknown, TResponse = unknown>(
     maxRequestSize?: number;
     maxResponseSize?: number;
     schemaVersion?: string;
+    strictMode?: boolean;
   } = {},
 ): ApiSchemaConfig<TRequest, TResponse> {
   return {
@@ -548,6 +604,7 @@ export function createRestApiSchema<TRequest = unknown, TResponse = unknown>(
     maxResponseSize: options.maxResponseSize ?? DEFAULT_RESPONSE_SIZE_LIMIT,
     schemaVersion: options.schemaVersion,
     supportedVersions: options.schemaVersion !== undefined ? [options.schemaVersion] : [],
+    strictMode: options.strictMode,
   };
 }
 

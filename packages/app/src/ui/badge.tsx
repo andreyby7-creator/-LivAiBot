@@ -192,7 +192,6 @@ const BadgeComponent = forwardRef<HTMLSpanElement, AppBadgeProps>(
       } | undefined
     >(undefined);
 
-    // eslint-disable-next-line functional/immutable-data
     lifecyclePayloadRef.current ??= {
       mount: {
         component: 'Badge' as const,
@@ -237,7 +236,6 @@ const BadgeComponent = forwardRef<HTMLSpanElement, AppBadgeProps>(
   },
 );
 
-// eslint-disable-next-line functional/immutable-data
 BadgeComponent.displayName = 'Badge';
 
 /**

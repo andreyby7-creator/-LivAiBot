@@ -194,7 +194,6 @@ const AvatarComponent = forwardRef<HTMLDivElement, AppAvatarProps>(
       } | undefined
     >(undefined);
 
-    // eslint-disable-next-line functional/immutable-data
     lifecyclePayloadRef.current ??= {
       mount: {
         component: 'Avatar' as const,
@@ -257,7 +256,7 @@ const AvatarComponent = forwardRef<HTMLDivElement, AppAvatarProps>(
 );
 
 // Устанавливаем displayName для лучшей отладки
-// eslint-disable-next-line functional/immutable-data
+
 AvatarComponent.displayName = 'Avatar';
 
 /**

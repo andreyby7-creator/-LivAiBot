@@ -220,7 +220,7 @@ function resetTestState(): void {
         clearTimeout(timer);
       });
       // Очищаем массив без мутации
-      global.__testTimers = []; // eslint-disable-line functional/immutable-data
+      global.__testTimers = [];
     }
   }
 }
@@ -254,7 +254,7 @@ function saveOriginalProcessListeners(): void {
   eventsToSave.forEach((event) => {
     const listeners = process.listeners(event);
     if (listeners.length > 0) {
-      originalProcessListeners.set( // eslint-disable-line functional/immutable-data
+      originalProcessListeners.set(
         event,
         [...listeners] as Array<(...args: readonly unknown[]) => void>,
       );
@@ -277,7 +277,6 @@ function restoreOriginalProcessListeners(): void {
     });
   });
 
-  // eslint-disable-next-line functional/immutable-data
   originalProcessListeners.clear();
   logDebug('🔄 Restored original process listeners');
 }

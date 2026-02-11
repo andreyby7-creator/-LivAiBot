@@ -447,7 +447,6 @@ const CoreSideBarComponent = forwardRef<HTMLDivElement, CoreSideBarProps>(
   },
 );
 
-// eslint-disable-next-line functional/immutable-data
 CoreSideBarComponent.displayName = 'CoreSideBar';
 
 /**

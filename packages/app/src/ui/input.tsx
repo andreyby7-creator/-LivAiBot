@@ -51,7 +51,6 @@ function omit<T extends Record<string, unknown>, K extends readonly string[]>(
 ): Omit<T, K[number]> {
   const result = { ...obj };
   for (const key of keys) {
-    // eslint-disable-next-line functional/immutable-data
     delete result[key];
   }
   return result;
@@ -186,10 +185,9 @@ const useDebouncedTelemetry = (
         window.clearTimeout(timeoutRef.current);
       }
 
-      // eslint-disable-next-line functional/immutable-data
       timeoutRef.current = window.setTimeout(() => {
         telemetry.infoFireAndForget(message, data);
-        // eslint-disable-next-line functional/immutable-data
+
         timeoutRef.current = undefined;
       }, delay);
     },

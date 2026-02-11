@@ -72,7 +72,6 @@ function omit<T extends Record<string, unknown>, K extends readonly string[]>(
 ): Omit<T, K[number]> {
   const result = { ...obj };
   for (const key of keys) {
-    // eslint-disable-next-line functional/immutable-data
     delete result[key];
   }
   return result;
@@ -703,7 +702,7 @@ const FileUploaderComponent = forwardRef<HTMLDivElement, AppFileUploaderProps>(
     const handleDrop = useCallback(
       (droppedFiles: File[]): void => {
         setIsDragActive(false);
-        // eslint-disable-next-line functional/immutable-data
+
         dragCounterRef.current = 0;
         handleFilesSelected(droppedFiles, FileUploaderTelemetryAction.Drop).catch(() => {
           // Ошибка обрабатывается внутри handleFilesSelected
@@ -718,7 +717,7 @@ const FileUploaderComponent = forwardRef<HTMLDivElement, AppFileUploaderProps>(
       event.stopPropagation();
 
       const newCounter = dragCounterRef.current + 1;
-      // eslint-disable-next-line functional/immutable-data
+
       dragCounterRef.current = newCounter;
       if (newCounter === 1) {
         setIsDragActive(true);
@@ -731,7 +730,7 @@ const FileUploaderComponent = forwardRef<HTMLDivElement, AppFileUploaderProps>(
       event.stopPropagation();
 
       const newCounter = dragCounterRef.current - 1;
-      // eslint-disable-next-line functional/immutable-data
+
       dragCounterRef.current = newCounter;
       if (newCounter === 0) {
         setIsDragActive(false);
@@ -785,7 +784,6 @@ const FileUploaderComponent = forwardRef<HTMLDivElement, AppFileUploaderProps>(
       } | undefined
     >(undefined);
 
-    // eslint-disable-next-line functional/immutable-data
     lifecyclePayloadRef.current ??= {
       mount: {
         ...makeTelemetryBase(policy, files),
@@ -817,7 +815,6 @@ const FileUploaderComponent = forwardRef<HTMLDivElement, AppFileUploaderProps>(
         (f) => f.uploadStatus === 'idle' && !uploadingFilesRef.current.has(f.id),
       );
       for (const fileInfo of idleFiles) {
-        // eslint-disable-next-line functional/immutable-data
         uploadingFilesRef.current.add(fileInfo.id);
         handleFileUpload(fileInfo.id).catch(() => {
           // Ошибка обрабатывается внутри handleFileUpload

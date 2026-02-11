@@ -155,6 +155,13 @@ describe('API Client Utilities', () => {
 
       await expect(parseJsonSafe(response)).rejects.toThrow();
     });
+
+    it('бросает ошибку для пустого тела при ошибочном ответе', async () => {
+      const response = createMockResponse(500, 'Internal Server Error', null);
+      await expect(parseJsonSafe(response)).rejects.toThrow(
+        'Empty response body for error status 500',
+      );
+    });
   });
 
   describe('mapHttpError', () => {
@@ -215,7 +222,6 @@ describe('ApiClient Class', () => {
     client = new ApiClient({
       baseUrl: 'https://api.example.com',
       defaultHeaders: { 'Authorization': 'Bearer token' },
-      timeoutMs: 5000,
       retries: 1,
       fetchImpl: mockFetch,
     });
@@ -261,7 +267,6 @@ describe('ApiClient Class', () => {
       const localClient = new ApiClient({
         baseUrl: 'https://api.example.com',
         defaultHeaders: { 'Authorization': 'Bearer token' },
-        timeoutMs: 5000,
         retries: 1,
         fetchImpl: localMockFetch,
       });
@@ -292,7 +297,6 @@ describe('ApiClient Class', () => {
       const localClient = new ApiClient({
         baseUrl: 'https://api.example.com',
         defaultHeaders: { 'Authorization': 'Bearer token' },
-        timeoutMs: 5000,
         retries: 1,
         fetchImpl: localMockFetch,
       });
@@ -332,7 +336,6 @@ describe('ApiClient Class', () => {
       const errorClient = new ApiClient({
         baseUrl: 'https://api.example.com',
         defaultHeaders: { 'Authorization': 'Bearer token' },
-        timeoutMs: 5000,
         retries: 1,
         fetchImpl: errorMockFetch,
       });
@@ -353,7 +356,6 @@ describe('ApiClient Class', () => {
       const retryClient = new ApiClient({
         baseUrl: 'https://api.example.com',
         defaultHeaders: { 'Authorization': 'Bearer token' },
-        timeoutMs: 5000,
         retries: 1,
         fetchImpl: createMockFetch(() => mockResponse),
       });
@@ -369,20 +371,8 @@ describe('ApiClient Class', () => {
       });
     });
 
-    it('применяет timeout', async () => {
-      // Создаем fetch который никогда не резолвится
-      (mockFetch as any).mockImplementation(() => new Promise(() => {}));
-
-      const timeoutClient = new ApiClient({
-        baseUrl: 'https://api.example.com',
-        timeoutMs: 100, // Очень маленький таймаут
-        fetchImpl: mockFetch,
-      });
-
-      await expect(
-        timeoutClient.request({ method: 'GET', url: '/slow', headers: {} }),
-      ).rejects.toThrow('Effect execution timeout');
-    });
+    // ⚠️ Timeout больше не применяется в api-client — timeout живет только в orchestrator
+    // Тест удален, так как api-client теперь только transport layer без timeout
 
     it('передает custom headers', async () => {
       const mockResponse = createMockResponse(200, 'OK', { data: 'ok' });
@@ -412,7 +402,6 @@ describe('ApiClient Class', () => {
       const errorClient = new ApiClient({
         baseUrl: 'https://api.example.com',
         defaultHeaders: { 'Authorization': 'Bearer token' },
-        timeoutMs: 5000,
         retries: 1,
         fetchImpl: mockFetch,
       });
@@ -590,7 +579,6 @@ describe('createApiClient factory', () => {
     const config: ApiClientConfig = {
       baseUrl: 'https://api.test.com',
       defaultHeaders: { 'Authorization': 'Bearer token' },
-      timeoutMs: 10000,
       retries: 3,
     };
 
@@ -628,19 +616,60 @@ describe('Integration with Effect Utils', () => {
     expect(mockFetch).toHaveBeenCalledTimes(2);
   });
 
-  it('использует withTimeout', async () => {
-    // Создаем медленный fetch
-    const mockFetch = vi.fn().mockImplementation(
-      () => new Promise((resolve) => setTimeout(() => resolve(createMockResponse(200, 'OK')), 200)),
-    );
+  // ⚠️ Timeout больше не применяется в api-client — timeout живет только в orchestrator
+  // Тест удален, так как api-client теперь только transport layer без timeout
+
+  it('поддерживает AbortSignal из req.signal', async () => {
+    const mockResponse = createMockResponse(200, 'OK', { data: 'ok' });
+    const mockFetch = createMockFetch(() => mockResponse);
+    const controller = new AbortController();
 
     const client = new ApiClient({
       baseUrl: 'https://api.example.com',
       fetchImpl: mockFetch,
-      timeoutMs: 100, // Маленький таймаут
     });
 
-    await expect(client.get('/slow')).rejects.toThrow('Effect execution timeout');
+    await client.request({
+      method: 'GET',
+      url: '/test',
+      headers: {},
+      signal: controller.signal,
+    });
+
+    expect(mockFetch).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.objectContaining({
+        signal: controller.signal,
+      }),
+    );
+  });
+
+  it('поддерживает AbortSignal из req.context (EffectContext)', async () => {
+    const mockResponse = createMockResponse(200, 'OK', { data: 'ok' });
+    const mockFetch = createMockFetch(() => mockResponse);
+    const controller = new AbortController();
+
+    const client = new ApiClient({
+      baseUrl: 'https://api.example.com',
+      fetchImpl: mockFetch,
+    });
+
+    await client.request({
+      method: 'GET',
+      url: '/test',
+      headers: {},
+      context: {
+        traceId: 'test-trace',
+        abortSignal: controller.signal,
+      } as any, // EffectContext расширяет ApiRequestContext
+    });
+
+    expect(mockFetch).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.objectContaining({
+        signal: controller.signal,
+      }),
+    );
   });
 
   it('применяет tracing', async () => {

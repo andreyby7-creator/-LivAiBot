@@ -252,7 +252,6 @@ const CoreSupportButtonComponent = forwardRef<HTMLButtonElement, CoreSupportButt
   },
 );
 
-// eslint-disable-next-line functional/immutable-data
 CoreSupportButtonComponent.displayName = 'CoreSupportButton';
 
 /**

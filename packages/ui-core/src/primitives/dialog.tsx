@@ -94,12 +94,10 @@ function CoreDialogComponent(props: Readonly<CoreDialogProps>): JSX.Element | nu
     */
 
     if (!panelRef.current) {
-      // eslint-disable-next-line functional/immutable-data
       focusableElementsRef.current = []; // intentional side-effect для кеширования
       return;
     }
 
-    // eslint-disable-next-line functional/immutable-data
     focusableElementsRef.current = Array.from(panelRef.current.querySelectorAll(
       'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
     )); // intentional side-effect для кеширования
@@ -166,14 +164,13 @@ function CoreDialogComponent(props: Readonly<CoreDialogProps>): JSX.Element | nu
     }
 
     // Сохранить текущий фокус (intentional side-effect для focus management)
-    // eslint-disable-next-line functional/immutable-data
+
     previousFocusRef.current = document.activeElement as HTMLElement | null;
 
     // Предотвратить прокрутку body (со счетчиком модальных окон)
     modalCount++; // intentional side-effect для scroll lock management
     const originalOverflow = document.body.style.overflow;
     if (modalCount === 1) {
-      // eslint-disable-next-line functional/immutable-data
       document.body.style.overflow = 'hidden'; // intentional side-effect для scroll lock
     }
 
@@ -196,7 +193,6 @@ function CoreDialogComponent(props: Readonly<CoreDialogProps>): JSX.Element | nu
         attributeFilter: ['tabindex', 'disabled', 'hidden', 'aria-hidden'],
       });
 
-      // eslint-disable-next-line functional/immutable-data
       mutationObserverRef.current = observer; // intentional side-effect для dynamic content tracking
     }
 
@@ -207,7 +203,6 @@ function CoreDialogComponent(props: Readonly<CoreDialogProps>): JSX.Element | nu
       // Восстановить прокрутку body (со счетчиком модальных окон)
       modalCount = Math.max(0, modalCount - 1);
       if (modalCount === 0) {
-        // eslint-disable-next-line functional/immutable-data
         document.body.style.overflow = originalOverflow;
       }
 
@@ -218,7 +213,6 @@ function CoreDialogComponent(props: Readonly<CoreDialogProps>): JSX.Element | nu
       if (mutationObserverRef.current) {
         mutationObserverRef.current.disconnect();
 
-        // eslint-disable-next-line functional/immutable-data
         mutationObserverRef.current = null; // intentional side-effect для cleanup
       }
 

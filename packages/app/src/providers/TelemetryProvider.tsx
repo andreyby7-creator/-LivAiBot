@@ -152,11 +152,10 @@ function TelemetryProviderComponent({
     if (!enabled || !isClientRef.current) return null;
     if (clientRef.current) return clientRef.current;
     if (isTelemetryInitialized()) {
-      // eslint-disable-next-line functional/immutable-data
       clientRef.current = getGlobalTelemetryClient();
       return clientRef.current;
     }
-    // eslint-disable-next-line functional/immutable-data
+
     clientRef.current = initTelemetry(config);
     return clientRef.current;
   }, [config, enabled]);
@@ -169,7 +168,7 @@ function TelemetryProviderComponent({
     if (!client) return;
 
     const eventsToFlush = [...bufferRef.current];
-    // eslint-disable-next-line functional/immutable-data
+
     bufferRef.current = [];
 
     // Порядок событий сохраняется внутри одного flush batch.
@@ -189,7 +188,7 @@ function TelemetryProviderComponent({
       metadata,
       timestamp: Date.now(),
     });
-    // eslint-disable-next-line functional/immutable-data
+
     bufferRef.current.push(entry);
 
     if (bufferRef.current.length >= effectiveMaxBatchSize) {
@@ -201,7 +200,6 @@ function TelemetryProviderComponent({
     if (!enabled || !isClientRef.current) return undefined;
     ensureClient();
 
-    // eslint-disable-next-line functional/immutable-data
     intervalIdRef.current = globalThis.setInterval(() => {
       flush();
     }, flushIntervalMs);
@@ -209,7 +207,7 @@ function TelemetryProviderComponent({
     return (): void => {
       if (intervalIdRef.current !== null) {
         globalThis.clearInterval(intervalIdRef.current);
-        // eslint-disable-next-line functional/immutable-data
+
         intervalIdRef.current = null;
       }
       flush();

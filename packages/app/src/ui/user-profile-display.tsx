@@ -385,7 +385,6 @@ const UserProfileDisplayComponent = forwardRef<HTMLDivElement, AppUserProfileDis
 
     const lifecyclePayloadRef = useRef<LifecyclePayload | null>(null);
 
-    // eslint-disable-next-line functional/immutable-data
     lifecyclePayloadRef.current ??= {
       mount: getUserProfileDisplayPayload(
         UserProfileDisplayTelemetryAction.Mount,
@@ -434,7 +433,6 @@ const UserProfileDisplayComponent = forwardRef<HTMLDivElement, AppUserProfileDis
         ),
       );
 
-      // eslint-disable-next-line functional/immutable-data
       hasEmittedViewRef.current = true;
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [
@@ -484,7 +482,6 @@ const UserProfileDisplayComponent = forwardRef<HTMLDivElement, AppUserProfileDis
   },
 );
 
-// eslint-disable-next-line functional/immutable-data
 UserProfileDisplayComponent.displayName = 'UserProfileDisplay';
 
 /**

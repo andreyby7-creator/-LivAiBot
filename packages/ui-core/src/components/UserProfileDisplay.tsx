@@ -404,7 +404,6 @@ const CoreUserProfileDisplayComponent = forwardRef<HTMLDivElement, CoreUserProfi
   },
 );
 
-// eslint-disable-next-line functional/immutable-data
 CoreUserProfileDisplayComponent.displayName = 'CoreUserProfileDisplay';
 
 /**

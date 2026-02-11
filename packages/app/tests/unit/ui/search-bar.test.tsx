@@ -36,11 +36,10 @@ vi.mock('../../../../ui-core/src/components/SearchBar', () => ({
     HTMLInputElement,
     React.ComponentProps<'input'> & {
       value?: string;
-      // eslint-disable-next-line @typescript-eslint/prefer-readonly-parameter-types
+
       onChange?: (value: string, event: React.ChangeEvent<HTMLInputElement>) => void;
       onSubmit?: (
         value: string,
-        // eslint-disable-next-line @typescript-eslint/prefer-readonly-parameter-types
         event: React.SubmitEvent<HTMLFormElement> | React.KeyboardEvent<HTMLInputElement>,
       ) => void;
       onClear?: () => void;

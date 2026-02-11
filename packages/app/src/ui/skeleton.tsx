@@ -259,7 +259,6 @@ const SkeletonComponent = forwardRef<HTMLDivElement, AppSkeletonProps>(
       } | undefined
     >(undefined);
 
-    // eslint-disable-next-line functional/immutable-data
     lifecyclePayloadRef.current ??= {
       mount: getSkeletonPayload(
         SkeletonTelemetryAction.Mount,
@@ -308,7 +307,6 @@ const SkeletonComponent = forwardRef<HTMLDivElement, AppSkeletonProps>(
         emitSkeletonTelemetry(telemetry, currentVisibility ? showPayload : hidePayload);
       }
 
-      // eslint-disable-next-line functional/immutable-data
       prevVisibilityRef.current = currentVisibility;
     }, [policy.telemetryEnabled, policy.isRendered, showPayload, hidePayload, telemetry]);
 
@@ -329,7 +327,6 @@ const SkeletonComponent = forwardRef<HTMLDivElement, AppSkeletonProps>(
   },
 );
 
-// eslint-disable-next-line functional/immutable-data
 SkeletonComponent.displayName = 'Skeleton';
 
 /**

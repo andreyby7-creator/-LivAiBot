@@ -10,7 +10,8 @@
  *
  * Используется для:
  * - HTTP / WebSocket / SSE
- * - Retry / Timeout / Cancellation
+ * - Retry / Timeout / Cancellation (AbortSignal propagation)
+ * - Типобезопасная обработка результатов (Result<T, E>)
  * - Tracing / Observability
  * - Унифицированной обработки ошибок
  * - Поддержки микросервисной архитектуры
@@ -31,22 +32,13 @@ import type { ApiError, ApiRequestContext, ApiResponse } from '../types/api.js';
 /* 🧠 БАЗОВЫЕ ТИПЫ ЭФФЕКТОВ */
 /* ========================================================================== */
 
-/**
- * Effect функция без параметров.
- * Когда дойдём до effect-utils — пригодится.
- */
+/** Effect функция без параметров. */
 export type EffectFn<T> = () => EffectLib.Effect<T>;
 
-/**
- * Универсальный эффект.
- * Любая асинхронная операция в системе должна соответствовать этому контракту.
- */
+/** Универсальный эффект. Любая асинхронная операция должна соответствовать этому контракту. */
 export type Effect<T> = (signal?: AbortSignal) => Promise<T>;
 
-/**
- * Контекст выполнения эффекта.
- * Используется для трассировки, логирования и платформенной интеграции.
- */
+/** Контекст выполнения эффекта для трассировки, логирования и платформенной интеграции. */
 export type EffectContext = ApiRequestContext & {
   /** Имя сервиса или feature, откуда был вызван эффект */
   readonly source?: string;
@@ -56,15 +48,16 @@ export type EffectContext = ApiRequestContext & {
 
   /** Trace ID для distributed tracing */
   readonly traceId?: string;
+
+  /** AbortSignal для cancellation через контекст */
+  readonly abortSignal?: AbortSignal;
 };
 
 /* ========================================================================== */
 /* ⏱ TIMEOUT */
 /* ========================================================================== */
 
-/**
- * Ошибка превышения времени ожидания.
- */
+/** Ошибка превышения времени ожидания. */
 export class TimeoutError extends Error {
   constructor(message = 'Effect execution timeout') {
     super(message);
@@ -72,12 +65,7 @@ export class TimeoutError extends Error {
   }
 }
 
-/**
- * Оборачивает эффект в timeout.
- *
- * @example
- * const effect = withTimeout(fetchUser, 5000)
- */
+/** Оборачивает эффект в timeout. */
 export function withTimeout<T>(
   effect: Effect<T>,
   timeoutMs: number,
@@ -106,9 +94,7 @@ export function withTimeout<T>(
 /* 🔁 RETRY */
 /* ========================================================================== */
 
-/**
- * Политика повторных попыток.
- */
+/** Политика повторных попыток. */
 export type RetryPolicy = {
   /** Количество повторов */
   readonly retries: number;
@@ -128,10 +114,7 @@ export type RetryPolicy = {
 
 /**
  * Оборачивает эффект в retry-механику.
- *
- * @example
- * const effect = withRetry(fetchUser, { retries: 3, delayMs: 1000, maxDelayMs: 30000 });
- * const user = await effect(); // Максимум 4 попытки (1 + 3 retry)
+ * @example withRetry(fetchUser, { retries: 3, delayMs: 1000, shouldRetry: (e) => e instanceof NetworkError })
  */
 export function withRetry<T>(
   effect: Effect<T>,
@@ -175,18 +158,13 @@ export function withRetry<T>(
 /* 🛑 CANCELLATION */
 /* ========================================================================== */
 
-/**
- * Контроллер отмены эффекта.
- * Совместим с AbortController.
- */
+/** Контроллер отмены эффекта. Совместим с AbortController. */
 export type EffectAbortController = {
   abort: () => void;
   signal: AbortSignal;
 };
 
-/**
- * Создаёт abort controller для эффекта.
- */
+/** Создаёт abort controller для эффекта. */
 export function createEffectAbortController(): EffectAbortController {
   const controller = new AbortController();
   return {
@@ -201,10 +179,7 @@ export function createEffectAbortController(): EffectAbortController {
 /* 🧱 SAFE EXECUTION */
 /* ========================================================================== */
 
-/**
- * Унифицированное безопасное выполнение эффекта.
- * Никогда не кидает исключения наружу.
- */
+/** Унифицированное безопасное выполнение эффекта. Никогда не кидает исключения наружу. */
 export async function safeExecute<T>(
   effect: Effect<T>,
 ): Promise<{ ok: true; data: T; } | { ok: false; error: EffectError; }> {
@@ -227,10 +202,7 @@ export async function safeExecute<T>(
 /* 🔄 API RESPONSE ADAPTER */
 /* ========================================================================== */
 
-/**
- * Преобразует обычный effect в effect с ApiResponse<T>.
- * Используется для унификации эффектов с API контрактами.
- */
+/** Преобразует обычный effect в effect с ApiResponse<T> для унификации с API контрактами. */
 export function asApiEffect<T>(
   effect: Effect<T>,
   mapError: (error: unknown) => ApiError,
@@ -256,15 +228,8 @@ export function asApiEffect<T>(
 /* ========================================================================== */
 
 /**
- * Последовательно композирует эффекты.
- * Поддерживает цепочку из любого количества эффектов.
- *
- * @example
- * const effect = pipeEffects(
- *   () => fetchToken(),
- *   (token) => fetchUser(token),
- *   (user) => fetchPosts(user.id),
- * )
+ * Последовательно композирует эффекты. Поддерживает цепочку из любого количества эффектов.
+ * @example pipeEffects(() => fetchToken(), (token) => fetchUser(token), (user) => fetchPosts(user.id))
  */
 export function pipeEffects<T>(
   first: Effect<T>,
@@ -285,19 +250,14 @@ export function pipeEffects<T>(
 /* 🔭 OBSERVABILITY */
 /* ========================================================================== */
 
-/**
- * Логгер эффектов.
- * Подключается на уровне платформы (web / pwa / mobile).
- */
+/** Логгер эффектов. Подключается на уровне платформы (web / pwa / mobile). */
 export type EffectLogger = {
   onStart?: (context?: EffectContext) => void;
   onSuccess?: (durationMs: number, context?: EffectContext) => void;
   onError?: (error: unknown, context?: EffectContext) => void;
 };
 
-/**
- * Оборачивает эффект в логирование и метрики.
- */
+/** Оборачивает эффект в логирование и метрики. */
 export function withLogging<T>(
   effect: Effect<T>,
   logger: EffectLogger,
@@ -324,9 +284,7 @@ export function withLogging<T>(
 /* 🧠 PLATFORM-SAFE SLEEP */
 /* ========================================================================== */
 
-/**
- * Платформо-независимый sleep с поддержкой cancellation.
- */
+/** Платформо-независимый sleep с поддержкой cancellation. */
 export function sleep(ms: number, signal?: AbortSignal): Promise<void> {
   return new Promise((resolve, reject) => {
     const timeoutId = setTimeout(resolve, ms);
@@ -346,20 +304,13 @@ export function sleep(ms: number, signal?: AbortSignal): Promise<void> {
 /* 🔧 EFFECT RESULT & ERROR TYPES */
 /* ========================================================================== */
 
-/**
- * Результат выполнения эффекта.
- * Унифицированный формат для success/error handling.
- */
+/** Результат выполнения эффекта. Унифицированный формат для success/error handling. */
 export type EffectResult<T> = Promise<{ ok: true; data: T; } | { ok: false; error: EffectError; }>;
 
-/**
- * Типы ошибок эффектов для discriminated union.
- */
+/** Типы ошибок эффектов для discriminated union. */
 export type EffectErrorKind = 'Timeout' | 'Network' | 'Server' | 'ApiError' | 'Unknown';
 
-/**
- * Ошибка эффекта с метаданными.
- */
+/** Ошибка эффекта с метаданными. */
 export type EffectError<T = unknown> = {
   readonly kind: EffectErrorKind;
   readonly status?: number;
@@ -367,3 +318,129 @@ export type EffectError<T = unknown> = {
   readonly payload?: T;
   readonly retriable?: boolean;
 };
+
+/* ========================================================================== */
+/* 🔷 TYPED RESULT (RESULT<T, E> / EITHER) */
+/* ========================================================================== */
+
+/**
+ * Типобезопасный результат операции (Result<T, E> или Either<L, R>).
+ * Используется для типобезопасной обработки успешных результатов и ошибок без использования исключений.
+ * @example if (isOk(result)) { result.value } else { result.error }
+ */
+export type Result<T, E = Error> =
+  | { readonly ok: true; readonly value: T; }
+  | { readonly ok: false; readonly error: E; };
+
+/** Создает успешный результат. */
+export function ok<T, E = Error>(value: T): Result<T, E> {
+  return { ok: true, value };
+}
+
+/** Создает ошибочный результат. */
+export function fail<T, E = Error>(error: E): Result<T, E> {
+  return { ok: false, error };
+}
+
+/**
+ * Type guard для проверки успешного результата.
+ * @example if (isOk(result)) { result.value }
+ */
+export function isOk<T, E>(result: Result<T, E>): result is { ok: true; value: T; } {
+  return result.ok;
+}
+
+/**
+ * Type guard для проверки ошибочного результата.
+ * @example if (isFail(result)) { result.error }
+ */
+export function isFail<T, E>(result: Result<T, E>): result is { ok: false; error: E; } {
+  return !result.ok;
+}
+
+/**
+ * Преобразует значение успешного результата. Если результат ошибочный, возвращает его без изменений.
+ * @example map(ok(42), (x) => x * 2) // ok(84)
+ */
+export function map<T, U, E>(
+  result: Result<T, E>,
+  fn: (value: T) => U,
+): Result<U, E> {
+  if (isOk(result)) {
+    return ok(fn(result.value));
+  }
+  return result as Result<U, E>;
+}
+
+/**
+ * Преобразует ошибку ошибочного результата. Если результат успешный, возвращает его без изменений.
+ * @example mapError(fail(err), (e) => new CustomError(e.message))
+ */
+export function mapError<T, E, F>(
+  result: Result<T, E>,
+  fn: (error: E) => F,
+): Result<T, F> {
+  if (isFail(result)) {
+    return fail(fn(result.error));
+  }
+  return result as Result<T, F>;
+}
+
+/**
+ * Композиция результатов (flatMap / bind). Если результат успешный, применяет функцию, иначе возвращает ошибку.
+ * @example flatMap(ok(42), (x) => ok(x * 2)) // ok(84)
+ */
+export function flatMap<T, U, E>(
+  result: Result<T, E>,
+  fn: (value: T) => Result<U, E>,
+): Result<U, E> {
+  if (isOk(result)) {
+    return fn(result.value);
+  }
+  return result as Result<U, E>;
+}
+
+/**
+ * Извлекает значение из результата или возвращает значение по умолчанию.
+ * @example unwrapOr(fail(err), 0) // 0
+ */
+export function unwrapOr<T, E>(result: Result<T, E>, defaultValue: T): T {
+  if (isOk(result)) {
+    return result.value;
+  }
+  return defaultValue;
+}
+
+/**
+ * Извлекает значение из результата или вычисляет его из ошибки.
+ * @example unwrapOrElse(fail(err), (e) => 0) // 0
+ */
+export function unwrapOrElse<T, E>(
+  result: Result<T, E>,
+  fn: (error: E) => T,
+): T {
+  if (isOk(result)) {
+    return result.value;
+  }
+  if (isFail(result)) {
+    return fn(result.error);
+  }
+  // This should never happen, but TypeScript needs it
+  throw new Error('Invalid Result state');
+}
+
+/**
+ * Извлекает значение из результата или бросает исключение. Используйте с осторожностью, предпочтительно unwrapOr/unwrapOrElse.
+ * @example unwrap(ok(42)) // 42
+ * @throws Если результат ошибочный
+ */
+export function unwrap<T, E>(result: Result<T, E>): T {
+  if (isOk(result)) {
+    return result.value;
+  }
+  if (isFail(result)) {
+    throw result.error;
+  }
+  // This should never happen, but TypeScript needs it
+  throw new Error('Invalid Result state');
+}

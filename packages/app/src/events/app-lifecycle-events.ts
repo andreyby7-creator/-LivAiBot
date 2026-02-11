@@ -107,7 +107,6 @@ export type UnsubscribeFn = VoidFn;
  * — typed payload
  * — wildcard events
  */
-/* eslint-disable functional/immutable-data */
 class AppLifecycleEventBus {
   /** Registry обработчиков */
   private readonly handlers = new Map<AppLifecycleEvent, Set<LifecycleHandler>>();
@@ -245,5 +244,3 @@ if (process.env['NODE_ENV'] === 'development') {
  * ✔ Где логирование?
  *   — observability слой (Sentry / logger / tracing)
  */
-
-/* eslint-enable functional/immutable-data */

@@ -635,7 +635,7 @@ describe('Card', () => {
 
     it('ref работает с callback ref', () => {
       let refElement: HTMLDivElement | null = null;
-      // eslint-disable-next-line react-perf/jsx-no-new-function-as-prop, @typescript-eslint/prefer-readonly-parameter-types
+      // eslint-disable-next-line react-perf/jsx-no-new-function-as-prop
       const callbackRef = (element: HTMLDivElement | null): void => {
         refElement = element;
       };

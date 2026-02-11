@@ -224,7 +224,6 @@ const CoreBreadcrumbsComponent = forwardRef<HTMLElement, CoreBreadcrumbsProps>(
   },
 );
 
-// eslint-disable-next-line functional/immutable-data
 CoreBreadcrumbsComponent.displayName = 'CoreBreadcrumbs';
 
 /**

@@ -16,9 +16,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 // ============================================================================
 
 // Типы для обработчиков событий
-// eslint-disable-next-line @typescript-eslint/prefer-readonly-parameter-types
+
 type UpdateFoundHandler = ((ev?: Event) => void) | null;
-// eslint-disable-next-line @typescript-eslint/prefer-readonly-parameter-types
+
 type StateChangeHandler = ((ev?: Event) => void) | null;
 
 // Mock для Event
