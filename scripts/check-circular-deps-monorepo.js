@@ -181,6 +181,101 @@ function findPackages() {
 }
 
 /**
+ * Удаляет комментарии из кода, сохраняя строки в кавычках
+ * @param {string} code - исходный код
+ * @returns {string} код без комментариев
+ */
+function removeComments(code) {
+  let result = '';
+  let i = 0;
+  const len = code.length;
+  let inSingleQuote = false;
+  let inDoubleQuote = false;
+  let inTemplateLiteral = false;
+  let inSingleLineComment = false;
+  let inMultiLineComment = false;
+
+  while (i < len) {
+    const char = code[i];
+    const nextChar = i + 1 < len ? code[i + 1] : '';
+
+    // Проверяем начало/конец строк
+    if (
+      char === "'"
+      && !inDoubleQuote
+      && !inTemplateLiteral
+      && !inSingleLineComment
+      && !inMultiLineComment
+    ) {
+      inSingleQuote = !inSingleQuote;
+      result += char;
+    } else if (
+      char === '"'
+      && !inSingleQuote
+      && !inTemplateLiteral
+      && !inSingleLineComment
+      && !inMultiLineComment
+    ) {
+      inDoubleQuote = !inDoubleQuote;
+      result += char;
+    } else if (
+      char === '`'
+      && !inSingleQuote
+      && !inDoubleQuote
+      && !inSingleLineComment
+      && !inMultiLineComment
+    ) {
+      inTemplateLiteral = !inTemplateLiteral;
+      result += char;
+    } // Проверяем экранирование в строках
+    else if ((inSingleQuote || inDoubleQuote || inTemplateLiteral) && char === '\\') {
+      result += char;
+      if (i + 1 < len) {
+        i++;
+        result += code[i];
+      }
+    } // Проверяем начало однострочного комментария
+    else if (
+      char === '/'
+      && nextChar === '/'
+      && !inSingleQuote
+      && !inDoubleQuote
+      && !inTemplateLiteral
+      && !inMultiLineComment
+    ) {
+      inSingleLineComment = true;
+      i++; // Пропускаем следующий символ
+    } // Проверяем начало многострочного комментария
+    else if (
+      char === '/'
+      && nextChar === '*'
+      && !inSingleQuote
+      && !inDoubleQuote
+      && !inTemplateLiteral
+      && !inSingleLineComment
+    ) {
+      inMultiLineComment = true;
+      i++; // Пропускаем следующий символ
+    } // Проверяем конец многострочного комментария
+    else if (char === '*' && nextChar === '/' && inMultiLineComment) {
+      inMultiLineComment = false;
+      i++; // Пропускаем следующий символ
+    } // Проверяем конец строки (конец однострочного комментария)
+    else if (char === '\n' && inSingleLineComment) {
+      inSingleLineComment = false;
+      result += char; // Сохраняем перенос строки для правильного подсчета строк
+    } // Добавляем символ, если не в комментарии
+    else if (!inSingleLineComment && !inMultiLineComment) {
+      result += char;
+    }
+
+    i++;
+  }
+
+  return result;
+}
+
+/**
  * Извлекает импорты из файла
  * @param {string} filePath - путь к файлу
  * @param {string} srcDir - директория src
@@ -200,12 +295,14 @@ function extractImports(filePath, srcDir) {
 
   try {
     const content = fs.readFileSync(resolvedFilePath, 'utf8');
+    // Удаляем комментарии перед парсингом импортов
+    const codeWithoutComments = removeComments(content);
     const imports = [];
 
     // Регулярное выражение для поиска import statements
     const importRegex = /import\s+.*?from\s+['\"]([^'\"]+)['\"]/g;
     let match;
-    while ((match = importRegex.exec(content)) !== null) {
+    while ((match = importRegex.exec(codeWithoutComments)) !== null) {
       const importPath = match[1];
       if (importPath == null) continue;
 

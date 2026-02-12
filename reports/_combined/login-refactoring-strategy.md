@@ -518,7 +518,7 @@ api-client → transport (бросает ошибки, не глотает)
 
 > 💡 **Принцип:** Теперь можно безопасно разбирать `login.ts`.
 
-### 1️⃣6️⃣0️⃣ `device-fingerprint.ts` (NEW)
+### 1️⃣5️⃣9️⃣ `device-fingerprint.ts` (NEW) ✅
 
 **📁 Path:** `packages/feature-auth/src/effects/login/device-fingerprint.ts`\
 **🔧 Тип:** `ts+effect` (pure effect, без side-effects)\
@@ -552,7 +552,7 @@ api-client → transport (бросает ошибки, не глотает)
 
 ---
 
-### 1️⃣6️⃣1️⃣ `risk-assessment.ts` (NEW)
+### 1️⃣6️⃣0️⃣ `risk-assessment.ts` (NEW)
 
 **📁 Path:** `packages/feature-auth/src/effects/login/risk-assessment.ts`\
 **🔧 Тип:** `ts+effect` (pure effect, без side-effects)\
@@ -586,7 +586,7 @@ api-client → transport (бросает ошибки, не глотает)
 
 ---
 
-### 1️⃣6️⃣2️⃣ `error-mapper.ts` (NEW)
+### 1️⃣6️⃣1️⃣ `error-mapper.ts` (NEW)
 
 **📁 Path:** `packages/feature-auth/src/effects/login/error-mapper.ts`\
 **🔧 Тип:** `ts`\
@@ -620,7 +620,7 @@ api-client → transport (бросает ошибки, не глотает)
 
 ---
 
-### 1️⃣6️⃣3️⃣ `helpers.ts` (NEW)
+### 1️⃣6️⃣2️⃣ `helpers.ts` (NEW)
 
 **📁 Path:** `packages/feature-auth/src/effects/login/helpers.ts`\
 **🔧 Тип:** `ts`\
@@ -656,7 +656,7 @@ api-client → transport (бросает ошибки, не глотает)
 
 ---
 
-### 1️⃣6️⃣4️⃣ `security-pipeline.ts` (NEW)
+### 1️⃣6️⃣3️⃣ `security-pipeline.ts` (NEW)
 
 **📁 Path:** `packages/feature-auth/src/lib/security-pipeline.ts`\
 **🔧 Тип:** `ts+effect`\
@@ -745,7 +745,7 @@ api-client → transport (бросает ошибки, не глотает)
 
 ---
 
-### 1️⃣6️⃣6️⃣ `createBot.ts` (UPDATE)
+### 1️⃣7️⃣6️⃣ `createBot.ts` (UPDATE)
 
 **📁 Path:** `packages/feature-bots/src/effects/createBot.ts`
 
@@ -757,7 +757,7 @@ api-client → transport (бросает ошибки, не глотает)
 
 ---
 
-### 1️⃣7️⃣5️⃣ `sendMessage.ts` (UPDATE)
+### 1️⃣8️⃣5️⃣ `sendMessage.ts` (UPDATE)
 
 **📁 Path:** `packages/feature-chat/src/effects/sendMessage.ts`
 
