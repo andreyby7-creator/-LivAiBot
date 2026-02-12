@@ -17,10 +17,10 @@
  * - Domain-agnostic (работает с любыми DomainError)
  * - Микросервисно-ориентированный дизайн
  * - Максимальная безопасность и ясность
+ * - Детерминированность: все параметры передаются явно
  */
 
 import type { EffectError } from './effect-utils.js';
-import { errorFireAndForget } from './telemetry.js';
 import type { ISODateString } from '../types/common.js';
 import type { AppError, ErrorBoundaryErrorCode, UnknownError } from '../types/errors.js';
 
@@ -29,26 +29,6 @@ export type TaggedError<T extends ServiceErrorCode = ServiceErrorCode> = {
   readonly code: T;
   readonly service?: ServicePrefix | undefined; // опциональный сервис для автоматического определения
 };
-
-/* ============================================================================
- * 🔧 RUNTIME CONFIGURATION
- * ========================================================================== */
-
-/** Текущая локаль для сообщений об ошибках */
-let currentLocale: string | undefined = undefined;
-
-/**
- * Устанавливает текущую локаль для сообщений об ошибках
- * @param locale - код локали ('en', 'ru', etc.) или undefined для дефолтной
- */
-export function setErrorLocale(locale: string | undefined): void {
-  currentLocale = locale;
-}
-
-// Получает текущую локаль для сообщений об ошибках
-export function getErrorLocale(): string | undefined {
-  return currentLocale;
-}
 
 /* ============================================================================
  * 🧱 СЕРВИСНЫЕ ПРЕФИКСЫ
@@ -119,12 +99,18 @@ export const kindToErrorCode: Partial<Record<string, ServiceErrorCode>> = {
  * 🧱 MappedError
  * ========================================================================== */
 
+/** Безопасное представление оригинальной ошибки без stack trace */
+export type SafeOriginError = {
+  readonly name: string;
+  readonly message: string;
+};
+
 /** Расширенный объект ошибки для использования в runtime и telemetry */
 export type MappedError<TDetails = unknown> = {
   readonly code: ServiceErrorCode;
   readonly message: string;
   readonly details?: TDetails | undefined;
-  readonly originError?: Error | undefined; // оригинальная ошибка для дебага и трассировки
+  readonly originError?: SafeOriginError | undefined; // безопасное представление оригинальной ошибки (без stack trace)
   readonly timestamp: number; // время генерации ошибки для трассировки
   readonly service?: ServicePrefix | undefined; // микросервис, где произошла ошибка
 };
@@ -171,28 +157,35 @@ function isEffectError(err: unknown): err is EffectError {
  * ========================================================================== */
 
 /**
+ * Конфигурация для mapError (детерминированная, без side-effects)
+ */
+export type MapErrorConfig = {
+  readonly locale: string; // локаль для сообщений (обязательна для детерминированности)
+  readonly timestamp: number; // время генерации ошибки (обязательно для детерминированности)
+};
+
+/**
  * Универсальный mapper для любых DomainError.
  * Преобразует любую ошибку в MappedError:
  * - Использует код ошибки TaggedError или EffectError если есть
  * - Фолбек на UNKNOWN_ERROR
- * - Сохраняет оригинальную ошибку для telemetry
+ * - Сохраняет безопасное представление оригинальной ошибки (без stack trace)
  * - Работает с любыми доменными ошибками (auth, billing, chat, bots и т.д.)
+ * - Pure функция: не имеет side-effects, детерминирована
+ *
+ * @param err - Ошибка для маппинга
+ * @param details - Дополнительные детали ошибки
+ * @param config - Конфигурация маппинга (locale, timestamp) - обязательна для детерминированности
+ * @param service - Опциональный сервис (автоматически определяется если не передан)
+ * @returns MappedError с детерминированным timestamp и безопасным originError
  */
 export function mapError<TDetails = unknown>(
   err: unknown,
-  details?: TDetails,
-  locale?: string,
-  service?: ServicePrefix,
-): MappedError<TDetails>;
-
-export function mapError<TDetails = unknown>(
-  err: unknown,
-  details?: TDetails,
-  locale?: string,
+  details: TDetails | undefined,
+  config: MapErrorConfig,
   service?: ServicePrefix,
 ): MappedError<TDetails> {
-  // Используем переданный locale или из конфига с fallback на 'ru'
-  const effectiveLocale = locale ?? getErrorLocale() ?? 'ru';
+  const effectiveLocale = config.locale;
 
   // Сначала проверяем TaggedError с кодом и автоматическим определением сервиса
   const errorInfo = getErrorInfo(err);
@@ -222,13 +215,13 @@ export function mapError<TDetails = unknown>(
   const finalService = service ?? detectedService;
   const mappedCode = code ?? 'SYSTEM_UNKNOWN_ERROR';
 
-  // Логируем mapped ошибку для observability
-  errorFireAndForget('Error mapped', {
-    code: mappedCode,
-    originalErrorType: err instanceof Error ? err.constructor.name : typeof err,
-    service: finalService ?? 'UNKNOWN_SERVICE',
-    ...(details !== undefined && details !== null && { details }),
-  });
+  // Создаем безопасное представление оригинальной ошибки (без stack trace)
+  const safeOriginError: SafeOriginError | undefined = err instanceof Error
+    ? {
+      name: err.constructor.name,
+      message: err.message,
+    }
+    : undefined;
 
   return {
     code: mappedCode,
@@ -236,39 +229,57 @@ export function mapError<TDetails = unknown>(
       ? errorMessages[code as keyof typeof errorMessages](effectiveLocale)
       : errorMessages.SYSTEM_UNKNOWN_ERROR(effectiveLocale),
     details,
-    originError: err instanceof Error ? err : undefined,
-    timestamp: Date.now(),
+    originError: safeOriginError,
+    timestamp: config.timestamp,
     service: finalService,
   };
 }
 
 /**
- * Преобразует Error в AppError для error-boundary компонента
- * Используется для унифицированной обработки ошибок в UI слое
+ * Конфигурация для mapErrorBoundaryError (детерминированная, без side-effects)
  */
-export function mapErrorBoundaryError(error: Error, telemetryEnabled = true): AppError {
+export type MapErrorBoundaryConfig = {
+  readonly timestamp: ISODateString; // ISO строка времени (обязательна для детерминированности)
+};
+
+/**
+ * Данные для telemetry после маппинга error-boundary ошибки
+ */
+export type ErrorBoundaryTelemetryData = {
+  readonly originalErrorType: string;
+  readonly mappedErrorCode: ErrorBoundaryErrorCode;
+  readonly errorMessage: string;
+};
+
+/**
+ * Результат маппинга error-boundary ошибки
+ */
+export type MapErrorBoundaryResult = {
+  readonly appError: AppError;
+  readonly telemetryData: ErrorBoundaryTelemetryData;
+};
+
+/**
+ * Преобразует Error в AppError для error-boundary компонента.
+ * Используется для унифицированной обработки ошибок в UI слое.
+ * Pure функция: не имеет side-effects, детерминирована.
+ *
+ * @param error - Ошибка для маппинга
+ * @param config - Конфигурация маппинга (timestamp)
+ * @returns Результат маппинга с AppError и данными для telemetry
+ */
+export function mapErrorBoundaryError(
+  error: Error,
+  config: MapErrorBoundaryConfig,
+): MapErrorBoundaryResult {
   // Определяем тип ошибки по сообщению для унифицированной обработки
   let errorCode: ErrorBoundaryErrorCode = 'UNKNOWN_ERROR';
+  const messageLower = error.message.toLowerCase();
 
-  if (error.message.includes('Network') || error.message.includes('fetch')) {
+  if (messageLower.includes('network') || messageLower.includes('fetch')) {
     errorCode = 'NETWORK_ERROR';
-  } else if (error.message.includes('Validation') || error.message.includes('validation')) {
+  } else if (messageLower.includes('validation')) {
     errorCode = 'VALIDATION_ERROR';
-  }
-
-  // Логируем маппинг ошибки для observability (только если telemetry включена)
-  if (telemetryEnabled) {
-    try {
-      errorFireAndForget('ErrorBoundary error mapped', {
-        originalErrorType: error.constructor.name,
-        mappedErrorCode: errorCode as string, // ErrorBoundaryErrorCode
-        errorMessage: error.message,
-      });
-    } catch (telemetryError) {
-      // Игнорируем ошибки telemetry, чтобы не ломать UI
-      // eslint-disable-next-line no-console
-      console.warn('ErrorBoundary mapping telemetry failed:', telemetryError);
-    }
   }
 
   // Создаем UnknownError с соответствующими полями
@@ -278,10 +289,20 @@ export function mapErrorBoundaryError(error: Error, telemetryEnabled = true): Ap
     severity: 'error',
     message: error.message,
     original: error,
-    timestamp: new Date().toISOString() as ISODateString,
+    timestamp: config.timestamp,
   };
 
-  return appError;
+  // Возвращаем данные для telemetry (вызывается снаружи)
+  const telemetryData: ErrorBoundaryTelemetryData = {
+    originalErrorType: error.constructor.name,
+    mappedErrorCode: errorCode,
+    errorMessage: error.message,
+  };
+
+  return {
+    appError,
+    telemetryData,
+  };
 }
 
 /* ============================================================================
@@ -305,7 +326,7 @@ export type ValidationErrorLike = TaggedError & {
  * @param errors - Массив ошибок валидации
  * @param errorCode - Опциональный код ошибки (по умолчанию SYSTEM_VALIDATION_RESPONSE_SCHEMA_INVALID)
  * @param service - Опциональный сервис (по умолчанию определяется из первой ошибки или 'SYSTEM')
- * @param locale - Опциональная локаль для сообщения об ошибке
+ * @param config - Конфигурация маппинга (locale, timestamp)
  * @returns MappedError с деталями валидации
  *
  * @example
@@ -317,16 +338,19 @@ export type ValidationErrorLike = TaggedError & {
  *   { code: 'SYSTEM_VALIDATION_RESPONSE_SCHEMA_INVALID', field: 'email', message: 'Invalid email' }
  * ];
  *
- * const domainError = createDomainError(validationErrors);
+ * const domainError = createDomainError(validationErrors, undefined, undefined, {
+ *   locale: 'en',
+ *   timestamp: Date.now()
+ * });
  * // domainError.code === 'SYSTEM_VALIDATION_RESPONSE_SCHEMA_INVALID'
  * // domainError.details === { validationErrors: [...] }
  * ```
  */
 export function createDomainError(
   errors: readonly ValidationErrorLike[],
+  config: MapErrorConfig,
   errorCode?: ServiceErrorCode | undefined,
   service?: ServicePrefix | undefined,
-  locale?: string | undefined,
 ): MappedError<{ readonly validationErrors: readonly ValidationErrorLike[]; }> {
   // Определяем код ошибки: из параметра, из первой ошибки, или fallback
   const firstError = errors.length > 0 ? errors[0] : undefined;
@@ -345,7 +369,7 @@ export function createDomainError(
   return mapError(
     taggedError,
     { validationErrors: errors },
-    locale,
+    config,
     detectedService,
   );
 }
@@ -357,8 +381,8 @@ export function createDomainError(
 // Позволяет комбинировать несколько мапперов
 export type ErrorMapper<TDetails = unknown> = (
   err: unknown,
-  details?: TDetails,
-  locale?: string,
+  details: TDetails | undefined,
+  config: MapErrorConfig,
   service?: ServicePrefix,
 ) => MappedError<TDetails>;
 
@@ -367,20 +391,22 @@ export function chainMappers<TDetails = unknown>(
 ): ErrorMapper<TDetails> {
   return (
     err: unknown,
-    details?: TDetails,
-    locale?: string,
+    details: TDetails | undefined,
+    config: MapErrorConfig,
     service?: ServicePrefix,
   ): MappedError<TDetails> => {
     for (const mapper of mappers) {
-      const mapped = mapper(err, details, locale, service);
+      const mapped = mapper(err, details, config, service);
       if (mapped.code !== 'SYSTEM_UNKNOWN_ERROR') return mapped;
     }
     return {
       code: 'SYSTEM_UNKNOWN_ERROR',
-      message: errorMessages.SYSTEM_UNKNOWN_ERROR(locale ?? getErrorLocale() ?? 'ru'),
-      originError: err instanceof Error ? err : undefined,
+      message: errorMessages.SYSTEM_UNKNOWN_ERROR(config.locale),
+      originError: err instanceof Error
+        ? { name: err.constructor.name, message: err.message }
+        : undefined,
       details,
-      timestamp: Date.now(),
+      timestamp: config.timestamp,
       service,
     };
   };

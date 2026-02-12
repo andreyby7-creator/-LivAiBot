@@ -95,7 +95,7 @@ export function createValidationError(
   errorCode?: ServiceErrorCode | undefined,
   service?: ServicePrefix | undefined,
 ): MappedError<unknown> {
-  return createDomainError(errors, errorCode, service);
+  return createDomainError(errors, { locale: 'ru', timestamp: Date.now() }, errorCode, service);
 }
 
 /**
@@ -185,7 +185,12 @@ export function validatedEffect<T>(
     // Создаем DomainError через error-mapping (или используем кастомный mapper)
     const mappedError = errorMapper != null
       ? errorMapper(validationErrors)
-      : createDomainError(validationErrors, errorCode, service);
+      : createDomainError(
+        validationErrors,
+        { locale: 'ru', timestamp: Date.now() },
+        errorCode,
+        service,
+      );
 
     // Бросаем SchemaValidationError для унифицированной обработки
     throw new SchemaValidationError(mappedError, validationErrors);

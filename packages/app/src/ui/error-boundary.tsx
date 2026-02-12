@@ -30,8 +30,7 @@ import type { CoreErrorBoundaryProps } from '../../../ui-core/src/components/Err
 import { mapErrorBoundaryError } from '../lib/error-mapping.js';
 import type { Namespace, TranslationKey } from '../lib/i18n.js';
 import { useUnifiedUI } from '../providers/UnifiedUIProvider.js';
-import type { Json } from '../types/common.js';
-import type { AppError } from '../types/errors.js';
+import type { ISODateString, Json } from '../types/common.js';
 import type {
   AppWrapperProps,
   MapCoreProps,
@@ -292,9 +291,23 @@ class AppErrorBoundaryInner extends Component<
     });
 
     // Маппируем ошибку в AppError для унифицированной обработки
-    const appError: AppError = mapErrorBoundaryError(error, this.props.policy.telemetryEnabled);
+    const shouldUseTelemetry = this.props.policy.telemetryEnabled;
+    const { appError, telemetryData } = mapErrorBoundaryError(error, {
+      timestamp: new Date().toISOString() as ISODateString,
+    });
 
-    if (this.props.policy.telemetryEnabled) {
+    // Вызываем telemetry снаружи (pure mapper не имеет side-effects)
+    if (shouldUseTelemetry) {
+      try {
+        this.props.telemetry.errorFireAndForget('ErrorBoundary error mapped', telemetryData);
+      } catch (telemetryError) {
+        // Игнорируем ошибки telemetry, чтобы не ломать UI
+        // eslint-disable-next-line no-console
+        console.warn('ErrorBoundary mapping telemetry failed:', telemetryError);
+      }
+    }
+
+    if (shouldUseTelemetry) {
       // Для error-boundary всегда возвращается UnknownError с полем message
       const errorMessage = appError.type === 'UnknownError' ? appError.message : error.message;
 

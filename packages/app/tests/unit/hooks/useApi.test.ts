@@ -184,7 +184,7 @@ describe('useApi', () => {
     expect(errorMappingMocks.mapError).toHaveBeenCalledWith(
       expect.any(Error),
       expect.objectContaining({ endpoint: '/test', method: 'POST', requestId: expect.any(String) }),
-      'ru',
+      expect.objectContaining({ locale: 'ru', timestamp: expect.any(Number) }),
     );
   });
 
@@ -269,7 +269,7 @@ describe('useApi', () => {
     expect(errorMappingMocks.mapError).toHaveBeenCalledWith(
       expect.any(Error),
       expect.objectContaining({ requestId: 'uuid-123' }),
-      undefined,
+      expect.objectContaining({ locale: 'ru', timestamp: expect.any(Number) }),
     );
   });
 
@@ -314,7 +314,7 @@ describe('useApi', () => {
       expect.objectContaining({
         requestId: 'req_1234567890000_4fzzzxj', // BASE36 представление mockRandom 0.123456789
       }),
-      undefined,
+      expect.objectContaining({ locale: 'ru', timestamp: expect.any(Number) }),
     );
 
     // Восстанавливаем оригинальные функции
@@ -453,7 +453,7 @@ describe('useApi', () => {
     expect(errorMappingMocks.mapError).toHaveBeenCalledWith(
       apiError,
       expect.objectContaining({ endpoint: '/items/123', method: 'GET' }),
-      undefined,
+      expect.objectContaining({ locale: 'ru', timestamp: expect.any(Number) }),
     );
   });
 

@@ -172,10 +172,20 @@ describe('ErrorBoundary (App UI)', () => {
     const core = screen.getByTestId('app-boundary');
     expect(core).toHaveAttribute('data-state', 'error');
 
-    expect(mockErrorFireAndForget).toHaveBeenCalledTimes(1);
+    // Теперь telemetry вызывается дважды:
+    // 1. Для маппинга ошибки (ErrorBoundary error mapped)
+    // 2. Для основного error payload (ErrorBoundary error)
+    expect(mockErrorFireAndForget).toHaveBeenCalledTimes(2);
 
-    // Единственный вызов - основная ошибка (маппинг теперь идет через другой mock)
-    expect(mockErrorFireAndForget).toHaveBeenNthCalledWith(1, 'ErrorBoundary error', {
+    // Первый вызов - маппинг ошибки
+    expect(mockErrorFireAndForget).toHaveBeenNthCalledWith(1, 'ErrorBoundary error mapped', {
+      originalErrorType: 'Error',
+      mappedErrorCode: 'UNKNOWN_ERROR',
+      errorMessage: 'Boom',
+    });
+
+    // Второй вызов - основной error payload
+    expect(mockErrorFireAndForget).toHaveBeenNthCalledWith(2, 'ErrorBoundary error', {
       component: 'ErrorBoundary',
       action: 'error',
       hidden: false,

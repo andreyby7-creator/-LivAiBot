@@ -534,16 +534,20 @@ function createApiValidationError(
   details?: unknown,
 ): EffectLib.Effect<never, ApiValidationError, never> {
   // Создаем ошибку через error-mapping
-  const mappedError = mapError(code, {
-    endpoint: context.endpoint,
-    method: context.method,
-    traceId: context.traceId,
-    requestId: context.requestId,
-    serviceId: context.serviceId,
-    instanceId: context.instanceId,
-    field,
-    details: validationErrors.length > 0 ? validationErrors : details,
-  });
+  const mappedError = mapError(
+    code,
+    {
+      endpoint: context.endpoint,
+      method: context.method,
+      traceId: context.traceId,
+      requestId: context.requestId,
+      serviceId: context.serviceId,
+      instanceId: context.instanceId,
+      field,
+      details: validationErrors.length > 0 ? validationErrors : details,
+    },
+    { locale: context.locale ?? 'ru', timestamp: Date.now() },
+  );
 
   // Преобразуем в ApiValidationError
   const apiError: ApiValidationError = {

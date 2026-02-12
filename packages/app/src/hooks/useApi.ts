@@ -328,11 +328,15 @@ function buildApiClient<T extends ApiContract>(
           throw error;
         }
 
-        const mappedError = mapError(error, {
-          endpoint: endpointPath,
-          method,
-          requestId: executionContext.requestId,
-        }, executionContext.locale);
+        const mappedError = mapError(
+          error,
+          {
+            endpoint: endpointPath,
+            method,
+            requestId: executionContext.requestId,
+          },
+          { locale: executionContext.locale ?? 'ru', timestamp: Date.now() },
+        );
 
         if (telemetryEnabled) {
           logFireAndForget('ERROR', 'API call failed', {
