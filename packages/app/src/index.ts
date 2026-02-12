@@ -174,14 +174,22 @@ export {
   type RetryPolicy,
   safeExecute,
   sleep,
-  TimeoutError,
   unwrap,
   unwrapOr,
   unwrapOrElse,
   withLogging,
   withRetry,
-  withTimeout,
 } from './lib/effect-utils.js';
+// Effect timeout - экспортируем из effect-timeout.ts (новые версии с расширенным функционалом)
+export {
+  createTimeoutContext,
+  isTimeoutError,
+  type TimeoutEffectContext,
+  TimeoutError,
+  type TimeoutOptions,
+  validateTimeoutMs,
+  withTimeout,
+} from './lib/effect-timeout.js';
 export {
   isIsolationError,
   IsolationError,

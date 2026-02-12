@@ -1,11 +1,12 @@
-/home/boss/Projects/livai/packages/app/tests/unit/hooks/useAuth.test.ts: бросает ошибку при null ответе от сервера
-AssertionError: expected 'TokenPair validation failed: expiresA…' to contain 'expected object, got object (null)'
-    at /home/boss/Projects/livai/packages/app/tests/unit/hooks/useAuth.test.ts:592:42
-    at file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.18/node_modules/@vitest/runner/dist/index.js:915:20
-
----
-
-/home/boss/Projects/livai/packages/app/tests/unit/hooks/useAuth.test.ts: бросает ошибку при строковом ответе от сервера
-AssertionError: expected 'TokenPair validation failed: expiresA…' to contain 'expected object, got string ("invalid…'
-    at /home/boss/Projects/livai/packages/app/tests/unit/hooks/useAuth.test.ts:608:42
-    at file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.18/node_modules/@vitest/runner/dist/index.js:915:20
+/home/boss/Projects/livai/packages/feature-auth/tests/unit/effects/login/risk-assessment.test.ts: определяет decision hint для challenge
+AssertionError: expected 'allow' to be 'challenge' // Object.is equality
+    at /home/boss/Projects/livai/packages/feature-auth/tests/unit/effects/login/risk-assessment.test.ts:846:40
+    at file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.18/node_modules/@vitest/runner/dist/index.js:145:11
+    at file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.18/node_modules/@vitest/runner/dist/index.js:915:26
+    at file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.18/node_modules/@vitest/runner/dist/index.js:1243:20
+    at new Promise (<anonymous>)
+    at runWithTimeout (file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.18/node_modules/@vitest/runner/dist/index.js:1209:10)
+    at file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.18/node_modules/@vitest/runner/dist/index.js:1653:37
+    at Traces.$ (file:///home/boss/Projects/livai/node_modules/.pnpm/vitest@4.0.18_@opentelemetry+api@1.9.0_@types+node@25.2.2_@vitest+ui@4.0.18_jsdom@28.0._11f06d5df6a288712d244eb424e7b1a7/node_modules/vitest/dist/chunks/traces.CCmnQaNT.js:142:27)
+    at trace (file:///home/boss/Projects/livai/node_modules/.pnpm/vitest@4.0.18_@opentelemetry+api@1.9.0_@types+node@25.2.2_@vitest+ui@4.0.18_jsdom@28.0._11f06d5df6a288712d244eb424e7b1a7/node_modules/vitest/dist/chunks/test.B8ej_ZHS.js:239:21)
+    at runTest (file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.18/node_modules/@vitest/runner/dist/index.js:1653:12)

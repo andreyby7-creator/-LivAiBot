@@ -125,3 +125,104 @@ export * from './types/auth.js';
  */
 
 export * from './stores/auth.js';
+
+/* ============================================================================
+ * ⚡ EFFECTS — PURE EFFECTS
+ * ============================================================================
+ *
+ * Pure effects для аутентификации без side-effects.
+ * Детерминированные функции для device fingerprint и risk assessment.
+ */
+
+// Device Fingerprint
+export { DeviceFingerprint } from './effects/login/device-fingerprint.js';
+
+// Risk Assessment
+export {
+  assessLoginRisk,
+  type AuditHook,
+  type ContextBuilderPlugin,
+  type ExternalRiskSignals,
+  type InternalRiskSignals,
+  type RiskAssessmentResult,
+  type RiskContext,
+  type RiskPolicy,
+  type RiskSignals,
+} from './effects/login/risk-assessment.js';
+
+// Risk Assessment Adapter
+export {
+  buildAssessment,
+  type RiskSignals as AdapterRiskSignals,
+  type SignalsMapperPlugin,
+} from './effects/login/risk-assessment.adapter.js';
+
+// Risk Decision
+export {
+  type BlockReason,
+  type DecisionPolicy,
+  type DecisionResult,
+  type DecisionSignals,
+  DefaultDecisionPolicy,
+  defaultDecisionPolicy,
+  DefaultRiskThresholds,
+  defaultRiskThresholds,
+  determineDecisionHint,
+  determineRiskLevel,
+  type RiskThresholds,
+} from './effects/login/risk-decision.js';
+
+// Risk Rules
+export {
+  AllRules,
+  allRules,
+  compositeRules,
+  deviceRules,
+  evaluateRuleActions,
+  evaluateRules,
+  type ExtendedRuleDefinition,
+  geoRules,
+  getMaxPriority,
+  getRuleDefinition,
+  getRulesWithDecisionImpact,
+  networkRules,
+  type RiskRule,
+  type RiskRuleConfig,
+  type RuleAction,
+  type RuleContextMetadata,
+  type RuleDefinition,
+  type RuleEvaluationContext,
+  type RuleEvaluator,
+  type RuleIdentifier,
+  type RuleMetadata,
+  type RuleSignals,
+  sortRulesByPriority,
+} from './effects/login/risk-rules.js';
+
+// Risk Scoring
+export {
+  calculateRiskScore,
+  calculateRiskScoreFromJson,
+  calculateRiskScoreWithAsyncFactors,
+  calculateRiskScoreWithAsyncFactorsAndCache,
+  calculateRiskScoreWithCache,
+  calculateRiskScoreWithFactors,
+  clearAsyncScoreCache,
+  clearScoreCache,
+  createFactorConfigFromJson,
+  createFactorConfigsFromJson,
+  DefaultRiskWeights,
+  defaultRiskWeights,
+  factorCalculatorRegistryExport,
+  type FactorConfigJson,
+  getAsyncScoreCacheSize,
+  getCustomFactorPlugin,
+  getScoreCacheSize,
+  isAsyncFactor,
+  isSyncFactor,
+  registerCustomFactorPlugin,
+  type RiskWeights,
+  type ScoringContext,
+  scoringFactorConfigs,
+  type ScoringSignals,
+} from './effects/login/risk-scoring.js';
