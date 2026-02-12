@@ -19,13 +19,7 @@
 import { withLogging, withRetry } from './effect-utils.js';
 import type { EffectContext, EffectError, EffectLogger } from './effect-utils.js';
 import { infoFireAndForget, logFireAndForget } from './telemetry.js';
-import type {
-  ApiClientConfig,
-  ApiError,
-  ApiHeaders,
-  ApiRequest,
-  ApiResponse,
-} from '../types/api.js';
+import type { ApiClientConfig, ApiError, ApiHeaders, ApiRequest } from '../types/api.js';
 
 /* ============================================================================
  * 🧩 Внутренние типы и конфигурации
@@ -164,8 +158,8 @@ export class ApiClient {
 
   async request<TResponse, TBody = unknown>(
     req: ApiRequest<TBody>,
-  ): Promise<ApiResponse<TResponse>> {
-    const effect = async (): Promise<ApiResponse<TResponse>> => {
+  ): Promise<TResponse> {
+    const effect = async (): Promise<TResponse> => {
       const url = buildUrl(this.baseUrl, req.url);
 
       // Логируем исходящий HTTP запрос
@@ -190,10 +184,7 @@ export class ApiClient {
         throw mapHttpError(response, data);
       }
 
-      return {
-        success: true,
-        data: data as TResponse,
-      };
+      return data as TResponse;
     };
 
     // Только retry, без timeout (timeout только в orchestrator)
@@ -229,7 +220,7 @@ export class ApiClient {
   get<TResponse>(
     url: string,
     headers?: ApiHeaders,
-  ): Promise<ApiResponse<TResponse>> {
+  ): Promise<TResponse> {
     return this.request<TResponse>({
       method: 'GET',
       url,
@@ -241,7 +232,7 @@ export class ApiClient {
     url: string,
     body: TBody,
     headers?: ApiHeaders,
-  ): Promise<ApiResponse<TResponse>> {
+  ): Promise<TResponse> {
     return this.request<TResponse, TBody>({
       method: 'POST',
       url,
@@ -254,7 +245,7 @@ export class ApiClient {
     url: string,
     body: TBody,
     headers?: ApiHeaders,
-  ): Promise<ApiResponse<TResponse>> {
+  ): Promise<TResponse> {
     return this.request<TResponse, TBody>({
       method: 'PUT',
       url,
@@ -267,7 +258,7 @@ export class ApiClient {
     url: string,
     body: TBody,
     headers?: ApiHeaders,
-  ): Promise<ApiResponse<TResponse>> {
+  ): Promise<TResponse> {
     return this.request<TResponse, TBody>({
       method: 'PATCH',
       url,
@@ -279,7 +270,7 @@ export class ApiClient {
   delete<TResponse>(
     url: string,
     headers?: ApiHeaders,
-  ): Promise<ApiResponse<TResponse>> {
+  ): Promise<TResponse> {
     return this.request<TResponse>({
       method: 'DELETE',
       url,

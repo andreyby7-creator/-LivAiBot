@@ -417,4 +417,297 @@ describe('useApi', () => {
       expect.objectContaining({ errorKind: 'unknown' }),
     );
   });
+
+  it('обрабатывает неуспешный API ответ (ApiFailureResponse)', async () => {
+    const apiError = {
+      code: 'HTTP_404',
+      message: 'Not found',
+      status: 404,
+    };
+
+    const client = {
+      request: vi.fn().mockResolvedValue({
+        success: false,
+        error: apiError,
+      }),
+    } as any;
+
+    errorMappingMocks.mapError.mockReturnValue({
+      code: 'HTTP_404',
+      message: 'Not found',
+      timestamp: 1,
+    });
+
+    const contract = {
+      getItem: {
+        service: 'gateway' as const,
+        method: 'GET' as const,
+        path: '/items/123',
+      },
+    } as const;
+
+    const { result } = renderHook(() => useApi({ client, contract }));
+
+    await expect(result.current['getItem'](undefined as never)).rejects.toEqual(
+      expect.objectContaining({ code: 'HTTP_404' }),
+    );
+
+    expect(errorMappingMocks.mapError).toHaveBeenCalledWith(
+      apiError,
+      expect.objectContaining({ endpoint: '/items/123', method: 'GET' }),
+      undefined,
+    );
+  });
+
+  it('обрабатывает ошибку с объектом без status но с name TypeError', async () => {
+    const client = {
+      request: vi.fn().mockRejectedValue({ name: 'TypeError', message: 'Network error' }),
+    } as any;
+
+    errorMappingMocks.mapError.mockReturnValue({
+      code: 'NETWORK_ERROR',
+      message: 'Network error',
+      timestamp: 1,
+    });
+
+    const contract = {
+      test: {
+        service: 'gateway' as const,
+        method: 'GET' as const,
+        path: '/test',
+      },
+    } as const;
+
+    const { result } = renderHook(() => useApi({ client, contract }));
+
+    await expect(result.current['test'](undefined as never)).rejects.toEqual(
+      expect.objectContaining({ code: 'NETWORK_ERROR' }),
+    );
+
+    expect(telemetryMocks.logFireAndForget).toHaveBeenCalledWith(
+      'ERROR',
+      'API call failed',
+      expect.objectContaining({ errorKind: 'network' }),
+    );
+  });
+
+  it('обрабатывает ошибку с объектом с числовым status >= 500', async () => {
+    const client = {
+      request: vi.fn().mockRejectedValue({ status: 503, message: 'Service unavailable' }),
+    } as any;
+
+    errorMappingMocks.mapError.mockReturnValue({
+      code: 'HTTP_503',
+      message: 'Service unavailable',
+      timestamp: 1,
+    });
+
+    const contract = {
+      test: {
+        service: 'gateway' as const,
+        method: 'GET' as const,
+        path: '/test',
+      },
+    } as const;
+
+    const { result } = renderHook(() => useApi({ client, contract }));
+
+    await expect(result.current['test'](undefined as never)).rejects.toEqual(
+      expect.objectContaining({ code: 'HTTP_503' }),
+    );
+
+    expect(telemetryMocks.logFireAndForget).toHaveBeenCalledWith(
+      'ERROR',
+      'API call failed',
+      expect.objectContaining({ errorKind: 'server' }),
+    );
+  });
+
+  it('обрабатывает ошибку с объектом с числовым status >= 400 и < 500', async () => {
+    const client = {
+      request: vi.fn().mockRejectedValue({ status: 404, message: 'Not found' }),
+    } as any;
+
+    errorMappingMocks.mapError.mockReturnValue({
+      code: 'HTTP_404',
+      message: 'Not found',
+      timestamp: 1,
+    });
+
+    const contract = {
+      test: {
+        service: 'gateway' as const,
+        method: 'GET' as const,
+        path: '/test',
+      },
+    } as const;
+
+    const { result } = renderHook(() => useApi({ client, contract }));
+
+    await expect(result.current['test'](undefined as never)).rejects.toEqual(
+      expect.objectContaining({ code: 'HTTP_404' }),
+    );
+
+    expect(telemetryMocks.logFireAndForget).toHaveBeenCalledWith(
+      'ERROR',
+      'API call failed',
+      expect.objectContaining({ errorKind: 'client' }),
+    );
+  });
+
+  it('обрабатывает MappedError с HTTP_5xx кодом', async () => {
+    const mappedError = {
+      code: 'HTTP_500',
+      message: 'Internal server error',
+      timestamp: 1,
+    };
+
+    const client = {
+      request: vi.fn().mockRejectedValue(mappedError),
+    } as any;
+
+    const contract = {
+      test: {
+        service: 'gateway' as const,
+        method: 'GET' as const,
+        path: '/test',
+      },
+    } as const;
+
+    const { result } = renderHook(() => useApi({ client, contract }));
+
+    await expect(result.current['test'](undefined as never)).rejects.toBe(mappedError);
+
+    expect(telemetryMocks.logFireAndForget).toHaveBeenCalledWith(
+      'ERROR',
+      'API call failed',
+      expect.objectContaining({ errorKind: 'server' }),
+    );
+  });
+
+  it('обрабатывает MappedError с HTTP_4xx кодом', async () => {
+    const mappedError = {
+      code: 'HTTP_400',
+      message: 'Bad request',
+      timestamp: 1,
+    };
+
+    const client = {
+      request: vi.fn().mockRejectedValue(mappedError),
+    } as any;
+
+    const contract = {
+      test: {
+        service: 'gateway' as const,
+        method: 'GET' as const,
+        path: '/test',
+      },
+    } as const;
+
+    const { result } = renderHook(() => useApi({ client, contract }));
+
+    await expect(result.current['test'](undefined as never)).rejects.toBe(mappedError);
+
+    expect(telemetryMocks.logFireAndForget).toHaveBeenCalledWith(
+      'ERROR',
+      'API call failed',
+      expect.objectContaining({ errorKind: 'client' }),
+    );
+  });
+
+  it('обрабатывает MappedError с NETWORK_ кодом', async () => {
+    const mappedError = {
+      code: 'NETWORK_TIMEOUT',
+      message: 'Network timeout',
+      timestamp: 1,
+    };
+
+    const client = {
+      request: vi.fn().mockRejectedValue(mappedError),
+    } as any;
+
+    const contract = {
+      test: {
+        service: 'gateway' as const,
+        method: 'GET' as const,
+        path: '/test',
+      },
+    } as const;
+
+    const { result } = renderHook(() => useApi({ client, contract }));
+
+    await expect(result.current['test'](undefined as never)).rejects.toBe(mappedError);
+
+    expect(telemetryMocks.logFireAndForget).toHaveBeenCalledWith(
+      'ERROR',
+      'API call failed',
+      expect.objectContaining({ errorKind: 'network' }),
+    );
+  });
+
+  it('обрабатывает ошибку с объектом с числовым status < 400', async () => {
+    const client = {
+      request: vi.fn().mockRejectedValue({ status: 200, message: 'OK but error' }),
+    } as any;
+
+    errorMappingMocks.mapError.mockReturnValue({
+      code: 'SYSTEM_UNKNOWN_ERROR',
+      message: 'OK but error',
+      timestamp: 1,
+    });
+
+    const contract = {
+      test: {
+        service: 'gateway' as const,
+        method: 'GET' as const,
+        path: '/test',
+      },
+    } as const;
+
+    const { result } = renderHook(() => useApi({ client, contract }));
+
+    await expect(result.current['test'](undefined as never)).rejects.toEqual(
+      expect.objectContaining({ code: 'SYSTEM_UNKNOWN_ERROR' }),
+    );
+
+    // status < 400 не попадает в server/client, поэтому должен быть unknown
+    expect(telemetryMocks.logFireAndForget).toHaveBeenCalledWith(
+      'ERROR',
+      'API call failed',
+      expect.objectContaining({ errorKind: 'unknown' }),
+    );
+  });
+
+  it('обрабатывает ошибку с объектом без name TypeError', async () => {
+    const client = {
+      request: vi.fn().mockRejectedValue({ status: 200, name: 'CustomError' }),
+    } as any;
+
+    errorMappingMocks.mapError.mockReturnValue({
+      code: 'SYSTEM_UNKNOWN_ERROR',
+      message: 'Custom error',
+      timestamp: 1,
+    });
+
+    const contract = {
+      test: {
+        service: 'gateway' as const,
+        method: 'GET' as const,
+        path: '/test',
+      },
+    } as const;
+
+    const { result } = renderHook(() => useApi({ client, contract }));
+
+    await expect(result.current['test'](undefined as never)).rejects.toEqual(
+      expect.objectContaining({ code: 'SYSTEM_UNKNOWN_ERROR' }),
+    );
+
+    // name не TypeError, status < 400, поэтому должен быть unknown
+    expect(telemetryMocks.logFireAndForget).toHaveBeenCalledWith(
+      'ERROR',
+      'API call failed',
+      expect.objectContaining({ errorKind: 'unknown' }),
+    );
+  });
 });

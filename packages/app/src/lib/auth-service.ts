@@ -28,11 +28,17 @@
  */
 
 import type { TokenPairResponse as CoreTokenPairResponse } from '@livai/core-contracts';
+import { generatedAuth } from '@livai/core-contracts/validation/zod';
 import { Mutex } from 'async-mutex';
 import { Effect } from 'effect';
+import { z } from 'zod';
 
 import { createApiClient } from './api-client.js';
 import type { ApiClient } from './api-client.js';
+import { isIsolationError } from './effect-isolation.js';
+import type { Effect as EffectType } from './effect-utils.js';
+import { orchestrate, step } from './orchestrator.js';
+import { isSchemaValidationError, validatedEffect } from './schema-validated-effect.js';
 import { logFireAndForget } from './telemetry.js';
 
 /* ============================================================================
@@ -73,6 +79,8 @@ const HTTP_STATUS_BAD_REQUEST = 400;
 const HTTP_STATUS_INTERNAL_SERVER_ERROR = 500;
 const TOKEN_PREFIX_LENGTH = 8;
 const MILLISECONDS_PER_SECOND = 1000;
+const API_TIMEOUT_MS = 30_000; // 30 секунд для API запросов
+const MAX_ISOLATION_ERROR_DEPTH = 5; // Максимальная глубина unwrap для IsolationError
 
 /* ============================================================================
  * 🏗️ IMPLEMENTATION
@@ -83,19 +91,24 @@ export class AuthService {
   /** Mutex для синхронизации refresh операций */
   private readonly refreshMutex = new Mutex();
 
+  /** Безопасно получает префикс токена для логирования (защита от пустых/null значений) */
+  private getTokenPrefix(token: string | null | undefined): string {
+    return token?.slice(0, TOKEN_PREFIX_LENGTH) ?? '';
+  }
+
   /** API клиент для HTTP запросов */
   private readonly apiClient: ApiClient;
 
-  constructor(apiClientOverride?: ApiClient) {
-    // Validate mutex initialization (will be used in refresh method)
-    if (!(this.refreshMutex instanceof Mutex)) {
-      throw new Error('Mutex initialization failed');
-    }
+  /** Clock функция для получения текущего времени (для тестирования) */
+  private readonly clock: () => number;
 
+  constructor(apiClientOverride?: ApiClient, clockOverride?: () => number) {
     // Создаем API клиент для auth сервиса (или используем переданный для тестирования)
     this.apiClient = apiClientOverride ?? createApiClient({
       baseUrl: this.getApiBaseUrl(),
     });
+    // Clock для детерминированного тестирования
+    this.clock = clockOverride ?? Date.now;
   }
 
   /** Получает базовый URL API из переменных окружения */
@@ -111,95 +124,254 @@ export class AuthService {
       ?? 'http://localhost:8000/api/v1';
   }
 
-  /** Runtime validation для CoreTokenPairResponse */
-  private validateCoreTokenResponse(data: unknown): asserts data is CoreTokenPairResponse {
-    if (data === null || data === undefined || typeof data !== 'object') {
-      throw new Error('TokenPair response must be an object');
-    }
-
-    const obj = data as Record<string, unknown>;
-
-    const accessToken = obj['access_token'];
-    if (typeof accessToken !== 'string' || accessToken.trim() === '') {
-      throw new Error('TokenPair response must have valid access_token string');
-    }
-
-    const refreshToken = obj['refresh_token'];
-    if (typeof refreshToken !== 'string' || refreshToken.trim() === '') {
-      throw new Error('TokenPair response must have valid refresh_token string');
-    }
-
-    if (obj['token_type'] !== 'bearer') {
-      throw new Error('TokenPair response must have token_type "bearer"');
-    }
-
-    const expiresIn = obj['expires_in'];
-    if (typeof expiresIn !== 'number' || expiresIn < 0) {
-      throw new Error('TokenPair response must have non-negative expires_in number');
-    }
-
-    const userId = obj['user_id'];
-    if (typeof userId !== 'string' || userId.trim() === '') {
-      throw new Error('TokenPair response must have valid user_id string');
-    }
-
-    const workspaceId = obj['workspace_id'];
-    if (typeof workspaceId !== 'string' || workspaceId.trim() === '') {
-      throw new Error('TokenPair response must have valid workspace_id string');
-    }
-  }
+  /** Zod схема для валидации CoreTokenPairResponse (расширенная версия с обязательными полями) */
+  private readonly tokenPairResponseSchema = generatedAuth.TokenPairResponseSchema.extend({
+    token_type: z.literal('bearer'),
+    expires_in: z.number().nonnegative(),
+    user_id: z.string().uuid(),
+    workspace_id: z.string().uuid(),
+  });
 
   /** Преобразует ответ API в формат AuthService */
   private mapCoreTokenResponseToAuthResponse(
     coreResponse: CoreTokenPairResponse,
   ): TokenPairResponse {
-    // Runtime validation для безопасности
-    this.validateCoreTokenResponse(coreResponse);
-
     return {
       accessToken: coreResponse.access_token,
       refreshToken: coreResponse.refresh_token,
-      expiresAt: Date.now() + Math.max(0, coreResponse.expires_in * MILLISECONDS_PER_SECOND), // expires_in в секундах -> timestamp, защита от отрицательных значений
+      expiresAt: this.clock() + Math.max(0, coreResponse.expires_in * MILLISECONDS_PER_SECOND), // expires_in в секундах -> timestamp, защита от отрицательных значений
     };
   }
 
-  /** Преобразует API ошибку в AuthError */
-  private mapApiErrorToAuthError(apiError: unknown): AuthError {
-    // Проверяем на EffectError (из api-client)
-    if (this.isEffectError(apiError)) {
-      return this.mapEffectErrorToAuthError(apiError as { kind: string; status: number; });
+  /** Единый метод для преобразования любой ошибки в AuthError */
+  private mapErrorToAuthError(error: unknown, context?: 'login' | 'refresh' | 'logout'): AuthError {
+    // Используем рекурсивный unwrap для извлечения оригинальной ошибки из всех обёрток
+    const originalError = this.unwrapError(error);
+
+    logFireAndForget('INFO', 'AuthService: mapErrorToAuthError - processing', {
+      source: 'AuthService',
+      context,
+      originalErrorType: typeof originalError,
+      isError: originalError instanceof Error,
+      hasKind: typeof originalError === 'object'
+        && originalError !== null
+        && 'kind' in originalError,
+      hasStatus: typeof originalError === 'object'
+        && originalError !== null
+        && 'status' in originalError,
+      hasCategory: typeof originalError === 'object'
+        && originalError !== null
+        && 'category' in originalError,
+      isEffectError: this.isEffectError(originalError),
+      isUnauthorizedError: this.isUnauthorizedError(originalError),
+    });
+
+    // Если это уже AuthError, возвращаем как есть
+    if (
+      typeof originalError === 'object'
+      && originalError !== null
+      && !(originalError instanceof Error)
+      && 'type' in originalError
+    ) {
+      const errorType = (originalError as { type: string; }).type;
+      if (['network', 'invalid_credentials', 'token_expired', 'server_error'].includes(errorType)) {
+        return originalError as AuthError;
+      }
     }
 
-    // ApiError (стандартный тип)
-    if (this.isApiError(apiError)) {
-      return this.mapApiCategoryToAuthError(apiError as { category: string; });
+    // Network ошибки - проверяем ПЕРВЫМИ
+    if (this.isNetworkError(originalError)) {
+      const message = originalError instanceof Error
+        ? originalError.message
+        : 'Network connection failed';
+      return { type: 'network', message };
     }
 
-    // Network ошибки
-    if (this.isNetworkError(apiError)) {
-      return { type: 'network', message: 'Network connection failed' };
+    // Проверяем на SchemaValidationError (из validatedEffect)
+    if (isSchemaValidationError(originalError)) {
+      // Ошибка валидации схемы - это server_error
+      return { type: 'server_error', status: HTTP_STATUS_INTERNAL_SERVER_ERROR };
+    }
+
+    // Проверяем на EffectError (из api-client) - ВАЖНО: проверяем ДО ApiError
+    // EffectError имеет структуру { kind: 'ApiError', status: number, ... }
+    // Используем структурное распознавание вместо instanceof
+    if (this.isEffectError(originalError)) {
+      return this.mapEffectErrorToAuthError(
+        originalError as { kind: string; status: number; },
+        context,
+      );
+    }
+
+    // ApiError (стандартный тип) - проверяем ПОСЛЕ EffectError
+    if (this.isApiError(originalError)) {
+      return this.mapApiCategoryToAuthError(originalError as { category: string; });
     }
 
     return { type: 'server_error', status: HTTP_STATUS_INTERNAL_SERVER_ERROR };
   }
 
   private isEffectError(error: unknown): error is { kind: string; status: number; } {
-    return error !== null && typeof error === 'object' && 'kind' in error && 'status' in error;
+    if (error === null || typeof error !== 'object') {
+      logFireAndForget('INFO', 'AuthService: isEffectError - not an object', {
+        source: 'AuthService',
+        errorType: typeof error,
+      });
+      return false;
+    }
+    // Проверяем, что это не Error instance (EffectError - это обычный объект)
+    if (error instanceof Error) {
+      logFireAndForget('INFO', 'AuthService: isEffectError - is Error instance', {
+        source: 'AuthService',
+        errorName: error.name,
+      });
+      return false;
+    }
+    const errorObj = error as Record<string, unknown>;
+    return 'kind' in errorObj
+      && 'status' in errorObj
+      && typeof errorObj['kind'] === 'string'
+      && typeof errorObj['status'] === 'number';
   }
 
   private isApiError(error: unknown): error is { category: string; } {
     return error !== null && typeof error === 'object' && 'category' in error;
   }
 
-  private isNetworkError(error: unknown): error is Error {
-    return error instanceof Error && error.name === 'TypeError' && error.message.includes('fetch');
+  /**
+   * Рекурсивно извлекает оригинальную ошибку из всех инфраструктурных обёрток.
+   * Работает с IsolationError, TimeoutError и другими обёртками через cause/originalError.
+   * Использует структурное распознавание вместо instanceof для надёжности.
+   */
+  private unwrapError(error: unknown, maxDepth: number = MAX_ISOLATION_ERROR_DEPTH): unknown {
+    let current = error;
+    let depth = 0;
+
+    while (depth < maxDepth) {
+      // Если это IsolationError, используем специальный unwrap
+      if (isIsolationError(current)) {
+        logFireAndForget('INFO', 'AuthService: unwrapError - unwrapping IsolationError', {
+          source: 'AuthService',
+          depth,
+          originalErrorType: typeof current.originalError,
+        });
+        current = current.originalError;
+        depth++;
+        continue;
+      }
+
+      // Проверяем наличие cause (стандартное поле для обёрнутых ошибок)
+      if (
+        typeof current === 'object'
+        && current !== null
+        && 'cause' in current
+        && (current as { cause: unknown; }).cause !== null
+        && (current as { cause: unknown; }).cause !== undefined
+      ) {
+        logFireAndForget('INFO', 'AuthService: unwrapError - unwrapping cause', {
+          source: 'AuthService',
+          depth,
+        });
+        current = (current as { cause: unknown; }).cause;
+        depth++;
+        continue;
+      }
+
+      // Проверяем наличие originalError (альтернативное поле)
+      if (
+        typeof current === 'object'
+        && current !== null
+        && 'originalError' in current
+        && (current as { originalError: unknown; }).originalError !== null
+        && (current as { originalError: unknown; }).originalError !== undefined
+      ) {
+        logFireAndForget('INFO', 'AuthService: unwrapError - unwrapping originalError', {
+          source: 'AuthService',
+          depth,
+        });
+        current = (current as { originalError: unknown; }).originalError;
+        depth++;
+        continue;
+      }
+
+      // Проверяем наличие error (для Effect UnknownException и других обёрток)
+      if (
+        typeof current === 'object'
+        && current !== null
+        && 'error' in current
+        && (current as { error: unknown; }).error !== null
+        && (current as { error: unknown; }).error !== undefined
+      ) {
+        logFireAndForget('INFO', 'AuthService: unwrapError - unwrapping error field', {
+          source: 'AuthService',
+          depth,
+        });
+        current = (current as { error: unknown; }).error;
+        depth++;
+        continue;
+      }
+
+      // Больше нет обёрток - возвращаем текущую ошибку
+      break;
+    }
+
+    // Логируем overflow для диагностики
+    if (depth >= maxDepth) {
+      logFireAndForget('WARN', 'AuthService: Error unwrap depth limit reached', {
+        source: 'AuthService',
+        maxDepth,
+        message: 'Error nesting exceeds maximum depth, returning partially unwrapped error',
+      });
+    }
+
+    return current;
   }
 
-  private mapEffectErrorToAuthError(effectError: { kind: string; status: number; }): AuthError {
+  /** Улучшенная проверка network ошибок (поддержка всех типов) */
+  private isNetworkError(error: unknown): error is Error {
+    if (!(error instanceof Error)) {
+      return false;
+    }
+
+    // TypeError с fetch (Node.js, браузер)
+    if (error.name === 'TypeError' && error.message.includes('fetch')) {
+      return true;
+    }
+
+    // DOMException NetworkError (браузер, polyfills)
+    // Защита от SSR: DOMException может быть undefined в Node.js
+    if (
+      typeof DOMException !== 'undefined'
+      && error instanceof DOMException
+      && error.name === 'NetworkError'
+    ) {
+      return true;
+    }
+
+    // AbortError (timeout, cancellation)
+    if (error.name === 'AbortError') {
+      return true;
+    }
+
+    // Общие network ошибки по сообщению
+    const networkKeywords = ['network', 'connection', 'timeout', 'ECONNREFUSED', 'ENOTFOUND'];
+    const lowerMessage = error.message.toLowerCase();
+    return networkKeywords.some((keyword) => lowerMessage.includes(keyword.toLowerCase()));
+  }
+
+  private mapEffectErrorToAuthError(
+    effectError: { kind: string; status: number; },
+    context?: 'login' | 'refresh' | 'logout',
+  ): AuthError {
     if (effectError.kind === 'ApiError' && typeof effectError.status === 'number') {
       const status = effectError.status;
 
+      // 401 семантически разный в зависимости от контекста
       if (status === HTTP_STATUS_UNAUTHORIZED) {
+        if (context === 'refresh') {
+          return { type: 'token_expired' };
+        }
+        // login и logout
         return { type: 'invalid_credentials' };
       }
 
@@ -222,16 +394,45 @@ export class AuthService {
   }
 
   /** Проверяет, является ли ошибка 401 Unauthorized */
+  /** Проверяет, является ли ошибка уже AuthError */
+  private isAuthError(error: unknown): error is AuthError {
+    if (error === null || typeof error !== 'object') {
+      return false;
+    }
+    const err = error as { type?: unknown; };
+    if (typeof err.type !== 'string') {
+      return false;
+    }
+    return err.type === 'network'
+      || err.type === 'invalid_credentials'
+      || err.type === 'token_expired'
+      || err.type === 'server_error';
+  }
+
   private isUnauthorizedError(error: unknown): boolean {
-    if (error === null || error === undefined || typeof error !== 'object') {
+    // Используем рекурсивный unwrap для извлечения оригинальной ошибки из всех обёрток
+    const originalError = this.unwrapError(error);
+
+    if (
+      originalError === null || originalError === undefined || typeof originalError !== 'object'
+    ) {
       return false;
     }
 
-    const errorObj = error as Record<string, unknown>;
+    // Если это Error instance, не может быть EffectError (EffectError - это обычный объект)
+    if (originalError instanceof Error) {
+      return false;
+    }
 
-    // Проверяем EffectError
+    const errorObj = originalError as Record<string, unknown>;
+
+    // Проверяем EffectError через status
     const status = errorObj['status'];
     if (typeof status === 'number' && status === HTTP_STATUS_UNAUTHORIZED) {
+      logFireAndForget('INFO', 'AuthService: isUnauthorizedError - found 401 via status', {
+        source: 'AuthService',
+        status,
+      });
       return true;
     }
 
@@ -239,172 +440,244 @@ export class AuthService {
     const kind = errorObj['kind'];
     if (kind === 'ApiError' && 'status' in errorObj) {
       const apiStatus = errorObj['status'];
-      return typeof apiStatus === 'number' && apiStatus === HTTP_STATUS_UNAUTHORIZED;
+      if (typeof apiStatus === 'number' && apiStatus === HTTP_STATUS_UNAUTHORIZED) {
+        logFireAndForget('INFO', 'AuthService: isUnauthorizedError - found 401 via kind', {
+          source: 'AuthService',
+          kind,
+          apiStatus,
+        });
+        return true;
+      }
     }
 
+    logFireAndForget('INFO', 'AuthService: isUnauthorizedError - not unauthorized', {
+      source: 'AuthService',
+      status,
+      kind,
+    });
     return false;
-  }
-
-  /** Преобразует неизвестные ошибки в AuthError */
-  private mapUnknownErrorToAuthError(error: unknown): AuthError {
-    if (error instanceof Error) {
-      if (error.name === 'TypeError' && error.message.includes('fetch')) {
-        return { type: 'network', message: error.message };
-      }
-      // Добавляем поддержку DOMException для SSR/fetch polyfills
-      if (error instanceof DOMException && error.name === 'NetworkError') {
-        return { type: 'network', message: error.message };
-      }
-    }
-
-    return { type: 'server_error', status: HTTP_STATUS_INTERNAL_SERVER_ERROR };
   }
 
   /** Выполняет вход пользователя. @returns Effect с токенами или ошибкой */
   login(request: LoginRequest): Effect.Effect<AuthError, TokenPairResponse> {
-    return Effect.flip(
-      Effect.tryPromise<TokenPairResponse, AuthError>({
-        try: async () => {
-          logFireAndForget('INFO', 'Auth login: started', {
-            source: 'AuthService',
-            username: request.username,
-          });
+    return Effect.tryPromise(async (): Promise<TokenPairResponse> => {
+      logFireAndForget('INFO', 'Auth login: started', {
+        source: 'AuthService',
+        username: request.username,
+      });
 
-          const response = await this.apiClient.post<
-            { email: string; password: string; },
-            CoreTokenPairResponse
-          >(
-            '/auth/login',
-            {
-              email: request.username,
-              password: request.password,
-            },
-          );
+      // Создаем Effect для API запроса
+      const apiCallEffect: EffectType<CoreTokenPairResponse> = async () => {
+        // apiClient.post() возвращает TResponse напрямую или бросает EffectError при ошибке
+        return this.apiClient.post<
+          { email: string; password: string; },
+          CoreTokenPairResponse
+        >(
+          '/auth/login',
+          {
+            email: request.username,
+            password: request.password,
+          },
+        );
+      };
 
-          if (!response.success) {
-            const failureResponse = response as { error: unknown; };
-            logFireAndForget('WARN', 'Auth login: failed', {
-              source: 'AuthService',
-              username: request.username,
-              error: failureResponse.error,
-            });
-            throw this.mapApiErrorToAuthError(failureResponse.error);
-          }
+      // Валидируем ответ через Zod схему
+      const validatedApiCall = validatedEffect(
+        this.tokenPairResponseSchema,
+        apiCallEffect,
+        { service: 'AUTH' },
+      );
 
-          logFireAndForget('INFO', 'Auth login: completed successfully', {
-            source: 'AuthService',
-            username: request.username,
-          });
+      // Выполняем через orchestrator с timeout и isolation
+      const result = await orchestrate([
+        step('auth-login', validatedApiCall, API_TIMEOUT_MS),
+      ])();
 
-          return this.mapCoreTokenResponseToAuthResponse(response.data);
-        },
-        catch: (error) => this.mapUnknownErrorToAuthError(error),
+      logFireAndForget('INFO', 'Auth login: completed successfully', {
+        source: 'AuthService',
+        username: request.username,
+      });
+
+      return this.mapCoreTokenResponseToAuthResponse(result as CoreTokenPairResponse);
+    }).pipe(
+      Effect.mapError((rawError) => {
+        // Нормализуем ошибку: извлекаем оригинальную из всех инфраструктурных обёрток
+        const error = this.unwrapError(rawError);
+
+        // Если ошибка уже AuthError, возвращаем как есть
+        if (this.isAuthError(error)) {
+          return error;
+        }
+        // Остальные ошибки мапим через общий метод
+        return this.mapErrorToAuthError(error, 'login');
       }),
-    );
+    ) as unknown as Effect.Effect<AuthError, TokenPairResponse>;
   }
 
   /** Обновляет access токен через refresh токен (thread-safe через mutex). */
   refresh(refreshToken: string): Effect.Effect<AuthError, TokenPairResponse> {
-    return Effect.flip(
-      Effect.tryPromise<TokenPairResponse, AuthError>({
-        try: async () => {
-          // Логируем начало ожидания mutex для отладки параллельных refresh
-          logFireAndForget('INFO', 'Auth refresh mutex: waiting for access', {
+    return Effect.tryPromise(async (): Promise<TokenPairResponse> => {
+      // Логируем начало ожидания mutex для отладки параллельных refresh
+      logFireAndForget('INFO', 'Auth refresh mutex: waiting for access', {
+        source: 'AuthService',
+        refreshTokenPrefix: `${this.getTokenPrefix(refreshToken)}...`,
+      });
+
+      // Используем mutex для предотвращения параллельных refresh запросов
+      return this.refreshMutex.runExclusive(async () => {
+        // Логируем получение доступа к mutex
+        logFireAndForget('INFO', 'Auth refresh mutex: acquired access', {
+          source: 'AuthService',
+          refreshTokenPrefix: `${this.getTokenPrefix(refreshToken)}...`,
+        });
+
+        try {
+          // Создаем Effect для API запроса
+          const apiCallEffect: EffectType<CoreTokenPairResponse> = async () => {
+            // apiClient.post() возвращает TResponse напрямую или бросает EffectError при ошибке
+            return this.apiClient.post<
+              { refresh_token: string; },
+              CoreTokenPairResponse
+            >(
+              '/auth/refresh',
+              { refresh_token: refreshToken },
+            );
+          };
+
+          // Валидируем ответ через Zod схему
+          const validatedApiCall = validatedEffect(
+            this.tokenPairResponseSchema,
+            apiCallEffect,
+            { service: 'AUTH' },
+          );
+
+          // Выполняем через orchestrator с timeout и isolation
+          const apiResult = await orchestrate([
+            step('auth-refresh', validatedApiCall, API_TIMEOUT_MS),
+          ])();
+
+          const mappedResult = this.mapCoreTokenResponseToAuthResponse(
+            apiResult as CoreTokenPairResponse,
+          );
+
+          // Логируем успешное завершение refresh
+          logFireAndForget('INFO', 'Auth refresh: completed successfully', {
             source: 'AuthService',
-            refreshTokenPrefix: `${refreshToken.substring(0, TOKEN_PREFIX_LENGTH)}...`,
+            refreshTokenPrefix: `${this.getTokenPrefix(refreshToken)}...`,
           });
 
-          // Используем mutex для предотвращения параллельных refresh запросов
-          return this.refreshMutex.runExclusive(async () => {
-            // Логируем получение доступа к mutex
-            logFireAndForget('INFO', 'Auth refresh mutex: acquired access', {
-              source: 'AuthService',
-              refreshTokenPrefix: `${refreshToken.substring(0, TOKEN_PREFIX_LENGTH)}...`,
-            });
-
-            try {
-              const response = await this.apiClient.post<
-                { refresh_token: string; },
-                CoreTokenPairResponse
-              >(
-                '/auth/refresh',
-                { refresh_token: refreshToken },
-              );
-
-              if (!response.success) {
-                const failureResponse = response as { error: unknown; };
-                // Если refresh токен недействителен - это специальный случай
-                if (this.isUnauthorizedError(failureResponse.error)) {
-                  throw { type: 'token_expired' } as AuthError;
-                }
-                throw this.mapApiErrorToAuthError(failureResponse.error);
-              }
-
-              const result = this.mapCoreTokenResponseToAuthResponse(response.data);
-
-              // Логируем успешное завершение refresh
-              logFireAndForget('INFO', 'Auth refresh: completed successfully', {
-                source: 'AuthService',
-                refreshTokenPrefix: `${refreshToken.substring(0, TOKEN_PREFIX_LENGTH)}...`,
-              });
-
-              return result;
-            } finally {
-              // Логируем освобождение mutex
-              logFireAndForget('INFO', 'Auth refresh mutex: released access', {
-                source: 'AuthService',
-                refreshTokenPrefix: `${refreshToken.substring(0, TOKEN_PREFIX_LENGTH)}...`,
-              });
-            }
+          return mappedResult;
+        } finally {
+          // Логируем освобождение mutex
+          logFireAndForget('INFO', 'Auth refresh mutex: released access', {
+            source: 'AuthService',
+            refreshTokenPrefix: `${this.getTokenPrefix(refreshToken)}...`,
           });
-        },
-        catch: (error) => {
-          // Логируем ошибку refresh для отладки
-          const authError = typeof error === 'object' && error !== null && 'type' in error
-            ? error as AuthError
-            : this.mapUnknownErrorToAuthError(error);
+        }
+      });
+    }).pipe(
+      Effect.mapError((rawError) => {
+        logFireAndForget('INFO', 'AuthService: refresh mapError - raw error received', {
+          source: 'AuthService',
+          rawErrorType: typeof rawError,
+          isIsolationError: isIsolationError(rawError),
+          isError: rawError instanceof Error,
+          errorName: rawError instanceof Error ? rawError.name : undefined,
+        });
 
+        // Нормализуем ошибку: извлекаем оригинальную из всех инфраструктурных обёрток
+        const error = this.unwrapError(rawError);
+
+        logFireAndForget('INFO', 'AuthService: refresh mapError - after unwrap', {
+          source: 'AuthService',
+          errorType: typeof error,
+          isError: error instanceof Error,
+          isAuthError: this.isAuthError(error),
+          isUnauthorizedError: this.isUnauthorizedError(error),
+          hasKind: typeof error === 'object' && error !== null && 'kind' in error,
+          hasStatus: typeof error === 'object' && error !== null && 'status' in error,
+        });
+
+        // Если ошибка уже AuthError, возвращаем как есть
+        if (this.isAuthError(error)) {
+          const authError = error;
           logFireAndForget('WARN', 'Auth refresh: failed', {
             source: 'AuthService',
             errorType: authError.type,
-            refreshTokenPrefix: `${refreshToken.substring(0, TOKEN_PREFIX_LENGTH)}...`,
+            refreshTokenPrefix: `${this.getTokenPrefix(refreshToken)}...`,
           });
-
           return authError;
-        },
+        }
+
+        // Специальный случай для refresh: 401 → token_expired
+        // Проверяем ДО общего маппинга, чтобы правильно обработать 401
+        if (this.isUnauthorizedError(error)) {
+          const authError: AuthError = { type: 'token_expired' };
+          logFireAndForget('WARN', 'Auth refresh: failed', {
+            source: 'AuthService',
+            errorType: authError.type,
+            refreshTokenPrefix: `${this.getTokenPrefix(refreshToken)}...`,
+          });
+          return authError;
+        }
+
+        // Остальные ошибки мапим через общий метод
+        const authError = this.mapErrorToAuthError(error, 'refresh');
+        logFireAndForget('WARN', 'Auth refresh: failed', {
+          source: 'AuthService',
+          errorType: authError.type,
+          refreshTokenPrefix: `${this.getTokenPrefix(refreshToken)}...`,
+        });
+        return authError;
       }),
-    );
+    ) as unknown as Effect.Effect<AuthError, TokenPairResponse>;
   }
 
   /** Выполняет выход пользователя (локально очищает токены даже при API ошибке). */
-  logout(): Effect.Effect<AuthError, void> {
-    return Effect.flip(
-      Effect.tryPromise<void, AuthError>({
-        try: async () => {
-          logFireAndForget('INFO', 'Auth logout: started', {
+  logout(): Effect.Effect<never, void> {
+    return Effect.catchAll(
+      Effect.tryPromise(async (): Promise<void> => {
+        logFireAndForget('INFO', 'Auth logout: started', {
+          source: 'AuthService',
+        });
+
+        // Создаем Effect для API запроса
+        const apiCallEffect: EffectType<void> = async () => {
+          // apiClient.post() возвращает TResponse напрямую или бросает EffectError при ошибке
+          // Для logout не критичны ошибки - они будут обработаны в catch блоке
+          await this.apiClient.post<{}, void>('/auth/logout', {});
+          logFireAndForget('INFO', 'Auth logout: completed successfully', {
             source: 'AuthService',
           });
+        };
 
-          const response = await this.apiClient.post<{}, void>('/auth/logout', {});
-
-          if (!response.success) {
-            const failureResponse = response as { error: unknown; };
-            // Для logout не критичны ошибки - логируем через telemetry
-            logFireAndForget('WARN', 'Auth logout: API call failed', {
-              source: 'AuthService',
-              error: failureResponse.error,
-            });
-          } else {
-            logFireAndForget('INFO', 'Auth logout: completed successfully', {
-              source: 'AuthService',
-            });
-          }
-
-          return undefined;
-        },
-        catch: (error) => this.mapUnknownErrorToAuthError(error),
-      }),
-    );
+        // Выполняем через orchestrator с timeout и isolation
+        // Игнорируем ошибки - logout должен всегда успешно завершаться
+        try {
+          await orchestrate([
+            step('auth-logout', apiCallEffect, API_TIMEOUT_MS),
+          ])();
+        } catch (orchestratorError) {
+          // Логируем ошибку, но не пробрасываем - logout всегда успешен
+          const authError = this.mapErrorToAuthError(orchestratorError, 'logout');
+          logFireAndForget('WARN', 'Auth logout: orchestrator error (ignored)', {
+            source: 'AuthService',
+            errorType: authError.type,
+          });
+        }
+      }).pipe(
+        Effect.mapError((error) => {
+          // Логируем ошибку, но не пробрасываем - logout всегда успешен
+          const authError = this.mapErrorToAuthError(error, 'logout');
+          logFireAndForget('WARN', 'Auth logout: error (ignored)', {
+            source: 'AuthService',
+            errorType: authError.type,
+          });
+          return authError;
+        }),
+      ),
+      () => Effect.succeed(undefined as void), // Всегда успех, игнорируем любые ошибки
+    ) as unknown as Effect.Effect<never, void>;
   }
 }
 

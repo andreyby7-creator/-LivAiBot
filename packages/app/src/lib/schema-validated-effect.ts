@@ -146,7 +146,7 @@ function zodErrorsToValidationErrors(
  * @example
  * ```ts
  * import { z } from 'zod';
- * import { validatedEffect } from './schema-validated-effect';
+ * import { validatedEffect } from './lib/schema-validated-effect';
  *
  * const UserSchema = z.object({
  *   id: z.string(),

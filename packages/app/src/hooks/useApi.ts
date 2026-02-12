@@ -31,14 +31,7 @@ import { validateApiRequest, validateApiResponse } from '../lib/api-schema-guard
 import { mapError } from '../lib/error-mapping.js';
 import type { MappedError } from '../lib/error-mapping.js';
 import { logFireAndForget } from '../lib/telemetry.js';
-import type {
-  ApiError,
-  ApiHeaders,
-  ApiRequestContext,
-  ApiResponse,
-  ApiServiceName,
-  HttpMethod,
-} from '../types/api.js';
+import type { ApiHeaders, ApiRequestContext, ApiServiceName, HttpMethod } from '../types/api.js';
 import type { ComponentState, UiEvent, UiEventMap, UiMetrics } from '../types/ui-contracts.js';
 
 /** Алиас для UI событий в контексте API хуков */
@@ -265,37 +258,6 @@ function prepareApiContexts(
   };
 }
 
-/** Обрабатывает API ответ: валидирует, мапит и выбрасывает ошибки. */
-async function processApiResponse(
-  response: ApiResponse<unknown>,
-  endpoint: ApiEndpointDefinition<unknown, unknown, unknown>,
-  schemaConfig: ApiSchemaConfig<unknown, unknown>,
-  validationContext: ApiValidationContext,
-): Promise<unknown> {
-  if (!response.success) {
-    // Ответ неудачный (ApiFailureResponse), выбрасываем ошибку
-    const mappedError = mapError((response as { error: ApiError; }).error, {
-      endpoint: schemaConfig.endpoint,
-      method: schemaConfig.method,
-      requestId: validationContext.requestId,
-    }, validationContext.locale);
-
-    throw mappedError;
-  }
-
-  const validatedResponse = endpoint.responseValidator
-    ? await EffectLib.runPromise(
-      validateApiResponse(response.data, schemaConfig, validationContext),
-    )
-    : response.data;
-
-  const mappedResponse = endpoint.mapResponse
-    ? endpoint.mapResponse(validatedResponse)
-    : validatedResponse;
-
-  return mappedResponse;
-}
-
 /** Создает типизированный API клиент из контракта. */
 function buildApiClient<T extends ApiContract>(
   client: ApiClient,
@@ -323,7 +285,8 @@ function buildApiClient<T extends ApiContract>(
           )
           : requestPayload;
 
-        const response = await client.request<ResponseRawOf<typeof endpoint>, unknown>({
+        // apiClient.request() теперь возвращает данные напрямую или бросает ошибку
+        const responseData = await client.request<ResponseRawOf<typeof endpoint>, unknown>({
           method,
           url: endpointPath,
           body: method === 'GET' ? undefined : validatedRequest,
@@ -331,12 +294,16 @@ function buildApiClient<T extends ApiContract>(
           ...(context && { context }),
         });
 
-        const result = await processApiResponse(
-          response,
-          endpoint,
-          schemaConfig,
-          validationContext,
-        );
+        // Валидируем и мапим ответ
+        const validatedResponse = endpoint.responseValidator
+          ? await EffectLib.runPromise(
+            validateApiResponse(responseData, schemaConfig, validationContext),
+          )
+          : responseData;
+
+        const result = endpoint.mapResponse
+          ? endpoint.mapResponse(validatedResponse)
+          : validatedResponse;
 
         if (telemetryEnabled) {
           logFireAndForget('INFO', 'API call succeeded', {

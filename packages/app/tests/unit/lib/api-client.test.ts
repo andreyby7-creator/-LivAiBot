@@ -277,10 +277,8 @@ describe('ApiClient Class', () => {
         headers: {},
       });
 
-      expect(result).toEqual({
-        success: true,
-        data: { data: 'success' },
-      });
+      // apiClient теперь возвращает данные напрямую, а не обернутые в { success: true, data }
+      expect(result).toEqual({ data: 'success' });
 
       expect(localMockFetch).toHaveBeenCalledWith(
         'https://api.example.com/test',
@@ -309,10 +307,8 @@ describe('ApiClient Class', () => {
         headers: { 'x-trace-id': 'trace-123' },
       });
 
-      expect(result).toEqual({
-        success: true,
-        data: { id: 123 },
-      });
+      // apiClient теперь возвращает данные напрямую
+      expect(result).toEqual({ id: 123 });
 
       expect(localMockFetch).toHaveBeenCalledWith(
         'https://api.example.com/items',
@@ -442,10 +438,8 @@ describe('ApiClient Class', () => {
       it('выполняет GET запрос', async () => {
         const result = await client.get('/users');
 
-        expect(result).toEqual({
-          success: true,
-          data: { data: 'success' },
-        });
+        // apiClient теперь возвращает данные напрямую
+        expect(result).toEqual({ data: 'success' });
 
         expect(mockFetch).toHaveBeenCalledWith(
           'https://api.example.com/users',
@@ -478,10 +472,8 @@ describe('ApiClient Class', () => {
         const body = { name: 'test' };
         const result = await client.post('/users', body);
 
-        expect(result).toEqual({
-          success: true,
-          data: { data: 'success' },
-        });
+        // apiClient теперь возвращает данные напрямую
+        expect(result).toEqual({ data: 'success' });
 
         expect(mockFetch).toHaveBeenCalledWith(
           'https://api.example.com/users',
@@ -607,10 +599,8 @@ describe('Integration with Effect Utils', () => {
 
     const result = await client.get('/test');
 
-    expect(result).toEqual({
-      success: true,
-      data: { success: true },
-    });
+    // apiClient теперь возвращает данные напрямую
+    expect(result).toEqual({ success: true });
 
     // Проверяем что был retry
     expect(mockFetch).toHaveBeenCalledTimes(2);

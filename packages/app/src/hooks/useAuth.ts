@@ -22,6 +22,7 @@ import { useCallback, useEffect, useMemo, useRef } from 'react';
 
 import type { LoginRequest, TokenPairResponse } from '../lib/auth-service.js';
 import { authService } from '../lib/auth-service.js';
+import { safeSet, setStoreLocked } from '../state/store-utils.js';
 import type { AppStore } from '../state/store.js';
 import { getCurrentTime, useAppStore } from '../state/store.js';
 
@@ -143,40 +144,66 @@ export function useAuth(options?: {
 } {
   const { onError } = options ?? {};
   const store = useAppStore();
-  const actions = store.actions;
 
   /** Выполняет refresh токенов. */
   const performRefresh = useCallback(
     async (refreshToken: string, throwError: boolean): Promise<void> => {
       try {
-        actions.setAuthLoading(true);
+        const initialAuth = useAppStore.getState().auth;
+        safeSet(
+          {
+            auth: {
+              ...initialAuth,
+              isLoading: true,
+            },
+          },
+          { label: 'auth-refresh-loading' },
+        );
 
         const result = extractTokenPair(
           await Runtime.runPromise(Runtime.defaultRuntime, authService.refresh(refreshToken)),
         );
 
-        // Успешный refresh - обновляем токены
-        actions.setAuthTokens({
-          accessToken: result.accessToken,
-          refreshToken: result.refreshToken,
-          expiresAt: result.expiresAt,
-        });
+        // Успешный refresh - обновляем токены через safeSet для atomic updates
+        const currentAuthState = useAppStore.getState().auth;
+        safeSet(
+          {
+            auth: {
+              ...currentAuthState,
+              accessToken: result.accessToken,
+              refreshToken: result.refreshToken,
+              expiresAt: result.expiresAt,
+              isLoading: false,
+            },
+          },
+          { label: 'auth-refresh-success' },
+        );
       } catch (error) {
         // При ошибке refresh - очищаем токены и user для безопасности
-        actions.clearAuth();
-        actions.setUser(null);
-        actions.setUserStatus('anonymous');
+        const errorAuthState = useAppStore.getState().auth;
+        safeSet(
+          {
+            auth: {
+              ...errorAuthState,
+              accessToken: null,
+              refreshToken: null,
+              expiresAt: null,
+              isLoading: false,
+            },
+            user: null,
+            userStatus: 'anonymous',
+          },
+          { label: 'auth-refresh-error' },
+        );
         onError?.(error, 'refresh');
         if (throwError) {
           throw error;
         }
       } finally {
-        actions.setAuthLoading(false);
-
         refreshPromiseRef.current = null;
       }
     },
-    [actions, onError],
+    [onError],
   );
 
   // Защита от параллельного refresh и очередь ожидания
@@ -213,51 +240,112 @@ export function useAuth(options?: {
   /** Выполняет вход пользователя и обновляет store. */
   const login = useCallback(async (request: LoginRequest): Promise<void> => {
     try {
-      actions.setAuthLoading(true);
+      const currentAuth = useAppStore.getState().auth;
+      safeSet(
+        {
+          auth: {
+            ...currentAuth,
+            isLoading: true,
+          },
+        },
+        { label: 'auth-login-loading' },
+      );
 
       const result = extractTokenPair(
         await Runtime.runPromise(Runtime.defaultRuntime, authService.login(request)),
       );
 
-      // Успешный login - сохраняем токены
-      actions.setAuthTokens({
-        accessToken: result.accessToken,
-        refreshToken: result.refreshToken,
-        expiresAt: result.expiresAt,
-      });
+      // Успешный login - сохраняем токены через safeSet для atomic updates
+      const currentAuthAfterLogin = useAppStore.getState().auth;
+      safeSet(
+        {
+          auth: {
+            ...currentAuthAfterLogin,
+            accessToken: result.accessToken,
+            refreshToken: result.refreshToken,
+            expiresAt: result.expiresAt,
+            isLoading: false,
+          },
+        },
+        { label: 'auth-login-success' },
+      );
     } catch (error) {
-      // Ошибка login - не обновляем store, оставляем как есть
+      // Ошибка login - сбрасываем loading состояние
+      const currentAuth = useAppStore.getState().auth;
+      safeSet(
+        {
+          auth: {
+            ...currentAuth,
+            isLoading: false,
+          },
+        },
+        { label: 'auth-login-error' },
+      );
       // Обработку ошибок делегируем UI (toast и т.д.)
       onError?.(error, 'login');
       throw error;
-    } finally {
-      actions.setAuthLoading(false);
     }
-  }, [actions, onError]);
+  }, [onError]);
 
   /** Выполняет выход пользователя и очищает store. */
   const logout = useCallback(async (): Promise<void> => {
+    // Блокируем store перед началом logout для предотвращения race conditions
+    setStoreLocked(true);
     try {
-      actions.setAuthLoading(true);
+      const currentAuth = useAppStore.getState().auth;
+      safeSet(
+        {
+          auth: {
+            ...currentAuth,
+            isLoading: true,
+          },
+        },
+        { label: 'auth-logout-loading' },
+      );
 
       await Runtime.runPromise(Runtime.defaultRuntime, authService.logout());
 
-      // Успешный logout - очищаем токены и user
-      actions.clearAuth();
-      actions.setUser(null);
-      actions.setUserStatus('anonymous');
+      // Успешный logout - очищаем токены и user через safeSet для atomic updates
+      const currentAuthAfterLogout = useAppStore.getState().auth;
+      safeSet(
+        {
+          auth: {
+            ...currentAuthAfterLogout,
+            accessToken: null,
+            refreshToken: null,
+            expiresAt: null,
+            isLoading: false,
+          },
+          user: null,
+          userStatus: 'anonymous',
+        },
+        { label: 'auth-logout-success' },
+      );
     } catch (error) {
       // Даже при ошибке logout - очищаем локальное состояние
       // для безопасности (токены могут быть недействительными)
-      actions.clearAuth();
-      actions.setUser(null);
-      actions.setUserStatus('anonymous');
+      const currentAuth = useAppStore.getState().auth;
+      safeSet(
+        {
+          auth: {
+            ...currentAuth,
+            accessToken: null,
+            refreshToken: null,
+            expiresAt: null,
+            isLoading: false,
+          },
+          user: null,
+          userStatus: 'anonymous',
+        },
+        { label: 'auth-logout-error' },
+      );
       onError?.(error, 'logout');
       throw error;
     } finally {
-      actions.setAuthLoading(false);
+      // Разблокируем store после завершения logout
+      setStoreLocked(false);
     }
-  }, [actions, onError]);
+  }, [onError]);
 
   /**
    * Тихий автоматический refresh токенов (без ошибок).

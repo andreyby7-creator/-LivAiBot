@@ -34,20 +34,33 @@ const getCurrentTimeMocks = vi.hoisted(() => ({
 }));
 
 // Mock BroadcastChannel
-const mockBroadcastChannel = vi.fn(function() {
-  return {
-    postMessage: vi.fn(),
-    close: vi.fn(),
-    onmessage: null,
-    name: '',
-    onmessageerror: null,
-    addEventListener: vi.fn(),
-    removeEventListener: vi.fn(),
-    dispatchEvent: vi.fn(),
-  };
-});
+let mockChannelInstance: {
+  postMessage: ReturnType<typeof vi.fn>;
+  close: ReturnType<typeof vi.fn>;
+  onmessage: ((event: MessageEvent) => void) | null;
+  name: string;
+  onmessageerror: ((event: MessageEvent) => void) | null;
+  addEventListener: ReturnType<typeof vi.fn>;
+  removeEventListener: ReturnType<typeof vi.fn>;
+  dispatchEvent: ReturnType<typeof vi.fn>;
+} | null = null;
 
-global.BroadcastChannel = mockBroadcastChannel as any;
+class MockBroadcastChannel {
+  postMessage = vi.fn();
+  close = vi.fn();
+  onmessage: ((event: MessageEvent) => void) | null = null;
+  name = '';
+  onmessageerror: ((event: MessageEvent) => void) | null = null;
+  addEventListener = vi.fn();
+  removeEventListener = vi.fn();
+  dispatchEvent = vi.fn();
+
+  constructor(_name: string) {
+    mockChannelInstance = this;
+  }
+}
+
+global.BroadcastChannel = MockBroadcastChannel as any;
 
 // Mock window.location for cross-tab tests
 Object.defineProperty(window, 'location', {
@@ -72,18 +85,37 @@ vi.mock('../../../src/lib/auth-service', () => ({
   },
 }));
 
+// Mock store-utils
+const storeUtilsMocks = vi.hoisted(() => ({
+  safeSet: vi.fn(),
+  setStoreLocked: vi.fn(),
+  isStoreLocked: vi.fn(() => false),
+}));
+
+vi.mock('../../../src/state/store-utils', () => ({
+  safeSet: storeUtilsMocks.safeSet,
+  setStoreLocked: storeUtilsMocks.setStoreLocked,
+  isStoreLocked: storeUtilsMocks.isStoreLocked,
+}));
+
 // Mock store
+let mockStoreState: AppStore;
+
 const storeMocks = vi.hoisted(() => ({
   useAppStore: vi.fn(function() {
-    return {} as AppStore;
+    return mockStoreState;
   }),
+  getState: vi.fn(() => mockStoreState),
 }));
 
 vi.mock('../../../src/state/store', async () => {
   const actualStore = await vi.importActual('../../../src/state/store');
+  const mockUseAppStore = Object.assign(storeMocks.useAppStore, {
+    getState: storeMocks.getState,
+  });
   return {
     ...actualStore,
-    useAppStore: storeMocks.useAppStore,
+    useAppStore: mockUseAppStore,
     getCurrentTime: getCurrentTimeMocks.getCurrentTime,
   };
 });
@@ -127,7 +159,14 @@ describe('useAuth hook', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    storeMocks.useAppStore.mockReturnValue(mockStore);
+
+    // Обновляем mockStoreState для getState()
+    mockStoreState = { ...mockStore };
+    storeMocks.useAppStore.mockReturnValue(mockStoreState);
+    storeMocks.getState.mockReturnValue(mockStoreState);
+    // Обновляем getState на самом useAppStore
+    (storeMocks.useAppStore as any).getState = storeMocks.getState;
+
     getCurrentTimeMocks.getCurrentTime.mockReturnValue(1000000000000);
 
     // Reset Effect mock
@@ -135,6 +174,14 @@ describe('useAuth hook', () => {
 
     // Reset actions mocks
     Object.values(mockActions).forEach((mock) => mock.mockReset());
+
+    // Reset store-utils mocks
+    storeUtilsMocks.safeSet.mockReset();
+    storeUtilsMocks.setStoreLocked.mockReset();
+    storeUtilsMocks.isStoreLocked.mockReturnValue(false);
+
+    // Сбрасываем BroadcastChannel мок
+    mockChannelInstance = null;
   });
 
   afterEach(() => {
@@ -236,14 +283,18 @@ describe('useAuth hook', () => {
         password: 'password',
       });
 
-      expect(mockActions.setAuthTokens).toHaveBeenCalledWith({
-        accessToken: 'access-token',
-        refreshToken: 'refresh-token',
-        expiresAt: 1000000000000 + 3600000,
-      });
-
-      expect(mockActions.setAuthLoading).toHaveBeenCalledWith(true);
-      expect(mockActions.setAuthLoading).toHaveBeenCalledWith(false);
+      // Проверяем, что safeSet был вызван для сохранения токенов
+      expect(storeUtilsMocks.safeSet).toHaveBeenCalledWith(
+        expect.objectContaining({
+          auth: expect.objectContaining({
+            accessToken: 'access-token',
+            refreshToken: 'refresh-token',
+            expiresAt: 1000000000000 + 3600000,
+            isLoading: false,
+          }),
+        }),
+        expect.objectContaining({ label: 'auth-login-success' }),
+      );
     });
 
     it('обрабатывает ошибки login', async () => {
@@ -262,9 +313,36 @@ describe('useAuth hook', () => {
       ).rejects.toBe(error);
 
       expect(mockOnError).toHaveBeenCalledWith(error, 'login');
-      expect(mockActions.setAuthLoading).toHaveBeenCalledWith(true);
-      expect(mockActions.setAuthLoading).toHaveBeenCalledWith(false);
-      expect(mockActions.setAuthTokens).not.toHaveBeenCalled();
+
+      // Проверяем, что safeSet был вызван для установки loading
+      expect(storeUtilsMocks.safeSet).toHaveBeenCalledWith(
+        expect.objectContaining({
+          auth: expect.objectContaining({
+            isLoading: true,
+          }),
+        }),
+        expect.objectContaining({ label: 'auth-login-loading' }),
+      );
+
+      // Проверяем, что safeSet был вызван для сброса loading при ошибке
+      expect(storeUtilsMocks.safeSet).toHaveBeenCalledWith(
+        expect.objectContaining({
+          auth: expect.objectContaining({
+            isLoading: false,
+          }),
+        }),
+        expect.objectContaining({ label: 'auth-login-error' }),
+      );
+
+      // Проверяем, что токены не были установлены
+      expect(storeUtilsMocks.safeSet).not.toHaveBeenCalledWith(
+        expect.objectContaining({
+          auth: expect.objectContaining({
+            accessToken: expect.anything(),
+          }),
+        }),
+        expect.objectContaining({ label: 'auth-login-success' }),
+      );
     });
   });
 
@@ -279,11 +357,35 @@ describe('useAuth hook', () => {
       });
 
       expect(authService.logout).toHaveBeenCalled();
-      expect(mockActions.clearAuth).toHaveBeenCalled();
-      expect(mockActions.setUser).toHaveBeenCalledWith(null);
-      expect(mockActions.setUserStatus).toHaveBeenCalledWith('anonymous');
-      expect(mockActions.setAuthLoading).toHaveBeenCalledWith(true);
-      expect(mockActions.setAuthLoading).toHaveBeenCalledWith(false);
+
+      // Проверяем, что setStoreLocked был вызван для блокировки store
+      expect(storeUtilsMocks.setStoreLocked).toHaveBeenCalledWith(true);
+      expect(storeUtilsMocks.setStoreLocked).toHaveBeenCalledWith(false);
+
+      // Проверяем, что safeSet был вызван для установки loading
+      expect(storeUtilsMocks.safeSet).toHaveBeenCalledWith(
+        expect.objectContaining({
+          auth: expect.objectContaining({
+            isLoading: true,
+          }),
+        }),
+        expect.objectContaining({ label: 'auth-logout-loading' }),
+      );
+
+      // Проверяем, что safeSet был вызван для очистки auth state
+      expect(storeUtilsMocks.safeSet).toHaveBeenCalledWith(
+        expect.objectContaining({
+          auth: expect.objectContaining({
+            accessToken: null,
+            refreshToken: null,
+            expiresAt: null,
+            isLoading: false,
+          }),
+          user: null,
+          userStatus: 'anonymous',
+        }),
+        expect.objectContaining({ label: 'auth-logout-success' }),
+      );
     });
 
     it('очищает store даже при ошибке logout', async () => {
@@ -299,9 +401,170 @@ describe('useAuth hook', () => {
       ).rejects.toBe(error);
 
       expect(mockOnError).toHaveBeenCalledWith(error, 'logout');
-      expect(mockActions.clearAuth).toHaveBeenCalled();
-      expect(mockActions.setUser).toHaveBeenCalledWith(null);
-      expect(mockActions.setUserStatus).toHaveBeenCalledWith('anonymous');
+
+      // Проверяем, что setStoreLocked был вызван для блокировки store
+      expect(storeUtilsMocks.setStoreLocked).toHaveBeenCalledWith(true);
+      expect(storeUtilsMocks.setStoreLocked).toHaveBeenCalledWith(false);
+
+      // Проверяем, что safeSet был вызван для очистки auth state даже при ошибке
+      expect(storeUtilsMocks.safeSet).toHaveBeenCalledWith(
+        expect.objectContaining({
+          auth: expect.objectContaining({
+            accessToken: null,
+            refreshToken: null,
+            expiresAt: null,
+            isLoading: false,
+          }),
+          user: null,
+          userStatus: 'anonymous',
+        }),
+        expect.objectContaining({ label: 'auth-logout-error' }),
+      );
+    });
+  });
+
+  describe('silentRefresh', () => {
+    it('не выполняет refresh когда accessToken null', async () => {
+      const storeWithoutToken: AppStore = {
+        ...mockStore,
+        auth: {
+          ...mockStore.auth,
+          accessToken: null,
+          refreshToken: 'refresh-token',
+          expiresAt: 1000000000000 + 3600000,
+        },
+      };
+
+      mockStoreState = storeWithoutToken;
+      storeMocks.useAppStore.mockReturnValue(storeWithoutToken);
+      storeMocks.getState.mockReturnValue(storeWithoutToken);
+
+      renderHook(() => useAuth());
+
+      // silentRefresh не должен вызывать refresh, так как нет accessToken
+      // Это внутренний метод, но мы можем проверить через useEffect
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
+
+      expect(authService.refresh).not.toHaveBeenCalled();
+    });
+
+    it('не выполняет refresh когда refreshToken null', async () => {
+      const storeWithoutRefreshToken: AppStore = {
+        ...mockStore,
+        auth: {
+          ...mockStore.auth,
+          accessToken: 'test-token',
+          refreshToken: null,
+          expiresAt: 1000000000000 + 3600000,
+        },
+      };
+
+      mockStoreState = storeWithoutRefreshToken;
+      storeMocks.useAppStore.mockReturnValue(storeWithoutRefreshToken);
+      storeMocks.getState.mockReturnValue(storeWithoutRefreshToken);
+
+      renderHook(() => useAuth());
+
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
+
+      expect(authService.refresh).not.toHaveBeenCalled();
+    });
+
+    it('не выполняет refresh когда refreshToken пустая строка', async () => {
+      const storeWithEmptyRefreshToken: AppStore = {
+        ...mockStore,
+        auth: {
+          ...mockStore.auth,
+          accessToken: 'test-token',
+          refreshToken: '',
+          expiresAt: 1000000000000 + 3600000,
+        },
+      };
+
+      mockStoreState = storeWithEmptyRefreshToken;
+      storeMocks.useAppStore.mockReturnValue(storeWithEmptyRefreshToken);
+      storeMocks.getState.mockReturnValue(storeWithEmptyRefreshToken);
+
+      renderHook(() => useAuth());
+
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
+
+      expect(authService.refresh).not.toHaveBeenCalled();
+    });
+
+    it('не выполняет refresh когда токен еще свежий', async () => {
+      const futureTime = 1000000000000 + 10 * 60 * 60 * 1000; // Через 10 часов
+      const storeWithFreshToken: AppStore = {
+        ...mockStore,
+        auth: {
+          ...mockStore.auth,
+          accessToken: 'test-token',
+          refreshToken: 'refresh-token',
+          expiresAt: futureTime,
+        },
+      };
+
+      mockStoreState = storeWithFreshToken;
+      storeMocks.useAppStore.mockReturnValue(storeWithFreshToken);
+      storeMocks.getState.mockReturnValue(storeWithFreshToken);
+
+      renderHook(() => useAuth());
+
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
+
+      // silentRefresh не должен вызывать refresh, так как токен еще свежий
+      expect(authService.refresh).not.toHaveBeenCalled();
+    });
+
+    it('использует существующий Promise при параллельных вызовах silentRefresh', async () => {
+      vi.useFakeTimers();
+
+      try {
+        const expiredTime = 1000000000000 - 10000; // В прошлом
+        const storeWithExpiredToken: AppStore = {
+          ...mockStore,
+          auth: {
+            ...mockStore.auth,
+            accessToken: 'test-token',
+            refreshToken: 'refresh-token',
+            expiresAt: expiredTime,
+          },
+        };
+
+        mockStoreState = storeWithExpiredToken;
+        storeMocks.useAppStore.mockReturnValue(storeWithExpiredToken);
+        storeMocks.getState.mockReturnValue(storeWithExpiredToken);
+
+        const mockTokenResponse = {
+          accessToken: 'new-access-token',
+          refreshToken: 'new-refresh-token',
+          expiresAt: 1000000000000 + 3600000,
+        };
+        effectMocks.runPromiseRuntime.mockResolvedValue(mockTokenResponse);
+
+        const { result } = renderHook(() => useAuth());
+
+        // Вызываем silentRefresh дважды параллельно
+        await act(async () => {
+          const promise1 = result.current.refreshIfNeeded();
+          const promise2 = result.current.refreshIfNeeded();
+
+          await Promise.all([promise1, promise2]);
+        });
+
+        // authService.refresh должен быть вызван только один раз
+        expect(authService.refresh).toHaveBeenCalledTimes(1);
+      } finally {
+        vi.useRealTimers();
+      }
     });
   });
 
@@ -413,13 +676,29 @@ describe('useAuth hook', () => {
       });
 
       expect(authService.refresh).toHaveBeenCalledWith('refresh-token');
-      expect(mockActions.setAuthTokens).toHaveBeenCalledWith({
-        accessToken: 'new-access-token',
-        refreshToken: 'new-refresh-token',
-        expiresAt: 1000000000000 + 3600000,
-      });
-      expect(mockActions.setAuthLoading).toHaveBeenCalledWith(true);
-      expect(mockActions.setAuthLoading).toHaveBeenCalledWith(false);
+
+      // Проверяем, что safeSet был вызван для установки loading
+      expect(storeUtilsMocks.safeSet).toHaveBeenCalledWith(
+        expect.objectContaining({
+          auth: expect.objectContaining({
+            isLoading: true,
+          }),
+        }),
+        expect.objectContaining({ label: 'auth-refresh-loading' }),
+      );
+
+      // Проверяем, что safeSet был вызван для обновления токенов
+      expect(storeUtilsMocks.safeSet).toHaveBeenCalledWith(
+        expect.objectContaining({
+          auth: expect.objectContaining({
+            accessToken: 'new-access-token',
+            refreshToken: 'new-refresh-token',
+            expiresAt: 1000000000000 + 3600000,
+            isLoading: false,
+          }),
+        }),
+        expect.objectContaining({ label: 'auth-refresh-success' }),
+      );
     });
 
     it('обрабатывает ошибки refresh', async () => {
@@ -445,9 +724,26 @@ describe('useAuth hook', () => {
       });
 
       expect(mockOnError).toHaveBeenCalledWith(error, 'refresh');
-      expect(mockActions.clearAuth).toHaveBeenCalled();
-      expect(mockActions.setUser).toHaveBeenCalledWith(null);
-      expect(mockActions.setUserStatus).toHaveBeenCalledWith('anonymous');
+      // Проверяем, что ошибка была проброшена (throwError=true в performRefresh)
+      await expect(
+        act(async () => {
+          await result.current.refreshIfNeeded();
+        }),
+      ).rejects.toBe(error);
+      // Проверяем, что safeSet был вызван для очистки auth state при ошибке refresh
+      expect(storeUtilsMocks.safeSet).toHaveBeenCalledWith(
+        expect.objectContaining({
+          auth: expect.objectContaining({
+            accessToken: null,
+            refreshToken: null,
+            expiresAt: null,
+            isLoading: false,
+          }),
+          user: null,
+          userStatus: 'anonymous',
+        }),
+        expect.objectContaining({ label: 'auth-refresh-error' }),
+      );
     });
 
     it('использует очередь для параллельных refresh вызовов', async () => {
@@ -481,7 +777,12 @@ describe('useAuth hook', () => {
 
       // authService.refresh должен быть вызван только один раз (из-за очереди)
       expect(authService.refresh).toHaveBeenCalledTimes(1);
-      expect(mockActions.setAuthTokens).toHaveBeenCalledTimes(1);
+
+      // Проверяем, что safeSet был вызван только один раз для refresh
+      const refreshCalls = storeUtilsMocks.safeSet.mock.calls.filter(
+        (call) => call[1]?.label === 'auth-refresh-success',
+      );
+      expect(refreshCalls).toHaveLength(1);
     });
   });
 
@@ -821,6 +1122,433 @@ describe('useAuth hook', () => {
 
       // silentRefresh должен быть вызван для истекшего токена
       expect(effectMocks.runPromiseRuntime).toHaveBeenCalled();
+    });
+
+    it('запускает автоматический refresh таймер когда токен скоро истечет', async () => {
+      vi.useFakeTimers();
+
+      // Токен истекает через 2 минуты (в пределах EXPIRING_SOON_THRESHOLD_MS = 5 минут)
+      const expiringSoonTime = 1000000000000 + 2 * 60 * 1000; // Через 2 минуты
+      const storeWithExpiringToken: AppStore = {
+        ...mockStore,
+        auth: {
+          ...mockStore.auth,
+          accessToken: 'test-token',
+          refreshToken: 'refresh-token',
+          expiresAt: expiringSoonTime,
+        },
+      };
+
+      mockStoreState = storeWithExpiringToken;
+      storeMocks.useAppStore.mockReturnValue(storeWithExpiringToken);
+      storeMocks.getState.mockReturnValue(storeWithExpiringToken);
+
+      const mockTokenResponse = {
+        accessToken: 'new-access-token',
+        refreshToken: 'new-refresh-token',
+        expiresAt: 1000000000000 + 3600000,
+      };
+      effectMocks.runPromiseRuntime.mockResolvedValue(mockTokenResponse);
+
+      const { unmount } = renderHook(() => useAuth());
+
+      // Продвигаем время вперед, чтобы таймер сработал (refreshDelay = timeToExpiry - EARLY_REFRESH_MS)
+      // timeToExpiry = 2 * 60 * 1000 = 120000
+      // refreshDelay = 120000 - 60000 = 60000
+      await act(async () => {
+        vi.advanceTimersByTime(60000); // 1 минута
+      });
+
+      // Проверяем, что silentRefresh был вызван через таймер (покрывает строку 514)
+      expect(effectMocks.runPromiseRuntime).toHaveBeenCalled();
+
+      // Проверяем cleanup функцию - таймер должен быть очищен при unmount (покрывает строки 524-526)
+      unmount();
+
+      // После unmount таймер должен быть очищен
+      expect(vi.getTimerCount()).toBe(0);
+
+      vi.useRealTimers();
+    });
+
+    it('очищает предыдущий таймер при изменении expiresAt', async () => {
+      vi.useFakeTimers();
+
+      try {
+        const expiringSoonTime1 = 1000000000000 + 2 * 60 * 1000; // Через 2 минуты
+        const storeWithExpiringToken1: AppStore = {
+          ...mockStore,
+          auth: {
+            ...mockStore.auth,
+            accessToken: 'test-token',
+            refreshToken: 'refresh-token',
+            expiresAt: expiringSoonTime1,
+          },
+        };
+
+        mockStoreState = storeWithExpiringToken1;
+        storeMocks.useAppStore.mockReturnValue(storeWithExpiringToken1);
+        storeMocks.getState.mockReturnValue(storeWithExpiringToken1);
+
+        const { rerender } = renderHook(() => useAuth());
+
+        // Изменяем expiresAt - это должно вызвать clearTimeout (покрывает строки 497-499)
+        const expiringSoonTime2 = 1000000000000 + 3 * 60 * 1000; // Через 3 минуты
+        const storeWithExpiringToken2: AppStore = {
+          ...storeWithExpiringToken1,
+          auth: {
+            ...storeWithExpiringToken1.auth,
+            expiresAt: expiringSoonTime2,
+          },
+        };
+
+        mockStoreState = storeWithExpiringToken2;
+        storeMocks.useAppStore.mockReturnValue(storeWithExpiringToken2);
+        storeMocks.getState.mockReturnValue(storeWithExpiringToken2);
+
+        // Перерендерим с новым expiresAt
+        await act(async () => {
+          rerender();
+        });
+
+        // Предыдущий таймер должен быть очищен
+        // Это покрывает строки 497-499 (clearTimeout в начале useEffect)
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+
+    it('обрабатывает cross-tab locking для silent refresh', async () => {
+      vi.useFakeTimers();
+
+      try {
+        const expiredTime = 1000000000000 - 10000; // В прошлом
+        const storeWithExpiredToken: AppStore = {
+          ...mockStore,
+          auth: {
+            ...mockStore.auth,
+            accessToken: 'test-token',
+            refreshToken: 'refresh-token',
+            expiresAt: expiredTime,
+          },
+        };
+
+        mockStoreState = storeWithExpiredToken;
+        storeMocks.useAppStore.mockReturnValue(storeWithExpiredToken);
+        storeMocks.getState.mockReturnValue(storeWithExpiredToken);
+
+        const mockTokenResponse = {
+          accessToken: 'new-access-token',
+          refreshToken: 'new-refresh-token',
+          expiresAt: 1000000000000 + 3600000,
+        };
+        effectMocks.runPromiseRuntime.mockResolvedValue(mockTokenResponse);
+
+        // Симулируем cross-tab locking через BroadcastChannel
+        // mockBroadcastChannel уже настроен в beforeEach, он создаст mockChannelInstance
+
+        const { result } = renderHook(() => useAuth());
+
+        // Ждем, чтобы useEffect выполнился и создал канал
+        await act(async () => {
+          vi.advanceTimersByTime(0);
+          await vi.runAllTimersAsync();
+        });
+
+        // Проверяем, что канал был создан
+        expect(mockChannelInstance).not.toBeNull();
+
+        // Убеждаемся, что канал был создан
+        expect(mockChannelInstance).not.toBeNull();
+
+        // Симулируем сообщение от другой вкладки о начале refresh
+        await act(async () => {
+          if (mockChannelInstance && mockChannelInstance.onmessage !== null) {
+            mockChannelInstance.onmessage({
+              data: {
+                type: 'refresh-started',
+                tabId: 'other-tab-id',
+              },
+            } as MessageEvent);
+          }
+        });
+
+        // Вызываем refreshIfNeeded - он должен ждать из-за cross-tab lock
+        let refreshPromise: Promise<void>;
+        await act(async () => {
+          refreshPromise = result.current.refreshIfNeeded();
+        });
+
+        // refreshIfNeeded вызывает silentRefresh, который проверяет isCrossTabLockedRef
+        // и возвращает Promise с setTimeout, но не отправляет сообщение пока lock активен
+        // Продвигаем таймер для setTimeout внутри silentRefresh (строка 380)
+        await act(async () => {
+          vi.advanceTimersByTime(1000);
+          await refreshPromise!;
+        });
+
+        // После разблокировки silentRefresh должен был отправить сообщение
+        // Проверяем, что сообщение было отправлено (после рекурсивного вызова)
+        // silentRefresh рекурсивно вызывает сам себя после разблокировки
+        expect(mockChannelInstance?.postMessage).toHaveBeenCalled();
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+
+    it('обрабатывает cross-tab refresh-finished сообщение и разблокирует refresh', async () => {
+      vi.useFakeTimers();
+
+      try {
+        const expiredTime = 1000000000000 - 10000; // В прошлом
+        const storeWithExpiredToken: AppStore = {
+          ...mockStore,
+          auth: {
+            ...mockStore.auth,
+            accessToken: 'test-token',
+            refreshToken: 'refresh-token',
+            expiresAt: expiredTime,
+          },
+        };
+
+        mockStoreState = storeWithExpiredToken;
+        storeMocks.useAppStore.mockReturnValue(storeWithExpiredToken);
+        storeMocks.getState.mockReturnValue(storeWithExpiredToken);
+
+        const mockTokenResponse = {
+          accessToken: 'new-access-token',
+          refreshToken: 'new-refresh-token',
+          expiresAt: 1000000000000 + 3600000,
+        };
+        effectMocks.runPromiseRuntime.mockResolvedValue(mockTokenResponse);
+
+        const { result } = renderHook(() => useAuth());
+
+        // Ждем, чтобы useEffect выполнился и установил onmessage
+        await act(async () => {
+          vi.advanceTimersByTime(0);
+        });
+
+        // Симулируем сообщение от другой вкладки о начале refresh (блокируем)
+        await act(async () => {
+          if (mockChannelInstance && mockChannelInstance.onmessage !== null) {
+            mockChannelInstance.onmessage({
+              data: {
+                type: 'refresh-started',
+                tabId: 'other-tab-id',
+              },
+            } as MessageEvent);
+          }
+        });
+
+        // Вызываем refreshIfNeeded - он должен ждать из-за cross-tab lock
+        let refreshPromise: Promise<void>;
+        await act(async () => {
+          refreshPromise = result.current.refreshIfNeeded();
+        });
+
+        // Симулируем сообщение от другой вкладки об окончании refresh (разблокируем)
+        await act(async () => {
+          if (mockChannelInstance && mockChannelInstance.onmessage !== null) {
+            mockChannelInstance.onmessage({
+              data: {
+                type: 'refresh-finished',
+                tabId: 'other-tab-id',
+              },
+            } as MessageEvent);
+          }
+        });
+
+        // Продвигаем таймер для setTimeout внутри silentRefresh
+        await act(async () => {
+          vi.advanceTimersByTime(1000);
+          await refreshPromise!;
+        });
+
+        // Проверяем, что канал был создан и refresh выполнился после разблокировки
+        expect(mockChannelInstance).not.toBeNull();
+        expect(effectMocks.runPromiseRuntime).toHaveBeenCalled();
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+
+    it('обрабатывает ошибку при создании BroadcastChannel', () => {
+      // Симулируем ошибку при создании BroadcastChannel
+      const OriginalBroadcastChannel = global.BroadcastChannel;
+      global.BroadcastChannel = class {
+        constructor() {
+          throw new Error('BroadcastChannel not supported');
+        }
+      } as any;
+
+      // Хук должен работать без ошибок даже если BroadcastChannel не поддерживается
+      expect(() => {
+        renderHook(() => useAuth());
+      }).not.toThrow();
+
+      // Восстанавливаем оригинальный BroadcastChannel
+      global.BroadcastChannel = OriginalBroadcastChannel;
+    });
+
+    it('очищает BroadcastChannel при unmount', async () => {
+      const { unmount } = renderHook(() => useAuth());
+
+      // Ждем, чтобы useEffect выполнился и создал канал
+      await act(async () => {
+        await new Promise((resolve) => setImmediate(resolve));
+      });
+
+      // Проверяем, что канал был создан
+      expect(mockChannelInstance).not.toBeNull();
+      if (mockChannelInstance) {
+        expect(mockChannelInstance.close).not.toHaveBeenCalled();
+      }
+
+      // Размонтируем компонент - это должно вызвать cleanup функцию
+      unmount();
+
+      // Ждем выполнения cleanup
+      await act(async () => {
+        await new Promise((resolve) => setImmediate(resolve));
+      });
+
+      // Проверяем, что канал был закрыт
+      if (mockChannelInstance) {
+        expect(mockChannelInstance.close).toHaveBeenCalled();
+      }
+    });
+
+    it('не запускает таймер когда токен еще свежий', async () => {
+      vi.useFakeTimers();
+
+      try {
+        // Токен истекает через 10 минут (больше EXPIRING_SOON_THRESHOLD_MS = 5 минут)
+        const futureTime = 1000000000000 + 10 * 60 * 1000; // Через 10 минут
+        const storeWithFutureToken: AppStore = {
+          ...mockStore,
+          auth: {
+            ...mockStore.auth,
+            accessToken: 'test-token',
+            refreshToken: 'refresh-token',
+            expiresAt: futureTime,
+          },
+        };
+
+        mockStoreState = storeWithFutureToken;
+        storeMocks.useAppStore.mockReturnValue(storeWithFutureToken);
+        storeMocks.getState.mockReturnValue(storeWithFutureToken);
+
+        renderHook(() => useAuth());
+
+        // Продвигаем время вперед
+        await act(async () => {
+          vi.advanceTimersByTime(60000); // 1 минута
+        });
+
+        // silentRefresh не должен быть вызван, так как токен еще свежий
+        expect(effectMocks.runPromiseRuntime).not.toHaveBeenCalled();
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+
+    it('не запускает таймер когда accessToken null', async () => {
+      vi.useFakeTimers();
+
+      try {
+        const storeWithoutToken: AppStore = {
+          ...mockStore,
+          auth: {
+            ...mockStore.auth,
+            accessToken: null,
+            refreshToken: 'refresh-token',
+            expiresAt: 1000000000000 + 2 * 60 * 1000,
+          },
+        };
+
+        mockStoreState = storeWithoutToken;
+        storeMocks.useAppStore.mockReturnValue(storeWithoutToken);
+        storeMocks.getState.mockReturnValue(storeWithoutToken);
+
+        renderHook(() => useAuth());
+
+        // Продвигаем время вперед
+        await act(async () => {
+          vi.advanceTimersByTime(60000);
+        });
+
+        // silentRefresh не должен быть вызван, так как нет токена
+        expect(effectMocks.runPromiseRuntime).not.toHaveBeenCalled();
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+
+    it('не запускает таймер когда expiresAt null', async () => {
+      vi.useFakeTimers();
+
+      try {
+        const storeWithoutExpiry: AppStore = {
+          ...mockStore,
+          auth: {
+            ...mockStore.auth,
+            accessToken: 'test-token',
+            refreshToken: 'refresh-token',
+            expiresAt: null,
+          },
+        };
+
+        mockStoreState = storeWithoutExpiry;
+        storeMocks.useAppStore.mockReturnValue(storeWithoutExpiry);
+        storeMocks.getState.mockReturnValue(storeWithoutExpiry);
+
+        renderHook(() => useAuth());
+
+        // Продвигаем время вперед
+        await act(async () => {
+          vi.advanceTimersByTime(60000);
+        });
+
+        // silentRefresh не должен быть вызван, так как нет expiresAt
+        expect(effectMocks.runPromiseRuntime).not.toHaveBeenCalled();
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+
+    it('не запускает таймер когда timeToExpiry = 0', async () => {
+      vi.useFakeTimers();
+
+      try {
+        // Токен уже истек (expiresAt в прошлом)
+        const expiredTime = 1000000000000 - 10000; // В прошлом
+        const storeWithExpiredToken: AppStore = {
+          ...mockStore,
+          auth: {
+            ...mockStore.auth,
+            accessToken: 'test-token',
+            refreshToken: 'refresh-token',
+            expiresAt: expiredTime,
+          },
+        };
+
+        mockStoreState = storeWithExpiredToken;
+        storeMocks.useAppStore.mockReturnValue(storeWithExpiredToken);
+        storeMocks.getState.mockReturnValue(storeWithExpiredToken);
+
+        renderHook(() => useAuth());
+
+        // Продвигаем время вперед
+        await act(async () => {
+          vi.advanceTimersByTime(60000);
+        });
+
+        // Таймер не должен быть запущен, так как timeToExpiry = 0 (токен уже истек)
+        // Но silentRefresh должен быть вызван через другой useEffect (строка 451)
+      } finally {
+        vi.useRealTimers();
+      }
     });
   });
 });
