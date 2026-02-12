@@ -103,7 +103,12 @@ export const errorMessages = {
  * 🧱 МАППИНГ EFFECTERROR.KIND → SERVICE ERROR CODE
  * ========================================================================== */
 
-export const kindToErrorCode = {
+/**
+ * Опциональный маппинг EffectError.kind → ServiceErrorCode.
+ * Может быть расширен для поддержки новых сервисов.
+ * Если kind не найден в маппинге, используется универсальное определение сервиса из префикса kind.
+ */
+export const kindToErrorCode: Partial<Record<string, ServiceErrorCode>> = {
   'auth/invalid-token': 'AUTH_INVALID_TOKEN',
   'auth/user-not-found': 'AUTH_USER_NOT_FOUND',
   'billing/insufficient-funds': 'BILLING_INSUFFICIENT_FUNDS',
@@ -196,17 +201,20 @@ export function mapError<TDetails = unknown>(
 
   // Если не нашли код, проверяем EffectError с kind
   if (code === undefined && isEffectError(err) && typeof err.kind === 'string') {
-    if (err.kind in kindToErrorCode) {
-      code = kindToErrorCode[err.kind as keyof typeof kindToErrorCode];
+    // Проверяем опциональный маппинг kind → code
+    const mappedCode = kindToErrorCode[err.kind];
+    if (mappedCode != null) {
+      code = mappedCode;
     }
 
     // Универсальное определение сервиса из kind (например, 'auth/...' -> 'AUTH', 'billing/...' -> 'BILLING')
     // Работает для любого сервиса из SERVICES
-    if (typeof err.kind === 'string') {
-      const kindPrefix = err.kind.split('/')[0]?.toUpperCase();
-      if (kindPrefix != null && kindPrefix !== '' && kindPrefix in SERVICES) {
-        detectedService = kindPrefix as ServicePrefix;
-      }
+    const kindParts = err.kind.split('/');
+    const kindPrefix = kindParts.length > 0 && kindParts[0] != null && kindParts[0] !== ''
+      ? kindParts[0].toUpperCase()
+      : undefined;
+    if (kindPrefix != null && kindPrefix in SERVICES) {
+      detectedService = kindPrefix as ServicePrefix;
     }
   }
 
@@ -274,6 +282,72 @@ export function mapErrorBoundaryError(error: Error, telemetryEnabled = true): Ap
   };
 
   return appError;
+}
+
+/* ============================================================================
+ * 🎯 СОЗДАНИЕ DOMAIN ERROR ИЗ VALIDATION ERRORS
+ * ========================================================================== */
+
+/**
+ * Тип для ошибок валидации, совместимый с error-mapping.
+ * Используется для создания DomainError из validation errors.
+ */
+export type ValidationErrorLike = TaggedError & {
+  readonly field?: string | undefined;
+  readonly message?: string | undefined;
+  readonly details?: unknown;
+};
+
+/**
+ * Создает DomainError (MappedError) из массива ошибок валидации.
+ * Универсальный helper для преобразования ValidationError[] в DomainError.
+ *
+ * @param errors - Массив ошибок валидации
+ * @param errorCode - Опциональный код ошибки (по умолчанию SYSTEM_VALIDATION_RESPONSE_SCHEMA_INVALID)
+ * @param service - Опциональный сервис (по умолчанию определяется из первой ошибки или 'SYSTEM')
+ * @param locale - Опциональная локаль для сообщения об ошибке
+ * @returns MappedError с деталями валидации
+ *
+ * @example
+ * ```ts
+ * import { createDomainError } from './error-mapping';
+ * import type { ValidationError } from './validation';
+ *
+ * const validationErrors: ValidationError[] = [
+ *   { code: 'SYSTEM_VALIDATION_RESPONSE_SCHEMA_INVALID', field: 'email', message: 'Invalid email' }
+ * ];
+ *
+ * const domainError = createDomainError(validationErrors);
+ * // domainError.code === 'SYSTEM_VALIDATION_RESPONSE_SCHEMA_INVALID'
+ * // domainError.details === { validationErrors: [...] }
+ * ```
+ */
+export function createDomainError(
+  errors: readonly ValidationErrorLike[],
+  errorCode?: ServiceErrorCode | undefined,
+  service?: ServicePrefix | undefined,
+  locale?: string | undefined,
+): MappedError<{ readonly validationErrors: readonly ValidationErrorLike[]; }> {
+  // Определяем код ошибки: из параметра, из первой ошибки, или fallback
+  const firstError = errors.length > 0 ? errors[0] : undefined;
+  const code = errorCode ?? firstError?.code ?? 'SYSTEM_VALIDATION_RESPONSE_SCHEMA_INVALID';
+
+  // Определяем сервис: из параметра, из первой ошибки, или fallback
+  const detectedService = service ?? firstError?.service ?? 'SYSTEM';
+
+  // Создаем TaggedError для передачи в mapError
+  const taggedError: TaggedError = {
+    code,
+    service: detectedService,
+  };
+
+  // Используем mapError для создания унифицированного DomainError
+  return mapError(
+    taggedError,
+    { validationErrors: errors },
+    locale,
+    detectedService,
+  );
 }
 
 /* ============================================================================

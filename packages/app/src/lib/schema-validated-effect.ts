@@ -30,7 +30,7 @@
 import { z } from 'zod';
 
 import type { Effect } from './effect-utils.js';
-import { mapError } from './error-mapping.js';
+import { createDomainError } from './error-mapping.js';
 import type { MappedError, ServiceErrorCode, ServicePrefix } from './error-mapping.js';
 import { validationError } from './validation.js';
 import type { ValidationError } from './validation.js';
@@ -50,7 +50,7 @@ export type ValidatedEffectOptions = {
   readonly errorCode?: ServiceErrorCode | undefined;
 
   /** Опциональный сервис для ошибок валидации */
-  readonly service?: 'AUTH' | 'BILLING' | 'AI' | 'SYSTEM' | undefined;
+  readonly service?: ServicePrefix | undefined;
 };
 
 /**
@@ -86,24 +86,16 @@ export function isSchemaValidationError(error: unknown): error is SchemaValidati
 /**
  * Создает DomainError из ValidationError через error-mapping.
  * Используется для унифицированной обработки ошибок валидации.
+ *
+ * @deprecated Используйте `createDomainError` из `error-mapping.ts` напрямую.
+ * Эта функция оставлена для обратной совместимости.
  */
 export function createValidationError(
   errors: readonly ValidationError[],
   errorCode?: ServiceErrorCode | undefined,
-  service?: 'AUTH' | 'BILLING' | 'AI' | 'SYSTEM' | undefined,
+  service?: ServicePrefix | undefined,
 ): MappedError<unknown> {
-  const code = errorCode ?? 'SYSTEM_VALIDATION_RESPONSE_SCHEMA_INVALID';
-  // Создаем TaggedError для передачи в mapError
-  const taggedError: {
-    readonly code: ServiceErrorCode;
-    readonly service?: ServicePrefix | undefined;
-  } = {
-    code,
-    ...(service != null && { service }),
-  };
-  const mappedError = mapError(taggedError, { validationErrors: errors }, undefined, service);
-
-  return mappedError;
+  return createDomainError(errors, errorCode, service);
 }
 
 /**
@@ -111,7 +103,7 @@ export function createValidationError(
  */
 function zodErrorsToValidationErrors(
   zodError: z.ZodError,
-  service?: 'AUTH' | 'BILLING' | 'AI' | 'SYSTEM' | undefined,
+  service?: ServicePrefix | undefined,
 ): readonly ValidationError[] {
   return zodError.issues.map((issue) => {
     const field = issue.path.length > 0 ? issue.path.join('.') : undefined;
@@ -193,7 +185,7 @@ export function validatedEffect<T>(
     // Создаем DomainError через error-mapping (или используем кастомный mapper)
     const mappedError = errorMapper != null
       ? errorMapper(validationErrors)
-      : createValidationError(validationErrors, errorCode, service);
+      : createDomainError(validationErrors, errorCode, service);
 
     // Бросаем SchemaValidationError для унифицированной обработки
     throw new SchemaValidationError(mappedError, validationErrors);

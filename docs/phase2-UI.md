@@ -203,14 +203,14 @@ apps/web (тонкий композитор)
 5️⃣4️⃣ packages/app/src/lib/api-client.ts 🟢 — ts+effect — deps: types/api.ts, lib/effect-utils.ts, lib/telemetry.ts
 5️⃣5️⃣ packages/app/src/lib/websocket.ts 🟢 — ts+effect — deps: lib/effect-utils.ts, lib/telemetry.ts
 5️⃣6️⃣ packages/app/src/lib/sse-client.ts 🟢 — ts+effect — deps: lib/effect-utils.ts, lib/telemetry.ts
-5️⃣7️⃣ packages/app/src/lib/error-mapping.ts 🟢 — ts — deps: lib/effect-utils.ts, lib/telemetry.ts
+5️⃣7️⃣ packages/app/src/lib/error-mapping.ts 🟢 — ts — deps: lib/effect-utils.ts, lib/telemetry.ts, types/common.ts, types/errors.ts
 5️⃣8️⃣ packages/app/src/lib/validation.ts 🟢 — ts — deps: lib/error-mapping.ts, lib/telemetry.ts
 5️⃣9️⃣ packages/app/src/lib/feature-flags.ts 🟢 — ts — deps: lib/error-mapping.ts
 6️⃣0️⃣ packages/app/src/lib/offline-cache.ts 🟢 — ts+effect — deps: lib/effect-utils.ts, lib/telemetry.ts
 6️⃣1️⃣ packages/app/src/lib/api-schema-guard.ts 🟢 — ts+effect — deps: types/api.ts, lib/error-mapping.ts, lib/telemetry.ts, lib/validation.ts
 6️⃣2️⃣ packages/app/src/lib/performance.ts 🟢 — ts+effect — deps: types/common.ts, lib/telemetry.ts
 6️⃣3️⃣ packages/app/src/lib/auth-guard.ts 🟢 — ts — deps: types/common.ts, lib/error-mapping.ts — (проверяет состояние, не принимает решений)
-6️⃣4️⃣ packages/app/src/lib/auth-service.ts 🟢 — ts+effect — deps: lib/api-client.ts, lib/telemetry.ts, @livai/core-contracts
+6️⃣4️⃣ packages/app/src/lib/auth-service.ts 🟢 — ts+effect — deps: lib/api-client.ts, lib/effect-isolation.ts, lib/effect-utils.ts, lib/orchestrator.ts, lib/schema-validated-effect.ts, lib/telemetry.ts, @livai/core-contracts
 6️⃣5️⃣ packages/app/src/lib/route-permissions.ts 🟢 — ts — deps: lib/auth-guard.ts — (декларативная конфигурация: requiresAuth, permissions, roles)
 6️⃣6️⃣ packages/app/src/lib/logger.ts 🟢 — ts — deps: types/common.ts, lib/telemetry.ts
 6️⃣7️⃣ packages/app/src/lib/effect-timeout.ts 🟢 — ts+effect — deps: lib/effect-utils.ts
@@ -229,7 +229,7 @@ apps/web (тонкий композитор)
 7️⃣8️⃣ packages/app/src/providers/UnifiedUIProvider.tsx 🟢 — ts+react — deps: providers/: FeatureFlagsProvider.tsx, intl-provider.tsx, TelemetryProvider.tsx, lib/i18n.ts, types/ui-contracts.ts
 7️⃣9️⃣ packages/app/src/providers/AppProviders.tsx 🟢 — ts+react — deps: providers/intl-provider.tsx, providers/FeatureFlagsProvider.tsx, providers/TelemetryProvider.tsx, providers/QueryClientProvider.tsx, providers/ToastProvider.tsx, providers/UnifiedUIProvider.tsx, hooks/useAuth.ts, lib/auth-guard.ts, state/store.ts, types/ui-contracts.ts
 8️⃣0️⃣ packages/app/src/bootstrap.tsx 🟢 — ts+react — deps: providers/AppProviders.tsx
-8️⃣1️⃣ packages/app/src/hooks/useApi.ts 🟢 — ts+react+effect — deps: lib/api-client.ts, lib/schema-validated-effect.ts, lib/error-mapping.ts, lib/telemetry.ts, types/api.ts, types/ui-contracts.ts
+8️⃣1️⃣ packages/app/src/hooks/useApi.ts 🟢 — ts+react+effect — deps: lib/api-client.ts, lib/api-schema-guard.ts, lib/error-mapping.ts, lib/telemetry.ts, types/api.ts, types/ui-contracts.ts
 8️⃣2️⃣ packages/app/src/hooks/useAuth.ts 🟢 — ts+react+effect — deps: lib/auth-service.ts, state/store.ts, state/store-utils.ts
 8️⃣3️⃣ packages/app/src/hooks/useToast.ts 🟢 — ts+react — deps: providers/ToastProvider.tsx, lib/telemetry.ts, types/ui-contracts.ts
 8️⃣4️⃣ packages/app/src/hooks/useFeatureFlags.ts 🟢 — ts+react — deps: providers/FeatureFlagsProvider.tsx, lib/feature-flags.ts, types/common.ts, types/ui-contracts.ts

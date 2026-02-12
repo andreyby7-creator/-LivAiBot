@@ -47,6 +47,13 @@ const PAYLOAD_SAMPLE_SIZE = BYTES_IN_KB; // Sample first 1KB of large payloads f
 const MAX_RECURSION_DEPTH = 10; // Maximum recursion depth for nested structures
 const PAYLOAD_HASH_LENGTH = 8; // Length of payload hash for observability
 
+/**
+ * Глобальная настройка strict mode по умолчанию.
+ * Может быть переопределена через переменную окружения STRICT_VALIDATION_MODE=true
+ * или через опции конкретного endpoint'а.
+ */
+const DEFAULT_STRICT_MODE = process.env['STRICT_VALIDATION_MODE'] === 'true';
+
 /* ============================================================================
  * 🎯 EFFECT TYPE ALIASES ДЛЯ ЧИСТОТЫ
  * ========================================================================== */
@@ -141,6 +148,11 @@ export type ApiResponseValidator<T = unknown> = Validator<T>;
 /**
  * Конфигурация валидации для конкретного API endpoint'а.
  * Позволяет гибко настраивать валидацию для разных микросервисов.
+ *
+ * Strict mode:
+ * - Если `strictMode: true`, валидаторы обязательны для request и response
+ * - Если `strictMode` не указан, используется глобальная настройка DEFAULT_STRICT_MODE
+ * - В strict mode отсутствие валидаторов приводит к ошибке валидации
  */
 export type ApiSchemaConfig<TRequest = unknown, TResponse = unknown> = {
   readonly service: ApiServiceName;
@@ -159,7 +171,11 @@ export type ApiSchemaConfig<TRequest = unknown, TResponse = unknown> = {
   readonly schemaVersion?: string | undefined;
   readonly supportedVersions?: readonly string[] | undefined;
 
-  // Strict mode — обязательная валидация для всех effects
+  /**
+   * Strict mode — обязательная валидация для всех effects.
+   * Если `true`, валидаторы обязательны для request и response.
+   * Если не указано, используется глобальная настройка DEFAULT_STRICT_MODE.
+   */
   readonly strictMode?: boolean | undefined;
 };
 
@@ -177,14 +193,18 @@ export function validateApiRequest<T>(
 ): EffectLib.Effect<T, ApiValidationError, never> {
   return castValidationEffect<T>(
     EffectLib.gen(function*() {
+      // Определяем эффективный strict mode (локальный или глобальный)
+      const effectiveStrictMode = config.strictMode ?? DEFAULT_STRICT_MODE;
+
       // Strict mode: обязательная валидация для всех effects
-      if (config.strictMode === true && config.requestValidator === undefined) {
+      if (effectiveStrictMode && config.requestValidator === undefined) {
         return yield* createApiValidationError(
           'SYSTEM_VALIDATION_REQUEST_SCHEMA_INVALID',
           [{
             code: 'SYSTEM_VALIDATION_REQUEST_SCHEMA_INVALID',
             field: 'request',
-            message: 'Request validator is required in strict mode',
+            message:
+              `Request validator is required in strict mode for ${config.service} ${config.method} ${config.endpoint}`,
           }],
           context,
         );
@@ -226,14 +246,18 @@ export function validateApiResponse<T>(
 ): EffectLib.Effect<T, ApiValidationError, never> {
   return castValidationEffect<T>(
     EffectLib.gen(function*() {
+      // Определяем эффективный strict mode (локальный или глобальный)
+      const effectiveStrictMode = config.strictMode ?? DEFAULT_STRICT_MODE;
+
       // Strict mode: обязательная валидация для всех effects
-      if (config.strictMode === true && config.responseValidator === undefined) {
+      if (effectiveStrictMode && config.responseValidator === undefined) {
         return yield* createApiValidationError(
           'SYSTEM_VALIDATION_RESPONSE_SCHEMA_INVALID',
           [{
             code: 'SYSTEM_VALIDATION_RESPONSE_SCHEMA_INVALID',
             field: 'response',
-            message: 'Response validator is required in strict mode',
+            message:
+              `Response validator is required in strict mode for ${config.service} ${config.method} ${config.endpoint}`,
           }],
           context,
         );
@@ -554,23 +578,151 @@ function createApiValidationError(
 /**
  * Проверяет, что в strict mode валидаторы присутствуют.
  * Используется для enforce обязательной валидации на уровне инфраструктуры.
+ * Вызывается автоматически при создании конфигурации через createRestApiSchema.
+ *
+ * @param config - Конфигурация валидации API
  * @throws Error если в strict mode отсутствуют обязательные валидаторы
  */
 export function enforceStrictValidation<TRequest = unknown, TResponse = unknown>(
   config: ApiSchemaConfig<TRequest, TResponse>,
 ): void {
-  if (config.strictMode === true) {
+  // Определяем эффективный strict mode (локальный или глобальный)
+  const effectiveStrictMode = config.strictMode ?? DEFAULT_STRICT_MODE;
+
+  if (effectiveStrictMode) {
     if (config.requestValidator === undefined) {
       throw new Error(
-        `Strict mode requires requestValidator for ${config.service} ${config.method} ${config.endpoint}`,
+        `Strict mode requires requestValidator for ${config.service} ${config.method} ${config.endpoint}. `
+          + `Set strictMode: false to disable or provide a requestValidator.`,
       );
     }
     if (config.responseValidator === undefined) {
       throw new Error(
-        `Strict mode requires responseValidator for ${config.service} ${config.method} ${config.endpoint}`,
+        `Strict mode requires responseValidator for ${config.service} ${config.method} ${config.endpoint}. `
+          + `Set strictMode: false to disable or provide a responseValidator.`,
       );
     }
   }
+}
+
+/**
+ * Получает текущую глобальную настройку strict mode.
+ * @returns true если strict mode включен глобально
+ */
+export function getDefaultStrictMode(): boolean {
+  return DEFAULT_STRICT_MODE;
+}
+
+/* ============================================================================
+ * 🔗 ИНТЕГРАЦИЯ С ZOD (schema-validated-effect)
+ * ========================================================================== */
+
+/**
+ * Создает валидатор запроса из Zod схемы.
+ * Интегрируется с schema-validated-effect для обязательной Zod валидации.
+ *
+ * @param schema - Zod schema для валидации запроса
+ * @returns ApiRequestValidator, совместимый с api-schema-guard
+ *
+ * @example
+ * ```ts
+ * import { z } from 'zod';
+ * import { createZodRequestValidator } from './api-schema-guard';
+ *
+ * const LoginSchema = z.object({
+ *   username: z.string().min(1),
+ *   password: z.string().min(8),
+ * });
+ *
+ * const validator = createZodRequestValidator(LoginSchema);
+ * // Используется в createRestApiSchema({ requestValidator: validator })
+ * ```
+ */
+export function createZodRequestValidator<T>(
+  schema: {
+    parse: (data: unknown) => T;
+    safeParse: (
+      data: unknown,
+    ) => {
+      success: boolean;
+      error?: { issues: { path: (string | number)[]; message: string; }[]; };
+      data?: T;
+    };
+  },
+): ApiRequestValidator<T> {
+  return (request: unknown, context: ValidationContext) => {
+    const result = schema.safeParse(request);
+
+    if (result.success && result.data !== undefined) {
+      return { success: true as const, value: result.data as T };
+    }
+
+    // Преобразуем Zod ошибки в ValidationError
+    const errors: ValidationError[] =
+      (!result.success && result.error?.issues ? result.error.issues : []).map((issue) => ({
+        code: 'SYSTEM_VALIDATION_REQUEST_SCHEMA_INVALID' as const,
+        field: issue.path.length > 0 ? issue.path.join('.') : undefined,
+        message: issue.message,
+        details: issue,
+        service: context.service,
+      }));
+
+    return { success: false as const, errors };
+  };
+}
+
+/**
+ * Создает валидатор ответа из Zod схемы.
+ * Интегрируется с schema-validated-effect для обязательной Zod валидации.
+ *
+ * @param schema - Zod schema для валидации ответа
+ * @returns ApiResponseValidator, совместимый с api-schema-guard
+ *
+ * @example
+ * ```ts
+ * import { z } from 'zod';
+ * import { createZodResponseValidator } from './api-schema-guard';
+ *
+ * const UserSchema = z.object({
+ *   id: z.string(),
+ *   email: z.string().email(),
+ * });
+ *
+ * const validator = createZodResponseValidator(UserSchema);
+ * // Используется в createRestApiSchema({ responseValidator: validator })
+ * ```
+ */
+export function createZodResponseValidator<T>(
+  schema: {
+    parse: (data: unknown) => T;
+    safeParse: (
+      data: unknown,
+    ) => {
+      success: boolean;
+      error?: { issues: { path: (string | number)[]; message: string; }[]; };
+      data?: T;
+    };
+  },
+): ApiResponseValidator<T> {
+  return (response: unknown, context: ValidationContext) => {
+    const result = schema.safeParse(response);
+
+    if (result.success && result.data !== undefined) {
+      return { success: true as const, value: result.data as T };
+    }
+
+    // Преобразуем Zod ошибки в ValidationError
+    const errors: ValidationError[] =
+      (!result.success && result.error?.issues ? result.error.issues : []).map((issue) => ({
+        code: 'SYSTEM_VALIDATION_RESPONSE_SCHEMA_INVALID' as const,
+        field: issue.path.length > 0 ? issue.path.join('.') : undefined,
+        message: issue.message,
+        details: issue,
+        service: context.service,
+      }));
+
+    return { success: false as const, errors };
+  };
 }
 
 /* ============================================================================
@@ -580,6 +732,16 @@ export function enforceStrictValidation<TRequest = unknown, TResponse = unknown>
 /**
  * Создает стандартную конфигурацию валидации для REST API.
  * Упрощает настройку типичных сценариев.
+ *
+ * В strict mode автоматически проверяет наличие валидаторов.
+ * Если strictMode не указан, используется глобальная настройка DEFAULT_STRICT_MODE.
+ *
+ * @param service - Имя микросервиса
+ * @param method - HTTP метод
+ * @param endpoint - Путь endpoint'а
+ * @param options - Опции конфигурации
+ * @returns Конфигурация валидации API
+ * @throws Error если в strict mode отсутствуют обязательные валидаторы
  */
 export function createRestApiSchema<TRequest = unknown, TResponse = unknown>(
   service: ApiServiceName,
@@ -594,7 +756,7 @@ export function createRestApiSchema<TRequest = unknown, TResponse = unknown>(
     strictMode?: boolean;
   } = {},
 ): ApiSchemaConfig<TRequest, TResponse> {
-  return {
+  const config: ApiSchemaConfig<TRequest, TResponse> = {
     service,
     method,
     endpoint,
@@ -606,6 +768,11 @@ export function createRestApiSchema<TRequest = unknown, TResponse = unknown>(
     supportedVersions: options.schemaVersion !== undefined ? [options.schemaVersion] : [],
     strictMode: options.strictMode,
   };
+
+  // Автоматически enforce strict validation при создании конфигурации
+  enforceStrictValidation(config);
+
+  return config;
 }
 
 /**

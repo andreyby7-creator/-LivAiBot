@@ -55,7 +55,7 @@ describe('useApi', () => {
 
   it('выполняет успешный вызов с валидаторами и mapResponse', async () => {
     const client = {
-      request: vi.fn().mockResolvedValue({ success: true, data: { id: '42', name: 'alice' } }),
+      request: vi.fn().mockResolvedValue({ id: '42', name: 'alice' }),
     } as any;
 
     const contract = {
@@ -219,7 +219,7 @@ describe('useApi', () => {
 
   it('отключает telemetry при telemetryEnabled=false', async () => {
     const client = {
-      request: vi.fn().mockResolvedValue({ success: true, data: { ok: true } }),
+      request: vi.fn().mockResolvedValue({ ok: true }),
     } as any;
 
     const contract = {
@@ -420,16 +420,14 @@ describe('useApi', () => {
 
   it('обрабатывает неуспешный API ответ (ApiFailureResponse)', async () => {
     const apiError = {
+      kind: 'ApiError',
       code: 'HTTP_404',
       message: 'Not found',
       status: 404,
     };
 
     const client = {
-      request: vi.fn().mockResolvedValue({
-        success: false,
-        error: apiError,
-      }),
+      request: vi.fn().mockRejectedValue(apiError),
     } as any;
 
     errorMappingMocks.mapError.mockReturnValue({

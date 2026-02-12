@@ -943,15 +943,20 @@ describe('API Schema Guard - Enterprise Grade', () => {
     });
 
     it('createRestApiSchema должен поддерживать strictMode', () => {
-      const expectedValue = { email: 'test@example.com' };
-      const requestValidator = createMockSuccessValidator(expectedValue);
+      const requestValue = { email: 'test@example.com' };
+      const responseValue = { token: 'test-token' };
+      const requestValidator = createMockSuccessValidator(requestValue);
+      const responseValidator = createMockSuccessValidator(responseValue);
 
       const config = createRestApiSchema('auth', 'POST', '/login', {
         requestValidator,
+        responseValidator,
         strictMode: true,
       });
 
       expect(config.strictMode).toBe(true);
+      expect(config.requestValidator).toBe(requestValidator);
+      expect(config.responseValidator).toBe(responseValidator);
     });
   });
 });

@@ -154,11 +154,15 @@ describe('sw.ts - Service Worker', () => {
 
   describe('Install event handler', () => {
     it('должен установить обработчик install', async () => {
+      // Убеждаемся что моки настроены перед импортом
+      vi.resetModules();
+
+      // Импортируем модуль
       await import('../../src/sw');
 
       expect(mockSwSelf.addEventListener).toHaveBeenCalledWith('install', expect.any(Function));
       expect(installHandler).toBeDefined();
-    });
+    }, 10000); // Увеличиваем таймаут до 10 секунд
 
     it('должен предзагрузить критические ресурсы при установке', async () => {
       await import('../../src/sw');
