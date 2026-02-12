@@ -66,6 +66,7 @@ export default [
       '**/.venv/**',       // Python virtual environment
       '**/venv/**',        // Python virtual environment (alternative name)
       '**/public/sw.js',   // Сгенерированный Service Worker из TypeScript
+      '**/empty-module.js', // Webpack заглушка для серверных модулей в клиентском коде
       'config/**/*.js',     // JS конфиги/утилиты: без type-aware линтинга (избегаем ошибок typed rules)
       'config/**/*.cjs',    // CJS конфиги/утилиты: аналогично
     ],

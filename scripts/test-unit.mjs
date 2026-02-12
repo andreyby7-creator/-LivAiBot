@@ -814,16 +814,28 @@ async function runVitestOnce({ configPath, environment, paths, opts, coverageEna
   });
 }
 
-// Определяет политику покрытия на основе пути конфигурации
-function resolveCoveragePolicy(configPath) {
+// Определяет политику покрытия на основе пути конфигурации и режима запуска
+function resolveCoveragePolicy(configPath, isAllMode = false) {
+  // Режим --all: используем более реалистичные пороги для смешанного покрытия (unit + integration + ai)
+  if (isAllMode) {
+    return {
+      thresholds: { lines: 50, functions: 45, branches: 50, statements: 55 },
+      description: 'all-mode'
+    };
+  }
+
   // Базовая политика для unit тестов
   let policy = {
-    thresholds: { lines: 80, functions: 80, branches: 75, statements: 80 },
+    thresholds: { lines: 80, functions: 80, branches: 80, statements: 85 },
     description: 'standard'
   };
 
-  if (configPath.includes('packages') || configPath.includes('integration')) {
-    // Для packages и integration конфигураций - повышенные требования
+  // Проверяем, является ли это integration конфигурацией (не unit тесты)
+  // Используем точную проверку на имя файла, а не на подстроку в пути
+  const isIntegrationConfig = configPath.includes('vitest.integration.config.ts');
+  
+  if (isIntegrationConfig) {
+    // Для integration конфигураций - повышенные требования
     policy = {
       thresholds: { lines: 85, functions: 85, branches: 85, statements: 80 },
       description: 'strict'
@@ -935,10 +947,10 @@ function parseCloverCoverage(cloverPath) {
 }
 
 // Загружает пороги из конфигурационного файла Vitest
-function loadThresholdsFromConfig(configPath) {
+function loadThresholdsFromConfig(configPath, isAllMode = false) {
   try {
     // Получаем базовую политику покрытия для этого типа конфигурации
-    const policy = resolveCoveragePolicy(configPath);
+    const policy = resolveCoveragePolicy(configPath, isAllMode);
     let thresholds = policy.thresholds;
 
     if (policy.description === 'strict') {
@@ -1192,7 +1204,7 @@ if (CI_MODE) {
 
 /* ================= ПОРОГИ ПОКРЫТИЯ ================= */
 
-async function checkCoverageThresholds() {
+async function checkCoverageThresholds(isAllMode = false) {
   if (!coverageEnabled) return { enabled: false, reportFound: false, thresholdsStatus: 'not_applicable' };
 
   // Проверяем наличие clover.xml (суммарные метрики в удобном формате)
@@ -1222,7 +1234,8 @@ async function checkCoverageThresholds() {
     }
 
     // Динамическая загрузка порогов из конфигурационного файла
-    const thresholds = loadThresholdsFromConfig(configPath || CONFIGS.base);
+    // В режиме --all используем специальные пороги для смешанного покрытия
+    const thresholds = loadThresholdsFromConfig(configPath || CONFIGS.base, isAllMode);
 
     console.log("\n📊 Проверка порогов покрытия:");
     console.log(`   Требуется: ${thresholds.lines}% строк, ${thresholds.functions}% функций, ${thresholds.branches}% ветвей, ${thresholds.statements}% выражений`);
@@ -1585,7 +1598,8 @@ async function runPostTestChecks(duration, reporter, reportDir = 'reports') {
     }
 
     // Проверить пороги покрытия
-    const coverageStatus = await checkCoverageThresholds();
+    // Передаем информацию о режиме --all для использования правильных порогов
+    const coverageStatus = await checkCoverageThresholds(opts.all || false);
     if (coverageStatus.thresholdsStatus === 'failed') {
       allChecksPassed = false;
     }

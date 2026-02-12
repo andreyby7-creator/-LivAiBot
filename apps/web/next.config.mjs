@@ -1,7 +1,11 @@
 import { createRequire } from 'module';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import createNextIntlPlugin from 'next-intl/plugin';
 
 const require = createRequire(import.meta.url);
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Настройка next-intl плагина
 const withNextIntl = createNextIntlPlugin('./next-intl.config.ts');
@@ -66,7 +70,10 @@ const nextConfig = {
   // },
 
   // Конфигурация Webpack
-  webpack: (config) => {
+  webpack: (config, { isServer }) => {
+    // Compile-time environment constant для оптимизации bundler'а
+    const webpack = require('webpack');
+
     // Разрешение .js импортов из TypeScript файлов (для ESM с moduleResolution: NodeNext)
     // Когда пакеты используют .js в импортах, webpack должен искать .ts/.tsx файлы
     // Порядок важен: .ts/.tsx должны быть первыми, иначе webpack может подтянуть реальные .js из node_modules
@@ -74,8 +81,29 @@ const nextConfig = {
       '.js': ['.ts', '.tsx', '.js', '.jsx'],
     };
 
-    // Compile-time environment constant для оптимизации bundler'а
-    const webpack = require('webpack');
+    // Исключаем серверные модули из клиентского бандла
+    // Эти модули используют Node.js API (node:crypto) и не должны попадать в клиентский код
+    if (!isServer) {
+      // Fallback для node:* модулей в клиентском коде
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        'node:crypto': false,
+        crypto: false,
+      };
+
+      // Заменяем серверные модули на пустые заглушки в клиентском коде
+      // Используем NormalModuleReplacementPlugin для более точной замены
+      // Создаем пустой модуль для замены
+      const emptyModule = path.resolve(__dirname, 'src/lib/empty-module.js');
+      
+      // Заменяем risk-scoring модуль на пустую заглушку
+      config.plugins.push(
+        new webpack.NormalModuleReplacementPlugin(
+          /packages\/feature-auth\/src\/effects\/login\/risk-scoring\.(ts|js)$/,
+          emptyModule
+        )
+      );
+    }
     config.plugins.push(
       new webpack.DefinePlugin({
         __ENVIRONMENT__: JSON.stringify(
