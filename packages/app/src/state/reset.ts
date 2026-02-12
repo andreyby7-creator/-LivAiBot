@@ -22,6 +22,7 @@
  * - Возвращает cleanup-функцию
  */
 
+import { setStoreLocked } from './store-utils.js';
 import { useAppStore } from './store.js';
 import { AppLifecycleEvent, appLifecycleEvents } from '../events/app-lifecycle-events.js';
 
@@ -82,26 +83,38 @@ export type AppResetPolicy = 'full' | 'soft';
  *
  * @note
  * soft reset — сброс только ephemeral runtime state, сохраняет persistent state/flags
+ *
+ * @note
+ * Store блокируется перед reset и разблокируется после для предотвращения
+ * обновлений во время процесса сброса состояния.
  */
 function resetAppState(
   reason: AppResetReason,
   policy: AppResetPolicy = 'full',
 ): void {
-  const { reset, resetSoft } = useAppStore.getState().actions;
+  // Блокируем store перед reset для предотвращения обновлений во время сброса
+  setStoreLocked(true);
 
-  if (policy === 'full') {
-    reset(); // полный сброс UI state
-  } else if (typeof resetSoft === 'function') {
-    // soft-reset: минимальный сброс runtime state
-    resetSoft();
-  } else {
-    // fallback на full reset, если soft не реализован
-    reset();
+  try {
+    const { reset, resetSoft } = useAppStore.getState().actions;
+
+    if (policy === 'full') {
+      reset(); // полный сброс UI state
+    } else if (typeof resetSoft === 'function') {
+      // soft-reset: минимальный сброс runtime state
+      resetSoft();
+    } else {
+      // fallback на full reset, если soft не реализован
+      reset();
+    }
+
+    // Отправляем lifecycle событие
+    const lifecycleEvent = RESET_REASON_TO_EVENT[reason];
+    appLifecycleEvents.emit(lifecycleEvent);
+  } finally {
+    // Разблокируем store после reset (гарантируется даже при ошибке)
+    setStoreLocked(false);
   }
-
-  // Отправляем lifecycle событие
-  const lifecycleEvent = RESET_REASON_TO_EVENT[reason];
-  appLifecycleEvents.emit(lifecycleEvent);
 }
 
 /* ========================================================================== */
