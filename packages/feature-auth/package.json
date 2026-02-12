@@ -64,15 +64,11 @@
     "foundation"
   ],
   "peerDependencies": {
-    "@effect/schema": "^0.75.5",
     "effect": "^3.19.13",
     "typescript": "5.9.3",
     "zustand": "^5.0.11"
   },
   "peerDependenciesMeta": {
-    "@effect/schema": {
-      "optional": true
-    },
     "effect": {
       "optional": true
     },
