@@ -226,3 +226,15 @@ export {
   scoringFactorConfigs,
   type ScoringSignals,
 } from './effects/login/risk-scoring.js';
+
+// Login Helpers (Validation & Metadata Builders)
+export { isValidLoginRequest } from './effects/login/validation.js';
+export {
+  buildLoginMetadata,
+  type IdentifierHasher,
+  type LoginContext,
+  type LoginMetadata,
+  type MetadataBuilder,
+  type MetadataConfig,
+  type RiskMetadata,
+} from './effects/login/metadata-builders.js';
