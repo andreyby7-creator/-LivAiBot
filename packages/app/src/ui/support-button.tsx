@@ -86,6 +86,9 @@ const BUSINESS_PROPS = [
   'isDisabledByFeatureFlag',
   'telemetryEnabled',
   'onSupportRequest',
+  'labelI18nKey',
+  'labelI18nNs',
+  'labelI18nParams',
 ] as const;
 
 /* ============================================================================

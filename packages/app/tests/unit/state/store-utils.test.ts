@@ -12,13 +12,63 @@
  */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { isStoreLocked, safeSet, setStoreLocked } from '../../../src/state/store-utils.js';
-import { useAppStore } from '../../../src/state/store.js';
-import type { AppStoreState, AppUser } from '../../../src/state/store.js';
 
 // ============================================================================
 // 🧠 MOCKS И HELPER'Ы
 // ============================================================================
+
+/**
+ * Создает mock localStorage для Zustand persist middleware
+ */
+const createStorageMock = () => {
+  const store: Record<string, string> = {};
+
+  return {
+    getItem: (key: string) => store[key] ?? null,
+    setItem: (key: string, value: string) => {
+      store[key] = value;
+    },
+    removeItem: (key: string) => {
+      delete store[key];
+    },
+    clear: () => {
+      Object.keys(store).forEach((key) => {
+        delete store[key];
+      });
+    },
+  };
+};
+
+// Suppress Zustand persist middleware warnings globally for this test file
+const originalWarn = console.warn;
+console.warn = (message, ...args) => {
+  if (typeof message === 'string' && message.includes('[zustand persist middleware]')) {
+    return; // Suppress zustand persist warnings
+  }
+  originalWarn(message, ...args);
+};
+
+// Настраиваем localStorage mock ДО импорта store, чтобы persist middleware имел доступ к нему
+const storageMock = createStorageMock();
+const windowObject = typeof window !== 'undefined'
+  ? window
+  : ((): Window & typeof globalThis => {
+    (global as any).window = {};
+    return (global as any).window;
+  })();
+
+// Remove existing localStorage property if it exists
+delete (windowObject as any).localStorage;
+
+Object.defineProperty(windowObject, 'localStorage', {
+  value: storageMock,
+  configurable: true,
+  writable: true,
+});
+
+import { isStoreLocked, safeSet, setStoreLocked } from '../../../src/state/store-utils.js';
+import { useAppStore } from '../../../src/state/store.js';
+import type { AppStoreState, AppUser } from '../../../src/state/store.js';
 
 /**
  * Создает mock AppUser для тестов

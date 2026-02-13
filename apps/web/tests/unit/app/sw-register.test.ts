@@ -247,8 +247,10 @@ describe('sw-register.ts - Service Worker Registration', () => {
     });
 
     it('должен обработать ошибку регистрации', async () => {
-      Object.assign(process.env, { NODE_ENV: 'production' });
-      delete process.env['NEXT_PUBLIC_APP_ENV'];
+      // В development режиме ошибки логируются
+      // Устанавливаем staging чтобы SW был разрешен, но NODE_ENV остается development для логирования ошибок
+      Object.assign(process.env, { NODE_ENV: 'development' });
+      Object.assign(process.env, { NEXT_PUBLIC_APP_ENV: 'staging' });
 
       const error = new Error('Registration failed');
       mockRegisterFn.mockRejectedValue(error);

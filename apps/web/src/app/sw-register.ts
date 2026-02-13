@@ -221,8 +221,11 @@ export async function registerServiceWorker(): Promise<void> {
 
     registration.onupdatefound = handleUpdateFound;
   } catch (error: unknown) {
-    // eslint-disable-next-line no-console
-    console.error('[SW] Ошибка регистрации:', error);
+    // Логируем ошибки только в dev режиме, не в production
+    if (process.env.NODE_ENV !== 'production') {
+      // eslint-disable-next-line no-console
+      console.error('[SW] Ошибка регистрации:', error);
+    }
   }
 }
 

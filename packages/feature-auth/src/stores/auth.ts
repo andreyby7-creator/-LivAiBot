@@ -15,11 +15,22 @@
  * Гарантии:
  * - ❌ Нет async / side-effects
  * - ❌ Нет бизнес-логики
+ * - ❌ Нет токенов (токены в httpOnly cookies или secure memory, не в store)
  * - ✅ Чёткие контракты типов
  * - ✅ Инфраструктура вынесена за пределы store
  * - ✅ Полная иммутабельность через readonly типы
  * - ✅ Versioning для миграций
- * - ✅ Persistence с безопасным merge
+ * - ✅ Persistence с безопасным merge и семантической валидацией
+ * - ✅ Store хранит только: sessionId, expiresAt, status (без токенов)
+ *
+ * Ключевые возможности:
+ * - 🔒 Atomic transactions: actions.transaction() для атомарных обновлений (защита от race conditions)
+ * - 🎯 Invariant rule engine: декларативная система правил с приоритетами (масштабируемо)
+ * - 🔐 Security-first: токены не хранятся в store, только sessionId/expiresAt/status
+ * - ⚡ Performance: permissions как ReadonlySet для constant-time lookup
+ * - 🔌 Extensible: поддержка расширений через AuthStoreExtensions (SSO, device trust и т.д.)
+ * - 💾 Safe persistence: валидация persisted state перед merge, Set ↔ array сериализация
+ * - 🛡️ Deep clone: structuredClone в transaction для runtime безопасности
  *
  * Использование:
  * - Effects (login.ts, logout.ts, refresh.ts) обновляют store через actions
@@ -56,12 +67,13 @@ import type {
 /** Версия store для миграций persistence */
 export const authStoreVersion = 1 as const;
 
-/**
- * Генерирует имя store для persistence с поддержкой подсистем.
- * @param subsystem - опциональное имя подсистемы (например, 'oauth', 'sso', 'main')
- * @returns имя store для localStorage
- */
-function getStoreName(subsystem: string = 'main'): string {
+/** Расширяемые подсистемы store (enterprise SSO, device trust, behavioral biometrics и т.д.) */
+export type AuthStoreExtensions = Readonly<Record<string, unknown>>;
+
+/** Генерирует имя store для persistence с поддержкой подсистем. */
+function getStoreName(
+  subsystem: string = 'main', // опциональное имя подсистемы (например, 'oauth', 'sso', 'main')
+): string { // имя store для localStorage
   return `@livai/feature-auth/store:${subsystem}`;
 }
 
@@ -96,6 +108,9 @@ export type AuthStoreState = Readonly<{
 
   /** Легкий runtime-маркер последнего события (без полного journal) */
   readonly lastEventType?: AuthEvent['type'];
+
+  /** Расширяемые подсистемы (enterprise SSO, device trust, behavioral biometrics и т.д.) */
+  readonly extensions?: AuthStoreExtensions;
 }>;
 
 /**
@@ -103,6 +118,12 @@ export type AuthStoreState = Readonly<{
  * Автоматически исключает runtime-only поля (version, lastEventType).
  */
 export type PatchableAuthStoreState = Omit<AuthStoreState, 'version' | 'lastEventType'>;
+
+/** Конфигурация для создания auth store с расширениями */
+export type CreateAuthStoreConfig = Readonly<{
+  /** Расширяемые подсистемы (enterprise SSO, device trust, behavioral biometrics и т.д.) */
+  readonly extensions?: AuthStoreExtensions;
+}>;
 
 /* ============================================================================
  * 🎛️ ACTIONS
@@ -140,16 +161,23 @@ export type AuthStoreActions = Readonly<{
   /**
    * Минимальный event-entrypoint (без replay/journal внутри store).
    * Устанавливает тип последнего события для легкого отслеживания.
-   * @param eventType - тип события AuthEvent (readonly)
    */
-  readonly applyEventType: (eventType: Readonly<AuthEvent['type']>) => void;
+  readonly applyEventType: (
+    eventType: Readonly<AuthEvent['type']>, // тип события AuthEvent (readonly)
+  ) => void;
 
   /**
    * Атомарное обновление нескольких полей состояния.
-   * @param next - частичное обновление состояния (readonly для гарантии иммутабельности)
    * @warning Discriminated unions (auth, mfa, oauth, security, session, passwordRecovery, verification) должны обновляться полностью, не частично. TypeScript требует все обязательные поля для выбранного status. Для обновления unions используйте set* методы (setAuthState, setMfaState и т.д.).
    */
-  readonly patch: (next: ReadonlyDeep<Partial<PatchableAuthStoreState>>) => void;
+  readonly patch: (
+    next: ReadonlyDeep<Partial<PatchableAuthStoreState>>, // частичное обновление состояния (readonly для гарантии иммутабельности)
+  ) => void;
+
+  /** Атомарная транзакция для обновления нескольких полей состояния одновременно. */
+  readonly transaction: (
+    updater: (state: AuthStoreState) => void, // функция, которая мутирует состояние
+  ) => void;
 
   /** Сбрасывает состояние к начальным значениям. Используется при logout и очистке состояния. */
   readonly reset: () => void;
@@ -171,7 +199,9 @@ export type AuthStore = AuthStoreState & {
  */
 
 /** Создаёт начальное состояние auth store. Все состояния в "idle" или "unauthenticated" статусе. */
-export function createInitialAuthStoreState(): AuthStoreState {
+export function createInitialAuthStoreState(
+  extensions?: AuthStoreExtensions,
+): AuthStoreState {
   return {
     version: authStoreVersion,
     auth: { status: 'unauthenticated' },
@@ -181,211 +211,312 @@ export function createInitialAuthStoreState(): AuthStoreState {
     session: null,
     passwordRecovery: { status: 'idle' },
     verification: { status: 'idle' },
+    ...(extensions !== undefined && Object.keys(extensions).length > 0 ? { extensions } : {}),
   };
 }
 
 /* ============================================================================
- * ✅ INVARIANT GATE (lean)
+ * ✅ INVARIANT RULE ENGINE
  * ============================================================================
  */
 
+/**
+ * Тип для обновления состояния правилом инварианта.
+ * Требует полные union объекты для discriminated unions (auth, mfa, oauth, security, session, passwordRecovery, verification),
+ * чтобы предотвратить потерю полей при shallow merge.
+ */
+type InvariantStateUpdate = Readonly<{
+  version?: number;
+  auth?: ReadonlyDeep<AuthState>; // Полный union объект
+  mfa?: ReadonlyDeep<MfaState>; // Полный union объект
+  oauth?: ReadonlyDeep<OAuthState>; // Полный union объект
+  security?: ReadonlyDeep<SecurityState>; // Полный union объект
+  session?: ReadonlyDeep<SessionState | null>; // Полный union объект или null
+  passwordRecovery?: ReadonlyDeep<PasswordRecoveryState>; // Полный union объект
+  verification?: ReadonlyDeep<VerificationState>; // Полный union объект
+  lastEventType?: AuthEvent['type'];
+  extensions?: AuthStoreExtensions;
+}>;
+
+/** Функция применения правила инварианта. */
+export type InvariantRuleApply = (
+  state: ReadonlyDeep<AuthStoreState>,
+) => InvariantStateUpdate | null;
+
+/**
+ * Правило инварианта для декларативного rule-engine.
+ * Применяется с приоритетом до стабильности состояния.
+ */
+export type InvariantRule = Readonly<
+  & {
+    /** Приоритет правила (меньше = выше приоритет) */
+    readonly priority: number;
+  }
+  & {
+    /** Функция применения правила. Возвращает частичное обновление состояния или null. */
+    readonly apply: InvariantRuleApply;
+  }
+>;
+
+/** Применяет правило и возвращает обновлённое состояние. */
+function applyRule(
+  state: ReadonlyDeep<AuthStoreState>, // текущее состояние
+  rule: InvariantRule, // правило для применения
+): ReadonlyDeep<AuthStoreState> { // обновлённое состояние
+  const update = rule.apply(state);
+  // Защита от edge-case: если правило вернуло пустой объект, не создаём новый state
+  if (update === null || Object.keys(update).length === 0) {
+    return state;
+  }
+  return { ...state, ...update };
+}
+
+/** Проверяет и обрабатывает обнаружение цикла в правилах */
+function handleInvariantLoop(
+  iterations: number,
+  maxIterations: number,
+  hasChanges: boolean,
+  currentState: ReadonlyDeep<AuthStoreState>,
+): void {
+  if (iterations !== maxIterations || !hasChanges) {
+    return;
+  }
+
+  const nodeEnv = process.env['NODE_ENV'];
+  const isProduction = nodeEnv === 'production';
+  if (!isProduction) {
+    throw new Error(
+      `Invariant loop detected: rules did not stabilize after ${maxIterations} iterations. This indicates conflicting invariant rules. Current state: auth=${currentState.auth.status}, session=${
+        currentState.session?.status ?? 'null'
+      }, mfa=${currentState.mfa.status}, oauth=${currentState.oauth.status}, security=${currentState.security.status}`,
+    );
+  }
+  // В production логируем предупреждение, но не прерываем выполнение
+  // eslint-disable-next-line no-console -- Production warning для диагностики
+  console.warn(
+    `[AuthStore] Invariant rules did not stabilize after ${maxIterations} iterations. State may be inconsistent.`,
+  );
+}
+
+/**
+ * Применяет правила до стабильности (пока есть изменения).
+ * Правила сортируются по приоритету (меньше = выше приоритет).
+ */
+function applyRulesUntilStable(
+  state: ReadonlyDeep<AuthStoreState>, // начальное состояние
+  rules: readonly InvariantRule[], // правила для применения
+): ReadonlyDeep<AuthStoreState> { // стабильное состояние
+  const sortedRules = [...rules].sort((a, b) => a.priority - b.priority);
+  let currentState = state;
+  let hasChanges = true;
+  const maxIterations = 20; // Защита от бесконечного цикла (увеличено для сложных состояний)
+  let iterations = 0;
+
+  while (hasChanges && iterations < maxIterations) {
+    hasChanges = false;
+    iterations += 1;
+
+    for (const rule of sortedRules) {
+      const nextState = applyRule(currentState, rule);
+      if (nextState !== currentState) {
+        currentState = nextState;
+        hasChanges = true;
+      }
+    }
+  }
+
+  handleInvariantLoop(iterations, maxIterations, hasChanges, currentState);
+
+  return currentState;
+}
+
 /** Правило 1: Session должен быть null, если auth не authenticated */
-export function fixSession(state: ReadonlyDeep<AuthStoreState>): ReadonlyDeep<SessionState | null> {
-  return state.auth.status !== 'authenticated' && state.session !== null
-    ? null
-    : state.session;
+function createSessionRule(): InvariantRule {
+  return {
+    priority: 20,
+    apply: (state): InvariantStateUpdate | null => {
+      // Не применяем правило, если auth в error (обработано security rule с более высоким приоритетом)
+      if (state.auth.status === 'error') {
+        return null;
+      }
+      const fixedSession = state.auth.status !== 'authenticated' && state.session !== null
+        ? null
+        : state.session;
+      return fixedSession !== state.session ? { session: fixedSession } : null;
+    },
+  };
 }
 
 /** Правило 2: Authenticated состояние должно иметь active session */
-export function fixAuthForSession(
-  state: ReadonlyDeep<AuthStoreState>,
-  session: ReadonlyDeep<SessionState | null>,
-): ReadonlyDeep<AuthState> | undefined {
-  return state.auth.status === 'authenticated' && session?.status !== 'active'
-    ? ((): ReadonlyDeep<AuthState> => {
-      // Явное сужение типа: при status === 'authenticated' user гарантированно существует
-      const userId = state.auth.user.id;
-      return {
-        status: 'session_expired' as const,
-        ...(userId ? { userId } : {}),
-        error: {
-          kind: 'session_expired' as const,
-          message: 'Сессия отсутствует или истекла.',
-        },
-      } as ReadonlyDeep<AuthState>;
-    })()
-    : undefined;
+function createAuthForSessionRule(): InvariantRule {
+  return {
+    priority: 30,
+    apply: (state): InvariantStateUpdate | null => {
+      // Не применяем правило, если auth уже в error (обработано security rule с более высоким приоритетом)
+      if (state.auth.status === 'error' || state.auth.status === 'unauthenticated') {
+        return null;
+      }
+      if (state.auth.status === 'authenticated' && state.session?.status !== 'active') {
+        const userId = state.auth.user.id;
+        return {
+          auth: {
+            status: 'session_expired' as const,
+            ...(userId ? { userId } : {}),
+            error: {
+              kind: 'session_expired' as const,
+              message: 'Сессия отсутствует или истекла.',
+            },
+          } as ReadonlyDeep<AuthState>,
+        };
+      }
+      return null;
+    },
+  };
+}
+
+/** Правило 3: Security blocked должен сбрасывать auth и session */
+function createSecurityRule(): InvariantRule {
+  return {
+    priority: 10,
+    apply: (state): InvariantStateUpdate | null => {
+      if (
+        state.security.status === 'blocked'
+        && state.auth.status !== 'unauthenticated'
+        && state.auth.status !== 'error'
+      ) {
+        return {
+          auth: {
+            status: 'error' as const,
+            error: {
+              kind: 'account_locked' as const,
+              message: state.security.reason || 'Аккаунт заблокирован.',
+            },
+          } as ReadonlyDeep<AuthState>,
+          session: null,
+        };
+      }
+      return null;
+    },
+  };
 }
 
 /**
- * Правило 3: MFA transient состояния сбрасываются при authenticated/error, постоянные состояния сохраняются.
- * @architecture MFA имеет два типа состояний:
- * - Transient (challenged, verified, failed) — только во время аутентификации
- * - Persistent (setup_complete, setup_in_progress, recovery_required, recovery_in_progress) — сохраняются после authenticated
- * @decision Архитектурное решение: MFA — это только transient state для процесса аутентификации.
- * После успешной аутентификации (authenticated) или ошибки (error, например, при security.blocked)
- * transient состояния (verified, challenged, failed) сбрасываются, так как заблокированный/ошибочный аккаунт
- * не должен быть в MFA flow.
- * Если MFA был настроен, это должно управляться бизнес-логикой в effects (например, через отдельное поле в user profile),
- * а не через mfa.status === 'setup_complete' в store, так как store содержит только состояние процесса аутентификации.
- * @note Если в будущем потребуется сохранять setup_complete после authenticated, это потребует изменения архитектуры.
+ * Правило 4: MFA transient состояния сбрасываются при authenticated/error.
+ * Transient (challenged, verified, failed) — только во время аутентификации.
  */
-export function fixMfa(state: ReadonlyDeep<AuthStoreState>): ReadonlyDeep<MfaState> | undefined {
-  // Transient состояния MFA (только во время аутентификации)
-  const isMfaTransient = state.mfa.status === 'challenged'
-    || state.mfa.status === 'verified'
-    || state.mfa.status === 'failed';
-  // Сбрасываем transient состояния при authenticated (они больше не нужны после успешной аутентификации)
-  // Также сбрасываем при error (например, после security.blocked), так как заблокированный аккаунт не должен быть в MFA flow
-  const shouldResetTransient =
-    (state.auth.status === 'authenticated' || state.auth.status === 'error') && isMfaTransient;
-  // При unauthenticated сбрасываем все состояния MFA в not_setup
-  const shouldBeNotSetup = state.auth.status === 'unauthenticated'
-    && state.mfa.status !== 'not_setup';
+function createMfaRule(): InvariantRule {
+  return {
+    priority: 40,
+    apply: (state): InvariantStateUpdate | null => {
+      // Если auth в error, сбрасываем MFA в not_setup (но только если не уже not_setup)
+      if (state.auth.status === 'error' && state.mfa.status !== 'not_setup') {
+        return { mfa: { status: 'not_setup' as const } as ReadonlyDeep<MfaState> };
+      }
+      const isMfaTransient = state.mfa.status === 'challenged'
+        || state.mfa.status === 'verified'
+        || state.mfa.status === 'failed';
+      const shouldResetTransient = state.auth.status === 'authenticated' && isMfaTransient;
+      const shouldBeNotSetup = state.auth.status === 'unauthenticated'
+        && state.mfa.status !== 'not_setup';
 
-  return shouldResetTransient || shouldBeNotSetup
-    ? { status: 'not_setup' as const }
-    : undefined;
+      if (shouldResetTransient || shouldBeNotSetup) {
+        return { mfa: { status: 'not_setup' as const } as ReadonlyDeep<MfaState> };
+      }
+      return null;
+    },
+  };
 }
 
-/** Правило 4: OAuth должен быть idle при authenticated/unauthenticated, не активен вне OAuth flow */
-export function fixOAuth(
-  state: ReadonlyDeep<AuthStoreState>,
-): ReadonlyDeep<OAuthState> | undefined {
-  const isOAuthActive = state.oauth.status === 'initiating'
-    || state.oauth.status === 'redirecting'
-    || state.oauth.status === 'processing';
-  const isOAuthFlow = state.auth.status === 'authenticating' && state.auth.operation === 'oauth';
-  const shouldBeIdle =
-    (state.auth.status === 'authenticated' || state.auth.status === 'unauthenticated')
-    && isOAuthActive
-    && !isOAuthFlow;
+/** Правило 5: OAuth должен быть idle при authenticated/unauthenticated, не активен вне OAuth flow */
+function createOAuthRule(): InvariantRule {
+  return {
+    priority: 50,
+    apply: (state): InvariantStateUpdate | null => {
+      // Если auth в error, сбрасываем OAuth в idle
+      if (state.auth.status === 'error' && state.oauth.status !== 'idle') {
+        return { oauth: { status: 'idle' as const } as ReadonlyDeep<OAuthState> };
+      }
+      const isOAuthActive = state.oauth.status === 'initiating'
+        || state.oauth.status === 'redirecting'
+        || state.oauth.status === 'processing';
+      const isOAuthFlow = state.auth.status === 'authenticating'
+        && state.auth.operation === 'oauth';
+      const shouldBeIdle =
+        (state.auth.status === 'authenticated' || state.auth.status === 'unauthenticated')
+        && isOAuthActive
+        && !isOAuthFlow;
 
-  return shouldBeIdle
-    ? { status: 'idle' as const }
-    : undefined;
-}
-
-/** Правило 5: Security blocked должен сбрасывать auth и session */
-export function fixSecurity(
-  state: ReadonlyDeep<AuthStoreState>,
-): ReadonlyDeep<{ auth: AuthState; session: SessionState | null; }> | undefined {
-  return state.security.status === 'blocked' && state.auth.status !== 'unauthenticated'
-    ? {
-      auth: {
-        status: 'error' as const,
-        error: {
-          kind: 'account_locked' as const,
-          message: state.security.reason || 'Аккаунт заблокирован.',
-        },
-      },
-      session: null,
-    }
-    : undefined;
+      if (shouldBeIdle) {
+        return { oauth: { status: 'idle' as const } as ReadonlyDeep<OAuthState> };
+      }
+      return null;
+    },
+  };
 }
 
 /** Правило 6: PasswordRecovery должен быть idle при authenticated */
-export function fixPasswordRecovery(
-  state: ReadonlyDeep<AuthStoreState>,
-): ReadonlyDeep<PasswordRecoveryState> | undefined {
-  return state.auth.status === 'authenticated' && state.passwordRecovery.status !== 'idle'
-    ? { status: 'idle' as const }
-    : undefined;
+function createPasswordRecoveryRule(): InvariantRule {
+  return {
+    priority: 60,
+    apply: (state): InvariantStateUpdate | null => {
+      // Если auth в error или authenticated, сбрасываем PasswordRecovery в idle
+      if (
+        (state.auth.status === 'authenticated' || state.auth.status === 'error')
+        && state.passwordRecovery.status !== 'idle'
+      ) {
+        return {
+          passwordRecovery: { status: 'idle' as const } as ReadonlyDeep<PasswordRecoveryState>,
+        };
+      }
+      return null;
+    },
+  };
 }
 
 /** Правило 7: Verification должен быть idle при authenticated/unauthenticated */
-export function fixVerification(
-  state: ReadonlyDeep<AuthStoreState>,
-): ReadonlyDeep<VerificationState> | undefined {
-  const isVerificationActive = state.verification.status !== 'idle';
-  const shouldBeIdle =
-    (state.auth.status === 'authenticated' || state.auth.status === 'unauthenticated')
-    && isVerificationActive;
+function createVerificationRule(): InvariantRule {
+  return {
+    priority: 70,
+    apply: (state): InvariantStateUpdate | null => {
+      // Если auth в error, authenticated или unauthenticated, сбрасываем Verification в idle
+      const shouldBeIdle = (state.auth.status === 'authenticated'
+        || state.auth.status === 'unauthenticated'
+        || state.auth.status === 'error')
+        && state.verification.status !== 'idle';
 
-  return shouldBeIdle
-    ? { status: 'idle' as const }
-    : undefined;
+      if (shouldBeIdle) {
+        return { verification: { status: 'idle' as const } as ReadonlyDeep<VerificationState> };
+      }
+      return null;
+    },
+  };
 }
 
 /**
- * Применяет фиксы security, session и auth каскадно (шаги 1-3).
- * @priority Приоритет фиксов (от высшего к низшему):
- * 1. fixSecurity (security.blocked) — максимальный приоритет, перекрывает все остальные
- * 2. fixSession — зависит от auth, но не перекрывает security
- * 3. fixAuthForSession — зависит от session, но не перекрывает security
- * @note Если security.blocked === true, то auth всегда становится 'error', и fixAuthForSession не сработает
- * (проверяет auth.status === 'authenticated', а после fixSecurity это уже 'error').
+ * Registry всех правил инвариантов.
+ * Правила применяются по приоритету (меньше = выше приоритет) до стабильности состояния.
  */
-function applyCoreFixes(state: ReadonlyDeep<AuthStoreState>): ReadonlyDeep<AuthStoreState> {
-  // Шаг 1: Security имеет максимальный приоритет (блокировка аккаунта критичнее сессии)
-  const fixedSecurity = fixSecurity(state);
-  const stateAfterSecurity = fixedSecurity !== undefined
-    ? { ...state, auth: fixedSecurity.auth, session: fixedSecurity.session }
-    : state;
-
-  // Шаг 2: Session фикс (применяется к состоянию после security)
-  const fixedSession = fixSession(stateAfterSecurity);
-  const stateAfterSession = fixedSession !== stateAfterSecurity.session
-    ? { ...stateAfterSecurity, session: fixedSession }
-    : stateAfterSecurity;
-
-  // Шаг 3: Auth фикс для session (применяется к состоянию после session)
-  // Если security.blocked, то auth уже 'error', и этот фикс не сработает (проверяет 'authenticated')
-  const fixedAuth = fixAuthForSession(stateAfterSession, fixedSession);
-  return fixedAuth !== undefined
-    ? { ...stateAfterSession, auth: fixedAuth }
-    : stateAfterSession;
-}
-
-/** Применяет фиксы подсистем, зависящих от auth (шаг 4). */
-function applyDependentFixes(state: ReadonlyDeep<AuthStoreState>): ReadonlyDeep<AuthStoreState> {
-  const fixedMfa = fixMfa(state);
-  const fixedOAuth = fixOAuth(state);
-  const fixedPasswordRecovery = fixPasswordRecovery(state);
-  const fixedVerification = fixVerification(state);
-
-  const hasChanges = fixedMfa !== undefined
-    || fixedOAuth !== undefined
-    || fixedPasswordRecovery !== undefined
-    || fixedVerification !== undefined;
-
-  return hasChanges
-    ? ({
-      ...state,
-      ...(fixedMfa !== undefined ? { mfa: fixedMfa } : {}),
-      ...(fixedOAuth !== undefined ? { oauth: fixedOAuth } : {}),
-      ...(fixedPasswordRecovery !== undefined ? { passwordRecovery: fixedPasswordRecovery } : {}),
-      ...(fixedVerification !== undefined ? { verification: fixedVerification } : {}),
-    } as ReadonlyDeep<AuthStoreState>)
-    : state;
+function createInvariantRulesRegistry(): readonly InvariantRule[] {
+  return [
+    createSecurityRule(), // priority: 10 - максимальный приоритет
+    createSessionRule(), // priority: 20
+    createAuthForSessionRule(), // priority: 30
+    createMfaRule(), // priority: 40
+    createOAuthRule(), // priority: 50
+    createPasswordRecoveryRule(), // priority: 60
+    createVerificationRule(), // priority: 70
+  ];
 }
 
 /**
- * Расширенный invariant gate с каскадным применением фиксов.
- * Проверяет все критичные правила для всех подсистем без "лечения" бизнес-логики.
- * Фиксы применяются каскадно: каждый следующий использует уже исправленное состояние.
- *
- * @priority Порядок применения (от высшего к низшему):
- * 1. Security (fixSecurity) — максимальный приоритет, перекрывает все остальные
- * 2. Session (fixSession) — зависит от auth, но не перекрывает security
- * 3. Auth для session (fixAuthForSession) — зависит от session, но не перекрывает security
- * 4. Зависимые подсистемы (fixMfa, fixOAuth, fixPasswordRecovery, fixVerification) — зависят от auth
- *
- * @note Если security.blocked === true, то auth всегда становится 'error', и остальные фиксы,
- * которые проверяют auth.status === 'authenticated', не сработают.
- *
- * @param state - текущее состояние
- * @returns исправленное состояние или исходное, если инварианты соблюдены
+ * Применяет все правила инвариантов до стабильности состояния.
+ * Правила сортируются по приоритету и применяются итеративно, пока есть изменения.
  */
 export function enforceInvariants(
-  state: ReadonlyDeep<AuthStoreState>,
-): ReadonlyDeep<AuthStoreState> {
-  const stateAfterCore = applyCoreFixes(state);
-  const stateAfterDependent = applyDependentFixes(stateAfterCore);
-
-  return stateAfterDependent !== state
-    ? stateAfterDependent
-    : state;
+  state: ReadonlyDeep<AuthStoreState>, // текущее состояние
+): ReadonlyDeep<AuthStoreState> { // исправленное состояние или исходное, если инварианты соблюдены
+  const rules = createInvariantRulesRegistry();
+  return applyRulesUntilStable(state, rules);
 }
 
 /* ============================================================================
@@ -393,42 +524,181 @@ export function enforceInvariants(
  * ============================================================================
  */
 
-/** Тип для persisted state (без runtime полей) */
-type PersistedAuthStoreState = Readonly<
+/**
+ * Тип для persisted state (без runtime полей).
+ * permissions сериализуется как массив (Set не сериализуется в JSON).
+ * @internal Экспортировано для тестирования
+ */
+export type PersistedAuthStoreState = Readonly<
   Pick<
     AuthStoreState,
     | 'version'
-    | 'auth'
     | 'mfa'
     | 'oauth'
     | 'security'
     | 'session'
     | 'passwordRecovery'
     | 'verification'
-  >
+    | 'extensions'
+  > & {
+    readonly auth: Readonly<
+      | (Omit<Extract<AuthState, { readonly status: 'authenticated'; }>, 'permissions'> & {
+        readonly permissions?: readonly string[]; // Set сериализуется как массив
+      })
+      | Exclude<AuthState, { readonly status: 'authenticated'; }>
+    >;
+  }
 >;
 
+/** Создаёт валидные статусы для быстрой проверки перед merge (изоляция context) */
+function createValidStatuses(): {
+  readonly auth: ReadonlySet<string>;
+  readonly mfa: ReadonlySet<string>;
+  readonly oauth: ReadonlySet<string>;
+  readonly security: ReadonlySet<string>;
+  readonly session: ReadonlySet<string>;
+  readonly passwordRecovery: ReadonlySet<string>;
+  readonly verification: ReadonlySet<string>;
+} {
+  return {
+    auth: Object.freeze(
+      new Set([
+        'unauthenticated',
+        'authenticating',
+        'authenticated',
+        'pending_secondary_verification',
+        'session_expired',
+        'error',
+      ]),
+    ),
+    mfa: Object.freeze(
+      new Set(['not_setup', 'setup_in_progress', 'setup_complete', 'challenged', 'verified']),
+    ),
+    oauth: Object.freeze(new Set(['idle', 'initiating', 'processing', 'error'])),
+    security: Object.freeze(new Set(['secure', 'risk_detected', 'blocked', 'review_required'])),
+    session: Object.freeze(new Set(['active', 'expired', 'revoked', 'suspended'])),
+    passwordRecovery: Object.freeze(
+      new Set(['idle', 'requested', 'verifying', 'completed', 'error']),
+    ),
+    verification: Object.freeze(
+      new Set(['idle', 'sent', 'verifying', 'verified', 'expired', 'error']),
+    ),
+  } as const;
+}
+
+/** Проверяет семантическую валидность AuthState */
+export function validateAuthSemantics(obj: Record<string, unknown>): boolean {
+  const status = obj['status'];
+  if (status === 'authenticated') {
+    const hasUser = obj['user'] !== null && typeof obj['user'] === 'object';
+    // permissions может быть Set (runtime) или массив (persisted), оба валидны
+    const hasValidPermissions = obj['permissions'] === undefined
+      || obj['permissions'] instanceof Set
+      || Array.isArray(obj['permissions']);
+    return hasUser && hasValidPermissions;
+  }
+  if (status === 'pending_secondary_verification') {
+    return typeof obj['userId'] === 'string';
+  }
+  if (status === 'error') {
+    return obj['error'] !== null && typeof obj['error'] === 'object';
+  }
+  return true;
+}
+
+/** Проверяет семантическую валидность SessionState */
+export function validateSessionSemantics(obj: Record<string, unknown>): boolean {
+  const status = obj['status'];
+  if (status === 'active') {
+    return typeof obj['sessionId'] === 'string'
+      && typeof obj['expiresAt'] === 'string'
+      && typeof obj['issuedAt'] === 'string';
+  }
+  if (status === 'expired' || status === 'revoked' || status === 'suspended') {
+    return typeof obj['sessionId'] === 'string';
+  }
+  return true;
+}
+
+/** Проверяет семантическую валидность SecurityState */
+export function validateSecuritySemantics(obj: Record<string, unknown>): boolean {
+  const status = obj['status'];
+  if (status === 'risk_detected') {
+    return typeof obj['riskLevel'] === 'string' && typeof obj['riskScore'] === 'number';
+  }
+  if (status === 'blocked') {
+    return typeof obj['reason'] === 'string';
+  }
+  return true;
+}
+
+/** Восстанавливает AuthState из persisted state: array → Set для permissions */
+export function restoreAuthFromPersisted(
+  persistedAuth: PersistedAuthStoreState['auth'],
+): AuthState | undefined {
+  if (persistedAuth.status === 'authenticated' && Array.isArray(persistedAuth.permissions)) {
+    return {
+      ...persistedAuth,
+      permissions: new Set(persistedAuth.permissions),
+    } as AuthState;
+  }
+  return persistedAuth as AuthState | undefined;
+}
+
 /**
- * Создаёт Zustand store для состояния аутентификации.
- *
- * Factory pattern позволяет:
- * - Создавать несколько инстансов для тестирования
- * - Изолировать состояние для SSR
- * - Настраивать persistence опционально
- *
- * ВАЖНО:
- * - set(...) используется только в merge-режиме (Zustand автоматически создаёт новые объекты)
- * - Все обновления через actions для гарантии иммутабельности
- * - Discriminated unions обновляются полной заменой (нельзя частично обновить union)
- * - Effects (login.ts, logout.ts, refresh.ts) используют actions для обновления
- *
- * @returns UseBoundStore для использования в React hooks
+ * Валидирует persisted state перед merge для защиты от localStorage corruption.
+ * Проверяет структуру, статусы и семантическую валидность discriminated unions.
+ * @internal Экспортировано для тестирования
  */
-export function createAuthStore(): UseBoundStore<StoreApi<AuthStore>> {
+export function validatePersistedState(persisted: unknown): persisted is PersistedAuthStoreState {
+  if (persisted === null || typeof persisted !== 'object') {
+    return false;
+  }
+
+  const s = persisted as Record<string, unknown>;
+  if (s['version'] !== authStoreVersion) {
+    return false;
+  }
+
+  const validStatuses = createValidStatuses();
+  const checkStatus = (obj: unknown, statusSet: ReadonlySet<string>): boolean =>
+    obj !== null
+    && typeof obj === 'object'
+    && typeof (obj as Record<string, unknown>)['status'] === 'string'
+    && statusSet.has((obj as Record<string, unknown>)['status'] as string);
+
+  const checkWithSemantics = (
+    obj: unknown,
+    statusSet: ReadonlySet<string>,
+    validator?: (obj: Record<string, unknown>) => boolean,
+  ): boolean => {
+    if (!checkStatus(obj, statusSet)) {
+      return false;
+    }
+    return validator === undefined || validator(obj as Record<string, unknown>);
+  };
+
+  return checkWithSemantics(s['auth'], validStatuses.auth, validateAuthSemantics)
+    && checkStatus(s['mfa'], validStatuses.mfa)
+    && checkStatus(s['oauth'], validStatuses.oauth)
+    && checkWithSemantics(s['security'], validStatuses.security, validateSecuritySemantics)
+    && (s['session'] === null
+      || checkWithSemantics(s['session'], validStatuses.session, validateSessionSemantics))
+    && checkStatus(s['passwordRecovery'], validStatuses.passwordRecovery)
+    && checkStatus(s['verification'], validStatuses.verification)
+    && (s['extensions'] === undefined
+      || (s['extensions'] !== null && typeof s['extensions'] === 'object'));
+}
+
+/** Создаёт Zustand store для состояния аутентификации. */
+export function createAuthStore(
+  config?: CreateAuthStoreConfig, // опциональная конфигурация с расширениями
+): UseBoundStore<StoreApi<AuthStore>> {
+  const initialExtensions = config?.extensions;
   return create<AuthStore>()(
     persist(
       subscribeWithSelector((set) => ({
-        ...createInitialAuthStoreState(),
+        ...createInitialAuthStoreState(initialExtensions),
 
         actions: {
           // Zustand set() возвращает значение, которое не используется - это известная особенность API Zustand
@@ -475,8 +745,42 @@ export function createAuthStore(): UseBoundStore<StoreApi<AuthStore>> {
             return undefined;
           },
 
+          transaction: (updater: (state: AuthStoreState) => void): void => {
+            set((state: ReadonlyDeep<AuthStore>) => {
+              // Создаём deep clone состояния для транзакции (защита от мутации исходного state)
+              // structuredClone создаёт полную копию всех вложенных объектов
+              const draft = structuredClone({
+                version: state.version,
+                auth: state.auth,
+                mfa: state.mfa,
+                oauth: state.oauth,
+                security: state.security,
+                session: state.session,
+                passwordRecovery: state.passwordRecovery,
+                verification: state.verification,
+                ...(state.lastEventType !== undefined
+                  ? { lastEventType: state.lastEventType }
+                  : {}),
+                ...(state.extensions !== undefined ? { extensions: state.extensions } : {}),
+              }) as AuthStoreState;
+
+              // Применяем мутации через updater (теперь безопасно - мутируем только копию)
+              updater(draft);
+
+              // Применяем invariants к финальному состоянию
+              const fixedState = enforceInvariants(draft);
+
+              // Возвращаем AuthStore с сохранением actions (actions не изменяются в транзакции)
+              return {
+                ...fixedState,
+                actions: state.actions,
+              };
+            });
+            return undefined;
+          },
+
           reset: (): void => {
-            set(createInitialAuthStoreState());
+            set(createInitialAuthStoreState(initialExtensions));
             return undefined;
           },
         },
@@ -495,36 +799,65 @@ export function createAuthStore(): UseBoundStore<StoreApi<AuthStore>> {
               removeItem: (): void => {},
             }
         ),
-        partialize: (state: Readonly<AuthStoreState>): PersistedAuthStoreState => ({
-          // ✅ Персистентные поля (сохраняются в localStorage)
-          version: state.version,
-          auth: state.auth,
-          mfa: state.mfa,
-          oauth: state.oauth,
-          security: state.security,
-          session: state.session,
-          passwordRecovery: state.passwordRecovery,
-          verification: state.verification,
-          // ❌ Runtime-only поля НЕ сохраняются:
-          // - lastEventType (легкий маркер, не нужен после перезагрузки)
-          // - любые будущие debug flags, временные состояния и т.д.
-        }),
-        merge: (persisted: unknown, current: Readonly<AuthStore>): Readonly<AuthStore> => {
-          const isValidPersisted =
-            persisted !== null && persisted !== undefined && typeof persisted === 'object'
-              ? (persisted as PersistedAuthStoreState)
-              : null;
+        partialize: (state: Readonly<AuthStoreState>): PersistedAuthStoreState => {
+          // Сериализуем permissions Set → array для JSON persistence (только для authenticated)
+          const serializedAuth =
+            state.auth.status === 'authenticated' && state.auth.permissions instanceof Set
+              ? ({
+                ...state.auth,
+                permissions: Array.from(state.auth.permissions),
+              } as
+                & Omit<Extract<AuthState, { readonly status: 'authenticated'; }>, 'permissions'>
+                & {
+                  readonly permissions?: readonly string[];
+                })
+              : state.auth;
 
-          // Миграция: если версия изменилась, сбрасываем состояние
-          const mergedState = isValidPersisted === null
-            ? current
+          return {
+            // ✅ Персистентные поля (сохраняются в localStorage)
+            version: state.version,
+            auth: serializedAuth as PersistedAuthStoreState['auth'],
+            mfa: state.mfa,
+            oauth: state.oauth,
+            security: state.security,
+            session: state.session,
+            passwordRecovery: state.passwordRecovery,
+            verification: state.verification,
+            ...(state.extensions !== undefined && Object.keys(state.extensions).length > 0
+              ? { extensions: state.extensions }
+              : {}),
+            // ❌ Runtime-only поля НЕ сохраняются:
+            // - lastEventType (легкий маркер, не нужен после перезагрузки)
+            // - любые будущие debug flags, временные состояния и т.д.
+          };
+        },
+        merge: (persisted: unknown, current: Readonly<AuthStore>): Readonly<AuthStore> => {
+          const isValidPersisted = validatePersistedState(persisted) ? persisted : null;
+
+          // Миграция: если версия изменилась, сбрасываем состояние (но сохраняем extensions)
+          const persistedState = isValidPersisted === null
+            ? null
             : isValidPersisted.version !== authStoreVersion
-            ? createInitialAuthStoreState()
-            : {
-              ...current,
-              ...isValidPersisted,
-              // lastEventType всегда runtime-only (не включаем в merge)
-            };
+            ? null
+            : isValidPersisted;
+
+          if (persistedState === null) {
+            return current;
+          }
+
+          // Восстанавливаем permissions: array → Set (только для authenticated)
+          const restoredAuth = restoreAuthFromPersisted(persistedState.auth);
+
+          const mergedState = {
+            ...current,
+            ...persistedState,
+            auth: (restoredAuth ?? persistedState.auth) as AuthState,
+            // Сохраняем extensions из конфигурации, если они не были в persisted state
+            ...(initialExtensions !== undefined && persistedState.extensions === undefined
+              ? { extensions: initialExtensions }
+              : {}),
+            // lastEventType всегда runtime-only (не включаем в merge)
+          };
 
           // Применяем enforceInvariants для защиты от неконсистентного состояния (поврежденный localStorage, старая версия)
           const fixedState = enforceInvariants(mergedState);
@@ -655,8 +988,8 @@ export function isSessionValid(store: Readonly<AuthStoreState>): boolean {
 export function hasPermission(store: Readonly<AuthStoreState>, permission: string): boolean {
   return (
     store.auth.status === 'authenticated'
-    && Array.isArray(store.auth.permissions)
-    && store.auth.permissions.includes(permission)
+    && store.auth.permissions instanceof Set
+    && store.auth.permissions.has(permission)
   );
 }
 

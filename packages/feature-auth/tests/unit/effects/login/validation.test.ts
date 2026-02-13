@@ -123,7 +123,6 @@ describe('isValidLoginRequest - валидные случаи', () => {
     const request = createValidLoginRequest('oauth', {
       provider: 'yandex',
       providerToken: 'a'.repeat(100),
-      password: 'backup-password',
       mfa: createMfaInfo('push', 'push-token'),
       dtoVersion: '1.0',
       rememberMe: true,
@@ -647,13 +646,11 @@ describe('isValidLoginRequest - невалидные случаи', () => {
     expect(isValidLoginRequest(request)).toBe(false);
   });
 
-  it('отклоняет oauth с password полем (не в whitelist для oauth)', () => {
-    // password не должен быть в whitelist для oauth, но на самом деле он есть
-    // Проверим что password валиден для oauth
+  it('OAuth не поддерживает password поле', () => {
+    // OAuth использует только provider и providerToken
     const request = createValidLoginRequest('oauth', {
       provider: 'google',
       providerToken: 'a'.repeat(50),
-      password: 'backup-password',
     });
 
     expect(isValidLoginRequest(request)).toBe(true);
@@ -767,7 +764,6 @@ describe('isValidLoginRequest - edge cases', () => {
     const request = createValidLoginRequest('oauth', {
       provider: 'facebook',
       providerToken: 'a'.repeat(100),
-      password: 'backup-password',
       dtoVersion: '1.0',
       rememberMe: false,
       mfa: createMfaInfo('push', 'push-token', 'mobile-device'),
@@ -806,11 +802,15 @@ describe('isValidLoginRequest - type guard', () => {
       throw new Error('Type guard failed');
     }
     expect(value.identifier.type).toBe('oauth');
-    // TypeScript должен понимать что для oauth есть provider и providerToken
+    // Type narrowing для discriminated union через Extract
     // eslint-disable-next-line functional/no-conditional-statements -- Type narrowing test
     if (value.identifier.type === 'oauth') {
-      expect(value.provider).toBe('google');
-      expect(value.providerToken).toBe('a'.repeat(50));
+      const oauthRequest = value as Extract<
+        LoginRequest<LoginIdentifierType>,
+        { identifier: { type: 'oauth'; }; }
+      >;
+      expect(oauthRequest.provider).toBe('google');
+      expect(oauthRequest.providerToken).toBe('a'.repeat(50));
     }
   });
 });

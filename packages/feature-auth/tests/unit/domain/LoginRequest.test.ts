@@ -252,24 +252,13 @@ describe('LoginRequest discriminated union - OAuth', () => {
     expect(request.dtoVersion).toBe('1.0');
   });
 
-  it('oauth login может работать без provider полей', () => {
+  it('oauth login требует обязательные provider и providerToken', () => {
     const request: LoginRequest<'oauth'> = {
       identifier: createOAuthIdentifier('user'),
-    };
-
-    expect(request.provider).toBeUndefined();
-    expect(request.providerToken).toBeUndefined();
-  });
-
-  it('oauth login поддерживает password опционально', () => {
-    const request: LoginRequest<'oauth'> = {
-      identifier: createOAuthIdentifier('oauth-user-123'),
       provider: 'google',
       providerToken: 'token',
-      password: 'additional-password',
     };
 
-    expect(request.password).toBe('additional-password');
     expect(request.provider).toBe('google');
     expect(request.providerToken).toBe('token');
   });
@@ -297,7 +286,6 @@ describe('LoginRequest discriminated union - OAuth', () => {
       identifier: createOAuthIdentifier('oauth-123'),
       provider: 'github',
       providerToken: 'gh-token-xyz',
-      password: 'backup-pass',
       mfa: [
         createMfaInfo('sms', '111222'),
         createMfaInfo('push', 'push-token', 'mobile-1'),
@@ -414,10 +402,11 @@ describe('LoginRequest conditional types', () => {
       password: 'pass',
     };
 
-    expect(emailRequest.provider).toBeUndefined();
-    expect(emailRequest.providerToken).toBeUndefined();
-    expect(usernameRequest.provider).toBeUndefined();
-    expect(phoneRequest.provider).toBeUndefined();
+    // Non-OAuth типы не имеют provider/providerToken полей
+    expect('provider' in emailRequest).toBe(false);
+    expect('providerToken' in emailRequest).toBe(false);
+    expect('provider' in usernameRequest).toBe(false);
+    expect('provider' in phoneRequest).toBe(false);
   });
 });
 
@@ -672,7 +661,6 @@ describe('LoginRequest - интеграционные тесты', () => {
       identifier: createOAuthIdentifier('oauth-user'),
       provider: 'github',
       providerToken: 'gh-token',
-      password: 'backup-pass',
       mfa: [
         createMfaInfo('sms', '111222'),
         createMfaInfo('push', 'push-token', 'mobile'),
@@ -702,10 +690,10 @@ describe('LoginRequest - интеграционные тесты', () => {
     expect(phoneRequest.identifier.type).toBe('phone');
 
     // Проверки conditional типов
-    expect(emailRequest.provider).toBeUndefined();
+    expect('provider' in emailRequest).toBe(false);
     expect(oauthRequest.provider).toBe('github');
-    expect(usernameRequest.provider).toBeUndefined();
-    expect(phoneRequest.provider).toBeUndefined();
+    expect('provider' in usernameRequest).toBe(false);
+    expect('provider' in phoneRequest).toBe(false);
   });
 });
 
@@ -821,31 +809,25 @@ describe('Security considerations', () => {
       identifier: createOAuthIdentifier('oauth-user'),
       provider: 'google',
       providerToken: 'oauth-token-123',
-      password: 'plain-text-password', // Plain text - OK для OAuth flow
     };
 
-    // Проверяем, что пароль хранится как plain text (не хэшируется на клиенте)
-    expect(oauthRequest.password).toBe('plain-text-password');
-    expect(typeof oauthRequest.password).toBe('string');
-
-    // В реальном OAuth flow пароль может использоваться для:
-    // - Дополнительной локальной валидации
-    // - Fallback аутентификации
-    // - Multi-factor аутентификации
+    // OAuth использует только provider и providerToken, password не поддерживается
+    expect(oauthRequest.provider).toBe('google');
+    expect(oauthRequest.providerToken).toBe('oauth-token-123');
+    expect('password' in oauthRequest).toBe(false);
   });
 
-  it('password опционален для OAuth сценариев', () => {
-    // В чистом OAuth flow пароль может отсутствовать
+  it('OAuth не поддерживает password (только provider и providerToken)', () => {
+    // В OAuth flow используется только provider и providerToken
     const pureOAuthRequest: LoginRequest<'oauth'> = {
       identifier: createOAuthIdentifier('oauth-user'),
       provider: 'github',
       providerToken: 'gh-token-xyz',
-      // password опционален для OAuth
     };
 
-    expect(pureOAuthRequest.password).toBeUndefined();
     expect(pureOAuthRequest.provider).toBe('github');
     expect(pureOAuthRequest.providerToken).toBe('gh-token-xyz');
+    expect('password' in pureOAuthRequest).toBe(false);
   });
 
   it('password обязателен для non-OAuth типов', () => {

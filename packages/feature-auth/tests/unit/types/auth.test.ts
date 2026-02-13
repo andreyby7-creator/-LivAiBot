@@ -441,17 +441,16 @@ describe('AuthState', () => {
     const state: AuthState = {
       status: 'authenticated',
       user: createMeUserInfo(),
-      tokenPair: createTokenPair(),
       session: createMeSessionInfo(),
       roles: ['user', 'admin'],
-      permissions: ['read', 'write'],
+      permissions: new Set(['read', 'write']),
       features: { newFeature: true },
       context: { org: 'test-org' },
       meta: [{ type: 'feature_flag', name: 'new-ui', enabled: true }],
     };
     expect(state.status).toBe('authenticated');
     expect(state.user).toBeDefined();
-    expect(state.tokenPair).toBeDefined();
+    expect(state.session).toBeDefined();
   });
 
   it('должен поддерживать status: pending_secondary_verification', () => {
@@ -470,10 +469,10 @@ describe('AuthState', () => {
     const state: AuthState = {
       status: 'session_expired',
       userId: 'user-123',
-      refreshToken: 'refresh-token',
       error: { kind: 'session_expired' },
     };
     expect(state.status).toBe('session_expired');
+    expect(state.userId).toBe('user-123');
   });
 
   it('должен поддерживать status: error', () => {
@@ -1139,7 +1138,7 @@ describe('AuthResponse', () => {
     const response: AuthResponse = {
       user: createMeUserInfo(),
       roles: ['user'],
-      permissions: ['read'],
+      permissions: ['read'], // MeResponse использует массив, не Set
     } as MeResponse;
     expect(response).toBeDefined();
   });

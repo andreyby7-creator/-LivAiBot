@@ -51,7 +51,6 @@ exports[`LoginRequest discriminated union - OAuth > oauth login request - snapsh
       "type": "push",
     },
   ],
-  "password": "backup-pass",
   "provider": "github",
   "providerToken": "gh-token-xyz",
   "rememberMe": true,

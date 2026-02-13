@@ -20,12 +20,11 @@
  * - ✅ Type-safe и дискриминирующие union типы
  *
  * @example
- * // AuthState для store
+ * // AuthState для store (токены не хранятся в store, только в httpOnly cookies или secure memory)
  * const authState: AuthState = {
  *   status: 'authenticated',
  *   user: { id: 'user-123', email: 'user@example.com' },
- *   tokenPair: { accessToken: '...', refreshToken: '...', expiresAt: '...' },
- *   session: { sessionId: 'sess-abc', issuedAt: '2026-01-01T00:00:00Z' }
+ *   session: { sessionId: 'sess-abc', expiresAt: '2026-01-01T00:00:00Z', status: 'active' }
  * };
  *
  * // MFA State
@@ -225,14 +224,12 @@ export type AuthState =
     readonly status: 'authenticated';
     /** Информация о пользователе */
     readonly user: MeUserInfo;
-    /** Пара токенов */
-    readonly tokenPair: TokenPair;
-    /** Информация о сессии */
+    /** Информация о сессии (sessionId, expiresAt, status) */
     readonly session?: MeSessionInfo;
     /** Роли пользователя */
     readonly roles?: readonly string[];
-    /** Permissions / scopes */
-    readonly permissions?: readonly string[];
+    /** Permissions / scopes (ReadonlySet для O(1) lookup) */
+    readonly permissions?: ReadonlySet<string>;
     /** Feature flags */
     readonly features?: Record<string, boolean>;
     /** Дополнительный контекст */
@@ -257,8 +254,6 @@ export type AuthState =
     readonly status: 'session_expired';
     /** Идентификатор пользователя */
     readonly userId?: string;
-    /** Refresh token для обновления */
-    readonly refreshToken?: string;
     /** Информация об ошибке */
     readonly error?: AuthError;
     /** Типизированные метаданные */

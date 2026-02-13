@@ -296,7 +296,8 @@ function handleError(error: unknown, onError?: (error: Error) => void, debug?: b
   if (onError !== undefined) {
     onError(err);
   }
-  if (debug === true) {
+  // Логируем только в dev режиме, не в production
+  if (debug === true && typeof process !== 'undefined' && process.env.NODE_ENV !== 'production') {
     // eslint-disable-next-line no-console
     console.error('[FAVICON] Ошибка вставки иконок:', err.message);
   }

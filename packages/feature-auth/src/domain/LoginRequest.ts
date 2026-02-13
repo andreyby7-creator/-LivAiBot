@@ -73,16 +73,29 @@ export type ClientContext = {
   readonly appVersion?: string;
 };
 
-/** DTO запроса login */
-export type LoginRequest<T extends LoginIdentifierType = 'email'> = {
+/** Базовые поля для всех типов login запросов */
+type LoginRequestBase = {
   readonly dtoVersion?: '1.0' | '1.1';
-  readonly identifier: LoginIdentifier<T>;
-  readonly password?: string; // optional для oauth
   readonly mfa?: MfaInfo | MfaInfo[];
   readonly clientContext?: ClientContext;
   readonly rememberMe?: boolean;
-
-  /** Только для OAuth идентификаторов */
-  readonly provider?: T extends 'oauth' ? string : never;
-  readonly providerToken?: T extends 'oauth' ? string : never;
 };
+
+/** Login запрос для OAuth (provider и providerToken обязательны) */
+type LoginRequestOAuth = LoginRequestBase & {
+  readonly identifier: LoginIdentifier<'oauth'>;
+  readonly provider: string;
+  readonly providerToken: string;
+};
+
+/** Login запрос для не-OAuth типов (email, username, phone) */
+type LoginRequestNonOAuth<T extends 'email' | 'username' | 'phone' = 'email'> = LoginRequestBase & {
+  readonly identifier: LoginIdentifier<T>;
+  readonly password?: string;
+};
+
+/** DTO запроса login (discriminated union) */
+export type LoginRequest<T extends LoginIdentifierType = 'email'> = T extends 'oauth'
+  ? LoginRequestOAuth
+  : T extends 'email' | 'username' | 'phone' ? LoginRequestNonOAuth<T>
+  : never;
