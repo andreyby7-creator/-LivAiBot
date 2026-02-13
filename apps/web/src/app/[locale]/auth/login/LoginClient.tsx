@@ -1,6 +1,6 @@
 'use client';
 
-import { LoginForm } from '@livai/ui-features';
+import { LoginForm } from '@livai/ui-features/auth/login-form.js';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import type { JSX } from 'react';

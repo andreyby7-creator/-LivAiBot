@@ -21,7 +21,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 // Mock telemetry to avoid console output during tests
 const mockLogFireAndForget = vi.fn();
 
-vi.mock('../../../src/lib/telemetry', () => ({
+vi.mock('../../../src/runtime/telemetry', () => ({
   logFireAndForget: mockLogFireAndForget,
 }));
 

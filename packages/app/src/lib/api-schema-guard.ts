@@ -30,9 +30,9 @@ import { Effect as EffectLib } from 'effect';
 
 import { mapError } from './error-mapping.js';
 import type { TaggedError } from './error-mapping.js';
-import { errorFireAndForget, warnFireAndForget } from './telemetry.js';
 import type { ValidationContext, ValidationError, Validator } from './validation.js';
 import { pipeMany } from './validation.js';
+import { errorFireAndForget, warnFireAndForget } from '../runtime/telemetry.js';
 import type { ApiServiceName, HttpMethod } from '../types/api.js';
 
 /* ============================================================================
@@ -343,11 +343,11 @@ function validateRequestSize(
             maxSize,
             payloadSample: createPayloadSample(request),
             endpoint: context.endpoint,
-            service: context.service,
-            traceId: context.traceId,
             requestId: context.requestId,
-            serviceId: context.serviceId,
-            instanceId: context.instanceId,
+            ...(context.service !== undefined && { service: context.service }),
+            ...(context.traceId !== undefined && { traceId: context.traceId }),
+            ...(context.serviceId !== undefined && { serviceId: context.serviceId }),
+            ...(context.instanceId !== undefined && { instanceId: context.instanceId }),
           });
 
           return yield* createApiValidationError(
@@ -362,10 +362,10 @@ function validateRequestSize(
         // Если не удалось оценить размер, пропускаем валидацию
         warnFireAndForget('Failed to estimate request payload size', {
           endpoint: context.endpoint,
-          traceId: context.traceId,
           requestId: context.requestId,
-          serviceId: context.serviceId,
-          instanceId: context.instanceId,
+          ...(context.traceId !== undefined && { traceId: context.traceId }),
+          ...(context.serviceId !== undefined && { serviceId: context.serviceId }),
+          ...(context.instanceId !== undefined && { instanceId: context.instanceId }),
         });
       }
 
@@ -394,11 +394,11 @@ function validateResponseSize(
             maxSize,
             payloadSample: createPayloadSample(response),
             endpoint: context.endpoint,
-            service: context.service,
-            traceId: context.traceId,
             requestId: context.requestId,
-            serviceId: context.serviceId,
-            instanceId: context.instanceId,
+            ...(context.service !== undefined && { service: context.service }),
+            ...(context.traceId !== undefined && { traceId: context.traceId }),
+            ...(context.serviceId !== undefined && { serviceId: context.serviceId }),
+            ...(context.instanceId !== undefined && { instanceId: context.instanceId }),
           });
 
           return yield* createApiValidationError(
@@ -413,10 +413,10 @@ function validateResponseSize(
         // Если не удалось оценить размер, пропускаем валидацию
         warnFireAndForget('Failed to estimate response payload size', {
           endpoint: context.endpoint,
-          traceId: context.traceId,
           requestId: context.requestId,
-          serviceId: context.serviceId,
-          instanceId: context.instanceId,
+          ...(context.traceId !== undefined && { traceId: context.traceId }),
+          ...(context.serviceId !== undefined && { serviceId: context.serviceId }),
+          ...(context.instanceId !== undefined && { instanceId: context.instanceId }),
         });
       }
 
@@ -562,14 +562,14 @@ function createApiValidationError(
   // Отправляем телеметрию
   errorFireAndForget(`API validation failed: ${code}`, {
     code,
-    field,
+    ...(field !== undefined && { field }),
     endpoint: context.endpoint,
-    service: context.service,
     validationErrors: validationErrors.length,
-    traceId: context.traceId,
     requestId: context.requestId,
-    serviceId: context.serviceId,
-    instanceId: context.instanceId,
+    ...(context.serviceId !== undefined && { serviceId: context.serviceId }),
+    ...(context.instanceId !== undefined && { instanceId: context.instanceId }),
+    ...(context.service !== undefined && { service: context.service }),
+    ...(context.traceId !== undefined && { traceId: context.traceId }),
   });
 
   return EffectLib.fail(apiError);
@@ -817,13 +817,13 @@ export function validateSchemaVersion(
         // Логируем mismatch для аналитики breaking changes
         warnFireAndForget('API schema version mismatch detected', {
           requestedVersion,
-          supportedVersions: [...effectiveSupportedVersions],
+          supportedVersions: effectiveSupportedVersions.join(','),
           endpoint: context.endpoint,
-          service: context.service,
-          traceId: context.traceId,
           requestId: context.requestId,
-          serviceId: context.serviceId,
-          instanceId: context.instanceId,
+          ...(context.serviceId !== undefined && { serviceId: context.serviceId }),
+          ...(context.instanceId !== undefined && { instanceId: context.instanceId }),
+          ...(context.service !== undefined && { service: context.service }),
+          ...(context.traceId !== undefined && { traceId: context.traceId }),
         });
 
         return yield* createApiValidationError(

@@ -73,7 +73,7 @@ vi.mock('../../../src/providers/UnifiedUIProvider', () => ({
 }));
 
 // Mock для lib/telemetry (используется в error-mapping.ts)
-vi.mock('../../../src/lib/telemetry', () => ({
+vi.mock('../../../src/runtime/telemetry', () => ({
   infoFireAndForget: vi.fn(),
   errorFireAndForget: vi.fn(),
 }));

@@ -15,6 +15,81 @@
  * Весь бизнес-код ДОЛЖЕН линтиться максимально строго!
  */
 
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const PROJECT_ROOT = path.resolve(__dirname, '../../../');
+
+/**
+ * Находит все пакеты @livai/* в packages/ и apps/
+ * Автоматически генерирует список для правила no-restricted-imports
+ */
+function findLivaiPackages() {
+  const packages = [];
+  const packagesDir = path.join(PROJECT_ROOT, 'packages');
+  const appsDir = path.join(PROJECT_ROOT, 'apps');
+
+  // Сканируем packages/
+  if (fs.existsSync(packagesDir)) {
+    const entries = fs.readdirSync(packagesDir, { withFileTypes: true });
+    for (const entry of entries) {
+      if (entry.isDirectory()) {
+        const packageJsonPath = path.join(packagesDir, entry.name, 'package.json');
+        if (fs.existsSync(packageJsonPath)) {
+          try {
+            const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8'));
+            if (packageJson.name?.startsWith('@livai/')) {
+              packages.push(packageJson.name);
+            }
+          } catch (error) {
+            // Игнорируем ошибки парсинга
+          }
+        }
+      }
+    }
+  }
+
+  // Сканируем apps/ (если там есть пакеты @livai/*)
+  if (fs.existsSync(appsDir)) {
+    const entries = fs.readdirSync(appsDir, { withFileTypes: true });
+    for (const entry of entries) {
+      if (entry.isDirectory()) {
+        const packageJsonPath = path.join(appsDir, entry.name, 'package.json');
+        if (fs.existsSync(packageJsonPath)) {
+          try {
+            const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8'));
+            if (packageJson.name?.startsWith('@livai/')) {
+              packages.push(packageJson.name);
+            }
+          } catch (error) {
+            // Игнорируем ошибки парсинга
+          }
+        }
+      }
+    }
+  }
+
+  return packages.sort();
+}
+
+/**
+ * Генерирует paths для правила no-restricted-imports
+ */
+function generateRestrictedImportsPaths() {
+  const packages = findLivaiPackages();
+  return packages.map((pkg) => {
+    const isApp = pkg === '@livai/app';
+    return {
+      name: pkg,
+      message:
+        `Барель-Импорты в @livai/* запрещены. Используйте subpath exports${isApp ? ', например: "@livai/app/lib/error-mapping.js".' : '.'}`,
+    };
+  });
+}
+
 // ==================== КОНФИГУРАЦИЯ ОТЛАДКИ ====================
 // Включить логирование изменений уровня строгости через переменную окружения DEBUG_ESLINT_SEVERITY=1
 const DEBUG_ESLINT_SEVERITY = process.env.DEBUG_ESLINT_SEVERITY === '1';
@@ -71,6 +146,14 @@ export const QUALITY_WITH_SEVERITY = {
     dev: 'warn',    // Предупреждать о циклических зависимостях
     canary: 'error', // Запретить в продакшене (ломает AI workflows)
     test: 'off',    // В тестах циклы менее критичны
+  },
+
+  // Barrel file prevention: запрет импортов из @livai/app (barrel file)
+  // Требует использования subpath exports для избежания загрузки всех зависимостей
+  'no-restricted-imports': {
+    dev: 'warn',    // Предупреждение в dev режиме
+    canary: 'error', // Ошибка в canary режиме
+    test: 'warn',   // Предупреждение в тестах (можно использовать для моков)
   },
 
   // sonarjs/cognitive-complexity убрано - используется статично в domain rules
@@ -133,6 +216,18 @@ export const DEV_EXTRA_RULES = {
   // ==================== COMPATIBILITY & MODERNITY ====================
   '@typescript-eslint/consistent-type-imports': 'warn', // Лучше tree-shaking
   // prefer-arrow-callback удалено - Effect-код часто использует named functions и generators (function*)
+
+  // ESLint: запрет импортов из barrel file для всех пакетов @livai/*
+  // Barrel file prevention: запрет импортов из @livai/* (barrel file)
+  // Требует использования subpath exports для избежания загрузки всех зависимостей
+  // Исключение: сам пакет может использовать barrel file для внутренних импортов
+  // Список пакетов генерируется автоматически из packages/ и apps/ через generateRestrictedImportsPaths()
+  'no-restricted-imports': [
+    'warn',
+    {
+      paths: generateRestrictedImportsPaths(),
+    },
+  ],
 };
 
 /**
@@ -152,6 +247,20 @@ export const CANARY_EXTRA_RULES = {
   // В canary все базовые правила уже максимально строгие
   // Здесь только дополнительные правила сверх BASE_QUALITY_RULES
   // Пока пусто - все базовые правила в BASE_QUALITY_RULES
+
+  // ESLint: запрет импортов из barrel file для всех пакетов @livai/*
+  // Barrel file prevention: запрет импортов из @livai/* (barrel file)
+  // Требует использования subpath exports для избежания загрузки всех зависимостей
+  // Исключение: сам пакет может использовать barrel file для внутренних импортов
+  // Паттерн блокирует только прямые импорты (@livai/app, @livai/feature-auth),
+  // но разрешает subpath exports (@livai/app/lib/error-mapping.js)
+  // Список пакетов генерируется автоматически из packages/ и apps/
+  'no-restricted-imports': [
+    'error',
+    {
+      paths: generateRestrictedImportsPaths(),
+    },
+  ],
 };
 
 // ==================== УТИЛИТЫ ДЛЯ КЛОНИРОВАНИЯ ====================

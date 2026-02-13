@@ -99,15 +99,27 @@ export {
 
 // Экспортируем типы телеметрии
 export {
+  type BatchConfig,
   BatchCoreConfigVersion,
+  type CustomLevelPriority,
+  defaultTelemetryTimezone,
+  type DropPolicy,
+  type FallbackPriorityStrategy,
+  type NonPIIField,
+  type PIIField,
+  type RetryConfig,
   type TelemetryBatchCoreConfig,
   type TelemetryBatchCoreState,
   type TelemetryConfig,
   type TelemetryEvent,
   type TelemetryLevel,
   TelemetryLevels,
+  type TelemetryLevelTemplate,
   type TelemetryMetadata,
+  type TelemetryPrimitive,
   type TelemetrySink,
+  type TelemetryTimezone,
+  type ThrottleConfig,
   type UiTelemetryMetrics,
 } from './types/telemetry.js';
 
@@ -247,8 +259,40 @@ export {
   type WindowClient,
 } from './lib/service-worker.js';
 export * from './lib/sse-client.js';
-export { telemetryBatchCore } from './lib/telemetry.batch-core.js';
-export * from './lib/telemetry.js';
+// Экспортируем batch core API и типы
+export {
+  defaultBatchCoreConfig,
+  telemetryBatchCore,
+  type TelemetryBatchCoreConfigExtended,
+  type TransformEventHook,
+} from './lib/telemetry.batch-core.js';
+// Экспортируем типы и классы из lib/telemetry.js (чистые утилиты)
+export {
+  type ConsoleSinkFormatter,
+  createConsoleSink,
+  createExternalSink,
+  createExternalSinkSafe,
+  type ExternalSdk,
+  getGlobalClientForDebug,
+  isValidTelemetrySink,
+  levelPriority,
+  TelemetryClient,
+  telemetryLevels,
+} from './lib/telemetry.js';
+// Экспортируем singleton функции из runtime/telemetry.js
+export {
+  errorFireAndForget,
+  fireAndForget,
+  getFireAndForgetMetrics,
+  getGlobalTelemetryClient,
+  infoFireAndForget,
+  initTelemetry,
+  isTelemetryInitialized,
+  logFireAndForget,
+  resetGlobalTelemetryClient,
+  setGlobalClientForDebug,
+  warnFireAndForget,
+} from './runtime/telemetry.js';
 // Явный экспорт из validation для избежания конфликтов с effect-utils
 // ValidationError уже экспортируется из types/errors.js, поэтому не экспортируем из validation
 export {

@@ -24,8 +24,8 @@ const telemetryMocks = vi.hoisted(() => {
   };
 });
 
-vi.mock('../../../src/lib/telemetry', async () => {
-  const actual = await vi.importActual('../../../src/lib/telemetry');
+vi.mock('../../../src/runtime/telemetry', async () => {
+  const actual = await vi.importActual('../../../src/runtime/telemetry');
 
   return {
     ...actual,

@@ -156,9 +156,7 @@ function isEffectError(err: unknown): err is EffectError {
  * 🎯 МАППЕР ОШИБОК
  * ========================================================================== */
 
-/**
- * Конфигурация для mapError (детерминированная, без side-effects)
- */
+/** Конфигурация для mapError (детерминированная, без side-effects) */
 export type MapErrorConfig = {
   readonly locale: string; // локаль для сообщений (обязательна для детерминированности)
   readonly timestamp: number; // время генерации ошибки (обязательно для детерминированности)
@@ -235,25 +233,19 @@ export function mapError<TDetails = unknown>(
   };
 }
 
-/**
- * Конфигурация для mapErrorBoundaryError (детерминированная, без side-effects)
- */
+/** Конфигурация для mapErrorBoundaryError (детерминированная, без side-effects) */
 export type MapErrorBoundaryConfig = {
   readonly timestamp: ISODateString; // ISO строка времени (обязательна для детерминированности)
 };
 
-/**
- * Данные для telemetry после маппинга error-boundary ошибки
- */
+/** Данные для telemetry после маппинга error-boundary ошибки */
 export type ErrorBoundaryTelemetryData = {
   readonly originalErrorType: string;
   readonly mappedErrorCode: ErrorBoundaryErrorCode;
   readonly errorMessage: string;
 };
 
-/**
- * Результат маппинга error-boundary ошибки
- */
+/** Результат маппинга error-boundary ошибки */
 export type MapErrorBoundaryResult = {
   readonly appError: AppError;
   readonly telemetryData: ErrorBoundaryTelemetryData;

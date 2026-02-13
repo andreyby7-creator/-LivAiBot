@@ -30,8 +30,12 @@ import {
   staticCacheName,
   swDisabled,
   swSelf,
-} from '@livai/app';
-import type { ExtendableEvent, ExtendableMessageEvent, FetchEvent } from '@livai/app';
+} from '@livai/app/lib/service-worker.js';
+import type {
+  ExtendableEvent,
+  ExtendableMessageEvent,
+  FetchEvent,
+} from '@livai/app/lib/service-worker.js';
 
 /* ============================================================================
  * 📋 ТИПЫ И КОНСТАНТЫ

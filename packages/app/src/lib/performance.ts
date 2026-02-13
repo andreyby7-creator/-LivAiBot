@@ -32,7 +32,7 @@ import { randomUUID } from 'crypto';
 import { Effect as EffectLib } from 'effect';
 import React from 'react';
 
-import { errorFireAndForget, infoFireAndForget, warnFireAndForget } from './telemetry.js';
+import { errorFireAndForget, infoFireAndForget, warnFireAndForget } from '../runtime/telemetry.js';
 import type { JsonObject } from '../types/common.js';
 
 /* ============================================================================
@@ -659,8 +659,16 @@ export function flushMetricsBuffer(): EffectLib.Effect<never, PerformanceError, 
         value: metric.value,
         unit: metric.unit,
         severity: metric.severity,
-        context: metric.context,
-        metadata: metric.metadata,
+        ...(metric.context !== undefined && {
+          context: typeof metric.context === 'object'
+            ? JSON.stringify(metric.context)
+            : String(metric.context),
+        }),
+        ...(metric.metadata !== undefined && {
+          metadata: typeof metric.metadata === 'object'
+            ? JSON.stringify(metric.metadata)
+            : String(metric.metadata),
+        }),
       });
     } catch (error) {
       // Логируем ошибку телеметрии, но продолжаем отправку других метрик
@@ -862,7 +870,7 @@ export function initPerformanceMonitoring(
   }
 
   infoFireAndForget('Инициализация системы мониторинга производительности', {
-    config: finalConfig,
+    config: JSON.stringify(finalConfig),
   });
 
   // Настраиваем автоматическую отправку метрик памяти

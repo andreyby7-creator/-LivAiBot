@@ -87,6 +87,14 @@ devConfigWithRules.push({
 });
 
 
+// Исключение для всех пакетов @livai/*: могут использовать barrel file для внутренних импортов
+devConfigWithRules.push({
+  files: ['packages/*/src/**/*.{ts,tsx}'],
+  rules: {
+    'no-restricted-imports': 'off', // Пакеты @livai/* могут использовать свой barrel file для внутренних импортов
+  },
+});
+
 // ==================== EFFECTS / STORES EXCEPTIONS ====================
 // Effects, stores и setup файлы используют императивные паттерны (if, let, мутации)
 // Domain/DTO остаются строгими - это ядро системы

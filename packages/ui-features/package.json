@@ -28,6 +28,16 @@
     ".": {
       "types": "./dist/esm/index.d.ts",
       "import": "./dist/esm/index.js"
+    },
+    "./auth/login-form.js": {
+      "types": "./dist/esm/auth/login-form.d.ts",
+      "import": "./dist/esm/auth/login-form.js",
+      "default": "./dist/esm/auth/login-form.js"
+    },
+    "./auth/register-form.js": {
+      "types": "./dist/esm/auth/register-form.d.ts",
+      "import": "./dist/esm/auth/register-form.js",
+      "default": "./dist/esm/auth/register-form.js"
     }
   },
   "scripts": {

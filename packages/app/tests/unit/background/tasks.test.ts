@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { Effect, Runtime } from 'effect';
 
 // Mock telemetry before any other imports
-vi.mock('../../../src/lib/telemetry.js', () => ({
+vi.mock('../../../src/runtime/telemetry.js', () => ({
   getGlobalTelemetryClient: vi.fn(() => ({
     startSpan: vi.fn(),
     endSpan: vi.fn(),

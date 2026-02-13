@@ -31,7 +31,7 @@ import type { LogContext, LogLevel, LogMetadata } from '../../../src/lib/logger'
 // ============================================================================
 
 // Mock'ируем функции telemetry
-vi.mock('../../../src/lib/telemetry', () => ({
+vi.mock('../../../src/runtime/telemetry', () => ({
   infoFireAndForget: vi.fn(),
   warnFireAndForget: vi.fn(),
   errorFireAndForget: vi.fn(),
@@ -41,7 +41,7 @@ import {
   errorFireAndForget,
   infoFireAndForget,
   warnFireAndForget,
-} from '../../../src/lib/telemetry';
+} from '../../../src/runtime/telemetry';
 
 /**
  * Создает mock LogContext для тестирования
@@ -272,7 +272,7 @@ describe('Logger - Enterprise Grade', () => {
         expect(errorFireAndForget).toHaveBeenCalledWith(
           'Test error message',
           expect.objectContaining({
-            error: expect.any(Object),
+            error: expect.stringContaining('"name":"TestError"'),
             extra: 'data',
           }),
         );
@@ -491,7 +491,7 @@ describe('Logger - Enterprise Grade', () => {
           infoFireAndForget,
           expect.any(String),
           expect.objectContaining({
-            loggable: { customData: 'test-value' },
+            loggable: '{"customData":"test-value"}',
           }),
         );
       });
@@ -527,13 +527,21 @@ describe('Logger - Enterprise Grade', () => {
           errorFireAndForget,
           'Error occurred',
           expect.objectContaining({
-            error: {
-              name: 'CustomError',
-              message: 'Something went wrong',
-              stack: expect.any(String),
-            },
+            error: expect.stringContaining('"name":"CustomError"'),
           }),
         );
+        // Проверяем, что ошибка сериализована корректно
+        const callArgs = vi.mocked(errorFireAndForget).mock.calls[0];
+        expect(callArgs).toBeDefined();
+        const errorMetadata = callArgs![1];
+        expect(errorMetadata?.['error']).toBeTruthy();
+        expect(typeof errorMetadata?.['error']).toBe('string');
+        const parsedError = JSON.parse(errorMetadata!['error'] as string);
+        expect(parsedError).toMatchObject({
+          name: 'CustomError',
+          message: 'Something went wrong',
+        });
+        expect(parsedError.stack).toBeDefined();
       });
     });
 
@@ -672,9 +680,18 @@ describe('Logger - Enterprise Grade', () => {
           infoFireAndForget,
           'Complex object test',
           expect.objectContaining({
-            complex: complexObj,
+            complex: expect.any(String),
           }),
         );
+        // Проверяем, что объект сериализован корректно
+        const callArgs = vi.mocked(infoFireAndForget).mock.calls[0];
+        expect(callArgs).toBeDefined();
+        const complexMetadata = callArgs![1];
+        expect(complexMetadata?.['complex']).toBeTruthy();
+        expect(typeof complexMetadata?.['complex']).toBe('string');
+        const parsed = JSON.parse(complexMetadata!['complex'] as string);
+        expect(parsed.nested.array).toEqual([1, 2, { deep: 'value' }]);
+        expect(parsed.nested.date).toBe('2023-01-01T00:00:00.000Z');
       });
     });
   });

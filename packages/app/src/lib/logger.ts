@@ -38,8 +38,9 @@
  * - Синхронная обработка для лучшей производительности
  */
 
-import { errorFireAndForget, infoFireAndForget, warnFireAndForget } from './telemetry.js';
+import { errorFireAndForget, infoFireAndForget, warnFireAndForget } from '../runtime/telemetry.js';
 import type { JsonValue, Loggable } from '../types/common.js';
+import type { TelemetryMetadata, TelemetryPrimitive } from '../types/telemetry.js';
 
 /* ============================================================================
  * 🏷️ ТИПЫ УРОВНЕЙ ЛОГИРОВАНИЯ
@@ -157,6 +158,39 @@ function createLogMetadata(
   return metadata;
 }
 
+/**
+ * Преобразует LogMetadata в TelemetryMetadata, конвертируя объекты и массивы в строки.
+ */
+function convertToTelemetryMetadata(
+  logMetadata: LogMetadata | undefined,
+): TelemetryMetadata | undefined {
+  if (!logMetadata) {
+    return undefined;
+  }
+
+  const result: Record<string, TelemetryPrimitive> = {};
+
+  for (const [key, value] of Object.entries(logMetadata)) {
+    if (value === null) {
+      result[key] = null;
+    } else if (
+      typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean'
+    ) {
+      result[key] = value;
+    } else {
+      // Преобразуем объекты и массивы в строки
+      // typeof null === 'object' в JS, но мы уже обработали null выше
+      try {
+        result[key] = JSON.stringify(value);
+      } catch {
+        result[key] = '[Non-serializable]';
+      }
+    }
+  }
+
+  return result;
+}
+
 /* ============================================================================
  * 📝 ОСНОВНЫЕ ФУНКЦИИ ЛОГИРОВАНИЯ
  * ========================================================================== */
@@ -177,16 +211,17 @@ export function log(
 ): void {
   const formattedMessage = formatMessage(message, context);
   const logMetadata = createLogMetadata(context, metadata);
+  const telemetryMetadata = convertToTelemetryMetadata(logMetadata);
 
   switch (level) {
     case 'info':
-      infoFireAndForget(formattedMessage, logMetadata);
+      infoFireAndForget(formattedMessage, telemetryMetadata);
       break;
     case 'warn':
-      warnFireAndForget(formattedMessage, logMetadata);
+      warnFireAndForget(formattedMessage, telemetryMetadata);
       break;
     case 'error':
-      errorFireAndForget(formattedMessage, logMetadata);
+      errorFireAndForget(formattedMessage, telemetryMetadata);
       break;
   }
 }

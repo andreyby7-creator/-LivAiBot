@@ -7,4 +7,4 @@
  * а не в node_modules. Поэтому нужен wrapper для Client Components из библиотек.
  */
 
-export { IntlProvider, type IntlProviderProps } from '@livai/app';
+export { IntlProvider, type IntlProviderProps } from '@livai/app/providers/intl-provider.js';

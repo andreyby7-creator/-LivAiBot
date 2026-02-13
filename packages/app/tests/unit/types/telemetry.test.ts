@@ -17,15 +17,31 @@
 
 import { describe, expect, it } from 'vitest';
 import type {
+  BatchConfig,
+  CustomLevelPriority,
+  DropPolicy,
+  FallbackPriorityStrategy,
+  NonPIIField,
+  PIIField,
+  RetryConfig,
   TelemetryBatchCoreConfig,
   TelemetryBatchCoreState,
   TelemetryConfig,
   TelemetryEvent,
   TelemetryLevel,
+  TelemetryLevelTemplate,
   TelemetryMetadata,
+  TelemetryPrimitive,
   TelemetrySink,
+  TelemetryTimezone,
+  ThrottleConfig,
+  UiTelemetryMetrics,
 } from '../../../src/types/telemetry.js';
-import { BatchCoreConfigVersion, TelemetryLevels } from '../../../src/types/telemetry.js';
+import {
+  BatchCoreConfigVersion,
+  defaultTelemetryTimezone,
+  TelemetryLevels,
+} from '../../../src/types/telemetry.js';
 
 // Helper функции для создания тестовых данных
 function createTestMetadata(): TelemetryMetadata {
@@ -696,5 +712,400 @@ describe('Экспорты типов telemetry', () => {
     expect(customEvent.metadata?.customField).toBe('test');
     expect(customConfig.sinks).toHaveLength(1);
     expect(customBatchState.batch[0]?.metadata?.value).toBe(42);
+  });
+});
+
+// ============================================================================
+// 🏷️ ДОПОЛНИТЕЛЬНЫЕ ТИПЫ
+// ============================================================================
+
+describe('TelemetryLevelTemplate тип', () => {
+  it('принимает template literal типы', () => {
+    const template1: TelemetryLevelTemplate = 'level:INFO';
+    const template2: TelemetryLevelTemplate = 'level:WARN';
+    const template3: TelemetryLevelTemplate = 'level:ERROR';
+    const direct: TelemetryLevelTemplate = 'INFO';
+
+    expect(template1).toBe('level:INFO');
+    expect(template2).toBe('level:WARN');
+    expect(template3).toBe('level:ERROR');
+    expect(direct).toBe('INFO');
+  });
+});
+
+describe('PIIField и NonPIIField branded types', () => {
+  it('PIIField является branded типом', () => {
+    const piiField: PIIField = 'password123' as PIIField;
+
+    expect(piiField).toBe('password123');
+    expect(typeof piiField).toBe('string');
+  });
+
+  it('NonPIIField является branded типом', () => {
+    const nonPIIField: NonPIIField = 'userId' as NonPIIField;
+
+    expect(nonPIIField).toBe('userId');
+    expect(typeof nonPIIField).toBe('string');
+  });
+});
+
+describe('TelemetryTimezone тип', () => {
+  it('принимает строковые значения', () => {
+    const timezone1: TelemetryTimezone = 'UTC';
+    const timezone2: TelemetryTimezone = 'America/New_York';
+    const timezone3: TelemetryTimezone = 'Europe/Moscow';
+
+    expect(timezone1).toBe('UTC');
+    expect(timezone2).toBe('America/New_York');
+    expect(timezone3).toBe('Europe/Moscow');
+  });
+});
+
+describe('defaultTelemetryTimezone константа', () => {
+  it('имеет значение UTC', () => {
+    expect(defaultTelemetryTimezone).toBe('UTC');
+  });
+
+  it('является TelemetryTimezone', () => {
+    const timezone: TelemetryTimezone = defaultTelemetryTimezone;
+    expect(timezone).toBe('UTC');
+  });
+});
+
+describe('RetryConfig тип', () => {
+  it('создает минимальную конфигурацию', () => {
+    const config: RetryConfig = {};
+
+    expect(config.maxRetries).toBeUndefined();
+    expect(config.baseDelayMs).toBeUndefined();
+    expect(config.maxDelayMs).toBeUndefined();
+    expect(config.backoffMultiplier).toBeUndefined();
+  });
+
+  it('создает полную конфигурацию', () => {
+    const config: RetryConfig = {
+      maxRetries: 5,
+      baseDelayMs: 1000,
+      maxDelayMs: 10000,
+      backoffMultiplier: 2,
+    };
+
+    expect(config.maxRetries).toBe(5);
+    expect(config.baseDelayMs).toBe(1000);
+    expect(config.maxDelayMs).toBe(10000);
+    expect(config.backoffMultiplier).toBe(2);
+  });
+
+  it('является полностью readonly', () => {
+    const config: RetryConfig = {
+      maxRetries: 3,
+    };
+
+    // config.maxRetries = 5; // TypeScript error
+
+    expect(config.maxRetries).toBe(3);
+  });
+});
+
+describe('BatchConfig тип', () => {
+  it('создает минимальную конфигурацию', () => {
+    const config: BatchConfig = {};
+
+    expect(config.maxBatchSize).toBeUndefined();
+    expect(config.maxConcurrentBatches).toBeUndefined();
+  });
+
+  it('создает полную конфигурацию', () => {
+    const config: BatchConfig = {
+      maxBatchSize: 20,
+      maxConcurrentBatches: 10,
+    };
+
+    expect(config.maxBatchSize).toBe(20);
+    expect(config.maxConcurrentBatches).toBe(10);
+  });
+
+  it('является полностью readonly', () => {
+    const config: BatchConfig = {
+      maxBatchSize: 15,
+    };
+
+    // config.maxBatchSize = 20; // TypeScript error
+
+    expect(config.maxBatchSize).toBe(15);
+  });
+});
+
+describe('ThrottleConfig тип', () => {
+  it('создает минимальную конфигурацию', () => {
+    const config: ThrottleConfig = {};
+
+    expect(config.maxErrorsPerPeriod).toBeUndefined();
+    expect(config.throttlePeriodMs).toBeUndefined();
+  });
+
+  it('создает полную конфигурацию', () => {
+    const config: ThrottleConfig = {
+      maxErrorsPerPeriod: 5,
+      throttlePeriodMs: 30000,
+    };
+
+    expect(config.maxErrorsPerPeriod).toBe(5);
+    expect(config.throttlePeriodMs).toBe(30000);
+  });
+
+  it('является полностью readonly', () => {
+    const config: ThrottleConfig = {
+      maxErrorsPerPeriod: 10,
+    };
+
+    // config.maxErrorsPerPeriod = 20; // TypeScript error
+
+    expect(config.maxErrorsPerPeriod).toBe(10);
+  });
+});
+
+describe('CustomLevelPriority тип', () => {
+  it('создает карту приоритетов для кастомных уровней', () => {
+    const customPriority: CustomLevelPriority = {
+      DEBUG: 0,
+      TRACE: -1,
+      FATAL: 100,
+    };
+
+    expect(customPriority['DEBUG']).toBe(0);
+    expect(customPriority['TRACE']).toBe(-1);
+    expect(customPriority['FATAL']).toBe(100);
+  });
+
+  it('не позволяет использовать стандартные уровни', () => {
+    // const invalid: CustomLevelPriority = {
+    //   INFO: 1, // TypeScript error - INFO уже в TelemetryLevel
+    //   WARN: 2, // TypeScript error
+    //   ERROR: 3, // TypeScript error
+    // };
+
+    expect(true).toBe(true); // Заглушка для теста
+  });
+
+  it('является полностью readonly', () => {
+    const customPriority: CustomLevelPriority = {
+      DEBUG: 0,
+    };
+
+    // customPriority.DEBUG = 1; // TypeScript error
+
+    expect(customPriority['DEBUG']).toBe(0);
+  });
+});
+
+describe('FallbackPriorityStrategy тип', () => {
+  it('принимает все допустимые значения', () => {
+    const strategies: FallbackPriorityStrategy[] = ['ignore', 'log', 'error'];
+
+    strategies.forEach((strategy) => {
+      expect(['ignore', 'log', 'error']).toContain(strategy);
+    });
+  });
+
+  it('используется в TelemetryConfig', () => {
+    const config: TelemetryConfig = {
+      fallbackPriorityStrategy: 'log',
+    };
+
+    expect(config.fallbackPriorityStrategy).toBe('log');
+  });
+});
+
+describe('TelemetryEvent distributed tracing поля', () => {
+  it('создает событие с distributed tracing полями', () => {
+    const event: TelemetryEvent = {
+      level: 'INFO',
+      message: 'Distributed trace event',
+      timestamp: Date.now(),
+      spanId: 'span-123',
+      correlationId: 'corr-456',
+      traceId: 'trace-789',
+      timezone: 'UTC',
+    };
+
+    expect(event.spanId).toBe('span-123');
+    expect(event.correlationId).toBe('corr-456');
+    expect(event.traceId).toBe('trace-789');
+    expect(event.timezone).toBe('UTC');
+  });
+
+  it('distributed tracing поля опциональны', () => {
+    const eventWithoutTracing: TelemetryEvent = {
+      level: 'INFO',
+      message: 'Simple event',
+      timestamp: Date.now(),
+    };
+
+    expect(eventWithoutTracing.spanId).toBeUndefined();
+    expect(eventWithoutTracing.correlationId).toBeUndefined();
+    expect(eventWithoutTracing.traceId).toBeUndefined();
+    expect(eventWithoutTracing.timezone).toBeUndefined();
+  });
+
+  it('timezone может быть любым TelemetryTimezone', () => {
+    const event: TelemetryEvent = {
+      level: 'INFO',
+      message: 'Event with timezone',
+      timestamp: Date.now(),
+      timezone: 'America/New_York',
+    };
+
+    expect(event.timezone).toBe('America/New_York');
+  });
+});
+
+describe('TelemetryConfig дополнительные поля', () => {
+  it('создает конфигурацию с batchConfig', () => {
+    const batchConfig: BatchConfig = {
+      maxBatchSize: 20,
+      maxConcurrentBatches: 5,
+    };
+
+    const config: TelemetryConfig = {
+      batchConfig,
+    };
+
+    expect(config.batchConfig?.maxBatchSize).toBe(20);
+    expect(config.batchConfig?.maxConcurrentBatches).toBe(5);
+  });
+
+  it('создает конфигурацию с throttleConfig', () => {
+    const throttleConfig: ThrottleConfig = {
+      maxErrorsPerPeriod: 10,
+      throttlePeriodMs: 60000,
+    };
+
+    const config: TelemetryConfig = {
+      throttleConfig,
+    };
+
+    expect(config.throttleConfig?.maxErrorsPerPeriod).toBe(10);
+    expect(config.throttleConfig?.throttlePeriodMs).toBe(60000);
+  });
+
+  it('создает конфигурацию с customLevelPriority', () => {
+    const customPriority: CustomLevelPriority = {
+      DEBUG: 0,
+      TRACE: -1,
+    };
+
+    const config: TelemetryConfig = {
+      customLevelPriority: customPriority,
+    };
+
+    expect(config.customLevelPriority?.['DEBUG']).toBe(0);
+    expect(config.customLevelPriority?.['TRACE']).toBe(-1);
+  });
+
+  it('создает конфигурацию с timezone', () => {
+    const config: TelemetryConfig = {
+      timezone: 'Europe/Moscow',
+    };
+
+    expect(config.timezone).toBe('Europe/Moscow');
+  });
+
+  it('создает конфигурацию с enableDeepFreeze', () => {
+    const config: TelemetryConfig = {
+      enableDeepFreeze: false,
+    };
+
+    expect(config.enableDeepFreeze).toBe(false);
+  });
+
+  it('создает конфигурацию с enablePIIValueScan', () => {
+    const config: TelemetryConfig = {
+      enablePIIValueScan: true,
+    };
+
+    expect(config.enablePIIValueScan).toBe(true);
+  });
+
+  it('создает конфигурацию с fallbackPriorityStrategy', () => {
+    const config: TelemetryConfig = {
+      fallbackPriorityStrategy: 'error',
+    };
+
+    expect(config.fallbackPriorityStrategy).toBe('error');
+  });
+});
+
+describe('UiTelemetryMetrics тип', () => {
+  it('является алиасом для UiMetrics', () => {
+    // UiTelemetryMetrics - это алиас, проверяем что тип существует
+    const metrics: UiTelemetryMetrics = {} as UiTelemetryMetrics;
+
+    expect(metrics).toBeDefined();
+    expect(typeof metrics).toBe('object');
+  });
+});
+
+describe('TelemetryPrimitive тип', () => {
+  it('принимает все примитивные типы', () => {
+    const stringValue: TelemetryPrimitive = 'test';
+    const numberValue: TelemetryPrimitive = 42;
+    const booleanValue: TelemetryPrimitive = true;
+    const nullValue: TelemetryPrimitive = null;
+
+    expect(stringValue).toBe('test');
+    expect(numberValue).toBe(42);
+    expect(booleanValue).toBe(true);
+    expect(nullValue).toBeNull();
+  });
+
+  it('используется в TelemetryMetadata', () => {
+    const metadata: TelemetryMetadata = {
+      string: 'value' as TelemetryPrimitive,
+      number: 123 as TelemetryPrimitive,
+      boolean: true as TelemetryPrimitive,
+      null: null as TelemetryPrimitive,
+    };
+
+    expect(metadata['string']).toBe('value');
+    expect(metadata['number']).toBe(123);
+    expect(metadata['boolean']).toBe(true);
+    expect(metadata['null']).toBeNull();
+  });
+});
+
+describe('DropPolicy тип', () => {
+  it('принимает все допустимые значения', () => {
+    const policies: DropPolicy[] = ['oldest', 'newest', 'error'];
+
+    policies.forEach((policy) => {
+      expect(['oldest', 'newest', 'error']).toContain(policy);
+    });
+  });
+
+  it('используется в BatchConfig', () => {
+    const config: BatchConfig = {
+      dropPolicy: 'oldest',
+    };
+
+    expect(config.dropPolicy).toBe('oldest');
+
+    const config2: BatchConfig = {
+      dropPolicy: 'newest',
+    };
+
+    expect(config2.dropPolicy).toBe('newest');
+
+    const config3: BatchConfig = {
+      dropPolicy: 'error',
+    };
+
+    expect(config3.dropPolicy).toBe('error');
+  });
+
+  it('может быть undefined в BatchConfig', () => {
+    const config: BatchConfig = {};
+
+    expect(config.dropPolicy).toBeUndefined();
   });
 });

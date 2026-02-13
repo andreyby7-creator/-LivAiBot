@@ -1,105 +1,363 @@
 /**
  * @file packages/app/src/lib/telemetry.ts
  * ============================================================================
- * 🔹 TELEMETRY SHELL — BOOTSTRAP / REACT / INFRASTRUCTURE
+ * 🔹 TELEMETRY CORE — ЧИСТОЕ МИКРОСЕРВИСНОЕ ЯДРО ТЕЛЕМЕТРИИ
  * ============================================================================
  *
  * Архитектурная роль:
- * - Application shell для телеметрии (НЕ чистое ядро)
- * - React интеграция и глобальное состояние
- * - Bootstrap логика и инициализация
- * - Infrastructure: timers, console, SDK адаптеры
- * - Thin wrapper над чистым batch-core ядром
+ * - Runtime-зависимый клиент телеметрии с side-effects
+ * - Immutable конфигурация, но mutable внутреннее состояние (eventQueue, throttleMap)
+ * - Async queue и background processing для high-throughput
+ * - Microservice-ready: переиспользуемый в любом runtime
+ * - Extensible: расширяемость без изменения core-логики
+ * - High-throughput: batching с event queue для масштабируемости
+ * - Secure: throttle для защиты от DoS
  *
- * Свойства:
- * - контролируемая иммутабельность в shell слое
- * - поддержка асинхронных sink'ов и SDK
- * - enterprise-ready архитектура с hexagonal подходом
- * - React hooks и Context API
- * - легко тестируемое с разделением на core/shell
+ * Принципы:
+ * - SRP: разделение ответственности между domain и runtime слоями
+ * - Deterministic: детерминированное поведение для одинаковых входов (где возможно)
+ * - Runtime-aware: содержит mutable state и async операции
+ * - Microservice-ready: готовность к микросервисной архитектуре
+ * - Strict typing: union types, branded types, без Record в domain
+ * - Side-effects: async queue, background processing, setTimeout в retry
+ * - Extensible: расширяемость через композицию без изменения core
+ *
+ * Использование:
+ * - Создание клиента: `new TelemetryClient(config)`
+ * - Создание sinks: `createConsoleSink()`, `createExternalSink()`
+ * - Операции имеют side-effects: async queue, background processing, mutable state
+ *
+ * Timezone Behavior:
+ * - Все timestamp в UTC (milliseconds since epoch)
+ * - Используется Date.now() для получения UTC времени
+ * - Для distributed tracing рекомендуется использовать единую временную зону (UTC)
+ * - Опциональный timezone в config для enterprise-grade trace aggregation
+ * - Timestamp всегда в UTC, timezone используется только для форматирования/агрегации
+ * - Для корректной работы distributed tracing все микросервисы должны использовать UTC
  */
 
-import * as React from 'react';
-
-import { telemetryBatchCore } from './telemetry.batch-core.js';
-import { BatchCoreConfigVersion } from '../types/telemetry.js';
 import type {
-  TelemetryBatchCoreState,
+  DropPolicy,
+  RetryConfig,
   TelemetryConfig,
   TelemetryEvent,
   TelemetryLevel,
   TelemetrySink,
+  TelemetryTimezone,
 } from '../types/telemetry.js';
 
 /* ============================================================================
- * 🔧 УТИЛИТЫ КОНСОЛИ (только для bootstrap)
- * ========================================================================== */
+ * 🧱 КОНСТАНТЫ И ТИПЫ
+ * ============================================================================
+ */
 
-const consoleLog = (...args: unknown[]): void => {
-  // eslint-disable-next-line no-console
-  console.log(...args);
-};
-
-const consoleWarn = (...args: unknown[]): void => {
-  // eslint-disable-next-line no-console
-  console.warn(...args);
-};
-
-const consoleError = (...args: unknown[]): void => {
-  // eslint-disable-next-line no-console
-  console.error(...args);
-};
+const DEFAULT_MAX_CONCURRENT_BATCHES = 5;
+const DEFAULT_THROTTLE_PERIOD_MS = 60000;
+const DEFAULT_MAX_RETRIES = 3;
+const DEFAULT_MAX_DELAY_MS = 10000;
+const DEFAULT_MAX_QUEUE_SIZE = 1000;
+const DEFAULT_DROP_POLICY: DropPolicy = 'oldest';
+const MIN_BASE64_TOKEN_LENGTH = 20;
 
 /* ============================================================================
- * 🐛 УТИЛИТЫ ОТЛАДКИ
- * ========================================================================== */
-
-const GLOBAL_CLIENT_KEY = '__telemetryClient';
+ */
 
 /**
- * Устанавливает глобальный клиент для отладки (только в dev режиме).
+ * Уровни логирования телеметрии.
+ * Union type для строгой типизации вместо string.
  */
-const setGlobalClientForDebug = (client: TelemetryClient): void => {
-  if (typeof globalThis !== 'undefined') {
-    (globalThis as typeof globalThis & Record<string, unknown>)[GLOBAL_CLIENT_KEY] = client;
-  }
-};
-
-/**
- * Получает глобальный клиент для отладки.
- */
-export const getGlobalClientForDebug = (): TelemetryClient | undefined => {
-  if (typeof globalThis !== 'undefined') {
-    return (globalThis as typeof globalThis & Record<string, unknown>)[GLOBAL_CLIENT_KEY] as
-      | TelemetryClient
-      | undefined;
-  }
-  return undefined;
-};
-
-// Для обратной совместимости - re-export уровней
 export const telemetryLevels = ['INFO', 'WARN', 'ERROR'] as const;
 
-/* ============================================================================
- * ⚖️ ПРИОРИТЕТЫ УРОВНЕЙ (O(1) ДОСТУП)
- * ========================================================================== */
-
-// Карта приоритетов для быстрого сравнения уровней
+/**
+ * Приоритеты уровней для O(1) сравнения.
+ * Immutable map для детерминированного сравнения уровней.
+ * Extensible: пользовательские уровни могут быть добавлены через customLevelPriority в config.
+ */
 export const levelPriority = Object.freeze(
   {
-    INFO: 1, // Информационные сообщения
-    WARN: 2, // Предупреждения
-    ERROR: 3, // Ошибки (максимальный приоритет)
+    INFO: 1,
+    WARN: 2,
+    ERROR: 3,
   } satisfies Record<TelemetryLevel, number>,
 );
 
 /* ============================================================================
- * 🧠 КЛИЕНТ ТЕЛЕМЕТРИИ (ПОЛНОСТЬЮ IMMUTABLE)
- * ========================================================================== */
+ * 🔧 УТИЛИТЫ (PURE, DETERMINISTIC)
+ * ============================================================================
+ */
+
+/**
+ * Deep freeze для полной иммутабельности объектов.
+ * Рекурсивно замораживает все вложенные объекты и массивы.
+ *
+ * Производительность:
+ * - Для небольших объектов (< 100 ключей) - нет проблем
+ * - Для больших объектов (тысячи ключей/вложенных объектов) - может быть медленно
+ * - Используйте enableDeepFreeze: false для high-throughput систем с большими metadata
+ *
+ * Защита от циклических ссылок:
+ * - Использует WeakSet для отслеживания уже обработанных объектов
+ * - Предотвращает бесконечную рекурсию при циклических ссылках
+ *
+ * @param obj - Объект для заморозки
+ * @param visited - WeakSet для отслеживания уже обработанных объектов (внутренний параметр)
+ * @returns Замороженный объект (readonly на всех уровнях)
+ */
+function deepFreeze<T>(obj: T, visited = new WeakSet<object>()): Readonly<T> {
+  if (obj === null || typeof obj !== 'object') {
+    return obj as Readonly<T>;
+  }
+
+  // Защита от циклических ссылок
+  if (visited.has(obj as object)) {
+    return obj as Readonly<T>;
+  }
+
+  visited.add(obj as object);
+  Object.freeze(obj);
+
+  if (Array.isArray(obj)) {
+    obj.forEach((item) => deepFreeze(item, visited));
+  } else {
+    Object.values(obj).forEach((value) => {
+      if (value !== null && typeof value === 'object') {
+        deepFreeze(value, visited);
+      }
+    });
+  }
+
+  return obj as Readonly<T>;
+}
+
+/**
+ * ВАЖНО: Regex-based PII detection имеет false negatives и не рекомендуется для production.
+ * Для enterprise-среды используйте:
+ * - allow-list schema через typed metadata contracts
+ * - Явную валидацию через sanitizeMetadata в config
+ *
+ * Regex-подход оставлен только для обратной совместимости и должен быть отключен
+ * через enableRegexPIIDetection: false в production.
+ */
+const PII_PATTERNS = Object.freeze(
+  [
+    /^(password|pwd|passwd)$/i,
+    /^(access[_-]?token|auth[_-]?token|bearer[_-]?token|refresh[_-]?token)$/i,
+    /^(secret|secret[_-]?key|private[_-]?key)$/i,
+    /^(api[_-]?key|apikey)$/i,
+    /^(authorization|auth[_-]?header)$/i,
+    /^(credit[_-]?card|card[_-]?number|cc[_-]?number)$/i,
+    /^(ssn|social[_-]?security[_-]?number)$/i,
+    /^(session[_-]?id|sessionid)$/i,
+  ] as const,
+);
+
+/**
+ * Проверяет, является ли строка base64-закодированным токеном.
+ * ВАЖНО: Это эвристика с false negatives. Используйте typed metadata contracts для production.
+ */
+function isBase64Token(value: string): boolean {
+  if (value.length < MIN_BASE64_TOKEN_LENGTH) return false;
+  // Base64 может содержать A-Z, a-z, 0-9, +, /, = (padding)
+  const base64Pattern = /^[A-Za-z0-9+/]+=*$/;
+  return base64Pattern.test(value) && value.length > MIN_BASE64_TOKEN_LENGTH;
+}
+
+/**
+ * Deep validation и PII redaction для metadata.
+ * Рекурсивно проверяет и скрывает чувствительные данные.
+ *
+ * ВАЖНО: Regex-based PII detection имеет false negatives!
+ * Для enterprise-среды рекомендуется:
+ * - Использовать allow-list schema через typed metadata contracts
+ * - Передавать кастомный sanitizeMetadata в config
+ * - Отключить enableRegexPIIDetection в production
+ *
+ * @param metadata - Метаданные для валидации
+ * @param redactValue - Значение для замены PII (по умолчанию '[REDACTED]')
+ * @param enableValueScan - Включить сканирование значений на PII (по умолчанию false)
+ * @param enableRegexDetection - Включить regex-based detection (по умолчанию true, но не рекомендуется для production)
+ * @returns Валидированные и очищенные метаданные
+ */
+function isPIIKey(key: string): boolean {
+  return PII_PATTERNS.some((pattern) => pattern.test(key));
+}
+
+function isPIIValue(value: string): boolean {
+  return PII_PATTERNS.some((pattern) => pattern.test(value));
+}
+
+function truncateLongString(value: string, maxLength = 1000): string {
+  return value.length > maxLength ? `${value.slice(0, maxLength)}...[TRUNCATED]` : value;
+}
+
+function processMetadataEntry(
+  key: string,
+  value: unknown,
+  redactValue: string,
+  enableValueScan: boolean,
+  enableRegexDetection: boolean,
+  visited: WeakSet<object>,
+): unknown {
+  // Regex-based PII detection (не рекомендуется для production из-за false negatives)
+  if (enableRegexDetection) {
+    // Проверка ключа на PII patterns
+    if (isPIIKey(key)) {
+      return redactValue;
+    }
+
+    if (enableValueScan && typeof value === 'string') {
+      // Сканирование значений на PII (опционально, для повышенной безопасности)
+      if (isPIIValue(value) || isBase64Token(value)) {
+        return redactValue;
+      }
+      return truncateLongString(value);
+    }
+  }
+
+  if (typeof value === 'string') {
+    return truncateLongString(value);
+  }
+
+  if (value !== null && typeof value === 'object') {
+    // Защита от циклических ссылок
+    if (visited.has(value)) {
+      return '[Circular Reference]';
+    }
+    // Рекурсивная обработка вложенных объектов
+    return deepValidateAndRedactPII(
+      value,
+      redactValue,
+      enableValueScan,
+      enableRegexDetection,
+      visited,
+    );
+  }
+
+  return value;
+}
+
+function deepValidateAndRedactPII<T>(
+  metadata: T,
+  redactValue = '[REDACTED]',
+  enableValueScan = false,
+  enableRegexDetection = true,
+  visited = new WeakSet<object>(),
+): Readonly<T> {
+  if (metadata === null || metadata === undefined) {
+    return metadata as Readonly<T>;
+  }
+
+  if (
+    typeof metadata === 'string' || typeof metadata === 'number' || typeof metadata === 'boolean'
+  ) {
+    return metadata as Readonly<T>;
+  }
+
+  // Защита от циклических ссылок
+  if (typeof metadata === 'object') {
+    if (visited.has(metadata)) {
+      return '[Circular Reference]' as unknown as Readonly<T>;
+    }
+    visited.add(metadata);
+  }
+
+  if (Array.isArray(metadata)) {
+    return metadata.map((item) =>
+      deepValidateAndRedactPII(item, redactValue, enableValueScan, enableRegexDetection, visited)
+    ) as unknown as Readonly<T>;
+  }
+
+  if (typeof metadata === 'object') {
+    const sanitized = { ...metadata } as Record<string, unknown>;
+
+    for (const [key, value] of Object.entries(sanitized)) {
+      sanitized[key] = processMetadataEntry(
+        key,
+        value,
+        redactValue,
+        enableValueScan,
+        enableRegexDetection,
+        visited,
+      );
+    }
+
+    // НЕ вызываем deepFreeze здесь - это будет сделано в applySanitization
+    return sanitized as unknown as Readonly<T>;
+  }
+
+  return metadata as Readonly<T>;
+}
+
+/**
+ * Вычисляет задержку для exponential backoff.
+ *
+ * @param attempt - Номер попытки (начиная с 1)
+ * @param baseDelayMs - Базовая задержка в миллисекундах
+ * @param maxDelayMs - Максимальная задержка в миллисекундах
+ * @param multiplier - Множитель для exponential backoff
+ * @returns Задержка в миллисекундах
+ */
+function calculateBackoffDelay(
+  attempt: number,
+  baseDelayMs: number,
+  maxDelayMs: number,
+  multiplier: number,
+): number {
+  const delay = baseDelayMs * multiplier ** (attempt - 1);
+  return Math.min(delay, maxDelayMs);
+}
+
+/**
+ * Создает ключ для throttle на основе сообщения и уровня.
+ *
+ * @param level - Уровень события
+ * @param message - Сообщение события
+ * @returns Ключ для throttle map
+ */
+function createThrottleKey(level: TelemetryLevel, message: string): string {
+  return `${level}:${message}`;
+}
+
+/* ============================================================================
+ * 🔍 TYPE GUARDS (RUNTIME VALIDATION)
+ * ============================================================================
+ */
+
+/**
+ * Type guard для проверки валидности sink.
+ *
+ * Runtime validation для user-friendly ошибок при неправильной конфигурации.
+ * Выбрасывает ошибку сразу при создании sink, а не во время выполнения.
+ *
+ * @throws Error если sink невалиден
+ */
+export function isValidTelemetrySink<
+  TMetadata = Readonly<Record<string, string | number | boolean | null>>,
+>(
+  sink: unknown, // Объект для проверки
+): sink is TelemetrySink<TMetadata> {
+  if (typeof sink !== 'function') {
+    throw new Error('TelemetrySink must be a function');
+  }
+  return true;
+}
+
+/* ============================================================================
+ * 🧠 КЛИЕНТ ТЕЛЕМЕТРИИ
+ * ============================================================================
+ */
 
 /**
  * Enterprise-ready клиент телеметрии.
- * Принимает sinks в конструкторе, никаких мутаций после создания.
+ *
+ * См. описание в заголовке файла для общей архитектуры и принципов.
+ *
+ * Специфичные детали реализации:
+ * - Immutable config: все поля конфигурации readonly после создания
+ * - Mutable state: eventQueue (очередь событий), throttleMap (состояние throttle)
+ * - Testable: injection timestamp через getTimestamp для unit-тестов
+ * - Secure: deep validation + PII redaction для защиты от PII
+ * - DoS-resistant: throttle для защиты от повторяющихся ошибок
  */
 export class TelemetryClient<
   TMetadata = Readonly<Record<string, string | number | boolean | null>>,
@@ -109,585 +367,687 @@ export class TelemetryClient<
   private readonly onError:
     | ((error: unknown, event: TelemetryEvent<TMetadata>) => void)
     | undefined;
+  private readonly getTimestamp: () => number;
+  private readonly sanitizeMetadata: ((metadata: TMetadata) => Readonly<TMetadata>) | undefined;
+  private readonly customLevelPriority: Readonly<Record<string, number>>;
+  private readonly batchConfig: Readonly<{
+    maxBatchSize: number;
+    maxConcurrentBatches: number;
+    maxQueueSize: number;
+    dropPolicy: DropPolicy;
+  }>;
+  private readonly throttleConfig: Readonly<{
+    maxErrorsPerPeriod: number;
+    throttlePeriodMs: number;
+  }>;
+  // Timezone для enterprise-grade trace aggregation (добавляется в событие если не UTC)
+  private readonly timezone: TelemetryTimezone;
+  private readonly enableDeepFreeze: boolean;
+  private readonly enablePIIValueScan: boolean;
+  private readonly enableRegexPIIDetection: boolean;
 
-  constructor(config: TelemetryConfig<TMetadata> = {}) {
+  // Throttle state для log suppression
+  private readonly throttleMap = new Map<string, { count: number; resetAt: number; }>();
+
+  // Event queue для batching событий (не sinks)
+  private readonly eventQueue: TelemetryEvent<TMetadata>[] = [];
+  private processingQueue = false;
+
+  /**
+   * Создает новый экземпляр клиента телеметрии.
+   */
+  constructor(
+    config: TelemetryConfig<TMetadata> = {}, // Конфигурация клиента
+  ) {
     this.levelThreshold = config.levelThreshold ?? 'INFO';
     this.sinks = config.sinks ?? [];
     this.onError = config.onError;
-  }
+    this.getTimestamp = config.getTimestamp ?? ((): number => Date.now());
+    this.sanitizeMetadata = config.sanitizeMetadata;
+    this.customLevelPriority = config.customLevelPriority ?? {};
+    this.batchConfig = Object.freeze({
+      maxBatchSize: config.batchConfig?.maxBatchSize ?? 10,
+      maxConcurrentBatches: config.batchConfig?.maxConcurrentBatches
+        ?? DEFAULT_MAX_CONCURRENT_BATCHES,
+      maxQueueSize: config.batchConfig?.maxQueueSize ?? DEFAULT_MAX_QUEUE_SIZE,
+      dropPolicy: config.batchConfig?.dropPolicy ?? DEFAULT_DROP_POLICY,
+    });
+    this.throttleConfig = Object.freeze({
+      maxErrorsPerPeriod: config.throttleConfig?.maxErrorsPerPeriod ?? 10,
+      throttlePeriodMs: config.throttleConfig?.throttlePeriodMs ?? DEFAULT_THROTTLE_PERIOD_MS,
+    });
+    this.timezone = config.timezone ?? 'UTC';
+    this.enableDeepFreeze = config.enableDeepFreeze ?? true;
+    this.enablePIIValueScan = config.enablePIIValueScan ?? false;
+    this.enableRegexPIIDetection = config.enableRegexPIIDetection ?? true;
 
-  // Основной метод логирования события
-  async log(
-    level: TelemetryLevel,
-    message: string,
-    metadata?: TMetadata,
-    timestamp: number = Date.now(),
-  ): Promise<void> {
-    if (!this.shouldEmit(level)) return;
-
-    const event: TelemetryEvent<TMetadata> = {
-      level,
-      message,
-      timestamp,
-      ...(metadata !== undefined && { metadata }),
-    };
-
-    const results = await Promise.allSettled(
-      this.sinks.map((sink) => Promise.resolve(sink(event))),
-    );
-
-    // Обработка ошибок sinks
-    results.forEach((result) => {
-      if (result.status === 'rejected' && this.onError) {
-        this.onError(result.reason, event);
+    // Runtime validation sinks для user-friendly ошибок
+    this.sinks.forEach((sink, index) => {
+      try {
+        isValidTelemetrySink(sink);
+      } catch (error) {
+        throw new Error(
+          `Invalid sink at index ${index}: ${
+            error instanceof Error ? error.message : String(error)
+          }`,
+        );
       }
     });
   }
 
-  // Сокращение для INFO уровня
+  /**
+   * Применяет sanitization к metadata.
+   * Использует кастомный sanitizeMetadata если задан, иначе deepValidateAndRedactPII.
+   */
+  private applySanitization(metadata: TMetadata): Readonly<TMetadata> {
+    if (this.sanitizeMetadata) {
+      return this.enableDeepFreeze
+        ? deepFreeze(this.sanitizeMetadata(metadata))
+        : this.sanitizeMetadata(metadata);
+    }
+
+    const sanitized = deepValidateAndRedactPII(
+      metadata,
+      '[REDACTED]',
+      this.enablePIIValueScan,
+      this.enableRegexPIIDetection,
+    );
+    return this.enableDeepFreeze ? deepFreeze(sanitized) : sanitized;
+  }
+
+  private createEvent(
+    level: TelemetryLevel,
+    message: string,
+    sanitizedMetadata: Readonly<TMetadata> | undefined,
+    timestamp: number,
+    spanId?: string,
+    correlationId?: string,
+    traceId?: string,
+  ): TelemetryEvent<TMetadata> {
+    const eventData = {
+      level,
+      message,
+      timestamp,
+      ...(sanitizedMetadata !== undefined && { metadata: sanitizedMetadata }),
+      ...(spanId !== undefined && { spanId }),
+      ...(correlationId !== undefined && { correlationId }),
+      ...(traceId !== undefined && { traceId }),
+      ...(this.timezone !== 'UTC' && { timezone: this.timezone }),
+    };
+    return this.enableDeepFreeze ? deepFreeze(eventData) : Object.freeze(eventData);
+  }
+
+  /**
+   * Логирует событие телеметрии.
+   * Добавляет событие в очередь для асинхронной обработки.
+   */
+  async log(
+    level: TelemetryLevel, // Уровень события (union type)
+    message: string, // Сообщение события
+    metadata?: TMetadata, // Метаданные события (опционально)
+    timestamp?: number, // Временная метка в UTC (опционально, по умолчанию текущее время)
+    spanId?: string, // ID span для distributed tracing (опционально)
+    correlationId?: string, // Correlation ID для связывания событий (опционально)
+    traceId?: string, // Trace ID для distributed tracing (опционально)
+  ): Promise<void> {
+    if (!this.shouldEmit(level)) return;
+
+    // Throttle для защиты от DoS через логирование
+    if (this.isThrottled(level, message)) {
+      return;
+    }
+
+    // Deep validation + PII redaction (если не задан кастомный sanitizeMetadata)
+    const sanitizedMetadata = metadata !== undefined ? this.applySanitization(metadata) : undefined;
+
+    // Immutable событие с readonly полями (deep frozen опционально)
+    const event = this.createEvent(
+      level,
+      message,
+      sanitizedMetadata,
+      timestamp ?? this.getTimestamp(),
+      spanId,
+      correlationId,
+      traceId,
+    );
+
+    // Batching для high-throughput систем
+    this.sendToSinksBatched(event);
+
+    // Возвращаем resolved promise для обратной совместимости API
+    // Обработка событий происходит асинхронно в фоне через очередь
+    return Promise.resolve();
+  }
+
+  /**
+   * Добавляет событие в очередь и запускает обработку если нужно.
+   * Поддерживает backpressure через maxQueueSize и drop-policy.
+   *
+   * @param event - Событие для добавления в очередь
+   */
+  private sendToSinksBatched(event: TelemetryEvent<TMetadata>): void {
+    const { maxQueueSize, dropPolicy } = this.batchConfig;
+
+    // Backpressure: проверяем размер очереди
+    if (maxQueueSize > 0 && this.eventQueue.length >= maxQueueSize) {
+      // Применяем drop-policy
+      if (dropPolicy === 'oldest') {
+        // Удаляем самое старое событие
+        this.eventQueue.shift();
+      } else if (dropPolicy === 'newest') {
+        // Игнорируем новое событие
+        return;
+      } else {
+        // dropPolicy === 'error' - выбрасываем ошибку
+        throw new Error(`Event queue overflow: maxQueueSize=${maxQueueSize} reached`);
+      }
+    }
+
+    // Добавляем событие в очередь
+    this.eventQueue.push(event);
+
+    // Запускаем обработку очереди асинхронно (не блокируем)
+    this.processEventQueue().catch((error) => {
+      if (this.onError) {
+        // Используем последнее событие для контекста ошибки
+        this.onError(error, this.eventQueue[this.eventQueue.length - 1] ?? event);
+      }
+    });
+  }
+
+  /**
+   * Обрабатывает один батч событий и отправляет во все sinks.
+   * Вынесено в отдельную функцию для снижения cognitive complexity.
+   */
+  private async processBatch(batch: readonly TelemetryEvent<TMetadata>[]): Promise<void> {
+    // Отправляем батч событий во все sinks параллельно
+    const sinkResults = await Promise.allSettled(
+      this.sinks.map((sink) =>
+        Promise.allSettled(
+          batch.map((event) => Promise.resolve(sink(event))),
+        )
+      ),
+    );
+
+    // Обрабатываем ошибки
+    sinkResults.forEach((sinkResult) => {
+      if (sinkResult.status === 'fulfilled') {
+        sinkResult.value.forEach((eventResult, eventIndex) => {
+          if (eventResult.status === 'rejected' && this.onError) {
+            const event = batch[eventIndex];
+            if (event) {
+              this.onError(eventResult.reason, event);
+            }
+          }
+        });
+      } else if (this.onError && batch[0]) {
+        this.onError(sinkResult.reason, batch[0]);
+      }
+    });
+  }
+
+  /**
+   * Извлекает батч событий из очереди.
+   */
+  private extractBatch(maxBatchSize: number): TelemetryEvent<TMetadata>[] {
+    const batch: TelemetryEvent<TMetadata>[] = [];
+    const batchSize = Math.min(maxBatchSize, this.eventQueue.length);
+
+    for (let i = 0; i < batchSize; i++) {
+      const event = this.eventQueue.shift();
+      if (event) {
+        batch.push(event);
+      }
+    }
+
+    return batch;
+  }
+
+  /**
+   * Обрабатывает очередь событий батчами.
+   * Батчит события (не sinks) для лучшей производительности.
+   */
+  private async processEventQueue(): Promise<void> {
+    // Предотвращаем параллельную обработку
+    if (this.processingQueue) {
+      return;
+    }
+
+    this.processingQueue = true;
+
+    try {
+      const { maxBatchSize, maxConcurrentBatches } = this.batchConfig;
+
+      while (this.eventQueue.length > 0) {
+        // Реализация maxConcurrentBatches: обрабатываем несколько батчей параллельно
+        const concurrentPromises: Promise<void>[] = [];
+
+        // Создаем до maxConcurrentBatches батчей для параллельной обработки
+        for (
+          let batchIndex = 0;
+          batchIndex < maxConcurrentBatches && this.eventQueue.length > 0;
+          batchIndex++
+        ) {
+          const batch = this.extractBatch(maxBatchSize);
+
+          if (batch.length === 0) {
+            continue;
+          }
+
+          concurrentPromises.push(this.processBatch(batch));
+        }
+
+        // Ждем завершения всех параллельных батчей перед следующим циклом
+        if (concurrentPromises.length > 0) {
+          await Promise.allSettled(concurrentPromises);
+        }
+      }
+    } finally {
+      this.processingQueue = false;
+    }
+  }
+
+  /**
+   * Проверяет, нужно ли throttle событие.
+   * Защита от DoS через логирование повторяющихся ошибок.
+   *
+   * @param level - Уровень события
+   * @param message - Сообщение события
+   * @returns true если событие должно быть проигнорировано (throttled)
+   */
+  private isThrottled(level: TelemetryLevel, message: string): boolean {
+    const { maxErrorsPerPeriod, throttlePeriodMs } = this.throttleConfig;
+    const now = this.getTimestamp();
+    const key = createThrottleKey(level, message);
+
+    const throttleEntry = this.throttleMap.get(key);
+
+    if (!throttleEntry) {
+      this.throttleMap.set(key, { count: 1, resetAt: now + throttlePeriodMs });
+      return false;
+    }
+
+    // Сброс счетчика если период истек
+    if (now >= throttleEntry.resetAt) {
+      this.throttleMap.set(key, { count: 1, resetAt: now + throttlePeriodMs });
+      return false;
+    }
+
+    // Увеличиваем счетчик
+    throttleEntry.count += 1;
+
+    // Throttle если превышен лимит
+    if (throttleEntry.count > maxErrorsPerPeriod) {
+      return true;
+    }
+
+    return false;
+  }
+
+  /**
+   * Логирует информационное событие.
+   */
   info(
-    message: string,
-    metadata?: TMetadata,
+    message: string, // Сообщение события
+    metadata?: TMetadata, // Метаданные события (опционально)
+    spanId?: string, // ID span для distributed tracing (опционально)
+    correlationId?: string, // Correlation ID для связывания событий (опционально)
+    traceId?: string, // Trace ID для distributed tracing (опционально)
   ): Promise<void> {
-    return this.log('INFO', message, metadata);
+    return this.log('INFO', message, metadata, undefined, spanId, correlationId, traceId);
   }
 
-  // Сокращение для WARN уровня
+  /**
+   * Логирует предупреждение.
+   */
   warn(
-    message: string,
-    metadata?: TMetadata,
+    message: string, // Сообщение события
+    metadata?: TMetadata, // Метаданные события (опционально)
+    spanId?: string, // ID span для distributed tracing (опционально)
+    correlationId?: string, // Correlation ID для связывания событий (опционально)
+    traceId?: string, // Trace ID для distributed tracing (опционально)
   ): Promise<void> {
-    return this.log('WARN', message, metadata);
+    return this.log('WARN', message, metadata, undefined, spanId, correlationId, traceId);
   }
 
-  // Сокращение для ERROR уровня
+  /**
+   * Логирует ошибку.
+   */
   error(
-    message: string,
-    metadata?: TMetadata,
+    message: string, // Сообщение события
+    metadata?: TMetadata, // Метаданные события (опционально)
+    spanId?: string, // ID span для distributed tracing (опционально)
+    correlationId?: string, // Correlation ID для связывания событий (опционально)
+    traceId?: string, // Trace ID для distributed tracing (опционально)
   ): Promise<void> {
-    return this.log('ERROR', message, metadata);
+    return this.log('ERROR', message, metadata, undefined, spanId, correlationId, traceId);
   }
 
-  // Метрика для измерения производительности
+  /**
+   * Записывает метрику производительности.
+   */
   recordMetric(
-    name: string,
-    value: number,
-    metadata?: TMetadata,
+    name: string, // Название метрики
+    value: number, // Значение метрики
+    metadata?: TMetadata, // Дополнительные метаданные (опционально)
+    spanId?: string, // ID span для distributed tracing (опционально)
+    correlationId?: string, // Correlation ID для связывания событий (опционально)
+    traceId?: string, // Trace ID для distributed tracing (опционально)
   ): Promise<void> {
     const metricMetadata = { value, ...metadata } as TMetadata;
-    return this.log('INFO', `metric:${name}`, metricMetadata);
+    return this.log(
+      'INFO',
+      `metric:${name}`,
+      metricMetadata,
+      undefined,
+      spanId,
+      correlationId,
+      traceId,
+    );
   }
 
-  // Начало отслеживания операции
-  startSpan(name: string, metadata?: TMetadata): Promise<void> {
-    return this.log('INFO', `span:start:${name}`, metadata);
+  /**
+   * Начинает отслеживание операции (span start).
+   *
+   * Для enterprise-grade tracing рекомендуется передавать spanId для связывания
+   * startSpan и endSpan в distributed системах.
+   *
+   * Timezone:
+   * - Timestamp в UTC для корректной работы distributed tracing
+   * - Timezone из config используется для агрегации/отображения
+   */
+  startSpan(
+    name: string, // Название операции
+    metadata?: TMetadata, // Метаданные операции (опционально)
+    spanId?: string, // ID span для distributed tracing (опционально)
+    correlationId?: string, // Correlation ID для связывания событий (опционально)
+    traceId?: string, // Trace ID для distributed tracing (опционально)
+  ): Promise<void> {
+    return this.log(
+      'INFO',
+      `span:start:${name}`,
+      metadata,
+      undefined,
+      spanId,
+      correlationId,
+      traceId,
+    );
   }
 
-  // Завершение отслеживания операции
-  endSpan(name: string, metadata?: TMetadata): Promise<void> {
-    return this.log('INFO', `span:end:${name}`, metadata);
+  /**
+   * Завершает отслеживание операции (span end).
+   *
+   * Для enterprise-grade tracing рекомендуется передавать тот же spanId,
+   * что был использован в startSpan, для связывания событий.
+   *
+   * Timezone:
+   * - Timestamp в UTC для корректной работы distributed tracing
+   * - Timezone из config используется для агрегации/отображения
+   */
+  endSpan(
+    name: string, // Название операции
+    metadata?: TMetadata, // Метаданные операции (опционально)
+    spanId?: string, // ID span для distributed tracing (опционально, должен совпадать с startSpan)
+    correlationId?: string, // Correlation ID для связывания событий (опционально)
+    traceId?: string, // Trace ID для distributed tracing (опционально)
+  ): Promise<void> {
+    return this.log(
+      'INFO',
+      `span:end:${name}`,
+      metadata,
+      undefined,
+      spanId,
+      correlationId,
+      traceId,
+    );
   }
 
-  // Проверка, нужно ли отправлять событие данного уровня
-  private shouldEmit(level: TelemetryLevel): boolean {
+  /**
+   * Проверяет необходимость отправки события на основе уровня.
+   * Использует immutable map приоритетов для O(1) сравнения.
+   *
+   * @param level - Уровень события для проверки
+   * @returns true если событие должно быть отправлено
+   */
+  private shouldEmit(
+    level: TelemetryLevel, // Уровень события для проверки
+  ): boolean {
+    // Проверяем кастомные приоритеты сначала (extensible)
+    const customPriority = this.customLevelPriority[level];
+    if (customPriority !== undefined) {
+      const thresholdPriority = this.customLevelPriority[this.levelThreshold]
+        ?? levelPriority[this.levelThreshold];
+      return customPriority >= thresholdPriority;
+    }
+
+    // Fallback на стандартные приоритеты
     return levelPriority[level] >= levelPriority[this.levelThreshold];
   }
 }
 
 /* ============================================================================
- * 🔌 SINK'И (УРОВЕНЬ ИНФРАСТРУКТУРЫ - ТОЛЬКО BOOTSTRAP)
- * ========================================================================== */
-
-/**
- * ПРИМЕЧАНИЕ:
- * console используется исключительно внутри createConsoleSink как
- * boundary side-effect для инфраструктуры.
- * Это единственная допустимая точка прямого I/O в данном модуле.
+ * 🔌 SINK FACTORIES
+ * ============================================================================
  */
 
 /**
- * Создает console sink для вывода в консоль браузера/terminal'а.
- * Должен использоваться ТОЛЬКО в bootstrap коде приложения.
+ * Форматтер для console sink (опционально).
+ * Позволяет кастомизировать вывод для более структурированного логирования.
  */
-export const createConsoleSink = (): TelemetrySink => {
+export type ConsoleSinkFormatter = (event: TelemetryEvent) => readonly [string, ...unknown[]];
+
+/**
+ * Создает console sink для вывода в консоль.
+ *
+ * Factory функция:
+ * - Возвращает функцию-sink без выполнения I/O при создании
+ * - Side-effect (console.log/warn/error) инкапсулирован внутри sink
+ * - Детерминированное создание sink'а
+ * - Использует методы из глобального console (позволяет мокам работать в тестах)
+ * - Extensible: поддержка кастомного formatter
+ *
+ * Использование:
+ * - Только в bootstrap коде приложения
+ * - Для разработки и отладки
+ */
+export const createConsoleSink = (
+  formatter?: ConsoleSinkFormatter, // Опциональный formatter для кастомизации вывода
+): TelemetrySink => {
   return (event: TelemetryEvent): void => {
-    const prefix = `[${event.level}] ${new Date(event.timestamp).toISOString()}`;
+    // Используем методы из глобального console вместо сохраненных ссылок
+    // Это позволяет мокам работать в тестах
+    const consoleMethod = event.level === 'ERROR'
+      // eslint-disable-next-line no-console
+      ? console.error
+      : event.level === 'WARN'
+      // eslint-disable-next-line no-console
+      ? console.warn
+      // eslint-disable-next-line no-console
+      : console.log;
 
-    if (event.level === 'ERROR') {
-      consoleError(prefix, event.message, event.metadata);
-    } else if (event.level === 'WARN') {
-      consoleWarn(prefix, event.message, event.metadata);
+    if (formatter) {
+      const formatted = formatter(event);
+      consoleMethod(...formatted);
     } else {
-      consoleLog(prefix, event.message, event.metadata);
+      const prefix = `[${event.level}] ${new Date(event.timestamp).toISOString()}`;
+      if (event.metadata !== undefined) {
+        consoleMethod(prefix, event.message, event.metadata);
+      } else {
+        consoleMethod(prefix, event.message);
+      }
     }
   };
 };
 
-/* ============================================================================
- * 🎣 REACT HOOK
- * ========================================================================== */
-
 /**
- * React хук для получения клиента телеметрии.
- * Возвращает инициализированный глобальный клиент телеметрии.
+ * Тип внешнего SDK для типизации.
+ * Generic для строгой типизации metadata.
  */
-export function useTelemetry(): TelemetryClient {
-  return getGlobalTelemetryClient();
-}
-
-/* ============================================================================
- * 🔄 FIRE-AND-FORGET HELPERS
- * ========================================================================== */
-
-/**
- * Вспомогательная функция для fire-and-forget логирования.
- * Используется для случаев, когда результат логирования не важен.
- * В dev режиме логирует ошибки sink'ов для отладки.
- * В production молча игнорирует ошибки.
- */
-export function fireAndForget(fn: () => Promise<void>): void {
-  fn().catch((error) => {
-    // В dev режиме логируем ошибки sink'ов для отладки
-    if (process.env['NODE_ENV'] === 'development') {
-      // eslint-disable-next-line no-console
-      console.warn('⚠️  Telemetry sink error (fire-and-forget):', error);
-    }
-    // В production молча игнорируем - ошибки логирования не должны ломать бизнес-логику
-  });
-}
-
-// Проверяет, инициализирована ли telemetry
-export function isTelemetryInitialized(): boolean {
-  return globalClient !== null;
-}
-
-// Fire-and-forget версия log метода.
-export function logFireAndForget<
-  TMetadata = Readonly<Record<string, string | number | boolean | null>>,
->(
-  level: TelemetryLevel,
-  message: string,
-  metadata?: TMetadata,
-): void {
-  if (!isTelemetryInitialized()) return;
-  fireAndForget(() =>
-    (getGlobalTelemetryClient() as TelemetryClient<TMetadata>).log(level, message, metadata)
-  );
-}
-
-// Fire-and-forget версия info метода.
-export function infoFireAndForget<
-  TMetadata = Readonly<Record<string, string | number | boolean | null>>,
->(
-  message: string,
-  metadata?: TMetadata,
-): void {
-  if (!isTelemetryInitialized()) return;
-  fireAndForget(() =>
-    (getGlobalTelemetryClient() as TelemetryClient<TMetadata>).info(message, metadata)
-  );
-}
-
-// Fire-and-forget версия warn метода.
-export function warnFireAndForget<
-  TMetadata = Readonly<Record<string, string | number | boolean | null>>,
->(
-  message: string,
-  metadata?: TMetadata,
-): void {
-  if (!isTelemetryInitialized()) return;
-  fireAndForget(() =>
-    (getGlobalTelemetryClient() as TelemetryClient<TMetadata>).warn(message, metadata)
-  );
-}
-
-// Fire-and-forget версия error метода.
-export function errorFireAndForget<
-  TMetadata = Readonly<Record<string, string | number | boolean | null>>,
->(
-  message: string,
-  metadata?: TMetadata,
-): void {
-  if (!isTelemetryInitialized()) return;
-  fireAndForget(() =>
-    (getGlobalTelemetryClient() as TelemetryClient<TMetadata>).error(message, metadata)
-  );
-}
+export type ExternalSdk<TMetadata = Readonly<Record<string, string | number | boolean | null>>> = {
+  /** Метод для отправки события в SDK */
+  readonly capture: (event: Readonly<TelemetryEvent<TMetadata>>) => void | Promise<void>;
+};
 
 /**
  * Создает sink для внешнего SDK (PostHog, Sentry, Datadog и т.д.).
- * Должен использоваться ТОЛЬКО в bootstrap коде приложения.
- * В dev режиме логирует ошибки SDK для отладки.
- * В production молча игнорирует ошибки.
+ *
+ * Factory функция с обработкой ошибок:
+ * - Возвращает функцию-sink без выполнения I/O при создании
+ * - Обработка ошибок SDK инкапсулирована внутри sink
+ * - Runtime-aware: использует setTimeout для exponential backoff в retry
+ * - Type-safe: generic TMetadata для строгой типизации
+ * - Retry-ready: опциональный retry/backoff для критичных SDK
+ *
+ * @throws Error если SDK не имеет метода capture
  */
-export const createExternalSink = (
-  sdk: { capture: (event: TelemetryEvent) => void | Promise<void>; },
-): TelemetrySink => {
+export const createExternalSink = <
+  TMetadata = Readonly<Record<string, string | number | boolean | null>>,
+>(
+  sdk: ExternalSdk<TMetadata>, // SDK объект с методом capture
+  retryConfig?: RetryConfig, // Опциональная конфигурация retry/backoff
+): TelemetrySink<TMetadata> => {
   if (typeof sdk.capture !== 'function') {
     throw new Error('SDK must have a capture method that is a function');
   }
 
-  return async (event: TelemetryEvent): Promise<void> => {
-    try {
-      await sdk.capture(event);
-    } catch (error) {
-      // В dev режиме логируем ошибки SDK для отладки
-      if (process.env['NODE_ENV'] === 'development') {
-        // eslint-disable-next-line no-console
-        console.warn('⚠️  External telemetry SDK error:', error);
-      }
-      // В production молча игнорируем - ошибки SDK не должны ломать приложение
-    }
-  };
-};
-
-/* ============================================================================
- * 🌍 ГЛОБАЛЬНЫЙ КЛИЕНТ (IMMUTABLE INSTANCE)
- * ========================================================================== */
-
-/**
- * Singleton instance телеметрии.
- * Гарантирует единственность клиента на весь lifecycle приложения.
- * В dev режиме (HMR) повторная инициализация безопасна.
- */
-let globalClient: TelemetryClient | null = null;
-
-/**
- * Инициализирует глобальный клиент телеметрии.
- * Должна вызываться один раз при старте приложения.
- * В dev режиме (HMR) повторная инициализация безопасна и возвращает существующий клиент.
- * В production выбрасывает ошибку при повторной инициализации.
- * Автоматически добавляет console sink для разработки.
- */
-export function initTelemetry(config: TelemetryConfig = {}): TelemetryClient {
-  if (globalClient) {
-    if (process.env['NODE_ENV'] === 'development') {
-      // В dev режиме (HMR) выводим предупреждение и возвращаем существующий клиент
-      // eslint-disable-next-line no-console
-      console.warn(
-        '⚠️  Telemetry already initialized. Skipping re-initialization (this is normal during HMR).',
-      );
-      return globalClient;
-    } else {
-      // В production выбрасываем ошибку для предотвращения случайной переинициализации
-      throw new Error(
-        'Telemetry already initialized. Call initTelemetry() only once per application lifecycle.',
-      );
-    }
-  }
-
-  // Создаем console sink - side effect живет только в bootstrap
-  const consoleSink = createConsoleSink();
-
-  const telemetryConfig: TelemetryConfig = {
-    ...config,
-    sinks: [consoleSink, ...(config.sinks ?? [])],
-  };
-
-  globalClient = new TelemetryClient(telemetryConfig);
-
-  // Global access для отладки и тестирования
-  setGlobalClientForDebug(globalClient);
-
-  return globalClient;
-}
-
-/**
- * Возвращает глобальный клиент телеметрии.
- * Бросает ошибку если телеметрия не инициализирована.
- */
-export function getGlobalTelemetryClient(): TelemetryClient {
-  if (!globalClient) {
-    throw new Error('Telemetry not initialized. Call initTelemetry() first.');
-  }
-  return globalClient;
-}
-
-/**
- * Сбрасывает глобальный клиент телеметрии (только для тестирования).
- * @internal
- */
-export function resetGlobalTelemetryClient(): void {
-  globalClient = null;
-}
-
-/* ============================================================================
- * 📦 BATCH TELEMETRY CONTEXT (для массовых форм)
- * ========================================================================== */
-
-/**
- * Конфигурация batch телеметрии для оптимизации массовых форм
- */
-// Константы для batch конфигурации
-export const defaultBatchSize = 10;
-export const defaultFlushInterval = 2000;
-
-export type TelemetryBatchConfig = Readonly<{
-  batchSize?: number; // Максимальный размер батча (по умолчанию 10)
-  flushInterval?: number; // Интервал сброса в ms (по умолчанию 2000)
-  enabled?: boolean; // Включено ли batching (по умолчанию true)
-}>;
-
-/**
- * Элемент batch телеметрии - неизменяемый
- */
-export type TelemetryBatchItem = Readonly<{
-  level: TelemetryLevel;
-  message: string;
-  metadata?: Readonly<Record<string, string | number | boolean | null>>;
-  timestamp: number;
-}>;
-
-/**
- * Context для batch телеметрии
- */
-export type TelemetryBatchContextType = Readonly<{
-  addToBatch: (
-    level: TelemetryLevel,
-    message: string,
-    metadata?: Readonly<Record<string, string | number | boolean | null>>,
-  ) => void;
-}>;
-
-/**
- * React Context для batch телеметрии (null = batch не активен)
- */
-export const TelemetryBatchContext = React.createContext<TelemetryBatchContextType | null>(null);
-
-/**
- * Provider для batch телеметрии.
- * Обеспечивает контекст для компонентов внутри массовых форм.
- */
-const TelemetryBatchProviderComponent: React.FC<{
-  children: React.ReactNode;
-  config?: TelemetryBatchConfig;
-}> = ({ children, config }) => {
-  const effectiveConfig = config ?? {};
-  const {
-    batchSize = defaultBatchSize,
-    flushInterval = defaultFlushInterval,
-    enabled = true,
-  } = effectiveConfig;
-
-  // Batch состояние в useRef (не вызывает ререндеры)
-  const batchStateRef = React.useRef<TelemetryBatchCoreState>(
-    telemetryBatchCore.createInitialState({
-      maxBatchSize: batchSize,
-      configVersion: BatchCoreConfigVersion,
-    }),
-  );
-  const timeoutIdRef = React.useRef<ReturnType<typeof globalThis.setTimeout> | null>(null);
-
-  // Сброс batch в телеметрию
-  const flushBatch = React.useCallback((): void => {
-    if (!enabled) return;
-
-    const currentState = batchStateRef.current;
-    if (currentState.batch.length === 0) return;
-
-    const [newState, eventsToFlush] = telemetryBatchCore.flush(currentState);
-
-    batchStateRef.current = newState;
-
-    // Отправка всех событий в batch
-    eventsToFlush.forEach((event) => {
-      logFireAndForget(event.level, event.message, event.metadata);
-    });
-  }, [enabled]);
-
-  // Добавление события в batch
-  const addToBatch = React.useCallback((
-    level: TelemetryLevel,
-    message: string,
-    metadata?: Readonly<Record<string, string | number | boolean | null>>,
-  ) => {
-    if (!enabled) {
-      // Резервный вариант - немедленная отправка
-      logFireAndForget(level, message, metadata);
-      return;
-    }
-
-    // Используем чистое ядро для обновления состояния
-
-    batchStateRef.current = telemetryBatchCore.addEvent(
-      level,
-      message,
-      metadata,
-      Date.now(), // timestamp извне для чистоты core
-    )(batchStateRef.current);
-
-    // Проверка необходимости flush
-    if (telemetryBatchCore.shouldFlush(batchStateRef.current)) {
-      flushBatch();
-    }
-
-    // Запуск таймера сброса если еще не запущен
-    if (timeoutIdRef.current === null) {
-      const newTimeoutId = globalThis.setTimeout(() => {
-        flushBatch();
-
-        timeoutIdRef.current = null;
-      }, flushInterval);
-
-      timeoutIdRef.current = newTimeoutId;
-    }
-  }, [flushInterval, flushBatch, enabled]);
-
-  // Очистка при размонтировании
-  React.useEffect(() => {
-    return (): void => {
-      if (timeoutIdRef.current !== null) {
-        globalThis.clearTimeout(timeoutIdRef.current);
-
-        timeoutIdRef.current = null;
-        flushBatch();
-      }
-    };
-  }, [flushBatch]);
-
-  const contextValue: TelemetryBatchContextType = React.useMemo(
-    () => ({ addToBatch }),
-    [addToBatch],
-  );
-
-  return React.createElement(
-    TelemetryBatchContext.Provider,
-    { value: contextValue },
-    children,
-  );
-};
-
-export const TelemetryBatchProvider = TelemetryBatchProviderComponent;
-
-/**
- * Hook для использования batch телеметрии.
- * Автоматически использует batch если доступен, иначе fallback на обычную телеметрию.
- */
-export function useBatchTelemetry(): TelemetryBatchContextType['addToBatch'] {
-  const batchContext = React.useContext(TelemetryBatchContext);
-
-  // Возвращаем batch функцию если доступна, иначе fallback
-  return React.useCallback((
-    level: TelemetryLevel,
-    message: string,
-    metadata?: Readonly<Record<string, string | number | boolean | null>>,
-  ) => {
-    if (batchContext) {
-      batchContext.addToBatch(level, message, metadata);
-    } else {
-      logFireAndForget(level, message, metadata);
-    }
-  }, [batchContext]);
-}
-
-/**
- * Создает batch-aware sink для внешних SDK.
- * Автоматически обрабатывает batch события.
- * В dev режиме логирует ошибки SDK для отладки.
- * В production молча игнорирует ошибки.
- */
-export const createBatchAwareSink = (
-  sdk: {
-    capture: (event: TelemetryEvent) => void | Promise<void>;
-    captureBatch?: (events: TelemetryEvent[]) => void | Promise<void>;
-  },
-  batchConfig: TelemetryBatchConfig = {},
-): TelemetrySink => {
-  const { batchSize = defaultBatchSize, flushInterval = defaultFlushInterval } = batchConfig;
-
-  // NOTE: local mutable state is intentional (imperative sink shell)
-  // Batch sink - это imperative обертка над functional core для работы с внешними SDK
-  let batchState = telemetryBatchCore.createInitialState({
-    maxBatchSize: batchSize,
-    configVersion: BatchCoreConfigVersion,
+  const effectiveRetryConfig: Readonly<{
+    maxRetries: number;
+    baseDelayMs: number;
+    maxDelayMs: number;
+    backoffMultiplier: number;
+  }> = Object.freeze({
+    maxRetries: retryConfig?.maxRetries ?? DEFAULT_MAX_RETRIES,
+    baseDelayMs: retryConfig?.baseDelayMs ?? 1000,
+    maxDelayMs: retryConfig?.maxDelayMs ?? DEFAULT_MAX_DELAY_MS,
+    backoffMultiplier: retryConfig?.backoffMultiplier ?? 2,
   });
-  let timeoutId: ReturnType<typeof globalThis.setTimeout> | null = null;
 
-  const flushBatch = async (): Promise<void> => {
-    if (batchState.batch.length === 0) return;
+  return async (event: Readonly<TelemetryEvent<TMetadata>>): Promise<void> => {
+    let lastError: unknown;
 
-    const [newState, eventsToFlush] = telemetryBatchCore.flush(batchState);
-    batchState = newState;
+    for (let attempt = 1; attempt <= effectiveRetryConfig.maxRetries; attempt++) {
+      try {
+        await sdk.capture(event);
+        return; // Успешная отправка
+      } catch (error) {
+        lastError = error;
 
-    // Отправка batch как единый запрос если SDK поддерживает
-    try {
-      if (sdk.captureBatch && typeof sdk.captureBatch === 'function') {
-        await sdk.captureBatch([...eventsToFlush]);
-      } else {
-        // Fallback на индивидуальную отправку
-        await Promise.all(
-          eventsToFlush.map((event) => Promise.resolve(sdk.capture(event))),
-        );
-      }
-    } catch (error) {
-      // В dev режиме логируем ошибки batch flush для отладки
-      if (process.env['NODE_ENV'] === 'development') {
-        // eslint-disable-next-line no-console
-        console.warn('⚠️  Batch telemetry flush error:', error);
-      }
-      // В production молча игнорируем - ошибки SDK не должны ломать приложение
-    }
-  };
+        // Если это не последняя попытка, ждем перед retry
+        if (attempt < effectiveRetryConfig.maxRetries) {
+          const delay = calculateBackoffDelay(
+            attempt,
+            effectiveRetryConfig.baseDelayMs,
+            effectiveRetryConfig.maxDelayMs,
+            effectiveRetryConfig.backoffMultiplier,
+          );
 
-  // Сброс batch при выгрузке страницы для предотвращения потери данных
-  // NOTE: listener не удаляется намеренно - createBatchAwareSink одноразовый
-  // В dev режиме при HMR могут быть дубликаты, но это приемлемо для sink'а
-  if (typeof globalThis !== 'undefined' && typeof globalThis.addEventListener === 'function') {
-    const handleBeforeUnload = (): void => {
-      if (batchState.batch.length > 0) {
-        // Синхронный сброс для beforeunload (нет времени на асинхронные операции)
-        const [, eventsToFlush] = telemetryBatchCore.flush(batchState);
-        if (sdk.captureBatch && typeof sdk.captureBatch === 'function') {
-          try {
-            // eslint-disable-next-line @typescript-eslint/no-floating-promises
-            sdk.captureBatch([...eventsToFlush]);
-          } catch {
-            // Игнорируем ошибки во время выгрузки
-          }
-        } else {
-          eventsToFlush.forEach((event) => {
-            try {
-              // eslint-disable-next-line @typescript-eslint/no-floating-promises
-              sdk.capture(event);
-            } catch {
-              // Игнорируем ошибки во время выгрузки
-            }
-          });
+          await new Promise((resolve) => setTimeout(resolve, delay));
         }
       }
-    };
+    }
 
-    globalThis.addEventListener('beforeunload', handleBeforeUnload);
+    // Все попытки исчерпаны, выбрасываем последнюю ошибку
+    throw lastError;
+  };
+};
+
+/**
+ * Создает безопасный sink для внешнего SDK (не выбрасывает ошибки).
+ *
+ * Production-safe версия createExternalSink:
+ * - Не выбрасывает ошибки при сбоях SDK
+ * - Ошибки логируются через onError callback (если задан)
+ * - Подходит для критичных production окружений
+ * - Retry-ready: опциональный retry/backoff
+ */
+export const createExternalSinkSafe = <
+  TMetadata = Readonly<Record<string, string | number | boolean | null>>,
+>(
+  sdk: ExternalSdk<TMetadata>, // SDK объект с методом capture
+  onError?: (error: unknown, event: Readonly<TelemetryEvent<TMetadata>>) => void, // Обработчик ошибок SDK (опционально)
+  retryConfig?: RetryConfig, // Опциональная конфигурация retry/backoff
+): TelemetrySink<TMetadata> => {
+  if (typeof sdk.capture !== 'function') {
+    throw new Error('SDK must have a capture method that is a function');
   }
 
-  return (event: TelemetryEvent): void | Promise<void> => {
-    // Добавляем событие через чистое ядро
-    batchState = telemetryBatchCore.addEvent(
-      event.level,
-      event.message,
-      event.metadata,
-      event.timestamp,
-    )(batchState);
+  const effectiveRetryConfig: Readonly<{
+    maxRetries: number;
+    baseDelayMs: number;
+    maxDelayMs: number;
+    backoffMultiplier: number;
+  }> = Object.freeze({
+    maxRetries: retryConfig?.maxRetries ?? DEFAULT_MAX_RETRIES,
+    baseDelayMs: retryConfig?.baseDelayMs ?? 1000,
+    maxDelayMs: retryConfig?.maxDelayMs ?? DEFAULT_MAX_DELAY_MS,
+    backoffMultiplier: retryConfig?.backoffMultiplier ?? 2,
+  });
 
-    if (telemetryBatchCore.shouldFlush(batchState)) {
-      if (timeoutId !== null) {
-        globalThis.clearTimeout(timeoutId);
-        timeoutId = null;
+  return async (event: Readonly<TelemetryEvent<TMetadata>>): Promise<void> => {
+    let lastError: unknown;
+
+    for (let attempt = 1; attempt <= effectiveRetryConfig.maxRetries; attempt++) {
+      try {
+        await sdk.capture(event);
+        return; // Успешная отправка
+      } catch (error) {
+        lastError = error;
+
+        // Если это не последняя попытка, ждем перед retry
+        if (attempt < effectiveRetryConfig.maxRetries) {
+          const delay = calculateBackoffDelay(
+            attempt,
+            effectiveRetryConfig.baseDelayMs,
+            effectiveRetryConfig.maxDelayMs,
+            effectiveRetryConfig.backoffMultiplier,
+          );
+
+          await new Promise((resolve) => setTimeout(resolve, delay));
+        }
       }
-      return flushBatch();
-    } else {
-      // Запуск таймера сброса если еще не запущен
-      timeoutId ??= globalThis.setTimeout(() => {
-        flushBatch().catch((error) => {
-          // В dev режиме логируем ошибки batch flush для отладки
-          if (process.env['NODE_ENV'] === 'development') {
-            // eslint-disable-next-line no-console
-            console.warn('⚠️  Batch telemetry flush error:', error);
-          }
-          // В production молча игнорируем
-        });
-        timeoutId = null;
-      }, flushInterval);
     }
+
+    // Все попытки исчерпаны, логируем ошибку но не выбрасываем
+    if (onError) {
+      onError(lastError, event);
+    }
+    // Молча игнорируем ошибки для production stability
   };
+};
+
+/* ============================================================================
+ * 🐛 УТИЛИТЫ ОТЛАДКИ (ТОЛЬКО ДЛЯ DEV)
+ * ============================================================================
+ *
+ * ВАЖНО: Эти утилиты предназначены ТОЛЬКО для разработки и тестирования.
+ * Они не должны использоваться в production коде.
+ * Для production используйте runtime/telemetry.ts с singleton логикой.
+ */
+
+/**
+ * Ключ для хранения клиента в globalThis (только для dev).
+ * @internal
+ */
+const GLOBAL_CLIENT_KEY = '__telemetryClient';
+
+/**
+ * Получает клиент телеметрии из globalThis для отладки.
+ *
+ * ВАЖНО: Только для dev режима!
+ * Не использовать в production коде.
+ *
+ * Использование:
+ * - Только в dev режиме
+ * - Для отладки и тестирования
+ * - Не для production кода
+ *
+ * @internal-dev
+ */
+export const getGlobalClientForDebug = (): TelemetryClient | undefined => {
+  if (typeof globalThis !== 'undefined') {
+    return (globalThis as typeof globalThis & Record<string, unknown>)[GLOBAL_CLIENT_KEY] as
+      | TelemetryClient
+      | undefined;
+  }
+  return undefined;
 };

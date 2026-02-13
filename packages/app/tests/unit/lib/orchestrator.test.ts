@@ -60,10 +60,17 @@ function createMockDelayedEffect<T>(
 }
 
 // Mock telemetry functions
-vi.mock('../../../src/lib/telemetry.js', () => ({
+vi.mock('../../../src/runtime/telemetry.js', () => ({
   infoFireAndForget: vi.fn(),
   warnFireAndForget: vi.fn(),
 }));
+
+// Import after mocking
+import { infoFireAndForget, warnFireAndForget } from '../../../src/runtime/telemetry.js';
+
+// Get mocked functions
+const mockInfoFireAndForget = vi.mocked(infoFireAndForget);
+const mockWarnFireAndForget = vi.mocked(warnFireAndForget);
 
 // ============================================================================
 // 🧪 ТЕСТЫ
@@ -350,7 +357,6 @@ describe('Orchestrator - Enterprise Grade', () => {
     });
 
     it('должен логировать успешное выполнение шага через telemetry', async () => {
-      const { infoFireAndForget } = await import('../../../src/lib/telemetry.js');
       const step1Effect: Effect<string> = createMockSuccessEffect<string>('result1');
       const steps: Step<string>[] = [
         step('step1', step1Effect),
@@ -358,7 +364,7 @@ describe('Orchestrator - Enterprise Grade', () => {
 
       await orchestrate(steps)();
 
-      expect(infoFireAndForget).toHaveBeenCalledWith(
+      expect(mockInfoFireAndForget).toHaveBeenCalledWith(
         'Step completed: step1',
         expect.objectContaining({
           stepIndex: 0,
@@ -369,7 +375,6 @@ describe('Orchestrator - Enterprise Grade', () => {
     });
 
     it('должен логировать ошибку шага через telemetry', async () => {
-      const { warnFireAndForget } = await import('../../../src/lib/telemetry.js');
       const step1Effect: Effect<never> = createMockErrorEffect(new Error('Step failed'));
       const steps = [
         step('step1', step1Effect),
@@ -382,7 +387,7 @@ describe('Orchestrator - Enterprise Grade', () => {
         // Expected
       }
 
-      expect(warnFireAndForget).toHaveBeenCalledWith(
+      expect(mockWarnFireAndForget).toHaveBeenCalledWith(
         'Step failed: step1',
         expect.objectContaining({
           stepIndex: 0,
@@ -394,7 +399,6 @@ describe('Orchestrator - Enterprise Grade', () => {
     });
 
     it('должен логировать каждый шаг при последовательном выполнении', async () => {
-      const { infoFireAndForget } = await import('../../../src/lib/telemetry.js');
       const step1Effect: Effect<string> = createMockSuccessEffect<string>('result1');
       const step2Effect: Effect<string> = createMockSuccessEffect<string>('result2');
       const step3Effect: Effect<string> = createMockSuccessEffect<string>('result3');

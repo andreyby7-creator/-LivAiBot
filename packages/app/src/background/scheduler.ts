@@ -22,7 +22,7 @@ import { Effect, Fiber, pipe, Ref, Runtime } from 'effect';
 import { AppEventType } from '../events/app-events.js';
 import type { StructuredLogger } from '../events/event-bus.js';
 import { ConsoleLogger, eventBus } from '../events/event-bus.js';
-import { getGlobalTelemetryClient } from '../lib/telemetry.js';
+import { getGlobalTelemetryClient } from '../runtime/telemetry.js';
 
 /* ========================================================================== */
 /* 📊 CONFIG / CONSTANTS */

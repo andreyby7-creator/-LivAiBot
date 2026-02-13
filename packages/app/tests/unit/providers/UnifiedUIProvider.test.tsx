@@ -55,7 +55,7 @@ vi.mock('../../../src/lib/i18n', () => ({
   isRtlLocale: vi.fn((locale: string) => locale === 'ar'),
 }));
 
-vi.mock('../../../src/lib/telemetry', () => ({
+vi.mock('../../../src/runtime/telemetry', () => ({
   infoFireAndForget: vi.fn(),
   warnFireAndForget: vi.fn(),
   errorFireAndForget: vi.fn(),

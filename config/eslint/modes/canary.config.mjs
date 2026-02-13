@@ -255,6 +255,14 @@ canaryConfig.push({
   },
 });
 
+// Исключение для всех пакетов @livai/*: могут использовать barrel file для внутренних импортов
+canaryConfig.push({
+  files: ['packages/*/src/**/*.{ts,tsx}'],
+  rules: {
+    'no-restricted-imports': 'off', // Пакеты @livai/* могут использовать свой barrel file для внутренних импортов
+  },
+});
+
 // Setup файлы могут использовать throw для обработки ошибок
 canaryConfig.push({
   files: ['**/vitest.setup.ts', '**/test.setup.ts'],

@@ -16,10 +16,10 @@ import { Effect, Runtime } from 'effect';
 import type { ApiClient } from '../../../src/lib/api-client';
 import type { AuthError, LoginRequest, TokenPairResponse } from '../../../src/lib/auth-service';
 import { AuthService, authService, createAuthService } from '../../../src/lib/auth-service';
-import { logFireAndForget } from '../../../src/lib/telemetry';
+import { logFireAndForget } from '../../../src/runtime/telemetry';
 
 // Mock telemetry functions globally
-vi.mock('../../../src/lib/telemetry', () => ({
+vi.mock('../../../src/runtime/telemetry', () => ({
   logFireAndForget: vi.fn(),
   infoFireAndForget: vi.fn(),
   warnFireAndForget: vi.fn(),

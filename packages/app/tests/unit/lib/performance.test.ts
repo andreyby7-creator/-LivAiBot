@@ -24,7 +24,7 @@ import { renderHook } from '@testing-library/react';
 import '@testing-library/jest-dom/vitest';
 
 // Mock telemetry functions using vi.mock
-vi.mock('../../../src/lib/telemetry', () => ({
+vi.mock('../../../src/runtime/telemetry', () => ({
   errorFireAndForget: vi.fn(),
   warnFireAndForget: vi.fn(),
   infoFireAndForget: vi.fn(),
@@ -35,7 +35,7 @@ import {
   errorFireAndForget,
   infoFireAndForget,
   warnFireAndForget,
-} from '../../../src/lib/telemetry';
+} from '../../../src/runtime/telemetry';
 
 // Get mocked functions
 const mockErrorFireAndForget = vi.mocked(errorFireAndForget);
@@ -188,7 +188,7 @@ function setupTestEnvironment(mockWindow?: Window, mockCrypto?: Crypto): void {
   });
 
   // Mock telemetry functions
-  vi.mock('../../../src/lib/telemetry', () => ({
+  vi.mock('../../../src/runtime/telemetry', () => ({
     errorFireAndForget: vi.fn(),
     infoFireAndForget: vi.fn(),
     warnFireAndForget: vi.fn(),

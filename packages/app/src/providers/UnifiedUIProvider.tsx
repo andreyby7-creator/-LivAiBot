@@ -26,8 +26,37 @@ import { useFeatureFlags } from './FeatureFlagsProvider.js';
 import { useTelemetryContext } from './TelemetryProvider.js';
 import { useFeatureFlagOverride } from '../lib/feature-flags.js';
 import { formatDateLocalized, isRtlLocale, setDayjsLocale, t, useI18n } from '../lib/i18n.js';
-import { errorFireAndForget, infoFireAndForget, warnFireAndForget } from '../lib/telemetry.js';
+import { errorFireAndForget, infoFireAndForget, warnFireAndForget } from '../runtime/telemetry.js';
+import type { TelemetryMetadata, TelemetryPrimitive } from '../types/telemetry.js';
 import type { UiFeatureFlagsApi, UiI18nContext, UiTelemetryApi } from '../types/ui-contracts.js';
+
+/**
+ * Преобразует Record<string, unknown> в TelemetryMetadata, конвертируя объекты и массивы в строки.
+ */
+function convertToTelemetryMetadata(
+  data: Readonly<Record<string, unknown>>,
+): TelemetryMetadata {
+  const result: Record<string, TelemetryPrimitive> = {};
+
+  for (const [key, value] of Object.entries(data)) {
+    if (value === null || value === undefined) {
+      result[key] = null;
+    } else if (
+      typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean'
+    ) {
+      result[key] = value;
+    } else {
+      // Преобразуем объекты и массивы в строки
+      try {
+        result[key] = JSON.stringify(value);
+      } catch {
+        result[key] = '[Non-serializable]';
+      }
+    }
+  }
+
+  return result;
+}
 
 /** Стабильный API для feature flags в unified provider */
 export type UnifiedUiFeatureFlagsApi = UiFeatureFlagsApi;
@@ -132,9 +161,18 @@ function UnifiedUIProviderComponent({
       featureFlags,
       telemetry: {
         track: telemetry.track,
-        infoFireAndForget,
-        warnFireAndForget,
-        errorFireAndForget,
+        infoFireAndForget: (event: string, data?: Readonly<Record<string, unknown>>): void => {
+          const metadata = data ? convertToTelemetryMetadata(data) : undefined;
+          infoFireAndForget(event, metadata);
+        },
+        warnFireAndForget: (event: string, data?: Readonly<Record<string, unknown>>): void => {
+          const metadata = data ? convertToTelemetryMetadata(data) : undefined;
+          warnFireAndForget(event, metadata);
+        },
+        errorFireAndForget: (event: string, data?: Readonly<Record<string, unknown>>): void => {
+          const metadata = data ? convertToTelemetryMetadata(data) : undefined;
+          errorFireAndForget(event, metadata);
+        },
         flush: telemetry.flush,
       },
       i18n: {

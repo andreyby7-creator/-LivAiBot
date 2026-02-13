@@ -39,7 +39,7 @@ import { isIsolationError } from './effect-isolation.js';
 import type { Effect as EffectType } from './effect-utils.js';
 import { orchestrate, step } from './orchestrator.js';
 import { isSchemaValidationError, validatedEffect } from './schema-validated-effect.js';
-import { logFireAndForget } from './telemetry.js';
+import { logFireAndForget } from '../runtime/telemetry.js';
 
 /* ============================================================================
  * 🏷️ AUTH ТИПЫ
@@ -150,7 +150,7 @@ export class AuthService {
 
     logFireAndForget('INFO', 'AuthService: mapErrorToAuthError - processing', {
       source: 'AuthService',
-      context,
+      ...(context !== undefined && { context }),
       originalErrorType: typeof originalError,
       isError: originalError instanceof Error,
       hasKind: typeof originalError === 'object'
@@ -452,8 +452,12 @@ export class AuthService {
 
     logFireAndForget('INFO', 'AuthService: isUnauthorizedError - not unauthorized', {
       source: 'AuthService',
-      status,
-      kind,
+      ...(typeof status === 'string' || typeof status === 'number' || typeof status === 'boolean'
+        ? { status: String(status) }
+        : {}),
+      ...(typeof kind === 'string' || typeof kind === 'number' || typeof kind === 'boolean'
+        ? { kind: String(kind) }
+        : {}),
     });
     return false;
   }
@@ -582,7 +586,7 @@ export class AuthService {
           rawErrorType: typeof rawError,
           isIsolationError: isIsolationError(rawError),
           isError: rawError instanceof Error,
-          errorName: rawError instanceof Error ? rawError.name : undefined,
+          ...(rawError instanceof Error && rawError.name ? { errorName: rawError.name } : {}),
         });
 
         // Нормализуем ошибку: извлекаем оригинальную из всех инфраструктурных обёрток

@@ -15,13 +15,13 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { Effect as EffectLib } from 'effect';
 
 // Mock telemetry functions using vi.mock
-vi.mock('../../../src/lib/telemetry', () => ({
+vi.mock('../../../src/runtime/telemetry', () => ({
   errorFireAndForget: vi.fn(),
   warnFireAndForget: vi.fn(),
 }));
 
 // Import after mocking
-import { errorFireAndForget, warnFireAndForget } from '../../../src/lib/telemetry';
+import { errorFireAndForget, warnFireAndForget } from '../../../src/runtime/telemetry';
 
 // Get mocked functions
 const mockErrorFireAndForget = vi.mocked(errorFireAndForget);

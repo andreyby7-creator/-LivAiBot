@@ -18,7 +18,7 @@ import type {
   ExtendableMessageEvent,
   FetchEvent,
   ServiceWorkerGlobalScope,
-} from '@livai/app';
+} from '@livai/app/lib/service-worker.js';
 
 // ============================================================================
 // 🧠 MOCKS

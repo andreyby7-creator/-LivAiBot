@@ -19,7 +19,7 @@
 
 import { MutationCache, QueryCache, QueryClient } from '@tanstack/react-query';
 
-import { logFireAndForget } from '../../lib/telemetry.js';
+import { logFireAndForget } from '../../runtime/telemetry.js';
 
 /* ========================================================================== */
 /* ⚙️ БАЗОВАЯ КОНФИГУРАЦИЯ */
