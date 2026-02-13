@@ -15,7 +15,7 @@ import { Scheduler } from '../../../src/background/scheduler';
 import type { BackgroundTask, SchedulerDI } from '../../../src/background/scheduler';
 
 // Mock telemetry for integration tests
-vi.mock('../../../src/runtime/telemetry.js', () => ({
+vi.mock('../../../src/lib/telemetry-runtime.js', () => ({
   getGlobalTelemetryClient: vi.fn(() => ({
     startSpan: vi.fn(),
     endSpan: vi.fn(),

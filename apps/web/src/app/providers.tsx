@@ -21,7 +21,7 @@
 
 'use client';
 
-import { errorFireAndForget } from '@livai/app/runtime/telemetry.js';
+import { errorFireAndForget } from '@livai/app/lib/telemetry-runtime.js';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { memo, useMemo, useState } from 'react';
 import type { JSX, PropsWithChildren, ReactNode } from 'react';

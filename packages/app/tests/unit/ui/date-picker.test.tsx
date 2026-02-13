@@ -170,7 +170,7 @@ vi.mock('../../../../ui-core/src/components/DatePicker', () => ({
 }));
 
 // Mock для telemetry
-vi.mock('../../../src/runtime/telemetry', () => ({
+vi.mock('../../../src/lib/telemetry-runtime', () => ({
   infoFireAndForget: vi.fn(),
 }));
 

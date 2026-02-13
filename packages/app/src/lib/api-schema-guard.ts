@@ -30,9 +30,9 @@ import { Effect as EffectLib } from 'effect';
 
 import { mapError } from './error-mapping.js';
 import type { TaggedError } from './error-mapping.js';
+import { errorFireAndForget, warnFireAndForget } from './telemetry-runtime.js';
 import type { ValidationContext, ValidationError, Validator } from './validation.js';
 import { pipeMany } from './validation.js';
-import { errorFireAndForget, warnFireAndForget } from '../runtime/telemetry.js';
 import type { ApiServiceName, HttpMethod } from '../types/api.js';
 
 /* ============================================================================

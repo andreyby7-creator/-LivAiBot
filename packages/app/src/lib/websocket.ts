@@ -30,7 +30,7 @@ import type {
   EffectError,
   EffectLogger,
 } from './effect-utils.js';
-import { infoFireAndForget, logFireAndForget } from '../runtime/telemetry.js';
+import { infoFireAndForget, logFireAndForget } from './telemetry-runtime.js';
 // ApiError используется только для HTTP API, WebSocket использует EffectError
 
 /* ============================================================================

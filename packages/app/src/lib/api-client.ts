@@ -18,7 +18,7 @@
 
 import { withLogging, withRetry } from './effect-utils.js';
 import type { EffectContext, EffectError, EffectLogger } from './effect-utils.js';
-import { infoFireAndForget, logFireAndForget } from '../runtime/telemetry.js';
+import { infoFireAndForget, logFireAndForget } from './telemetry-runtime.js';
 import type { ApiClientConfig, ApiError, ApiHeaders, ApiRequest } from '../types/api.js';
 
 /* ============================================================================

@@ -11,7 +11,7 @@ const telemetryMocks = vi.hoisted(() => ({
   warnFireAndForget: vi.fn(),
 }));
 
-vi.mock('../../../src/runtime/telemetry', () => ({
+vi.mock('../../../src/lib/telemetry-runtime', () => ({
   errorFireAndForget: telemetryMocks.errorFireAndForget,
   warnFireAndForget: telemetryMocks.warnFireAndForget,
 }));

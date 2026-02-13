@@ -44,7 +44,7 @@ vi.mock('../../../src/providers/UnifiedUIProvider', () => ({
 }));
 
 // Mock для telemetry (для обратной совместимости)
-vi.mock('../../../src/runtime/telemetry', () => ({
+vi.mock('../../../src/lib/telemetry-runtime', () => ({
   infoFireAndForget: vi.fn(),
 }));
 

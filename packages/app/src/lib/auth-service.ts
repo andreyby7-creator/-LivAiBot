@@ -39,7 +39,7 @@ import { isIsolationError } from './effect-isolation.js';
 import type { Effect as EffectType } from './effect-utils.js';
 import { orchestrate, step } from './orchestrator.js';
 import { isSchemaValidationError, validatedEffect } from './schema-validated-effect.js';
-import { logFireAndForget } from '../runtime/telemetry.js';
+import { logFireAndForget } from './telemetry-runtime.js';
 
 /* ============================================================================
  * 🏷️ AUTH ТИПЫ

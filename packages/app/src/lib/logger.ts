@@ -38,7 +38,7 @@
  * - Синхронная обработка для лучшей производительности
  */
 
-import { errorFireAndForget, infoFireAndForget, warnFireAndForget } from '../runtime/telemetry.js';
+import { errorFireAndForget, infoFireAndForget, warnFireAndForget } from './telemetry-runtime.js';
 import type { JsonValue, Loggable } from '../types/common.js';
 import type { TelemetryMetadata, TelemetryPrimitive } from '../types/telemetry.js';
 

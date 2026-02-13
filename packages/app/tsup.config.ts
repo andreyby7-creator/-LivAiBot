@@ -31,7 +31,7 @@ export default defineConfig([
     entry: {
       'lib/error-mapping': 'src/lib/error-mapping.ts',
       'lib/service-worker': 'src/lib/service-worker.ts',
-      'runtime/telemetry': 'src/runtime/telemetry.ts',
+      'lib/telemetry-runtime': 'src/lib/telemetry-runtime.ts',
       'providers/intl-provider': 'src/providers/intl-provider.tsx',
     },
     format: ['esm'],

@@ -31,7 +31,7 @@ import type { LogContext, LogLevel, LogMetadata } from '../../../src/lib/logger'
 // ============================================================================
 
 // Mock'ируем функции telemetry
-vi.mock('../../../src/runtime/telemetry', () => ({
+vi.mock('../../../src/lib/telemetry-runtime', () => ({
   infoFireAndForget: vi.fn(),
   warnFireAndForget: vi.fn(),
   errorFireAndForget: vi.fn(),
@@ -41,7 +41,7 @@ import {
   errorFireAndForget,
   infoFireAndForget,
   warnFireAndForget,
-} from '../../../src/runtime/telemetry';
+} from '../../../src/lib/telemetry-runtime';
 
 /**
  * Создает mock LogContext для тестирования

@@ -30,7 +30,7 @@ import type {
 import { validateApiRequest, validateApiResponse } from '../lib/api-schema-guard.js';
 import { mapError } from '../lib/error-mapping.js';
 import type { MappedError } from '../lib/error-mapping.js';
-import { logFireAndForget } from '../runtime/telemetry.js';
+import { logFireAndForget } from '../lib/telemetry-runtime.js';
 import type { ApiHeaders, ApiRequestContext, ApiServiceName, HttpMethod } from '../types/api.js';
 import type { ComponentState, UiEvent, UiEventMap, UiMetrics } from '../types/ui-contracts.js';
 

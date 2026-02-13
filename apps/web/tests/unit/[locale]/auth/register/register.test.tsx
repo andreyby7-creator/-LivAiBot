@@ -197,7 +197,7 @@ describe('RegisterClient (Client Component)', () => {
       );
 
       expect(content).toContain('import { RegisterForm }');
-      expect(content).toContain("from '@livai/ui-features'");
+      expect(content).toContain("from '@livai/ui-features/auth/register-form.js'");
       expect(content).toContain('<RegisterForm');
       expect(content).toContain('autoFocus');
     });

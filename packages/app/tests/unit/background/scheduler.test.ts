@@ -27,7 +27,7 @@ import type { BackgroundTask, QueueItem, SchedulerDI } from '../../../src/backgr
 import { AppEventType } from '../../../src/events/app-events.js';
 
 // Mock telemetry before any other imports
-vi.mock('../../../src/runtime/telemetry.js', () => ({
+vi.mock('../../../src/lib/telemetry-runtime.js', () => ({
   getGlobalTelemetryClient: vi.fn(() => ({
     startSpan: vi.fn(),
     endSpan: vi.fn(),

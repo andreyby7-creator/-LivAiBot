@@ -24,7 +24,7 @@ import type {
 // 🧠 MOCKS
 // ============================================================================
 
-// Mock для @livai/app
+// Mock для @livai/app/lib/service-worker.js (используется в sw.ts)
 const mockHandleRequest = vi.fn();
 const mockHandlePushNotification = vi.fn();
 const mockHandleNotificationClick = vi.fn();
@@ -43,7 +43,8 @@ const mockSwSelf = {
   },
 } as unknown as ServiceWorkerGlobalScope;
 
-vi.mock('@livai/app', () => ({
+// Мокируем правильный путь импорта, который используется в sw.ts
+vi.mock('@livai/app/lib/service-worker.js', () => ({
   swSelf: mockSwSelf,
   handleRequest: mockHandleRequest,
   handlePushNotification: mockHandlePushNotification,
@@ -272,7 +273,7 @@ describe('sw.ts - Service Worker', () => {
 
     it('не должен устанавливать SW если SERVICE_WORKER_DISABLED = true', async () => {
       // Мокируем swDisabled = true
-      vi.doMock('@livai/app', () => ({
+      vi.doMock('@livai/app/lib/service-worker.js', () => ({
         swSelf: mockSwSelf,
         handleRequest: mockHandleRequest,
         handlePushNotification: mockHandlePushNotification,
@@ -316,7 +317,7 @@ describe('sw.ts - Service Worker', () => {
 
     it('должен взять контроль над клиентами при активации', async () => {
       // Убеждаемся что swDisabled = false перед импортом
-      vi.doMock('@livai/app', () => ({
+      vi.doMock('@livai/app/lib/service-worker.js', () => ({
         swSelf: mockSwSelf,
         handleRequest: mockHandleRequest,
         handlePushNotification: mockHandlePushNotification,
@@ -361,7 +362,7 @@ describe('sw.ts - Service Worker', () => {
       const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
       // Убеждаемся что swDisabled = false перед импортом
-      vi.doMock('@livai/app', () => ({
+      vi.doMock('@livai/app/lib/service-worker.js', () => ({
         swSelf: mockSwSelf,
         handleRequest: mockHandleRequest,
         handlePushNotification: mockHandlePushNotification,
@@ -412,7 +413,7 @@ describe('sw.ts - Service Worker', () => {
 
     it('не должен активировать SW если SERVICE_WORKER_DISABLED = true', async () => {
       // Мокируем swDisabled = true
-      vi.doMock('@livai/app', () => ({
+      vi.doMock('@livai/app/lib/service-worker.js', () => ({
         swSelf: mockSwSelf,
         handleRequest: mockHandleRequest,
         handlePushNotification: mockHandlePushNotification,
@@ -455,7 +456,7 @@ describe('sw.ts - Service Worker', () => {
 
     it('должен обработать GET запрос', async () => {
       // Убеждаемся что swDisabled = false перед импортом
-      vi.doMock('@livai/app', () => ({
+      vi.doMock('@livai/app/lib/service-worker.js', () => ({
         swSelf: mockSwSelf,
         handleRequest: mockHandleRequest,
         handlePushNotification: mockHandlePushNotification,
@@ -510,7 +511,7 @@ describe('sw.ts - Service Worker', () => {
       const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
       // Убеждаемся что swDisabled = false перед импортом
-      vi.doMock('@livai/app', () => ({
+      vi.doMock('@livai/app/lib/service-worker.js', () => ({
         swSelf: mockSwSelf,
         handleRequest: mockHandleRequest,
         handlePushNotification: mockHandlePushNotification,
@@ -604,7 +605,7 @@ describe('sw.ts - Service Worker', () => {
 
     it('не должен обрабатывать запросы если SERVICE_WORKER_DISABLED = true', async () => {
       // Мокируем swDisabled = true
-      vi.doMock('@livai/app', () => ({
+      vi.doMock('@livai/app/lib/service-worker.js', () => ({
         swSelf: mockSwSelf,
         handleRequest: mockHandleRequest,
         handlePushNotification: mockHandlePushNotification,

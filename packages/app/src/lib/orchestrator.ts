@@ -38,7 +38,7 @@ import { withTimeout } from './effect-timeout.js';
 import type { TimeoutError } from './effect-timeout.js';
 import type { Effect, Result } from './effect-utils.js';
 import { isFail, isOk } from './effect-utils.js';
-import { infoFireAndForget, warnFireAndForget } from '../runtime/telemetry.js';
+import { infoFireAndForget, warnFireAndForget } from './telemetry-runtime.js';
 
 /* ============================================================================
  * 🧩 ТИПЫ

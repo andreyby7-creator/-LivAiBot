@@ -1021,7 +1021,7 @@ export const createExternalSinkSafe = <
  *
  * ВАЖНО: Эти утилиты предназначены ТОЛЬКО для разработки и тестирования.
  * Они не должны использоваться в production коде.
- * Для production используйте runtime/telemetry.ts с singleton логикой.
+ * Для production используйте lib/telemetry-runtime.ts с singleton логикой.
  */
 
 /**

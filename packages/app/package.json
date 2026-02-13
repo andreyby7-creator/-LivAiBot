@@ -40,10 +40,10 @@
       "import": "./dist/esm/lib/service-worker.js",
       "default": "./dist/esm/lib/service-worker.js"
     },
-    "./runtime/telemetry.js": {
-      "types": "./dist/esm/runtime/telemetry.d.ts",
-      "import": "./dist/esm/runtime/telemetry.js",
-      "default": "./dist/esm/runtime/telemetry.js"
+    "./lib/telemetry-runtime.js": {
+      "types": "./dist/esm/lib/telemetry-runtime.d.ts",
+      "import": "./dist/esm/lib/telemetry-runtime.js",
+      "default": "./dist/esm/lib/telemetry-runtime.js"
     },
     "./providers/intl-provider.js": {
       "types": "./dist/esm/providers/intl-provider.d.ts",

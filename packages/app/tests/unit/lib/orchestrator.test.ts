@@ -60,13 +60,13 @@ function createMockDelayedEffect<T>(
 }
 
 // Mock telemetry functions
-vi.mock('../../../src/runtime/telemetry.js', () => ({
+vi.mock('../../../src/lib/telemetry-runtime.js', () => ({
   infoFireAndForget: vi.fn(),
   warnFireAndForget: vi.fn(),
 }));
 
 // Import after mocking
-import { infoFireAndForget, warnFireAndForget } from '../../../src/runtime/telemetry.js';
+import { infoFireAndForget, warnFireAndForget } from '../../../src/lib/telemetry-runtime.js';
 
 // Get mocked functions
 const mockInfoFireAndForget = vi.mocked(infoFireAndForget);

@@ -279,7 +279,7 @@ export {
   TelemetryClient,
   telemetryLevels,
 } from './lib/telemetry.js';
-// Экспортируем singleton функции из runtime/telemetry.js
+// Экспортируем singleton функции из lib/telemetry-runtime.js
 export {
   errorFireAndForget,
   fireAndForget,
@@ -292,7 +292,7 @@ export {
   resetGlobalTelemetryClient,
   setGlobalClientForDebug,
   warnFireAndForget,
-} from './runtime/telemetry.js';
+} from './lib/telemetry-runtime.js';
 // Явный экспорт из validation для избежания конфликтов с effect-utils
 // ValidationError уже экспортируется из types/errors.js, поэтому не экспортируем из validation
 export {

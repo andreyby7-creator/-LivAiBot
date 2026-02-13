@@ -1,5 +1,5 @@
 /**
- * @file packages/app/src/runtime/telemetry.ts
+ * @file packages/app/src/lib/telemetry-runtime.ts
  * ============================================================================
  * 🔹 TELEMETRY RUNTIME — SINGLETON ЛОГИКА ДЛЯ RUNTIME СРЕДЫ
  * ============================================================================

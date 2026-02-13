@@ -20,7 +20,7 @@
 
 import { withLogging } from './effect-utils.js';
 import type { EffectAbortController, EffectContext, EffectLogger } from './effect-utils.js';
-import { infoFireAndForget, logFireAndForget } from '../runtime/telemetry.js';
+import { infoFireAndForget, logFireAndForget } from './telemetry-runtime.js';
 
 /* ============================================================================
  * 🧠 ПРОТОКОЛ И БАЗОВЫЕ ТИПЫ

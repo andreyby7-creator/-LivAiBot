@@ -23,9 +23,9 @@ const telemetryMocks = vi.hoisted(() => {
   };
 });
 
-vi.mock('../../../../../app/src/lib/telemetry.js', async () => {
+vi.mock('../../../../../app/src/lib/telemetry-runtime.js', async () => {
   // eslint-disable-next-line @livai/multiagent/orchestration-safety -- vi.importActual не требует timeout, это синхронная операция мокинга
-  const actual = await vi.importActual('../../../../../app/src/lib/telemetry.js');
+  const actual = await vi.importActual('../../../../../app/src/lib/telemetry-runtime.js');
   return {
     ...actual,
     getGlobalTelemetryClient: telemetryMocks.getGlobalTelemetryClient,

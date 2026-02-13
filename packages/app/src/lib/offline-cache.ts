@@ -28,7 +28,7 @@
 import { EventEmitter } from 'events';
 
 import type { Effect } from './effect-utils.js';
-import { errorFireAndForget, warnFireAndForget } from '../runtime/telemetry.js';
+import { errorFireAndForget, warnFireAndForget } from './telemetry-runtime.js';
 
 /* ============================================================================
  * 📡 EVENT TYPES

@@ -1,5 +1,5 @@
 /**
- * @file packages/app/tests/unit/runtime/telemetry.test.ts
+ * @file packages/app/tests/unit/lib/telemetry-runtime.test.ts
  * ============================================================================
  * 🔹 TELEMETRY RUNTIME UNIT TESTS — 100% COVERAGE
  * ============================================================================
@@ -28,7 +28,7 @@ import {
   resetGlobalTelemetryClient,
   setGlobalClientForDebug,
   warnFireAndForget,
-} from '../../../src/runtime/telemetry.js';
+} from '../../../src/lib/telemetry-runtime.js';
 import { TelemetryClient } from '../../../src/lib/telemetry.js';
 import type {
   TelemetryConfig,

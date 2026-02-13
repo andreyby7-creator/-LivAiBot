@@ -204,7 +204,7 @@ describe('LoginClient (Client Component)', () => {
       );
 
       expect(content).toContain('import { LoginForm }');
-      expect(content).toContain("from '@livai/ui-features'");
+      expect(content).toContain("from '@livai/ui-features/auth/login-form.js'");
       expect(content).toContain('<LoginForm');
     });
 

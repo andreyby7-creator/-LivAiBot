@@ -18,7 +18,7 @@
  */
 
 import type { ServiceErrorCode, ServicePrefix, TaggedError } from './error-mapping.js';
-import { errorFireAndForget, warnFireAndForget } from '../runtime/telemetry.js';
+import { errorFireAndForget, warnFireAndForget } from './telemetry-runtime.js';
 import type { FileValidationResult } from '../types/api.js';
 
 /* ============================================================================
