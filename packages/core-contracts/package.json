@@ -117,7 +117,7 @@
     "foundation"
   ],
   "peerDependencies": {
-    "effect": "^3.19.15",
+    "effect": "^3.19.17",
     "typescript": "5.9.3"
   },
   "peerDependenciesMeta": {
@@ -171,7 +171,7 @@
     "@effect/typeclass": "^0.38.0",
     "@effect/vitest": "^0.27.0",
     "@effect/workflow": "^0.16.0",
-    "effect": "^3.19.15",
+    "effect": "^3.19.17",
     "zod": "^4.3.6"
   },
   "optionalDependencies": {
