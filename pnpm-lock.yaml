@@ -576,9 +576,6 @@ importers:
 
   packages/feature-auth:
     dependencies:
-      '@livai/app':
-        specifier: workspace:*
-        version: link:../app
       '@livai/core-contracts':
         specifier: workspace:*
         version: link:../core-contracts
