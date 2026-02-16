@@ -116,6 +116,6 @@
     "effect": "^3.19.15"
   },
   "optionalDependencies": {
-    "lru-cache": "11.2.4"
+    "lru-cache": "11.2.6"
   }
 }
