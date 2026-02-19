@@ -91,6 +91,7 @@
     "ui"
   ],
   "dependencies": {
+    "@livai/app": "workspace:*",
     "@livai/core-contracts": "workspace:*",
     "zod": "^4.3.6"
   },

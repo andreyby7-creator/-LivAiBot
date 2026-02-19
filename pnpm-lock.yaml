@@ -35,6 +35,9 @@ importers:
       effect:
         specifier: ^3.19.16
         version: 3.19.16
+      ipaddr.js:
+        specifier: ^2.1.0
+        version: 2.3.0
       next:
         specifier: ^16.1.6
         version: 16.1.6(@babel/core@7.29.0)(@opentelemetry/api@1.9.0)(@playwright/test@1.58.2)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
@@ -573,6 +576,34 @@ importers:
       lru-cache:
         specifier: 11.2.4
         version: 11.2.4
+
+  packages/domains:
+    dependencies:
+      '@livai/core':
+        specifier: workspace:*
+        version: link:../core
+      effect:
+        specifier: ^3.19.13
+        version: 3.19.16
+    devDependencies:
+      '@livai/vitest-config':
+        specifier: workspace:*
+        version: link:../../config/vitest
+      '@vitest/coverage-v8':
+        specifier: 4.0.18
+        version: 4.0.18(vitest@4.0.18)
+      eslint:
+        specifier: 9.39.2
+        version: 9.39.2
+      tsup:
+        specifier: 8.5.1
+        version: 8.5.1(@swc/core@1.15.11)(postcss@8.5.6)(tsx@4.21.0)(typescript@5.9.3)(yaml@2.8.2)
+      typescript:
+        specifier: 5.9.3
+        version: 5.9.3
+      vitest:
+        specifier: 4.0.18
+        version: 4.0.18(@opentelemetry/api@1.9.0)(@types/node@25.2.3)(@vitest/ui@4.0.18)(jsdom@28.0.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.2)
 
   packages/feature-auth:
     dependencies:
@@ -5329,6 +5360,10 @@ packages:
   ioredis@5.9.3:
     resolution: {integrity: sha512-VI5tMCdeoxZWU5vjHWsiE/Su76JGhBvWF1MJnV9ZtGltHk9BmD48oDq8Tj8haZ85aceXZMxLNDQZRVo5QKNgXA==}
     engines: {node: '>=12.22.0'}
+
+  ipaddr.js@2.3.0:
+    resolution: {integrity: sha512-Zv/pA+ciVFbCSBBjGfaKUya/CcGmUHzTydLMaTwrUUEM2DIEO3iZvueGxmacvmN50fGpGVKeTXpb2LcYQxeVdg==}
+    engines: {node: '>= 10'}
 
   irregular-plurals@3.5.0:
     resolution: {integrity: sha512-1ANGLZ+Nkv1ptFb2pa8oG8Lem4krflKuX/gINiHJHjJUKaJHk/SXk5x6K3J+39/p0h1RQ2saROclJJ+QLvETCQ==}
@@ -12400,6 +12435,8 @@ snapshots:
       standard-as-callback: 2.1.0
     transitivePeerDependencies:
       - supports-color
+
+  ipaddr.js@2.3.0: {}
 
   irregular-plurals@3.5.0: {}
 

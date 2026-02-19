@@ -1,0 +1,297 @@
+/**
+ * @file packages/core/src/data-safety/structural-clone.ts
+ * ============================================================================
+ * 🛡️ CORE — Structural Clone (Safe Deep Cloning)
+ * ============================================================================
+ *
+ * Безопасное глубокое клонирование для taint tracking и boundary guards.
+ * Поддерживает примитивы, объекты, массивы, Map, Set, Date, RegExp.
+ * Защита от циклических ссылок, Prototype Pollution, неизвестных типов (fail-hard).
+ *
+ * ⚠️ PRODUCTION:
+ * - Fail-hard при неизвестных типах, функции и Symbol
+ * - Защита от циклических ссылок (WeakMap), Prototype Pollution (фильтрация __proto__, constructor)
+ * - Immutable результаты
+ */
+
+/* ============================================================================
+ * 🧩 ТИПЫ
+ * ============================================================================
+ */
+
+/** Типы, которые могут быть безопасно клонированы */
+type CloneableType =
+  | string
+  | number
+  | boolean
+  | null
+  | undefined
+  | Date
+  | RegExp
+  | Map<unknown, unknown>
+  | Set<unknown>
+  | unknown[]
+  | Record<string, unknown>;
+
+/** Результат клонирования (readonly для безопасности) */
+type Cloned<T> = T extends Date ? Date
+  : T extends RegExp ? RegExp
+  : T extends Map<infer K, infer V> ? Map<Cloned<K>, Cloned<V>>
+  : T extends Set<infer V> ? Set<Cloned<V>>
+  : T extends (infer V)[] ? readonly Cloned<V>[]
+  : T extends Record<string, unknown> ? Readonly<{ [K in keyof T]: Cloned<T[K]>; }>
+  : T;
+
+/* ============================================================================
+ * 🔧 UTILITY FUNCTIONS
+ * ============================================================================
+ */
+
+/**
+ * Проверяет, может ли значение быть безопасно клонировано
+ * Защищает от функций, Symbol, и других несериализуемых типов.
+ *
+ * @example isCloneable({ a: 1 }) === true; isCloneable(() => {}) === false
+ */
+export function isCloneable(value: unknown): value is CloneableType {
+  if (
+    value === null
+    || value === undefined
+    || typeof value === 'string'
+    || typeof value === 'number'
+    || typeof value === 'boolean'
+  ) {
+    return true;
+  }
+
+  if (typeof value === 'function' || typeof value === 'symbol') {
+    return false;
+  }
+
+  if (typeof value === 'object') {
+    return (
+      Array.isArray(value)
+      || value instanceof Date
+      || value instanceof RegExp
+      || value instanceof Map
+      || value instanceof Set
+      || Object.getPrototypeOf(value) === Object.prototype
+      || Object.getPrototypeOf(value) === null
+    );
+  }
+
+  return false;
+}
+
+/* ============================================================================
+ * 🔐 CLONE OPERATIONS
+ * ============================================================================
+ */
+
+/** Опасные ключи для Prototype Pollution (фильтруются при клонировании) */
+const PROTOTYPE_POLLUTION_KEYS = new Set(['__proto__', 'constructor', 'prototype']);
+
+/** Клонирует примитивные значения (O(1), no allocation) */
+function clonePrimitive<T>(value: T): T {
+  return value;
+}
+
+/** Клонирует Date объект */
+function cloneDate(date: Date): Date {
+  return new Date(date.getTime());
+}
+
+/** Клонирует RegExp объект */
+function cloneRegExp(regex: RegExp): RegExp {
+  const cloned = new RegExp(regex.source, regex.flags);
+  // RegExp.lastIndex требует мутации для сохранения состояния
+  // eslint-disable-next-line functional/immutable-data, fp/no-mutation
+  cloned.lastIndex = regex.lastIndex;
+  return cloned;
+}
+
+/** Клонирует Map с рекурсивным клонированием ключей и значений */
+function cloneMap<K, V>(
+  map: Map<K, V>,
+  visited: WeakMap<object, unknown>,
+): Map<Cloned<K>, Cloned<V>> {
+  const cloned = new Map<Cloned<K>, Cloned<V>>();
+  visited.set(map, cloned);
+
+  const entries = Array.from(map.entries());
+  const clonedEntries = entries.map(([key, val]) =>
+    [
+      structuralClone(key, visited),
+      structuralClone(val, visited),
+    ] as [Cloned<K>, Cloned<V>]
+  );
+
+  clonedEntries.forEach(([clonedKey, clonedValue]) => {
+    // eslint-disable-next-line functional/immutable-data
+    cloned.set(clonedKey, clonedValue);
+  });
+
+  return cloned;
+}
+
+/** Клонирует Set с рекурсивным клонированием значений */
+function cloneSet<T>(
+  set: Set<T>,
+  visited: WeakMap<object, unknown>,
+): Set<Cloned<T>> {
+  const cloned = new Set<Cloned<T>>();
+  visited.set(set, cloned);
+
+  const values = Array.from(set.values());
+  const clonedValues = values.map((val) => structuralClone(val, visited));
+
+  clonedValues.forEach((clonedValue) => {
+    // eslint-disable-next-line functional/immutable-data
+    cloned.add(clonedValue);
+  });
+
+  return cloned;
+}
+
+/** Клонирует массив с рекурсивным клонированием элементов */
+function cloneArray<T>(
+  array: T[],
+  visited: WeakMap<object, unknown>,
+): readonly Cloned<T>[] {
+  // Создаем пустой массив и добавляем в visited ДО рекурсивных вызовов
+  // для правильной обработки циклических ссылок
+  const cloned: Cloned<T>[] = [];
+  visited.set(array, cloned);
+
+  array.forEach((item) => {
+    // eslint-disable-next-line functional/immutable-data
+    cloned.push(structuralClone(item, visited));
+  });
+
+  return cloned;
+}
+
+/** Клонирует объект с рекурсивным клонированием свойств и защитой от Prototype Pollution */
+function cloneObject<T extends Record<string, unknown>>(
+  obj: T,
+  visited: WeakMap<object, unknown>,
+): Readonly<{ [K in keyof T]: Cloned<T[K]>; }> {
+  const keys = Object.keys(obj).filter((key) => !PROTOTYPE_POLLUTION_KEYS.has(key));
+  // Создаем пустой объект и добавляем в visited ДО рекурсивных вызовов
+  // для правильной обработки циклических ссылок
+  const cloned = {} as { [K in keyof T]: Cloned<T[K]>; };
+  visited.set(obj, cloned);
+
+  // Мутируем cloned напрямую для правильной обработки циклических ссылок
+  // (необходимо для того, чтобы visited.get() возвращал правильный объект)
+  keys.forEach((key) => {
+    const value = obj[key];
+    // eslint-disable-next-line functional/immutable-data, fp/no-mutation
+    cloned[key as keyof T] = structuralClone(value, visited) as Cloned<T[keyof T]>;
+  });
+
+  return cloned as Readonly<{ [K in keyof T]: Cloned<T[K]>; }>;
+}
+
+/** Обрабатывает объекты при клонировании */
+function cloneObjectValue<T>(
+  value: T,
+  visited: WeakMap<object, unknown>,
+): Cloned<T> {
+  if (visited.has(value as object)) {
+    return visited.get(value as object) as Cloned<T>;
+  }
+
+  if (value instanceof Date) {
+    const cloned = cloneDate(value);
+    visited.set(value as object, cloned);
+    return cloned as Cloned<T>;
+  }
+
+  if (value instanceof RegExp) {
+    const cloned = cloneRegExp(value);
+    visited.set(value as object, cloned);
+    return cloned as Cloned<T>;
+  }
+
+  if (value instanceof Map) {
+    return cloneMap(value, visited) as Cloned<T>;
+  }
+
+  if (value instanceof Set) {
+    return cloneSet(value, visited) as Cloned<T>;
+  }
+
+  if (Array.isArray(value)) {
+    return cloneArray(value, visited) as Cloned<T>;
+  }
+
+  if (
+    Object.getPrototypeOf(value) === Object.prototype
+    || Object.getPrototypeOf(value) === null
+  ) {
+    return cloneObject(value as Record<string, unknown>, visited) as Cloned<T>;
+  }
+
+  const constructorName = (value as { constructor?: { name?: string; }; }).constructor?.name
+    ?? 'Unknown';
+  // eslint-disable-next-line fp/no-throw
+  throw new Error(
+    `Cannot clone object of type ${constructorName}. `
+      + 'Only plain objects, arrays, Date, RegExp, Map, and Set are supported. '
+      + 'Use isCloneable() to check before cloning.',
+  );
+}
+
+/**
+ * Безопасное глубокое клонирование данных (Structural Clone Algorithm)
+ *
+ * Поддерживает: примитивы, объекты, массивы, Date, RegExp, Map, Set.
+ * Защита: циклические ссылки (WeakMap), Prototype Pollution (фильтрация __proto__, constructor),
+ * неизвестные типы и функции/Symbol (fail-hard).
+ *
+ * @param value - Значение для клонирования
+ * @param visited - WeakMap для отслеживания обработанных объектов (внутренний параметр)
+ * @returns Клонированная копия (readonly, immutable)
+ * @throws {Error} Если значение содержит несериализуемые типы или неизвестный тип объекта
+ *
+ * @example
+ * ```ts
+ * const obj = { a: 1, b: [2, 3], date: new Date(), __proto__: { polluted: true } };
+ * obj.self = obj; // циклическая ссылка
+ * const cloned = structuralClone(obj); // OK: циклические ссылки и __proto__ обрабатываются корректно
+ * cloned.b.push(4); // не влияет на original
+ * ```
+ */
+export function structuralClone<T>(
+  value: T,
+  visited: WeakMap<object, unknown> = new WeakMap(),
+): Cloned<T> {
+  if (
+    value === null
+    || value === undefined
+    || typeof value === 'string'
+    || typeof value === 'number'
+    || typeof value === 'boolean'
+  ) {
+    return clonePrimitive(value) as Cloned<T>;
+  }
+
+  if (typeof value === 'function' || typeof value === 'symbol') {
+    // eslint-disable-next-line fp/no-throw
+    throw new Error(
+      `Cannot clone non-serializable type: ${typeof value}. `
+        + 'Functions and Symbols cannot be cloned. Use isCloneable() to check before cloning.',
+    );
+  }
+
+  if (typeof value === 'object') {
+    return cloneObjectValue(value, visited);
+  }
+
+  // eslint-disable-next-line fp/no-throw
+  throw new Error(
+    `Cannot clone value of type ${typeof value}. `
+      + 'Use isCloneable() to check before cloning.',
+  );
+}

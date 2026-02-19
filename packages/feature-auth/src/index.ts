@@ -97,7 +97,7 @@ export { type VerifyEmailRequest } from './domain/VerifyEmailRequest.js';
 export { type VerifyPhoneRequest } from './domain/VerifyPhoneRequest.js';
 
 /* ============================================================================
- * 🔐 SCHEMAS — ZOD СХЕМЫ И ТИПЫ
+ * 🔐 SCHEMAS — ZOD СХЕМЫ
  * ============================================================================
  *
  * Zod схемы для runtime валидации и type-safe inference.
@@ -116,15 +116,54 @@ export * from './schemas.js';
 
 export * from './types/auth.js';
 
+// Risk Assessment Types (централизованные типы из types/risk.ts)
+export type {
+  ContextBuilderPlugin,
+  ExternalRiskSignals,
+  InternalRiskSignals,
+  RiskAssessmentResult,
+  RiskContext,
+  RiskPolicy,
+  RiskSignals,
+} from './types/risk.js';
+
 /* ============================================================================
- * 🏪 STORES — ZUSTAND STORES
+ * 🛡️ DOMAIN — PURE DOMAIN LOGIC
  * ============================================================================
  *
- * Zustand stores для управления состоянием аутентификации.
- * Чистое состояние без side-effects.
+ * Pure domain логика для risk assessment.
+ * Детерминированные функции без side-effects.
  */
 
-export * from './stores/auth.js';
+// Domain: Risk Validation
+export { type RiskSemanticViolation, validateRiskSemantics } from './domain/RiskValidation.js';
+
+// Domain: Context Builders
+export {
+  buildAssessmentContext,
+  buildRuleContext,
+  buildScoringContext,
+} from './domain/ContextBuilders.js';
+
+// Domain: Plugin Appliers
+export {
+  applyAssessmentPlugins,
+  applyRulePlugins,
+  applyScoringPlugins,
+} from './domain/PluginAppliers.js';
+
+// Domain: Local Rules Engine
+export { evaluateLocalRules } from './domain/LocalRulesEngine.js';
+
+/* ============================================================================
+ * 🔒 SECURITY — SECURITY UTILITIES
+ * ============================================================================
+ *
+ * Security utilities для защиты от атак и sanitization данных.
+ */
+
+// Security: Sanitizer
+export { sanitizeExternalSignals } from './lib/sanitizer.js';
 
 /* ============================================================================
  * ⚡ EFFECTS — PURE EFFECTS
@@ -137,42 +176,7 @@ export * from './stores/auth.js';
 // Device Fingerprint
 export { DeviceFingerprint } from './effects/login/device-fingerprint.js';
 
-// Risk Assessment
-export {
-  assessLoginRisk,
-  type AuditHook,
-  type ContextBuilderPlugin,
-  type ExternalRiskSignals,
-  type InternalRiskSignals,
-  type RiskAssessmentResult,
-  type RiskContext,
-  type RiskPolicy,
-  type RiskSignals,
-} from './effects/login/risk-assessment.js';
-
-// Risk Assessment Adapter
-export {
-  buildAssessment,
-  type RiskSignals as AdapterRiskSignals,
-  type SignalsMapperPlugin,
-} from './effects/login/risk-assessment.adapter.js';
-
-// Risk Decision
-export {
-  type BlockReason,
-  type DecisionPolicy,
-  type DecisionResult,
-  type DecisionSignals,
-  DefaultDecisionPolicy,
-  defaultDecisionPolicy,
-  DefaultRiskThresholds,
-  defaultRiskThresholds,
-  determineDecisionHint,
-  determineRiskLevel,
-  type RiskThresholds,
-} from './effects/login/risk-decision.js';
-
-// Risk Rules
+// Risk Assessment: Rules
 export {
   AllRules,
   allRules,
@@ -199,7 +203,7 @@ export {
   sortRulesByPriority,
 } from './effects/login/risk-rules.js';
 
-// Risk Scoring
+// Risk Assessment: Scoring
 export {
   calculateRiskScore,
   calculateRiskScoreFromJson,
@@ -227,8 +231,35 @@ export {
   type ScoringSignals,
 } from './effects/login/risk-scoring.js';
 
-// Login Helpers (Validation & Metadata Builders)
+// Risk Assessment: Decision
+export {
+  type BlockReason,
+  type DecisionPolicy,
+  type DecisionResult,
+  type DecisionSignals,
+  DefaultDecisionPolicy,
+  defaultDecisionPolicy,
+  DefaultRiskThresholds,
+  defaultRiskThresholds,
+  determineDecisionHint,
+  determineRiskLevel,
+  type RiskThresholds,
+} from './effects/login/risk-decision.js';
+
+// Risk Assessment: Adapter
+export {
+  buildAssessment,
+  type RiskSignals as AdapterRiskSignals,
+  type SignalsMapperPlugin,
+} from './effects/login/risk-assessment.adapter.js';
+
+// Risk Assessment: Composition Layer
+export { assessLoginRisk, type AuditHook } from './effects/login/risk-assessment.js';
+
+// Login Helpers: Validation
 export { isValidLoginRequest } from './effects/login/validation.js';
+
+// Login Helpers: Metadata Builders
 export {
   buildLoginMetadata,
   type IdentifierHasher,
@@ -238,3 +269,55 @@ export {
   type MetadataConfig,
   type RiskMetadata,
 } from './effects/login/metadata-builders.js';
+
+/* ============================================================================
+ * 🛡️ SECURITY PIPELINE — RISK ASSESSMENT & SECURITY
+ * ============================================================================
+ *
+ * Security pipeline для оценки рисков и принятия решений.
+ * Включает local rules engine, performance limits и security pipeline facade.
+ */
+
+// Security Pipeline: Risk Sources
+export {
+  assessLocalRisk,
+  type AuditHook as LocalRulesAuditHook,
+  type LocalRiskResult,
+  type LocalRulesSourceConfig,
+  PerformanceLimits,
+} from './lib/security-pipeline/risk-sources/local-rules.source.js';
+
+export {
+  DEFAULT_PERFORMANCE_LIMITS,
+  defaultPerformanceLimits,
+  getPerformanceLimits,
+  type PerformanceLimitsConfig,
+  resetPerformanceLimits,
+  setPerformanceLimits,
+  validatePerformanceLimits,
+} from './lib/security-pipeline/risk-sources/performance-limits.js';
+
+// Security Pipeline: Core
+export type { SecurityPipelineError } from './lib/security-pipeline/core/security-pipeline.errors.js';
+
+// Security Pipeline: Public API
+export {
+  executeSecurityPipeline,
+  type SecurityOperation,
+  type SecurityPipelineConfig,
+  type SecurityPipelineResult,
+  type SecurityPipelineStep,
+  SecurityPipelineVersion,
+} from './lib/security-pipeline/security-pipeline.js';
+
+// Security Pipeline: Facade
+export { executeSecurityPipeline as executeSecurityPipelineFacade } from './lib/security-pipeline/security-pipeline.facade.js';
+
+/* ============================================================================
+ * 🏪 STORES — ZUSTAND STORES
+ * ============================================================================
+ *
+ * Zustand stores для управления состоянием аутентификации.
+ */
+
+export * from './stores/auth.js';

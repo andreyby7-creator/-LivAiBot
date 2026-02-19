@@ -273,6 +273,43 @@ export const deprecatedImportsRules = {
   },
 };
 
+// ==================== SECURITY PIPELINE BOUNDARIES ====================
+/**
+ * Запрещает прямые импорты из внутренних модулей security-pipeline
+ * Разрешен только импорт из facade (security-pipeline.ts)
+ * 
+ * Это закрепляет Clean Architecture физически через линтер,
+ * а не только договорённостью.
+ */
+export const securityPipelineBoundaries = {
+  files: [
+    'packages/feature-auth/**/*.{ts,tsx}',
+  ],
+  ignores: [
+    // Разрешаем импорты внутри самого security-pipeline модуля
+    'packages/feature-auth/src/lib/security-pipeline*.{ts,tsx}',
+    // Тесты могут импортировать внутренние модули для проверки
+    'packages/feature-auth/tests/**/*.{ts,tsx}',
+  ],
+  rules: {
+    'no-restricted-imports': [
+      'error',
+      {
+        paths: [
+          {
+            name: /packages\/feature-auth\/src\/lib\/security-pipeline\.(engine|errors|policy|adapter)/,
+            message: 'Прямые импорты из внутренних модулей security-pipeline запрещены. Используйте только facade: "packages/feature-auth/src/lib/security-pipeline"',
+          },
+          {
+            name: /\.\/security-pipeline\.(engine|errors|policy|adapter)/,
+            message: 'Прямые импорты из внутренних модулей security-pipeline запрещены. Используйте только facade: "./security-pipeline"',
+          },
+        ],
+      },
+    ],
+  },
+};
+
 // ==================== ФИНАЛЬНАЯ КОНФИГУРАЦИЯ ====================
 
 /**
@@ -289,6 +326,9 @@ export default [
 
   // Глобальные правила безопасности
   globalSecurityRules,
+
+  // Security Pipeline boundaries (запрет прямых импортов внутренних модулей)
+  securityPipelineBoundaries,
 
   // Дополнительные правила качества
   cyclicDependencyRules,

@@ -33,6 +33,7 @@
       "@livai/ui-shared/*": ["packages/ui-shared/*/index.ts"],
       "@livai/app": ["packages/app/src/index.ts"],
       "@livai/app/*": ["packages/app/src/*/index.ts"],
+      "@livai/app/lib/*": ["packages/app/src/lib/*"],
       "@/*": ["apps/*/src"]
     },
     "declaration": true,

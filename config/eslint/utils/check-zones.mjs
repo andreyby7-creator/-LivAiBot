@@ -116,6 +116,7 @@ const PACKAGE_ZONE_MAPPING = {
   'packages/core': 'foundation',
   'packages/events': 'foundation',
   'packages/observability': 'foundation',
+  'packages/domains': 'foundation', // Domain implementations container
 
   // AI EXECUTION: AI бизнес-логика
   'packages/feature-auth': 'aiExecution',

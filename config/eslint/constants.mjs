@@ -313,6 +313,19 @@ export const BASE_RULES = {
     'ts-expect-error': { descriptionFormat: '^.*$' },
   }],
 
+  // Защита от опасных кастов branded types (phantom generic bypass)
+  // Запрещает только опасные касты через unknown: `as unknown as Label<X>`
+  // Простые касты `as Label<T>` разрешены для внутренних helper функций после валидации
+  'no-restricted-syntax': [
+    'error',
+    {
+      // Паттерн: вложенный TSAsExpression с typeAnnotation.typeName.name = "unknown"
+      // внутри TSAsExpression с typeAnnotation.typeName.name = "Label"
+      selector: 'TSAsExpression[typeAnnotation.type="TSTypeReference"][typeAnnotation.typeName.name="Label"] TSAsExpression[typeAnnotation.type="TSTypeReference"][typeAnnotation.typeName.name="unknown"]',
+      message: 'Запрещен опасный каст через as unknown as Label<X>. Используйте label.isLabel() для безопасной проверки типов в runtime.',
+    },
+  ],
+
   'import/order': [
     'error',
     {

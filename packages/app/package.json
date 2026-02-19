@@ -35,6 +35,21 @@
       "import": "./dist/esm/lib/error-mapping.js",
       "default": "./dist/esm/lib/error-mapping.js"
     },
+    "./lib/effect-utils.js": {
+      "types": "./dist/esm/lib/effect-utils.d.ts",
+      "import": "./dist/esm/lib/effect-utils.js",
+      "default": "./dist/esm/lib/effect-utils.js"
+    },
+    "./lib/orchestrator.js": {
+      "types": "./dist/esm/lib/orchestrator.d.ts",
+      "import": "./dist/esm/lib/orchestrator.js",
+      "default": "./dist/esm/lib/orchestrator.js"
+    },
+    "./lib/effect-timeout.js": {
+      "types": "./dist/esm/lib/effect-timeout.d.ts",
+      "import": "./dist/esm/lib/effect-timeout.js",
+      "default": "./dist/esm/lib/effect-timeout.js"
+    },
     "./lib/service-worker.js": {
       "types": "./dist/esm/lib/service-worker.d.ts",
       "import": "./dist/esm/lib/service-worker.js",

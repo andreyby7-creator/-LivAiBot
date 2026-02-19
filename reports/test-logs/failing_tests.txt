@@ -1,6 +1,6 @@
-/home/boss/Projects/livai/packages/feature-auth/tests/unit/store/auth.test.ts: validatePersistedState отклоняет невалидные данные
-AssertionError: expected 'session_expired' to be 'unauthenticated' // Object.is equality
-    at /home/boss/Projects/livai/packages/feature-auth/tests/unit/store/auth.test.ts:1381:43
+/home/boss/Projects/livai/packages/domains/tests/classification/strategies/rules.test.ts: обрабатывает множественные правила одновременно
+AssertionError: expected 1 to be greater than 1
+    at /home/boss/Projects/livai/packages/domains/tests/classification/strategies/rules.test.ts:936:27
     at file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.18/node_modules/@vitest/runner/dist/index.js:145:11
     at file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.18/node_modules/@vitest/runner/dist/index.js:915:26
     at file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.18/node_modules/@vitest/runner/dist/index.js:1243:20

@@ -162,6 +162,20 @@ devConfigWithRules.push({
   },
 });
 
+// ==================== DOMAINS: AI-SECURITY RULES ====================
+// Domain layer работает только с trusted данными (валидированными в adapter/application layer)
+// Валидация выполняется на границе между внешним миром и domain (HTTP/DB/Queue → Schema validation → Domain)
+// Domain layer содержит только pure functions без side-effects
+// Любые новые файлы должны соблюдать архитектурный контракт (см. packages/domains/ADR-001-domain-layer-trust-policy.md)
+// ai-security/model-poisoning и data-leakage выключены намеренно для trusted zone
+devConfigWithRules.push({
+  files: ['packages/domains/**/*.{ts,tsx}'],
+  rules: {
+    'ai-security/data-leakage': 'off',
+    'ai-security/model-poisoning': 'off', // Domain layer работает только с validated data
+  },
+});
+
 // ==================== NEXT.JS APP ROUTER ====================
 // Next.js App Router: pages/ директории нет по дизайну, поэтому правило создаёт шум
 // Отключаем глобально, чтобы не получать предупреждение на старте линта

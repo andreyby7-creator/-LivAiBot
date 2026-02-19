@@ -16,6 +16,8 @@
  * - ✅ Testable — правила легко тестировать изолированно
  */
 
+import type { ReadonlyDeep } from 'type-fest';
+
 import type { DeviceInfo } from '../../domain/DeviceInfo.js';
 import type { GeoInfo } from '../../domain/LoginRiskAssessment.js';
 
@@ -62,7 +64,8 @@ export type RuleEvaluationContext = {
   readonly device: DeviceInfo;
   readonly geo?: GeoInfo;
   readonly previousGeo?: GeoInfo;
-  readonly signals?: RuleSignals;
+  /** ReadonlyDeep защищает вложенные объекты от мутаций плагинами */
+  readonly signals?: ReadonlyDeep<RuleSignals>;
   readonly metadata?: RuleContextMetadata;
 };
 

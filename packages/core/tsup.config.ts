@@ -5,6 +5,7 @@ export default defineConfig({
   platform: 'neutral', // Domain logic - используется везде (node, web, edge)
   entry: {
     index: 'src/index.ts',
+    'domain-kit/index': 'src/domain-kit/index.ts',
   },
   format: ['esm'],
   outDir: 'dist/esm',

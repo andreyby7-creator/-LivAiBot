@@ -1,0 +1,54 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Domain Layer Integration: Snapshot Tests > фиксирует структуру валидного context 1`] = `
+{
+  "geo": {
+    "country": "US",
+    "lat": 37.7749,
+    "lng": -122.4194,
+  },
+  "ip": "192.168.1.1",
+  "previousSessionId": "session123",
+  "signals": {
+    "isTor": true,
+    "isVpn": false,
+    "reputationScore": 75,
+  },
+  "userId": "user1",
+}
+`;
+
+exports[`Domain Layer Integration: Snapshot Tests > фиксирует структуру валидного signals 1`] = `
+{
+  "asn": "AS12345",
+  "externalSignals": {
+    "score": 85,
+    "vendor": "test-vendor",
+  },
+  "isProxy": false,
+  "isTor": true,
+  "isVpn": false,
+  "previousGeo": {
+    "country": "US",
+    "lat": 37.7749,
+    "lng": -122.4194,
+  },
+  "reputationScore": 75,
+  "velocityScore": 50,
+}
+`;
+
+exports[`Domain Layer Integration: Snapshot Tests > фиксирует структуру минимального context 1`] = `
+{
+  "geo": {
+    "lat": 37.7749,
+    "lng": -122.4194,
+  },
+}
+`;
+
+exports[`Domain Layer Integration: Snapshot Tests > фиксирует структуру минимального signals 1`] = `
+{
+  "isVpn": false,
+}
+`;

@@ -1,77 +1,86 @@
 /**
- * @file packages/core/src/index.ts
+ * @file @livai/core — Public API для Core пакета
  *
- * =============================================================================
- * 🔧 CORE PACKAGE EXPORTS
- * =============================================================================
- *
- * Central exports for the core domain logic package.
- * Provides access to business policies and domain models.
+ * Публичный API пакета @livai/core.
+ * Экспортирует все публичные компоненты, типы, утилиты и политики для core domain logic.
+ * Tree-shakeable: все named exports остаются, импорты будут по нужным компонентам.
  */
 
-// Domain Policies
-export { AuthPolicy } from './domain/AuthPolicy.js';
-export { BotPermissions } from './domain/BotPermissions.js';
-export { BotPolicy } from './domain/BotPolicy.js';
-export { ChatPolicy } from './domain/ChatPolicy.js';
-export { BillingPolicy } from './domain/BillingPolicy.js';
+/* ============================================================================
+ * 🛡️ DATA-SAFETY — ОТСЛЕЖИВАНИЕ ЗАРАЖЕНИЯ И КОНТРОЛЬ ИНФОРМАЦИОННЫХ ПОТОКОВ
+ * ========================================================================== */
 
-// Re-export types for convenience
-export type {
-  AuthPolicyConfig,
-  AuthSessionState,
-  AuthTokenState,
-  AuthTokenType,
-  RefreshDecision,
-  SessionDecision,
-  TokenDecision,
-  TokenInvalidReason,
-} from './domain/AuthPolicy.js';
+/**
+ * Data Safety подпакет: taint tracking, IFC, trust levels, sanitization.
+ * Включает input/output boundaries, propagation tracking и structural clone.
+ *
+ * @public
+ */
+export * from './data-safety/index.js';
 
-export type {
-  BotAction,
-  BotPermissionDecision,
-  BotPermissionDeniedReason,
-  BotPermissionsConfig,
-  BotRole,
-  BotUserContext,
-} from './domain/BotPermissions.js';
+/* ============================================================================
+ * 🛡️ INPUT-BOUNDARY — ВАЛИДАЦИЯ И ТРАНСФОРМАЦИЯ DTO
+ * ========================================================================== */
 
-export type {
-  BotActorContext,
-  BotMode,
-  BotPolicyAction,
-  BotPolicyConfig,
-  BotPolicyDecision,
-  BotPolicyDeniedReason,
-  BotState,
-} from './domain/BotPolicy.js';
+/**
+ * Input Boundary подпакет: валидация DTO, type guards, JSON-serialization, projection engine, context enricher.
+ * Включает generic validation, rule engine, projection engine для domain → DTO трансформации,
+ * и context enricher для обогащения контекста метаданными.
+ *
+ * @public
+ */
+export * from './input-boundary/index.js';
 
-export type {
-  ChatAction,
-  ChatActorContext,
-  ChatActorType,
-  ChatDecision,
-  ChatDeniedReason,
-  ChatMessageContext,
-  ChatMode,
-  ChatPolicyConfig,
-  ChatRole,
-  ChatState,
-} from './domain/ChatPolicy.js';
+/* ============================================================================
+ * 📋 POLICIES — БИЗНЕС-ПОЛИТИКИ И ПРАВИЛА ДОСТУПА
+ * ========================================================================== */
 
-export type {
-  BillingAction,
-  BillingDecision,
-  BillingDeniedReason,
-  BillingPlan,
-  BillingPolicyConfig,
-  BillingSubjectState,
-  BillingSubjectType,
-  BillingUsageContext,
-  OveruseStrategy,
-} from './domain/BillingPolicy.js';
+/**
+ * Business Policies: авторизация, права доступа, биллинг, чат.
+ * Rule-engine архитектура для extensible security и business rules.
+ * Включает AuthPolicy, BotPermissions, BotPolicy, ChatPolicy, BillingPolicy, ComposedPolicy.
+ *
+ * @public
+ */
+export * from './policies/index.js';
 
-export { ComposedPolicy } from './domain/ComposedPolicy.js';
+/* ============================================================================
+ * 🧩 DOMAIN-KIT — DECISION ALGEBRA & PROBABILITY/UNCERTAINTY
+ * ========================================================================== */
+/**
+ * Domain Kit подпакет: decision algebra, probability/uncertainty, domain-specific labels.
+ * Включает EvaluationLevel (decision algebra с lattice ordering), Confidence (probability/uncertainty),
+ * Label (domain-specific string labels с extensible validation).
+ * Branded types с phantom generic для type safety между доменами.
+ *
+ * @public
+ */
+export * from './domain-kit/index.js';
 
-export type { ComposedPolicyConfig } from './domain/ComposedPolicy.js';
+/* ============================================================================
+ * 📊 AGGREGATION — GENERIC AGGREGATION SEMANTICS
+ * ========================================================================== */
+/**
+ * Aggregation подпакет: generic агрегация значений с весами.
+ * Включает Reducer (generic reduction functions), Weight (weight operations),
+ * Scoring (scoring operations), и extensible algebra для custom aggregators.
+ * Чистые функции без side-effects, только generic math.
+ * Effect-based API (ReduceResult, WeightResult, ScoreResult) для composability.
+ *
+ * @public
+ */
+export * from './aggregation/index.js';
+
+/* ============================================================================
+ * ⚙️ RULE-ENGINE — GENERIC PREDICATE & RULE OPERATIONS
+ * ========================================================================== */
+/**
+ * Rule Engine подпакет: generic операции с предикатами и правилами.
+ * Включает Predicate (generic predicate operations), Rule (generic rule operations),
+ * Evaluator (generic rule evaluation), и extensible algebra для custom operations.
+ * Чистые функции без side-effects, только generic operations.
+ * Effect-based API (PredicateResult, RuleResult, EvaluationResult) для composability.
+ *
+ * @public
+ */
+export * from './rule-engine/index.js';

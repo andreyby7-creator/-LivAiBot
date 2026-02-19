@@ -115,6 +115,8 @@ export const effectFpNamingRules = [
         // ==================== Переменные ====================
         // ErrorCode — доменная сущность (const enum-like object), разрешаем PascalCase (ПЕРЕД общим правилом)
         { selector: 'variable', filter: { regex: '^ErrorCode$', match: true }, format: ['PascalCase'], modifiers: ['const'] },
+        // Brand symbols для branded types: PascalCase (IDBrand, ISODateBrand, TrustLevelBrand)
+        { selector: 'variable', filter: { regex: '.*Brand$', match: true }, format: ['PascalCase'], modifiers: ['const'] },
         { selector: 'variable', format: ['camelCase'] },
 
         // Экспортируемые функции-константы Effect API: camelCase (приоритет над общим правилом для const)

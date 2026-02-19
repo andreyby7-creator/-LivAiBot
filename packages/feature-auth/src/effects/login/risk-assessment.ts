@@ -21,166 +21,43 @@
  * - ❌ Нет API calls — api-client layer
  */
 
-import { z } from 'zod';
-
 import { buildAssessment } from './risk-assessment.adapter.js';
 import {
   defaultDecisionPolicy,
   determineDecisionHint,
   determineRiskLevel,
 } from './risk-decision.js';
-import type { DecisionPolicy, DecisionResult } from './risk-decision.js';
 import { evaluateRules } from './risk-rules.js';
-import type { RiskRule, RuleEvaluationContext } from './risk-rules.js';
+import type { RuleEvaluationContext } from './risk-rules.js';
 import { calculateRiskScore, defaultRiskWeights } from './risk-scoring.js';
-import type { RiskWeights, ScoringContext } from './risk-scoring.js';
+import type { ScoringContext } from './risk-scoring.js';
 import type { DeviceInfo } from '../../domain/DeviceInfo.js';
-import type { LoginRiskAssessment } from '../../domain/LoginRiskAssessment.js';
-import type { RiskLevel } from '../../types/auth.js';
+import { validateRiskSemantics } from '../../domain/RiskValidation.js';
+import type {
+  ContextBuilderPlugin,
+  RiskAssessmentResult,
+  RiskContext,
+  RiskPolicy,
+} from '../../types/risk.js';
 
 /* ============================================================================
  * 🧭 TYPES
  * ============================================================================
- */
-
-/**
- * Внутренние сигналы риска (domain layer)
- * Используются для scoring и rule evaluation
- */
-export type InternalRiskSignals = {
-  /** VPN обнаружен */
-  readonly isVpn?: boolean;
-
-  /** TOR сеть обнаружена */
-  readonly isTor?: boolean;
-
-  /** Proxy обнаружен */
-  readonly isProxy?: boolean;
-
-  /** ASN (Autonomous System Number) */
-  readonly asn?: string;
-
-  /** Репутационный score (0-100) */
-  readonly reputationScore?: number;
-
-  /** Velocity score (аномалии скорости запросов) */
-  readonly velocityScore?: number;
-
-  /** Предыдущая геолокация для проверки impossible travel */
-  readonly previousGeo?: {
-    readonly country?: string;
-    readonly region?: string;
-    readonly city?: string;
-    readonly lat?: number;
-    readonly lng?: number;
-  };
-};
-
-/**
- * Внешние сигналы от risk vendors (изолированы от domain)
  *
- * Контракт:
- * - JSON-serializable (примитивы, массивы, объекты без циклических ссылок)
- * - Read-only (immutable)
- * - Детерминированные (одинаковый вход → одинаковый выход)
- * - Не влияют напрямую на правила (используются только для scoring)
- *
- * @security Валидируются перед использованием, не пробрасываются в DTO
+ * @note Все типы risk assessment реэкспортируются из types/risk.ts
+ *       для единого источника истины и консистентности архитектуры
  */
-export type ExternalRiskSignals = Readonly<Record<string, unknown>>;
 
-/**
- * Типизированные сигналы риска (internal + external)
- * Разделение internal/external для чистоты domain и безопасности
- */
-export type RiskSignals = InternalRiskSignals & {
-  /**
-   * Внешние сигналы от risk vendors (изолированы от domain)
-   * @see ExternalRiskSignals для контракта
-   */
-  readonly externalSignals?: ExternalRiskSignals;
-};
-
-/** Контекст для оценки риска логина */
-export type RiskContext = {
-  /** IP адрес клиента */
-  readonly ip?: string;
-
-  /** Геолокация (IP / GPS / provider) */
-  readonly geo?: {
-    readonly country?: string;
-    readonly region?: string;
-    readonly city?: string;
-    readonly lat?: number;
-    readonly lng?: number;
-  };
-
-  /** ID пользователя (может отсутствовать до идентификации) */
-  readonly userId?: string;
-
-  /** ID предыдущей сессии (если есть) */
-  readonly previousSessionId?: string;
-
-  /** Типизированные сигналы риска */
-  readonly signals?: RiskSignals;
-
-  /** Timestamp события (ISO 8601) - передается извне для детерминизма */
-  readonly timestamp?: string;
-};
-
-/** Политика оценки риска */
-export type RiskPolicy = {
-  /** Веса для scoring */
-  readonly weights?: RiskWeights;
-
-  /** Политика принятия решений */
-  readonly decision?: DecisionPolicy;
-};
-
-/** Результат оценки риска */
-export type RiskAssessmentResult = {
-  /** Оценка риска (0-100) */
-  readonly riskScore: number;
-
-  /** Уровень риска */
-  readonly riskLevel: RiskLevel;
-
-  /** Сработавшие правила */
-  readonly triggeredRules: readonly RiskRule[];
-
-  /** Рекомендация по действию с причиной блокировки (для audit logging) */
-  readonly decisionHint: DecisionResult;
-
-  /** Полная оценка риска для аудита */
-  readonly assessment: LoginRiskAssessment;
-};
-
-/**
- * Plugin интерфейс для расширения Context Builder
- * Позволяет добавлять кастомные сигналы без изменения core logic
- */
-export type ContextBuilderPlugin = {
-  /** Уникальный идентификатор плагина */
-  readonly id: string;
-} & {
-  /** Расширяет scoring context кастомными сигналами */
-  readonly extendScoringContext?: (
-    context: ScoringContext,
-    riskContext: RiskContext,
-  ) => ScoringContext;
-
-  /** Расширяет rule context кастомными сигналами */
-  readonly extendRuleContext?: (
-    context: RuleEvaluationContext,
-    riskContext: RiskContext,
-  ) => RuleEvaluationContext;
-
-  /** Расширяет assessment context кастомными полями */
-  readonly extendAssessmentContext?: (
-    context: Parameters<typeof buildAssessment>[1],
-    riskContext: RiskContext,
-  ) => Parameters<typeof buildAssessment>[1];
-};
+// Реэкспорт типов из types/risk.ts (единый источник истины)
+export type {
+  ContextBuilderPlugin,
+  ExternalRiskSignals,
+  InternalRiskSignals,
+  RiskAssessmentResult,
+  RiskContext,
+  RiskPolicy,
+  RiskSignals,
+} from '../../types/risk.js';
 
 /**
  * Hook для audit/logging критических решений
@@ -250,66 +127,6 @@ function buildAssessmentContext(
     ...(context.timestamp !== undefined && { timestamp: context.timestamp }),
     ...(context.signals !== undefined && { signals: context.signals }),
   };
-}
-
-/**
- * Zod schema для валидации externalSignals
- * Строгий контракт: только JSON-serializable типы (примитивы, массивы, объекты)
- */
-const externalSignalsSchema = z.record(
-  z.string(),
-  z.union([
-    z.string(),
-    z.number(),
-    z.boolean(),
-    z.null(),
-    z.array(z.unknown()),
-    z.record(z.string(), z.unknown()),
-  ]),
-).refine(
-  (value) => {
-    // Дополнительная проверка на JSON-serializable (без циклических ссылок)
-    try {
-      JSON.stringify(value);
-      return true;
-    } catch {
-      return false;
-    }
-  },
-  { message: 'externalSignals must be JSON-serializable without circular references' },
-);
-
-/**
- * Валидирует externalSignals по контракту (JSON-serializable, read-only, детерминированные)
- *
- * Контракт:
- * - JSON-serializable (примитивы, массивы, объекты)
- * - Без циклических ссылок
- * - Без функций, символов, undefined (только JSON-совместимые типы)
- * - Schema validation через Zod для строгой проверки структуры
- *
- * @param signals - Сигналы для валидации
- * @returns true если signals соответствуют контракту
- */
-function validateExternalSignals(signals: RiskSignals | undefined): boolean {
-  if (signals?.externalSignals === undefined) {
-    return true;
-  }
-
-  const ext = signals.externalSignals;
-
-  // Проверка: externalSignals должен быть объектом
-  if (typeof ext !== 'object') {
-    return false;
-  }
-
-  // Schema validation через Zod для строгой проверки структуры
-  const parseResult = externalSignalsSchema.safeParse(ext);
-  if (!parseResult.success) {
-    return false;
-  }
-
-  return true;
 }
 
 /* ============================================================================
@@ -406,9 +223,24 @@ export function assessLoginRisk(
   plugins: readonly ContextBuilderPlugin[] = [],
   auditHook?: AuditHook,
 ): RiskAssessmentResult {
-  // Валидация externalSignals по контракту (JSON-serializable, read-only)
-  if (!validateExternalSignals(context.signals)) {
-    throw new Error('Invalid externalSignals: must be JSON-serializable and read-only');
+  // Семантическая валидация risk signals (domain logic)
+  // Возвращает violations для observability, explainability и policy-engine
+  // @note Security sanitization должна быть выполнена ДО вызова этой функции
+  //       через sanitizeExternalSignals() из lib/security-pipeline/core/
+  const violations = validateRiskSemantics(context.signals);
+  if (violations.length > 0) {
+    // Фильтруем только блокирующие violations (severity: 'block')
+    // degrade violations влияют на confidence, но не блокируют оценку
+    const blockingViolations = violations.filter((v) => v.severity === 'block');
+    if (blockingViolations.length > 0) {
+      // Формируем детальное сообщение об ошибке с violations для audit trail
+      const violationMessages = blockingViolations.map((v) => {
+        const metaStr = ` (${v.meta.reason})`;
+        return `${v.code}${metaStr}: ${v.impact}`;
+      }).join('; ');
+      throw new Error(`Invalid risk signals: ${violationMessages}`);
+    }
+    // @note degrade violations не блокируют оценку, но должны быть залогированы для observability
   }
 
   const weights = policy.weights ?? defaultRiskWeights;

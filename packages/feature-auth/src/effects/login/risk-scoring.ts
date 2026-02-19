@@ -19,6 +19,7 @@
  */
 
 import { createHash } from 'node:crypto';
+import type { ReadonlyDeep } from 'type-fest';
 
 import type { DeviceInfo } from '../../domain/DeviceInfo.js';
 import type { GeoInfo } from '../../domain/LoginRiskAssessment.js';
@@ -51,7 +52,8 @@ export type ScoringContext = {
   readonly device: DeviceInfo;
   readonly geo?: GeoInfo;
   readonly ip?: string;
-  readonly signals?: ScoringSignals;
+  /** ReadonlyDeep защищает вложенные объекты (previousGeo, externalSignals) от мутаций плагинами */
+  readonly signals?: ReadonlyDeep<ScoringSignals>;
 };
 
 /** Функция расчета фактора риска (синхронная) */
@@ -875,7 +877,8 @@ function getCachedScore(state: CacheState, context: ScoringContext): number | un
 /** Очищает устаревшие записи из кэша */
 function cleanupExpiredEntries(state: CacheState): void {
   const now = Date.now();
-  for (const [key, entry] of state.cache.entries()) {
+  const entries = Array.from(state.cache.entries());
+  for (const [key, entry] of entries) {
     if (now - entry.timestamp > state.ttl) {
       state.cache.delete(key);
     }
