@@ -63,7 +63,7 @@
     "foundation"
   ],
   "peerDependencies": {
-    "effect": "^3.19.13",
+    "effect": "^3.19.18",
     "typescript": "5.9.3"
   },
   "peerDependenciesMeta": {

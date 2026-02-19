@@ -6,11 +6,12 @@
 
 **ESLint 10 будет установлен когда для плагинов будут обновления для совместимости:**
 
-- `eslint-plugin-import`: API breaking changes в ESLint 10.0.0
-- `eslint-plugin-tsdoc` (0.5.0): Полная несовместимость с ESLint 10.0.0
-- `eslint-plugin-eslint-comments` (3.2.0): `context.getSourceCode` API удален
-- `eslint-plugin-no-secrets` (2.2.1): `context.getSourceCode` API удален
-- `eslint-plugin-security` (3.0.1): `context.getSourceCode` API удален
+**❌ Еще не готовы:**
+
+- `eslint-plugin-import` (2.32.0): Проверка импортов и зависимостей | ❌ До ESLint 9 | ❌ Нет встроенной замены
+- `eslint-plugin-tsdoc` (0.5.0): Валидация TSDoc комментариев | ❌ Несовместим | ❌ Нет встроенной замены
+- `eslint-plugin-eslint-comments` (3.2.0): Контроль ESLint-директив (`// eslint-disable`) | ❌ `context.getSourceCode()` удален | ❌ Нет встроенной замены
+- `eslint-plugin-no-secrets` (2.2.2): Обнаружение секретов в коде (API ключи, токены) | ❌ `context.getSourceCode()` удален | ❌ Нет встроенной замены
 
 ✅ УСТАНОВЛЕН
 ❌ НЕ УСТАНОВЛЕН

@@ -97,10 +97,10 @@ describe('buildRuleContext', () => {
 
     expect(result.ruleContext).toBeDefined();
     expect(result.ruleContext.metadata).toBeDefined();
-    expect(result.ruleContext.metadata.isNewDevice).toBe(false);
-    expect(result.ruleContext.metadata.riskScore).toBe(50);
+    expect(result.ruleContext.metadata!.isNewDevice).toBe(false);
+    expect(result.ruleContext.metadata!.riskScore).toBe(50);
     expect(result.ruleContext.signals).toBeDefined();
-    expect(result.ruleContext.signals.isVpn).toBe(false);
+    expect(result.ruleContext.signals!.isVpn).toBe(false);
   });
 
   describe('isNewDevice logic - edge cases', () => {
@@ -115,7 +115,7 @@ describe('buildRuleContext', () => {
         riskScore: 50,
       });
 
-      expect(result.ruleContext.metadata.isNewDevice).toBe(true);
+      expect(result.ruleContext.metadata!.isNewDevice).toBe(true);
     });
 
     it('isNewDevice = true когда previousSessionId === "" (пустая строка)', () => {
@@ -132,7 +132,7 @@ describe('buildRuleContext', () => {
         riskScore: 50,
       });
 
-      expect(result.ruleContext.metadata.isNewDevice).toBe(true);
+      expect(result.ruleContext.metadata!.isNewDevice).toBe(true);
     });
 
     it('isNewDevice = false когда previousSessionId = валидная строка', () => {
@@ -147,7 +147,7 @@ describe('buildRuleContext', () => {
         riskScore: 50,
       });
 
-      expect(result.ruleContext.metadata.isNewDevice).toBe(false);
+      expect(result.ruleContext.metadata!.isNewDevice).toBe(false);
     });
   });
 
@@ -185,8 +185,8 @@ describe('buildRuleContext', () => {
       });
 
       expect(result.ruleContext.signals).toBeDefined();
-      expect(result.ruleContext.signals.isVpn).toBe(true);
-      expect(result.ruleContext.signals.reputationScore).toBe(75);
+      expect(result.ruleContext.signals!.isVpn).toBe(true);
+      expect(result.ruleContext.signals!.reputationScore).toBe(75);
     });
 
     it('возвращает объект signals с isTor, isProxy, velocityScore', () => {
@@ -206,9 +206,9 @@ describe('buildRuleContext', () => {
       });
 
       expect(result.ruleContext.signals).toBeDefined();
-      expect(result.ruleContext.signals.isTor).toBe(true);
-      expect(result.ruleContext.signals.isProxy).toBe(false);
-      expect(result.ruleContext.signals.velocityScore).toBe(85);
+      expect(result.ruleContext.signals!.isTor).toBe(true);
+      expect(result.ruleContext.signals!.isProxy).toBe(false);
+      expect(result.ruleContext.signals!.velocityScore).toBe(85);
     });
   });
 
@@ -258,7 +258,7 @@ describe('buildRuleContext', () => {
         context: baseContext,
       } as Pick<ClassificationSlotMap, 'device' | 'context' | 'riskScore'>);
 
-      expect(result.ruleContext.metadata.riskScore).toBe(0);
+      expect(result.ruleContext.metadata!.riskScore).toBe(0);
     });
 
     it('нормализует riskScore: NaN → 0', () => {
@@ -268,7 +268,7 @@ describe('buildRuleContext', () => {
         riskScore: Number.NaN,
       });
 
-      expect(result.ruleContext.metadata.riskScore).toBe(0);
+      expect(result.ruleContext.metadata!.riskScore).toBe(0);
     });
 
     it('нормализует riskScore: Infinity → 0', () => {
@@ -278,7 +278,7 @@ describe('buildRuleContext', () => {
         riskScore: Number.POSITIVE_INFINITY,
       });
 
-      expect(result.ruleContext.metadata.riskScore).toBe(0);
+      expect(result.ruleContext.metadata!.riskScore).toBe(0);
     });
 
     it('нормализует riskScore: > 100 → 100', () => {
@@ -288,7 +288,7 @@ describe('buildRuleContext', () => {
         riskScore: 150,
       });
 
-      expect(result.ruleContext.metadata.riskScore).toBe(100);
+      expect(result.ruleContext.metadata!.riskScore).toBe(100);
     });
 
     it('нормализует riskScore: < 0 → 0', () => {
@@ -298,7 +298,7 @@ describe('buildRuleContext', () => {
         riskScore: -10,
       });
 
-      expect(result.ruleContext.metadata.riskScore).toBe(0);
+      expect(result.ruleContext.metadata!.riskScore).toBe(0);
     });
 
     it('сохраняет валидный riskScore без изменений', () => {
@@ -308,7 +308,7 @@ describe('buildRuleContext', () => {
         riskScore: 75,
       });
 
-      expect(result.ruleContext.metadata.riskScore).toBe(75);
+      expect(result.ruleContext.metadata!.riskScore).toBe(75);
     });
   });
 
