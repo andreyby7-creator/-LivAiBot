@@ -1,12 +1,12 @@
-/home/boss/Projects/livai/packages/domains/tests/classification/strategies/rules.test.ts: обрабатывает множественные правила одновременно
-AssertionError: expected 1 to be greater than 1
-    at /home/boss/Projects/livai/packages/domains/tests/classification/strategies/rules.test.ts:936:27
+/home/boss/Projects/livai/packages/ui-core/tests/unit/components/Skeleton.test.tsx: radius=0 переопределяет variant
+AssertionError: expected '0px' to be '0' // Object.is equality
+    at /home/boss/Projects/livai/packages/ui-core/tests/unit/components/Skeleton.test.tsx:445:42
     at file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.18/node_modules/@vitest/runner/dist/index.js:145:11
     at file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.18/node_modules/@vitest/runner/dist/index.js:915:26
     at file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.18/node_modules/@vitest/runner/dist/index.js:1243:20
     at new Promise (<anonymous>)
     at runWithTimeout (file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.18/node_modules/@vitest/runner/dist/index.js:1209:10)
     at file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.18/node_modules/@vitest/runner/dist/index.js:1653:37
-    at Traces.$ (file:///home/boss/Projects/livai/node_modules/.pnpm/vitest@4.0.18_@opentelemetry+api@1.9.0_@types+node@25.2.3_@vitest+ui@4.0.18_jsdom@28.0._ce662efa7237e48e516f4273d9791f63/node_modules/vitest/dist/chunks/traces.CCmnQaNT.js:142:27)
-    at trace (file:///home/boss/Projects/livai/node_modules/.pnpm/vitest@4.0.18_@opentelemetry+api@1.9.0_@types+node@25.2.3_@vitest+ui@4.0.18_jsdom@28.0._ce662efa7237e48e516f4273d9791f63/node_modules/vitest/dist/chunks/test.B8ej_ZHS.js:239:21)
+    at Traces.$ (file:///home/boss/Projects/livai/node_modules/.pnpm/vitest@4.0.18_@opentelemetry+api@1.9.0_@types+node@25.3.0_@vitest+ui@4.0.18_jsdom@28.1._4046a8dac2d1c0907b15bbff31b233ec/node_modules/vitest/dist/chunks/traces.CCmnQaNT.js:142:27)
+    at trace (file:///home/boss/Projects/livai/node_modules/.pnpm/vitest@4.0.18_@opentelemetry+api@1.9.0_@types+node@25.3.0_@vitest+ui@4.0.18_jsdom@28.1._4046a8dac2d1c0907b15bbff31b233ec/node_modules/vitest/dist/chunks/test.B8ej_ZHS.js:239:21)
     at runTest (file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.18/node_modules/@vitest/runner/dist/index.js:1653:12)

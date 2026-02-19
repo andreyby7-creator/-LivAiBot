@@ -442,7 +442,7 @@ describe('Skeleton', () => {
       const skeleton = getSkeleton();
       const computedStyle = window.getComputedStyle(skeleton);
 
-      expect(computedStyle.borderRadius).toBe('0');
+      expect(computedStyle.borderRadius).toBe('0px');
     });
 
     it('radius="" (пустая строка) работает', () => {
