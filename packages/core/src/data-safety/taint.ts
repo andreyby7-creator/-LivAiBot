@@ -1,26 +1,35 @@
 /**
  * @file packages/core/src/data-safety/taint.ts
  * ============================================================================
- * 🛡️ CORE — Taint Tracking
+ * 🛡️ CORE — Data Safety (Taint Tracking)
  * ============================================================================
  *
- * Система отслеживания "загрязнения" данных для boundary guards и taint isolation.
- * Taint = метаданные о небезопасности данных, распространяющиеся через pipeline.
+ * Архитектурная роль:
+ * - Система отслеживания "загрязнения" данных для boundary guards и taint isolation
+ * - Taint = метаданные о небезопасности данных, распространяющиеся через pipeline
+ * - Причина изменения: data safety, boundary guards, taint isolation
+ *
+ * Принципы:
+ * - ✅ SRP: разделение на BRANDED TYPE, TYPES, CONSTANTS, HELPERS, API
+ * - ✅ Deterministic: immutable taint metadata, pure functions для проверки и распространения
+ * - ✅ Domain-pure: generic по типам значений, без привязки к domain-специфичным типам
+ * - ✅ Extensible: поддержка custom taint sources через taintSources registry
+ * - ✅ Strict typing: branded types для TaintSource, union types для TaintMetadata
+ * - ✅ Microservice-ready: stateless, immutable metadata, thread-safe registry
+ * - ✅ Security: immutable taint metadata (запрещена мутация после создания), независимость от TrustLevel
  *
  * ⚠️ ВАЖНО:
  * - ❌ ЗАПРЕЩЕНО: мутация taint metadata после создания
  * - ✅ РАЗРЕШЕНО: isTainted(), stripTaint(), propagateTaint(), assertTrusted()
  * - Taint и TrustLevel независимы: данные могут быть одновременно tainted и trusted
- *
- * ⚠️ PRODUCTION: Инициализируйте registry на старте (не на горячем пути).
- * Registry после build() immutable и thread-safe.
+ * - ⚠️ PRODUCTION: Инициализируйте registry на старте (не на горячем пути). Registry после build() immutable и thread-safe.
  */
 
 import type { TrustLevel, TrustLevelRegistry } from './trust-level.js';
 import { defaultTrustLevelRegistry, dominates, meetTrust, trustLevels } from './trust-level.js';
 
 /* ============================================================================
- * 🔒 BRANDED TYPE
+ * 1. BRANDED TYPE — TAINT SOURCE (Type Safety)
  * ============================================================================
  */
 
@@ -61,14 +70,14 @@ export type Tainted<T> = T & {
 };
 
 /* ============================================================================
- * 🔗 PIPELINE SLOT TYPE — FUTURE-PROOF API
+ * 2. TYPES — TAINT MODEL (Pure Type Definitions)
  * ============================================================================
  */
 
 /**
- * Pipeline slot — контейнер для значения в pipeline execution graph.
- * Используется для передачи данных между шагами pipeline с поддержкой taint tracking.
- *
+ * Pipeline slot — контейнер для значения в pipeline execution graph
+ * @template T - Тип значения в slot
+ * @note Используется для передачи данных между шагами pipeline с поддержкой taint tracking
  * @public
  */
 export type Slot<T = unknown> = Readonly<{
@@ -79,7 +88,7 @@ export type Slot<T = unknown> = Readonly<{
 }>;
 
 /* ============================================================================
- * 🏗️ REGISTRY
+ * 3. REGISTRY — TAINT SOURCE REGISTRY (Immutable Registry)
  * ============================================================================
  */
 
@@ -111,11 +120,11 @@ export type TaintSourceRegistryBuilder = Readonly<{
 
 /**
  * Создает Builder для TaintSourceRegistry
- *
  * @note ⚠️ PRODUCTION: Инициализируйте на старте, не на горячем пути!
- * Builder НЕ thread-safe, но registry после build() полностью thread-safe.
+ *       Builder НЕ thread-safe, но registry после build() полностью thread-safe.
+ * @public
  */
-export function createTaintSourceRegistry(): TaintSourceRegistryBuilder {
+export function createTaintSourceRegistry(): TaintSourceRegistryBuilder { // Builder для создания registry
   const state: TaintSourceRegistryBuilderState = { sources: [] };
   return createBuilderFromState(state);
 }
@@ -225,28 +234,44 @@ export const defaultTaintSourceRegistry: TaintSourceRegistry = createTaintSource
   .build();
 
 /* ============================================================================
- * 🔧 UTILITY FUNCTIONS
+ * 4. CONSTANTS — DEFAULT REGISTRY
  * ============================================================================
  */
 
-/** Получает имя источника taint (O(1), для отладки) */
+/* ============================================================================
+ * 5. HELPERS — UTILITY FUNCTIONS
+ * ============================================================================
+ */
+
+/**
+ * Получает имя источника taint (O(1), для отладки)
+ * @public
+ */
 export function getTaintSourceName(
-  source: TaintSource,
-  registry: TaintSourceRegistry = defaultTaintSourceRegistry,
-): string {
+  source: TaintSource, // Источник taint
+  registry: TaintSourceRegistry = defaultTaintSourceRegistry, // Registry источников taint
+): string { // Имя источника taint
   return registry.sourceNames.get(source) ?? 'UNKNOWN';
 }
 
-/** Проверяет, является ли значение TaintSource в данном registry (O(1)) */
+/**
+ * Проверяет, является ли значение TaintSource в данном registry (O(1))
+ * @public
+ */
 export function isTaintSource(
-  x: unknown,
-  registry: TaintSourceRegistry = defaultTaintSourceRegistry,
-): x is TaintSource {
+  x: unknown, // Значение для проверки
+  registry: TaintSourceRegistry = defaultTaintSourceRegistry, // Registry источников taint
+): x is TaintSource { // Type guard для TaintSource
   return registry.orderIndexMap.has(x as TaintSource);
 }
 
-/** Проверяет, является ли значение tainted (O(1), type guard) */
-export function isTainted<T>(value: T | Tainted<T>): value is Tainted<T> {
+/**
+ * Проверяет, является ли значение tainted (O(1), type guard)
+ * @public
+ */
+export function isTainted<T>(
+  value: T | Tainted<T>, // Значение для проверки
+): value is Tainted<T> { // Type guard для Tainted<T>
   return (
     typeof value === 'object'
     && value !== null
@@ -255,12 +280,15 @@ export function isTainted<T>(value: T | Tainted<T>): value is Tainted<T> {
   );
 }
 
-/** Создает taint metadata для значения */
+/**
+ * Создает taint metadata для значения
+ * @public
+ */
 export function createTaintMetadata(
-  source: TaintSource,
-  trustLevel: TrustLevel = trustLevels.UNTRUSTED as TrustLevel,
-  timestamp?: number,
-): TaintMetadata {
+  source: TaintSource, // Источник taint
+  trustLevel: TrustLevel = trustLevels.UNTRUSTED as TrustLevel, // Уровень доверия
+  timestamp?: number, // Timestamp создания (опционально)
+): TaintMetadata { // Taint metadata
   return Object.freeze({
     source,
     trustLevel,
@@ -270,14 +298,15 @@ export function createTaintMetadata(
 
 /**
  * Добавляет taint к значению (создает Tainted<T>)
- * Idempotent: если значение уже tainted, возвращает его без изменений.
+ * @note Idempotent: если значение уже tainted, возвращает его без изменений
+ * @public
  */
 export function addTaint<T>(
-  value: T | Tainted<T>,
-  source: TaintSource,
-  trustLevel: TrustLevel = trustLevels.UNTRUSTED as TrustLevel,
-  timestamp?: number,
-): Tainted<T> {
+  value: T | Tainted<T>, // Значение для добавления taint
+  source: TaintSource, // Источник taint
+  trustLevel: TrustLevel = trustLevels.UNTRUSTED as TrustLevel, // Уровень доверия
+  timestamp?: number, // Timestamp создания (опционально)
+): Tainted<T> { // Tainted значение
   // Idempotent: если значение уже tainted, возвращаем его без изменений
   if (isTainted(value)) {
     return value;
@@ -292,9 +321,12 @@ export function addTaint<T>(
 
 /**
  * Удаляет taint из значения (stripTaint)
- * Оптимизировано для больших объектов: использует shallow copy вместо spread.
+ * @note Оптимизировано для больших объектов: использует shallow copy вместо spread
+ * @public
  */
-export function stripTaint<T>(value: T | Tainted<T>): T {
+export function stripTaint<T>(
+  value: T | Tainted<T>, // Значение для очистки от taint
+): T { // Значение без taint
   if (!isTainted(value)) {
     return value;
   }
@@ -309,21 +341,25 @@ export function stripTaint<T>(value: T | Tainted<T>): T {
   return cleanValue as T;
 }
 
-/** Получает taint metadata из значения */
+/**
+ * Получает taint metadata из значения
+ * @public
+ */
 export function getTaintMetadata<T>(
-  value: T | Tainted<T>,
-): TaintMetadata | undefined {
+  value: T | Tainted<T>, // Значение для получения metadata
+): TaintMetadata | undefined { // Taint metadata или undefined
   return isTainted(value) ? value.__taint : undefined;
 }
 
 /**
  * Распространяет taint от источника к целевому значению
- * Если source tainted, то target также становится tainted с тем же metadata.
+ * @note Если source tainted, то target также становится tainted с тем же metadata
+ * @public
  */
 export function propagateTaint<T, U>(
-  source: T | Tainted<T>,
-  target: U,
-): U | Tainted<U> {
+  source: T | Tainted<T>, // Источник taint
+  target: U, // Целевое значение
+): U | Tainted<U> { // Целевое значение с propagated taint (если source был tainted)
   if (isTainted(source)) {
     return addTaint(
       target,
@@ -337,13 +373,14 @@ export function propagateTaint<T, U>(
 
 /**
  * Объединяет taint metadata от нескольких источников
- * Возвращает taint с наименее доверенным уровнем (fail-closed).
+ * @note Возвращает taint с наименее доверенным уровнем (fail-closed)
+ * @public
  */
 export function mergeTaintMetadata(
-  a: TaintMetadata,
-  b: TaintMetadata,
-  trustLevelRegistry: TrustLevelRegistry = defaultTrustLevelRegistry,
-): TaintMetadata {
+  a: TaintMetadata, // Первое taint metadata
+  b: TaintMetadata, // Второе taint metadata
+  trustLevelRegistry: TrustLevelRegistry = defaultTrustLevelRegistry, // Registry уровней доверия
+): TaintMetadata { // Объединенное taint metadata
   const mergedTrustLevel = meetTrust(a.trustLevel, b.trustLevel, trustLevelRegistry);
 
   const sourceRegistry = defaultTaintSourceRegistry;
@@ -363,13 +400,15 @@ export function mergeTaintMetadata(
 
 /**
  * Проверяет, является ли значение trusted (assertTrusted)
- * Выбрасывает ошибку если значение tainted или trustLevel недостаточен.
+ * @note Выбрасывает ошибку если значение tainted или trustLevel недостаточен
+ * @throws {Error} Если значение tainted или trustLevel недостаточен
+ * @public
  */
 export function assertTrusted<T>(
-  value: T | Tainted<T>,
-  requiredTrustLevel: TrustLevel = trustLevels.TRUSTED as TrustLevel,
-  trustLevelRegistry: TrustLevelRegistry = defaultTrustLevelRegistry,
-): asserts value is T {
+  value: T | Tainted<T>, // Значение для проверки
+  requiredTrustLevel: TrustLevel = trustLevels.TRUSTED as TrustLevel, // Требуемый уровень доверия
+  trustLevelRegistry: TrustLevelRegistry = defaultTrustLevelRegistry, // Registry уровней доверия
+): asserts value is T { // Type assertion для trusted значения
   if (isTainted(value)) {
     const taint = value.__taint;
     const isTrusted = dominates(taint.trustLevel, requiredTrustLevel, trustLevelRegistry);
@@ -405,50 +444,36 @@ export function assertTrusted<T>(
  * - ✅ No breaking changes — существующий код не затрагивается
  */
 
+/* ============================================================================
+ * 6. API — SLOT ADAPTERS (Pipeline Slot Support)
+ * ============================================================================
+ */
+
 /**
- * Проверяет, что значение в slot соответствует requiredTrustLevel.
- * Делегирует assertTrusted для проверки значения в slot.
- *
- * @param slot - Pipeline slot с значением для проверки
- * @param requiredTrustLevel - Требуемый уровень доверия (по умолчанию TRUSTED)
- * @param trustLevelRegistry - Registry уровней доверия (по умолчанию defaultTrustLevelRegistry)
- * @throws Error если значение tainted или trustLevel недостаточен
- *
- * @example
- * ```typescript
- * const slot: Slot<string> = { value: 'data' };
- * assertTrustedSlot(slot, trustLevels.TRUSTED);
- * // После этого TypeScript знает, что slot.value не tainted
- * ```
- *
+ * Проверяет, что значение в slot соответствует requiredTrustLevel
+ * @note Делегирует assertTrusted для проверки значения в slot
+ * @throws {Error} Если значение tainted или trustLevel недостаточен
+ * @example const slot: Slot<string> = { value: 'data' }; assertTrustedSlot(slot, trustLevels.TRUSTED); // После этого TypeScript знает, что slot.value не tainted
  * @public
  */
 export function assertTrustedSlot<T>(
-  slot: Slot<T>,
-  requiredTrustLevel: TrustLevel = trustLevels.TRUSTED as TrustLevel,
-  trustLevelRegistry: TrustLevelRegistry = defaultTrustLevelRegistry,
-): asserts slot is Slot<Exclude<T, { __taint: unknown; }>> {
+  slot: Slot<T>, // Pipeline slot с значением для проверки
+  requiredTrustLevel: TrustLevel = trustLevels.TRUSTED as TrustLevel, // Требуемый уровень доверия (по умолчанию TRUSTED)
+  trustLevelRegistry: TrustLevelRegistry = defaultTrustLevelRegistry, // Registry уровней доверия (по умолчанию defaultTrustLevelRegistry)
+): asserts slot is Slot<Exclude<T, { __taint: unknown; }>> { // Type assertion для trusted slot
   // Thin adapter: просто делегируем в core функцию
   assertTrusted(slot.value, requiredTrustLevel, trustLevelRegistry);
 }
 
 /**
- * Удаляет taint из значения в slot.
- * Делегирует stripTaint для очистки значения в slot.
- *
- * @param slot - Pipeline slot с tainted значением
- * @returns Slot с очищенным значением (без taint)
- *
- * @example
- * ```typescript
- * const taintedSlot: Slot<Tainted<string>> = { value: addTaint('data', taintSources.EXTERNAL) };
- * const cleanSlot = stripTaintSlot(taintedSlot);
- * // cleanSlot.value теперь без taint
- * ```
- *
+ * Удаляет taint из значения в slot
+ * @note Делегирует stripTaint для очистки значения в slot
+ * @example const taintedSlot: Slot<Tainted<string>> = { value: addTaint('data', taintSources.EXTERNAL) }; const cleanSlot = stripTaintSlot(taintedSlot); // cleanSlot.value теперь без taint
  * @public
  */
-export function stripTaintSlot<T>(slot: Slot<T>): Slot<T> {
+export function stripTaintSlot<T>(
+  slot: Slot<T>, // Pipeline slot с tainted значением
+): Slot<T> { // Slot с очищенным значением (без taint)
   // Thin adapter: просто делегируем в core функцию
   const cleanValue = stripTaint(slot.value);
   return {
@@ -458,27 +483,15 @@ export function stripTaintSlot<T>(slot: Slot<T>): Slot<T> {
 }
 
 /**
- * Распространяет taint от source slot к target slot.
- * Делегирует propagateTaint для распространения taint между значениями в slot.
- *
- * @param source - Source slot (источник taint)
- * @param target - Target slot (целевой slot для propagation)
- * @returns Target slot с propagated taint (если source был tainted)
- *
- * @example
- * ```typescript
- * const sourceSlot: Slot<Tainted<string>> = { value: addTaint('data', taintSources.EXTERNAL) };
- * const targetSlot: Slot<string> = { value: 'result' };
- * const resultSlot = propagateTaintSlot(sourceSlot, targetSlot);
- * // resultSlot.value теперь tainted, если source был tainted
- * ```
- *
+ * Распространяет taint от source slot к target slot
+ * @note Делегирует propagateTaint для распространения taint между значениями в slot
+ * @example const sourceSlot: Slot<Tainted<string>> = { value: addTaint('data', taintSources.EXTERNAL) }; const targetSlot: Slot<string> = { value: 'result' }; const resultSlot = propagateTaintSlot(sourceSlot, targetSlot); // resultSlot.value теперь tainted, если source был tainted
  * @public
  */
 export function propagateTaintSlot<T, U>(
-  source: Slot<T>,
-  target: Slot<U>,
-): Slot<U> {
+  source: Slot<T>, // Source slot (источник taint)
+  target: Slot<U>, // Target slot (целевой slot для propagation)
+): Slot<U> { // Target slot с propagated taint (если source был tainted)
   // Thin adapter: просто делегируем в core функцию
   const propagatedValue = propagateTaint(source.value, target.value);
   return {

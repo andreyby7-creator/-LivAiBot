@@ -1,20 +1,26 @@
 /**
  * @file packages/core/src/rule-engine/evaluator.ts
  * ============================================================================
- * 🛡️ CORE — Evaluator (Generic Rule Evaluation)
+ * 🛡️ CORE — Rule Engine (Evaluator)
  * ============================================================================
  *
- * Generic evaluation правил: применение предикатов к фактам с выбором результата по приоритету.
- * Архитектура: Evaluator (primitives) + EvaluatorAlgebra (extensible contract).
+ * Архитектурная роль:
+ * - Generic evaluation правил: применение предикатов к фактам с выбором результата по приоритету
+ * - Архитектура: Evaluator (primitives) + EvaluatorAlgebra (extensible contract)
+ * - Причина изменения: rule-engine, generic rule evaluation, evaluator algebra
  *
- * Архитектура: библиотека из 2 модулей в одном файле
- * - Evaluator: generic функции для evaluation правил (evaluate, evaluateAll, evaluateIterable)
- * - EvaluatorAlgebra: extensible contract для создания custom evaluation operations
+ * Принципы:
+ * - ✅ SRP: разделение на Evaluator (primitives) и EvaluatorAlgebra (extensible contract)
+ * - ✅ Deterministic: одинаковые входы → одинаковые результаты
+ * - ✅ Domain-pure: без side-effects, платформо-агностично, generic по TPredicate, TResult, TFact
+ * - ✅ Extensible: EvaluatorAlgebra для создания custom evaluation operations без изменения core
+ * - ✅ Strict typing: generic по TPredicate, TResult, TFact, без string и Record в domain
+ * - ✅ Scalable: Iterable streaming для больших наборов правил
+ * - ✅ Security: runtime validation для защиты от некорректных правил
  *
- * Принципы: SRP, Deterministic, Domain-pure, Scalable (Iterable streaming),
- * Strict typing (generic по TPredicate, TResult, TFact), Extensible, Immutable, Security (runtime validation).
- *
- * ⚠️ ВАЖНО: НЕ включает domain-специфичные значения, НЕ зависит от aggregation/classification.
+ * ⚠️ ВАЖНО:
+ * - ❌ НЕ включает domain-специфичные значения
+ * - ❌ НЕ зависит от aggregation/classification
  */
 
 import type {
@@ -28,7 +34,7 @@ import type {
 import { isStepResult, rule, ruleAlgebra } from './rule.js';
 
 /* ============================================================================
- * 🧩 ТИПЫ — GENERIC EVALUATION RESULT & ALGEBRAIC CONTRACT
+ * 1. TYPES — EVALUATION MODEL (Pure Type Definitions)
  * ============================================================================
  */
 

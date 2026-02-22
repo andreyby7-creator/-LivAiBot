@@ -1,26 +1,23 @@
 /**
  * @file packages/core/src/aggregation/weight.ts
  * ============================================================================
- * 🛡️ CORE — Weight (Generic Weight Operations)
+ * 🛡️ CORE — Aggregation (Weight)
  * ============================================================================
  *
- * Generic операции для работы с весами: нормализация, валидация, sum, normalize, scale, combine.
- * Архитектура: Weight (primitives) + WeightAlgebra (extensible contract).
- *
- * Архитектура: библиотека из 2 модулей в одном файле
- * - Weight: generic функции для работы с весами (normalize, validate, sum, scale, combine)
- * - WeightAlgebra: extensible contract для создания custom weight operations
+ * Архитектурная роль:
+ * - Generic операции для работы с весами: нормализация, валидация, sum, normalize, scale, combine
+ * - Причина изменения: generic weight operations, не domain-специфичная логика
  *
  * Принципы:
- * - ✅ SRP: единый algebraic contract (WeightResult) для всех функций, validation отдельно
+ * - ✅ SRP: разделение на TYPES, CONSTANTS, INTERNAL (validation helpers), WEIGHT, WEIGHT ALGEBRA
  * - ✅ Deterministic: одинаковые входы → одинаковые результаты, без silent normalization, array API = thin wrapper над streaming
- * - ✅ Domain-pure: без side-effects, платформо-агностично, только generic math
+ * - ✅ Domain-pure: generic по типам результата и состояния (TResult, TState, TContext), без привязки к domain-специфичным типам
+ * - ✅ Extensible: WeightAlgebra (generic по TResult, TState, TContext) для создания custom weight operations без изменения core логики
+ * - ✅ Strict typing: generic types без domain-специфичных значений, union types для WeightFailureReason
  * - ✅ Microservice-ready: runtime validation предотвращает cross-service inconsistency, IEEE-754 совместимость
- * - ✅ Scalable: extensible через WeightAlgebra (generic по TResult), поддержка Iterable для streaming (O(n), zero allocations)
- * - ✅ Strict typing: generic types без domain-специфичных значений, union types для результатов
- * - ✅ Extensible: domain определяет стратегию работы с весами через WeightAlgebra без изменения core
- * - ✅ Immutable: все операции возвращают новые значения
+ * - ✅ Scalable: поддержка Iterable для streaming (O(n), zero allocations), extensible через WeightAlgebra
  * - ✅ Security: runtime validation NaN/Infinity, проверка переполнения, IEEE-754 MIN_NORMAL для numeric underflow
+ * - ✅ Immutable: все операции возвращают новые значения
  *
  * ⚠️ ВАЖНО:
  * - ❌ НЕ включает domain-специфичные значения (SAFE/SUSPICIOUS/DANGEROUS - это domain labels)
@@ -30,7 +27,7 @@
  */
 
 /* ============================================================================
- * 🧩 ТИПЫ — GENERIC WEIGHT RESULT & ALGEBRAIC CONTRACT
+ * 1. TYPES — WEIGHT MODEL (Pure Type Definitions)
  * ============================================================================
  */
 
@@ -99,7 +96,12 @@ const DEFAULT_NORMALIZATION: NormalizationConfig = {
 } as const;
 
 /* ============================================================================
- * 🔒 INTERNAL — VALIDATION HELPERS
+ * 2. CONSTANTS — DEFAULT CONFIGURATION
+ * ============================================================================
+ */
+
+/* ============================================================================
+ * 3. INTERNAL — VALIDATION HELPERS
  * ============================================================================
  */
 
@@ -108,9 +110,9 @@ const DEFAULT_NORMALIZATION: NormalizationConfig = {
  * @internal
  */
 function isValidWeight(
-  weight: number,
-  config: WeightValidationConfig = DEFAULT_WEIGHT_VALIDATION,
-): boolean {
+  weight: number, // Вес для валидации
+  config: WeightValidationConfig = DEFAULT_WEIGHT_VALIDATION, // Конфигурация валидации
+): boolean { // true если вес валиден
   if (!Number.isFinite(weight)) {
     return false;
   }
@@ -130,15 +132,20 @@ function isValidWeight(
  * Проверяет валидность числового результата (NaN/Infinity)
  * @internal
  */
-function isValidNumber(value: number): boolean {
+function isValidNumber(
+  value: number, // Число для валидации
+): boolean { // true если число валидно (finite)
   return Number.isFinite(value);
 }
 
 /**
- * Валидирует сумму весов для деления (различает ZERO_TOTAL_WEIGHT и NUMERIC_UNDERFLOW)
+ * Валидирует сумму весов для деления
+ * @note Различает ZERO_TOTAL_WEIGHT и NUMERIC_UNDERFLOW
  * @internal
  */
-function validateWeightSum(sum: number): WeightResult<void> {
+function validateWeightSum(
+  sum: number, // Сумма весов для валидации
+): WeightResult<void> { // WeightResult<void> при успехе, WeightResult с ошибкой при неудаче
   if (!isValidNumber(sum)) {
     return {
       ok: false,
@@ -175,9 +182,9 @@ function validateWeightSum(sum: number): WeightResult<void> {
  * @internal
  */
 function validateWeights(
-  weights: readonly number[],
-  config: WeightValidationConfig,
-): WeightResult<void> {
+  weights: readonly number[], // Массив весов для валидации
+  config: WeightValidationConfig, // Конфигурация валидации
+): WeightResult<void> { // WeightResult<void> при успехе, WeightResult с ошибкой при неудаче
   if (weights.length === 0) {
     return {
       ok: false,
@@ -247,12 +254,13 @@ function sumFromArrayAssumeValid(weights: readonly number[]): number {
 }
 
 /* ============================================================================
- * 🔢 WEIGHT — GENERIC WEIGHT OPERATIONS (UNIFIED ALGEBRAIC CONTRACT)
+ * 4. WEIGHT — GENERIC WEIGHT OPERATIONS (Unified Algebraic Contract)
  * ============================================================================
  */
 
 /**
- * Weight: generic функции для работы с весами (чистые функции, WeightResult для composability)
+ * Weight: generic функции для работы с весами
+ * @note Чистые функции, WeightResult для composability
  * @public
  */
 export const weight = {
@@ -261,9 +269,9 @@ export const weight = {
    * @example weight.sum([0.2, 0.3, 0.5]) // { ok: true, value: 1.0 }
    */
   sum(
-    weights: readonly number[],
-    config: WeightValidationConfig = DEFAULT_WEIGHT_VALIDATION,
-  ): WeightResult<number> {
+    weights: readonly number[], // Массив весов для суммирования
+    config: WeightValidationConfig = DEFAULT_WEIGHT_VALIDATION, // Конфигурация валидации
+  ): WeightResult<number> { // WeightResult с суммой или ошибкой
     const validation = validateWeights(weights, config);
     if (!validation.ok) {
       return validation;
@@ -295,14 +303,13 @@ export const weight = {
 
   /**
    * Суммирует веса из Iterable (streaming: single-pass, zero allocations, O(n))
-   * @param assumeValid - Пропустить валидацию (для оптимизации после validateWeights)
    * @example weight.sumFromIterable(function*() { yield 0.2; yield 0.3; yield 0.5; }())
    */
   sumFromIterable(
-    weights: Iterable<number>,
-    config: WeightValidationConfig = DEFAULT_WEIGHT_VALIDATION,
-    assumeValid: boolean = false,
-  ): WeightResult<number> {
+    weights: Iterable<number>, // Iterable весов
+    config: WeightValidationConfig = DEFAULT_WEIGHT_VALIDATION, // Конфигурация валидации
+    assumeValid: boolean = false, // Пропустить валидацию (для оптимизации после validateWeights)
+  ): WeightResult<number> { // WeightResult с суммой или ошибкой
     // Streaming: Kahan summation требует мутаций для точности
     /* eslint-disable functional/no-let, functional/no-loop-statements, fp/no-mutation */
     let sum = 0;
@@ -365,16 +372,15 @@ export const weight = {
 
   /**
    * Нормализует веса к целевой сумме (по умолчанию 1.0)
-   * Orchestration: validate → sum → validateSum → scale → validate
-   * @example
-   * weight.normalize([2, 3, 5]) // { ok: true, value: [0.2, 0.3, 0.5] }
-   * weight.normalize([2, 3, 5], { targetSum: 2.0 }) // { ok: true, value: [0.4, 0.6, 1.0] }
+   * @note Orchestration: validate → sum → validateSum → scale → validate
+   * @example weight.normalize([2, 3, 5]) // { ok: true, value: [0.2, 0.3, 0.5] }
+   * @example weight.normalize([2, 3, 5], { targetSum: 2.0 }) // { ok: true, value: [0.4, 0.6, 1.0] }
    */
   normalize(
-    weights: readonly number[],
-    normalizationConfig: NormalizationConfig = DEFAULT_NORMALIZATION,
-    validationConfig: WeightValidationConfig = DEFAULT_WEIGHT_VALIDATION,
-  ): WeightResult<readonly number[]> {
+    weights: readonly number[], // Массив весов для нормализации
+    normalizationConfig: NormalizationConfig = DEFAULT_NORMALIZATION, // Конфигурация нормализации
+    validationConfig: WeightValidationConfig = DEFAULT_WEIGHT_VALIDATION, // Конфигурация валидации
+  ): WeightResult<readonly number[]> { // WeightResult с нормализованными весами или ошибкой
     // Валидация целевой суммы
     if (!isValidNumber(normalizationConfig.targetSum) || normalizationConfig.targetSum <= 0) {
       return {
@@ -438,17 +444,15 @@ export const weight = {
 
   /**
    * Нормализует веса из Iterable
-   * ⚠️ Требует материализации (необходимо знать сумму до нормализации)
-   * ⚠️ Защита от DoS: maxSize ограничивает размер массива
-   * @example
-   * weight.normalizeFromIterable(function*() { yield 2; yield 3; yield 5; }())
-   * weight.normalizeFromIterable(weights(), { targetSum: 1.0, maxSize: 1000 })
+   * @note Требует материализации (необходимо знать сумму до нормализации). Защита от DoS: maxSize ограничивает размер массива.
+   * @example weight.normalizeFromIterable(function*() { yield 2; yield 3; yield 5; }())
+   * @example weight.normalizeFromIterable(weights(), { targetSum: 1.0, maxSize: 1000 })
    */
   normalizeFromIterable(
-    weights: Iterable<number>,
-    normalizationConfig: NormalizationConfig = DEFAULT_NORMALIZATION,
-    validationConfig: WeightValidationConfig = DEFAULT_WEIGHT_VALIDATION,
-  ): WeightResult<readonly number[]> {
+    weights: Iterable<number>, // Iterable весов
+    normalizationConfig: NormalizationConfig = DEFAULT_NORMALIZATION, // Конфигурация нормализации
+    validationConfig: WeightValidationConfig = DEFAULT_WEIGHT_VALIDATION, // Конфигурация валидации
+  ): WeightResult<readonly number[]> { // WeightResult с нормализованными весами или ошибкой
     // Валидация целевой суммы
     if (!isValidNumber(normalizationConfig.targetSum) || normalizationConfig.targetSum <= 0) {
       return {
@@ -489,10 +493,10 @@ export const weight = {
    * @example weight.scale([0.2, 0.3, 0.5], 2.0) // { ok: true, value: [0.4, 0.6, 1.0] }
    */
   scale(
-    weights: readonly number[],
-    scaleFactor: number,
-    config: WeightValidationConfig = DEFAULT_WEIGHT_VALIDATION,
-  ): WeightResult<readonly number[]> {
+    weights: readonly number[], // Массив весов для масштабирования
+    scaleFactor: number, // Множитель для масштабирования
+    config: WeightValidationConfig = DEFAULT_WEIGHT_VALIDATION, // Конфигурация валидации
+  ): WeightResult<readonly number[]> { // WeightResult с масштабированными весами или ошибкой
     // Валидация множителя
     if (!isValidNumber(scaleFactor)) {
       return {
@@ -528,10 +532,10 @@ export const weight = {
    * @example weight.combine([0.2, 0.3], [0.1, 0.2]) // { ok: true, value: [0.3, 0.5] }
    */
   combine(
-    weights1: readonly number[],
-    weights2: readonly number[],
-    config: WeightValidationConfig = DEFAULT_WEIGHT_VALIDATION,
-  ): WeightResult<readonly number[]> {
+    weights1: readonly number[], // Первый массив весов
+    weights2: readonly number[], // Второй массив весов
+    config: WeightValidationConfig = DEFAULT_WEIGHT_VALIDATION, // Конфигурация валидации
+  ): WeightResult<readonly number[]> { // WeightResult с комбинированными весами или ошибкой
     // Валидация длины массивов
     if (weights1.length !== weights2.length) {
       return {
@@ -585,29 +589,27 @@ export const weight = {
 
   /**
    * Проверяет валидность весов
-   * @example
-   * weight.validate([0.2, 0.3, 0.5]) // { ok: true, value: undefined }
-   * weight.validate([-0.1, 0.3, 0.5]) // { ok: false, reason: { kind: 'NEGATIVE_WEIGHT', ... } }
+   * @example weight.validate([0.2, 0.3, 0.5]) // { ok: true, value: undefined }
+   * @example weight.validate([-0.1, 0.3, 0.5]) // { ok: false, reason: { kind: 'NEGATIVE_WEIGHT', ... } }
    */
   validate(
-    weights: readonly number[],
-    config: WeightValidationConfig = DEFAULT_WEIGHT_VALIDATION,
-  ): WeightResult<void> {
+    weights: readonly number[], // Массив весов для валидации
+    config: WeightValidationConfig = DEFAULT_WEIGHT_VALIDATION, // Конфигурация валидации
+  ): WeightResult<void> { // WeightResult<void> при успехе, WeightResult с ошибкой при неудаче
     return validateWeights(weights, config);
   },
 
   /**
    * Проверяет нормализацию весов к целевой сумме (с учетом погрешности epsilon)
-   * @example
-   * weight.isNormalized([0.2, 0.3, 0.5]) // { ok: true, value: true }
-   * weight.isNormalized([0.2, 0.3, 0.6]) // { ok: true, value: false }
+   * @example weight.isNormalized([0.2, 0.3, 0.5]) // { ok: true, value: true }
+   * @example weight.isNormalized([0.2, 0.3, 0.6]) // { ok: true, value: false }
    */
   isNormalized(
-    weights: readonly number[],
-    targetSum: number = 1.0,
-    epsilon: number = Number.EPSILON * 10,
-    config: WeightValidationConfig = DEFAULT_WEIGHT_VALIDATION,
-  ): WeightResult<boolean> {
+    weights: readonly number[], // Массив весов для проверки
+    targetSum: number = 1.0, // Целевая сумма
+    epsilon: number = Number.EPSILON * 10, // Погрешность для сравнения
+    config: WeightValidationConfig = DEFAULT_WEIGHT_VALIDATION, // Конфигурация валидации
+  ): WeightResult<boolean> { // WeightResult с результатом проверки или ошибкой
     // Валидация входных весов
     const validation = validateWeights(weights, config);
     if (!validation.ok) {
@@ -652,63 +654,63 @@ export const weight = {
 } as const;
 
 /* ============================================================================
- * 🧮 WEIGHT ALGEBRA — EXTENSIBLE CONTRACT FOR CUSTOM WEIGHT OPERATIONS
+ * 5. WEIGHT ALGEBRA — EXTENSIBLE CONTRACT FOR CUSTOM WEIGHT OPERATIONS
  * ============================================================================
  */
 
 /**
  * Контракт для extensible weight operations (weighted median, percentile, etc.)
- * Generic по TResult для любых типов результатов (number, WeightDistribution, etc.)
  * @template TResult - Тип результата
  * @template TState - Тип состояния
  * @template TContext - Тип контекста (timestamp, entity, feature flags, environment, etc.)
+ * @note Generic по TResult для любых типов результатов (number, WeightDistribution, etc.)
  * @public
  */
 export interface WeightOperation<TResult = number, TState = unknown, TContext = void> {
   /**
    * Инициализирует начальное состояние операции
-   * @returns Начальное состояние
    */
-  init(): TState;
+  init(): TState; // Начальное состояние
 
   /**
    * Обновляет состояние операции (early termination через WeightResult)
-   * @param context - Контекст операции (timestamp, entity, feature flags, environment, etc.)
    */
   step(
-    currentState: TState,
-    weight: number,
-    index: number,
-    context?: TContext,
-  ): WeightResult<TState>;
+    currentState: TState, // Текущее состояние
+    weight: number, // Вес
+    index: number, // Индекс в массиве
+    context?: TContext, // Контекст операции (timestamp, entity, feature flags, environment, etc.)
+  ): WeightResult<TState>; // WeightResult с новым состоянием или ошибкой
 
-  /** Финализирует результат операции из состояния (WeightResult для composability) */
-  finalize(finalState: TState): WeightResult<TResult>;
+  /**
+   * Финализирует результат операции из состояния
+   * @note WeightResult для composability
+   */
+  finalize(
+    finalState: TState, // Финальное состояние
+  ): WeightResult<TResult>; // WeightResult с результатом операции или ошибкой
 }
 
 /**
- * Weight Algebra: factory для custom weight operations (без изменения core логики)
+ * Weight Algebra: factory для custom weight operations
+ * @note Без изменения core логики
  * @public
  */
 export const weightAlgebra = {
   /**
    * Применяет WeightOperation к массиву весов
-   * ⚠️ Использует loop вместо reduce для real early termination (CPU boundedness)
-   * @param context - Контекст операции (timestamp, entity, feature flags, environment, etc.)
-   * @example
-   * const maxOp: WeightOperation<number, number> = {
-   *   init: () => 0,
-   *   step: (acc, w) => ({ ok: true, value: Math.max(acc, w) }),
-   *   finalize: (s) => ({ ok: true, value: s }),
-   * };
-   * weightAlgebra.operate([0.2, 0.3, 0.5], maxOp) // { ok: true, value: 0.5 }
+   * @template TResult - Тип результата
+   * @template TState - Тип состояния
+   * @template TContext - Тип контекста (timestamp, entity, feature flags, environment, etc.)
+   * @note Использует loop вместо reduce для real early termination (CPU boundedness)
+   * @example const maxOp: WeightOperation<number, number> = { init: () => 0, step: (acc, w) => ({ ok: true, value: Math.max(acc, w) }), finalize: (s) => ({ ok: true, value: s }) }; weightAlgebra.operate([0.2, 0.3, 0.5], maxOp) // { ok: true, value: 0.5 }
    */
   operate<TResult = number, TState = unknown, TContext = void>(
-    weights: readonly number[],
-    operation: WeightOperation<TResult, TState, TContext>,
-    config: WeightValidationConfig = DEFAULT_WEIGHT_VALIDATION,
-    context?: TContext,
-  ): WeightResult<TResult> {
+    weights: readonly number[], // Массив весов
+    operation: WeightOperation<TResult, TState, TContext>, // WeightOperation для применения
+    config: WeightValidationConfig = DEFAULT_WEIGHT_VALIDATION, // Конфигурация валидации
+    context?: TContext, // Контекст операции (timestamp, entity, feature flags, environment, etc.)
+  ): WeightResult<TResult> { // WeightResult с результатом операции или ошибкой
     // Валидация входных весов
     const validation = validateWeights(weights, config);
     if (!validation.ok) {

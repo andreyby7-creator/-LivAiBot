@@ -1,11 +1,23 @@
 /**
  * @file packages/core/src/data-safety/taint-propagation.ts
  * ============================================================================
- * 🛡️ CORE — Taint Propagation (Propagation Tracking)
+ * 🛡️ CORE — Data Safety (Taint Propagation)
  * ============================================================================
  *
- * Отслеживание распространения taint через плагины и применение политик.
- * Plugins → Policies через rule-engine для контроля распространения taint.
+ * Архитектурная роль:
+ * - Отслеживание распространения taint через плагины и применение политик
+ * - Plugins → Policies через rule-engine для контроля распространения taint
+ * - Причина изменения: data safety, taint isolation, formal IFC (Information Flow Control)
+ *
+ * Принципы:
+ * - ✅ SRP: разделение на TYPES, CONSTANTS, HELPERS, API (decision engine отделен от data transformation)
+ * - ✅ Deterministic: одинаковые входы → одинаковые решения (monotonic), TOCTOU-safe через snapshot
+ * - ✅ Domain-pure: generic по типам значений, без привязки к domain-специфичным типам
+ * - ✅ Extensible: PropagationRule для расширения политик без изменения core логики
+ * - ✅ Strict typing: union types для PropagationOperation, PropagationDecision, PropagationFailureReason
+ * - ✅ Microservice-ready: stateless, immutable registry, thread-safe после build()
+ * - ✅ Security: Formal IFC (propagation = invariants_passed AND policies_allow), non-amplification, fail-closed
+ * - ✅ Effect-based: core возвращает Outcome для composability, boundary может бросать исключения
  *
  * ⚠️ ВАЖНО:
  * - Formal IFC: propagation = invariants_passed AND policies_allow (не OR!)
@@ -13,9 +25,6 @@
  * - Non-amplification: объединенный taint не может быть выше исходных уровней
  * - Policy downgrade: policy может переписать mergedTaint вниз по lattice
  * - Fail-closed: отсутствие политик = allow, но invariants обязательны
- * - Deterministic: одинаковые входы → одинаковые решения (monotonic)
- * - Separation of concerns: decision engine отделен от data transformation
- * - Effect-based: core возвращает Outcome, boundary может бросать исключения
  */
 
 import type { Tainted, TaintMetadata } from './taint.js';
@@ -24,7 +33,7 @@ import type { TrustLevelRegistry } from './trust-level.js';
 import { dominates } from './trust-level.js';
 
 /* ============================================================================
- * 🧩 ТИПЫ
+ * 1. TYPES — PROPAGATION MODEL (Pure Type Definitions)
  * ============================================================================
  */
 
@@ -106,12 +115,23 @@ export type Clock = Readonly<{
 }>;
 
 /* ============================================================================
- * 🔧 UTILITY FUNCTIONS
+ * 2. CONSTANTS — DEFAULT REGISTRY
  * ============================================================================
  */
 
-/** Извлекает причину отказа из PropagationDecision (security panic при unreachable) @internal */
-function extractFailureReason(decision: PropagationDecision): PropagationFailureReason {
+/* ============================================================================
+ * 3. HELPERS — UTILITY FUNCTIONS
+ * ============================================================================
+ */
+
+/**
+ * Извлекает причину отказа из PropagationDecision
+ * @note Security panic при unreachable (вызывается только для DENY результатов)
+ * @internal
+ */
+function extractFailureReason(
+  decision: PropagationDecision, // PropagationDecision для извлечения причины
+): PropagationFailureReason { // Причина отказа
   if (decision.type !== 'DENY') {
     // Security invariant violated: эта функция вызывается только для DENY результатов
     // eslint-disable-next-line fp/no-throw
@@ -122,13 +142,14 @@ function extractFailureReason(decision: PropagationDecision): PropagationFailure
 
 /**
  * Валидирует override taint (должен быть ≤ mergedTaint по lattice)
- * Policy может только downgrade trust, не upgrade
+ * @note Policy может только downgrade trust, не upgrade
+ * @internal
  */
 function validateOverride(
-  override: TaintMetadata,
-  mergedTaint: TaintMetadata,
-  registry: TrustLevelRegistry,
-): boolean {
+  override: TaintMetadata, // Override taint metadata
+  mergedTaint: TaintMetadata, // Merged taint metadata
+  registry: TrustLevelRegistry, // Registry уровней доверия
+): boolean { // true если override ≤ mergedTaint
   // Override должен быть ≤ mergedTaint (policy может только downgrade)
   // Используем dominates: override ≤ mergedTaint ⇔ dominates(mergedTaint, override)
   return dominates(mergedTaint.trustLevel, override.trustLevel, registry);
@@ -136,13 +157,14 @@ function validateOverride(
 
 /**
  * Объединяет taint metadata от нескольких источников (non-amplification)
- * Предвычисляется один раз для оптимизации (O(sources) вместо O(rules × sources))
- * Timestamp = max(all sources) для корректного distributed tracing
+ * @note Предвычисляется один раз для оптимизации (O(sources) вместо O(rules × sources)).
+ *       Timestamp = max(all sources) для корректного distributed tracing
+ * @public
  */
 export function computeMergedTaint(
-  sources: readonly TaintMetadata[],
-  registry: TrustLevelRegistry,
-): TaintMetadata {
+  sources: readonly TaintMetadata[], // Массив taint metadata от источников
+  registry: TrustLevelRegistry, // Registry уровней доверия
+): TaintMetadata { // Объединенный taint metadata
   if (sources.length === 0) {
     // eslint-disable-next-line fp/no-throw
     throw new Error('Cannot merge taint from empty sources array');
@@ -180,7 +202,7 @@ export function computeMergedTaint(
 }
 
 /* ============================================================================
- * 🎯 DEFAULT RULES (Core Rules)
+ * 4. API — PROPAGATION OPERATIONS
  * ============================================================================
  */
 
@@ -286,22 +308,16 @@ function applyRules(
 
 /**
  * Проверяет разрешение распространения через rule-engine (formal IFC: invariants AND policies)
- * Только decision engine: возвращает ALLOW/DENY с опциональным override
- *
- * @param sources - Массив taint metadata от источников
- * @param mergedTaint - Предвычисленный объединенный taint (для оптимизации)
- * @param context - Контекст распространения (статический, без runtime state)
- * @param snapshot - Snapshot времени и capabilities (runtime state, приходит снаружи)
- * @param ruleRegistry - Registry правил распространения
- * @returns Решение о разрешении распространения (ALLOW/DENY с опциональным override)
+ * @note Только decision engine: возвращает ALLOW/DENY с опциональным override
+ * @public
  */
 export function checkPropagation(
-  sources: readonly TaintMetadata[],
-  mergedTaint: TaintMetadata,
-  context: PropagationContext,
-  snapshot: PropagationSnapshot,
-  ruleRegistry: PropagationRuleRegistry = defaultPropagationRuleRegistry,
-): PropagationDecision {
+  sources: readonly TaintMetadata[], // Массив taint metadata от источников
+  mergedTaint: TaintMetadata, // Предвычисленный объединенный taint (для оптимизации)
+  context: PropagationContext, // Контекст распространения (статический, без runtime state)
+  snapshot: PropagationSnapshot, // Snapshot времени и capabilities (runtime state, приходит снаружи)
+  ruleRegistry: PropagationRuleRegistry = defaultPropagationRuleRegistry, // Registry правил распространения
+): PropagationDecision { // Решение о разрешении распространения (ALLOW/DENY с опциональным override)
   // Применяем invariants, затем policies (fail-fast)
   const invariantsResult = applyRules(
     ruleRegistry.invariants,
@@ -350,24 +366,19 @@ export function checkPropagation(
 
 /**
  * Распространяет taint от нескольких источников к целевому значению (effect-based)
- * Orchestration: вызывает checkPropagation (decision) и computeMergedTaint (transformation)
- * SRP: не знает про isTainted, принимает TaintMetadata[] напрямую
- * Core возвращает Outcome для composability, boundary может бросать исключения
- *
- * @param sources - Массив taint metadata от источников (уже извлечены выше)
- * @param target - Целевое значение для пометки taint
- * @param context - Контекст распространения (статический)
- * @param snapshot - Snapshot времени и capabilities (runtime state, приходит снаружи)
- * @param ruleRegistry - Registry правил распространения
- * @returns Outcome с tainted целевым значением или untainted target, или ошибка
+ * @template T - Тип целевого значения
+ * @note Orchestration: вызывает checkPropagation (decision) и computeMergedTaint (transformation).
+ *       SRP: не знает про isTainted, принимает TaintMetadata[] напрямую.
+ *       Core возвращает Outcome для composability, boundary может бросать исключения
+ * @public
  */
 export function propagateTaintFromSources<T>(
-  sources: readonly TaintMetadata[],
-  target: T,
-  context: PropagationContext,
-  snapshot: PropagationSnapshot,
-  ruleRegistry: PropagationRuleRegistry = defaultPropagationRuleRegistry,
-): PropagationOutcome<T> {
+  sources: readonly TaintMetadata[], // Массив taint metadata от источников (уже извлечены выше)
+  target: T, // Целевое значение для пометки taint
+  context: PropagationContext, // Контекст распространения (статический)
+  snapshot: PropagationSnapshot, // Snapshot времени и capabilities (runtime state, приходит снаружи)
+  ruleRegistry: PropagationRuleRegistry = defaultPropagationRuleRegistry, // Registry правил распространения
+): PropagationOutcome<T> { // Outcome с tainted целевым значением или untainted target, или ошибка
   // Security correctness: untainted input -> untainted output (не создаем taint из ничего)
   if (sources.length === 0) {
     return Object.freeze({ ok: true, value: target });
@@ -400,22 +411,17 @@ export function propagateTaintFromSources<T>(
 
 /**
  * Распространяет taint от одного источника к целевому значению (effect-based)
- * Упрощенный API для случая одного источника
- *
- * @param source - Taint metadata от источника (уже извлечен выше)
- * @param target - Целевое значение для пометки taint
- * @param context - Контекст распространения (статический)
- * @param snapshot - Snapshot времени и capabilities (runtime state, приходит снаружи)
- * @param ruleRegistry - Registry правил распространения
- * @returns Outcome с tainted целевым значением или untainted target, или ошибка
+ * @template T - Тип целевого значения
+ * @note Упрощенный API для случая одного источника
+ * @public
  */
 export function propagateTaintFromSource<T>(
-  source: TaintMetadata,
-  target: T,
-  context: PropagationContext,
-  snapshot: PropagationSnapshot,
-  ruleRegistry: PropagationRuleRegistry = defaultPropagationRuleRegistry,
-): PropagationOutcome<T> {
+  source: TaintMetadata, // Taint metadata от источника (уже извлечен выше)
+  target: T, // Целевое значение для пометки taint
+  context: PropagationContext, // Контекст распространения (статический)
+  snapshot: PropagationSnapshot, // Snapshot времени и capabilities (runtime state, приходит снаружи)
+  ruleRegistry: PropagationRuleRegistry = defaultPropagationRuleRegistry, // Registry правил распространения
+): PropagationOutcome<T> { // Outcome с tainted целевым значением или untainted target, или ошибка
   return propagateTaintFromSources(
     Object.freeze([source]),
     target,
@@ -426,11 +432,14 @@ export function propagateTaintFromSource<T>(
 }
 
 /* ============================================================================
- * 🏗️ PROPAGATION INTERFACE (Extensibility)
+ * 5. PROPAGATION INTERFACE — EXTENSIBILITY
  * ============================================================================
  */
 
-/** Generic PropagationBoundary интерфейс для различных операций распространения */
+/**
+ * Generic PropagationBoundary интерфейс для различных операций распространения
+ * @public
+ */
 export interface PropagationBoundary {
   /** Проверяет разрешение распространения через rule-engine (только decision) */
   checkPropagation(
@@ -469,12 +478,15 @@ export interface PropagationBoundary {
   ): T | Tainted<T>;
 }
 
-/** Создает PropagationBoundary для операций распространения (базовая реализация) */
+/**
+ * Создает PropagationBoundary для операций распространения (базовая реализация)
+ * @public
+ */
 export function createPropagationBoundary(
-  ruleRegistry: PropagationRuleRegistry = defaultPropagationRuleRegistry,
+  ruleRegistry: PropagationRuleRegistry = defaultPropagationRuleRegistry, // Registry правил распространения
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  _clock: Clock = { now: () => Date.now() },
-): PropagationBoundary {
+  _clock: Clock = { now: () => Date.now() }, // Clock для детерминистического времени (dependency injection)
+): PropagationBoundary { // PropagationBoundary для операций распространения
   return Object.freeze({
     checkPropagation: (
       sources: readonly TaintMetadata[],

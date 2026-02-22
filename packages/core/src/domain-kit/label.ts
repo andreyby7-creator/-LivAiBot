@@ -1,25 +1,22 @@
 /**
  * @file packages/core/src/domain-kit/label.ts
  * ============================================================================
- * 🛡️ CORE — Label (Domain-Specific String Labels)
+ * 🛡️ CORE — Domain Kit (Label)
  * ============================================================================
  *
- * Generic label value для domain-specific строковых меток в domain-kit.
- * Label = строковое значение с валидацией и type safety через branded types.
- *
- * Архитектура: библиотека из 2 модулей в одном файле
- * - Label: value object (создание, валидация, сериализация, type guards)
- * - LabelValidator: extensible contract для domain-specific валидации
+ * Архитектурная роль:
+ * - Generic label value для domain-specific строковых меток в domain-kit
+ * - Label = строковое значение с валидацией и type safety через branded types
+ * - Причина изменения: domain-kit, string labels, domain-specific validation
  *
  * Принципы:
  * - ✅ SRP: модульная структура (value object / validator contract)
  * - ✅ Deterministic: одинаковые входы → одинаковые результаты
- * - ✅ Domain-pure: без side-effects, платформо-агностично
+ * - ✅ Domain-pure: без side-effects, платформо-агностично, generic по доменам
+ * - ✅ Extensible: domain определяет валидацию через LabelValidator без изменения core
+ * - ✅ Strict typing: branded type + phantom generic для type safety между доменами
  * - ✅ Microservice-ready: runtime validation предотвращает cross-service inconsistency
  * - ✅ Scalable: extensible validation через LabelValidator contract
- * - ✅ Strict typing: branded type + phantom generic для type safety между доменами
- * - ✅ Extensible: domain определяет валидацию через LabelValidator без изменения core
- * - ✅ Immutable: все операции возвращают новые значения
  * - ✅ Security: runtime validation для защиты от forged labels
  *
  * ⚠️ ВАЖНО:
@@ -38,7 +35,7 @@
  */
 
 /* ============================================================================
- * 🧩 ТИПЫ — STRICT BRANDED TYPES WITH PHANTOM GENERIC
+ * 1. TYPES — LABEL MODEL (Pure Type Definitions)
  * ============================================================================
  */
 
@@ -75,8 +72,8 @@ export type LabelFailureReason =
 
 /**
  * Контракт для валидации label значений
- * Extensible contract для domain-specific логики валидации
  * @template TLabel - Union type допустимых label значений
+ * @note Extensible contract для domain-specific логики валидации
  * @public
  */
 export interface LabelValidator<TLabel extends string = string> {
@@ -85,17 +82,17 @@ export interface LabelValidator<TLabel extends string = string> {
    * @param value - Строковое значение для проверки
    * @returns true если значение валидно
    */
-  isValid(value: string): value is TLabel;
+  isValid(value: string): value is TLabel; // true если значение валидно
 
   /**
    * Возвращает список допустимых значений (опционально, для лучших error messages)
    * @returns Массив допустимых значений или undefined
    */
-  getAllowedValues?(): readonly TLabel[] | undefined;
+  getAllowedValues?(): readonly TLabel[] | undefined; // Массив допустимых значений или undefined
 }
 
 /* ============================================================================
- * 🔒 INTERNAL — BRANDED TYPE CONSTRUCTION
+ * 2. INTERNAL — BRANDED TYPE CONSTRUCTION
  * ============================================================================
  */
 
@@ -141,7 +138,7 @@ function validateLabel<TLabel extends string>(
 }
 
 /* ============================================================================
- * 🏗️ LABEL — VALUE OBJECT MODULE
+ * 3. LABEL — VALUE OBJECT MODULE
  * ============================================================================
  */
 
@@ -152,28 +149,16 @@ function validateLabel<TLabel extends string>(
 export const label = {
   /**
    * Создает label из строки с валидацией
-   * Автоматически нормализует значение (trim) для защиты от пробельных строк
-   * @param value - Строковое значение
-   * @param validator - Валидатор для проверки допустимых значений
-   * @param options - Опции создания (normalize: автоматический trim)
-   * @returns LabelOutcome с результатом валидации
-   * @example
-   * ```ts
-   * type RiskLabel = 'SAFE' | 'SUSPICIOUS' | 'DANGEROUS';
-   * const validator: LabelValidator<RiskLabel> = {
-   *   isValid: (v): v is RiskLabel => ['SAFE', 'SUSPICIOUS', 'DANGEROUS'].includes(v),
-   * };
-   * const result = label.create('SAFE', validator);
-   * if (result.ok) {
-   *   const lbl = result.value; // Label<'SAFE' | 'SUSPICIOUS' | 'DANGEROUS'>
-   * }
-   * ```
+   * @template TLabel - Union type допустимых label значений
+   * @note Автоматически нормализует значение (trim) для защиты от пробельных строк
+   * @example type RiskLabel = 'SAFE' | 'SUSPICIOUS' | 'DANGEROUS'; const validator: LabelValidator<RiskLabel> = { isValid: (v): v is RiskLabel => ['SAFE', 'SUSPICIOUS', 'DANGEROUS'].includes(v) }; const result = label.create('SAFE', validator); if (result.ok) { const lbl = result.value; // Label<'SAFE' | 'SUSPICIOUS' | 'DANGEROUS'> }
+   * @public
    */
   create<TLabel extends string>(
     value: unknown, // Строковое значение
     validator: LabelValidator<TLabel>, // Валидатор для проверки допустимых значений
     options?: Readonly<{ normalize?: boolean; }>, // Опции создания (normalize: автоматический trim)
-  ): LabelOutcome<TLabel> {
+  ): LabelOutcome<TLabel> { // LabelOutcome с результатом валидации
     if (typeof value !== 'string') {
       return {
         ok: false,
@@ -217,25 +202,24 @@ export const label = {
 
   /**
    * Десериализует label из строки с валидацией
-   * @param value - Строковое значение
-   * @param validator - Валидатор для проверки допустимых значений
-   * @returns LabelOutcome с результатом валидации
+   * @template TLabel - Union type допустимых label значений
+   * @public
    */
   deserialize<TLabel extends string>(
     value: unknown, // Строковое значение
     validator: LabelValidator<TLabel>, // Валидатор для проверки допустимых значений
-  ): LabelOutcome<TLabel> {
+  ): LabelOutcome<TLabel> { // LabelOutcome с результатом валидации
     return label.create(value, validator);
   },
 
   /**
    * Извлекает строковое значение из label
-   * @param lbl - Label значение
-   * @returns Строковое значение
+   * @template TLabel - Union type допустимых label значений
+   * @public
    */
   value<TLabel extends string>(
     lbl: Label<TLabel>, // Label значение
-  ): TLabel {
+  ): TLabel { // Строковое значение
     return lbl as TLabel;
   },
 
@@ -272,34 +256,19 @@ export const label = {
 
   /**
    * Fail-fast проверка валидности label для критичных runtime use-cases
-   * Возвращает undefined если label валиден, иначе возвращает причину ошибки
-   * Caller решает, что делать с ошибкой (throw/logging)
-   * Используйте для критичных микросервисов, где нужно fail-fast при corrupted data
-   * @param lbl - Label значение для проверки
-   * @param validator - Валидатор для проверки допустимых значений
-   * @param options - Опции: throwOnInvalid для автоматического throw (syntactic sugar)
-   * @returns undefined если label валиден, иначе LabelFailureReason (если throwOnInvalid !== true)
+   * @template TLabel - Union type допустимых label значений
+   * @note Возвращает undefined если label валиден, иначе возвращает причину ошибки.
+   *       Caller решает, что делать с ошибкой (throw/logging).
+   *       Используйте для критичных микросервисов, где нужно fail-fast при corrupted data
+   * @example const validationError = label.assertValid(unknownLabel, validator); if (validationError !== undefined) { logger.error('Invalid label', validationError); return; } label.assertValid(unknownLabel, validator, { throwOnInvalid: true });
    * @throws Error если throwOnInvalid === true и валидация не прошла
-   * @example
-   * ```ts
-   * // Вариант 1: Caller решает, что делать с ошибкой
-   * const validationError = label.assertValid(unknownLabel, validator);
-   * if (validationError !== undefined) {
-   *   // Fail-fast: логируем ошибку и прерываем выполнение
-   *   logger.error('Invalid label', validationError);
-   *   return;
-   * }
-   *
-   * // Вариант 2: Автоматический throw (syntactic sugar)
-   * label.assertValid(unknownLabel, validator, { throwOnInvalid: true });
-   * // Если валидация не прошла, будет выброшено исключение
-   * ```
+   * @public
    */
   assertValid<TLabel extends string>(
     lbl: Label<TLabel>, // Label значение для проверки
     validator: LabelValidator<TLabel>, // Валидатор для проверки допустимых значений
-    options?: Readonly<{ throwOnInvalid?: boolean; }>, // Опции: throwOnInvalid для автоматического throw
-  ): LabelFailureReason | undefined {
+    options?: Readonly<{ throwOnInvalid?: boolean; }>, // Опции: throwOnInvalid для автоматического throw (syntactic sugar)
+  ): LabelFailureReason | undefined { // undefined если label валиден, иначе LabelFailureReason (если throwOnInvalid !== true)
     const validation = validateLabel(lbl, validator);
     if (!validation.ok) {
       const reason = validation.reason;
@@ -315,7 +284,7 @@ export const label = {
 } as const;
 
 /* ============================================================================
- * 🏭 LABEL VALIDATORS — PRESET VALIDATORS FACTORY
+ * 4. LABEL VALIDATORS — PRESET VALIDATORS FACTORY
  * ============================================================================
  */
 
@@ -346,20 +315,15 @@ function createCacheKey(allowedValues: readonly string[]): string {
 export const labelValidators = {
   /**
    * Создает validator для whitelist значений
-   * Использует кеширование для reuse в high-throughput scenarios
-   * @param allowedValues - Массив допустимых значений
-   * @param useCache - Использовать кеш для reuse (по умолчанию true)
-   * @returns LabelValidator для whitelist strategy
-   * @example
-   * ```ts
-   * type RiskLabel = 'SAFE' | 'SUSPICIOUS' | 'DANGEROUS';
-   * const validator = labelValidators.whitelist<RiskLabel>(['SAFE', 'SUSPICIOUS', 'DANGEROUS']);
-   * ```
+   * @template TLabel - Union type допустимых label значений
+   * @note Использует кеширование для reuse в high-throughput scenarios
+   * @example type RiskLabel = 'SAFE' | 'SUSPICIOUS' | 'DANGEROUS'; const validator = labelValidators.whitelist<RiskLabel>(['SAFE', 'SUSPICIOUS', 'DANGEROUS']);
+   * @public
    */
   whitelist<TLabel extends string>(
     allowedValues: readonly TLabel[], // Массив допустимых значений
-    useCache: boolean = true, // Использовать кеш для reuse
-  ): LabelValidator<TLabel> {
+    useCache: boolean = true, // Использовать кеш для reuse (по умолчанию true)
+  ): LabelValidator<TLabel> { // LabelValidator для whitelist strategy
     // Двухуровневое кеширование для high-performance rule-engines
     if (useCache) {
       // Уровень 1: WeakMap для случаев, когда массив переиспользуется (reference-based)
@@ -407,18 +371,15 @@ export const labelValidators = {
 
   /**
    * Создает validator для pattern matching (regex)
-   * @param pattern - Регулярное выражение для проверки
-   * @param allowedValues - Опциональный массив допустимых значений (для лучших error messages)
-   * @returns LabelValidator для pattern strategy
-   * @example
-   * ```ts
-   * const validator = labelValidators.pattern(/^[A-Z_]+$/, ['SAFE', 'SUSPICIOUS', 'DANGEROUS']);
-   * ```
+   * @template TLabel - Union type допустимых label значений
+   * @note allowedValues опционально, используется для лучших error messages
+   * @example const validator = labelValidators.pattern(/^[A-Z_]+$/, ['SAFE', 'SUSPICIOUS', 'DANGEROUS']);
+   * @public
    */
   pattern<TLabel extends string>(
     pattern: RegExp, // Регулярное выражение для проверки
-    allowedValues?: readonly TLabel[], // Опциональный массив допустимых значений
-  ): LabelValidator<TLabel> {
+    allowedValues?: readonly TLabel[], // Опциональный массив допустимых значений (для лучших error messages)
+  ): LabelValidator<TLabel> { // LabelValidator для pattern strategy
     return {
       isValid(value): value is TLabel {
         return pattern.test(value);
@@ -431,21 +392,15 @@ export const labelValidators = {
 
   /**
    * Создает validator для custom функции валидации
-   * @param validateFn - Функция валидации
-   * @param allowedValues - Опциональный массив допустимых значений (для лучших error messages)
-   * @returns LabelValidator для custom strategy
-   * @example
-   * ```ts
-   * const validator = labelValidators.custom(
-   *   (v): v is RiskLabel => v.length > 0 && v === v.toUpperCase(),
-   *   ['SAFE', 'SUSPICIOUS', 'DANGEROUS'],
-   * );
-   * ```
+   * @template TLabel - Union type допустимых label значений
+   * @note allowedValues опционально, используется для лучших error messages
+   * @example const validator = labelValidators.custom((v): v is RiskLabel => v.length > 0 && v === v.toUpperCase(), ['SAFE', 'SUSPICIOUS', 'DANGEROUS']);
+   * @public
    */
   custom<TLabel extends string>(
     validateFn: (value: string) => value is TLabel, // Функция валидации
-    allowedValues?: readonly TLabel[], // Опциональный массив допустимых значений
-  ): LabelValidator<TLabel> {
+    allowedValues?: readonly TLabel[], // Опциональный массив допустимых значений (для лучших error messages)
+  ): LabelValidator<TLabel> { // LabelValidator для custom strategy
     return {
       isValid: validateFn,
       getAllowedValues(): readonly TLabel[] | undefined {

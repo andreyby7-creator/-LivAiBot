@@ -1,24 +1,25 @@
 /**
  * @file packages/core/src/input-boundary/context-enricher.ts
  * ============================================================================
- * 🛡️ CORE — Context Enricher (Context → Metadata Signals)
+ * 🛡️ CORE — Input Boundary (Context Enricher)
  * ============================================================================
  *
- * Generic context enricher для обогащения контекста метаданными на input boundary.
- * Архитектура: dependency-driven execution (signal-based DAG) → conflict detection → collect all errors
+ * Архитектурная роль:
+ * - Generic context enricher для обогащения контекста метаданными на input boundary
+ * - Архитектура: dependency-driven execution (signal-based DAG) → conflict detection → collect all errors
+ * - Причина изменения: input boundary, context enrichment, signal-based metadata derivation
  *
  * Принципы:
  * - ✅ SRP: только обогащение контекста метаданными (signal derivation), без композиции логики
  * - ✅ Deterministic: одинаковые входы → одинаковые результаты (signal-based dependency graph)
- * - ✅ Domain-pure: без side-effects, платформо-агностично
+ * - ✅ Domain-pure: без side-effects, платформо-агностично, generic по типам контекста
+ * - ✅ Extensible: добавление enrichers через ContextEnricher без изменения core-логики
+ * - ✅ Strict typing: union-типы для EnrichmentError, без string и Record в domain
  * - ✅ Microservice-ready: строгие контракты для межсервисного взаимодействия
- * - ✅ Scalable rule-engine: signal-based metadata (keyed signals), не blob
- * - ✅ Strict typing: union-типы, без string и Record в domain
- * - ✅ Extensible: добавление enrichers без изменения core-логики
- * - ✅ Security-first: конфликты сигналов = ошибка (не silent overwrite)
+ * - ✅ Scalable: signal-based metadata (keyed signals), не blob, топологическая сортировка по сигналам
+ * - ✅ Security-first: конфликты сигналов = ошибка (не silent overwrite), conflict detection через stable serialization
  * - ✅ DAG-compatible: signal-based dependency graph (совместимо с pipeline)
- * - ✅ Parallel-ready: собирает все ошибки, не fail-fast
- * - ✅ Performance: immutable operations, frozen snapshot наружу
+ * - ✅ Parallel-ready: собирает все ошибки, не fail-fast, precondition enforcement
  *
  * ⚠️ ВАЖНО:
  * - ❌ НЕ включает sanitization (это в data-safety/)
@@ -34,7 +35,7 @@
 import { isJsonSerializable } from './generic-validation.js';
 
 /* ============================================================================
- * 🧩 ТИПЫ — STRICT UNION TYPES
+ * 1. TYPES — ENRICHMENT MODEL (Pure Type Definitions)
  * ============================================================================
  */
 
@@ -707,16 +708,16 @@ function applyEnricherGroup<TContext = Record<string, unknown>>(
 
 /**
  * Применяет enrichers с signal-based dependency-driven execution и собирает все ошибки
- * Invariants выполняются первыми, затем policies (оба с топологической сортировкой)
- * Enricher пропускается, если его зависимости не выполнены (precondition enforcement)
- * @returns Результат обогащения (все сигналы и все ошибки)
+ * @template TContext - Тип входного контекста
+ * @note Invariants выполняются первыми, затем policies (оба с топологической сортировкой).
+ *       Enricher пропускается, если его зависимости не выполнены (precondition enforcement)
  * @internal
  */
 function applyEnrichers<TContext = Record<string, unknown>>(
-  context: TContext,
-  registry: EnricherRegistry<TContext> = defaultEnricherRegistry as EnricherRegistry<TContext>,
-  observer?: EnrichmentObserver,
-): EnrichmentResult {
+  context: TContext, // Входной контекст для обогащения
+  registry: EnricherRegistry<TContext> = defaultEnricherRegistry as EnricherRegistry<TContext>, // Registry enrichers
+  observer?: EnrichmentObserver, // Опциональный observer для telemetry и логирования событий
+): EnrichmentResult { // Результат обогащения (все сигналы и все ошибки)
   const initialSignals = Object.freeze(new Map<string, unknown>()) as ReadonlyMap<string, unknown>;
 
   const invariantResult = applyEnricherGroup(
@@ -740,42 +741,35 @@ function applyEnrichers<TContext = Record<string, unknown>>(
 
 /**
  * Обогащает контекст метаданными через registry enrichers
- * @param context - Входной контекст для обогащения
- * @param registry - Registry enrichers (по умолчанию defaultEnricherRegistry)
- * @param observer - Опциональный observer для telemetry и логирования событий
- * @returns EnrichmentResult с сигналами и ошибками (non-fail-fast)
+ * @template TContext - Тип входного контекста
+ * @example const observer = { onSkippedEnricher: (e) => log.warn(e), onConflictingSignals: (e) => log.error(e) }; const result = enrichContext(context, registry, observer);
  * @public
- * @example
- * ```ts
- * const observer = { onSkippedEnricher: (e) => log.warn(e), onConflictingSignals: (e) => log.error(e) };
- * const result = enrichContext(context, registry, observer);
- * ```
  */
 export function enrichContext<TContext = Record<string, unknown>>(
-  context: TContext,
-  registry: EnricherRegistry<TContext> = defaultEnricherRegistry as EnricherRegistry<TContext>,
-  observer?: EnrichmentObserver,
-): EnrichmentResult {
+  context: TContext, // Входной контекст для обогащения
+  registry: EnricherRegistry<TContext> = defaultEnricherRegistry as EnricherRegistry<TContext>, // Registry enrichers (по умолчанию defaultEnricherRegistry)
+  observer?: EnrichmentObserver, // Опциональный observer для telemetry и логирования событий
+): EnrichmentResult { // EnrichmentResult с сигналами и ошибками (non-fail-fast)
   return applyEnrichers(context, registry, observer);
 }
 
 /* ============================================================================
- * 🔧 EXTENSIBILITY HELPERS — REGISTRY BUILDERS
+ * 2. EXTENSIBILITY HELPERS — REGISTRY BUILDERS
  * ============================================================================
  */
 
 /**
  * Создает новый registry с добавленным enricher (immutable)
- * Helper для динамического расширения registry без мутации
- * Проверяет, что каждый сигнал предоставляется только одним enricher (one signal = one provider)
- * @param asInvariant - Если true, добавляет в invariants, иначе в policies
+ * @template TContext - Тип входного контекста
+ * @note Helper для динамического расширения registry без мутации.
+ *       Проверяет, что каждый сигнал предоставляется только одним enricher (one signal = one provider)
  * @public
  */
 export function registerEnricher<TContext = Record<string, unknown>>(
-  registry: EnricherRegistry<TContext>,
-  enricher: ContextEnricher<TContext>,
-  asInvariant: boolean = false,
-): EnricherRegistry<TContext> {
+  registry: EnricherRegistry<TContext>, // Registry enrichers
+  enricher: ContextEnricher<TContext>, // Enricher для добавления
+  asInvariant: boolean = false, // Если true, добавляет в invariants, иначе в policies
+): EnricherRegistry<TContext> { // Новый registry с добавленным enricher
   const allEnrichers = [...registry.invariants, ...registry.policies];
   const duplicate = allEnrichers.find((e) => e.name === enricher.name);
   if (duplicate !== undefined) {

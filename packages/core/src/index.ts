@@ -84,3 +84,18 @@ export * from './aggregation/index.js';
  * @public
  */
 export * from './rule-engine/index.js';
+
+/* ============================================================================
+ * 🔄 PIPELINE — DEPENDENCY-DRIVEN EXECUTION ENGINE
+ * ========================================================================== */
+/**
+ * Pipeline подпакет: generic dependency-driven execution engine API.
+ * Включает StagePlugin (compile-time provides/slots enforcement), StageContext,
+ * factory helpers (defineStage, defineFallback), validation (validatePlugin, validatePipelineConfig).
+ * Pipeline автоматически определяет порядок выполнения на основе provides/dependsOn.
+ * НЕ middleware chain — это dependency-driven execution engine.
+ * Effect-based API (StageResult, PipelineResult) для composability.
+ *
+ * @public
+ */
+export * from './pipeline/index.js';

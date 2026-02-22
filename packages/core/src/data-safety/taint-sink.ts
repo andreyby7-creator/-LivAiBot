@@ -1,11 +1,23 @@
 /**
  * @file packages/core/src/data-safety/taint-sink.ts
  * ============================================================================
- * 🛡️ CORE — Taint Sink (Output Boundary)
+ * 🛡️ CORE — Data Safety (Taint Sink)
  * ============================================================================
  *
- * Formal information-flow security sink: проверка trusted данных перед отправкой в плагины.
- * Trusted → Plugins через assertTrusted (Trusted<T> wrapper), результаты помечаются как PLUGIN source.
+ * Архитектурная роль:
+ * - Formal information-flow security sink: проверка trusted данных перед отправкой в плагины
+ * - Trusted → Plugins через assertTrusted (Trusted<T> wrapper), результаты помечаются как PLUGIN source
+ * - Причина изменения: data safety, formal IFC (Information Flow Control), output boundary guards
+ *
+ * Принципы:
+ * - ✅ SRP: разделение на TYPES, CONSTANTS, HELPERS, OUTPUT BOUNDARY OPERATIONS, OUTPUT BOUNDARY INTERFACE
+ * - ✅ Deterministic: одинаковые входы → одинаковые решения (monotonic), TOCTOU-safe через snapshot
+ * - ✅ Domain-pure: generic по типам входных и выходных значений, без привязки к domain-специфичным типам
+ * - ✅ Extensible: TrustedCheckRule для расширения политик без изменения core логики
+ * - ✅ Strict typing: union types для SinkType, TrustedCheckResult, TrustedCheckFailureReason, branded type для Trusted<T>
+ * - ✅ Microservice-ready: stateless, immutable registry, thread-safe после build()
+ * - ✅ Security: Formal IFC (trusted = invariants_passed AND policies_allow), runtime brand для Trusted<T>, fail-closed semantics
+ * - ✅ Effect-based: core возвращает TrustedCheckResult для composability, boundary может бросать исключения
  *
  * ⚠️ ВАЖНО:
  * - Formal IFC: trusted = invariants_passed AND policies_allow (не OR!)
@@ -22,7 +34,7 @@ import type { TrustLevel, TrustLevelRegistry } from './trust-level.js';
 import { dominates, meetTrust, trustLevels } from './trust-level.js';
 
 /* ============================================================================
- * 🧩 ТИПЫ
+ * 1. TYPES — SINK MODEL (Pure Type Definitions)
  * ============================================================================
  */
 
@@ -92,7 +104,12 @@ export type TrustedCheckRuleRegistry = Readonly<{
 }>;
 
 /* ============================================================================
- * ❌ СТРУКТУРИРОВАННЫЕ ОШИБКИ (Domain Layer)
+ * 2. CONSTANTS — DEFAULT REGISTRY
+ * ============================================================================
+ */
+
+/* ============================================================================
+ * 3. HELPERS — UTILITY FUNCTIONS
  * ============================================================================
  */
 
@@ -131,13 +148,14 @@ export function isUntrustedValueError(
   );
 }
 
-/* ============================================================================
- * 🔧 UTILITY FUNCTIONS
- * ============================================================================
+/**
+ * Извлекает причину отказа из TrustedCheckResult
+ * @note Security panic при unreachable (вызывается только для UNTRUSTED результатов)
+ * @internal
  */
-
-/** Извлекает причину отказа из TrustedCheckResult (security panic при unreachable) @internal */
-function extractFailureReason(result: TrustedCheckResult): TrustedCheckFailureReason {
+function extractFailureReason(
+  result: TrustedCheckResult, // TrustedCheckResult для извлечения причины
+): TrustedCheckFailureReason { // Причина отказа
   if (result.type !== 'UNTRUSTED') {
     // Security invariant violated: эта функция вызывается только для UNTRUSTED результатов
     // eslint-disable-next-line fp/no-throw
@@ -146,19 +164,22 @@ function extractFailureReason(result: TrustedCheckResult): TrustedCheckFailureRe
   return result.reason;
 }
 
-/** Ограничивает trust level для plugin output (non-amplification: output ≤ input) @internal */
+/**
+ * Ограничивает trust level для plugin output (non-amplification: output ≤ input)
+ * @internal
+ */
 function clampPluginTrust(
-  requested: TrustLevel,
-  inputTrustLevel: TrustLevel,
-  registry: TrustLevelRegistry,
-): TrustLevel {
+  requested: TrustLevel, // Запрошенный уровень доверия
+  inputTrustLevel: TrustLevel, // Уровень доверия входных данных
+  registry: TrustLevelRegistry, // Registry уровней доверия
+): TrustLevel { // Ограниченный уровень доверия (output ≤ input)
   // Plugin output не может быть выше input trust (non-amplification)
   // Используем meet для fail-closed: meet(requested, inputTrustLevel)
   return meetTrust(requested, inputTrustLevel, registry);
 }
 
 /* ============================================================================
- * 🎯 DEFAULT RULES (Core Rules)
+ * 4. API — OUTPUT BOUNDARY OPERATIONS
  * ============================================================================
  */
 
@@ -221,18 +242,16 @@ export const defaultTrustedCheckRuleRegistry: TrustedCheckRuleRegistry = Object.
   ) as ReadonlyMap<string, TrustedCheckRule>,
 });
 
-/* ============================================================================
- * 🎯 OUTPUT BOUNDARY OPERATIONS
- * ============================================================================
+/**
+ * Применяет правила с short-circuit (fail-fast для time-of-check semantics)
+ * @internal
  */
-
-/** Применяет правила с short-circuit (fail-fast для time-of-check semantics) @internal */
 function applyRules(
-  rules: readonly TrustedCheckRule[],
-  value: unknown,
-  context: TrustedCheckContext,
-  snapshot: TrustedCheckSnapshot,
-): { allowed: boolean; firstFailure?: TrustedCheckResult; } {
+  rules: readonly TrustedCheckRule[], // Массив правил для применения
+  value: unknown, // Данные для проверки
+  context: TrustedCheckContext, // Контекст проверки
+  snapshot: TrustedCheckSnapshot, // Snapshot для TOCTOU-безопасности
+): { allowed: boolean; firstFailure?: TrustedCheckResult; } { // Результат применения правил
   // Формальная IFC семантика: отсутствие правил = allow, не deny
   if (rules.length === 0) {
     return { allowed: true };
@@ -267,17 +286,13 @@ function applyRules(
 
 /**
  * Проверяет trusted состояние через rule-engine (formal IFC: invariants AND policies)
- *
- * @param value - Данные для проверки
- * @param context - Контекст проверки
- * @param ruleRegistry - Registry правил проверки
- * @returns Результат проверки
+ * @public
  */
 export function checkTrusted(
-  value: unknown,
-  context: TrustedCheckContext,
-  ruleRegistry: TrustedCheckRuleRegistry = defaultTrustedCheckRuleRegistry,
-): TrustedCheckResult {
+  value: unknown, // Данные для проверки
+  context: TrustedCheckContext, // Контекст проверки
+  ruleRegistry: TrustedCheckRuleRegistry = defaultTrustedCheckRuleRegistry, // Registry правил проверки
+): TrustedCheckResult { // Результат проверки
   // Materialize decision snapshot once (TOCTOU-safe, atomic policy evaluation)
   const snapshot: TrustedCheckSnapshot = Object.freeze({
     now: Date.now(),
@@ -370,19 +385,15 @@ type TrustedWithLevel<T> = Readonly<{
 
 /**
  * Проверяет trusted состояние и возвращает Trusted wrapper (fail-hard)
- * TrustLevel сохраняется только в boundary, не передается в плагин (защита от covert channel)
- *
- * @param value - Tainted данные для проверки
- * @param context - Контекст проверки
- * @param ruleRegistry - Registry правил проверки
- * @returns Trusted wrapper и trustLevel (для boundary, не для плагина)
+ * @note TrustLevel сохраняется только в boundary, не передается в плагин (защита от covert channel)
  * @throws {UntrustedValueError} Если данные не trusted
+ * @internal
  */
 function assertTrustedWithLevel<T>(
-  value: T | Tainted<T>,
-  context: TrustedCheckContext,
-  ruleRegistry: TrustedCheckRuleRegistry = defaultTrustedCheckRuleRegistry,
-): TrustedWithLevel<T> {
+  value: T | Tainted<T>, // Tainted данные для проверки
+  context: TrustedCheckContext, // Контекст проверки
+  ruleRegistry: TrustedCheckRuleRegistry = defaultTrustedCheckRuleRegistry, // Registry правил проверки
+): TrustedWithLevel<T> { // Trusted wrapper и trustLevel (для boundary, не для плагина)
   const checkResult = checkTrusted(value, context, ruleRegistry);
   if (checkResult.type === 'UNTRUSTED') {
     const reason = extractFailureReason(checkResult);
@@ -413,57 +424,45 @@ function assertTrustedWithLevel<T>(
 
 /**
  * Проверяет trusted состояние и возвращает Trusted wrapper (fail-hard)
- * Публичный API: плагин получает только value, не trustLevel
- *
- * @param value - Tainted данные для проверки
- * @param context - Контекст проверки
- * @param ruleRegistry - Registry правил проверки
- * @returns Trusted wrapper (только value, без metadata)
+ * @note Публичный API: плагин получает только value, не trustLevel
  * @throws {UntrustedValueError} Если данные не trusted
+ * @public
  */
 export function assertTrusted<T>(
-  value: T | Tainted<T>,
-  context: TrustedCheckContext,
-  ruleRegistry: TrustedCheckRuleRegistry = defaultTrustedCheckRuleRegistry,
-): Trusted<T> {
+  value: T | Tainted<T>, // Tainted данные для проверки
+  context: TrustedCheckContext, // Контекст проверки
+  ruleRegistry: TrustedCheckRuleRegistry = defaultTrustedCheckRuleRegistry, // Registry правил проверки
+): Trusted<T> { // Trusted wrapper (только value, без metadata)
   return assertTrustedWithLevel(value, context, ruleRegistry).trusted;
 }
 
 /**
  * Помечает результаты плагинов как tainted с source=PLUGIN
- *
- * @param value - Результат выполнения плагина
- * @param trustLevel - Уровень доверия к результату (по умолчанию UNTRUSTED)
- * @param timestamp - Опциональный timestamp
- * @returns Tainted данные с source=PLUGIN
+ * @public
  */
 export function markAsPluginOutput<T>(
-  value: T,
-  trustLevel: TrustLevel = trustLevels.UNTRUSTED as TrustLevel,
-  timestamp?: number,
-): Tainted<T> {
+  value: T, // Результат выполнения плагина
+  trustLevel: TrustLevel = trustLevels.UNTRUSTED as TrustLevel, // Уровень доверия к результату (по умолчанию UNTRUSTED)
+  timestamp?: number, // Опциональный timestamp
+): Tainted<T> { // Tainted данные с source=PLUGIN
   return addTaint(value, taintSources.PLUGIN as TaintSource, trustLevel, timestamp);
 }
 
 /**
  * Комбинированная операция: проверка trusted, выполнение плагина, пометка результата
- * Sinks не могут upgrade trust (clampPluginTrust ограничивает максимальный уровень)
- *
- * @param value - Tainted данные для проверки
- * @param plugin - Функция плагина (получает Trusted<T> wrapper)
- * @param context - Контекст проверки
- * @param resultTrustLevel - Уровень доверия для результата (по умолчанию UNTRUSTED)
- * @param ruleRegistry - Registry правил проверки
- * @returns Tainted результат плагина с source=PLUGIN
+ * @template T - Тип входных данных
+ * @template U - Тип результата плагина
+ * @note Sinks не могут upgrade trust (clampPluginTrust ограничивает максимальный уровень)
  * @throws {UntrustedValueError} Если данные не trusted
+ * @public
  */
 export async function executePluginWithBoundary<T, U>(
-  value: T | Tainted<T>,
-  plugin: (trusted: Trusted<T>) => U | Promise<U>,
-  context: TrustedCheckContext,
-  resultTrustLevel: TrustLevel = trustLevels.UNTRUSTED as TrustLevel,
-  ruleRegistry: TrustedCheckRuleRegistry = defaultTrustedCheckRuleRegistry,
-): Promise<Tainted<U>> {
+  value: T | Tainted<T>, // Tainted данные для проверки
+  plugin: (trusted: Trusted<T>) => U | Promise<U>, // Функция плагина (получает Trusted<T> wrapper)
+  context: TrustedCheckContext, // Контекст проверки
+  resultTrustLevel: TrustLevel = trustLevels.UNTRUSTED as TrustLevel, // Уровень доверия для результата (по умолчанию UNTRUSTED)
+  ruleRegistry: TrustedCheckRuleRegistry = defaultTrustedCheckRuleRegistry, // Registry правил проверки
+): Promise<Tainted<U>> { // Tainted результат плагина с source=PLUGIN
   // Получаем Trusted wrapper и trustLevel (trustLevel только для boundary, не для плагина)
   const { trusted, trustLevel } = assertTrustedWithLevel(value, context, ruleRegistry);
   const pluginResult = await Promise.resolve(plugin(trusted));
@@ -476,11 +475,16 @@ export async function executePluginWithBoundary<T, U>(
 }
 
 /* ============================================================================
- * 🏗️ OUTPUT BOUNDARY INTERFACE (Extensibility)
+ * 5. OUTPUT BOUNDARY INTERFACE — EXTENSIBILITY
  * ============================================================================
  */
 
-/** Generic OutputBoundary интерфейс для различных плагинов */
+/**
+ * Generic OutputBoundary интерфейс для различных плагинов
+ * @template TInput - Тип входных данных
+ * @template TOutput - Тип выходных данных
+ * @public
+ */
 export interface OutputBoundary<TInput, TOutput> {
   /** Проверяет trusted и возвращает Trusted wrapper (сохраняет provenance) */
   assertTrusted(
@@ -498,8 +502,13 @@ export interface OutputBoundary<TInput, TOutput> {
   ): Promise<Tainted<TOutput>>;
 }
 
-/** Создает OutputBoundary для плагинов (базовая реализация) */
-export function createPluginOutputBoundary<TInput, TOutput>(): OutputBoundary<TInput, TOutput> {
+/**
+ * Создает OutputBoundary для плагинов (базовая реализация)
+ * @template TInput - Тип входных данных
+ * @template TOutput - Тип выходных данных
+ * @public
+ */
+export function createPluginOutputBoundary<TInput, TOutput>(): OutputBoundary<TInput, TOutput> { // OutputBoundary для плагинов
   return Object.freeze({
     assertTrusted: (value: TInput | Tainted<TInput>, context: TrustedCheckContext) =>
       assertTrusted(value, context),

@@ -1,27 +1,23 @@
 /**
  * @file packages/core/src/domain-kit/evaluation-level.ts
  * ============================================================================
- * 🛡️ CORE — Evaluation Level (Decision Algebra)
+ * 🛡️ CORE — Domain Kit (Evaluation Level)
  * ============================================================================
  *
- * Generic evaluation level для decision algebra в domain-kit.
- * EvaluationLevel = числовая шкала (0..N) с parametric algebra contract.
- *
- * Архитектура: библиотека из 4 модулей в одном файле
- * - EvaluationLevel: value object (создание, валидация, сериализация)
- * - EvaluationScale: scale factory (предотвращает semantic split-brain)
- * - EvaluationAlgebra: algebra contract и presets (ordering, lattice)
- * - EvaluationAggregation: aggregation policies (worstCase, bestCase, streaming)
+ * Архитектурная роль:
+ * - Generic evaluation level для decision algebra в domain-kit
+ * - EvaluationLevel = числовая шкала (0..N) с parametric algebra contract
+ * - Причина изменения: domain-kit, decision algebra, lattice operations, multi-rule aggregation
  *
  * Принципы:
  * - ✅ SRP: модульная структура (value object / algebra / policies)
  * - ✅ Deterministic: одинаковые входы → одинаковые результаты (scale-enforced)
- * - ✅ Domain-pure: без side-effects, платформо-агностично
+ * - ✅ Domain-pure: без side-effects, платформо-агностично, generic по доменам
+ * - ✅ Extensible: domain определяет ordering и scale через EvaluationOrder без изменения core
+ * - ✅ Strict typing: phantom generic + opaque scale для type safety между доменами
  * - ✅ Microservice-ready: scale fingerprint предотвращает cross-service inconsistency
  * - ✅ Scalable: parametric algebra для partial/non-linear/multi-axis ordering
- * - ✅ Strict typing: phantom generic + opaque scale для type safety между доменами
- * - ✅ Extensible: domain определяет ordering и scale без изменения core
- * - ✅ Immutable: все операции возвращают новые значения
+ * - ✅ Security: защита от forged levels и scale при десериализации
  *
  * ⚠️ ВАЖНО:
  * - ❌ НЕ включает domain-специфичные значения (SAFE/SUSPICIOUS/DANGEROUS - это domain labels)
@@ -35,7 +31,7 @@
  */
 
 /* ============================================================================
- * 🧩 ТИПЫ — STRICT BRANDED TYPES WITH PHANTOM GENERIC
+ * 1. TYPES — EVALUATION LEVEL MODEL (Pure Type Definitions)
  * ============================================================================
  */
 
@@ -175,7 +171,7 @@ export interface LatticeOrder<TDomain extends string = string> extends Evaluatio
 }
 
 /* ============================================================================
- * 🔒 INTERNAL — BRANDED TYPE CONSTRUCTION
+ * 2. INTERNAL — BRANDED TYPE CONSTRUCTION
  * ============================================================================
  */
 
@@ -225,7 +221,7 @@ function createScaleId(min: number, max: number, domain: string, semanticVersion
 }
 
 /* ============================================================================
- * 🏗️ EVALUATION LEVEL — VALUE OBJECT MODULE
+ * 3. EVALUATION LEVEL — VALUE OBJECT MODULE
  * ============================================================================
  */
 
@@ -236,20 +232,14 @@ function createScaleId(min: number, max: number, domain: string, semanticVersion
 export const evaluationLevel = {
   /**
    * Создает evaluation level из числа с валидацией по scale
-   * @returns EvaluationLevelOutcome с результатом валидации
-   * @example
-   * ```ts
-   * const scale = evaluationScale.create(0, 10, 'risk');
-   * const result = evaluationLevel.create(5, scale.value);
-   * if (result.ok) {
-   *   const level = result.value; // EvaluationLevel<'risk'>
-   * }
-   * ```
+   * @template TDomain - Идентификатор домена
+   * @example const scale = evaluationScale.create(0, 10, 'risk'); const result = evaluationLevel.create(5, scale.value); if (result.ok) { const level = result.value; // EvaluationLevel<'risk'> }
+   * @public
    */
   create<TDomain extends string>(
     value: unknown, // Числовое значение (0..N)
     scale: EvaluationScale<TDomain>, // Evaluation scale для валидации диапазона
-  ): EvaluationLevelOutcome<EvaluationLevel<TDomain>> {
+  ): EvaluationLevelOutcome<EvaluationLevel<TDomain>> { // EvaluationLevelOutcome с результатом валидации
     if (typeof value !== 'number') {
       return {
         ok: false,
@@ -300,14 +290,15 @@ export const evaluationLevel = {
 
   /**
    * Десериализует evaluation level из числа с валидацией (защита от forged levels и scale)
-   * Проверяет scale fingerprint для защиты от forged scale
-   * @returns EvaluationLevelOutcome с результатом валидации
+   * @template TDomain - Идентификатор домена
+   * @note Проверяет scale fingerprint для защиты от forged scale
+   * @public
    */
   deserialize<TDomain extends string>(
     value: unknown, // Числовое значение (0..N)
     scale: EvaluationScale<TDomain>, // Evaluation scale для валидации диапазона (проверяется fingerprint)
     expectedScaleId?: string, // Ожидаемый scale fingerprint (для защиты от forged scale)
-  ): EvaluationLevelOutcome<EvaluationLevel<TDomain>> {
+  ): EvaluationLevelOutcome<EvaluationLevel<TDomain>> { // EvaluationLevelOutcome с результатом валидации
     // Проверка scale fingerprint для защиты от forged scale
     if (expectedScaleId !== undefined && scale.scaleId !== expectedScaleId) {
       return {
@@ -323,30 +314,35 @@ export const evaluationLevel = {
     return evaluationLevel.create(value, scale);
   },
 
-  /** Извлекает числовое значение из evaluation level */
+  /**
+   * Извлекает числовое значение из evaluation level
+   * @template TDomain - Идентификатор домена
+   * @public
+   */
   value<TDomain extends string>(
     level: EvaluationLevel<TDomain>, // Evaluation level
-  ): number {
+  ): number { // Числовое значение
     return level;
   },
 
   /**
    * Проверяет, является ли уровень нормализованным (проецированным в scale)
-   * Type guard для NormalizedEvaluationLevel
-   * ⚠️ В runtime branded types неразличимы (оба - числа), проверка основана на типе
-   * Используйте для type narrowing в TypeScript
-   * @returns true если уровень нормализован
+   * @template TDomain - Идентификатор домена
+   * @note Type guard для NormalizedEvaluationLevel.
+   *       ⚠️ В runtime branded types неразличимы (оба - числа), проверка основана на типе.
+   *       Используйте для type narrowing в TypeScript
+   * @public
    */
   isNormalized<TDomain extends string>(
     level: EvaluationLevel<TDomain> | NormalizedEvaluationLevel<TDomain>, // Evaluation level для проверки
-  ): level is NormalizedEvaluationLevel<TDomain> {
+  ): level is NormalizedEvaluationLevel<TDomain> { // true если уровень нормализован
     // Используем WeakMap для runtime проверки normalized levels
     return typeof level === 'number' && normalizedLevels.has(level);
   },
 } as const;
 
 /* ============================================================================
- * 📏 EVALUATION SCALE — SCALE FACTORY MODULE
+ * 4. EVALUATION SCALE — SCALE FACTORY MODULE
  * ============================================================================
  */
 
@@ -357,22 +353,17 @@ export const evaluationLevel = {
 export const evaluationScale = {
   /**
    * Создает evaluation scale (factory для предотвращения semantic split-brain)
-   * Генерирует runtime fingerprint (scaleId) с semantic version
-   * @returns EvaluationScaleOutcome с результатом создания
-   * @example
-   * ```ts
-   * const scale = evaluationScale.create(0, 10, 'risk', 'v2');
-   * if (scale.ok) {
-   *   const scaleId = scale.value.scaleId; // hash fingerprint
-   * }
-   * ```
+   * @template TDomain - Идентификатор домена
+   * @note Генерирует runtime fingerprint (scaleId) с semantic version
+   * @example const scale = evaluationScale.create(0, 10, 'risk', 'v2'); if (scale.ok) { const scaleId = scale.value.scaleId; // hash fingerprint }
+   * @public
    */
   create<TDomain extends string>(
     min: number, // Минимальное значение (включительно)
     max: number, // Максимальное значение (включительно)
     domain: TDomain, // Идентификатор домена
     semanticVersion: string = 'v1', // Semantic version для предотвращения split-brain (например, 'v1', 'v2', 'moderation-v1')
-  ): EvaluationScaleOutcome<TDomain> {
+  ): EvaluationScaleOutcome<TDomain> { // EvaluationScaleOutcome с результатом создания
     if (min < 0 || max < min || !Number.isInteger(min) || !Number.isInteger(max)) {
       return {
         ok: false,
@@ -404,18 +395,18 @@ export const evaluationScale = {
 } as const;
 
 /* ============================================================================
- * 🔢 EVALUATION ALGEBRA — ALGEBRA CONTRACT MODULE
+ * 5. EVALUATION ALGEBRA — ALGEBRA CONTRACT MODULE
  * ============================================================================
  */
 
 /**
  * Создает стандартный ordering (total order)
- * @param ascending - true: ascending (0=best, N=worst), false: descending (0=worst, N=best)
+ * @template TDomain - Идентификатор домена
  * @internal
  */
 function createStandardOrder<TDomain extends string>(
-  ascending: boolean = true,
-): EvaluationOrder<TDomain> {
+  ascending: boolean = true, // true: ascending (0=best, N=worst), false: descending (0=worst, N=best)
+): EvaluationOrder<TDomain> { // Стандартный ordering
   return {
     compare(a, b): Ordering {
       if (ascending) {
@@ -447,12 +438,12 @@ function createStandardOrder<TDomain extends string>(
 
 /**
  * Создает стандартный lattice ordering (расширяет standardOrder с top/bottom)
- * @param ascending - true: ascending (0=best, N=worst), false: descending (0=worst, N=best)
+ * @template TDomain - Идентификатор домена
  * @internal
  */
 function createStandardLatticeOrder<TDomain extends string>(
-  ascending: boolean = true,
-): LatticeOrder<TDomain> {
+  ascending: boolean = true, // true: ascending (0=best, N=worst), false: descending (0=worst, N=best)
+): LatticeOrder<TDomain> { // Стандартный lattice ordering
   const base = createStandardOrder<TDomain>(ascending);
   return {
     ...base,
@@ -472,22 +463,26 @@ function createStandardLatticeOrder<TDomain extends string>(
 export const evaluationAlgebra = {
   /**
    * Создает стандартный ordering (total order)
-   * @param ascending - true: ascending (0=best, N=worst), false: descending (0=worst, N=best)
-   * Preset для convenience, domain может определить свой ordering
+   * @template TDomain - Идентификатор домена
+   * @note Preset для convenience, domain может определить свой ordering
+   * @public
    */
-  standardOrder: <TDomain extends string>(ascending: boolean = true) =>
-    createStandardOrder<TDomain>(ascending),
+  standardOrder: <TDomain extends string>(
+    ascending: boolean = true, // true: ascending (0=best, N=worst), false: descending (0=worst, N=best)
+  ) => createStandardOrder<TDomain>(ascending), // Стандартный ordering
 
   /**
    * Создает стандартный lattice ordering (расширяет standardOrder с top/bottom)
-   * @param ascending - true: ascending (0=best, N=worst), false: descending (0=worst, N=best)
+   * @template TDomain - Идентификатор домена
+   * @public
    */
-  standardLatticeOrder: <TDomain extends string>(ascending: boolean = true) =>
-    createStandardLatticeOrder<TDomain>(ascending),
+  standardLatticeOrder: <TDomain extends string>(
+    ascending: boolean = true, // true: ascending (0=best, N=worst), false: descending (0=worst, N=best)
+  ) => createStandardLatticeOrder<TDomain>(ascending), // Стандартный lattice ordering
 } as const;
 
 /* ============================================================================
- * 🧪 EVALUATION ALGEBRA DEV — DEV-ONLY TOOLS (TREE-SHAKEABLE)
+ * 6. EVALUATION ALGEBRA DEV — DEV-ONLY TOOLS (TREE-SHAKEABLE)
  * ============================================================================
  */
 
@@ -730,21 +725,16 @@ function checkTopBottom<TDomain extends string>(
 export const evaluationAlgebraDev = {
   /**
    * Проверяет algebra laws для EvaluationOrder (dev-only)
-   * Проверяет associativity, commutativity, idempotency, absorption, согласованность compare с join/meet
-   * @returns LatticeVerificationResult с результатом проверки
-   * @example
-   * ```ts
-   * const result = evaluationAlgebraDev.verify(customOrder, [level1, level2, level3], scale);
-   * if (!result.ok) {
-   *   console.error(result.reason);
-   * }
-   * ```
+   * @template TDomain - Идентификатор домена
+   * @note Проверяет associativity, commutativity, idempotency, absorption, согласованность compare с join/meet
+   * @example const result = evaluationAlgebraDev.verify(customOrder, [level1, level2, level3], scale); if (!result.ok) { console.error(result.reason); }
+   * @public
    */
   verify<TDomain extends string>(
     order: LatticeOrder<TDomain>, // Evaluation order для проверки
     sampleValues: readonly EvaluationLevel<TDomain>[], // Массив sample values для проверки
     scale: EvaluationScale<TDomain>, // Evaluation scale для проверки
-  ): LatticeVerificationResult {
+  ): LatticeVerificationResult { // LatticeVerificationResult с результатом проверки
     if (sampleValues.length < 2) {
       return { ok: true };
     }
@@ -795,53 +785,56 @@ export const evaluationAlgebraDev = {
 } as const;
 
 /* ============================================================================
- * 🎯 EVALUATION AGGREGATION — AGGREGATION POLICIES MODULE
+ * 7. EVALUATION AGGREGATION — AGGREGATION POLICIES MODULE
  * ============================================================================
  */
 
 /**
  * Evaluation Aggregation: опциональные aggregation strategies для rule engines
- * Policy helpers, требуют LatticeOrder для корректной работы
- * Поддерживает partial order через strict/lenient режимы
+ * @note Policy helpers, требуют LatticeOrder для корректной работы.
+ *       Поддерживает partial order через strict/lenient режимы
  * @public
  */
 export const evaluationAggregation = {
   /**
    * Streaming aggregation step для rule engines
-   * Для partial order может вернуть undefined если элементы incomparable
-   * @example
-   * ```ts
-   * const result = levels.reduce((acc, level) =>
-   *   evaluationAggregation.step(acc, level, order), initialLevel);
-   * ```
+   * @template TDomain - Идентификатор домена
+   * @note Для partial order может вернуть undefined если элементы incomparable
+   * @example const result = levels.reduce((acc, level) => evaluationAggregation.step(acc, level, order), initialLevel);
+   * @public
    */
   step<TDomain extends string>(
     prev: EvaluationLevel<TDomain>, // Предыдущий накопленный результат
     next: EvaluationLevel<TDomain>, // Следующий evaluation level
     order: LatticeOrder<TDomain>, // Lattice ordering для aggregation
-  ): EvaluationLevel<TDomain> | undefined {
+  ): EvaluationLevel<TDomain> | undefined { // Результат aggregation step или undefined если incomparable
     return order.join(prev, next);
   },
 
-  /** Проверяет, находится ли evaluation level в заданном диапазоне [min, max] */
+  /**
+   * Проверяет, находится ли evaluation level в заданном диапазоне [min, max]
+   * @template TDomain - Идентификатор домена
+   * @public
+   */
   isInRange<TDomain extends string>(
     level: EvaluationLevel<TDomain>, // Evaluation level для проверки
     min: number, // Минимальное значение (включительно)
     max: number, // Максимальное значение (включительно)
-  ): boolean {
+  ): boolean { // true если level в диапазоне [min, max]
     return level >= min && level <= max;
   },
 
   /**
    * Проецирует evaluation level в заданный диапазон (projection operator)
-   * ⚠️ Algebra-breaking: нарушает монотонность lattice, нельзя использовать в algebra
-   * Используйте только для финальной нормализации, не в процессе aggregation
-   * @returns NormalizedEvaluationLevel (нельзя использовать в compare/join/meet)
+   * @template TDomain - Идентификатор домена
+   * @note ⚠️ Algebra-breaking: нарушает монотонность lattice, нельзя использовать в algebra.
+   *       Используйте только для финальной нормализации, не в процессе aggregation
+   * @public
    */
   projectToScale<TDomain extends string>(
     level: EvaluationLevel<TDomain>, // Evaluation level для проецирования
     scale: EvaluationScale<TDomain>, // Evaluation scale для проецирования
-  ): NormalizedEvaluationLevel<TDomain> {
+  ): NormalizedEvaluationLevel<TDomain> { // NormalizedEvaluationLevel (нельзя использовать в compare/join/meet)
     const projected: number = level < scale.min
       ? scale.min
       : level > scale.max
@@ -852,15 +845,16 @@ export const evaluationAggregation = {
 
   /**
    * Worst case aggregation (supremum) - для risk model
-   * Поддерживает partial order через strict/lenient режимы
-   * Lenient mode: при равных incomparable выбирает первый найденный (детерминированно)
-   * @returns Максимальный evaluation level или undefined если массив пустой или incomparable (strict mode)
+   * @template TDomain - Идентификатор домена
+   * @note Поддерживает partial order через strict/lenient режимы.
+   *       Lenient mode: при равных incomparable выбирает первый найденный (детерминированно)
+   * @public
    */
   worstCase<TDomain extends string>(
     order: LatticeOrder<TDomain>, // Lattice ordering для aggregation
     levels: readonly EvaluationLevel<TDomain>[], // Массив evaluation levels
     mode: AggregationMode = 'strict', // Режим агрегации: 'strict' (fail при incomparable) или 'lenient' (стабильный выбор)
-  ): EvaluationLevel<TDomain> | undefined {
+  ): EvaluationLevel<TDomain> | undefined { // Максимальный evaluation level или undefined если массив пустой или incomparable (strict mode)
     if (levels.length === 0) {
       return undefined;
     }
@@ -899,15 +893,16 @@ export const evaluationAggregation = {
 
   /**
    * Best case aggregation (infimum) - для trust model
-   * Поддерживает partial order через strict/lenient режимы
-   * Lenient mode: при равных incomparable выбирает первый найденный (детерминированно)
-   * @returns Минимальный evaluation level или undefined если массив пустой или incomparable (strict mode)
+   * @template TDomain - Идентификатор домена
+   * @note Поддерживает partial order через strict/lenient режимы.
+   *       Lenient mode: при равных incomparable выбирает первый найденный (детерминированно)
+   * @public
    */
   bestCase<TDomain extends string>(
     order: LatticeOrder<TDomain>, // Lattice ordering для aggregation
     levels: readonly EvaluationLevel<TDomain>[], // Массив evaluation levels
     mode: AggregationMode = 'strict', // Режим агрегации: 'strict' (fail при incomparable) или 'lenient' (стабильный выбор)
-  ): EvaluationLevel<TDomain> | undefined {
+  ): EvaluationLevel<TDomain> | undefined { // Минимальный evaluation level или undefined если массив пустой или incomparable (strict mode)
     if (levels.length === 0) {
       return undefined;
     }

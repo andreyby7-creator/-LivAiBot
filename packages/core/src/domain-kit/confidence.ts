@@ -1,26 +1,22 @@
 /**
  * @file packages/core/src/domain-kit/confidence.ts
  * ============================================================================
- * 🛡️ CORE — Confidence (Probability/Uncertainty Domain)
+ * 🛡️ CORE — Domain Kit (Confidence)
  * ============================================================================
  *
- * Generic confidence value для probability и uncertainty в domain-kit.
- * Confidence = числовое значение (0..1) с валидацией и операциями комбинирования.
- *
- * Архитектура: библиотека из 3 модулей в одном файле
- * - Confidence: value object (создание, валидация, сериализация)
- * - ConfidenceOperations: runtime operations (combine, average, weighted average)
- * - ConfidenceCombiners: combiner factory (preset combiners для различных стратегий)
+ * Архитектурная роль:
+ * - Generic confidence value для probability и uncertainty в domain-kit
+ * - Confidence = числовое значение (0..1) с валидацией и операциями комбинирования
+ * - Причина изменения: domain-kit, probability/uncertainty modeling, confidence aggregation
  *
  * Принципы:
  * - ✅ SRP: модульная структура (value object / operations / combiners factory)
  * - ✅ Deterministic: одинаковые входы → одинаковые результаты, строгая валидация весов
- * - ✅ Domain-pure: без side-effects, платформо-агностично
+ * - ✅ Domain-pure: без side-effects, платформо-агностично, generic по доменам
+ * - ✅ Extensible: domain определяет операции комбинирования через ConfidenceCombiner без изменения core
+ * - ✅ Strict typing: phantom generic для type safety между доменами
  * - ✅ Microservice-ready: runtime validation предотвращает cross-service inconsistency
  * - ✅ Scalable: extensible operations через function composition, Kahan summation для точности
- * - ✅ Strict typing: phantom generic для type safety между доменами
- * - ✅ Extensible: domain определяет операции комбинирования без изменения core
- * - ✅ Immutable: все операции возвращают новые значения
  * - ✅ Security: runtime validation NaN/Infinity, assertValid для fail-fast
  *
  * ⚠️ ВАЖНО:
@@ -33,7 +29,7 @@
  */
 
 /* ============================================================================
- * 🧩 ТИПЫ — STRICT BRANDED TYPES WITH PHANTOM GENERIC
+ * 1. TYPES — CONFIDENCE MODEL (Pure Type Definitions)
  * ============================================================================
  */
 
@@ -69,8 +65,8 @@ export type ConfidenceFailureReason =
 
 /**
  * Стратегия комбинирования confidence значений
- * Extensible contract для domain-specific логики комбинирования
  * @template TDomain - Идентификатор домена
+ * @note Extensible contract для domain-specific логики комбинирования
  * @public
  */
 export interface ConfidenceCombiner<TDomain extends string = string> {
@@ -80,7 +76,10 @@ export interface ConfidenceCombiner<TDomain extends string = string> {
    * @param b - Второе confidence значение
    * @returns Результат комбинирования (0..1)
    */
-  combine(a: Confidence<TDomain>, b: Confidence<TDomain>): Confidence<TDomain>;
+  combine(
+    a: Confidence<TDomain>, // Первое confidence значение
+    b: Confidence<TDomain>, // Второе confidence значение
+  ): Confidence<TDomain>; // Результат комбинирования (0..1)
 }
 
 /**
@@ -113,7 +112,7 @@ const WEIGHT_VALIDATION = Object.freeze(
 );
 
 /* ============================================================================
- * 🔒 INTERNAL — BRANDED TYPE CONSTRUCTION
+ * 2. INTERNAL — BRANDED TYPE CONSTRUCTION
  * ============================================================================
  */
 
@@ -181,7 +180,7 @@ function kahanSum(values: readonly number[]): number {
 }
 
 /* ============================================================================
- * 🏗️ CONFIDENCE — VALUE OBJECT MODULE
+ * 3. CONFIDENCE — VALUE OBJECT MODULE
  * ============================================================================
  */
 
@@ -192,20 +191,15 @@ function kahanSum(values: readonly number[]): number {
 export const confidence = {
   /**
    * Создает confidence из числа с валидацией диапазона (0..1)
-   * @returns ConfidenceOutcome с результатом валидации
-   * @example
-   * ```ts
-   * const result = confidence.create(0.85, 'risk');
-   * if (result.ok) {
-   *   const conf = result.value; // Confidence<'risk'>
-   * }
-   * ```
+   * @template TDomain - Идентификатор домена
+   * @example const result = confidence.create(0.85, 'risk'); if (result.ok) { const conf = result.value; // Confidence<'risk'> }
+   * @public
    */
   create<TDomain extends string>(
     value: unknown, // Числовое значение (0..1)
     // eslint-disable-next-line @typescript-eslint/no-unused-vars -- phantom generic для type safety
     _domain: TDomain, // Идентификатор домена для type safety (phantom generic, не используется в runtime)
-  ): ConfidenceOutcome<Confidence<TDomain>> {
+  ): ConfidenceOutcome<Confidence<TDomain>> { // ConfidenceOutcome с результатом валидации
     if (typeof value !== 'number') {
       return {
         ok: false,
@@ -254,63 +248,59 @@ export const confidence = {
 
   /**
    * Десериализует confidence из числа с валидацией
-   * @returns ConfidenceOutcome с результатом валидации
+   * @template TDomain - Идентификатор домена
+   * @public
    */
   deserialize<TDomain extends string>(
     value: unknown, // Числовое значение (0..1)
     domain: TDomain, // Идентификатор домена для type safety (phantom generic)
-  ): ConfidenceOutcome<Confidence<TDomain>> {
+  ): ConfidenceOutcome<Confidence<TDomain>> { // ConfidenceOutcome с результатом валидации
     return confidence.create(value, domain);
   },
 
   /**
    * Извлекает числовое значение из confidence
-   * @returns Числовое значение (0..1)
+   * @template TDomain - Идентификатор домена
+   * @public
    */
   value<TDomain extends string>(
     conf: Confidence<TDomain>, // Confidence значение
-  ): number {
+  ): number { // Числовое значение (0..1)
     return conf;
   },
 
   /**
    * Проверяет валидность домена (для раннего fail-fast в микросервисной среде)
-   * @returns true если домен валиден (не пустая строка)
+   * @public
    */
-  isValidDomain(domain: string): boolean {
+  isValidDomain(domain: string): boolean { // true если домен валиден (не пустая строка)
     return typeof domain === 'string' && domain.length > 0;
   },
 } as const;
 
 /* ============================================================================
- * 🔢 CONFIDENCE OPERATIONS — RUNTIME OPERATIONS MODULE
+ * 4. CONFIDENCE OPERATIONS — RUNTIME OPERATIONS MODULE
  * ============================================================================
  */
 
 /**
  * Confidence Operations: runtime операции комбинирования confidence значений
- * Policy helpers для различных стратегий комбинирования
+ * @note Policy helpers для различных стратегий комбинирования
  * @public
  */
 export const confidenceOperations = {
   /**
    * Безопасное комбинирование двух confidence значений с runtime валидацией
-   * Предотвращает silent failure при data corruption между микросервисами
-   * @returns Результат комбинирования или undefined если значения невалидны
-   * @example
-   * ```ts
-   * const combiner = confidenceCombiners.average();
-   * const result = confidenceOperations.safeCombine(conf1, conf2, combiner);
-   * if (result !== undefined) {
-   *   // Использовать результат
-   * }
-   * ```
+   * @template TDomain - Идентификатор домена
+   * @note Предотвращает silent failure при data corruption между микросервисами
+   * @example const combiner = confidenceCombiners.average(); const result = confidenceOperations.safeCombine(conf1, conf2, combiner); if (result !== undefined) { // Использовать результат }
+   * @public
    */
   safeCombine<TDomain extends string>(
     a: Confidence<TDomain>, // Первое confidence значение
     b: Confidence<TDomain>, // Второе confidence значение
     combiner: ConfidenceCombiner<TDomain>, // Стратегия комбинирования
-  ): Confidence<TDomain> | undefined {
+  ): Confidence<TDomain> | undefined { // Результат комбинирования или undefined если значения невалидны
     const validationA = validateConfidence(a);
     if (!validationA.ok) {
       return undefined;
@@ -324,25 +314,27 @@ export const confidenceOperations = {
 
   /**
    * Комбинирует два confidence значения используя заданный combiner
-   * ⚠️ Не выполняет runtime валидацию (используйте safeCombine для production)
-   * @returns Результат комбинирования
+   * @template TDomain - Идентификатор домена
+   * @note ⚠️ Не выполняет runtime валидацию (используйте safeCombine для production)
+   * @public
    */
   combine<TDomain extends string>(
     a: Confidence<TDomain>, // Первое confidence значение
     b: Confidence<TDomain>, // Второе confidence значение
     combiner: ConfidenceCombiner<TDomain>, // Стратегия комбинирования
-  ): Confidence<TDomain> {
+  ): Confidence<TDomain> { // Результат комбинирования
     return combiner.combine(a, b);
   },
 
   /**
    * Вычисляет среднее арифметическое confidence значений
-   * Использует Kahan summation для высокой точности при больших массивах
-   * @returns Среднее значение или undefined если массив пустой
+   * @template TDomain - Идентификатор домена
+   * @note Использует Kahan summation для высокой точности при больших массивах
+   * @public
    */
   average<TDomain extends string>(
     values: readonly Confidence<TDomain>[], // Массив confidence значений
-  ): Confidence<TDomain> | undefined {
+  ): Confidence<TDomain> | undefined { // Среднее значение или undefined если массив пустой
     if (values.length === 0) {
       return undefined;
     }
@@ -359,15 +351,15 @@ export const confidenceOperations = {
 
   /**
    * Вычисляет взвешенное среднее confidence значений
-   * Строгая валидация суммы весов (tolerance ±5%)
-   * Использует Kahan summation для высокой точности
-   * @returns Взвешенное среднее или undefined если массивы не совпадают по длине или весы невалидны
+   * @template TDomain - Идентификатор домена
+   * @note Строгая валидация суммы весов (tolerance ±5%). Использует Kahan summation для высокой точности
+   * @public
    */
   weightedAverage<TDomain extends string>(
     values: readonly Confidence<TDomain>[], // Массив confidence значений
     weights: readonly number[], // Массив весов (сумма должна быть ~1.0)
     mode: ConfidenceAggregationMode = 'strict', // Режим агрегации
-  ): Confidence<TDomain> | undefined {
+  ): Confidence<TDomain> | undefined { // Взвешенное среднее или undefined если массивы не совпадают по длине или весы невалидны
     if (values.length === 0 || values.length !== weights.length) {
       return undefined;
     }
@@ -408,21 +400,22 @@ export const confidenceOperations = {
 } as const;
 
 /* ============================================================================
- * 🏭 CONFIDENCE COMBINERS — COMBINER FACTORY MODULE
+ * 5. CONFIDENCE COMBINERS — COMBINER FACTORY MODULE
  * ============================================================================
  */
 
 /**
  * Confidence Combiners: factory для создания preset combiners
- * Отдельный модуль для соблюдения SRP (combiner factory vs runtime operations)
+ * @note Отдельный модуль для соблюдения SRP (combiner factory vs runtime operations)
  * @public
  */
 export const confidenceCombiners = {
   /**
    * Создает combiner для среднего арифметического
-   * @returns ConfidenceCombiner для average strategy
+   * @template TDomain - Идентификатор домена
+   * @public
    */
-  average<TDomain extends string>(): ConfidenceCombiner<TDomain> {
+  average<TDomain extends string>(): ConfidenceCombiner<TDomain> { // ConfidenceCombiner для average strategy
     return {
       combine(a, b): Confidence<TDomain> {
         const validationA = validateConfidence(a);
@@ -440,9 +433,10 @@ export const confidenceCombiners = {
 
   /**
    * Создает combiner для максимума (pessimistic)
-   * @returns ConfidenceCombiner для maximum strategy
+   * @template TDomain - Идентификатор домена
+   * @public
    */
-  maximum<TDomain extends string>(): ConfidenceCombiner<TDomain> {
+  maximum<TDomain extends string>(): ConfidenceCombiner<TDomain> { // ConfidenceCombiner для maximum strategy
     return {
       combine(a, b): Confidence<TDomain> {
         const validationA = validateConfidence(a);
@@ -458,9 +452,10 @@ export const confidenceCombiners = {
 
   /**
    * Создает combiner для минимума (optimistic)
-   * @returns ConfidenceCombiner для minimum strategy
+   * @template TDomain - Идентификатор домена
+   * @public
    */
-  minimum<TDomain extends string>(): ConfidenceCombiner<TDomain> {
+  minimum<TDomain extends string>(): ConfidenceCombiner<TDomain> { // ConfidenceCombiner для minimum strategy
     return {
       combine(a, b): Confidence<TDomain> {
         const validationA = validateConfidence(a);
@@ -476,9 +471,10 @@ export const confidenceCombiners = {
 
   /**
    * Создает combiner для произведения (independent events)
-   * @returns ConfidenceCombiner для product strategy
+   * @template TDomain - Идентификатор домена
+   * @public
    */
-  product<TDomain extends string>(): ConfidenceCombiner<TDomain> {
+  product<TDomain extends string>(): ConfidenceCombiner<TDomain> { // ConfidenceCombiner для product strategy
     return {
       combine(a, b): Confidence<TDomain> {
         const validationA = validateConfidence(a);
@@ -494,9 +490,10 @@ export const confidenceCombiners = {
 
   /**
    * Создает combiner для суммы с ограничением (dependent events)
-   * @returns ConfidenceCombiner для sum strategy (capped at 1.0)
+   * @template TDomain - Идентификатор домена
+   * @public
    */
-  sum<TDomain extends string>(): ConfidenceCombiner<TDomain> {
+  sum<TDomain extends string>(): ConfidenceCombiner<TDomain> { // ConfidenceCombiner для sum strategy (capped at 1.0)
     return {
       combine(a, b): Confidence<TDomain> {
         const validationA = validateConfidence(a);
@@ -512,20 +509,14 @@ export const confidenceCombiners = {
 
   /**
    * Создает chain combiner для последовательного применения нескольких combiners
-   * Полезно для pipeline комбинирования в больших rule-engine
-   * @returns ConfidenceCombiner который применяет combiners в порядке слева направо
-   * @example
-   * ```ts
-   * const chain = confidenceCombiners.chain(
-   *   confidenceCombiners.average(),
-   *   confidenceCombiners.maximum(),
-   * );
-   * // Эквивалентно: maximum(average(a, b), b)
-   * ```
+   * @template TDomain - Идентификатор домена
+   * @note Полезно для pipeline комбинирования в больших rule-engine
+   * @example const chain = confidenceCombiners.chain(confidenceCombiners.average(), confidenceCombiners.maximum()); // Эквивалентно: maximum(average(a, b), b)
+   * @public
    */
   chain<TDomain extends string>(
     ...combiners: readonly ConfidenceCombiner<TDomain>[] // Массив combiners для последовательного применения
-  ): ConfidenceCombiner<TDomain> | undefined {
+  ): ConfidenceCombiner<TDomain> | undefined { // ConfidenceCombiner который применяет combiners в порядке слева направо
     if (combiners.length === 0) {
       return undefined;
     }

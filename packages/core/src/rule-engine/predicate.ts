@@ -1,24 +1,30 @@
 /**
  * @file packages/core/src/rule-engine/predicate.ts
  * ============================================================================
- * 🛡️ CORE — Predicate (Generic Predicate Operations)
+ * 🛡️ CORE — Rule Engine (Predicate)
  * ============================================================================
  *
- * Generic операции для работы с предикатами: композиция (AND, OR, NOT), валидация, evaluation.
- * Архитектура: Predicate (primitives) + PredicateAlgebra (extensible contract).
+ * Архитектурная роль:
+ * - Generic операции для работы с предикатами: композиция (AND, OR, NOT), валидация, evaluation
+ * - Архитектура: Predicate (primitives) + PredicateAlgebra (extensible contract)
+ * - Причина изменения: rule-engine, generic predicate operations, predicate algebra
  *
- * Архитектура: библиотека из 2 модулей в одном файле
- * - Predicate: generic функции для работы с предикатами (compose, validate, evaluate)
- * - PredicateAlgebra: extensible contract для создания custom predicate operations
+ * Принципы:
+ * - ✅ SRP: разделение на Predicate (primitives) и PredicateAlgebra (extensible contract)
+ * - ✅ Deterministic: одинаковые входы → одинаковые результаты (loop-based early termination)
+ * - ✅ Domain-pure: без side-effects, платформо-агностично, generic по TFact
+ * - ✅ Extensible: PredicateAlgebra для создания custom predicate operations без изменения core
+ * - ✅ Strict typing: generic по TFact, E, без string и Record в domain
+ * - ✅ Scalable: Iterable streaming для больших наборов предикатов
+ * - ✅ Security: runtime validation для защиты от некорректных предикатов
  *
- * Принципы: SRP, Deterministic (loop-based early termination), Domain-pure, Scalable (Iterable streaming),
- * Strict typing (generic по E), Extensible, Immutable, Security (runtime validation).
- *
- * ⚠️ ВАЖНО: НЕ включает domain-специфичные значения, НЕ зависит от aggregation/classification.
+ * ⚠️ ВАЖНО:
+ * - ❌ НЕ включает domain-специфичные значения
+ * - ❌ НЕ зависит от aggregation/classification
  */
 
 /* ============================================================================
- * 🧩 ТИПЫ — GENERIC PREDICATE RESULT & ALGEBRAIC CONTRACT
+ * 1. TYPES — PREDICATE MODEL (Pure Type Definitions)
  * ============================================================================
  */
 
@@ -237,14 +243,14 @@ function validateErrorMetadataObject(value: unknown): value is PredicateErrorMet
 
 /**
  * Создание мета-данных для ошибки
- * @param now - обязательный timestamp для детерминированности (в debug mode)
- * @throws {Error} если debug=true и now не передан (для обеспечения детерминированности)
+ * @note В debug mode требуем явный timestamp для детерминированности (production-grade requirement)
+ * @internal
  */
 function createErrorMetadata(
-  debug: boolean,
-  configMetadata?: PredicateErrorMetadata,
-  now?: number,
-): PredicateErrorMetadata | undefined {
+  debug: boolean, // Режим debug
+  configMetadata?: PredicateErrorMetadata, // Опциональные метаданные из конфигурации
+  now?: number, // Обязательный timestamp для детерминированности (в debug mode)
+): PredicateErrorMetadata | undefined { // Метаданные ошибки или undefined
   if (!debug) return undefined; // метаданные только в debug режиме
   // В debug mode требуем явный timestamp для детерминированности (production-grade requirement)
   // Если now не передан, возвращаем undefined (не бросаем исключение для функционального стиля)
@@ -411,15 +417,15 @@ function evaluatePredicatesIterable<TFact>(
 
 /**
  * Итеративная композиция предикатов с short-circuit evaluation (предотвращает stack overflow)
- * @param initialValue - начальное значение (true для AND, false для OR)
- * @param shouldShortCircuit - функция для определения необходимости прерывания
+ * @template TFact - Тип факта для проверки
+ * @internal
  */
 function composePredicatesIterative<TFact>(
-  predicates: readonly Predicate<TFact>[],
-  fact: TFact,
-  initialValue: boolean,
-  shouldShortCircuit: (result: boolean) => boolean,
-): boolean {
+  predicates: readonly Predicate<TFact>[], // Массив предикатов для композиции
+  fact: TFact, // Факт для проверки
+  initialValue: boolean, // Начальное значение (true для AND, false для OR)
+  shouldShortCircuit: (result: boolean) => boolean, // Функция для определения необходимости прерывания
+): boolean { // Результат композиции
   /* eslint-disable functional/no-let, functional/no-loop-statements, fp/no-mutation -- необходимо для real early termination */
   let result = initialValue; // true для AND, false для OR
   for (let i = 0; i < predicates.length; i += 1) {

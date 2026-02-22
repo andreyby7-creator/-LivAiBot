@@ -1,27 +1,33 @@
 /**
  * @file packages/core/src/rule-engine/rule.ts
  * ============================================================================
- * 🛡️ CORE — Rule (Generic Rule Operations)
+ * 🛡️ CORE — Rule Engine (Rule)
  * ============================================================================
  *
- * Generic операции для работы с правилами: создание, валидация, сортировка по приоритету.
- * Архитектура: Rule (primitives) + RuleAlgebra (extensible contract).
+ * Архитектурная роль:
+ * - Generic операции для работы с правилами: создание, валидация, сортировка по приоритету
+ * - Архитектура: Rule (primitives) + RuleAlgebra (extensible contract)
+ * - Причина изменения: rule-engine, generic rule operations, rule algebra
  *
- * Архитектура: библиотека из 2 модулей в одном файле
- * - Rule: generic функции для работы с правилами (create, validate, sort)
- * - RuleAlgebra: extensible contract для создания custom rule operations
+ * Принципы:
+ * - ✅ SRP: разделение на Rule (primitives) и RuleAlgebra (extensible contract)
+ * - ✅ Deterministic: одинаковые входы → одинаковые результаты
+ * - ✅ Domain-pure: без side-effects, платформо-агностично, generic по TPredicate и TResult
+ * - ✅ Extensible: RuleAlgebra для создания custom rule operations без изменения core
+ * - ✅ Strict typing: generic по TPredicate, TResult, без string и Record в domain
+ * - ✅ Scalable: Iterable streaming для больших наборов правил
+ * - ✅ Security: runtime validation для защиты от некорректных правил
  *
- * Принципы: SRP, Deterministic, Domain-pure, Scalable (Iterable streaming),
- * Strict typing (generic по TPredicate, TResult), Extensible, Immutable, Security (runtime validation).
- *
- * ⚠️ ВАЖНО: НЕ включает domain-специфичные значения, НЕ зависит от aggregation/classification.
+ * ⚠️ ВАЖНО:
+ * - ❌ НЕ включает domain-специфичные значения
+ * - ❌ НЕ зависит от aggregation/classification
  */
 
 import type { Predicate, PredicateResult } from './predicate.js';
 import { predicate } from './predicate.js';
 
 /* ============================================================================
- * 🧩 ТИПЫ — GENERIC RULE RESULT & ALGEBRAIC CONTRACT
+ * 1. TYPES — RULE MODEL (Pure Type Definitions)
  * ============================================================================
  */
 

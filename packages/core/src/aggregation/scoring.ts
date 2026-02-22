@@ -1,26 +1,23 @@
 /**
  * @file packages/core/src/aggregation/scoring.ts
  * ============================================================================
- * 🛡️ CORE — Scoring (Generic Scoring Operations)
+ * 🛡️ CORE — Aggregation (Scoring)
  * ============================================================================
  *
- * Generic операции для scoring: weighted scoring, score normalization, score aggregation.
- * Архитектура: Scoring (primitives) + ScoreAlgebra (extensible contract).
- *
- * Архитектура: библиотека из 2 модулей в одном файле
- * - Scoring: generic функции для scoring (weightedScore, normalizeScore, clampScore)
- * - ScoreAlgebra: extensible contract для создания custom scoring operations
+ * Архитектурная роль:
+ * - Generic операции для scoring: weighted scoring, score normalization, score aggregation
+ * - Причина изменения: generic scoring semantics, не domain-специфичная логика
  *
  * Принципы:
- * - ✅ SRP: единый algebraic contract (ScoreResult) для всех функций, validation отдельно, layered architecture (IEEE Contract / Numeric Guards / Domain Validation / Public API)
+ * - ✅ SRP: разделение на TYPES, CONSTANTS, INTERNAL (layered architecture: IEEE Contract / Numeric Guards / Domain Validation / Public API), SCORING, SCORE ALGEBRA
  * - ✅ Deterministic: одинаковые входы → одинаковые результаты, без silent normalization, real early termination (loop вместо reduce)
- * - ✅ Domain-pure: без side-effects, платформо-агностично, только generic math
+ * - ✅ Domain-pure: generic по типам результата, состояния, контекста и ошибки (TResult, TState, TContext, E), без привязки к domain-специфичным типам
+ * - ✅ Extensible: ScoreAlgebra (generic по TResult, TState, TContext, E) для создания custom scoring operations без изменения core логики
+ * - ✅ Strict typing: generic types без domain-специфичных значений, union types для ScoreFailureReason, generic по типу ошибки E для full algebra extensibility
  * - ✅ Microservice-ready: runtime validation предотвращает cross-service inconsistency, IEEE-754 совместимость, adaptive summation (Neumaier для mixed-sign, Kahan для single-sign)
- * - ✅ Scalable: extensible через ScoreAlgebra (generic по TResult, TState, TContext, E), поддержка Iterable для streaming (O(n), zero allocations, single-pass validation+accumulation)
- * - ✅ Strict typing: generic types без domain-специфичных значений, union types для результатов, generic по типу ошибки E для full algebra extensibility
- * - ✅ Extensible: domain определяет стратегию scoring через ScoreAlgebra без изменения core, custom operations могут возвращать свои типы ошибок
- * - ✅ Immutable: все операции возвращают новые значения
+ * - ✅ Scalable: поддержка Iterable для streaming (O(n), zero allocations, single-pass validation+accumulation), extensible через ScoreAlgebra
  * - ✅ Security: runtime validation NaN/Infinity, проверка переполнения, IEEE-754 MIN_NORMAL для numeric underflow, post-step/post-finalize numeric guards в ScoreAlgebra
+ * - ✅ Immutable: все операции возвращают новые значения
  *
  * ⚠️ ВАЖНО:
  * - ❌ НЕ включает domain-специфичные значения (SAFE/SUSPICIOUS/DANGEROUS - это domain labels)
@@ -30,13 +27,15 @@
  */
 
 /* ============================================================================
- * 🧩 ТИПЫ — GENERIC SCORE RESULT & ALGEBRAIC CONTRACT
+ * 1. TYPES — SCORING MODEL (Pure Type Definitions)
  * ============================================================================
  */
 
 /**
  * Результат операции scoring (effect-based algebraic contract)
- * Generic по E для full algebra extensibility (custom operations могут возвращать свои типы ошибок)
+ * @template T - Тип результата
+ * @template E - Тип ошибки (по умолчанию ScoreFailureReason)
+ * @note Generic по E для full algebra extensibility (custom operations могут возвращать свои типы ошибок)
  * @public
  */
 export type ScoreResult<
@@ -101,7 +100,12 @@ const DEFAULT_SCORING_CONFIG: ScoringConfig = {
 } as const;
 
 /* ============================================================================
- * 🔒 INTERNAL — LAYERED ARCHITECTURE (SRP BY RESPONSIBILITY)
+ * 2. CONSTANTS — DEFAULT CONFIGURATION
+ * ============================================================================
+ */
+
+/* ============================================================================
+ * 3. INTERNAL — LAYERED ARCHITECTURE (SRP BY RESPONSIBILITY)
  * ============================================================================
  */
 
@@ -620,25 +624,26 @@ function normalizeValue(
 }
 
 /* ============================================================================
- * 🔢 SCORING — GENERIC SCORING OPERATIONS (UNIFIED ALGEBRAIC CONTRACT)
+ * 4. SCORING — GENERIC SCORING OPERATIONS (Unified Algebraic Contract)
  * ============================================================================
  */
 
 /**
- * Scoring: generic функции для scoring (чистые функции, ScoreResult для composability)
+ * Scoring: generic функции для scoring
+ * @note Чистые функции, ScoreResult для composability
  * @public
  */
 export const scoring = {
   /**
    * Рассчитывает weighted score из массивов scores и weights
-   * Формула: (∑scoreᵢ * weightᵢ) / (∑weightᵢ)
+   * @note Формула: (∑scoreᵢ * weightᵢ) / (∑weightᵢ)
    * @example scoring.weightedScore([80, 90, 70], [0.3, 0.4, 0.3])
    */
   weightedScore(
-    scores: readonly number[],
-    weights: readonly number[],
-    config: ScoringConfig = DEFAULT_SCORING_CONFIG,
-  ): ScoreResult<number> {
+    scores: readonly number[], // Массив scores
+    weights: readonly number[], // Массив weights
+    config: ScoringConfig = DEFAULT_SCORING_CONFIG, // Конфигурация scoring
+  ): ScoreResult<number> { // ScoreResult с weighted score или ошибкой
     // Валидация длины массивов
     if (scores.length !== weights.length) {
       return {
@@ -664,9 +669,9 @@ export const scoring = {
    * @example scoring.weightedScoreFromWeightedValues([{ value: 80, weight: 0.3 }, { value: 90, weight: 0.4 }])
    */
   weightedScoreFromWeightedValues(
-    weightedScores: readonly Readonly<{ value: number; weight: number; }>[],
-    config: ScoringConfig = DEFAULT_SCORING_CONFIG,
-  ): ScoreResult<number> {
+    weightedScores: readonly Readonly<{ value: number; weight: number; }>[], // Массив weighted scores
+    config: ScoringConfig = DEFAULT_SCORING_CONFIG, // Конфигурация scoring
+  ): ScoreResult<number> { // ScoreResult с weighted score или ошибкой
     const accumulation = accumulateWeighted(weightedScores, config);
     if (!accumulation.ok) {
       return accumulation;
@@ -680,9 +685,9 @@ export const scoring = {
    * @example scoring.weightedScoreFromIterable([{ value: 80, weight: 0.3 }, { value: 90, weight: 0.4 }])
    */
   weightedScoreFromIterable(
-    weightedScores: Iterable<Readonly<{ value: number; weight: number; }>>,
-    config: ScoringConfig = DEFAULT_SCORING_CONFIG,
-  ): ScoreResult<number> {
+    weightedScores: Iterable<Readonly<{ value: number; weight: number; }>>, // Iterable weighted scores
+    config: ScoringConfig = DEFAULT_SCORING_CONFIG, // Конфигурация scoring
+  ): ScoreResult<number> { // ScoreResult с weighted score или ошибкой
     const accumulation = accumulateWeighted(weightedScores, config);
     if (!accumulation.ok) {
       return accumulation;
@@ -693,16 +698,16 @@ export const scoring = {
 
   /**
    * Нормализует score из одного диапазона в другой (linear transformation)
-   * ⚠️ По умолчанию разрешает extrapolation. Используйте strictRange: true для запрета.
+   * @note По умолчанию разрешает extrapolation. Используйте strictRange: true для запрета.
    * @example scoring.normalizeScore(50, { min: 0, max: 100 }, { min: 0, max: 1 })
    * @example scoring.normalizeScore(150, { min: 0, max: 100 }, { min: 0, max: 1 }, { strictRange: true })
    */
   normalizeScore(
-    score: number,
-    fromRange: Readonly<{ min: number; max: number; }>,
-    toRange: Readonly<{ min: number; max: number; }>,
-    config?: Readonly<{ strictRange?: boolean; }>,
-  ): ScoreResult<number> {
+    score: number, // Score для нормализации
+    fromRange: Readonly<{ min: number; max: number; }>, // Исходный диапазон
+    toRange: Readonly<{ min: number; max: number; }>, // Целевой диапазон
+    config?: Readonly<{ strictRange?: boolean; }>, // Конфигурация (strictRange для запрета extrapolation)
+  ): ScoreResult<number> { // ScoreResult с нормализованным score или ошибкой
     if (!isFiniteNumber(score)) {
       return {
         ok: false,
@@ -745,9 +750,9 @@ export const scoring = {
    * @example scoring.clampScore(150, { min: 0, max: 100 })
    */
   clampScore(
-    score: number,
-    range: Readonly<{ min: number; max: number; }>,
-  ): ScoreResult<number> {
+    score: number, // Score для ограничения
+    range: Readonly<{ min: number; max: number; }>, // Диапазон для ограничения
+  ): ScoreResult<number> { // ScoreResult с ограниченным score или ошибкой
     if (!isFiniteNumber(score)) {
       return {
         ok: false,
@@ -783,7 +788,7 @@ export const scoring = {
 } as const;
 
 /* ============================================================================
- * 🧮 SCORE ALGEBRA — EXTENSIBLE CONTRACT FOR CUSTOM SCORING OPERATIONS
+ * 5. SCORE ALGEBRA — EXTENSIBLE CONTRACT FOR CUSTOM SCORING OPERATIONS
  * ============================================================================
  */
 
@@ -898,16 +903,18 @@ function processOperateStep<TState, TContext, E>(
 
 /**
  * Контракт для extensible scoring operations (custom scoring strategies, score transformations, etc.)
- * Generic по TResult, TState, TContext, E для full algebra extensibility
- *
- * ⚠️ FORMAL CONTRACT: все методы должны быть pure, deterministic, immutable
- * - Pure: без side-effects, Date.now(), Math.random(), global state
- * - Deterministic: одинаковые входы → одинаковые результаты
- * - Immutable: step() возвращает новое состояние, не мутирует currentState
- * - Numeric invariants: step() возвращает валидные числа (если TState содержит числа)
- * - Violations → undefined behavior
- *
- * Core обеспечивает детерминизм pipeline, но не защищает от нарушений контракта в user-defined операциях.
+ * @template TResult - Тип результата
+ * @template TState - Тип состояния
+ * @template TContext - Тип контекста (timestamp, entity, feature flags, environment, etc.)
+ * @template E - Тип ошибки (core не знает shape domain errors, возвращает E | ScoreFailureReason)
+ * @note Generic по TResult, TState, TContext, E для full algebra extensibility.
+ *       FORMAL CONTRACT: все методы должны быть pure, deterministic, immutable.
+ *       Pure: без side-effects, Date.now(), Math.random(), global state.
+ *       Deterministic: одинаковые входы → одинаковые результаты.
+ *       Immutable: step() возвращает новое состояние, не мутирует currentState.
+ *       Numeric invariants: step() возвращает валидные числа (если TState содержит числа).
+ *       Violations → undefined behavior.
+ *       Core обеспечивает детерминизм pipeline, но не защищает от нарушений контракта в user-defined операциях.
  * @public
  */
 export interface ScoreOperation<
@@ -918,13 +925,12 @@ export interface ScoreOperation<
 > {
   /**
    * Инициализирует начальное состояние операции
-   * @returns Начальное состояние
    */
-  init(): TState;
+  init(): TState; // Начальное состояние
 
   /**
    * Обновляет состояние операции (early termination через ScoreResult)
-   * @returns Новое состояние (immutable) или ошибка для early termination
+   * @note Возвращает новое состояние (immutable) или ошибка для early termination
    */
   step(
     currentState: TState, // Текущее состояние (не должен мутироваться)
@@ -932,31 +938,31 @@ export interface ScoreOperation<
     weight: number, // Вес score
     index: number, // Индекс в массиве
     context?: TContext, // Контекст операции (timestamp, entity, feature flags, environment, etc.)
-  ): ScoreResult<TState, E>;
+  ): ScoreResult<TState, E>; // ScoreResult с новым состоянием или ошибкой
 
   /**
    * Финализирует результат операции из состояния
-   * @returns Результат операции
    */
-  finalize(finalState: TState): ScoreResult<TResult, E>; // finalState - Финальное состояние
+  finalize(
+    finalState: TState, // Финальное состояние
+  ): ScoreResult<TResult, E>; // ScoreResult с результатом операции или ошибкой
 }
 
 /**
- * Score Algebra: factory для custom scoring operations (без изменения core логики)
+ * Score Algebra: factory для custom scoring operations
+ * @note Без изменения core логики
  * @public
  */
 export const scoreAlgebra = {
   /**
    * Применяет ScoreOperation к массивам scores и weights
-   * ⚠️ Использует loop вместо reduce для real early termination (CPU boundedness)
-   * @returns Результат операции (generic по E для full algebra extensibility)
-   * @example
-   * const maxOp: ScoreOperation<number, number> = {
-   *   init: () => 0,
-   *   step: (acc, score) => ({ ok: true, value: Math.max(acc, score) }),
-   *   finalize: (s) => ({ ok: true, value: s }),
-   * };
-   * scoreAlgebra.operate([80, 90, 70], [0.3, 0.4, 0.3], maxOp)
+   * @template TResult - Тип результата
+   * @template TState - Тип состояния
+   * @template TContext - Тип контекста (timestamp, entity, feature flags, environment, etc.)
+   * @template E - Тип ошибки (core не знает shape domain errors, возвращает E | ScoreFailureReason)
+   * @note Использует loop вместо reduce для real early termination (CPU boundedness).
+   *       Результат операции generic по E для full algebra extensibility.
+   * @example const maxOp: ScoreOperation<number, number> = { init: () => 0, step: (acc, score) => ({ ok: true, value: Math.max(acc, score) }), finalize: (s) => ({ ok: true, value: s }) }; scoreAlgebra.operate([80, 90, 70], [0.3, 0.4, 0.3], maxOp)
    */
   operate<
     TResult = number, // Тип результата
@@ -969,7 +975,7 @@ export const scoreAlgebra = {
     operation: ScoreOperation<TResult, TState, TContext, E>, // ScoreOperation (см. ScoreOperation contract)
     config: ScoringConfig = DEFAULT_SCORING_CONFIG, // Конфигурация scoring
     context?: TContext, // Контекст операции (timestamp, entity, feature flags, environment, etc.)
-  ): ScoreResult<TResult, E | ScoreFailureReason> {
+  ): ScoreResult<TResult, E | ScoreFailureReason> { // ScoreResult с результатом операции или ошибкой
     const validation = validateOperateInputs(scores, weights, config);
     if (!validation.ok) {
       return validation;

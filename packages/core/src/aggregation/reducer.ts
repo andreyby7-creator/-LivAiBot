@@ -1,27 +1,24 @@
 /**
  * @file packages/core/src/aggregation/reducer.ts
  * ============================================================================
- * 🛡️ CORE — Reducer (Generic Aggregation Semantics)
+ * 🛡️ CORE — Aggregation (Reducer)
  * ============================================================================
  *
- * Generic reducer для агрегации значений с весами в domain-kit.
- * Reducer = чистые функции для редукции массивов значений (sum, average, weighted average, min, max).
- *
- * Архитектура: библиотека из 3 модулей в одном файле
- * - WeightedValue: тип для значений с весами
- * - Reducer: generic функции редукции с единым algebraic contract (ReduceResult)
- * - ReducerAlgebra: extensible contract для создания custom aggregators
+ * Архитектурная роль:
+ * - Generic reducer для агрегации значений с весами
+ * - Чистые функции для редукции массивов значений (sum, average, weighted average, min, max)
+ * - Причина изменения: generic aggregation semantics, не domain-специфичная логика
  *
  * Принципы:
- * - ✅ SRP: единый algebraic contract (ReduceResult) для всех функций, validation отдельно
+ * - ✅ SRP: разделение на TYPES, CONSTANTS, INTERNAL (validation helpers), REDUCER, REDUCER ALGEBRA
  * - ✅ Deterministic: одинаковые входы → одинаковые результаты, без silent normalization, array API = thin wrapper над streaming
- * - ✅ Domain-pure: без side-effects, платформо-агностично, только generic math
+ * - ✅ Domain-pure: generic по типу значения (T), без привязки к domain-специфичным типам
+ * - ✅ Extensible: ReducerAlgebra (generic по TResult) для создания custom aggregators без изменения core логики
+ * - ✅ Strict typing: generic types без domain-специфичных значений, union types для ReduceFailureReason
  * - ✅ Microservice-ready: runtime validation предотвращает cross-service inconsistency, IEEE-754 совместимость
- * - ✅ Scalable: extensible через ReducerAlgebra (generic по TResult), поддержка Iterable для streaming (O(n), zero allocations)
- * - ✅ Strict typing: generic types без domain-специфичных значений, ReducerAlgebra не валидирует значения (responsibility aggregator)
- * - ✅ Extensible: domain определяет стратегию агрегации через ReducerAlgebra без изменения core
- * - ✅ Immutable: все операции возвращают новые значения
+ * - ✅ Scalable: поддержка Iterable для streaming (O(n), zero allocations), extensible через ReducerAlgebra
  * - ✅ Security: runtime validation NaN/Infinity, проверка переполнения произведения (value * weight), IEEE-754 MIN_NORMAL для numeric underflow
+ * - ✅ Immutable: все операции возвращают новые значения
  *
  * ⚠️ ВАЖНО:
  * - ❌ НЕ включает domain-специфичные значения (SAFE/SUSPICIOUS/DANGEROUS - это domain labels)
@@ -30,7 +27,7 @@
  */
 
 /* ============================================================================
- * 🧩 ТИПЫ — GENERIC WEIGHTED VALUE & ALGEBRAIC RESULT
+ * 1. TYPES — REDUCER MODEL (Pure Type Definitions)
  * ============================================================================
  */
 
@@ -48,8 +45,8 @@ export type WeightedValue<T> = Readonly<{
 
 /**
  * Результат редукции (effect-based, единый algebraic contract)
- * Все reducer функции возвращают ReduceResult для composability
  * @template T - Тип результата
+ * @note Все reducer функции возвращают ReduceResult для composability
  * @public
  */
 export type ReduceResult<T> =
@@ -89,7 +86,12 @@ const DEFAULT_WEIGHT_VALIDATION: WeightValidationConfig = {
 } as const;
 
 /* ============================================================================
- * 🔒 INTERNAL — VALIDATION HELPERS
+ * 2. CONSTANTS — DEFAULT CONFIGURATION
+ * ============================================================================
+ */
+
+/* ============================================================================
+ * 3. INTERNAL — VALIDATION HELPERS
  * ============================================================================
  */
 
@@ -98,9 +100,9 @@ const DEFAULT_WEIGHT_VALIDATION: WeightValidationConfig = {
  * @internal
  */
 function isValidWeight(
-  weight: number,
-  config: WeightValidationConfig = DEFAULT_WEIGHT_VALIDATION,
-): boolean {
+  weight: number, // Вес для валидации
+  config: WeightValidationConfig = DEFAULT_WEIGHT_VALIDATION, // Конфигурация валидации
+): boolean { // true если вес валиден
   return Number.isFinite(weight) && weight >= config.minWeight;
 }
 
@@ -108,16 +110,20 @@ function isValidWeight(
  * Проверяет валидность числового результата (NaN/Infinity)
  * @internal
  */
-function isValidNumber(value: number): boolean {
+function isValidNumber(
+  value: number, // Число для валидации
+): boolean { // true если число валидно (finite)
   return Number.isFinite(value);
 }
 
 /**
  * Проверяет валидность суммы весов для деления
- * Различает два случая: все веса равны нулю (ZERO_TOTAL_WEIGHT) и numeric underflow (NUMERIC_UNDERFLOW)
+ * @note Различает два случая: все веса равны нулю (ZERO_TOTAL_WEIGHT) и numeric underflow (NUMERIC_UNDERFLOW)
  * @internal
  */
-function validateWeightSum(sum: number): ReduceResult<void> {
+function validateWeightSum(
+  sum: number, // Сумма весов для валидации
+): ReduceResult<void> { // ReduceResult<void> при успехе, ReduceResult с ошибкой при неудаче
   if (!isValidNumber(sum)) {
     return {
       ok: false,
@@ -162,11 +168,11 @@ function validateWeightSum(sum: number): ReduceResult<void> {
  * @internal
  */
 function validateWeightedValue(
-  weight: number,
-  value: number,
-  index: number,
-  config: WeightValidationConfig,
-): ReduceResult<void> {
+  weight: number, // Вес для валидации
+  value: number, // Значение для валидации
+  index: number, // Индекс элемента (для error reporting)
+  config: WeightValidationConfig, // Конфигурация валидации
+): ReduceResult<void> { // ReduceResult<void> при успехе, ReduceResult с ошибкой при неудаче
   if (!isValidWeight(weight, config)) {
     return {
       ok: false,
@@ -202,27 +208,23 @@ function validateWeightedValue(
 }
 
 /* ============================================================================
- * 🔢 REDUCER — GENERIC REDUCTION FUNCTIONS (UNIFIED ALGEBRAIC CONTRACT)
+ * 4. REDUCER — GENERIC REDUCTION FUNCTIONS (Unified Algebraic Contract)
  * ============================================================================
  */
 
 /**
  * Reducer: generic функции для редукции массивов значений
- * Чистые функции без side-effects, только generic math
- * Все функции возвращают ReduceResult для composability
+ * @note Чистые функции без side-effects, только generic math. Все функции возвращают ReduceResult для composability
  * @public
  */
 export const reducer = {
   /**
    * Суммирует массив чисел
-   * @param values - Массив чисел для суммирования
-   * @returns ReduceResult с суммой или ошибкой
-   * @example
-   * ```ts
-   * reducer.sum([1, 2, 3, 4, 5]); // 15
-   * ```
+   * @example reducer.sum([1, 2, 3, 4, 5]) // { ok: true, value: 15 }
    */
-  sum(values: readonly number[]): ReduceResult<number> {
+  sum(
+    values: readonly number[], // Массив чисел для суммирования
+  ): ReduceResult<number> { // ReduceResult с суммой или ошибкой
     if (values.length === 0) {
       return {
         ok: false,
@@ -271,14 +273,11 @@ export const reducer = {
 
   /**
    * Вычисляет среднее арифметическое массива чисел
-   * @param values - Массив чисел для усреднения
-   * @returns ReduceResult со средним значением или ошибкой
-   * @example
-   * ```ts
-   * reducer.average([1, 2, 3, 4, 5]); // 3
-   * ```
+   * @example reducer.average([1, 2, 3, 4, 5]) // { ok: true, value: 3 }
    */
-  average(values: readonly number[]): ReduceResult<number> {
+  average(
+    values: readonly number[], // Массив чисел для усреднения
+  ): ReduceResult<number> { // ReduceResult со средним значением или ошибкой
     const sumResult = reducer.sum(values);
     if (!sumResult.ok) {
       return sumResult;
@@ -292,22 +291,15 @@ export const reducer = {
 
   /**
    * Вычисляет взвешенное среднее: (∑wᵢxᵢ) / (∑wᵢ)
-   * Поддерживает любые относительные веса (не требует нормализации к 1.0)
-   * @param values - Массив чисел для усреднения
-   * @param weights - Массив весов (должен совпадать по длине с values)
-   * @param config - Конфигурация валидации весов (опционально)
-   * @returns ReduceResult со взвешенным средним или ошибкой
-   * @example
-   * ```ts
-   * reducer.weightedAverage([10, 20, 30], [0.2, 0.3, 0.5]); // 23
-   * reducer.weightedAverage([10, 20, 30], [2, 3, 5]); // 23 (относительные веса)
-   * ```
+   * @note Поддерживает любые относительные веса (не требует нормализации к 1.0)
+   * @example reducer.weightedAverage([10, 20, 30], [0.2, 0.3, 0.5]) // { ok: true, value: 23 }
+   * @example reducer.weightedAverage([10, 20, 30], [2, 3, 5]) // { ok: true, value: 23 } (относительные веса)
    */
   weightedAverage(
-    values: readonly number[],
-    weights: readonly number[],
-    config: WeightValidationConfig = DEFAULT_WEIGHT_VALIDATION,
-  ): ReduceResult<number> {
+    values: readonly number[], // Массив чисел для усреднения
+    weights: readonly number[], // Массив весов (должен совпадать по длине с values)
+    config: WeightValidationConfig = DEFAULT_WEIGHT_VALIDATION, // Конфигурация валидации весов (опционально)
+  ): ReduceResult<number> { // ReduceResult со взвешенным средним или ошибкой
     // Валидация длины массивов
     if (values.length === 0) {
       return {
@@ -346,15 +338,12 @@ export const reducer = {
 
   /**
    * Находит минимальное значение в массиве
-   * ⚠️ FAIL при любом invalid элементе (NaN/Infinity)
-   * @param values - Массив чисел
-   * @returns ReduceResult с минимальным значением или ошибкой
-   * @example
-   * ```ts
-   * reducer.min([5, 2, 8, 1, 9]); // 1
-   * ```
+   * @note FAIL при любом invalid элементе (NaN/Infinity)
+   * @example reducer.min([5, 2, 8, 1, 9]) // { ok: true, value: 1 }
    */
-  min(values: readonly number[]): ReduceResult<number> {
+  min(
+    values: readonly number[], // Массив чисел
+  ): ReduceResult<number> { // ReduceResult с минимальным значением или ошибкой
     if (values.length === 0) {
       return {
         ok: false,
@@ -406,15 +395,12 @@ export const reducer = {
 
   /**
    * Находит максимальное значение в массиве
-   * ⚠️ FAIL при любом invalid элементе (NaN/Infinity)
-   * @param values - Массив чисел
-   * @returns ReduceResult с максимальным значением или ошибкой
-   * @example
-   * ```ts
-   * reducer.max([5, 2, 8, 1, 9]); // 9
-   * ```
+   * @note FAIL при любом invalid элементе (NaN/Infinity)
+   * @example reducer.max([5, 2, 8, 1, 9]) // { ok: true, value: 9 }
    */
-  max(values: readonly number[]): ReduceResult<number> {
+  max(
+    values: readonly number[], // Массив чисел
+  ): ReduceResult<number> { // ReduceResult с максимальным значением или ошибкой
     if (values.length === 0) {
       return {
         ok: false,
@@ -466,23 +452,13 @@ export const reducer = {
 
   /**
    * Вычисляет взвешенное среднее для массива WeightedValue
-   * ⚠️ НЕ нормализует веса автоматически
-   * @param weightedValues - Массив значений с весами
-   * @param config - Конфигурация валидации весов (опционально)
-   * @returns ReduceResult со взвешенным средним или ошибкой
-   * @example
-   * ```ts
-   * reducer.weightedAverageFromWeightedValues([
-   *   { value: 10, weight: 0.2 },
-   *   { value: 20, weight: 0.3 },
-   *   { value: 30, weight: 0.5 },
-   * ]); // 23
-   * ```
+   * @note НЕ нормализует веса автоматически
+   * @example reducer.weightedAverageFromWeightedValues([{ value: 10, weight: 0.2 }, { value: 20, weight: 0.3 }, { value: 30, weight: 0.5 }]) // { ok: true, value: 23 }
    */
   weightedAverageFromWeightedValues(
-    weightedValues: readonly WeightedValue<number>[],
-    config: WeightValidationConfig = DEFAULT_WEIGHT_VALIDATION,
-  ): ReduceResult<number> {
+    weightedValues: readonly WeightedValue<number>[], // Массив значений с весами
+    config: WeightValidationConfig = DEFAULT_WEIGHT_VALIDATION, // Конфигурация валидации весов (опционально)
+  ): ReduceResult<number> { // ReduceResult со взвешенным средним или ошибкой
     if (weightedValues.length === 0) {
       return {
         ok: false,
@@ -499,24 +475,13 @@ export const reducer = {
 
   /**
    * Вычисляет взвешенное среднее для Iterable WeightedValue (streaming-friendly)
-   * Single-pass, zero allocations, O(n) - поддерживает lazy evaluation для rule engines
-   * @param weightedValues - Iterable значений с весами
-   * @param config - Конфигурация валидации весов (опционально)
-   * @returns ReduceResult со взвешенным средним или ошибкой
-   * @example
-   * ```ts
-   * const values = function* () {
-   *   yield { value: 10, weight: 0.2 };
-   *   yield { value: 20, weight: 0.3 };
-   *   yield { value: 30, weight: 0.5 };
-   * };
-   * reducer.weightedAverageFromIterable(values());
-   * ```
+   * @note Single-pass, zero allocations, O(n) - поддерживает lazy evaluation для rule engines
+   * @example const values = function* () { yield { value: 10, weight: 0.2 }; yield { value: 20, weight: 0.3 }; yield { value: 30, weight: 0.5 }; }; reducer.weightedAverageFromIterable(values())
    */
   weightedAverageFromIterable(
-    weightedValues: Iterable<WeightedValue<number>>,
-    config: WeightValidationConfig = DEFAULT_WEIGHT_VALIDATION,
-  ): ReduceResult<number> {
+    weightedValues: Iterable<WeightedValue<number>>, // Iterable значений с весами
+    config: WeightValidationConfig = DEFAULT_WEIGHT_VALIDATION, // Конфигурация валидации весов (опционально)
+  ): ReduceResult<number> { // ReduceResult со взвешенным средним или ошибкой
     // Streaming weighted average: single pass, zero allocations, O(n)
     // Kahan summation требует мутаций для точности, streaming API требует single-pass loop
     /* eslint-disable functional/no-let, functional/no-loop-statements, fp/no-mutation */
@@ -587,7 +552,7 @@ export const reducer = {
 } as const;
 
 /* ============================================================================
- * 🧮 REDUCER ALGEBRA — EXTENSIBLE CONTRACT FOR CUSTOM AGGREGATORS
+ * 5. REDUCER ALGEBRA — EXTENSIBLE CONTRACT FOR CUSTOM AGGREGATORS
  * ============================================================================
  */
 
@@ -605,75 +570,56 @@ export type AggregatorState<TState> = Readonly<{
 
 /**
  * Контракт для extensible aggregator (reducer algebra)
- * Позволяет создавать custom aggregators (median, percentile, histogram, etc.) без копирования логики валидации
- * Generic по TResult для поддержки любых типов результатов (number, Confidence, Histogram, Distribution, etc.)
  * @template TValue - Тип значения для агрегации
  * @template TResult - Тип результата агрегации
  * @template TState - Тип состояния агрегатора
+ * @note Позволяет создавать custom aggregators (median, percentile, histogram, etc.) без копирования логики валидации.
+ *       Generic по TResult для поддержки любых типов результатов (number, Confidence, Histogram, Distribution, etc.)
  * @public
  */
 export interface NumericAggregator<TValue = number, TResult = number, TState = unknown> {
   /**
    * Инициализирует начальное состояние агрегатора
-   * @returns Начальное состояние
    */
-  init(): AggregatorState<TState>;
+  init(): AggregatorState<TState>; // Начальное состояние
 
   /**
    * Обновляет состояние агрегатора на основе нового значения
-   * Возвращает ReduceResult для поддержки early termination и deterministic failure index
-   * @param currentState - Текущее состояние агрегатора
-   * @param value - Новое значение для агрегации
-   * @param index - Индекс значения в массиве
-   * @returns ReduceResult с новым состоянием агрегатора или ошибкой (для early termination)
+   * @note Возвращает ReduceResult для поддержки early termination и deterministic failure index
    */
   step(
-    currentState: AggregatorState<TState>,
-    value: TValue,
-    index: number,
-  ): ReduceResult<AggregatorState<TState>>;
+    currentState: AggregatorState<TState>, // Текущее состояние агрегатора
+    value: TValue, // Новое значение для агрегации
+    index: number, // Индекс значения в массиве
+  ): ReduceResult<AggregatorState<TState>>; // ReduceResult с новым состоянием агрегатора или ошибкой (для early termination)
 
   /**
    * Финализирует результат агрегации из состояния
-   * Возвращает ReduceResult для composability (не undefined)
-   * @param finalState - Финальное состояние агрегатора
-   * @returns ReduceResult с результатом агрегации или ошибкой
+   * @note Возвращает ReduceResult для composability (не undefined)
    */
-  finalize(finalState: AggregatorState<TState>): ReduceResult<TResult>;
+  finalize(
+    finalState: AggregatorState<TState>, // Финальное состояние агрегатора
+  ): ReduceResult<TResult>; // ReduceResult с результатом агрегации или ошибкой
 }
 
 /**
  * Reducer Algebra: factory для создания custom aggregators
- * Позволяет создавать median, percentile, geometric mean, confidence aggregation
- * без изменения core логики
+ * @note Позволяет создавать median, percentile, geometric mean, confidence aggregation без изменения core логики
  * @public
  */
 export const reducerAlgebra = {
   /**
    * Применяет NumericAggregator к массиву значений
-   * Generic по TResult для поддержки любых типов результатов (histogram, distribution, etc.)
-   * @param values - Массив значений для агрегации
-   * @param aggregator - NumericAggregator для применения
-   * @returns ReduceResult с результатом агрегации или ошибкой
-   * @example
-   * ```ts
-   * const medianAggregator: NumericAggregator<number, number> = {
-   *   init: () => ({ state: [] }),
-   *   step: (acc, value) => ({ state: [...acc.state, value] }),
-   *   finalize: (state) => {
-   *     const sorted = [...state.state].sort((a, b) => a - b);
-   *     const mid = Math.floor(sorted.length / 2);
-   *     return { ok: true, value: sorted.length % 2 === 0
-   *       ? (sorted[mid - 1]! + sorted[mid]!) / 2 : sorted[mid]! };
-   *   },
-   * };
-   * reducerAlgebra.aggregate([1, 2, 3, 4, 5], medianAggregator); // 3
-   * ```
+   * @template TValue - Тип значения для агрегации
+   * @template TResult - Тип результата агрегации
+   * @template TState - Тип состояния агрегатора
+   * @note Generic по TResult для поддержки любых типов результатов (histogram, distribution, etc.)
+   * @example const medianAggregator: NumericAggregator<number, number> = { init: () => ({ state: [] }), step: (acc, value) => ({ state: [...acc.state, value] }), finalize: (state) => { const sorted = [...state.state].sort((a, b) => a - b); const mid = Math.floor(sorted.length / 2); return { ok: true, value: sorted.length % 2 === 0 ? (sorted[mid - 1]! + sorted[mid]!) / 2 : sorted[mid]! }; } }; reducerAlgebra.aggregate([1, 2, 3, 4, 5], medianAggregator) // { ok: true, value: 3 }
    */
   aggregate<TValue = number, TResult = number, TState = unknown>(
-    values: readonly TValue[],
-    aggregator: NumericAggregator<TValue, TResult, TState>,
-  ): ReduceResult<TResult> {
+    values: readonly TValue[], // Массив значений для агрегации
+    aggregator: NumericAggregator<TValue, TResult, TState>, // NumericAggregator для применения
+  ): ReduceResult<TResult> { // ReduceResult с результатом агрегации или ошибкой
     if (values.length === 0) {
       return {
         ok: false,

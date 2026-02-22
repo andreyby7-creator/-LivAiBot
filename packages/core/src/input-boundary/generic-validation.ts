@@ -1,30 +1,32 @@
 /**
  * @file packages/core/src/input-boundary/generic-validation.ts
  * ============================================================================
- * 🛡️ CORE — Generic Validation (DTO Guards)
+ * 🛡️ CORE — Input Boundary (Generic Validation)
  * ============================================================================
  *
- * Generic type guards и структурная валидация для DTO на input boundary.
- * Только DTO guards (структурная валидация), без sanitization (data-safety/).
+ * Архитектурная роль:
+ * - Generic type guards и структурная валидация для DTO на input boundary
+ * - Только DTO guards (структурная валидация), без sanitization (data-safety/)
+ * - Причина изменения: input boundary, DTO validation, structural guards
  *
  * Принципы:
  * - ✅ SRP: только структурная валидация DTO, без бизнес-логики
  * - ✅ Deterministic: одинаковые входы → одинаковые результаты
- * - ✅ Domain-pure: без side-effects, платформо-агностично
+ * - ✅ Domain-pure: без side-effects, платформо-агностично, generic по типам значений
+ * - ✅ Extensible: добавление правил через ValidationRule без изменения core-логики
+ * - ✅ Strict typing: union-типы для ValidationFailureReason, без string и Record в domain
  * - ✅ Microservice-ready: строгие контракты для межсервисного взаимодействия
- * - ✅ Scalable rule-engine: extensible через registry, без if/else-монолита
- * - ✅ Strict typing: union-типы, без string и Record в domain
- * - ✅ Extensible: добавление правил без изменения core-логики
+ * - ✅ Scalable: extensible через registry, без if/else-монолита
  *
  * ⚠️ ВАЖНО:
  * - ❌ НЕ включает sanitization (это в data-safety/)
  * - ✅ Только структурная валидация (shape, types, JSON-serializable)
- * - ✅ Fail-fast: первая ошибка останавливает валидацию
+ * - ✅ Fail-fast: первая ошибка останавливает валидацию (по умолчанию)
  * - ✅ Immutable: все результаты frozen
  */
 
 /* ============================================================================
- * 🧩 ТИПЫ — STRICT UNION TYPES
+ * 1. TYPES — VALIDATION MODEL (Pure Type Definitions)
  * ============================================================================
  */
 
@@ -170,14 +172,13 @@ export function isJsonPrimitive(value: unknown): value is JsonPrimitive {
 
 /**
  * Проверяет, является ли значение JSON-сериализуемым
- * Рекурсивно проверяет структуру без циклических ссылок, замораживает для immutability
- * @param visited - Set для отслеживания циклических ссылок (internal)
+ * @note Рекурсивно проверяет структуру без циклических ссылок, замораживает для immutability
  * @public
  */
 export function isJsonSerializable(
-  value: unknown,
-  visited: ReadonlySet<unknown> = new Set(),
-): value is JsonValue {
+  value: unknown, // Значение для проверки
+  visited: ReadonlySet<unknown> = new Set(), // Set для отслеживания циклических ссылок (internal)
+): value is JsonValue { // true если значение JSON-сериализуемо
   if (visited.has(value)) {
     return false;
   }
@@ -345,16 +346,15 @@ function validatePropertyTypes(
 
 /**
  * Проверяет структуру объекта (shape validation)
- * Проверяет наличие обязательных свойств и их типы, поддерживает path accumulation
- * @param accumulateErrors - Если true, собирает все ошибки (по умолчанию false, fail-fast)
+ * @note Проверяет наличие обязательных свойств и их типы, поддерживает path accumulation
  * @public
  */
 export function validateObjectShape(
-  value: unknown,
-  shape: Readonly<Record<string, (val: unknown) => boolean>>,
-  context: ValidationContext = {},
-  accumulateErrors: boolean = false,
-): ValidationOutcome<Readonly<Record<string, unknown>>> {
+  value: unknown, // Значение для проверки
+  shape: Readonly<Record<string, (val: unknown) => boolean>>, // Схема валидации (field → validator)
+  context: ValidationContext = {}, // Контекст валидации
+  accumulateErrors: boolean = false, // Если true, собирает все ошибки (по умолчанию false, fail-fast)
+): ValidationOutcome<Readonly<Record<string, unknown>>> { // Результат валидации
   if (!isObject(value)) {
     return Object.freeze({
       ok: false,
@@ -453,22 +453,23 @@ export const defaultValidationRuleRegistry: ValidationRuleRegistry<unknown, unkn
   });
 
 /* ============================================================================
- * 🔧 RULE ENGINE — APPLY RULES
+ * 2. RULE ENGINE — APPLY RULES
  * ============================================================================
  */
 
 /**
  * Применяет правила валидации с fail-fast семантикой
- * Invariants выполняются первыми, затем policies
- * @returns Результат валидации (первая ошибка останавливает проверку)
+ * @template T - Тип валидируемого значения
+ * @template TMetadata - Тип метаданных контекста
+ * @note Invariants выполняются первыми, затем policies
  * @internal
  */
 function applyValidationRules<T = unknown, TMetadata = unknown>(
-  value: unknown,
-  context: ValidationContext<TMetadata>,
+  value: unknown, // Значение для валидации
+  context: ValidationContext<TMetadata>, // Контекст валидации
   registry: ValidationRuleRegistry<T, TMetadata> =
-    defaultValidationRuleRegistry as ValidationRuleRegistry<T, TMetadata>,
-): ValidationOutcome<T> {
+    defaultValidationRuleRegistry as ValidationRuleRegistry<T, TMetadata>, // Registry правил валидации
+): ValidationOutcome<T> { // Результат валидации (первая ошибка останавливает проверку)
   const invariantResult = registry.invariants.reduce<ValidationOutcome<T> | null>(
     (acc, rule) => {
       if (acc !== null && !acc.ok) {
@@ -504,34 +505,36 @@ function applyValidationRules<T = unknown, TMetadata = unknown>(
 
 /**
  * Валидирует значение через rule engine
- * @param registry - Registry правил валидации (по умолчанию defaultValidationRuleRegistry)
+ * @template T - Тип валидируемого значения
+ * @template TMetadata - Тип метаданных контекста
  * @public
  */
 export function validate<T = unknown, TMetadata = unknown>(
-  value: unknown,
-  context: ValidationContext<TMetadata> = {},
+  value: unknown, // Значение для валидации
+  context: ValidationContext<TMetadata> = {}, // Контекст валидации
   registry: ValidationRuleRegistry<T, TMetadata> =
-    defaultValidationRuleRegistry as ValidationRuleRegistry<T, TMetadata>,
-): ValidationOutcome<T> {
+    defaultValidationRuleRegistry as ValidationRuleRegistry<T, TMetadata>, // Registry правил валидации (по умолчанию defaultValidationRuleRegistry)
+): ValidationOutcome<T> { // Результат валидации
   return applyValidationRules(value, context, registry);
 }
 
 /* ============================================================================
- * 🔧 EXTENSIBILITY HELPERS — REGISTRY BUILDERS
+ * 3. EXTENSIBILITY HELPERS — REGISTRY BUILDERS
  * ============================================================================
  */
 
 /**
  * Создает новый registry с добавленным правилом (immutable)
- * Helper для динамического расширения registry без мутации
- * @param asInvariant - Если true, добавляет в invariants, иначе в policies
+ * @template T - Тип валидируемого значения
+ * @template TMetadata - Тип метаданных контекста
+ * @note Helper для динамического расширения registry без мутации
  * @public
  */
-export function registerRule<T = unknown, TMetadata = unknown>(
-  registry: ValidationRuleRegistry<T, TMetadata>,
-  rule: ValidationRule<T, TMetadata>,
-  asInvariant: boolean = false,
-): ValidationRuleRegistry<T, TMetadata> {
+export function registerValidationRule<T = unknown, TMetadata = unknown>(
+  registry: ValidationRuleRegistry<T, TMetadata>, // Registry правил валидации
+  rule: ValidationRule<T, TMetadata>, // Правило для добавления
+  asInvariant: boolean = false, // Если true, добавляет в invariants, иначе в policies
+): ValidationRuleRegistry<T, TMetadata> { // Новый registry с добавленным правилом
   if (registry.ruleMap.has(rule.name)) {
     // eslint-disable-next-line fp/no-throw
     throw new Error(`Validation rule "${rule.name}" already exists in registry`);
@@ -557,8 +560,11 @@ export function registerRule<T = unknown, TMetadata = unknown>(
   });
 }
 
+/** @deprecated Используйте registerValidationRule */
+export const registerRule = registerValidationRule;
+
 /* ============================================================================
- * 🔗 COMPOSABLE PREDICATES — RULE COMPOSITION
+ * 4. COMPOSABLE PREDICATES — RULE COMPOSITION
  * ============================================================================
  */
 

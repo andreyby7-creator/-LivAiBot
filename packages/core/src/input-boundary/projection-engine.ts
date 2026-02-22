@@ -1,21 +1,23 @@
 /**
  * @file packages/core/src/input-boundary/projection-engine.ts
  * ============================================================================
- * 🛡️ CORE — Projection Engine (Domain → Boundary Contracts)
+ * 🛡️ CORE — Input Boundary (Projection Engine)
  * ============================================================================
  *
- * Generic projection engine для трансформации domain объектов в boundary contracts (DTO, events, persistence, audit).
- * Архитектура: selection → enrichment slots (contributions) → merge (conflict detection) → safe-keys validation → freeze
+ * Архитектурная роль:
+ * - Generic projection engine для трансформации domain объектов в boundary contracts (DTO, events, persistence, audit)
+ * - Архитектура: selection → enrichment slots (contributions) → merge (conflict detection) → safe-keys validation → freeze
+ * - Причина изменения: input boundary, domain-to-DTO transformation, projection layer
  *
  * Принципы:
  * - ✅ SRP: разделение selection / enrichment / merge / validation
  * - ✅ Deterministic: одинаковые входы → одинаковые результаты (order-independent)
- * - ✅ Domain-pure: без side-effects, платформо-агностично
+ * - ✅ Domain-pure: без side-effects, платформо-агностично, generic по типам domain и DTO
+ * - ✅ Extensible: composable projection slots через ProjectionSlot без изменения core-логики
+ * - ✅ Strict typing: union-типы для TransformationFailureReason, DtoSchema для versioned boundaries
  * - ✅ Microservice-ready: строгие контракты для межсервисного взаимодействия
  * - ✅ Scalable: patch-based slots (order-independent, composable)
- * - ✅ Strict typing: union-типы, DtoSchema для versioned boundaries
  * - ✅ Security-first: защита от object injection, prototype pollution, JSON-serializable
- * - ✅ Extensible: composable projection slots без изменения core-логики
  * - ✅ Slot-architecture ready: deterministic projection layer
  *
  * ⚠️ ВАЖНО:
@@ -31,7 +33,7 @@ import type { JsonValue } from './generic-validation.js';
 import { isJsonSerializable } from './generic-validation.js';
 
 /* ============================================================================
- * 🧩 ТИПЫ — STRICT UNION TYPES
+ * 1. TYPES — PROJECTION MODEL (Pure Type Definitions)
  * ============================================================================
  */
 
@@ -93,7 +95,7 @@ export type TransformationContext<TMetadata = unknown> = Readonly<{
 }>;
 
 /* ============================================================================
- * 🛡️ SECURITY — PROTOTYPE POLLUTION PROTECTION
+ * 2. SECURITY — PROTOTYPE POLLUTION PROTECTION
  * ============================================================================
  */
 

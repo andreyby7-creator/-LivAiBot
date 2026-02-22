@@ -1,11 +1,22 @@
 /**
  * @file packages/core/src/data-safety/taint-source.ts
  * ============================================================================
- * 🛡️ CORE — Taint Source (Input Boundary)
+ * 🛡️ CORE — Data Safety (Taint Source)
  * ============================================================================
  *
- * Input boundary: пометка внешних данных как tainted и повышение уровня доверия.
- * External → Trusted через валидацию и санитизацию.
+ * Архитектурная роль:
+ * - Input boundary: пометка внешних данных как tainted и повышение уровня доверия
+ * - External → Trusted через валидацию и санитизацию
+ * - Причина изменения: data safety, input boundary guards, trust promotion
+ *
+ * Принципы:
+ * - ✅ SRP: разделение на HELPERS, INPUT BOUNDARY OPERATIONS, INPUT BOUNDARY INTERFACE
+ * - ✅ Deterministic: pure functions для валидации и санитизации, детерминированное поведение
+ * - ✅ Domain-pure: generic по типам значений, без привязки к domain-специфичным типам
+ * - ✅ Extensible: InputBoundary интерфейс для различных источников без изменения core логики
+ * - ✅ Strict typing: generic типы для всех операций, union types для SanitizationMode
+ * - ✅ Microservice-ready: stateless, без side-effects, thread-safe
+ * - ✅ Security: fail-hard при валидации, защита от covert channel (validator/sanitizer получают только чистые данные)
  *
  * ⚠️ ВАЖНО:
  * - Все внешние данные должны быть помечены через markAsExternal()
@@ -33,21 +44,20 @@ import type { TrustLevel, TrustLevelRegistry } from './trust-level.js';
 import { defaultTrustLevelRegistry, meetTrust, trustLevels } from './trust-level.js';
 
 /* ============================================================================
- * 🔧 UTILITY FUNCTIONS
+ * 1. HELPERS — UTILITY FUNCTIONS
  * ============================================================================
  */
 
 /**
  * Обновляет taint metadata с новым уровнем доверия
- * Meet с targetTrustLevel для fail-closed, сохраняет source/timestamp.
- *
+ * @note Meet с targetTrustLevel для fail-closed, сохраняет source/timestamp
  * @internal
  */
 function updateTaintMetadata(
-  oldTaint: TaintMetadata,
-  targetTrustLevel: TrustLevel,
-  trustLevelRegistry: TrustLevelRegistry = defaultTrustLevelRegistry,
-): TaintMetadata {
+  oldTaint: TaintMetadata, // Старый taint metadata
+  targetTrustLevel: TrustLevel, // Целевой уровень доверия
+  trustLevelRegistry: TrustLevelRegistry = defaultTrustLevelRegistry, // Registry уровней доверия
+): TaintMetadata { // Обновленный taint metadata
   const mergedTrustLevel = meetTrust(oldTaint.trustLevel, targetTrustLevel, trustLevelRegistry);
   return mergeTaintMetadata(
     oldTaint,
@@ -58,14 +68,13 @@ function updateTaintMetadata(
 
 /**
  * Создает frozen tainted значение (high-throughput оптимизация)
- * Замораживает только metadata, не весь объект.
- *
+ * @note Замораживает только metadata, не весь объект
  * @internal
  */
 function createFrozenTainted<T>(
-  value: T,
-  taint: TaintMetadata,
-): Tainted<T> {
+  value: T, // Значение для пометки taint
+  taint: TaintMetadata, // Taint metadata
+): Tainted<T> { // Frozen tainted значение
   const frozenTaint = Object.freeze(taint);
   return Object.freeze({
     ...value,
@@ -74,59 +83,39 @@ function createFrozenTainted<T>(
 }
 
 /* ============================================================================
- * 🎯 INPUT BOUNDARY OPERATIONS
+ * 2. API — INPUT BOUNDARY OPERATIONS
  * ============================================================================
  */
 
 /**
  * Помечает внешние данные как tainted (source=EXTERNAL)
- *
- * @param value - Внешние данные для пометки
- * @param trustLevel - Начальный уровень доверия (по умолчанию UNTRUSTED)
- * @param timestamp - Опциональный timestamp (по умолчанию Date.now())
- * @returns Tainted данные с source=EXTERNAL
- *
- * @example
- * ```ts
- * const userInput = markAsExternal({ name: "John" });
- * // userInput.__taint.source === taintSources.EXTERNAL
- * ```
+ * @template T - Тип внешних данных
+ * @example const userInput = markAsExternal({ name: "John" }); // userInput.__taint.source === taintSources.EXTERNAL
+ * @public
  */
 export function markAsExternal<T>(
-  value: T,
-  trustLevel: TrustLevel = trustLevels.UNTRUSTED as TrustLevel,
-  timestamp?: number,
-): Tainted<T> {
+  value: T, // Внешние данные для пометки
+  trustLevel: TrustLevel = trustLevels.UNTRUSTED as TrustLevel, // Начальный уровень доверия (по умолчанию UNTRUSTED)
+  timestamp?: number, // Опциональный timestamp (по умолчанию Date.now())
+): Tainted<T> { // Tainted данные с source=EXTERNAL
   return addTaint(value, taintSources.EXTERNAL as TaintSource, trustLevel, timestamp);
 }
 
 /**
  * Валидирует tainted данные и повышает уровень доверия
- * После валидации данные получают targetTrustLevel (по умолчанию PARTIAL).
- * Validator получает только чистые данные (без taint metadata) для защиты от covert channel.
- *
- * @param value - Tainted данные для валидации
- * @param validator - Функция валидации (fail-hard: выбрасывает Error)
- * @param targetTrustLevel - Целевой уровень доверия (по умолчанию PARTIAL)
- * @param trustLevelRegistry - Registry уровней доверия
- * @returns Tainted данные с обновленным trustLevel
- *
+ * @template T - Тип данных для валидации
+ * @note После валидации данные получают targetTrustLevel (по умолчанию PARTIAL).
+ *       Validator получает только чистые данные (без taint metadata) для защиты от covert channel.
+ * @example const validated = validateAndPromote(userInput, (data) => { if (!data.name) throw new Error("Name required"); });
  * @throws {Error} Если валидация не прошла или данные не tainted
- *
- * @example
- * ```ts
- * const validated = validateAndPromote(
- *   userInput,
- *   (data) => { if (!data.name) throw new Error("Name required"); }
- * );
- * ```
+ * @public
  */
 export function validateAndPromote<T>(
-  value: Tainted<T>,
-  validator: (value: T) => void,
-  targetTrustLevel: TrustLevel = trustLevels.PARTIAL as TrustLevel,
-  trustLevelRegistry: TrustLevelRegistry = defaultTrustLevelRegistry,
-): Tainted<T> {
+  value: Tainted<T>, // Tainted данные для валидации
+  validator: (value: T) => void, // Функция валидации (fail-hard: выбрасывает Error)
+  targetTrustLevel: TrustLevel = trustLevels.PARTIAL as TrustLevel, // Целевой уровень доверия (по умолчанию PARTIAL)
+  trustLevelRegistry: TrustLevelRegistry = defaultTrustLevelRegistry, // Registry уровней доверия
+): Tainted<T> { // Tainted данные с обновленным trustLevel
   if (!isTainted(value)) {
     // eslint-disable-next-line fp/no-throw
     throw new Error('Value must be tainted before validation');
@@ -151,33 +140,21 @@ export function validateAndPromote<T>(
 
 /**
  * Санитизирует tainted данные и повышает уровень доверия
- * После санитизации данные получают targetTrustLevel (по умолчанию TRUSTED).
- * Sanitizer получает только чистые данные (без taint metadata) для защиты от covert channel.
- *
- * @param value - Tainted данные для санитизации
- * @param sanitizer - Функция санитизации (pure и deterministic)
- * @param sanitizationMode - Режим санитизации (валидируется, NONE пропускает санитизацию)
- * @param targetTrustLevel - Целевой уровень доверия (по умолчанию TRUSTED)
- * @param trustLevelRegistry - Registry уровней доверия
- * @returns Tainted данные с обновленным trustLevel
- *
+ * @template T - Тип данных для санитизации
+ * @note После санитизации данные получают targetTrustLevel (по умолчанию TRUSTED).
+ *       Sanitizer получает только чистые данные (без taint metadata) для защиты от covert channel.
+ *       Режим санитизации валидируется, NONE пропускает санитизацию.
+ * @example const sanitized = sanitizeAndPromote(validated, (data) => ({ ...data, name: escapeHtml(data.name) }));
  * @throws {Error} Если данные не tainted или sanitizationMode невалиден
- *
- * @example
- * ```ts
- * const sanitized = sanitizeAndPromote(
- *   validated,
- *   (data) => ({ ...data, name: escapeHtml(data.name) })
- * );
- * ```
+ * @public
  */
 export function sanitizeAndPromote<T>(
-  value: Tainted<T>,
-  sanitizer: (value: T) => T,
-  sanitizationMode: SanitizationMode = sanitizationModes.STRICT as SanitizationMode,
-  targetTrustLevel: TrustLevel = trustLevels.TRUSTED as TrustLevel,
-  trustLevelRegistry: TrustLevelRegistry = defaultTrustLevelRegistry,
-): Tainted<T> {
+  value: Tainted<T>, // Tainted данные для санитизации
+  sanitizer: (value: T) => T, // Функция санитизации (pure и deterministic)
+  sanitizationMode: SanitizationMode = sanitizationModes.STRICT as SanitizationMode, // Режим санитизации (валидируется, NONE пропускает санитизацию)
+  targetTrustLevel: TrustLevel = trustLevels.TRUSTED as TrustLevel, // Целевой уровень доверия (по умолчанию TRUSTED)
+  trustLevelRegistry: TrustLevelRegistry = defaultTrustLevelRegistry, // Registry уровней доверия
+): Tainted<T> { // Tainted данные с обновленным trustLevel
   if (!isTainted(value)) {
     // eslint-disable-next-line fp/no-throw
     throw new Error('Value must be tainted before sanitization');
@@ -214,35 +191,20 @@ export function sanitizeAndPromote<T>(
 
 /**
  * Валидирует и санитизирует tainted данные (комбинированная операция)
- * Сначала валидация (PARTIAL), затем санитизация (TRUSTED).
- *
- * @param value - Tainted данные для валидации и санитизации
- * @param validator - Функция валидации
- * @param sanitizer - Функция санитизации
- * @param sanitizationMode - Режим санитизации (по умолчанию STRICT)
- * @param targetTrustLevel - Целевой уровень доверия (по умолчанию TRUSTED)
- * @param trustLevelRegistry - Registry уровней доверия
- * @returns Tainted данные с обновленным trustLevel
- *
+ * @template T - Тип данных для валидации и санитизации
+ * @note Сначала валидация (PARTIAL), затем санитизация (TRUSTED)
+ * @example const processed = validateAndSanitize(userInput, (data) => { if (!data.name) throw new Error("Name required"); }, (data) => ({ ...data, name: escapeHtml(data.name) }));
  * @throws {Error} Если валидация не прошла или данные не tainted
- *
- * @example
- * ```ts
- * const processed = validateAndSanitize(
- *   userInput,
- *   (data) => { if (!data.name) throw new Error("Name required"); },
- *   (data) => ({ ...data, name: escapeHtml(data.name) })
- * );
- * ```
+ * @public
  */
 export function validateAndSanitize<T>(
-  value: Tainted<T>,
-  validator: (value: T) => void,
-  sanitizer: (value: T) => T,
-  sanitizationMode: SanitizationMode = sanitizationModes.STRICT as SanitizationMode,
-  targetTrustLevel: TrustLevel = trustLevels.TRUSTED as TrustLevel,
-  trustLevelRegistry: TrustLevelRegistry = defaultTrustLevelRegistry,
-): Tainted<T> {
+  value: Tainted<T>, // Tainted данные для валидации и санитизации
+  validator: (value: T) => void, // Функция валидации
+  sanitizer: (value: T) => T, // Функция санитизации
+  sanitizationMode: SanitizationMode = sanitizationModes.STRICT as SanitizationMode, // Режим санитизации (по умолчанию STRICT)
+  targetTrustLevel: TrustLevel = trustLevels.TRUSTED as TrustLevel, // Целевой уровень доверия (по умолчанию TRUSTED)
+  trustLevelRegistry: TrustLevelRegistry = defaultTrustLevelRegistry, // Registry уровней доверия
+): Tainted<T> { // Tainted данные с обновленным trustLevel
   const validated = validateAndPromote(
     value,
     validator,
@@ -260,30 +222,16 @@ export function validateAndSanitize<T>(
 }
 
 /* ============================================================================
- * 🏗️ INPUT BOUNDARY INTERFACE (Extensibility)
+ * 3. INPUT BOUNDARY INTERFACE — EXTENSIBILITY
  * ============================================================================
  */
 
 /**
  * Generic InputBoundary интерфейс для различных источников (API, file upload, db input)
- * Переиспользование логики без дублирования кода.
- *
- * @example
- * ```ts
- * // Реализация для API input
- * const apiBoundary: InputBoundary<ApiRequest> = {
- *   taintSource: taintSources.EXTERNAL,
- *   mark: markAsExternal,
- *   validate: validateAndPromote,
- *   sanitize: sanitizeAndPromote,
- * };
- *
- * // Использование
- * const processed = apiBoundary.sanitize(
- *   apiBoundary.validate(apiBoundary.mark(apiRequest), apiValidator),
- *   apiSanitizer
- * );
- * ```
+ * @template T - Тип данных для boundary
+ * @note Переиспользование логики без дублирования кода
+ * @example const apiBoundary: InputBoundary<ApiRequest> = { taintSource: taintSources.EXTERNAL, mark: markAsExternal, validate: validateAndPromote, sanitize: sanitizeAndPromote }; const processed = apiBoundary.sanitize(apiBoundary.validate(apiBoundary.mark(apiRequest), apiValidator), apiSanitizer);
+ * @public
  */
 export interface InputBoundary<T> {
   /** Источник taint для данного boundary */
@@ -307,9 +255,11 @@ export interface InputBoundary<T> {
 
 /**
  * Создает InputBoundary для внешних источников (EXTERNAL)
- * Базовая реализация для API и пользовательского ввода.
+ * @template T - Тип данных для boundary
+ * @note Базовая реализация для API и пользовательского ввода
+ * @public
  */
-export function createExternalInputBoundary<T>(): InputBoundary<T> {
+export function createExternalInputBoundary<T>(): InputBoundary<T> { // InputBoundary для внешних источников
   return {
     taintSource: taintSources.EXTERNAL as TaintSource,
     mark: (value, trustLevel, timestamp) => markAsExternal(value, trustLevel, timestamp),

@@ -1,26 +1,33 @@
 /**
  * @file packages/core/src/data-safety/trust-level.ts
  * ============================================================================
- * 🛡️ CORE — Trust Levels (Security Lattice)
+ * 🛡️ CORE — Data Safety (Trust Levels)
  * ============================================================================
  *
- * Security lattice для уровней доверия к данным в taint tracking и boundary guards.
- * TrustLevel = security lattice element, НЕ score! Запрещена арифметика, единственная
- * операция: lattice meet (meetTrust). Lattice order: UNTRUSTED < PARTIAL < TRUSTED.
+ * Архитектурная роль:
+ * - Security lattice для уровней доверия к данным в taint tracking и boundary guards
+ * - TrustLevel = security lattice element, НЕ score! Запрещена арифметика, единственная операция: lattice meet (meetTrust)
+ * - Причина изменения: data safety, security lattice, boundary guards
+ *
+ * Принципы:
+ * - ✅ SRP: разделение на BRANDED TYPE, REGISTRY, CONSTANTS, HELPERS, LATTICE OPERATIONS
+ * - ✅ Deterministic: immutable registry, pure functions для lattice operations, O(1) операции
+ * - ✅ Domain-pure: generic по типам значений, без привязки к domain-специфичным типам
+ * - ✅ Extensible: multi-registry архитектура для разных pipeline contexts
+ * - ✅ Strict typing: branded types для TrustLevel, union types для lattice operations
+ * - ✅ Microservice-ready: stateless, immutable registry, thread-safe после build()
+ * - ✅ Security: fail-closed semantics (lattice meet возвращает наименее доверенный уровень)
  *
  * ⚠️ ВАЖНО:
  * - ❌ ЗАПРЕЩЕНО: арифметика, Math.min/max, сравнения >= (кроме через dominates())
  * - ✅ РАЗРЕШЕНО: meetTrust(), dominates(), isTrustLevel()
  * - Lattice meet ≠ max/min! meet(UNTRUSTED, TRUSTED) → UNTRUSTED (fail-closed)
- *
- * ⚠️ PRODUCTION:
- * - Инициализируйте registry на старте (не на горячем пути)
- * - Registry после build() immutable и thread-safe
- * - Используйте предварительно созданный registry в worker threads
+ * - Lattice order: UNTRUSTED < PARTIAL < TRUSTED
+ * - ⚠️ PRODUCTION: Инициализируйте registry на старте (не на горячем пути). Registry после build() immutable и thread-safe. Используйте предварительно созданный registry в worker threads.
  */
 
 /* ============================================================================
- * 🔒 BRANDED TYPE
+ * 1. BRANDED TYPE — TRUST LEVEL (Type Safety)
  * ============================================================================
  */
 
@@ -53,7 +60,7 @@ export type TrustLevel = (typeof trustLevels)[keyof typeof trustLevels] & {
 };
 
 /* ============================================================================
- * 🏗️ REGISTRY
+ * 2. REGISTRY — TRUST LEVEL REGISTRY (Immutable Registry)
  * ============================================================================
  */
 
@@ -79,11 +86,11 @@ type TrustLevelRegistryBuilderState = Readonly<{
 
 /**
  * Builder для создания immutable TrustLevelRegistry
- * Порядок добавления определяет lattice порядок (первый = наименее доверенный).
- *
- * @note Multi-registry архитектура: можно создать разные registry для разных
- * pipeline contexts (например, отдельные registry для разных доменов или окружений).
- * Каждый registry независим и может содержать свой набор уровней доверия.
+ * @note Порядок добавления определяет lattice порядок (первый = наименее доверенный).
+ *       Multi-registry архитектура: можно создать разные registry для разных pipeline contexts
+ *       (например, отдельные registry для разных доменов или окружений).
+ *       Каждый registry независим и может содержать свой набор уровней доверия.
+ * @public
  */
 export type TrustLevelRegistryBuilder = Readonly<{
   readonly withLevel: (level: TrustLevel, name: string) => TrustLevelRegistryBuilder;
@@ -92,21 +99,15 @@ export type TrustLevelRegistryBuilder = Readonly<{
 
 /**
  * Создает Builder для TrustLevelRegistry
- *
  * @note ⚠️ PRODUCTION: Инициализируйте на старте, не на горячем пути!
- * Builder НЕ thread-safe, но registry после build() полностью thread-safe.
- *
- * @note Multi-registry: можно создать несколько registry для разных pipeline contexts.
- * Каждый registry независим и immutable после build(), что позволяет использовать
- * разные наборы уровней доверия в разных контекстах приложения.
- *
- * @example
- * // Разные registry для разных контекстов
- * const defaultRegistry = createTrustLevelRegistry()...build();
- * const strictRegistry = createTrustLevelRegistry()...build(); // с дополнительными уровнями
- * const permissiveRegistry = createTrustLevelRegistry()...build(); // с другими уровнями
+ *       Builder НЕ thread-safe, но registry после build() полностью thread-safe.
+ *       Multi-registry: можно создать несколько registry для разных pipeline contexts.
+ *       Каждый registry независим и immutable после build(), что позволяет использовать
+ *       разные наборы уровней доверия в разных контекстах приложения.
+ * @example const defaultRegistry = createTrustLevelRegistry()...build(); const strictRegistry = createTrustLevelRegistry()...build(); // с дополнительными уровнями
+ * @public
  */
-export function createTrustLevelRegistry(): TrustLevelRegistryBuilder {
+export function createTrustLevelRegistry(): TrustLevelRegistryBuilder { // Builder для создания registry
   const state: TrustLevelRegistryBuilderState = { levels: [] };
   return createBuilderFromState(state);
 }
@@ -186,9 +187,15 @@ function createBuilderFromState(
   return Object.freeze({ withLevel, build });
 }
 
+/* ============================================================================
+ * 3. CONSTANTS — DEFAULT REGISTRY
+ * ============================================================================
+ */
+
 /**
  * Дефолтный registry с базовыми уровнями (UNTRUSTED, PARTIAL, TRUSTED)
- * Thread-safe, immutable, инициализирован на старте.
+ * @note Thread-safe, immutable, инициализирован на старте
+ * @public
  */
 export const defaultTrustLevelRegistry: TrustLevelRegistry = createTrustLevelRegistry()
   .withLevel(trustLevels.UNTRUSTED as TrustLevel, 'UNTRUSTED')
@@ -197,78 +204,58 @@ export const defaultTrustLevelRegistry: TrustLevelRegistry = createTrustLevelReg
   .build();
 
 /* ============================================================================
- * 🔧 UTILITY FUNCTIONS
+ * 4. HELPERS — UTILITY FUNCTIONS
  * ============================================================================
  */
 
 /**
  * Получает имя уровня доверия (для отладки)
- * O(1), возвращает "UNKNOWN" если уровень не найден.
+ * @note O(1), возвращает "UNKNOWN" если уровень не найден
+ * @public
  */
 export function getTrustLevelName(
-  level: TrustLevel,
-  registry: TrustLevelRegistry = defaultTrustLevelRegistry,
-): string {
+  level: TrustLevel, // Уровень доверия
+  registry: TrustLevelRegistry = defaultTrustLevelRegistry, // Registry уровней доверия
+): string { // Имя уровня доверия
   return registry.trustLevelNames.get(level) ?? 'UNKNOWN';
 }
 
 /**
  * Проверяет, является ли значение TrustLevel в данном registry
- * O(1), защищает от NaN, Infinity, подделок.
+ * @note O(1), защищает от NaN, Infinity, подделок
+ * @public
  */
 export function isTrustLevel(
-  x: unknown,
-  registry: TrustLevelRegistry = defaultTrustLevelRegistry,
-): x is TrustLevel {
+  x: unknown, // Значение для проверки
+  registry: TrustLevelRegistry = defaultTrustLevelRegistry, // Registry уровней доверия
+): x is TrustLevel { // Type guard для TrustLevel
   return registry.orderIndexMap.has(x as TrustLevel);
 }
 
 /* ============================================================================
- * 🔐 LATTICE OPERATIONS
+ * 5. LATTICE OPERATIONS — SECURITY LATTICE OPERATIONS
  * ============================================================================
  *
  * Workflow: Registry → Meet → Dominates
- * ┌───────────────────────────────────────────────────────────────┐
- * │                                                               │
- * │  Registry (immutable)                                         │
- * │  ┌──────────────────────────────────────────────────────────┐ │
- * │  │ order: [UNTRUSTED, PARTIAL, TRUSTED]                     │ │
- * │  │ orderIndexMap: {UNTRUSTED→0, PARTIAL→1, TRUSTED→2}       │ │
- * │  └──────────────────────────────────────────────────────────┘ │
- * │                           │                                   │
- * │                           ▼                                   │
- * │  meetTrust(a, b, registry)                                    │
- * │  ┌──────────────────────────────────────────────────────────┐ │
- * │  │ 1. Получить индексы из orderIndexMap (O(1))              │ │
- * │  │ 2. Вернуть уровень с меньшим индексом                    │ │
- * │  │    (наименее доверенный = fail-closed)                   │ │
- * │  │ 3. Пример: meet(UNTRUSTED, TRUSTED) → UNTRUSTED          │ │
- * │  └──────────────────────────────────────────────────────────┘ │
- * │                           │                                   │
- * │                           ▼                                   │
- * │  dominates(a, b, registry)                                    │
- * │  ┌──────────────────────────────────────────────────────────┐ │
- * │  │ Выражена через meet: meet(a, b) === b                    │ │
- * │  │ Пример: dominates(TRUSTED, UNTRUSTED) → true             │ │
- * │  │          (TRUSTED >= UNTRUSTED в lattice порядке)        │ │
- * │  └──────────────────────────────────────────────────────────┘ │
- * │                                                               │
- * └───────────────────────────────────────────────────────────────┘
+ * Registry (immutable) → meetTrust(a, b, registry) → dominates(a, b, registry)
+ * meetTrust: возвращает уровень с меньшим индексом (наименее доверенный = fail-closed)
+ * dominates: выражена через meet: meet(a, b) === b (lattice property)
  */
 
 /**
  * Lattice meet операция (restrict trust)
- * Возвращает наименьший уровень доверия из двух (fail-closed security model).
- *
+ * @note Возвращает наименьший уровень доверия из двух (fail-closed security model).
+ *       Единственная допустимая операция над TrustLevel.
+ *       Идемпотентна, коммутативна, ассоциативна. Fail-hard при неизвестных уровнях.
  * @example meetTrust(UNTRUSTED, TRUSTED) === UNTRUSTED
- * @note Единственная допустимая операция над TrustLevel
- * Идемпотентна, коммутативна, ассоциативна. Fail-hard при неизвестных уровнях.
+ * @throws {Error} Если уровень не найден в registry
+ * @public
  */
 export function meetTrust(
-  a: TrustLevel,
-  b: TrustLevel,
-  registry: TrustLevelRegistry = defaultTrustLevelRegistry,
-): TrustLevel {
+  a: TrustLevel, // Первый уровень доверия
+  b: TrustLevel, // Второй уровень доверия
+  registry: TrustLevelRegistry = defaultTrustLevelRegistry, // Registry уровней доверия
+): TrustLevel { // Наименьший уровень доверия из двух (fail-closed)
   // Lattice order определяется порядком в registry.order
   // Meet = наименее доверенный (fail-closed security model)
   const indexA = registry.orderIndexMap.get(a);
@@ -291,14 +278,15 @@ export function meetTrust(
 
 /**
  * Проверяет, доминирует ли уровень a над b в lattice порядке
- * a >= b ⇔ meet(a, b) === b (lattice property)
- * O(1), deterministic, no allocation. Выражена через lattice meet (single source of truth).
+ * @note a >= b ⇔ meet(a, b) === b (lattice property).
+ *       O(1), deterministic, no allocation. Выражена через lattice meet (single source of truth).
+ * @public
  */
 export function dominates(
-  a: TrustLevel,
-  b: TrustLevel,
-  registry: TrustLevelRegistry = defaultTrustLevelRegistry,
-): boolean {
+  a: TrustLevel, // Первый уровень доверия
+  b: TrustLevel, // Второй уровень доверия
+  registry: TrustLevelRegistry = defaultTrustLevelRegistry, // Registry уровней доверия
+): boolean { // true если a >= b в lattice порядке
   // a >= b ⇔ meet(a, b) === b (lattice property)
   return meetTrust(a, b, registry) === b;
 }
