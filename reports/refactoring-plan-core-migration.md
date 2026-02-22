@@ -600,154 +600,143 @@ Rule-engine = policy-agnostic evaluator, работает только с пре
 **КРИТИЧНО:** Pipeline = universal orchestration runtime, работает с slot graph (не domain state!)\
 Pipeline только: run stages, pass state through slots, collect outputs.
 
-#### 1.8.1: Создание plugin-api.ts (Dependency-Driven)
+#### 1.8.1: Создание plugin-api.ts (Dependency-Driven) ✅
 
-**КРИТИЧНО:** Pipeline = dependency-driven execution engine, не middleware chain!
+**Выполнено:**
 
-**Целевой файл:**
-
-- `packages/core/src/pipeline/plugin-api.ts`
-
-**Действия:**
-
-1. Создать generic интерфейс `StagePlugin<TSlotMap>`:
-
-```typescript
-interface StagePlugin<TSlotMap> {
-  provides: (keyof TSlotMap)[];
-  dependsOn?: (keyof TSlotMap)[];
-  run(ctx: StageContext<TSlotMap>): Promise<Partial<TSlotMap>>;
-  onError?: (error: Error) => void; // опциональный hook для ошибок
-}
-```
-
-2. **КРИТИЧНО:** Pipeline сам решает порядок на основе provides/dependsOn
-3. Pipeline управляет: зависимостями, fan-out, fan-in, lazy stages, cancellation, partial recompute
-4. Добавить примеры TSlotMap:
-   ```typescript
-   // Пример slot map для classification domain
-   type ClassificationSlotMap = {
-     signals: ClassificationSignals;
-     context: ClassificationContext;
-     rules: Rule[];
-     evaluation: ClassificationEvaluationResult;
-   };
-   ```
-5. Добавить опциональный fallback stage для глобальных ошибок
-6. Добавить документацию с примерами
-7. Обновить экспорт в `packages/core/src/pipeline/index.ts`
-
-**Тесты:**
-
-- Создать `packages/core/tests/pipeline/plugin-api.test.ts`
-- Тесты для dependency-driven plugin API
-- Тесты для порядка выполнения на основе dependencies
-
-**Зависимости:**
-
-- Нет внешних зависимостей (только TypeScript типы)
+- **Файл:** `packages/core/src/pipeline/plugin-api.ts`
+- **Архитектура:** generic dependency-driven execution engine API (не middleware chain). Pipeline автоматически определяет порядок выполнения на основе provides/dependsOn. Dependency resolution, fan-out/fan-in, lazy stages, cancellation, partial recompute
+- **Основные модули (4):** `validatePlugin` (проверка структуры и типов plugin), `validatePipelineConfig` (валидация конфигурации pipeline), `defineStage` (factory helper с tuple type inference), `defineFallback` (factory helper для fallback стадий)
+- **Типы (10):** `StageContext`, `StageMetadata`, `StagePlugin`, `StageResult`, `StageFailureReason`, `StageError`, `FallbackStage`, `PipelineConfig`, `PipelineResult`, `PipelineFailureReason`
+- **Internal Helpers (3):** `validateOptionalNumber` (валидация опциональных числовых полей), `validateOptionalBoolean` (валидация опциональных boolean полей), `validateFallbackStage` (валидация fallback стадии)
+- **Принципы:** SRP, Deterministic, Domain-pure, Microservice-ready, Scalable, Strict typing (union-типы, generic по TSlotMap, tuple type для provides), Extensible, Immutable, Security (compile-time provides/slots enforcement, runtime validation, AbortSignal для cancellation, fallback isolation)
+- **Тесты:** `packages/core/tests/pipeline/plugin-api.test.ts` (61 тест, 100% покрытие statements/functions/lines, 95.31% branch coverage)
+- **Экспорт:** `packages/core/src/pipeline/index.ts`, `packages/core/src/index.ts`
+- **Зависимости:** Нет внешних зависимостей (только TypeScript типы)
 
 ---
 
-#### 1.8.1.1: Unit-тесты для plugin-api (Dependency-Driven Execution)
+#### 1.8.2: Перенос pipeline engine ✅
 
-**КРИТИЧНО:** Сразу написать тесты на зависимости и порядок выполнения!
+**Выполнено:**
 
-**Целевой файл:**
+**1. errors.ts:**
 
-- `packages/core/tests/pipeline/plugin-api.test.ts`
-
-**Действия:**
-
-1. Создать тесты для dependency resolution:
-   - Тест: порядок выполнения на основе `dependsOn`
-   - Тест: fan-out (один plugin зависит от нескольких)
-   - Тест: fan-in (несколько plugins зависят от одного)
-   - Тест: циклические зависимости (должны быть обнаружены)
-2. Создать тесты для provides:
-   - Тест: plugin предоставляет требуемые слоты
-   - Тест: отсутствующие зависимости (должны быть обнаружены)
-3. Создать тесты для порядка выполнения:
-   - Тест: lazy stages (выполняются только при необходимости)
-   - Тест: cancellation (прерывание выполнения)
-   - Тест: partial recompute (пересчет только зависимых стадий)
-
-**Тесты:**
-
-- Минимум 10 unit-тестов для dependency-driven execution
-- Покрытие edge cases (циклы, отсутствующие зависимости)
-- **Stress-tests на DAG:** большие графы зависимостей (100+ plugins), сложные циклы, параллельное выполнение
-
-**Зависимости:**
-
-- `pipeline/plugin-api.ts`
+- **Файл:** `packages/core/src/pipeline/errors.ts`
+- **Архитектура:** type-safe слой нормализации и классификации ошибок pipeline (execution/isolation/timeout/cancelled/dependency).
+- **Основные модули:** классы ошибок (`TimeoutError`, `IsolationError`, `CancelledError`), фабрики (`createExecutionError`, `createIsolationError`, `createTimeoutError`, `createCancelledError`, `createDependencyError`, `createPipelineError`), классификация/нормализация (`classifyError`, `normalizePipelineError`), конвертеры (`pipelineErrorToStageFailureReason`, `pipelineErrorToStageError`, `stageFailureReasonToPipelineError`).
+- **Типы:** `PipelineError`, `PipelineStageError`, `BrandedStageError`, `PipelineErrorMetadata`.
+- **Принципы:** deterministic mapping, strict unions, predictable error surface, runtime validation metadata.
+- **Тесты:** `packages/core/tests/pipeline/errors.test.ts` — 118 тестов, coverage: 100/100/100/100.
+- **Экспорт:** через `packages/core/src/pipeline/index.ts`.
+- **Зависимости:** `./plugin-api.js` (типы `PipelineFailureReason`, `StageError`, `StageFailureReason`).
 
 ---
 
-#### 1.8.2: Перенос pipeline engine (generic orchestration)
+**2. feature-flags.ts:**
 
-**Исходная директория:**
+- **Файл:** `packages/core/src/pipeline/feature-flags.ts`
+- **Архитектура:** pure feature-flag rollout (tenant/bucket/traffic) с композицией резолверов и приоритетов.
+- **Основные модули:** `createUserBucketResolver`, `createTenantResolver`, `createTrafficPercentageResolver`, `createCombinedResolver`, `resolvePipelineMode`, `resolveFeatureFlag`, `isShadowMode`, `isActiveMode`, `getPipelineVersion`.
+- **Типы:** `PipelineVersion`, `PipelineMode`, `FeatureFlagSource`, `ResolverPriority`, `RolloutConfig`, `FeatureFlagResolver`, `FeatureFlagResult`.
+- **Принципы:** deterministic resolution, domain-pure configuration, composable resolvers, no hidden side-effects.
+- **Тесты:** `packages/core/tests/pipeline/feature-flags.test.ts` — 56 тестов, coverage: 100/89.62/100/100.
+- **Экспорт:** через `packages/core/src/pipeline/index.ts`.
+- **Зависимости:** внешние импорты отсутствуют (pure module).
 
-- `packages/feature-auth/src/lib/security-pipeline/`
+---
 
-**Целевая директория:**
+**3. runtime-overrides.ts:**
 
-- `packages/core/src/pipeline/`
+- **Файл:** `packages/core/src/pipeline/runtime-overrides.ts`
+- **Архитектура:** runtime override layer для безопасного изменения pipeline-конфига с приоритетами (custom/runtime/environment).
+- **Основные модули:** `createDefaultEnvProvider`, `createEnvProviderFromObject`, `readRuntimeOverridesFromEnv`, `createCustomOverrideProvider`, `createDefaultOverrideMapper`, `applyRuntimeOverrides`, `hasActiveOverrides`, `getActiveOverrideKeys`, `validateRuntimeOverrides`.
+- **Типы:** `OverrideKey`, `OverrideSource`, `OverridePriority`, `RuntimeOverride`, `RuntimeOverrides`, `OverrideResult`, `OverrideEvent`, `OverrideProvider`, `OverrideApplier`.
+- **Принципы:** deterministic apply order, explicit priority map, observable override events, strict runtime validation.
+- **Тесты:** `packages/core/tests/pipeline/runtime-overrides.test.ts` — 68 тестов, coverage: 100/94.66/100/100.
+- **Экспорт:** через `packages/core/src/pipeline/index.ts`.
+- **Зависимости:** внешние импорты отсутствуют (pure module).
 
-**Файлы для переименования и переноса:**
+---
 
-1. `core/security-pipeline.engine.ts` → `engine.ts`
-2. `core/security-pipeline.facade.ts` → `facade.ts`
-3. `core/security-pipeline.adapter.ts` → `adapter.ts`
-4. `core/security-pipeline.errors.ts` → `errors.ts`
-5. `core/security-pipeline.feature-flags.ts` → `feature-flags.ts`
-6. `core/security-pipeline.runtime-overrides.ts` → `runtime-overrides.ts`
-7. `core/security-pipeline.safety-guard.ts` → `safety-guard.ts`
-8. `core/security-pipeline.replay.ts` → `replay.ts`
-9. `security-pipeline.ts` → `index.ts` (public API)
+**4. safety-guard.ts:**
 
-**Действия для каждого файла:**
+- **Файл:** `packages/core/src/pipeline/safety-guard.ts`
+- **Архитектура:** metrics-driven guardrail движок для rollback-решений на основе приоритетных правил.
+- **Основные модули:** `createMinMeasurementsRule`, `createThresholdRule`, `createCombinedRule`, `evaluateSafetyGuard`, `createRollbackConfig`, `updateSafetyGuardState` + сортировка приоритетов (`compareRulePriorities`, `sortRuleResultsByPriority`).
+- **Типы:** `SafetyRule`, `SafetyRuleResult`, `SafetyGuardConfig`, `SafetyGuardResult`, `SafetyGuardState`, `RulePriority`, `RollbackEvent`.
+- **Принципы:** deterministic rule order, composable policies, state-safe window reset, strong typing of metrics.
+- **Тесты:** `packages/core/tests/pipeline/safety-guard.test.ts` — 48 тестов, coverage: 100/100/100/100.
+- **Экспорт:** через `packages/core/src/pipeline/index.ts`.
+- **Зависимости:** внешние импорты отсутствуют (pure module).
 
-1. Переименовать файл
-2. Обновить импорты на типы из `resilience/`, `pipeline/plugin-api.ts`
-3. Обновить пути в комментариях
-4. Убрать упоминания "security" в названиях и комментариях
-5. **КРИТИЧНО:** Убрать classification-специфичную логику (переносится в domains/src/classification/)
-6. **КРИТИЧНО:** Использовать dependency-driven `StagePlugin<TSlotMap>` с provides/dependsOn из plugin-api
-7. Обновить экспорты в `packages/core/src/pipeline/index.ts`
+---
 
-**Особые изменения:**
+**5. replay.ts:**
 
-- `engine.ts`:
-  - Использовать `resilience/circuit-breaker.ts` вместо `security-pipeline.circuit-breaker.ts`
-  - Использовать `resilience/metrics.ts` вместо `security-pipeline.metrics.ts`
-  - Использовать `pipeline/plugin-api.ts` для generic plugin interface
-  - **НЕ включать classification-специфичную логику** (providers, strategies, context-builders)
-  - Работать с slot graph, не domain state
+- **Файл:** `packages/core/src/pipeline/replay.ts`
+- **Архитектура:** replay capture toolkit с фильтрами, санитизацией контекста и управляемой генерацией event id.
+- **Основные модули:** `defaultEventIdGenerator`, `deterministicEventIdGenerator`, `formatTimestamp`, `shouldCaptureEvent`, `applyFilters`, `createCombinedFilter`, `createFieldRemovalSanitizer`, `createTransformSanitizer`, `createCombinedSanitizer`, `createReplayEvent`.
+- **Типы:** `ReplayEvent`, `ReplayEventFilter`, `ContextSanitizer`, `ReplayEventSaver`, `MetadataFactory`, `CaptureResult`, `ReplayCaptureConfig`.
+- **Принципы:** privacy-first capture, deterministic ids/timestamps, composable sanitizers/filters, bounded capture policies.
+- **Тесты:** `packages/core/tests/pipeline/replay.test.ts` — 54 теста, coverage: 100/100/100/100.
+- **Экспорт:** через `packages/core/src/pipeline/index.ts`.
+- **Зависимости:** внешние импорты отсутствуют (pure module).
 
-**Тесты:**
+---
 
-- Перенести `packages/feature-auth/tests/unit/lib/security-pipeline/` → `packages/core/tests/pipeline/`
-- Обновить все импорты на core типы
-- Обновить названия файлов и функций в тестах
-- Убрать auth-специфичные моки
-- Убрать classification-специфичные тесты (переносятся в domains/tests/classification/)
+**6. adapter.ts:**
 
-**Зависимости:**
+- **Файл:** `packages/core/src/pipeline/adapter.ts`
+- **Архитектура:** runtime adapter для cancellation/timeout orchestration вокруг async effects.
+- **Основные модули:** `createAbortPromise`, `createTimeoutPromise`, `createRuntimeAdapter`, `withTimeout`, `adaptEffectLibrary` + guards `isAborted`, `isCancellationError`, `isAdapterTimeoutError`.
+- **Типы:** `PipelineEffect`, `RuntimeAdapter`, `RuntimeAdapterFactory`, `AdapterConfig`, `AdapterResult`, `CancellablePromise`, `AdapterEvent`.
+- **Принципы:** explicit lifecycle events, reliable cleanup, typed error channels, composable runtime integration.
+- **Тесты:** `packages/core/tests/pipeline/adapter.test.ts` — 52 теста, coverage: 100/97.14/100/100.
+- **Экспорт:** через `packages/core/src/pipeline/index.ts`.
+- **Зависимости:** внешние импорты отсутствуют (используются глобальные `AbortSignal`, `setTimeout`, `clearTimeout`).
 
-- `pipeline/plugin-api.ts`
-- `resilience/circuit-breaker.ts`
-- `resilience/metrics.ts`
-- `resilience/performance-limits.ts`
+---
 
-**Чеклист после создания pipeline:**
+**7. plan.ts:**
 
-- [ ] Plugin-api создан с dependency-driven execution
-- [ ] Unit-тесты для plugin-api написаны
-- [ ] Pipeline engine перенесен и обновлен
-- [ ] TypeScript компилируется без ошибок
-- [ ] Pipeline работает с slot graph (не domain state)
-- [ ] Нет classification-специфичной логики в pipeline
+- **Файл:** `packages/core/src/pipeline/plan.ts`
+- **Архитектура:** immutable compiler execution-plan (DAG) с validate + topological sort + materialization.
+- **Основные модули:** `createExecutionPlan`, `createExecutionPlanSafe`, `createExecutionPlanOrThrow`.
+- **Типы:** `ExecutionPlan`, `ExecutionPlanError`.
+- **Internal helpers (ключевые):** нормализация плагинов, проверка duplicate providers/unknown slots/cycle, dependency indexes, deterministic hash/version, stable sorting helpers.
+- **Принципы:** deterministic compilation, O(V+E) graph operations, branded ids (`StageId`/`SlotId`), strict validation, immutable plan structure.
+- **Тесты:** `packages/core/tests/pipeline/plan.test.ts` — 42 теста, coverage: 95.62/82.16/100/95.73.
+- **Экспорт:** через `packages/core/src/pipeline/index.ts`.
+- **Зависимости:** `./plugin-api.js` (`validatePlugin`, типы pipeline).
+
+---
+
+**8. engine.ts:**
+
+- **Файл:** `packages/core/src/pipeline/engine.ts`
+- **Архитектура:** execution orchestrator поверх compiled plan: sequential + parallel (fan-out/fan-in), guard checks, deterministic merge.
+- **Основные модули:** `createPipelineEngine`, `executePipeline`.
+- **Типы:** `ExecutionState`, `StageExecutionResult`.
+- **Internal helpers (ключевые):** `executeSequentially`, `executeWithParallelSupport`, `executeStageBatch`, `executeLevel`, `executeBatch`, `mergeResults`, `guardChecks`, `handleStageError`, `normalizeExecutionError`.
+- **Принципы:** SRP helpers, deterministic behavior, timeout/cancellation control, throttling (`maxParallelStages`), safe error normalization.
+- **Тесты:** `packages/core/tests/pipeline/engine.test.ts` — 38 тестов, coverage: 100/97.11/100/100.
+- **Экспорт:** через `packages/core/src/pipeline/index.ts`.
+- **Зависимости:** `./plan.js` (`createExecutionPlan`, `ExecutionPlan`), `./plugin-api.js` (`validatePipelineConfig` + types).
+
+---
+
+**9. facade.ts:**
+
+- **Файл:** `packages/core/src/pipeline/facade.ts`
+- **Архитектура:** policy-driven facade над compile/execute командным API (ALLOW/REWRITE/REJECT) с audit hook.
+- **Основные модули:** `createPipelineFacade`, `createAllowAllRule`, `createAllowedCommandsRule`.
+- **Типы:** `PipelineFacadeCommand`, `PipelineFacadeRule`, `FacadeRuleDecision`, `PipelineFacadeResult`, `PipelineFacadeFailure`, `FacadeAuditEvent`, `PipelineFacadeOptions`.
+- **Internal helpers (ключевые):** `resolveCommandWithRules`, `dispatchHandler`, `assertNever`, преобразование ошибок compile/execute в facade failure unions.
+- **Принципы:** deterministic rule pipeline, strict command/result unions, extensible handlers, side-effect control через explicit audit hook.
+- **Тесты:** `packages/core/tests/pipeline/facade.test.ts` — 25 тестов, coverage: 96.29/96.77/94.73/96.22.
+- **Экспорт:** через `packages/core/src/pipeline/index.ts`.
+- **Зависимости:** `./engine.js` (`executePipeline`), `./plan.js` (`createExecutionPlanSafe`, типы plan), `./plugin-api.js` (pipeline types).
 
 ---
 
