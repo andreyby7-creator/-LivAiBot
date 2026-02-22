@@ -801,101 +801,68 @@ Rule-engine = policy-agnostic evaluator, работает только с пре
 
 ### Шаг 1.9: Перенос resilience (Reliability Primitives)
 
-#### 1.9.1: Перенос circuit-breaker.ts
+#### 1.9.1: Перенос circuit-breaker.ts ✅
 
-**Исходный файл:**
+**Выполнено:**
 
-- `packages/feature-auth/src/lib/security-pipeline/core/security-pipeline.circuit-breaker.ts`
-
-**Целевой файл:**
-
-- `packages/core/src/resilience/circuit-breaker.ts`
-
-**Действия:**
-
-1. Перенести файл
-2. Убрать зависимости от security-pipeline
-3. Сделать generic circuit breaker
-4. Обновить путь в комментариях
-5. Обновить экспорт в `packages/core/src/resilience/index.ts`
-
-**Тесты:**
-
-- Создать `packages/core/tests/resilience/circuit-breaker.test.ts`
-- Адаптировать логику тестов (убрать security-pipeline зависимости)
-- Generic тесты для circuit breaker
-
-**Зависимости:**
-
-- Нет внешних зависимостей (или минимальные)
+- **Файлы:**
+  - `packages/core/src/resilience/circuit-breaker.ts`
+  - `packages/core/src/resilience/index.ts` (подключен экспорт circuit-breaker)
+- **Архитектура:** generic circuit breaker как pure reliability primitive для SLA-изоляции внешних зависимостей. Детерминированный two-phase API: 1) gate evaluation (можно ли делать запрос сейчас), 2) outcome application (обновление состояния после результата запроса).
+- **Основной API:** `createInitialCircuitBreakerState`, `evaluateCircuitBreakerGate`, `applyCircuitBreakerOutcome`, `DEFAULT_CIRCUIT_BREAKER_CONFIG`.
+- **Типы:** `CircuitBreakerState`, `CircuitBreakerBlockReason`, `CircuitBreakerConfig`, `CircuitBreakerMetrics`, `CircuitBreakerGateDecision`, `CircuitBreakerRequestOutcome`.
+- **Ключевые внутренние модули:**
+  - state machine: `refreshErrorBudgetWindow`, `calculateFailureRate`, `shouldOpenCircuit`, `shouldCloseCircuit`;
+  - config normalization: `normalizeConfig`, `normalizeNonNegativeInteger`, `normalizePercentage`;
+  - gate evaluation: логика для closed/open/half-open состояний с error budget и cooldown;
+  - outcome application: обновление метрик и переходы состояний на основе success/failure.
+- **Принципы:** SRP (gate-оценка и state transition отделены), deterministic (нет скрытых часов/рандома, время передается явно), domain-pure (без IO/логирования/глобального состояния), extensible (policy-конфигурация меняет поведение без изменения core-алгоритма), strict typing (union-типы для состояний/причин, без stringly-typed API).
+- **Тесты:** `packages/core/tests/resilience/circuit-breaker.test.ts` — 15 тестов, покрывают gate/outcome state machine, error budget, cooldown, half-open probes, config normalization, edge-cases.
+- **Зависимости:** нет внешних зависимостей (pure TypeScript implementation).
 
 ---
 
-#### 1.9.2: Перенос metrics.ts
+#### 1.9.2: Перенос metrics.ts ✅
 
-**Исходный файл:**
+**Выполнено:**
 
-- `packages/feature-auth/src/lib/security-pipeline/core/security-pipeline.metrics.ts`
-
-**Целевой файл:**
-
-- `packages/core/src/resilience/metrics.ts`
-
-**Действия:**
-
-1. Перенести файл
-2. Убрать зависимости от security-pipeline
-3. Сделать generic metrics
-4. Обновить путь в комментариях
-5. Обновить экспорт в `packages/core/src/resilience/index.ts`
-
-**Тесты:**
-
-- Создать `packages/core/tests/resilience/metrics.test.ts`
-- Адаптировать логику тестов (убрать security-pipeline зависимости)
-- Generic тесты для metrics
-
-**Зависимости:**
-
-- Нет внешних зависимостей (или минимальные)
+- **Файлы:**
+  - `packages/core/src/resilience/metrics.ts`
+  - `packages/core/src/resilience/index.ts` (подключен экспорт metrics)
+- **Архитектура:** generic metrics primitive для агрегации и анализа метрик производительности, надежности и SLA-индикаторов. Детерминированный API для накопления, агрегации и анализа временных рядов метрик с поддержкой counter, gauge, histogram и summary типов.
+- **Основной API:** `createInitialMetricsState`, `addMetric`, `aggregateMetrics`, `createCounterMetric`, `createGaugeMetric`, `createHistogramMetric`, `createSummaryMetric`, `DEFAULT_METRICS_AGGREGATION_CONFIG`.
+- **Типы:** `MetricType`, `MetricUnit`, `MetricValue`, `AggregatedMetric`, `MetricAggregates`, `MetricsAggregationConfig`, `MetricsState`, `MetricAddResult`, `MetricAddFailureReason`, `MetricsAggregationResult`.
+- **Ключевые внутренние модули:**
+  - state machine: `refreshWindow`, `getWindowStartMs`, `isValueInWindow`;
+  - validation: `validateMetricValue`;
+  - aggregation: `aggregateCounterOrGauge`, `aggregateHistogram`, `aggregateSummary`, `calculateHistogramBuckets`, `calculateQuantiles` (с линейной интерполяцией);
+  - config normalization: `normalizeConfig`, `normalizePositiveInteger`;
+  - helpers: `deepFreezeTags`, `ensureFrozenArray` (оптимизация для immutable массивов), `serializeTags` (детерминированная группировка).
+- **Принципы:** SRP (сбор, агрегация и анализ метрик разделены), deterministic (нет скрытых часов/рандома, время передается явно), domain-pure (без IO/логирования/глобального состояния), extensible (policy-конфигурация меняет поведение без изменения core-алгоритма), strict typing (union-типы для типов метрик/агрегаций, без stringly-typed API), functional style (immutable transformations через reduce/map/filter, без мутаций), production-grade (оптимизации: ensureFrozenArray для immutable массивов, линейная интерполяция квантилей), immutability guarantees (deep freeze для tags, frozen arrays для защиты от downstream мутаций).
+- **Тесты:** `packages/core/tests/resilience/metrics.test.ts` — 46 тестов, покрывают state machine, агрегацию всех типов метрик, группировку по тегам, валидацию, edge-cases, оптимизации (frozen arrays, линейная интерполяция квантилей), coverage ~100% (кроме недостижимых строк).
+- **Зависимости:** нет внешних зависимостей (pure TypeScript implementation).
 
 ---
 
-#### 1.9.3: Перенос performance-limits.ts
+#### 1.9.3: Перенос performance-limits.ts ✅
 
-**Исходный файл:**
+**Выполнено:**
 
-- `packages/feature-auth/src/lib/security-pipeline/risk-sources/performance-limits.ts`
-
-**Целевой файл:**
-
-- `packages/core/src/resilience/performance-limits.ts`
-
-**Действия:**
-
-1. Перенести файл
-2. Убрать зависимости от security-pipeline
-3. Сделать generic performance limits
-4. Обновить путь в комментариях
-5. Обновить экспорт в `packages/core/src/resilience/index.ts`
-
-**Тесты:**
-
-- Создать `packages/core/tests/resilience/performance-limits.test.ts`
-- Адаптировать логику тестов (убрать security-pipeline зависимости)
-- Generic тесты для performance limits
-
-**Зависимости:**
-
-- `resilience/metrics.ts`
-
-**Чеклист после переноса resilience:**
-
-- [ ] Все файлы перенесены (circuit-breaker, metrics, performance-limits)
-- [ ] Тесты перенесены и обновлены
-- [ ] TypeScript компилируется без ошибок
-- [ ] Нет зависимостей от security-pipeline
-- [ ] Generic версии созданы
+- **Файлы:**
+  - `packages/core/src/resilience/performance-limits.ts`
+  - `packages/core/src/resilience/index.ts` (подключен экспорт performance-limits)
+- **Архитектура:** generic performance limits primitive для валидации и контроля лимитов производительности операций. Детерминированный API для проверки лимитов без side-effects и глобального состояния. Интегрируется с metrics.ts для создания метрик на основе результатов проверки.
+- **Основной API:** `validatePerformanceLimits`, `createPerformanceLimitsConfig`, `checkLimitByType`, `checkLimits` (bulk API), `checkRulesLimit`, `checkExecutionTimeLimit`, `checkPluginsLimit`, `checkMemoryLimit`, `checkConcurrentOperationsLimit`, `createLimitExceededMetric`, `createLimitUsageMetric`, `createLimitUsageGaugeMetric`, `createLimitRemainingMetric`, `createAllMetricsForLimit`, `DEFAULT_PERFORMANCE_LIMITS_CONFIG`.
+- **Типы:** `PerformanceLimitType`, `LimitCheckResult`, `PerformanceLimitsConfig`, `LimitsValidationResult`, `LimitsValidationError`, `LimitsValidationErrorReason`.
+- **Ключевые внутренние модули:**
+  - validation: `validatePerformanceLimits`, `validateLimitValue`, `validateActualValue`, `validateMetricTags`;
+  - normalization: `normalizeConfig`, `normalizePositiveInteger`, `normalizeNonNegativeInteger`, `getNormalizedConfig` (с WeakMap кешированием);
+  - limit checking: `checkLimitByType` (rule-engine через `LIMIT_EXTRACTORS` с `as const satisfies`), `checkLimits` (bulk API);
+  - metrics integration: `createLimitExceededMetric`, `createLimitUsageMetric`, `createLimitUsageGaugeMetric`, `createLimitRemainingMetric`, `createAllMetricsForLimit`;
+  - helpers: `escapeMetricTagValue` (безопасное экранирование для Prometheus/Influx), `createMetricTags` (с автоматическим экранированием пользовательских тегов).
+- **Принципы:** SRP (валидация, проверка, нормализация и генерация метрик разделены), deterministic (нет скрытых часов/рандома, все значения передаются явно), domain-pure (без IO/логирования/глобального состояния), extensible (rule-engine через динамический маппинг `LIMIT_EXTRACTORS` с `as const satisfies`, новые лимиты добавляются без изменения core-логики), strict typing (union-типы для типов лимитов/результатов, `Readonly<Record<PerformanceLimitType, ...>>`, `as const satisfies` для type safety), functional style (immutable transformations, `Object.freeze` для всех структур данных), scalable (единая `checkLimitByType` вместо дублирования логики, bulk API `checkLimits`, plug-and-play архитектура), performance (кеширование нормализованных конфигураций через WeakMap для high-frequency проверок с автоматической очисткой при удалении конфигурации), metrics integration (функции-генераторы метрик counter/gauge, валидация и escaping tags для безопасного экспорта в Prometheus/Influx, атомарное создание через `createAllMetricsForLimit`), precision loss documentation (явная документация `Math.floor` для дробных значений).
+- **Тесты:** `packages/core/tests/resilience/performance-limits.test.ts` — 67 тестов, покрывают валидацию конфигурации, проверку всех типов лимитов, bulk API, нормализацию, генерацию метрик, экранирование тегов, edge-cases, coverage 100% (statements/lines/functions), 92.77% (branches).
+- **Зависимости:** `resilience/metrics.ts` (для генерации метрик через функции-генераторы, без прямого импорта state).
 
 ---
 

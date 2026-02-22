@@ -111,6 +111,17 @@ export const effectFpNamingRules = [
         // Все функции и методы: camelCase
         { selector: 'function', format: ['camelCase'] },
         { selector: 'method', format: ['camelCase'] },
+        // Исключение для objectLiteralMethod: разрешаем snake_case для ключей, соответствующих union-типам
+        // Это необходимо для Record<UnionType, Function>, где ключи должны точно соответствовать значениям union-типа
+        {
+          selector: 'objectLiteralMethod',
+          filter: {
+            // Разрешаем snake_case ключи (содержат подчеркивания) для соответствия union-типам
+            regex: '^[a-z]+(_[a-z]+)+$',
+            match: true,
+          },
+          format: null, // Отключаем проверку формата для таких ключей
+        },
 
         // ==================== Переменные ====================
         // ErrorCode — доменная сущность (const enum-like object), разрешаем PascalCase (ПЕРЕД общим правилом)

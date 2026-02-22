@@ -86,6 +86,17 @@ export * from './aggregation/index.js';
 export * from './rule-engine/index.js';
 
 /* ============================================================================
+ * 🛡️ RESILIENCE — RELIABILITY PRIMITIVES
+ * ========================================================================== */
+/**
+ * Resilience подпакет: reliability primitives для отказоустойчивости.
+ * Включает deterministic circuit breaker как pure state machine без side-effects.
+ *
+ * @public
+ */
+export * from './resilience/index.js';
+
+/* ============================================================================
  * 🔄 PIPELINE — DEPENDENCY-DRIVEN EXECUTION ENGINE
  * ========================================================================== */
 /**

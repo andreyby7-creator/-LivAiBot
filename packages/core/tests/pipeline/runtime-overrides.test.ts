@@ -787,7 +787,6 @@ describe('Edge Cases & Stress Tests', () => {
     // Создаем новый mapper с переопределенным applier
     const customMapper = {
       ...baseMapper,
-      // eslint-disable-next-line @typescript-eslint/naming-convention
       force_version: (config: TestConfig, key: string) => {
         const result = baseMapper.force_version(config, key as any);
         return { ...result, modified: true };
