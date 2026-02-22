@@ -28,7 +28,8 @@ export type { ClassificationEvaluationResult } from './result.js';
 
 /**
  * Типы для assessment logic.
- * AssessmentContext - контекст для assessment logic, содержащий deviceInfo, context, riskScore и rule evaluation result.
+ * AssessmentContext - контекст для assessment logic, содержащий deviceInfo, context, riskScore и rule snapshot.
+ * RuleEvaluationSnapshot - минимальный промежуточный результат strategy layer для финальной сборки в evaluation layer.
  * AssessmentContextBuilderPlugin - плагин для расширения assessment context.
  * BuildAssessmentContextOptions - опции для сборки assessment context.
  *
@@ -39,6 +40,7 @@ export type {
   AssessmentContext,
   AssessmentContextBuilderPlugin,
   BuildAssessmentContextOptions,
+  RuleEvaluationSnapshot,
 } from './assessment.js';
 
 /* ============================================================================

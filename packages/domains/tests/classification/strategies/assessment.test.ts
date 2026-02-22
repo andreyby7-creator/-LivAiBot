@@ -175,14 +175,13 @@ describe('assessClassification', () => {
     expect(pluginCalled.value).toBe(true);
   });
 
-  it('должен обрабатывать плагин с extendAssessmentContext (не используется напрямую в assessClassification)', () => {
+  it('должен применять плагин с extendAssessmentContext через assessment layer', () => {
     const deviceInfo = createTestDeviceInfo();
     const context = createTestClassificationContext();
     if (!context) {
       throw new Error('Failed to create context');
     }
-    // extendAssessmentContext не вызывается напрямую в assessClassification,
-    // но плагин должен быть обработан без ошибок
+    // extendAssessmentContext применяется при сборке assessment context в evaluation layer.
     const plugin: ContextBuilderPlugin = {
       extendAssessmentContext: (ctx) => {
         return ctx;
@@ -352,6 +351,78 @@ describe('assessClassification', () => {
     expect(result1.label).toEqual(result2.label);
   });
 
+  it('должен быть детерминированным для одинакового ordered набора плагинов', () => {
+    const deviceInfo = createTestDeviceInfo();
+    const context = createTestClassificationContext();
+    if (!context) {
+      throw new Error('Failed to create context');
+    }
+    const plugins: readonly ContextBuilderPlugin[] = [
+      {
+        extendScoringContext: (ctx) => {
+          return Object.freeze({
+            ...ctx,
+            config: {
+              highRiskCountries: new Set(['RU']),
+            },
+          });
+        },
+      },
+      {
+        extendAssessmentContext: (ctx) => {
+          return Object.freeze({
+            ...ctx,
+            riskScore: 90,
+          });
+        },
+      },
+    ];
+
+    const result1 = assessClassification(deviceInfo, context, {}, plugins);
+    const result2 = assessClassification(deviceInfo, context, {}, plugins);
+    expect(result1).toEqual(result2);
+  });
+
+  it('должен учитывать порядок assessment-плагинов предсказуемо', () => {
+    const deviceInfo = createTestDeviceInfo();
+    const context = createTestClassificationContext();
+    if (!context) {
+      throw new Error('Failed to create context');
+    }
+
+    const setLowRiskScore: ContextBuilderPlugin = {
+      extendAssessmentContext: (ctx) => {
+        return Object.freeze({
+          ...ctx,
+          riskScore: 10,
+        });
+      },
+    };
+    const setCriticalRiskScore: ContextBuilderPlugin = {
+      extendAssessmentContext: (ctx) => {
+        return Object.freeze({
+          ...ctx,
+          riskScore: 90,
+        });
+      },
+    };
+
+    const lowThenCritical = assessClassification(
+      deviceInfo,
+      context,
+      {},
+      [setLowRiskScore, setCriticalRiskScore],
+    );
+    const criticalThenLow = assessClassification(
+      deviceInfo,
+      context,
+      {},
+      [setCriticalRiskScore, setLowRiskScore],
+    );
+
+    expect(lowThenCritical.label).not.toEqual(criticalThenLow.label);
+  });
+
   it('должен обрабатывать плагин, который возвращает тот же context (noop)', () => {
     const deviceInfo = createTestDeviceInfo();
     const context = createTestClassificationContext();
@@ -404,24 +475,18 @@ describe('assessClassification', () => {
   });
 
   it('должен выбрасывать ошибку для blocking violations', () => {
-    // classificationContext.create возвращает null для невалидных данных
-    // Проверяем валидацию через evaluateClassificationRules, который вызывается внутри assessClassification
     const deviceInfo = createTestDeviceInfo();
-    // Создаем контекст с валидными данными, но затем пытаемся передать невалидные signals
-    // В реальности это будет обработано в evaluateClassificationRules
-    const context = createTestClassificationContext({
-      signals: createTestSignals({
-        reputationScore: 50,
+    // Намеренно обходим factory, чтобы проверить fail-fast path блокирующей семантики.
+    const invalidContext = Object.freeze({
+      signals: Object.freeze({
+        reputationScore: 101,
         velocityScore: 30,
       }),
-    });
-    if (!context) {
-      throw new Error('Failed to create context');
-    }
-    // Этот тест проверяет, что assessClassification корректно передает контекст в evaluateClassificationRules
-    // и что ошибки валидации пробрасываются
-    const result = assessClassification(deviceInfo, context);
-    expect(result).toBeDefined();
+    }) as unknown as Parameters<typeof assessClassification>[1];
+
+    expect(() => assessClassification(deviceInfo, invalidContext)).toThrow(
+      'INVALID_REPUTATION_SCORE (out_of_range): removes_signal',
+    );
   });
 
   it('должен обрабатывать context без optional полей', () => {
@@ -434,14 +499,23 @@ describe('assessClassification', () => {
     expect(result).toBeDefined();
   });
 
-  it('должен обрабатывать policy с decision (не используется, но не должно вызывать ошибку)', () => {
+  it('должен обрабатывать policy с decision и проксировать ее в decision layer', () => {
     const deviceInfo = createTestDeviceInfo();
     const context = createTestClassificationContext();
     if (!context) {
       throw new Error('Failed to create context');
     }
     const policy: ClassificationPolicy = {
-      decision: { someField: 'value' },
+      decision: {
+        thresholds: {
+          mediumFrom: 35,
+          highFrom: 65,
+          criticalFrom: 85,
+        },
+        dangerousRuleCountFrom: 3,
+        dangerousVelocityFrom: 80,
+        dangerousReputationTo: 20,
+      },
     };
     const result = assessClassification(deviceInfo, context, policy);
     expect(result).toBeDefined();

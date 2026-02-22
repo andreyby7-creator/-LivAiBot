@@ -55,16 +55,16 @@ const riskScore = calculateRiskScore(scoring.scoringContext, defaultRiskWeights)
 // ruleContext → metadata.riskScore из валидированного riskScore
 const rule = buildRuleContext({ device, context, riskScore });
 
-// ruleEvaluationResult получается из strategies/deterministic.strategy.ts
-// через evaluateClassificationRules(device, context, { riskScore, ... })
-const ruleEvaluationResult = evaluateClassificationRules(device, context, { riskScore });
+// ruleEvaluationSnapshot получается из strategies/deterministic.strategy.ts
+// через evaluateClassificationRulesSnapshot(device, context, { riskScore, ... })
+const ruleEvaluationSnapshot = evaluateClassificationRulesSnapshot(device, context, { riskScore });
 
 // assessmentContext → собирает все результаты
 const assessment = buildAssessmentContext({
   device,
   context,
   riskScore: rule.ruleContext.metadata.riskScore,
-  ruleEvaluationResult, // ClassificationEvaluationResult
+  ruleEvaluationSnapshot, // RuleEvaluationSnapshot
 });
 ```
 

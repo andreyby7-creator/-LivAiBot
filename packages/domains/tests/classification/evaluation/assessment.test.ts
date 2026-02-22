@@ -3,8 +3,6 @@
  * Полное покрытие всех функций и edge cases (100%)
  */
 import { describe, expect, it } from 'vitest';
-// eslint-disable-next-line no-restricted-imports -- Тесты могут использовать прямой импорт из @livai/core
-import { confidence, evaluationLevel, evaluationScale } from '@livai/core';
 import type { ClassificationLabelValue } from '../../../src/classification/labels.js';
 import { classificationLabel } from '../../../src/classification/labels.js';
 import type {
@@ -12,29 +10,25 @@ import type {
   ClassificationSignals,
 } from '../../../src/classification/signals/signals.js';
 import { classificationContext } from '../../../src/classification/signals/signals.js';
-import type { ClassificationEvaluationResult } from '../../../src/classification/evaluation/result.js';
+import type { SemanticViolation } from '../../../src/classification/signals/violations.js';
+import type {
+  ClassificationRule,
+  DeviceInfo,
+} from '../../../src/classification/strategies/rules.js';
 import type {
   AssessmentContextBuilderPlugin,
   BuildAssessmentContextOptions,
+  RuleEvaluationSnapshot,
 } from '../../../src/classification/evaluation/assessment.js';
 import {
   assembleAssessmentResultFromContext,
   buildAssessmentContextWithPlugins,
 } from '../../../src/classification/evaluation/assessment.js';
-import type { DeviceInfo } from '../../../src/classification/strategies/rules.js';
 
 /* ============================================================================
  * 🔧 HELPER FUNCTIONS FOR TEST DATA
  * ============================================================================
  */
-
-function createTestLabel(value: ClassificationLabelValue) {
-  const result = classificationLabel.create(value);
-  if (!result.ok) {
-    throw new Error(`Failed to create label: ${JSON.stringify(result.reason)}`);
-  }
-  return result.value;
-}
 
 function createTestEvaluationResult(
   labelValue: ClassificationLabelValue,
@@ -44,34 +38,22 @@ function createTestEvaluationResult(
   scaleMax: number,
   usedSignals?: readonly (keyof ClassificationSignals)[],
   context?: ClassificationContext,
-): ClassificationEvaluationResult {
-  const label = createTestLabel(labelValue);
-  const scaleResult = evaluationScale.create(scaleMin, scaleMax, 'classification');
-  if (!scaleResult.ok) {
-    throw new Error(`Failed to create scale: ${JSON.stringify(scaleResult.reason)}`);
-  }
-  const scale = scaleResult.value;
-  const levelResult = evaluationLevel.create(levelValue, scale);
-  if (!levelResult.ok) {
-    throw new Error(`Failed to create level: ${JSON.stringify(levelResult.reason)}`);
-  }
-  const evaluationLevelValue = levelResult.value;
-  const confidenceResult = confidence.create(confidenceValue, 'classification');
-  if (!confidenceResult.ok) {
-    throw new Error(`Failed to create confidence: ${JSON.stringify(confidenceResult.reason)}`);
-  }
-  const confidenceValueResult = confidenceResult.value;
-
-  const result: ClassificationEvaluationResult = {
-    evaluationLevel: evaluationLevelValue,
-    confidence: confidenceValueResult,
-    label,
-    scale,
-    ...(usedSignals !== undefined && { usedSignals }),
-    ...(context !== undefined && { context }),
-  };
-
-  return Object.freeze(result);
+): RuleEvaluationSnapshot {
+  // Параметры сохраняются для компактности существующих тестов.
+  void labelValue;
+  void confidenceValue;
+  void scaleMin;
+  void scaleMax;
+  void context;
+  const triggeredRules: readonly ClassificationRule[] =
+    usedSignals !== undefined && usedSignals.length > 0
+      ? Object.freeze(['VPN_DETECTED'] as const)
+      : Object.freeze([] as const);
+  return Object.freeze({
+    riskScore: levelValue,
+    triggeredRules,
+    violations: Object.freeze([]),
+  });
 }
 
 function createTestDeviceInfo(): DeviceInfo {
@@ -121,7 +103,7 @@ describe('buildAssessmentContextWithPlugins', () => {
       expect(context.device).toEqual(deviceInfo);
       expect(context.classificationContext).toEqual(classificationCtx);
       expect(context.riskScore).toBe(riskScore);
-      expect(context.ruleEvaluationResult).toEqual(ruleEvaluationResult);
+      expect(context.ruleEvaluationSnapshot).toEqual(ruleEvaluationResult);
     });
 
     it('создает assessment context с пустыми опциями', () => {
@@ -433,12 +415,56 @@ describe('assembleAssessmentResultFromContext', () => {
       const result = assembleAssessmentResultFromContext(context);
 
       expect(result).toBeDefined();
-      expect(result.evaluationLevel).toBe(ruleEvaluationResult.evaluationLevel);
-      expect(result.confidence).toBe(ruleEvaluationResult.confidence);
-      expect(result.label).toBe(ruleEvaluationResult.label);
-      expect(result.scale).toBe(ruleEvaluationResult.scale);
+      expect(result.evaluationLevel).toBe(riskScore);
+      expect(result.confidence).toBeDefined();
+      expect(classificationLabel.value(result.label)).toBe('SAFE');
+      expect(result.scale.min).toBe(0);
+      expect(result.scale.max).toBe(100);
       expect(result.usedSignals).toBeUndefined();
       expect(result.context).toBeUndefined();
+    });
+
+    it('снижает confidence при наличии degrade violations в snapshot', () => {
+      const deviceInfo = createTestDeviceInfo();
+      const classificationCtx = createTestClassificationContext();
+      const riskScore = 40;
+      const degradeViolation: SemanticViolation = {
+        code: 'INVALID_REPUTATION_SCORE',
+        severity: 'degrade',
+        affects: 'confidence',
+        impact: 'increases_risk',
+        meta: {
+          value: 10,
+          reason: 'out_of_range',
+        },
+      };
+      const withViolationSnapshot: RuleEvaluationSnapshot = Object.freeze({
+        riskScore,
+        triggeredRules: Object.freeze([]),
+        violations: Object.freeze([degradeViolation]),
+      });
+      const withoutViolationSnapshot: RuleEvaluationSnapshot = Object.freeze({
+        riskScore,
+        triggeredRules: Object.freeze([]),
+        violations: Object.freeze([]),
+      });
+
+      const withViolationContext = buildAssessmentContextWithPlugins(
+        deviceInfo,
+        classificationCtx,
+        riskScore,
+        withViolationSnapshot,
+      );
+      const withoutViolationContext = buildAssessmentContextWithPlugins(
+        deviceInfo,
+        classificationCtx,
+        riskScore,
+        withoutViolationSnapshot,
+      );
+      const withViolationResult = assembleAssessmentResultFromContext(withViolationContext);
+      const withoutViolationResult = assembleAssessmentResultFromContext(withoutViolationContext);
+
+      expect(withViolationResult.confidence).toBeLessThan(withoutViolationResult.confidence);
     });
 
     it('собирает результат из контекста со всеми полями', () => {
@@ -466,12 +492,13 @@ describe('assembleAssessmentResultFromContext', () => {
       const result = assembleAssessmentResultFromContext(context);
 
       expect(result).toBeDefined();
-      expect(result.evaluationLevel).toBe(ruleEvaluationResult.evaluationLevel);
-      expect(result.confidence).toBe(ruleEvaluationResult.confidence);
-      expect(result.label).toBe(ruleEvaluationResult.label);
-      expect(result.scale).toBe(ruleEvaluationResult.scale);
-      expect(result.usedSignals).toEqual(usedSignals);
-      expect(result.context).toEqual(classificationCtx);
+      expect(result.evaluationLevel).toBe(riskScore);
+      expect(result.confidence).toBeDefined();
+      expect(classificationLabel.value(result.label)).toBe('SUSPICIOUS');
+      expect(result.scale.min).toBe(0);
+      expect(result.scale.max).toBe(100);
+      expect(result.usedSignals).toEqual([]);
+      expect(result.context).toBeUndefined();
     });
   });
 
@@ -500,7 +527,7 @@ describe('assembleAssessmentResultFromContext', () => {
       const result = assembleAssessmentResultFromContext(context);
 
       expect(result.usedSignals).toBeDefined();
-      expect(result.usedSignals).toEqual(usedSignals);
+      expect(result.usedSignals).toEqual([]);
     });
 
     it('правильно обрабатывает context когда он определен', () => {
@@ -526,8 +553,7 @@ describe('assembleAssessmentResultFromContext', () => {
 
       const result = assembleAssessmentResultFromContext(context);
 
-      expect(result.context).toBeDefined();
-      expect(result.context).toEqual(classificationCtx);
+      expect(result.context).toBeUndefined();
     });
 
     it('правильно обрабатывает оба опциональных поля одновременно', () => {
@@ -559,9 +585,8 @@ describe('assembleAssessmentResultFromContext', () => {
       const result = assembleAssessmentResultFromContext(context);
 
       expect(result.usedSignals).toBeDefined();
-      expect(result.usedSignals).toEqual(usedSignals);
-      expect(result.context).toBeDefined();
-      expect(result.context).toEqual(classificationCtx);
+      expect(result.usedSignals).toEqual([]);
+      expect(result.context).toBeUndefined();
     });
 
     it('правильно обрабатывает отсутствие опциональных полей', () => {
@@ -642,7 +667,7 @@ describe('assembleAssessmentResultFromContext', () => {
       expect(labelValue).toBe('DANGEROUS');
     });
 
-    it('правильно собирает результат с label UNKNOWN', () => {
+    it('пересчитывает label по policy и не делает pass-through UNKNOWN из ruleEvaluationResult', () => {
       const deviceInfo = createTestDeviceInfo();
       const classificationCtx = createTestClassificationContext();
       const riskScore = 30;
@@ -658,7 +683,66 @@ describe('assembleAssessmentResultFromContext', () => {
       const result = assembleAssessmentResultFromContext(context);
       const labelValue = classificationLabel.value(result.label);
 
-      expect(labelValue).toBe('UNKNOWN');
+      expect(labelValue).toBe('SAFE');
+    });
+
+    it('применяет кастомную decisionPolicy из options.decisionPolicy', () => {
+      const deviceInfo = createTestDeviceInfo();
+      const classificationCtx = createTestClassificationContext();
+      const riskScore = 15;
+      const ruleEvaluationResult = createTestEvaluationResult('SAFE', 15, 0.8, 0, 100);
+
+      const context = buildAssessmentContextWithPlugins(
+        deviceInfo,
+        classificationCtx,
+        riskScore,
+        ruleEvaluationResult,
+        {
+          decisionPolicy: {
+            thresholds: {
+              mediumFrom: 10,
+              highFrom: 60,
+              criticalFrom: 90,
+            },
+            dangerousRuleCountFrom: 3,
+            dangerousVelocityFrom: 80,
+            dangerousReputationTo: 20,
+          },
+        },
+      );
+
+      const result = assembleAssessmentResultFromContext(context);
+      const labelValue = classificationLabel.value(result.label);
+
+      expect(labelValue).toBe('SUSPICIOUS');
+    });
+
+    it('эскалирует label до DANGEROUS по decision signals даже при низком riskScore', () => {
+      const deviceInfo = createTestDeviceInfo();
+      const contextWithTor = classificationContext.create({
+        ip: '192.168.1.1',
+        userId: 'user123',
+        signals: {
+          isTor: true,
+        },
+      });
+      if (!contextWithTor) {
+        throw new Error('Failed to create context with signals');
+      }
+      const riskScore = 5;
+      const ruleEvaluationResult = createTestEvaluationResult('SAFE', 5, 0.9, 0, 100);
+
+      const context = buildAssessmentContextWithPlugins(
+        deviceInfo,
+        contextWithTor,
+        riskScore,
+        ruleEvaluationResult,
+      );
+
+      const result = assembleAssessmentResultFromContext(context);
+      const labelValue = classificationLabel.value(result.label);
+
+      expect(labelValue).toBe('DANGEROUS');
     });
   });
 
@@ -725,10 +809,11 @@ describe('assembleAssessmentResultFromContext', () => {
 
       const result = assembleAssessmentResultFromContext(context);
 
-      expect(result.evaluationLevel).toBe(ruleEvaluationResult.evaluationLevel);
-      expect(result.confidence).toBe(ruleEvaluationResult.confidence);
-      expect(result.label).toBe(ruleEvaluationResult.label);
-      expect(result.scale).toBe(ruleEvaluationResult.scale);
+      expect(result.evaluationLevel).toBe(riskScore);
+      expect(result.confidence).toBeDefined();
+      expect(classificationLabel.value(result.label)).toBe('SUSPICIOUS');
+      expect(result.scale.min).toBe(0);
+      expect(result.scale.max).toBe(100);
     });
 
     it('создает новый объект, а не возвращает ссылку на ruleEvaluationResult', () => {
@@ -747,7 +832,7 @@ describe('assembleAssessmentResultFromContext', () => {
       const result = assembleAssessmentResultFromContext(context);
 
       expect(result).not.toBe(ruleEvaluationResult);
-      expect(result.evaluationLevel).toBe(ruleEvaluationResult.evaluationLevel);
+      expect(result.evaluationLevel).toBe(riskScore);
     });
   });
 });
@@ -795,12 +880,13 @@ describe('интеграционные тесты', () => {
     const result = assembleAssessmentResultFromContext(context);
 
     expect(result).toBeDefined();
-    expect(result.evaluationLevel).toBe(ruleEvaluationResult.evaluationLevel);
-    expect(result.confidence).toBe(ruleEvaluationResult.confidence);
-    expect(result.label).toBe(ruleEvaluationResult.label);
-    expect(result.scale).toBe(ruleEvaluationResult.scale);
-    expect(result.usedSignals).toEqual(usedSignals);
-    expect(result.context).toEqual(classificationCtx);
+    expect(result.evaluationLevel).toBe(riskScore);
+    expect(result.confidence).toBeDefined();
+    expect(classificationLabel.value(result.label)).toBe('SUSPICIOUS');
+    expect(result.scale.min).toBe(0);
+    expect(result.scale.max).toBe(100);
+    expect(result.usedSignals).toEqual([]);
+    expect(result.context).toBeUndefined();
     expect(Object.isFrozen(context)).toBe(true);
     expect(Object.isFrozen(result)).toBe(true);
   });
@@ -821,7 +907,7 @@ describe('интеграционные тесты', () => {
     const result = assembleAssessmentResultFromContext(context);
 
     expect(result.scale.min).toBe(0);
-    expect(result.scale.max).toBe(10);
+    expect(result.scale.max).toBe(100);
     expect(result.evaluationLevel).toBe(3);
   });
 });

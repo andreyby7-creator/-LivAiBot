@@ -149,6 +149,21 @@ export * from './evaluation/index.js';
 export * from './aggregation/index.js';
 
 /* ============================================================================
+ * 📋 CLASSIFICATION POLICIES — DECISION & AGGREGATION POLICY MODULE
+ * ============================================================================
+ */
+
+/**
+ * Classification Policies подпакет: decision и aggregation policy для domain-логики.
+ * Включает:
+ * - base policy (`determineRiskLevel`, `determineLabel`, `defaultDecisionPolicy`)
+ * - aggregation strategy/policy (`aggregateRiskSources`, `applyAggregationPolicy`, `defaultAggregationPolicy`)
+ *
+ * @public
+ */
+export * from './policies/index.js';
+
+/* ============================================================================
  * 🎯 CLASSIFICATION STRATEGIES — RULES, ASSESSMENT, VALIDATION MODULE
  * ============================================================================
  */

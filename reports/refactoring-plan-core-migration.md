@@ -595,10 +595,7 @@ Rule-engine = policy-agnostic evaluator, работает только с пре
 
 ---
 
-### Шаг 1.8: Создание pipeline (Universal Orchestration Runtime)
-
-**КРИТИЧНО:** Pipeline = universal orchestration runtime, работает с slot graph (не domain state!)\
-Pipeline только: run stages, pass state through slots, collect outputs.
+### Шаг 1.8: Создание pipeline (Universal Orchestration Runtime) ✅
 
 #### 1.8.1: Создание plugin-api.ts (Dependency-Driven) ✅
 
@@ -740,7 +737,7 @@ Pipeline только: run stages, pass state through slots, collect outputs.
 
 ---
 
-#### 1.8.3: Перенос providers в domains/src/classification
+#### 1.8.3: Перенос providers в domains/src/classification ✅
 
 **Выполнено:**
 
@@ -762,46 +759,43 @@ Pipeline только: run stages, pass state through slots, collect outputs.
 
 ---
 
-#### 1.8.4: Перенос policies в domains/src/classification
+#### 1.8.4: Перенос policies в domains/src/classification ✅
 
-**Файлы для переноса:**
+**Выполнено:**
 
-1. `policies/security-pipeline.policy.ts` → `domains/src/classification/policies/base.policy.ts`
-2. `policies/risk-aggregation.policy.ts` → `domains/src/classification/policies/aggregation.policy.ts`
-3. `risk-sources/aggregate-risk.ts` → `domains/src/classification/policies/aggregation.strategy.ts`
-
-**Действия:**
-
-1. Перенести в `domains/src/classification/policies/`
-2. Обновить импорты на типы из `@livai/core/domain-kit/`, `@livai/domains-classification/`
-3. Обновить пути в комментариях
-4. Убрать упоминания "security" в названиях и комментариях
-5. Обновить экспорт в `packages/domains/src/classification/policies/index.ts`
-
-**Тесты:**
-
-- Перенести тесты в `packages/domains/tests/classification/policies/`
-- Обновить все импорты на core типы
-- Убрать auth-специфичные моки
-
-**Зависимости:**
-
-- `@livai/core/domain-kit/classification.ts`
-- `domains/src/classification/signals/signals.ts`
-
-**TODO для реализации:**
-
-- [ ] Реализовать `determineRiskLevel` в `domains/src/classification/policies/`
-- [ ] Реализовать `determineLabel` в `domains/src/classification/policies/`
-- [ ] Определить типы `DecisionPolicy` и `RiskThresholds` для classification domain
-- [ ] Обновить `assessment.ts`: заменить `decision?: unknown` на `decision?: Readonly<DecisionPolicy>`
-- [ ] Обновить `assessment.ts`: использовать `determineRiskLevel` и `determineLabel` вместо заглушек
-- [ ] Обновить `evaluation/assessment.ts::assembleAssessmentResult()`: интегрировать decision logic из policies/
-  - Заменить pass-through логику на реальную сборку результата с использованием:
-    - `riskLevel = determineRiskLevel(assessmentContext.riskScore, decisionPolicy.thresholds)`
-    - `label = determineLabel(riskLevel, triggeredRules, decisionSignals)`
-    - Обновление `evaluationLevel` на основе `riskLevel`
-- [ ] Обновить `deterministic.strategy.ts`: использовать `determineLabel` для расчета label
+- **Файлы:**
+  - `packages/domains/src/classification/policies/base.policy.ts`
+  - `packages/domains/src/classification/policies/aggregation.strategy.ts`
+  - `packages/domains/src/classification/policies/aggregation.policy.ts`
+  - `packages/domains/src/classification/policies/index.ts`
+  - `packages/domains/src/classification/index.ts` (подключен экспорт policies)
+  - Интеграция policy-логики в:
+    - `packages/domains/src/classification/strategies/assessment.ts`
+    - `packages/domains/src/classification/evaluation/assessment.ts`
+    - `packages/domains/src/classification/strategies/deterministic.strategy.ts`
+- **Архитектура:** разделение policy/strategy/evaluation по SRP:
+  - `policies/*` — decision + aggregation policy contracts и deterministic правила;
+  - `strategies/deterministic.strategy.ts` — validation/ruleContext/rule-evaluation + `RuleEvaluationSnapshot`;
+  - `evaluation/assessment.ts` — финальная сборка результата (`evaluationLevel`, `confidence`, `label`, `scale`) из snapshot + decision policy.
+- **Основной API:**
+  - policies: `determineRiskLevel`, `determineLabel`, `aggregateRiskSources`, `applyAggregationPolicy`;
+  - strategy: `evaluateClassificationRules`, `evaluateClassificationRulesSnapshot`;
+  - evaluation: `buildAssessmentContextWithPlugins`, `assembleAssessmentResultFromContext`.
+- **Типы:**
+  - `DecisionPolicy`, `RiskThresholds`, `RiskLevel`, `DecisionSignals`;
+  - `AggregationPolicy`, `AggregationPolicyStrategy`, `AggregatedRisk`, `AggregationSource*`;
+  - `RuleEvaluationSnapshot` (минимальный промежуточный контракт: `riskScore`, `triggeredRules`, `violations`).
+- **Принципы:** strict typing, deterministic behavior, fail-safe defaults, domain purity (без IO), явные trust-boundary контракты, расширяемость через policy unions и plugins без изменения core API.
+- **Тесты:**
+  - `packages/domains/tests/classification/policies/base.policy.test.ts`
+  - `packages/domains/tests/classification/policies/aggregation.strategy.test.ts`
+  - `packages/domains/tests/classification/policies/aggregation.policy.test.ts`
+  - `packages/domains/tests/classification/evaluation/assessment.test.ts`
+  - `packages/domains/tests/classification/strategies/deterministic.strategy.test.ts`
+  - `packages/domains/tests/classification/strategies/assessment.test.ts`
+  - `packages/domains/tests/classification/context/context-builders.test.ts`
+- **Итог по интеграции TODO блока:** все пункты (determineRiskLevel/determineLabel, типизация `DecisionPolicy`, интеграция в `assessment.ts`, `evaluation/assessment.ts`, `deterministic.strategy.ts`) реализованы.
+- **Зависимости:** `@livai/core` (domain-kit / evaluator / branded primitives), `domains/src/classification/signals/signals.ts`, `domains/src/classification/strategies/rules.ts`.
 
 ---
 

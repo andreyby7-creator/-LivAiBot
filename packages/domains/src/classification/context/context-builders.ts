@@ -28,8 +28,7 @@
 
 import type { ScoringContext } from '../aggregation/scoring.js';
 import { SCORE_VALIDATION } from '../constants.js';
-import type { AssessmentContext } from '../evaluation/assessment.js';
-import type { ClassificationEvaluationResult } from '../evaluation/result.js';
+import type { AssessmentContext, RuleEvaluationSnapshot } from '../evaluation/assessment.js';
 import type { ClassificationContext, ClassificationSignals } from '../signals/signals.js';
 import type { ClassificationRulesConfig } from '../strategies/config.js';
 import type {
@@ -67,8 +66,8 @@ export type ClassificationSlotMap = Readonly<{
   readonly scoringContext?: ScoringContext;
   /** Контекст для rule evaluation */
   readonly ruleContext?: RuleEvaluationContext;
-  /** Результат rule evaluation */
-  readonly ruleEvaluationResult?: ClassificationEvaluationResult;
+  /** Минимальный snapshot rule evaluation */
+  readonly ruleEvaluationSnapshot?: RuleEvaluationSnapshot;
   /** Контекст для assessment */
   readonly assessmentContext?: AssessmentContext;
 }>;
@@ -231,7 +230,7 @@ export function buildRuleContext(
 /**
  * Подготавливает контекст для assessment (pure function, slot-based API)
  *
- * @param slots - Слоты данных из pipeline (device, context, riskScore, ruleEvaluationResult)
+ * @param slots - Слоты данных из pipeline (device, context, riskScore, ruleEvaluationSnapshot)
  * @returns AssessmentContext для assembleAssessmentResultFromContext
  *
  * @note Pure function: нет side-effects, IO, async, conditions
@@ -242,10 +241,10 @@ export function buildRuleContext(
  */
 export function buildAssessmentContext(
   slots: Pick<ClassificationSlotMap, 'device' | 'context' | 'riskScore'> & {
-    readonly ruleEvaluationResult: Readonly<ClassificationEvaluationResult>;
+    readonly ruleEvaluationSnapshot: Readonly<RuleEvaluationSnapshot>;
   },
 ): Pick<ClassificationSlotMap, 'assessmentContext'> {
-  const { device, context, riskScore = 0, ruleEvaluationResult } = slots;
+  const { device, context, riskScore = 0, ruleEvaluationSnapshot } = slots;
 
   // Security: freeze classificationContext и его вложенные объекты
   // Freeze signals если есть
@@ -272,7 +271,7 @@ export function buildAssessmentContext(
     device: { ...device },
     classificationContext: fullyFrozenContext,
     riskScore,
-    ruleEvaluationResult,
+    ruleEvaluationSnapshot,
   };
 
   const frozenAssessmentContext = freezeContext(assessmentContext);

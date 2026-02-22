@@ -92,7 +92,8 @@ export { assessClassification } from './assessment.js';
 
 /**
  * Типы для classification deterministic strategy.
- * ContextBuilderPlugin для расширения контекста, EvaluateClassificationRulesOptions для опций.
+ * ContextBuilderPlugin для расширения контекста,
+ * EvaluateClassificationRulesOptions для опций.
  *
  * @public
  */
@@ -108,7 +109,10 @@ export type {
  *
  * @public
  */
-export { evaluateClassificationRules } from './deterministic.strategy.js';
+export {
+  evaluateClassificationRules,
+  evaluateClassificationRulesSnapshot,
+} from './deterministic.strategy.js';
 
 /* ============================================================================
  * 🧩 ТИПЫ — CLASSIFICATION CONFIGURATION TYPES

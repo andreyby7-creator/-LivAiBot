@@ -17,15 +17,17 @@
  *
  * @note Scoring должен быть в aggregation/ (calculateRiskScore, defaultRiskWeights)
  * @note Decision должен быть в policies/ (defaultDecisionPolicy, determineRiskLevel, determineLabel)
- * @note Validation выполняется в deterministic.strategy.ts через evaluateClassificationRules
+ * @note Validation и rule snapshot выполняются в deterministic.strategy.ts через evaluateClassificationRulesSnapshot
  * @note Context builders находятся в deterministic.strategy.ts
+ * @note Fallback/Fail-safe decision logic не реализуется в orchestration-слое:
+ *       policy только проксируется в evaluation/policies, где и применяются default/invariant правила.
  * @note Audit/logging должен быть в orchestrator layer, не здесь
  */
 
 import type { ClassificationRulesConfig } from './config.js';
 import { getClassificationRulesConfig } from './config.js';
 import type { ContextBuilderPlugin as DeterministicContextBuilderPlugin } from './deterministic.strategy.js';
-import { evaluateClassificationRules } from './deterministic.strategy.js';
+import { evaluateClassificationRulesSnapshot } from './deterministic.strategy.js';
 import type { DeviceInfo } from './rules.js';
 import type { RiskWeights, ScoringContext } from '../aggregation/scoring.js';
 import { calculateRiskScore, defaultRiskWeights } from '../aggregation/scoring.js';
@@ -33,8 +35,11 @@ import {
   assembleAssessmentResultFromContext,
   buildAssessmentContextWithPlugins,
 } from '../evaluation/assessment.js';
+import type { AssessmentContextBuilderPlugin } from '../evaluation/assessment.js';
 import type { ClassificationEvaluationResult } from '../evaluation/result.js';
-import type { BuildClassificationContext, ClassificationContext } from '../signals/signals.js';
+import { defaultDecisionPolicy } from '../policies/base.policy.js';
+import type { DecisionPolicy } from '../policies/base.policy.js';
+import type { ClassificationContext } from '../signals/signals.js';
 import type { SemanticViolation } from '../signals/violations.js';
 
 /* ============================================================================
@@ -59,6 +64,7 @@ import type { SemanticViolation } from '../signals/violations.js';
  */
 export type ContextBuilderPlugin =
   & DeterministicContextBuilderPlugin
+  & AssessmentContextBuilderPlugin
   & Readonly<{
     /** Версия API плагина (для защиты от breaking changes) */
     readonly version?: 1;
@@ -67,11 +73,6 @@ export type ContextBuilderPlugin =
       context: ScoringContext,
       classificationContext: ClassificationContext,
     ) => Readonly<ScoringContext>;
-    /** Расширяет assessment context (для использования в evaluation/) */
-    readonly extendAssessmentContext?: (
-      context: BuildClassificationContext,
-      classificationContext: ClassificationContext,
-    ) => Readonly<BuildClassificationContext>;
   }>;
 
 /* ============================================================================
@@ -82,16 +83,14 @@ export type ContextBuilderPlugin =
 /**
  * Политика для classification assessment
  * @note Scoring weights должны быть в aggregation/, decision policy в policies/
- * @note В production требуется строгая типизация вместо unknown
- * @todo После реализации policies/: заменить decision на тип из policies/
- *       Пример: readonly decision?: Readonly<DecisionPolicy> где DecisionPolicy = { readonly thresholds: RiskThresholds; ... }
+ * @note Decision policy строго типизирована через `DecisionPolicy` из policies/
  * @public
  */
 export type ClassificationPolicy = Readonly<{
   /** Веса для scoring (из aggregation/) */
   readonly weights?: Readonly<RiskWeights>;
   /** Политика принятия решений (должна быть в policies/) */
-  readonly decision?: unknown; // @todo: заменить на Readonly<DecisionPolicy> из policies/ после реализации
+  readonly decision?: Readonly<DecisionPolicy>;
 }>;
 
 /**
@@ -183,54 +182,13 @@ function buildScoringContext(
 }
 
 /* ============================================================================
- * 🔧 PRIVATE HELPERS — DECISION (SRP: отдельная ответственность)
- * ============================================================================
- */
-
-/**
- * Определяет risk level на основе risk score и decision policy
- * @note Должен быть реализован в policies/ после интеграции
- * @internal
- */
-// @ts-expect-error Будет использован после реализации policies/
-// eslint-disable-next-line @typescript-eslint/no-unused-vars -- Будет использован после реализации policies/
-function determineRiskLevelUnused(
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- Будет использован после реализации policies/
-  _riskScore: number,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- Будет использован после реализации policies/
-  _decisionPolicy?: unknown,
-): string {
-  // @todo: integrate decision logic from policies/ after implementation
-  return 'UNKNOWN';
-}
-
-/**
- * Определяет label на основе risk level, triggered rules и decision signals
- * @note Должен быть реализован в policies/ после интеграции
- * @internal
- */
-// @ts-expect-error Будет использован после реализации policies/
-// eslint-disable-next-line @typescript-eslint/no-unused-vars -- Будет использован после реализации policies/
-function determineLabelUnused(
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- Будет использован после реализации policies/
-  _riskLevel: string,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- Будет использован после реализации policies/
-  _triggeredRules: readonly unknown[],
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- Будет использован после реализации policies/
-  _decisionSignals?: unknown,
-): string {
-  // @todo: integrate decision logic from policies/ after implementation
-  return 'UNKNOWN';
-}
-
-/* ============================================================================
  * 🎯 ГЛАВНЫЙ API
  * ============================================================================
  */
 
 /**
  * Оценивает классификацию на основе device info и контекста (composition layer)
- * Pipeline: scoring → rule evaluation → assessment context → assemble result
+ * Pipeline: scoring → rule snapshot (strategy) → assessment context (evaluation) → assemble result
  *
  * @throws {Error} Пробрасывает ошибки из evaluateClassificationRules
  *
@@ -244,39 +202,44 @@ function determineLabelUnused(
 export function assessClassification(
   deviceInfo: Readonly<DeviceInfo>, // Информация об устройстве
   context: Readonly<ClassificationContext> = {}, // Контекст для оценки классификации
-  policyUnused: Readonly<ClassificationPolicy> = {}, // Политика оценки классификации (опционально, не используется до реализации policies/)
+  policy: Readonly<ClassificationPolicy> = {}, // Политика оценки классификации (опционально)
   plugins: readonly ContextBuilderPlugin[] = [], // Плагины для расширения контекста (опционально)
   config: Readonly<ClassificationRulesConfig> = getClassificationRulesConfig(), // Конфигурация правил (по умолчанию глобальный state, но передается явно для избежания fallback)
 ): Readonly<ClassificationEvaluationResult> { // Результат оценки классификации с evaluationLevel, confidence, label, scale
   // 1. Scoring (из aggregation/)
-  const weights: Readonly<RiskWeights> = policyUnused.weights ?? defaultRiskWeights;
+  const weights: Readonly<RiskWeights> = policy.weights ?? defaultRiskWeights;
   const scoringContext = buildScoringContext(deviceInfo, context, config, plugins);
   const riskScore = calculateRiskScore(scoringContext, weights);
 
   // 2. Rule evaluation (из deterministic.strategy.ts)
-  // Выполняет: validation → rule context building → rule evaluation → result assembly
+  // Выполняет: validation → rule context building → rule evaluation → snapshot facts
   const clonedDeviceInfo = shallowCloneContext(deviceInfo);
   const clonedContext = shallowCloneContext(context);
   const frozenDeviceInfo = freezeContext(clonedDeviceInfo);
   const frozenContext = freezeContext(clonedContext);
-  const ruleEvaluationResult = evaluateClassificationRules(frozenDeviceInfo, frozenContext, {
-    riskScore,
-    policy: policyUnused,
-    plugins,
-    config,
-  });
+  const ruleEvaluationSnapshot = evaluateClassificationRulesSnapshot(
+    frozenDeviceInfo,
+    frozenContext,
+    {
+      riskScore,
+      policy,
+      plugins,
+      config,
+    },
+  );
 
   // 3. Decision (из policies/)
-  // @todo: integrate decision logic from policies/ after implementation
+  // Граница ответственности: orchestration-слой не содержит decision-правил,
+  // а только передает policy в evaluation/policies для fail-safe расчета.
+  const decisionPolicy: Readonly<DecisionPolicy> = policy.decision ?? defaultDecisionPolicy;
 
   // 4. Assemble final result через assessment logic из evaluation/
-  // @todo: после policies/ добавить AssessmentContextBuilderPlugin через options.assessmentPlugins
   const assessmentContext = buildAssessmentContextWithPlugins(
     frozenDeviceInfo,
     frozenContext,
     riskScore,
-    ruleEvaluationResult,
-    { plugins: [] },
+    ruleEvaluationSnapshot,
+    { plugins, decisionPolicy },
   );
 
   return assembleAssessmentResultFromContext(assessmentContext);

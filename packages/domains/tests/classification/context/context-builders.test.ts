@@ -11,14 +11,8 @@ import {
 import type { ClassificationSlotMap } from '../../../src/classification/context/context-builders.js';
 import type { ClassificationRulesConfig } from '../../../src/classification/strategies/config.js';
 import { getClassificationRulesConfig } from '../../../src/classification/strategies/config.js';
-// eslint-disable-next-line no-restricted-imports -- Тесты могут использовать прямой импорт из @livai/core
-import { confidence, evaluationLevel, evaluationScale } from '@livai/core';
-import type {
-  ClassificationLabel,
-  ClassificationLabelValue,
-} from '../../../src/classification/labels.js';
-import { classificationLabel } from '../../../src/classification/labels.js';
-import type { ClassificationEvaluationResult } from '../../../src/classification/evaluation/result.js';
+import type { ClassificationLabelValue } from '../../../src/classification/labels.js';
+import type { RuleEvaluationSnapshot } from '../../../src/classification/evaluation/assessment.js';
 import {
   classificationContext,
   classificationSignals,
@@ -29,43 +23,22 @@ import {
  * ============================================================================
  */
 
-function createTestLabel(value: ClassificationLabelValue): ClassificationLabel {
-  const result = classificationLabel.create(value);
-  if (!result.ok) {
-    throw new Error(`Failed to create label: ${JSON.stringify(result.reason)}`);
-  }
-  return result.value;
-}
-
 function createTestEvaluationResult(
   labelValue: ClassificationLabelValue,
   levelValue: number,
   confidenceValue: number,
   scaleMin: number,
   scaleMax: number,
-): ClassificationEvaluationResult {
-  const label = createTestLabel(labelValue);
-  const scaleResult = evaluationScale.create(scaleMin, scaleMax, 'classification');
-  if (!scaleResult.ok) {
-    throw new Error(`Failed to create scale: ${JSON.stringify(scaleResult.reason)}`);
-  }
-  const scale = scaleResult.value;
-  const levelResult = evaluationLevel.create(levelValue, scale);
-  if (!levelResult.ok) {
-    throw new Error(`Failed to create level: ${JSON.stringify(levelResult.reason)}`);
-  }
-  const evaluationLevelValue = levelResult.value;
-  const confidenceResult = confidence.create(confidenceValue, 'classification');
-  if (!confidenceResult.ok) {
-    throw new Error(`Failed to create confidence: ${JSON.stringify(confidenceResult.reason)}`);
-  }
-  const confidenceValueResult = confidenceResult.value;
-  return {
-    evaluationLevel: evaluationLevelValue,
-    confidence: confidenceValueResult,
-    label,
-    scale,
-  };
+): RuleEvaluationSnapshot {
+  void labelValue;
+  void confidenceValue;
+  void scaleMin;
+  void scaleMax;
+  return Object.freeze({
+    riskScore: levelValue,
+    triggeredRules: Object.freeze([]),
+    violations: Object.freeze([]),
+  });
 }
 
 /* ============================================================================
@@ -422,14 +395,14 @@ describe('buildAssessmentContext', () => {
       device: baseDevice,
       context,
       riskScore: 60,
-      ruleEvaluationResult,
+      ruleEvaluationSnapshot: ruleEvaluationResult,
     });
 
     expect(result.assessmentContext).toBeDefined();
     expect(result.assessmentContext!.device.deviceId).toBe('device1');
     expect(result.assessmentContext!.classificationContext.previousSessionId).toBe('session123');
     expect(result.assessmentContext!.riskScore).toBe(60);
-    expect(result.assessmentContext!.ruleEvaluationResult.label).toBeDefined();
+    expect(result.assessmentContext!.ruleEvaluationSnapshot.triggeredRules).toEqual([]);
   });
 
   describe('freeze nested objects - geo protection', () => {
@@ -447,7 +420,7 @@ describe('buildAssessmentContext', () => {
         device: baseDevice,
         context,
         riskScore: 60,
-        ruleEvaluationResult,
+        ruleEvaluationSnapshot: ruleEvaluationResult,
       });
 
       const frozenGeo = result.assessmentContext!.classificationContext.geo;
@@ -482,7 +455,7 @@ describe('buildAssessmentContext', () => {
         device: baseDevice,
         context,
         riskScore: 60,
-        ruleEvaluationResult,
+        ruleEvaluationSnapshot: ruleEvaluationResult,
       });
 
       expect(Object.isFrozen(result.assessmentContext!.classificationContext)).toBe(true);
@@ -500,7 +473,7 @@ describe('buildAssessmentContext', () => {
         device: baseDevice,
         context,
         riskScore: 60,
-        ruleEvaluationResult,
+        ruleEvaluationSnapshot: ruleEvaluationResult,
       });
 
       expect(Object.isFrozen(result.assessmentContext!.classificationContext)).toBe(true);

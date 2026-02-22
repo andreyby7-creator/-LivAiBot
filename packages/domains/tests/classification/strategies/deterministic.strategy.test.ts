@@ -139,6 +139,56 @@ describe('evaluateClassificationRules', () => {
     expect(result).toBeDefined();
   });
 
+  it('должен принимать DecisionPolicy напрямую через options.policy', () => {
+    const deviceInfo = createTestDeviceInfo();
+    const context = createTestClassificationContext();
+    if (!context) {
+      throw new Error('Failed to create context');
+    }
+    const options: EvaluateClassificationRulesOptions = {
+      riskScore: 15,
+      policy: {
+        thresholds: {
+          mediumFrom: 10,
+          highFrom: 70,
+          criticalFrom: 90,
+        },
+        dangerousRuleCountFrom: 3,
+        dangerousVelocityFrom: 80,
+        dangerousReputationTo: 20,
+      },
+    };
+    const result = evaluateClassificationRules(deviceInfo, context, options);
+    expect(result).toBeDefined();
+    expect(result.label).toBeDefined();
+  });
+
+  it('должен принимать DecisionPolicy из options.policy.decision', () => {
+    const deviceInfo = createTestDeviceInfo();
+    const context = createTestClassificationContext();
+    if (!context) {
+      throw new Error('Failed to create context');
+    }
+    const options: EvaluateClassificationRulesOptions = {
+      riskScore: 15,
+      policy: {
+        decision: {
+          thresholds: {
+            mediumFrom: 10,
+            highFrom: 70,
+            criticalFrom: 90,
+          },
+          dangerousRuleCountFrom: 3,
+          dangerousVelocityFrom: 80,
+          dangerousReputationTo: 20,
+        },
+      },
+    };
+    const result = evaluateClassificationRules(deviceInfo, context, options);
+    expect(result).toBeDefined();
+    expect(result.label).toBeDefined();
+  });
+
   it('должен применять плагины для расширения контекста', () => {
     const deviceInfo = createTestDeviceInfo();
     const context = createTestClassificationContext();
