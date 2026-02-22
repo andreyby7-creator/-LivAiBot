@@ -866,79 +866,44 @@ Rule-engine = policy-agnostic evaluator, работает только с пре
 
 ---
 
-### Шаг 1.10: Перенос документации
+### Шаг 1.10: Перенос документации ✅
 
-#### 1.10.1: Создание generic документации в core
+#### 1.10.1: Создание generic документации в core ✅
 
-**Исходные файлы:**
+**Выполнено:**
 
-- `packages/feature-auth/docs/auth-risk-runbook.md`
-- `packages/feature-auth/docs/rollout-plan.md`
-
-**Целевые файлы:**
-
-- `packages/core/docs/pipeline-runbook.md`
-- `packages/core/docs/pipeline-rollout-plan.md`
-
-**Действия:**
-
-1. Создать `packages/core/docs/` директорию
-2. Создать `pipeline-runbook.md`:
-   - Взять за основу `auth-risk-runbook.md`
-   - Убрать auth-специфичные ссылки (`FORCE_RISK_V1`, `DISABLE_REMOTE_PROVIDER`)
-   - Обновить пути: `security-pipeline.*` → `pipeline.*`
-   - Сделать generic примеры использования
-3. Создать `pipeline-rollout-plan.md`:
-   - Взять за основу `rollout-plan.md`
-   - Убрать auth-специфичные конфигурации
-   - Обновить пути на core компоненты
-   - Сделать generic план rollout
-
-**Тесты:**
-
-- Нет (документация)
-
-**Зависимости:**
-
-- Нет
+- **Файлы:**
+  - `packages/core/docs/pipeline-runbook.md` (133 строки)
+  - `packages/core/docs/pipeline-rollout-plan.md` (205 строк)
+- **Адаптация:**
+  - Убраны auth-специфичные ссылки (`FORCE_RISK_V1` → `FORCE_PIPELINE_V1`)
+  - Обновлены пути: `security-pipeline.*` → `pipeline.*`
+  - Generic примеры использования без привязки к auth domain
+  - Компактный runbook-стиль с таблицами преобразованными в структурированные списки
+  - Четкие сценарии инцидентов и процедуры отката
+- **Структура:**
+  - `pipeline-runbook.md`: Universal Emergency Rollback, Go/No-Go Thresholds, Incident Scenarios, Runtime Overrides
+  - `pipeline-rollout-plan.md`: Общие принципы, формальные Go/No-Go правила, этапы rollout (Shadow → 100%), процедуры отката, чеклисты
 
 ---
 
-#### 1.10.2: Обновление auth документации
+#### 1.10.2: Обновление auth документации ✅
 
-**Файлы для обновления:**
+**Выполнено:**
 
-- `packages/feature-auth/docs/auth-risk-runbook.md`
-- `packages/feature-auth/docs/rollout-plan.md`
-
-**Действия:**
-
-1. Обновить `auth-risk-runbook.md`:
-   - Добавить ссылки на `@livai/core/docs/pipeline-runbook.md`
-   - Обновить пути: `security-pipeline.*` → `@livai/core/pipeline/*`
-   - Оставить auth-специфичные конфигурации (`FORCE_RISK_V1`, etc.)
-   - Добавить раздел "Использование в auth service"
-2. Обновить `rollout-plan.md`:
-   - Добавить ссылки на `@livai/core/docs/pipeline-rollout-plan.md`
-   - Обновить пути на core компоненты
-   - Оставить auth-специфичные конфигурации
-   - Добавить раздел "Auth-specific configuration"
-
-**Тесты:**
-
-- Нет (документация)
-
-**Зависимости:**
-
-- `core/docs/pipeline-runbook.md`
-- `core/docs/pipeline-rollout-plan.md`
-
-**Чеклист после переноса документации:**
-
-- [ ] Generic документация создана в core/docs/
-- [ ] Auth документация обновлена в feature-auth/docs/
-- [ ] Ссылки на core документацию добавлены
-- [ ] Auth-специфичные конфигурации сохранены
+- **Файлы:**
+  - `packages/feature-auth/docs/auth-risk-runbook.md` (обновлен, 442 строки)
+  - `packages/feature-auth/docs/rollout-plan.md` (обновлен, 362 строки)
+- **Обновления:**
+  - Добавлены ссылки на generic документацию в начале каждого файла
+  - Обновлены пути: `security-pipeline.*` → `@livai/core/pipeline/*`, `security-pipeline.circuit-breaker.ts` → `@livai/core/resilience/circuit-breaker.ts`
+  - Сохранены все auth-специфичные конфигурации (`FORCE_RISK_V1`, `DISABLE_REMOTE_PROVIDER`, `FAIL_OPEN_MODE`, `v2EnabledTenants`, `v2EnabledBuckets`)
+  - Добавлен раздел "Использование в auth service" в `auth-risk-runbook.md`
+  - Добавлен раздел "Auth-specific configuration" в `rollout-plan.md`
+- **Структура:**
+  - Оба файла содержат ссылки на generic документацию для общих принципов
+  - Auth-специфичные детали сохранены и дополнены примерами интеграции с `@livai/core`
+  - Версии обновлены до 1.1
 
 ---
 
