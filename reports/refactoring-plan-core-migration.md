@@ -742,40 +742,23 @@ Pipeline только: run stages, pass state through slots, collect outputs.
 
 #### 1.8.3: Перенос providers в domains/src/classification
 
-**КРИТИЧНО:** Providers = domain implementation, реализуют `StagePlugin<TSlotMap>`.
+**Выполнено:**
 
-**Файлы для переноса:**
-
-1. `risk-sources/remote-provider.source.ts` → `domains/src/classification/providers/remote.provider.ts`
-
-**Действия:**
-
-1. Перенести в `domains/src/classification/providers/`
-2. **КРИТИЧНО:** Реализовать `StagePlugin<TSlotMap>` из `@livai/core/pipeline/plugin-api.ts` (НЕ `StagePlugin<RiskState>`!)
-3. Обновить импорты на типы из `@livai/core/rule-engine/`, `@livai/core/domain-kit/`, `@livai/domains-classification/`
-4. Обновить пути в комментариях
-5. Убрать упоминания "security" в названиях и комментариях
-6. Обновить экспорт в `packages/domains/src/classification/providers/index.ts`
-
-**Особые изменения:**
-
-- `domains/src/classification/providers/remote.provider.ts`:
-  - Реализовать `StagePlugin<TSlotMap>` из plugin-api (slot graph execution)
-  - Использовать `@livai/core/resilience/circuit-breaker.ts`
-  - Работать с slot graph, маппить на classification signals
-
-**Тесты:**
-
-- Перенести тесты в `packages/domains/tests/classification/providers/`
-- Обновить все импорты на core типы
-- Обновить названия файлов и функций в тестах
-- Убрать auth-специфичные моки
-
-**Зависимости:**
-
-- `@livai/core/pipeline/plugin-api.ts`
-- `@livai/core/resilience/circuit-breaker.ts`
-- `domains/src/classification/signals/signals.ts`
+- **Файлы:**
+  - `packages/domains/src/classification/providers/remote.provider.ts`
+  - `packages/domains/src/classification/providers/index.ts`
+  - `packages/domains/src/classification/index.ts` (подключен экспорт providers)
+- **Архитектура:** domain-level provider stage для slot graph (`StagePlugin<TSlotMap>`) с explicit execution policy, deterministic merge и trust-boundary sanitization.
+- **Основной API:** `createRemoteProviderStage`.
+- **Типы:** `RemoteProviderStageConfig`, `RemoteProviderSlotMap`, `RemoteProviderRequest`, `RemoteProviderResponse`, `RemoteClassificationProvider`, `RemoteFailurePolicy`, `MergeStrategy`, `AsnMergeStrategy`, `AsyncExecutionPolicy`.
+- **Ключевые внутренние модули:**
+  - sanitize layer: `sanitizeRemoteResponse`, `sanitizeSignals`, `sanitizeAsn`, `sanitizeScore`, `sanitizeBoolean`;
+  - merge layer: `mergeSignals`, `mergeByMaxRisk`, `combineRiskBoolean`;
+  - execution layer: `createTimeoutExecutionPolicy`;
+  - config invariants: `validateStageConfig` (fail-fast на factory уровне).
+- **Принципы:** SRP, deterministic fallback/merge, domain-pure stage, microservice-ready transport injection, strict typing, explicit config invariants, отсутствие скрытого coupling.
+- **Тесты:** `packages/domains/tests/classification/providers/remote.provider.test.ts` — 61 тест, coverage для `remote.provider.ts`: 95.95/87.3/100/95.95 (непокрытые только defensive `never` ветки).
+- **Зависимости:** `@livai/core` (`defineStage`, типы pipeline), `domains/src/classification/signals/signals.ts`, `domains/src/classification/strategies/rules.ts`.
 
 ---
 

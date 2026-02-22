@@ -163,3 +163,17 @@ export * from './aggregation/index.js';
  * @public
  */
 export * from './strategies/index.js';
+
+/* ============================================================================
+ * 🔌 CLASSIFICATION PROVIDERS — EXTERNAL SIGNAL PROVIDERS (PIPELINE STAGES)
+ * ============================================================================
+ */
+
+/**
+ * Classification Providers подпакет: provider stages для внешних источников сигналов.
+ * Содержит stage-фабрики, совместимые с `@livai/core/pipeline` (`StagePlugin<TSlotMap>`),
+ * для интеграции remote/vended сигналов в slot graph.
+ *
+ * @public
+ */
+export * from './providers/index.js';
