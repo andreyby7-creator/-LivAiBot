@@ -162,7 +162,7 @@
     "lint-staged": "^16.2.7",
     "madge": "^8.0.0",
     "next-intl": "4.8.2",
-    "rollup": "^4.57.1",
+    "rollup": "^4.59.0",
     "rollup-plugin-visualizer": "^6.0.5",
     "snyk": "^1.1302.1",
     "tsup": "^8.5.1",
