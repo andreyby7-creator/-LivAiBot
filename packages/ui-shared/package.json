@@ -86,7 +86,7 @@
     "ui"
   ],
   "dependencies": {
-    "react-hook-form": "^7.70.0",
+    "react-hook-form": "^7.71.2",
     "zod": "^4.3.6"
   }
 }
