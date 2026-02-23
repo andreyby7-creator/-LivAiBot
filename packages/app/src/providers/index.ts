@@ -16,9 +16,9 @@
  */
 export {
   AppProviders,
-  AuthGuardBridge,
-  type AppUiAuthContext,
   type AppProvidersProps,
+  type AppUiAuthContext,
+  AuthGuardBridge,
 } from './AppProviders.js';
 
 /* ============================================================================
@@ -31,14 +31,14 @@ export {
  * @public
  */
 export {
-  FeatureFlagsProvider,
-  featureFlagsStore,
-  useFeatureFlags,
-  type UiFeatureFlagsAlias,
-  type FeatureFlagsState,
   type FeatureFlagsActions,
-  type FeatureFlagsStore,
+  FeatureFlagsProvider,
   type FeatureFlagsProviderProps,
+  type FeatureFlagsState,
+  type FeatureFlagsStore,
+  featureFlagsStore,
+  type UiFeatureFlagsAlias,
+  useFeatureFlags,
 } from './FeatureFlagsProvider.js';
 
 /* ============================================================================
@@ -50,10 +50,7 @@ export {
  *
  * @public
  */
-export {
-  IntlProvider,
-  type IntlProviderProps,
-} from './intl-provider.js';
+export { IntlProvider, type IntlProviderProps } from './intl-provider.js';
 
 /* ============================================================================
  * 🔄 QUERY CLIENT PROVIDER — ПРОВАЙДЕР QUERY CLIENT
@@ -66,8 +63,8 @@ export {
  */
 export {
   AppQueryClientProvider,
-  type QueryComponentState,
   type AppQueryClientProviderProps,
+  type QueryComponentState,
 } from './QueryClientProvider.js';
 
 /* ============================================================================
@@ -80,12 +77,12 @@ export {
  * @public
  */
 export {
-  TelemetryProvider,
-  useTelemetryContext,
   TelemetryContext,
-  type UiMetricsAlias,
   type TelemetryContextType,
+  TelemetryProvider,
   type TelemetryProviderProps,
+  type UiMetricsAlias,
+  useTelemetryContext,
 } from './TelemetryProvider.js';
 
 /* ============================================================================
@@ -98,15 +95,15 @@ export {
  * @public
  */
 export {
-  ToastProvider,
-  useToast as useToastContext,
-  ToastContext,
-  type ToastComponentState,
-  type ToastType,
-  type ToastItem,
-  type ToastContextType,
   type AddToastParams,
+  type ToastComponentState,
+  ToastContext,
+  type ToastContextType,
+  type ToastItem,
+  ToastProvider,
   type ToastProviderProps,
+  type ToastType,
+  useToast as useToastContext,
 } from './ToastProvider.js';
 
 /* ============================================================================
@@ -119,16 +116,16 @@ export {
  * @public
  */
 export {
-  UnifiedUIProvider,
   UnifiedUIContext,
-  useUnifiedUI,
+  type UnifiedUIContextType,
+  type UnifiedUiFeatureFlagsApi,
+  type UnifiedUiI18nContext,
+  UnifiedUIProvider,
+  type UnifiedUIProviderProps,
+  type UnifiedUiTelemetryApi,
   useRequiredUnifiedUI,
   useUnifiedFeatureFlags,
-  useUnifiedTelemetry,
   useUnifiedI18n,
-  type UnifiedUiFeatureFlagsApi,
-  type UnifiedUiTelemetryApi,
-  type UnifiedUiI18nContext,
-  type UnifiedUIContextType,
-  type UnifiedUIProviderProps,
+  useUnifiedTelemetry,
+  useUnifiedUI,
 } from './UnifiedUIProvider.js';

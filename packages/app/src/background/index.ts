@@ -17,16 +17,16 @@
  * @public
  */
 export {
-  Scheduler,
-  MeldablePriorityQueue,
-  getGlobalScheduler,
-  scheduler,
-  ENV,
-  type PriorityType,
-  type TaskFn,
   type BackgroundTask,
+  ENV,
+  getGlobalScheduler,
+  MeldablePriorityQueue,
+  type PriorityType,
   type QueueItem,
+  Scheduler,
+  scheduler,
   type SchedulerDI,
+  type TaskFn,
 } from './scheduler.js';
 
 /* ============================================================================
@@ -41,14 +41,14 @@ export {
  * @public
  */
 export {
+  backgroundTasks,
+  type BackgroundTasksDI,
   createTasks,
   initBackgroundTasks,
+  PermanentError,
   startBackgroundTasks,
   stopBackgroundTasks,
-  backgroundTasks,
+  type TaskEffect,
   TaskError,
   TransientError,
-  PermanentError,
-  type TaskEffect,
-  type BackgroundTasksDI,
 } from './tasks.js';

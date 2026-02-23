@@ -16,13 +16,13 @@
  * @public
  */
 export {
-  useApi,
-  type ApiUiEvent,
-  type ApiComponentState,
-  type ApiUiMetrics,
-  type ApiEndpointDefinition,
-  type ApiContract,
   type ApiClientAdapter,
+  type ApiComponentState,
+  type ApiContract,
+  type ApiEndpointDefinition,
+  type ApiUiEvent,
+  type ApiUiMetrics,
+  useApi,
   type UseApiOptions,
 } from './useApi.js';
 
@@ -36,10 +36,7 @@ export {
  *
  * @public
  */
-export {
-  useAuth,
-  authSelectors,
-} from './useAuth.js';
+export { authSelectors, useAuth } from './useAuth.js';
 
 /* ============================================================================
  * 🗄️ USE OFFLINE CACHE — ХУК ДЛЯ ОФФЛАЙН КЭША
@@ -53,14 +50,14 @@ export {
  * @public
  */
 export {
-  useOfflineCache,
-  type OfflineCacheComponentState,
   type CacheKey,
-  type PartialDeep,
   type InvalidateMarker,
-  type UseOfflineCacheState,
+  type OfflineCacheComponentState,
+  type PartialDeep,
+  useOfflineCache,
   type UseOfflineCacheOptions,
   type UseOfflineCacheReturn,
+  type UseOfflineCacheState,
 } from './useOfflineCache.js';
 
 /* ============================================================================
@@ -74,10 +71,10 @@ export {
  * @public
  */
 export {
-  useFeatureFlags,
-  type UseFeatureFlagsUi,
   type FeatureFlagKey,
+  useFeatureFlags,
   type UseFeatureFlagsApi,
+  type UseFeatureFlagsUi,
 } from './useFeatureFlags.js';
 
 /* ============================================================================
@@ -91,9 +88,9 @@ export {
  * @public
  */
 export {
-  useToast,
-  type ToastUiEvent,
   type ToastComponentState,
   type ToastDuration,
+  type ToastUiEvent,
+  useToast,
   type UseToastApi,
 } from './useToast.js';

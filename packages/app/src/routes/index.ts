@@ -15,12 +15,12 @@
  * @public
  */
 export {
-  RouteNames,
-  ROUTES,
   getRouteByName,
   getRoutesForRole,
-  type RouteNameKey,
   type RouteName,
+  type RouteNameKey,
+  RouteNames,
+  ROUTES,
 } from './routes.js';
 
 /* ============================================================================
@@ -33,14 +33,14 @@ export {
  * @public
  */
 export {
-  routeMeta,
-  FeatureFlags as RouteFeatureFlags,
-  getRouteMeta,
   canAccessRouteByName,
   checkComprehensiveRouteAccess,
+  FeatureFlags as RouteFeatureFlags,
   filterRoutes,
+  getRouteMeta,
   type RouteAccessResult,
   type RouteMeta,
+  routeMeta,
 } from './route-meta.js';
 
 /* ============================================================================
@@ -53,15 +53,15 @@ export {
  * @public
  */
 export {
-  NAVIGATION,
   getNavigationForContext,
-  type NavigationPlacement,
-  type NavigationItemType,
-  type NavigationBadgeSource,
+  NAVIGATION,
   type NavigationBadge,
-  type NavigationLink,
-  type NavigationGroup,
-  type NavigationDivider,
-  type NavigationItem,
+  type NavigationBadgeSource,
   type NavigationContext,
+  type NavigationDivider,
+  type NavigationGroup,
+  type NavigationItem,
+  type NavigationItemType,
+  type NavigationLink,
+  type NavigationPlacement,
 } from './navigation.js';

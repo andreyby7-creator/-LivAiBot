@@ -15,7 +15,7 @@
  *
  * @public
  */
-export { Toast, type CoreToastProps, type ToastVariant } from './Toast.js';
+export { type CoreToastProps, Toast, type ToastVariant } from './Toast.js';
 
 /* ============================================================================
  * 💀 SKELETON — СКЕЛЕТОН ЗАГРУЗКИ
@@ -26,11 +26,7 @@ export { Toast, type CoreToastProps, type ToastVariant } from './Toast.js';
  *
  * @public
  */
-export {
-  Skeleton,
-  type CoreSkeletonProps,
-  type SkeletonVariant,
-} from './Skeleton.js';
+export { type CoreSkeletonProps, Skeleton, type SkeletonVariant } from './Skeleton.js';
 
 /* ============================================================================
  * 🪟 MODAL — МОДАЛЬНОЕ ОКНО
@@ -41,7 +37,7 @@ export {
  *
  * @public
  */
-export { Modal, type CoreModalProps, type ModalVariant } from './Modal.js';
+export { type CoreModalProps, Modal, type ModalVariant } from './Modal.js';
 
 /* ============================================================================
  * 🍞 BREADCRUMBS — ХЛЕБНЫЕ КРОШКИ
@@ -53,10 +49,10 @@ export { Modal, type CoreModalProps, type ModalVariant } from './Modal.js';
  * @public
  */
 export {
-  Breadcrumbs,
-  DefaultSeparator,
   type BreadcrumbItem,
+  Breadcrumbs,
   type CoreBreadcrumbsProps,
+  DefaultSeparator,
 } from './Breadcrumbs.js';
 
 /* ============================================================================
@@ -68,7 +64,7 @@ export {
  *
  * @public
  */
-export { Tabs, type CoreTabsProps, type TabItem } from './Tabs.js';
+export { type CoreTabsProps, type TabItem, Tabs } from './Tabs.js';
 
 /* ============================================================================
  * 📖 ACCORDION — АККОРДЕОН
@@ -91,11 +87,11 @@ export { Accordion, type AccordionItem, type CoreAccordionProps } from './Accord
  * @public
  */
 export {
-  DatePicker,
   type CalendarDay,
   type CalendarMonth,
   type CalendarWeek,
   type CoreDatePickerProps,
+  DatePicker,
 } from './DatePicker.js';
 
 /* ============================================================================
@@ -108,10 +104,10 @@ export {
  * @public
  */
 export {
-  FileUploader,
   type CoreFileUploaderProps,
   type FileInfo,
   type FileStatus,
+  FileUploader,
 } from './FileUploader.js';
 
 /* ============================================================================
@@ -124,8 +120,8 @@ export {
  * @public
  */
 export {
-  SideBar,
   type CoreSideBarProps,
+  SideBar,
   type SideBarItem,
   type SideBarPosition,
   type SideBarState,
@@ -140,7 +136,7 @@ export {
  *
  * @public
  */
-export { SearchBar, type CoreSearchBarProps } from './SearchBar.js';
+export { type CoreSearchBarProps, SearchBar } from './SearchBar.js';
 
 /* ============================================================================
  * ✅ CONFIRM DIALOG — ДИАЛОГ ПОДТВЕРЖДЕНИЯ
@@ -177,9 +173,9 @@ export {
  * @public
  */
 export {
-  UserProfileDisplay,
   type CoreUserProfileDisplayProps,
   type UserProfileData,
+  UserProfileDisplay,
 } from './UserProfileDisplay.js';
 
 /* ============================================================================
@@ -192,8 +188,8 @@ export {
  * @public
  */
 export {
-  NavigationMenuItem,
   type CoreNavigationMenuItemProps,
+  NavigationMenuItem,
   type NavigationMenuItemData,
 } from './NavigationMenuItem.js';
 
@@ -207,9 +203,9 @@ export {
  * @public
  */
 export {
-  LanguageSelector,
   type CoreLanguageSelectorProps,
   type LanguageData,
+  LanguageSelector,
 } from './LanguageSelector.js';
 
 /* ============================================================================
@@ -222,8 +218,8 @@ export {
  * @public
  */
 export {
-  SupportButton,
   type CoreSupportButtonProps,
+  SupportButton,
   type SupportButtonSize,
   type SupportButtonVariant,
 } from './SupportButton.js';

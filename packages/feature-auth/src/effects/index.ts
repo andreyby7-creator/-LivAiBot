@@ -17,12 +17,12 @@
 export {
   buildLoginMetadata,
   createLoginMetadataEnricher,
-  type RiskMetadata,
+  type IdentifierHasher,
   type LoginContext,
   type LoginMetadata,
   type MetadataBuilder,
-  type IdentifierHasher,
   type MetadataConfig,
+  type RiskMetadata,
 } from './login/login-metadata.enricher.js';
 
 /**
@@ -41,20 +41,14 @@ export {
  *
  * @public
  */
-export {
-  assessLoginRisk,
-  type AuditHook,
-} from './login/risk-assessment.js';
+export { assessLoginRisk, type AuditHook } from './login/risk-assessment.js';
 
 /**
  * Classification Mapper: маппинг классификации.
  *
  * @public
  */
-export {
-  mapLabelToDecisionHint,
-  type DecisionResult,
-} from './login/classification-mapper.js';
+export { type DecisionResult, mapLabelToDecisionHint } from './login/classification-mapper.js';
 
 /**
  * Error Mapper: маппинг ошибок аутентификации.
@@ -62,11 +56,11 @@ export {
  * @public
  */
 export {
-  mapAuthError,
-  mapAuthErrorToUI,
-  type MapAuthErrorConfig,
   type AuthErrorInput,
+  mapAuthError,
+  type MapAuthErrorConfig,
   type MapAuthErrorResult,
+  mapAuthErrorToUI,
 } from './login/error-mapper.js';
 
 /**
@@ -74,15 +68,11 @@ export {
  *
  * @public
  */
-export {
-  isValidLoginRequest,
-} from './login/validation.js';
+export { isValidLoginRequest } from './login/validation.js';
 
 /**
  * Device Fingerprint: получение отпечатка устройства.
  *
  * @public
  */
-export {
-  DeviceFingerprint,
-} from './login/device-fingerprint.js';
+export { DeviceFingerprint } from './login/device-fingerprint.js';

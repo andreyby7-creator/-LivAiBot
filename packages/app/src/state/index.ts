@@ -15,22 +15,22 @@
  * @public
  */
 export {
-  useAppStore,
-  getCurrentTime,
-  getInitialOnlineStatus,
-  createInitialState,
-  registerNetworkStatusListener,
-  storePartialize,
-  storeMerge,
-  appStoreSelectors,
+  type AppStore,
+  type AppStoreActions,
   appStoreDerivedSelectors,
-  type ThemeMode,
-  type UserStatus,
+  appStoreSelectors,
+  type AppStoreState,
   type AppUser,
   type AuthState,
-  type AppStoreState,
-  type AppStoreActions,
-  type AppStore,
+  createInitialState,
+  getCurrentTime,
+  getInitialOnlineStatus,
+  registerNetworkStatusListener,
+  storeMerge,
+  storePartialize,
+  type ThemeMode,
+  useAppStore,
+  type UserStatus,
 } from './store.js';
 
 /* ============================================================================
@@ -42,12 +42,7 @@ export {
  *
  * @public
  */
-export {
-  safeSet,
-  isStoreLocked,
-  setStoreLocked,
-  type SafeSetOptions,
-} from './store-utils.js';
+export { isStoreLocked, safeSet, type SafeSetOptions, setStoreLocked } from './store-utils.js';
 
 /* ============================================================================
  * 🔄 RESET — СБРОС СОСТОЯНИЯ
@@ -59,10 +54,10 @@ export {
  * @public
  */
 export {
-  registerAppStateReset,
   __resetAppStateResetRegistration,
-  type AppResetReason,
   type AppResetPolicy,
+  type AppResetReason,
+  registerAppStateReset,
 } from './reset.js';
 
 /* ============================================================================
@@ -75,11 +70,11 @@ export {
  * @public
  */
 export {
+  type AppQueryClientOptions,
   createQueryClient,
-  queryClient,
   extractHttpStatus,
   logQueryError,
+  queryClient,
   shouldRetryRequest,
   toSafeJson,
-  type AppQueryClientOptions,
 } from './query/query-client.js';

@@ -146,7 +146,7 @@ apps/web (тонкий композитор)
 3️⃣ BotPolicy.ts 🟢 — ts — deps: core-contracts; (жизненный цикл бота, режимы работы)
 4️⃣ ChatPolicy.ts 🟢 — ts — deps: core-contracts; (кто кому может писать, режимы чата, rate limiting)
 5️⃣ BillingPolicy.ts 🟢 — ts — deps: core-contracts; (ограничения ресурсов по тарифу, лимиты)
-6️⃣ ComposedPolicy.ts 🟢 — ts — deps: core-contracts, AuthPolicy, BotPermissions, BotPolicy, ChatPolicy, BillingPolicy; (объединяет все политики, pre-flight проверки) 
+6️⃣ ComposedPolicy.ts 🟢 — ts — deps: core-contracts, AuthPolicy, BotPermissions, BotPolicy, ChatPolicy, BillingPolicy; (объединяет все политики, pre-flight проверки)
 
 ✅ Core/aggregation
 7️⃣ weight.ts 🟢 — ts — deps: — ; (операции с весами: нормализация, валидация, scale, combine)

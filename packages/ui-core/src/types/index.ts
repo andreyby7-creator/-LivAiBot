@@ -16,11 +16,11 @@
  * @public
  */
 export type {
-  UIAriaAttributes,
-  UIAlign,
-  UIColor,
   CoreUIBaseProps,
   CoreUIComponentContract,
+  UIAlign,
+  UIAriaAttributes,
+  UIColor,
   UIDataAttributes,
   UIDiagnosticsAttributes,
   UIDuration,
@@ -33,8 +33,8 @@ export type {
   UISemanticStatus,
   UISize,
   UIState,
-  UIThickness,
   UITestId,
+  UIThickness,
   UIVisibility,
   UIZIndex,
 } from './ui.js';

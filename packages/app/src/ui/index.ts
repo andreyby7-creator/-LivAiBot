@@ -15,11 +15,11 @@
  * @public
  */
 export {
+  type AppButtonProps,
   Button,
+  type ButtonMapCoreProps,
   type ButtonUiFeatureFlags,
   type ButtonWrapperProps,
-  type ButtonMapCoreProps,
-  type AppButtonProps,
 } from './button.js';
 
 /**
@@ -28,13 +28,13 @@ export {
  * @public
  */
 export {
+  type AppInputProps,
   Input,
+  type InputMapCoreProps,
+  type InputTelemetryEvent,
+  type InputTelemetryPayload,
   type InputUiFeatureFlags,
   type InputWrapperProps,
-  type InputMapCoreProps,
-  type InputTelemetryPayload,
-  type InputTelemetryEvent,
-  type AppInputProps,
 } from './input.js';
 
 /**
@@ -43,11 +43,11 @@ export {
  * @public
  */
 export {
+  type AppTextareaProps,
   Textarea,
+  type TextareaMapCoreProps,
   type TextareaUiFeatureFlags,
   type TextareaWrapperProps,
-  type TextareaMapCoreProps,
-  type AppTextareaProps,
 } from './textarea.js';
 
 /**
@@ -56,11 +56,11 @@ export {
  * @public
  */
 export {
+  type AppSelectProps,
   Select,
+  type SelectMapCoreProps,
   type SelectUiFeatureFlags,
   type SelectWrapperProps,
-  type SelectMapCoreProps,
-  type AppSelectProps,
 } from './select.js';
 
 /**
@@ -69,11 +69,11 @@ export {
  * @public
  */
 export {
+  type AppCheckboxProps,
   Checkbox,
+  type CheckboxMapCoreProps,
   type CheckboxUiFeatureFlags,
   type CheckboxWrapperProps,
-  type CheckboxMapCoreProps,
-  type AppCheckboxProps,
 } from './checkbox.js';
 
 /**
@@ -82,11 +82,11 @@ export {
  * @public
  */
 export {
+  type AppRadioProps,
   Radio,
+  type RadioMapCoreProps,
   type RadioUiFeatureFlags,
   type RadioWrapperProps,
-  type RadioMapCoreProps,
-  type AppRadioProps,
 } from './radio.js';
 
 /**
@@ -95,11 +95,11 @@ export {
  * @public
  */
 export {
+  type AppToggleProps,
   Toggle,
+  type ToggleMapCoreProps,
   type ToggleUiFeatureFlags,
   type ToggleWrapperProps,
-  type ToggleMapCoreProps,
-  type AppToggleProps,
 } from './toggle.js';
 
 /**
@@ -108,11 +108,11 @@ export {
  * @public
  */
 export {
+  type AppIconProps,
   Icon,
+  type IconMapCoreProps,
   type IconUiFeatureFlags,
   type IconWrapperProps,
-  type IconMapCoreProps,
-  type AppIconProps,
 } from './icon.js';
 
 /**
@@ -121,11 +121,11 @@ export {
  * @public
  */
 export {
+  type AppAvatarProps,
   Avatar,
+  type AvatarMapCoreProps,
   type AvatarUiFeatureFlags,
   type AvatarWrapperProps,
-  type AvatarMapCoreProps,
-  type AppAvatarProps,
 } from './avatar.js';
 
 /**
@@ -134,11 +134,11 @@ export {
  * @public
  */
 export {
+  type AppBadgeProps,
   Badge,
+  type BadgeMapCoreProps,
   type BadgeUiFeatureFlags,
   type BadgeWrapperProps,
-  type BadgeMapCoreProps,
-  type AppBadgeProps,
 } from './badge.js';
 
 /**
@@ -147,11 +147,11 @@ export {
  * @public
  */
 export {
+  type AppTooltipProps,
   Tooltip,
+  type TooltipMapCoreProps,
   type TooltipUiFeatureFlags,
   type TooltipWrapperProps,
-  type TooltipMapCoreProps,
-  type AppTooltipProps,
 } from './tooltip.js';
 
 /**
@@ -160,11 +160,11 @@ export {
  * @public
  */
 export {
+  type AppDividerProps,
   Divider,
+  type DividerMapCoreProps,
   type DividerUiFeatureFlags,
   type DividerWrapperProps,
-  type DividerMapCoreProps,
-  type AppDividerProps,
 } from './divider.js';
 
 /**
@@ -173,11 +173,11 @@ export {
  * @public
  */
 export {
+  type AppCardProps,
   Card,
+  type CardMapCoreProps,
   type CardUiFeatureFlags,
   type CardWrapperProps,
-  type CardMapCoreProps,
-  type AppCardProps,
 } from './card.js';
 
 /**
@@ -185,20 +185,14 @@ export {
  *
  * @public
  */
-export {
-  Dialog,
-  type AppDialogProps,
-} from './dialog.js';
+export { type AppDialogProps, Dialog } from './dialog.js';
 
 /**
  * Form: компонент формы.
  *
  * @public
  */
-export {
-  Form,
-  type AppFormProps,
-} from './form.js';
+export { type AppFormProps, Form } from './form.js';
 
 /**
  * LoadingSpinner: компонент индикатора загрузки.
@@ -206,11 +200,11 @@ export {
  * @public
  */
 export {
+  type AppLoadingSpinnerProps,
   LoadingSpinner,
+  type LoadingSpinnerMapCoreProps,
   type LoadingSpinnerUiFeatureFlags,
   type LoadingSpinnerWrapperProps,
-  type LoadingSpinnerMapCoreProps,
-  type AppLoadingSpinnerProps,
 } from './loading-spinner.js';
 
 /**
@@ -219,11 +213,11 @@ export {
  * @public
  */
 export {
+  type AppDropdownProps,
   Dropdown,
+  type DropdownMapCoreProps,
   type DropdownUiFeatureFlags,
   type DropdownWrapperProps,
-  type DropdownMapCoreProps,
-  type AppDropdownProps,
 } from './dropdown.js';
 
 /**
@@ -232,11 +226,11 @@ export {
  * @public
  */
 export {
+  type AppContextMenuProps,
   ContextMenu,
+  type ContextMenuMapCoreProps,
   type ContextMenuUiFeatureFlags,
   type ContextMenuWrapperProps,
-  type ContextMenuMapCoreProps,
-  type AppContextMenuProps,
 } from './context-menu.js';
 
 /**
@@ -245,11 +239,11 @@ export {
  * @public
  */
 export {
+  type AppStatusIndicatorProps,
   StatusIndicator,
+  type StatusIndicatorMapCoreProps,
   type StatusIndicatorUiFeatureFlags,
   type StatusIndicatorWrapperProps,
-  type StatusIndicatorMapCoreProps,
-  type AppStatusIndicatorProps,
 } from './status-indicator.js';
 
 /* ============================================================================
@@ -262,11 +256,11 @@ export {
  * @public
  */
 export {
+  type AppToastProps,
   Toast,
+  type ToastMapCoreProps,
   type ToastUiFeatureFlags,
   type ToastWrapperProps,
-  type ToastMapCoreProps,
-  type AppToastProps,
 } from './toast.js';
 
 /**
@@ -275,11 +269,11 @@ export {
  * @public
  */
 export {
+  type AppSkeletonProps,
   Skeleton,
+  type SkeletonMapCoreProps,
   type SkeletonUiFeatureFlags,
   type SkeletonWrapperProps,
-  type SkeletonMapCoreProps,
-  type AppSkeletonProps,
 } from './skeleton.js';
 
 /**
@@ -287,10 +281,7 @@ export {
  *
  * @public
  */
-export {
-  SkeletonGroup,
-  type AppSkeletonGroupProps,
-} from './skeleton-group.js';
+export { type AppSkeletonGroupProps, SkeletonGroup } from './skeleton-group.js';
 
 /**
  * Modal: компонент модального окна.
@@ -298,11 +289,11 @@ export {
  * @public
  */
 export {
+  type AppModalProps,
   Modal,
+  type ModalMapCoreProps,
   type ModalUiFeatureFlags,
   type ModalWrapperProps,
-  type ModalMapCoreProps,
-  type AppModalProps,
 } from './modal.js';
 
 /**
@@ -311,12 +302,12 @@ export {
  * @public
  */
 export {
+  type AppBreadcrumbItem,
+  type AppBreadcrumbsProps,
   Breadcrumbs,
+  type BreadcrumbsMapCoreProps,
   type BreadcrumbsUiFeatureFlags,
   type BreadcrumbsWrapperProps,
-  type BreadcrumbsMapCoreProps,
-  type AppBreadcrumbsProps,
-  type AppBreadcrumbItem,
 } from './breadcrumbs.js';
 
 /**
@@ -325,11 +316,11 @@ export {
  * @public
  */
 export {
+  type AppTabsProps,
   Tabs,
+  type TabsMapCoreProps,
   type TabsUiFeatureFlags,
   type TabsWrapperProps,
-  type TabsMapCoreProps,
-  type AppTabsProps,
 } from './tabs.js';
 
 /**
@@ -339,9 +330,9 @@ export {
  */
 export {
   Accordion,
+  type AccordionMapCoreProps,
   type AccordionUiFeatureFlags,
   type AccordionWrapperProps,
-  type AccordionMapCoreProps,
   type AppAccordionProps,
 } from './accordion.js';
 
@@ -351,11 +342,11 @@ export {
  * @public
  */
 export {
+  type AppDatePickerProps,
   DatePicker,
+  type DatePickerMapCoreProps,
   type DatePickerUiFeatureFlags,
   type DatePickerWrapperProps,
-  type DatePickerMapCoreProps,
-  type AppDatePickerProps,
 } from './date-picker.js';
 
 /**
@@ -363,10 +354,7 @@ export {
  *
  * @public
  */
-export {
-  FileUploader,
-  type AppFileUploaderProps,
-} from './file-uploader.js';
+export { type AppFileUploaderProps, FileUploader } from './file-uploader.js';
 
 /**
  * SideBar: компонент боковой панели.
@@ -374,11 +362,11 @@ export {
  * @public
  */
 export {
+  type AppSideBarProps,
   SideBar,
+  type SidebarMapCoreProps,
   type SidebarUiFeatureFlags,
   type SidebarWrapperProps,
-  type SidebarMapCoreProps,
-  type AppSideBarProps,
 } from './sidebar.js';
 
 /**
@@ -386,10 +374,7 @@ export {
  *
  * @public
  */
-export {
-  SearchBar,
-  type AppSearchBarProps,
-} from './search-bar.js';
+export { type AppSearchBarProps, SearchBar } from './search-bar.js';
 
 /**
  * ConfirmDialog: компонент диалога подтверждения.
@@ -397,11 +382,11 @@ export {
  * @public
  */
 export {
+  type AppConfirmDialogProps,
   ConfirmDialog,
+  type ConfirmDialogMapCoreProps,
   type ConfirmDialogUiFeatureFlags,
   type ConfirmDialogWrapperProps,
-  type ConfirmDialogMapCoreProps,
-  type AppConfirmDialogProps,
 } from './confirm-dialog.js';
 
 /**
@@ -410,11 +395,11 @@ export {
  * @public
  */
 export {
+  type AppErrorBoundaryProps,
   ErrorBoundary,
+  type ErrorBoundaryMapCoreProps,
   type ErrorBoundaryUiFeatureFlags,
   type ErrorBoundaryWrapperProps,
-  type ErrorBoundaryMapCoreProps,
-  type AppErrorBoundaryProps,
 } from './error-boundary.js';
 
 /**
@@ -423,11 +408,11 @@ export {
  * @public
  */
 export {
+  type AppUserProfileDisplayProps,
   UserProfileDisplay,
+  type UserProfileDisplayMapCoreProps,
   type UserProfileDisplayUiFeatureFlags,
   type UserProfileDisplayWrapperProps,
-  type UserProfileDisplayMapCoreProps,
-  type AppUserProfileDisplayProps,
 } from './user-profile-display.js';
 
 /**
@@ -436,11 +421,11 @@ export {
  * @public
  */
 export {
+  type AppNavigationMenuItemProps,
   NavigationMenuItem,
+  type NavigationMenuItemMapCoreProps,
   type NavigationMenuItemUiFeatureFlags,
   type NavigationMenuItemWrapperProps,
-  type NavigationMenuItemMapCoreProps,
-  type AppNavigationMenuItemProps,
 } from './navigation-menu-item.js';
 
 /**
@@ -449,11 +434,11 @@ export {
  * @public
  */
 export {
+  type AppLanguageSelectorProps,
   LanguageSelector,
+  type LanguageSelectorMapCoreProps,
   type LanguageSelectorUiFeatureFlags,
   type LanguageSelectorWrapperProps,
-  type LanguageSelectorMapCoreProps,
-  type AppLanguageSelectorProps,
 } from './language-selector.js';
 
 /**
@@ -461,7 +446,4 @@ export {
  *
  * @public
  */
-export {
-  SupportButton,
-  type AppSupportButtonProps,
-} from './support-button.js';
+export { type AppSupportButtonProps, SupportButton } from './support-button.js';
