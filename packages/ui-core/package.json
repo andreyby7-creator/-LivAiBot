@@ -67,8 +67,8 @@
     "react"
   ],
   "peerDependencies": {
-    "react": "19.2.3",
-    "react-dom": "19.2.3",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
     "typescript": "5.9.3"
   },
   "devDependencies": {
@@ -76,7 +76,7 @@
     "@testing-library/react": "16.3.2",
     "@vitest/coverage-v8": "4.0.18",
     "concurrently": "9.2.1",
-    "eslint": "9.39.2",
+    "eslint": "9.39.3",
     "jsdom": "28.1.0",
     "tsup": "8.5.1",
     "typescript": "5.9.3",
@@ -88,7 +88,6 @@
     "ui"
   ],
   "dependencies": {
-    "clsx": "^2.1.1",
-    "react-dom": "^19.2.3"
+    "clsx": "^2.1.1"
   }
 }
