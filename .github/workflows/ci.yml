@@ -75,6 +75,9 @@ jobs:
       - name: TypeScript check
         run: pnpm run type-check:ci
 
+      - name: Build types (required for type-aware ESLint)
+        run: pnpm run build:types
+
       - name: Lint
         run: pnpm run lint:canary:ci
 

@@ -54,6 +54,9 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Build types (required for type-aware ESLint)
+        run: pnpm run build:types
+
       - name: ESLint check
         run: pnpm lint:canary
 
