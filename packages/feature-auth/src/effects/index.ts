@@ -1,0 +1,88 @@
+/**
+ * @file packages/feature-auth/src/effects — Effects
+ *
+ * Публичный API пакета effects.
+ * Экспортирует все публичные эффекты для feature-auth.
+ */
+
+/* ============================================================================
+ * 🔐 LOGIN EFFECTS — ЭФФЕКТЫ ДЛЯ ВХОДА
+ * ========================================================================== */
+
+/**
+ * Login Metadata Enricher: обогащение метаданных для входа.
+ *
+ * @public
+ */
+export {
+  buildLoginMetadata,
+  createLoginMetadataEnricher,
+  type RiskMetadata,
+  type LoginContext,
+  type LoginMetadata,
+  type MetadataBuilder,
+  type IdentifierHasher,
+  type MetadataConfig,
+} from './login/login-metadata.enricher.js';
+
+/**
+ * Login Risk Assessment Adapter: адаптер для оценки рисков входа.
+ *
+ * @public
+ */
+export {
+  buildAssessment,
+  type RiskSignals as AdapterRiskSignals,
+  type SignalsMapperPlugin,
+} from './login/login-risk-assessment.adapter.js';
+
+/**
+ * Risk Assessment: оценка рисков.
+ *
+ * @public
+ */
+export {
+  assessLoginRisk,
+  type AuditHook,
+} from './login/risk-assessment.js';
+
+/**
+ * Classification Mapper: маппинг классификации.
+ *
+ * @public
+ */
+export {
+  mapLabelToDecisionHint,
+  type DecisionResult,
+} from './login/classification-mapper.js';
+
+/**
+ * Error Mapper: маппинг ошибок аутентификации.
+ *
+ * @public
+ */
+export {
+  mapAuthError,
+  mapAuthErrorToUI,
+  type MapAuthErrorConfig,
+  type AuthErrorInput,
+  type MapAuthErrorResult,
+} from './login/error-mapper.js';
+
+/**
+ * Validation: валидация запросов входа.
+ *
+ * @public
+ */
+export {
+  isValidLoginRequest,
+} from './login/validation.js';
+
+/**
+ * Device Fingerprint: получение отпечатка устройства.
+ *
+ * @public
+ */
+export {
+  DeviceFingerprint,
+} from './login/device-fingerprint.js';

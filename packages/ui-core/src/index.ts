@@ -1,5 +1,9 @@
 /**
- * @file @livai/ui-core — атомарные UI компоненты и примитивы.
+ * @file @livai/ui-core — Public API для UI Core пакета
+ *
+ * Публичный API пакета @livai/ui-core.
+ * Экспортирует все публичные компоненты, типы и утилиты для UI примитивов и компонентов.
+ * Tree-shakeable: все named exports остаются, импорты будут по нужным компонентам.
  *
  * Принцип:
  * - только UI-компоненты и примитивы (без бизнес-логики и без контрактов API)
@@ -11,50 +15,39 @@
  * 🧩 PRIMITIVES — UI ПРИМИТИВЫ
  * ========================================================================== */
 
-export * from './primitives/avatar.js';
-export * from './primitives/badge.js';
-export * from './primitives/button.js';
-export * from './primitives/card.js';
-export * from './primitives/checkbox.js';
-export * from './primitives/context-menu.js';
-export * from './primitives/dialog.js';
-export * from './primitives/divider.js';
-export * from './primitives/dropdown.js';
-export * from './primitives/form-field.js';
-export * from './primitives/form.js';
-export * from './primitives/icon.js';
-export * from './primitives/input.js';
-export * from './primitives/loading-spinner.js';
-export * from './primitives/radio.js';
-export * from './primitives/select.js';
-export * from './primitives/status-indicator.js';
-export * from './primitives/textarea.js';
-export * from './primitives/toggle.js';
-export * from './primitives/tooltip.js';
+/**
+ * Primitives подпакет: базовые UI примитивы.
+ * Включает Button, Input, Textarea, Select, Checkbox, Radio, Toggle, Icon,
+ * Avatar, Badge, Tooltip, Divider, Card, FormField, Dialog, Form,
+ * LoadingSpinner, Dropdown, ContextMenu, StatusIndicator.
+ *
+ * @public
+ */
+export * from './primitives/index.js';
 
 /* ============================================================================
  * 🧩 COMPONENTS — КОМПОЗИТНЫЕ UI КОМПОНЕНТЫ
  * ========================================================================== */
 
-export * from './components/Accordion.js';
-export * from './components/Breadcrumbs.js';
-export * from './components/ConfirmDialog.js';
-export * from './components/DatePicker.js';
-export * from './components/ErrorBoundary.js';
-export * from './components/FileUploader.js';
-export * from './components/LanguageSelector.js';
-export * from './components/Modal.js';
-export * from './components/NavigationMenuItem.js';
-export * from './components/SearchBar.js';
-export * from './components/SideBar.js';
-export * from './components/Skeleton.js';
-export * from './components/SupportButton.js';
-export * from './components/Tabs.js';
-export * from './components/Toast.js';
-export * from './components/UserProfileDisplay.js';
+/**
+ * Components подпакет: композитные UI компоненты.
+ * Включает Toast, Skeleton, Modal, Breadcrumbs, Tabs, Accordion, DatePicker,
+ * FileUploader, SideBar, SearchBar, ConfirmDialog, ErrorBoundary,
+ * UserProfileDisplay, NavigationMenuItem, LanguageSelector, SupportButton.
+ *
+ * @public
+ */
+export * from './components/index.js';
 
 /* ============================================================================
  * 🧬 TYPES — UI ТИПЫ
  * ========================================================================== */
 
-export * from './types/ui.js';
+/**
+ * Types подпакет: базовые UI типы и контракты.
+ * Включает типы для видимости, интерактивности, design tokens, accessibility,
+ * состояния компонентов и базовые контракты.
+ *
+ * @public
+ */
+export * from './types/index.js';

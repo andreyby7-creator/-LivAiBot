@@ -1,444 +1,572 @@
 /**
- * @file @livai/app — Next.js композиция (providers/hooks/ui/lib/types).
+ * @file packages/app/src — Public API для App пакета
  *
  * Публичный API пакета @livai/app.
- * Экспортирует все публичные компоненты, утилиты, типы и провайдеры.
+ * Экспортирует все публичные компоненты, утилиты, типы, провайдеры и хуки для приложения.
+ * Tree-shakeable: все named exports остаются, импорты будут по нужным компонентам.
+ *
+ * Принцип:
+ * - разделение на подпакеты: background, events, hooks, lib, providers, routes, state, types, ui
+ * - каждый подпакет имеет свой индексный файл с полным набором экспортов
+ * - главный индекс реэкспортирует все подпакеты для удобства использования
  */
+
+/* ============================================================================
+ * 🚀 BOOTSTRAP — ИНИЦИАЛИЗАЦИЯ ПРИЛОЖЕНИЯ
+ * ========================================================================== */
+
+/**
+ * Bootstrap: инициализация клиентского приложения.
+ * Включает валидацию окружения, prefetch, регистрацию Service Worker и рендер.
+ *
+ * @public
+ */
+export {
+  bootstrap,
+  type BootstrapEvent,
+  type BootstrapEventHandler,
+  type BootstrapOptions,
+  type BootstrapResult,
+} from './bootstrap.js';
+
+/* ============================================================================
+ * ⏰ BACKGROUND — ФОНОВЫЕ ЗАДАЧИ И ПЛАНИРОВЩИК
+ * ========================================================================== */
+
+/**
+ * Background подпакет: фоновые задачи и планировщик.
+ * Включает Scheduler, Background Tasks, MeldablePriorityQueue и все связанные типы.
+ *
+ * @public
+ */
+export * from './background/index.js';
+
+/* ============================================================================
+ * 📡 EVENTS — СОБЫТИЯ И EVENT BUS
+ * ========================================================================== */
+
+/**
+ * Events подпакет: события приложения и event bus.
+ * Включает App Events, Event Bus, App Lifecycle Events и все связанные типы.
+ *
+ * @public
+ */
+export * from './events/index.js';
+
+/* ============================================================================
+ * 🪝 HOOKS — REACT ХУКИ
+ * ========================================================================== */
+
+/**
+ * Hooks подпакет: React хуки для работы с API, аутентификацией, кэшем, флагами и уведомлениями.
+ * Включает useApi, useAuth, useOfflineCache, useFeatureFlags, useToast и все связанные типы.
+ *
+ * @public
+ */
+export {
+  useApi,
+  useAuth,
+  useOfflineCache,
+  useFeatureFlags as useFeatureFlagsHook,
+  useToast,
+  authSelectors,
+  type ApiUiEvent,
+  type ApiComponentState,
+  type ApiUiMetrics,
+  type ApiEndpointDefinition,
+  type ApiContract,
+  type ApiClientAdapter,
+  type UseApiOptions,
+  type OfflineCacheComponentState,
+  type PartialDeep,
+  type InvalidateMarker,
+  type UseOfflineCacheState,
+  type UseOfflineCacheOptions,
+  type UseOfflineCacheReturn,
+  type UseFeatureFlagsUi,
+  type FeatureFlagKey,
+  type UseFeatureFlagsApi,
+  type ToastUiEvent,
+  type ToastComponentState as ToastHookComponentState,
+  type ToastDuration,
+  type UseToastApi,
+} from './hooks/index.js';
+
+/* ============================================================================
+ * 🛠️ LIB — БИБЛИОТЕЧНЫЕ УТИЛИТЫ
+ * ========================================================================== */
+
+/**
+ * Lib подпакет: библиотечные утилиты и сервисы.
+ * Включает API Client, Auth Service, Telemetry, Validation, Effect Utils,
+ * Feature Flags, I18n, Logger, Orchestrator, Performance и все связанные типы.
+ *
+ * @public
+ */
+export {
+  // API Client
+  ApiClient,
+  createApiClient,
+  buildUrl,
+  buildHeaders,
+  parseJsonSafe,
+  mapHttpError,
+  type ApiClientOptions,
+  // API Schema Guard
+  validateApiRequest,
+  validateApiResponse,
+  validateApiInteraction,
+  enforceStrictValidation,
+  type ApiValidationContext,
+  type ApiValidationErrorCode,
+  type ApiValidationError,
+  type ApiRequestValidator,
+  type ApiResponseValidator,
+  type ApiSchemaConfig,
+  // Auth Service
+  AuthService,
+  authService,
+  createAuthService,
+  type LoginRequest,
+  type TokenPairResponse,
+  type AuthError as AuthServiceError,
+  // Auth Guard (ID excluded - exported from types)
+  type AuthGuardContext,
+  type Permission,
+  type ResourceType,
+  type Resource,
+  type Action,
+  type AuthErrorCode,
+  type AuthError,
+  type AuthDecisionReason,
+  // Offline Cache
+  createOfflineCache,
+  createInMemoryOfflineCacheStore,
+  pipeEffects,
+  type OfflineCacheEvents,
+  type OfflineCacheContext,
+  type CacheEntry,
+  type OfflineCacheStore,
+  type OfflineCacheOptions,
+  type OfflineCacheResult,
+  // Effect Utils
+  withTimeout,
+  withRetry,
+  createEffectAbortController,
+  safeExecute,
+  TimeoutError,
+  type EffectFn,
+  type Effect,
+  type EffectContext,
+  type RetryPolicy,
+  type EffectAbortController,
+  // Effect Isolation
+  runIsolated,
+  IsolationError,
+  isIsolationError,
+  type IsolationOptions,
+  // Effect Timeout
+  withTimeout as withTimeoutEffect,
+  createTimeoutContext,
+  validateTimeoutMs,
+  TimeoutError as EffectTimeoutError,
+  isTimeoutError,
+  type TimeoutOptions,
+  type TimeoutEffectContext,
+  // Schema Validated Effect
+  validatedEffect,
+  createValidationError,
+  SchemaValidationError,
+  isSchemaValidationError,
+  type ValidatedEffectOptions,
+  // Error Mapping
+  mapError,
+  SERVICES,
+  errorMessages,
+  kindToErrorCode,
+  type TaggedError,
+  type ServicePrefix,
+  type ServiceErrorCode,
+  type SafeOriginError,
+  type MappedError,
+  type MapErrorConfig,
+  // Validation
+  validationError,
+  ok,
+  fail,
+  pipe,
+  type ValidationSchema,
+  type ValidationContext,
+  type ValidationError as LibValidationError,
+  type ValidationResult,
+  type Validator,
+  type AsyncValidator,
+  // Telemetry
+  TelemetryClient,
+  telemetryLevels,
+  levelPriority,
+  isValidTelemetrySink,
+  createConsoleSink,
+  createExternalSink,
+  createExternalSinkSafe,
+  getGlobalClientForDebug,
+  type ConsoleSinkFormatter,
+  type ExternalSdk,
+  // Telemetry Runtime
+  initTelemetry,
+  getGlobalTelemetryClient,
+  isTelemetryInitialized,
+  resetGlobalTelemetryClient,
+  setGlobalClientForDebug,
+  fireAndForget,
+  logFireAndForget,
+  getFireAndForgetMetrics,
+  infoFireAndForget,
+  warnFireAndForget,
+  errorFireAndForget,
+  // Telemetry Batch Core
+  createInitialBatchCoreState,
+  addEventToBatchCore,
+  flushBatchCore,
+  shouldFlushBatchCore,
+  telemetryBatchCore,
+  defaultBatchCoreConfig,
+  type TransformEventHook,
+  type TelemetryBatchCoreConfigExtended,
+  // Feature Flags
+  setGlobalFeatureFlagLogger,
+  getGlobalFeatureFlagLogger,
+  type FeatureAttributeValue,
+  type KnownFeatureAttributes,
+  type FeatureAttributes,
+  type FeatureFlagLogger,
+  type FeatureContext,
+  type FeatureFlagName,
+  type FeatureFlagDefinition,
+  type FeatureFlagStrategy,
+  // I18n
+  setDayjsLocale,
+  setDayjsLocaleSync,
+  getCurrentDayjsLocale,
+  isRtlLocale,
+  isDayjsLocaleSupported,
+  formatDateLocalized,
+  t,
+  useTranslations,
+  testResetTranslationStore,
+  type FallbackType,
+  // Logger
+  log,
+  info,
+  warn,
+  error,
+  logOperationStart,
+  logOperationSuccess,
+  logOperationFailure,
+  type LogLevel,
+  type LogContext,
+  type LogMetadata,
+  // Orchestrator
+  step,
+  orchestrate,
+  type Step,
+  type StepResult,
+  // Performance
+  PerformanceMetricType,
+  PerformanceSeverity,
+  PerformanceErrorCodes,
+  WebVitalsMetric,
+  type PerformanceMetricType as PerformanceMetricTypeType,
+  type PerformanceSeverity as PerformanceSeverityType,
+  type PerformanceMetric,
+  type PerformanceConfig,
+  type PerformanceError,
+  type PerformanceErrorCode,
+  // Route Permissions
+  checkRoutePermission,
+  getRoutePolicy,
+  getAvailableRouteTypes,
+  type RouteType,
+  type RouteInfo,
+  type RoutePermissionRule,
+  type RoutePermissionContext,
+  type RouteDecisionReason,
+  type RoutePermissionResult,
+  // App Lifecycle
+  appLifecycle,
+  type LifecycleStage,
+  type LifecycleHookEvent,
+  type LifecycleHookHandler,
+  // SSE Client
+  createInitialSSEState,
+  defaultDecoder,
+  type SSEConnectionState,
+  type SSEFrame,
+  type SSEProtocolEvent,
+  type SSEDecoder,
+  type ReconnectStrategy,
+  type SSETelemetry,
+  type SSEClientState,
+  type SSEClientConfig,
+  // WebSocket
+  createInitialWebSocketState,
+  createWebSocketLogger,
+  createWebSocketEffect,
+  type WebSocketConnectionState,
+  type WebSocketEvent,
+  type WebSocketClientState,
+  type WebSocketClientConfig,
+  type WebSocketHandlers,
+  type WebSocketHandlersWithTracing,
+  type WebSocketEffect,
+  // Service Worker
+  swDisabled,
+  mainCacheName,
+  staticCacheName,
+  precacheMainUrls,
+  precacheStaticUrls,
+  type Client,
+  type WindowClient,
+  type Clients,
+  type ExtendableEvent,
+  type FetchEvent,
+} from './lib/index.js';
+
+/* ============================================================================
+ * 🎯 PROVIDERS — REACT ПРОВАЙДЕРЫ
+ * ========================================================================== */
+
+/**
+ * Providers подпакет: React провайдеры для приложения.
+ * Включает AppProviders, FeatureFlagsProvider, IntlProvider, QueryClientProvider,
+ * TelemetryProvider, ToastProvider, UnifiedUIProvider и все связанные типы.
+ *
+ * @public
+ */
+export {
+  AppProviders,
+  AuthGuardBridge,
+  FeatureFlagsProvider,
+  featureFlagsStore,
+  useFeatureFlags as useFeatureFlagsProvider,
+  IntlProvider,
+  AppQueryClientProvider,
+  TelemetryProvider,
+  useTelemetryContext,
+  TelemetryContext,
+  ToastProvider,
+  useToastContext,
+  ToastContext,
+  UnifiedUIProvider,
+  UnifiedUIContext,
+  useUnifiedUI,
+  useRequiredUnifiedUI,
+  useUnifiedFeatureFlags,
+  useUnifiedTelemetry,
+  useUnifiedI18n,
+  type AppUiAuthContext,
+  type AppProvidersProps,
+  type UiFeatureFlagsAlias,
+  type FeatureFlagsState,
+  type FeatureFlagsActions,
+  type FeatureFlagsStore,
+  type FeatureFlagsProviderProps,
+  type IntlProviderProps,
+  type QueryComponentState,
+  type AppQueryClientProviderProps,
+  type UiMetricsAlias,
+  type TelemetryContextType,
+  type TelemetryProviderProps,
+  type ToastComponentState as ToastProviderComponentState,
+  type ToastType,
+  type ToastItem,
+  type ToastContextType,
+  type AddToastParams,
+  type ToastProviderProps,
+  type UnifiedUiFeatureFlagsApi,
+  type UnifiedUiTelemetryApi,
+  type UnifiedUiI18nContext,
+  type UnifiedUIContextType,
+  type UnifiedUIProviderProps,
+} from './providers/index.js';
+
+/* ============================================================================
+ * 🛣️ ROUTES — МАРШРУТЫ И НАВИГАЦИЯ
+ * ========================================================================== */
+
+/**
+ * Routes подпакет: маршруты и навигация.
+ * Включает Routes, Route Meta, Navigation и все связанные типы.
+ *
+ * @public
+ */
+export * from './routes/index.js';
+
+/* ============================================================================
+ * 🗄️ STATE — СОСТОЯНИЕ ПРИЛОЖЕНИЯ
+ * ========================================================================== */
+
+/**
+ * State подпакет: управление состоянием приложения.
+ * Включает Store, Store Utils, Reset, Query Client и все связанные типы.
+ *
+ * @public
+ */
+export * from './state/index.js';
 
 /* ============================================================================
  * 🧬 TYPES — ТИПЫ
  * ========================================================================== */
 
-// ApiError, ApiResponse, RealtimeEvent конфликтуют между api.js и common.js
-// Экспортируем из api.js (более специфичные типы для API)
+/**
+ * Types подпакет: типы для всего приложения.
+ * Включает API типы, Common типы, Error типы, Telemetry типы, UI Contracts и все связанные типы.
+ *
+ * @public
+ */
 export {
-  type ApiAuthContext,
-  type ApiClientConfig,
-  type ApiError,
+  // API Types
+  type HttpMethod,
+  type ApiServiceName,
+  type ApiRequestContext,
   type ApiErrorCategory,
   type ApiErrorSource,
-  type ApiFailureResponse,
-  type ApiHandler,
-  type ApiHeaders,
-  type ApiMetrics,
-  type ApiRequest,
-  type ApiRequestContext,
-  type ApiResponse,
-  type ApiRetryPolicy,
-  type ApiServiceName,
+  type ApiError,
   type ApiSuccessResponse,
-  type BaseApiDTO,
-  type HttpMethod,
-  type PaginatedResult,
+  type ApiFailureResponse,
+  type ApiResponse,
   type PaginationParams,
+  type PaginatedResult,
   type RealtimeEvent,
   type RealtimeSubscription,
+  type ApiRequest,
+  type ApiRetryPolicy,
+  type ApiHandler,
+  type BaseApiDTO,
   type SoftDeletable,
   type VersionedEntity,
-} from './types/api.js';
-// Экспортируем из common.js остальные типы, исключая конфликтующие
-export {
+  type ApiAuthContext,
+  type ApiHeaders,
+  type ApiMetrics,
+  type ApiClientConfig,
+  type UploadDomainStatus,
+  type FileValidationResult,
+  type AppFileStatus,
+  type InternalFileInfo,
+  // Common Types
+  UserRoles,
   AllUserRoles,
-  type ApiFailure,
-  type ApiSuccess,
-  type AppContext,
-  // Routing types
-  type AppModule,
   AppModules,
-  type AsyncError,
-  type AsyncFn,
-  type AsyncIdle,
-  type AsyncLoading,
-  type AsyncState,
-  type AsyncStatus,
-  type AsyncSuccess,
-  type AuthContext,
-  type BaseDTO,
-  type ErrorCategory,
-  type ErrorSource,
-  type ExhaustiveRoleCheck,
-  type FeatureFlags,
-  type Handler,
   type ID,
-  type Identifiable,
-  type Immutable,
   type ISODateString,
-  type Json,
-  type JsonArray,
-  type JsonObject,
   type JsonPrimitive,
   type JsonValue,
-  type Loggable,
-  type Maybe,
+  type JsonObject,
+  type JsonArray,
+  type Json,
   type Nullable,
   type Optional,
-  type PaginatedResponse,
+  type Maybe,
+  type Immutable,
   type Platform,
-  type RouteConfig,
+  type AppContext,
+  type BaseDTO,
+  type PaginatedResponse,
+  type ApiSuccess,
+  type ApiFailure,
+  type ApiResponse as CommonApiResponse,
+  type ErrorCategory,
+  type ErrorSource,
+  type ApiError as CommonApiError,
+  type AsyncStatus,
+  type AsyncIdle,
+  type AsyncLoading,
+  type AsyncSuccess,
+  type AsyncError,
+  type AsyncState,
+  type RealtimeEvent as CommonRealtimeEvent,
   type Subscription,
-  type UserRole,
-  UserRoles,
+  type AuthContext,
+  type FeatureFlags,
   type VoidFn,
-} from './types/common.js';
-
-// Экспортируем типы ошибок
-export {
+  type Handler,
+  type Identifiable,
+  type Loggable,
+  type AsyncFn,
+  type UserRole,
+  type AppModule,
+  type RouteConfig,
+  // Error Types
+  createServerError,
+  handleError,
+  type FrontendErrorSource,
   type AppError,
   type ClientError,
-  createServerError,
-  type ErrorFn,
-  type ErrorHandler,
-  type FrontendErrorSource,
-  handleError,
-  type IsErrorOfType,
+  type ValidationError,
   type NetworkError,
   type ServerError,
   type UnknownError,
-  type ValidationError,
-} from './types/errors.js';
-
-// Экспортируем типы телеметрии
-export {
-  type BatchConfig,
+  type ErrorFn,
+  type ErrorHandler,
+  type ErrorBoundaryErrorCode,
+  type IsErrorOfType,
+  // Telemetry Types
+  TelemetryLevels,
   BatchCoreConfigVersion,
-  type CustomLevelPriority,
   defaultTelemetryTimezone,
-  type DropPolicy,
-  type FallbackPriorityStrategy,
-  type NonPIIField,
+  type UiTelemetryMetrics,
+  type TelemetryLevel,
+  type TelemetryLevelTemplate,
+  type TelemetryPrimitive,
   type PIIField,
-  type RetryConfig,
+  type NonPIIField,
+  type TelemetryMetadata,
+  type TelemetryTimezone,
+  type TelemetryEvent,
   type TelemetryBatchCoreConfig,
   type TelemetryBatchCoreState,
-  type TelemetryConfig,
-  type TelemetryEvent,
-  type TelemetryLevel,
-  TelemetryLevels,
-  type TelemetryLevelTemplate,
-  type TelemetryMetadata,
-  type TelemetryPrimitive,
   type TelemetrySink,
-  type TelemetryTimezone,
+  type RetryConfig,
+  type DropPolicy,
+  type BatchConfig,
   type ThrottleConfig,
-  type UiTelemetryMetrics,
-} from './types/telemetry.js';
-
-// Экспортируем UI контракты
-export {
-  type AppWrapperProps,
-  type ComponentState,
+  type CustomLevelPriority,
+  type FallbackPriorityStrategy,
+  type TelemetryConfig,
+  // UI Contracts
+  type UiFeatureFlagName,
+  type UiPrimitiveProps,
+  type UiFeatureFlags,
   type ControlledFieldProps,
-  type MapCoreProps,
-  type UiAuthContext,
+  type UncontrolledFieldProps,
+  type UiEventMap,
   type UiEvent,
   type UiEventHandler,
-  type UiEventMap,
-  type UiFeatureFlags,
-  type UiMetrics,
-  type UiPrimitiveProps,
-  type UiStatefulComponentProps,
   type UiStatePolicy,
-  type UncontrolledFieldProps,
-} from './types/ui-contracts.js';
-
-// Экспортируем типы lifecycle
-export {
-  type LifecycleHookEvent,
-  type LifecycleHookHandler,
-  type LifecycleStage,
-} from './lib/app-lifecycle.js';
-
-/* ============================================================================
- * 🛠️ LIB — УТИЛИТЫ И КЛИЕНТЫ
- * ========================================================================== */
-
-export * from './lib/api-client.js';
-export * from './lib/api-schema-guard.js';
-export * from './lib/auth-guard.js';
-// Явный экспорт из auth-service для избежания конфликта с AuthError из auth-guard
-export {
-  type AuthError as AuthServiceError,
-  authService,
-  createAuthService,
-} from './lib/auth-service.js';
-export { appLifecycle } from './lib/app-lifecycle.js';
-// Явный экспорт из effect-utils для избежания конфликтов с error-mapping и validation
-export {
-  asApiEffect,
-  createEffectAbortController,
-  type Effect,
-  type EffectAbortController,
-  type EffectContext,
-  type EffectError,
-  type EffectErrorKind,
-  type EffectFn,
-  type EffectLogger,
-  type EffectResult,
-  fail as resultFail,
-  flatMap,
-  isFail,
-  isOk,
-  map as resultMap,
-  mapError as resultMapError,
-  ok as resultOk,
-  pipeEffects,
-  type Result,
-  type RetryPolicy,
-  safeExecute,
-  sleep,
-  unwrap,
-  unwrapOr,
-  unwrapOrElse,
-  withLogging,
-  withRetry,
-} from './lib/effect-utils.js';
-// Effect timeout - экспортируем из effect-timeout.ts (новые версии с расширенным функционалом)
-export {
-  createTimeoutContext,
-  isTimeoutError,
-  type TimeoutEffectContext,
-  TimeoutError,
-  type TimeoutOptions,
-  validateTimeoutMs,
-  withTimeout,
-} from './lib/effect-timeout.js';
-export {
-  isIsolationError,
-  IsolationError,
-  type IsolationOptions,
-  runIsolated,
-} from './lib/effect-isolation.js';
-
-// Schema validated effect
-export {
-  createValidationError,
-  isSchemaValidationError,
-  SchemaValidationError,
-  validatedEffect,
-  type ValidatedEffectOptions,
-} from './lib/schema-validated-effect.js';
-
-// Orchestrator
-export { orchestrate, type Step, step, type StepResult } from './lib/orchestrator.js';
-export * from './lib/error-mapping.js';
-export * from './lib/feature-flags.js';
-// export * from './lib/i18n.js'; // Временно отключен для E2E из-за конфликта с next-intl
-export * from './lib/logger.js';
-// pipeEffects конфликтует с effect-utils, экспортируем явно
-export {
-  type CacheEntry,
-  type CacheKey,
-  createInMemoryOfflineCacheStore,
-  createOfflineCache,
-  type OfflineCacheContext,
-  type OfflineCacheEvents,
-  type OfflineCacheOptions,
-  type OfflineCacheResult,
-  type OfflineCacheStore,
-} from './lib/offline-cache.js';
-export * from './lib/performance.js';
-export * from './lib/route-permissions.js';
-export {
-  type Client,
-  type Clients,
-  decommissionServiceWorker,
-  type ExtendableEvent,
-  type ExtendableMessageEvent,
-  type FetchEvent,
-  handleBackgroundSync,
-  handleNotificationClick,
-  handlePushNotification,
-  handleRequest,
-  mainCacheName,
-  precacheMainUrls,
-  precacheStaticUrls,
-  type ServiceWorkerGlobalScope,
-  staticCacheName,
-  swDisabled,
-  swSelf,
-  type WindowClient,
-} from './lib/service-worker.js';
-export * from './lib/sse-client.js';
-// Экспортируем batch core API и типы
-export {
-  defaultBatchCoreConfig,
-  telemetryBatchCore,
-  type TelemetryBatchCoreConfigExtended,
-  type TransformEventHook,
-} from './lib/telemetry.batch-core.js';
-// Экспортируем типы и классы из lib/telemetry.js (чистые утилиты)
-export {
-  type ConsoleSinkFormatter,
-  createConsoleSink,
-  createExternalSink,
-  createExternalSinkSafe,
-  type ExternalSdk,
-  getGlobalClientForDebug,
-  isValidTelemetrySink,
-  levelPriority,
-  TelemetryClient,
-  telemetryLevels,
-} from './lib/telemetry.js';
-// Экспортируем singleton функции из lib/telemetry-runtime.js
-export {
-  errorFireAndForget,
-  fireAndForget,
-  getFireAndForgetMetrics,
-  getGlobalTelemetryClient,
-  infoFireAndForget,
-  initTelemetry,
-  isTelemetryInitialized,
-  logFireAndForget,
-  resetGlobalTelemetryClient,
-  setGlobalClientForDebug,
-  warnFireAndForget,
-} from './lib/telemetry-runtime.js';
-// Явный экспорт из validation для избежания конфликтов с effect-utils
-// ValidationError уже экспортируется из types/errors.js, поэтому не экспортируем из validation
-export {
-  asyncPipe,
-  type AsyncValidator,
-  fail as validationFail,
-  formatFileSize,
-  type FormValidationResult,
-  isNumber,
-  isString,
-  nullable,
-  type ObjectSchema,
-  ok as validationOk,
-  optional,
-  pipe,
-  pipeMany,
-  refine,
-  required,
-  toAsync,
-  validateFileBasic,
-  validateForm,
-  validateObject,
-  type ValidationContext,
-  type ValidationResult,
-  type ValidationSchema,
-  type Validator,
-} from './lib/validation.js';
-export * from './lib/websocket.js';
+  type ComponentState,
+  type UiStatefulComponentProps,
+  type MapCoreProps,
+  type AppWrapperProps,
+  type UiAuthContext,
+  type UiMetrics,
+  type UiFeatureFlagsApi,
+  type UiTelemetryApi,
+  type UiI18nContext,
+} from './types/index.js';
 
 /* ============================================================================
- * ⚙️ BACKGROUND — ФОНОВЫЕ ЗАДАЧИ И ПЛАНИРОВЩИК
+ * 🎨 UI — UI КОМПОНЕНТЫ
  * ========================================================================== */
 
-export {
-  type BackgroundTask,
-  getGlobalScheduler,
-  MeldablePriorityQueue,
-  type PriorityType,
-  type QueueItem,
-  Scheduler,
-  scheduler,
-  type SchedulerDI,
-  type TaskFn,
-} from './background/scheduler.js';
-
-export {
-  backgroundTasks,
-  type BackgroundTasksDI,
-  createTasks,
-  initBackgroundTasks,
-  PermanentError,
-  type TaskEffect,
-  TaskError,
-  TransientError,
-} from './background/tasks.js';
-
-/* ============================================================================
- * 🏪 STORE — ГЛОБАЛЬНОЕ СОСТОЯНИЕ
- * ========================================================================== */
-
-export * from './state/store.js';
-export * from './state/store-utils.js';
-export * from './state/reset.js';
-export * from './state/query/query-client.js';
-
-/* ============================================================================
- * 🛤️ ROUTES — МАРШРУТЫ И МЕТАДАННЫЕ
- * ========================================================================== */
-
-export * from './routes/routes.js';
-export * from './routes/route-meta.js';
-export * from './routes/navigation.js';
-
-/* ============================================================================
- * 🧩 UI — UI КОМПОНЕНТЫ
- * ========================================================================== */
-
-export * from './ui/accordion.js';
-export * from './ui/avatar.js';
-export * from './ui/badge.js';
-export * from './ui/breadcrumbs.js';
-export * from './ui/button.js';
-export * from './ui/card.js';
-export * from './ui/checkbox.js';
-export * from './ui/confirm-dialog.js';
-export * from './ui/context-menu.js';
-export * from './ui/date-picker.js';
-export * from './ui/dialog.js';
-export * from './ui/divider.js';
-export * from './ui/dropdown.js';
-export * from './ui/error-boundary.js';
-export * from './ui/file-uploader.js';
-export * from './ui/form.js';
-export * from './ui/icon.js';
-export * from './ui/input.js';
-export * from './ui/language-selector.js';
-export * from './ui/loading-spinner.js';
-export * from './ui/modal.js';
-export * from './ui/navigation-menu-item.js';
-export * from './ui/radio.js';
-export * from './ui/search-bar.js';
-export * from './ui/select.js';
-export * from './ui/sidebar.js';
-export * from './ui/skeleton-group.js';
-export * from './ui/skeleton.js';
-export * from './ui/status-indicator.js';
-export * from './ui/support-button.js';
-export * from './ui/tabs.js';
-export * from './ui/textarea.js';
-export * from './ui/toast.js';
-export * from './ui/toggle.js';
-export * from './ui/tooltip.js';
-export * from './ui/user-profile-display.js';
-
-/* ============================================================================
- * 📡 EVENTS — СОБЫТИЯ ПРИЛОЖЕНИЯ
- * ========================================================================== */
-
-export * from './events/app-events.js';
-export * from './events/app-lifecycle-events.js';
-export * from './events/event-bus.js';
-// Контракты событий документированы в ./events/event-contracts.md
-
-/* ============================================================================
- * 🎯 PROVIDERS — ПРОВАЙДЕРЫ
- * ========================================================================== */
-
-export * from './providers/AppProviders.js';
-export * from './providers/FeatureFlagsProvider.js';
-export * from './providers/intl-provider.js';
-export * from './providers/QueryClientProvider.js';
-export * from './providers/TelemetryProvider.js';
-export * from './providers/ToastProvider.js';
-export * from './providers/UnifiedUIProvider.js';
-
-/* ============================================================================
- * 🪝 HOOKS — REACT HOOKS
- * ========================================================================== */
-
-export * from './hooks/useApi.js';
-export * from './hooks/useAuth.js';
-// useFeatureFlags и useToast уже экспортированы из providers
-export * from './hooks/useOfflineCache.js';
-
-/* ============================================================================
- * 🚀 BOOTSTRAP — ЗАПУСК ПРИЛОЖЕНИЯ
- * ========================================================================== */
-
-export * from './bootstrap.js';
+/**
+ * UI подпакет: UI компоненты приложения.
+ * Включает примитивы (Button, Input, Textarea, Select, Checkbox, Radio, Toggle, Icon,
+ * Avatar, Badge, Tooltip, Divider, Card, Dialog, Form, LoadingSpinner, Dropdown,
+ * ContextMenu, StatusIndicator) и композитные компоненты (Toast, Skeleton, Modal,
+ * Breadcrumbs, Tabs, Accordion, DatePicker, FileUploader, SideBar, SearchBar,
+ * ConfirmDialog, ErrorBoundary, UserProfileDisplay, NavigationMenuItem,
+ * LanguageSelector, SupportButton) и все связанные типы.
+ *
+ * @public
+ */
+export * from './ui/index.js';

@@ -1,198 +1,90 @@
 /**
- * @file @livai/feature-auth — бизнес-логика аутентификации (UI-агностичная).
+ * @file packages/feature-auth/src — Public API для Feature Auth пакета
  *
  * Публичный API пакета @livai/feature-auth.
- * Экспортирует все DTO типы, Zod схемы и утилиты для аутентификации.
+ * Экспортирует все публичные типы, схемы, эффекты, утилиты и хранилища для аутентификации.
+ * Tree-shakeable: все named exports остаются, импорты будут по нужным компонентам.
  *
- * Архитектурная роль:
- * - Типизированные контракты для auth операций
- * - Runtime валидация через Zod схемы
- * - Type-safe inference для TypeScript
- * - Согласованность с backend контрактами
+ * Принцип:
+ * - бизнес-логика аутентификации (UI-агностичная)
+ * - типизированные контракты для auth операций
+ * - runtime валидация через Zod схемы
+ * - type-safe inference для TypeScript
+ * - согласованность с backend контрактами
  */
 
 /* ============================================================================
- * 🧬 TYPES — DTO ТИПЫ
- * ============================================================================
+ * 🧬 DOMAIN — ДОМЕННЫЕ ТИПЫ
+ * ========================================================================== */
+
+/**
+ * Domain подпакет: доменные типы для аутентификации.
+ * Включает LoginRequest, RegisterRequest, TokenPair, MFA типы, OAuth типы,
+ * Password Reset, Verification, Email/SMS Templates, Risk Assessment,
+ * Audit Events, Error Responses, Session Policy и все связанные типы.
  *
- * Domain Transfer Objects — типизированные контракты для auth операций.
- * Все DTO синхронизированы с Zod схемами в schemas.ts.
- *
- * Примечание: Общие типы (ClientContext, MfaType, OAuthProvider) экспортируются
- * только из LoginRequest/OAuthLoginRequest для избежания конфликтов имен.
+ * @public
  */
-
-// Основные DTO с общими типами (ClientContext, MfaInfo, MfaType экспортируются только из LoginRequest)
-export * from './domain/LoginRequest.js';
-export {
-  type RegisterIdentifier,
-  type RegisterIdentifierType,
-  type RegisterRequest,
-} from './domain/RegisterRequest.js';
-export * from './domain/OAuthLoginRequest.js';
-
-// Остальные DTO (явные экспорты для избежания конфликтов)
-export {
-  type AuditGeoInfo,
-  type AuthAuditEvent,
-  type AuthAuditEventType,
-} from './domain/AuthAuditEvent.js';
-
-export { type AuthErrorResponse, type AuthErrorType } from './domain/AuthErrorResponse.js';
-
-export { type DeviceInfo, type DeviceType } from './domain/DeviceInfo.js';
-
-export {
-  type AuthEmailTemplateType,
-  type EmailTemplateRequest,
-} from './domain/EmailTemplateRequest.js';
-
-export * from './domain/LoginRiskAssessment.js';
-
-export { type LogoutRequest } from './domain/LogoutRequest.js';
-
-export { type MeResponse, type MeSessionInfo, type MeUserInfo } from './domain/MeResponse.js';
-
-export { type MfaBackupCodeRequest } from './domain/MfaBackupCodeRequest.js';
-
-export { type MfaChallengeRequest } from './domain/MfaChallengeRequest.js';
-
-export {
-  type MfaRecoveryMethod,
-  type MfaRecoveryProof,
-  type MfaRecoveryRequest,
-} from './domain/MfaRecoveryRequest.js';
-
-export { type MfaSetupRequest } from './domain/MfaSetupRequest.js';
-
-export { type OAuthErrorResponse, type OAuthErrorType } from './domain/OAuthErrorResponse.js';
-
-export { type OAuthRegisterRequest } from './domain/OAuthRegisterRequest.js';
-
-export { type PasswordResetConfirm } from './domain/PasswordResetConfirm.js';
-
-export {
-  type PasswordResetIdentifier,
-  type PasswordResetIdentifierType,
-  type PasswordResetRequest,
-} from './domain/PasswordResetRequest.js';
-
-export { type RefreshTokenRequest } from './domain/RefreshTokenRequest.js';
-
-export { type RegisterResponse } from './domain/RegisterResponse.js';
-
-export { type GeoPolicy, type IpPolicy, type SessionPolicy } from './domain/SessionPolicy.js';
-
-export {
-  type SessionRevokeReason,
-  type SessionRevokeRequest,
-} from './domain/SessionRevokeRequest.js';
-
-export { type AuthSmsTemplateType, type SmsTemplateRequest } from './domain/SmsTemplateRequest.js';
-
-export { type TokenPair } from './domain/TokenPair.js';
-
-export { type VerifyEmailRequest } from './domain/VerifyEmailRequest.js';
-
-export { type VerifyPhoneRequest } from './domain/VerifyPhoneRequest.js';
+export * from './domain/index.js';
 
 /* ============================================================================
- * 🔐 SCHEMAS — ZOD СХЕМЫ
- * ============================================================================
- *
- * Zod схемы для runtime валидации и type-safe inference.
- * Все схемы работают в strict режиме для предотвращения extra полей.
- */
+ * ✅ SCHEMAS — СХЕМЫ ВАЛИДАЦИИ
+ * ========================================================================== */
 
-export * from './schemas.js';
+/**
+ * Schemas подпакет: Zod схемы для runtime валидации.
+ * Включает схемы для всех запросов и ответов аутентификации с type-safe inference.
+ *
+ * @public
+ */
+export * from './schemas/index.js';
 
 /* ============================================================================
  * 🧩 TYPES — АГРЕГИРУЮЩИЕ ТИПЫ
- * ============================================================================
+ * ========================================================================== */
+
+/**
+ * Types подпакет: агрегирующие типы для состояния и статусов аутентификации.
+ * Включает AuthState, MfaState, OAuthState, SecurityState, SessionState,
+ * RiskContext, RiskPolicy, RiskAssessmentResult и все связанные типы.
  *
- * Агрегирующие типы для состояния и статусов аутентификации.
- * Используются в stores, hooks, effects и компонентах.
+ * @public
  */
-
-export * from './types/auth.js';
-
-// Risk Assessment Types (централизованные типы из types/auth-risk.ts)
-export type {
-  ContextBuilderPlugin,
-  ExternalRiskSignals,
-  InternalRiskSignals,
-  RiskAssessmentResult,
-  RiskContext,
-  RiskPolicy,
-  RiskSignals,
-} from './types/auth-risk.js';
+export * from './types/index.js';
 
 /* ============================================================================
- * 🛡️ DOMAIN — PURE DOMAIN LOGIC
- * ============================================================================
+ * ⚡ EFFECTS — ЭФФЕКТЫ
+ * ========================================================================== */
+
+/**
+ * Effects подпакет: pure effects для аутентификации.
+ * Включает Login Metadata Enricher, Risk Assessment Adapter, Risk Assessment,
+ * Classification Mapper, Error Mapper, Validation, Device Fingerprint и все связанные типы.
  *
- * Pure domain логика для risk assessment.
- * Детерминированные функции без side-effects.
- *
- * @note Domain логика для risk assessment перенесена в @livai/domains
- *       (validateClassificationSemantics, buildScoringContext, buildRuleContext, etc.)
+ * @public
  */
+export * from './effects/index.js';
 
 /* ============================================================================
- * ⚡ EFFECTS — PURE EFFECTS
- * ============================================================================
+ * 🛡️ LIB — БИБЛИОТЕЧНЫЕ УТИЛИТЫ
+ * ========================================================================== */
+
+/**
+ * Lib подпакет: библиотечные утилиты для безопасности.
+ * Включает Security Pipeline для оценки рисков и принятия решений.
  *
- * Pure effects для аутентификации без side-effects.
- * Детерминированные функции для device fingerprint и risk assessment.
+ * @public
  */
-
-// Device Fingerprint
-export { DeviceFingerprint } from './effects/login/device-fingerprint.js';
-
-// Risk Assessment: Rules, Scoring, Decision
-// @note Правила, scoring и decision логика перенесена в @livai/domains
-//       (evaluateRules, calculateRiskScore, determineRiskLevel, etc.)
-
-// Risk Assessment: Adapter
-export {
-  buildAssessment,
-  type RiskSignals as AdapterRiskSignals,
-  type SignalsMapperPlugin,
-} from './effects/login/login-risk-assessment.adapter.js';
-
-// Risk Assessment: Composition Layer
-export { assessLoginRisk, type AuditHook } from './effects/login/risk-assessment.js';
-
-// Login Helpers: Validation
-export { isValidLoginRequest } from './effects/login/validation.js';
-
-// Login Helpers: Metadata Builders
-export {
-  buildLoginMetadata,
-  createLoginMetadataEnricher,
-  type IdentifierHasher,
-  type LoginContext,
-  type LoginMetadata,
-  type MetadataBuilder,
-  type MetadataConfig,
-  type RiskMetadata,
-} from './effects/login/login-metadata.enricher.js';
+export * from './lib/index.js';
 
 /* ============================================================================
- * 🛡️ SECURITY PIPELINE — RISK ASSESSMENT & SECURITY
- * ============================================================================
- *
- * Security pipeline для оценки рисков и принятия решений.
- *
- * @note Security pipeline перенесён в @livai/core/pipeline
- *       (executeSecurityPipeline, SecurityPipelineError, etc.)
- */
+ * 🏪 STORES — ХРАНИЛИЩА
+ * ========================================================================== */
 
-/* ============================================================================
- * 🏪 STORES — ZUSTAND STORES
- * ============================================================================
+/**
+ * Stores подпакет: Zustand stores для управления состоянием аутентификации.
+ * Включает Auth Store с созданием, валидацией, восстановлением и всеми связанными типами и функциями.
  *
- * Zustand stores для управления состоянием аутентификации.
+ * @public
  */
-
-export * from './stores/auth.js';
+export * from './stores/index.js';

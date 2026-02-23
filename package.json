@@ -77,6 +77,7 @@
     "quality:ci": "node config/eslint/utils/check-zones.mjs && node config/eslint/utils/validate-zones.mjs && pnpm run type-check:ci && pnpm run lint:canary:ci",
     "ci": "pnpm run quality:ci && pnpm run test:ci",
     "check:circular-deps": "node scripts/check-circular-deps-monorepo.js",
+    "check:exports": "node scripts/check-exports.js",
     "deps:unused": "node scripts/check-deps-unused.js",
     "check:dependency-policy": "node scripts/check-dependency-policy.js",
     "check:deprecated": "node scripts/check-deprecated.js",
