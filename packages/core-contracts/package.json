@@ -70,9 +70,8 @@
       "default": "./dist/esm/targets/browser.js"
     },
     "./validation/zod": {
-      "types": "./dist/esm/validation/zod/index.d.ts",
-      "import": "./dist/esm/validation/zod/index.js",
-      "default": "./dist/esm/validation/zod/index.js"
+      "types": "./src/validation/zod/index.ts",
+      "import": "./src/validation/zod/index.ts"
     }
   },
   "scripts": {
