@@ -51,7 +51,7 @@ const devConfig = masterConfig.map(config => {
   // Последний элемент = testFilesOverrides, не конвертируем его
   // Тесты должны оставаться с warn/off как задумано
   const isTestOverride = config.files?.some?.(
-    f => f.includes('*.test.') || f.includes('*.spec.') || f.includes('__tests__')
+    f => f.includes('*.test.') || f.includes('*.spec.') || f.includes('__tests__') || f.includes('/test/') || f.includes('/tests/')
   );
 
   if (isTestOverride) {
@@ -183,6 +183,21 @@ devConfigWithRules.push({
   plugins: PLUGINS,
   rules: {
     '@next/next/no-html-link-for-pages': 'off', // App Router (Next 13+) не использует pages/
+  },
+});
+
+// 🔥 MUST BE LAST — иначе будет перезаписано более поздними конфигами (flat config)
+// Разрешаем barrel imports из @livai/* в тестах
+devConfigWithRules.push({
+  files: [
+    '**/*.test.{ts,tsx,js,jsx}',
+    '**/*.spec.{ts,tsx,js,jsx}',
+    '**/__tests__/**/*.{ts,tsx,js,jsx}',
+    '**/test/**/*.{ts,tsx,js,jsx}',
+    '**/tests/**/*.{ts,tsx,js,jsx}',
+  ],
+  rules: {
+    'no-restricted-imports': 'off',
   },
 });
 

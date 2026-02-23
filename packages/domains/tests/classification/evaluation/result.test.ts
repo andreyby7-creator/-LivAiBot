@@ -3,8 +3,7 @@
  * Полное покрытие всех типов и их свойств (100%)
  */
 import { describe, expect, it } from 'vitest';
-// eslint-disable-next-line no-restricted-imports -- Тесты могут использовать прямой импорт из @livai/core
-import { confidence, evaluationLevel, evaluationScale } from '@livai/core';
+import { confidence, evaluationLevel, evaluationScale } from '@livai/core/domain-kit';
 import type {
   ClassificationLabel,
   ClassificationLabelValue,

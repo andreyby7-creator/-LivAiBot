@@ -20,7 +20,6 @@ import type {
   RiskSignals,
 } from '../../../src/types/auth-risk.js';
 import type { RiskLevel } from '../../../src/types/auth.js';
-// eslint-disable-next-line no-restricted-imports -- ClassificationRule не реэкспортируется из feature-auth
 import type { ClassificationRule } from '@livai/domains';
 
 // ============================================================================

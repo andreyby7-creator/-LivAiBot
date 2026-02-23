@@ -4,7 +4,6 @@
  */
 
 import { describe, expect, it } from 'vitest';
-// eslint-disable-next-line no-restricted-imports -- Тесты используют те же типы, что и исходный файл
 import type {
   ClassificationLabel,
   ClassificationRule,
@@ -12,7 +11,6 @@ import type {
   DecisionSignals,
   RiskLevel,
 } from '@livai/domains';
-// eslint-disable-next-line no-restricted-imports -- Тесты используют те же функции, что и исходный файл
 import { defaultDecisionPolicy } from '@livai/domains';
 
 import { mapLabelToDecisionHint } from '../../../../src/effects/login/classification-mapper.js';

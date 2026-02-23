@@ -26,7 +26,6 @@ import type {
   MetadataConfig,
   RiskMetadata,
 } from '../../../../src/effects/login/login-metadata.enricher.js';
-// eslint-disable-next-line no-restricted-imports -- RiskLevel экспортируется только через главный index, subpath exports отсутствуют
 import type { RiskLevel } from '@livai/domains';
 
 // ============================================================================

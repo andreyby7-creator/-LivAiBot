@@ -681,9 +681,25 @@ export default [
       '**/*.spec.{ts,tsx,js,jsx}',
       '**/__tests__/**/*.{ts,tsx,js,jsx}',
       '**/test/**/*.{ts,tsx,js,jsx}',
+      '**/tests/**/*.{ts,tsx,js,jsx}',
     ],
     rules: {
       '@typescript-eslint/prefer-readonly-parameter-types': 'off',
+    },
+  },
+
+  // 🔥 MUST BE LAST — иначе будет перезаписано более поздними конфигами (flat config)
+  // Разрешаем barrel imports из @livai/* в тестах
+  {
+    files: [
+      '**/*.test.{ts,tsx,js,jsx}',
+      '**/*.spec.{ts,tsx,js,jsx}',
+      '**/__tests__/**/*.{ts,tsx,js,jsx}',
+      '**/test/**/*.{ts,tsx,js,jsx}',
+      '**/tests/**/*.{ts,tsx,js,jsx}',
+    ],
+    rules: {
+      'no-restricted-imports': 'off',
     },
   },
 ];

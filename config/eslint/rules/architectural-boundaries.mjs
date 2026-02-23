@@ -49,6 +49,9 @@ function generateArchitecturalBoundaries() {
       ignores: [
         '**/*.test.{ts,tsx}',
         '**/*.spec.{ts,tsx}',
+        '**/__tests__/**',
+        '**/test/**',
+        '**/tests/**',
         // Zod-валидация — frontend/runtime guard, разрешаем импорт runtime-зависимостей.
         // Архитектурные границы между пакетами/зонами здесь не применяем.
         ...(layer === 'foundation'
@@ -175,6 +178,9 @@ export const zoneAwareSecurityRules = [
       'services/**/*.{ts,tsx,js,jsx}',
       '**/*.test.{ts,tsx}',
       '**/*.spec.{ts,tsx}',
+      '**/__tests__/**',
+      '**/test/**',
+      '**/tests/**',
       '**/scripts/**',
       '**/tools/**',
       '**/*.config.{ts,js}',
@@ -217,6 +223,9 @@ export const globalSecurityRules = {
   ignores: [
     '**/*.test.{ts,tsx}',
     '**/*.spec.{ts,tsx}',
+    '**/__tests__/**',
+    '**/test/**',
+    '**/tests/**',
     '**/scripts/**',
     '**/tools/**',
     '**/*.config.{ts,js}',
@@ -248,7 +257,15 @@ export const globalSecurityRules = {
  */
 export const deprecatedImportsRules = {
   files: ['**/*.{ts,tsx}'],
-  ignores: ['**/node_modules/**', '**/generated/**'],
+  ignores: [
+    '**/node_modules/**',
+    '**/generated/**',
+    '**/*.test.{ts,tsx}',
+    '**/*.spec.{ts,tsx}',
+    '**/__tests__/**',
+    '**/test/**',
+    '**/tests/**',
+  ],
   rules: {
     'no-restricted-imports': [
       'warn',
