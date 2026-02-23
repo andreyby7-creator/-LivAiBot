@@ -30,14 +30,12 @@
       "import": "./src/index.ts"
     },
     "./domain-kit": {
-      "types": "./dist/esm/domain-kit/index.d.ts",
-      "import": "./dist/esm/domain-kit/index.js",
-      "default": "./dist/esm/domain-kit/index.js"
+      "types": "./src/domain-kit/index.ts",
+      "import": "./src/domain-kit/index.ts"
     },
     "./policies/*": {
-      "types": "./dist/esm/policies/*.d.ts",
-      "import": "./dist/esm/policies/*.js",
-      "default": "./dist/esm/policies/*.js"
+      "types": "./src/policies/*.ts",
+      "import": "./src/policies/*.ts"
     }
   },
   "scripts": {

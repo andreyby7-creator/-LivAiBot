@@ -30,39 +30,32 @@
       "import": "./src/index.ts"
     },
     "./lib/error-mapping.js": {
-      "types": "./dist/esm/lib/error-mapping.d.ts",
-      "import": "./dist/esm/lib/error-mapping.js",
-      "default": "./dist/esm/lib/error-mapping.js"
+      "types": "./src/lib/error-mapping.ts",
+      "import": "./src/lib/error-mapping.ts"
     },
     "./lib/effect-utils.js": {
-      "types": "./dist/esm/lib/effect-utils.d.ts",
-      "import": "./dist/esm/lib/effect-utils.js",
-      "default": "./dist/esm/lib/effect-utils.js"
+      "types": "./src/lib/effect-utils.ts",
+      "import": "./src/lib/effect-utils.ts"
     },
     "./lib/orchestrator.js": {
-      "types": "./dist/esm/lib/orchestrator.d.ts",
-      "import": "./dist/esm/lib/orchestrator.js",
-      "default": "./dist/esm/lib/orchestrator.js"
+      "types": "./src/lib/orchestrator.ts",
+      "import": "./src/lib/orchestrator.ts"
     },
     "./lib/effect-timeout.js": {
-      "types": "./dist/esm/lib/effect-timeout.d.ts",
-      "import": "./dist/esm/lib/effect-timeout.js",
-      "default": "./dist/esm/lib/effect-timeout.js"
+      "types": "./src/lib/effect-timeout.ts",
+      "import": "./src/lib/effect-timeout.ts"
     },
     "./lib/service-worker.js": {
-      "types": "./dist/esm/lib/service-worker.d.ts",
-      "import": "./dist/esm/lib/service-worker.js",
-      "default": "./dist/esm/lib/service-worker.js"
+      "types": "./src/lib/service-worker.ts",
+      "import": "./src/lib/service-worker.ts"
     },
     "./lib/telemetry-runtime.js": {
-      "types": "./dist/esm/lib/telemetry-runtime.d.ts",
-      "import": "./dist/esm/lib/telemetry-runtime.js",
-      "default": "./dist/esm/lib/telemetry-runtime.js"
+      "types": "./src/lib/telemetry-runtime.ts",
+      "import": "./src/lib/telemetry-runtime.ts"
     },
     "./providers/intl-provider.js": {
-      "types": "./dist/esm/providers/intl-provider.d.ts",
-      "import": "./dist/esm/providers/intl-provider.js",
-      "default": "./dist/esm/providers/intl-provider.js"
+      "types": "./src/providers/intl-provider.tsx",
+      "import": "./src/providers/intl-provider.tsx"
     }
   },
   "scripts": {

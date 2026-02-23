@@ -30,29 +30,24 @@
       "import": "./src/index.ts"
     },
     "./signals": {
-      "types": "./dist/esm/classification/signals/index.d.ts",
-      "import": "./dist/esm/classification/signals/index.js",
-      "default": "./dist/esm/classification/signals/index.js"
+      "types": "./src/classification/signals/index.ts",
+      "import": "./src/classification/signals/index.ts"
     },
     "./strategies": {
-      "types": "./dist/esm/classification/strategies/index.d.ts",
-      "import": "./dist/esm/classification/strategies/index.js",
-      "default": "./dist/esm/classification/strategies/index.js"
+      "types": "./src/classification/strategies/index.ts",
+      "import": "./src/classification/strategies/index.ts"
     },
     "./policies": {
-      "types": "./dist/esm/classification/policies/index.d.ts",
-      "import": "./dist/esm/classification/policies/index.js",
-      "default": "./dist/esm/classification/policies/index.js"
+      "types": "./src/classification/policies/index.ts",
+      "import": "./src/classification/policies/index.ts"
     },
     "./aggregation": {
-      "types": "./dist/esm/classification/aggregation/index.d.ts",
-      "import": "./dist/esm/classification/aggregation/index.js",
-      "default": "./dist/esm/classification/aggregation/index.js"
+      "types": "./src/classification/aggregation/index.ts",
+      "import": "./src/classification/aggregation/index.ts"
     },
     "./labels": {
-      "types": "./dist/esm/classification/labels.d.ts",
-      "import": "./dist/esm/classification/labels.js",
-      "default": "./dist/esm/classification/labels.js"
+      "types": "./src/classification/labels.ts",
+      "import": "./src/classification/labels.ts"
     }
   },
   "scripts": {

@@ -30,14 +30,12 @@
       "import": "./src/index.ts"
     },
     "./auth/login-form.js": {
-      "types": "./dist/esm/auth/login-form.d.ts",
-      "import": "./dist/esm/auth/login-form.js",
-      "default": "./dist/esm/auth/login-form.js"
+      "types": "./src/auth/login-form.tsx",
+      "import": "./src/auth/login-form.tsx"
     },
     "./auth/register-form.js": {
-      "types": "./dist/esm/auth/register-form.d.ts",
-      "import": "./dist/esm/auth/register-form.js",
-      "default": "./dist/esm/auth/register-form.js"
+      "types": "./src/auth/register-form.tsx",
+      "import": "./src/auth/register-form.tsx"
     }
   },
   "scripts": {
