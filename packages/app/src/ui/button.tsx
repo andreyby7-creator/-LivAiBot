@@ -18,11 +18,11 @@
  * - Платформенных эффектов кроме telemetry
  */
 
+import { Button as CoreButton } from '@livai/ui-core';
+import type { ButtonProps as CoreButtonProps } from '@livai/ui-core';
 import React, { memo, useCallback, useMemo } from 'react';
 import type { JSX } from 'react';
 
-import { Button as CoreButton } from '../../../ui-core/src/primitives/button.js';
-import type { ButtonProps as CoreButtonProps } from '../../../ui-core/src/primitives/button.js';
 import type { Namespace, TranslationKey } from '../lib/i18n.js';
 import { useUnifiedUI } from '../providers/UnifiedUIProvider.js';
 import type { Json } from '../types/common.js';

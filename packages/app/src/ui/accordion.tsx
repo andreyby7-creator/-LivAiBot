@@ -21,11 +21,11 @@
  * - CoreAccordion остается полностью presentational
  */
 
+import { Accordion as CoreAccordion } from '@livai/ui-core';
+import type { CoreAccordionProps } from '@livai/ui-core';
 import { forwardRef, memo, useCallback, useEffect, useMemo, useRef } from 'react';
 import type { JSX, MouseEvent, Ref } from 'react';
 
-import { Accordion as CoreAccordion } from '../../../ui-core/src/components/Accordion.js';
-import type { CoreAccordionProps } from '../../../ui-core/src/components/Accordion.js';
 import type { Namespace, TranslationKey } from '../lib/i18n.js';
 import { useUnifiedUI } from '../providers/UnifiedUIProvider.js';
 import type { Json } from '../types/common.js';

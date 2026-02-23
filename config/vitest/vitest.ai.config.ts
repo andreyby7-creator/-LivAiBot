@@ -290,6 +290,7 @@ export default defineConfig({
 
   // Настройки resolve для AI интеграций
   resolve: {
+    preserveSymlinks: true,
     alias: {
       '@': '/src',
       '@services': '/src/services',

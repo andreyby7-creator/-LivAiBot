@@ -21,11 +21,11 @@
  * - Компонент детерминированный и SSR-safe
  */
 
+import { Card as CoreCard } from '@livai/ui-core';
+import type { CoreCardProps } from '@livai/ui-core';
 import { forwardRef, memo, useCallback, useEffect, useMemo } from 'react';
 import type { JSX, KeyboardEvent, MouseEvent, Ref } from 'react';
 
-import { Card as CoreCard } from '../../../ui-core/src/primitives/card.js';
-import type { CoreCardProps } from '../../../ui-core/src/primitives/card.js';
 import type { Namespace, TranslationKey } from '../lib/i18n.js';
 import { useUnifiedUI } from '../providers/UnifiedUIProvider.js';
 import type { Json } from '../types/common.js';

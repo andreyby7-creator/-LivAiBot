@@ -7,7 +7,7 @@ import React from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom/vitest';
-import type { FileInfo } from '../../../../ui-core/src/components/FileUploader.js';
+import type { FileInfo } from '@livai/ui-core';
 
 // Mock для Core FileUploader
 vi.mock('../../../../ui-core/src/components/FileUploader', () => ({

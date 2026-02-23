@@ -7,7 +7,7 @@ import React from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom/vitest';
-import type { CalendarMonth } from '../../../../ui-core/src/components/DatePicker.js';
+import type { CalendarMonth } from '@livai/ui-core';
 
 // Mock для Core DatePicker
 vi.mock('../../../../ui-core/src/components/DatePicker', () => ({

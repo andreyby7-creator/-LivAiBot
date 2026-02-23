@@ -18,6 +18,8 @@
  * - платформенных эффектов
  */
 
+import { Select as CoreSelect } from '@livai/ui-core';
+import type { CoreSelectProps } from '@livai/ui-core';
 import React, {
   forwardRef,
   memo,
@@ -29,8 +31,6 @@ import React, {
 } from 'react';
 import type { JSX } from 'react';
 
-import { Select as CoreSelect } from '../../../ui-core/src/primitives/select.js';
-import type { CoreSelectProps } from '../../../ui-core/src/primitives/select.js';
 import type { Namespace, TranslationKey } from '../lib/i18n.js';
 import { useUnifiedUI } from '../providers/UnifiedUIProvider.js';
 import type { Json } from '../types/common.js';

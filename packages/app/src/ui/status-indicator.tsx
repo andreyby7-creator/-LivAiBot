@@ -26,16 +26,16 @@
  * - Убедитесь, что `status` приходит из валидированной бизнес-логики (idle | loading | success | error)
  */
 
-import { forwardRef, memo, useCallback, useEffect, useMemo, useRef } from 'react';
-import type { JSX, Ref } from 'react';
-
-import { StatusIndicator as CoreStatusIndicator } from '../../../ui-core/src/primitives/status-indicator.js';
+import { StatusIndicator as CoreStatusIndicator } from '@livai/ui-core';
 import type {
   CoreStatusIndicatorProps,
   StatusIndicatorSize,
   StatusIndicatorStatus,
   StatusIndicatorVariant,
-} from '../../../ui-core/src/primitives/status-indicator.js';
+} from '@livai/ui-core';
+import { forwardRef, memo, useCallback, useEffect, useMemo, useRef } from 'react';
+import type { JSX, Ref } from 'react';
+
 import type { Namespace, TranslationKey } from '../lib/i18n.js';
 import { useUnifiedUI } from '../providers/UnifiedUIProvider.js';
 import type { Json } from '../types/common.js';

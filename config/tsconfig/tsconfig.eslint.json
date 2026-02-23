@@ -8,7 +8,7 @@
     "allowSyntheticDefaultImports": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "skipLibCheck": true,
+    "skipLibCheck": false,
     "types": ["node"],
     "allowJs": true,
     "checkJs": false

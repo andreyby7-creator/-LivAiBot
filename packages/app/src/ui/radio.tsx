@@ -18,6 +18,8 @@
  * - платформенных эффектов
  */
 
+import { Radio as CoreRadio } from '@livai/ui-core';
+import type { CoreRadioProps } from '@livai/ui-core';
 import React, {
   forwardRef,
   memo,
@@ -29,8 +31,6 @@ import React, {
 } from 'react';
 import type { JSX } from 'react';
 
-import { Radio as CoreRadio } from '../../../ui-core/src/primitives/radio.js';
-import type { CoreRadioProps } from '../../../ui-core/src/primitives/radio.js';
 import type { Namespace, TranslationKey } from '../lib/i18n.js';
 import { useUnifiedUI } from '../providers/UnifiedUIProvider.js';
 import type { Json } from '../types/common.js';

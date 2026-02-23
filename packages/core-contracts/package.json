@@ -26,9 +26,8 @@
   ],
   "exports": {
     ".": {
-      "types": "./dist/esm/index.d.ts",
-      "import": "./dist/esm/index.js",
-      "default": "./dist/esm/index.js"
+      "types": "./src/index.ts",
+      "import": "./src/index.ts"
     },
     "./io": {
       "types": "./dist/esm/io/index.d.ts",
@@ -79,7 +78,7 @@
   "scripts": {
     "build": "pnpm run build:types & pnpm run build:js & wait",
     "build:js": "tsup",
-    "build:types": "rm -f *.tsbuildinfo && tsc -b tsconfig.build.json",
+    "build:types": "tsc -b tsconfig.build.json",
     "build:watch": "tsup --watch",
     "dev": "tsup --watch",
     "lint": "pnpm run lint:dev",

@@ -22,11 +22,11 @@
  * - CoreErrorBoundary остается полностью presentational
  */
 
+import { ErrorBoundary as CoreErrorBoundary } from '@livai/ui-core';
+import type { CoreErrorBoundaryProps } from '@livai/ui-core';
 import React, { Component } from 'react';
 import type { ErrorInfo, ReactNode } from 'react';
 
-import { CoreErrorBoundary } from '../../../ui-core/src/components/ErrorBoundary.js';
-import type { CoreErrorBoundaryProps } from '../../../ui-core/src/components/ErrorBoundary.js';
 import { mapErrorBoundaryError } from '../lib/error-mapping.js';
 import type { Namespace, TranslationKey } from '../lib/i18n.js';
 import { useUnifiedUI } from '../providers/UnifiedUIProvider.js';

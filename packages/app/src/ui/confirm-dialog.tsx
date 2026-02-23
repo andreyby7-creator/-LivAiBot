@@ -21,12 +21,11 @@
  * - CoreConfirmDialog остается полностью presentational
  */
 
+import { ConfirmDialog as CoreConfirmDialog } from '@livai/ui-core';
+import type { CoreConfirmDialogProps, ModalVariant } from '@livai/ui-core';
 import { forwardRef, memo, useCallback, useEffect, useMemo, useRef } from 'react';
 import type { JSX, ReactNode, Ref } from 'react';
 
-import { ConfirmDialog as CoreConfirmDialog } from '../../../ui-core/src/components/ConfirmDialog.js';
-import type { CoreConfirmDialogProps } from '../../../ui-core/src/components/ConfirmDialog.js';
-import type { ModalVariant } from '../../../ui-core/src/components/Modal.js';
 import type { Namespace, TranslationKey } from '../lib/i18n.js';
 import { useUnifiedUI } from '../providers/UnifiedUIProvider.js';
 import type { Json } from '../types/common.js';

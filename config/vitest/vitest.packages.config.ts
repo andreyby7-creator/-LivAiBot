@@ -15,6 +15,9 @@ import * as os from 'os';
  */
 export type PackageVitestConfig = {
   test: Record<string, unknown>;
+  resolve?: {
+    preserveSymlinks?: boolean;
+  };
 };
 
 // ------------------ ТИПЫ И ИНТЕРФЕЙСЫ -----------------------------
@@ -337,6 +340,9 @@ export function createPackageVitestConfig(options: PackageConfigOptions): Packag
       // Оптимизации для CI
       disableConsoleIntercept: process.env['CI'] === 'true',
       slowTestThreshold: process.env['CI'] === 'true' ? 1000 : 300,
+    },
+    resolve: {
+      preserveSymlinks: true,
     },
   };
 }

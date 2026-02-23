@@ -18,6 +18,8 @@
  * - платформенных эффектов
  */
 
+import { Toggle as CoreToggle } from '@livai/ui-core';
+import type { CoreToggleProps } from '@livai/ui-core';
 import React, {
   forwardRef,
   memo,
@@ -29,8 +31,6 @@ import React, {
 } from 'react';
 import type { JSX } from 'react';
 
-import { Toggle as CoreToggle } from '../../../ui-core/src/primitives/toggle.js';
-import type { CoreToggleProps } from '../../../ui-core/src/primitives/toggle.js';
 import type { Namespace, TranslationKey } from '../lib/i18n.js';
 import { useUnifiedUI } from '../providers/UnifiedUIProvider.js';
 import type { Json } from '../types/common.js';

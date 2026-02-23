@@ -33,7 +33,7 @@
       "inputs": ["src/**", "package.json", "tsconfig*.json", "tsup.config.ts"]
     },
     "build:types": {
-      "dependsOn": [],
+      "dependsOn": ["^build:types"],
       "cache": false,
       "inputs": ["src/**", "package.json", "tsconfig*.json"]
     },

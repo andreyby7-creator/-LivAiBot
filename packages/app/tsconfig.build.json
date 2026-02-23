@@ -4,18 +4,32 @@
     "target": "ES2024",
     "lib": ["ES2024", "DOM", "DOM.Iterable"],
     "outDir": "dist/esm",
-    "composite": false,
+    "composite": true,
     "incremental": true,
-    "rootDir": "src",
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
     "resolveJsonModule": false,
     "declaration": true,
-    "declarationMap": false, // Отключаем .d.ts.map для скорости
+    "declarationDir": "dist/esm",
+    "declarationMap": true,
     "emitDeclarationOnly": false,
     "allowJs": false,
-    "checkJs": false
+    "checkJs": false,
+    "jsx": "react-jsx",
+    "strict": true
   },
   "include": ["src"],
-  "exclude": ["node_modules", "dist", "src/**/*.test.ts", "src/**/*.spec.ts", "test/**/*"]
+  "exclude": [
+    "node_modules",
+    "dist",
+    "src/**/*.test.ts",
+    "src/**/*.spec.ts",
+    "src/**/*.test.tsx",
+    "src/**/*.spec.tsx",
+    "test/**/*"
+  ],
+  "references": [
+    { "path": "../core-contracts/tsconfig.build.json" },
+    { "path": "../ui-core/tsconfig.build.json" }
+  ]
 }

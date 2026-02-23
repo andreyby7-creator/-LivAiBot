@@ -4,13 +4,14 @@
     "target": "ES2024",
     "lib": ["ES2024", "DOM", "DOM.Iterable"],
     "outDir": "dist/esm",
-    "composite": false,
+    "composite": true,
     "incremental": true,
-    "rootDir": "src",
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
     "resolveJsonModule": false,
-    "declarationMap": false, // Отключаем .d.ts.map для скорости
+    "declaration": true,
+    "declarationDir": "dist/esm",
+    "declarationMap": true,
     "emitDeclarationOnly": false,
     "allowJs": false,
     "checkJs": false,
@@ -26,5 +27,10 @@
     "src/**/*.test.tsx",
     "src/**/*.spec.tsx",
     "test/**/*"
+  ],
+  "references": [
+    { "path": "../feature-auth/tsconfig.build.json" },
+    { "path": "../ui-core/tsconfig.build.json" },
+    { "path": "../ui-shared/tsconfig.build.json" }
   ]
 }

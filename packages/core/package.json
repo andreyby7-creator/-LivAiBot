@@ -26,9 +26,8 @@
   ],
   "exports": {
     ".": {
-      "types": "./dist/esm/index.d.ts",
-      "import": "./dist/esm/index.js",
-      "default": "./dist/esm/index.js"
+      "types": "./src/index.ts",
+      "import": "./src/index.ts"
     },
     "./domain-kit": {
       "types": "./dist/esm/domain-kit/index.d.ts",
@@ -43,6 +42,7 @@
   },
   "scripts": {
     "build": "tsup",
+    "build:types": "tsc -b tsconfig.build.json",
     "build:dev": "tsup --sourcemap --no-clean",
     "build:watch": "tsup --watch",
     "dev": "tsup --watch",

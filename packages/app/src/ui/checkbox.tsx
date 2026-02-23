@@ -18,11 +18,11 @@
  * - платформенных эффектов
  */
 
+import { Checkbox as CoreCheckbox } from '@livai/ui-core';
+import type { CoreCheckboxProps } from '@livai/ui-core';
 import React, { forwardRef, memo, useCallback, useEffect, useMemo } from 'react';
 import type { JSX } from 'react';
 
-import { Checkbox as CoreCheckbox } from '../../../ui-core/src/primitives/checkbox.js';
-import type { CoreCheckboxProps } from '../../../ui-core/src/primitives/checkbox.js';
 import type { Namespace, TranslationKey } from '../lib/i18n.js';
 import { useUnifiedUI } from '../providers/UnifiedUIProvider.js';
 import type { Json } from '../types/common.js';

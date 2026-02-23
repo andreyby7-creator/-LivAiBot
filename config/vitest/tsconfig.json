@@ -3,7 +3,7 @@
   "compilerOptions": {
     "types": ["node", "vitest/globals"],
     "allowImportingTsExtensions": true,
-    "skipLibCheck": true,
+    "skipLibCheck": false,
     "noEmit": true
   },
   "include": [

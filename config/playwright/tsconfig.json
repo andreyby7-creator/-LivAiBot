@@ -22,7 +22,7 @@
     "noFallthroughCasesInSwitch": true,
     "noImplicitOverride": true,
     "allowJs": true,
-    "skipLibCheck": true,
+    "skipLibCheck": false,
     "noEmit": true,
     "types": ["@types/node", "@playwright/test"]
   },

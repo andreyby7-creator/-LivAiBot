@@ -21,11 +21,11 @@
  * - CoreLoadingSpinner остается полностью presentational
  */
 
+import { LoadingSpinner as CoreLoadingSpinner } from '@livai/ui-core';
+import type { CoreLoadingSpinnerProps } from '@livai/ui-core';
 import { forwardRef, memo, useCallback, useEffect, useMemo, useRef } from 'react';
 import type { JSX, Ref } from 'react';
 
-import { LoadingSpinner as CoreLoadingSpinner } from '../../../ui-core/src/primitives/loading-spinner.js';
-import type { CoreLoadingSpinnerProps } from '../../../ui-core/src/primitives/loading-spinner.js';
 import type { Namespace, TranslationKey } from '../lib/i18n.js';
 import { useUnifiedUI } from '../providers/UnifiedUIProvider.js';
 import type { Json } from '../types/common.js';

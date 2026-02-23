@@ -21,12 +21,11 @@
  * - CoreModal остается без анимаций для максимальной производительности и простоты
  */
 
+import { Modal as CoreModal } from '@livai/ui-core';
+import type { CoreModalProps, ModalVariant, UIDuration } from '@livai/ui-core';
 import { forwardRef, memo, useEffect, useMemo, useRef } from 'react';
 import type { JSX, Ref } from 'react';
 
-import { Modal as CoreModal } from '../../../ui-core/src/components/Modal.js';
-import type { CoreModalProps, ModalVariant } from '../../../ui-core/src/components/Modal.js';
-import type { UIDuration } from '../../../ui-core/src/types/ui.js';
 import type { Namespace, TranslationKey } from '../lib/i18n.js';
 import { useUnifiedUI } from '../providers/UnifiedUIProvider.js';
 import type { Json } from '../types/common.js';

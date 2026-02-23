@@ -19,16 +19,11 @@
  * - Логики роутинга (активное состояние определяется извне)
  */
 
+import { NavigationMenuItem as CoreNavigationMenuItem } from '@livai/ui-core';
+import type { CoreNavigationMenuItemProps, NavigationMenuItemData } from '@livai/ui-core';
 import { forwardRef, memo, useCallback, useEffect, useMemo, useRef } from 'react';
 import type { CSSProperties, JSX, MouseEvent, ReactNode, Ref } from 'react';
 
-import {
-  NavigationMenuItem as CoreNavigationMenuItem,
-} from '../../../ui-core/src/components/NavigationMenuItem.js';
-import type {
-  CoreNavigationMenuItemProps,
-  NavigationMenuItemData,
-} from '../../../ui-core/src/components/NavigationMenuItem.js';
 import type { Namespace, TranslationKey } from '../lib/i18n.js';
 import { canAccessRoute } from '../lib/route-permissions.js';
 import { useUnifiedUI } from '../providers/UnifiedUIProvider.js';

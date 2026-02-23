@@ -7,7 +7,7 @@ import React from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom/vitest';
-import type { DropdownItem } from '../../../../ui-core/src/primitives/dropdown.js';
+import type { DropdownItem } from '@livai/ui-core';
 
 // Mock для Core Dropdown
 vi.mock('../../../../ui-core/src/primitives/dropdown', () => ({

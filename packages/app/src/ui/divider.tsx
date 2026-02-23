@@ -20,14 +20,11 @@
  * <Divider orientation="vertical" thickness={2} color="red" length="50px" />
  */
 
+import { Divider as CoreDivider } from '@livai/ui-core';
+import type { CoreDividerProps, DividerOrientation } from '@livai/ui-core';
 import { forwardRef, memo, useEffect, useMemo, useRef } from 'react';
 import type { JSX, Ref } from 'react';
 
-import { Divider as CoreDivider } from '../../../ui-core/src/primitives/divider.js';
-import type {
-  CoreDividerProps,
-  DividerOrientation,
-} from '../../../ui-core/src/primitives/divider.js';
 import type { Namespace, TranslationKey } from '../lib/i18n.js';
 import { useUnifiedUI } from '../providers/UnifiedUIProvider.js';
 import type { Json } from '../types/common.js';

@@ -18,11 +18,11 @@
  * - платформенных эффектов
  */
 
+import { Textarea as CoreTextarea } from '@livai/ui-core';
+import type { CoreTextareaProps } from '@livai/ui-core';
 import React, { memo, useCallback, useEffect, useMemo } from 'react';
 import type { JSX } from 'react';
 
-import { Textarea as CoreTextarea } from '../../../ui-core/src/primitives/textarea.js';
-import type { CoreTextareaProps } from '../../../ui-core/src/primitives/textarea.js';
 import type { Namespace, TranslationKey } from '../lib/i18n.js';
 import { useUnifiedUI } from '../providers/UnifiedUIProvider.js';
 import type { Json } from '../types/common.js';

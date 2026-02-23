@@ -23,10 +23,10 @@
  * - Компонент детерминированный, SSR-safe и platform-ready
  */
 
+import { Dialog as CoreDialog } from '@livai/ui-core';
 import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { JSX } from 'react';
 
-import { Dialog as CoreDialog } from '../../../ui-core/src/primitives/dialog.js';
 import type { Namespace, TranslationKey } from '../lib/i18n.js';
 import { useUnifiedUI } from '../providers/UnifiedUIProvider.js';
 import type { UiTelemetryApi } from '../types/ui-contracts.js';

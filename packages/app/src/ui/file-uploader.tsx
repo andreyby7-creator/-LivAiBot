@@ -22,14 +22,11 @@
  * - Платформенных эффектов
  */
 
+import { FileUploader as CoreFileUploader } from '@livai/ui-core';
+import type { CoreFileUploaderProps, FileInfo } from '@livai/ui-core';
 import { forwardRef, memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { DragEvent, JSX, Ref } from 'react';
 
-import { FileUploader as CoreFileUploader } from '../../../ui-core/src/components/FileUploader.js';
-import type {
-  CoreFileUploaderProps,
-  FileInfo,
-} from '../../../ui-core/src/components/FileUploader.js';
 import type { Namespace, TranslationKey } from '../lib/i18n.js';
 import { formatFileSize, validateFileBasic } from '../lib/validation.js';
 import { useUnifiedUI } from '../providers/UnifiedUIProvider.js';

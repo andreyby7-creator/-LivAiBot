@@ -19,11 +19,11 @@
  * - feature/* → используют ТОЛЬКО app/ui
  */
 
+import { Input as CoreInput } from '@livai/ui-core';
+import type { InputProps as CoreInputProps } from '@livai/ui-core';
 import React, { memo, useCallback, useEffect, useId, useMemo, useRef } from 'react';
 import type { JSX } from 'react';
 
-import { Input as CoreInput } from '../../../ui-core/src/index.js';
-import type { InputProps as CoreInputProps } from '../../../ui-core/src/index.js';
 import type { Namespace, TranslationKey } from '../lib/i18n.js';
 import { useUnifiedUI } from '../providers/UnifiedUIProvider.js';
 import type { Json } from '../types/common.js';

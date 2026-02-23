@@ -21,6 +21,8 @@
  * - Платформенных эффектов
  */
 
+import { DatePicker as CoreDatePicker } from '@livai/ui-core';
+import type { CalendarDay, CalendarMonth, CalendarWeek, CoreDatePickerProps } from '@livai/ui-core';
 import dayjs from 'dayjs';
 import type { Dayjs } from 'dayjs';
 import {
@@ -35,13 +37,6 @@ import {
 } from 'react';
 import type { JSX, Ref } from 'react';
 
-import { DatePicker as CoreDatePicker } from '../../../ui-core/src/components/DatePicker.js';
-import type {
-  CalendarDay,
-  CalendarMonth,
-  CalendarWeek,
-  CoreDatePickerProps,
-} from '../../../ui-core/src/components/DatePicker.js';
 import { useUnifiedUI } from '../providers/UnifiedUIProvider.js';
 import type { Json } from '../types/common.js';
 import type {

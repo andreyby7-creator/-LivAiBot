@@ -7,125 +7,123 @@ import React from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom/vitest';
-import type {
-  ContextMenuItem,
-  ContextMenuRef,
-} from '../../../../ui-core/src/primitives/context-menu.js';
+import type { ContextMenuItem, ContextMenuRef } from '@livai/ui-core';
 
 // Mock для Core ContextMenu
-vi.mock('../../../../ui-core/src/primitives/context-menu', () => ({
-  ContextMenu: React.forwardRef<
-    HTMLDivElement,
-    Readonly<Record<string, unknown>>
-  >((
-    props: Readonly<Record<string, unknown>>,
-    ref,
-  ) => {
-    const {
-      items,
-      isOpen,
-      onSelect,
-      onEscape,
-      onArrowNavigation,
-      menuRef,
-      'data-component': dataComponent,
-      'data-state': dataState,
-      'data-feature-flag': dataFeatureFlag,
-      'data-telemetry': dataTelemetry,
-      'data-component-id': dataComponentId,
-      'data-testid': testId,
-      className,
-      style,
-      // Исключаем бизнес-пропсы, которые не должны попадать в DOM
-      visible,
-      isHiddenByFeatureFlag,
-      telemetryEnabled,
-      ...rest
-    } = props;
+vi.mock('@livai/ui-core', async () => {
+  const actual = await vi.importActual<typeof import('@livai/ui-core')>('@livai/ui-core');
+  return {
+    ...actual,
+    ContextMenu: React.forwardRef<
+      HTMLDivElement,
+      Readonly<Record<string, unknown>>
+    >((props: Readonly<Record<string, unknown>>, ref) => {
+      const {
+        items,
+        isOpen,
+        onSelect,
+        onEscape,
+        onArrowNavigation,
+        menuRef,
+        'data-component': dataComponent,
+        'data-state': dataState,
+        'data-feature-flag': dataFeatureFlag,
+        'data-telemetry': dataTelemetry,
+        'data-component-id': dataComponentId,
+        'data-testid': testId,
+        className,
+        style,
+        // Исключаем бизнес-пропсы, которые не должны попадать в DOM
+        visible,
+        isHiddenByFeatureFlag,
+        telemetryEnabled,
+        ...rest
+      } = props;
 
-    const itemsArray = items as readonly ContextMenuItem[] | undefined;
+      const itemsArray = items as readonly ContextMenuItem[] | undefined;
 
-    // Симулируем menuRef обновление синхронно через useLayoutEffect
-    // Используем ref для ul чтобы получить реальные DOM элементы из рендера
-    const ulElementRef = React.useRef<HTMLUListElement | null>(null);
+      // Симулируем menuRef обновление синхронно через useLayoutEffect
+      // Используем ref для ul чтобы получить реальные DOM элементы из рендера
+      const ulElementRef = React.useRef<HTMLUListElement | null>(null);
 
-    React.useLayoutEffect(() => {
-      if (
-        menuRef !== null
-        && menuRef !== undefined
-        && typeof menuRef === 'object'
-        && 'current' in menuRef
-      ) {
-        const ul = ulElementRef.current;
-        if (ul === null) return;
+      React.useLayoutEffect(() => {
+        if (
+          menuRef !== null
+          && menuRef !== undefined
+          && typeof menuRef === 'object'
+          && 'current' in menuRef
+        ) {
+          const ul = ulElementRef.current;
+          if (ul === null) return;
 
-        // Получаем реальные элементы из DOM для тестирования навигации
-        const menuItems = Array.from(
-          ul.querySelectorAll<HTMLLIElement>('li[role="menuitem"]:not([aria-disabled="true"])'),
-        );
+          // Получаем реальные элементы из DOM для тестирования навигации
+          const menuItems = Array.from(
+            ul.querySelectorAll<HTMLLIElement>('li[role="menuitem"]:not([aria-disabled="true"])'),
+          );
 
-        const refValue: ContextMenuRef = {
-          element: ul,
-          items: menuItems,
-        };
-        (menuRef as { current: ContextMenuRef | null; }).current = refValue;
-      }
-    }, [menuRef, itemsArray, isOpen]);
+          const refValue: ContextMenuRef = {
+            element: ul,
+            items: menuItems,
+          };
+          (menuRef as { current: ContextMenuRef | null; }).current = refValue;
+        }
+      }, [menuRef, itemsArray, isOpen]);
 
-    return (
-      <div
-        ref={ref}
-        data-testid={testId ?? 'core-context-menu'}
-        data-component={dataComponent}
-        data-state={dataState}
-        data-feature-flag={dataFeatureFlag}
-        data-telemetry={dataTelemetry}
-        data-component-id={dataComponentId}
-        data-is-open={isOpen}
-        className={className as string | undefined}
-        style={style as React.CSSProperties | undefined}
-        {...rest}
-      >
-        {Boolean(isOpen) && itemsArray !== undefined && (
-          <ul ref={ulElementRef} data-testid='menu' role='menu'>
-            {itemsArray.map((item) => (
-              <li
-                key={item.id}
-                role='menuitem'
-                data-testid={`menu-item-${item.id}`}
-                onClick={(e) => {
-                  if (typeof onSelect === 'function') {
-                    onSelect(item.id, e);
-                  }
-                }}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
+      return (
+        <div
+          ref={ref}
+          data-testid={testId ?? 'core-context-menu'}
+          data-component={dataComponent}
+          data-state={dataState}
+          data-feature-flag={dataFeatureFlag}
+          data-telemetry={dataTelemetry}
+          data-component-id={dataComponentId}
+          data-is-open={isOpen}
+          className={className as string | undefined}
+          style={style as React.CSSProperties | undefined}
+          {...rest}
+        >
+          {Boolean(isOpen) && itemsArray !== undefined && (
+            <ul ref={ulElementRef} data-testid='menu' role='menu'>
+              {itemsArray.map((item) => (
+                <li
+                  key={item.id}
+                  role='menuitem'
+                  data-testid={`menu-item-${item.id}`}
+                  onClick={(e) => {
                     if (typeof onSelect === 'function') {
                       onSelect(item.id, e);
                     }
-                  } else if (e.key === 'Escape') {
-                    if (typeof onEscape === 'function') {
-                      onEscape(e);
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      if (typeof onSelect === 'function') {
+                        onSelect(item.id, e);
+                      }
+                    } else if (e.key === 'Escape') {
+                      if (typeof onEscape === 'function') {
+                        onEscape(e);
+                      }
+                    } else if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+                      if (typeof onArrowNavigation === 'function') {
+                        onArrowNavigation(
+                          e.key === 'ArrowDown' ? 'down' : 'up',
+                          e,
+                        );
+                      }
                     }
-                  } else if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
-                    if (typeof onArrowNavigation === 'function') {
-                      onArrowNavigation(
-                        e.key === 'ArrowDown' ? 'down' : 'up',
-                        e,
-                      );
-                    }
-                  }
-                }}
-              >
-                {item.label}
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
-    );
-  }),
-}));
+                  }}
+                >
+                  {item.label}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      );
+    }),
+  };
+});
 
 // Mock для UnifiedUIProvider
 const mockInfoFireAndForget = vi.fn();

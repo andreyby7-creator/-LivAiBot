@@ -33,12 +33,12 @@
  * - DOM-манипуляций вне декларативного React
  */
 
+import type { SkeletonVariant } from '@livai/ui-core';
 import { forwardRef, memo, useEffect, useMemo, useRef } from 'react';
 import type { CSSProperties, JSX, Ref } from 'react';
 
 import { Skeleton as AppSkeleton } from './skeleton.js';
 import type { AppSkeletonProps } from './skeleton.js';
-import type { SkeletonVariant } from '../../../ui-core/src/components/Skeleton.js';
 import type { Namespace, TranslationKey } from '../lib/i18n.js';
 import { useUnifiedUI } from '../providers/UnifiedUIProvider.js';
 import type { UiTelemetryApi } from '../types/ui-contracts.js';

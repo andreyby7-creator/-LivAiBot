@@ -21,11 +21,11 @@
  * - CoreDropdown остается полностью presentational
  */
 
+import { Dropdown as CoreDropdown } from '@livai/ui-core';
+import type { CoreDropdownProps } from '@livai/ui-core';
 import { forwardRef, memo, useCallback, useEffect, useMemo, useRef } from 'react';
 import type { JSX, KeyboardEvent, MouseEvent, Ref } from 'react';
 
-import { Dropdown as CoreDropdown } from '../../../ui-core/src/primitives/dropdown.js';
-import type { CoreDropdownProps } from '../../../ui-core/src/primitives/dropdown.js';
 import type { Namespace, TranslationKey } from '../lib/i18n.js';
 import { useUnifiedUI } from '../providers/UnifiedUIProvider.js';
 import type { Json } from '../types/common.js';

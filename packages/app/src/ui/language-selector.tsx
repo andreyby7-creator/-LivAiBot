@@ -24,16 +24,11 @@
  * - CoreLanguageSelector остается полностью presentational
  */
 
+import { LanguageSelector as CoreLanguageSelector } from '@livai/ui-core';
+import type { CoreLanguageSelectorProps, LanguageData } from '@livai/ui-core';
 import { forwardRef, memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { JSX, KeyboardEvent, Ref } from 'react';
 
-import {
-  LanguageSelector as CoreLanguageSelector,
-} from '../../../ui-core/src/components/LanguageSelector.js';
-import type {
-  CoreLanguageSelectorProps,
-  LanguageData,
-} from '../../../ui-core/src/components/LanguageSelector.js';
 import type { Namespace, TranslationKey } from '../lib/i18n.js';
 import { useUnifiedUI } from '../providers/UnifiedUIProvider.js';
 import type { Json } from '../types/common.js';

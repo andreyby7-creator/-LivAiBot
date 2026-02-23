@@ -279,6 +279,7 @@ function createBaseVitestConfig(
 
     /** Разрешение импортов с унифицированными алиасами */
     resolve: {
+      preserveSymlinks: true,
       alias: aliases, // Пустой объект - алиасы можно добавить позже при необходимости
       // Поддержка условий экспорта из package.json (для React jsx-runtime)
       conditions: ['import', 'module', 'browser', 'default'],

@@ -21,11 +21,11 @@
  * - CoreSideBar остается полностью presentational
  */
 
+import { SideBar as CoreSideBar } from '@livai/ui-core';
+import type { CoreSideBarProps } from '@livai/ui-core';
 import { forwardRef, memo, useCallback, useEffect, useMemo, useRef } from 'react';
 import type { JSX, Ref } from 'react';
 
-import { SideBar as CoreSideBar } from '../../../ui-core/src/components/SideBar.js';
-import type { CoreSideBarProps } from '../../../ui-core/src/components/SideBar.js';
 import type { Namespace, TranslationKey } from '../lib/i18n.js';
 import { useUnifiedUI } from '../providers/UnifiedUIProvider.js';
 import type { Json } from '../types/common.js';

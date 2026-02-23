@@ -17,7 +17,7 @@ const nextConfig = {
 
   // Строгий режим TypeScript
   typescript: {
-    tsconfigPath: './tsconfig.json',
+    tsconfigPath: './tsconfig.build.json',
   },
 
   // Конфигурация изображений

@@ -91,7 +91,7 @@ vi.mock('../../../src/providers/UnifiedUIProvider', () => ({
 }));
 
 import { NavigationMenuItem } from '../../../src/ui/navigation-menu-item';
-import type { NavigationMenuItemData } from '../../../../ui-core/src/components/NavigationMenuItem.js';
+import type { NavigationMenuItemData } from '@livai/ui-core';
 
 describe('App NavigationMenuItem', () => {
   // Общие тестовые переменные

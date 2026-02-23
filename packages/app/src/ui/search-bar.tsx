@@ -22,11 +22,11 @@
  * - CoreSearchBar остается полностью presentational
  */
 
+import { SearchBar as CoreSearchBar } from '@livai/ui-core';
+import type { CoreSearchBarProps } from '@livai/ui-core';
 import React, { forwardRef, memo, useCallback, useEffect, useMemo, useRef } from 'react';
 import type { ChangeEvent, JSX, KeyboardEvent, Ref } from 'react';
 
-import { SearchBar as CoreSearchBar } from '../../../ui-core/src/components/SearchBar.js';
-import type { CoreSearchBarProps } from '../../../ui-core/src/components/SearchBar.js';
 import type { Namespace, TranslationKey } from '../lib/i18n.js';
 import { useUnifiedUI } from '../providers/UnifiedUIProvider.js';
 import type { UiTelemetryApi } from '../types/ui-contracts.js';

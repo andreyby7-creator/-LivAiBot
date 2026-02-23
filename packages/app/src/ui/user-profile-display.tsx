@@ -23,16 +23,11 @@
  * - CoreUserProfileDisplay остается полностью presentational
  */
 
+import { UserProfileDisplay as CoreUserProfileDisplay } from '@livai/ui-core';
+import type { CoreUserProfileDisplayProps, UserProfileData } from '@livai/ui-core';
 import { forwardRef, memo, useEffect, useMemo, useRef } from 'react';
 import type { CSSProperties, JSX, ReactNode, Ref } from 'react';
 
-import {
-  UserProfileDisplay as CoreUserProfileDisplay,
-} from '../../../ui-core/src/components/UserProfileDisplay.js';
-import type {
-  CoreUserProfileDisplayProps,
-  UserProfileData,
-} from '../../../ui-core/src/components/UserProfileDisplay.js';
 import { useAuthGuardContext } from '../lib/auth-guard.js';
 import type { Namespace, TranslationKey } from '../lib/i18n.js';
 import { checkRoutePermission } from '../lib/route-permissions.js';

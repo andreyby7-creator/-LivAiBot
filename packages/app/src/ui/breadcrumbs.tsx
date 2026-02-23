@@ -21,14 +21,11 @@
  * - CoreBreadcrumbs остается полностью presentational
  */
 
+import { Breadcrumbs as CoreBreadcrumbs } from '@livai/ui-core';
+import type { BreadcrumbItem, CoreBreadcrumbsProps } from '@livai/ui-core';
 import React, { forwardRef, memo, useEffect, useMemo, useRef } from 'react';
 import type { JSX, Ref } from 'react';
 
-import { Breadcrumbs as CoreBreadcrumbs } from '../../../ui-core/src/components/Breadcrumbs.js';
-import type {
-  BreadcrumbItem,
-  CoreBreadcrumbsProps,
-} from '../../../ui-core/src/components/Breadcrumbs.js';
 import type { Namespace, TranslationKey } from '../lib/i18n.js';
 import { useUnifiedUI } from '../providers/UnifiedUIProvider.js';
 import type { Json } from '../types/common.js';
