@@ -22,14 +22,14 @@
  * - Адаптация между domains и feature-auth типами выполняется в effects/login/risk-assessment.ts
  */
 
+import type { RiskWeights } from '@livai/domains/aggregation';
+import type { RiskLevel } from '@livai/domains/policies';
 import type {
-  ClassificationRule,
   ClassificationSignals,
   ExternalClassificationSignals,
   InternalClassificationSignals,
-  RiskLevel,
-  RiskWeights,
-} from '@livai/domains';
+} from '@livai/domains/signals';
+import type { ClassificationRule } from '@livai/domains/strategies';
 
 import type { LoginRiskAssessment } from '../domain/LoginRiskAssessment.js';
 
@@ -43,7 +43,7 @@ import type { LoginRiskAssessment } from '../domain/LoginRiskAssessment.js';
  * @note Единый источник истины для RiskLevel в feature-auth
  *       Обеспечивает domain purity и избегает дублирования
  */
-export type { RiskLevel } from '@livai/domains';
+export type { RiskLevel } from '@livai/domains/policies';
 
 /**
  * Re-export ClassificationSignals из domains
@@ -53,7 +53,7 @@ export type {
   ClassificationSignals,
   ExternalClassificationSignals,
   InternalClassificationSignals,
-} from '@livai/domains';
+} from '@livai/domains/signals';
 
 /* ============================================================================
  * 🔧 UTILITY TYPES

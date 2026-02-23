@@ -25,7 +25,7 @@
  */
 
 import type { ContextEnricher, EnrichmentError, EnrichmentResult } from '@livai/core';
-import type { RiskLevel } from '@livai/domains';
+import type { RiskLevel } from '@livai/domains/policies';
 
 import type { DeviceInfo } from '../../domain/DeviceInfo.js';
 import type { LoginIdentifierType, LoginRequest } from '../../domain/LoginRequest.js';

@@ -22,15 +22,16 @@
  *       - defaultDecisionPolicy из @livai/domains/classification/policies
  */
 
+import type { ScoringContext as DomainScoringContext } from '@livai/domains/aggregation';
+import { defaultDecisionPolicy } from '@livai/domains/policies';
+import type { ClassificationContext } from '@livai/domains/signals';
+import { assessClassification } from '@livai/domains/strategies';
 import type {
-  ClassificationContext,
   ClassificationPolicy,
   ContextBuilderPlugin as DomainContextBuilderPlugin,
   DeviceInfo as DomainDeviceInfo,
   RuleEvaluationContext as DomainRuleEvaluationContext,
-  ScoringContext as DomainScoringContext,
-} from '@livai/domains';
-import { assessClassification, defaultDecisionPolicy } from '@livai/domains';
+} from '@livai/domains/strategies';
 
 import { mapLabelToDecisionHint } from './classification-mapper.js';
 import { buildAssessment } from './login-risk-assessment.adapter.js';

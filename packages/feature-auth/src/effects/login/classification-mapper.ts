@@ -29,20 +29,12 @@
  * 5. Обновить документацию в mapLabelToDecisionHint с описанием логики маппинга
  */
 
-import type {
-  ClassificationLabel,
-  ClassificationRule,
-  DecisionPolicy,
-  DecisionSignals,
-  RiskLevel,
-  RuleAction,
-} from '@livai/domains';
-import {
-  classificationLabel,
-  defaultDecisionPolicy,
-  evaluateRuleActions,
-  getRuleDefinition,
-} from '@livai/domains';
+import { classificationLabel } from '@livai/domains/labels';
+import type { ClassificationLabel } from '@livai/domains/labels';
+import { defaultDecisionPolicy } from '@livai/domains/policies';
+import type { DecisionPolicy, DecisionSignals, RiskLevel } from '@livai/domains/policies';
+import { evaluateRuleActions, getRuleDefinition } from '@livai/domains/strategies';
+import type { ClassificationRule, RuleAction } from '@livai/domains/strategies';
 
 /* ============================================================================
  * 🎯 TYPES

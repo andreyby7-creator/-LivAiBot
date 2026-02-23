@@ -4,14 +4,10 @@
  */
 
 import { describe, expect, it } from 'vitest';
-import type {
-  ClassificationLabel,
-  ClassificationRule,
-  DecisionPolicy,
-  DecisionSignals,
-  RiskLevel,
-} from '@livai/domains';
-import { defaultDecisionPolicy } from '@livai/domains';
+import type { ClassificationLabel } from '@livai/domains/labels';
+import type { ClassificationRule } from '@livai/domains/strategies';
+import type { DecisionPolicy, DecisionSignals, RiskLevel } from '@livai/domains/policies';
+import { defaultDecisionPolicy } from '@livai/domains/policies';
 
 import { mapLabelToDecisionHint } from '../../../../src/effects/login/classification-mapper.js';
 

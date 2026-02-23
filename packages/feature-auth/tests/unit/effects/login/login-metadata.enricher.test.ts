@@ -26,7 +26,7 @@ import type {
   MetadataConfig,
   RiskMetadata,
 } from '../../../../src/effects/login/login-metadata.enricher.js';
-import type { RiskLevel } from '@livai/domains';
+import type { RiskLevel } from '@livai/domains/policies';
 
 // ============================================================================
 // 🔧 HELPER FUNCTIONS FOR TEST DATA

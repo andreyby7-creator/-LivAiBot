@@ -41,7 +41,7 @@
  * ============================================================================
  */
 
-import type { RiskLevel } from '@livai/domains';
+import type { RiskLevel } from '@livai/domains/policies';
 
 import type { AuthAuditEvent } from '../domain/AuthAuditEvent.js';
 import type { AuthErrorResponse } from '../domain/AuthErrorResponse.js';
@@ -471,7 +471,7 @@ export type OAuthError = OAuthErrorResponse;
  * @note Re-export из @livai/domains для единого источника истины
  *       Соответствует плану рефакторинга: "Убрать локальные определения RiskLevel"
  */
-export type { RiskLevel } from '@livai/domains';
+export type { RiskLevel } from '@livai/domains/policies';
 
 /** Статус безопасности */
 export type SecurityStatus =

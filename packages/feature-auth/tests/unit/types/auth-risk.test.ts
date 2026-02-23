@@ -20,7 +20,7 @@ import type {
   RiskSignals,
 } from '../../../src/types/auth-risk.js';
 import type { RiskLevel } from '../../../src/types/auth.js';
-import type { ClassificationRule } from '@livai/domains';
+import type { ClassificationRule } from '@livai/domains/strategies';
 
 // ============================================================================
 // 🔧 HELPER FUNCTIONS FOR TEST DATA

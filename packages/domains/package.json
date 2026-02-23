@@ -29,6 +29,31 @@
       "types": "./dist/esm/index.d.ts",
       "import": "./dist/esm/index.js",
       "default": "./dist/esm/index.js"
+    },
+    "./signals": {
+      "types": "./dist/esm/classification/signals/index.d.ts",
+      "import": "./dist/esm/classification/signals/index.js",
+      "default": "./dist/esm/classification/signals/index.js"
+    },
+    "./strategies": {
+      "types": "./dist/esm/classification/strategies/index.d.ts",
+      "import": "./dist/esm/classification/strategies/index.js",
+      "default": "./dist/esm/classification/strategies/index.js"
+    },
+    "./policies": {
+      "types": "./dist/esm/classification/policies/index.d.ts",
+      "import": "./dist/esm/classification/policies/index.js",
+      "default": "./dist/esm/classification/policies/index.js"
+    },
+    "./aggregation": {
+      "types": "./dist/esm/classification/aggregation/index.d.ts",
+      "import": "./dist/esm/classification/aggregation/index.js",
+      "default": "./dist/esm/classification/aggregation/index.js"
+    },
+    "./labels": {
+      "types": "./dist/esm/classification/labels.d.ts",
+      "import": "./dist/esm/classification/labels.js",
+      "default": "./dist/esm/classification/labels.js"
     }
   },
   "scripts": {
