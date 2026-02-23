@@ -1,4 +1,4 @@
-# @livai/domains-classification
+# @livai/domains
 
 Реализация домена классификации — decision computing domain с labels, signals, strategies.
 
@@ -26,7 +26,7 @@
 ## Использование
 
 ```typescript
-import { ClassificationLabel } from '@livai/domains-classification';
+import { ClassificationLabel } from '@livai/domains';
 import { Label } from '@livai/core/domain-kit';
 
 const label: ClassificationLabel = 'SAFE';

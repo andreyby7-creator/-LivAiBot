@@ -1,20 +1,20 @@
 /**
- * @file packages/feature-auth/src/effects/login/metadata-builders.ts
+ * @file packages/feature-auth/src/effects/login/login-metadata.enricher.ts
  * ============================================================================
- * 🔐 FEATURE-AUTH — Login Metadata Builders (Pure Utilities)
+ * 🔐 FEATURE-AUTH — Login Metadata Enricher (Context Enricher)
  * ============================================================================
  *
  * Архитектурная роль:
- * - Чистые утилиты для создания метаданных логина
- * - Extensible через builder registry pattern с injection
+ * - Реализует ContextEnricher из @livai/core для обогащения контекста метаданными логина
+ * - Использует core input-boundary для dependency-driven execution
  * - Domain-pure, deterministic, microservice-ready
  *
  * Принципы:
  * - ✅ Чистые функции — без side-effects
  * - ✅ Deterministic — одинаковый вход → одинаковый выход (traceId обязателен)
  * - ✅ Domain-pure — только domain типы, без инфраструктурных зависимостей
- * - ✅ SRP — каждая функция имеет одну ответственность
- * - ✅ Extensible — расширяемость через builder registry с injection
+ * - ✅ SRP — только обогащение контекста метаданными
+ * - ✅ Extensible — расширяемость через additionalBuilders
  * - ✅ Security-first — PII хеширование через injection, нет raw значений
  * - ❌ Нет бизнес-логики → business logic layer
  * - ❌ Нет API calls → api-client layer
@@ -22,17 +22,13 @@
  * - ❌ Нет telemetry → observability layer
  * - ❌ Нет UUID generation → effect layer (orchestration)
  * - ❌ Нет хеширования → effect layer (security policy injection)
- *
- * @example
- * const metadata = buildLoginMetadata(
- *   { ...context, traceId: 'required-trace-id' },
- *   { identifierHasher: (v) => hmacSha256(v, secret) }
- * );
  */
+
+import type { ContextEnricher, EnrichmentError, EnrichmentResult } from '@livai/core';
+import type { RiskLevel } from '@livai/domains';
 
 import type { DeviceInfo } from '../../domain/DeviceInfo.js';
 import type { LoginIdentifierType, LoginRequest } from '../../domain/LoginRequest.js';
-import type { RiskLevel } from '../../types/auth.js';
 
 /* ============================================================================
  * 🧭 TYPES
@@ -49,22 +45,12 @@ export type RiskMetadata = {
 /**
  * Контекст для создания метаданных логина
  * @note traceId обязателен для детерминированности
- * @note riskMetadata - проекция без domain coupling
  */
 export type LoginContext = {
-  /** Запрос на логин */
   readonly request: LoginRequest<LoginIdentifierType>;
-
-  /** Trace ID для корреляции запросов (обязателен для детерминированности) */
   readonly traceId: string;
-
-  /** Timestamp события (ISO 8601) - передается извне для детерминизма */
   readonly timestamp: string;
-
-  /** Информация об устройстве (опционально, может отсутствовать на ранних этапах) */
   readonly deviceInfo?: DeviceInfo;
-
-  /** Проецированные данные оценки риска (опционально) */
   readonly riskMetadata?: RiskMetadata;
 };
 
@@ -177,7 +163,6 @@ function buildRiskMetadata(context: LoginContext): LoginMetadata | null {
     type: 'risk',
     riskScore,
     riskLevel,
-    // Проекция: только IDs правил (всегда массив, даже если пустой)
     triggeredRuleIds,
   };
 }
@@ -192,7 +177,6 @@ function buildIdentifierMetadata(
   return {
     type: 'identifier',
     identifierType: type,
-    // Security: хешируем PII значение через injected hasher
     identifierHash: identifierHasher(value),
   };
 }
@@ -208,7 +192,6 @@ function buildTimestampMetadata(context: LoginContext): LoginMetadata | null {
 
 /**
  * Builder для MFA метаданных
- *
  * @note Возвращает массив metadata для каждого MFA метода
  * @note Если MFA не требуется, возвращает null
  */
@@ -216,7 +199,6 @@ function buildMfaMetadata(context: LoginContext): LoginMetadata[] | null {
   const { mfa } = context.request;
 
   if (mfa === undefined) {
-    // MFA не требуется - не создаем метаданные
     return null;
   }
 
@@ -226,7 +208,6 @@ function buildMfaMetadata(context: LoginContext): LoginMetadata[] | null {
     return null;
   }
 
-  // Создаем metadata для каждого MFA метода
   return mfaArray.map((mfaItem) => ({
     type: 'mfa' as const,
     mfaType: mfaItem.type,
@@ -271,7 +252,6 @@ function validateLoginContext(context: unknown): asserts context is LoginContext
     throw new Error('context.timestamp must be a non-empty string');
   }
 
-  // Проверка обязательного поля request
   if (!('request' in ctx) || ctx['request'] === null || typeof ctx['request'] !== 'object') {
     throw new Error('context.request must be a valid LoginRequest object');
   }
@@ -285,7 +265,6 @@ function validateLoginContext(context: unknown): asserts context is LoginContext
     throw new Error('context.request.identifier must be a valid identifier object');
   }
 
-  // Проверка структуры identifier (boundary protection)
   const identifier = request['identifier'] as Record<string, unknown>;
   if (!('type' in identifier) || typeof identifier['type'] !== 'string') {
     throw new Error('context.request.identifier.type must be a string');
@@ -298,7 +277,6 @@ function validateLoginContext(context: unknown): asserts context is LoginContext
 
 /**
  * Валидирует результат builder (минимальный guard для external builders)
- *
  * @note Минимальная валидация только для additionalBuilders
  * @note Internal builders (buildTraceMetadata и т.д.) не валидируются - они type-safe
  * @note Проверяет только allowed types и критичные поля (не полная schema validation)
@@ -311,13 +289,11 @@ function validateBuilderResult(result: unknown): asserts result is LoginMetadata
 
   const res = result as Record<string, unknown>;
 
-  // Проверка обязательного поля type
   const type = res['type'];
   if (typeof type !== 'string') {
     throw new Error('Builder result must have a string type field');
   }
 
-  // Проверка allowed types (structural guarantee)
   const allowedTypes: readonly string[] = [
     'trace',
     'device',
@@ -330,9 +306,7 @@ function validateBuilderResult(result: unknown): asserts result is LoginMetadata
     throw new Error(`Builder result type must be one of: ${allowedTypes.join(', ')}`);
   }
 
-  // Минимальная проверка критичных полей (не полная schema validation)
   if (type === 'risk') {
-    // Валидация RiskLevel union
     const validRiskLevels: readonly string[] = ['low', 'medium', 'high', 'critical'];
     if (typeof res['riskLevel'] !== 'string' || !validRiskLevels.includes(res['riskLevel'])) {
       throw new Error(`risk metadata riskLevel must be one of: ${validRiskLevels.join(', ')}`);
@@ -352,10 +326,8 @@ function createAdditionalBuilders(
     throw new Error('additionalBuilders must be an array');
   }
 
-  // Валидация что все элементы - функции
   const validatedBuilders: MetadataBuilder[] = [];
   for (const builder of additionalBuilders) {
-    // Валидация типа builder
     if (typeof builder !== 'function') {
       throw new Error('additionalBuilders must contain only functions');
     }
@@ -366,81 +338,21 @@ function createAdditionalBuilders(
 }
 
 /**
- * Создает типизированные метаданные логина из контекста
- *
- * @param context - Контекст для создания метаданных (traceId обязателен)
- * @param config - Конфигурация с injected hasher и опциональными builders
- * @returns Массив типизированных метаданных (LoginMetadata[])
- *
- * @note Одинаковый контекст → одинаковые метаданные (traceId обязателен)
- * @note identifierHash через injected hasher (HMAC-SHA256 в effect layer)
- *
- * @example
- * const metadata = buildLoginMetadata(
- *   { ...context, traceId: 'required-trace-id' },
- *   { identifierHasher: (v) => hmacSha256(v, secret) }
- * );
- */
-export function buildLoginMetadata(
-  context: LoginContext,
-  config: MetadataConfig,
-): readonly LoginMetadata[] {
-  // Валидация config и context
-  validateMetadataConfig(config);
-  validateLoginContext(context);
-
-  // Создаем массив дополнительных builders
-  const additionalBuilders = createAdditionalBuilders(config.additionalBuilders);
-
-  // Создаем identifier builder с injected hasher
-  const identifierBuilder = createIdentifierMetadataBuilder(config.identifierHasher);
-
-  // Явный ordered array internal builders (не хрупкий slicing)
-  // @note Порядок: trace, device, identifier, risk, timestamp, mfa
-  const INTERNAL_BUILDERS: readonly MetadataBuilder[] = Object.freeze([
-    buildTraceMetadata, // trace
-    buildDeviceMetadata, // device
-    identifierBuilder, // identifier (с injected hasher)
-    buildRiskMetadata, // risk
-    buildTimestampMetadata, // timestamp
-    buildMfaMetadata, // mfa
-  ]);
-
-  // Объединяем internal и external builders
-  const orderedBuilders: readonly MetadataBuilder[] = Object.freeze([
-    ...INTERNAL_BUILDERS,
-    ...additionalBuilders, // дополнительные builders
-  ]);
-
-  const internalBuildersCount = INTERNAL_BUILDERS.length;
-
-  // Применяем все builders (результаты валидируются внутри applyBuilders)
-  // eslint-disable-next-line ai-security/model-poisoning -- Все элементы валидируются через validateBuilderResult перед добавлением в metadata
-  const metadata = applyBuilders(orderedBuilders, context, internalBuildersCount);
-
-  // Freeze без лишней аллокации
-  return Object.freeze(metadata);
-}
-
-/**
  * Применяет builders и собирает метаданные
  * @note Вынесено для снижения cognitive complexity
- * @note Все данные валидируются через validateBuilderResult перед добавлением
  */
 function applyBuilders(
   builders: readonly MetadataBuilder[],
   context: LoginContext,
   internalBuildersCount: number,
 ): LoginMetadata[] {
-  // Инициализация валидированного массива метаданных
-  // eslint-disable-next-line ai-security/model-poisoning -- Все элементы валидируются через validateBuilderResult перед добавлением
+  // eslint-disable-next-line ai-security/model-poisoning -- Все элементы валидируются через validateBuilderResult перед добавлением в metadata
   const metadata: LoginMetadata[] = [];
 
   let builderIndex = 0;
   for (const builder of builders) {
     const result = builder(context);
     if (result !== null) {
-      // Валидация происходит внутри processBuilderResult перед добавлением в metadata
       processBuilderResult(result, metadata, builderIndex, internalBuildersCount);
     }
     builderIndex++;
@@ -459,22 +371,107 @@ function processBuilderResult(
   builderIndex: number,
   internalBuildersCount: number,
 ): void {
-  // Обработка массива результатов (для MFA builder)
   if (Array.isArray(result)) {
     for (const item of result) {
-      // Валидация только для external builders (после internal)
       if (builderIndex >= internalBuildersCount) {
         validateBuilderResult(item);
       }
-      // Валидированные данные добавляются в массив
       metadata.push(item);
     }
   } else {
-    // Валидация только для external builders (после internal)
     if (builderIndex >= internalBuildersCount) {
       validateBuilderResult(result);
     }
-    // Валидированные данные добавляются в массив
     metadata.push(result);
   }
+}
+
+/**
+ * Создает типизированные метаданные логина из контекста
+ * @note Одинаковый контекст → одинаковые метаданные (traceId обязателен)
+ * @note identifierHash через injected hasher (HMAC-SHA256 в effect layer)
+ * @example
+ * const metadata = buildLoginMetadata(
+ *   { ...context, traceId: 'required-trace-id' },
+ *   { identifierHasher: (v) => hmacSha256(v, secret) }
+ * );
+ */
+export function buildLoginMetadata(
+  context: LoginContext, // Контекст для создания метаданных (traceId обязателен)
+  config: MetadataConfig, // Конфигурация с injected hasher и опциональными builders
+): readonly LoginMetadata[] { // Массив типизированных метаданных
+  // Валидация config и context
+  validateMetadataConfig(config);
+  validateLoginContext(context);
+
+  const additionalBuilders = createAdditionalBuilders(config.additionalBuilders);
+  const identifierBuilder = createIdentifierMetadataBuilder(config.identifierHasher);
+
+  const INTERNAL_BUILDERS: readonly MetadataBuilder[] = Object.freeze([
+    buildTraceMetadata,
+    buildDeviceMetadata,
+    identifierBuilder,
+    buildRiskMetadata,
+    buildTimestampMetadata,
+    buildMfaMetadata,
+  ]);
+
+  const orderedBuilders: readonly MetadataBuilder[] = Object.freeze([
+    ...INTERNAL_BUILDERS,
+    ...additionalBuilders,
+  ]);
+
+  // eslint-disable-next-line ai-security/model-poisoning -- Все элементы валидируются через validateBuilderResult перед добавлением в metadata
+  const metadata = applyBuilders(orderedBuilders, context, INTERNAL_BUILDERS.length);
+
+  return Object.freeze(metadata);
+}
+
+/* ============================================================================
+ * 🎯 CONTEXT ENRICHER — CORE INTEGRATION
+ * ============================================================================
+ */
+
+/**
+ * Создает ContextEnricher для обогащения контекста метаданными логина
+ * @example
+ * const enricher = createLoginMetadataEnricher({
+ *   identifierHasher: (v) => hmacSha256(v, secret)
+ * });
+ * const result = enrichContext(context, { invariants: [], policies: [enricher] });
+ */
+export function createLoginMetadataEnricher(
+  config: MetadataConfig, // Конфигурация с injected hasher и опциональными builders
+): ContextEnricher<LoginContext> { // ContextEnricher для использования в enrichContext
+  return Object.freeze({
+    name: 'login-metadata',
+    provides: Object.freeze(['login.metadata']),
+    enrich: (
+      context: LoginContext,
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars -- Параметр требуется интерфейсом ContextEnricher
+      _availableSignals: ReadonlyMap<string, unknown>,
+    ): EnrichmentResult => {
+      try {
+        // eslint-disable-next-line ai-security/model-poisoning -- context валидируется внутри buildLoginMetadata через validateLoginContext
+        const metadata = buildLoginMetadata(context, config);
+        const signals = Object.freeze(
+          new Map([['login.metadata', Object.freeze(metadata)] as const]),
+        ) as ReadonlyMap<string, unknown>;
+        return Object.freeze({
+          signals,
+          errors: Object.freeze([]),
+        });
+      } catch (error) {
+        const enrichmentError: EnrichmentError = Object.freeze({
+          kind: 'ENRICHER_ERROR',
+          enricher: 'login-metadata',
+          reason: error instanceof Error ? error.message : String(error),
+        });
+        return Object.freeze({
+          signals: Object.freeze(new Map<string, unknown>()),
+          errors: Object.freeze([enrichmentError]),
+        });
+      }
+    },
+  });
 }

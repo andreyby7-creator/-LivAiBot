@@ -1,6 +1,6 @@
 /**
- * @file Unit тесты для effects/login/metadata-builders.ts
- * Полное покрытие metadata builders с тестированием всех функций и edge cases
+ * @file Unit тесты для effects/login/login-metadata.enricher.ts
+ * Полное покрытие login metadata enricher с тестированием всех функций и edge cases
  *
  * @note Все тестовые данные создаются в контролируемой среде и валидируются через buildLoginMetadata.
  * eslint-disable комментарии для ai-security/model-poisoning добавлены там, где это требуется линтером.
@@ -14,7 +14,10 @@ import type {
   LoginRequest,
   MfaInfo,
 } from '../../../../src/domain/LoginRequest.js';
-import { buildLoginMetadata } from '../../../../src/effects/login/metadata-builders.js';
+import {
+  buildLoginMetadata,
+  createLoginMetadataEnricher,
+} from '../../../../src/effects/login/login-metadata.enricher.js';
 import type {
   IdentifierHasher,
   LoginContext,
@@ -22,8 +25,9 @@ import type {
   MetadataBuilder,
   MetadataConfig,
   RiskMetadata,
-} from '../../../../src/effects/login/metadata-builders.js';
-import type { RiskLevel } from '../../../../src/types/auth.js';
+} from '../../../../src/effects/login/login-metadata.enricher.js';
+// eslint-disable-next-line no-restricted-imports -- RiskLevel экспортируется только через главный index, subpath exports отсутствуют
+import type { RiskLevel } from '@livai/domains';
 
 // ============================================================================
 // 🔧 HELPER FUNCTIONS FOR TEST DATA
@@ -1132,5 +1136,61 @@ describe('buildLoginMetadata - edge cases', () => {
     expect(types[3]).toBe('risk');
     expect(types[4]).toBe('timestamp');
     expect(types[5]).toBe('mfa');
+  });
+});
+
+// ============================================================================
+// 🎯 CONTEXT ENRICHER — CORE INTEGRATION
+// ============================================================================
+
+describe('createLoginMetadataEnricher', () => {
+  it('создает ContextEnricher с правильными свойствами', () => {
+    const config = createMetadataConfig();
+    const enricher = createLoginMetadataEnricher(config);
+
+    expect(enricher.name).toBe('login-metadata');
+    expect(enricher.provides).toEqual(['login.metadata']);
+    expect(enricher.enrich).toBeDefined();
+  });
+
+  it('обогащает контекст метаданными через enrich', () => {
+    const context = createLoginContext();
+    const config = createMetadataConfig();
+    const enricher = createLoginMetadataEnricher(config);
+
+    const result = enricher.enrich(context, new Map());
+
+    expect(result.errors).toHaveLength(0);
+    expect(result.signals.has('login.metadata')).toBe(true);
+    // eslint-disable-next-line ai-security/model-poisoning -- Данные валидируются через buildLoginMetadata
+    const metadata = result.signals.get('login.metadata');
+    expect(Array.isArray(metadata)).toBe(true);
+    expect(Array.isArray(metadata) ? metadata.length : 0).toBeGreaterThan(0);
+  });
+
+  it('обрабатывает ошибки валидации через enrich', () => {
+    const invalidContext = {} as LoginContext;
+    const config = createMetadataConfig();
+    const enricher = createLoginMetadataEnricher(config);
+
+    const result = enricher.enrich(invalidContext, new Map());
+
+    expect(result.errors.length).toBeGreaterThan(0);
+    expect(result.errors[0]?.kind).toBe('ENRICHER_ERROR');
+    expect(
+      result.errors[0]?.kind === 'ENRICHER_ERROR' ? result.errors[0].enricher : undefined,
+    ).toBe('login-metadata');
+  });
+
+  it('возвращает frozen результат', () => {
+    const context = createLoginContext();
+    const config = createMetadataConfig();
+    const enricher = createLoginMetadataEnricher(config);
+
+    const result = enricher.enrich(context, new Map());
+
+    expect(Object.isFrozen(result)).toBe(true);
+    expect(Object.isFrozen(result.signals)).toBe(true);
+    expect(Object.isFrozen(result.errors)).toBe(true);
   });
 });

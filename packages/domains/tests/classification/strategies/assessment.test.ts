@@ -96,6 +96,15 @@ describe('assessClassification', () => {
     expect(result.confidence).toBeDefined();
     expect(result.label).toBeDefined();
     expect(result.scale).toBeDefined();
+    // Новые обязательные поля orchestration данных
+    expect(result.riskScore).toBeDefined();
+    expect(typeof result.riskScore).toBe('number');
+    expect(result.riskScore).toBeGreaterThanOrEqual(0);
+    expect(result.riskScore).toBeLessThanOrEqual(100);
+    expect(result.riskLevel).toBeDefined();
+    expect(['low', 'medium', 'high', 'critical']).toContain(result.riskLevel);
+    expect(result.triggeredRules).toBeDefined();
+    expect(Array.isArray(result.triggeredRules)).toBe(true);
   });
 
   it('должен использовать дефолтные параметры если не переданы', () => {

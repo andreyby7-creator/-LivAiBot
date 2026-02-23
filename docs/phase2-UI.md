@@ -148,251 +148,294 @@ apps/web (тонкий композитор)
 5️⃣ packages/core/src/policies/BillingPolicy.ts 🟢 — ts — deps: core-contracts — (биллинг-политики: лимиты, overuse, блокировки) 📌 применяется ТОЛЬКО в feature-billing effects
 6️⃣ packages/core/src/policies/ComposedPolicy.ts 🟢 — ts — deps: core-contracts, AuthPolicy, BotPermissions, BotPolicy, ChatPolicy, BillingPolicy — (составная политика: объединяет все доменные политики в единую точку)
 
+✅ Core/aggregation
+7️⃣ packages/core/src/aggregation/weight.ts 🟢 — ts — deps: —
+8️⃣ packages/core/src/aggregation/reducer.ts 🟢 — ts — deps: —
+9️⃣ packages/core/src/aggregation/scoring.ts 🟢 — ts — deps: aggregation/reducer.ts, aggregation/weight.ts
+
+✅ Core/data-safety
+1️⃣0️⃣ packages/core/src/data-safety/trust-level.ts 🟢 — ts — deps: —
+1️⃣1️⃣ packages/core/src/data-safety/sanitization-mode.ts 🟢 — ts — deps: —
+1️⃣2️⃣ packages/core/src/data-safety/structural-clone.ts 🟢 — ts — deps: —
+1️⃣3️⃣ packages/core/src/data-safety/taint.ts 🟢 — ts — deps: data-safety/trust-level.ts
+1️⃣4️⃣ packages/core/src/data-safety/taint-source.ts 🟢 — ts — deps: data-safety/taint.ts, data-safety/sanitization-mode.ts, data-safety/trust-level.ts
+1️⃣5️⃣ packages/core/src/data-safety/taint-sink.ts 🟢 — ts — deps: data-safety/taint.ts, data-safety/trust-level.ts
+1️⃣6️⃣ packages/core/src/data-safety/taint-propagation.ts 🟢 — ts — deps: data-safety/taint.ts, data-safety/trust-level.ts
+
+✅ Core/domain-kit
+1️⃣7️⃣ packages/core/src/domain-kit/confidence.ts 🟢 — ts — deps: —
+1️⃣8️⃣ packages/core/src/domain-kit/evaluation-level.ts 🟢 — ts — deps: —
+1️⃣9️⃣ packages/core/src/domain-kit/label.ts 🟢 — ts — deps: —
+
+✅ Core/input-boundary
+2️⃣0️⃣ packages/core/src/input-boundary/generic-validation.ts 🟢 — ts — deps: —
+2️⃣1️⃣ packages/core/src/input-boundary/context-enricher.ts 🟢 — ts — deps: input-boundary/generic-validation.ts
+2️⃣2️⃣ packages/core/src/input-boundary/projection-engine.ts 🟢 — ts — deps: input-boundary/generic-validation.ts
+
+✅ Core/pipeline
+2️⃣3️⃣ packages/core/src/pipeline/plugin-api.ts 🟢 — ts — deps: —
+2️⃣4️⃣ packages/core/src/pipeline/errors.ts 🟢 — ts — deps: pipeline/plugin-api.ts
+2️⃣5️⃣ packages/core/src/pipeline/plan.ts 🟢 — ts — deps: pipeline/plugin-api.ts
+2️⃣6️⃣ packages/core/src/pipeline/engine.ts 🟢 — ts — deps: pipeline/plan.ts, pipeline/plugin-api.ts
+2️⃣7️⃣ packages/core/src/pipeline/facade.ts 🟢 — ts — deps: pipeline/engine.ts, pipeline/plan.ts
+2️⃣8️⃣ packages/core/src/pipeline/adapter.ts 🟢 — ts — deps: —
+2️⃣9️⃣ packages/core/src/pipeline/feature-flags.ts 🟢 — ts — deps: —
+3️⃣0️⃣ packages/core/src/pipeline/replay.ts 🟢 — ts — deps: —
+3️⃣1️⃣ packages/core/src/pipeline/runtime-overrides.ts 🟢 — ts — deps: —
+3️⃣2️⃣ packages/core/src/pipeline/safety-guard.ts 🟢 — ts — deps: —
+
+✅ Core/resilience
+3️⃣3️⃣ packages/core/src/resilience/metrics.ts 🟢 — ts — deps: —
+3️⃣4️⃣ packages/core/src/resilience/performance-limits.ts 🟢 — ts — deps: resilience/metrics.ts
+3️⃣5️⃣ packages/core/src/resilience/circuit-breaker.ts 🟢 — ts — deps: —
+
+✅ Core/rule-engine
+3️⃣6️⃣ packages/core/src/rule-engine/predicate.ts 🟢 — ts — deps: —
+3️⃣7️⃣ packages/core/src/rule-engine/rule.ts 🟢 — ts — deps: rule-engine/predicate.ts
+3️⃣8️⃣ packages/core/src/rule-engine/evaluator.ts 🟢 — ts — deps: rule-engine/rule.ts
+
+✅ Domains/classification
+3️⃣9️⃣ packages/domains/src/classification/constants.ts 🟢 — ts — deps: @livai/core
+4️⃣0️⃣ packages/domains/src/classification/labels.ts 🟢 — ts — deps: @livai/core
+4️⃣1️⃣ packages/domains/src/classification/aggregation/scoring.ts 🟢 — ts — deps: classification/constants.ts, classification/strategies/config.ts, classification/strategies/rules.ts
+4️⃣2️⃣ packages/domains/src/classification/signals/signals.ts 🟢 — ts — deps: @livai/core, classification/constants.ts, classification/labels.ts
+4️⃣3️⃣ packages/domains/src/classification/signals/violations.ts 🟢 — ts — deps: classification/constants.ts, classification/signals/signals.ts
+4️⃣4️⃣ packages/domains/src/classification/context/context-builders.ts 🟢 — ts — deps: classification/aggregation/scoring.ts, classification/constants.ts, classification/evaluation/assessment.ts, classification/signals/signals.ts, classification/strategies/config.ts
+4️⃣5️⃣ packages/domains/src/classification/strategies/rules.ts 🟢 — ts — deps: classification/constants.ts, classification/strategies/config.ts, classification/signals/signals.ts
+4️⃣6️⃣ packages/domains/src/classification/strategies/config.ts 🟢 — ts — deps: —
+4️⃣7️⃣ packages/domains/src/classification/strategies/validation.ts 🟢 — ts — deps: classification/signals/signals.ts, classification/signals/violations.ts
+4️⃣8️⃣ packages/domains/src/classification/strategies/deterministic.strategy.ts 🟢 — ts — deps: @livai/core, classification/strategies/config.ts, classification/strategies/rules.ts, classification/strategies/validation.ts, classification/context/context-builders.ts, classification/evaluation/result.ts, classification/policies/base.policy.ts, classification/signals/signals.ts, classification/signals/violations.ts
+4️⃣9️⃣ packages/domains/src/classification/strategies/assessment.ts 🟢 — ts — deps: classification/strategies/config.ts, classification/strategies/deterministic.strategy.ts, classification/strategies/rules.ts, classification/aggregation/scoring.ts, classification/evaluation/assessment.ts, classification/evaluation/result.ts, classification/policies/base.policy.ts, classification/signals/signals.ts, classification/signals/violations.ts
+5️⃣0️⃣ packages/domains/src/classification/policies/base.policy.ts 🟢 — ts — deps: classification/labels.ts, classification/signals/signals.ts
+5️⃣1️⃣ packages/domains/src/classification/policies/aggregation.strategy.ts 🟢 — ts — deps: classification/policies/base.policy.ts
+5️⃣2️⃣ packages/domains/src/classification/policies/aggregation.policy.ts 🟢 — ts — deps: classification/policies/aggregation.strategy.ts
+5️⃣3️⃣ packages/domains/src/classification/evaluation/result.ts 🟢 — ts — deps: @livai/core, classification/labels.ts, classification/policies/base.policy.ts, classification/signals/signals.ts, classification/strategies/rules.ts
+5️⃣4️⃣ packages/domains/src/classification/evaluation/assessment.ts 🟢 — ts — deps: @livai/core, classification/evaluation/result.ts, classification/constants.ts, classification/policies/base.policy.ts, classification/signals/signals.ts, classification/signals/violations.ts, classification/strategies/rules.ts
+5️⃣5️⃣ packages/domains/src/classification/providers/remote.provider.ts 🟢 — ts — deps: @livai/core, classification/signals/signals.ts, classification/strategies/rules.ts
+
 ✅ UI Core primitives
-7️⃣ packages/ui-core/src/primitives/button.tsx 🟢 — ts+react — deps: —
-8️⃣ packages/ui-core/src/primitives/input.tsx 🟢 — ts+react — deps: —
-9️⃣ packages/ui-core/src/primitives/textarea.tsx 🟢 — ts+react — deps: —
-1️⃣0️⃣ packages/ui-core/src/primitives/select.tsx 🟢 — ts+react — deps: —
-1️⃣1️⃣ packages/ui-core/src/primitives/checkbox.tsx 🟢 — ts+react — deps: —
-1️⃣2️⃣ packages/ui-core/src/primitives/radio.tsx 🟢 — ts+react — deps: —
-1️⃣3️⃣ packages/ui-core/src/primitives/toggle.tsx 🟢 — ts+react — deps: —
-1️⃣4️⃣ packages/ui-core/src/primitives/icon.tsx 🟢 — ts+react — deps: —
-1️⃣5️⃣ packages/ui-core/src/primitives/avatar.tsx 🟢 — ts+react — deps: —
-1️⃣6️⃣ packages/ui-core/src/primitives/badge.tsx 🟢 — ts+react — deps: —
-1️⃣7️⃣ packages/ui-core/src/primitives/tooltip.tsx 🟢 — ts+react — deps: —
-1️⃣8️⃣ packages/ui-core/src/primitives/divider.tsx 🟢 — ts+react — deps: —
-1️⃣9️⃣ packages/ui-core/src/primitives/card.tsx 🟢 — ts+react — deps: —
-2️⃣0️⃣ packages/ui-core/src/primitives/form-field.tsx 🟢 — ts+react — deps: —
-2️⃣1️⃣ packages/ui-core/src/primitives/dialog.tsx 🟢 — ts+react — deps: —
-2️⃣2️⃣ packages/ui-core/src/primitives/form.tsx 🟢 — ts+react — deps: —
-2️⃣3️⃣ packages/ui-core/src/primitives/loading-spinner.tsx 🟢 — ts+react — deps: —
-2️⃣4️⃣ packages/ui-core/src/primitives/dropdown.tsx 🟢 — ts+react — deps: —
-2️⃣5️⃣ packages/ui-core/src/primitives/context-menu.tsx 🟢 — ts+react — deps: —
-2️⃣6️⃣ packages/ui-core/src/primitives/status-indicator.tsx 🟢 — ts+react — deps: —
+5️⃣6️⃣ packages/ui-core/src/primitives/button.tsx 🟢 — ts+react — deps: —
+5️⃣7️⃣ packages/ui-core/src/primitives/input.tsx 🟢 — ts+react — deps: —
+5️⃣8️⃣ packages/ui-core/src/primitives/textarea.tsx 🟢 — ts+react — deps: —
+5️⃣9️⃣ packages/ui-core/src/primitives/select.tsx 🟢 — ts+react — deps: —
+6️⃣0️⃣ packages/ui-core/src/primitives/checkbox.tsx 🟢 — ts+react — deps: —
+6️⃣1️⃣ packages/ui-core/src/primitives/radio.tsx 🟢 — ts+react — deps: —
+6️⃣2️⃣ packages/ui-core/src/primitives/toggle.tsx 🟢 — ts+react — deps: —
+6️⃣3️⃣ packages/ui-core/src/primitives/icon.tsx 🟢 — ts+react — deps: —
+6️⃣4️⃣ packages/ui-core/src/primitives/avatar.tsx 🟢 — ts+react — deps: —
+6️⃣5️⃣ packages/ui-core/src/primitives/badge.tsx 🟢 — ts+react — deps: —
+6️⃣6️⃣ packages/ui-core/src/primitives/tooltip.tsx 🟢 — ts+react — deps: —
+6️⃣7️⃣ packages/ui-core/src/primitives/divider.tsx 🟢 — ts+react — deps: —
+6️⃣8️⃣ packages/ui-core/src/primitives/card.tsx 🟢 — ts+react — deps: —
+6️⃣9️⃣ packages/ui-core/src/primitives/form-field.tsx 🟢 — ts+react — deps: —
+7️⃣0️⃣ packages/ui-core/src/primitives/dialog.tsx 🟢 — ts+react — deps: —
+7️⃣1️⃣ packages/ui-core/src/primitives/form.tsx 🟢 — ts+react — deps: —
+7️⃣2️⃣ packages/ui-core/src/primitives/loading-spinner.tsx 🟢 — ts+react — deps: —
+7️⃣3️⃣ packages/ui-core/src/primitives/dropdown.tsx 🟢 — ts+react — deps: —
+7️⃣4️⃣ packages/ui-core/src/primitives/context-menu.tsx 🟢 — ts+react — deps: —
+7️⃣5️⃣ packages/ui-core/src/primitives/status-indicator.tsx 🟢 — ts+react — deps: —
 
 ✅ UI Core components и types
-2️⃣7️⃣ packages/ui-core/src/types/ui.ts 🟢 — ts — deps: —
-2️⃣8️⃣ packages/ui-core/src/components/Toast.tsx 🟢 — ts+react — deps: —
-2️⃣9️⃣ packages/ui-core/src/components/Skeleton.tsx 🟢 — ts+react — deps: —
-3️⃣0️⃣ packages/ui-core/src/components/Modal.tsx 🟢 — ts+react — deps: —
-3️⃣1️⃣ packages/ui-core/src/components/Breadcrumbs.tsx 🟢 — ts+react — deps: —
-3️⃣2️⃣ packages/ui-core/src/components/Tabs.tsx 🟢 — ts+react — deps: —
-3️⃣3️⃣ packages/ui-core/src/components/Accordion.tsx 🟢 — ts+react — deps: —
-3️⃣4️⃣ packages/ui-core/src/components/DatePicker.tsx 🟢 — ts+react — deps: —
-3️⃣5️⃣ packages/ui-core/src/components/FileUploader.tsx 🟢 — ts+react — deps: —
-3️⃣6️⃣ packages/ui-core/src/components/SideBar.tsx 🟢 — ts+react — deps: —
-3️⃣7️⃣ packages/ui-core/src/components/SearchBar.tsx 🟢 — ts+react — deps: —
-3️⃣8️⃣ packages/ui-core/src/components/ConfirmDialog.tsx 🟢 — ts+react — deps: —
-3️⃣9️⃣ packages/ui-core/src/components/ErrorBoundary.tsx 🟢 — ts+react — deps: —
-4️⃣0️⃣ packages/ui-core/src/components/UserProfileDisplay.tsx 🟢 — ts+react — deps: —
-4️⃣1️⃣ packages/ui-core/src/components/NavigationMenuItem.tsx 🟢 — ts+react — deps: —
-4️⃣2️⃣ packages/ui-core/src/components/LanguageSelector.tsx 🟢 — ts+react — deps: —
-4️⃣3️⃣ packages/ui-core/src/components/SupportButton.tsx 🟢 — ts+react — deps: —
+7️⃣6️⃣ packages/ui-core/src/types/ui.ts 🟢 — ts — deps: —
+7️⃣7️⃣ packages/ui-core/src/components/Toast.tsx 🟢 — ts+react — deps: —
+7️⃣8️⃣ packages/ui-core/src/components/Skeleton.tsx 🟢 — ts+react — deps: —
+7️⃣9️⃣ packages/ui-core/src/components/Modal.tsx 🟢 — ts+react — deps: —
+8️⃣0️⃣ packages/ui-core/src/components/Breadcrumbs.tsx 🟢 — ts+react — deps: —
+8️⃣1️⃣ packages/ui-core/src/components/Tabs.tsx 🟢 — ts+react — deps: —
+8️⃣2️⃣ packages/ui-core/src/components/Accordion.tsx 🟢 — ts+react — deps: —
+8️⃣3️⃣ packages/ui-core/src/components/DatePicker.tsx 🟢 — ts+react — deps: —
+8️⃣4️⃣ packages/ui-core/src/components/FileUploader.tsx 🟢 — ts+react — deps: —
+8️⃣5️⃣ packages/ui-core/src/components/SideBar.tsx 🟢 — ts+react — deps: —
+8️⃣6️⃣ packages/ui-core/src/components/SearchBar.tsx 🟢 — ts+react — deps: —
+8️⃣7️⃣ packages/ui-core/src/components/ConfirmDialog.tsx 🟢 — ts+react — deps: —
+8️⃣8️⃣ packages/ui-core/src/components/ErrorBoundary.tsx 🟢 — ts+react — deps: —
+8️⃣9️⃣ packages/ui-core/src/components/UserProfileDisplay.tsx 🟢 — ts+react — deps: —
+9️⃣0️⃣ packages/ui-core/src/components/NavigationMenuItem.tsx 🟢 — ts+react — deps: —
+9️⃣1️⃣ packages/ui-core/src/components/LanguageSelector.tsx 🟢 — ts+react — deps: —
+9️⃣2️⃣ packages/ui-core/src/components/SupportButton.tsx 🟢 — ts+react — deps: —
 
 ✅ App types и libs
-4️⃣4️⃣ packages/app/src/types/common.ts 🟢 — ts — deps: —
-4️⃣5️⃣ packages/app/src/types/ui-contracts.ts 🟢 — ts — deps: ui-core/types/ui.ts, types/common.ts
-4️⃣6️⃣ packages/app/src/types/api.ts 🟢 — ts deps: types/common.ts, types/ui-contracts.ts
-4️⃣7️⃣ packages/app/src/types/errors.ts 🟢 — ts — deps: types/common.ts, types/api.ts
-4️⃣8️⃣ packages/app/src/types/telemetry.ts 🟢 — ts — deps: types/ui-contracts.ts
-4️⃣9️⃣ packages/app/src/lib/telemetry.batch-core.ts 🟢 — ts — deps: types/telemetry.ts (чистое ядро batch логики)
-5️⃣0️⃣ packages/app/src/lib/telemetry.ts 🟢 — ts — deps: types/telemetry.ts, lib/telemetry.batch-core.ts
-5️⃣1️⃣ packages/app/src/lib/service-worker.ts 🟢 — ts — deps: —
-5️⃣2️⃣ packages/app/src/lib/i18n.ts 🟢 — ts+react — deps: —
-5️⃣3️⃣ packages/app/src/lib/effect-utils.ts 🟢 — ts+effect — deps: types/api.ts
-5️⃣4️⃣ packages/app/src/lib/api-client.ts 🟢 — ts+effect — deps: types/api.ts, lib/effect-utils.ts, lib/telemetry.ts
-5️⃣5️⃣ packages/app/src/lib/websocket.ts 🟢 — ts+effect — deps: lib/effect-utils.ts, lib/telemetry.ts
-5️⃣6️⃣ packages/app/src/lib/sse-client.ts 🟢 — ts+effect — deps: lib/effect-utils.ts, lib/telemetry.ts
-5️⃣7️⃣ packages/app/src/lib/error-mapping.ts 🟢 — ts — deps: lib/effect-utils.ts, lib/telemetry.ts, types/common.ts, types/errors.ts
-5️⃣8️⃣ packages/app/src/lib/validation.ts 🟢 — ts — deps: lib/error-mapping.ts, lib/telemetry.ts
-5️⃣9️⃣ packages/app/src/lib/feature-flags.ts 🟢 — ts — deps: lib/error-mapping.ts
-6️⃣0️⃣ packages/app/src/lib/offline-cache.ts 🟢 — ts+effect — deps: lib/effect-utils.ts, lib/telemetry.ts
-6️⃣1️⃣ packages/app/src/lib/api-schema-guard.ts 🟢 — ts+effect — deps: types/api.ts, lib/error-mapping.ts, lib/telemetry.ts, lib/validation.ts
-6️⃣2️⃣ packages/app/src/lib/performance.ts 🟢 — ts+effect — deps: types/common.ts, lib/telemetry.ts
-6️⃣3️⃣ packages/app/src/lib/auth-guard.ts 🟢 — ts — deps: types/common.ts, lib/error-mapping.ts — (проверяет состояние, не принимает решений)
-6️⃣4️⃣ packages/app/src/lib/auth-service.ts 🟢 — ts+effect — deps: lib/api-client.ts, lib/effect-isolation.ts, lib/effect-utils.ts, lib/orchestrator.ts, lib/schema-validated-effect.ts, lib/telemetry.ts, @livai/core-contracts
-6️⃣5️⃣ packages/app/src/lib/route-permissions.ts 🟢 — ts — deps: lib/auth-guard.ts — (декларативная конфигурация: requiresAuth, permissions, roles)
-6️⃣6️⃣ packages/app/src/lib/logger.ts 🟢 — ts — deps: types/common.ts, lib/telemetry.ts
-6️⃣7️⃣ packages/app/src/lib/effect-timeout.ts 🟢 — ts+effect — deps: lib/effect-utils.ts
-6️⃣8️⃣ packages/app/src/lib/effect-isolation.ts 🟢 — ts+effect — deps: lib/effect-utils.ts
-6️⃣9️⃣ packages/app/src/lib/schema-validated-effect.ts 🟢 — ts+effect — deps: lib/api-schema-guard.ts, lib/error-mapping.ts, lib/effect-utils.ts
-7️⃣0️⃣ packages/app/src/lib/orchestrator.ts 🟢 — ts+effect — deps: lib/effect-timeout.ts, lib/effect-isolation.ts, lib/telemetry.ts, lib/effect-utils.ts
+9️⃣3️⃣ packages/app/src/types/common.ts 🟢 — ts — deps: —
+9️⃣4️⃣ packages/app/src/types/ui-contracts.ts 🟢 — ts — deps: ui-core/types/ui.ts, types/common.ts
+9️⃣5️⃣ packages/app/src/types/api.ts 🟢 — ts deps: types/common.ts, types/ui-contracts.ts
+9️⃣6️⃣ packages/app/src/types/errors.ts 🟢 — ts — deps: types/common.ts, types/api.ts
+9️⃣7️⃣ packages/app/src/types/telemetry.ts 🟢 — ts — deps: types/ui-contracts.ts
+9️⃣8️⃣ packages/app/src/lib/telemetry-runtime.ts 🟢 — ts — deps: lib/telemetry.ts, types/telemetry.ts
+9️⃣9️⃣ packages/app/src/lib/telemetry.batch-core.ts 🟢 — ts — deps: types/telemetry.ts (чистое ядро batch логики)
+1️⃣0️⃣0️⃣ packages/app/src/lib/telemetry.ts 🟢 — ts — deps: types/telemetry.ts, lib/telemetry.batch-core.ts
+1️⃣0️⃣1️⃣ packages/app/src/lib/service-worker.ts 🟢 — ts — deps: —
+1️⃣0️⃣2️⃣ packages/app/src/lib/i18n.ts 🟢 — ts+react — deps: —
+1️⃣0️⃣3️⃣ packages/app/src/lib/effect-utils.ts 🟢 — ts+effect — deps: types/api.ts
+1️⃣0️⃣4️⃣ packages/app/src/lib/api-client.ts 🟢 — ts+effect — deps: types/api.ts, lib/effect-utils.ts, lib/telemetry.ts
+1️⃣0️⃣5️⃣ packages/app/src/lib/websocket.ts 🟢 — ts+effect — deps: lib/effect-utils.ts, lib/telemetry.ts
+1️⃣0️⃣6️⃣ packages/app/src/lib/sse-client.ts 🟢 — ts+effect — deps: lib/effect-utils.ts, lib/telemetry.ts
+1️⃣0️⃣7️⃣ packages/app/src/lib/error-mapping.ts 🟢 — ts — deps: lib/effect-utils.ts, lib/telemetry.ts, types/common.ts, types/errors.ts
+1️⃣0️⃣8️⃣ packages/app/src/lib/validation.ts 🟢 — ts — deps: lib/error-mapping.ts, lib/telemetry.ts
+1️⃣0️⃣9️⃣ packages/app/src/lib/feature-flags.ts 🟢 — ts — deps: lib/error-mapping.ts
+1️⃣1️⃣0️⃣ packages/app/src/lib/offline-cache.ts 🟢 — ts+effect — deps: lib/effect-utils.ts, lib/telemetry.ts
+1️⃣1️⃣1️⃣ packages/app/src/lib/api-schema-guard.ts 🟢 — ts+effect — deps: types/api.ts, lib/error-mapping.ts, lib/telemetry.ts, lib/validation.ts
+1️⃣1️⃣2️⃣ packages/app/src/lib/performance.ts 🟢 — ts+effect — deps: types/common.ts, lib/telemetry.ts
+1️⃣1️⃣3️⃣ packages/app/src/lib/auth-guard.ts 🟢 — ts — deps: types/common.ts, lib/error-mapping.ts — (проверяет состояние, не принимает решений)
+1️⃣1️⃣4️⃣ packages/app/src/lib/auth-service.ts 🟢 — ts+effect — deps: lib/api-client.ts, lib/effect-isolation.ts, lib/effect-utils.ts, lib/orchestrator.ts, lib/schema-validated-effect.ts, lib/telemetry.ts, @livai/core-contracts
+1️⃣1️⃣5️⃣ packages/app/src/lib/route-permissions.ts 🟢 — ts — deps: lib/auth-guard.ts — (декларативная конфигурация: requiresAuth, permissions, roles)
+1️⃣1️⃣6️⃣ packages/app/src/lib/logger.ts 🟢 — ts — deps: types/common.ts, lib/telemetry.ts
+1️⃣1️⃣7️⃣ packages/app/src/lib/effect-timeout.ts 🟢 — ts+effect — deps: lib/effect-utils.ts
+1️⃣1️⃣8️⃣ packages/app/src/lib/effect-isolation.ts 🟢 — ts+effect — deps: lib/effect-utils.ts
+1️⃣1️⃣9️⃣ packages/app/src/lib/schema-validated-effect.ts 🟢 — ts+effect — deps: lib/api-schema-guard.ts, lib/error-mapping.ts, lib/effect-utils.ts
+1️⃣2️⃣0️⃣ packages/app/src/lib/orchestrator.ts 🟢 — ts+effect — deps: lib/effect-timeout.ts, lib/effect-isolation.ts, lib/telemetry.ts, lib/effect-utils.ts
 
 ✅ App state, provider и hooks
-7️⃣1️⃣ packages/app/src/state/store-utils.ts 🟢 — ts — deps: state/store.ts
-7️⃣2️⃣ packages/app/src/state/store.ts 🟢 — ts+zustand — deps: types/common.ts
-7️⃣3️⃣ packages/app/src/state/query/query-client.ts 🟢 — ts+react — deps: lib/telemetry.ts
-7️⃣4️⃣ packages/app/src/providers/TelemetryProvider.tsx 🟢 — ts+react — deps: lib/telemetry.ts, types/telemetry.ts, types/ui-contracts.ts
-7️⃣5️⃣ packages/app/src/providers/FeatureFlagsProvider.tsx 🟢 — ts+zustand — deps: lib/feature-flags.ts, types/common.ts, types/ui-contracts.ts
-7️⃣6️⃣ packages/app/src/providers/QueryClientProvider.tsx 🟢 — ts+react — deps: state/query/query-client.ts, types/ui-contracts.ts
-7️⃣7️⃣ packages/app/src/providers/ToastProvider.tsx 🟢 — ts+react — deps: providers/TelemetryProvider.tsx, types/ui-contracts.ts
-7️⃣8️⃣ packages/app/src/providers/UnifiedUIProvider.tsx 🟢 — ts+react — deps: providers/: FeatureFlagsProvider.tsx, intl-provider.tsx, TelemetryProvider.tsx, lib/i18n.ts, types/ui-contracts.ts
-7️⃣9️⃣ packages/app/src/providers/AppProviders.tsx 🟢 — ts+react — deps: providers/intl-provider.tsx, providers/FeatureFlagsProvider.tsx, providers/TelemetryProvider.tsx, providers/QueryClientProvider.tsx, providers/ToastProvider.tsx, providers/UnifiedUIProvider.tsx, hooks/useAuth.ts, lib/auth-guard.ts, state/store.ts, types/ui-contracts.ts
-8️⃣0️⃣ packages/app/src/bootstrap.tsx 🟢 — ts+react — deps: providers/AppProviders.tsx
-8️⃣1️⃣ packages/app/src/hooks/useApi.ts 🟢 — ts+react+effect — deps: lib/api-client.ts, lib/api-schema-guard.ts, lib/error-mapping.ts, lib/telemetry.ts, types/api.ts, types/ui-contracts.ts
-8️⃣2️⃣ packages/app/src/hooks/useAuth.ts 🟢 — ts+react+effect — deps: lib/auth-service.ts, state/store.ts, state/store-utils.ts
-8️⃣3️⃣ packages/app/src/hooks/useToast.ts 🟢 — ts+react — deps: providers/ToastProvider.tsx, lib/telemetry.ts, types/ui-contracts.ts
-8️⃣4️⃣ packages/app/src/hooks/useFeatureFlags.ts 🟢 — ts+react — deps: providers/FeatureFlagsProvider.tsx, lib/feature-flags.ts, types/common.ts, types/ui-contracts.ts
-8️⃣5️⃣ packages/app/src/hooks/useOfflineCache.ts 🟢 — ts+react+effect — deps: lib/effect-utils.ts, lib/offline-cache.ts, types/ui-contracts.ts
+1️⃣2️⃣1️⃣ packages/app/src/state/store-utils.ts 🟢 — ts — deps: state/store.ts
+1️⃣2️⃣2️⃣ packages/app/src/state/store.ts 🟢 — ts+zustand — deps: types/common.ts
+1️⃣2️⃣3️⃣ packages/app/src/state/query/query-client.ts 🟢 — ts+react — deps: lib/telemetry.ts
+1️⃣2️⃣4️⃣ packages/app/src/providers/TelemetryProvider.tsx 🟢 — ts+react — deps: lib/telemetry.ts, types/telemetry.ts, types/ui-contracts.ts
+1️⃣2️⃣5️⃣ packages/app/src/providers/FeatureFlagsProvider.tsx 🟢 — ts+zustand — deps: lib/feature-flags.ts, types/common.ts, types/ui-contracts.ts
+1️⃣2️⃣6️⃣ packages/app/src/providers/QueryClientProvider.tsx 🟢 — ts+react — deps: state/query/query-client.ts, types/ui-contracts.ts
+1️⃣2️⃣7️⃣ packages/app/src/providers/ToastProvider.tsx 🟢 — ts+react — deps: providers/TelemetryProvider.tsx, types/ui-contracts.ts
+1️⃣2️⃣8️⃣ packages/app/src/providers/UnifiedUIProvider.tsx 🟢 — ts+react — deps: providers/: FeatureFlagsProvider.tsx, intl-provider.tsx, TelemetryProvider.tsx, lib/i18n.ts, types/ui-contracts.ts
+1️⃣2️⃣9️⃣ packages/app/src/providers/AppProviders.tsx 🟢 — ts+react — deps: providers/intl-provider.tsx, providers/FeatureFlagsProvider.tsx, providers/TelemetryProvider.tsx, providers/QueryClientProvider.tsx, providers/ToastProvider.tsx, providers/UnifiedUIProvider.tsx, hooks/useAuth.ts, lib/auth-guard.ts, state/store.ts, types/ui-contracts.ts
+1️⃣3️⃣0️⃣ packages/app/src/bootstrap.tsx 🟢 — ts+react — deps: providers/AppProviders.tsx
+1️⃣3️⃣1️⃣ packages/app/src/hooks/useApi.ts 🟢 — ts+react+effect — deps: lib/api-client.ts, lib/api-schema-guard.ts, lib/error-mapping.ts, lib/telemetry.ts, types/api.ts, types/ui-contracts.ts
+1️⃣3️⃣2️⃣ packages/app/src/hooks/useAuth.ts 🟢 — ts+react+effect — deps: lib/auth-service.ts, state/store.ts, state/store-utils.ts
+1️⃣3️⃣3️⃣ packages/app/src/hooks/useToast.ts 🟢 — ts+react — deps: providers/ToastProvider.tsx, lib/telemetry.ts, types/ui-contracts.ts
+1️⃣3️⃣4️⃣ packages/app/src/hooks/useFeatureFlags.ts 🟢 — ts+react — deps: providers/FeatureFlagsProvider.tsx, lib/feature-flags.ts, types/common.ts, types/ui-contracts.ts
+1️⃣3️⃣5️⃣ packages/app/src/hooks/useOfflineCache.ts 🟢 — ts+react+effect — deps: lib/effect-utils.ts, lib/offline-cache.ts, types/ui-contracts.ts
 
 ✅ App UI wrappers (enabled: telemetry, feature-flags, i18n)
-8️⃣6️⃣ packages/app/src/ui/button.tsx 🟢 — ts+react — deps: ui-core/primitives/button.tsx, providers/UnifiedUIProvider.tsx, app/types/ui-contracts.ts
-8️⃣7️⃣ packages/app/src/ui/input.tsx 🟢 — ts+react — deps: ui-core/src/index.tsx, providers/UnifiedUIProvider.tsx, app/types/ui-contracts.ts
-8️⃣8️⃣ packages/app/src/ui/textarea.tsx 🟢 — ts+react — deps: ui-core/primitives/textarea.tsx, providers/UnifiedUIProvider.tsx, app/types/ui-contracts.ts
-8️⃣9️⃣ packages/app/src/ui/select.tsx 🟢 — ts+react — deps: ui-core/primitives/select.tsx, providers/UnifiedUIProvider.tsx, app/types/ui-contracts.ts
-9️⃣0️⃣ packages/app/src/ui/checkbox.tsx 🟢 — ts+react — deps: ui-core/primitives/checkbox.tsx, providers/UnifiedUIProvider.tsx, app/types/ui-contracts.ts
-9️⃣1️⃣ packages/app/src/ui/radio.tsx 🟢 — ts+react — deps: ui-core/primitives/radio.tsx, providers/UnifiedUIProvider.tsx, app/types/ui-contracts.ts
-9️⃣2️⃣ packages/app/src/ui/toggle.tsx 🟢 — ts+react — deps: ui-core/primitives/toggle.tsx, providers/UnifiedUIProvider.tsx, app/types/ui-contracts.ts
-9️⃣3️⃣ packages/app/src/ui/icon.tsx 🟢 — ts+react — deps: ui-core/primitives/icon.tsx, providers/UnifiedUIProvider.tsx, app/types/ui-contracts.ts
-9️⃣4️⃣ packages/app/src/ui/avatar.tsx 🟢 — ts+react — deps: ui-core/primitives/avatar.tsx, providers/UnifiedUIProvider.tsx, app/types/ui-contracts.ts
-9️⃣5️⃣ packages/app/src/ui/badge.tsx 🟢 — ts+react — deps: ui-core/primitives/badge.tsx, providers/UnifiedUIProvider.tsx, app/types/ui-contracts.ts
-9️⃣6️⃣ packages/app/src/ui/tooltip.tsx 🟢 — ts+react — deps: ui-core/primitives/tooltip.tsx, providers/UnifiedUIProvider.tsx, app/types/ui-contracts.ts
-9️⃣7️⃣ packages/app/src/ui/divider.tsx 🟢 — ts+react — deps: ui-core/primitives/divider.tsx, providers/UnifiedUIProvider.tsx, app/types/ui-contracts.ts
-9️⃣8️⃣ packages/app/src/ui/card.tsx 🟢 — ts+react — deps: ui-core/primitives/card.tsx, providers/UnifiedUIProvider.tsx, app/types/ui-contracts.ts
-9️⃣9️⃣ packages/app/src/ui/dialog.tsx 🟢 — ts+react — deps: ui-core/primitives/dialog.tsx, providers/UnifiedUIProvider.tsx
-1️⃣0️⃣0️⃣ packages/app/src/ui/form.tsx 🟢 — ts+react — deps: ui-core/primitives/form.tsx, providers/UnifiedUIProvider.tsx, app/lib/validation.ts, app/types/ui-contracts.ts
-1️⃣0️⃣1️⃣ packages/app/src/ui/loading-spinner.tsx 🟢 — ts+react — deps: ui-core/primitives/loading-spinner.tsx, providers/UnifiedUIProvider.tsx, app/types/ui-contracts.ts
-1️⃣0️⃣2️⃣ packages/app/src/ui/dropdown.tsx 🟢 — ts+react — deps: ui-core/primitives/dropdown.tsx, providers/UnifiedUIProvider.tsx, app/types/ui-contracts.ts
-1️⃣0️⃣3️⃣ packages/app/src/ui/context-menu.tsx 🟢 — ts+react — deps: ui-core/primitives/context-menu.tsx, providers/UnifiedUIProvider.tsx, app/types/ui-contracts.ts
-1️⃣0️⃣4️⃣ packages/app/src/ui/status-indicator.tsx 🟢 — ts+react — deps: ui-core/primitives/status-indicator.tsx, providers/UnifiedUIProvider.tsx, app/types/ui-contracts.ts
-1️⃣0️⃣5️⃣ packages/app/src/ui/toast.tsx 🟢 — ts+react — deps: ui-core/components/Toast.tsx, providers/UnifiedUIProvider.tsx, app/types/errors.ts, app/types/ui-contracts.ts
-1️⃣0️⃣6️⃣ packages/app/src/ui/skeleton.tsx 🟢 — ts+react — deps: ui-core/components/Skeleton.tsx, providers/UnifiedUIProvider.tsx, app/types/ui-contracts.ts
-1️⃣0️⃣7️⃣ packages/app/src/ui/skeleton-group.tsx 🟢 — ts+react — deps: ui-core/components/Skeleton.tsx, providers/UnifiedUIProvider.tsx, app/types/ui-contracts.ts
-1️⃣0️⃣8️⃣ packages/app/src/ui/modal.tsx 🟢 — ts+react — deps: ui-core/components/Modal.tsx, ui-core/types/ui.ts, providers/UnifiedUIProvider.tsx, app/types/ui-contracts.ts
-1️⃣0️⃣9️⃣ packages/app/src/ui/breadcrumbs.tsx 🟢 — ts+react — deps: ui-core/components/Breadcrumbs.tsx, providers/UnifiedUIProvider.tsx, app/types/ui-contracts.ts
-1️⃣1️⃣0️⃣ packages/app/src/ui/tabs.tsx 🟢 — ts+react — deps: ui-core/components/Tabs.tsx, providers/UnifiedUIProvider.tsx, app/types/ui-contracts.ts
-1️⃣1️⃣1️⃣ packages/app/src/ui/accordion.tsx 🟢 — ts+react — deps: ui-core/components/Accordion.tsx, providers/UnifiedUIProvider.tsx, app/types/ui-contracts.ts
-1️⃣1️⃣2️⃣ packages/app/src/ui/date-picker.tsx 🟢 — ts+react — deps: ui-core/components/DatePicker.tsx, providers/UnifiedUIProvider.tsx, app/types/ui-contracts.ts
-1️⃣1️⃣3️⃣ packages/app/src/ui/file-uploader.tsx 🟢 — ts+react — deps: ui-core/components/FileUploader.tsx, providers/UnifiedUIProvider.tsx, app/types/api.ts, app/lib/validation.ts, app/types/ui-contracts.ts
-1️⃣1️⃣4️⃣ packages/app/src/ui/sidebar.tsx 🟢 — ts+react — deps: ui-core/components/SideBar.tsx, providers/UnifiedUIProvider.tsx, app/types/ui-contracts.ts
-1️⃣1️⃣5️⃣ packages/app/src/ui/search-bar.tsx 🟢 — ts+react — deps: ui-core/components/SearchBar.tsx, providers/UnifiedUIProvider.tsx, app/types/ui-contracts.ts
-1️⃣1️⃣6️⃣ packages/app/src/ui/confirm-dialog.tsx 🟢 — ts+react — deps: ui-core/components/ConfirmDialog.tsx, ui-core/components/Modal.tsx, providers/UnifiedUIProvider.tsx, app/types/ui-contracts.ts
-1️⃣1️⃣7️⃣ packages/app/src/ui/error-boundary.tsx 🟢 — ts+react — deps: ui-core/components/ErrorBoundary.tsx, providers/UnifiedUIProvider.tsx, app/lib/error-mapping.ts, app/types/errors.ts, app/types/ui-contracts.ts
-1️⃣1️⃣8️⃣ packages/app/src/ui/user-profile-display.tsx 🟢 — ts+react — deps: ui-core/components/UserProfileDisplay.tsx, providers/UnifiedUIProvider.tsx, app/lib/auth-guard.ts, app/lib/route-permissions.ts, app/types/ui-contracts.ts
-1️⃣1️⃣9️⃣ packages/app/src/ui/navigation-menu-item.tsx 🟢 — ts+react — deps: ui-core/components/NavigationMenuItem.tsx, providers/UnifiedUIProvider.tsx, app/lib/route-permissions.ts, app/types/ui-contracts.ts
-1️⃣2️⃣0️⃣ packages/app/src/ui/language-selector.tsx 🟢 — ts+react — deps: ui-core/components/LanguageSelector.tsx, providers/UnifiedUIProvider.tsx, app/types/ui-contracts.ts
-1️⃣2️⃣1️⃣ packages/app/src/ui/support-button.tsx 🟢 — ts+react — deps: ui-core/components/SupportButton.tsx, providers/UnifiedUIProvider.tsx, app/types/ui-contracts.ts
+1️⃣3️⃣6️⃣ packages/app/src/ui/button.tsx 🟢 — ts+react — deps: ui-core/primitives/button.tsx, providers/UnifiedUIProvider.tsx, app/types/ui-contracts.ts
+1️⃣3️⃣7️⃣ packages/app/src/ui/input.tsx 🟢 — ts+react — deps: ui-core/src/index.tsx, providers/UnifiedUIProvider.tsx, app/types/ui-contracts.ts
+1️⃣3️⃣8️⃣ packages/app/src/ui/textarea.tsx 🟢 — ts+react — deps: ui-core/primitives/textarea.tsx, providers/UnifiedUIProvider.tsx, app/types/ui-contracts.ts
+1️⃣3️⃣9️⃣ packages/app/src/ui/select.tsx 🟢 — ts+react — deps: ui-core/primitives/select.tsx, providers/UnifiedUIProvider.tsx, app/types/ui-contracts.ts
+1️⃣4️⃣0️⃣ packages/app/src/ui/checkbox.tsx 🟢 — ts+react — deps: ui-core/primitives/checkbox.tsx, providers/UnifiedUIProvider.tsx, app/types/ui-contracts.ts
+1️⃣4️⃣1️⃣ packages/app/src/ui/radio.tsx 🟢 — ts+react — deps: ui-core/primitives/radio.tsx, providers/UnifiedUIProvider.tsx, app/types/ui-contracts.ts
+1️⃣4️⃣2️⃣ packages/app/src/ui/toggle.tsx 🟢 — ts+react — deps: ui-core/primitives/toggle.tsx, providers/UnifiedUIProvider.tsx, app/types/ui-contracts.ts
+1️⃣4️⃣3️⃣ packages/app/src/ui/icon.tsx 🟢 — ts+react — deps: ui-core/primitives/icon.tsx, providers/UnifiedUIProvider.tsx, app/types/ui-contracts.ts
+1️⃣4️⃣4️⃣ packages/app/src/ui/avatar.tsx 🟢 — ts+react — deps: ui-core/primitives/avatar.tsx, providers/UnifiedUIProvider.tsx, app/types/ui-contracts.ts
+1️⃣4️⃣5️⃣ packages/app/src/ui/badge.tsx 🟢 — ts+react — deps: ui-core/primitives/badge.tsx, providers/UnifiedUIProvider.tsx, app/types/ui-contracts.ts
+1️⃣4️⃣6️⃣ packages/app/src/ui/tooltip.tsx 🟢 — ts+react — deps: ui-core/primitives/tooltip.tsx, providers/UnifiedUIProvider.tsx, app/types/ui-contracts.ts
+1️⃣4️⃣7️⃣ packages/app/src/ui/divider.tsx 🟢 — ts+react — deps: ui-core/primitives/divider.tsx, providers/UnifiedUIProvider.tsx, app/types/ui-contracts.ts
+1️⃣4️⃣8️⃣ packages/app/src/ui/card.tsx 🟢 — ts+react — deps: ui-core/primitives/card.tsx, providers/UnifiedUIProvider.tsx, app/types/ui-contracts.ts
+1️⃣4️⃣9️⃣ packages/app/src/ui/dialog.tsx 🟢 — ts+react — deps: ui-core/primitives/dialog.tsx, providers/UnifiedUIProvider.tsx
+1️⃣5️⃣0️⃣ packages/app/src/ui/form.tsx 🟢 — ts+react — deps: ui-core/primitives/form.tsx, providers/UnifiedUIProvider.tsx, app/lib/validation.ts, app/types/ui-contracts.ts
+1️⃣5️⃣1️⃣ packages/app/src/ui/loading-spinner.tsx 🟢 — ts+react — deps: ui-core/primitives/loading-spinner.tsx, providers/UnifiedUIProvider.tsx, app/types/ui-contracts.ts
+1️⃣5️⃣2️⃣ packages/app/src/ui/dropdown.tsx 🟢 — ts+react — deps: ui-core/primitives/dropdown.tsx, providers/UnifiedUIProvider.tsx, app/types/ui-contracts.ts
+1️⃣5️⃣3️⃣ packages/app/src/ui/context-menu.tsx 🟢 — ts+react — deps: ui-core/primitives/context-menu.tsx, providers/UnifiedUIProvider.tsx, app/types/ui-contracts.ts
+1️⃣5️⃣4️⃣ packages/app/src/ui/status-indicator.tsx 🟢 — ts+react — deps: ui-core/primitives/status-indicator.tsx, providers/UnifiedUIProvider.tsx, app/types/ui-contracts.ts
+1️⃣5️⃣5️⃣ packages/app/src/ui/toast.tsx 🟢 — ts+react — deps: ui-core/components/Toast.tsx, providers/UnifiedUIProvider.tsx, app/types/errors.ts, app/types/ui-contracts.ts
+1️⃣5️⃣6️⃣ packages/app/src/ui/skeleton.tsx 🟢 — ts+react — deps: ui-core/components/Skeleton.tsx, providers/UnifiedUIProvider.tsx, app/types/ui-contracts.ts
+1️⃣5️⃣7️⃣ packages/app/src/ui/skeleton-group.tsx 🟢 — ts+react — deps: ui-core/components/Skeleton.tsx, providers/UnifiedUIProvider.tsx, app/types/ui-contracts.ts
+1️⃣5️⃣8️⃣ packages/app/src/ui/modal.tsx 🟢 — ts+react — deps: ui-core/components/Modal.tsx, ui-core/types/ui.ts, providers/UnifiedUIProvider.tsx, app/types/ui-contracts.ts
+1️⃣5️⃣9️⃣ packages/app/src/ui/breadcrumbs.tsx 🟢 — ts+react — deps: ui-core/components/Breadcrumbs.tsx, providers/UnifiedUIProvider.tsx, app/types/ui-contracts.ts
+1️⃣6️⃣0️⃣ packages/app/src/ui/tabs.tsx 🟢 — ts+react — deps: ui-core/components/Tabs.tsx, providers/UnifiedUIProvider.tsx, app/types/ui-contracts.ts
+1️⃣6️⃣1️⃣ packages/app/src/ui/accordion.tsx 🟢 — ts+react — deps: ui-core/components/Accordion.tsx, providers/UnifiedUIProvider.tsx, app/types/ui-contracts.ts
+1️⃣6️⃣2️⃣ packages/app/src/ui/date-picker.tsx 🟢 — ts+react — deps: ui-core/components/DatePicker.tsx, providers/UnifiedUIProvider.tsx, app/types/ui-contracts.ts
+1️⃣6️⃣3️⃣ packages/app/src/ui/file-uploader.tsx 🟢 — ts+react — deps: ui-core/components/FileUploader.tsx, providers/UnifiedUIProvider.tsx, app/types/api.ts, app/lib/validation.ts, app/types/ui-contracts.ts
+1️⃣6️⃣4️⃣ packages/app/src/ui/sidebar.tsx 🟢 — ts+react — deps: ui-core/components/SideBar.tsx, providers/UnifiedUIProvider.tsx, app/types/ui-contracts.ts
+1️⃣6️⃣5️⃣ packages/app/src/ui/search-bar.tsx 🟢 — ts+react — deps: ui-core/components/SearchBar.tsx, providers/UnifiedUIProvider.tsx, app/types/ui-contracts.ts
+1️⃣6️⃣6️⃣ packages/app/src/ui/confirm-dialog.tsx 🟢 — ts+react — deps: ui-core/components/ConfirmDialog.tsx, ui-core/components/Modal.tsx, providers/UnifiedUIProvider.tsx, app/types/ui-contracts.ts
+1️⃣6️⃣7️⃣ packages/app/src/ui/error-boundary.tsx 🟢 — ts+react — deps: ui-core/components/ErrorBoundary.tsx, providers/UnifiedUIProvider.tsx, app/lib/error-mapping.ts, app/types/errors.ts, app/types/ui-contracts.ts
+1️⃣6️⃣8️⃣ packages/app/src/ui/user-profile-display.tsx 🟢 — ts+react — deps: ui-core/components/UserProfileDisplay.tsx, providers/UnifiedUIProvider.tsx, app/lib/auth-guard.ts, app/lib/route-permissions.ts, app/types/ui-contracts.ts
+1️⃣6️⃣9️⃣ packages/app/src/ui/navigation-menu-item.tsx 🟢 — ts+react — deps: ui-core/components/NavigationMenuItem.tsx, providers/UnifiedUIProvider.tsx, app/lib/route-permissions.ts, app/types/ui-contracts.ts
+1️⃣7️⃣0️⃣ packages/app/src/ui/language-selector.tsx 🟢 — ts+react — deps: ui-core/components/LanguageSelector.tsx, providers/UnifiedUIProvider.tsx, app/types/ui-contracts.ts
+1️⃣7️⃣1️⃣ packages/app/src/ui/support-button.tsx 🟢 — ts+react — deps: ui-core/components/SupportButton.tsx, providers/UnifiedUIProvider.tsx, app/types/ui-contracts.ts
 
 ✅ App routing & navigation
-1️⃣2️⃣2️⃣ packages/app/src/routes/routes.ts 🟢 — ts — deps: types/common.ts — (декларативный список всех routes)
-1️⃣2️⃣3️⃣ packages/app/src/routes/route-meta.ts 🟢 — ts — deps: routes.ts, route-permissions.ts, types/common.ts — (permissions, flags, auth-required)
-1️⃣2️⃣4️⃣ packages/app/src/routes/navigation.ts 🟢 — ts — deps: route-meta.ts, routes.ts, types/common.ts — (sidebar/menu/navigation config)
+1️⃣7️⃣2️⃣ packages/app/src/routes/routes.ts 🟢 — ts — deps: types/common.ts — (декларативный список всех routes)
+1️⃣7️⃣3️⃣ packages/app/src/routes/route-meta.ts 🟢 — ts — deps: routes.ts, route-permissions.ts, types/common.ts — (permissions, flags, auth-required)
+1️⃣7️⃣4️⃣ packages/app/src/routes/navigation.ts 🟢 — ts — deps: route-meta.ts, routes.ts, types/common.ts — (sidebar/menu/navigation config)
 
 ✅ App events / signals
-1️⃣2️⃣5️⃣ packages/app/src/events/app-lifecycle-events.ts 🟢 — ts — deps: types/common.ts — (lifecycle event hub)
-1️⃣2️⃣6️⃣ packages/app/src/events/app-events.ts 🟢 — ts — deps: types/common.ts, zod, uuid — (logout, authExpired, billingChanged)
-1️⃣2️⃣7️⃣ packages/app/src/events/event-bus.ts 🟢 — ts — deps: app-events.ts — (typed event bus)
+1️⃣7️⃣5️⃣ packages/app/src/events/app-lifecycle-events.ts 🟢 — ts — deps: types/common.ts — (lifecycle event hub)
+1️⃣7️⃣6️⃣ packages/app/src/events/app-events.ts 🟢 — ts — deps: types/common.ts, zod, uuid — (logout, authExpired, billingChanged)
+1️⃣7️⃣7️⃣ packages/app/src/events/event-bus.ts 🟢 — ts — deps: app-events.ts — (typed event bus)
 
 ✅ App background & scheduler
-1️⃣2️⃣8️⃣ packages/app/src/background/scheduler.ts 🟢 — ts+effect — deps: events/app-events.ts, events/event-bus.ts, lib/telemetry.ts — (адаптивный планировщик задач с приоритетами)
-1️⃣2️⃣9️⃣ packages/app/src/background/tasks.ts 🟢 — ts+effect — deps: scheduler.ts, events/app-events.ts, events/event-bus.ts — (refresh, sync, retry via scheduler)
+1️⃣7️⃣8️⃣ packages/app/src/background/scheduler.ts 🟢 — ts+effect — deps: events/app-events.ts, events/event-bus.ts, lib/telemetry.ts — (адаптивный планировщик задач с приоритетами)
+1️⃣7️⃣9️⃣ packages/app/src/background/tasks.ts 🟢 — ts+effect — deps: scheduler.ts, events/app-events.ts, events/event-bus.ts — (refresh, sync, retry via scheduler)
 
 ✅ App lifecycle
-1️⃣3️⃣0️⃣ packages/app/src/state/reset.ts 🟢 — ts — deps: state/store.ts, state/store-utils.ts, events/app-lifecycle-events.ts — (глобальный reset state при logout)
-1️⃣3️⃣1️⃣ packages/app/src/lib/app-lifecycle.ts 🟢 — ts — deps: background/tasks.ts, events/app-lifecycle-events.ts, types/common.ts — (app lifecycle orchestrator: bootstrap/teardown, staged execution, event subscriptions)
+1️⃣8️⃣0️⃣ packages/app/src/state/reset.ts 🟢 — ts — deps: state/store.ts, state/store-utils.ts, events/app-lifecycle-events.ts — (глобальный reset state при logout)
+1️⃣8️⃣1️⃣ packages/app/src/lib/app-lifecycle.ts 🟢 — ts — deps: background/tasks.ts, events/app-lifecycle-events.ts, types/common.ts — (app lifecycle orchestrator: bootstrap/teardown, staged execution, event subscriptions)
 
 Feature Auth
-1️⃣3️⃣2️⃣ packages/feature-auth/src/domain/LoginRequest.ts 🟢 — ts — deps: — , (DTO login, только типы запроса)
-1️⃣3️⃣3️⃣ packages/feature-auth/src/domain/RegisterRequest.ts 🟢 — ts — deps: — , (DTO register, данные для регистрации пользователя)
-1️⃣3️⃣4️⃣ packages/feature-auth/src/domain/RegisterResponse.ts 🟢 — ts — deps: TokenPair, MfaInfo , (DTO ответа регистрации, подтверждение создания аккаунта)
-1️⃣3️⃣5️⃣ packages/feature-auth/src/domain/PasswordResetRequest.ts 🟢 — ts — deps: — , (DTO запрос сброса пароля, email/username)
-1️⃣3️⃣6️⃣ packages/feature-auth/src/domain/PasswordResetConfirm.ts 🟢 — ts — deps: — , (DTO подтверждение сброса пароля, token + новый пароль)
-1️⃣3️⃣7️⃣ packages/feature-auth/src/domain/VerifyEmailRequest.ts 🟢 — ts — deps: — , (DTO верификация email, confirmation token)
-1️⃣3️⃣8️⃣ packages/feature-auth/src/domain/VerifyPhoneRequest.ts 🟢 — ts — deps: — , (DTO верификация телефона, SMS code)
-1️⃣3️⃣9️⃣ packages/feature-auth/src/domain/RefreshTokenRequest.ts 🟢 — ts — deps: — , (DTO обновления токена, refresh token)
-1️⃣4️⃣0️⃣ packages/feature-auth/src/domain/LogoutRequest.ts 🟢 — ts — deps: — , (DTO выхода из системы, опционально refresh token)
-1️⃣4️⃣1️⃣ packages/feature-auth/src/domain/DeviceInfo.ts 🟢 — ts — deps: — , (DTO информация об устройстве для аудита)
-1️⃣4️⃣2️⃣ packages/feature-auth/src/domain/SessionRevokeRequest.ts 🟢 — ts — deps: — , (DTO отзыв сессии, session ID)
-1️⃣4️⃣3️⃣ packages/feature-auth/src/domain/MfaChallengeRequest.ts 🟢 — ts — deps: — , (DTO запрос MFA вызова, тип аутентификации)
-1️⃣4️⃣4️⃣ packages/feature-auth/src/domain/MfaSetupRequest.ts 🟢 — ts — deps: — , (DTO настройки MFA, секрет и метод)
-1️⃣4️⃣5️⃣ packages/feature-auth/src/domain/MfaBackupCodeRequest.ts 🟢 — ts — deps: — , (DTO резервных кодов MFA для recovery)
-1️⃣4️⃣6️⃣ packages/feature-auth/src/domain/OAuthLoginRequest.ts 🟢 — ts — deps: — , (DTO OAuth login, provider token: Google/Yandex/FB/VK)
-1️⃣4️⃣7️⃣ packages/feature-auth/src/domain/OAuthRegisterRequest.ts 🟢 — ts — deps: — , (DTO OAuth register, provider data для создания аккаунта)
-1️⃣4️⃣8️⃣ packages/feature-auth/src/domain/LoginRiskAssessment.ts 🟢 — ts — deps: — , (DTO оценки риска логина: гео, device fingerprint, IP)
-1️⃣4️⃣9️⃣ packages/feature-auth/src/domain/SessionPolicy.ts 🟢 — ts — deps: — , (DTO политик сессии: ограничения по IP, concurrent sessions)
-1️⃣5️⃣0️⃣ packages/feature-auth/src/domain/AuthAuditEvent.ts 🟢 — ts — deps: — , (DTO событий аудита: client app, IP, deviceId, geo, timestamp)
-1️⃣5️⃣1️⃣ packages/feature-auth/src/domain/EmailTemplateRequest.ts 🟢 — ts — deps: — , (DTO кастомных email шаблонов для верификации/уведомлений)
-1️⃣5️⃣2️⃣ packages/feature-auth/src/domain/SmsTemplateRequest.ts 🟢 — ts — deps: — , (DTO кастомных SMS шаблонов для верификации)
-1️⃣5️⃣3️⃣ packages/feature-auth/src/domain/MfaRecoveryRequest.ts 🟢 — ts — deps: — , (DTO восстановления MFA доступа при потере устройства)
-1️⃣5️⃣4️⃣ packages/feature-auth/src/domain/OAuthErrorResponse.ts 🟢 — ts — deps: — , (DTO ошибок OAuth: invalid_token, provider_unavailable, user_denied)
-1️⃣5️⃣5️⃣ packages/feature-auth/src/domain/AuthErrorResponse.ts 🟢 — ts — deps: — , (DTO кастомных ошибок: invalid_credentials, account_locked, rate_limited)
-1️⃣5️⃣6️⃣ packages/feature-auth/src/domain/TokenPair.ts 🟢 — ts — deps: — , (DTO token pair: accessToken, refreshToken, expiresAt)
-1️⃣5️⃣7️⃣ packages/feature-auth/src/domain/MeResponse.ts 🟢 — ts — deps: — , (DTO ответа /me: данные пользователя, роли, permissions)
-1️⃣5️⃣8️⃣ packages/feature-auth/src/types/auth.ts 🟢 — ts — deps: domain/LoginRequest.ts, domain/RegisterRequest.ts, domain/RegisterResponse.ts, domain/PasswordResetRequest.ts, domain/PasswordResetConfirm.ts, domain/VerifyEmailRequest.ts, domain/VerifyPhoneRequest.ts, domain/MfaChallengeRequest.ts, domain/MfaSetupRequest.ts, domain/MfaBackupCodeRequest.ts, domain/MfaRecoveryRequest.ts, domain/OAuthLoginRequest.ts, domain/OAuthRegisterRequest.ts, domain/OAuthErrorResponse.ts, domain/AuthErrorResponse.ts, domain/SessionPolicy.ts, domain/SessionRevokeRequest.ts, domain/LoginRiskAssessment.ts, domain/AuthAuditEvent.ts, domain/DeviceInfo.ts, domain/TokenPair.ts, domain/RefreshTokenRequest.ts, domain/LogoutRequest.ts, domain/MeResponse.ts, domain/EmailTemplateRequest.ts, domain/SmsTemplateRequest.ts , (агрегирующие типы auth: AuthState, AuthStatus, AuthError, MFA types, OAuth types, Security types, Recovery types)
-1️⃣5️⃣9️⃣ packages/feature-auth/src/types/risk.ts 🟢 — ts — deps: types/auth.ts, domain/LoginRiskAssessment.ts, effects/login/risk-decision.ts, effects/login/risk-rules.ts, effects/login/risk-scoring.ts — (централизованные типы для risk assessment, единый источник истины для risk типов, immutable readonly типы для безопасности)
-1️⃣6️⃣0️⃣ packages/feature-auth/src/domain/RiskValidation.ts 🟢 — ts — deps: types/risk.ts — (семантическая валидация risk signals, проверка бизнес-правил и диапазонов значений, возвращает violations для observability и policy-engine, pure domain logic)
-1️⃣6️⃣1️⃣ packages/feature-auth/src/domain/ContextBuilders.ts 🟢 — ts — deps: domain/DeviceInfo.ts, effects/login/risk-rules.ts, effects/login/risk-scoring.ts, types/risk.ts — (context builders для подготовки контекстов разных слоёв, SRP-compliant, pure детерминированные функции, O(1) по памяти через readonly ссылки)
-1️⃣6️⃣2️⃣ packages/feature-auth/src/domain/PluginAppliers.ts 🟢 — ts — deps: effects/login/risk-rules.ts, effects/login/risk-scoring.ts, types/risk.ts — (применение плагинов для расширения контекстов, generic applyPlugins для любого типа контекста, deterministic сортировка по priority, оптимизированный deepFreeze для signals)
-1️⃣6️⃣3️⃣ packages/feature-auth/src/domain/LocalRulesEngine.ts 🟢 — ts — deps: domain/ContextBuilders.ts, domain/DeviceInfo.ts, domain/PluginAppliers.ts, domain/RiskValidation.ts, effects/login/risk-assessment.adapter.ts, effects/login/risk-decision.ts, effects/login/risk-rules.ts, effects/login/risk-scoring.ts, types/risk.ts — (pure domain engine для оценки риска через локальные правила, детерминированная функция без side-effects, O(1) lookup правил, short-circuit для критических правил, оптимизация для больших externalSignals)
-1️⃣6️⃣4️⃣ packages/feature-auth/src/lib/sanitizer.ts 🟡 — ts — deps: — (security boundary для sanitization externalSignals, защита от prototype pollution, циклических ссылок, non-JSON-serializable данных, используется в risk assessment, должен применяться ДО попадания данных в domain/effects слои)
-1️⃣6️⃣5️⃣ packages/feature-auth/src/effects/login/risk-rules.ts 🟢 — ts — deps: domain/DeviceInfo.ts, domain/LoginRiskAssessment.ts — (rule engine, declarative rules, data-driven подход, OCP-compliant, масштабируемость на сотни правил)
-1️⃣6️⃣6️⃣ packages/feature-auth/src/effects/login/risk-scoring.ts 🟢 — ts — deps: domain/DeviceInfo.ts, domain/LoginRiskAssessment.ts — (risk scoring engine, weighted scoring, детерминированный расчет, нормализация факторов 0-100)
-1️⃣6️⃣7️⃣ packages/feature-auth/src/effects/login/risk-decision.ts 🟢 — ts — deps: effects/login/risk-rules.ts, types/auth.ts — (decision engine, определение уровня риска, принятие решения allow/challenge/block, приоритетная система правил)
-1️⃣6️⃣8️⃣ packages/feature-auth/src/effects/login/risk-assessment.adapter.ts 🟢 — ts — deps: domain/DeviceInfo.ts, domain/LoginRiskAssessment.ts — (adapter между domain и DTO, преобразование signals в Record, защита от утечки sensitive данных, whitelist фильтрация)
-1️⃣6️⃣9️⃣ packages/feature-auth/src/effects/login/risk-assessment.ts 🟢 — ts — deps: effects/login/risk-assessment.adapter.ts, effects/login/risk-decision.ts, effects/login/risk-rules.ts, effects/login/risk-scoring.ts, domain/DeviceInfo.ts, domain/RiskValidation.ts, types/risk.ts — (composition layer, объединяет rules, scoring и decision engine, детерминированный результат, plugin pattern для расширяемости)
-1️⃣7️⃣0️⃣ packages/feature-auth/src/effects/login/device-fingerprint.ts 🟢 — ts+effect — deps: domain/DeviceInfo.ts — (pure effect, без side-effects, сбор device info: userAgent, platform, screen, timezone, генерация deviceId)
-1️⃣7️⃣1️⃣ packages/feature-auth/src/effects/login/validation.ts 🟢 — ts — deps: domain/LoginRequest.ts — (type guards для LoginRequest, валидация структуры и формата данных, domain-pure, deterministic, strict shape validation)
-1️⃣7️⃣2️⃣ packages/feature-auth/src/effects/login/metadata-builders.ts 🟢 — ts — deps: domain/LoginRequest.ts, domain/DeviceInfo.ts, types/auth.ts — (чистые утилиты для создания метаданных логина, extensible через builder registry pattern с injection, PII хеширование через injection, deterministic)
-1️⃣7️⃣3️⃣ packages/feature-auth/src/effects/login/error-mapper.ts 🟢 — ts — deps: app/lib/error-mapping.ts, domain/AuthErrorResponse.ts, domain/MfaChallengeRequest.ts, domain/OAuthErrorResponse.ts, domain/SessionRevokeRequest.ts, types/auth.ts — (трансформация API ошибок в UI-friendly AuthError без side-effects, переиспользуется для logout, refresh, OAuth, MFA)
-1️⃣7️⃣4️⃣ packages/feature-auth/src/stores/auth.ts 🟢 — ts+zustand — deps: types/auth.ts — (Auth store, чистое состояние, без effects)
-1️⃣7️⃣5️⃣ packages/feature-auth/src/lib/security-pipeline/core/security-pipeline.errors.ts 🟡 — ts — deps: — (типы ошибок security pipeline, error codes, error messages, структурированные ошибки для observability)
-1️⃣7️⃣6️⃣ packages/feature-auth/src/lib/security-pipeline/core/security-pipeline.feature-flags.ts 🟡 — ts — deps: app/lib/feature-flags.ts — (feature flags для security pipeline, управление включением/выключением функций, A/B testing, gradual rollout)
-1️⃣7️⃣7️⃣ packages/feature-auth/src/lib/security-pipeline/core/security-pipeline.runtime-overrides.ts 🟡 — ts — deps: — (runtime overrides для security pipeline, динамическое изменение конфигурации, emergency controls, policy overrides)
-1️⃣7️⃣8️⃣ packages/feature-auth/src/lib/security-pipeline/core/security-pipeline.safety-guard.ts 🟡 — ts — deps: core/security-pipeline.errors.ts — (safety guards для защиты от некорректных данных, валидация входных параметров, защита от edge cases)
-1️⃣7️⃣9️⃣ packages/feature-auth/src/lib/security-pipeline/core/security-pipeline.metrics.ts 🟡 — ts — deps: — (метрики security pipeline, performance tracking, latency measurement, error rates, observability)
-1️⃣8️⃣0️⃣ packages/feature-auth/src/lib/security-pipeline/core/security-pipeline.adapter.ts 🟡 — ts+effect — deps: core/security-pipeline.sanitizer.ts, core/security-pipeline.errors.ts, core/security-pipeline.safety-guard.ts — (adapter для преобразования между domain и effects слоями, интеграция с Effect system, error handling)
-1️⃣8️⃣1️⃣ packages/feature-auth/src/lib/security-pipeline/core/security-pipeline.circuit-breaker.ts 🟡 — ts — deps: core/security-pipeline.errors.ts, core/security-pipeline.metrics.ts — (circuit breaker pattern для защиты от cascading failures, автоматическое отключение при высоком error rate, recovery mechanism)
-1️⃣8️⃣2️⃣ packages/feature-auth/src/lib/security-pipeline/core/security-pipeline.replay.ts 🟡 — ts — deps: — (replay mechanism для тестирования и debugging, запись и воспроизведение security events, deterministic testing)
-1️⃣8️⃣3️⃣ packages/feature-auth/src/lib/security-pipeline/core/security-pipeline.engine.ts 🟡 — ts+effect — deps: core/security-pipeline.adapter.ts, core/security-pipeline.circuit-breaker.ts, core/security-pipeline.metrics.ts, core/security-pipeline.safety-guard.ts, policies/security-pipeline.policy.ts, risk-sources/local-rules.source.ts, risk-sources/remote-provider.source.ts — (core engine для orchestration security pipeline, координация всех компонентов, execution flow)
-1️⃣8️⃣4️⃣ packages/feature-auth/src/lib/security-pipeline/policies/security-pipeline.policy.ts 🟡 — ts — deps: types/risk.ts — (политики security pipeline, конфигурация правил, thresholds, decision policies, настройка поведения pipeline)
-1️⃣8️⃣5️⃣ packages/feature-auth/src/lib/security-pipeline/policies/risk-aggregation.policy.ts 🟡 — ts — deps: policies/security-pipeline.policy.ts, types/risk.ts — (политика агрегации рисков, объединение сигналов из разных источников, weighted aggregation, consensus mechanism)
-1️⃣8️⃣6️⃣ packages/feature-auth/src/lib/security-pipeline/risk-sources/local-rules.source.ts 🟡 — ts+effect — deps: domain/LocalRulesEngine.ts, effects/login/risk-assessment.ts, core/security-pipeline.adapter.ts — (источник рисков через локальные правила, использует LocalRulesEngine, интеграция с risk-assessment, pure domain logic)
-1️⃣8️⃣7️⃣ packages/feature-auth/src/lib/security-pipeline/risk-sources/aggregate-risk.ts 🟡 — ts — deps: policies/risk-aggregation.policy.ts, types/risk.ts — (агрегация рисков из нескольких источников, объединение результатов, weighted scoring, consensus building)
-1️⃣8️⃣8️⃣ packages/feature-auth/src/lib/security-pipeline/risk-sources/performance-limits.ts 🟡 — ts — deps: core/security-pipeline.metrics.ts — (performance limits для risk sources, rate limiting, timeout protection, resource constraints)
-1️⃣8️⃣9️⃣ packages/feature-auth/src/lib/security-pipeline/risk-sources/remote-provider.source.ts 🟡 — ts+effect — deps: core/security-pipeline.adapter.ts, core/security-pipeline.circuit-breaker.ts, core/security-pipeline.metrics.ts — (источник рисков через внешние провайдеры, интеграция с remote APIs, fallback mechanism, error handling)
-1️⃣9️⃣0️⃣ packages/feature-auth/src/lib/security-pipeline/security-pipeline.facade.ts 🟡 — ts+effect — deps: core/security-pipeline.engine.ts, core/security-pipeline.feature-flags.ts, core/security-pipeline.runtime-overrides.ts, risk-sources/local-rules.source.ts, risk-sources/remote-provider.source.ts — (facade для security pipeline, упрощенный API, скрывает сложность внутренней реализации, точка входа для внешних клиентов)
-1️⃣9️⃣1️⃣ packages/feature-auth/src/lib/security-pipeline.ts 🟡 — ts+effect — deps: security-pipeline.facade.ts, effects/login/device-fingerprint.ts, effects/login/risk-assessment.ts, app/lib/orchestrator.ts, types/auth.ts — (композиция security flow через orchestrator: fingerprint → risk assessment с isolation и timeout, reusable для OAuth login, Register, MFA, Session refresh)
-1️⃣9️⃣2️⃣ packages/feature-auth/src/effects/login.ts 🔴 — ts+effect — deps: app/lib/orchestrator.ts, app/lib/schema-validated-effect.ts, app/lib/effect-timeout.ts, app/lib/effect-isolation.ts, app/state/store-utils.ts, types/auth.ts, stores/auth.ts, lib/security-pipeline.ts, effects/login/error-mapper.ts, effects/login/validation.ts, effects/login/metadata-builders.ts, domain/LoginRiskAssessment.ts, domain/DeviceInfo.ts, schemas.ts , (выполняет login с оценкой риска через orchestrator, валидация через validatedEffect, обновление store через safeSet, isolation и timeout)
-1️⃣9️⃣3️⃣ packages/feature-auth/src/effects/logout.ts 🔴 — ts+effect — deps: app/lib/orchestrator.ts, app/state/store-utils.ts, stores/auth.ts , (выполняет logout через orchestrator, очищает auth state через safeSet, блокировка store через setStoreLocked)
-1️⃣9️⃣4️⃣ packages/feature-auth/src/effects/refresh.ts 🔴 — ts+effect — deps: app/lib/orchestrator.ts, app/lib/schema-validated-effect.ts, app/lib/effect-timeout.ts, app/lib/effect-isolation.ts, app/state/store-utils.ts, types/auth.ts, stores/auth.ts, core/domain/AuthPolicy, schemas.ts , (обновляет access token через orchestrator с idempotency guard, валидация через validatedEffect, синхронизация store через safeSet, isolation и timeout)
-1️⃣9️⃣5️⃣ packages/feature-auth/src/lib/session-manager.ts 🔴 — ts — deps: types/auth.ts, core/domain/AuthPolicy, domain/SessionPolicy.ts — (auto-refresh, expiry, invalidation, session policies, concurrent limits)
-1️⃣9️⃣6️⃣ packages/feature-auth/src/hooks/useAuth.ts 🔴 — ts+react — deps: stores/auth.ts, effects/login.ts, effects/logout.ts, effects/refresh.ts, types/auth.ts — (Единый React-адаптер auth: инкапсулирует zustand+effects, предоставляет API authState/authStatus/isAuthenticated/login/logout/refresh, скрывает реализацию, точка расширения для auto-refresh, silent login, side-effects; финальный слой feature-auth, аналог useBots/useChat)
-1️⃣9️⃣7️⃣ packages/feature-auth/src/schemas.ts 🟢 — ts+zod — deps: core-contracts, domain/LoginRequest.ts, domain/RegisterRequest.ts, domain/RegisterResponse.ts, domain/PasswordResetRequest.ts, domain/PasswordResetConfirm.ts, domain/VerifyEmailRequest.ts, domain/VerifyPhoneRequest.ts, domain/MfaChallengeRequest.ts, domain/MfaSetupRequest.ts, domain/MfaBackupCodeRequest.ts, domain/MfaRecoveryRequest.ts, domain/OAuthLoginRequest.ts, domain/OAuthRegisterRequest.ts, domain/OAuthErrorResponse.ts, domain/AuthErrorResponse.ts, domain/LoginRiskAssessment.ts, domain/SessionPolicy.ts, domain/SessionRevokeRequest.ts, domain/AuthAuditEvent.ts, domain/DeviceInfo.ts, domain/TokenPair.ts, domain/RefreshTokenRequest.ts, domain/LogoutRequest.ts, domain/MeResponse.ts, domain/EmailTemplateRequest.ts, domain/SmsTemplateRequest.ts , (Zod схемы для валидации всех auth DTO: login/register/MFA/OAuth/security/audit/templates/errors/recovery на базе core-contracts)
+1️⃣8️⃣2️⃣ packages/feature-auth/src/domain/LoginRequest.ts 🟢 — ts — deps: — , (DTO login, только типы запроса)
+1️⃣8️⃣3️⃣ packages/feature-auth/src/domain/RegisterRequest.ts 🟢 — ts — deps: — , (DTO register, данные для регистрации пользователя)
+1️⃣8️⃣4️⃣ packages/feature-auth/src/domain/RegisterResponse.ts 🟢 — ts — deps: TokenPair, MfaInfo , (DTO ответа регистрации, подтверждение создания аккаунта)
+1️⃣8️⃣5️⃣ packages/feature-auth/src/domain/PasswordResetRequest.ts 🟢 — ts — deps: — , (DTO запрос сброса пароля, email/username)
+1️⃣8️⃣6️⃣ packages/feature-auth/src/domain/PasswordResetConfirm.ts 🟢 — ts — deps: — , (DTO подтверждение сброса пароля, token + новый пароль)
+1️⃣8️⃣7️⃣ packages/feature-auth/src/domain/VerifyEmailRequest.ts 🟢 — ts — deps: — , (DTO верификация email, confirmation token)
+1️⃣8️⃣8️⃣ packages/feature-auth/src/domain/VerifyPhoneRequest.ts 🟢 — ts — deps: — , (DTO верификация телефона, SMS code)
+1️⃣8️⃣9️⃣ packages/feature-auth/src/domain/RefreshTokenRequest.ts 🟢 — ts — deps: — , (DTO обновления токена, refresh token)
+1️⃣9️⃣0️⃣ packages/feature-auth/src/domain/LogoutRequest.ts 🟢 — ts — deps: — , (DTO выхода из системы, опционально refresh token)
+1️⃣9️⃣1️⃣ packages/feature-auth/src/domain/DeviceInfo.ts 🟢 — ts — deps: — , (DTO информация об устройстве для аудита)
+1️⃣9️⃣2️⃣ packages/feature-auth/src/domain/SessionRevokeRequest.ts 🟢 — ts — deps: — , (DTO отзыв сессии, session ID)
+1️⃣9️⃣3️⃣ packages/feature-auth/src/domain/MfaChallengeRequest.ts 🟢 — ts — deps: — , (DTO запрос MFA вызова, тип аутентификации)
+1️⃣9️⃣4️⃣ packages/feature-auth/src/domain/MfaSetupRequest.ts 🟢 — ts — deps: — , (DTO настройки MFA, секрет и метод)
+1️⃣9️⃣5️⃣ packages/feature-auth/src/domain/MfaBackupCodeRequest.ts 🟢 — ts — deps: — , (DTO резервных кодов MFA для recovery)
+1️⃣9️⃣6️⃣ packages/feature-auth/src/domain/OAuthLoginRequest.ts 🟢 — ts — deps: — , (DTO OAuth login, provider token: Google/Yandex/FB/VK)
+1️⃣9️⃣7️⃣ packages/feature-auth/src/domain/OAuthRegisterRequest.ts 🟢 — ts — deps: — , (DTO OAuth register, provider data для создания аккаунта)
+1️⃣9️⃣8️⃣ packages/feature-auth/src/domain/LoginRiskAssessment.ts 🟢 — ts — deps: — , (DTO оценки риска логина: гео, device fingerprint, IP)
+1️⃣9️⃣9️⃣ packages/feature-auth/src/domain/SessionPolicy.ts 🟢 — ts — deps: — , (DTO политик сессии: ограничения по IP, concurrent sessions)
+2️⃣0️⃣0️⃣ packages/feature-auth/src/domain/AuthAuditEvent.ts 🟢 — ts — deps: — , (DTO событий аудита: client app, IP, deviceId, geo, timestamp)
+2️⃣0️⃣1️⃣ packages/feature-auth/src/domain/EmailTemplateRequest.ts 🟢 — ts — deps: — , (DTO кастомных email шаблонов для верификации/уведомлений)
+2️⃣0️⃣2️⃣ packages/feature-auth/src/domain/SmsTemplateRequest.ts 🟢 — ts — deps: — , (DTO кастомных SMS шаблонов для верификации)
+2️⃣0️⃣3️⃣ packages/feature-auth/src/domain/MfaRecoveryRequest.ts 🟢 — ts — deps: — , (DTO восстановления MFA доступа при потере устройства)
+2️⃣0️⃣4️⃣ packages/feature-auth/src/domain/OAuthErrorResponse.ts 🟢 — ts — deps: — , (DTO ошибок OAuth: invalid_token, provider_unavailable, user_denied)
+2️⃣0️⃣5️⃣ packages/feature-auth/src/domain/AuthErrorResponse.ts 🟢 — ts — deps: — , (DTO кастомных ошибок: invalid_credentials, account_locked, rate_limited)
+2️⃣0️⃣6️⃣ packages/feature-auth/src/domain/TokenPair.ts 🟢 — ts — deps: — , (DTO token pair: accessToken, refreshToken, expiresAt)
+2️⃣0️⃣7️⃣ packages/feature-auth/src/domain/MeResponse.ts 🟢 — ts — deps: — , (DTO ответа /me: данные пользователя, роли, permissions)
+2️⃣0️⃣8️⃣ packages/feature-auth/src/types/auth.ts 🟢 — ts — deps: domain/LoginRequest.ts, domain/RegisterRequest.ts, domain/RegisterResponse.ts, domain/PasswordResetRequest.ts, domain/PasswordResetConfirm.ts, domain/VerifyEmailRequest.ts, domain/VerifyPhoneRequest.ts, domain/MfaChallengeRequest.ts, domain/MfaSetupRequest.ts, domain/MfaBackupCodeRequest.ts, domain/MfaRecoveryRequest.ts, domain/OAuthLoginRequest.ts, domain/OAuthRegisterRequest.ts, domain/OAuthErrorResponse.ts, domain/AuthErrorResponse.ts, domain/SessionPolicy.ts, domain/SessionRevokeRequest.ts, domain/LoginRiskAssessment.ts, domain/AuthAuditEvent.ts, domain/DeviceInfo.ts, domain/TokenPair.ts, domain/RefreshTokenRequest.ts, domain/LogoutRequest.ts, domain/MeResponse.ts, domain/EmailTemplateRequest.ts, domain/SmsTemplateRequest.ts , (агрегирующие типы auth: AuthState, AuthStatus, AuthError, MFA types, OAuth types, Security types, Recovery types)
+2️⃣0️⃣9️⃣ packages/feature-auth/src/types/auth-risk.ts 🟢 — ts — deps: @livai/domains, domain/LoginRiskAssessment.ts — (auth-specific типы для risk assessment, адаптирует типы из @livai/domains для feature-auth, re-export базовых типов, auth-specific типы для RiskContext/RiskPolicy/RiskAssessmentResult, immutable readonly типы для безопасности)
+2️⃣1️⃣0️⃣ packages/feature-auth/src/effects/login/classification-mapper.ts 🟢 — ts — deps: @livai/domains — (маппинг classification labels из domains в auth-specific decision, strategy pattern для обработки различных labels, оптимизация производительности через pre-filtering правил, изолирует auth-специфичную логику от domain logic, используется в risk-assessment.ts)
+2️⃣1️⃣1️⃣ packages/feature-auth/src/effects/login/login-risk-assessment.adapter.ts 🟢 — ts — deps: @livai/core, domain/DeviceInfo.ts, domain/LoginRiskAssessment.ts — (adapter между domain и DTO для login risk assessment, использует transformDomainToDto из @livai/core для преобразования signals в Record, защита от утечки sensitive данных через whitelist, auth-специфичная логика для LoginRiskAssessment DTO)
+2️⃣1️⃣2️⃣ packages/feature-auth/src/effects/login/risk-assessment.ts 🟢 — ts — deps: @livai/domains, effects/login/classification-mapper.ts, effects/login/login-risk-assessment.adapter.ts, domain/DeviceInfo.ts, types/auth-risk.ts — (composition layer, адаптирует feature-auth типы к domains API, вызывает assessClassification из domains, маппит результаты в auth-specific decision и DTO через classification-mapper, детерминированный результат, plugin pattern для расширяемости)
+2️⃣1️⃣3️⃣ packages/feature-auth/src/effects/login/device-fingerprint.ts 🟢 — ts+effect — deps: domain/DeviceInfo.ts — (pure effect, без side-effects, сбор device info: userAgent, platform, screen, timezone, генерация deviceId)
+2️⃣1️⃣4️⃣ packages/feature-auth/src/effects/login/validation.ts 🟢 — ts — deps: domain/LoginRequest.ts — (type guards для LoginRequest, валидация структуры и формата данных, domain-pure, deterministic, strict shape validation)
+2️⃣1️⃣5️⃣ packages/feature-auth/src/effects/login/login-metadata.enricher.ts 🟢 — ts — deps: @livai/core, domain/LoginRequest.ts, domain/DeviceInfo.ts, @livai/domains — (реализует ContextEnricher из @livai/core для обогащения контекста метаданными логина, использует core input-boundary для dependency-driven execution, extensible через builder registry pattern с injection, PII хеширование через injection, deterministic)
+2️⃣1️⃣6️⃣ packages/feature-auth/src/effects/login/error-mapper.ts 🟢 — ts — deps: app/lib/error-mapping.ts, domain/AuthErrorResponse.ts, domain/MfaChallengeRequest.ts, domain/OAuthErrorResponse.ts, domain/SessionRevokeRequest.ts, types/auth.ts — (трансформация API ошибок в UI-friendly AuthError без side-effects, переиспользуется для logout, refresh, OAuth, MFA)
+2️⃣1️⃣7️⃣ packages/feature-auth/src/lib/security-pipeline.ts 🟢 — ts+effect — deps: app/lib/orchestrator.ts, app/lib/effect-timeout.ts, app/lib/effect-utils.ts, domain/DeviceInfo.ts, effects/login/device-fingerprint.ts, effects/login/risk-assessment.ts, types/auth.ts, types/auth-risk.ts — (auth-специфичная обертка над device fingerprint и risk assessment, использует orchestrator для композиции шагов с timeout, facade pattern для единой точки входа, production guard для mandatory audit logger)
+2️⃣1️⃣8️⃣ packages/feature-auth/src/stores/auth.ts 🟢 — ts+zustand — deps: types/auth.ts — (Auth store, чистое состояние, без effects)
+2️⃣1️⃣9️⃣ packages/feature-auth/src/effects/login.ts 🔴 — ts+effect — deps: @livai/app/lib/orchestrator.ts, @livai/app/lib/schema-validated-effect.ts, @livai/app/lib/effect-timeout.ts, @livai/app/lib/effect-isolation.ts, @livai/app/state/store-utils.ts, types/auth.ts, stores/auth.ts, lib/security-pipeline.ts, effects/login/error-mapper.ts, effects/login/validation.ts, effects/login/login-metadata.enricher.ts, domain/LoginRiskAssessment.ts, domain/DeviceInfo.ts, schemas.ts , (выполняет login с оценкой риска через orchestrator, валидация через validatedEffect, обновление store через safeSet, isolation и timeout)
+2️⃣2️⃣0️⃣ packages/feature-auth/src/effects/logout.ts 🔴 — ts+effect — deps: @livai/app/lib/orchestrator.ts, @livai/app/state/store-utils.ts, stores/auth.ts , (выполняет logout через orchestrator, очищает auth state через safeSet, блокировка store через setStoreLocked)
+2️⃣2️⃣1️⃣ packages/feature-auth/src/effects/refresh.ts 🔴 — ts+effect — deps: @livai/app/lib/orchestrator.ts, @livai/app/lib/schema-validated-effect.ts, @livai/app/lib/effect-timeout.ts, @livai/app/lib/effect-isolation.ts, @livai/app/state/store-utils.ts, types/auth.ts, stores/auth.ts, @livai/core/policies/AuthPolicy, schemas.ts , (обновляет access token через orchestrator с idempotency guard, валидация через validatedEffect, синхронизация store через safeSet, isolation и timeout)
+2️⃣2️⃣2️⃣ packages/feature-auth/src/lib/session-manager.ts 🔴 — ts — deps: types/auth.ts, @livai/core/policies/AuthPolicy, domain/SessionPolicy.ts — (auto-refresh, expiry, invalidation, session policies, concurrent limits)
+2️⃣2️⃣3️⃣ packages/feature-auth/src/hooks/useAuth.ts 🔴 — ts+react — deps: stores/auth.ts, effects/login.ts, effects/logout.ts, effects/refresh.ts, types/auth.ts — (Единый React-адаптер auth: инкапсулирует zustand+effects, предоставляет API authState/authStatus/isAuthenticated/login/logout/refresh, скрывает реализацию, точка расширения для auto-refresh, silent login, side-effects; финальный слой feature-auth, аналог useBots/useChat)
+2️⃣2️⃣4️⃣ packages/feature-auth/src/schemas.ts 🟢 — ts+zod — deps: core-contracts, domain/LoginRequest.ts, domain/RegisterRequest.ts, domain/RegisterResponse.ts, domain/PasswordResetRequest.ts, domain/PasswordResetConfirm.ts, domain/VerifyEmailRequest.ts, domain/VerifyPhoneRequest.ts, domain/MfaChallengeRequest.ts, domain/MfaSetupRequest.ts, domain/MfaBackupCodeRequest.ts, domain/MfaRecoveryRequest.ts, domain/OAuthLoginRequest.ts, domain/OAuthRegisterRequest.ts, domain/OAuthErrorResponse.ts, domain/AuthErrorResponse.ts, domain/LoginRiskAssessment.ts, domain/SessionPolicy.ts, domain/SessionRevokeRequest.ts, domain/AuthAuditEvent.ts, domain/DeviceInfo.ts, domain/TokenPair.ts, domain/RefreshTokenRequest.ts, domain/LogoutRequest.ts, domain/MeResponse.ts, domain/EmailTemplateRequest.ts, domain/SmsTemplateRequest.ts , (Zod схемы для валидации всех auth DTO: login/register/MFA/OAuth/security/audit/templates/errors/recovery на базе core-contracts)
 
 Feature Bots
-1️⃣7️⃣5️⃣ packages/feature-bots/src/domain/Bot.ts 🔴 — ts — deps: — , (Bot entity, основные поля бота: id, name, status, templateId, metadata)
-1️⃣7️⃣6️⃣ packages/feature-bots/src/domain/BotTemplate.ts 🔴 — ts — deps: — , (Bot template entity, описание шаблона, дефолтные параметры, capabilities)
-1️⃣7️⃣7️⃣ packages/feature-bots/src/domain/Prompt.ts 🔴 — ts — deps: — , (Prompt entity, системный/пользовательский prompt, параметры генерации)
-1️⃣7️⃣8️⃣ packages/feature-bots/src/types/bots.ts 🔴 — ts — deps: domain/Bot.ts, domain/BotTemplate.ts, domain/Prompt.ts , (агрегирующие типы bots: BotState, BotStatus, BotError, DTO для create/update)
-1️⃣7️⃣9️⃣ packages/feature-bots/src/stores/bots.ts 🔴 — ts+zustand — deps: types/bots.ts , (Bots store, список ботов, текущий бот, UI-состояние, без effects)
-1️⃣8️⃣0️⃣ packages/feature-bots/src/effects/createBot.ts 🔴 — ts+effect — deps: app/lib/orchestrator.ts, app/lib/schema-validated-effect.ts, app/lib/effect-timeout.ts, app/lib/effect-isolation.ts, stores/bots.ts, types/bots.ts, core/domain/BotPolicy, core/domain/BotPermissions, schemas.ts , (создание бота через orchestrator, валидация через validatedEffect, isolation и timeout)
-1️⃣8️⃣1️⃣ packages/feature-bots/src/effects/updateBot.ts 🔴 — ts+effect — deps: app/lib/orchestrator.ts, app/lib/schema-validated-effect.ts, app/lib/effect-timeout.ts, app/lib/effect-isolation.ts, stores/bots.ts, types/bots.ts, core/domain/BotPolicy, core/domain/BotPermissions, schemas.ts , (обновление бота через orchestrator, валидация через validatedEffect, isolation и timeout)
-1️⃣8️⃣2️⃣ packages/feature-bots/src/effects/deleteBot.ts 🔴 — ts+effect — deps: app/lib/orchestrator.ts, app/lib/effect-timeout.ts, app/lib/effect-isolation.ts, stores/bots.ts, core/domain/BotPolicy, core/domain/BotPermissions , (удаление бота через orchestrator, isolation и timeout)
-1️⃣8️⃣3️⃣ packages/feature-bots/src/hooks/useBots.ts 🔴 — ts+react — deps: stores/bots.ts, effects/createBot.ts, effects/updateBot.ts, effects/deleteBot.ts , (React-API для списка ботов и CRUD)
-1️⃣8️⃣4️⃣ packages/feature-bots/src/hooks/useBotWizard.ts 🔴 — ts+react — deps: stores/bots.ts, effects/createBot.ts , (пошаговый wizard создания бота, управление draft-состоянием)
+2️⃣4️⃣8️⃣ packages/feature-bots/src/domain/Bot.ts 🔴 — ts — deps: — , (Bot entity, основные поля бота: id, name, status, templateId, metadata)
+2️⃣4️⃣9️⃣ packages/feature-bots/src/domain/BotTemplate.ts 🔴 — ts — deps: — , (Bot template entity, описание шаблона, дефолтные параметры, capabilities)
+2️⃣5️⃣0️⃣ packages/feature-bots/src/domain/Prompt.ts 🔴 — ts — deps: — , (Prompt entity, системный/пользовательский prompt, параметры генерации)
+2️⃣5️⃣1️⃣ packages/feature-bots/src/types/bots.ts 🔴 — ts — deps: domain/Bot.ts, domain/BotTemplate.ts, domain/Prompt.ts , (агрегирующие типы bots: BotState, BotStatus, BotError, DTO для create/update)
+2️⃣5️⃣2️⃣ packages/feature-bots/src/stores/bots.ts 🔴 — ts+zustand — deps: types/bots.ts , (Bots store, список ботов, текущий бот, UI-состояние, без effects)
+2️⃣5️⃣3️⃣ packages/feature-bots/src/effects/createBot.ts 🔴 — ts+effect — deps: app/lib/orchestrator.ts, app/lib/schema-validated-effect.ts, app/lib/effect-timeout.ts, app/lib/effect-isolation.ts, stores/bots.ts, types/bots.ts, core/domain/BotPolicy, core/domain/BotPermissions, schemas.ts , (создание бота через orchestrator, валидация через validatedEffect, isolation и timeout)
+2️⃣5️⃣4️⃣ packages/feature-bots/src/effects/updateBot.ts 🔴 — ts+effect — deps: app/lib/orchestrator.ts, app/lib/schema-validated-effect.ts, app/lib/effect-timeout.ts, app/lib/effect-isolation.ts, stores/bots.ts, types/bots.ts, core/domain/BotPolicy, core/domain/BotPermissions, schemas.ts , (обновление бота через orchestrator, валидация через validatedEffect, isolation и timeout)
+2️⃣5️⃣5️⃣ packages/feature-bots/src/effects/deleteBot.ts 🔴 — ts+effect — deps: app/lib/orchestrator.ts, app/lib/effect-timeout.ts, app/lib/effect-isolation.ts, stores/bots.ts, core/domain/BotPolicy, core/domain/BotPermissions , (удаление бота через orchestrator, isolation и timeout)
+2️⃣5️⃣6️⃣ packages/feature-bots/src/hooks/useBots.ts 🔴 — ts+react — deps: stores/bots.ts, effects/createBot.ts, effects/updateBot.ts, effects/deleteBot.ts , (React-API для списка ботов и CRUD)
+2️⃣5️⃣7️⃣ packages/feature-bots/src/hooks/useBotWizard.ts 🔴 — ts+react — deps: stores/bots.ts, effects/createBot.ts , (пошаговый wizard создания бота, управление draft-состоянием)
 
 Feature Chat
-1️⃣8️⃣5️⃣ packages/feature-chat/src/domain/Message.ts 🔴 — ts — deps: — , (Message entity, текст, автор, timestamp, status доставки)
-1️⃣8️⃣6️⃣ packages/feature-chat/src/domain/Conversation.ts 🔴 — ts — deps: — , (Conversation entity, id, participants, messages, metadata)
-1️⃣8️⃣7️⃣ packages/feature-chat/src/types/chat.ts 🔴 — ts — deps: domain/Message.ts, domain/Conversation.ts , (агрегирующие типы chat: ChatState, SendMessagePayload, ChatError)
-1️⃣8️⃣8️⃣ packages/feature-chat/src/stores/chat.ts 🔴 — ts+zustand — deps: types/chat.ts , (Chat store, текущее общение, список сообщений, состояние подключения)
-1️⃣8️⃣9️⃣ packages/feature-chat/src/effects/sendMessage.ts 🔴 — ts+effect — deps: app/lib/orchestrator.ts, app/lib/schema-validated-effect.ts, app/lib/effect-timeout.ts, app/lib/effect-isolation.ts, stores/chat.ts, types/chat.ts, core/domain/ChatPolicy, schemas.ts , (отправка сообщения через orchestrator с idempotency guard, валидация через validatedEffect, isolation и timeout, optimistic update)
-1️⃣9️⃣0️⃣ packages/feature-chat/src/effects/connectWebSocket.ts 🔴 — ts+effect — deps: app/lib/orchestrator.ts, app/lib/effect-timeout.ts, app/lib/effect-isolation.ts, app/lib/websocket.ts, stores/chat.ts, core/domain/ChatPolicy , (подключение к real-time каналу через orchestrator, isolation и timeout, приём сообщений)
-1️⃣9️⃣1️⃣ packages/feature-chat/src/hooks/useChat.ts 🔴 — ts+react — deps: stores/chat.ts, effects/sendMessage.ts , (React-API для чата и сообщений)
-1️⃣9️⃣2️⃣ packages/feature-chat/src/hooks/useRealTime.ts 🔴 — ts+react+effect — deps: effects/connectWebSocket.ts, stores/chat.ts, app/lib/telemetry.ts — (Lifecycle-контроль real-time: init WS on mount, cleanup on unmount, reconnect/idempotency, защита от multiple connections, синхронизация состояния подключения в store, telemetry; lifecycle остаётся в React, effect — чистый use-case)
-1️⃣9️⃣3️⃣ packages/feature-chat/src/effects/connectSSE.ts 🔴 — ts+effect — deps: app/lib/orchestrator.ts, app/lib/effect-timeout.ts, app/lib/effect-isolation.ts, app/lib/sse-client.ts, stores/chat.ts, core/domain/ChatPolicy — (SSE fallback для real-time чата через orchestrator, isolation и timeout, альтернатива WebSocket, единый контракт обновления chat store, включается по feature-flag или env)
-1️⃣9️⃣4️⃣ packages/feature-chat/src/lib/message-normalizer.ts 🔴 — ts — deps: domain/Message.ts, types/chat.ts — (Нормализация входящих сообщений API/WS/SSE → Message entity: статусы доставки, timestamps, idempotency, forward-compatibility)
-1️⃣9️⃣5️⃣ packages/feature-chat/src/schemas.ts 🔴 — ts+zod — deps: domain/Message.ts, domain/Conversation.ts, types/chat.ts — (Zod схемы для валидации chat данных: Message, Conversation, SendMessagePayload)
+2️⃣5️⃣8️⃣ packages/feature-chat/src/domain/Message.ts 🔴 — ts — deps: — , (Message entity, текст, автор, timestamp, status доставки)
+2️⃣5️⃣9️⃣ packages/feature-chat/src/domain/Conversation.ts 🔴 — ts — deps: — , (Conversation entity, id, participants, messages, metadata)
+2️⃣6️⃣0️⃣ packages/feature-chat/src/types/chat.ts 🔴 — ts — deps: domain/Message.ts, domain/Conversation.ts , (агрегирующие типы chat: ChatState, SendMessagePayload, ChatError)
+2️⃣6️⃣1️⃣ packages/feature-chat/src/stores/chat.ts 🔴 — ts+zustand — deps: types/chat.ts , (Chat store, текущее общение, список сообщений, состояние подключения)
+2️⃣6️⃣2️⃣ packages/feature-chat/src/effects/sendMessage.ts 🔴 — ts+effect — deps: app/lib/orchestrator.ts, app/lib/schema-validated-effect.ts, app/lib/effect-timeout.ts, app/lib/effect-isolation.ts, stores/chat.ts, types/chat.ts, core/domain/ChatPolicy, schemas.ts , (отправка сообщения через orchestrator с idempotency guard, валидация через validatedEffect, isolation и timeout, optimistic update)
+2️⃣6️⃣3️⃣ packages/feature-chat/src/effects/connectWebSocket.ts 🔴 — ts+effect — deps: app/lib/orchestrator.ts, app/lib/effect-timeout.ts, app/lib/effect-isolation.ts, app/lib/websocket.ts, stores/chat.ts, core/domain/ChatPolicy , (подключение к real-time каналу через orchestrator, isolation и timeout, приём сообщений)
+2️⃣6️⃣4️⃣ packages/feature-chat/src/hooks/useChat.ts 🔴 — ts+react — deps: stores/chat.ts, effects/sendMessage.ts , (React-API для чата и сообщений)
+2️⃣6️⃣5️⃣ packages/feature-chat/src/hooks/useRealTime.ts 🔴 — ts+react+effect — deps: effects/connectWebSocket.ts, stores/chat.ts, app/lib/telemetry.ts — (Lifecycle-контроль real-time: init WS on mount, cleanup on unmount, reconnect/idempotency, защита от multiple connections, синхронизация состояния подключения в store, telemetry; lifecycle остаётся в React, effect — чистый use-case)
+2️⃣6️⃣6️⃣ packages/feature-chat/src/effects/connectSSE.ts 🔴 — ts+effect — deps: app/lib/orchestrator.ts, app/lib/effect-timeout.ts, app/lib/effect-isolation.ts, app/lib/sse-client.ts, stores/chat.ts, core/domain/ChatPolicy — (SSE fallback для real-time чата через orchestrator, isolation и timeout, альтернатива WebSocket, единый контракт обновления chat store, включается по feature-flag или env)
+2️⃣6️⃣7️⃣ packages/feature-chat/src/lib/message-normalizer.ts 🔴 — ts — deps: domain/Message.ts, types/chat.ts — (Нормализация входящих сообщений API/WS/SSE → Message entity: статусы доставки, timestamps, idempotency, forward-compatibility)
+2️⃣6️⃣8️⃣ packages/feature-chat/src/schemas.ts 🔴 — ts+zod — deps: domain/Message.ts, domain/Conversation.ts, types/chat.ts — (Zod схемы для валидации chat данных: Message, Conversation, SendMessagePayload)
 
 App ↔ Feature contracts
-1️⃣9️⃣6️⃣ packages/app/src/contracts/feature-auth.contract.ts 🔴 — ts — deps: feature-auth, types/ui-contracts.ts, core-contracts — (контракт app ↔ auth: isAuthenticated, permissions[])
-1️⃣9️⃣7️⃣ packages/app/src/contracts/feature-bots.contract.ts 🔴 — ts — deps: feature-bots, types/ui-contracts.ts, core-contracts — (контракт app ↔ bots: capabilities, botPermissions)
-1️⃣9️⃣8️⃣ packages/app/src/contracts/feature-chat.contract.ts 🔴 — ts — deps: feature-chat, types/ui-contracts.ts, core-contracts — (контракт app ↔ chat: chatPermissions)
+2️⃣6️⃣9️⃣ packages/app/src/contracts/feature-auth.contract.ts 🔴 — ts — deps: feature-auth, types/ui-contracts.ts, core-contracts — (контракт app ↔ auth: isAuthenticated, permissions[])
+2️⃣7️⃣0️⃣ packages/app/src/contracts/feature-bots.contract.ts 🔴 — ts — deps: feature-bots, types/ui-contracts.ts, core-contracts — (контракт app ↔ bots: capabilities, botPermissions)
+2️⃣7️⃣1️⃣ packages/app/src/contracts/feature-chat.contract.ts 🔴 — ts — deps: feature-chat, types/ui-contracts.ts, core-contracts — (контракт app ↔ chat: chatPermissions)
 
 App feature adapters (glue layer: app ↔ features)
-1️⃣9️⃣9️⃣ packages/app/src/features/auth.adapter.ts 🔴 — ts — deps: feature-auth/hooks/useAuth, types/ui-contracts.ts — (адаптер auth feature: proxy, flags, SSR-safe)
-2️⃣0️⃣0️⃣ packages/app/src/features/bots.adapter.ts 🔴 — ts — deps: feature-bots/hooks/useBots, types/ui-contracts.ts — (адаптер bots feature для app)
-2️⃣0️⃣1️⃣ packages/app/src/features/chat.adapter.ts 🔴 — ts — deps: feature-chat/hooks/useChat, types/ui-contracts.ts — (адаптер chat feature для app)
+2️⃣7️⃣2️⃣ packages/app/src/features/auth.adapter.ts 🔴 — ts — deps: feature-auth/hooks/useAuth, types/ui-contracts.ts — (адаптер auth feature: proxy, flags, SSR-safe)
+2️⃣7️⃣3️⃣ packages/app/src/features/bots.adapter.ts 🔴 — ts — deps: feature-bots/hooks/useBots, types/ui-contracts.ts — (адаптер bots feature для app)
+2️⃣7️⃣4️⃣ packages/app/src/features/chat.adapter.ts 🔴 — ts — deps: feature-chat/hooks/useChat, types/ui-contracts.ts — (адаптер chat feature для app)
 
 **🏗️ UI Features Guidelines:**
 
@@ -403,32 +446,32 @@ App feature adapters (glue layer: app ↔ features)
 - **Auth / Session Management**: useAuth уже объединяет store + effects → убедиться, что auto-refresh и silent-login безопасны и не создают multiple requests при SSR
 
 UI Features — Auth
-2️⃣0️⃣2️⃣ packages/ui-features/src/auth/login-form.tsx 🟡 — ts+react — deps: types/ui-contracts.ts, useAuth() — Login form UI
-2️⃣0️⃣3️⃣ packages/ui-features/src/auth/register-form.tsx 🟡 — ts+react — deps: types/ui-contracts.ts, useAuth() — Register form UI
-2️⃣0️⃣4️⃣ packages/ui-features/src/auth/WorkspaceForm.tsx 🔴 — tsx+react — deps: useAuth(), PermissionGate — Workspace form UI (НЕТ)
-2️⃣0️⃣5️⃣ packages/ui-features/src/auth/OnboardingFlow.tsx 🔴 — tsx+react — deps: useAuth(), route-permissions — Onboarding flow (НЕТ)
-2️⃣0️⃣6️⃣ packages/ui-features/src/auth/TwoFactorAuth.tsx 🔴 — tsx+react+effect — deps: useAuth() — Two factor auth UI (НЕТ)
+2️⃣7️⃣5️⃣ packages/ui-features/src/auth/login-form.tsx 🟡 — ts+react — deps: types/ui-contracts.ts, useAuth() — Login form UI
+2️⃣7️⃣6️⃣ packages/ui-features/src/auth/register-form.tsx 🟡 — ts+react — deps: types/ui-contracts.ts, useAuth() — Register form UI
+2️⃣7️⃣7️⃣ packages/ui-features/src/auth/WorkspaceForm.tsx 🔴 — tsx+react — deps: useAuth(), PermissionGate — Workspace form UI (НЕТ)
+2️⃣7️⃣8️⃣ packages/ui-features/src/auth/OnboardingFlow.tsx 🔴 — tsx+react — deps: useAuth(), route-permissions — Onboarding flow (НЕТ)
+2️⃣7️⃣9️⃣ packages/ui-features/src/auth/TwoFactorAuth.tsx 🔴 — tsx+react+effect — deps: useAuth() — Two factor auth UI (НЕТ)
 
 UI Features — Permission-based Components
-2️⃣0️⃣7️⃣ packages/ui-features/src/common/AuthGuard.tsx 🔴 — tsx+react — deps: useAuth(), route-permissions — Generic auth guard wrapper (НЕТ)
-2️⃣0️⃣8️⃣ packages/ui-features/src/common/RoleGate.tsx 🔴 — tsx+react — deps: useAuth(), route-permissions — Role-based access gate (НЕТ)
-2️⃣0️⃣9️⃣ packages/ui-features/src/common/PermissionGate.tsx 🔴 — tsx+react — deps: useAuth(), route-permissions — Permission-based access gate (НЕТ)
-2️⃣1️⃣0️⃣ packages/ui-features/src/common/ProtectedRoute.tsx 🔴 — tsx+react — deps: useAuth(), route-permissions — Route protection wrapper (НЕТ)
+2️⃣8️⃣0️⃣ packages/ui-features/src/common/AuthGuard.tsx 🔴 — tsx+react — deps: useAuth(), route-permissions — Generic auth guard wrapper (НЕТ)
+2️⃣8️⃣1️⃣ packages/ui-features/src/common/RoleGate.tsx 🔴 — tsx+react — deps: useAuth(), route-permissions — Role-based access gate (НЕТ)
+2️⃣8️⃣2️⃣ packages/ui-features/src/common/PermissionGate.tsx 🔴 — tsx+react — deps: useAuth(), route-permissions — Permission-based access gate (НЕТ)
+2️⃣8️⃣3️⃣ packages/ui-features/src/common/ProtectedRoute.tsx 🔴 — tsx+react — deps: useAuth(), route-permissions — Route protection wrapper (НЕТ)
 
 UI Features — Bots
-2️⃣1️⃣1️⃣ packages/ui-features/src/bots/BotDashboard.tsx 🔴 — tsx+react — deps: store/hooks — Bots dashboard (НЕТ)
-2️⃣1️⃣2️⃣ packages/ui-features/src/bots/BotWizardFlow.tsx 🔴 — tsx+react+effect — deps: effects — Bot wizard flow (НЕТ)
-2️⃣1️⃣3️⃣ packages/ui-features/src/bots/BotTemplateSelector.tsx 🔴 — tsx+react — deps: — Template selector (НЕТ)
-2️⃣1️⃣4️⃣ packages/ui-features/src/bots/BotBasicForm.tsx 🔴 — tsx+react — deps: — Bot basic form (НЕТ)
-2️⃣1️⃣5️⃣ packages/ui-features/src/bots/PromptEditor.tsx 🔴 — tsx+react+effect — deps: effects — Prompt editor (НЕТ)
-2️⃣1️⃣6️⃣ packages/ui-features/src/bots/PromptBlocks.tsx 🔴 — tsx+react — deps: — Prompt blocks (НЕТ)
-2️⃣1️⃣7️⃣ packages/ui-features/src/bots/PromptPreview.tsx 🔴 — tsx+react — deps: — Prompt preview (НЕТ)
-2️⃣1️⃣8️⃣ packages/ui-features/src/bots/BotCard.tsx 🔴 — tsx+react — deps: — Compact bot card for list view (НЕТ)
-2️⃣1️⃣9️⃣ packages/ui-features/src/bots/BotDetailCard.tsx 🔴 — tsx+react — deps: — Detailed bot card with creator info (НЕТ)
-2️⃣2️⃣0️⃣ packages/ui-features/src/bots/SubscriptionStatusBadge.tsx 🔴 — tsx+react — deps: — Subscription status badge (active/inactive) (НЕТ)
-2️⃣2️⃣1️⃣ packages/ui-features/src/bots/CreatorInfo.tsx 🔴 — tsx+react — deps: — Creator information component (НЕТ)
-2️⃣2️⃣2️⃣ packages/ui-features/src/bots/ContactButton.tsx 🔴 — tsx+react — deps: — Contact creator button (НЕТ)
-2️⃣2️⃣3️⃣ packages/ui-features/src/bots/BotListItem.tsx 🔴 — tsx+react — deps: — Bot list item for sidebar/list (НЕТ)
+2️⃣8️⃣4️⃣ packages/ui-features/src/bots/BotDashboard.tsx 🔴 — tsx+react — deps: store/hooks — Bots dashboard (НЕТ)
+2️⃣8️⃣5️⃣ packages/ui-features/src/bots/BotWizardFlow.tsx 🔴 — tsx+react+effect — deps: effects — Bot wizard flow (НЕТ)
+2️⃣8️⃣6️⃣ packages/ui-features/src/bots/BotTemplateSelector.tsx 🔴 — tsx+react — deps: — Template selector (НЕТ)
+2️⃣8️⃣7️⃣ packages/ui-features/src/bots/BotBasicForm.tsx 🔴 — tsx+react — deps: — Bot basic form (НЕТ)
+2️⃣8️⃣8️⃣ packages/ui-features/src/bots/PromptEditor.tsx 🔴 — tsx+react+effect — deps: effects — Prompt editor (НЕТ)
+2️⃣8️⃣9️⃣ packages/ui-features/src/bots/PromptBlocks.tsx 🔴 — tsx+react — deps: — Prompt blocks (НЕТ)
+2️⃣9️⃣0️⃣ packages/ui-features/src/bots/PromptPreview.tsx 🔴 — tsx+react — deps: — Prompt preview (НЕТ)
+2️⃣9️⃣1️⃣ packages/ui-features/src/bots/BotCard.tsx 🔴 — tsx+react — deps: — Compact bot card for list view (НЕТ)
+2️⃣9️⃣2️⃣ packages/ui-features/src/bots/BotDetailCard.tsx 🔴 — tsx+react — deps: — Detailed bot card with creator info (НЕТ)
+2️⃣9️⃣3️⃣ packages/ui-features/src/bots/SubscriptionStatusBadge.tsx 🔴 — tsx+react — deps: — Subscription status badge (active/inactive) (НЕТ)
+2️⃣9️⃣4️⃣ packages/ui-features/src/bots/CreatorInfo.tsx 🔴 — tsx+react — deps: — Creator information component (НЕТ)
+2️⃣9️⃣5️⃣ packages/ui-features/src/bots/ContactButton.tsx 🔴 — tsx+react — deps: — Contact creator button (НЕТ)
+2️⃣9️⃣6️⃣ packages/ui-features/src/bots/BotListItem.tsx 🔴 — tsx+react — deps: — Bot list item for sidebar/list (НЕТ)
 
 **🤖 Bots / Chat Real-time:**
 
@@ -437,105 +480,105 @@ UI Features — Bots
 - **Client/Server boundaries**: WebSocket/SSE строго в effects, не в UI компонентах
 
 UI Features — Chat + Pages
-2️⃣2️⃣4️⃣ packages/ui-features/src/chat/ChatInterface.tsx 🔴 — tsx+react+effect — deps: effects — Chat interface (НЕТ)
-2️⃣2️⃣5️⃣ packages/ui-features/src/chat/MessageBubble.tsx 🔴 — tsx+react — deps: hooks — Message bubble (НЕТ)
-2️⃣2️⃣6️⃣ packages/ui-features/src/chat/ChatInput.tsx 🔴 — tsx+react — deps: hooks — Chat input (НЕТ)
-2️⃣2️⃣7️⃣ packages/ui-features/src/chat/TypingIndicator.tsx 🔴 — tsx+react — deps: hooks — Typing indicator (НЕТ)
-2️⃣2️⃣8️⃣ packages/ui-features/src/chat/MessageStatus.tsx 🔴 — tsx+react — deps: hooks — Message status (НЕТ)
-2️⃣2️⃣9️⃣ packages/ui-features/src/chat/Attachments.tsx 🔴 — tsx+react — deps: hooks — Attachments (НЕТ)
-2️⃣3️⃣0️⃣ packages/ui-features/src/chat/AttachmentsDragDrop.tsx 🔴 — tsx+react — deps: hooks — Drag & Drop для attachments (НЕТ)
-2️⃣3️⃣1️⃣ packages/ui-features/src/chat/ChatHistory.tsx 🔴 — tsx+react — deps: hooks — Chat history (НЕТ)
-2️⃣3️⃣2️⃣ packages/ui-features/src/chat/ChatListPanel.tsx 🔴 — tsx+react — deps: hooks — Chat list sidebar panel (НЕТ)
-2️⃣3️⃣3️⃣ packages/ui-features/src/chat/ChatListHeader.tsx 🔴 — tsx+react — deps: hooks — Chat list header with advanced mode toggle (НЕТ)
-2️⃣3️⃣4️⃣ packages/ui-features/src/chat/CreateChatButton.tsx 🔴 — tsx+react — deps: hooks — Create test chat button (НЕТ)
-2️⃣3️⃣5️⃣ packages/ui-features/src/chat/AIAgentStatusToggle.tsx 🔴 — tsx+react — deps: hooks — AI agent active/inactive toggle (НЕТ)
-2️⃣3️⃣6️⃣ packages/ui-features/src/chat/ChatActionButtons.tsx 🔴 — tsx+react — deps: hooks — Chat action buttons (share, copy, edit) (НЕТ)
-2️⃣3️⃣7️⃣ packages/ui-features/src/chat/MessageInputBar.tsx 🔴 — tsx+react+effect — deps: effects — Message input bar with attachments, voice, AI assist (НЕТ)
-2️⃣3️⃣8️⃣ packages/ui-features/src/chat/AdvancedModeToggle.tsx 🔴 — tsx+react — deps: hooks — Advanced mode toggle switch (НЕТ)
+2️⃣9️⃣7️⃣ packages/ui-features/src/chat/ChatInterface.tsx 🔴 — tsx+react+effect — deps: effects — Chat interface (НЕТ)
+2️⃣9️⃣8️⃣ packages/ui-features/src/chat/MessageBubble.tsx 🔴 — tsx+react — deps: hooks — Message bubble (НЕТ)
+2️⃣9️⃣9️⃣ packages/ui-features/src/chat/ChatInput.tsx 🔴 — tsx+react — deps: hooks — Chat input (НЕТ)
+3️⃣0️⃣0️⃣ packages/ui-features/src/chat/TypingIndicator.tsx 🔴 — tsx+react — deps: hooks — Typing indicator (НЕТ)
+3️⃣0️⃣1️⃣ packages/ui-features/src/chat/MessageStatus.tsx 🔴 — tsx+react — deps: hooks — Message status (НЕТ)
+3️⃣0️⃣2️⃣ packages/ui-features/src/chat/Attachments.tsx 🔴 — tsx+react — deps: hooks — Attachments (НЕТ)
+3️⃣0️⃣3️⃣ packages/ui-features/src/chat/AttachmentsDragDrop.tsx 🔴 — tsx+react — deps: hooks — Drag & Drop для attachments (НЕТ)
+3️⃣0️⃣4️⃣ packages/ui-features/src/chat/ChatHistory.tsx 🔴 — tsx+react — deps: hooks — Chat history (НЕТ)
+3️⃣0️⃣5️⃣ packages/ui-features/src/chat/ChatListPanel.tsx 🔴 — tsx+react — deps: hooks — Chat list sidebar panel (НЕТ)
+3️⃣0️⃣6️⃣ packages/ui-features/src/chat/ChatListHeader.tsx 🔴 — tsx+react — deps: hooks — Chat list header with advanced mode toggle (НЕТ)
+3️⃣0️⃣7️⃣ packages/ui-features/src/chat/CreateChatButton.tsx 🔴 — tsx+react — deps: hooks — Create test chat button (НЕТ)
+3️⃣0️⃣8️⃣ packages/ui-features/src/chat/AIAgentStatusToggle.tsx 🔴 — tsx+react — deps: hooks — AI agent active/inactive toggle (НЕТ)
+3️⃣0️⃣9️⃣ packages/ui-features/src/chat/ChatActionButtons.tsx 🔴 — tsx+react — deps: hooks — Chat action buttons (share, copy, edit) (НЕТ)
+3️⃣1️⃣0️⃣ packages/ui-features/src/chat/MessageInputBar.tsx 🔴 — tsx+react+effect — deps: effects — Message input bar with attachments, voice, AI assist (НЕТ)
+3️⃣1️⃣1️⃣ packages/ui-features/src/chat/AdvancedModeToggle.tsx 🔴 — tsx+react — deps: hooks — Advanced mode toggle switch (НЕТ)
 
 UI Features — Admin/Dashboard
-2️⃣3️⃣9️⃣ packages/ui-features/src/admin/DataTable.tsx 🔴 — tsx+react+effect — deps: effects — Data table (НЕТ)
-2️⃣4️⃣0️⃣ packages/ui-features/src/admin/Pagination.tsx 🔴 — tsx+react+effect — deps: effects — Pagination (НЕТ)
-2️⃣4️⃣1️⃣ packages/ui-features/src/admin/FiltersPanel.tsx 🔴 — tsx+react+effect — deps: effects — Filters panel (НЕТ)
-2️⃣4️⃣2️⃣ packages/ui-features/src/admin/StatCard.tsx 🔴 — tsx+react — deps: — Stat card (НЕТ)
-2️⃣4️⃣3️⃣ packages/ui-features/src/admin/Chart.tsx 🔴 — tsx+react+effect — deps: effects — Chart/Graph (НЕТ)
-2️⃣4️⃣4️⃣ packages/ui-features/src/admin/LogsViewer.tsx 🔴 — tsx+react+effect — deps: effects — Logs viewer (НЕТ)
-2️⃣4️⃣5️⃣ packages/ui-features/src/admin/UserRoleBadge.tsx 🔴 — tsx+react — deps: useAuth(), route-permissions — User role badge (НЕТ)
-2️⃣4️⃣6️⃣ packages/ui-features/src/admin/EmptyState.tsx 🔴 — tsx+react — deps: — Empty state component with icon and message (НЕТ)
-2️⃣4️⃣7️⃣ packages/ui-features/src/admin/DateRangePicker.tsx 🔴 — tsx+react — deps: hooks — Date range picker component (НЕТ)
-2️⃣4️⃣8️⃣ packages/ui-features/src/admin/FilterDropdown.tsx 🔴 — tsx+react — deps: hooks — Filter dropdown component (НЕТ)
+3️⃣1️⃣2️⃣ packages/ui-features/src/admin/DataTable.tsx 🔴 — tsx+react+effect — deps: effects — Data table (НЕТ)
+3️⃣1️⃣3️⃣ packages/ui-features/src/admin/Pagination.tsx 🔴 — tsx+react+effect — deps: effects — Pagination (НЕТ)
+3️⃣1️⃣4️⃣ packages/ui-features/src/admin/FiltersPanel.tsx 🔴 — tsx+react+effect — deps: effects — Filters panel (НЕТ)
+3️⃣1️⃣5️⃣ packages/ui-features/src/admin/StatCard.tsx 🔴 — tsx+react — deps: — Stat card (НЕТ)
+3️⃣1️⃣6️⃣ packages/ui-features/src/admin/Chart.tsx 🔴 — tsx+react+effect — deps: effects — Chart/Graph (НЕТ)
+3️⃣1️⃣7️⃣ packages/ui-features/src/admin/LogsViewer.tsx 🔴 — tsx+react+effect — deps: effects — Logs viewer (НЕТ)
+3️⃣1️⃣8️⃣ packages/ui-features/src/admin/UserRoleBadge.tsx 🔴 — tsx+react — deps: useAuth(), route-permissions — User role badge (НЕТ)
+3️⃣1️⃣9️⃣ packages/ui-features/src/admin/EmptyState.tsx 🔴 — tsx+react — deps: — Empty state component with icon and message (НЕТ)
+3️⃣2️⃣0️⃣ packages/ui-features/src/admin/DateRangePicker.tsx 🔴 — tsx+react — deps: hooks — Date range picker component (НЕТ)
+3️⃣2️⃣1️⃣ packages/ui-features/src/admin/FilterDropdown.tsx 🔴 — tsx+react — deps: hooks — Filter dropdown component (НЕТ)
 
 UI Features — Billing/Payments/Balance
-2️⃣4️⃣9️⃣ packages/ui-features/src/billing/PricingCard.tsx 🔴 — tsx+react — deps: — Pricing card (НЕТ)
-2️⃣5️⃣0️⃣ packages/ui-features/src/billing/InvoiceTable.tsx 🔴 — tsx+react+effect — deps: effects — Invoice table (НЕТ)
-2️⃣5️⃣1️⃣ packages/ui-features/src/billing/PaymentMethod.tsx 🔴 — tsx+react+effect — deps: effects — Payment method (НЕТ)
-2️⃣5️⃣2️⃣ packages/ui-features/src/billing/BillingHistory.tsx 🔴 — tsx+react+effect — deps: effects — Billing history (НЕТ)
-2️⃣5️⃣3️⃣ packages/ui-features/src/billing/SubscriptionStatus.tsx 🔴 — tsx+react — deps: — Subscription status (НЕТ)
-2️⃣5️⃣4️⃣ packages/ui-features/src/billing/BalanceDisplay.tsx 🔴 — tsx+react — deps: — Balance card for sidebar (НЕТ)
-2️⃣5️⃣5️⃣ packages/ui-features/src/billing/BotStatusIndicator.tsx 🔴 — tsx+react — deps: — Bot status indicator (blocked/active) (НЕТ)
-2️⃣5️⃣6️⃣ packages/ui-features/src/billing/TransactionHistoryTable.tsx 🔴 — tsx+react+effect — deps: effects — Transaction history table with tabs (НЕТ)
-2️⃣5️⃣7️⃣ packages/ui-features/src/billing/UsageGraph.tsx 🔴 — tsx+react+effect — deps: effects — Usage statistics graph/chart (НЕТ)
-2️⃣5️⃣8️⃣ packages/ui-features/src/billing/StatSummaryCards.tsx 🔴 — tsx+react — deps: — Summary cards (today/yesterday/week expenses) (НЕТ)
-2️⃣5️⃣9️⃣ packages/ui-features/src/billing/PaymentModal.tsx 🔴 — tsx+react+effect — deps: effects — Payment modal with method tabs (НЕТ)
-2️⃣6️⃣0️⃣ packages/ui-features/src/billing/AmountInput.tsx 🔴 — tsx+react — deps: hooks — Amount input with validation and hints (НЕТ)
-2️⃣6️⃣1️⃣ packages/ui-features/src/billing/TeamMemberSelector.tsx 🔴 — tsx+react — deps: — Team member count selector (НЕТ)
-2️⃣6️⃣2️⃣ packages/ui-features/src/billing/OrganizationFormFields.tsx 🔴 — tsx+react+effect — deps: effects — Organization details form fields (НЕТ)
-2️⃣6️⃣3️⃣ packages/ui-features/src/billing/DocumentUploadSection.tsx 🔴 — tsx+react+effect — deps: effects — Document upload section for billing (НЕТ)
+3️⃣2️⃣2️⃣ packages/ui-features/src/billing/PricingCard.tsx 🔴 — tsx+react — deps: — Pricing card (НЕТ)
+3️⃣2️⃣3️⃣ packages/ui-features/src/billing/InvoiceTable.tsx 🔴 — tsx+react+effect — deps: effects — Invoice table (НЕТ)
+3️⃣2️⃣4️⃣ packages/ui-features/src/billing/PaymentMethod.tsx 🔴 — tsx+react+effect — deps: effects — Payment method (НЕТ)
+3️⃣2️⃣5️⃣ packages/ui-features/src/billing/BillingHistory.tsx 🔴 — tsx+react+effect — deps: effects — Billing history (НЕТ)
+3️⃣2️⃣6️⃣ packages/ui-features/src/billing/SubscriptionStatus.tsx 🔴 — tsx+react — deps: — Subscription status (НЕТ)
+3️⃣2️⃣7️⃣ packages/ui-features/src/billing/BalanceDisplay.tsx 🔴 — tsx+react — deps: — Balance card for sidebar (НЕТ)
+3️⃣2️⃣8️⃣ packages/ui-features/src/billing/BotStatusIndicator.tsx 🔴 — tsx+react — deps: — Bot status indicator (blocked/active) (НЕТ)
+3️⃣2️⃣9️⃣ packages/ui-features/src/billing/TransactionHistoryTable.tsx 🔴 — tsx+react+effect — deps: effects — Transaction history table with tabs (НЕТ)
+3️⃣3️⃣0️⃣ packages/ui-features/src/billing/UsageGraph.tsx 🔴 — tsx+react+effect — deps: effects — Usage statistics graph/chart (НЕТ)
+3️⃣3️⃣1️⃣ packages/ui-features/src/billing/StatSummaryCards.tsx 🔴 — tsx+react — deps: — Summary cards (today/yesterday/week expenses) (НЕТ)
+3️⃣3️⃣2️⃣ packages/ui-features/src/billing/PaymentModal.tsx 🔴 — tsx+react+effect — deps: effects — Payment modal with method tabs (НЕТ)
+3️⃣3️⃣3️⃣ packages/ui-features/src/billing/AmountInput.tsx 🔴 — tsx+react — deps: hooks — Amount input with validation and hints (НЕТ)
+3️⃣3️⃣4️⃣ packages/ui-features/src/billing/TeamMemberSelector.tsx 🔴 — tsx+react — deps: — Team member count selector (НЕТ)
+3️⃣3️⃣5️⃣ packages/ui-features/src/billing/OrganizationFormFields.tsx 🔴 — tsx+react+effect — deps: effects — Organization details form fields (НЕТ)
+3️⃣3️⃣6️⃣ packages/ui-features/src/billing/DocumentUploadSection.tsx 🔴 — tsx+react+effect — deps: effects — Document upload section for billing (НЕТ)
 
 UI Features — PWA/Security
-2️⃣6️⃣4️⃣ packages/ui-features/src/pwa/InstallPrompt.tsx 🔴 — tsx+react+effect — deps: effects — Install prompt (НЕТ)
-2️⃣6️⃣5️⃣ packages/ui-features/src/pwa/OfflineIndicator.tsx 🔴 — tsx+react+effect — deps: effects — Offline indicator (НЕТ)
-2️⃣6️⃣6️⃣ packages/ui-features/src/pwa/UpdateNotification.tsx 🔴 — tsx+react+effect — deps: effects — Update notification (НЕТ)
-2️⃣6️⃣7️⃣ packages/ui-features/src/security/PermissionsTable.tsx 🔴 — tsx+react — deps: useAuth(), route-permissions — Permissions table (НЕТ)
+3️⃣3️⃣7️⃣ packages/ui-features/src/pwa/InstallPrompt.tsx 🔴 — tsx+react+effect — deps: effects — Install prompt (НЕТ)
+3️⃣3️⃣8️⃣ packages/ui-features/src/pwa/OfflineIndicator.tsx 🔴 — tsx+react+effect — deps: effects — Offline indicator (НЕТ)
+3️⃣3️⃣9️⃣ packages/ui-features/src/pwa/UpdateNotification.tsx 🔴 — tsx+react+effect — deps: effects — Update notification (НЕТ)
+3️⃣4️⃣0️⃣ packages/ui-features/src/security/PermissionsTable.tsx 🔴 — tsx+react — deps: useAuth(), route-permissions — Permissions table (НЕТ)
 
 UI Features — Marketplace
-2️⃣6️⃣8️⃣ packages/ui-features/src/marketplace/MarketplaceCard.tsx 🔴 — tsx+react — deps: — Marketplace application/bot card (НЕТ)
-2️⃣6️⃣9️⃣ packages/ui-features/src/marketplace/CategoryTabs.tsx 🔴 — tsx+react — deps: — Category filter tabs (НЕТ)
-2️⃣7️⃣0️⃣ packages/ui-features/src/marketplace/MarketplaceSearch.tsx 🔴 — tsx+react+effect — deps: effects — Marketplace search bar (НЕТ)
+3️⃣4️⃣1️⃣ packages/ui-features/src/marketplace/MarketplaceCard.tsx 🔴 — tsx+react — deps: — Marketplace application/bot card (НЕТ)
+3️⃣4️⃣2️⃣ packages/ui-features/src/marketplace/CategoryTabs.tsx 🔴 — tsx+react — deps: — Category filter tabs (НЕТ)
+3️⃣4️⃣3️⃣ packages/ui-features/src/marketplace/MarketplaceSearch.tsx 🔴 — tsx+react+effect — deps: effects — Marketplace search bar (НЕТ)
 
 🟡 Web базовые файлы и i18n
-2️⃣7️⃣1️⃣ apps/web/package.json 🟢 — Полная реализация Next.js приложения с зависимостями (next-intl, react-hook-form, zod, workspace пакеты)
-2️⃣7️⃣2️⃣ apps/web/tsconfig.json 🟢 — Полная TS конфигурация с paths на workspace packages и правильными настройками для Next.js
-2️⃣7️⃣3️⃣ apps/web/next.config.mjs 🟢 — Полная Next.js конфигурация с настройками безопасности, изображений и webpack
-2️⃣7️⃣4️⃣ apps/web/.env.example 🟢 — Пример конфигурации переменных окружения
-2️⃣7️⃣5️⃣ apps/web/src/env.ts 🟢 — Типизированная конфигурация env переменных
-2️⃣7️⃣6️⃣ apps/web/i18n/i18n.config.json 🟢 — Конфигурация локалей
-2️⃣7️⃣7️⃣ apps/web/i18n/routing.ts 🟢 — Полная конфигурация локалей с типами TypeScript
-2️⃣7️⃣8️⃣ apps/web/i18n/request.ts 🟢 — Полная next-intl request config с загрузкой сообщений и type guards
-2️⃣7️⃣9️⃣ apps/web/messages/en.json 🟢 — Полная локализация EN со всеми необходимыми ключами
-2️⃣8️⃣0️⃣ apps/web/messages/ru.json 🟢 — Полная локализация RU со всеми необходимыми ключами
-2️⃣8️⃣1️⃣ apps/web/src/app/globals.css 🟢 — Глобальные стили
-2️⃣8️⃣2️⃣ apps/web/src/app/[locale]/layout.tsx 🟢 — Полный root layout с i18n provider и генерацией метаданных
-2️⃣8️⃣3️⃣ apps/web/src/app/providers.tsx 🟡 — Next.js Providers wrapper — проксирует AppProviders (TODO: добавить ToastProvider, TelemetryProvider, FeatureFlagsProvider из @livai/app; упростить до прокси AppProviders когда будет создан в @livai/app) + покрыть тестами
-2️⃣8️⃣4️⃣ apps/web/middleware.ts 🟢 — Полная i18n routing middleware с next-intl и правильными исключениями
-2️⃣8️⃣5️⃣ apps/web/public/manifest.json 🟢 — PWA manifest
-2️⃣8️⃣6️⃣ apps/web/src/sw.ts 🟢 — Service Worker TypeScript исходник
-2️⃣8️⃣7️⃣ apps/web/public/sw.js 🟢 — Service Worker JavaScript (генерируется из sw.ts при сборке)
-2️⃣8️⃣8️⃣ apps/web/src/app/sw-register.ts 🟡 — Регистрация Service Worker на клиенте (TODO: интегрировать toast notification system из @livai/app для уведомления пользователя перед перезагрузкой вместо console.log)
-2️⃣8️⃣9️⃣ apps/web/public/favicon.ico 🟢 — Favicon для production
-2️⃣9️⃣0️⃣ apps/web/src/app/icon-192.png/route.ts 🟢 — PWA icon 192x192 (PNG endpoint, генерируется на лету)
-2️⃣9️⃣1️⃣ apps/web/src/app/icon-512.png/route.ts 🟢 — PWA icon 512x512 (PNG endpoint, генерируется на лету)
-2️⃣9️⃣2️⃣ apps/web/src/app/robots.txt/route.ts 🟢 — Robots.txt для SEO (динамический endpoint, env-aware policy, готовность к sitemap)
-2️⃣9️⃣3️⃣ apps/web/src/app/sitemap.xml/route.ts 🟢 — Sitemap для SEO (XML endpoint, генерируется на лету, env-aware policy, i18n поддержка)
+3️⃣4️⃣4️⃣ apps/web/package.json 🟢 — Полная реализация Next.js приложения с зависимостями (next-intl, react-hook-form, zod, workspace пакеты)
+3️⃣4️⃣5️⃣ apps/web/tsconfig.json 🟢 — Полная TS конфигурация с paths на workspace packages и правильными настройками для Next.js
+3️⃣4️⃣6️⃣ apps/web/next.config.mjs 🟢 — Полная Next.js конфигурация с настройками безопасности, изображений и webpack
+3️⃣4️⃣7️⃣ apps/web/.env.example 🟢 — Пример конфигурации переменных окружения
+3️⃣4️⃣8️⃣ apps/web/src/env.ts 🟢 — Типизированная конфигурация env переменных
+3️⃣4️⃣9️⃣ apps/web/i18n/i18n.config.json 🟢 — Конфигурация локалей
+3️⃣5️⃣0️⃣ apps/web/i18n/routing.ts 🟢 — Полная конфигурация локалей с типами TypeScript
+3️⃣5️⃣1️⃣ apps/web/i18n/request.ts 🟢 — Полная next-intl request config с загрузкой сообщений и type guards
+3️⃣5️⃣2️⃣ apps/web/messages/en.json 🟢 — Полная локализация EN со всеми необходимыми ключами
+3️⃣5️⃣3️⃣ apps/web/messages/ru.json 🟢 — Полная локализация RU со всеми необходимыми ключами
+3️⃣5️⃣4️⃣ apps/web/src/app/globals.css 🟢 — Глобальные стили
+3️⃣5️⃣5️⃣ apps/web/src/app/[locale]/layout.tsx 🟢 — Полный root layout с i18n provider и генерацией метаданных
+3️⃣5️⃣6️⃣ apps/web/src/app/providers.tsx 🟡 — Next.js Providers wrapper — проксирует AppProviders (TODO: добавить ToastProvider, TelemetryProvider, FeatureFlagsProvider из @livai/app; упростить до прокси AppProviders когда будет создан в @livai/app) + покрыть тестами
+3️⃣5️⃣7️⃣ apps/web/middleware.ts 🟢 — Полная i18n routing middleware с next-intl и правильными исключениями
+3️⃣5️⃣8️⃣ apps/web/public/manifest.json 🟢 — PWA manifest
+3️⃣5️⃣9️⃣ apps/web/src/sw.ts 🟢 — Service Worker TypeScript исходник
+3️⃣6️⃣0️⃣ apps/web/public/sw.js 🟢 — Service Worker JavaScript (генерируется из sw.ts при сборке)
+3️⃣6️⃣1️⃣ apps/web/src/app/sw-register.ts 🟡 — Регистрация Service Worker на клиенте (TODO: интегрировать toast notification system из @livai/app для уведомления пользователя перед перезагрузкой вместо console.log)
+3️⃣6️⃣2️⃣ apps/web/public/favicon.ico 🟢 — Favicon для production
+3️⃣6️⃣3️⃣ apps/web/src/app/icon-192.png/route.ts 🟢 — PWA icon 192x192 (PNG endpoint, генерируется на лету)
+3️⃣6️⃣4️⃣ apps/web/src/app/icon-512.png/route.ts 🟢 — PWA icon 512x512 (PNG endpoint, генерируется на лету)
+3️⃣6️⃣5️⃣ apps/web/src/app/robots.txt/route.ts 🟢 — Robots.txt для SEO (динамический endpoint, env-aware policy, готовность к sitemap)
+3️⃣6️⃣6️⃣ apps/web/src/app/sitemap.xml/route.ts 🟢 — Sitemap для SEO (XML endpoint, генерируется на лету, env-aware policy, i18n поддержка)
 
 Web Pages
-2️⃣9️⃣4️⃣ apps/web/src/app/[locale]/page.tsx 🟡 — Главная страница с i18n и навигацией (больше чем каркас)
-2️⃣9️⃣5️⃣ apps/web/src/app/[locale]/dashboard/page.tsx 🟡 — Серверный компонент-контейнер для dashboard с отключенным prerendering
-2️⃣9️⃣6️⃣ apps/web/src/app/[locale]/dashboard/DashboardClient.tsx 🟡 — Клиентский компонент dashboard с базовым UI и TODO для виджетов/данных
-2️⃣9️⃣7️⃣ apps/web/src/app/[locale]/auth/login/page.tsx 🟡 — Серверный компонент-контейнер для login с отключенным prerendering
-2️⃣9️⃣8️⃣ apps/web/src/app/[locale]/auth/login/LoginClient.tsx 🟡 — Клиентский компонент login с формой и TODO для реального auth flow
-2️⃣9️⃣9️⃣ apps/web/src/app/[locale]/auth/register/page.tsx 🟡 — Серверный компонент-контейнер для register с отключенным prerendering
-3️⃣0️⃣0️⃣ apps/web/src/app/[locale]/auth/register/RegisterClient.tsx 🟡 — Клиентский компонент register с формой и TODO для реального auth flow
-3️⃣0️⃣1️⃣ apps/web/src/app/[locale]/bots/page.tsx 🔴 — Bots page with BotDashboard (НЕТ)
-3️⃣0️⃣2️⃣ apps/web/src/app/[locale]/balance/page.tsx 🔴 — Balance page with tabs and billing components (НЕТ)
-3️⃣0️⃣3️⃣ apps/web/src/app/[locale]/marketplace/page.tsx 🔴 — Marketplace page with category tabs and cards (НЕТ)
-3️⃣0️⃣4️⃣ apps/web/src/app/[locale]/chat/page.tsx 🔴 — Chat page with ChatInterface and ChatListPanel (НЕТ)
-3️⃣0️⃣5️⃣ apps/web/src/app/[locale]/analytics/page.tsx 🔴 — Analytics page with charts and filters (НЕТ)
-3️⃣0️⃣6️⃣ apps/web/src/app/[locale]/history/page.tsx 🔴 — History page with filters and data table (НЕТ)
-3️⃣0️⃣7️⃣ apps/web/src/app/[locale]/not-found.tsx 🔴 — Custom 404 error page (НЕТ)
-3️⃣0️⃣8️⃣ apps/web/src/app/[locale]/mailings/page.tsx 🔴 — Mailings page with filters and table (НЕТ)
-3️⃣0️⃣9️⃣ apps/web/src/app/[locale]/error.tsx 🔴 — Custom 500 error page (НЕТ)
-3️⃣1️⃣0️⃣ apps/web/src/app/global-error.tsx 🔴 — App-level error boundary для Next.js 16+ (НЕТ)
+3️⃣6️⃣7️⃣ apps/web/src/app/[locale]/page.tsx 🟡 — Главная страница с i18n и навигацией (больше чем каркас)
+3️⃣6️⃣8️⃣ apps/web/src/app/[locale]/dashboard/page.tsx 🟡 — Серверный компонент-контейнер для dashboard с отключенным prerendering
+3️⃣6️⃣9️⃣ apps/web/src/app/[locale]/dashboard/DashboardClient.tsx 🟡 — Клиентский компонент dashboard с базовым UI и TODO для виджетов/данных
+3️⃣7️⃣0️⃣ apps/web/src/app/[locale]/auth/login/page.tsx 🟡 — Серверный компонент-контейнер для login с отключенным prerendering
+3️⃣7️⃣1️⃣ apps/web/src/app/[locale]/auth/login/LoginClient.tsx 🟡 — Клиентский компонент login с формой и TODO для реального auth flow
+3️⃣7️⃣2️⃣ apps/web/src/app/[locale]/auth/register/page.tsx 🟡 — Серверный компонент-контейнер для register с отключенным prerendering
+3️⃣7️⃣3️⃣ apps/web/src/app/[locale]/auth/register/RegisterClient.tsx 🟡 — Клиентский компонент register с формой и TODO для реального auth flow
+3️⃣7️⃣4️⃣ apps/web/src/app/[locale]/bots/page.tsx 🔴 — Bots page with BotDashboard (НЕТ)
+3️⃣7️⃣5️⃣ apps/web/src/app/[locale]/balance/page.tsx 🔴 — Balance page with tabs and billing components (НЕТ)
+3️⃣7️⃣6️⃣ apps/web/src/app/[locale]/marketplace/page.tsx 🔴 — Marketplace page with category tabs and cards (НЕТ)
+3️⃣7️⃣7️⃣ apps/web/src/app/[locale]/chat/page.tsx 🔴 — Chat page with ChatInterface and ChatListPanel (НЕТ)
+3️⃣7️⃣8️⃣ apps/web/src/app/[locale]/analytics/page.tsx 🔴 — Analytics page with charts and filters (НЕТ)
+3️⃣7️⃣9️⃣ apps/web/src/app/[locale]/history/page.tsx 🔴 — History page with filters and data table (НЕТ)
+3️⃣8️⃣0️⃣ apps/web/src/app/[locale]/not-found.tsx 🔴 — Custom 404 error page (НЕТ)
+3️⃣8️⃣1️⃣ apps/web/src/app/[locale]/mailings/page.tsx 🔴 — Mailings page with filters and table (НЕТ)
+3️⃣8️⃣2️⃣ apps/web/src/app/[locale]/error.tsx 🔴 — Custom 500 error page (НЕТ)
+3️⃣8️⃣3️⃣ apps/web/src/app/global-error.tsx 🔴 — App-level error boundary для Next.js 16+ (НЕТ)
 
 💡 **Итог по рекомендациям для UI компонентов:**
 

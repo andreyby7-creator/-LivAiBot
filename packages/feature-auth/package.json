@@ -92,7 +92,9 @@
   ],
   "dependencies": {
     "@livai/app": "workspace:*",
+    "@livai/core": "workspace:*",
     "@livai/core-contracts": "workspace:*",
+    "@livai/domains": "workspace:*",
     "zod": "^4.3.6"
   },
   "optionalDependencies": {

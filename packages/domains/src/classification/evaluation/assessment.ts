@@ -373,6 +373,9 @@ function assembleAssessmentResult(
     confidence: confidenceValue,
     label: resolvedLabel,
     scale: CLASSIFICATION_EVALUATION_SCALE,
+    riskScore: assessmentContext.riskScore,
+    riskLevel: riskLevel,
+    triggeredRules: assessmentContext.ruleEvaluationSnapshot.triggeredRules,
     ...(triggeredRuleCount > 0 && {
       usedSignals: [] as readonly (keyof NonNullable<ClassificationContext['signals']>)[],
     }),

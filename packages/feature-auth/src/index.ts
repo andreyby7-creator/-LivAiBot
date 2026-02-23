@@ -116,7 +116,7 @@ export * from './schemas.js';
 
 export * from './types/auth.js';
 
-// Risk Assessment Types (централизованные типы из types/risk.ts)
+// Risk Assessment Types (централизованные типы из types/auth-risk.ts)
 export type {
   ContextBuilderPlugin,
   ExternalRiskSignals,
@@ -125,7 +125,7 @@ export type {
   RiskContext,
   RiskPolicy,
   RiskSignals,
-} from './types/risk.js';
+} from './types/auth-risk.js';
 
 /* ============================================================================
  * 🛡️ DOMAIN — PURE DOMAIN LOGIC
@@ -133,37 +133,10 @@ export type {
  *
  * Pure domain логика для risk assessment.
  * Детерминированные функции без side-effects.
- */
-
-// Domain: Risk Validation
-export { type RiskSemanticViolation, validateRiskSemantics } from './domain/RiskValidation.js';
-
-// Domain: Context Builders
-export {
-  buildAssessmentContext,
-  buildRuleContext,
-  buildScoringContext,
-} from './domain/ContextBuilders.js';
-
-// Domain: Plugin Appliers
-export {
-  applyAssessmentPlugins,
-  applyRulePlugins,
-  applyScoringPlugins,
-} from './domain/PluginAppliers.js';
-
-// Domain: Local Rules Engine
-export { evaluateLocalRules } from './domain/LocalRulesEngine.js';
-
-/* ============================================================================
- * 🔒 SECURITY — SECURITY UTILITIES
- * ============================================================================
  *
- * Security utilities для защиты от атак и sanitization данных.
+ * @note Domain логика для risk assessment перенесена в @livai/domains
+ *       (validateClassificationSemantics, buildScoringContext, buildRuleContext, etc.)
  */
-
-// Security: Sanitizer
-export { sanitizeExternalSignals } from './lib/sanitizer.js';
 
 /* ============================================================================
  * ⚡ EFFECTS — PURE EFFECTS
@@ -176,82 +149,16 @@ export { sanitizeExternalSignals } from './lib/sanitizer.js';
 // Device Fingerprint
 export { DeviceFingerprint } from './effects/login/device-fingerprint.js';
 
-// Risk Assessment: Rules
-export {
-  AllRules,
-  allRules,
-  compositeRules,
-  deviceRules,
-  evaluateRuleActions,
-  evaluateRules,
-  type ExtendedRuleDefinition,
-  geoRules,
-  getMaxPriority,
-  getRuleDefinition,
-  getRulesWithDecisionImpact,
-  networkRules,
-  type RiskRule,
-  type RiskRuleConfig,
-  type RuleAction,
-  type RuleContextMetadata,
-  type RuleDefinition,
-  type RuleEvaluationContext,
-  type RuleEvaluator,
-  type RuleIdentifier,
-  type RuleMetadata,
-  type RuleSignals,
-  sortRulesByPriority,
-} from './effects/login/risk-rules.js';
-
-// Risk Assessment: Scoring
-export {
-  calculateRiskScore,
-  calculateRiskScoreFromJson,
-  calculateRiskScoreWithAsyncFactors,
-  calculateRiskScoreWithAsyncFactorsAndCache,
-  calculateRiskScoreWithCache,
-  calculateRiskScoreWithFactors,
-  clearAsyncScoreCache,
-  clearScoreCache,
-  createFactorConfigFromJson,
-  createFactorConfigsFromJson,
-  DefaultRiskWeights,
-  defaultRiskWeights,
-  factorCalculatorRegistryExport,
-  type FactorConfigJson,
-  getAsyncScoreCacheSize,
-  getCustomFactorPlugin,
-  getScoreCacheSize,
-  isAsyncFactor,
-  isSyncFactor,
-  registerCustomFactorPlugin,
-  type RiskWeights,
-  type ScoringContext,
-  scoringFactorConfigs,
-  type ScoringSignals,
-} from './effects/login/risk-scoring.js';
-
-// Risk Assessment: Decision
-export {
-  type BlockReason,
-  type DecisionPolicy,
-  type DecisionResult,
-  type DecisionSignals,
-  DefaultDecisionPolicy,
-  defaultDecisionPolicy,
-  DefaultRiskThresholds,
-  defaultRiskThresholds,
-  determineDecisionHint,
-  determineRiskLevel,
-  type RiskThresholds,
-} from './effects/login/risk-decision.js';
+// Risk Assessment: Rules, Scoring, Decision
+// @note Правила, scoring и decision логика перенесена в @livai/domains
+//       (evaluateRules, calculateRiskScore, determineRiskLevel, etc.)
 
 // Risk Assessment: Adapter
 export {
   buildAssessment,
   type RiskSignals as AdapterRiskSignals,
   type SignalsMapperPlugin,
-} from './effects/login/risk-assessment.adapter.js';
+} from './effects/login/login-risk-assessment.adapter.js';
 
 // Risk Assessment: Composition Layer
 export { assessLoginRisk, type AuditHook } from './effects/login/risk-assessment.js';
@@ -262,56 +169,24 @@ export { isValidLoginRequest } from './effects/login/validation.js';
 // Login Helpers: Metadata Builders
 export {
   buildLoginMetadata,
+  createLoginMetadataEnricher,
   type IdentifierHasher,
   type LoginContext,
   type LoginMetadata,
   type MetadataBuilder,
   type MetadataConfig,
   type RiskMetadata,
-} from './effects/login/metadata-builders.js';
+} from './effects/login/login-metadata.enricher.js';
 
 /* ============================================================================
  * 🛡️ SECURITY PIPELINE — RISK ASSESSMENT & SECURITY
  * ============================================================================
  *
  * Security pipeline для оценки рисков и принятия решений.
- * Включает local rules engine, performance limits и security pipeline facade.
+ *
+ * @note Security pipeline перенесён в @livai/core/pipeline
+ *       (executeSecurityPipeline, SecurityPipelineError, etc.)
  */
-
-// Security Pipeline: Risk Sources
-export {
-  assessLocalRisk,
-  type AuditHook as LocalRulesAuditHook,
-  type LocalRiskResult,
-  type LocalRulesSourceConfig,
-  PerformanceLimits,
-} from './lib/security-pipeline/risk-sources/local-rules.source.js';
-
-export {
-  DEFAULT_PERFORMANCE_LIMITS,
-  defaultPerformanceLimits,
-  getPerformanceLimits,
-  type PerformanceLimitsConfig,
-  resetPerformanceLimits,
-  setPerformanceLimits,
-  validatePerformanceLimits,
-} from './lib/security-pipeline/risk-sources/performance-limits.js';
-
-// Security Pipeline: Core
-export type { SecurityPipelineError } from './lib/security-pipeline/core/security-pipeline.errors.js';
-
-// Security Pipeline: Public API
-export {
-  executeSecurityPipeline,
-  type SecurityOperation,
-  type SecurityPipelineConfig,
-  type SecurityPipelineResult,
-  type SecurityPipelineStep,
-  SecurityPipelineVersion,
-} from './lib/security-pipeline/security-pipeline.js';
-
-// Security Pipeline: Facade
-export { executeSecurityPipeline as executeSecurityPipelineFacade } from './lib/security-pipeline/security-pipeline.facade.js';
 
 /* ============================================================================
  * 🏪 STORES — ZUSTAND STORES

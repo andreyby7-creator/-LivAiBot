@@ -1,5 +1,5 @@
 {
-  "name": "@livai/domains-classification",
+  "name": "@livai/domains",
   "version": "1.0.0",
   "description": "Classification domain implementation - decision computing domain with labels, signals, strategies",
   "repository": {

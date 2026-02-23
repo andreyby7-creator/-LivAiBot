@@ -41,6 +41,8 @@
  * ============================================================================
  */
 
+import type { RiskLevel } from '@livai/domains';
+
 import type { AuthAuditEvent } from '../domain/AuthAuditEvent.js';
 import type { AuthErrorResponse } from '../domain/AuthErrorResponse.js';
 import type { DeviceInfo } from '../domain/DeviceInfo.js';
@@ -464,8 +466,12 @@ export type OAuthError = OAuthErrorResponse;
  * ============================================================================
  */
 
-/** Уровень риска */
-export type RiskLevel = 'low' | 'medium' | 'high' | 'critical';
+/**
+ * Уровень риска
+ * @note Re-export из @livai/domains для единого источника истины
+ *       Соответствует плану рефакторинга: "Убрать локальные определения RiskLevel"
+ */
+export type { RiskLevel } from '@livai/domains';
 
 /** Статус безопасности */
 export type SecurityStatus =

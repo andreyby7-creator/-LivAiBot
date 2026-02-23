@@ -16,6 +16,8 @@ import {
   classificationSignals,
 } from '../../../src/classification/signals/signals.js';
 import type { ClassificationEvaluationResult } from '../../../src/classification/evaluation/result.js';
+import type { ClassificationRule } from '../../../src/classification/strategies/rules.js';
+import type { RiskLevel } from '../../../src/classification/policies/base.policy.js';
 
 /* ============================================================================
  * 🔧 HELPER FUNCTIONS FOR TEST DATA
@@ -36,6 +38,9 @@ function createTestEvaluationResult(
   confidenceValue: number,
   scaleMin: number,
   scaleMax: number,
+  riskScore: number = 50,
+  riskLevel: RiskLevel = 'medium',
+  triggeredRules: readonly ClassificationRule[] = [],
 ): ClassificationEvaluationResult {
   const label = createTestLabel(labelValue);
   const scaleResult = evaluationScale.create(scaleMin, scaleMax, 'classification');
@@ -58,6 +63,9 @@ function createTestEvaluationResult(
     confidence: confidenceValueResult,
     label,
     scale,
+    riskScore,
+    riskLevel,
+    triggeredRules,
   };
 }
 
@@ -74,6 +82,9 @@ describe('ClassificationEvaluationResult', () => {
       expect(result).toHaveProperty('confidence');
       expect(result).toHaveProperty('label');
       expect(result).toHaveProperty('scale');
+      expect(result).toHaveProperty('riskScore');
+      expect(result).toHaveProperty('riskLevel');
+      expect(result).toHaveProperty('triggeredRules');
     });
 
     it('может быть создан со всеми полями включая usedSignals', () => {
@@ -163,6 +174,55 @@ describe('ClassificationEvaluationResult', () => {
       expect(result.scale.domain).toBe('classification');
       expect(result.scale.min).toBe(0);
       expect(result.scale.max).toBe(100);
+    });
+
+    it('содержит riskScore с правильным типом и диапазоном', () => {
+      const result = createTestEvaluationResult('SAFE', 20, 0.95, 0, 100, 30, 'low');
+      expect(typeof result.riskScore).toBe('number');
+      expect(result.riskScore).toBe(30);
+      expect(result.riskScore).toBeGreaterThanOrEqual(0);
+      expect(result.riskScore).toBeLessThanOrEqual(100);
+    });
+
+    it('содержит riskLevel с правильным типом', () => {
+      const result = createTestEvaluationResult('SAFE', 20, 0.95, 0, 100, 30, 'low');
+      expect(result.riskLevel).toBe('low');
+      const resultMedium = createTestEvaluationResult('SUSPICIOUS', 50, 0.7, 0, 100, 50, 'medium');
+      expect(resultMedium.riskLevel).toBe('medium');
+      const resultHigh = createTestEvaluationResult('DANGEROUS', 80, 0.5, 0, 100, 80, 'high');
+      expect(resultHigh.riskLevel).toBe('high');
+      const resultCritical = createTestEvaluationResult(
+        'DANGEROUS',
+        95,
+        0.3,
+        0,
+        100,
+        95,
+        'critical',
+      );
+      expect(resultCritical.riskLevel).toBe('critical');
+    });
+
+    it('содержит triggeredRules с правильным типом', () => {
+      const result = createTestEvaluationResult('SAFE', 20, 0.95, 0, 100, 30, 'low', []);
+      expect(Array.isArray(result.triggeredRules)).toBe(true);
+      expect(result.triggeredRules.length).toBe(0);
+    });
+
+    it('triggeredRules может содержать правила', () => {
+      const rules: ClassificationRule[] = ['VPN_DETECTED', 'TOR_NETWORK'];
+      const result = createTestEvaluationResult(
+        'DANGEROUS',
+        90,
+        0.5,
+        0,
+        100,
+        90,
+        'critical',
+        rules,
+      );
+      expect(result.triggeredRules).toEqual(rules);
+      expect(result.triggeredRules.length).toBe(2);
     });
   });
 
@@ -333,6 +393,9 @@ describe('ClassificationEvaluationResult', () => {
         confidence: confidenceResult.value,
         label,
         scale,
+        riskScore: 30,
+        riskLevel: 'low',
+        triggeredRules: [],
       };
       expect(result.scale.min).toBe(0);
       expect(result.scale.max).toBe(10);
@@ -358,6 +421,9 @@ describe('ClassificationEvaluationResult', () => {
         confidence: confidenceResult.value,
         label,
         scale,
+        riskScore: 50,
+        riskLevel: 'medium',
+        triggeredRules: [],
       };
       expect(result.scale.min).toBe(1);
       expect(result.scale.max).toBe(5);
@@ -366,11 +432,14 @@ describe('ClassificationEvaluationResult', () => {
 
   describe('immutability', () => {
     it('все поля readonly и не могут быть изменены', () => {
-      const result = createTestEvaluationResult('SAFE', 20, 0.95, 0, 100);
+      const result = createTestEvaluationResult('SAFE', 20, 0.95, 0, 100, 30, 'low', []);
       expect(Object.isFrozen(result)).toBe(false); // Readonly не означает frozen
       // Проверяем, что поля доступны только для чтения через TypeScript
       expect(result.evaluationLevel).toBe(20);
       expect(result.confidence).toBe(0.95);
+      expect(result.riskScore).toBe(30);
+      expect(result.riskLevel).toBe('low');
+      expect(result.triggeredRules).toEqual([]);
     });
 
     it('usedSignals является readonly массивом', () => {
