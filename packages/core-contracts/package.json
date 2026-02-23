@@ -29,46 +29,6 @@
       "types": "./src/index.ts",
       "import": "./src/index.ts"
     },
-    "./io": {
-      "types": "./dist/esm/io/index.d.ts",
-      "import": "./dist/esm/io/index.js",
-      "default": "./dist/esm/io/index.js"
-    },
-    "./fp": {
-      "types": "./dist/esm/fp/index.d.ts",
-      "import": "./dist/esm/fp/index.js",
-      "default": "./dist/esm/fp/index.js"
-    },
-    "./domain": {
-      "types": "./dist/esm/domain/index.d.ts",
-      "import": "./dist/esm/domain/index.js",
-      "default": "./dist/esm/domain/index.js"
-    },
-    "./errors": {
-      "types": "./dist/esm/errors/index.d.ts",
-      "import": "./dist/esm/errors/index.js",
-      "default": "./dist/esm/errors/index.js"
-    },
-    "./context": {
-      "types": "./dist/esm/context/index.d.ts",
-      "import": "./dist/esm/context/index.js",
-      "default": "./dist/esm/context/index.js"
-    },
-    "./targets/shared": {
-      "types": "./dist/esm/targets/shared.d.ts",
-      "import": "./dist/esm/targets/shared.js",
-      "default": "./dist/esm/targets/shared.js"
-    },
-    "./targets/node": {
-      "types": "./dist/esm/targets/node.d.ts",
-      "import": "./dist/esm/targets/node.js",
-      "default": "./dist/esm/targets/node.js"
-    },
-    "./targets/browser": {
-      "types": "./dist/esm/targets/browser.d.ts",
-      "import": "./dist/esm/targets/browser.js",
-      "default": "./dist/esm/targets/browser.js"
-    },
     "./validation/zod": {
       "types": "./src/validation/zod/index.ts",
       "import": "./src/validation/zod/index.ts"
