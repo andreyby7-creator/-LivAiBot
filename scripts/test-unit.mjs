@@ -357,7 +357,19 @@ function parseVitestJsonResults(outputFile = null, reportDir = 'reports') {
 
 // Единая функция для построения аргументов Vitest и переменных окружения
 function buildVitestArgs(configPath, environment, normalizedPaths = [], opts, coverageEnabled, reporterConfig) {
-  const testArgs = ["run", "--config", configPath];
+  const testArgs = ["run"];
+  
+  // Для unit тестов (vitest.config.ts) не указываем --config, чтобы Vitest автоматически
+  // находил конфиги в пакетах (packages/*/vitest.config.ts) и использовал их
+  // Это позволяет каждому пакету иметь свои паттерны include/exclude относительно корня пакета
+  // Для других типов тестов (integration, ai) используем явный конфиг
+  const isUnitTestConfig = configPath && configPath.includes('vitest.config.ts');
+  if (configPath && !isUnitTestConfig) {
+    // Используем абсолютный путь к конфигу для integration/ai тестов
+    const normalizedConfigPath = path.resolve(ROOT, configPath);
+    testArgs.push("--config", normalizedConfigPath);
+  }
+  // Для unit тестов не указываем --config - Vitest автоматически найдет все конфиги
   const env = {
     ...process.env,
     ...(coverageEnabled ? { COVERAGE: "true" } : {})
@@ -765,6 +777,7 @@ async function runVitestOnce({ configPath, environment, paths, opts, coverageEna
         stdio: "inherit",
         shell: false,
         env,
+        cwd: ROOT, // Явно устанавливаем рабочую директорию для правильного разрешения путей
       });
 
       child.on('close', async (code) => {

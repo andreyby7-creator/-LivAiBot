@@ -4,6 +4,7 @@
  */
 import { describe, expect, it } from 'vitest';
 import { confidence, evaluationLevel, evaluationScale } from '@livai/core/domain-kit';
+import type { EvaluationScale } from '@livai/core/domain-kit';
 import type {
   ClassificationLabel,
   ClassificationLabelValue,
@@ -46,8 +47,8 @@ function createTestEvaluationResult(
   if (!scaleResult.ok) {
     throw new Error(`Failed to create scale: ${JSON.stringify(scaleResult.reason)}`);
   }
-  const scale = scaleResult.value;
-  const levelResult = evaluationLevel.create(levelValue, scale);
+  const scale: EvaluationScale<'classification'> = scaleResult.value;
+  const levelResult = evaluationLevel.create<'classification'>(levelValue, scale);
   if (!levelResult.ok) {
     throw new Error(`Failed to create level: ${JSON.stringify(levelResult.reason)}`);
   }
@@ -65,7 +66,7 @@ function createTestEvaluationResult(
     riskScore,
     riskLevel,
     triggeredRules,
-  };
+  } as unknown as ClassificationEvaluationResult;
 }
 
 /* ============================================================================
@@ -377,8 +378,8 @@ describe('ClassificationEvaluationResult', () => {
       if (!scaleResult.ok) {
         throw new Error('Failed to create scale');
       }
-      const scale = scaleResult.value;
-      const levelResult = evaluationLevel.create(5, scale);
+      const scale: EvaluationScale<'classification'> = scaleResult.value;
+      const levelResult = evaluationLevel.create<'classification'>(5, scale);
       if (!levelResult.ok) {
         throw new Error('Failed to create level');
       }
@@ -395,7 +396,7 @@ describe('ClassificationEvaluationResult', () => {
         riskScore: 30,
         riskLevel: 'low',
         triggeredRules: [],
-      };
+      } as unknown as ClassificationEvaluationResult;
       expect(result.scale.min).toBe(0);
       expect(result.scale.max).toBe(10);
     });
@@ -405,8 +406,8 @@ describe('ClassificationEvaluationResult', () => {
       if (!scaleResult.ok) {
         throw new Error('Failed to create scale');
       }
-      const scale = scaleResult.value;
-      const levelResult = evaluationLevel.create(3, scale);
+      const scale: EvaluationScale<'classification'> = scaleResult.value;
+      const levelResult = evaluationLevel.create<'classification'>(3, scale);
       if (!levelResult.ok) {
         throw new Error('Failed to create level');
       }
@@ -423,7 +424,7 @@ describe('ClassificationEvaluationResult', () => {
         riskScore: 50,
         riskLevel: 'medium',
         triggeredRules: [],
-      };
+      } as unknown as ClassificationEvaluationResult;
       expect(result.scale.min).toBe(1);
       expect(result.scale.max).toBe(5);
     });

@@ -11,6 +11,7 @@ import {
   SCORE_VALIDATION,
 } from '../../src/classification/constants.js';
 import { evaluationLevel } from '@livai/core/domain-kit';
+import type { EvaluationScale } from '@livai/core/domain-kit';
 
 /* ============================================================================
  * 📋 GEO_VALIDATION — TESTS
@@ -196,7 +197,8 @@ describe('CLASSIFICATION_EVALUATION_SCALE', () => {
   });
 
   it('может использоваться для создания evaluationLevel', () => {
-    const levelResult = evaluationLevel.create(50, CLASSIFICATION_EVALUATION_SCALE);
+    const scale = CLASSIFICATION_EVALUATION_SCALE as unknown as EvaluationScale<'classification'>;
+    const levelResult = evaluationLevel.create<'classification'>(50, scale);
     expect(levelResult.ok).toBe(true);
     if (levelResult.ok) {
       expect(levelResult.value).toBeDefined();
@@ -204,22 +206,23 @@ describe('CLASSIFICATION_EVALUATION_SCALE', () => {
   });
 
   it('валидирует границы при создании evaluationLevel', () => {
+    const scale = CLASSIFICATION_EVALUATION_SCALE as unknown as EvaluationScale<'classification'>;
     // Валидное значение в диапазоне
-    const validResult = evaluationLevel.create(50, CLASSIFICATION_EVALUATION_SCALE);
+    const validResult = evaluationLevel.create<'classification'>(50, scale);
     expect(validResult.ok).toBe(true);
 
     // Граничные значения
-    const minResult = evaluationLevel.create(0, CLASSIFICATION_EVALUATION_SCALE);
+    const minResult = evaluationLevel.create<'classification'>(0, scale);
     expect(minResult.ok).toBe(true);
 
-    const maxResult = evaluationLevel.create(100, CLASSIFICATION_EVALUATION_SCALE);
+    const maxResult = evaluationLevel.create<'classification'>(100, scale);
     expect(maxResult.ok).toBe(true);
 
     // Невалидные значения вне диапазона
-    const belowMinResult = evaluationLevel.create(-1, CLASSIFICATION_EVALUATION_SCALE);
+    const belowMinResult = evaluationLevel.create<'classification'>(-1, scale);
     expect(belowMinResult.ok).toBe(false);
 
-    const aboveMaxResult = evaluationLevel.create(101, CLASSIFICATION_EVALUATION_SCALE);
+    const aboveMaxResult = evaluationLevel.create<'classification'>(101, scale);
     expect(aboveMaxResult.ok).toBe(false);
   });
 
