@@ -8,7 +8,7 @@ import type {
   AuthSmsTemplateType,
   SmsTemplateRequest,
 } from '../../../src/domain/SmsTemplateRequest.js';
-import { smsTemplateRequestSchema } from '../../../src/schemas.js';
+import { smsTemplateRequestSchema } from '../../../src/schemas/index.js';
 
 // ============================================================================
 // 🔧 HELPER FUNCTIONS FOR TEST DATA

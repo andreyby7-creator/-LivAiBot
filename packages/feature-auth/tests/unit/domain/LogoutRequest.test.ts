@@ -5,7 +5,7 @@
 
 import { describe, expect, it } from 'vitest';
 import type { ClientContext, LogoutRequest } from '../../../src/domain/LogoutRequest.js';
-import { logoutRequestSchema } from '../../../src/schemas.js';
+import { logoutRequestSchema } from '../../../src/schemas/index.js';
 
 // ============================================================================
 // 🔧 HELPER FUNCTIONS FOR TEST DATA

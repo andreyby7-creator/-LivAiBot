@@ -8,7 +8,7 @@ import type {
   AuthEmailTemplateType,
   EmailTemplateRequest,
 } from '../../../src/domain/EmailTemplateRequest.js';
-import { emailTemplateRequestSchema } from '../../../src/schemas.js';
+import { emailTemplateRequestSchema } from '../../../src/schemas/index.js';
 
 // ============================================================================
 // 🔧 HELPER FUNCTIONS FOR TEST DATA

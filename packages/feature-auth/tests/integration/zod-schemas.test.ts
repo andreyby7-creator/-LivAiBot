@@ -33,7 +33,7 @@ import {
   tokenPairSchema,
   verifyEmailRequestSchema,
   verifyPhoneRequestSchema,
-} from '../../src/schemas.js';
+} from '../../src/schemas/index.js';
 
 // ============================================================================
 // 🔧 HELPER FUNCTIONS FOR TEST DATA

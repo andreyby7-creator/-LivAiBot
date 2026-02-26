@@ -8,7 +8,7 @@ import type {
   SessionRevokeReason,
   SessionRevokeRequest,
 } from '../../../src/domain/SessionRevokeRequest.js';
-import { sessionRevokeRequestSchema } from '../../../src/schemas.js';
+import { sessionRevokeRequestSchema } from '../../../src/schemas/index.js';
 
 // ============================================================================
 // 🔧 HELPER FUNCTIONS FOR TEST DATA

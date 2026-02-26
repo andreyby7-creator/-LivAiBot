@@ -72,4 +72,4 @@ export {
   type VerifyEmailRequestValues,
   verifyPhoneRequestSchema,
   type VerifyPhoneRequestValues,
-} from '../schemas.js';
+} from './schemas.js';

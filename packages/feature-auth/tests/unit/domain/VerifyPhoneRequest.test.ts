@@ -5,7 +5,7 @@
 
 import { describe, expect, it } from 'vitest';
 import type { ClientContext, VerifyPhoneRequest } from '../../../src/domain/VerifyPhoneRequest.js';
-import { verifyPhoneRequestSchema } from '../../../src/schemas.js';
+import { verifyPhoneRequestSchema } from '../../../src/schemas/index.js';
 
 // ============================================================================
 // 🔧 HELPER FUNCTIONS FOR TEST DATA

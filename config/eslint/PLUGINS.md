@@ -9,7 +9,6 @@
 **❌ Еще не готовы:**
 
 - `eslint-plugin-import` (2.32.0): Проверка импортов и зависимостей | ❌ До ESLint 9 | ❌ Нет встроенной замены
-- `eslint-plugin-tsdoc` (0.5.0): Валидация TSDoc комментариев | ❌ Несовместим | ❌ Нет встроенной замены
 - `eslint-plugin-eslint-comments` (3.2.0): Контроль ESLint-директив (`// eslint-disable`) | ❌ `context.getSourceCode()` удален | ❌ Нет встроенной замены
 - `eslint-plugin-no-secrets` (2.2.2): Обнаружение секретов в коде (API ключи, токены) | ❌ `context.getSourceCode()` удален | ❌ Нет встроенной замены
 
@@ -61,7 +60,7 @@
 
 ### Документация
 
-`eslint-plugin-tsdoc` | TSDoc комментарии | ✅
+`eslint-plugin-tsdoc` (0.5.2) | TSDoc комментарии | ✅ | ✅ ESLint 10 ready
 
 ## Опциональные плагины (graceful degradation)
 
@@ -123,5 +122,5 @@ npm ls <plugin-name>
 
 ---
 
-_Последнее обновление: 14 января 2026_
+_Последнее обновление: 26 февраля 2026_
 _Ответственный: ESLint Team_

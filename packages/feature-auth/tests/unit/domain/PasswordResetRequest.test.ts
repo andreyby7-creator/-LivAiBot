@@ -10,7 +10,7 @@ import type {
   PasswordResetIdentifierType,
   PasswordResetRequest,
 } from '../../../src/domain/PasswordResetRequest.js';
-import { passwordResetRequestSchema } from '../../../src/schemas.js';
+import { passwordResetRequestSchema } from '../../../src/schemas/index.js';
 
 // ============================================================================
 // 🔧 HELPER FUNCTIONS FOR TEST DATA

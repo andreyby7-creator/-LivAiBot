@@ -5,7 +5,7 @@
 
 import { describe, expect, it } from 'vitest';
 import type { MeResponse, MeSessionInfo, MeUserInfo } from '../../../src/domain/MeResponse.js';
-import { meResponseSchema } from '../../../src/schemas.js';
+import { meResponseSchema } from '../../../src/schemas/index.js';
 
 // ============================================================================
 // 🔧 HELPER FUNCTIONS FOR TEST DATA

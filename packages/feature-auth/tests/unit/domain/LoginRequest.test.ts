@@ -10,7 +10,7 @@ import type {
   LoginRequest,
   MfaInfo,
 } from '../../../src/domain/LoginRequest.js';
-import { loginSchema } from '../../../src/schemas.js';
+import { loginSchema } from '../../../src/schemas/index.js';
 
 // ============================================================================
 // 🔧 HELPER FUNCTIONS FOR TEST DATA

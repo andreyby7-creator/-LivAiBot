@@ -11,7 +11,7 @@ import type {
   RegisterIdentifierType,
   RegisterRequest,
 } from '../../../src/domain/RegisterRequest.js';
-import { registerRequestSchema } from '../../../src/schemas.js';
+import { registerRequestSchema } from '../../../src/schemas/index.js';
 
 // ============================================================================
 // 🔧 HELPER FUNCTIONS FOR TEST DATA

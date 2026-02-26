@@ -15,7 +15,7 @@ import {
   oauthErrorResponseSchema,
   oauthLoginRequestSchema,
   oauthRegisterRequestSchema,
-} from '../../../src/schemas.js';
+} from '../../../src/schemas/index.js';
 
 // ============================================================================
 // 🔧 HELPER FUNCTIONS FOR TEST DATA

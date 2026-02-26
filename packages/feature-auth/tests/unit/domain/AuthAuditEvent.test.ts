@@ -9,7 +9,7 @@ import type {
   AuthAuditEvent,
   AuthAuditEventType,
 } from '../../../src/domain/AuthAuditEvent.js';
-import { auditEventSchema } from '../../../src/schemas.js';
+import { auditEventSchema } from '../../../src/schemas/index.js';
 
 // ============================================================================
 // 🔧 HELPER FUNCTIONS FOR TEST DATA

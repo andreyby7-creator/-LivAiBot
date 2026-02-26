@@ -8,7 +8,7 @@ import type {
   ClientContext,
   PasswordResetConfirm,
 } from '../../../src/domain/PasswordResetConfirm.js';
-import { passwordResetConfirmSchema } from '../../../src/schemas.js';
+import { passwordResetConfirmSchema } from '../../../src/schemas/index.js';
 
 // ============================================================================
 // 🔧 HELPER FUNCTIONS FOR TEST DATA

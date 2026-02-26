@@ -9,7 +9,7 @@ import type {
   GeoInfo,
   LoginRiskAssessment,
 } from '../../../src/domain/LoginRiskAssessment.js';
-import { loginRiskAssessmentSchema } from '../../../src/schemas.js';
+import { loginRiskAssessmentSchema } from '../../../src/schemas/index.js';
 
 // ============================================================================
 // 🔧 HELPER FUNCTIONS FOR TEST DATA
