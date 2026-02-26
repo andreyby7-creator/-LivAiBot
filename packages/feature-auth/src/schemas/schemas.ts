@@ -236,6 +236,14 @@ export const tokenPairSchema = z.object({
 
 export type TokenPairValues = ZodType.infer<typeof tokenPairSchema>;
 
+/**
+ * Схема токенов для login-flow.
+ * @note tokenPairSchema уже strict, поэтому loginTokenPairSchema = strict(alias) для явной границы.
+ */
+export const loginTokenPairSchema = tokenPairSchema.strict();
+
+export type LoginTokenPairValues = ZodType.infer<typeof loginTokenPairSchema>;
+
 // Refresh token request schema
 export const refreshTokenRequestSchema = z.object({
   refreshToken: z.string(), // Refresh token для обновления access token

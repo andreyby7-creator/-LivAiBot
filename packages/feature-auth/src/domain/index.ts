@@ -80,6 +80,13 @@ export { type TokenPair } from './TokenPair.js';
  */
 export { type MeResponse, type MeSessionInfo, type MeUserInfo } from './MeResponse.js';
 
+/**
+ * Login Result: domain-level результат login-flow.
+ *
+ * @public
+ */
+export { type DomainLoginResult } from './LoginResult.js';
+
 /* ============================================================================
  * 🔑 OAUTH — OAUTH АУТЕНТИФИКАЦИЯ
  * ========================================================================== */

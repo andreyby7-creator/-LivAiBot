@@ -68,3 +68,15 @@ export {
   type RiskPolicy,
   type RiskSignals,
 } from './auth-risk.js';
+
+/* ============================================================================
+ * 🔐 LOGIN DTO TYPES — ТИПЫ DTO ДЛЯ LOGIN FLOW
+ * ========================================================================== */
+
+/**
+ * Login DTO Types: feature-level агрегированные типы для login-flow.
+ * Включает LoginResponseDto и type guards для type-safe branching.
+ *
+ * @public
+ */
+export { isLoginSuccess, isMfaRequired, type LoginResponseDto } from './login.dto.js';

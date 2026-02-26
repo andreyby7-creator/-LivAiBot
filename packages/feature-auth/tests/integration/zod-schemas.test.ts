@@ -13,6 +13,7 @@ import {
   emailTemplateRequestSchema,
   loginRequestSchema,
   loginRiskAssessmentSchema,
+  loginTokenPairSchema,
   logoutRequestSchema,
   meResponseSchema,
   mfaBackupCodeRequestSchema,
@@ -91,6 +92,33 @@ describe('Zod Schemas Integration Tests', () => {
     });
   });
 
+  describe('loginTokenPairSchema', () => {
+    it('валидирует валидные данные tokenPair', () => {
+      const validData = {
+        accessToken: 'access-token-123',
+        refreshToken: 'refresh-token-456',
+        expiresAt: '2024-01-01T00:00:00.000Z',
+      };
+
+      const result = loginTokenPairSchema.safeParse(validData);
+
+      expect(result.success).toBe(true);
+    });
+
+    it('отклоняет данные с лишними полями (strict shape)', () => {
+      const invalidData = {
+        accessToken: 'access-token-123',
+        refreshToken: 'refresh-token-456',
+        expiresAt: '2024-01-01T00:00:00.000Z',
+        extra: 'not-allowed',
+      };
+
+      const result = loginTokenPairSchema.safeParse(invalidData);
+
+      expect(result.success).toBe(false);
+    });
+  });
+
   describe('auditEventSchema', () => {
     it('валидирует валидные данные', () => {
       const validData = {
@@ -114,6 +142,45 @@ describe('Zod Schemas Integration Tests', () => {
       };
 
       const result = auditEventSchema.safeParse(invalidData);
+
+      expect(result.success).toBe(false);
+    });
+  });
+
+  describe('meResponseSchema', () => {
+    it('валидирует валидные данные', () => {
+      const validData = {
+        user: {
+          id: 'user-123',
+          email: 'user@example.com',
+        },
+        roles: ['user'],
+        permissions: ['read'],
+        session: {
+          sessionId: 'session-123',
+        },
+      };
+
+      const result = meResponseSchema.safeParse(validData);
+
+      expect(result.success).toBe(true);
+    });
+
+    it('отклоняет данные с лишними полями на верхнем уровне (strict shape)', () => {
+      const invalidData = {
+        user: {
+          id: 'user-123',
+          email: 'user@example.com',
+        },
+        roles: ['user'],
+        permissions: ['read'],
+        session: {
+          sessionId: 'session-123',
+        },
+        extra: 'not-allowed',
+      };
+
+      const result = meResponseSchema.safeParse(invalidData);
 
       expect(result.success).toBe(false);
     });

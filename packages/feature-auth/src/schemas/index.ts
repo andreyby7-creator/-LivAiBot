@@ -29,6 +29,8 @@ export {
   loginRiskAssessmentSchema,
   type LoginRiskAssessmentValues,
   loginSchema,
+  loginTokenPairSchema,
+  type LoginTokenPairValues,
   type LoginValues,
   logoutRequestSchema,
   type LogoutRequestValues,
