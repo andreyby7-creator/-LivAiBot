@@ -4,7 +4,11 @@
  */
 
 import { describe, expect, it } from 'vitest';
-import type { LoginRiskAssessment } from '../../../src/domain/LoginRiskAssessment.js';
+import {
+  createLoginRiskEvaluation,
+  createLoginRiskResult,
+} from '../../../src/domain/LoginRiskAssessment.js';
+import type { LoginRiskEvaluation } from '../../../src/domain/LoginRiskAssessment.js';
 import type {
   AuthRuleEvaluationContext,
   AuthScoringContext,
@@ -28,22 +32,28 @@ import type { ClassificationRule } from '@livai/domains/strategies';
 
 const createIsoTimestamp = (): IsoTimestamp => '2024-01-15T10:30:00.000Z';
 
-const createLoginRiskAssessment = (
-  overrides: Partial<LoginRiskAssessment> = {},
-): LoginRiskAssessment => ({
-  userId: 'user-123',
-  ip: '192.168.1.1',
-  geo: { country: 'US', city: 'New York', lat: 40.7128, lng: -74.0060 },
-  device: {
-    deviceId: 'device-123',
-    platform: 'desktop',
-    os: 'Windows',
-    browser: 'Chrome',
-  },
-  userAgent: 'Mozilla/5.0',
-  timestamp: createIsoTimestamp(),
-  ...overrides,
-});
+const createLoginRiskEvaluationTest = (): LoginRiskEvaluation =>
+  createLoginRiskEvaluation(
+    createLoginRiskResult({
+      score: 42,
+      level: 'medium',
+      reasons: [],
+      modelVersion: '1.0',
+    }),
+    {
+      userId: 'user-123',
+      ip: '192.168.1.1',
+      geo: { country: 'US', city: 'New York', lat: 40.7128, lng: -74.006 },
+      device: {
+        deviceId: 'device-123',
+        platform: 'desktop',
+        os: 'Windows',
+        browser: 'Chrome',
+      },
+      userAgent: 'Mozilla/5.0',
+      timestamp: Date.now(),
+    },
+  );
 
 const createClassificationRule = (): ClassificationRule => 'TOR_NETWORK';
 
@@ -361,7 +371,7 @@ describe('RiskAssessmentResult', () => {
         action: 'mfa',
         blockReason: 'High risk detected',
       },
-      assessment: createLoginRiskAssessment(),
+      assessment: createLoginRiskEvaluationTest(),
     };
 
     expect(result.riskScore).toBe(75);
@@ -379,7 +389,7 @@ describe('RiskAssessmentResult', () => {
       decisionHint: {
         action: 'login',
       },
-      assessment: createLoginRiskAssessment(),
+      assessment: createLoginRiskEvaluationTest(),
     };
 
     expect(result.decisionHint.action).toBe('login');
@@ -393,7 +403,7 @@ describe('RiskAssessmentResult', () => {
       decisionHint: {
         action: 'mfa',
       },
-      assessment: createLoginRiskAssessment(),
+      assessment: createLoginRiskEvaluationTest(),
     };
 
     expect(result.decisionHint.action).toBe('mfa');
@@ -408,7 +418,7 @@ describe('RiskAssessmentResult', () => {
         action: 'block',
         blockReason: 'Critical risk detected',
       },
-      assessment: createLoginRiskAssessment(),
+      assessment: createLoginRiskEvaluationTest(),
     };
 
     expect(result.decisionHint.action).toBe('block');
@@ -426,7 +436,7 @@ describe('RiskAssessmentResult', () => {
         decisionHint: {
           action: 'login',
         },
-        assessment: createLoginRiskAssessment(),
+        assessment: createLoginRiskEvaluationTest(),
       };
 
       expect(result.riskLevel).toBe(level);
@@ -441,7 +451,7 @@ describe('RiskAssessmentResult', () => {
       decisionHint: {
         action: 'login',
       },
-      assessment: createLoginRiskAssessment(),
+      assessment: createLoginRiskEvaluationTest(),
     };
 
     expect(result.triggeredRules).toEqual([]);
@@ -456,7 +466,7 @@ describe('RiskAssessmentResult', () => {
         action: 'block',
         blockReason: 'Multiple rules triggered',
       },
-      assessment: createLoginRiskAssessment(),
+      assessment: createLoginRiskEvaluationTest(),
     };
 
     expect(result.triggeredRules).toHaveLength(2);
@@ -470,7 +480,7 @@ describe('RiskAssessmentResult', () => {
       decisionHint: {
         action: 'mfa',
       },
-      assessment: createLoginRiskAssessment(),
+      assessment: createLoginRiskEvaluationTest(),
     };
 
     // Все поля readonly, мутация невозможна на этапе компиляции

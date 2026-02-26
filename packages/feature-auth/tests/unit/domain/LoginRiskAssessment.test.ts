@@ -7,7 +7,17 @@ import { describe, expect, it } from 'vitest';
 import type {
   DeviceRiskInfo,
   GeoInfo,
-  LoginRiskAssessment,
+  LoginRiskEvaluation,
+  LoginRiskResult,
+} from '../../../src/domain/LoginRiskAssessment.js';
+import {
+  createEmptyLoginRiskResult,
+  createLoginRiskEvaluation as createLoginRiskEvaluationDomain,
+  createLoginRiskResult,
+  createRiskModelVersion,
+  createRiskScore,
+  deriveLoginDecision,
+  DomainValidationError,
 } from '../../../src/domain/LoginRiskAssessment.js';
 import { loginRiskAssessmentSchema } from '../../../src/schemas/index.js';
 
@@ -38,69 +48,73 @@ function createDeviceRiskInfo(overrides: Partial<DeviceRiskInfo> = {}): DeviceRi
   };
 }
 
-function createLoginRiskAssessment(
-  overrides: Partial<LoginRiskAssessment> = {},
-): LoginRiskAssessment {
-  return {
+function createLoginRiskEvaluationHelper(
+  overrides: {
+    result?: Partial<LoginRiskResult>;
+    context?: Partial<LoginRiskEvaluation['context']>;
+  } = {},
+): LoginRiskEvaluation {
+  const result = createLoginRiskResult({
+    score: 25,
+    level: 'low',
+    modelVersion: '1.0',
+    ...overrides.result,
+  });
+
+  const context: LoginRiskEvaluation['context'] = {
     userId: 'user-123',
     ip: '192.168.1.1',
     geo: createGeoInfo(),
     device: createDeviceRiskInfo(),
     userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
     previousSessionId: 'session-prev-456',
-    timestamp: '2026-01-15T10:30:00.000Z',
-    signals: {
-      asn: 'AS12345',
-      vpn: false,
-      riskScore: 25,
-    },
-    ...overrides,
+    timestamp: new Date('2026-01-15T10:30:00.000Z').getTime(),
+    ...overrides.context,
   };
+
+  return createLoginRiskEvaluationDomain(result, context);
 }
 
-function createMinimalLoginRiskAssessment(
-  overrides: Partial<LoginRiskAssessment> = {},
-): LoginRiskAssessment {
-  return {
-    ...overrides,
+function createMinimalLoginRiskEvaluation(): LoginRiskEvaluation {
+  const result = createEmptyLoginRiskResult();
+  const context: LoginRiskEvaluation['context'] = {
+    timestamp: new Date('2026-01-15T10:30:00.000Z').getTime(), // Фиксированный timestamp для snapshots
   };
+  return createLoginRiskEvaluationDomain(result, context);
 }
 
-function createFullLoginRiskAssessment(
-  overrides: Partial<LoginRiskAssessment> = {},
-): LoginRiskAssessment {
-  return {
+function createFullLoginRiskEvaluation(): LoginRiskEvaluation {
+  const result = createLoginRiskResult({
+    score: 75,
+    level: 'high',
+    reasons: [{ type: 'network', code: 'vpn' }],
+    modelVersion: '1.0',
+  });
+
+  const context: LoginRiskEvaluation['context'] = {
     userId: 'user-full-456',
     ip: '10.0.0.1',
-    geo: {
+    geo: createGeoInfo({
       country: 'DE',
       region: 'BE',
       city: 'Berlin',
       lat: 52.5200,
       lng: 13.4050,
-    },
-    device: {
+    }),
+    device: createDeviceRiskInfo({
       deviceId: 'device-full-789',
       fingerprint: 'fp-full-abc',
       platform: 'ios',
       os: 'iOS 17.0',
       browser: 'Safari 17.0',
       appVersion: '2.1.0',
-    },
+    }),
     userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X)',
     previousSessionId: 'session-full-prev',
-    timestamp: '2026-01-15T12:00:00.000Z',
-    signals: {
-      asn: 'AS67890',
-      vpn: true,
-      proxy: false,
-      tor: false,
-      velocityAnomaly: true,
-      reputationScore: 75,
-      externalRiskVendor: 'maxmind',
-    },
-    ...overrides,
+    timestamp: new Date('2026-01-15T12:00:00.000Z').getTime(),
   };
+
+  return createLoginRiskEvaluationDomain(result, context);
 }
 
 // ============================================================================
@@ -159,6 +173,10 @@ describe('GeoInfo геолокационная информация', () => {
     expect(geo.lat).toBe(37.7749);
     expect(geo.lng).toBe(-122.4194);
   });
+
+  // Валидация координат GeoInfo не реализована в domain слое
+  // GeoInfo - это простой тип без валидации
+  // Валидация может быть добавлена в adapter слое при необходимости
 });
 
 // ============================================================================
@@ -224,35 +242,41 @@ describe('DeviceRiskInfo информация об устройстве', () => 
 // 📋 LOGIN RISK ASSESSMENT DTO - Полный DTO
 // ============================================================================
 
-describe('LoginRiskAssessment полный DTO', () => {
+describe('LoginRiskEvaluation полный DTO', () => {
   it('создает минимальную оценку риска (все поля опциональны)', () => {
-    const assessment = createMinimalLoginRiskAssessment();
+    const evaluation = createMinimalLoginRiskEvaluation();
 
-    expect(assessment.userId).toBeUndefined();
-    expect(assessment.ip).toBeUndefined();
-    expect(assessment.geo).toBeUndefined();
-    expect(assessment.device).toBeUndefined();
-    expect(assessment.userAgent).toBeUndefined();
-    expect(assessment.previousSessionId).toBeUndefined();
-    expect(assessment.timestamp).toBeUndefined();
-    expect(assessment.signals).toBeUndefined();
+    expect(evaluation.context.userId).toBeUndefined();
+    expect(evaluation.context.ip).toBeUndefined();
+    expect(evaluation.context.geo).toBeUndefined();
+    expect(evaluation.context.device).toBeUndefined();
+    expect(evaluation.context.userAgent).toBeUndefined();
+    expect(evaluation.context.previousSessionId).toBeUndefined();
+    expect(evaluation.context.timestamp).toBeDefined();
+    expect(evaluation.result.score).toBeDefined();
+    expect(evaluation.result.level).toBeDefined();
+    expect(evaluation.result.reasons).toBeDefined();
+    expect(evaluation.result.modelVersion).toBeDefined();
   });
 
   it('создает полную оценку риска со всеми полями', () => {
-    const assessment = createFullLoginRiskAssessment();
+    const evaluation = createFullLoginRiskEvaluation();
 
-    expect(assessment.userId).toBe('user-full-456');
-    expect(assessment.ip).toBe('10.0.0.1');
-    expect(assessment.geo?.country).toBe('DE');
-    expect(assessment.geo?.city).toBe('Berlin');
-    expect(assessment.device?.deviceId).toBe('device-full-789');
-    expect(assessment.device?.fingerprint).toBe('fp-full-abc');
-    expect(assessment.device?.platform).toBe('ios');
-    expect(assessment.userAgent).toBe('Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X)');
-    expect(assessment.previousSessionId).toBe('session-full-prev');
-    expect(assessment.timestamp).toBe('2026-01-15T12:00:00.000Z');
-    expect(assessment.signals?.['asn']).toBe('AS67890');
-    expect(assessment.signals?.['vpn']).toBe(true);
+    expect(evaluation.context.userId).toBe('user-full-456');
+    expect(evaluation.context.ip).toBe('10.0.0.1');
+    expect(evaluation.context.geo?.country).toBe('DE');
+    expect(evaluation.context.geo?.city).toBe('Berlin');
+    expect(evaluation.context.device?.deviceId).toBe('device-full-789');
+    expect(evaluation.context.device?.fingerprint).toBe('fp-full-abc');
+    expect(evaluation.context.device?.platform).toBe('ios');
+    expect(evaluation.context.userAgent).toBe(
+      'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X)',
+    );
+    expect(evaluation.context.previousSessionId).toBe('session-full-prev');
+    expect(evaluation.context.timestamp).toBe(new Date('2026-01-15T12:00:00.000Z').getTime());
+    expect(evaluation.result.score).toBeDefined();
+    expect(evaluation.result.level).toBe('high');
+    expect(evaluation.result.reasons).toHaveLength(1);
   });
 
   it('работает с различными IP адресами', () => {
@@ -266,8 +290,8 @@ describe('LoginRiskAssessment полный DTO', () => {
     ];
 
     ipAddresses.forEach((ip) => {
-      const assessment = createLoginRiskAssessment({ ip });
-      expect(assessment.ip).toBe(ip);
+      const evaluation = createLoginRiskEvaluationHelper({ context: { ip } });
+      expect(evaluation.context.ip).toBe(ip);
     });
   });
 
@@ -280,8 +304,8 @@ describe('LoginRiskAssessment полный DTO', () => {
     ];
 
     userAgents.forEach((userAgent) => {
-      const assessment = createLoginRiskAssessment({ userAgent });
-      expect(assessment.userAgent).toBe(userAgent);
+      const evaluation = createLoginRiskEvaluationHelper({ context: { userAgent } });
+      expect(evaluation.context.userAgent).toBe(userAgent);
     });
   });
 });
@@ -290,87 +314,73 @@ describe('LoginRiskAssessment полный DTO', () => {
 // 🔄 OPTIONAL FIELDS - Опциональные поля
 // ============================================================================
 
-describe('LoginRiskAssessment optional fields', () => {
+describe('LoginRiskEvaluation optional fields', () => {
   it('userId опционально (может отсутствовать до идентификации)', () => {
-    const assessmentWithUserId = createLoginRiskAssessment({ userId: 'user-123' });
-    const assessmentWithoutUserId = createMinimalLoginRiskAssessment();
+    const evaluationWithUserId = createLoginRiskEvaluationHelper({
+      context: { userId: 'user-123' },
+    });
+    const evaluationWithoutUserId = createMinimalLoginRiskEvaluation();
 
-    expect(assessmentWithUserId.userId).toBe('user-123');
-    expect(assessmentWithoutUserId.userId).toBeUndefined();
+    expect(evaluationWithUserId.context.userId).toBe('user-123');
+    expect(evaluationWithoutUserId.context.userId).toBeUndefined();
   });
 
   it('ip опционально для IP адреса клиента', () => {
-    const assessmentWithIp = createLoginRiskAssessment({ ip: '192.168.1.1' });
-    const assessmentWithoutIp = createMinimalLoginRiskAssessment();
+    const evaluationWithIp = createLoginRiskEvaluationHelper({ context: { ip: '192.168.1.1' } });
+    const evaluationWithoutIp = createMinimalLoginRiskEvaluation();
 
-    expect(assessmentWithIp.ip).toBe('192.168.1.1');
-    expect(assessmentWithoutIp.ip).toBeUndefined();
+    expect(evaluationWithIp.context.ip).toBe('192.168.1.1');
+    expect(evaluationWithoutIp.context.ip).toBeUndefined();
   });
 
   it('geo опционально для геолокации', () => {
-    const assessmentWithGeo = createLoginRiskAssessment({
-      geo: createGeoInfo(),
+    const evaluationWithGeo = createLoginRiskEvaluationHelper({
+      context: { geo: createGeoInfo() },
     });
-    const assessmentWithoutGeo = createMinimalLoginRiskAssessment();
+    const evaluationWithoutGeo = createMinimalLoginRiskEvaluation();
 
-    expect(assessmentWithGeo.geo?.country).toBe('US');
-    expect(assessmentWithGeo.geo?.lat).toBe(37.7749);
-    expect(assessmentWithoutGeo.geo).toBeUndefined();
+    expect(evaluationWithGeo.context.geo?.country).toBe('US');
+    expect(evaluationWithGeo.context.geo?.lat).toBe(37.7749);
+    expect(evaluationWithoutGeo.context.geo).toBeUndefined();
   });
 
   it('device опционально для информации об устройстве', () => {
-    const assessmentWithDevice = createLoginRiskAssessment({
-      device: createDeviceRiskInfo(),
+    const evaluationWithDevice = createLoginRiskEvaluationHelper({
+      context: { device: createDeviceRiskInfo() },
     });
-    const assessmentWithoutDevice = createMinimalLoginRiskAssessment();
+    const evaluationWithoutDevice = createMinimalLoginRiskEvaluation();
 
-    expect(assessmentWithDevice.device?.deviceId).toBe('device-abc-123');
-    expect(assessmentWithDevice.device?.fingerprint).toBe('fp-xyz-789');
-    expect(assessmentWithoutDevice.device).toBeUndefined();
+    expect(evaluationWithDevice.context.device?.deviceId).toBe('device-abc-123');
+    expect(evaluationWithDevice.context.device?.fingerprint).toBe('fp-xyz-789');
+    expect(evaluationWithoutDevice.context.device).toBeUndefined();
   });
 
   it('userAgent опционально для User-Agent строки', () => {
-    const assessmentWithUserAgent = createLoginRiskAssessment({
-      userAgent: 'Mozilla/5.0',
+    const evaluationWithUserAgent = createLoginRiskEvaluationHelper({
+      context: { userAgent: 'Mozilla/5.0' },
     });
-    const assessmentWithoutUserAgent = createMinimalLoginRiskAssessment();
+    const evaluationWithoutUserAgent = createMinimalLoginRiskEvaluation();
 
-    expect(assessmentWithUserAgent.userAgent).toBe('Mozilla/5.0');
-    expect(assessmentWithoutUserAgent.userAgent).toBeUndefined();
+    expect(evaluationWithUserAgent.context.userAgent).toBe('Mozilla/5.0');
+    expect(evaluationWithoutUserAgent.context.userAgent).toBeUndefined();
   });
 
   it('previousSessionId опционально для предыдущей сессии', () => {
-    const assessmentWithPrevious = createLoginRiskAssessment({
-      previousSessionId: 'session-prev',
+    const evaluationWithPrevious = createLoginRiskEvaluationHelper({
+      context: { previousSessionId: 'session-prev' },
     });
-    const assessmentWithoutPrevious = createMinimalLoginRiskAssessment();
+    const evaluationWithoutPrevious = createMinimalLoginRiskEvaluation();
 
-    expect(assessmentWithPrevious.previousSessionId).toBe('session-prev');
-    expect(assessmentWithoutPrevious.previousSessionId).toBeUndefined();
+    expect(evaluationWithPrevious.context.previousSessionId).toBe('session-prev');
+    expect(evaluationWithoutPrevious.context.previousSessionId).toBeUndefined();
   });
 
-  it('timestamp опционально для временной метки', () => {
-    const assessmentWithTimestamp = createLoginRiskAssessment({
-      timestamp: '2026-01-15T10:30:00.000Z',
+  it('timestamp обязателен для временной метки', () => {
+    const evaluation = createLoginRiskEvaluationHelper({
+      context: { timestamp: new Date('2026-01-15T10:30:00.000Z').getTime() },
     });
-    const assessmentWithoutTimestamp = createMinimalLoginRiskAssessment();
 
-    expect(assessmentWithTimestamp.timestamp).toBe('2026-01-15T10:30:00.000Z');
-    expect(assessmentWithoutTimestamp.timestamp).toBeUndefined();
-  });
-
-  it('signals опционально для дополнительных сигналов риска', () => {
-    const assessmentWithSignals = createLoginRiskAssessment({
-      signals: {
-        vpn: true,
-        riskScore: 85,
-      },
-    });
-    const assessmentWithoutSignals = createMinimalLoginRiskAssessment();
-
-    expect(assessmentWithSignals.signals?.['vpn']).toBe(true);
-    expect(assessmentWithSignals.signals?.['riskScore']).toBe(85);
-    expect(assessmentWithoutSignals.signals).toBeUndefined();
+    expect(evaluation.context.timestamp).toBe(new Date('2026-01-15T10:30:00.000Z').getTime());
   });
 });
 
@@ -378,14 +388,14 @@ describe('LoginRiskAssessment optional fields', () => {
 // 🔒 SECURITY & PRIVACY - Безопасность и конфиденциальность
 // ============================================================================
 
-describe('LoginRiskAssessment security & privacy', () => {
+describe('LoginRiskEvaluation security & privacy', () => {
   it('IP адрес - PII данные, должны обрабатываться согласно GDPR', () => {
     // IP адрес является Personal Identifiable Information (PII)
-    const assessment = createLoginRiskAssessment({
-      ip: '192.168.1.1',
+    const evaluation = createLoginRiskEvaluationHelper({
+      context: { ip: '192.168.1.1' },
     });
 
-    expect(assessment.ip).toBe('192.168.1.1');
+    expect(evaluation.context.ip).toBe('192.168.1.1');
 
     // В продакшене эти данные должны:
     // - Храниться с шифрованием
@@ -396,17 +406,19 @@ describe('LoginRiskAssessment security & privacy', () => {
 
   it('геолокация - PII данные, требуют особой обработки', () => {
     // Геолокация является PII и требует особой обработки
-    const assessment = createLoginRiskAssessment({
-      geo: {
-        country: 'US',
-        city: 'San Francisco',
-        lat: 37.7749,
-        lng: -122.4194,
+    const evaluation = createLoginRiskEvaluationHelper({
+      context: {
+        geo: {
+          country: 'US',
+          city: 'San Francisco',
+          lat: 37.7749,
+          lng: -122.4194,
+        },
       },
     });
 
-    expect(assessment.geo?.country).toBe('US');
-    expect(assessment.geo?.lat).toBe(37.7749);
+    expect(evaluation.context.geo?.country).toBe('US');
+    expect(evaluation.context.geo?.lat).toBe(37.7749);
 
     // В продакшене эти данные должны:
     // - Анонимизироваться при хранении (если возможно)
@@ -417,16 +429,18 @@ describe('LoginRiskAssessment security & privacy', () => {
 
   it('device fingerprint - tracking данные, требуют конфиденциальности', () => {
     // Device fingerprint используется для tracking и fraud prevention
-    const assessment = createLoginRiskAssessment({
-      device: {
-        deviceId: 'device-fingerprint-123',
-        fingerprint: 'fp-hash-abc-xyz',
-        platform: 'web',
+    const evaluation = createLoginRiskEvaluationHelper({
+      context: {
+        device: {
+          deviceId: 'device-fingerprint-123',
+          fingerprint: 'fp-hash-abc-xyz',
+          platform: 'web',
+        },
       },
     });
 
-    expect(assessment.device?.deviceId).toBe('device-fingerprint-123');
-    expect(assessment.device?.fingerprint).toBe('fp-hash-abc-xyz');
+    expect(evaluation.context.device?.deviceId).toBe('device-fingerprint-123');
+    expect(evaluation.context.device?.fingerprint).toBe('fp-hash-abc-xyz');
 
     // В продакшене эти данные должны:
     // - Храниться в зашифрованном виде
@@ -437,11 +451,13 @@ describe('LoginRiskAssessment security & privacy', () => {
 
   it('userAgent - browser fingerprinting данные', () => {
     // User-Agent используется для browser fingerprinting
-    const assessment = createLoginRiskAssessment({
-      userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+    const evaluation = createLoginRiskEvaluationHelper({
+      context: {
+        userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+      },
     });
 
-    expect(assessment.userAgent).toBe(
+    expect(evaluation.context.userAgent).toBe(
       'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
     );
 
@@ -450,99 +466,64 @@ describe('LoginRiskAssessment security & privacy', () => {
     // - Не передаваться третьим лицам без согласия
     // - Соответствовать privacy regulations
   });
-
-  it('signals могут содержать sensitive security данные', () => {
-    // Signals могут содержать sensitive данные о рисках
-    const assessment = createLoginRiskAssessment({
-      signals: {
-        vpn: true,
-        proxy: false,
-        tor: true,
-        reputationScore: 15, // Низкий reputation score
-        externalRiskVendor: 'maxmind',
-      },
-    });
-
-    expect(assessment.signals?.['vpn']).toBe(true);
-    expect(assessment.signals?.['tor']).toBe(true);
-    expect(assessment.signals?.['reputationScore']).toBe(15);
-
-    // В продакшене эти данные должны:
-    // - Храниться с шифрованием
-    // - Иметь ограниченный доступ
-    // - Не логироваться в plain text
-    // - Использоваться только для risk assessment
-  });
 });
 
 // ============================================================================
 // ⚠️ EDGE CASES - Пограничные случаи
 // ============================================================================
 
-describe('LoginRiskAssessment edge cases', () => {
+describe('LoginRiskEvaluation edge cases', () => {
   it('работает с пустыми строками в опциональных полях', () => {
-    const assessment = createLoginRiskAssessment({
-      userId: '',
-      ip: '',
-      userAgent: '',
-      previousSessionId: '',
-      timestamp: '',
-    });
-
-    expect(assessment.userId).toBe('');
-    expect(assessment.ip).toBe('');
-    expect(assessment.userAgent).toBe('');
-    expect(assessment.previousSessionId).toBe('');
-    expect(assessment.timestamp).toBe('');
-  });
-
-  it('поддерживает пустой geo объект', () => {
-    const assessment = createLoginRiskAssessment({
-      geo: {},
-    });
-
-    expect(assessment.geo).toEqual({});
-  });
-
-  it('поддерживает пустой device объект', () => {
-    const assessment = createLoginRiskAssessment({
-      device: {},
-    });
-
-    expect(assessment.device).toEqual({});
-  });
-
-  it('timestamp может быть в ISO 8601 формате', () => {
-    const assessmentWithTimestamp = createLoginRiskAssessment({
-      timestamp: '2026-01-15T10:30:00.000Z',
-    });
-
-    const assessmentWithoutTimestamp = createMinimalLoginRiskAssessment();
-
-    expect(assessmentWithTimestamp.timestamp).toBe('2026-01-15T10:30:00.000Z');
-    expect(assessmentWithTimestamp.timestamp).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/);
-    expect(assessmentWithoutTimestamp.timestamp).toBeUndefined();
-  });
-
-  it('signals может содержать любые данные', () => {
-    const assessment = createLoginRiskAssessment({
-      signals: {
-        stringValue: 'test',
-        numberValue: 42,
-        booleanValue: true,
-        arrayValue: [1, 2, 3],
-        nestedObject: {
-          key: 'value',
-        },
-        nullValue: null,
+    const evaluation = createLoginRiskEvaluationHelper({
+      context: {
+        userId: '',
+        ip: '',
+        userAgent: '',
+        previousSessionId: '',
+        timestamp: Date.now(),
       },
     });
 
-    expect(assessment.signals?.['stringValue']).toBe('test');
-    expect(assessment.signals?.['numberValue']).toBe(42);
-    expect(assessment.signals?.['booleanValue']).toBe(true);
-    expect(Array.isArray(assessment.signals?.['arrayValue'])).toBe(true);
-    expect(assessment.signals?.['nestedObject']).toEqual({ key: 'value' });
+    expect(evaluation.context.userId).toBe('');
+    expect(evaluation.context.ip).toBe('');
+    expect(evaluation.context.userAgent).toBe('');
+    expect(evaluation.context.previousSessionId).toBe('');
+    expect(evaluation.context.timestamp).toBeDefined();
+  });
+
+  it('поддерживает пустой geo объект', () => {
+    const evaluation = createLoginRiskEvaluationHelper({
+      context: {
+        geo: {},
+      },
+    });
+
+    expect(evaluation.context.geo).toEqual({});
+  });
+
+  it('поддерживает пустой device объект', () => {
+    const evaluation = createLoginRiskEvaluationHelper({
+      context: {
+        device: {},
+      },
+    });
+
+    expect(evaluation.context.device).toEqual({});
+  });
+
+  it('timestamp обязателен и должен быть числом', () => {
+    const evaluationWithTimestamp = createLoginRiskEvaluationHelper({
+      context: {
+        timestamp: new Date('2026-01-15T10:30:00.000Z').getTime(),
+      },
+    });
+
+    const evaluationWithoutTimestamp = createMinimalLoginRiskEvaluation();
+
+    expect(evaluationWithTimestamp.context.timestamp).toBe(
+      new Date('2026-01-15T10:30:00.000Z').getTime(),
+    );
+    expect(evaluationWithoutTimestamp.context.timestamp).toBeDefined();
   });
 
   it('поддерживает различные форматы IP адресов (IPv4 и IPv6)', () => {
@@ -550,8 +531,8 @@ describe('LoginRiskAssessment edge cases', () => {
     const ipv6Addresses = ['::1', '2001:0db8:85a3:0000:0000:8a2e:0370:7334', 'fe80::1'];
 
     [...ipv4Addresses, ...ipv6Addresses].forEach((ip) => {
-      const assessment = createLoginRiskAssessment({ ip });
-      expect(assessment.ip).toBe(ip);
+      const evaluation = createLoginRiskEvaluationHelper({ context: { ip } });
+      expect(evaluation.context.ip).toBe(ip);
     });
   });
 
@@ -564,14 +545,16 @@ describe('LoginRiskAssessment edge cases', () => {
     ];
 
     coordinates.forEach((coord) => {
-      const assessment = createLoginRiskAssessment({
-        geo: {
-          lat: coord.lat,
-          lng: coord.lng,
+      const evaluation = createLoginRiskEvaluationHelper({
+        context: {
+          geo: {
+            lat: coord.lat,
+            lng: coord.lng,
+          },
         },
       });
-      expect(assessment.geo?.lat).toBe(coord.lat);
-      expect(assessment.geo?.lng).toBe(coord.lng);
+      expect(evaluation.context.geo?.lat).toBe(coord.lat);
+      expect(evaluation.context.geo?.lng).toBe(coord.lng);
     });
   });
 });
@@ -580,76 +563,64 @@ describe('LoginRiskAssessment edge cases', () => {
 // 🔒 IMMUTABILITY VALIDATION - Неизменяемость
 // ============================================================================
 
-describe('LoginRiskAssessment immutability', () => {
+describe('LoginRiskEvaluation immutability', () => {
   it('все поля readonly - предотвращает мутацию', () => {
-    const assessment: LoginRiskAssessment = {
-      userId: 'user-immutable',
-      ip: '192.168.1.1',
-      geo: createGeoInfo(),
-      device: createDeviceRiskInfo(),
-      userAgent: 'Mozilla/5.0',
-      previousSessionId: 'session-immutable',
-      timestamp: '2026-01-15T10:30:00.000Z',
-      signals: {
-        key: 'value',
+    const evaluation = createLoginRiskEvaluationHelper({
+      context: {
+        userId: 'user-immutable',
+        ip: '192.168.1.1',
+        geo: createGeoInfo(),
+        device: createDeviceRiskInfo(),
+        userAgent: 'Mozilla/5.0',
+        previousSessionId: 'session-immutable',
+        timestamp: new Date('2026-01-15T10:30:00.000Z').getTime(),
       },
-    };
+    });
 
     // TypeScript предотвращает мутацию
-    // assessment.userId = 'new-user'; // TypeScript error: Cannot assign to 'userId' because it is a read-only property
-    // assessment.ip = 'new-ip'; // TypeScript error: Cannot assign to 'ip' because it is a read-only property
+    // evaluation.context.userId = 'new-user'; // TypeScript error: Cannot assign to 'userId' because it is a read-only property
+    // evaluation.context.ip = 'new-ip'; // TypeScript error: Cannot assign to 'ip' because it is a read-only property
 
-    expect(assessment.userId).toBe('user-immutable');
-    expect(assessment.ip).toBe('192.168.1.1');
+    expect(evaluation.context.userId).toBe('user-immutable');
+    expect(evaluation.context.ip).toBe('192.168.1.1');
   });
 
   it('geo readonly - предотвращает мутацию вложенных объектов', () => {
-    const assessment: LoginRiskAssessment = {
-      geo: {
-        country: 'US',
-        lat: 37.7749,
-        lng: -122.4194,
+    const evaluation = createLoginRiskEvaluationHelper({
+      context: {
+        geo: {
+          country: 'US',
+          lat: 37.7749,
+          lng: -122.4194,
+        },
       },
-    };
+    });
 
     // TypeScript предотвращает мутацию geo
-    // assessment.geo!.lat = 0; // TypeScript error: Cannot assign to 'lat' because it is a read-only property
-    // assessment.geo!.lng = 0; // TypeScript error: Cannot assign to 'lng' because it is a read-only property
+    // evaluation.context.geo!.lat = 0; // TypeScript error: Cannot assign to 'lat' because it is a read-only property
+    // evaluation.context.geo!.lng = 0; // TypeScript error: Cannot assign to 'lng' because it is a read-only property
 
-    expect(assessment.geo?.lat).toBe(37.7749);
-    expect(assessment.geo?.lng).toBe(-122.4194);
+    expect(evaluation.context.geo?.lat).toBe(37.7749);
+    expect(evaluation.context.geo?.lng).toBe(-122.4194);
   });
 
   it('device readonly - предотвращает мутацию вложенных объектов', () => {
-    const assessment: LoginRiskAssessment = {
-      device: {
-        deviceId: 'device-immutable',
-        fingerprint: 'fp-immutable',
-        platform: 'web',
+    const evaluation = createLoginRiskEvaluationHelper({
+      context: {
+        device: {
+          deviceId: 'device-immutable',
+          fingerprint: 'fp-immutable',
+          platform: 'web',
+        },
       },
-    };
+    });
 
     // TypeScript предотвращает мутацию device
-    // assessment.device!.deviceId = 'new-id'; // TypeScript error: Cannot assign to 'deviceId' because it is a read-only property
-    // assessment.device!.platform = 'ios'; // TypeScript error: Cannot assign to 'platform' because it is a read-only property
+    // evaluation.context.device!.deviceId = 'new-id'; // TypeScript error: Cannot assign to 'deviceId' because it is a read-only property
+    // evaluation.context.device!.platform = 'ios'; // TypeScript error: Cannot assign to 'platform' because it is a read-only property
 
-    expect(assessment.device?.deviceId).toBe('device-immutable');
-    expect(assessment.device?.platform).toBe('web');
-  });
-
-  it('signals readonly - предотвращает мутацию вложенных объектов', () => {
-    const assessment: LoginRiskAssessment = {
-      signals: {
-        vpn: true,
-        riskScore: 75,
-      },
-    };
-
-    // TypeScript предотвращает мутацию signals
-    // assessment.signals!['vpn'] = false; // TypeScript error: Index signature in type 'readonly Record<string, unknown>' only permits reading
-
-    expect(assessment.signals?.['vpn']).toBe(true);
-    expect(assessment.signals?.['riskScore']).toBe(75);
+    expect(evaluation.context.device?.deviceId).toBe('device-immutable');
+    expect(evaluation.context.device?.platform).toBe('web');
   });
 });
 
@@ -657,56 +628,301 @@ describe('LoginRiskAssessment immutability', () => {
 // 📸 COMPREHENSIVE SNAPSHOTS - Полные снимки
 // ============================================================================
 
-describe('LoginRiskAssessment comprehensive snapshots', () => {
-  it('full risk assessment - полный snapshot', () => {
-    const assessment = createFullLoginRiskAssessment();
+describe('LoginRiskEvaluation comprehensive snapshots', () => {
+  it('full risk evaluation - полный snapshot', () => {
+    const evaluation = createFullLoginRiskEvaluation();
 
-    expect(assessment).toMatchSnapshot();
+    expect(evaluation).toMatchSnapshot();
   });
 
-  it('minimal risk assessment - полный snapshot', () => {
-    const assessment = createMinimalLoginRiskAssessment();
+  it('minimal risk evaluation - полный snapshot', () => {
+    const evaluation = createMinimalLoginRiskEvaluation();
 
-    expect(assessment).toMatchSnapshot();
+    expect(evaluation).toMatchSnapshot();
   });
 
-  it('risk assessment with geo only - полный snapshot', () => {
-    const assessment = createLoginRiskAssessment({
-      geo: createGeoInfo({
-        country: 'DE',
-        city: 'Berlin',
-        lat: 52.5200,
-        lng: 13.4050,
-      }),
-    });
-
-    expect(assessment).toMatchSnapshot();
-  });
-
-  it('risk assessment with device only - полный snapshot', () => {
-    const assessment = createLoginRiskAssessment({
-      device: createDeviceRiskInfo({
-        platform: 'ios',
-        os: 'iOS 17.0',
-        browser: 'Safari 17.0',
-      }),
-    });
-
-    expect(assessment).toMatchSnapshot();
-  });
-
-  it('risk assessment with signals only - полный snapshot', () => {
-    const assessment = createLoginRiskAssessment({
-      signals: {
-        vpn: true,
-        proxy: false,
-        tor: true,
-        velocityAnomaly: true,
-        reputationScore: 15,
+  it('risk evaluation with geo only - полный snapshot', () => {
+    const evaluation = createLoginRiskEvaluationHelper({
+      context: {
+        geo: createGeoInfo({
+          country: 'DE',
+          city: 'Berlin',
+          lat: 52.5200,
+          lng: 13.4050,
+        }),
       },
     });
 
-    expect(assessment).toMatchSnapshot();
+    expect(evaluation).toMatchSnapshot();
+  });
+
+  it('risk evaluation with device only - полный snapshot', () => {
+    const evaluation = createLoginRiskEvaluationHelper({
+      context: {
+        device: createDeviceRiskInfo({
+          platform: 'ios',
+          os: 'iOS 17.0',
+          browser: 'Safari 17.0',
+        }),
+      },
+    });
+
+    expect(evaluation).toMatchSnapshot();
+  });
+});
+
+// ============================================================================
+// 🔧 DOMAIN VALIDATION FUNCTIONS - Функции валидации domain типов
+// ============================================================================
+
+describe('deriveLoginDecision вычисление решения', () => {
+  it('возвращает "block" для critical уровня риска', () => {
+    expect(deriveLoginDecision('critical')).toBe('block');
+  });
+
+  it('возвращает "block" для high уровня риска', () => {
+    expect(deriveLoginDecision('high')).toBe('block');
+  });
+
+  it('возвращает "mfa" для medium уровня риска', () => {
+    expect(deriveLoginDecision('medium')).toBe('mfa');
+  });
+
+  it('возвращает "login" для low уровня риска', () => {
+    expect(deriveLoginDecision('low')).toBe('login');
+  });
+
+  it('возвращает undefined для невалидного значения (lookup table)', () => {
+    // Используем type assertion для тестирования lookup table
+    // В реальности это не должно произойти, но это защита от расширения типа
+    // Используем 'as any' чтобы обойти проверки TypeScript
+    // Теперь функция использует lookup table, поэтому для невалидного значения вернется undefined
+    const result = deriveLoginDecision('unknown' as any);
+    expect(result).toBeUndefined();
+  });
+});
+
+describe('DomainValidationError toJSON', () => {
+  it('сериализует ошибку с полями', () => {
+    const error = new DomainValidationError(
+      'Test error',
+      'testField',
+      'testValue',
+      'TEST_CODE',
+    );
+
+    const json = error.toJSON();
+
+    expect(json).toEqual({
+      name: 'DomainValidationError',
+      message: 'Test error',
+      field: 'testField',
+      value: 'testValue',
+      code: 'TEST_CODE',
+    });
+
+    // Проверяем, что объект frozen
+    expect(Object.isFrozen(json)).toBe(true);
+  });
+
+  it('сериализует ошибку без опциональных полей', () => {
+    const error = new DomainValidationError('Test error');
+
+    const json = error.toJSON();
+
+    expect(json).toEqual({
+      name: 'DomainValidationError',
+      message: 'Test error',
+      code: 'DOMAIN_VALIDATION_ERROR',
+    });
+
+    expect(json.field).toBeUndefined();
+    expect(json.value).toBeUndefined();
+  });
+
+  it('сериализует ошибку с field но без value', () => {
+    const error = new DomainValidationError('Test error', 'testField');
+
+    const json = error.toJSON();
+
+    expect(json).toEqual({
+      name: 'DomainValidationError',
+      message: 'Test error',
+      field: 'testField',
+      code: 'DOMAIN_VALIDATION_ERROR',
+    });
+
+    expect(json.value).toBeUndefined();
+  });
+});
+
+describe('createRiskScore валидация', () => {
+  it('создает валидный RiskScore в диапазоне 0-100', () => {
+    expect(createRiskScore(0)).toBe(0);
+    expect(createRiskScore(50)).toBe(50);
+    expect(createRiskScore(100)).toBe(100);
+  });
+
+  it('выбрасывает ошибку при score = NaN', () => {
+    expect(() => {
+      createRiskScore(NaN);
+    }).toThrow(DomainValidationError);
+
+    try {
+      createRiskScore(NaN);
+    } catch (error) {
+      expect(error).toBeInstanceOf(DomainValidationError);
+      expect((error as DomainValidationError).field).toBe('score');
+      expect((error as DomainValidationError).code).toBe('RISK_SCORE_INVALID_FINITE');
+      expect((error as DomainValidationError).value).toBeNaN();
+    }
+  });
+
+  it('выбрасывает ошибку при score = Infinity', () => {
+    expect(() => {
+      createRiskScore(Infinity);
+    }).toThrow(DomainValidationError);
+
+    try {
+      createRiskScore(Infinity);
+    } catch (error) {
+      expect(error).toBeInstanceOf(DomainValidationError);
+      expect((error as DomainValidationError).field).toBe('score');
+      expect((error as DomainValidationError).code).toBe('RISK_SCORE_INVALID_FINITE');
+      expect((error as DomainValidationError).value).toBe(Infinity);
+    }
+  });
+
+  it('выбрасывает ошибку при score = -Infinity', () => {
+    expect(() => {
+      createRiskScore(-Infinity);
+    }).toThrow(DomainValidationError);
+
+    try {
+      createRiskScore(-Infinity);
+    } catch (error) {
+      expect(error).toBeInstanceOf(DomainValidationError);
+      expect((error as DomainValidationError).field).toBe('score');
+      expect((error as DomainValidationError).code).toBe('RISK_SCORE_INVALID_FINITE');
+      expect((error as DomainValidationError).value).toBe(-Infinity);
+    }
+  });
+
+  it('выбрасывает ошибку при score < 0', () => {
+    expect(() => {
+      createRiskScore(-1);
+    }).toThrow(DomainValidationError);
+
+    try {
+      createRiskScore(-1);
+    } catch (error) {
+      expect(error).toBeInstanceOf(DomainValidationError);
+      expect((error as DomainValidationError).field).toBe('score');
+      expect((error as DomainValidationError).code).toBe('RISK_SCORE_OUT_OF_RANGE');
+      expect((error as DomainValidationError).value).toBe(-1);
+    }
+  });
+
+  it('выбрасывает ошибку при score > 100', () => {
+    expect(() => {
+      createRiskScore(101);
+    }).toThrow(DomainValidationError);
+
+    try {
+      createRiskScore(101);
+    } catch (error) {
+      expect(error).toBeInstanceOf(DomainValidationError);
+      expect((error as DomainValidationError).field).toBe('score');
+      expect((error as DomainValidationError).code).toBe('RISK_SCORE_OUT_OF_RANGE');
+      expect((error as DomainValidationError).value).toBe(101);
+    }
+  });
+});
+
+describe('createRiskModelVersion валидация', () => {
+  it('создает валидный RiskModelVersion', () => {
+    expect(createRiskModelVersion('1.0')).toBe('1.0');
+    expect(createRiskModelVersion('2.5')).toBe('2.5');
+    expect(createRiskModelVersion('1.0.0')).toBe('1.0.0');
+    expect(createRiskModelVersion('1.0.0-beta')).toBe('1.0.0-beta');
+    expect(createRiskModelVersion('2.5.1-alpha')).toBe('2.5.1-alpha');
+  });
+
+  it('выбрасывает ошибку при пустой строке', () => {
+    expect(() => {
+      createRiskModelVersion('');
+    }).toThrow(DomainValidationError);
+
+    try {
+      createRiskModelVersion('');
+    } catch (error) {
+      expect(error).toBeInstanceOf(DomainValidationError);
+      expect((error as DomainValidationError).field).toBe('modelVersion');
+      expect((error as DomainValidationError).code).toBe('MODEL_VERSION_INVALID_TYPE');
+      expect((error as DomainValidationError).value).toBe('');
+    }
+  });
+
+  it('выбрасывает ошибку при не-строке (number)', () => {
+    expect(() => {
+      // @ts-expect-error - намеренно передаем неверный тип для теста
+      createRiskModelVersion(123);
+    }).toThrow(DomainValidationError);
+
+    try {
+      // @ts-expect-error - намеренно передаем неверный тип для теста
+      createRiskModelVersion(123);
+    } catch (error) {
+      expect(error).toBeInstanceOf(DomainValidationError);
+      expect((error as DomainValidationError).field).toBe('modelVersion');
+      expect((error as DomainValidationError).code).toBe('MODEL_VERSION_INVALID_TYPE');
+      expect((error as DomainValidationError).value).toBe(123);
+    }
+  });
+
+  it('выбрасывает ошибку при невалидном формате (без точки)', () => {
+    expect(() => {
+      createRiskModelVersion('10');
+    }).toThrow(DomainValidationError);
+
+    try {
+      createRiskModelVersion('10');
+    } catch (error) {
+      expect(error).toBeInstanceOf(DomainValidationError);
+      expect((error as DomainValidationError).field).toBe('modelVersion');
+      expect((error as DomainValidationError).code).toBe('MODEL_VERSION_INVALID_FORMAT');
+      expect((error as DomainValidationError).value).toBe('10');
+    }
+  });
+
+  it('выбрасывает ошибку при невалидном формате (только буквы)', () => {
+    expect(() => {
+      createRiskModelVersion('invalid');
+    }).toThrow(DomainValidationError);
+
+    try {
+      createRiskModelVersion('invalid');
+    } catch (error) {
+      expect(error).toBeInstanceOf(DomainValidationError);
+      expect((error as DomainValidationError).field).toBe('modelVersion');
+      expect((error as DomainValidationError).code).toBe('MODEL_VERSION_INVALID_FORMAT');
+      expect((error as DomainValidationError).value).toBe('invalid');
+    }
+  });
+
+  it('выбрасывает ошибку при невалидном формате (неправильный порядок)', () => {
+    expect(() => {
+      createRiskModelVersion('.1.0');
+    }).toThrow(DomainValidationError);
+
+    try {
+      createRiskModelVersion('.1.0');
+    } catch (error) {
+      expect(error).toBeInstanceOf(DomainValidationError);
+      expect((error as DomainValidationError).field).toBe('modelVersion');
+      expect((error as DomainValidationError).code).toBe('MODEL_VERSION_INVALID_FORMAT');
+      expect((error as DomainValidationError).value).toBe('.1.0');
+    }
   });
 });
 
@@ -715,147 +931,227 @@ describe('LoginRiskAssessment comprehensive snapshots', () => {
 // ============================================================================
 
 describe('Zod schema validation', () => {
-  it('валидные risk assessments проходят Zod схему', () => {
-    const validAssessment = {
-      userId: 'user-123',
-      ip: '192.168.1.1',
-      geo: {
-        country: 'US',
-        city: 'San Francisco',
-        lat: 37.7749,
-        lng: -122.4194,
+  it('валидные risk evaluations проходят Zod схему', () => {
+    const validEvaluation = {
+      result: {
+        score: 25,
+        level: 'low',
+        decision: 'login',
+        reasons: [],
+        modelVersion: '1.0',
       },
-      device: {
-        deviceId: 'device-123',
-        fingerprint: 'fp-abc',
-        platform: 'web',
-        os: 'Windows 11',
-        browser: 'Chrome 112',
-      },
-      userAgent: 'Mozilla/5.0',
-      previousSessionId: 'session-prev',
-      timestamp: '2026-01-15T10:30:00.000Z',
-      signals: {
-        vpn: false,
-        riskScore: 25,
+      context: {
+        userId: 'user-123',
+        ip: '192.168.1.1',
+        geo: {
+          country: 'US',
+          city: 'San Francisco',
+          lat: 37.7749,
+          lng: -122.4194,
+        },
+        device: {
+          deviceId: 'device-123',
+          fingerprint: 'fp-abc',
+          platform: 'web',
+          os: 'Windows 11',
+          browser: 'Chrome 112',
+        },
+        userAgent: 'Mozilla/5.0',
+        previousSessionId: 'session-prev',
+        timestamp: new Date('2026-01-15T10:30:00.000Z').getTime(),
       },
     };
 
-    const result = loginRiskAssessmentSchema.safeParse(validAssessment);
+    const result = loginRiskAssessmentSchema.safeParse(validEvaluation);
     expect(result.success).toBe(true);
 
     // eslint-disable-next-line functional/no-conditional-statements
     if (result.success) {
-      expect(result.data.userId).toBe('user-123');
-      expect(result.data.ip).toBe('192.168.1.1');
-      expect(result.data.geo?.country).toBe('US');
-      expect(result.data.device?.platform).toBe('web');
+      expect(result.data.context.userId).toBe('user-123');
+      expect(result.data.context.ip).toBe('192.168.1.1');
+      expect(result.data.context.geo?.country).toBe('US');
+      expect(result.data.context.device?.platform).toBe('web');
+      expect(result.data.result.score).toBe(25);
+      expect(result.data.result.level).toBe('low');
     }
   });
 
   it('невалидный timestamp отклоняется', () => {
-    const invalidAssessment = {
-      timestamp: 'invalid-date', // невалидный ISO timestamp
+    const invalidEvaluation = {
+      result: {
+        score: 25,
+        level: 'low',
+        reasons: [],
+        modelVersion: '1.0',
+      },
+      context: {
+        timestamp: 'invalid-date', // невалидный timestamp (должен быть number)
+      },
     };
 
-    const result = loginRiskAssessmentSchema.safeParse(invalidAssessment);
+    const result = loginRiskAssessmentSchema.safeParse(invalidEvaluation);
     expect(result.success).toBe(false);
   });
 
   it('невалидный platform в device отклоняется', () => {
-    const invalidAssessment = {
-      device: {
-        platform: 'invalid-platform', // невалидный platform
+    const invalidEvaluation = {
+      result: {
+        score: 25,
+        level: 'low',
+        reasons: [],
+        modelVersion: '1.0',
+      },
+      context: {
+        device: {
+          platform: 'invalid-platform', // невалидный platform
+        },
+        timestamp: Date.now(),
       },
     };
 
-    const result = loginRiskAssessmentSchema.safeParse(invalidAssessment);
+    const result = loginRiskAssessmentSchema.safeParse(invalidEvaluation);
     expect(result.success).toBe(false);
   });
 
   it('схема не принимает дополнительные поля (strict)', () => {
-    const assessmentWithExtra = {
-      userId: 'user-123',
+    const evaluationWithExtra = {
+      result: {
+        score: 25,
+        level: 'low',
+        reasons: [],
+        modelVersion: '1.0',
+      },
+      context: {
+        userId: 'user-123',
+        timestamp: Date.now(),
+      },
       extraField: 'not allowed', // дополнительное поле
     };
 
-    const result = loginRiskAssessmentSchema.safeParse(assessmentWithExtra);
+    const result = loginRiskAssessmentSchema.safeParse(evaluationWithExtra);
     expect(result.success).toBe(false);
   });
 
   it('опциональные поля корректно обрабатываются', () => {
-    // Минимум полей (все опциональны)
-    const minimalAssessment = {};
+    // Минимум полей (result обязателен, context обязателен, но поля внутри опциональны)
+    const minimalEvaluation = {
+      result: {
+        score: 0,
+        level: 'low',
+        decision: 'login',
+        reasons: [],
+        modelVersion: '1.0',
+      },
+      context: {
+        timestamp: Date.now(),
+      },
+    };
 
-    const result = loginRiskAssessmentSchema.safeParse(minimalAssessment);
+    const result = loginRiskAssessmentSchema.safeParse(minimalEvaluation);
     expect(result.success).toBe(true);
 
     // eslint-disable-next-line functional/no-conditional-statements
     if (result.success) {
-      expect(result.data.userId).toBeUndefined();
-      expect(result.data.ip).toBeUndefined();
-      expect(result.data.geo).toBeUndefined();
-      expect(result.data.device).toBeUndefined();
-      expect(result.data.userAgent).toBeUndefined();
-      expect(result.data.previousSessionId).toBeUndefined();
-      expect(result.data.timestamp).toBeUndefined();
-      expect(result.data.signals).toBeUndefined();
+      expect(result.data.context.userId).toBeUndefined();
+      expect(result.data.context.ip).toBeUndefined();
+      expect(result.data.context.geo).toBeUndefined();
+      expect(result.data.context.device).toBeUndefined();
+      expect(result.data.context.userAgent).toBeUndefined();
+      expect(result.data.context.previousSessionId).toBeUndefined();
+      expect(result.data.context.timestamp).toBeDefined();
     }
   });
 
   it('geo может содержать координаты', () => {
-    const assessmentWithGeo = {
-      geo: {
-        country: 'US',
-        lat: 37.7749,
-        lng: -122.4194,
+    const evaluationWithGeo = {
+      result: {
+        score: 25,
+        level: 'low',
+        decision: 'login',
+        reasons: [],
+        modelVersion: '1.0',
+      },
+      context: {
+        geo: {
+          country: 'US',
+          lat: 37.7749,
+          lng: -122.4194,
+        },
+        timestamp: Date.now(),
       },
     };
 
-    const result = loginRiskAssessmentSchema.safeParse(assessmentWithGeo);
+    const result = loginRiskAssessmentSchema.safeParse(evaluationWithGeo);
     expect(result.success).toBe(true);
 
     // eslint-disable-next-line functional/no-conditional-statements
     if (result.success) {
-      expect(result.data.geo?.country).toBe('US');
-      expect(result.data.geo?.lat).toBe(37.7749);
-      expect(result.data.geo?.lng).toBe(-122.4194);
+      expect(result.data.context.geo?.country).toBe('US');
+      expect(result.data.context.geo?.lat).toBe(37.7749);
+      expect(result.data.context.geo?.lng).toBe(-122.4194);
     }
   });
 
   it('device может содержать fingerprint и platform', () => {
-    const assessmentWithDevice = {
-      device: {
-        deviceId: 'device-123',
-        fingerprint: 'fp-abc-xyz',
-        platform: 'ios',
-        os: 'iOS 17.0',
-        browser: 'Safari',
+    const evaluationWithDevice = {
+      result: {
+        score: 25,
+        level: 'low',
+        decision: 'login',
+        reasons: [],
+        modelVersion: '1.0',
+      },
+      context: {
+        device: {
+          deviceId: 'device-123',
+          fingerprint: 'fp-abc-xyz',
+          platform: 'ios',
+          os: 'iOS 17.0',
+          browser: 'Safari',
+        },
+        timestamp: Date.now(),
       },
     };
 
-    const result = loginRiskAssessmentSchema.safeParse(assessmentWithDevice);
+    const result = loginRiskAssessmentSchema.safeParse(evaluationWithDevice);
     expect(result.success).toBe(true);
 
     // eslint-disable-next-line functional/no-conditional-statements
     if (result.success) {
-      expect(result.data.device?.deviceId).toBe('device-123');
-      expect(result.data.device?.fingerprint).toBe('fp-abc-xyz');
-      expect(result.data.device?.platform).toBe('ios');
+      expect(result.data.context.device?.deviceId).toBe('device-123');
+      expect(result.data.context.device?.fingerprint).toBe('fp-abc-xyz');
+      expect(result.data.context.device?.platform).toBe('ios');
     }
   });
 
-  it('timestamp должен быть в ISO 8601 формате', () => {
-    const assessmentWithValidTimestamp = {
-      timestamp: '2026-01-15T10:30:00.000Z',
+  it('timestamp должен быть числом (epoch ms)', () => {
+    const evaluationWithValidTimestamp = {
+      result: {
+        score: 25,
+        level: 'low',
+        decision: 'login',
+        reasons: [],
+        modelVersion: '1.0',
+      },
+      context: {
+        timestamp: Date.now(),
+      },
     };
 
-    const assessmentWithInvalidTimestamp = {
-      timestamp: 'invalid-date', // невалидный ISO timestamp
+    const evaluationWithInvalidTimestamp = {
+      result: {
+        score: 25,
+        level: 'low',
+        reasons: [],
+        modelVersion: '1.0',
+      },
+      context: {
+        timestamp: 'invalid-date', // невалидный timestamp (должен быть number)
+      },
     };
 
-    const result1 = loginRiskAssessmentSchema.safeParse(assessmentWithValidTimestamp);
-    const result2 = loginRiskAssessmentSchema.safeParse(assessmentWithInvalidTimestamp);
+    const result1 = loginRiskAssessmentSchema.safeParse(evaluationWithValidTimestamp);
+    const result2 = loginRiskAssessmentSchema.safeParse(evaluationWithInvalidTimestamp);
 
     expect(result1.success).toBe(true);
     expect(result2.success).toBe(false);
@@ -865,44 +1161,30 @@ describe('Zod schema validation', () => {
     const validPlatforms = ['web', 'ios', 'android', 'desktop'];
 
     validPlatforms.forEach((platform) => {
-      const assessment = {
-        device: {
-          platform,
+      const evaluation = {
+        result: {
+          score: 25,
+          level: 'low',
+          decision: 'login',
+          reasons: [],
+          modelVersion: '1.0',
+        },
+        context: {
+          device: {
+            platform: platform as 'web' | 'ios' | 'android' | 'desktop',
+          },
+          timestamp: Date.now(),
         },
       };
 
-      const result = loginRiskAssessmentSchema.safeParse(assessment);
+      const result = loginRiskAssessmentSchema.safeParse(evaluation);
       expect(result.success).toBe(true);
 
       // eslint-disable-next-line functional/no-conditional-statements
       if (result.success) {
-        expect(result.data.device?.platform).toBe(platform);
+        expect(result.data.context.device?.platform).toBe(platform);
       }
     });
-  });
-
-  it('signals может содержать любые данные', () => {
-    const assessmentWithSignals = {
-      signals: {
-        stringValue: 'test',
-        numberValue: 42,
-        booleanValue: true,
-        arrayValue: [1, 2, 3],
-        nestedObject: {
-          key: 'value',
-        },
-      },
-    };
-
-    const result = loginRiskAssessmentSchema.safeParse(assessmentWithSignals);
-    expect(result.success).toBe(true);
-
-    // eslint-disable-next-line functional/no-conditional-statements
-    if (result.success) {
-      expect(result.data.signals?.['stringValue']).toBe('test');
-      expect(result.data.signals?.['numberValue']).toBe(42);
-      expect(result.data.signals?.['booleanValue']).toBe(true);
-    }
   });
 
   it('IP адрес валидируется как строка (различные форматы)', () => {
@@ -914,16 +1196,26 @@ describe('Zod schema validation', () => {
     ];
 
     ipAddresses.forEach((ip) => {
-      const assessment = {
-        ip,
+      const evaluation = {
+        result: {
+          score: 25,
+          level: 'low',
+          decision: 'login',
+          reasons: [],
+          modelVersion: '1.0',
+        },
+        context: {
+          ip,
+          timestamp: Date.now(),
+        },
       };
 
-      const result = loginRiskAssessmentSchema.safeParse(assessment);
+      const result = loginRiskAssessmentSchema.safeParse(evaluation);
       expect(result.success).toBe(true);
 
       // eslint-disable-next-line functional/no-conditional-statements
       if (result.success) {
-        expect(result.data.ip).toBe(ip);
+        expect(result.data.context.ip).toBe(ip);
       }
     });
   });
@@ -937,18 +1229,28 @@ describe('Zod schema validation', () => {
     ];
 
     fingerprints.forEach((fingerprint) => {
-      const assessment = {
-        device: {
-          fingerprint,
+      const evaluation = {
+        result: {
+          score: 25,
+          level: 'low',
+          decision: 'login',
+          reasons: [],
+          modelVersion: '1.0',
+        },
+        context: {
+          device: {
+            fingerprint,
+          },
+          timestamp: Date.now(),
         },
       };
 
-      const result = loginRiskAssessmentSchema.safeParse(assessment);
+      const result = loginRiskAssessmentSchema.safeParse(evaluation);
       expect(result.success).toBe(true);
 
       // eslint-disable-next-line functional/no-conditional-statements
       if (result.success) {
-        expect(result.data.device?.fingerprint).toBe(fingerprint);
+        expect(result.data.context.device?.fingerprint).toBe(fingerprint);
       }
     });
   });
@@ -962,20 +1264,30 @@ describe('Zod schema validation', () => {
     ];
 
     coordinates.forEach((coord) => {
-      const assessment = {
-        geo: {
-          lat: coord.lat,
-          lng: coord.lng,
+      const evaluation = {
+        result: {
+          score: 25,
+          level: 'low',
+          decision: 'login',
+          reasons: [],
+          modelVersion: '1.0',
+        },
+        context: {
+          geo: {
+            lat: coord.lat,
+            lng: coord.lng,
+          },
+          timestamp: Date.now(),
         },
       };
 
-      const result = loginRiskAssessmentSchema.safeParse(assessment);
+      const result = loginRiskAssessmentSchema.safeParse(evaluation);
       expect(result.success).toBe(true);
 
       // eslint-disable-next-line functional/no-conditional-statements
       if (result.success) {
-        expect(result.data.geo?.lat).toBe(coord.lat);
-        expect(result.data.geo?.lng).toBe(coord.lng);
+        expect(result.data.context.geo?.lat).toBe(coord.lat);
+        expect(result.data.context.geo?.lng).toBe(coord.lng);
       }
     });
   });

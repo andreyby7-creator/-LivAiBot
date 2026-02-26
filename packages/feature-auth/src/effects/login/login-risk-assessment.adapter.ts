@@ -5,24 +5,40 @@
  * ============================================================================
  *
  * Архитектурная роль:
- * - Адаптер между domain и DTO слоями для login risk assessment
- * - Преобразование типизированных signals в Record для DTO через @livai/core/projection-engine
- * - Нормализация DeviceInfo → DeviceRiskInfo (normalization step для DTO projection)
- * - Защита от утечки sensitive данных через whitelist + allowed namespace
+ * - Адаптер между classification layer и domain layer для login risk assessment
+ * - Преобразование ClassificationRule → RiskReason с дедупликацией
+ * - Нормализация DeviceInfo → DeviceRiskInfo (определение platform из OS)
+ * - Валидация и нормализация boundary данных (timestamp, IP, geo координаты)
+ * - Создание LoginRiskEvaluation через domain factories
  *
  * Принципы:
- * - ✅ Adapter pattern — изоляция domain от transport
- * - ✅ Security-first — фильтрация sensitive данных через whitelist + allowed namespace
- * - ✅ Extensibility — plugin может добавлять поля с префиксом `custom_` для расширения DTO
- * - ✅ Single responsibility — только трансформация и normalization
- * - ✅ Generic projection — использует transformDomainToDto из @livai/core
+ * - ✅ Adapter pattern — изоляция domain от classification/transport слоев
+ * - ✅ Security-first — строгая валидация boundary данных (IP через ipaddr.js, timestamp через ISO 8601, geo координаты)
+ * - ✅ Extensibility — param object pattern для buildAssessment (легко добавлять новые поля)
+ * - ✅ Single responsibility — только трансформация, нормализация и валидация boundary данных
+ * - ✅ Domain purity — использует domain factories (createLoginRiskResult, createLoginRiskEvaluation)
+ * - ✅ Deterministic — строгая валидация timestamp без fallback (Date.now запрещен)
+ * - ✅ Canonical Time Model — ISO 8601 string → epoch ms (number) на boundary
  */
 
-import type { DtoSchema, JsonValue } from '@livai/core';
-import { transformDomainToDto } from '@livai/core';
+import type { ClassificationRule } from '@livai/domains/strategies';
+import { isValid as isValidIpAddress } from 'ipaddr.js';
 
 import type { DeviceInfo } from '../../domain/DeviceInfo.js';
-import type { DeviceRiskInfo, LoginRiskAssessment } from '../../domain/LoginRiskAssessment.js';
+import type {
+  DeviceRiskInfo,
+  LoginRiskContext,
+  LoginRiskEvaluation,
+  RiskReason,
+} from '../../domain/LoginRiskAssessment.js';
+import {
+  createLoginRiskEvaluation,
+  createLoginRiskResult,
+  DomainValidationError,
+  RiskReasonCode,
+  RiskReasonType,
+} from '../../domain/LoginRiskAssessment.js';
+import type { RiskLevel } from '../../types/auth.js';
 
 /* ============================================================================
  * 🧭 TYPES
@@ -44,7 +60,7 @@ export type RiskSignals = {
     readonly lat?: number;
     readonly lng?: number;
   };
-  /** Внутренние сигналы (НЕ пробрасываются в DTO) */
+  /** Внутренние сигналы (остаются в adapter слое, не попадают в domain) */
   readonly externalSignals?: Readonly<Record<string, unknown>>;
 };
 
@@ -53,60 +69,8 @@ export type RiskSignals = {
  * ============================================================================
  */
 
-/**
- * Whitelist полей signals для передачи в DTO
- * Динамическая фильтрация для масштабируемости (>50 сигналов)
- * externalSignals НЕ включается в whitelist для безопасности
- */
-const SIGNALS_WHITELIST_ARRAY: readonly string[] = [
-  'isVpn',
-  'isTor',
-  'isProxy',
-  'asn',
-  'reputationScore',
-  'velocityScore',
-  'previousGeo',
-] as const;
-
-/**
- * Set для безопасной проверки whitelist полей (защита от object injection)
- */
-const SIGNALS_WHITELIST = new Set<string>(SIGNALS_WHITELIST_ARRAY);
-
-/**
- * Префикс для полей, которые plugin может добавлять в DTO
- * @note Поля с этим префиксом разрешены в enforceWhitelist для extensibility
- */
-const ALLOWED_PLUGIN_PREFIX = 'custom_';
-
-/**
- * DTO Schema для RiskSignals
- * Используется с transformDomainToDto из @livai/core/input-boundary/projection-engine
- */
-const RISK_SIGNALS_SCHEMA: DtoSchema<RiskSignals> = Object.freeze({
-  fields: SIGNALS_WHITELIST_ARRAY,
-  mapper: (domain: RiskSignals, fieldName: string): unknown => {
-    // Безопасный доступ через switch (защита от object injection)
-    switch (fieldName) {
-      case 'isVpn':
-        return domain.isVpn;
-      case 'isTor':
-        return domain.isTor;
-      case 'isProxy':
-        return domain.isProxy;
-      case 'asn':
-        return domain.asn;
-      case 'reputationScore':
-        return domain.reputationScore;
-      case 'velocityScore':
-        return domain.velocityScore;
-      case 'previousGeo':
-        return domain.previousGeo;
-      default:
-        return undefined;
-    }
-  },
-});
+/** Версия модели по умолчанию для risk assessment */
+export const defaultModelVersion = '1.0.0' as const;
 
 /* ============================================================================
  * 🔧 HELPER FUNCTIONS
@@ -114,7 +78,7 @@ const RISK_SIGNALS_SCHEMA: DtoSchema<RiskSignals> = Object.freeze({
  */
 
 /**
- * Нормализует DeviceInfo для risk assessment (normalization step для DTO projection)
+ * Нормализует DeviceInfo для risk assessment
  * @note Normalization step, не бизнес-логика. Определяет platform из OS
  */
 function normalizeDeviceForRisk(
@@ -154,93 +118,227 @@ function normalizeDeviceForRisk(
 }
 
 /**
- * Применяет whitelist фильтрацию к record после plugin
- * @security Защищает от malicious plugin, разрешает расширение через `custom_` префикс
- * @note Base whitelist поля защищены от удаления (перезапись заблокирована на этапе merge)
+ * Exhaustive mapping: ClassificationRule → RiskReason
+ * @note TypeScript enforces completeness: adding new ClassificationRule requires updating this map
+ * @note Production-safe: no silent degradation, all rules must be mapped
  */
-function enforceWhitelist(
-  record: Record<string, unknown>, // Record после merge (base поля защищены, может содержать malicious keys)
-): Record<string, unknown> { // Отфильтрованный record (только whitelist + custom_ поля)
-  // Фильтруем только whitelist поля и разрешенные plugin поля
-  // Используем Object.fromEntries для безопасной фильтрации (защита от object injection)
-  const filteredEntries = Object.entries(record).filter(([key]) => {
-    // Base whitelist поля всегда разрешены (защищены от удаления)
-    if (typeof key === 'string' && SIGNALS_WHITELIST.has(key)) {
-      return true;
-    }
-    // Plugin может добавлять поля с префиксом custom_ для extensibility
-    if (typeof key === 'string' && key.startsWith(ALLOWED_PLUGIN_PREFIX)) {
-      return true;
-    }
-    // Все остальные поля (включая externalSignals, malicious keys) удаляются
-    return false;
+const RULE_TO_REASON: { readonly [K in ClassificationRule]: RiskReason; } = {
+  TOR_NETWORK: { type: RiskReasonType.NETWORK, code: RiskReasonCode.NETWORK.TOR },
+  VPN_DETECTED: { type: RiskReasonType.NETWORK, code: RiskReasonCode.NETWORK.VPN },
+  PROXY_DETECTED: { type: RiskReasonType.NETWORK, code: RiskReasonCode.NETWORK.PROXY },
+  LOW_REPUTATION: { type: RiskReasonType.REPUTATION, code: RiskReasonCode.REPUTATION.LOW },
+  CRITICAL_REPUTATION: {
+    type: RiskReasonType.REPUTATION,
+    code: RiskReasonCode.REPUTATION.CRITICAL,
+  },
+  HIGH_VELOCITY: {
+    type: RiskReasonType.BEHAVIOR,
+    code: RiskReasonCode.BEHAVIOR.HIGH_VELOCITY,
+  },
+  GEO_MISMATCH: { type: RiskReasonType.GEO, code: RiskReasonCode.GEO.IMPOSSIBLE_TRAVEL },
+  HIGH_RISK_COUNTRY: { type: RiskReasonType.GEO, code: RiskReasonCode.GEO.HIGH_RISK_COUNTRY },
+  UNKNOWN_DEVICE: { type: RiskReasonType.DEVICE, code: RiskReasonCode.DEVICE.UNKNOWN },
+  // Rules without direct RiskReason mapping (IoT, missing fields) → map to closest equivalent
+  IoT_DEVICE: { type: RiskReasonType.DEVICE, code: RiskReasonCode.DEVICE.UNKNOWN },
+  MISSING_OS: { type: RiskReasonType.DEVICE, code: RiskReasonCode.DEVICE.UNKNOWN },
+  MISSING_BROWSER: { type: RiskReasonType.DEVICE, code: RiskReasonCode.DEVICE.UNKNOWN },
+  HIGH_RISK_SCORE: { type: RiskReasonType.REPUTATION, code: RiskReasonCode.REPUTATION.CRITICAL },
+  NEW_DEVICE_VPN: {
+    type: RiskReasonType.NETWORK,
+    code: RiskReasonCode.NETWORK.VPN,
+  },
+  IoT_TOR: { type: RiskReasonType.NETWORK, code: RiskReasonCode.NETWORK.TOR },
+} as const;
+
+/**
+ * Маппит ClassificationRule в RiskReason с устранением дубликатов
+ * @note Pure функция, детерминированная
+ * @note Exhaustive: TypeScript enforces all ClassificationRule values are mapped
+ * @note Дедупликация: устраняет дубликаты по {type, code} для explainability consistency
+ *       Например, VPN_DETECTED и NEW_DEVICE_VPN оба маппятся в {type: 'network', code: 'vpn'}
+ *       В результате будет только один reason, а не два одинаковых
+ */
+function mapTriggeredRulesToReasons(
+  triggeredRules: readonly ClassificationRule[],
+): readonly RiskReason[] {
+  // Маппим правила в reasons
+  const reasons = triggeredRules.map((rule) => {
+    // eslint-disable-next-line security/detect-object-injection -- rule имеет тип ClassificationRule (union type из известных значений), безопасный lookup через Record
+    return RULE_TO_REASON[rule];
   });
 
-  return Object.fromEntries(filteredEntries);
+  // Устраняем дубликаты по {type, code} используя Set с ключом-строкой
+  const seen = new Set<string>();
+  const uniqueReasons: RiskReason[] = [];
+
+  for (const reason of reasons) {
+    // Создаем уникальный ключ из type и code
+    const key = `${reason.type}:${reason.code}`;
+    if (!seen.has(key)) {
+      seen.add(key);
+      uniqueReasons.push(reason);
+    }
+  }
+
+  return uniqueReasons;
+}
+
+/* ============================================================================
+ * 🔧 VALIDATION HELPERS
+ * ============================================================================
+ */
+
+/**
+ * Regex для строгой валидации ISO 8601 формата
+ * @note Поддерживает форматы: YYYY-MM-DDTHH:mm:ss.sssZ и YYYY-MM-DDTHH:mm:ssZ
+ * @note Использует ограниченные квантификаторы для предотвращения ReDoS
+ */
+// eslint-disable-next-line security/detect-unsafe-regex -- Ограниченные квантификаторы (фиксированная длина), простая структура без вложенных опциональных групп, не подвержен ReDoS
+const ISO_8601_REGEX = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{1,3})?Z$/;
+
+/**
+ * Строгая нормализация timestamp на boundary
+ * Canonical Time Model:
+ * - External boundary (domains) → ISO 8601 string
+ * - Internal domain (LoginRiskContext) → epoch ms (number)
+ *
+ * @note Использует только Date.parse (не new Date())
+ * @note Запрещает не-ISO строки через строгую проверку
+ * @note Падает на invalid input (никаких fallback)
+ * @note Никакого Date.now(), никакого new Date() без проверки
+ * @throws {DomainValidationError} Если timestamp невалидный
+ */
+function validateAndParseTimestamp(timestamp: string | number): number {
+  // Если уже number (epoch ms) - валидируем напрямую
+  if (typeof timestamp === 'number') {
+    if (!Number.isFinite(timestamp)) {
+      throw new DomainValidationError(
+        `Invalid timestamp: must be finite number (epoch ms), got: ${timestamp}`,
+        'timestamp',
+        timestamp,
+        'TIMESTAMP_INVALID',
+      );
+    }
+    return timestamp;
+  }
+
+  // Если string - строгая валидация ISO 8601 формата
+  if (typeof timestamp !== 'string' || timestamp.length === 0) {
+    throw new DomainValidationError(
+      `Invalid timestamp: must be non-empty ISO 8601 string or epoch ms number, got: ${
+        String(timestamp)
+      }`,
+      'timestamp',
+      timestamp,
+      'TIMESTAMP_INVALID_TYPE',
+    );
+  }
+
+  // Строгая проверка ISO 8601 формата перед парсингом
+  if (!ISO_8601_REGEX.test(timestamp)) {
+    throw new DomainValidationError(
+      `Invalid timestamp format: must be ISO 8601 (YYYY-MM-DDTHH:mm:ss.sssZ), got: ${timestamp}`,
+      'timestamp',
+      timestamp,
+      'TIMESTAMP_INVALID_FORMAT',
+    );
+  }
+
+  // Парсинг через Date.parse (единственный допустимый способ)
+  const parsed = Date.parse(timestamp);
+
+  // Валидация результата парсинга
+  if (!Number.isFinite(parsed)) {
+    throw new DomainValidationError(
+      `Invalid timestamp: Date.parse returned non-finite value for ISO 8601 string, got: ${timestamp}`,
+      'timestamp',
+      timestamp,
+      'TIMESTAMP_PARSE_FAILED',
+    );
+  }
+
+  return parsed;
+}
+
+/** Константы для валидации координат */
+const MIN_LAT = -90;
+const MAX_LAT = 90;
+const MIN_LNG = -180;
+const MAX_LNG = 180;
+
+/**
+ * Валидирует geo координаты
+ * @throws {DomainValidationError} Если координаты невалидные
+ * @note Не является multi-agent операцией - это pure validation функция
+ */
+// eslint-disable-next-line @livai/multiagent/agent-isolation -- Это pure validation функция, не multi-agent операция
+function validateGeoCoordinates(geo: {
+  readonly lat?: number;
+  readonly lng?: number;
+}): void {
+  if (
+    geo.lat !== undefined && (!Number.isFinite(geo.lat) || geo.lat < MIN_LAT || geo.lat > MAX_LAT)
+  ) {
+    throw new DomainValidationError(
+      `Invalid geo.lat: must be finite number in range ${MIN_LAT} to ${MAX_LAT}, got: ${geo.lat}`,
+      'geo.lat',
+      geo.lat,
+      'GEO_LAT_INVALID',
+    );
+  }
+
+  if (
+    geo.lng !== undefined && (!Number.isFinite(geo.lng) || geo.lng < MIN_LNG || geo.lng > MAX_LNG)
+  ) {
+    throw new DomainValidationError(
+      `Invalid geo.lng: must be finite number in range ${MIN_LNG} to ${MAX_LNG}, got: ${geo.lng}`,
+      'geo.lng',
+      geo.lng,
+      'GEO_LNG_INVALID',
+    );
+  }
 }
 
 /**
- * Plugin hook для кастомных полей DTO
- * @requirements Детерминированность, идемпотентность, immutability (baseRecord frozen)
- * @security Base whitelist поля защищены от перезаписи/удаления, разрешены только `custom_` поля
- * @example
- * const mapper: SignalsMapperPlugin = (signals, baseRecord) => ({
- *   ...baseRecord,
- *   customVendorId: 'vendor-123', // разрешено
- *   // isVpn: false, // игнорируется: защищено от перезаписи
- * });
+ * Валидирует IP адрес используя ipaddr.js (production-safe, защита от ReDoS)
+ * @note Использует библиотеку ipaddr.js вместо regex для предотвращения catastrophic backtracking
+ * @note Поддерживает все форматы IPv4 и IPv6 согласно RFC 4291
+ * @throws {DomainValidationError} Если IP невалидный
  */
-export type SignalsMapperPlugin = (
-  signals: RiskSignals, // Сигналы для преобразования
-  baseRecord: Record<string, unknown>, // Frozen copy базового record (не мутировать)
-) => Record<string, unknown>; // Расширенный record (может содержать custom_ поля)
-
-/**
- * Преобразует типизированные signals в Record для DTO (без externalSignals)
- * @security Base whitelist поля защищены от перезаписи/удаления, plugin может добавлять `custom_` поля
- */
-function mapSignalsToRecord(
-  signals: RiskSignals | undefined, // Сигналы для преобразования
-  mapperPlugin?: SignalsMapperPlugin, // Опциональный plugin для кастомных полей DTO (должен быть детерминированным)
-): Record<string, unknown> | undefined { // Record для DTO или undefined
-  if (signals === undefined) {
-    return undefined;
+function validateIpAddress(ip: string): string {
+  const trimmed = ip.trim();
+  if (trimmed.length === 0) {
+    throw new DomainValidationError(
+      'IP address cannot be empty string',
+      'ip',
+      ip,
+      'IP_INVALID',
+    );
   }
 
-  // Используем transformDomainToDto из @livai/core для безопасной трансформации
-  const transformResult = transformDomainToDto<RiskSignals, Record<string, JsonValue>>(
-    signals,
-    RISK_SIGNALS_SCHEMA,
-    [], // Без projection slots (можно добавить в будущем для расширяемости)
-    {}, // Без контекста
-  );
-
-  // Если трансформация не удалась, возвращаем undefined
-  if (!transformResult.ok) {
-    // В production можно логировать ошибку, но для адаптера возвращаем undefined
-    return undefined;
+  try {
+    if (!isValidIpAddress(trimmed)) {
+      throw new DomainValidationError(
+        `Invalid IP address: must be valid IPv4 or IPv6, got: ${trimmed}`,
+        'ip',
+        trimmed,
+        'IP_INVALID',
+      );
+    }
+  } catch (error) {
+    // ipaddr.js может выбросить исключение для невалидных адресов
+    if (error instanceof DomainValidationError) {
+      throw error;
+    }
+    throw new DomainValidationError(
+      `Invalid IP address: parsing failed, got: ${trimmed}`,
+      'ip',
+      trimmed,
+      'IP_INVALID',
+    );
   }
 
-  let record = transformResult.value as Record<string, unknown>;
-
-  // Применяем plugin для кастомных полей (если передан)
-  if (mapperPlugin) {
-    const pluginResult = mapperPlugin(signals, Object.freeze({ ...record }));
-
-    // Защищаем base whitelist поля от перезаписи: мержим, но игнорируем whitelist поля из pluginResult
-    // Используем Object.fromEntries для безопасного мержа (защита от object injection)
-    const pluginEntries = Object.entries(pluginResult).filter(([key]) => {
-      // Игнорируем whitelist поля из pluginResult (защита от перезаписи)
-      return typeof key === 'string' && !SIGNALS_WHITELIST.has(key);
-    });
-    record = { ...record, ...Object.fromEntries(pluginEntries) };
-  }
-
-  // Применяем whitelist фильтрацию: защита от malicious plugin, разрешены только whitelist + custom_ поля
-  record = enforceWhitelist(record);
-
-  // externalSignals не пробрасываются в DTO (используются только для внутренних расчетов)
-  return Object.values(record).some((v) => v !== undefined) ? record : undefined;
+  return trimmed;
 }
 
 /* ============================================================================
@@ -249,12 +347,13 @@ function mapSignalsToRecord(
  */
 
 /**
- * Строит LoginRiskAssessment объект из domain данных
- * @security Base whitelist поля защищены, plugin может добавлять `custom_` поля
+ * Параметры для buildAssessment (param object pattern для extensibility)
+ * @note Использует param object pattern для уменьшения cognitive load и упрощения расширения
+ * @note Легко добавлять новые поля (session risk signals, vendor score, multi-factor metadata)
  */
-export function buildAssessment(
-  deviceInfo: DeviceInfo, // Информация об устройстве (нормализуется в DeviceRiskInfo)
-  context: { // Контекст для assessment (IP, geo, signals, timestamp)
+export type BuildAssessmentParams = {
+  readonly deviceInfo: DeviceInfo; // Информация об устройстве (нормализуется в DeviceRiskInfo)
+  readonly context: {
     readonly userId?: string;
     readonly ip?: string;
     readonly geo?: {
@@ -266,24 +365,69 @@ export function buildAssessment(
     };
     readonly userAgent?: string;
     readonly previousSessionId?: string;
-    readonly timestamp?: string;
-    readonly signals?: RiskSignals;
-  },
-  mapperPlugin?: SignalsMapperPlugin, // Опциональный plugin для кастомных полей signals DTO (production-safe: детерминированный, без side-effects)
-): LoginRiskAssessment { // LoginRiskAssessment DTO
-  const device = normalizeDeviceForRisk(deviceInfo);
-  const signalsRecord = mapSignalsToRecord(context.signals, mapperPlugin);
+    readonly timestamp: string | number; // Обязателен для детерминированности
+  };
+  readonly classificationResult: {
+    readonly riskScore: number;
+    readonly riskLevel: RiskLevel;
+    readonly triggeredRules: readonly ClassificationRule[];
+  };
+  readonly modelVersion?: string; // Версия модели (по умолчанию defaultModelVersion)
+};
 
-  return {
+/**
+ * Строит LoginRiskEvaluation объект из domain данных
+ * @note Signals не попадают в domain - остаются в adapter слое
+ * @note Использует param object pattern для extensibility (легко добавлять новые поля)
+ */
+export function buildAssessment(params: BuildAssessmentParams): LoginRiskEvaluation {
+  const {
+    deviceInfo,
+    context,
+    classificationResult,
+    modelVersion = defaultModelVersion,
+  } = params;
+  const device = normalizeDeviceForRisk(deviceInfo);
+  const timestamp = validateAndParseTimestamp(context.timestamp);
+
+  // Создаём LoginRiskResult (createLoginRiskResult внутри вызывает createRiskScore для валидации)
+  const result = createLoginRiskResult({
+    score: classificationResult.riskScore,
+    level: classificationResult.riskLevel,
+    reasons: mapTriggeredRulesToReasons(classificationResult.triggeredRules),
+    modelVersion,
+  });
+
+  // Валидация geo координат (защита от Infinity/NaN)
+  let validatedGeo: LoginRiskContext['geo'];
+  if (context.geo !== undefined) {
+    validateGeoCoordinates(context.geo);
+    const { lat, lng, ...restGeo } = context.geo;
+    validatedGeo = {
+      ...restGeo,
+      ...(lat !== undefined && { lat }),
+      ...(lng !== undefined && { lng }),
+    };
+  }
+
+  // Валидация IP адреса (IPv4/IPv6) для audit trail
+  const validatedIp = context.ip !== undefined
+    ? validateIpAddress(context.ip)
+    : undefined;
+
+  // Создаём LoginRiskContext
+  const riskContext: LoginRiskContext = {
     ...(context.userId !== undefined && { userId: context.userId }),
-    ...(context.ip !== undefined && { ip: context.ip }),
-    ...(context.geo !== undefined && { geo: context.geo }),
+    ...(validatedIp !== undefined && { ip: validatedIp }),
+    ...(validatedGeo !== undefined && { geo: validatedGeo }),
     device,
-    ...(deviceInfo.userAgent !== undefined && { userAgent: deviceInfo.userAgent }),
+    ...(context.userAgent !== undefined && { userAgent: context.userAgent }),
     ...(context.previousSessionId !== undefined && {
       previousSessionId: context.previousSessionId,
     }),
-    ...(context.timestamp !== undefined && { timestamp: context.timestamp }),
-    ...(signalsRecord !== undefined && { signals: signalsRecord }),
+    timestamp,
   };
+
+  // Возвращаем LoginRiskEvaluation через factory
+  return createLoginRiskEvaluation(result, riskContext);
 }

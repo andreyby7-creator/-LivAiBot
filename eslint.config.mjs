@@ -73,6 +73,21 @@ export default [
   },
   // Основная конфигурация выбранного режима
   ...selectedConfig,
+  // Domain файлы — архитектурные исключения для domain слоя
+  // @note Отключение правил обосновано архитектурными решениями:
+  // - fp/no-throw: throw используется для invariant violation в domain type constructors
+  //   (createRiskScore, createRiskModelVersion) — это не recoverable flow, а валидация типов.
+  //   FP-правило ориентировано на application logic, а не на domain type constructors.
+  // - functional/no-classes: классы используются для infrastructure boundary (DomainValidationError)
+  //   для structured logging, instanceof проверок и совместимости с try/catch в app layer.
+  //   Замена на фабрику ломает instanceof, stack trace и ухудшает DX.
+  {
+    files: ['**/domain/**/*.ts'],
+    rules: {
+      'fp/no-throw': 'off',              // ✅ Глобально для domain
+      'functional/no-classes': 'off',    // ✅ Глобально для domain
+    },
+  },
   // Tsup конфиги — линтим, но мягче (как инфраструктурный код)
   {
     files: ['**/tsup.config.{ts,js,mjs,cjs}'],

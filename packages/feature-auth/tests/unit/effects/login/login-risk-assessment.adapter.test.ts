@@ -8,25 +8,13 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 // ============================================================================
 // 🔧 MOCKS
 // ============================================================================
+// Note: transformDomainToDto mock removed - signals no longer part of domain
 
-const mockTransformDomainToDto = vi.hoisted(() => vi.fn());
-
-// Мокируем только для большинства тестов, но оставляем возможность использовать реальную реализацию
-vi.mock('@livai/core', async () => {
-  // eslint-disable-next-line @livai/multiagent/orchestration-safety -- vi.importActual не требует timeout, это синхронная операция мокинга
-  const actual = await vi.importActual('@livai/core');
-  return {
-    ...actual,
-    transformDomainToDto: (...args: unknown[]) => mockTransformDomainToDto(...args),
-  };
-});
+import type { ClassificationRule } from '@livai/domains/strategies';
 
 import type { DeviceInfo } from '../../../../src/domain/DeviceInfo.js';
-import type {
-  RiskSignals,
-  SignalsMapperPlugin,
-} from '../../../../src/effects/login/login-risk-assessment.adapter.js';
 import { buildAssessment } from '../../../../src/effects/login/login-risk-assessment.adapter.js';
+import type { RiskLevel } from '../../../../src/types/auth.js';
 
 // ============================================================================
 // 🔧 HELPER FUNCTIONS FOR TEST DATA
@@ -43,12 +31,37 @@ function createDeviceInfo(overrides: Partial<DeviceInfo> = {}): DeviceInfo {
   };
 }
 
-/** Создает RiskSignals для тестов */
-function createRiskSignals(overrides: Partial<RiskSignals> = {}): RiskSignals {
+/** Создает classificationResult для тестов */
+function createClassificationResult(overrides: {
+  riskScore?: number;
+  riskLevel?: RiskLevel;
+  triggeredRules?: readonly ClassificationRule[];
+} = {}) {
   return {
-    isVpn: false,
-    isTor: false,
-    isProxy: false,
+    riskScore: 0,
+    riskLevel: 'low' as RiskLevel,
+    triggeredRules: [] as readonly ClassificationRule[],
+    ...overrides,
+  };
+}
+
+/** Создает минимальный context с обязательным timestamp */
+function createContext(overrides: {
+  userId?: string;
+  ip?: string;
+  geo?: {
+    country?: string;
+    region?: string;
+    city?: string;
+    lat?: number;
+    lng?: number;
+  };
+  userAgent?: string;
+  previousSessionId?: string;
+  timestamp?: string | number;
+} = {}) {
+  return {
+    timestamp: Date.now(),
     ...overrides,
   };
 }
@@ -58,13 +71,6 @@ function createRiskSignals(overrides: Partial<RiskSignals> = {}): RiskSignals {
 // ============================================================================
 
 describe('normalizeDeviceForRisk', () => {
-  beforeEach(() => {
-    mockTransformDomainToDto.mockReturnValue({
-      ok: true,
-      value: {},
-    });
-  });
-
   afterEach(() => {
     vi.clearAllMocks();
   });
@@ -72,438 +78,310 @@ describe('normalizeDeviceForRisk', () => {
   describe('platform detection from OS', () => {
     it('определяет platform как desktop когда os undefined и deviceType desktop', () => {
       const deviceInfo = createDeviceInfo({ deviceType: 'desktop' });
-      const result = buildAssessment(deviceInfo, {});
+      const result = buildAssessment({
+        deviceInfo,
+        context: createContext(),
+        classificationResult: createClassificationResult(),
+      });
 
-      expect(result.device?.platform).toBe('desktop');
+      expect(result.context.device?.platform).toBe('desktop');
     });
 
     it('определяет platform как web когда os undefined и deviceType не desktop', () => {
       const deviceInfo = createDeviceInfo({ os: '', deviceType: 'mobile' });
-      const result = buildAssessment(deviceInfo, {});
+      const result = buildAssessment({
+        deviceInfo,
+        context: createContext(),
+        classificationResult: createClassificationResult(),
+      });
 
-      expect(result.device?.platform).toBe('web');
+      expect(result.context.device?.platform).toBe('web');
     });
 
     it('определяет platform как web когда os пустая строка и deviceType не desktop', () => {
       const deviceInfo = createDeviceInfo({ os: '', deviceType: 'mobile' });
-      const result = buildAssessment(deviceInfo, {});
+      const result = buildAssessment({
+        deviceInfo,
+        context: createContext(),
+        classificationResult: createClassificationResult(),
+      });
 
-      expect(result.device?.platform).toBe('web');
+      expect(result.context.device?.platform).toBe('web');
     });
 
     it('определяет platform как ios когда os содержит ios', () => {
       const deviceInfo = createDeviceInfo({ os: 'iOS 15.0' });
-      const result = buildAssessment(deviceInfo, {});
+      const result = buildAssessment({
+        deviceInfo,
+        context: createContext(),
+        classificationResult: createClassificationResult(),
+      });
 
-      expect(result.device?.platform).toBe('ios');
+      expect(result.context.device?.platform).toBe('ios');
     });
 
     it('определяет platform как ios когда os содержит iphone', () => {
       const deviceInfo = createDeviceInfo({ os: 'iPhone OS 15.0' });
-      const result = buildAssessment(deviceInfo, {});
+      const result = buildAssessment({
+        deviceInfo,
+        context: createContext(),
+        classificationResult: createClassificationResult(),
+      });
 
-      expect(result.device?.platform).toBe('ios');
+      expect(result.context.device?.platform).toBe('ios');
     });
 
     it('определяет platform как ios когда os содержит ipad', () => {
       const deviceInfo = createDeviceInfo({ os: 'iPad OS 15.0' });
-      const result = buildAssessment(deviceInfo, {});
+      const result = buildAssessment({
+        deviceInfo,
+        context: createContext(),
+        classificationResult: createClassificationResult(),
+      });
 
-      expect(result.device?.platform).toBe('ios');
+      expect(result.context.device?.platform).toBe('ios');
     });
 
     it('определяет platform как android когда os содержит android', () => {
       const deviceInfo = createDeviceInfo({ os: 'Android 12' });
-      const result = buildAssessment(deviceInfo, {});
+      const result = buildAssessment({
+        deviceInfo,
+        context: createContext(),
+        classificationResult: createClassificationResult(),
+      });
 
-      expect(result.device?.platform).toBe('android');
+      expect(result.context.device?.platform).toBe('android');
     });
 
     it('определяет platform как desktop когда os содержит windows', () => {
       const deviceInfo = createDeviceInfo({ os: 'Windows 11' });
-      const result = buildAssessment(deviceInfo, {});
+      const result = buildAssessment({
+        deviceInfo,
+        context: createContext(),
+        classificationResult: createClassificationResult(),
+      });
 
-      expect(result.device?.platform).toBe('desktop');
+      expect(result.context.device?.platform).toBe('desktop');
     });
 
     it('определяет platform как desktop когда os содержит macos', () => {
       const deviceInfo = createDeviceInfo({ os: 'macOS 12.0' });
-      const result = buildAssessment(deviceInfo, {});
+      const result = buildAssessment({
+        deviceInfo,
+        context: createContext(),
+        classificationResult: createClassificationResult(),
+      });
 
-      expect(result.device?.platform).toBe('desktop');
+      expect(result.context.device?.platform).toBe('desktop');
     });
 
     it('определяет platform как desktop когда os содержит linux', () => {
       const deviceInfo = createDeviceInfo({ os: 'Linux Ubuntu 22.04' });
-      const result = buildAssessment(deviceInfo, {});
+      const result = buildAssessment({
+        deviceInfo,
+        context: createContext(),
+        classificationResult: createClassificationResult(),
+      });
 
-      expect(result.device?.platform).toBe('desktop');
+      expect(result.context.device?.platform).toBe('desktop');
     });
 
     it('определяет platform как web когда os не соответствует известным платформам', () => {
       const deviceInfo = createDeviceInfo({ os: 'Unknown OS' });
-      const result = buildAssessment(deviceInfo, {});
+      const result = buildAssessment({
+        deviceInfo,
+        context: createContext(),
+        classificationResult: createClassificationResult(),
+      });
 
-      expect(result.device?.platform).toBe('web');
+      expect(result.context.device?.platform).toBe('web');
     });
   });
 
   describe('optional fields inclusion', () => {
     it('включает os когда os определен и не пустой', () => {
       const deviceInfo = createDeviceInfo({ os: 'Windows 10' });
-      const result = buildAssessment(deviceInfo, {});
+      const result = buildAssessment({
+        deviceInfo,
+        context: createContext(),
+        classificationResult: createClassificationResult(),
+      });
 
-      expect(result.device?.os).toBe('Windows 10');
+      expect(result.context.device?.os).toBe('Windows 10');
     });
 
     it('не включает os когда os undefined', () => {
       const deviceInfo = createDeviceInfo({ os: '' });
-      const result = buildAssessment(deviceInfo, {});
+      const result = buildAssessment({
+        deviceInfo,
+        context: createContext(),
+        classificationResult: createClassificationResult(),
+      });
 
-      expect(result.device?.os).toBeUndefined();
+      expect(result.context.device?.os).toBeUndefined();
     });
 
     it('не включает os когда os пустая строка', () => {
       const deviceInfo = createDeviceInfo({ os: '' });
-      const result = buildAssessment(deviceInfo, {});
+      const result = buildAssessment({
+        deviceInfo,
+        context: createContext(),
+        classificationResult: createClassificationResult(),
+      });
 
-      expect(result.device?.os).toBeUndefined();
+      expect(result.context.device?.os).toBeUndefined();
     });
 
     it('включает browser когда browser определен и не пустой', () => {
       const deviceInfo = createDeviceInfo({ browser: 'Chrome 112' });
-      const result = buildAssessment(deviceInfo, {});
+      const result = buildAssessment({
+        deviceInfo,
+        context: createContext(),
+        classificationResult: createClassificationResult(),
+      });
 
-      expect(result.device?.browser).toBe('Chrome 112');
+      expect(result.context.device?.browser).toBe('Chrome 112');
     });
 
     it('не включает browser когда browser undefined', () => {
       const deviceInfo = createDeviceInfo({ browser: '' });
-      const result = buildAssessment(deviceInfo, {});
+      const result = buildAssessment({
+        deviceInfo,
+        context: createContext(),
+        classificationResult: createClassificationResult(),
+      });
 
-      expect(result.device?.browser).toBeUndefined();
+      expect(result.context.device?.browser).toBeUndefined();
     });
 
     it('не включает browser когда browser пустая строка', () => {
       const deviceInfo = createDeviceInfo({ browser: '' });
-      const result = buildAssessment(deviceInfo, {});
+      const result = buildAssessment({
+        deviceInfo,
+        context: createContext(),
+        classificationResult: createClassificationResult(),
+      });
 
-      expect(result.device?.browser).toBeUndefined();
+      expect(result.context.device?.browser).toBeUndefined();
     });
 
     it('включает appVersion когда appVersion определен и не пустой', () => {
       const deviceInfo = createDeviceInfo({ appVersion: '1.0.0' });
-      const result = buildAssessment(deviceInfo, {});
+      const result = buildAssessment({
+        deviceInfo,
+        context: createContext(),
+        classificationResult: createClassificationResult(),
+      });
 
-      expect(result.device?.appVersion).toBe('1.0.0');
+      expect(result.context.device?.appVersion).toBe('1.0.0');
     });
 
     it('не включает appVersion когда appVersion undefined', () => {
       const deviceInfo = createDeviceInfo();
-      const result = buildAssessment(deviceInfo, {});
+      const result = buildAssessment({
+        deviceInfo,
+        context: createContext(),
+        classificationResult: createClassificationResult(),
+      });
 
-      expect(result.device?.appVersion).toBeUndefined();
+      expect(result.context.device?.appVersion).toBeUndefined();
     });
 
     it('не включает appVersion когда appVersion пустая строка', () => {
       const deviceInfo = createDeviceInfo({ appVersion: '' });
-      const result = buildAssessment(deviceInfo, {});
+      const result = buildAssessment({
+        deviceInfo,
+        context: createContext(),
+        classificationResult: createClassificationResult(),
+      });
 
-      expect(result.device?.appVersion).toBeUndefined();
+      expect(result.context.device?.appVersion).toBeUndefined();
     });
 
     it('всегда включает deviceId', () => {
       const deviceInfo = createDeviceInfo({ deviceId: 'custom-device-id' });
-      const result = buildAssessment(deviceInfo, {});
+      const result = buildAssessment({
+        deviceInfo,
+        context: createContext(),
+        classificationResult: createClassificationResult(),
+      });
 
-      expect(result.device?.deviceId).toBe('custom-device-id');
+      expect(result.context.device?.deviceId).toBe('custom-device-id');
     });
   });
 });
 
 // ============================================================================
-// 🎯 TESTS - enforceWhitelist (через mapSignalsToRecord)
+// NOTE: Tests for signals mapping removed - signals no longer part of domain
 // ============================================================================
-
-describe('enforceWhitelist', () => {
-  beforeEach(() => {
-    mockTransformDomainToDto.mockReturnValue({
-      ok: true,
-      value: {
-        isVpn: true,
-        isTor: false,
-        reputationScore: 85,
-      },
-    });
-  });
-
-  afterEach(() => {
-    vi.clearAllMocks();
-  });
-
-  it('разрешает whitelist поля', () => {
-    const signals = createRiskSignals({ isVpn: true });
-    const result = buildAssessment(createDeviceInfo(), { signals });
-
-    expect(result.signals).toBeDefined();
-    expect(result.signals?.['isVpn']).toBe(true);
-  });
-
-  it('разрешает поля с префиксом custom_', () => {
-    const signals = createRiskSignals();
-    const plugin: SignalsMapperPlugin = () => ({
-      custom_vendorId: 'vendor-123',
-      custom_metadata: { test: 'value' },
-    });
-
-    const result = buildAssessment(createDeviceInfo(), { signals }, plugin);
-
-    expect(result.signals).toBeDefined();
-    expect(result.signals?.['custom_vendorId']).toBe('vendor-123');
-    expect(result.signals?.['custom_metadata']).toEqual({ test: 'value' });
-  });
-
-  it('удаляет поля не из whitelist и без префикса custom_', () => {
-    const signals = createRiskSignals();
-    const plugin: SignalsMapperPlugin = () => ({
-      isVpn: true,
-      maliciousField: 'should be removed',
-      anotherBadField: 123,
-    });
-
-    const result = buildAssessment(createDeviceInfo(), { signals }, plugin);
-
-    expect(result.signals).toBeDefined();
-    expect(result.signals?.['maliciousField']).toBeUndefined();
-    expect(result.signals?.['anotherBadField']).toBeUndefined();
-  });
-
-  it('удаляет externalSignals', () => {
-    const signals = createRiskSignals({
-      externalSignals: { vendorData: 'secret' },
-    });
-    const result = buildAssessment(createDeviceInfo(), { signals });
-
-    expect(result.signals).toBeDefined();
-    expect(result.signals?.['externalSignals']).toBeUndefined();
-  });
-
-  it('игнорирует не-string ключи', () => {
-    const signals = createRiskSignals();
-    const plugin: SignalsMapperPlugin = () => {
-      const record: Record<string, unknown> = {
-        isVpn: true,
-      };
-      // Симулируем не-string ключ (в реальности Object.entries всегда возвращает string)
-      Object.defineProperty(record, Symbol('test'), { value: 'test', enumerable: true });
-      return record;
-    };
-
-    const result = buildAssessment(createDeviceInfo(), { signals }, plugin);
-
-    expect(result.signals).toBeDefined();
-    expect(result.signals?.['isVpn']).toBe(true);
-  });
-});
-
-// ============================================================================
-// 🎯 TESTS - mapSignalsToRecord
-// ============================================================================
-
-describe('mapSignalsToRecord', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
-
-  it('возвращает undefined когда signals undefined', () => {
-    const result = buildAssessment(createDeviceInfo(), {});
-
-    expect(result.signals).toBeUndefined();
-  });
-
-  it('возвращает undefined когда transformDomainToDto возвращает !ok', () => {
-    mockTransformDomainToDto.mockReturnValue({
-      ok: false,
-      error: new Error('Transform failed'),
-    });
-
-    const signals = createRiskSignals();
-    const result = buildAssessment(createDeviceInfo(), { signals });
-
-    expect(result.signals).toBeUndefined();
-  });
-
-  it('возвращает record когда transformDomainToDto успешен', () => {
-    mockTransformDomainToDto.mockReturnValue({
-      ok: true,
-      value: {
-        isVpn: true,
-        reputationScore: 85,
-      },
-    });
-
-    const signals = createRiskSignals({ isVpn: true });
-    const result = buildAssessment(createDeviceInfo(), { signals });
-
-    expect(result.signals).toBeDefined();
-    expect(result.signals?.['isVpn']).toBe(true);
-    expect(result.signals?.['reputationScore']).toBe(85);
-  });
-
-  it('возвращает undefined когда все значения undefined', () => {
-    mockTransformDomainToDto.mockReturnValue({
-      ok: true,
-      value: {
-        isVpn: undefined,
-        isTor: undefined,
-      },
-    });
-
-    const signals = createRiskSignals();
-    const result = buildAssessment(createDeviceInfo(), { signals });
-
-    expect(result.signals).toBeUndefined();
-  });
-
-  it('применяет plugin когда передан', () => {
-    mockTransformDomainToDto.mockReturnValue({
-      ok: true,
-      value: {
-        isVpn: true,
-      },
-    });
-
-    const plugin: SignalsMapperPlugin = vi.fn((_signals, baseRecord) => ({
-      ...baseRecord,
-      custom_vendorId: 'vendor-123',
-    }));
-
-    const signals = createRiskSignals({ isVpn: true });
-    const result = buildAssessment(createDeviceInfo(), { signals }, plugin);
-
-    expect(plugin).toHaveBeenCalledTimes(1);
-    expect(result.signals).toBeDefined();
-    expect(result.signals?.['custom_vendorId']).toBe('vendor-123');
-  });
-
-  it('защищает base whitelist поля от перезаписи плагином', () => {
-    mockTransformDomainToDto.mockReturnValue({
-      ok: true,
-      value: {
-        isVpn: true,
-        reputationScore: 85,
-      },
-    });
-
-    const plugin: SignalsMapperPlugin = (_signals, baseRecord) => ({
-      ...baseRecord,
-      isVpn: false, // Попытка перезаписи
-      reputationScore: 0, // Попытка перезаписи
-      custom_vendorId: 'vendor-123',
-    });
-
-    const signals = createRiskSignals({ isVpn: true });
-    const result = buildAssessment(createDeviceInfo(), { signals }, plugin);
-
-    // Base поля не должны быть перезаписаны
-    expect(result.signals?.['isVpn']).toBe(true);
-    expect(result.signals?.['reputationScore']).toBe(85);
-    // Custom поля должны быть добавлены
-    expect(result.signals?.['custom_vendorId']).toBe('vendor-123');
-  });
-
-  it('передает frozen copy baseRecord в plugin', () => {
-    mockTransformDomainToDto.mockReturnValue({
-      ok: true,
-      value: {
-        isVpn: true,
-      },
-    });
-
-    const plugin: SignalsMapperPlugin = vi.fn((_signals, baseRecord) => {
-      // Проверяем, что baseRecord frozen (в strict mode Object.freeze бросает ошибку при попытке мутации)
-      expect(Object.isFrozen(baseRecord)).toBe(true);
-      // Создаем новый объект для возврата (не мутируем baseRecord)
-      const newRecord = { ...baseRecord, custom_vendorId: 'vendor-123' };
-      return newRecord;
-    });
-
-    const signals = createRiskSignals({ isVpn: true });
-    buildAssessment(createDeviceInfo(), { signals }, plugin);
-
-    expect(plugin).toHaveBeenCalledTimes(1);
-    const callArgs = (plugin as ReturnType<typeof vi.fn>).mock.calls[0];
-    expect(callArgs).toBeDefined();
-    expect(Object.isFrozen(callArgs?.[1])).toBe(true);
-  });
-
-  it('не применяет plugin когда plugin undefined', () => {
-    mockTransformDomainToDto.mockReturnValue({
-      ok: true,
-      value: {
-        isVpn: true,
-      },
-    });
-
-    const signals = createRiskSignals({ isVpn: true });
-    const result = buildAssessment(createDeviceInfo(), { signals });
-
-    expect(result.signals).toBeDefined();
-    expect(result.signals?.['isVpn']).toBe(true);
-  });
-});
 
 // ============================================================================
 // 🎯 TESTS - buildAssessment (Main API)
 // ============================================================================
 
 describe('buildAssessment', () => {
-  beforeEach(() => {
-    mockTransformDomainToDto.mockReturnValue({
-      ok: true,
-      value: {},
-    });
-  });
-
   afterEach(() => {
     vi.clearAllMocks();
   });
 
-  it('строит минимальный LoginRiskAssessment', () => {
+  it('строит минимальный LoginRiskEvaluation', () => {
     const deviceInfo = createDeviceInfo();
-    const result = buildAssessment(deviceInfo, {});
+    const result = buildAssessment({
+      deviceInfo,
+      context: createContext(),
+      classificationResult: createClassificationResult(),
+    });
 
     expect(result).toBeDefined();
-    expect(result.device).toBeDefined();
-    expect(result.device?.deviceId).toBe('device-test-123');
+    expect(result.context.device).toBeDefined();
+    expect(result.context.device?.deviceId).toBe('device-test-123');
+    expect(result.result).toBeDefined();
+    expect(result.result.score).toBe(0);
+    expect(result.result.level).toBe('low');
   });
 
   it('включает userId когда передан', () => {
     const deviceInfo = createDeviceInfo();
-    const result = buildAssessment(deviceInfo, { userId: 'user-123' });
+    const result = buildAssessment({
+      deviceInfo,
+      context: createContext({ userId: 'user-123' }),
+      classificationResult: createClassificationResult(),
+    });
 
-    expect(result.userId).toBe('user-123');
+    expect(result.context.userId).toBe('user-123');
   });
 
   it('не включает userId когда undefined', () => {
     const deviceInfo = createDeviceInfo();
-    const result = buildAssessment(deviceInfo, {});
+    const result = buildAssessment({
+      deviceInfo,
+      context: createContext(),
+      classificationResult: createClassificationResult(),
+    });
 
-    expect(result.userId).toBeUndefined();
+    expect(result.context.userId).toBeUndefined();
   });
 
   it('включает ip когда передан', () => {
     const deviceInfo = createDeviceInfo();
-    const result = buildAssessment(deviceInfo, { ip: '192.168.1.1' });
+    const result = buildAssessment({
+      deviceInfo,
+      context: createContext({ ip: '192.168.1.1' }),
+      classificationResult: createClassificationResult(),
+    });
 
-    expect(result.ip).toBe('192.168.1.1');
+    expect(result.context.ip).toBe('192.168.1.1');
   });
 
   it('не включает ip когда undefined', () => {
     const deviceInfo = createDeviceInfo();
-    const result = buildAssessment(deviceInfo, {});
+    const result = buildAssessment({
+      deviceInfo,
+      context: createContext(),
+      classificationResult: createClassificationResult(),
+    });
 
-    expect(result.ip).toBeUndefined();
+    expect(result.context.ip).toBeUndefined();
   });
 
   it('включает geo когда передан', () => {
@@ -515,126 +393,90 @@ describe('buildAssessment', () => {
       lat: 37.7749,
       lng: -122.4194,
     };
-    const result = buildAssessment(deviceInfo, { geo });
+    const result = buildAssessment({
+      deviceInfo,
+      context: createContext({ geo }),
+      classificationResult: createClassificationResult(),
+    });
 
-    expect(result.geo).toEqual(geo);
+    expect(result.context.geo).toEqual(geo);
   });
 
   it('не включает geo когда undefined', () => {
     const deviceInfo = createDeviceInfo();
-    const result = buildAssessment(deviceInfo, {});
+    const result = buildAssessment({
+      deviceInfo,
+      context: createContext(),
+      classificationResult: createClassificationResult(),
+    });
 
-    expect(result.geo).toBeUndefined();
+    expect(result.context.geo).toBeUndefined();
   });
 
-  it('включает userAgent из deviceInfo когда передан', () => {
-    const deviceInfo = createDeviceInfo({ userAgent: 'Mozilla/5.0' });
-    const result = buildAssessment(deviceInfo, {});
-
-    expect(result.userAgent).toBe('Mozilla/5.0');
-  });
-
-  it('не включает userAgent когда undefined в deviceInfo', () => {
+  it('включает userAgent когда передан', () => {
     const deviceInfo = createDeviceInfo();
-    const result = buildAssessment(deviceInfo, {});
+    const result = buildAssessment({
+      deviceInfo,
+      context: createContext({ userAgent: 'Mozilla/5.0' }),
+      classificationResult: createClassificationResult(),
+    });
 
-    expect(result.userAgent).toBeUndefined();
+    expect(result.context.userAgent).toBe('Mozilla/5.0');
   });
 
-  it('включает userAgent из deviceInfo когда передан в deviceInfo', () => {
-    const deviceInfo = createDeviceInfo({ userAgent: 'Device User Agent' });
-    const result = buildAssessment(deviceInfo, {});
+  it('не включает userAgent когда undefined', () => {
+    const deviceInfo = createDeviceInfo();
+    const result = buildAssessment({
+      deviceInfo,
+      context: createContext(),
+      classificationResult: createClassificationResult(),
+    });
 
-    expect(result.userAgent).toBe('Device User Agent');
+    expect(result.context.userAgent).toBeUndefined();
   });
 
   it('включает previousSessionId когда передан', () => {
     const deviceInfo = createDeviceInfo();
-    const result = buildAssessment(deviceInfo, { previousSessionId: 'session-123' });
+    const result = buildAssessment({
+      deviceInfo,
+      context: createContext({ previousSessionId: 'session-123' }),
+      classificationResult: createClassificationResult(),
+    });
 
-    expect(result.previousSessionId).toBe('session-123');
+    expect(result.context.previousSessionId).toBe('session-123');
   });
 
   it('не включает previousSessionId когда undefined', () => {
     const deviceInfo = createDeviceInfo();
-    const result = buildAssessment(deviceInfo, {});
+    const result = buildAssessment({
+      deviceInfo,
+      context: createContext(),
+      classificationResult: createClassificationResult(),
+    });
 
-    expect(result.previousSessionId).toBeUndefined();
+    expect(result.context.previousSessionId).toBeUndefined();
   });
 
   it('включает timestamp когда передан', () => {
     const deviceInfo = createDeviceInfo();
     const timestamp = '2024-01-01T00:00:00.000Z';
-    const result = buildAssessment(deviceInfo, { timestamp });
-
-    expect(result.timestamp).toBe(timestamp);
-  });
-
-  it('не включает timestamp когда undefined', () => {
-    const deviceInfo = createDeviceInfo();
-    const result = buildAssessment(deviceInfo, {});
-
-    expect(result.timestamp).toBeUndefined();
-  });
-
-  it('включает signals когда передан и не пустой', () => {
-    mockTransformDomainToDto.mockReturnValue({
-      ok: true,
-      value: {
-        isVpn: true,
-        reputationScore: 85,
-      },
+    const result = buildAssessment({
+      deviceInfo,
+      context: createContext({ timestamp }),
+      classificationResult: createClassificationResult(),
     });
 
-    const deviceInfo = createDeviceInfo();
-    const signals = createRiskSignals({ isVpn: true });
-    const result = buildAssessment(deviceInfo, { signals });
-
-    expect(result.signals).toBeDefined();
-    expect(result.signals?.['isVpn']).toBe(true);
-    expect(result.signals?.['reputationScore']).toBe(85);
+    expect(result.context.timestamp).toBeGreaterThan(0);
+    expect(typeof result.context.timestamp).toBe('number');
   });
 
-  it('не включает signals когда undefined', () => {
-    const deviceInfo = createDeviceInfo();
-    const result = buildAssessment(deviceInfo, {});
-
-    expect(result.signals).toBeUndefined();
-  });
-
-  it('не включает signals когда все значения undefined', () => {
-    mockTransformDomainToDto.mockReturnValue({
-      ok: true,
-      value: {
-        isVpn: undefined,
-        isTor: undefined,
-      },
-    });
-
-    const deviceInfo = createDeviceInfo();
-    const signals = createRiskSignals();
-    const result = buildAssessment(deviceInfo, { signals });
-
-    expect(result.signals).toBeUndefined();
-  });
-
-  it('строит полный LoginRiskAssessment со всеми полями', () => {
-    mockTransformDomainToDto.mockReturnValue({
-      ok: true,
-      value: {
-        isVpn: true,
-        reputationScore: 85,
-        velocityScore: 10,
-      },
-    });
-
+  it('строит полный LoginRiskEvaluation со всеми полями', () => {
     const deviceInfo = createDeviceInfo({
       os: 'Windows 11',
       browser: 'Chrome 112',
       appVersion: '1.0.0',
-      userAgent: 'Mozilla/5.0',
     });
-    const context = {
+    const context = createContext({
       userId: 'user-123',
       ip: '192.168.1.1',
       geo: {
@@ -644,36 +486,37 @@ describe('buildAssessment', () => {
         lat: 37.7749,
         lng: -122.4194,
       },
-      userAgent: 'Custom Agent',
+      userAgent: 'Mozilla/5.0',
       previousSessionId: 'session-123',
       timestamp: '2024-01-01T00:00:00.000Z',
-      signals: createRiskSignals({ isVpn: true }),
-    };
-    const plugin: SignalsMapperPlugin = (_signals, baseRecord) => ({
-      ...baseRecord,
-      custom_vendorId: 'vendor-123',
+    });
+    const classificationResult = createClassificationResult({
+      riskScore: 75,
+      riskLevel: 'high',
+      triggeredRules: [],
     });
 
-    const result = buildAssessment(deviceInfo, context, plugin);
+    const result = buildAssessment({
+      deviceInfo,
+      context,
+      classificationResult,
+    });
 
     expect(result).toBeDefined();
-    expect(result.userId).toBe('user-123');
-    expect(result.ip).toBe('192.168.1.1');
-    expect(result.geo).toEqual(context.geo);
-    expect(result.device).toBeDefined();
-    expect(result.device?.deviceId).toBe('device-test-123');
-    expect(result.device?.platform).toBe('desktop');
-    expect(result.device?.os).toBe('Windows 11');
-    expect(result.device?.browser).toBe('Chrome 112');
-    expect(result.device?.appVersion).toBe('1.0.0');
-    expect(result.userAgent).toBe('Mozilla/5.0'); // userAgent берется из deviceInfo, не из context
-    expect(result.previousSessionId).toBe('session-123');
-    expect(result.timestamp).toBe('2024-01-01T00:00:00.000Z');
-    expect(result.signals).toBeDefined();
-    expect(result.signals?.['isVpn']).toBe(true);
-    expect(result.signals?.['reputationScore']).toBe(85);
-    expect(result.signals?.['velocityScore']).toBe(10);
-    expect(result.signals?.['custom_vendorId']).toBe('vendor-123');
+    expect(result.context.userId).toBe('user-123');
+    expect(result.context.ip).toBe('192.168.1.1');
+    expect(result.context.geo).toEqual(context.geo);
+    expect(result.context.device).toBeDefined();
+    expect(result.context.device?.deviceId).toBe('device-test-123');
+    expect(result.context.device?.platform).toBe('desktop');
+    expect(result.context.device?.os).toBe('Windows 11');
+    expect(result.context.device?.browser).toBe('Chrome 112');
+    expect(result.context.device?.appVersion).toBe('1.0.0');
+    expect(result.context.userAgent).toBe('Mozilla/5.0');
+    expect(result.context.previousSessionId).toBe('session-123');
+    expect(result.context.timestamp).toBeGreaterThan(0);
+    expect(result.result.score).toBe(75);
+    expect(result.result.level).toBe('high');
   });
 });
 
@@ -686,73 +529,7 @@ describe('Security and Edge Cases', () => {
     vi.clearAllMocks();
   });
 
-  it('защищает от malicious plugin пытающегося перезаписать все whitelist поля', () => {
-    mockTransformDomainToDto.mockReturnValue({
-      ok: true,
-      value: {
-        isVpn: true,
-        isTor: false,
-        isProxy: false,
-        asn: 'AS12345',
-        reputationScore: 85,
-        velocityScore: 10,
-        previousGeo: { country: 'US' },
-      },
-    });
-
-    const maliciousPlugin: SignalsMapperPlugin = () => ({
-      isVpn: false, // Попытка перезаписи
-      isTor: true, // Попытка перезаписи
-      isProxy: true, // Попытка перезаписи
-      asn: 'MALICIOUS', // Попытка перезаписи
-      reputationScore: 0, // Попытка перезаписи
-      velocityScore: 100, // Попытка перезаписи
-      previousGeo: { country: 'XX' }, // Попытка перезаписи
-      custom_vendorId: 'vendor-123', // Правильный префикс для custom полей
-    });
-
-    const signals = createRiskSignals({ isVpn: true });
-    const result = buildAssessment(createDeviceInfo(), { signals }, maliciousPlugin);
-
-    // Все base поля должны остаться неизменными
-    expect(result.signals?.['isVpn']).toBe(true);
-    expect(result.signals?.['isTor']).toBe(false);
-    expect(result.signals?.['isProxy']).toBe(false);
-    expect(result.signals?.['asn']).toBe('AS12345');
-    expect(result.signals?.['reputationScore']).toBe(85);
-    expect(result.signals?.['velocityScore']).toBe(10);
-    expect(result.signals?.['previousGeo']).toEqual({ country: 'US' });
-    // Custom поля должны быть добавлены (с правильным префиксом custom_)
-    expect(result.signals?.['custom_vendorId']).toBe('vendor-123');
-  });
-
-  it('удаляет externalSignals даже если plugin пытается их добавить', () => {
-    mockTransformDomainToDto.mockReturnValue({
-      ok: true,
-      value: {
-        isVpn: true,
-      },
-    });
-
-    const plugin: SignalsMapperPlugin = () => ({
-      isVpn: true,
-      externalSignals: { vendorData: 'secret' }, // Попытка добавить externalSignals
-      custom_vendorId: 'vendor-123', // Правильный префикс для custom полей
-    });
-
-    const signals = createRiskSignals({ isVpn: true });
-    const result = buildAssessment(createDeviceInfo(), { signals }, plugin);
-
-    expect(result.signals?.['externalSignals']).toBeUndefined();
-    expect(result.signals?.['custom_vendorId']).toBe('vendor-123');
-  });
-
   it('обрабатывает case-insensitive OS detection', () => {
-    mockTransformDomainToDto.mockReturnValue({
-      ok: true,
-      value: {},
-    });
-
     const testCases = [
       { os: 'IOS 15.0', expected: 'ios' },
       { os: 'iPhone OS 15.0', expected: 'ios' },
@@ -765,119 +542,293 @@ describe('Security and Edge Cases', () => {
 
     testCases.forEach((testCase) => {
       const deviceInfo = createDeviceInfo({ os: testCase.os });
-      const result = buildAssessment(deviceInfo, {});
-      expect(result.device?.platform).toBe(testCase.expected);
+      const result = buildAssessment({
+        deviceInfo,
+        context: createContext(),
+        classificationResult: createClassificationResult(),
+      });
+      expect(result.context.device?.platform).toBe(testCase.expected);
     });
   });
 
   it('обрабатывает пустые строки в optional полях deviceInfo', () => {
-    mockTransformDomainToDto.mockReturnValue({
-      ok: true,
-      value: {},
-    });
-
     const deviceInfo = createDeviceInfo({
       os: '',
       browser: '',
       appVersion: '',
     });
-    const result = buildAssessment(deviceInfo, {});
-
-    expect(result.device?.os).toBeUndefined();
-    expect(result.device?.browser).toBeUndefined();
-    expect(result.device?.appVersion).toBeUndefined();
-  });
-
-  it('обрабатывает все whitelist поля signals', () => {
-    mockTransformDomainToDto.mockReturnValue({
-      ok: true,
-      value: {
-        isVpn: true,
-        isTor: false,
-        isProxy: true,
-        asn: 'AS12345',
-        reputationScore: 85,
-        velocityScore: 10,
-        previousGeo: {
-          country: 'US',
-          region: 'CA',
-          city: 'San Francisco',
-          lat: 37.7749,
-          lng: -122.4194,
-        },
-      },
+    const result = buildAssessment({
+      deviceInfo,
+      context: createContext(),
+      classificationResult: createClassificationResult(),
     });
 
-    const signals = createRiskSignals({
-      isVpn: true,
-      isTor: false,
-      isProxy: true,
-      asn: 'AS12345',
-      reputationScore: 85,
-      velocityScore: 10,
-      previousGeo: {
-        country: 'US',
-        region: 'CA',
-        city: 'San Francisco',
-        lat: 37.7749,
-        lng: -122.4194,
-      },
-    });
-    const result = buildAssessment(createDeviceInfo(), { signals });
-
-    expect(result.signals).toBeDefined();
-    expect(result.signals?.['isVpn']).toBe(true);
-    expect(result.signals?.['isTor']).toBe(false);
-    expect(result.signals?.['isProxy']).toBe(true);
-    expect(result.signals?.['asn']).toBe('AS12345');
-    expect(result.signals?.['reputationScore']).toBe(85);
-    expect(result.signals?.['velocityScore']).toBe(10);
-    expect(result.signals?.['previousGeo']).toEqual({
-      country: 'US',
-      region: 'CA',
-      city: 'San Francisco',
-      lat: 37.7749,
-      lng: -122.4194,
-    });
+    expect(result.context.device?.os).toBeUndefined();
+    expect(result.context.device?.browser).toBeUndefined();
+    expect(result.context.device?.appVersion).toBeUndefined();
   });
 
   it('покрывает все ветки в normalizeDeviceForRisk для разных комбинаций os и deviceType', () => {
-    mockTransformDomainToDto.mockReturnValue({
-      ok: true,
-      value: {},
-    });
-
     // Тест для ветки: os === undefined || os === '' && deviceType === 'desktop'
     const deviceInfo1 = createDeviceInfo({ os: '', deviceType: 'desktop' });
-    const result1 = buildAssessment(deviceInfo1, {});
-    expect(result1.device?.platform).toBe('desktop');
+    const result1 = buildAssessment({
+      deviceInfo: deviceInfo1,
+      context: createContext(),
+      classificationResult: createClassificationResult(),
+    });
+    expect(result1.context.device?.platform).toBe('desktop');
 
     // Тест для ветки: os === undefined || os === '' && deviceType !== 'desktop'
     const deviceInfo2 = createDeviceInfo({ os: '', deviceType: 'mobile' });
-    const result2 = buildAssessment(deviceInfo2, {});
-    expect(result2.device?.platform).toBe('web');
+    const result2 = buildAssessment({
+      deviceInfo: deviceInfo2,
+      context: createContext(),
+      classificationResult: createClassificationResult(),
+    });
+    expect(result2.context.device?.platform).toBe('web');
   });
 
-  it('покрывает все ветки в enforceWhitelist для разных типов ключей', () => {
-    mockTransformDomainToDto.mockReturnValue({
-      ok: true,
-      value: {
-        isVpn: true,
-      },
+  it('валидирует riskScore диапазон', () => {
+    expect(() => {
+      buildAssessment({
+        deviceInfo: createDeviceInfo(),
+        context: createContext(),
+        classificationResult: createClassificationResult({ riskScore: -1 }),
+      });
+    }).toThrow();
+
+    expect(() => {
+      buildAssessment({
+        deviceInfo: createDeviceInfo(),
+        context: createContext(),
+        classificationResult: createClassificationResult({ riskScore: 101 }),
+      });
+    }).toThrow();
+
+    expect(() => {
+      buildAssessment({
+        deviceInfo: createDeviceInfo(),
+        context: createContext(),
+        classificationResult: createClassificationResult({ riskScore: NaN }),
+      });
+    }).toThrow();
+
+    // Valid range
+    const result = buildAssessment({
+      deviceInfo: createDeviceInfo(),
+      context: createContext(),
+      classificationResult: createClassificationResult({ riskScore: 50 }),
+    });
+    expect(result.result.score).toBe(50);
+  });
+
+  it('валидирует timestamp', () => {
+    expect(() => {
+      buildAssessment({
+        deviceInfo: createDeviceInfo(),
+        context: createContext({ timestamp: undefined as unknown as string }),
+        classificationResult: createClassificationResult(),
+      });
+    }).toThrow();
+
+    // Valid timestamp
+    const result = buildAssessment({
+      deviceInfo: createDeviceInfo(),
+      context: createContext({ timestamp: '2024-01-01T00:00:00.000Z' }),
+      classificationResult: createClassificationResult(),
+    });
+    expect(result.context.timestamp).toBeGreaterThan(0);
+  });
+
+  it('покрывает validateAndParseTimestamp с невалидным ISO 8601 форматом (строка 238)', () => {
+    // Timestamp, который не соответствует ISO 8601 формату
+    expect(() => {
+      buildAssessment({
+        deviceInfo: createDeviceInfo(),
+        context: createContext({ timestamp: '2024-01-01 00:00:00' }), // Не ISO 8601 формат
+        classificationResult: createClassificationResult(),
+      });
+    }).toThrow(/Invalid timestamp format: must be ISO 8601/);
+  });
+
+  it('покрывает validateAndParseTimestamp с number NaN (строка 216)', () => {
+    // Timestamp как number, но NaN
+    expect(() => {
+      buildAssessment({
+        deviceInfo: createDeviceInfo(),
+        context: createContext({ timestamp: NaN }),
+        classificationResult: createClassificationResult(),
+      });
+    }).toThrow(/Invalid timestamp: must be finite number/);
+  });
+
+  it('покрывает validateAndParseTimestamp с number Infinity (строка 216)', () => {
+    // Timestamp как number, но Infinity
+    expect(() => {
+      buildAssessment({
+        deviceInfo: createDeviceInfo(),
+        context: createContext({ timestamp: Infinity }),
+        classificationResult: createClassificationResult(),
+      });
+    }).toThrow(/Invalid timestamp: must be finite number/);
+  });
+
+  // Примечание: строка 328 (catch блок для исключений из ipaddr.js) практически недостижима,
+  // так как ipaddr.js обычно не выбрасывает исключения, а возвращает false.
+  // Это защитный код на случай, если библиотека изменится в будущем.
+  // Покрытие этой строки требует глобального мокирования модуля, что ломает другие тесты.
+
+  it('валидирует IP адрес', () => {
+    // Valid IPv4
+    const result1 = buildAssessment({
+      deviceInfo: createDeviceInfo(),
+      context: createContext({ ip: '192.168.1.1' }),
+      classificationResult: createClassificationResult(),
+    });
+    expect(result1.context.ip).toBe('192.168.1.1');
+
+    // Invalid IP should throw
+    expect(() => {
+      buildAssessment({
+        deviceInfo: createDeviceInfo(),
+        context: createContext({ ip: 'invalid-ip' }),
+        classificationResult: createClassificationResult(),
+      });
+    }).toThrow();
+  });
+
+  it('валидирует geo координаты', () => {
+    // Valid geo
+    const result1 = buildAssessment({
+      deviceInfo: createDeviceInfo(),
+      context: createContext({ geo: { lat: 37.7749, lng: -122.4194 } }),
+      classificationResult: createClassificationResult(),
+    });
+    expect(result1.context.geo?.lat).toBe(37.7749);
+    expect(result1.context.geo?.lng).toBe(-122.4194);
+
+    // Invalid lat should throw
+    expect(() => {
+      buildAssessment({
+        deviceInfo: createDeviceInfo(),
+        context: createContext({ geo: { lat: 91 } }),
+        classificationResult: createClassificationResult(),
+      });
+    }).toThrow();
+
+    // Invalid lng should throw
+    expect(() => {
+      buildAssessment({
+        deviceInfo: createDeviceInfo(),
+        context: createContext({ geo: { lng: 181 } }),
+        classificationResult: createClassificationResult(),
+      });
+    }).toThrow();
+  });
+
+  it('устраняет дубликаты reasons при маппинге правил', () => {
+    // VPN_DETECTED и NEW_DEVICE_VPN оба маппятся в {type: 'network', code: 'vpn'}
+    const triggeredRules: ClassificationRule[] = [
+      'VPN_DETECTED',
+      'NEW_DEVICE_VPN',
+    ] as ClassificationRule[];
+    const result = buildAssessment({
+      deviceInfo: createDeviceInfo(),
+      context: createContext(),
+      classificationResult: createClassificationResult({ triggeredRules }),
     });
 
-    const plugin: SignalsMapperPlugin = () => ({
-      isVpn: true, // whitelist поле
-      custom_test: 'value', // поле с префиксом custom_
-      maliciousField: 'should be removed', // неразрешенное поле
+    // Должен быть только один reason с {type: 'network', code: 'vpn'}
+    const networkReasons = result.result.reasons.filter(
+      (r) => r.type === 'network' && r.code === 'vpn',
+    );
+    expect(networkReasons).toHaveLength(1);
+    expect(result.result.reasons).toHaveLength(1);
+  });
+
+  it('устраняет дубликаты для разных правил, маппящихся в один reason', () => {
+    // UNKNOWN_DEVICE, IoT_DEVICE, MISSING_OS, MISSING_BROWSER все маппятся в {type: 'device', code: 'unknown'}
+    const triggeredRules: ClassificationRule[] = [
+      'UNKNOWN_DEVICE',
+      'IoT_DEVICE',
+      'MISSING_OS',
+      'MISSING_BROWSER',
+    ] as ClassificationRule[];
+    const result = buildAssessment({
+      deviceInfo: createDeviceInfo(),
+      context: createContext(),
+      classificationResult: createClassificationResult({ triggeredRules }),
     });
 
-    const signals = createRiskSignals({ isVpn: true });
-    const result = buildAssessment(createDeviceInfo(), { signals }, plugin);
+    // Должен быть только один reason с {type: 'device', code: 'unknown'}
+    const deviceReasons = result.result.reasons.filter(
+      (r) => r.type === 'device' && r.code === 'unknown',
+    );
+    expect(deviceReasons).toHaveLength(1);
+    expect(result.result.reasons).toHaveLength(1);
+  });
 
-    expect(result.signals).toBeDefined();
-    expect(result.signals?.['isVpn']).toBe(true);
-    expect(result.signals?.['custom_test']).toBe('value');
-    expect(result.signals?.['maliciousField']).toBeUndefined();
+  it('сохраняет разные reasons при отсутствии дубликатов', () => {
+    const triggeredRules: ClassificationRule[] = [
+      'VPN_DETECTED',
+      'TOR_NETWORK',
+      'LOW_REPUTATION',
+    ] as ClassificationRule[];
+    const result = buildAssessment({
+      deviceInfo: createDeviceInfo(),
+      context: createContext(),
+      classificationResult: createClassificationResult({ triggeredRules }),
+    });
+
+    // Должны быть три разных reason
+    expect(result.result.reasons).toHaveLength(3);
+    expect(result.result.reasons.some((r) => r.type === 'network' && r.code === 'vpn')).toBe(true);
+    expect(result.result.reasons.some((r) => r.type === 'network' && r.code === 'tor')).toBe(true);
+    expect(result.result.reasons.some((r) => r.type === 'reputation' && r.code === 'low')).toBe(
+      true,
+    );
+  });
+
+  it('покрывает validateIpAddress с пустой строкой после trim (строка 306)', () => {
+    // IP адрес, который после trim становится пустой строкой
+    expect(() => {
+      buildAssessment({
+        deviceInfo: createDeviceInfo(),
+        context: createContext({ ip: '   ' }), // Пробелы
+        classificationResult: createClassificationResult(),
+      });
+    }).toThrow(/IP address cannot be empty string/);
+  });
+
+  it('покрывает validateIpAddress с невалидным IP, вызывающим исключение из ipaddr.js (строка 328)', () => {
+    // IP адрес, который вызывает исключение из ipaddr.js (не DomainValidationError)
+    // ipaddr.js может выбросить исключение для очень невалидных адресов
+    // Попробуем использовать очень длинную строку, которая может вызвать исключение
+    expect(() => {
+      buildAssessment({
+        deviceInfo: createDeviceInfo(),
+        context: createContext({ ip: 'a'.repeat(1000) }), // Очень длинная невалидная строка
+        classificationResult: createClassificationResult(),
+      });
+    }).toThrow(/Invalid IP address/);
+  });
+
+  it('покрывает validateAndParseTimestamp с Date.parse возвращающим NaN (строка 251)', () => {
+    // Мокаем Date.parse, чтобы он возвращал NaN
+    const parseSpy = vi.spyOn(global.Date, 'parse').mockReturnValue(NaN);
+
+    try {
+      // Используем валидный ISO 8601 формат, но Date.parse вернет NaN
+      expect(() => {
+        buildAssessment({
+          deviceInfo: createDeviceInfo(),
+          context: createContext({ timestamp: '2024-01-01T00:00:00.000Z' }),
+          classificationResult: createClassificationResult(),
+        });
+      }).toThrow(/Date.parse returned non-finite value/);
+    } finally {
+      // Восстанавливаем оригинальный Date.parse
+      parseSpy.mockRestore();
+    }
   });
 });

@@ -7,7 +7,7 @@
  * Архитектурная роль:
  * - Composition layer: адаптирует feature-auth типы к domains API
  * - Вызывает assessClassification из @livai/domains/classification/strategies/assessment для полной orchestration
- * - Маппит результаты в auth-specific decision и DTO
+ * - Маппит результаты в auth-specific decision и domain объекты (LoginRiskEvaluation)
  *
  * Принципы:
  * - ✅ Composition — делегирует orchestration в domains
@@ -36,6 +36,7 @@ import type {
 import { mapLabelToDecisionHint } from './classification-mapper.js';
 import { buildAssessment } from './login-risk-assessment.adapter.js';
 import type { DeviceInfo as AuthDeviceInfo } from '../../domain/DeviceInfo.js';
+import { DomainValidationError } from '../../domain/LoginRiskAssessment.js';
 import type {
   AuthRuleEvaluationContext,
   AuthScoringContext,
@@ -89,12 +90,73 @@ function mapDeviceInfoToDomain(
  * Маппинг device из AuthScoringContext/AuthRuleEvaluationContext в DomainDeviceInfo
  * @note device в auth-контекстах опционален и имеет другую структуру (platform, fingerprint)
  */
+/** Константы для генерации уникального fallback deviceId */
+const TIMESTAMP_HASH_LENGTH = 8; // Длина хеша из timestamp (достаточно для уникальности)
+const RANDOM_ID_BASE = 36; // Основание системы счисления для случайного ID (base36: 0-9, a-z)
+const RANDOM_ID_START = 2; // Начальная позиция в строке (пропускаем "0.")
+const RANDOM_ID_LENGTH = 10; // Длина случайного ID
+
+/**
+ * Генерирует уникальный fallback deviceId для предотвращения clustering эффекта
+ * @note Используется когда deviceId отсутствует, чтобы избежать слияния всех unknown устройств в одну корзину
+ * @note Приоритет: userId > previousSessionId > temporaryId (на основе timestamp)
+ */
+function generateUniqueDeviceIdFallback(options: {
+  readonly userId?: string;
+  readonly previousSessionId?: string;
+  readonly timestamp?: string;
+}): string {
+  // Приоритет 1: userId (если доступен)
+  if (options.userId !== undefined && options.userId !== '') {
+    return `user:${options.userId}`;
+  }
+
+  // Приоритет 2: previousSessionId (если доступен)
+  if (options.previousSessionId !== undefined && options.previousSessionId !== '') {
+    return `session:${options.previousSessionId}`;
+  }
+
+  // Приоритет 3: temporaryId на основе timestamp (если доступен)
+  if (options.timestamp !== undefined && options.timestamp !== '') {
+    // Используем первые N символов timestamp для уникальности (достаточно для предотвращения clustering)
+    const timestampHash = options.timestamp.slice(0, TIMESTAMP_HASH_LENGTH).replace(
+      /[^a-zA-Z0-9]/g,
+      '',
+    );
+    return `temp:${timestampHash}`;
+  }
+
+  // Fallback: генерируем случайный идентификатор (крайне редкий случай)
+  // Используем короткий префикс для отличия от реальных deviceId
+  return `temp:${
+    Math.random().toString(RANDOM_ID_BASE).substring(
+      RANDOM_ID_START,
+      RANDOM_ID_START + RANDOM_ID_LENGTH,
+    )
+  }`;
+}
+
+/**
+ * Маппинг device из auth-контекстов в DomainDeviceInfo
+ * @note Если deviceId отсутствует → генерируется уникальный fallback на основе userId/sessionId/timestamp
+ *       Это предотвращает clustering эффект: все unknown устройства не сливаются в одну корзину
+ *       при использовании deviceId для группировки в risk engine
+ */
 function mapAuthDeviceToDomain(
   device: AuthScoringContext['device'] | AuthRuleEvaluationContext['device'] | undefined,
+  fallbackOptions?: {
+    readonly userId?: string;
+    readonly previousSessionId?: string;
+    readonly timestamp?: string;
+  },
 ): DomainDeviceInfo {
   if (device === undefined) {
+    const fallbackId = fallbackOptions
+      ? generateUniqueDeviceIdFallback(fallbackOptions)
+      : 'unknown'; // Крайний fallback, если нет контекста
+
     return Object.freeze({
-      deviceId: 'unknown',
+      deviceId: fallbackId,
       deviceType: 'unknown',
     });
   }
@@ -107,8 +169,13 @@ function mapAuthDeviceToDomain(
     deviceType = 'desktop';
   }
 
+  // Если deviceId отсутствует, используем fallback
+  const deviceId = device.deviceId ?? (fallbackOptions
+    ? generateUniqueDeviceIdFallback(fallbackOptions)
+    : 'unknown');
+
   return Object.freeze({
-    deviceId: device.deviceId ?? 'unknown',
+    deviceId,
     deviceType,
     ...(device.os !== undefined && { os: device.os }),
     ...(device.browser !== undefined && { browser: device.browser }),
@@ -116,19 +183,71 @@ function mapAuthDeviceToDomain(
 }
 
 /**
- * Маппинг signals между RiskContext и ClassificationContext
- * Структура полей идентична, используется для обоих направлений
+ * Базовые поля signals (общие для RiskSignals и ClassificationSignals)
+ * @note evaluationLevel и confidence исключены - они добавляются в domains
+ */
+type BaseSignalsFields = {
+  readonly isVpn?: boolean;
+  readonly isTor?: boolean;
+  readonly isProxy?: boolean;
+  readonly asn?: string;
+  readonly reputationScore?: number;
+  readonly velocityScore?: number;
+  readonly previousGeo?: unknown;
+  readonly externalSignals?: unknown;
+};
+
+/**
+ * Унифицированная функция для маппинга базовых полей signals
+ * @note Маппит только базовые поля, исключая evaluationLevel и confidence
+ *       Используется для обоих направлений: RiskContext ↔ ClassificationContext
+ */
+function mapBaseSignalsFields<T extends BaseSignalsFields>(
+  signals: T | undefined,
+): Pick<T, keyof BaseSignalsFields> | undefined {
+  if (signals === undefined) {
+    return undefined;
+  }
+
+  return {
+    ...(signals.isVpn !== undefined && { isVpn: signals.isVpn }),
+    ...(signals.isTor !== undefined && { isTor: signals.isTor }),
+    ...(signals.isProxy !== undefined && { isProxy: signals.isProxy }),
+    ...(signals.asn !== undefined && { asn: signals.asn }),
+    ...(signals.reputationScore !== undefined && {
+      reputationScore: signals.reputationScore,
+    }),
+    ...(signals.velocityScore !== undefined && {
+      velocityScore: signals.velocityScore,
+    }),
+    ...(signals.previousGeo !== undefined && {
+      previousGeo: signals.previousGeo,
+    }),
+    ...(signals.externalSignals !== undefined && {
+      externalSignals: signals.externalSignals,
+    }),
+  } as Pick<T, keyof BaseSignalsFields>;
+}
+
+/**
+ * Маппинг signals из RiskContext в ClassificationContext
+ * @note Маппит только базовые поля, без evaluationLevel и confidence (они добавляются в domains)
+ */
+function mapRiskSignalsToClassificationSignals(
+  signals: RiskContext['signals'],
+): ClassificationContext['signals'] | undefined {
+  return mapBaseSignalsFields(signals) as ClassificationContext['signals'] | undefined;
+}
+
+/**
+ * Маппинг signals из ClassificationContext в RiskContext
+ * @note Маппит все поля, включая evaluationLevel и confidence (если они есть)
+ *       Используется для адаптации плагинов domains → feature-auth
  */
 function mapSignalsFields<
-  T extends {
-    isVpn?: boolean;
-    isTor?: boolean;
-    isProxy?: boolean;
-    asn?: string;
-    reputationScore?: number;
-    velocityScore?: number;
-    previousGeo?: unknown;
-    externalSignals?: unknown;
+  T extends BaseSignalsFields & {
+    readonly evaluationLevel?: unknown;
+    readonly confidence?: unknown;
   },
 >(
   signals: T | undefined,
@@ -137,53 +256,21 @@ function mapSignalsFields<
     return undefined;
   }
 
-  return {
-    ...(signals.isVpn !== undefined && { isVpn: signals.isVpn }),
-    ...(signals.isTor !== undefined && { isTor: signals.isTor }),
-    ...(signals.isProxy !== undefined && { isProxy: signals.isProxy }),
-    ...(signals.asn !== undefined && { asn: signals.asn }),
-    ...(signals.reputationScore !== undefined && {
-      reputationScore: signals.reputationScore,
-    }),
-    ...(signals.velocityScore !== undefined && {
-      velocityScore: signals.velocityScore,
-    }),
-    ...(signals.previousGeo !== undefined && {
-      previousGeo: signals.previousGeo,
-    }),
-    ...(signals.externalSignals !== undefined && {
-      externalSignals: signals.externalSignals,
-    }),
-  } as T;
-}
-
-/** Маппинг signals из RiskContext в ClassificationContext */
-function mapRiskSignalsToClassificationSignals(
-  signals: RiskContext['signals'],
-): ClassificationContext['signals'] | undefined {
-  if (signals === undefined) {
+  // Маппим базовые поля + evaluationLevel и confidence (если есть)
+  const baseFields = mapBaseSignalsFields(signals);
+  if (baseFields === undefined) {
     return undefined;
   }
 
-  // Маппим только базовые поля, без evaluationLevel и confidence (они добавляются в domains)
   return {
-    ...(signals.isVpn !== undefined && { isVpn: signals.isVpn }),
-    ...(signals.isTor !== undefined && { isTor: signals.isTor }),
-    ...(signals.isProxy !== undefined && { isProxy: signals.isProxy }),
-    ...(signals.asn !== undefined && { asn: signals.asn }),
-    ...(signals.reputationScore !== undefined && {
-      reputationScore: signals.reputationScore,
+    ...baseFields,
+    ...(signals.evaluationLevel !== undefined && {
+      evaluationLevel: signals.evaluationLevel,
     }),
-    ...(signals.velocityScore !== undefined && {
-      velocityScore: signals.velocityScore,
+    ...(signals.confidence !== undefined && {
+      confidence: signals.confidence,
     }),
-    ...(signals.previousGeo !== undefined && {
-      previousGeo: signals.previousGeo,
-    }),
-    ...(signals.externalSignals !== undefined && {
-      externalSignals: signals.externalSignals,
-    }),
-  };
+  } as T;
 }
 
 /** Маппинг RiskContext в ClassificationContext для assessClassification */
@@ -279,6 +366,11 @@ function mapDomainScoringContextToAuth(
 /** Маппинг ScoringContext из feature-auth обратно в domains формат */
 function mapAuthScoringContextToDomain(
   scoringContext: AuthScoringContext,
+  fallbackOptions?: {
+    readonly userId?: string;
+    readonly previousSessionId?: string;
+    readonly timestamp?: string;
+  },
 ): DomainScoringContext {
   const mappedSignals = scoringContext.signals !== undefined
     ? {
@@ -299,7 +391,8 @@ function mapAuthScoringContextToDomain(
     : undefined;
 
   // device обязателен в DomainScoringContext, но опционален в AuthScoringContext
-  const device = mapAuthDeviceToDomain(scoringContext.device);
+  // Используем fallbackOptions для генерации уникального deviceId при отсутствии deviceId
+  const device = mapAuthDeviceToDomain(scoringContext.device, fallbackOptions);
 
   return {
     device,
@@ -323,7 +416,21 @@ function createScoringContextAdapter(
     const authScoringContext = mapDomainScoringContextToAuth(scoringContext);
     const riskContext = mapClassificationContextToRiskContext(classificationContext);
     const extendedAuthContext = extendScoringContext(authScoringContext, riskContext);
-    return mapAuthScoringContextToDomain(extendedAuthContext);
+    // Передаем fallbackOptions из classificationContext для генерации уникального deviceId
+    const fallbackOptions: {
+      readonly userId?: string;
+      readonly previousSessionId?: string;
+      readonly timestamp?: string;
+    } = {
+      ...(classificationContext.userId !== undefined && { userId: classificationContext.userId }),
+      ...(classificationContext.previousSessionId !== undefined && {
+        previousSessionId: classificationContext.previousSessionId,
+      }),
+      ...(classificationContext.timestamp !== undefined && {
+        timestamp: classificationContext.timestamp,
+      }),
+    };
+    return mapAuthScoringContextToDomain(extendedAuthContext, fallbackOptions);
   };
 }
 
@@ -381,11 +488,24 @@ function mapDomainRuleContextToAuth(
 function mapAuthRuleContextToDomain(
   ruleContext: AuthRuleEvaluationContext,
   originalUserId?: string,
+  fallbackOptions?: {
+    readonly previousSessionId?: string;
+    readonly timestamp?: string;
+  },
 ): DomainRuleEvaluationContext {
   const mappedSignals = mapRuleSignalsFields(ruleContext.signals);
 
   // device обязателен в DomainRuleEvaluationContext, но опционален в AuthRuleEvaluationContext
-  const device = mapAuthDeviceToDomain(ruleContext.device);
+  // Используем originalUserId и fallbackOptions для генерации уникального deviceId при отсутствии deviceId
+  const deviceFallbackOptions: {
+    readonly userId?: string;
+    readonly previousSessionId?: string;
+    readonly timestamp?: string;
+  } = {
+    ...(originalUserId !== undefined && { userId: originalUserId }),
+    ...fallbackOptions,
+  };
+  const device = mapAuthDeviceToDomain(ruleContext.device, deviceFallbackOptions);
 
   return {
     device,
@@ -411,7 +531,19 @@ function createRuleContextAdapter(
     const authRuleContext = mapDomainRuleContextToAuth(ruleContext);
     const riskContext = mapClassificationContextToRiskContext(classificationContext);
     const extendedAuthContext = extendRuleContext(authRuleContext, riskContext);
-    return mapAuthRuleContextToDomain(extendedAuthContext, ruleContext.userId);
+    // Передаем fallbackOptions из classificationContext для генерации уникального deviceId
+    const fallbackOptions: {
+      readonly previousSessionId?: string;
+      readonly timestamp?: string;
+    } = {
+      ...(classificationContext.previousSessionId !== undefined && {
+        previousSessionId: classificationContext.previousSessionId,
+      }),
+      ...(classificationContext.timestamp !== undefined && {
+        timestamp: classificationContext.timestamp,
+      }),
+    };
+    return mapAuthRuleContextToDomain(extendedAuthContext, ruleContext.userId, fallbackOptions);
   };
 }
 
@@ -467,9 +599,19 @@ export function assessLoginRisk(
   context: RiskContext = {}, // Контекст оценки риска (IP, geo, session history, timestamp)
   policy: RiskPolicy = {}, // Политика оценки риска (опционально, используются дефолтные значения)
   plugins: readonly ContextBuilderPlugin[] = [], // Плагины для расширения контекста (адаптируются для domains)
-  auditHook?: AuditHook, // Hook для audit/logging критических решений (block/challenge)
-): RiskAssessmentResult { // Результат оценки риска с decision hint и assessment DTO
-  // Валидация выполняется внутри assessClassification
+  auditHook?: AuditHook, // Hook для audit/logging критических решений (block)
+): RiskAssessmentResult { // Результат оценки риска с decision hint и LoginRiskEvaluation (domain object)
+  // Fail-fast: валидация timestamp ДО вызова assessClassification
+  // Это предотвращает выполнение дорогих операций (scoring, plugins) при невалидном входе
+  if (context.timestamp === undefined) {
+    throw new DomainValidationError(
+      'Timestamp is required for deterministic risk assessment. RiskContext must include timestamp field (ISO 8601 string).',
+      'timestamp',
+      context.timestamp,
+      'TIMESTAMP_REQUIRED',
+    );
+  }
+
   // Classification (получаем всё из domains)
   const domainDeviceInfo = mapDeviceInfoToDomain(deviceInfo);
   const classificationContext = mapRiskContextToClassificationContext(context);
@@ -495,20 +637,32 @@ export function assessLoginRisk(
     defaultDecisionPolicy,
   );
 
-  // Assessment DTO
-  const assessment = buildAssessment(deviceInfo, {
-    ...(context.userId !== undefined && { userId: context.userId }),
-    ...(context.ip !== undefined && { ip: context.ip }),
-    ...(context.geo !== undefined && { geo: context.geo }),
-    ...(deviceInfo.userAgent !== undefined && { userAgent: deviceInfo.userAgent }),
-    ...(context.previousSessionId !== undefined && {
-      previousSessionId: context.previousSessionId,
-    }),
-    ...(context.timestamp !== undefined && { timestamp: context.timestamp }),
-    ...(context.signals !== undefined && { signals: context.signals }),
+  // Строгая нормализация timestamp на boundary
+  // RiskContext.timestamp (ISO 8601 string) → buildAssessment ожидает string | number
+  // buildAssessment выполнит строгую валидацию и нормализацию в epoch ms
+  // Никакого Date.now(), никакого new Date() без проверки
+
+  // Создание LoginRiskEvaluation через adapter (domain object)
+  const assessment = buildAssessment({
+    deviceInfo,
+    context: {
+      ...(context.userId !== undefined && { userId: context.userId }),
+      ...(context.ip !== undefined && { ip: context.ip }),
+      ...(context.geo !== undefined && { geo: context.geo }),
+      ...(deviceInfo.userAgent !== undefined && { userAgent: deviceInfo.userAgent }),
+      ...(context.previousSessionId !== undefined && {
+        previousSessionId: context.previousSessionId,
+      }),
+      timestamp: context.timestamp, // ISO 8601 string - buildAssessment выполнит строгую нормализацию
+    },
+    classificationResult: {
+      riskScore: classification.riskScore,
+      riskLevel: classification.riskLevel,
+      triggeredRules: classification.triggeredRules,
+    },
   });
 
-  /** Формирование результата: classification + decision + assessment DTO */
+  /** Формирование результата: classification + decision + LoginRiskEvaluation (domain object) */
   const result: RiskAssessmentResult = {
     riskScore: classification.riskScore,
     riskLevel: classification.riskLevel,
@@ -517,9 +671,9 @@ export function assessLoginRisk(
     assessment,
   };
 
-  /** Audit hook для критических решений (block/challenge) перед возвратом результата */
+  /** Audit hook для критических решений (block) перед возвратом результата */
   callAuditHookIfNeeded(result, context, auditHook);
 
   // eslint-disable-next-line @livai/rag/source-citation -- Internal implementation, не требует внешнего источника
-  return result; // Результат оценки риска с decision hint и assessment DTO
+  return result; // Результат оценки риска с decision hint и LoginRiskEvaluation (domain object)
 }

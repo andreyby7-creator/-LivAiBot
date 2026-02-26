@@ -48,7 +48,7 @@ import type { AuthErrorResponse } from '../domain/AuthErrorResponse.js';
 import type { DeviceInfo } from '../domain/DeviceInfo.js';
 import type { EmailTemplateRequest } from '../domain/EmailTemplateRequest.js';
 import type { LoginIdentifierType, LoginRequest } from '../domain/LoginRequest.js';
-import type { LoginRiskAssessment } from '../domain/LoginRiskAssessment.js';
+import type { LoginRiskEvaluation, LoginRiskResult } from '../domain/LoginRiskAssessment.js';
 import type { LogoutRequest } from '../domain/LogoutRequest.js';
 import type { MeResponse, MeSessionInfo, MeUserInfo } from '../domain/MeResponse.js';
 import type { MfaBackupCodeRequest } from '../domain/MfaBackupCodeRequest.js';
@@ -498,7 +498,7 @@ export type SecurityState =
     /** Оценка риска (0-100) */
     readonly riskScore: number;
     /** Детали оценки риска */
-    readonly riskAssessment?: LoginRiskAssessment;
+    readonly riskAssessment?: LoginRiskResult;
     /** Требуемые действия */
     readonly requiredActions?: readonly string[];
     /** Типизированные метаданные */
@@ -589,7 +589,7 @@ export type SessionState =
 
 /** Агрегирующий тип для операций безопасности */
 export type SecurityOperation =
-  | LoginRiskAssessment
+  | LoginRiskEvaluation
   | SessionPolicy
   | SessionRevokeRequest
   | AuthAuditEvent;
@@ -871,7 +871,7 @@ export type AuthEvent =
       userId?: string;
       riskScore: number;
       riskLevel: RiskLevel;
-      assessment?: LoginRiskAssessment;
+      assessment?: LoginRiskEvaluation;
     };
   } & BaseEvent)
   | (

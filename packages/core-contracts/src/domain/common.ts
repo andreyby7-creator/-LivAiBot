@@ -59,7 +59,6 @@ export type PolicyDecisionWithViolation<AllowType extends string, DenyType> =
  * Фабрика для создания решений политики.
  * Type-safe конструктор решений с автоматической типизацией.
  */
-/* eslint-disable functional/no-classes */
 export class Decision {
   /** Создать положительное решение */
   static allow<AllowType extends string>(
@@ -91,12 +90,10 @@ export class Decision {
     return violation ? { allow: false, reason, violation } : { allow: false, reason };
   }
 }
-/* eslint-enable functional/no-classes */
 
 /**
  * Extension methods для работы с решениями политики.
  */
-/* eslint-disable functional/no-classes */
 export class DecisionUtils {
   /** Проверить, является ли решение отрицательным */
   static isDenied(
@@ -132,4 +129,3 @@ export type DurationMs = number;
  * Используется для точных временных меток.
  */
 export type UnixTimestampMs = number;
-/* eslint-enable functional/no-classes */

@@ -78,8 +78,6 @@ export type DomainLoginResult =
  * @param x - Значение типа `never` (неожиданный вариант union-типа)
  * @throws Error Если в рантайме передан неожиданный вариант union-типа
  */
-/* eslint-disable fp/no-throw -- Намеренное исключение для защиты от некорректного состояния */
 export function assertNever(x: never): never {
   throw new Error(`Unexpected DomainLoginResult variant: ${JSON.stringify(x)}`);
 }
-/* eslint-enable fp/no-throw */

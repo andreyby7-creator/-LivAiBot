@@ -39,6 +39,7 @@ function createTestContext(): SecurityPipelineConfig['context'] {
     operation: 'login',
     userId: 'test-user',
     ip: '192.168.1.1',
+    timestamp: '2026-01-15T10:30:00.000Z', // ISO 8601 string - обязателен для детерминированности
   };
 }
 
@@ -81,11 +82,20 @@ function createMockRiskAssessmentResult(
     triggeredRules: [],
     decisionHint: { action: 'login' },
     assessment: {
-      device: {
-        deviceId: 'test-device-id',
-        platform: 'web',
+      result: {
+        score: 50 as any, // RiskScore
+        level: 'medium',
+        decision: 'login',
+        reasons: [],
+        modelVersion: '1.0' as any, // RiskModelVersion
       },
-      timestamp: new Date().toISOString(),
+      context: {
+        device: {
+          deviceId: 'test-device-id',
+          platform: 'web',
+        },
+        timestamp: Date.now(),
+      },
     },
     ...overrides,
   };
@@ -128,7 +138,9 @@ describe('executeSecurityPipeline', () => {
     const result = await runEffect(executeSecurityPipeline(config));
 
     expect(result.deviceInfo.deviceId).toBeDefined();
-    expect(result.riskAssessment.assessment.device?.deviceId).toBe(result.deviceInfo.deviceId);
+    expect(result.riskAssessment.assessment.context.device?.deviceId).toBe(
+      result.deviceInfo.deviceId,
+    );
   });
 
   it('should use deterministic fingerprint when provided', async () => {
@@ -503,8 +515,9 @@ describe('executeSecurityPipeline - synthetic critical risk', () => {
     expect(result.riskAssessment.decisionHint.blockReason).toBeDefined();
     expect(result.riskAssessment.triggeredRules).toEqual([]);
     expect(result.riskAssessment.assessment).toBeDefined();
-    // assessment is LoginRiskAssessment, check it has required fields
-    expect(result.riskAssessment.assessment.timestamp).toBeDefined();
+    // assessment is LoginRiskEvaluation, check it has required fields
+    expect(result.riskAssessment.assessment.context.timestamp).toBeDefined();
+    expect(typeof result.riskAssessment.assessment.context.timestamp).toBe('number');
   });
 });
 
@@ -726,6 +739,7 @@ describe('executeSecurityPipeline - advanced error scenarios', () => {
         operation: 'login',
         userId: 'test-user',
         ip: '192.168.1.1',
+        timestamp: '2026-01-15T10:30:00.000Z', // ISO 8601 string - обязателен для детерминированности
         signals: {
           isTor: true, // This should trigger block action
         },

@@ -31,7 +31,7 @@ import type {
 } from '@livai/domains/signals';
 import type { ClassificationRule } from '@livai/domains/strategies';
 
-import type { LoginRiskAssessment } from '../domain/LoginRiskAssessment.js';
+import type { LoginRiskEvaluation } from '../domain/LoginRiskAssessment.js';
 
 /* ============================================================================
  * 🔄 RE-EXPORTS FROM DOMAINS
@@ -204,7 +204,7 @@ export type RiskAssessmentResult = {
   };
 
   /** Полная оценка риска для аудита */
-  readonly assessment: LoginRiskAssessment;
+  readonly assessment: LoginRiskEvaluation;
 };
 
 /* ============================================================================

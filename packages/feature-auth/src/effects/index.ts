@@ -32,8 +32,9 @@ export {
  */
 export {
   buildAssessment,
+  type BuildAssessmentParams,
+  defaultModelVersion,
   type RiskSignals as AdapterRiskSignals,
-  type SignalsMapperPlugin,
 } from './login/login-risk-assessment.adapter.js';
 
 /**
@@ -41,7 +42,17 @@ export {
  *
  * @public
  */
-export { assessLoginRisk, type AuditHook } from './login/risk-assessment.js';
+export {
+  assessLoginRisk,
+  type AuditHook,
+  type ContextBuilderPlugin,
+  type ExternalRiskSignals,
+  type InternalRiskSignals,
+  type RiskAssessmentResult,
+  type RiskContext,
+  type RiskPolicy,
+  type RiskSignals,
+} from './login/risk-assessment.js';
 
 /**
  * Classification Mapper: маппинг классификации.

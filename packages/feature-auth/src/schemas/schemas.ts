@@ -567,7 +567,20 @@ export type AuthErrorResponseValues = ZodType.infer<typeof authErrorResponseSche
 
 /* eslint-disable @livai/rag/context-leakage -- Схемы политик безопасности определяют конфигурацию, а не контекст пользователя */
 // Login risk assessment schema
-export const loginRiskAssessmentSchema = z.object({
+// Schema для LoginRiskResult (семантический результат)
+const loginRiskResultSchema = z.object({
+  score: z.number().min(0).max(100), // Оценка риска (0-100)
+  level: z.enum(['low', 'medium', 'high', 'critical']), // Уровень риска
+  decision: z.enum(['login', 'mfa', 'block']), // Решение по логину
+  reasons: z.array(z.object({
+    type: z.enum(['network', 'reputation', 'geo', 'device', 'behavior']),
+    code: z.string(),
+  })), // Причины риска (всегда массив)
+  modelVersion: z.string(), // Версия модели оценки риска
+}).strict();
+
+// Schema для LoginRiskContext (входной контекст)
+const loginRiskContextSchema = z.object({
   userId: z.string().optional(), // Пользователь (может отсутствовать до идентификации)
   ip: z.string().optional(), // IP адрес клиента
   geo: z.object({ // Геолокация (IP / GPS / provider)
@@ -587,13 +600,13 @@ export const loginRiskAssessmentSchema = z.object({
   }).optional(), // Информация об устройстве
   userAgent: z.string().optional(), // User-Agent клиента
   previousSessionId: z.string().optional(), // Предыдущая сессия (если есть)
-  timestamp: z.string().refine(
-    (val) => val.length <= MAX_ISO_8601_DATETIME_LENGTH && ISO_8601_DATETIME_REGEX.test(val),
-    {
-      message: ERROR_INVALID_ISO_8601_DATETIME,
-    },
-  ).optional(), // Временная метка события (ISO 8601)
-  signals: z.record(z.string(), z.unknown()).optional(), // Дополнительные сигналы риска (ASN, VPN, Proxy, TOR, Velocity anomalies, Reputation score, External risk vendors)
+  timestamp: z.number(), // Временная метка события (epoch ms UTC)
+}).strict();
+
+// Schema для LoginRiskEvaluation (явная композиция result + context)
+export const loginRiskAssessmentSchema = z.object({
+  result: loginRiskResultSchema, // Семантический результат
+  context: loginRiskContextSchema, // Входной контекст
 }).strict();
 
 export type LoginRiskAssessmentValues = ZodType.infer<typeof loginRiskAssessmentSchema>;

@@ -1,129 +1,123 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`LoginRiskAssessment comprehensive snapshots > full risk assessment - полный snapshot 1`] = `
+exports[`LoginRiskEvaluation comprehensive snapshots > full risk evaluation - полный snapshot 1`] = `
 {
-  "device": {
-    "appVersion": "2.1.0",
-    "browser": "Safari 17.0",
-    "deviceId": "device-full-789",
-    "fingerprint": "fp-full-abc",
-    "os": "iOS 17.0",
-    "platform": "ios",
+  "context": {
+    "device": {
+      "appVersion": "2.1.0",
+      "browser": "Safari 17.0",
+      "deviceId": "device-full-789",
+      "fingerprint": "fp-full-abc",
+      "os": "iOS 17.0",
+      "platform": "ios",
+    },
+    "geo": {
+      "city": "Berlin",
+      "country": "DE",
+      "lat": 52.52,
+      "lng": 13.405,
+      "region": "BE",
+    },
+    "ip": "10.0.0.1",
+    "previousSessionId": "session-full-prev",
+    "timestamp": 1768478400000,
+    "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X)",
+    "userId": "user-full-456",
   },
-  "geo": {
-    "city": "Berlin",
-    "country": "DE",
-    "lat": 52.52,
-    "lng": 13.405,
-    "region": "BE",
+  "result": {
+    "decision": "block",
+    "level": "high",
+    "modelVersion": "1.0",
+    "reasons": [
+      {
+        "code": "vpn",
+        "type": "network",
+      },
+    ],
+    "score": 75,
   },
-  "ip": "10.0.0.1",
-  "previousSessionId": "session-full-prev",
-  "signals": {
-    "asn": "AS67890",
-    "externalRiskVendor": "maxmind",
-    "proxy": false,
-    "reputationScore": 75,
-    "tor": false,
-    "velocityAnomaly": true,
-    "vpn": true,
-  },
-  "timestamp": "2026-01-15T12:00:00.000Z",
-  "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X)",
-  "userId": "user-full-456",
 }
 `;
 
-exports[`LoginRiskAssessment comprehensive snapshots > minimal risk assessment - полный snapshot 1`] = `{}`;
-
-exports[`LoginRiskAssessment comprehensive snapshots > risk assessment with device only - полный snapshot 1`] = `
+exports[`LoginRiskEvaluation comprehensive snapshots > minimal risk evaluation - полный snapshot 1`] = `
 {
-  "device": {
-    "appVersion": "1.0.3",
-    "browser": "Safari 17.0",
-    "deviceId": "device-abc-123",
-    "fingerprint": "fp-xyz-789",
-    "os": "iOS 17.0",
-    "platform": "ios",
+  "context": {
+    "timestamp": 1768473000000,
   },
-  "geo": {
-    "city": "San Francisco",
-    "country": "US",
-    "lat": 37.7749,
-    "lng": -122.4194,
-    "region": "CA",
+  "result": {
+    "decision": "login",
+    "level": "low",
+    "modelVersion": "1.0",
+    "reasons": [],
+    "score": 0,
   },
-  "ip": "192.168.1.1",
-  "previousSessionId": "session-prev-456",
-  "signals": {
-    "asn": "AS12345",
-    "riskScore": 25,
-    "vpn": false,
-  },
-  "timestamp": "2026-01-15T10:30:00.000Z",
-  "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
-  "userId": "user-123",
 }
 `;
 
-exports[`LoginRiskAssessment comprehensive snapshots > risk assessment with geo only - полный snapshot 1`] = `
+exports[`LoginRiskEvaluation comprehensive snapshots > risk evaluation with device only - полный snapshot 1`] = `
 {
-  "device": {
-    "appVersion": "1.0.3",
-    "browser": "Chrome 112",
-    "deviceId": "device-abc-123",
-    "fingerprint": "fp-xyz-789",
-    "os": "Windows 11",
-    "platform": "web",
+  "context": {
+    "device": {
+      "appVersion": "1.0.3",
+      "browser": "Safari 17.0",
+      "deviceId": "device-abc-123",
+      "fingerprint": "fp-xyz-789",
+      "os": "iOS 17.0",
+      "platform": "ios",
+    },
+    "geo": {
+      "city": "San Francisco",
+      "country": "US",
+      "lat": 37.7749,
+      "lng": -122.4194,
+      "region": "CA",
+    },
+    "ip": "192.168.1.1",
+    "previousSessionId": "session-prev-456",
+    "timestamp": 1768473000000,
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
+    "userId": "user-123",
   },
-  "geo": {
-    "city": "Berlin",
-    "country": "DE",
-    "lat": 52.52,
-    "lng": 13.405,
-    "region": "CA",
+  "result": {
+    "decision": "login",
+    "level": "low",
+    "modelVersion": "1.0",
+    "reasons": [],
+    "score": 25,
   },
-  "ip": "192.168.1.1",
-  "previousSessionId": "session-prev-456",
-  "signals": {
-    "asn": "AS12345",
-    "riskScore": 25,
-    "vpn": false,
-  },
-  "timestamp": "2026-01-15T10:30:00.000Z",
-  "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
-  "userId": "user-123",
 }
 `;
 
-exports[`LoginRiskAssessment comprehensive snapshots > risk assessment with signals only - полный snapshot 1`] = `
+exports[`LoginRiskEvaluation comprehensive snapshots > risk evaluation with geo only - полный snapshot 1`] = `
 {
-  "device": {
-    "appVersion": "1.0.3",
-    "browser": "Chrome 112",
-    "deviceId": "device-abc-123",
-    "fingerprint": "fp-xyz-789",
-    "os": "Windows 11",
-    "platform": "web",
+  "context": {
+    "device": {
+      "appVersion": "1.0.3",
+      "browser": "Chrome 112",
+      "deviceId": "device-abc-123",
+      "fingerprint": "fp-xyz-789",
+      "os": "Windows 11",
+      "platform": "web",
+    },
+    "geo": {
+      "city": "Berlin",
+      "country": "DE",
+      "lat": 52.52,
+      "lng": 13.405,
+      "region": "CA",
+    },
+    "ip": "192.168.1.1",
+    "previousSessionId": "session-prev-456",
+    "timestamp": 1768473000000,
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
+    "userId": "user-123",
   },
-  "geo": {
-    "city": "San Francisco",
-    "country": "US",
-    "lat": 37.7749,
-    "lng": -122.4194,
-    "region": "CA",
+  "result": {
+    "decision": "login",
+    "level": "low",
+    "modelVersion": "1.0",
+    "reasons": [],
+    "score": 25,
   },
-  "ip": "192.168.1.1",
-  "previousSessionId": "session-prev-456",
-  "signals": {
-    "proxy": false,
-    "reputationScore": 15,
-    "tor": true,
-    "velocityAnomaly": true,
-    "vpn": true,
-  },
-  "timestamp": "2026-01-15T10:30:00.000Z",
-  "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
-  "userId": "user-123",
 }
 `;

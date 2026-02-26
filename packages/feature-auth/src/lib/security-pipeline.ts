@@ -28,6 +28,11 @@ import { orchestrate, step } from '@livai/app/lib/orchestrator.js';
 import { Runtime } from 'effect';
 
 import type { DeviceInfo } from '../domain/DeviceInfo.js';
+import {
+  createLoginRiskEvaluation,
+  createLoginRiskResult,
+  emptyReasons,
+} from '../domain/LoginRiskAssessment.js';
 import { DeviceFingerprint } from '../effects/login/device-fingerprint.js';
 import type { AuditHook } from '../effects/login/risk-assessment.js';
 import { assessLoginRisk } from '../effects/login/risk-assessment.js';
@@ -260,6 +265,28 @@ function createSyntheticCriticalRisk(
   deviceInfo: DeviceInfo, // DeviceInfo для assessment
   error: SecurityPipelineError, // Оригинальная ошибка
 ): RiskAssessmentResult {
+  // Создаём LoginRiskResult с critical уровнем
+  const result = createLoginRiskResult({
+    score: 100,
+    level: 'critical',
+    reasons: emptyReasons,
+    modelVersion: '1.0.0',
+  });
+
+  // Создаём LoginRiskContext
+  const context = {
+    device: {
+      deviceId: deviceInfo.deviceId,
+      ...(deviceInfo.os !== undefined && { os: deviceInfo.os }),
+      ...(deviceInfo.browser !== undefined && { browser: deviceInfo.browser }),
+    },
+    ...(deviceInfo.userAgent !== undefined && { userAgent: deviceInfo.userAgent }),
+    timestamp: Date.now(),
+  };
+
+  // Создаём LoginRiskEvaluation
+  const assessment = createLoginRiskEvaluation(result, context);
+
   return Object.freeze({
     riskScore: 100,
     riskLevel: 'critical' as const,
@@ -268,20 +295,7 @@ function createSyntheticCriticalRisk(
       action: 'block' as const,
       blockReason: `Security pipeline error: ${error.message}`,
     }),
-    assessment: Object.freeze({
-      deviceInfo: {
-        deviceId: deviceInfo.deviceId,
-        deviceType: deviceInfo.deviceType,
-        ...(deviceInfo.os !== undefined && { os: deviceInfo.os }),
-        ...(deviceInfo.browser !== undefined && { browser: deviceInfo.browser }),
-        ...(deviceInfo.userAgent !== undefined && { userAgent: deviceInfo.userAgent }),
-      },
-      riskLevel: 'critical' as const,
-      riskScore: 100,
-      triggeredRules: Object.freeze([]),
-      timestamp: new Date()
-        .toISOString() as `${number}-${number}-${number}T${number}:${number}:${number}.${number}Z`,
-    }),
+    assessment,
   });
 }
 

@@ -8,7 +8,14 @@ import type { AuthErrorResponse } from '../../../src/domain/AuthErrorResponse.js
 import type { AuthAuditEvent } from '../../../src/domain/AuthAuditEvent.js';
 import type { DeviceInfo } from '../../../src/domain/DeviceInfo.js';
 import type { LoginRequest } from '../../../src/domain/LoginRequest.js';
-import type { LoginRiskAssessment } from '../../../src/domain/LoginRiskAssessment.js';
+import {
+  createLoginRiskEvaluation as createLoginRiskEvaluationDomain,
+  createLoginRiskResult,
+} from '../../../src/domain/LoginRiskAssessment.js';
+import type {
+  LoginRiskEvaluation,
+  LoginRiskResult,
+} from '../../../src/domain/LoginRiskAssessment.js';
 import type { LogoutRequest } from '../../../src/domain/LogoutRequest.js';
 import type { MeResponse, MeSessionInfo, MeUserInfo } from '../../../src/domain/MeResponse.js';
 import type { MfaChallengeRequest } from '../../../src/domain/MfaChallengeRequest.js';
@@ -144,26 +151,59 @@ const createSessionPolicy = (overrides: Partial<SessionPolicy> = {}): SessionPol
   ...overrides,
 });
 
-const createLoginRiskAssessment = (
-  overrides: Partial<LoginRiskAssessment> = {},
-): LoginRiskAssessment => ({
-  userId: 'user-123',
-  ip: '192.168.1.1',
-  geo: { country: 'US', region: 'CA', city: 'San Francisco', lat: 37.7749, lng: -122.4194 },
-  device: {
-    deviceId: 'device-123',
-    fingerprint: 'fp-123',
-    platform: 'web',
-    os: 'Windows',
-    browser: 'Chrome',
-    appVersion: '1.0.0',
-  },
-  userAgent: 'Mozilla/5.0',
-  previousSessionId: 'session-prev',
-  timestamp: '2026-01-01T00:00:00.000Z',
-  signals: { vpn: true, proxy: false },
-  ...overrides,
-});
+const createLoginRiskEvaluation = (
+  overrides: Partial<LoginRiskEvaluation> = {},
+): LoginRiskEvaluation => {
+  const baseResult = createLoginRiskResult({
+    score: 85,
+    level: 'high',
+    reasons: [],
+    modelVersion: '1.0',
+  });
+
+  const baseContext = {
+    userId: 'user-123',
+    ip: '192.168.1.1',
+    geo: {
+      country: 'US',
+      region: 'CA',
+      city: 'San Francisco',
+      lat: 37.7749,
+      lng: -122.4194,
+    },
+    device: {
+      deviceId: 'device-123',
+      fingerprint: 'fp-123',
+      platform: 'web',
+      os: 'Windows',
+      browser: 'Chrome',
+      appVersion: '1.0.0',
+    },
+    userAgent: 'Mozilla/5.0',
+    previousSessionId: 'session-prev',
+    timestamp: Date.now(),
+  } as const;
+
+  const evaluation = createLoginRiskEvaluationDomain(
+    overrides.result ?? baseResult,
+    overrides.context ?? baseContext,
+  );
+
+  return Object.freeze({
+    ...evaluation,
+    ...overrides,
+    result: overrides.result ?? evaluation.result,
+    context: overrides.context ?? evaluation.context,
+  });
+};
+
+const createLoginRiskResultTest = (): LoginRiskResult =>
+  createLoginRiskResult({
+    score: 85,
+    level: 'high',
+    reasons: [],
+    modelVersion: '1.0',
+  });
 /* eslint-enable @livai/rag/context-leakage */
 
 // ============================================================================
@@ -767,7 +807,7 @@ describe('SecurityState', () => {
       status: 'risk_detected',
       riskLevel: 'high',
       riskScore: 85,
-      riskAssessment: createLoginRiskAssessment(),
+      riskAssessment: createLoginRiskResultTest(),
       requiredActions: ['verify_email', 'verify_phone'],
     };
     expect(state.status).toBe('risk_detected');
@@ -848,9 +888,10 @@ describe('SessionState', () => {
 });
 
 describe('SecurityOperation', () => {
-  it('должен поддерживать LoginRiskAssessment', () => {
-    const operation: SecurityOperation = createLoginRiskAssessment();
-    expect(operation.userId).toBe('user-123');
+  it('должен поддерживать LoginRiskEvaluation', () => {
+    const operation: SecurityOperation = createLoginRiskEvaluation();
+    // SecurityOperation включает LoginRiskEvaluation, поэтому безопасно проверять поле через in-guard
+    expect('context' in operation && operation.context.userId).toBe('user-123');
   });
 
   it('должен поддерживать SessionPolicy', () => {
@@ -1495,7 +1536,7 @@ describe('AuthEvent', () => {
         userId: 'user-123',
         riskScore: 85,
         riskLevel: 'high',
-        assessment: createLoginRiskAssessment(),
+        assessment: createLoginRiskEvaluation(),
       },
     };
     expect(event.type).toBe('risk_detected');

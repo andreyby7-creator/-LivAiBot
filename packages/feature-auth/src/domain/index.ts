@@ -239,9 +239,25 @@ export { type AuthSmsTemplateType, type SmsTemplateRequest } from './SmsTemplate
  * @public
  */
 export {
+  createEmptyLoginRiskResult,
+  createLoginRiskEvaluation,
+  createLoginRiskResult,
+  createRiskModelVersion,
+  createRiskScore,
+  deriveLoginDecision,
   type DeviceRiskInfo,
+  DomainValidationError,
+  emptyReasons,
   type GeoInfo,
-  type LoginRiskAssessment,
+  type LoginDecision,
+  type LoginRiskContext,
+  type LoginRiskEvaluation,
+  type LoginRiskResult,
+  type RiskModelVersion,
+  type RiskReason,
+  RiskReasonCode,
+  RiskReasonType,
+  type RiskScore,
 } from './LoginRiskAssessment.js';
 
 /* ============================================================================
