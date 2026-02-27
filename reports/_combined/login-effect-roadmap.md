@@ -767,65 +767,49 @@ const assessment = buildAssessment({
 
 ---
 
-## 6️⃣ (Опционально) Вынести login-security-policy
-
-**Задача:** Клиентская policy поверх security-pipeline.
-
-**Условие:** Только если нужна дополнительная policy поверх `executeSecurityPipeline`.
-
-**Действия:**
-
-- [ ] Создать `packages/feature-auth/src/effects/login/login-security-policy.ts`
-- [ ] Реализовать:
-  ```typescript
-  evaluateLoginSecurityPolicy(
-    result: SecurityPipelineResult,
-    isProduction: boolean,
-    policy: LoginSecurityPolicyConfig
-  ): LoginSecurityDecision
-  ```
-- [ ] Тип:
-  ```typescript
-  type LoginSecurityDecision =
-    | { type: 'block'; reason: string; }
-    | { type: 'require_mfa'; }
-    | { type: 'allow'; };
-  ```
-- [ ] Требования:
-  - ✅ Pure-функция
-  - ❌ Никаких store-вызовов
-  - ❌ Никаких API-вызовов
-  - ❌ Не читать featureFlags напрямую — получать уже рассчитанную policy
-
-**Критерии готовности:**
-
-- ✅ Файл создан (если нужен)
-- ✅ Pure-функция без side-effects
-- ✅ Используется в login.ts только для получения решения
-
----
-
-## 7️⃣ Реализовать effects/login.ts как тонкий orchestrator
+## 6️⃣ Реализовать effects/login.ts как тонкий orchestrator ✅
 
 **Задача:** Основная реализация login-effect.
 
 **Действия:**
 
-- [ ] Создать файл `packages/feature-auth/src/effects/login.ts`
-- [ ] Реализовать последовательность шагов через `orchestrate`:
+- [x] Создать файл `packages/feature-auth/src/effects/login.ts`
+- [x] Реализовать функцию `createLoginEffect(deps: LoginEffectDeps, config: LoginEffectConfig)`
+- [x] Реализовать последовательность шагов через `orchestrate`:
+- [x] **⚠️ Критично: AbortSignal propagation:**
+  - Прокидывать `AbortSignal` через все шаги orchestrator
+  - Использовать `deps.abortController.create()` для создания контроллера
+  - Передавать `signal` в `apiClient.post/get` через `options.signal`
+  - Передавать `signal` в `orchestrate` шаги
+- [x] **⚠️ Критично: Импорты orchestrator:**
+  - `orchestrate`, `step` из `@livai/app/lib/orchestrator.ts`
+  - `Effect` из `@livai/app/lib/effect-utils.ts`
 
   **Step 1 — validate-input:**
-  - Использовать `isValidLoginRequest` и/или `loginRequestSchema`
+  - Использовать `isValidLoginRequest` и/или `loginRequestSchema.strict()`
   - Fail-fast, deterministic
   - **⚠️ Критично: Строгие схемы:**
     - Input schema strict (`.strict()`)
     - Output schema strict (`.strict()`)
     - Boundary полностью закрыта — никаких `.passthrough()` или optional без явной необходимости
+  - **⚠️ Импорты:**
+    - `isValidLoginRequest` из `effects/login/validation.ts`
+    - `loginRequestSchema` из `schemas/schemas.ts`
+    - `LoginRequest` из `domain/LoginRequest.ts`
 
   **Step 2 — security-pipeline:**
-  - Вызов `executeSecurityPipeline` как атомарного шага
-  - ❌ Не оборачивать в дополнительный timeout
-  - Использовать `failClosed: true` в prod
+  - Создать `SecurityPipelineContext` из `LoginRequest`:
+    - `operation: 'login'` (или `'oauth_login'` для OAuth)
+    - `userIdentifier`: извлечь из `LoginRequest.identifier.value` (хешировать через `identifierHasher` для PII)
+    - `ip`, `userAgent`: извлечь из `LoginRequest.clientContext` (если есть)
+    - `timestamp`: использовать `clock.now()` (epoch ms)
+  - Вызов `securityPipeline.run(context, policy)` через DI-порт
+  - **⚠️ Критично: Адаптер SecurityPipelinePort:**
+    - `SecurityPipelinePort.run()` возвращает `Effect<LoginSecurityResult>`
+    - Внутри адаптера: `executeSecurityPipeline` → `SecurityPipelineResult` → маппинг в `LoginSecurityResult`
+    - Маппинг: `decisionHint.action` → `LoginSecurityDecision` (`'login'` → `'allow'`, `'mfa'` → `'require_mfa'`, `'block'` → `'block'`)
+    - Адаптер создаётся на уровне composer'а (не внутри login.ts)
+  - ❌ Не оборачивать в дополнительный timeout (timeout внутри `executeSecurityPipeline`)
   - ❌ Не дублировать risk-логику
   - **⚠️ Критично: Детерминизм security-pipeline:**
     - ❌ Никакого чтения текущего `authState` из store
@@ -833,6 +817,11 @@ const assessment = buildAssessment({
     - ❌ Никаких прямых вызовов `Date.now()` или `new Date()` (использовать injected `clock`)
     - ✅ `securityPipeline` — pure относительно входного context + injected deps
     - ✅ Результат зависит только от входных параметров и injected зависимостей
+  - **⚠️ Импорты:**
+    - `SecurityPipelineContext` из `lib/security-pipeline.ts`
+    - `SecurityPipelinePort`, `LoginSecurityResult` из `effects/login/login-effect.types.ts` (DI)
+    - `RiskPolicy` из `types/auth-risk.ts` (опционально, через config)
+    - `executeSecurityPipeline` из `lib/security-pipeline.ts` (используется в адаптере, не напрямую в login.ts)
 
   **Step 3 — security policy (если есть):**
   - Решение: `block` / `require_mfa` / `allow`
@@ -846,16 +835,27 @@ const assessment = buildAssessment({
     - Источник MFA строго определён и документирован
 
   **Step 4 — enrich-metadata:**
-  - Через `createLoginMetadataEnricher`
+  - Создать `LoginContext`:
+    - `request`: валидированный `LoginRequest` из Step 1
+    - `traceId`: сгенерировать UUID (или использовать injected traceId из deps, если есть)
+    - `timestamp`: ISO string из `clock.now()` (конвертировать epoch ms → ISO)
+    - `deviceInfo`: из `SecurityPipelineResult.deviceInfo` (Step 2)
+    - `riskMetadata`: из `SecurityPipelineResult.riskAssessment` (Step 2)
+  - Через `buildLoginMetadata(context, config)` или `createLoginMetadataEnricher`
   - Использовать injected `identifierHasher` и `clock`
   - **⚠️ Критично: Clock тип:**
     - `clock: () => number` (epoch ms) — меньше surface area, чем `Date`
     - ❌ Не использовать `Date.now()` или `new Date()` напрямую
     - Использовать injected `clock` для детерминизма и тестируемости
+  - **⚠️ Импорты:**
+    - `buildLoginMetadata`, `createLoginMetadataEnricher` из `effects/login/login-metadata.enricher.ts`
+    - `LoginContext`, `LoginMetadata` из `effects/login/login-metadata.enricher.ts`
 
   **Step 5 — validated API calls (двухфазный):**
   - **Step 5.1 — POST /v1/auth/login:**
-    - `validatedEffect(loginTokenPairSchema, apiCall)`
+    - Преобразовать `LoginRequest` → API payload через `mapLoginRequestToApiPayload`
+    - Вызов `apiClient.post('/v1/auth/login', payload, { signal: abortSignal })`
+    - `validatedEffect(loginTokenPairSchema.strict(), apiCall)`
     - `withTimeout` с `config.timeouts.loginApiTimeoutMs`
     - ❌ Никаких retry внутри эффекта
     - **⚠️ Критично: Retry-политика:**
@@ -863,25 +863,47 @@ const assessment = buildAssessment({
       - Retry допускается только на уровне `ApiClient` (если вообще допускается)
       - ❌ Никаких `retry(3)` или подобных обёрток в orchestrator
       - Иначе через 6 месяцев кто-то добавит retry прямо в orchestrator
+    - **⚠️ Импорты:**
+      - `mapLoginRequestToApiPayload` из `effects/login/login-api.mapper.ts`
+      - `validatedEffect` из `@livai/app/lib/schema-validated-effect.ts`
+      - `loginTokenPairSchema` из `schemas/schemas.ts`
+      - `withTimeout` из `@livai/app/lib/effect-timeout.ts`
   - **Step 5.2 — GET /v1/auth/me:**
-    - Использовать `access_token` из Step 5.1
-    - `validatedEffect(meResponseSchema, apiCall)`
+    - Использовать `access_token` из Step 5.1 (`TokenPairValues.accessToken`)
+    - Вызов `apiClient.get('/v1/auth/me', { headers: { Authorization:`Bearer ${accessToken}`}, signal: abortSignal })`
+    - `validatedEffect(meResponseSchema.strict(), apiCall)`
     - Отдельный `withTimeout` с `config.timeouts.meApiTimeoutMs`
     - ❌ Fail-closed: если `/me` упал — логин считается неуспешным (не делать fallback)
     - **⚠️ Критично: Атомарность токенов:**
       - `TokenPair` **не записывается в store** пока `GET /me` не завершился успешно
       - Инвариант: `TokenPair` не попадает в store до успешного `/me`
       - Иначе возможен half-auth state: токен есть, user нет, audit не сработал
+    - **⚠️ Импорты:**
+      - `meResponseSchema` из `schemas/schemas.ts`
   - **Step 5.3 — агрегация:**
-    - Объединить `TokenPair` и `MeResponse` в `DomainLoginResult.success`
+    - Преобразовать `LoginResponseDto` → `DomainLoginResult` через `mapLoginResponseToDomain`
+    - Объединить `TokenPairValues` и `MeResponseValues` в `DomainLoginResult.success`
     - Только после успешного завершения обоих вызовов
     - **Только после агрегации** токены попадают в store (через Step 6)
+    - **⚠️ Импорты:**
+      - `mapLoginResponseToDomain` из `effects/login/login-api.mapper.ts`
+      - `DomainLoginResult` из `domain/LoginResult.ts`
 
   **Step 6 — store update:**
-  - Через `login-store-updater`
+  - Через `updateLoginState(store, securityResult, domainResult, metadata)`
+  - **⚠️ Критично: SecurityPipelineResult для updater:**
+    - `updateLoginState` требует полный `SecurityPipelineResult` (с `deviceInfo` и `riskAssessment`)
+    - `LoginSecurityResult` из Step 2 содержит только projection (`decision`, `riskScore`, `riskLevel`)
+    - Решение: хранить полный `SecurityPipelineResult` в промежуточном состоянии между Step 2 и Step 6
+    - Или: адаптер `SecurityPipelinePort` должен сохранять полный результат для последующего использования
+  - Использовать `DomainLoginResult` из Step 5.3
+  - Использовать `LoginMetadata[]` из Step 4 (опционально)
   - ❌ Никакой бизнес-логики внутри login.ts
+  - **⚠️ Импорты:**
+    - `updateLoginState` из `effects/login/login-store-updater.ts`
+    - `SecurityPipelineResult` из `lib/security-pipeline.ts`
 
-- [ ] Return-тип: строгий union `LoginResult` с полезным payload:
+- [x] Return-тип: строгий union `LoginResult` с полезным payload:
   ```typescript
   type LoginResult =
     | { type: 'success'; userId: UserId; }
@@ -893,7 +915,10 @@ const assessment = buildAssessment({
     - `error: AuthError` — уже нормализован через error-mapper
     - ❌ Никогда не возвращается raw infrastructure error
     - ❌ Никогда не возвращается `unknown` или `Error` напрямую
-    - Все ошибки проходят через `mapUnknownToAuthError` перед возвратом
+    - Все ошибки проходят через `deps.errorMapper.map(unknownError)` перед возвратом
+  - **⚠️ Импорты:**
+    - `AuthError` из `types/auth.ts`
+    - `UserId` из domain (если есть branded type)
 
 **Критерии готовности:**
 
@@ -909,15 +934,15 @@ const assessment = buildAssessment({
 - ✅ Login-effect защищён от параллельного выполнения (см. 7.1)
 - ✅ Все ошибки sanitized перед возвратом
 
-**7.1 Защита от параллельного выполнения (concurrency / re-entrancy):**
+**6.1 Защита от параллельного выполнения (concurrency / re-entrancy):** ✅
 
 **⚠️ Production-критично:** Что если пользователь нажал login 3 раза, а предыдущий запрос ещё выполняется?
 
-- [ ] Определить стратегию:
+- [x] Определить стратегию:
   - **Вариант 1:** Cancel previous (отменить предыдущий запрос)
   - **Вариант 2:** Ignore if running (игнорировать новый запрос, если уже выполняется)
   - **Вариант 3:** Serialize (поставить в очередь)
-- [ ] Реализовать защиту:
+- [x] Реализовать защиту:
   ```typescript
   let loginInProgress = false;
   let currentAbortController: AbortController | null = null;
@@ -939,32 +964,35 @@ const assessment = buildAssessment({
     }
   }
   ```
-- [ ] Поведение должно быть **явно определено** и документировано
-- [ ] Добавить тесты для concurrent вызовов
+- [x] Поведение должно быть **явно определено** и документировано
+- [x] Добавить тесты для concurrent вызовов
 
 **Login-effect защищён от параллельного выполнения.**
 
 ---
 
-## 8️⃣ Интегрировать error-mapper как единственный источник ошибок
+## 7️⃣ Интегрировать error-mapper как единственный источник ошибок ✅
 
 **Задача:** Все ошибки через error-mapper (включая ошибки обоих API-вызовов).
 
 **Действия:**
 
-- [ ] В login.ts все три пути ошибок через helper `mapUnknownToAuthError`:
-  - Ошибки API (через `mapAuthError`) — для обоих вызовов (`/login` и `/me`)
+- [x] В login.ts все три пути ошибок через `deps.errorMapper.map(unknownError)`:
+  - Ошибки API (через `mapAuthError` внутри errorMapper) — для обоих вызовов (`/login` и `/me`)
   - `SchemaValidationError` → валидировать и маппить как `unknown`/`policy_violation`
   - Инфраструктурные (`TimeoutError`, `IsolationError`, сетевые) → через правила `network`/`unknown`
-- [ ] ❌ Никаких ручных `if (status === 401)` в login.ts
-- [ ] ❌ Любая ошибка второго шага (`/me`) также проходит через error-mapper
-- [ ] ❌ Не делать fallback типа "если `/me` упал — всё равно залогинить" — fail-closed: если `/me` не прошёл, логин считается неуспешным
-- [ ] Sanitization только в error-mapper
-- [ ] login.ts получает уже нормализованный `AuthError`
+  - **⚠️ Импорты:**
+    - `ErrorMapperPort` из `effects/login/login-effect.types.ts` (DI)
+    - `mapAuthError` из `effects/login/error-mapper.ts` (если нужен для специфичной обработки API ошибок)
+- [x] ❌ Никаких ручных `if (status === 401)` в login.ts
+- [x] ❌ Любая ошибка второго шага (`/me`) также проходит через error-mapper
+- [x] ❌ Не делать fallback типа "если `/me` упал — всё равно залогинить" — fail-closed: если `/me` не прошёл, логин считается неуспешным
+- [x] Sanitization только в error-mapper
+- [x] login.ts получает уже нормализованный `AuthError`
 
 **Критерии готовности:**
 
-- ✅ Все ошибки проходят через один helper `mapUnknownToAuthError`
+- ✅ Все ошибки проходят через `deps.errorMapper.map(unknownError)`
 - ✅ Нет ручной обработки HTTP-статусов
 - ✅ Все ошибки типизированы как `AuthError`
 - ✅ Ошибки обоих API-вызовов обрабатываются одинаково
@@ -973,20 +1001,20 @@ const assessment = buildAssessment({
 
 ---
 
-## 9️⃣ Принять единый timeout-policy
+## 8️⃣ Принять единый timeout-policy ✅
 
 **Задача:** Устранить конфликты таймаутов.
 
 **Действия:**
 
-- [ ] Security timeout — только внутри `executeSecurityPipeline`
-- [ ] API timeouts — два отдельных, в login.ts (через `withTimeout` и config):
+- [x] Security timeout — только внутри `executeSecurityPipeline`
+- [x] API timeouts — два отдельных, в login.ts (через `withTimeout` и config):
   - `loginApiTimeoutMs` для `POST /v1/auth/login`
   - `meApiTimeoutMs` для `GET /v1/auth/me`
   - ❌ Не один общий timeout для обоих вызовов
-- [ ] Validate и metadata — без таймаута (или минимальный фиксированный)
-- [ ] Удалить любые legacy-константы типа `LOGIN_TIMEOUT_MS`
-- [ ] Проверить, что нет нескольких уровней таймаутов
+- [x] Validate и metadata — без таймаута (или минимальный фиксированный)
+- [x] Удалить любые legacy-константы типа `LOGIN_TIMEOUT_MS`
+- [x] Проверить, что нет нескольких уровней таймаутов
 
 **Критерии готовности:**
 
@@ -996,7 +1024,7 @@ const assessment = buildAssessment({
 
 ---
 
-## 🔟 Интегрировать audit-логгер корректно
+## 9️⃣ Интегрировать audit-логгер корректно
 
 **Задача:** Audit через DI, без глобалов.
 
@@ -1020,7 +1048,7 @@ const assessment = buildAssessment({
 
 ---
 
-## 1️⃣1️⃣ Обновить public API feature-auth
+## 🔟 Обновить public API feature-auth
 
 **Задача:** Экспортировать login-effect.
 
@@ -1038,7 +1066,7 @@ const assessment = buildAssessment({
 
 ---
 
-## 1️⃣2️⃣ Проверить архитектурные инварианты (Staff+ checklist)
+## 1️⃣1️⃣ Проверить архитектурные инварианты (Staff+ checklist)
 
 **Задача:** Финальная проверка всех требований.
 

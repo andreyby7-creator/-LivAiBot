@@ -33,6 +33,7 @@ export default defineConfig([
       'lib/effect-utils': 'src/lib/effect-utils.ts',
       'lib/effect-timeout': 'src/lib/effect-timeout.ts',
       'lib/orchestrator': 'src/lib/orchestrator.ts',
+      'lib/schema-validated-effect': 'src/lib/schema-validated-effect.ts',
       'lib/service-worker': 'src/lib/service-worker.ts',
       'lib/telemetry-runtime': 'src/lib/telemetry-runtime.ts',
       'providers/intl-provider': 'src/providers/intl-provider.tsx',

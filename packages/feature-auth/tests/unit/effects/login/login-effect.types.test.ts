@@ -3,7 +3,7 @@
  * Полное покрытие DI-типов login-effect и security projection.
  */
 
-/* eslint-disable @livai/rag/context-leakage, fp/no-mutation, @livai/multiagent/orchestration-safety, functional/no-conditional-statements */
+/* eslint-disable @livai/rag/context-leakage, fp/no-mutation, @livai/multiagent/orchestration-safety, functional/no-conditional-statements, @livai/rag/source-citation */
 
 import { describe, expect, it } from 'vitest';
 
@@ -30,8 +30,16 @@ import type {
   SecurityState,
   SessionState,
 } from '../../../../src/types/auth.js';
-import type { RiskLevel, RiskPolicy } from '../../../../src/types/auth-risk.js';
-import type { SecurityPipelineContext } from '../../../../src/lib/security-pipeline.js';
+import type {
+  RiskAssessmentResult,
+  RiskLevel,
+  RiskPolicy,
+} from '../../../../src/types/auth-risk.js';
+import type { DeviceInfo } from '../../../../src/domain/DeviceInfo.js';
+import type {
+  SecurityPipelineContext,
+  SecurityPipelineResult,
+} from '../../../../src/lib/security-pipeline.js';
 
 // ============================================================================
 // 🔧 HELPERS
@@ -107,6 +115,52 @@ describe('effects/login/login-effect.types', () => {
     expect(calls.session).toEqual(sessionState);
     expect(calls.security).toEqual(securityState);
     expect(calls.eventType).toBe('user_logged_in');
+  });
+
+  it('LoginStorePort поддерживает опциональный batchUpdate', () => {
+    const calls: {
+      auth?: AuthState;
+      session?: SessionState | null;
+      security?: SecurityState;
+      eventType?: string;
+      batchCount?: number;
+    } = {};
+
+    const store: LoginStorePort = {
+      setAuthState: (state) => {
+        calls.auth = state;
+      },
+      setSessionState: (state) => {
+        calls.session = state;
+      },
+      setSecurityState: (state) => {
+        calls.security = state;
+      },
+      applyEventType: (type) => {
+        calls.eventType = type;
+      },
+      batchUpdate: (updater) => {
+        calls.batchCount = (calls.batchCount ?? 0) + 1;
+        updater(store);
+      },
+    };
+
+    const authState = createAuthState();
+    const sessionState = createSessionState();
+    const securityState = createSecurityState();
+
+    store.batchUpdate?.((batchedStore) => {
+      batchedStore.setAuthState(authState);
+      batchedStore.setSessionState(sessionState);
+      batchedStore.setSecurityState(securityState);
+      batchedStore.applyEventType('user_logged_in');
+    });
+
+    expect(calls.auth).toEqual(authState);
+    expect(calls.session).toEqual(sessionState);
+    expect(calls.security).toEqual(securityState);
+    expect(calls.eventType).toBe('user_logged_in');
+    expect(calls.batchCount).toBe(1);
   });
 
   it('ApiClient поддерживает post/get с ApiRequestOptions', async () => {
@@ -186,6 +240,22 @@ describe('effects/login/login-effect.types', () => {
   });
 
   it('SecurityPipelinePort.run возвращает LoginSecurityResult требуемой формы', async () => {
+    const deviceInfo: DeviceInfo = {
+      deviceId: 'device-1',
+      deviceType: 'desktop',
+    };
+    const riskAssessment: RiskAssessmentResult = {
+      riskScore: 42,
+      riskLevel: 'low',
+      triggeredRules: [],
+      decisionHint: { action: 'login' },
+      assessment: {} as RiskAssessmentResult['assessment'],
+    };
+    const pipelineResult: SecurityPipelineResult = {
+      deviceInfo,
+      riskAssessment,
+    };
+
     const port: SecurityPipelinePort = {
       run: (
         _context: SecurityPipelineContext,
@@ -195,6 +265,7 @@ describe('effects/login/login-effect.types', () => {
         decision: { type: 'allow' },
         riskScore: 42,
         riskLevel: 'low' as RiskLevel,
+        pipelineResult,
       }),
     };
 
@@ -205,6 +276,60 @@ describe('effects/login/login-effect.types', () => {
     expect(result.decision.type).toBe('allow');
     expect(result.riskScore).toBe(42);
     expect(result.riskLevel).toBe('low');
+  });
+
+  it('SecurityPipelinePort.run поддерживает опциональный policy параметр', async () => {
+    const deviceInfo: DeviceInfo = {
+      deviceId: 'device-2',
+      deviceType: 'mobile',
+    };
+    const riskAssessment: RiskAssessmentResult = {
+      riskScore: 75,
+      riskLevel: 'high',
+      triggeredRules: [],
+      decisionHint: { action: 'mfa' },
+      assessment: {} as RiskAssessmentResult['assessment'],
+    };
+    const pipelineResult: SecurityPipelineResult = {
+      deviceInfo,
+      riskAssessment,
+    };
+
+    const policy: RiskPolicy = {
+      weights: {
+        device: 0.3,
+        geo: 0.2,
+        network: 0.3,
+        velocity: 0.2,
+      },
+    };
+
+    const capturedPolicy: { policy?: RiskPolicy | undefined; } = {};
+    const port: SecurityPipelinePort = {
+      run: (
+        _context: SecurityPipelineContext,
+        passedPolicy?: RiskPolicy,
+      ) => {
+        if (passedPolicy !== undefined) {
+          capturedPolicy.policy = passedPolicy;
+        }
+        return async (_signal?: AbortSignal): Promise<LoginSecurityResult> => ({
+          decision: { type: 'require_mfa' },
+          riskScore: 75,
+          riskLevel: 'high' as RiskLevel,
+          pipelineResult,
+        });
+      },
+    };
+
+    const context = createSecurityContext();
+    const effect = port.run(context, policy);
+    const result = await effect();
+
+    expect(capturedPolicy.policy).toEqual(policy);
+    expect(result.decision.type).toBe('require_mfa');
+    expect(result.riskScore).toBe(75);
+    expect(result.riskLevel).toBe('high');
   });
 
   it('порты IdentifierHasherPort, ErrorMapperPort, AbortControllerPort и ClockPort работают как ожидается', () => {
@@ -274,6 +399,19 @@ describe('effects/login/login-effect.types', () => {
         decision: { type: 'allow' },
         riskScore: 5,
         riskLevel: 'low' as RiskLevel,
+        pipelineResult: {
+          deviceInfo: {
+            deviceId: 'device-1',
+            deviceType: 'desktop',
+          },
+          riskAssessment: {
+            riskScore: 5,
+            riskLevel: 'low' as RiskLevel,
+            triggeredRules: [],
+            decisionHint: { action: 'login' },
+            assessment: {} as RiskAssessmentResult['assessment'],
+          },
+        },
       }),
     };
 
@@ -352,5 +490,97 @@ describe('effects/login/login-effect.types', () => {
     expect(config.featureFlags).toBeDefined();
     expect(config.concurrency).toBe('cancel_previous');
   });
+
+  it('LoginEffectConfig поддерживает loginHardTimeoutMs', () => {
+    const config: LoginEffectConfig = {
+      timeouts: {
+        loginApiTimeoutMs: 5_000,
+        meApiTimeoutMs: 3_000,
+        loginHardTimeoutMs: 60_000,
+      },
+      concurrency: 'ignore',
+    };
+
+    expect(config.timeouts.loginHardTimeoutMs).toBe(60_000);
+  });
+
+  it('LoginEffectConfig поддерживает все варианты concurrency стратегий', () => {
+    const strategies: LoginEffectConfig['concurrency'][] = [
+      'cancel_previous',
+      'ignore',
+      'serialize',
+    ];
+
+    strategies.forEach((strategy) => {
+      const config: LoginEffectConfig = {
+        timeouts: {
+          loginApiTimeoutMs: 5_000,
+          meApiTimeoutMs: 3_000,
+        },
+        concurrency: strategy,
+      };
+
+      expect(config.concurrency).toBe(strategy);
+    });
+  });
+
+  it('LoginSecurityResult поддерживает все варианты LoginSecurityDecision', async () => {
+    const deviceInfo: DeviceInfo = {
+      deviceId: 'device-1',
+      deviceType: 'desktop',
+    };
+    const riskAssessment: RiskAssessmentResult = {
+      riskScore: 50,
+      riskLevel: 'medium',
+      triggeredRules: [],
+      decisionHint: { action: 'login' },
+      assessment: {} as RiskAssessmentResult['assessment'],
+    };
+    const pipelineResult: SecurityPipelineResult = {
+      deviceInfo,
+      riskAssessment,
+    };
+
+    const decisions: LoginSecurityDecision[] = [
+      { type: 'allow' },
+      { type: 'require_mfa' },
+      { type: 'block' },
+      { type: 'custom', code: 'require_step_up' },
+    ];
+
+    const results = decisions.map((decision) => {
+      const result: LoginSecurityResult = {
+        decision,
+        riskScore: 50,
+        riskLevel: 'medium' as RiskLevel,
+        pipelineResult,
+      };
+
+      expect(result.decision.type).toBe(decision.type);
+      // Проверяем custom decision через type guard
+      if (result.decision.type === 'custom') {
+        // TypeScript narrows result.decision to { type: 'custom'; code: string } here
+        expect(result.decision.code).toBe(
+          decision.type === 'custom' ? decision.code : '',
+        );
+      }
+      expect(result.riskScore).toBe(50);
+      expect(result.riskLevel).toBe('medium');
+      expect(result.pipelineResult).toEqual(pipelineResult);
+      return result;
+    });
+
+    expect(results).toHaveLength(4);
+    expect(results[0]?.decision.type).toBe('allow');
+    expect(results[1]?.decision.type).toBe('require_mfa');
+    expect(results[2]?.decision.type).toBe('block');
+    const customResult = results[3];
+    expect(customResult?.decision.type).toBe('custom');
+    // TypeScript narrows customResult.decision to { type: 'custom'; code: string } here
+    // @see packages/feature-auth/src/effects/login/login-effect.types.ts:103-107
+    if (customResult?.decision.type === 'custom') {
+      expect(customResult.decision.code).toBe('require_step_up');
+    }
+  });
 });
-/* eslint-enable @livai/rag/context-leakage, fp/no-mutation, @livai/multiagent/orchestration-safety, functional/no-conditional-statements */
+/* eslint-enable @livai/rag/context-leakage, fp/no-mutation, @livai/multiagent/orchestration-safety, functional/no-conditional-statements, @livai/rag/source-citation */

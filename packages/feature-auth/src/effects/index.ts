@@ -121,3 +121,10 @@ export type {
  * @public
  */
 export { applyBlockedState, updateLoginState } from './login/login-store-updater.js';
+
+/**
+ * Login Effect: тонкий orchestrator для login-flow.
+ *
+ * @public
+ */
+export { createLoginEffect, type LoginResult } from './login.js';

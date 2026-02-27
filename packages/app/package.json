@@ -41,6 +41,11 @@
       "types": "./src/lib/orchestrator.ts",
       "import": "./src/lib/orchestrator.ts"
     },
+    "./lib/schema-validated-effect.js": {
+      "types": "./dist/esm/lib/schema-validated-effect.d.ts",
+      "import": "./dist/esm/lib/schema-validated-effect.js",
+      "default": "./dist/esm/lib/schema-validated-effect.js"
+    },
     "./lib/effect-timeout.js": {
       "types": "./src/lib/effect-timeout.ts",
       "import": "./src/lib/effect-timeout.ts"

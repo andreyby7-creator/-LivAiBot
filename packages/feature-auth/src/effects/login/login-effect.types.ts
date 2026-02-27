@@ -13,7 +13,11 @@
 
 import type { Effect } from '@livai/app/lib/effect-utils.js';
 
-import type { MandatoryAuditLogger, SecurityPipelineContext } from '../../lib/security-pipeline.js';
+import type {
+  MandatoryAuditLogger,
+  SecurityPipelineContext,
+  SecurityPipelineResult,
+} from '../../lib/security-pipeline.js';
 import type { RiskLevel, RiskPolicy } from '../../types/auth-risk.js';
 import type {
   AuthError,
@@ -102,10 +106,22 @@ export type LoginSecurityDecision =
   | Readonly<{ type: 'block'; }>
   | Readonly<{ type: 'custom'; code: string; }>;
 
+/**
+ * Aggregated security result для login-effect.
+ *
+ * @remarks
+ * - `decision` / `riskScore` / `riskLevel` — тонкий projection для login-orchestrator
+ * - `pipelineResult` — полный `SecurityPipelineResult` для metadata/store-updater
+ *   (deviceInfo, triggeredRules, decisionHint, assessment и т.п.)
+ *
+ * Login-effect использует только projection-поля для принятия решения,
+ * а `pipelineResult` прокидывается дальше в metadata/updater без модификации.
+ */
 export type LoginSecurityResult = Readonly<{
   decision: LoginSecurityDecision;
   riskScore: number;
   riskLevel: RiskLevel;
+  pipelineResult: SecurityPipelineResult;
 }>;
 
 /**
@@ -190,6 +206,12 @@ export type LoginEffectConfig = Readonly<{
     loginApiTimeoutMs: number; // для POST /v1/auth/login
     meApiTimeoutMs: number; // для GET /v1/auth/me
     // validate и metadata без таймаута или с минимальным фиксированным таймаутом
+    /**
+     * Global hard timeout для всего login-effect (защита от зависания orchestration logic).
+     * Должен быть >= суммы step timeouts + запас на overhead.
+     * @default 60_000 (60 секунд)
+     */
+    loginHardTimeoutMs?: number;
   };
   featureFlags?: LoginFeatureFlags;
   /**
