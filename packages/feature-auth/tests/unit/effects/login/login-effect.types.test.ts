@@ -423,6 +423,9 @@ describe('effects/login/login-effect.types', () => {
       log: () => {
         // no-op для теста
       },
+      logAuditEvent: () => {
+        // no-op для теста
+      },
     };
 
     const errorMapperPort: ErrorMapperPort = {

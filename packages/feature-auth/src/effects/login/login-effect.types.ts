@@ -18,6 +18,7 @@ import type {
   SecurityPipelineContext,
   SecurityPipelineResult,
 } from '../../lib/security-pipeline.js';
+import type { AuditEventValues } from '../../schemas/index.js';
 import type { RiskLevel, RiskPolicy } from '../../types/auth-risk.js';
 import type {
   AuthError,
@@ -137,10 +138,20 @@ export type SecurityPipelinePort = Readonly<{
 
 /**
  * Порт для audit-логгера.
- * @note Оборачивает MandatoryAuditLogger в объектный порт для однородности DI.
+ * @note Оборачивает MandatoryAuditLogger и логгер audit-событий в объектный порт для однородности DI.
  */
 export type AuditLoggerPort = Readonly<{
+  /**
+   * Логирование ошибок security-pipeline (совместимо с MandatoryAuditLogger).
+   * Используется адаптером security-pipeline, а не самим login-effect.
+   */
   log: MandatoryAuditLogger;
+
+  /**
+   * Логирование audit-событий аутентификации (login_success/login_failure/mfa_challenge/policy_violation).
+   * События должны быть заранее провалидированы через auditEventSchema.
+   */
+  logAuditEvent: (event: AuditEventValues) => void;
 }>;
 
 /**

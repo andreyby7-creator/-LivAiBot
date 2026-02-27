@@ -34,7 +34,10 @@ import { loginRequestSchema, loginTokenPairSchema, meResponseSchema } from '../s
 import type { AuthError } from '../types/auth.js';
 import type { LoginResponseDto } from '../types/login.dto.js';
 import { mapLoginRequestToApiPayload, mapLoginResponseToDomain } from './login/login-api.mapper.js';
+import type { LoginAuditContext, LoginResultForAudit } from './login/login-audit.mapper.js';
+import { mapLoginResultToAuditEvent } from './login/login-audit.mapper.js';
 import type {
+  ClockPort,
   LoginEffectConfig,
   LoginEffectDeps,
   LoginSecurityResult,
@@ -50,6 +53,14 @@ import { applyBlockedState, updateLoginState } from './login/login-store-updater
 
 /** Дефолтный global hard timeout для login-effect (60 секунд) */
 const DEFAULT_LOGIN_HARD_TIMEOUT_MS = 60_000;
+/** Radix для base36 конвертации (используется для traceId и eventId) */
+const BASE36_RADIX = 36;
+/** Длина случайной части traceId при fallback генерации */
+const TRACE_ID_FALLBACK_LENGTH = 11;
+/** Длина случайной части eventId при использовании crypto.randomUUID */
+const EVENT_ID_UUID_LENGTH = 8;
+/** Длина случайной части eventId при fallback генерации (slice(2) убирает "0.") */
+const EVENT_ID_FALLBACK_LENGTH = 10;
 
 /* ============================================================================
  * 🧭 TYPES — PUBLIC LOGIN RESULT
@@ -117,11 +128,9 @@ function createLoginContext(
   const deviceInfo = security?.pipelineResult.deviceInfo;
 
   // Генерируем UUID для traceId (избегаем коллизий при high throughput)
-  const BASE36_RADIX = 36;
-  const RANDOM_ID_LENGTH = 11;
   const traceId = typeof crypto !== 'undefined' && 'randomUUID' in crypto
     ? crypto.randomUUID() // Предпочтительно: стандартный UUID
-    : `login-${nowMs}-${Math.random().toString(BASE36_RADIX).slice(2, RANDOM_ID_LENGTH)}`; // Fallback: slice(2) убирает "0."
+    : `login-${nowMs}-${Math.random().toString(BASE36_RADIX).slice(2, TRACE_ID_FALLBACK_LENGTH)}`; // Fallback: slice(2) убирает "0."
 
   return {
     request,
@@ -202,6 +211,88 @@ function buildSecurityContext(
   return { context, timestampIso };
 }
 
+/**
+ * Обрабатывает blocked результат от security-pipeline.
+ * @note Вынесено в отдельную функцию для уменьшения cognitive complexity runOnce.
+ */
+function handleBlockedResult(
+  validatedRequest: LoginRequest<LoginIdentifierType>,
+  securityResult: LoginSecurityResult,
+  deps: LoginEffectDeps,
+): LoginResultForAudit {
+  // Обновляем store через applyBlockedState для консистентности
+  applyBlockedState(deps.authStore, securityResult.pipelineResult);
+
+  const blockedResult: LoginResultForAudit = {
+    type: 'blocked',
+    reason: securityResult.pipelineResult.riskAssessment.decisionHint.blockReason
+      ?? 'blocked_by_security_policy',
+  };
+
+  // Audit logging для blocked результата
+  // См. login-audit.mapper.ts для деталей маппинга в audit-события
+  try {
+    const eventId = generateEventId(deps.clock);
+    const auditContext = createFlattenedAuditContext(
+      createLoginContext(validatedRequest, deps, securityResult),
+      securityResult,
+      undefined,
+      eventId,
+    );
+    const auditEvent = mapLoginResultToAuditEvent(blockedResult, auditContext);
+    deps.auditLogger.logAuditEvent(auditEvent);
+  } catch {
+    // Audit logging не должен ломать основной login-flow.
+  }
+
+  // См. login-store-updater.ts:applyBlockedState для деталей обновления store
+  return blockedResult; // eslint-disable-line @livai/rag/source-citation
+}
+
+/**
+ * Создает flattened LoginAuditContext из loginContext и securityResult.
+ * @note Flattened контекст уменьшает coupling маппера к внутренней структуре pipeline.
+ */
+function createFlattenedAuditContext(
+  loginContext: LoginContext,
+  securityResult: LoginSecurityResult | undefined,
+  domainResult: DomainLoginResult | undefined,
+  eventId: string,
+): LoginAuditContext {
+  const deviceInfo = securityResult?.pipelineResult.deviceInfo;
+  const blockReason = securityResult?.pipelineResult.riskAssessment.decisionHint.blockReason;
+
+  return {
+    domainResult,
+    timestamp: loginContext.timestamp,
+    traceId: loginContext.traceId,
+    eventId,
+    ip: loginContext.request.clientContext?.ip,
+    userAgent: loginContext.request.clientContext?.userAgent,
+    deviceId: deviceInfo?.deviceId,
+    geo: deviceInfo?.geo !== undefined
+      ? {
+        lat: deviceInfo.geo.lat,
+        lng: deviceInfo.geo.lng,
+      }
+      : undefined,
+    riskScore: securityResult?.riskScore,
+    blockReason,
+  };
+}
+
+/**
+ * Генерирует уникальный eventId для audit-события.
+ * @note Используется в orchestrator для детерминизма в тестах (можно подменить через DI).
+ */
+function generateEventId(clock: ClockPort): string {
+  const timestamp = clock.now();
+  const random = typeof crypto !== 'undefined' && 'randomUUID' in crypto
+    ? crypto.randomUUID().slice(0, EVENT_ID_UUID_LENGTH)
+    : Math.random().toString(BASE36_RADIX).slice(2, EVENT_ID_FALLBACK_LENGTH);
+  return `login-${timestamp}-${random}`;
+}
+
 /* ============================================================================
  * 🎯 EFFECT FACTORY — CREATE LOGIN EFFECT
  * ============================================================================
@@ -253,14 +344,7 @@ export function createLoginEffect(
 
         // Step 3 — security policy (минимальная: block short-circuit)
         if (securityResult.decision.type === 'block') {
-          // Обновляем store через applyBlockedState для консистентности
-          applyBlockedState(deps.authStore, securityResult.pipelineResult);
-
-          return {
-            type: 'blocked',
-            reason: securityResult.pipelineResult.riskAssessment.decisionHint.blockReason
-              ?? 'blocked_by_security_policy',
-          };
+          return handleBlockedResult(validatedRequest, securityResult, deps);
         }
 
         // Step 4 — enrich-metadata
@@ -364,19 +448,65 @@ export function createLoginEffect(
         );
 
         // Упрощённый LoginResult для вызывающего кода
+        let publicResult: LoginResultForAudit;
         if (domainResult.type === 'success') {
-          return {
+          publicResult = {
             type: 'success',
             userId: domainResult.me.user.id,
           };
+        } else {
+          publicResult = {
+            type: 'mfa_required',
+            challengeId: domainResult.challenge.userId,
+          };
+        }
+
+        // Audit logging для success/mfa_required результата
+        // См. login-audit.mapper.ts для деталей маппинга в audit-события
+        try {
+          const eventId = generateEventId(deps.clock);
+          const auditContext = createFlattenedAuditContext(
+            loginContext,
+            securityResult,
+            domainResult,
+            eventId,
+          );
+          const auditEvent = mapLoginResultToAuditEvent(publicResult, auditContext);
+          deps.auditLogger.logAuditEvent(auditEvent);
+        } catch {
+          // Audit logging не должен ломать основной login-flow.
+        }
+
+        if (publicResult.type === 'success') {
+          // См. login-store-updater.ts:updateLoginState для деталей обновления store
+          return publicResult; // eslint-disable-line @livai/rag/source-citation
         }
 
         return {
           type: 'mfa_required',
-          challengeId: domainResult.challenge.userId,
+          challengeId: publicResult.challengeId,
         };
       } catch (unknownError: unknown) {
         const error = deps.errorMapper.map(unknownError);
+
+        try {
+          const auditResult: LoginResultForAudit = {
+            type: 'error',
+            error,
+          };
+          const eventId = generateEventId(deps.clock);
+          const auditContext = createFlattenedAuditContext(
+            createLoginContext(request, deps, undefined),
+            undefined,
+            undefined,
+            eventId,
+          );
+          const auditEvent = mapLoginResultToAuditEvent(auditResult, auditContext);
+          deps.auditLogger.logAuditEvent(auditEvent);
+        } catch {
+          // Ошибки аудита не должны влиять на основной результат.
+        }
+
         return { type: 'error', error };
       }
     };

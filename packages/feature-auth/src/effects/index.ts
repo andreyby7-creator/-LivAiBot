@@ -122,8 +122,27 @@ export type {
  */
 export { applyBlockedState, updateLoginState } from './login/login-store-updater.js';
 
+/* ============================================================================
+ * 🎯 LOGIN EFFECT ORCHESTRATOR — ОСНОВНОЙ ORCHESTRATOR LOGIN-FLOW
+ * ========================================================================== */
+
 /**
  * Login Effect: тонкий orchestrator для login-flow.
+ *
+ * Реализует полную последовательность шагов:
+ * - validate-input (strict Zod validation)
+ * - security-pipeline (через SecurityPipelinePort)
+ * - enrich-metadata
+ * - двухфазный API-call (/v1/auth/login + /v1/auth/me)
+ * - domain mapping
+ * - update-store (через login-store-updater)
+ * - audit logging
+ *
+ * Инварианты:
+ * - Нет бизнес-логики внутри orchestrator
+ * - Все side-effects через DI-порты
+ * - Все ошибки через injected errorMapper.map
+ * - Fail-closed: без успешного /me → login не считается успешным
  *
  * @public
  */
