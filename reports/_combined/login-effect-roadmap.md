@@ -166,7 +166,7 @@ export type LoginRiskEvaluation = {
 
 ### 2.3 Привести adapter к чистой трансформации ✅
 
-**✅ 2.3.1 В `login-risk-assessment.adapter.ts`:**
+**✅ 2.3.1 В `lib/risk-assessment.adapter.ts`:**
 
 - ✅ Удалить `mapSignalsToRecord`
 - ✅ Удалить локальный `RiskSignals` (строки 33-49)
@@ -242,7 +242,7 @@ reasons: z.array(z.discriminatedUnion('type', [
 
 **✅ 2.5.1 Удалить дублирование `RiskSignals` в adapter**
 
-- ✅ Удалить локальный `RiskSignals` из `login-risk-assessment.adapter.ts`
+- ✅ Удалить локальный `RiskSignals` из `lib/risk-assessment.adapter.ts`
 - ✅ Использовать `RiskSignals` из `types/auth-risk.ts` везде
 
 **✅ 2.5.2 Использовать `ClassificationSignals` (через `RiskSignals` alias) везде**
@@ -285,7 +285,7 @@ riskAssessment.reasons?.some((r) => r.type === 'vpn_detected');
 - ✅ Удалить: `assessment.signals?.['vpn']` (таких обращений в тестах нет)
 - ✅ Удалить: `assessment.signals?.['reputationScore']` (таких обращений в тестах нет)
 - ✅ Обновить все тесты в `LoginRiskAssessment.test.ts` — проверяют `score/level/decision/reasons` и Zod-схему `loginRiskAssessmentSchema`
-- ✅ Обновить тесты в `login-risk-assessment.adapter.test.ts` — проверяют `result.score/level/decision` и `result.reasons` по правилам маппинга
+- ✅ Обновить тесты в `lib/risk-assessment.adapter.test.ts` — проверяют `result.score/level/decision` и `result.reasons` по правилам маппинга
 
 **✅ 2.7.2 Проверять:**
 
@@ -512,7 +512,7 @@ const assessment = buildAssessment({
 **✅ 2.17.1 Убедиться, что `reasons` не теряют важную информацию:**
 
 - ✅ Все правила из `ClassificationRule` маппятся в `RiskReason` через `RULE_TO_REASON: { [K in ClassificationRule]: RiskReason }` в adapter-е — compile-time exhaustiveness исключает silent-drop для известных правил
-- ✅ Для кейсов с несколькими правилами, дающими один и тот же semantic reason (VPN_DETECTED + NEW_DEVICE_VPN, UNKNOWN_DEVICE + IoT_DEVICE + MISSING_OS + MISSING_BROWSER), тесты проверяют, что итоговый reason присутствует и дубликаты устранены (см. `login-risk-assessment.adapter.test.ts`)
+- ✅ Для кейсов с несколькими правилами, дающими один и тот же semantic reason (VPN_DETECTED + NEW_DEVICE_VPN, UNKNOWN_DEVICE + IoT_DEVICE + MISSING_OS + MISSING_BROWSER), тесты проверяют, что итоговый reason присутствует и дубликаты устранены (см. `lib/risk-assessment.adapter.test.ts`)
 - ✅ Для набора разных правил (VPN_DETECTED, TOR_NETWORK, LOW_REPUTATION) тесты проверяют, что все ожидаемые reasons присутствуют в `result.reasons`
 
 **✅ 2.17.2 Тесты для полноты explainability:**

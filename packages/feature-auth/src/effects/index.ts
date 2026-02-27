@@ -26,17 +26,6 @@ export {
 } from './login/login-metadata.enricher.js';
 
 /**
- * Login Risk Assessment Adapter: адаптер для оценки рисков входа.
- *
- * @public
- */
-export {
-  buildAssessment,
-  type BuildAssessmentParams,
-  defaultModelVersion,
-} from './login/login-risk-assessment.adapter.js';
-
-/**
  * Публичный алиас для RiskSignals adapter-уровня.
  * Использует единый источник истины из types/auth-risk.ts (ClassificationSignals).
  *

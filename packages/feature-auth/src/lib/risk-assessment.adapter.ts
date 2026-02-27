@@ -1,15 +1,15 @@
 /**
- * @file packages/feature-auth/src/effects/login/login-risk-assessment.adapter.ts
+ * @file packages/feature-auth/src/lib/risk-assessment.adapter.ts
  * ============================================================================
- * 🔐 FEATURE-AUTH — Login Risk Assessment Adapter
+ * 🔐 FEATURE-AUTH — Risk Assessment Adapter
  * ============================================================================
  *
  * Архитектурная роль:
- * - Адаптер между classification layer и domain layer для login risk assessment
+ * - Адаптер между classification layer и domain layer для risk assessment
  * - Преобразование ClassificationRule → RiskReason с дедупликацией
  * - Нормализация DeviceInfo → DeviceRiskInfo (определение platform из OS)
  * - Валидация и нормализация boundary данных (timestamp, IP, geo координаты)
- * - Создание LoginRiskEvaluation через domain factories
+ * - Создание RiskEvaluation через domain factories
  *
  * Принципы:
  * - ✅ Adapter pattern — изоляция domain от classification/transport слоев
@@ -24,21 +24,21 @@
 import type { ClassificationRule } from '@livai/domains/strategies';
 import { isValid as isValidIpAddress } from 'ipaddr.js';
 
-import type { DeviceInfo } from '../../domain/DeviceInfo.js';
+import type { DeviceInfo } from '../domain/DeviceInfo.js';
 import type {
   DeviceRiskInfo,
   LoginRiskContext,
   LoginRiskEvaluation,
   RiskReason,
-} from '../../domain/LoginRiskAssessment.js';
+} from '../domain/LoginRiskAssessment.js';
 import {
   createLoginRiskEvaluation,
   createLoginRiskResult,
   DomainValidationError,
   RiskReasonCode,
   RiskReasonType,
-} from '../../domain/LoginRiskAssessment.js';
-import type { RiskLevel } from '../../types/auth.js';
+} from '../domain/LoginRiskAssessment.js';
+import type { RiskLevel } from '../types/auth.js';
 
 /* ============================================================================
  * 🔧 CONSTANTS

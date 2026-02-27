@@ -34,9 +34,9 @@ import type {
 } from '@livai/domains/strategies';
 
 import { mapLabelToDecisionHint } from './classification-mapper.js';
+import { buildAssessment } from './risk-assessment.adapter.js';
 import type { DeviceInfo as AuthDeviceInfo } from '../domain/DeviceInfo.js';
 import { DomainValidationError } from '../domain/LoginRiskAssessment.js';
-import { buildAssessment } from '../effects/login/login-risk-assessment.adapter.js';
 import type {
   AuthRuleEvaluationContext,
   AuthScoringContext,

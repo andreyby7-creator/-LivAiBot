@@ -11,7 +11,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const mockTransformDomainToDto = vi.hoisted(() => vi.fn());
 
-// Мокируем @livai/core для тестов (transformDomainToDto используется в login-risk-assessment.adapter)
+// Мокируем @livai/core для тестов (transformDomainToDto используется в risk-assessment.adapter)
 vi.mock('@livai/core', async () => {
   // eslint-disable-next-line @livai/multiagent/orchestration-safety -- vi.importActual не требует timeout, это синхронная операция мокинга
   const actual = await vi.importActual('@livai/core');

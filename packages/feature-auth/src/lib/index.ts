@@ -102,3 +102,14 @@ export {
   type RiskPolicy,
   type RiskSignals,
 } from './risk-assessment.js';
+
+/**
+ * Risk Assessment Adapter: адаптер между classification layer и domain layer.
+ *
+ * @public
+ */
+export {
+  buildAssessment,
+  type BuildAssessmentParams,
+  defaultModelVersion,
+} from './risk-assessment.adapter.js';

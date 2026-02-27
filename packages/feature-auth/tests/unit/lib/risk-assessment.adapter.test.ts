@@ -1,5 +1,5 @@
 /**
- * @file Unit тесты для effects/login/login-risk-assessment.adapter.ts
+ * @file Unit тесты для lib/risk-assessment.adapter.ts
  * Полное покрытие 100% всех функций и edge cases
  */
 
@@ -12,9 +12,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { ClassificationRule } from '@livai/domains/strategies';
 
-import type { DeviceInfo } from '../../../../src/domain/DeviceInfo.js';
-import { buildAssessment } from '../../../../src/effects/login/login-risk-assessment.adapter.js';
-import type { RiskLevel } from '../../../../src/types/auth.js';
+import type { DeviceInfo } from '../../../src/domain/DeviceInfo.js';
+import { buildAssessment } from '../../../src/lib/risk-assessment.adapter.js';
+import type { RiskLevel } from '../../../src/types/auth.js';
 
 // ============================================================================
 // 🔧 HELPER FUNCTIONS FOR TEST DATA
