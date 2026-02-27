@@ -34,8 +34,15 @@ export {
   buildAssessment,
   type BuildAssessmentParams,
   defaultModelVersion,
-  type RiskSignals as AdapterRiskSignals,
 } from './login/login-risk-assessment.adapter.js';
+
+/**
+ * Публичный алиас для RiskSignals adapter-уровня.
+ * Использует единый источник истины из types/auth-risk.ts (ClassificationSignals).
+ *
+ * @public
+ */
+export type { RiskSignals as AdapterRiskSignals } from '../types/auth-risk.js';
 
 /**
  * Risk Assessment: оценка рисков.

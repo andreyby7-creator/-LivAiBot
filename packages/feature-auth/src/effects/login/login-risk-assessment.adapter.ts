@@ -41,30 +41,6 @@ import {
 import type { RiskLevel } from '../../types/auth.js';
 
 /* ============================================================================
- * 🧭 TYPES
- * ============================================================================
- */
-
-/** Типизированные сигналы риска (domain layer) */
-export type RiskSignals = {
-  readonly isVpn?: boolean;
-  readonly isTor?: boolean;
-  readonly isProxy?: boolean;
-  readonly asn?: string;
-  readonly reputationScore?: number;
-  readonly velocityScore?: number;
-  readonly previousGeo?: {
-    readonly country?: string;
-    readonly region?: string;
-    readonly city?: string;
-    readonly lat?: number;
-    readonly lng?: number;
-  };
-  /** Внутренние сигналы (остаются в adapter слое, не попадают в domain) */
-  readonly externalSignals?: Readonly<Record<string, unknown>>;
-};
-
-/* ============================================================================
  * 🔧 CONSTANTS
  * ============================================================================
  */
@@ -180,7 +156,8 @@ function mapTriggeredRulesToReasons(
     }
   }
 
-  return uniqueReasons;
+  // Runtime защита от мутаций: возвращаем frozen-массив причин
+  return Object.freeze(uniqueReasons);
 }
 
 /* ============================================================================

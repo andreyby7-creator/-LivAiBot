@@ -88,6 +88,21 @@ export default [
       'functional/no-classes': 'off',    // ✅ Глобально для domain
     },
   },
+  // LoginRiskAssessment domain: запрет Record в типах оценки риска логина
+  {
+    files: ['packages/feature-auth/src/domain/LoginRiskAssessment.ts'],
+    rules: {
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector:
+            "TSTypeReference[typeName.name='Record'][typeParameters.params.0.typeAnnotation.type='TSStringKeyword'][typeParameters.params.1.typeAnnotation.type='TSUnknownKeyword']",
+          message:
+            'Record запрещён в domain LoginRiskAssessment. Используйте строго типизированные union types.',
+        },
+      ],
+    },
+  },
   // Tsup конфиги — линтим, но мягче (как инфраструктурный код)
   {
     files: ['**/tsup.config.{ts,js,mjs,cjs}'],

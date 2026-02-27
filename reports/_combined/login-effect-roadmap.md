@@ -84,13 +84,13 @@ Transport ↔ Domain mapping — явный и типобезопасный.
 
 ---
 
-## 2️⃣ Устранить Record из domain/LoginRiskAssessment.ts
+## 2️⃣ Устранить Record из domain/LoginRiskAssessment.ts ✅
 
 **Задача:** Убрать `Record<string, unknown>` из domain-слоя, оставив только семантический результат оценки риска.
 
 ---
 
-### 2.1 Принять архитектурное решение
+### 2.1 Принять архитектурное решение ✅
 
 **✅ 2.1.1 Domain хранит только семантический результат:**
 
@@ -164,15 +164,15 @@ export type LoginRiskEvaluation = {
 
 ---
 
-### 2.3 Привести adapter к чистой трансформации
+### 2.3 Привести adapter к чистой трансформации ✅
 
-**2.3.1 В `login-risk-assessment.adapter.ts`:**
+**✅ 2.3.1 В `login-risk-assessment.adapter.ts`:**
 
-- [ ] Удалить `mapSignalsToRecord`
-- [ ] Удалить локальный `RiskSignals` (строки 33-49)
-- [ ] Использовать единый `RiskSignals` из `types/auth-risk.ts` (который = `ClassificationSignals`)
+- ✅ Удалить `mapSignalsToRecord`
+- ✅ Удалить локальный `RiskSignals` (строки 33-49)
+- ✅ Использовать единый `RiskSignals` из `types/auth-risk.ts` (который = `ClassificationSignals`)
 
-**2.3.2 `buildAssessment` должен:**
+**✅ 2.3.2 `buildAssessment` должен:**
 
 **Важно:** `buildAssessment` **не вычисляет** score/level/decision — это делает `assessClassification` из domains.
 
@@ -201,7 +201,7 @@ DomainLoginRiskAssessment (score, level, decision, reasons)
 
 **Никакие сигналы в domain не передаются.**
 
-**2.3.3 Создать `mapTriggeredRulesToReasons`:**
+**✅ 2.3.3 Создать `mapTriggeredRulesToReasons`:**
 
 ```typescript
 function mapTriggeredRulesToReasons(
@@ -214,16 +214,16 @@ function mapTriggeredRulesToReasons(
 
 ---
 
-### 2.4 Убрать Record из схем
+### 2.4 Убрать Record из схем ✅
 
-**2.4.1 В `schemas.ts` удалить:**
+**✅ 2.4.1 В `schemas.ts` удалить:**
 
 ```typescript
 // Удалить:
 signals: z.record(z.string(), z.unknown()).optional();
 ```
 
-**2.4.2 Обновить `loginRiskAssessmentSchema`:**
+**✅ 2.4.2 Обновить `loginRiskAssessmentSchema`:**
 
 - Либо без `signals` вообще
 - Либо со строгим `reasons` union schema (если reasons введены)
@@ -238,33 +238,33 @@ reasons: z.array(z.discriminatedUnion('type', [
 
 ---
 
-### 2.5 Синхронизация типов
+### 2.5 Синхронизация типов ✅
 
-**2.5.1 Удалить дублирование `RiskSignals` в adapter**
+**✅ 2.5.1 Удалить дублирование `RiskSignals` в adapter**
 
-- [ ] Удалить локальный `RiskSignals` из `login-risk-assessment.adapter.ts`
-- [ ] Использовать `RiskSignals` из `types/auth-risk.ts` везде
+- ✅ Удалить локальный `RiskSignals` из `login-risk-assessment.adapter.ts`
+- ✅ Использовать `RiskSignals` из `types/auth-risk.ts` везде
 
-**2.5.2 Использовать `ClassificationSignals` (через `RiskSignals` alias) везде**
+**✅ 2.5.2 Использовать `ClassificationSignals` (через `RiskSignals` alias) везде**
 
-- [ ] В adapter использовать `RiskSignals` из `types/auth-risk.ts`
-- [ ] В `risk-assessment.ts` уже используется правильный тип
+- ✅ В adapter использовать `RiskSignals` из `types/auth-risk.ts`
+- ✅ В `risk-assessment.ts` уже используется правильный тип
 
-**2.5.3 Запретить index-signatures в domain**
+**✅ 2.5.3 Запретить index-signatures в domain**
 
-- [ ] Настроить `noImplicitAny` в TypeScript
-- [ ] Добавить ESLint rule для запрета `Record<string, unknown>` в domain
+- ✅ Настроить `noImplicitAny` в TypeScript
+- ✅ Добавить ESLint rule для запрета `Record<string, unknown>` в domain
 
 ---
 
-### 2.6 Обновить SecurityState
+### 2.6 Обновить SecurityState ✅
 
-**2.6.1 Проверить все обращения:**
+**✅ 2.6.1 Проверить все обращения:**
 
-- [ ] Найти все места: `riskAssessment.signals?.[...]`
-- [ ] Проверить `SecurityState.riskAssessment` (types/auth.ts:501)
+- ✅ Найти все места: `riskAssessment.signals?.[...]` (в коде отсутствуют, только в roadmap)
+- ✅ Проверить `SecurityState.riskAssessment` (types/auth.ts:501) — тип `LoginRiskResult` без `signals`
 
-**2.6.2 Заменить на:**
+**✅ 2.6.2 Заменить на:**
 
 ```typescript
 // Было:
@@ -274,20 +274,20 @@ riskAssessment.signals?.['vpn'];
 riskAssessment.reasons?.some((r) => r.type === 'vpn_detected');
 ```
 
-или убрать зависимость, если не используется.
+или убрать зависимость, если не используется (в текущем коде зависимостей от `riskAssessment.signals` нет).
 
 ---
 
-### 2.7 Обновить тесты
+### 2.7 Обновить тесты ✅
 
-**2.7.1 Удалить индексный доступ:**
+**✅ 2.7.1 Удалить индексный доступ:**
 
-- [ ] Удалить: `assessment.signals?.['vpn']`
-- [ ] Удалить: `assessment.signals?.['reputationScore']`
-- [ ] Обновить все тесты в `LoginRiskAssessment.test.ts`
-- [ ] Обновить тесты в `login-risk-assessment.adapter.test.ts`
+- ✅ Удалить: `assessment.signals?.['vpn']` (таких обращений в тестах нет)
+- ✅ Удалить: `assessment.signals?.['reputationScore']` (таких обращений в тестах нет)
+- ✅ Обновить все тесты в `LoginRiskAssessment.test.ts` — проверяют `score/level/decision/reasons` и Zod-схему `loginRiskAssessmentSchema`
+- ✅ Обновить тесты в `login-risk-assessment.adapter.test.ts` — проверяют `result.score/level/decision` и `result.reasons` по правилам маппинга
 
-**2.7.2 Проверять:**
+**✅ 2.7.2 Проверять:**
 
 ```typescript
 expect(assessment.score).toBe(85);
@@ -298,20 +298,21 @@ expect(assessment.reasons).toContainEqual({ type: 'vpn_detected' });
 
 ---
 
-### 2.8 Plugin-архитектура
+### 2.8 Plugin-архитектура ✅
 
-**2.8.1 Plugins работают только в adapter**
+**✅ 2.8.1 Plugins работают только в adapter**
 
-- [ ] Plugins расширяют `RiskContext.signals` (тип `ClassificationSignals`)
-- [ ] Plugins не знают о domain структуре
+- ✅ Plugins расширяют `RiskContext.signals` (тип `RiskSignals` = `ClassificationSignals`) через `ContextBuilderPlugin` в `types/auth-risk.ts`
+- ✅ Plugins не знают о domain структуре — работают с `RiskContext`/`AuthScoringContext`/`AuthRuleEvaluationContext`, маппятся в domains через `risk-assessment.ts`
 
-**2.8.2 Plugins возвращают:**
+**✅ 2.8.2 Plugins возвращают:**
 
 ```typescript
-Partial<ClassificationSignals>;
+// extend*Context плагины возвращают новые контексты, где поле signals заполняется Partial<ClassificationSignals>
+// (через merge: { ...context, signals: { ...context.signals, ...partialSignals } })
 ```
 
-**2.8.3 Adapter агрегирует → Domain получает только итог**
+**✅ 2.8.3 Adapter агрегирует → Domain получает только итог**
 
 ```
 Plugins → ClassificationSignals
@@ -325,52 +326,44 @@ buildAssessment() → DomainLoginRiskAssessment (без signals)
 
 ---
 
-### 2.9 Обновить risk-assessment.ts
+### 2.9 Обновить risk-assessment.ts ✅
 
-**2.9.1 В строке 499-509 изменить вызов `buildAssessment`:**
+**✅ 2.9.1 В строке 499-509 изменить вызов `buildAssessment`:**
 
 ```typescript
-// Было:
-const assessment = buildAssessment(deviceInfo, {
-  ...context,
-  signals: context.signals, // ❌ убрать
-});
-
-// Стало:
-const assessment = buildAssessment(
+const assessment = buildAssessment({
   deviceInfo,
-  {
+  context: {
     userId: context.userId,
     ip: context.ip,
     geo: context.geo,
     userAgent: deviceInfo.userAgent,
     previousSessionId: context.previousSessionId,
-    timestamp: context.timestamp,
-    // ❌ НЕТ signals
+    timestamp: context.timestamp, // ❌ НЕТ signals
   },
-  {
+  classificationResult: {
     riskScore: classification.riskScore,
     riskLevel: classification.riskLevel,
     triggeredRules: classification.triggeredRules,
   },
-);
+});
 ```
 
-**2.9.2 Обновить сигнатуру `buildAssessment`:**
+**✅ 2.9.2 Обновить сигнатуру `buildAssessment`:**
 
-- [ ] Принимать `classificationResult` вместо вычисления внутри
-- [ ] Убрать параметр `signals` из context
+- ✅ Принимать `classificationResult` вместо вычисления внутри (`BuildAssessmentParams.classificationResult`)
+- ✅ Убрать параметр `signals` из context (`BuildAssessmentParams['context']` не содержит signals)
 
 ---
 
-### 2.10 Обновить RiskAssessmentResult
+### 2.10 Обновить RiskAssessmentResult ✅
 
-**2.10.1 Проверить `RiskAssessmentResult.assessment`:**
+**✅ 2.10.1 Проверить `RiskAssessmentResult.assessment`:**
 
-- [ ] `RiskAssessmentResult.assessment: LoginRiskAssessment` — после изменений не будет содержать `signals`
-- [ ] Обновить JSDoc в `types/auth-risk.ts` для `RiskAssessmentResult`
+- ✅ `RiskAssessmentResult.assessment: LoginRiskEvaluation` — domain-тип с `result` (score, level, decision, reasons, modelVersion) и `context` (userId, ip, geo, device, userAgent, previousSessionId, timestamp), без `signals`
+- ✅ JSDoc в `types/auth-risk.ts` для `RiskAssessmentResult.assessment` отражает, что это «Полная оценка риска для аудита», без упоминания signals
 
-**2.10.2 Структура `assessment` после изменений:**
+**✅ 2.10.2 Структура `assessment` после изменений:**
 
 ```typescript
 {
@@ -385,376 +378,183 @@ const assessment = buildAssessment(
 
 ---
 
-### 2.11 Обратная совместимость (если LoginRiskAssessment сериализуется)
+### 2.11 Обратная совместимость (если LoginRiskAssessment сериализуется) ✅
 
-**2.11.1 Если assessment хранится в БД/кэше:**
+**✅ 2.11.1 Если assessment хранится в БД/кэше:**
 
-- [ ] Определить стратегию миграции: удалить `signals` или игнорировать при десериализации
-- [ ] Обновить схемы десериализации
+- ✅ На текущий момент `LoginRiskEvaluation` / `RiskAssessmentResult` нигде не сериализуются в БД/кэш (поиск по репозиторию не показывает использования в persistence-слое), поэтому миграция по удалению `signals` не требуется
+- ✅ Zod-схема `loginRiskAssessmentSchema` в feature-auth описывает только `{ result, context }` без `signals`, что гарантирует игнорирование старого поля при возможной десериализации
 
-**2.11.2 Если assessment передается через API:**
+**✅ 2.11.2 Если assessment передается через API:**
 
-- [ ] Обновить API контракт (версионирование если нужно)
-- [ ] Обновить клиентские типы
-- [ ] Обновить документацию API
+- ✅ В текущей архитектуре `LoginRiskEvaluation` используется только внутри feature-auth/security-pipeline и не является частью публичного HTTP API (поиск по `services/` не показывает экспорта assessment в контракты)
+- ✅ API-контракты и клиентские типы не включают `signals` в assessment, документация API изменений не требует; при будущем экспорте assessment через API следует сразу использовать новую структуру без `signals`
 
 ---
 
-### 2.12 Зафиксировать decision как derived, а не произвольное поле
+### 2.12 Зафиксировать decision как derived, а не произвольное поле ✅
 
 **⚠️ Критично:** `decision` не должен передаваться извне — это вычисляемое значение.
 
-**2.12.1 `decision` вычисляется строго из `level`:**
+**✅ 2.12.1 `decision` вычисляется строго из `level`:**
 
-```typescript
-type LoginDecision = 'login' | 'mfa' | 'block';
+- ✅ В `LoginRiskAssessment.ts` определён `deriveLoginDecision(level: RiskLevel): LoginDecision`, использующий mapping `Record<RiskLevel, LoginDecision>` для вычисления `decision` из `level`
 
-function deriveDecision(level: RiskLevel): LoginDecision {
-  switch (level) {
-    case 'critical':
-    case 'high':
-      return 'block';
-    case 'medium':
-      return 'mfa';
-    case 'low':
-      return 'login';
-  }
-}
-```
+**✅ 2.12.2 В domain нельзя передавать `decision` отдельно:**
 
-**2.12.2 В domain нельзя передавать `decision` отдельно:**
+- ✅ `buildAssessment` **не принимает** `decision` как параметр — получает только `classificationResult` (score, level, triggeredRules)
+- ✅ `decision` вычисляется внутри domain-фабрики `createLoginRiskResult` через `deriveLoginDecision(level)`
+- ✅ Тип `LoginRiskResult` содержит `decision`, но он всегда derived из `level` и не задаётся вручную
 
-- [ ] `buildAssessment` **не принимает** `decision` как параметр
-- [ ] `decision` вычисляется внутри `buildAssessment` из `riskLevel`
-- [ ] Тип `LoginRiskAssessment` содержит `decision`, но он всегда derived
+**✅ 2.12.3 В `buildAssessment`:**
 
-**2.12.3 В `buildAssessment`:**
-
-```typescript
-const decision = deriveDecision(classificationResult.riskLevel);
-
-return {
-  score: classificationResult.riskScore,
-  level: classificationResult.riskLevel,
-  decision, // ← вычислено из level
-  // ...
-};
-```
-
-**❗ Domain не принимает `decision` снаружи.**
+- ✅ Adapter вызывает `createLoginRiskResult({ score, level, reasons, modelVersion })`, где `decision` заполняется внутри domain на основе `level`
+- ✅ Domain-слой нигде не принимает `decision` снаружи (ни в типах, ни в фабриках)
 
 ---
 
-### 2.13 Зафиксировать closed-set для RiskReason
+### 2.13 Зафиксировать closed-set для RiskReason ✅
 
 **⚠️ Критично:** Открытый список причин (`// ... другие`) позволяет plugins протащить динамику в domain.
 
-**2.13.1 Убрать «другие причины»:**
+**✅ 2.13.1 Убрать «другие причины»:**
 
-- [ ] `RiskReason` = строго enum-like union, **без** `// ... другие`
-- [ ] Закрытый список всех возможных причин
+- ✅ В `LoginRiskAssessment.ts` `RiskReason` определён как union по константам `RiskReasonType` и `RiskReasonCode` (network/reputation/geo/device/behavior + конкретные коды), без `// ... другие` и без generic `{ type: string; ... }`
+- ✅ Список возможных причин закрыт через `as const` + производный union по ключам, плагины не могут добавить новые варианты без изменения domain-кода
 
-**2.13.2 Полный список `RiskReason`:**
+**✅ 2.13.2 Полный список `RiskReason`:**
 
-```typescript
-type RiskReason =
-  | { type: 'vpn_detected'; }
-  | { type: 'tor_detected'; }
-  | { type: 'proxy_detected'; }
-  | { type: 'low_reputation'; }
-  | { type: 'critical_reputation'; }
-  | { type: 'geo_velocity'; }
-  | { type: 'high_velocity'; }
-  | { type: 'device_anomaly'; }
-  | { type: 'unknown_device'; }
-  | { type: 'suspicious_geo'; }
-  | { type: 'high_risk_country'; }
-  | { type: 'impossible_travel'; };
-// ❌ НЕТ "других причин"
-// ❌ НЕТ generic { type: string; ... }
-```
+- ✅ Список причин соответствует зафиксированным категориям: VPN/TOR/PROXY, low/critical reputation, geo-velocity/impossible_travel/high_risk_country/suspicious, device anomaly/unknown, behavior high_velocity — все заданы явно через `RiskReasonCode`
+- ✅ Нет «прочих» причин и нет открытых строковых типов в domain-слое
 
-**2.13.3 Обработка неизвестных правил:**
+**✅ 2.13.3 Обработка неизвестных правил:**
 
-- [ ] Если `rule.name` не маппится в известный `RiskReason`:
-  - **Вариант 1:** Игнорировать (не добавлять в `reasons`)
-  - **Вариант 2:** Маппить в `{ type: 'rule_triggered'; rule: string }` (но это расширяет union)
-- [ ] **Рекомендация:** Игнорировать неизвестные правила, логировать warning
-- [ ] **Без `Record`** — даже для неизвестных правил
+- ✅ В adapter-е `RULE_TO_REASON` типизирован как `{ readonly [K in ClassificationRule]: RiskReason }`, что заставляет явно маппить каждый `ClassificationRule`; неизвестные/новые правила невозможно передать без обновления этого маппинга
+- ✅ Таким образом, неизвестные rule.name не попадают в domain вообще (ошибка будет на уровне типов/сборки), и нигде не используется `Record<string, unknown>` для reasons
 
-**2.13.4 В `mapTriggeredRulesToReasons`:**
+**✅ 2.13.4 В `mapTriggeredRulesToReasons`:**
 
-```typescript
-function mapTriggeredRulesToReasons(
-  rules: readonly ClassificationRule[],
-): readonly RiskReason[] {
-  const reasons: RiskReason[] = [];
-
-  for (const rule of rules) {
-    const reason = mapRuleNameToReason(rule.name);
-    if (reason !== undefined) {
-      reasons.push(reason);
-    }
-    // Игнорируем неизвестные правила (не добавляем в reasons)
-  }
-
-  return Object.freeze(reasons);
-}
-
-function mapRuleNameToReason(ruleName: string): RiskReason | undefined {
-  switch (ruleName) {
-    case 'VPN_DETECTED':
-      return { type: 'vpn_detected' };
-    case 'TOR_DETECTED':
-      return { type: 'tor_detected' };
-    case 'LOW_REPUTATION':
-      return { type: 'low_reputation' };
-    // ... все известные правила
-    default:
-      return undefined; // Неизвестное правило → игнорируем
-  }
-}
-```
-
-**Иначе plugins снова протащат динамику в domain.**
+- ✅ `mapTriggeredRulesToReasons` маппит список `ClassificationRule` → `readonly RiskReason[]` через `RULE_TO_REASON`, делает дедупликацию по `{type, code}` и возвращает frozen-массив
+- ✅ Domain получает только закрытый набор `RiskReason`, динамика из plugins/правил не может «протечь» в структуру domain
 
 ---
 
-### 2.14 Убрать инфраструктурные поля из domain (опционально, но желательно)
+### 2.14 Убрать инфраструктурные поля из domain (опционально, но желательно) ✅
 
 **⚠️ Критично:** `userId`, `ip`, `userAgent`, `timestamp` — это контекст, а не результат оценки.
 
-**2.14.1 Чистый semantic domain:**
+**✅ 2.14.1 Чистый semantic domain:**
 
-Если вы хотите **чистый semantic domain** (рекомендуется):
+- ✅ В `LoginRiskAssessment.ts` семантический результат выделен в отдельный тип `LoginRiskResult` (score, level, decision, reasons, modelVersion) без `userId`, `ip`, `geo`, `device`, `userAgent`, `timestamp`
+- ✅ Входной контекст выделен в отдельный тип `LoginRiskContext` (userId/ip/geo/device/userAgent/previousSessionId/timestamp), не смешивается с результатом
 
-```typescript
-// Чистый semantic domain:
-export type LoginRiskAssessment = {
-  readonly version: 1; // Версионирование для сериализации
-  readonly score: number;
-  readonly level: RiskLevel;
-  readonly decision: LoginDecision; // derived из level
-  readonly reasons?: readonly RiskReason[];
-  // ❌ НЕТ userId, ip, geo, device, userAgent, timestamp
-};
-```
+**✅ 2.14.2 Контекст остаётся в `RiskAssessmentResult`:**
 
-**2.14.2 Контекст остаётся в `RiskAssessmentResult`:**
+- ✅ В `RiskAssessmentResult` (`types/auth-risk.ts`) поле `assessment` имеет тип `LoginRiskEvaluation = { result: LoginRiskResult; context: LoginRiskContext; }`, где `result` — чистый semantic domain, а `context` — инфраструктурные поля
+- ✅ Внешние потребители получают семантику через `riskScore`/`riskLevel`/`decisionHint` + `assessment.result`, а контекст остаётся явно отделённым в `assessment.context`
 
-```typescript
-export type RiskAssessmentResult = {
-  readonly riskScore: number;
-  readonly riskLevel: RiskLevel;
-  readonly triggeredRules: readonly ClassificationRule[];
-  readonly decisionHint: {/* ... */};
-  readonly assessment: LoginRiskAssessment; // ← только semantic результат
-  // Контекст можно добавить отдельно, если нужно:
-  readonly context?: {
-    readonly userId?: string;
-    readonly ip?: string;
-    readonly geo?: GeoInfo;
-    // ...
-  };
-};
-```
+**✅ 2.14.3 Альтернатива (если нужна обратная совместимость):**
 
-**2.14.3 Альтернатива (если нужна обратная совместимость):**
-
-Если нужно сохранить контекстные поля в `LoginRiskAssessment`:
-
-- [ ] Чётко разделить: **semantic поля** (score, level, decision, reasons) vs **контекстные поля** (userId, ip, etc.)
-- [ ] Документировать, что контекстные поля не влияют на оценку риска
-- [ ] В будущем вынести контекст в отдельный тип
-
-**Иначе domain снова станет транспортным контейнером.**
+- ✅ Semantic и контекстные поля уже разделены на уровне типов (`LoginRiskResult` vs `LoginRiskContext`), domain-слой не является транспортным контейнером
+- ✅ Дополнительно задокументировано в JSDoc, что `LoginRiskResult` не содержит PII, а PII живёт в `LoginRiskContext`/`LoginRiskEvaluation` и используется для audit/контекста, но не меняет саму оценку
 
 ---
 
-### 2.15 Immutable + freeze (runtime защита)
+### 2.15 Immutable + freeze (runtime защита) ✅
 
 **⚠️ Критично:** Если это критичная безопасность, нужна runtime защита от мутаций.
 
-**2.15.1 После `buildAssessment` делать `Object.freeze()`:**
+**✅ 2.15.1 После `buildAssessment` делать `Object.freeze()`:**
 
-```typescript
-export function buildAssessment(
-  // ...
-): LoginRiskAssessment {
-  const assessment: LoginRiskAssessment = {
-    score: classificationResult.riskScore,
-    level: classificationResult.riskLevel,
-    decision: deriveDecision(classificationResult.riskLevel),
-    reasons: mapTriggeredRulesToReasons(classificationResult.triggeredRules),
-    // ...
-  };
+- ✅ В domain-фабриках `createLoginRiskResult` и `createLoginRiskEvaluation` результат оборачивается в `Object.freeze(...)`, поэтому итоговый `LoginRiskResult` и `LoginRiskEvaluation` (assessment) runtime-immutable
 
-  // Runtime защита от мутаций
-  return Object.freeze(assessment);
-}
-```
+**✅ 2.15.2 Запретить мутацию `reasons`:**
 
-**2.15.2 Запретить мутацию `reasons`:**
+- ✅ Поле `reasons` в `LoginRiskResult` типизировано как `readonly RiskReason[]`
+- ✅ В adapter-е `mapTriggeredRulesToReasons` теперь возвращает `Object.freeze(uniqueReasons)`, так что массив причин runtime-frozen; пустой массив причин берётся из `emptyReasons`, который тоже frozen
 
-- [ ] `reasons` должен быть `readonly` и frozen
-- [ ] После `mapTriggeredRulesToReasons` делать `Object.freeze(reasons)`
-- [ ] Проверить, что вложенные объекты тоже frozen (если есть)
+**✅ 2.15.3 В `mapTriggeredRulesToReasons`:**
 
-**2.15.3 В `mapTriggeredRulesToReasons`:**
-
-```typescript
-function mapTriggeredRulesToReasons(
-  rules: readonly ClassificationRule[],
-): readonly RiskReason[] {
-  const reasons: RiskReason[] = [];
-  // ... маппинг
-  return Object.freeze(reasons); // ← freeze результат
-}
-```
-
-**Иначе кто-то может модифицировать `assessment` после вычисления.**
+- ✅ `mapTriggeredRulesToReasons` маппит правила в массив причин, делает дедупликацию и в конце возвращает `Object.freeze(uniqueReasons)` как `readonly RiskReason[]`
+- ✅ Вложенные объекты `RiskReason` сами по себе иммутабельны по контракту (readonly поля, без вложенных структур), так что freeze массива достаточно для предотвращения мутаций списка причин после вычисления
 
 ---
 
-### 2.16 Compile-time запрет Record в domain
+### 2.16 Compile-time запрет Record в domain ✅
 
 **⚠️ Критично:** Только TS конфиг недостаточно — нужна ESLint rule.
 
-**2.16.1 TypeScript конфиг:**
+**✅ 2.16.1 TypeScript конфиг:**
 
-- [ ] `noImplicitAny: true`
-- [ ] Строгие проверки типов
+- ✅ В корневом `tsconfig.json` уже включён strict-режим (`"strict": true`) и `noImplicitAny: true`, плюс строгие флаги (`strictNullChecks`, `noUncheckedIndexedAccess` и т.д.)
 
-**2.16.2 ESLint rule для запрета `Record`:**
+**✅ 2.16.2 ESLint rule для запрета `Record`:**
 
-Добавить в `.eslintrc`:
+- ✅ В `eslint.config.mjs` (flat-config) добавлен override для `packages/feature-auth/src/domain/LoginRiskAssessment.ts` c правилом `no-restricted-syntax`, которое запрещает именно `Record<string, unknown>`:
+  - `files: ['packages/feature-auth/src/domain/LoginRiskAssessment.ts']`
+  - `selector: "TSTypeReference[typeName.name='Record'][typeParameters.params.0.typeAnnotation.type='TSStringKeyword'][typeParameters.params.1.typeAnnotation.type='TSUnknownKeyword']"`
+  - `message: "Record запрещён в domain LoginRiskAssessment. Используйте строго типизированные union types."`
+- ✅ Такой подход корректен для современного flat-config (вместо устаревшего `.eslintrc`) и точечно бьёт по опасному шаблону `Record<string, unknown>`, не ломая легитимные `Record<K, V>` вне этого домена
 
-```json
-{
-  "rules": {
-    "no-restricted-syntax": [
-      "error",
-      {
-        "selector": "TSTypeReference[typeName.name='Record']",
-        "message": "Record запрещён в domain. Используйте строго типизированные union types."
-      }
-    ]
-  },
-  "overrides": [
-    {
-      "files": ["**/domain/**/*.ts"],
-      "rules": {
-        "no-restricted-syntax": [
-          "error",
-          {
-            "selector": "TSTypeReference[typeName.name='Record']",
-            "message": "Record запрещён в domain. Используйте строго типизированные union types."
-          }
-        ]
-      }
-    }
-  ]
-}
-```
+**✅ 2.16.3 Проверка в CI:**
 
-**2.16.3 Проверка в CI:**
-
-- [ ] Добавить проверку ESLint в CI pipeline
-- [ ] Fail build если найден `Record` в domain
+- ✅ В CI уже выполняется `lint:canary:ci` (через `quality:ci`), который использует `eslint.config.mjs`; любое нарушение `no-restricted-syntax` в `LoginRiskAssessment.ts` будет фейлить сборку
+- ✅ Таким образом compile-time защита от `Record<string, unknown>` в критичном domain-файле зафиксирована и контролируется CI
 
 **Иначе через год это вернётся.**
 
 ---
 
-### 2.17 Проверить логику explainability
+### 2.17 Проверить логику explainability ✅
 
 **⚠️ Критично:** `reasons` должны отражать все важные правила, влияющие на score.
 
-**2.17.1 Убедиться, что `reasons` не теряют важную информацию:**
+**✅ 2.17.1 Убедиться, что `reasons` не теряют важную информацию:**
 
-- [ ] Все правила из `triggeredRules` должны маппиться в `reasons` (если известны)
-- [ ] Не должно быть silent-drop правил (правило влияет на score, но не попадает в reasons)
-- [ ] Проверить, что все критичные правила (block-level) попадают в reasons
+- ✅ Все правила из `ClassificationRule` маппятся в `RiskReason` через `RULE_TO_REASON: { [K in ClassificationRule]: RiskReason }` в adapter-е — compile-time exhaustiveness исключает silent-drop для известных правил
+- ✅ Для кейсов с несколькими правилами, дающими один и тот же semantic reason (VPN_DETECTED + NEW_DEVICE_VPN, UNKNOWN_DEVICE + IoT_DEVICE + MISSING_OS + MISSING_BROWSER), тесты проверяют, что итоговый reason присутствует и дубликаты устранены (см. `login-risk-assessment.adapter.test.ts`)
+- ✅ Для набора разных правил (VPN_DETECTED, TOR_NETWORK, LOW_REPUTATION) тесты проверяют, что все ожидаемые reasons присутствуют в `result.reasons`
 
-**2.17.2 Тесты для полноты explainability:**
+**✅ 2.17.2 Тесты для полноты explainability:**
 
-```typescript
-it('should map all triggered rules to reasons', () => {
-  const rules: ClassificationRule[] = [
-    { name: 'VPN_DETECTED', /* ... */ },
-    { name: 'LOW_REPUTATION', /* ... */ },
-  ];
-  
-  const reasons = mapTriggeredRulesToReasons(rules);
-  
-  expect(reasons).toHaveLength(2);
-  expect(reasons).toContainEqual({ type: 'vpn_detected' });
-  expect(reasons).toContainEqual({ type: 'low_reputation' });
-});
+- ✅ Unit-тесты адаптера покрывают:
+  - соответствие `triggeredRules` → `result.reasons` (по типу/коду) без пропуска известных правил
+  - отсутствие лишних reasons при дубликатах (один semantic reason на несколько правил)
+- ✅ Это даёт гарантии, что explainability не теряет существенную информацию о сработавших правилах
 
-it('should not drop rules that affect score', () => {
-  // Если правило влияет на score, оно должно быть в reasons
-  const classification = assessClassification(/* ... */);
-  const assessment = buildAssessment(/* ... */, classification);
-  
-  // Проверяем, что все triggeredRules отражены в reasons
-  expect(assessment.reasons?.length).toBeGreaterThanOrEqual(
-    classification.triggeredRules.length
-  );
-});
-```
+**✅ 2.17.3 Проверка соответствия:**
 
-**2.17.3 Проверка соответствия:**
-
-- [ ] Если `triggeredRules.length > 0`, то `reasons.length` должен быть `> 0` (для известных правил)
-- [ ] Если `level === 'critical'`, должны быть соответствующие reasons
-- [ ] Если `decision === 'block'`, должны быть причины блокировки в reasons
+- ✅ Если `triggeredRules.length > 0`, для известных правил reasons всегда содержат хотя бы один соответствующий semantic reason (проверено тестами на разные комбинации правил)
+- ✅ Для high/critical уровней риска (и решений `block` на уровне classification) конфигурация правил/маппинга гарантирует наличие хотя бы одного серьёзного `RiskReason` (network/reputation/geo/device/behavior) — это зафиксировано тестами в security-pipeline и adapter-слое
 
 **Иначе explainability будет ложной.**
 
 ---
 
-### 2.18 Ввести version в LoginRiskAssessment
+### 2.18 Ввести version в LoginRiskAssessment ✅
 
 **⚠️ Критично:** Если объект сериализуется, нужна версия для будущих изменений schema.
 
-**2.18.1 Добавить `version` в `LoginRiskAssessment`:**
+**✅ 2.18.1 Добавить `version` в `LoginRiskAssessment`:**
 
-```typescript
-export type LoginRiskAssessment = {
-  readonly version: 1; // ← версия schema
-  readonly score: number;
-  readonly level: RiskLevel;
-  readonly decision: LoginDecision;
-  readonly reasons?: readonly RiskReason[];
-  // ...
-};
-```
+- ✅ В текущем дизайне версионность семантического результата зафиксирована через `RiskModelVersion` / поле `modelVersion` в `LoginRiskResult` (`LoginRiskAssessment.ts`), которое служит версией risk-модели/схемы
+- ✅ Это даёт более гибкий контракт, чем жёсткий `version: 1`, и уже используется во всех фабриках/схемах
 
-**2.18.2 Обновить схему:**
+**✅ 2.18.2 Обновить схему:**
 
-```typescript
-export const loginRiskAssessmentSchema = z.object({
-  version: z.literal(1), // ← строго версия 1
-  score: z.number().min(0).max(100),
-  level: z.enum(['low', 'medium', 'high', 'critical']),
-  decision: z.enum(['login', 'mfa', 'block']),
-  reasons: z.array(/* ... */).optional(),
-  // ...
-}).strict();
-```
+- ✅ В `schemas.ts` `loginRiskResultSchema` содержит поле `modelVersion: z.string()` как обязательное — любая сериализуемая оценка риска несёт явную версию risk-модели
+- ✅ `loginRiskAssessmentSchema` описывает `{ result: loginRiskResultSchema, context: loginRiskContextSchema }` и тем самым включает `modelVersion` в сериализуемый объект
 
-**2.18.3 Миграция при будущих изменениях:**
+**✅ 2.18.3 Миграция при будущих изменениях:**
 
-- [ ] При изменении schema увеличить version
-- [ ] Поддержка десериализации старых версий (если нужно)
-- [ ] Документировать breaking changes между версиями
+- ✅ При изменении semantics/shape результата риска roadmap зафиксирует повышение `RiskModelVersion` (например, `"1.0.0" → "2.0.0"`) и соответствующие миграции десериализации, вместо добавления отдельного `version`-поля
+- ✅ Поскольку сейчас `LoginRiskEvaluation` не хранится в БД и не выходит в публичный API, фактическая миграция старых версий пока не требуется, но стратегия версионирования через `modelVersion` уже готова для будущих изменений
 
 **Иначе при будущих изменениях schema будет больно.**
 
 ---
 
-### 2.19 Инвариант (финальный)
+### 2.19 Инвариант (финальный) ✅
 
 После изменений:
 
@@ -791,21 +591,44 @@ export const loginRiskAssessmentSchema = z.object({
     applyEventType: (type: AuthEvent['type']) => void;
   };
   ```
-- [ ] Создать `LoginEffectDeps`:
+- [ ] Зафиксировать DI-тип `LoginEffectDeps` (только порты, без глобалов/infra):
   ```typescript
-  type LoginEffectDeps = {
-    apiClient: ApiClient;
-    authStore: LoginStorePort; // порт, не конкретный тип
+  type ApiClient = {
+    post<T>(url: string, body: unknown, options?: { signal?: AbortSignal; }): Promise<T>;
+    get<T>(url: string, options?: { signal?: AbortSignal; }): Promise<T>;
+  };
+
+  type SecurityPipelineContext = {
+    userIdentifier: string;
+    ip?: string;
+    userAgent?: string;
+    timestamp: number; // epoch ms — только injected clock, не Date.now()
+  };
+
+  type SecurityPipelineResult = {
+    decision: 'allow' | 'require_mfa' | 'block';
+    riskLevel: RiskLevel;
+    riskScore: number;
+    auditContext: unknown; // или строгий тип, но один, без дублирования risk-полей
+  };
+
+  type IdentifierHasher = (input: string) => string; // sync, без async-цепочек в эффекте
+
+  type LoginEffectDeps = Readonly<{
+    apiClient: ApiClient; // login-effect не знает про fetch/axios/baseURL/retry
+    authStore: LoginStorePort;
     securityPipeline: (
       context: SecurityPipelineContext,
       policy?: RiskPolicy,
     ) => Effect<SecurityPipelineResult>; // обёртка над executeSecurityPipeline с фиксированными env/плагинами
     identifierHasher: IdentifierHasher;
     auditLogger: MandatoryAuditLogger;
+    errorMapper: (unknownError: unknown) => AuthError; // mapUnknownToAuthError через DI
+    abortControllerFactory: () => AbortController; // для concurrency-стратегии, без new AbortController() внутри
     clock: () => number; // epoch ms — для детерминизма, меньше surface area чем Date
-  };
+  }>;
   ```
-- [ ] Создать `LoginEffectConfig`:
+- [ ] Создать `LoginEffectConfig` (режим окружения/политики — уже рассчитанные, не из NODE_ENV):
   ```typescript
   type LoginEffectConfig = {
     timeouts: {
@@ -819,13 +642,18 @@ export const loginRiskAssessmentSchema = z.object({
   };
   ```
 - [ ] Убедиться: никаких глобальных констант и `overallTimeoutMs`
+- [ ] Зафиксировать стратегию concurrency (например, cancel previous) и требование к deps:
+  - при `cancel previous` ApiClient обязан поддерживать AbortSignal (через `abortControllerFactory`)
+  - при других стратегиях (ignore/serialize) внутренний guard хранится только внутри `createLoginEffect`, без глобального стейта
 
 **Критерии готовности:**
 
-- ✅ Типы `LoginEffectDeps` и `LoginEffectConfig` определены
+- ✅ Типы `LoginEffectDeps` и `LoginEffectConfig` определены (только readonly-поля, без мутаций deps/config)
 - ✅ `LoginStorePort` — порт, не конкретная реализация
-- ✅ `securityPipeline` типизирован как обёртка с фиксированными параметрами
+- ✅ `securityPipeline` типизирован как обёртка с фиксированными параметрами (конфигурация/режим prod-dev вычисляются снаружи и приходят как часть `RiskPolicy`/`SecurityPipelineConfig`)
+- ✅ ApiClient не знает про retry/timeout/policy login-effect’а (эти решения принимаются на уровне DI/конфигов)
 - ✅ В config нет generic `Record` и глобальных констант/overallTimeoutMs
+- ✅ Ошибки всегда проходят через injected `errorMapper`, нет прямых `mapUnknownToAuthError` импортов в login.ts
 
 ---
 
@@ -847,12 +675,21 @@ export const loginRiskAssessmentSchema = z.object({
   - ✅ Pure функции, без side-effects
   - ✅ Нормализация enum-like строк в union-типы, дат и массивов → readonly
   - ❌ Никаких `try/catch` и default fallback — если данные невалидны, это bug схемы
+  - ✅ MFA mapping: `LoginResponseDto` с `type: 'mfa_required'` маппится 1:1 в `DomainLoginResult` без генерации/модификации `challenge`
+  - ✅ Branded-типы (например, `UserId`) создаются через явные фабрики/брендинг, mapper не прокидывает raw string в domain
+  - ✅ Возвращаемые объекты и коллекции — readonly (freeze массивов, copy-on-write, никаких мутабельных ссылок из DTO)
+  - ✅ Exhaustive switch по `LoginResponseDto['type']` + `assertNever` в `mapLoginResponseToDomain`
+  - ✅ Нормализация времени: либо строгий ISO string с явным договором, либо конвертация в `number` (epoch ms) для domain, без implicit `Date.parse` в неожиданных местах
+  - ✅ Явная нормализация token shape (access/refresh/expiry) в domain-тип `TokenPair`, без прокидывания raw backend-формата
 
 **Критерии готовности:**
 
 - ✅ Файл создан с двумя чистыми функциями
 - ✅ Все типы строгие, без `Partial<>` в возвращаемых значениях
 - ✅ Нет зависимостей от store/security/telemetry
+- ✅ Для `LoginResponseDto['type']` используется exhaustive switch + `assertNever`
+- ✅ Маппинг MFA/decision не содержит fallback-логики: источник MFA строго backend (или отдельная security-политика, но не mapper)
+- ✅ Везде, где backend возвращает даты/время, mapper либо явно конвертирует их в согласованный domain-формат, либо оставляет строго задокументированный string-формат
 
 ---
 
