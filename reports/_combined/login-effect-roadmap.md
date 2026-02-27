@@ -576,13 +576,13 @@ const assessment = buildAssessment({
 
 ---
 
-## 3️⃣ Определить DI-контракт login-эффекта
+## 3️⃣ Определить DI-контракт login-эффекта ✅
 
 **Задача:** Создать типы зависимостей до реализации.
 
 **Действия:**
 
-- [ ] Создать `LoginStorePort` интерфейс (не конкретный Zustand-тип):
+- ✅ Создать `LoginStorePort` интерфейс (не конкретный Zustand-тип):
   ```typescript
   type LoginStorePort = {
     setAuthState: (state: AuthState) => void;
@@ -591,7 +591,7 @@ const assessment = buildAssessment({
     applyEventType: (type: AuthEvent['type']) => void;
   };
   ```
-- [ ] Зафиксировать DI-тип `LoginEffectDeps` (только порты, без глобалов/infra):
+- ✅ Зафиксировать DI-тип `LoginEffectDeps` (только порты, без глобалов/infra):
   ```typescript
   type ApiClient = {
     post<T>(url: string, body: unknown, options?: { signal?: AbortSignal; }): Promise<T>;
@@ -628,7 +628,7 @@ const assessment = buildAssessment({
     clock: () => number; // epoch ms — для детерминизма, меньше surface area чем Date
   }>;
   ```
-- [ ] Создать `LoginEffectConfig` (режим окружения/политики — уже рассчитанные, не из NODE_ENV):
+- ✅ Создать `LoginEffectConfig` (режим окружения/политики — уже рассчитанные, не из NODE_ENV):
   ```typescript
   type LoginEffectConfig = {
     timeouts: {
@@ -641,8 +641,8 @@ const assessment = buildAssessment({
     // policyMode на уровне композиции, login-effect не знает о режимах безопасности
   };
   ```
-- [ ] Убедиться: никаких глобальных констант и `overallTimeoutMs`
-- [ ] Зафиксировать стратегию concurrency (например, cancel previous) и требование к deps:
+- ✅ Убедиться: никаких глобальных констант и `overallTimeoutMs`
+- ✅ Зафиксировать стратегию concurrency (например, cancel previous) и требование к deps:
   - при `cancel previous` ApiClient обязан поддерживать AbortSignal (через `abortControllerFactory`)
   - при других стратегиях (ignore/serialize) внутренний guard хранится только внутри `createLoginEffect`, без глобального стейта
 
@@ -654,6 +654,7 @@ const assessment = buildAssessment({
 - ✅ ApiClient не знает про retry/timeout/policy login-effect’а (эти решения принимаются на уровне DI/конфигов)
 - ✅ В config нет generic `Record` и глобальных констант/overallTimeoutMs
 - ✅ Ошибки всегда проходят через injected `errorMapper`, нет прямых `mapUnknownToAuthError` импортов в login.ts
+- ✅ DI-типы login-эффекта реализованы в коде (`login-effect.types.ts`) и покрыты юнит-тестом `npx vitest run --coverage feature-auth/tests/unit/effects/login/login-effect.types.test.ts`
 
 ---
 

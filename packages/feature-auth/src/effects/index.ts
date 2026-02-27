@@ -94,3 +94,16 @@ export { isValidLoginRequest } from './login/validation.js';
  * @public
  */
 export { DeviceFingerprint } from './login/device-fingerprint.js';
+
+/**
+ * Login Effect DI Types: публичный DI-контракт для login-effect.
+ *
+ * @public
+ */
+export type {
+  ApiClient as LoginApiClient,
+  IdentifierHasher as LoginIdentifierHasher,
+  LoginEffectConfig,
+  LoginEffectDeps,
+  LoginStorePort,
+} from './login/login-effect.types.js';
