@@ -41,3 +41,20 @@ export {
   SecurityPipelineVersion,
   shouldBlockOperation,
 } from './security-pipeline.js';
+
+/* ============================================================================
+ * 🔐 ERROR MAPPER — МАППИНГ ОШИБОК АУТЕНТИФИКАЦИИ
+ * ========================================================================== */
+
+/**
+ * Error Mapper: трансформация API ошибок в UI-friendly `AuthError`.
+ *
+ * @public
+ */
+export {
+  type AuthErrorInput,
+  mapAuthError,
+  type MapAuthErrorConfig,
+  type MapAuthErrorResult,
+  mapAuthErrorToUI,
+} from './error-mapper.js';

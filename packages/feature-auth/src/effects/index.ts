@@ -69,19 +69,6 @@ export {
 export { type DecisionResult, mapLabelToDecisionHint } from './login/classification-mapper.js';
 
 /**
- * Error Mapper: маппинг ошибок аутентификации.
- *
- * @public
- */
-export {
-  type AuthErrorInput,
-  mapAuthError,
-  type MapAuthErrorConfig,
-  type MapAuthErrorResult,
-  mapAuthErrorToUI,
-} from './login/error-mapper.js';
-
-/**
  * Validation: валидация запросов входа.
  *
  * @public

@@ -30,11 +30,11 @@ import type {
 } from '@livai/app/lib/error-mapping.js';
 import { mapError } from '@livai/app/lib/error-mapping.js';
 
-import type { AuthErrorResponse } from '../../domain/AuthErrorResponse.js';
-import type { MfaType } from '../../domain/MfaChallengeRequest.js';
-import type { OAuthErrorResponse } from '../../domain/OAuthErrorResponse.js';
-import type { SessionRevokeReason } from '../../domain/SessionRevokeRequest.js';
-import type { AuthError, ISODateString } from '../../types/auth.js';
+import type { AuthErrorResponse } from '../domain/AuthErrorResponse.js';
+import type { MfaType } from '../domain/MfaChallengeRequest.js';
+import type { OAuthErrorResponse } from '../domain/OAuthErrorResponse.js';
+import type { SessionRevokeReason } from '../domain/SessionRevokeRequest.js';
+import type { AuthError, ISODateString } from '../types/auth.js';
 
 /* ============================================================================
  * 🧭 TYPES
