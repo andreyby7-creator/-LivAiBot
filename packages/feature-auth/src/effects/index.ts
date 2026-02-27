@@ -45,23 +45,6 @@ export {
 export type { RiskSignals as AdapterRiskSignals } from '../types/auth-risk.js';
 
 /**
- * Risk Assessment: оценка рисков.
- *
- * @public
- */
-export {
-  assessLoginRisk,
-  type AuditHook,
-  type ContextBuilderPlugin,
-  type ExternalRiskSignals,
-  type InternalRiskSignals,
-  type RiskAssessmentResult,
-  type RiskContext,
-  type RiskPolicy,
-  type RiskSignals,
-} from './login/risk-assessment.js';
-
-/**
  * Validation: валидация запросов входа.
  *
  * @public

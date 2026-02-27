@@ -23,7 +23,7 @@ import type {
   SecurityPipelineConfig,
   SecurityPipelineResult,
 } from '../../../src/lib/security-pipeline.js';
-import * as riskAssessmentModule from '../../../src/effects/login/risk-assessment.js';
+import * as riskAssessmentModule from '../../../src/lib/risk-assessment.js';
 import * as orchestratorModule from '@livai/app/lib/orchestrator.js';
 
 /* ============================================================================

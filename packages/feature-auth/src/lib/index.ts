@@ -81,3 +81,24 @@ export { type DecisionResult, mapLabelToDecisionHint } from './classification-ma
  * @public
  */
 export { DeviceFingerprint } from './device-fingerprint.js';
+
+/* ============================================================================
+ * ⚠️ RISK ASSESSMENT — ОЦЕНКА РИСКОВ ВХОДА
+ * ========================================================================== */
+
+/**
+ * Risk Assessment: оценка рисков для login-flow.
+ *
+ * @public
+ */
+export {
+  assessLoginRisk,
+  type AuditHook,
+  type ContextBuilderPlugin,
+  type ExternalRiskSignals,
+  type InternalRiskSignals,
+  type RiskAssessmentResult,
+  type RiskContext,
+  type RiskPolicy,
+  type RiskSignals,
+} from './risk-assessment.js';

@@ -1,5 +1,5 @@
 /**
- * @file packages/feature-auth/src/effects/login/risk-assessment.ts
+ * @file packages/feature-auth/src/lib/risk-assessment.ts
  * ============================================================================
  * 🔐 FEATURE-AUTH — Risk Assessment (Composition Layer)
  * ============================================================================
@@ -33,10 +33,10 @@ import type {
   RuleEvaluationContext as DomainRuleEvaluationContext,
 } from '@livai/domains/strategies';
 
-import { buildAssessment } from './login-risk-assessment.adapter.js';
-import type { DeviceInfo as AuthDeviceInfo } from '../../domain/DeviceInfo.js';
-import { DomainValidationError } from '../../domain/LoginRiskAssessment.js';
-import { mapLabelToDecisionHint } from '../../lib/classification-mapper.js';
+import { mapLabelToDecisionHint } from './classification-mapper.js';
+import type { DeviceInfo as AuthDeviceInfo } from '../domain/DeviceInfo.js';
+import { DomainValidationError } from '../domain/LoginRiskAssessment.js';
+import { buildAssessment } from '../effects/login/login-risk-assessment.adapter.js';
 import type {
   AuthRuleEvaluationContext,
   AuthScoringContext,
@@ -44,7 +44,7 @@ import type {
   RiskAssessmentResult,
   RiskContext,
   RiskPolicy,
-} from '../../types/auth-risk.js';
+} from '../types/auth-risk.js';
 
 /* ============================================================================
  * 🧭 TYPES
@@ -60,7 +60,7 @@ export type {
   RiskContext,
   RiskPolicy,
   RiskSignals,
-} from '../../types/auth-risk.js';
+} from '../types/auth-risk.js';
 
 /** Hook для audit/logging критических решений (block/challenge) */
 export type AuditHook = (

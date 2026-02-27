@@ -28,14 +28,14 @@ import { orchestrate, step } from '@livai/app/lib/orchestrator.js';
 import { Runtime } from 'effect';
 
 import { DeviceFingerprint } from './device-fingerprint.js';
+import type { AuditHook } from './risk-assessment.js';
+import { assessLoginRisk } from './risk-assessment.js';
 import type { DeviceInfo } from '../domain/DeviceInfo.js';
 import {
   createLoginRiskEvaluation,
   createLoginRiskResult,
   emptyReasons,
 } from '../domain/LoginRiskAssessment.js';
-import type { AuditHook } from '../effects/login/risk-assessment.js';
-import { assessLoginRisk } from '../effects/login/risk-assessment.js';
 import type {
   ContextBuilderPlugin,
   ReadonlyDeep,

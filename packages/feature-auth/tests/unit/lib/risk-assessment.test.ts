@@ -1,5 +1,5 @@
 /**
- * @file Unit тесты для effects/login/risk-assessment.ts
+ * @file Unit тесты для lib/risk-assessment.ts
  * Полное покрытие risk assessment с тестированием всех функций и edge cases
  */
 
@@ -21,9 +21,9 @@ vi.mock('@livai/core', async () => {
   };
 });
 
-import type { DeviceInfo } from '../../../../src/domain/DeviceInfo.js';
-import type { RiskLevel } from '../../../../src/types/auth.js';
-import { assessLoginRisk } from '../../../../src/effects/login/risk-assessment.js';
+import type { DeviceInfo } from '../../../src/domain/DeviceInfo.js';
+import type { RiskLevel } from '../../../src/types/auth.js';
+import { assessLoginRisk } from '../../../src/lib/risk-assessment.js';
 import type {
   AuditHook,
   ContextBuilderPlugin,
@@ -31,7 +31,7 @@ import type {
   RiskContext,
   RiskPolicy,
   RiskSignals,
-} from '../../../../src/effects/login/risk-assessment.js';
+} from '../../../src/lib/risk-assessment.js';
 // defaultDecisionPolicy больше не используется в тестах, decision policy управляется через domains
 
 // ============================================================================

@@ -7,7 +7,7 @@
  * Архитектурная роль:
  * - Auth-specific типы для risk assessment
  * - Адаптирует типы из @livai/domains для feature-auth
- * - Используется в effects/login/risk-assessment.ts, index.ts и тестах
+ * - Используется в lib/risk-assessment.ts, index.ts и тестах
  * - Не содержит бизнес-логику, только типы
  *
  * Принципы:
@@ -19,7 +19,7 @@
  * Архитектура типов:
  * - Базовые типы (RiskLevel, ClassificationSignals, ClassificationRule) импортируются из @livai/domains
  * - Auth-specific типы (RiskContext, RiskPolicy, RiskAssessmentResult) определены здесь
- * - Адаптация между domains и feature-auth типами выполняется в effects/login/risk-assessment.ts
+ * - Адаптация между domains и feature-auth типами выполняется в lib/risk-assessment.ts
  */
 
 import type { RiskWeights } from '@livai/domains/aggregation';

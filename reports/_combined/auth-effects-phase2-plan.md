@@ -15,7 +15,7 @@
 
 **Планируемый контракт (по `docs/phase2-UI.md`):**
 
-- deps: `@livai/app/lib/orchestrator`, `@livai/app/state/store-utils`, `stores/auth`.
+- deps: `@livai/app/lib/orchestrator`, `@livai/app/state/store-utils`, `stores/auth`, `types/auth`, `lib/error-mapper` (через DI), `effects/logout/logout-effect.types`, `effects/logout/logout-store-updater`.
 - Поведение: logout через orchestrator, очистка auth state через `safeSet`, блокировка store через `setStoreLocked`.
 
 ### 1.1. Что уже есть для переиспользования
@@ -75,32 +75,34 @@
 
 - deps: `@livai/app/lib/orchestrator`, `@livai/app/lib/schema-validated-effect`, `@livai/app/lib/effect-timeout`, `@livai/app/lib/effect-utils`,
   `domain/RegisterRequest`, `domain/RegisterResponse`, `schemas`, `types/auth`, `lib/error-mapper` (через DI),
-  `effects/register/register-effect.types`, `effects/register/register-api.mapper`, `effects/register/register-store-updater`.
+  `effects/register/register-effect.types`, `effects/register/register-api.mapper`, `effects/register/register-store-updater`, `effects/login/login-metadata.enricher`.
 - Flow: validate-input (strict Zod) → optional metadata → api-call → domain mapping → update-store → timeouts + error-mapper.
 
 ### 2.1. Что уже есть для переиспользования
 
-- **Общая схема orkestratora и validatedEffect:**
+- **Общая схема orchestrator и validatedEffect:**
   - `effects/login.ts` — эталон orchestrator:
     - strict Zod (`loginRequestSchema.strict()`),
     - `validatedEffect` для /login и /me,
     - `withTimeout` + глобальный hard timeout,
-    - error mapping через `deps.errorMapper`.
+    - error mapping через `deps.errorMapper`,
+    - deps: `@livai/app/lib/orchestrator`, `@livai/app/lib/schema-validated-effect`, `@livai/app/lib/effect-timeout`, `@livai/app/lib/effect-utils`, `domain/LoginRequest`, `domain/LoginResult`, `schemas`, `types/auth`, `types/login.dto`, `effects/login/*`.
 
 - **Ошибки и маппинг:**
-  - `lib/error-mapper.ts` — уже реализованный mapper API-ошибок в `AuthError`:
+  - `lib/error-mapper.ts` (deps: `@livai/app/lib/error-mapping`, `domain/AuthErrorResponse`, `domain/MfaChallengeRequest`, `domain/OAuthErrorResponse`, `domain/SessionRevokeRequest`, `types/auth`) — уже реализованный mapper API-ошибок в `AuthError`:
     - безопасный слой, переиспользуемый для logout/refresh/OAuth/MFA;
     - register-effect должен принимать его через DI-порт, не импортировать напрямую.
 
 - **Store и типы:**
-  - `stores/auth.ts` и `types/auth.ts` — уже содержат достаточный набор типов для post-register состояния.
-  - `domain/RegisterRequest.ts` и `domain/RegisterResponse.ts` — типы для DTO.
-  - `schemas` (через `packages/feature-auth/src/schemas/index.ts`) — Zod схемы register-flow уже описаны.
+  - `stores/auth.ts` (deps: `types/auth`) и `types/auth.ts` (deps: `@livai/domains/policies`, `domain/*`) — уже содержат достаточный набор типов для post-register состояния.
+  - `domain/RegisterRequest.ts` (deps: —) и `domain/RegisterResponse.ts` (deps: `domain/LoginRequest`, `domain/TokenPair`) — типы для DTO.
+  - `schemas` (через `packages/feature-auth/src/schemas/index.ts`, deps: `@livai/core-contracts`) — Zod схемы register-flow уже описаны.
 
 - **Метаданные логина:**
-  - `login-metadata.enricher.ts` уже поддерживает `operation: 'register' | 'oauth' | 'refresh'` в `LoginMetadata['timestamp']`:
+  - `effects/login/login-metadata.enricher.ts` уже поддерживает `operation: 'register' | 'oauth' | 'refresh'` в `LoginMetadata['timestamp']`:
     - это означает, что **тот же enricher** может использоваться и для register/refresh;
-    - потребуется только другой `LoginContext` (тип identifier может быть другим, но контракт уже допускает).
+    - потребуется только другой `LoginContext` (тип identifier может быть другим, но контракт уже допускает);
+    - deps: `@livai/core`, `@livai/domains`, `domain/DeviceInfo`, `domain/LoginRequest`.
 
 ### 2.2. Чего не хватает
 
@@ -159,23 +161,24 @@
 
 **Планируемый контракт (по `docs/phase2-UI.md`):**
 
-- deps: `@livai/app/lib/orchestrator`, `@livai/app/lib/schema-validated-effect`, `@livai/app/lib/effect-timeout`, `@livai/app/lib/effect-isolation`,
-  `@livai/app/state/store-utils`, `types/auth`, `stores/auth`, `@livai/core/policies/AuthPolicy`, `schemas`.
+- deps: `@livai/app/lib/orchestrator`, `@livai/app/lib/schema-validated-effect`, `@livai/app/lib/effect-timeout`, `@livai/app/lib/effect-isolation`, `@livai/app/lib/effect-utils`,
+  `@livai/app/state/store-utils`, `types/auth`, `stores/auth`, `@livai/core/policies/AuthPolicy`, `schemas`, `domain/RefreshTokenRequest`, `domain/TokenPair`, `domain/MeResponse`,
+  `lib/error-mapper` (через DI), `effects/refresh/refresh-effect.types`, `effects/refresh/refresh-api.mapper`, `effects/refresh/refresh-store-updater`.
 - Поведение: обновляет access token через orchestrator с idempotency guard, validation через `validatedEffect`, sync store через `safeSet`, isolation и timeout.
 
 ### 3.1. Что уже есть для переиспользования
 
 - **Store и типы:**
-  - `stores/auth.ts` — уже реализованный, с инвариантами и версионированием;
-  - `types/auth.ts` — содержит `SessionState`, `AuthState`, статусы сессии;
-  - `domain/TokenPair.ts`, `domain/MeResponse.ts`, `domain/SessionPolicy.ts` — контракты для работы с сессией.
+  - `stores/auth.ts` (deps: `types/auth`) — уже реализованный, с инвариантами и версионированием;
+  - `types/auth.ts` (deps: `@livai/domains/policies`, `domain/*`) — содержит `SessionState`, `AuthState`, статусы сессии;
+  - `domain/TokenPair.ts` (deps: —), `domain/MeResponse.ts` (deps: —), `domain/SessionPolicy.ts` (deps: —), `domain/RefreshTokenRequest.ts` (deps: —) — контракты для работы с сессией.
 
 - **Политики и ядро:**
   - `@livai/core/policies/AuthPolicy` (упомянуто в docs) — используется уже в других местах для lifecycle токенов/сессий;
   - `lib/session-manager.ts` (запланирован) будет естественным местом для политики refresh (см. ниже).
 
 - **Login-flow реализация:**
-  - `effects/login.ts` и `login-store-updater.ts` уже реализуют:
+  - `effects/login.ts` (deps: `@livai/app/lib/orchestrator`, `@livai/app/lib/schema-validated-effect`, `@livai/app/lib/effect-timeout`, `@livai/app/lib/effect-utils`, `domain/LoginRequest`, `domain/LoginResult`, `schemas`, `types/auth`, `types/login.dto`, `effects/login/*`) и `effects/login/login-store-updater.ts` (deps: `effects/login/login-effect.types`, `effects/login/login-metadata.enricher`, `domain/LoginResult`, `lib/security-pipeline`, `types/auth-risk`, `types/auth`) уже реализуют:
     - построение нового `SessionState`,
     - strict Zod валидацию TokenPair/MeResponse,
     - fail-closed поведение, если /me не успешен.
@@ -228,13 +231,14 @@
 
 **Планируемый контракт (по `docs/phase2-UI.md`):**
 
-- deps: `types/auth`, `@livai/core/policies/AuthPolicy`, `domain/SessionPolicy`.
+- deps: `types/auth`, `@livai/core/policies/AuthPolicy`, `domain/SessionPolicy`, `domain/TokenPair`.
 - Поведение: auto-refresh, expiry, invalidation, session policies, concurrent limits.
 
 ### 4.1. Что уже есть для переиспользования
 
-- `types/auth.ts` — содержит все базовые типы состояния сессии.
-- `domain/SessionPolicy.ts` — описывает политики сессии (ограничения по IP, concurrent sessions).
+- `types/auth.ts` (deps: `@livai/domains/policies`, `domain/*`) — содержит все базовые типы состояния сессии.
+- `domain/SessionPolicy.ts` (deps: —) — описывает политики сессии (ограничения по IP, concurrent sessions).
+- `domain/TokenPair.ts` (deps: —) — контракт токенов для refresh.
 - `@livai/core/policies/AuthPolicy` — уже реализует базовую доменную политику auth.
 - Login/refresh-flow:
   - login уже создаёт корректный `SessionState` и синхронизирует его со store;
@@ -274,7 +278,7 @@
 
 **Планируемый контракт (по `docs/phase2-UI.md`):**
 
-- deps: `stores/auth`, `effects/login`, `effects/logout`, `effects/refresh`, `types/auth`.
+- deps: `stores/auth`, `effects/login`, `effects/logout`, `effects/refresh`, `types/auth`, `domain/LoginRequest`, `domain/LogoutRequest`, `domain/RefreshTokenRequest`.
 - Поведение: единый React-адаптер auth: инкапсулирует zustand+effects, даёт API `authState/authStatus/isAuthenticated/login/logout/refresh`.
 
 ### 5.1. Что уже есть для переиспользования
@@ -283,7 +287,7 @@
   - интегрирует store, effects и app-провайдеры;
   - протекает в web-приложение через `@livai/app/providers/AppProviders`.
 
-- `stores/auth.ts` и `effects/login.ts` (эфект реализован), а также будущие `effects/logout.ts` и `effects/refresh.ts` — это уже то, на что должен опираться hook в `feature-auth`.
+- `stores/auth.ts` (deps: `types/auth`) и `effects/login.ts` (deps: `@livai/app/lib/orchestrator`, `@livai/app/lib/schema-validated-effect`, `@livai/app/lib/effect-timeout`, `@livai/app/lib/effect-utils`, `domain/LoginRequest`, `domain/LoginResult`, `schemas`, `types/auth`, `types/login.dto`, `effects/login/*`), а также будущие `effects/logout.ts` и `effects/refresh.ts` — это уже то, на что должен опираться hook в `feature-auth`.
 
 ### 5.2. Чего не хватает
 
