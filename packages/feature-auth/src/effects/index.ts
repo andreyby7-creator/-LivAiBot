@@ -114,3 +114,10 @@ export type {
   LoginEffectDeps,
   LoginStorePort,
 } from './login/login-effect.types.js';
+
+/**
+ * Login Store Updater: единая точка обновления auth/session/security состояния после login-flow.
+ *
+ * @public
+ */
+export { applyBlockedState, updateLoginState } from './login/login-store-updater.js';

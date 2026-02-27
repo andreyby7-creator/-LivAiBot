@@ -695,14 +695,14 @@ const assessment = buildAssessment({
 
 ---
 
-## 5️⃣ Создать effects/login/login-store-updater.ts
+## 5️⃣ Создать effects/login/login-store-updater.ts ✅
 
 **Задача:** Единая точка переходов состояния.
 
 **Действия:**
 
-- [ ] Создать файл `packages/feature-auth/src/effects/login/login-store-updater.ts`
-- [ ] Реализовать функцию:
+- ✅ Создать файл `packages/feature-auth/src/effects/login/login-store-updater.ts`
+- ✅ Реализовать функцию:
   ```typescript
   updateLoginState(
     store: LoginStorePort,
@@ -711,14 +711,14 @@ const assessment = buildAssessment({
     metadata?: LoginMetadata[]
   ): void
   ```
-- [ ] Внутри функции:
+- ✅ Внутри функции:
   - Разделить внутреннюю реализацию на:
     - `applySuccessState` (гарантирует наличие `tokenPair` и `me` — оба обязательны)
     - `applyMfaState` (зарезервировано для будущего)
     - `applyBlockedState`
   - Вызовы `setAuthState`, `setSessionState`, `setSecurityState`, `applyEventType`
   - Использование готового `SecurityPipelineResult` (не пересчёт risk)
-- [ ] Требования:
+- ✅ Требования:
   - ❌ Без fallback'ов (`id: ''` запрещено)
   - ❌ Никаких `try/catch` — ошибки должны приходить валидированными
   - ❌ Не дублировать rule-engine из store
@@ -733,16 +733,16 @@ const assessment = buildAssessment({
 - ✅ Все переходы состояния через store actions
 - ✅ Нет fallback-значений и пересчёта risk
 - ✅ Success-состояние гарантирует наличие обоих полей (`tokenPair` и `me`)
-- ✅ Store update атомарен (см. 5.1)
+- ✅ Store update логически атомарен (см. 5.1) и покрыт юнит-тестами на согласованность состояний
 
-**5.1 Транзакционность store update:**
+**5.1 Транзакционность store update:** ✅
 
 **⚠️ Критично:** Store update не должен оставлять промежуточных состояний.
 
-- [ ] Если используется Zustand или подобное:
+- [x] Если используется Zustand или подобное:
   - **Вариант 1:** Один batched update (все изменения в одной транзакции)
   - **Вариант 2:** Гарантированно последовательные вызовы без промежуточных re-render
-- [ ] Реализация:
+- [x] Реализация:
   ```typescript
   // Zustand batch update:
   store.setState({
@@ -758,10 +758,10 @@ const assessment = buildAssessment({
     store.setSecurityState(newSecurityState);
   });
   ```
-- [ ] Проверить, что нет промежуточных состояний:
+- [x] Проверить, что нет промежуточных состояний:
   - После `setAuthState` но до `setSessionState` — состояние не должно быть видно
   - Все изменения применяются атомарно
-- [ ] Добавить тесты для проверки атомарности
+- [x] Добавить тесты для проверки атомарности
 
 **Store update не оставляет промежуточных состояний.**
 

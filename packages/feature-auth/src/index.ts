@@ -59,7 +59,8 @@ export * from './types/index.js';
 /**
  * Effects подпакет: pure effects для аутентификации.
  * Включает Login Metadata Enricher, Risk Assessment Adapter, Risk Assessment,
- * Classification Mapper, Error Mapper, Validation, Device Fingerprint и все связанные типы.
+ * Classification Mapper, Error Mapper, Validation, Device Fingerprint,
+ * Login API Mapper, Login Store Updater, Login Effect DI Types и все связанные типы.
  *
  * @public
  */

@@ -25,13 +25,23 @@ import type {
 
 /**
  * Store-порт для login-effect (абстракция над конкретной реализацией store/Zustand).
+ *
  * @note Хранит только необходимые методы для обновления auth/session/security состояния.
+ * @note Для высокореактивных сторах (Zustand/Redux) может реализовывать `batchUpdate`,
+ *       чтобы сгруппировать несколько вызовов set-методов и событий в одну транзакцию.
  */
 export type LoginStorePort = {
   setAuthState: (state: AuthState) => void;
   setSessionState: (state: SessionState | null) => void;
   setSecurityState: (state: SecurityState) => void;
   applyEventType: (type: AuthEvent['type']) => void;
+  /**
+   * Необязательный batched-апдейт: оборачивает несколько вызовов store-порта в одну транзакцию/рендер.
+   *
+   * @param updater - функция, которая вызывается с батчируемым store и должна вызывать
+   *                  только setAuthState/setSessionState/setSecurityState и applyEventType
+   */
+  batchUpdate?: (updater: (store: LoginStorePort) => void) => void;
 };
 
 /**
