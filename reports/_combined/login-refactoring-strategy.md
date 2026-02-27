@@ -111,7 +111,7 @@
 
 **📁 Path:** `packages/feature-auth/src/lib/security-pipeline.ts`\
 **🔧 Тип:** `ts+effect`\
-**📦 Deps:** `effects/login/device-fingerprint.ts`, `effects/login/risk-assessment.ts`, `app/lib/orchestrator.ts`, `types/auth.ts`
+**📦 Deps:** `lib/device-fingerprint.ts`, `effects/login/risk-assessment.ts`, `app/lib/orchestrator.ts`, `types/auth.ts`
 
 #### 🎯 Назначение
 

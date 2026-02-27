@@ -69,13 +69,6 @@ export {
 export { isValidLoginRequest } from './login/validation.js';
 
 /**
- * Device Fingerprint: получение отпечатка устройства.
- *
- * @public
- */
-export { DeviceFingerprint } from './login/device-fingerprint.js';
-
-/**
  * Login API Mapper: маппинг LoginRequest/LoginResponseDto ↔ domain типов.
  *
  * @public

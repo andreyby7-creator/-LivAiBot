@@ -27,13 +27,13 @@ import type { Effect } from '@livai/app/lib/effect-utils.js';
 import { orchestrate, step } from '@livai/app/lib/orchestrator.js';
 import { Runtime } from 'effect';
 
+import { DeviceFingerprint } from './device-fingerprint.js';
 import type { DeviceInfo } from '../domain/DeviceInfo.js';
 import {
   createLoginRiskEvaluation,
   createLoginRiskResult,
   emptyReasons,
 } from '../domain/LoginRiskAssessment.js';
-import { DeviceFingerprint } from '../effects/login/device-fingerprint.js';
 import type { AuditHook } from '../effects/login/risk-assessment.js';
 import { assessLoginRisk } from '../effects/login/risk-assessment.js';
 import type {

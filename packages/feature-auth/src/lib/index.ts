@@ -70,3 +70,14 @@ export {
  * @public
  */
 export { type DecisionResult, mapLabelToDecisionHint } from './classification-mapper.js';
+
+/* ============================================================================
+ * 📱 DEVICE FINGERPRINT — СБОР ДАННЫХ ОБ УСТРОЙСТВЕ
+ * ========================================================================== */
+
+/**
+ * Device Fingerprint: pure effect для сбора device info.
+ *
+ * @public
+ */
+export { DeviceFingerprint } from './device-fingerprint.js';

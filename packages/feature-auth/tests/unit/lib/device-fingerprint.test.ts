@@ -1,5 +1,5 @@
 /**
- * @file Unit тесты для effects/login/device-fingerprint.ts
+ * @file Unit тесты для lib/device-fingerprint.ts
  * Полное покрытие device fingerprint с тестированием всех функций и edge cases
  */
 
@@ -11,7 +11,7 @@ import type { Effect } from 'effect';
 import { Runtime } from 'effect';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { DeviceFingerprint } from '../../../../src/effects/login/device-fingerprint.js';
+import { DeviceFingerprint } from '../../../src/lib/device-fingerprint.js';
 
 // ============================================================================
 // 🔧 HELPER FUNCTIONS FOR TEST DATA

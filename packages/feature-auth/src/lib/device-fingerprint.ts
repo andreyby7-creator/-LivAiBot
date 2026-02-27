@@ -1,5 +1,5 @@
 /**
- * @file packages/feature-auth/src/effects/login/device-fingerprint.ts
+ * @file packages/feature-auth/src/lib/device-fingerprint.ts
  * ============================================================================
  * 🔐 FEATURE-AUTH — Device Fingerprint (Pure Effect)
  * ============================================================================
@@ -28,7 +28,7 @@
 
 import { Effect } from 'effect';
 
-import type { DeviceInfo, DeviceType } from '../../domain/DeviceInfo.js';
+import type { DeviceInfo, DeviceType } from '../domain/DeviceInfo.js';
 
 /* ============================================================================
  * 🧭 TYPES
