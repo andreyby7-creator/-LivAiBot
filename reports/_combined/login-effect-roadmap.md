@@ -658,15 +658,15 @@ const assessment = buildAssessment({
 
 ---
 
-## 4️⃣ Создать effects/login/login-api.mapper.ts
+## 4️⃣ Создать effects/login/login-api.mapper.ts ✅
 
 **Задача:** Чистый маппинг transport ↔ domain.
 
 **Действия:**
 
-- [ ] Создать файл `packages/feature-auth/src/effects/login/login-api.mapper.ts`
-- [ ] Реализовать `mapLoginRequestToApiPayload(LoginRequest): LoginRequestValues`
-- [ ] Реализовать `mapLoginResponseToDomain(LoginResponseDto): DomainLoginResult`
+- ✅ Создать файл `packages/feature-auth/src/effects/login/login-api.mapper.ts`
+- ✅ Реализовать `mapLoginRequestToApiPayload(LoginRequest): LoginRequestValues`
+- ✅ Реализовать `mapLoginResponseToDomain(LoginResponseDto): DomainLoginResult`
 - [ ] Требования:
   - ❌ Никакой логики store
   - ❌ Никакой логики security
@@ -691,6 +691,7 @@ const assessment = buildAssessment({
 - ✅ Для `LoginResponseDto['type']` используется exhaustive switch + `assertNever`
 - ✅ Маппинг MFA/decision не содержит fallback-логики: источник MFA строго backend (или отдельная security-политика, но не mapper)
 - ✅ Везде, где backend возвращает даты/время, mapper либо явно конвертирует их в согласованный domain-формат, либо оставляет строго задокументированный string-формат
+- ✅ Mapper реализован в `login-api.mapper.ts`, проходит `pnpm run tsc:check` и соответствует требованиям immutability/readonly для domain-объектов (TokenPair, MeResponse, MfaChallengeRequest)
 
 ---
 

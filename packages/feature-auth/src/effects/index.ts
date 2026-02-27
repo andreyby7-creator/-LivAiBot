@@ -96,6 +96,13 @@ export { isValidLoginRequest } from './login/validation.js';
 export { DeviceFingerprint } from './login/device-fingerprint.js';
 
 /**
+ * Login API Mapper: маппинг LoginRequest/LoginResponseDto ↔ domain типов.
+ *
+ * @public
+ */
+export { mapLoginRequestToApiPayload, mapLoginResponseToDomain } from './login/login-api.mapper.js';
+
+/**
  * Login Effect DI Types: публичный DI-контракт для login-effect.
  *
  * @public
