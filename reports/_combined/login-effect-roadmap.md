@@ -983,7 +983,7 @@ const assessment = buildAssessment({
   - Инфраструктурные (`TimeoutError`, `IsolationError`, сетевые) → через правила `network`/`unknown`
   - **⚠️ Импорты:**
     - `ErrorMapperPort` из `effects/login/login-effect.types.ts` (DI)
-    - `mapAuthError` из `effects/login/error-mapper.ts` (если нужен для специфичной обработки API ошибок)
+    - `mapAuthError` из `lib/error-mapper.ts` (если нужен для специфичной обработки API ошибок)
 - [x] ❌ Никаких ручных `if (status === 401)` в login.ts
 - [x] ❌ Любая ошибка второго шага (`/me`) также проходит через error-mapper
 - [x] ❌ Не делать fallback типа "если `/me` упал — всё равно залогинить" — fail-closed: если `/me` не прошёл, логин считается неуспешным

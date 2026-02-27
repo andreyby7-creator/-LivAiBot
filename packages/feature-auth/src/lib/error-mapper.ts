@@ -1,5 +1,5 @@
 /**
- * @file packages/feature-auth/src/effects/login/error-mapper.ts
+ * @file packages/feature-auth/src/lib/error-mapper.ts
  * ============================================================================
  * 🔐 FEATURE-AUTH — Error Mapper (Production-Grade Rule-Engine)
  * ============================================================================

@@ -1,5 +1,5 @@
 /**
- * @file packages/feature-auth/src/effects/login/classification-mapper.ts
+ * @file packages/feature-auth/src/lib/classification-mapper.ts
  * ============================================================================
  * 🔐 FEATURE-AUTH — Classification to Auth Action Mapper
  * ============================================================================

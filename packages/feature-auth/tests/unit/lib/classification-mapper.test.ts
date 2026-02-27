@@ -1,5 +1,5 @@
 /**
- * @file Unit тесты для effects/login/classification-mapper.ts
+ * @file Unit тесты для lib/classification-mapper.ts
  * Полное покрытие classification mapper с тестированием всех стратегий и edge cases
  */
 
@@ -9,7 +9,7 @@ import type { ClassificationRule } from '@livai/domains/strategies';
 import type { DecisionPolicy, DecisionSignals, RiskLevel } from '@livai/domains/policies';
 import { defaultDecisionPolicy } from '@livai/domains/policies';
 
-import { mapLabelToDecisionHint } from '../../../../src/effects/login/classification-mapper.js';
+import { mapLabelToDecisionHint } from '../../../src/lib/classification-mapper.js';
 
 // ============================================================================
 // 🔧 HELPER FUNCTIONS FOR TEST DATA

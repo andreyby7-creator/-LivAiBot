@@ -62,13 +62,6 @@ export {
 } from './login/risk-assessment.js';
 
 /**
- * Classification Mapper: маппинг классификации.
- *
- * @public
- */
-export { type DecisionResult, mapLabelToDecisionHint } from './login/classification-mapper.js';
-
-/**
  * Validation: валидация запросов входа.
  *
  * @public

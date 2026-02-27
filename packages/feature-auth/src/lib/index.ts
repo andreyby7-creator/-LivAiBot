@@ -58,3 +58,15 @@ export {
   type MapAuthErrorResult,
   mapAuthErrorToUI,
 } from './error-mapper.js';
+
+/* ============================================================================
+ * 🧠 CLASSIFICATION MAPPER — МАППИНГ КЛАССИФИКАЦИИ В AUTH-РЕШЕНИЯ
+ * ========================================================================== */
+
+/**
+ * Classification Mapper: адаптация classification labels из domains
+ * в auth-специфичные решения (login / mfa / block).
+ *
+ * @public
+ */
+export { type DecisionResult, mapLabelToDecisionHint } from './classification-mapper.js';

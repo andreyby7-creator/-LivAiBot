@@ -157,7 +157,7 @@
 
 **📁 Path:** `packages/feature-auth/src/effects/login.ts`\
 **🔧 Тип:** `ts+effect`\
-**📦 Deps:** `app/lib/orchestrator.ts`, `app/lib/schema-validated-effect.ts`, `lib/security-pipeline.ts`, `effects/login/error-mapper.ts`, `effects/login/helpers.ts`, `stores/auth.ts`, `types/auth.ts`, `domain/*`, `schemas.ts`
+**📦 Deps:** `app/lib/orchestrator.ts`, `app/lib/schema-validated-effect.ts`, `lib/security-pipeline.ts`, `lib/error-mapper.ts`, `effects/login/helpers.ts`, `stores/auth.ts`, `types/auth.ts`, `domain/*`, `schemas.ts`
 
 #### ✅ Теперь содержит ТОЛЬКО
 
@@ -344,7 +344,7 @@ deps:
   app/lib/effect-timeout.ts
   app/lib/effect-isolation.ts
   lib/security-pipeline.ts
-  effects/login/error-mapper.ts
+  lib/error-mapper.ts
   effects/login/helpers.ts
   stores/auth.ts
   types/auth.ts
