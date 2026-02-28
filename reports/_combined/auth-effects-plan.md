@@ -118,29 +118,37 @@ effects/shared/session-state.builder.ts ✅
 
 ---
 
-### 📝 Шаг 1.3 Централизовать API-мэпперы
+### ✅ Шаг 1.3 Централизовать API-мэпперы [ВЫПОЛНЕНО]
 
 #### ➤ Создать
 
 ```
-effects/shared/auth-api.mappers.ts
+effects/shared/auth-api.mappers.ts ✅
 ```
 
 #### ➤ Вынести
 
-- `mapTokenPairValuesToDomain(values: LoginTokenPairValues): TokenPair`
-- `mapMeResponseValuesToDomain(values: MeResponseValues): MeResponse`
+- ✅ `mapTokenPairValuesToDomain(values: LoginTokenPairValues): TokenPair`
+- ✅ `mapMeResponseValuesToDomain(values: MeResponseValues): MeResponse`
+- ✅ Вспомогательные функции: `freezeArrayCopy`, `validateAndFreezeRecordPayload`, `mapMeSessionValuesToDomain`, `mapMeUserValuesToDomain` и др.
 
 #### ➤ Подключить в
 
-- `login-api.mapper.ts`
-- `refresh-api.mapper.ts`
-- `register-api.mapper.ts` (если backend возвращает тот же формат)
+- ✅ `login-api.mapper.ts`
+- ⏳ `refresh-api.mapper.ts`
+- ⏳ `register-api.mapper.ts` (если backend возвращает тот же формат)
 
 #### ➤ Инварианты
 
-- ✅ Pure-функции
-- ❌ Refresh не должен иметь собственную копию логики login-мэппинга
+- ✅ Pure-функции (без side-effects, детерминированные)
+- ✅ Copy-on-write для массивов/объектов
+- ✅ Immutability через Object.freeze
+- ✅ Safety boundary: валидация dynamic Record перед переносом в domain
+- ✅ Единая точка мэппинга transport → domain для всех auth-эффектов
+
+#### ⚠️ Критично
+
+> **Refresh не должен иметь собственную копию логики login-мэппинга.** ✅ **ГОТОВО К ИСПОЛЬЗОВАНИЮ**
 
 ---
 

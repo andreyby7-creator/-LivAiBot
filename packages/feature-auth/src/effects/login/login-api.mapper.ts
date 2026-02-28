@@ -12,23 +12,21 @@
  * - ❌ Не содержит логики store/security/telemetry и не читает `SecurityPipelineResult`
  * - ✅ Fail-closed: exhaustive switch по `LoginResponseDto['type']` + `assertNever`
  * - ✅ Иммутабельность: copy-on-write + `Object.freeze` (не протекают мутабельные ссылки из DTO)
- * - ✅ Safety boundary: защитная валидация dynamic `Record<string, unknown>` перед тем, как переносить его в domain
+ * - ✅ Использует shared мэпперы (`auth-api.mappers`) для TokenPair и MeResponse (консистентность между login/register/refresh)
+ * - ✅ Safety boundary: защитная валидация dynamic `Record<string, unknown>` (для TokenPair.metadata и MeResponse.context через shared мэпперы)
  */
 
 import type { LoginIdentifierType, LoginRequest } from '../../domain/LoginRequest.js';
 import type { DomainLoginResult } from '../../domain/LoginResult.js';
-import type { MeResponse } from '../../domain/MeResponse.js';
 import type { MfaChallengeRequest, MfaType } from '../../domain/MfaChallengeRequest.js';
 import type { MfaInfo } from '../../domain/MfaInfo.js';
-import type { TokenPair } from '../../domain/TokenPair.js';
-import type {
-  LoginRequestValues,
-  LoginTokenPairValues,
-  MeResponseValues,
-  MfaChallengeRequestValues,
-} from '../../schemas/index.js';
+import type { LoginRequestValues, MfaChallengeRequestValues } from '../../schemas/index.js';
 import { assertNever } from '../../types/login.dto.js';
 import type { LoginResponseDto } from '../../types/login.dto.js';
+import {
+  mapMeResponseValuesToDomain,
+  mapTokenPairValuesToDomain,
+} from '../shared/auth-api.mappers.js';
 
 /* ============================================================================
  * 🔧 INTERNAL HELPERS — REQUEST SIDE
@@ -112,158 +110,8 @@ function normalizeClientContext(
 }
 
 /* ============================================================================
- * 🔧 INTERNAL HELPERS — RESPONSE SIDE
+ * 🔧 INTERNAL HELPERS — MFA CHALLENGE MAPPING
  * ========================================================================== */
-
-/**
- * Проверяет, что значение является plain object (без прототипов/классов).
- * @note Используется как минимальная защита boundary для `Record<string, unknown>` полей.
- */
-function isPlainObject(value: unknown): value is Record<string, unknown> {
-  if (value === null || typeof value !== 'object') {
-    return false;
-  }
-  const proto = Reflect.getPrototypeOf(value);
-  return proto === Object.prototype || proto === null;
-}
-
-function isSafePrimitive(value: unknown): value is string | number | boolean | null {
-  return value === null
-    || typeof value === 'string'
-    || typeof value === 'number'
-    || typeof value === 'boolean';
-}
-
-function isSafePrimitiveArray(
-  value: unknown,
-): value is readonly (string | number | boolean | null)[] {
-  return Array.isArray(value) && value.every(isSafePrimitive);
-}
-
-/**
- * Минимальная валидация для dynamic Record payload, чтобы исключить не-сериализуемые/исполняемые значения.
- * @note Fail-closed: при несовпадении формы бросаем ошибку (это boundary violation).
- */
-function validateSafeRecordPayload(
-  value: unknown,
-  label: string,
-): asserts value is Record<string, unknown> {
-  if (!isPlainObject(value)) {
-    throw new Error(`[login-api.mapper] Unsafe ${label}: expected plain object`);
-  }
-
-  const ok = Object.values(value).every((v) => isSafePrimitive(v) || isSafePrimitiveArray(v));
-  if (!ok) {
-    throw new Error(
-      `[login-api.mapper] Unsafe ${label}: only primitive values or arrays of primitives are allowed`,
-    );
-  }
-}
-
-function freezeShallowRecord<T extends Record<string, unknown>>(record: T): Readonly<T> {
-  return Object.freeze({ ...record });
-}
-
-function freezeArrayCopy<T>(arr: readonly T[]): readonly T[] {
-  return Object.freeze([...arr]);
-}
-
-function validateAndFreezeRecordPayload(
-  value: unknown,
-  label: string,
-): Readonly<Record<string, unknown>> {
-  validateSafeRecordPayload(value, label);
-  return freezeShallowRecord(value);
-}
-
-function addIfDefined<K extends string, V>(
-  key: K,
-  value: V | undefined,
-): Partial<Record<K, V>> {
-  return value === undefined ? {} : { [key]: value } as Partial<Record<K, V>>;
-}
-
-function mapMeSessionValuesToDomain(
-  session: Readonly<NonNullable<MeResponseValues['session']>>,
-): NonNullable<MeResponse>['session'] {
-  return Object.freeze({
-    sessionId: session.sessionId,
-    ...(session.ip !== undefined ? { ip: session.ip } : {}),
-    ...(session.deviceId !== undefined ? { deviceId: session.deviceId } : {}),
-    ...(session.userAgent !== undefined ? { userAgent: session.userAgent } : {}),
-    ...(session.issuedAt !== undefined ? { issuedAt: session.issuedAt } : {}),
-    ...(session.expiresAt !== undefined ? { expiresAt: session.expiresAt } : {}),
-  });
-}
-
-function mapMeUserValuesToDomain(
-  user: Readonly<MeResponseValues['user']>,
-): MeResponse['user'] {
-  return Object.freeze({
-    id: user.id,
-    ...addIfDefined('email', user.email),
-    ...addIfDefined('emailVerified', user.emailVerified),
-    ...addIfDefined('phone', user.phone),
-    ...addIfDefined('phoneVerified', user.phoneVerified),
-    ...addIfDefined('username', user.username),
-    ...addIfDefined('displayName', user.displayName),
-    ...addIfDefined('avatarUrl', user.avatarUrl),
-    ...addIfDefined('authProvider', user.authProvider),
-    ...addIfDefined('status', user.status),
-    ...addIfDefined('createdAt', user.createdAt),
-    ...addIfDefined('lastLoginAt', user.lastLoginAt),
-  });
-}
-
-/**
- * Маппит LoginTokenPairValues (transport) в TokenPair (domain).
- * @note Выполняет copy-on-write для массивов/объектов и freeze результата.
- */
-function mapTokenPairValuesToDomain(
-  tokenPair: Readonly<LoginTokenPairValues>,
-): Readonly<TokenPair> {
-  const scope = tokenPair.scope !== undefined ? freezeArrayCopy(tokenPair.scope) : undefined;
-
-  // eslint-disable-next-line ai-security/model-poisoning -- tokenPair.metadata валидируется (plain object + primitive/primitive[] values) перед переносом в domain
-  const metadata = tokenPair.metadata !== undefined
-    ? validateAndFreezeRecordPayload(tokenPair.metadata, 'tokenPair.metadata')
-    : undefined;
-
-  return Object.freeze({
-    accessToken: tokenPair.accessToken,
-    refreshToken: tokenPair.refreshToken,
-    expiresAt: tokenPair.expiresAt,
-    ...(tokenPair.issuedAt !== undefined ? { issuedAt: tokenPair.issuedAt } : {}),
-    ...(scope !== undefined ? { scope } : {}),
-    ...(metadata !== undefined ? { metadata } : {}),
-  });
-}
-
-/**
- * Маппит MeResponseValues (transport) в MeResponse (domain).
- * @note Все коллекции копируются и замораживаются, чтобы не протекали мутабельные ссылки из DTO.
- */
-function mapMeResponseValuesToDomain(
-  me: Readonly<MeResponseValues>,
-): Readonly<MeResponse> {
-  const roles = freezeArrayCopy(me.roles);
-  const permissions = freezeArrayCopy(me.permissions);
-
-  const session = me.session ? mapMeSessionValuesToDomain(me.session) : undefined;
-  const features = me.features !== undefined ? Object.freeze({ ...me.features }) : undefined;
-  const context = me.context !== undefined
-    ? validateAndFreezeRecordPayload(me.context, 'me.context')
-    : undefined;
-
-  return Object.freeze({
-    user: mapMeUserValuesToDomain(me.user),
-    roles,
-    permissions,
-    ...(session !== undefined ? { session } : {}),
-    ...(features !== undefined ? { features } : {}),
-    ...(context !== undefined ? { context } : {}),
-  });
-}
 
 /**
  * Маппит MfaChallengeRequestValues (transport) в MfaChallengeRequest (domain).

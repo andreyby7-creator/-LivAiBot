@@ -36,3 +36,15 @@ export {
  */
 export type { BuildSessionStateParams } from './session-state.builder.js';
 export { buildSessionState } from './session-state.builder.js';
+
+/* ============================================================================
+ * 🔧 AUTH API MAPPERS — ОБЩИЕ МЭППЕРЫ
+ * ========================================================================== */
+
+/**
+ * Auth API Mappers: общие мэпперы для преобразования transport → domain.
+ * Используются во всех auth-эффектах (login/register/refresh) для консистентности.
+ *
+ * @public
+ */
+export { mapMeResponseValuesToDomain, mapTokenPairValuesToDomain } from './auth-api.mappers.js';

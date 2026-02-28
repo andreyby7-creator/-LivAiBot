@@ -226,6 +226,135 @@ describe('effects/login/login-api.mapper', () => {
     expect(payload.mfa).not.toBe(mfaArray);
   });
 
+  it('mapLoginRequestToApiPayload: non-OAuth с mfa типа push нормализуется без token', () => {
+    const request: LoginRequest<'email'> = createEmailLoginRequest({
+      mfa: { type: 'push', deviceId: 'device-push-1' } as LoginRequest<'email'>['mfa'],
+    } as Partial<LoginRequest<'email'>>);
+
+    const payload = mapLoginRequestToApiPayload(
+      request as Readonly<LoginRequest<LoginIdentifierType>>,
+    );
+
+    expect(payload.mfa).toEqual({
+      type: 'push',
+      deviceId: 'device-push-1',
+    });
+    expect('token' in (payload.mfa ?? {})).toBe(false);
+  });
+
+  it('mapLoginRequestToApiPayload: non-OAuth с mfa массивом включая push нормализуется корректно', () => {
+    const mfaArray = [
+      { type: 'totp', token: '111111', deviceId: 'device-1' },
+      { type: 'push', deviceId: 'device-push-1' },
+    ] as const;
+
+    const request: LoginRequest<'email'> = createEmailLoginRequest({
+      mfa: mfaArray as unknown as LoginRequest<'email'>['mfa'],
+    } as Partial<LoginRequest<'email'>>);
+
+    const payload = mapLoginRequestToApiPayload(
+      request as Readonly<LoginRequest<LoginIdentifierType>>,
+    );
+
+    expect(Array.isArray(payload.mfa)).toBe(true);
+    expect(payload.mfa).toEqual([
+      { type: 'totp', token: '111111', deviceId: 'device-1' },
+      { type: 'push', deviceId: 'device-push-1' },
+    ]);
+  });
+
+  it('mapLoginRequestToApiPayload: non-OAuth с mfa без deviceId нормализуется без deviceId поля', () => {
+    const request: LoginRequest<'email'> = createEmailLoginRequest({
+      mfa: { type: 'totp', token: '123456' } as LoginRequest<'email'>['mfa'],
+    } as Partial<LoginRequest<'email'>>);
+
+    const payload = mapLoginRequestToApiPayload(
+      request as Readonly<LoginRequest<LoginIdentifierType>>,
+    );
+
+    expect(payload.mfa).toEqual({
+      type: 'totp',
+      token: '123456',
+    });
+    expect('deviceId' in (payload.mfa ?? {})).toBe(false);
+  });
+
+  it('mapLoginRequestToApiPayload: non-OAuth с clientContext без geo нормализуется без geo поля', () => {
+    const request: LoginRequest<'email'> = createEmailLoginRequest({
+      clientContext: {
+        ip: '1.2.3.4',
+        deviceId: 'device-1',
+        userAgent: 'Mozilla/5.0',
+        locale: 'en-US',
+        timezone: 'UTC',
+        sessionId: 'session-1',
+        appVersion: '1.0.0',
+      },
+    });
+
+    const payload = mapLoginRequestToApiPayload(
+      request as Readonly<LoginRequest<LoginIdentifierType>>,
+    );
+
+    expect(payload.clientContext).toBeDefined();
+    expect(payload.clientContext?.ip).toBe('1.2.3.4');
+    expect('geo' in (payload.clientContext ?? {})).toBe(false);
+  });
+
+  it('mapLoginRequestToApiPayload: OAuth без clientContext и mfa нормализуется корректно', () => {
+    const request: LoginRequest<'oauth'> = createOAuthLoginRequest({
+      dtoVersion: '1.1',
+      rememberMe: true,
+    });
+
+    const payload = mapLoginRequestToApiPayload(
+      request as Readonly<LoginRequest<LoginIdentifierType>>,
+    );
+
+    expect(payload.identifier).toEqual({ type: 'oauth', value: 'oauth-user-id' });
+    expect((payload as LoginRequestValues).provider).toBe('google');
+    expect((payload as LoginRequestValues).providerToken).toBe('oauth-token');
+    expect(payload.dtoVersion).toBe('1.1');
+    expect(payload.rememberMe).toBe(true);
+    expect(payload.clientContext).toBeUndefined();
+    expect(payload.mfa).toBeUndefined();
+  });
+
+  it('mapLoginRequestToApiPayload: OAuth с clientContext но без mfa нормализуется корректно', () => {
+    const request: LoginRequest<'oauth'> = createOAuthLoginRequest({
+      clientContext: {
+        ip: '1.2.3.4',
+        deviceId: 'device-1',
+        userAgent: 'Mozilla/5.0',
+      },
+    });
+
+    const payload = mapLoginRequestToApiPayload(
+      request as Readonly<LoginRequest<LoginIdentifierType>>,
+    );
+
+    expect(payload.clientContext).toBeDefined();
+    expect(payload.clientContext?.ip).toBe('1.2.3.4');
+    expect(payload.mfa).toBeUndefined();
+  });
+
+  it('mapLoginRequestToApiPayload: OAuth с mfa но без clientContext нормализуется корректно', () => {
+    const request: LoginRequest<'oauth'> = createOAuthLoginRequest({
+      mfa: { type: 'totp', token: '123456' } as LoginRequest<'oauth'>['mfa'],
+    } as Partial<LoginRequest<'oauth'>>);
+
+    const payload = mapLoginRequestToApiPayload(
+      request as Readonly<LoginRequest<LoginIdentifierType>>,
+    );
+
+    expect(payload.mfa).toBeDefined();
+    expect(payload.mfa).toEqual({
+      type: 'totp',
+      token: '123456',
+    });
+    expect(payload.clientContext).toBeUndefined();
+  });
+
   it('mapLoginRequestToApiPayload: OAuth ветка использует provider/providerToken и не использует password', () => {
     const request: LoginRequest<'oauth'> = createOAuthLoginRequest({
       dtoVersion: '1.1',
@@ -305,7 +434,7 @@ describe('effects/login/login-api.mapper', () => {
     };
 
     expect(() => mapLoginResponseToDomain(badDto as Readonly<LoginResponseDto>))
-      .toThrow('[login-api.mapper] Unsafe tokenPair.metadata: expected plain object');
+      .toThrow('[auth-api.mappers] Unsafe tokenPair.metadata: expected plain object');
   });
 
   it('mapLoginResponseToDomain: unsafe me.context (не primitive/primitive[]) выбрасывает ошибку', () => {
@@ -326,7 +455,7 @@ describe('effects/login/login-api.mapper', () => {
 
     expect(() => mapLoginResponseToDomain(badDto as Readonly<LoginResponseDto>))
       .toThrow(
-        '[login-api.mapper] Unsafe me.context: only primitive values or arrays of primitives are allowed',
+        '[auth-api.mappers] Unsafe me.context: only primitive values or arrays of primitives are allowed',
       );
   });
 
