@@ -26,7 +26,7 @@ import type {
   SessionState,
 } from '../../../../src/types/auth.js';
 import type { RiskAssessmentResult } from '../../../../src/types/auth-risk.js';
-import type { LoginStorePort } from '../../../../src/effects/login/login-effect.types.js';
+import type { AuthStorePort, BatchUpdate } from '../../../../src/effects/shared/auth-store.port.js';
 import type { LoginMetadata } from '../../../../src/effects/login/login-metadata.enricher.js';
 import type { DomainLoginResult } from '../../../../src/domain/LoginResult.js';
 import type { TokenPair } from '../../../../src/domain/TokenPair.js';
@@ -48,7 +48,7 @@ type CapturedStoreState = {
   calls: string[];
 };
 
-function createMockStore(): { store: LoginStorePort; captured: CapturedStoreState; } {
+function createMockStore(): { store: AuthStorePort; captured: CapturedStoreState; } {
   const captured: CapturedStoreState = {
     authState: null,
     sessionState: null,
@@ -57,7 +57,7 @@ function createMockStore(): { store: LoginStorePort; captured: CapturedStoreStat
     calls: [],
   };
 
-  const store: LoginStorePort = {
+  const store: AuthStorePort = {
     setAuthState: (state) => {
       captured.calls.push('setAuthState');
       captured.authState = state;
@@ -74,27 +74,31 @@ function createMockStore(): { store: LoginStorePort; captured: CapturedStoreStat
       captured.calls.push('applyEventType');
       captured.events.push(type);
     },
+    setStoreLocked: () => {
+      // Mock implementation - не используется в текущих тестах
+    },
+    batchUpdate: (updates: readonly BatchUpdate[]) => {
+      captured.calls.push('batchUpdate');
+      updates.reduce<void>((_acc, update) => {
+        void (
+          update.type === 'setAuthState'
+            ? (captured.calls.push('setAuthState'), (captured.authState = update.state))
+            : update.type === 'setSessionState'
+            ? (captured.calls.push('setSessionState'), (captured.sessionState = update.state))
+            : update.type === 'setSecurityState'
+            ? (captured.calls.push('setSecurityState'), (captured.securityState = update.state))
+            : (captured.calls.push('applyEventType'), captured.events.push(update.event))
+        );
+        return undefined;
+      }, undefined);
+    },
   };
 
   return { store, captured };
 }
 
-function createMockStoreWithBatch(): { store: LoginStorePort; captured: CapturedStoreState; } {
-  const base = createMockStore();
-  // eslint-disable-next-line ai-security/model-poisoning -- base.store создаётся локально в тесте через createMockStore, не содержит внешних данных
-  const storeWithBatch: LoginStorePort = {
-    ...base.store,
-    batchUpdate: (updater: (store: LoginStorePort) => void) => {
-      base.captured.calls.push('batchUpdate');
-      updater(base.store);
-    },
-  };
-
-  return {
-    store: storeWithBatch,
-    captured: base.captured,
-  };
-}
+// createMockStoreWithBatch больше не нужен, так как batchUpdate теперь обязателен в AuthStorePort
+// Используем createMockStore, который уже включает batchUpdate
 
 function createDeviceInfo(overrides: Partial<DeviceInfo> = {}): DeviceInfo {
   return {
@@ -243,18 +247,19 @@ describe('updateLoginState', () => {
     expect(secureState.status).toBe('secure');
     expect(secureState.riskScore).toBe(10);
 
-    // Порядок вызовов порта стора
-    expect(captured.calls).toEqual([
-      'setAuthState',
-      'setSessionState',
-      'setSecurityState',
-      'applyEventType',
-    ]);
+    // Все обновления идут через batchUpdate (обязателен в AuthStorePort)
+    expect(captured.calls).toContain('batchUpdate');
+    expect(captured.calls.filter((c) => c === 'batchUpdate')).toHaveLength(1);
+    // Внутри batchUpdate вызываются отдельные методы
+    expect(captured.calls).toContain('setAuthState');
+    expect(captured.calls).toContain('setSessionState');
+    expect(captured.calls).toContain('setSecurityState');
+    expect(captured.calls).toContain('applyEventType');
     expect(captured.events).toEqual(['user_logged_in']);
   });
 
-  it('использует batchUpdate для success-ветки, если он реализован в LoginStorePort', () => {
-    const { store, captured } = createMockStoreWithBatch();
+  it('использует batchUpdate для success-ветки (обязателен в AuthStorePort)', () => {
+    const { store, captured } = createMockStore();
     const domainResult = createSuccessResult();
     const securityResult = createSecurityPipelineResult({
       level: 'low',
@@ -434,18 +439,19 @@ describe('updateLoginState', () => {
     );
     expect(mfaRiskDetected.requiredActions).toEqual(['mfa']);
 
-    // Порядок вызовов порта стора
-    expect(captured.calls).toEqual([
-      'setAuthState',
-      'setSessionState',
-      'setSecurityState',
-      'applyEventType',
-    ]);
+    // Порядок вызовов порта стора: batchUpdate обязателен
+    expect(captured.calls).toContain('batchUpdate');
+    expect(captured.calls.filter((c) => c === 'batchUpdate')).toHaveLength(1);
+    // Внутри batchUpdate вызываются отдельные методы
+    expect(captured.calls).toContain('setAuthState');
+    expect(captured.calls).toContain('setSessionState');
+    expect(captured.calls).toContain('setSecurityState');
+    expect(captured.calls).toContain('applyEventType');
     expect(captured.events).toEqual(['mfa_challenge_sent']);
   });
 
-  it('использует batchUpdate для mfa_required ветки, если он реализован в LoginStorePort', () => {
-    const { store, captured } = createMockStoreWithBatch();
+  it('использует batchUpdate для mfa_required ветки (обязателен в AuthStorePort)', () => {
+    const { store, captured } = createMockStore();
     const domainResult = createMfaRequiredResult();
     const securityResult = createSecurityPipelineResult({
       level: 'medium',
@@ -522,6 +528,152 @@ describe('updateLoginState', () => {
     expect(() => updateLoginState(store, securityResult, invalidResult)).toThrowError(
       /Unsupported DomainLoginResult variant/,
     );
+  });
+
+  it('обрабатывает success без session (session = undefined, newSessionState = null)', () => {
+    const { store, captured } = createMockStore();
+    // Создаем me без session поля (не undefined, а отсутствует)
+    const tokenPair: TokenPair = {
+      accessToken: 'access-token',
+      refreshToken: 'refresh-token',
+      issuedAt: '2026-01-01T00:00:00.000Z',
+      expiresAt: '2026-01-02T00:00:00.000Z',
+      scope: ['read'],
+    };
+    const domainResult: Extract<DomainLoginResult, { readonly type: 'success'; }> = {
+      type: 'success',
+      tokenPair,
+      me: {
+        user: {
+          id: 'user-123',
+          email: 'user@example.com',
+          emailVerified: true,
+        },
+        roles: ['user'],
+        permissions: ['profile.read'],
+        // session отсутствует
+      },
+    };
+    const securityResult = createSecurityPipelineResult({
+      level: 'low',
+      score: 10,
+      action: 'login',
+    });
+
+    updateLoginState(store, securityResult, domainResult);
+
+    // AuthState: authenticated без session поля
+    const authenticatedState = captured.authState as Extract<
+      AuthState,
+      { readonly status: 'authenticated'; }
+    >;
+    expect(authenticatedState.status).toBe('authenticated');
+    expect(authenticatedState.user.id).toBe('user-123');
+    expect(authenticatedState.session).toBeUndefined();
+
+    // SessionState: null (store invariant rule автоматически переведет в session_expired)
+    expect(captured.sessionState).toBeNull();
+  });
+
+  it('добавляет features и context в AuthState если они присутствуют в me', () => {
+    const { store, captured } = createMockStore();
+    const domainResult = createSuccessResult({
+      features: { newFeature: true, betaFeature: false },
+      context: { orgId: 'org-1', tenantId: 'tenant-1' },
+    });
+    const securityResult = createSecurityPipelineResult({
+      level: 'low',
+      score: 10,
+      action: 'login',
+    });
+
+    updateLoginState(store, securityResult, domainResult);
+
+    // AuthState: authenticated с features и context
+    const authenticatedState = captured.authState as Extract<
+      AuthState,
+      { readonly status: 'authenticated'; }
+    >;
+    expect(authenticatedState.status).toBe('authenticated');
+    expect(authenticatedState.user.id).toBe('user-123');
+    expect(authenticatedState.features).toEqual({ newFeature: true, betaFeature: false });
+    expect(authenticatedState.context).toEqual({ orgId: 'org-1', tenantId: 'tenant-1' });
+  });
+
+  it('использует fallback на tokenPair для issuedAt/expiresAt если они отсутствуют в me.session', () => {
+    const { store, captured } = createMockStore();
+    const domainResult = createSuccessResult({
+      session: {
+        sessionId: 'session-1',
+        // issuedAt и expiresAt отсутствуют - должны использоваться из tokenPair
+      },
+    });
+    const securityResult = createSecurityPipelineResult({
+      level: 'low',
+      score: 10,
+      action: 'login',
+    });
+
+    updateLoginState(store, securityResult, domainResult);
+
+    // SessionState: issuedAt и expiresAt берутся из tokenPair
+    const activeSession = captured.sessionState as Extract<
+      SessionState,
+      { readonly status: 'active'; }
+    >;
+    expect(activeSession.status).toBe('active');
+    expect(activeSession.sessionId).toBe('session-1');
+    // issuedAt = tokenPair.issuedAt (fallback)
+    expect(activeSession.issuedAt).toBe('2026-01-01T00:00:00.000Z');
+    // expiresAt = tokenPair.expiresAt (fallback)
+    expect(activeSession.expiresAt).toBe('2026-01-02T00:00:00.000Z');
+  });
+
+  it('использует tokenPair.expiresAt как последний fallback для issuedAt если tokenPair.issuedAt отсутствует', () => {
+    const { store, captured } = createMockStore();
+    const tokenPair: TokenPair = {
+      accessToken: 'access-token',
+      refreshToken: 'refresh-token',
+      // issuedAt отсутствует - должен использоваться expiresAt как fallback
+      expiresAt: '2026-01-02T00:00:00.000Z',
+      scope: ['read'],
+    };
+    const domainResult: Extract<DomainLoginResult, { readonly type: 'success'; }> = {
+      type: 'success',
+      tokenPair,
+      me: {
+        user: {
+          id: 'user-123',
+          email: 'user@example.com',
+          emailVerified: true,
+        },
+        roles: ['user'],
+        permissions: ['profile.read'],
+        session: {
+          sessionId: 'session-1',
+          // issuedAt отсутствует - должен использоваться tokenPair.expiresAt
+        },
+      },
+    };
+    const securityResult = createSecurityPipelineResult({
+      level: 'low',
+      score: 10,
+      action: 'login',
+    });
+
+    updateLoginState(store, securityResult, domainResult);
+
+    // SessionState: issuedAt = tokenPair.expiresAt (последний fallback)
+    const activeSession = captured.sessionState as Extract<
+      SessionState,
+      { readonly status: 'active'; }
+    >;
+    expect(activeSession.status).toBe('active');
+    expect(activeSession.sessionId).toBe('session-1');
+    // issuedAt = tokenPair.expiresAt (последний fallback, так как tokenPair.issuedAt отсутствует)
+    expect(activeSession.issuedAt).toBe('2026-01-02T00:00:00.000Z');
+    // expiresAt = tokenPair.expiresAt
+    expect(activeSession.expiresAt).toBe('2026-01-02T00:00:00.000Z');
   });
 });
 

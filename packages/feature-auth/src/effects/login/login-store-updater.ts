@@ -15,17 +15,17 @@
  * - ❌ Не пересчитывает риск и не выполняет rule-engine (использует готовый `SecurityPipelineResult`)
  * - ❌ Не читает текущее состояние store и не принимает решений (decision уже принят выше по пайплайну)
  * - ❌ Не вводит fallback-значения (`id: ''` и подобные заглушки запрещены)
- * - ✅ Обновляет только через порт `LoginStorePort` (никаких прямых обращений к конкретной реализации стора)
+ * - ✅ Обновляет только через порт `AuthStorePort` (никаких прямых обращений к конкретной реализации стора)
  * - ✅ Для ветки success `DomainLoginResult` гарантирует наличие и `tokenPair`, и `me` (нет partial состояний)
  * - ✅ Обновление auth/session/security выполняется как одна логическая транзакция на уровне вызовов портов
  */
 
-import type { LoginStorePort } from './login-effect.types.js';
 import type { LoginMetadata } from './login-metadata.enricher.js';
 import type { DomainLoginResult } from '../../domain/LoginResult.js';
 import type { SecurityPipelineResult } from '../../lib/security-pipeline.js';
 import type { RiskAssessmentResult } from '../../types/auth-risk.js';
 import type { SessionState } from '../../types/auth.js';
+import type { AuthStorePort } from '../shared/auth-store.port.js';
 
 /* ============================================================================
  * 🔧 INTERNAL HELPERS
@@ -63,13 +63,15 @@ function deriveRequiredActions(
  * - `DomainLoginResult.success` содержит валидированные `tokenPair` и `me`
  * - `SecurityPipelineResult` уже прошёл через rule-engine и содержит финальную оценку риска
  * - Проверяет согласованность дат сессии (`issuedAt <= expiresAt`) и падает fail-closed при нарушении
+ * - Если `me.session` отсутствует, `newSessionState = null` (store invariant rule автоматически переведет в `session_expired`)
+ * - Permissions создаются как frozen Set для защиты от мутаций (соответствует типу ReadonlySet)
  *
  * @param store - порт стора аутентификации
  * @param securityResult - результат security-pipeline c оценкой риска и device-информацией
  * @param result - доменный результат логина в ветке `type: 'success'`
  */
 function applySuccessState(
-  store: LoginStorePort,
+  store: AuthStorePort,
   securityResult: SecurityPipelineResult,
   result: Extract<DomainLoginResult, { readonly type: 'success'; }>,
 ): void {
@@ -81,7 +83,8 @@ function applySuccessState(
     user: me.user,
     ...(me.session !== undefined ? { session: me.session } : {}),
     roles: me.roles,
-    permissions: new Set(me.permissions),
+    // Object.freeze защищает от случайных мутаций Set (соответствует типу ReadonlySet)
+    permissions: Object.freeze(new Set(me.permissions)) as ReadonlySet<string>,
     ...(me.features !== undefined ? { features: me.features } : {}),
     ...(me.context !== undefined ? { context: me.context } : {}),
   };
@@ -122,10 +125,13 @@ function applySuccessState(
       requiredActions: deriveRequiredActions(riskAssessment.decisionHint),
     };
 
-  store.setAuthState(newAuthState);
-  store.setSessionState(newSessionState);
-  store.setSecurityState(newSecurityState);
-  store.applyEventType('user_logged_in');
+  // Атомарное обновление через batchUpdate
+  store.batchUpdate([
+    { type: 'setAuthState', state: newAuthState },
+    { type: 'setSessionState', state: newSessionState },
+    { type: 'setSecurityState', state: newSecurityState },
+    { type: 'applyEventType', event: 'user_logged_in' },
+  ]);
 }
 
 /**
@@ -140,7 +146,7 @@ function applySuccessState(
  * @param result - доменный результат логина в ветке `type: 'mfa_required'`
  */
 function applyMfaState(
-  store: LoginStorePort,
+  store: AuthStorePort,
   securityResult: SecurityPipelineResult,
   result: Extract<DomainLoginResult, { readonly type: 'mfa_required'; }>,
 ): void {
@@ -159,10 +165,13 @@ function applyMfaState(
     requiredActions: deriveRequiredActions(securityResult.riskAssessment.decisionHint),
   };
 
-  store.setAuthState(newAuthState);
-  store.setSessionState(null);
-  store.setSecurityState(newSecurityState);
-  store.applyEventType('mfa_challenge_sent');
+  // Атомарное обновление через batchUpdate
+  store.batchUpdate([
+    { type: 'setAuthState', state: newAuthState },
+    { type: 'setSessionState', state: null },
+    { type: 'setSecurityState', state: newSecurityState },
+    { type: 'applyEventType', event: 'mfa_challenge_sent' },
+  ]);
 }
 
 /**
@@ -180,7 +189,7 @@ function applyMfaState(
  * @param securityResult - результат security-pipeline с решением `action: 'block'`
  */
 export function applyBlockedState(
-  store: LoginStorePort,
+  store: AuthStorePort,
   securityResult: SecurityPipelineResult,
 ): void {
   const reason = securityResult.riskAssessment.decisionHint.blockReason
@@ -191,11 +200,14 @@ export function applyBlockedState(
     reason,
   };
 
-  store.setAuthState({ status: 'unauthenticated' });
-  store.setSessionState(null);
-  store.setSecurityState(newSecurityState);
-  // Отдельное событие для блокировки не определено, поэтому используем risk_detected для observability
-  store.applyEventType('risk_detected');
+  // Атомарное обновление через batchUpdate
+  store.batchUpdate([
+    { type: 'setAuthState', state: { status: 'unauthenticated' } },
+    { type: 'setSessionState', state: null },
+    { type: 'setSecurityState', state: newSecurityState },
+    // Отдельное событие для блокировки не определено, поэтому используем risk_detected для observability
+    { type: 'applyEventType', event: 'risk_detected' },
+  ]);
 }
 
 /* ============================================================================
@@ -217,30 +229,18 @@ export function applyBlockedState(
  * @returns Те же `metadata`, которые были переданы на вход (для последующей интеграции с audit/telemetry-слоем)
  */
 export function updateLoginState(
-  store: LoginStorePort,
+  store: AuthStorePort,
   securityResult: SecurityPipelineResult,
   domainResult: DomainLoginResult,
   metadata?: readonly LoginMetadata[],
 ): readonly LoginMetadata[] | undefined {
   switch (domainResult.type) {
     case 'success': {
-      if (store.batchUpdate !== undefined) {
-        store.batchUpdate((batchedStore: LoginStorePort) => {
-          applySuccessState(batchedStore, securityResult, domainResult);
-        });
-      } else {
-        applySuccessState(store, securityResult, domainResult);
-      }
+      applySuccessState(store, securityResult, domainResult);
       return metadata;
     }
     case 'mfa_required': {
-      if (store.batchUpdate !== undefined) {
-        store.batchUpdate((batchedStore: LoginStorePort) => {
-          applyMfaState(batchedStore, securityResult, domainResult);
-        });
-      } else {
-        applyMfaState(store, securityResult, domainResult);
-      }
+      applyMfaState(store, securityResult, domainResult);
       return metadata;
     }
     default: {

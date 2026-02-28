@@ -20,34 +20,8 @@ import type {
 } from '../../lib/security-pipeline.js';
 import type { AuditEventValues } from '../../schemas/index.js';
 import type { RiskLevel, RiskPolicy } from '../../types/auth-risk.js';
-import type {
-  AuthError,
-  AuthEvent,
-  AuthState,
-  SecurityState,
-  SessionState,
-} from '../../types/auth.js';
-
-/**
- * Store-порт для login-effect (абстракция над конкретной реализацией store/Zustand).
- *
- * @note Хранит только необходимые методы для обновления auth/session/security состояния.
- * @note Для высокореактивных сторах (Zustand/Redux) может реализовывать `batchUpdate`,
- *       чтобы сгруппировать несколько вызовов set-методов и событий в одну транзакцию.
- */
-export type LoginStorePort = {
-  setAuthState: (state: AuthState) => void;
-  setSessionState: (state: SessionState | null) => void;
-  setSecurityState: (state: SecurityState) => void;
-  applyEventType: (type: AuthEvent['type']) => void;
-  /**
-   * Необязательный batched-апдейт: оборачивает несколько вызовов store-порта в одну транзакцию/рендер.
-   *
-   * @param updater - функция, которая вызывается с батчируемым store и должна вызывать
-   *                  только setAuthState/setSessionState/setSecurityState и applyEventType
-   */
-  batchUpdate?: (updater: (store: LoginStorePort) => void) => void;
-};
+import type { AuthError } from '../../types/auth.js';
+import type { AuthStorePort } from '../shared/auth-store.port.js';
 
 /**
  * Минимальный контракт HTTP-клиента для login-effect.
@@ -184,7 +158,7 @@ export type ClockPort = Readonly<{
  */
 export type LoginEffectDeps = Readonly<{
   apiClient: ApiClient;
-  authStore: LoginStorePort;
+  authStore: AuthStorePort;
   securityPipeline: SecurityPipelinePort;
   identifierHasher: IdentifierHasherPort;
   auditLogger: AuditLoggerPort;

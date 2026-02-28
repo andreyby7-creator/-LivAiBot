@@ -29,49 +29,53 @@
 
 ---
 
-### 📝 Шаг 1. Вынести общий контракт стора
+### ✅ Шаг 1. Вынести общий контракт стора [ВЫПОЛНЕНО]
 
 #### ➤ Создать
 
 ```
-effects/shared/auth-store.port.ts
+effects/shared/auth-store.port.ts ✅
 ```
 
 #### ➤ Контракт
 
 ```typescript
-interface AuthStorePort {
-  setAuthState(state: AuthState): void;
-  setSessionState(state: SessionState): void;
-  setSecurityState(state: SecurityState): void;
-  applyEventType(event: AuthEvent): void;
-  setStoreLocked(locked: boolean): void; // ОБЯЗАТЕЛЬНО (для logout/refresh)
-  batchUpdate(updates: BatchUpdate[]): void; // ОБЯЗАТЕЛЬНО (для атомарности)
+type AuthStorePort {
+  setAuthState(state: AuthState): void; ✅
+  setSessionState(state: SessionState | null): void; ✅ (поддержка null для очистки)
+  setSecurityState(state: SecurityState): void; ✅
+  applyEventType(event: AuthEvent['type']): void; ✅ (union-тип, не string)
+  setStoreLocked(locked: boolean): void; ✅ (ОБЯЗАТЕЛЬНО для logout/refresh)
+  batchUpdate(updates: readonly BatchUpdate[]): void; ✅ (ОБЯЗАТЕЛЬНО для атомарности)
 }
 ```
 
-**Атомарность:** все store-updater'ы используют `batchUpdate` для атомарного обновления (избегаем промежуточных состояний)
+**Атомарность:** все store-updater'ы используют `batchUpdate` для атомарного обновления (избегаем промежуточных состояний) ✅
 
 #### ➤ Инварианты
 
-- ✅ `AuthEvent` — union-тип, не `string` (type-safety)
-- ❌ Нет прямых вызовов Zustand в эффектах
-- ❌ Нет скрытых методов
+- ✅ `AuthEvent['type']` — union-тип, не `string` (type-safety)
+- ✅ Нет прямых вызовов Zustand в эффектах (используется через `AuthStorePort`)
+- ✅ Нет скрытых методов
 - ✅ Единый порт для всех auth-эффектов (login/logout/register/refresh)
 - ✅ `batchUpdate` обязателен для атомарности всех обновлений
+- ✅ Реализован адаптер `createAuthStorePortAdapter` для Zustand store
+- ✅ Реализована утилита `withStoreLock` для безопасной блокировки
 
 #### ➤ Обязательное действие
 
-Перевести `login-effect.types.ts` на этот порт.
+Перевести `login-effect.types.ts` на этот порт. ✅ **ВЫПОЛНЕНО**
 
 #### ➤ Использование
 
-- `login-effect.types.ts` переезжает на этот общий порт
-- `logout-effect.types.ts`, `refresh-effect.types.ts`, `register-effect.types.ts` используют тот же порт
+- ✅ `login-effect.types.ts` переведен на общий порт (`authStore: AuthStorePort`)
+- ✅ `login-store-updater.ts` использует `AuthStorePort` (все методы через порт)
+- ✅ Создан индекс `effects/shared/index.ts` с экспортами
+- ⏳ `logout-effect.types.ts`, `refresh-effect.types.ts`, `register-effect.types.ts` будут использовать тот же порт
 
 #### ⚠️ Критично
 
-> **Это база.** Пока нет общего порта — писать остальные эффекты рано.
+> **Это база.** Пока нет общего порта — писать остальные эффекты рано. ✅ **ГОТОВО К ИСПОЛЬЗОВАНИЮ**
 
 ---
 

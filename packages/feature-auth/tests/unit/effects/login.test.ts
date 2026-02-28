@@ -132,6 +132,8 @@ function createMockDeps() {
     setSessionState: vi.fn(),
     setSecurityState: vi.fn(),
     applyEventType: vi.fn(),
+    setStoreLocked: vi.fn(),
+    batchUpdate: vi.fn(),
   };
 
   const mockSecurityPipeline = {
@@ -284,8 +286,17 @@ describe('createLoginEffect', () => {
           }),
         }),
       );
-      expect(deps.authStore.setAuthState).toHaveBeenCalled();
-      expect(deps.authStore.setSessionState).toHaveBeenCalled();
+      // Проверяем, что batchUpdate был вызван (вместо прямых вызовов setAuthState/setSessionState)
+      expect(deps.authStore.batchUpdate).toHaveBeenCalled();
+      // eslint-disable-next-line ai-security/model-poisoning -- Тестовые данные контролируемые, валидация не требуется
+      const batchUpdateCall = (deps.authStore.batchUpdate as ReturnType<typeof vi.fn>).mock.calls[0]
+        ?.[0];
+      expect(batchUpdateCall).toBeDefined();
+      expect(batchUpdateCall?.some((update: { type: string; }) => update.type === 'setAuthState'))
+        .toBe(true);
+      expect(
+        batchUpdateCall?.some((update: { type: string; }) => update.type === 'setSessionState'),
+      ).toBe(true);
     });
 
     it('использует loginHardTimeoutMs из config', async () => {
@@ -375,10 +386,18 @@ describe('createLoginEffect', () => {
         type: 'blocked',
         reason: 'suspicious_activity',
       });
-      // applyBlockedState вызывает setAuthState для установки unauthenticated состояния
-      expect(deps.authStore.setAuthState).toHaveBeenCalled();
+      // applyBlockedState использует batchUpdate для атомарного обновления
+      expect(deps.authStore.batchUpdate).toHaveBeenCalled();
+      // eslint-disable-next-line ai-security/model-poisoning -- Тестовые данные контролируемые, валидация не требуется
+      const batchUpdateCall = (deps.authStore.batchUpdate as ReturnType<typeof vi.fn>).mock.calls[0]
+        ?.[0];
+      expect(batchUpdateCall).toBeDefined();
+      expect(batchUpdateCall?.some((update: { type: string; }) => update.type === 'setAuthState'))
+        .toBe(true);
+      expect(
+        batchUpdateCall?.some((update: { type: string; }) => update.type === 'setSecurityState'),
+      ).toBe(true);
       expect(deps.apiClient.post).not.toHaveBeenCalled();
-      expect(deps.authStore.setSecurityState).toHaveBeenCalled();
     });
 
     it('использует default reason при отсутствии blockReason', async () => {

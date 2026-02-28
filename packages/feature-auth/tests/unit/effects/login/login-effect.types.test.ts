@@ -21,11 +21,11 @@ import type {
   LoginFeatureFlags,
   LoginSecurityDecision,
   LoginSecurityResult,
-  LoginStorePort,
   SecurityPipelinePort,
 } from '../../../../src/effects/login/login-effect.types.js';
 import type {
   AuthError,
+  AuthEvent,
   AuthState,
   SecurityState,
   SessionState,
@@ -37,9 +37,14 @@ import type {
 } from '../../../../src/types/auth-risk.js';
 import type { DeviceInfo } from '../../../../src/domain/DeviceInfo.js';
 import type {
+  MandatoryAuditLogger,
   SecurityPipelineContext,
+  SecurityPipelineError,
   SecurityPipelineResult,
+  SecurityPipelineStep,
 } from '../../../../src/lib/security-pipeline.js';
+import type { AuthStorePort, BatchUpdate } from '../../../../src/effects/shared/auth-store.port.js';
+import type { AuditEventValues } from '../../../../src/schemas/index.js';
 
 // ============================================================================
 // 🔧 HELPERS
@@ -79,26 +84,44 @@ const createSecurityContext = (
 // ============================================================================
 
 describe('effects/login/login-effect.types', () => {
-  it('LoginStorePort поддерживает все обязательные методы', () => {
+  it('AuthStorePort поддерживает все обязательные методы', () => {
     const calls: {
       auth?: AuthState;
       session?: SessionState | null;
       security?: SecurityState;
       eventType?: string;
+      locked?: boolean;
     } = {};
 
-    const store: LoginStorePort = {
-      setAuthState: (state) => {
+    const store: AuthStorePort = {
+      setAuthState: (state: AuthState) => {
         calls.auth = state;
       },
-      setSessionState: (state) => {
+      setSessionState: (state: SessionState | null) => {
         calls.session = state;
       },
-      setSecurityState: (state) => {
+      setSecurityState: (state: SecurityState) => {
         calls.security = state;
       },
-      applyEventType: (type) => {
+      applyEventType: (type: AuthEvent['type']) => {
         calls.eventType = type;
+      },
+      setStoreLocked: (locked: boolean) => {
+        calls.locked = locked;
+      },
+      batchUpdate: (updates: readonly BatchUpdate[]) => {
+        updates.reduce<void>((_acc, update) => {
+          void (
+            update.type === 'setAuthState'
+              ? (calls.auth = update.state)
+              : update.type === 'setSessionState'
+              ? (calls.session = update.state)
+              : update.type === 'setSecurityState'
+              ? (calls.security = update.state)
+              : (calls.eventType = update.event)
+          );
+          return undefined;
+        }, undefined);
       },
     };
 
@@ -117,7 +140,7 @@ describe('effects/login/login-effect.types', () => {
     expect(calls.eventType).toBe('user_logged_in');
   });
 
-  it('LoginStorePort поддерживает опциональный batchUpdate', () => {
+  it('AuthStorePort поддерживает обязательный batchUpdate', () => {
     const calls: {
       auth?: AuthState;
       session?: SessionState | null;
@@ -126,22 +149,36 @@ describe('effects/login/login-effect.types', () => {
       batchCount?: number;
     } = {};
 
-    const store: LoginStorePort = {
-      setAuthState: (state) => {
+    const store: AuthStorePort = {
+      setAuthState: (state: AuthState) => {
         calls.auth = state;
       },
-      setSessionState: (state) => {
+      setSessionState: (state: SessionState | null) => {
         calls.session = state;
       },
-      setSecurityState: (state) => {
+      setSecurityState: (state: SecurityState) => {
         calls.security = state;
       },
-      applyEventType: (type) => {
+      applyEventType: (type: AuthEvent['type']) => {
         calls.eventType = type;
       },
-      batchUpdate: (updater) => {
+      setStoreLocked: () => {
+        // Mock implementation
+      },
+      batchUpdate: (updates: readonly BatchUpdate[]) => {
         calls.batchCount = (calls.batchCount ?? 0) + 1;
-        updater(store);
+        updates.reduce<void>((_acc, update) => {
+          void (
+            update.type === 'setAuthState'
+              ? (calls.auth = update.state)
+              : update.type === 'setSessionState'
+              ? (calls.session = update.state)
+              : update.type === 'setSecurityState'
+              ? (calls.security = update.state)
+              : (calls.eventType = update.event)
+          );
+          return undefined;
+        }, undefined);
       },
     };
 
@@ -149,12 +186,12 @@ describe('effects/login/login-effect.types', () => {
     const sessionState = createSessionState();
     const securityState = createSecurityState();
 
-    store.batchUpdate?.((batchedStore) => {
-      batchedStore.setAuthState(authState);
-      batchedStore.setSessionState(sessionState);
-      batchedStore.setSecurityState(securityState);
-      batchedStore.applyEventType('user_logged_in');
-    });
+    store.batchUpdate([
+      { type: 'setAuthState', state: authState },
+      { type: 'setSessionState', state: sessionState },
+      { type: 'setSecurityState', state: securityState },
+      { type: 'applyEventType', event: 'user_logged_in' },
+    ]);
 
     expect(calls.auth).toEqual(authState);
     expect(calls.session).toEqual(sessionState);
@@ -366,6 +403,50 @@ describe('effects/login/login-effect.types', () => {
     expect(now).toBe(1700000000000);
   });
 
+  it('AuditLoggerPort поддерживает log и logAuditEvent', () => {
+    const loggedErrors: { error: SecurityPipelineError; step: SecurityPipelineStep; }[] = [];
+    const loggedEvents: AuditEventValues[] = [];
+
+    const mandatoryLogger: MandatoryAuditLogger = (
+      error: Readonly<SecurityPipelineError>,
+      step: Readonly<SecurityPipelineStep>,
+    ) => {
+      loggedErrors.push({ error, step });
+    };
+
+    const auditLogger: AuditLoggerPort = {
+      log: mandatoryLogger,
+      logAuditEvent: (event: AuditEventValues) => {
+        loggedEvents.push(event);
+      },
+    };
+
+    const testError: SecurityPipelineError = {
+      kind: 'FINGERPRINT_ERROR',
+      step: 'fingerprint',
+      message: 'Test error',
+    } as SecurityPipelineError;
+
+    const testStep: SecurityPipelineStep = 'fingerprint';
+
+    const testEvent: AuditEventValues = {
+      type: 'login_success',
+      eventId: 'event-123',
+      timestamp: '2026-01-01T00:00:00.000Z',
+      userId: 'user-123',
+      sessionId: 'session-123',
+    } as AuditEventValues;
+
+    auditLogger.log(testError, testStep);
+    auditLogger.logAuditEvent(testEvent);
+
+    expect(loggedErrors).toHaveLength(1);
+    expect(loggedErrors[0]?.error).toEqual(testError);
+    expect(loggedErrors[0]?.step).toEqual(testStep);
+    expect(loggedEvents).toHaveLength(1);
+    expect(loggedEvents[0]).toEqual(testEvent);
+  });
+
   it('LoginEffectDeps описывает полный DI-контракт login-effect', async () => {
     const apiClient: ApiClient = {
       async post<T>(_url: string, _body: unknown): Promise<T> {
@@ -381,17 +462,32 @@ describe('effects/login/login-effect.types', () => {
       session?: SessionState | null;
       security?: SecurityState;
     } = {};
-    const authStore: LoginStorePort = {
-      setAuthState: (state) => {
+    const authStore: AuthStorePort = {
+      setAuthState: (state: AuthState) => {
         storeCalls.auth = state;
       },
-      setSessionState: (state) => {
+      setSessionState: (state: SessionState | null) => {
         storeCalls.session = state;
       },
-      setSecurityState: (state) => {
+      setSecurityState: (state: SecurityState) => {
         storeCalls.security = state;
       },
-      applyEventType: () => {},
+      applyEventType: (_type: 'user_logged_in' | 'mfa_challenge_sent' | 'risk_detected') => {},
+      setStoreLocked: (_locked: boolean) => {},
+      batchUpdate: (updates: readonly BatchUpdate[]) => {
+        updates.reduce<void>((_acc, update) => {
+          void (
+            update.type === 'setAuthState'
+              ? (storeCalls.auth = update.state)
+              : update.type === 'setSessionState'
+              ? (storeCalls.session = update.state)
+              : update.type === 'setSecurityState'
+              ? (storeCalls.security = update.state)
+              : undefined // applyEventType игнорируем
+          );
+          return undefined;
+        }, undefined);
+      },
     };
 
     const securityPipeline: SecurityPipelinePort = {

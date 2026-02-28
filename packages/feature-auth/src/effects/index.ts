@@ -6,24 +6,26 @@
  */
 
 /* ============================================================================
+ * 🔐 SHARED EFFECTS — ОБЩИЕ УТИЛИТЫ ДЛЯ ВСЕХ ЭФФЕКТОВ
+ * ========================================================================== */
+
+/**
+ * Shared Effects: общие утилиты для всех auth-эффектов.
+ *
+ * @public
+ */
+export * from './shared/index.js';
+
+/* ============================================================================
  * 🔐 LOGIN EFFECTS — ЭФФЕКТЫ ДЛЯ ВХОДА
  * ========================================================================== */
 
 /**
- * Login Metadata Enricher: обогащение метаданных для входа.
+ * Login Effects: все эффекты для login-flow.
  *
  * @public
  */
-export {
-  buildLoginMetadata,
-  createLoginMetadataEnricher,
-  type IdentifierHasher,
-  type LoginContext,
-  type LoginMetadata,
-  type MetadataBuilder,
-  type MetadataConfig,
-  type RiskMetadata,
-} from './login/login-metadata.enricher.js';
+export * from './login/index.js';
 
 /**
  * Публичный алиас для RiskSignals adapter-уровня.
@@ -32,40 +34,6 @@ export {
  * @public
  */
 export type { RiskSignals as AdapterRiskSignals } from '../types/auth-risk.js';
-
-/**
- * Validation: валидация запросов входа.
- *
- * @public
- */
-export { isValidLoginRequest } from './login/validation.js';
-
-/**
- * Login API Mapper: маппинг LoginRequest/LoginResponseDto ↔ domain типов.
- *
- * @public
- */
-export { mapLoginRequestToApiPayload, mapLoginResponseToDomain } from './login/login-api.mapper.js';
-
-/**
- * Login Effect DI Types: публичный DI-контракт для login-effect.
- *
- * @public
- */
-export type {
-  ApiClient as LoginApiClient,
-  IdentifierHasher as LoginIdentifierHasher,
-  LoginEffectConfig,
-  LoginEffectDeps,
-  LoginStorePort,
-} from './login/login-effect.types.js';
-
-/**
- * Login Store Updater: единая точка обновления auth/session/security состояния после login-flow.
- *
- * @public
- */
-export { applyBlockedState, updateLoginState } from './login/login-store-updater.js';
 
 /* ============================================================================
  * 🎯 LOGIN EFFECT ORCHESTRATOR — ОСНОВНОЙ ORCHESTRATOR LOGIN-FLOW
