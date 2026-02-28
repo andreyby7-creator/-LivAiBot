@@ -113,3 +113,21 @@ export {
   type BuildAssessmentParams,
   defaultModelVersion,
 } from './risk-assessment.adapter.js';
+
+/* ============================================================================
+ * 🔐 SESSION MANAGER — УПРАВЛЕНИЕ ЖИЗНЕННЫМ ЦИКЛОМ СЕССИЙ
+ * ========================================================================== */
+
+/**
+ * Session Manager: domain-pure сервис для управления жизненным циклом сессий.
+ * Изолирует бизнес-логику от orchestration-слоя (effects).
+ * Вычисляет deadlines, принимает решения о expire/invalidate/refresh.
+ *
+ * @public
+ */
+export {
+  type InvalidationReason,
+  type NewSessionDenialReason,
+  SessionManager,
+  type SessionManagerConfig,
+} from './session-manager.js';

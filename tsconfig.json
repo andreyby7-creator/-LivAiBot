@@ -74,8 +74,8 @@
     "config/playwright/**/*.ts",
     "apps/web/*.config.ts",
     "apps/web/*.setup.ts",
-    "e2e/**/*",
-    "packages/**/*"
+    "packages/**/*",
+    "e2e/**/*"
   ],
   "exclude": [
     "node_modules",

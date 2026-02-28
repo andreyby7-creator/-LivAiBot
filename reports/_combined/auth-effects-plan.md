@@ -227,69 +227,71 @@ types/auth-initial.ts ✅
 
 ---
 
-### 📝 Шаг 2.1. Реализовать lib/session-manager.ts
+### ✅ Шаг 2.1. Реализовать lib/session-manager.ts [ВЫПОЛНЕНО]
 
-#### ➤ Domain-pure сервис
+#### ➤ Domain-pure сервис ✅
 
-#### ➤ Зависимости
+#### ➤ Зависимости ✅
 
-- `types/auth.ts` (SessionState, AuthState, SessionPolicy)
-- `@livai/core/policies/AuthPolicy`
-- `domain/SessionPolicy.ts`
-- `domain/TokenPair.ts`
+- ✅ `types/auth.ts` (SessionState) — используется
+- ✅ `@livai/core` (AuthPolicyConfig) — используется (обновлено: используется AuthPolicyConfig, не AuthPolicy)
+- ✅ `@livai/core-contracts` (UnixTimestampMs) — используется
+- ✅ `domain/SessionPolicy.ts` — используется
+- ❌ `domain/TokenPair.ts` — не используется (не требуется для session-manager)
 
-#### ➤ Методы
+#### ➤ Методы ✅
 
-- `isExpired(session, now): boolean` — истёк ли срок
-- `shouldRefresh(session, now): boolean` — когда нужно триггерить refresh
-- `getRefreshDeadline(session): number` — **критично:** возвращает timestamp, когда нужно начать refresh (proactive refresh)
-- `shouldInvalidate(session, policy): boolean` — нужно ли инвалидировать сессию
-- `canOpenNewSession(existing, policy): boolean` — concurrent limits
+- ✅ `isExpired(session, now): boolean` — реализован, fail-closed, exhaustive check
+- ✅ `shouldRefresh(session, now): boolean` — реализован, proactive refresh
+- ✅ `getRefreshDeadline(session): UnixTimestampMs` — **реализован**, возвращает UnixTimestampMs (улучшение: тип вместо number)
+- ✅ `shouldInvalidate(session, now): boolean` — реализован, проверяет только active сессии, использует policy из конфигурации
+- ✅ `canOpenNewSession(existing, now): boolean` — реализован, использует policy из конфигурации, учитывает expired сессии
 
-#### ➤ Инварианты
+#### ➤ Инварианты ✅
 
-- ✅ Fail-closed
-- ❌ Не знает про effects
-- ❌ Не знает про store
-- ❌ Не знает про HTTP
-- ✅ `now` передаётся извне (injected)
-- ❌ Никаких побочных эффектов
-- ✅ Никаких допущений о наличии токена
-- ✅ Валидация времени строго через injected `now`
+- ✅ Fail-closed — реализовано во всех методах
+- ✅ Не знает про effects — изолирован от orchestration-слоя
+- ✅ Не знает про store — нет зависимостей от store
+- ✅ Не знает про HTTP — нет HTTP-запросов
+- ✅ `now` передаётся извне (injected) — все методы принимают `now: UnixTimestampMs`
+- ✅ Никаких побочных эффектов — pure functions
+- ✅ Никаких допущений о наличии токена — работает только с SessionState
+- ✅ Валидация времени строго через injected `now` — все проверки используют `now`
 
-#### ⚠️ Критично
+#### ⚠️ Критично ✅
 
-**`getRefreshDeadline` — обязательный метод**
+**`getRefreshDeadline` — обязательный метод ✅**
 
-- Избавляет от "минус 30 секунд" в эффектах
-- Deadline — часть политики, не эффекта
+- ✅ Избавляет от "минус 30 секунд" в эффектах — deadline вычисляется в domain
+- ✅ Deadline — часть политики, не эффекта — реализовано через `refreshProactiveWindowMs` в конфигурации
 
-#### ➤ Интеграция с effects
+#### ➤ Интеграция с effects ✅
 
 **Граница ответственности:**
 
 **SessionManager (domain):**
 
-- ✅ Вычисляет deadlines (`getRefreshDeadline`)
-- ✅ Решает expire/invalidate (`isExpired`, `shouldInvalidate`)
-- ✅ Решает, нужно ли refresh (`shouldRefresh`)
-- ❌ Не знает про HTTP/ошибки API
+- ✅ Вычисляет deadlines (`getRefreshDeadline`) — реализовано
+- ✅ Решает expire/invalidate (`isExpired`, `shouldInvalidate`) — реализовано
+- ✅ Решает, нужно ли refresh (`shouldRefresh`) — реализовано
+- ✅ Не знает про HTTP/ошибки API — изолирован
 
 **Effect (orchestration):**
 
-- ✅ Делает HTTP-запросы
-- ✅ Обрабатывает ошибки API
-- ✅ Применяет store-updater
-- ✅ Спрашивает SessionManager для принятия решений
+- ✅ Делает HTTP-запросы — ответственность effects
+- ✅ Обрабатывает ошибки API — ответственность effects
+- ✅ Применяет store-updater — ответственность effects
+- ✅ Спрашивает SessionManager для принятия решений — готово к интеграции
 
-> **👉 Важно:** Политика ≠ эффект. Бизнес-правила в домене, orchestration в effect.
+> **👉 Важно:** Политика ≠ эффект. Бизнес-правила в домене, orchestration в effect. ✅ Реализовано
 
 ---
 
-### ✅ Результат Фазы 2
+### ✅ Результат Фазы 2 [ВЫПОЛНЕНО]
 
 - ✅ Вся auth-политика изолирована в домене
 - ✅ Effects будут только orchestration-слоем
+- ✅ SessionManager реализован с поддержкой AuthPolicy
 
 ---
 
