@@ -4,12 +4,9 @@
  */
 
 import { describe, expect, it } from 'vitest';
-import type {
-  ClientContext,
-  LoginIdentifier,
-  LoginRequest,
-  MfaInfo,
-} from '../../../src/domain/LoginRequest.js';
+import type { ClientContext } from '../../../src/domain/ClientContext.js';
+import type { MfaInfo } from '../../../src/domain/MfaInfo.js';
+import type { LoginIdentifier, LoginRequest } from '../../../src/domain/LoginRequest.js';
 import { loginSchema } from '../../../src/schemas/index.js';
 
 // ============================================================================
@@ -37,8 +34,11 @@ function createMfaInfo(
   token: string,
   deviceId?: string,
 ): MfaInfo {
-  const baseMfa = { type, token };
-  return deviceId !== undefined ? { ...baseMfa, deviceId } : baseMfa;
+  return type === 'push'
+    ? { type: 'push', deviceId: deviceId ?? 'device-push' }
+    : deviceId !== undefined
+    ? { type, token, deviceId }
+    : { type, token };
 }
 
 function createClientContext(overrides: Partial<ClientContext> = {}): ClientContext {
@@ -108,7 +108,7 @@ describe('MfaInfo типы токенов', () => {
     const mfa = createMfaInfo('totp', '123456');
 
     expect(mfa.type).toBe('totp');
-    expect(mfa.token).toBe('123456');
+    void (mfa.type !== 'push' && expect(mfa.token).toBe('123456'));
     expect(mfa.deviceId).toBeUndefined();
   });
 
@@ -116,18 +116,24 @@ describe('MfaInfo типы токенов', () => {
     const mfa = createMfaInfo('sms', '789012', 'phone-1');
 
     expect(mfa.type).toBe('sms');
-    expect(mfa.token).toBe('789012');
+    void (mfa.type !== 'push' && expect(mfa.token).toBe('789012'));
     expect(mfa.deviceId).toBe('phone-1');
   });
 
   it('поддерживает все типы MFA токенов', () => {
-    const mfaTypes: MfaInfo['type'][] = ['totp', 'sms', 'email', 'push'];
+    const tokenBasedTypes: ('totp' | 'sms' | 'email')[] = ['totp', 'sms', 'email'];
+    const pushType: 'push' = 'push';
 
-    mfaTypes.forEach((type) => {
+    tokenBasedTypes.forEach((type) => {
       const mfa = createMfaInfo(type, 'token123');
       expect(mfa.type).toBe(type);
-      expect(mfa.token).toBe('token123');
+      void (mfa.type !== 'push' && expect(mfa.token).toBe('token123'));
     });
+
+    const pushMfa = createMfaInfo(pushType, '', 'device-push');
+    expect(pushMfa.type).toBe('push');
+    void (pushMfa.type === 'push'
+      && (expect(pushMfa.deviceId).toBe('device-push'), expect('token' in pushMfa).toBe(false)));
   });
 });
 
@@ -270,7 +276,7 @@ describe('LoginRequest discriminated union - OAuth', () => {
       providerToken: 'token',
       mfa: [
         createMfaInfo('sms', '111222'),
-        createMfaInfo('push', 'push-token', 'mobile-1'),
+        createMfaInfo('push', '', 'mobile-1'),
       ],
     };
 
@@ -288,7 +294,7 @@ describe('LoginRequest discriminated union - OAuth', () => {
       providerToken: 'gh-token-xyz',
       mfa: [
         createMfaInfo('sms', '111222'),
-        createMfaInfo('push', 'push-token', 'mobile-1'),
+        createMfaInfo('push', '', 'mobile-1'),
       ],
       rememberMe: true,
       clientContext: createClientContext(),
@@ -485,7 +491,7 @@ describe('LoginRequest complex MFA scenarios', () => {
         createMfaInfo('totp', '123456'),
         createMfaInfo('sms', '789012', 'phone-1'),
         createMfaInfo('email', 'email-code'),
-        createMfaInfo('push', 'push-approve', 'mobile-1'),
+        createMfaInfo('push', '', 'mobile-1'),
       ],
     };
 
@@ -510,7 +516,7 @@ describe('LoginRequest complex MFA scenarios', () => {
 
       const mfa = request.mfa as MfaInfo;
       expect(mfa.type).toBe(type);
-      expect(mfa.token).toBe('token123');
+      void (mfa.type !== 'push' && expect(mfa.token).toBe('token123'));
     });
   });
 });
@@ -663,7 +669,7 @@ describe('LoginRequest - интеграционные тесты', () => {
       providerToken: 'gh-token',
       mfa: [
         createMfaInfo('sms', '111222'),
-        createMfaInfo('push', 'push-token', 'mobile'),
+        createMfaInfo('push', '', 'mobile'),
       ],
       dtoVersion: '1.0',
       rememberMe: false,
@@ -862,8 +868,9 @@ describe('Security considerations', () => {
       deviceId: 'device-123',
     };
 
-    expect(sensitiveMfa.token).toBe('123456');
     expect(sensitiveMfa.type).toBe('totp');
+    // TypeScript гарантирует, что для 'totp' есть token
+    expect(sensitiveMfa.token).toBe('123456');
 
     // В продакшене эти данные должны:
     // - Передаваться по HTTPS

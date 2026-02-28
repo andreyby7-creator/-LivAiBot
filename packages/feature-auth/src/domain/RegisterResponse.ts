@@ -44,13 +44,13 @@
  * };
  */
 
+import type { MfaInfo } from './MfaInfo.js';
+import type { TokenPair } from './TokenPair.js';
+
 /* ============================================================================
  * 🧭 TYPES
  * ============================================================================
  */
-
-import type { MfaInfo } from './LoginRequest.js';
-import type { TokenPair } from './TokenPair.js';
 
 /** DTO ответа регистрации */
 export type RegisterResponse<T extends 'email' | 'username' | 'phone' | 'oauth' = 'email'> = {

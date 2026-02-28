@@ -41,12 +41,12 @@ effects/shared/auth-store.port.ts
 
 ```typescript
 interface AuthStorePort {
-  setAuthState(state: AuthState): void
-  setSessionState(state: SessionState): void
-  setSecurityState(state: SecurityState): void
-  applyEventType(event: AuthEvent): void
-  setStoreLocked(locked: boolean): void  // ОБЯЗАТЕЛЬНО (для logout/refresh)
-  batchUpdate(updates: BatchUpdate[]): void  // ОБЯЗАТЕЛЬНО (для атомарности)
+  setAuthState(state: AuthState): void;
+  setSessionState(state: SessionState): void;
+  setSecurityState(state: SecurityState): void;
+  applyEventType(event: AuthEvent): void;
+  setStoreLocked(locked: boolean): void; // ОБЯЗАТЕЛЬНО (для logout/refresh)
+  batchUpdate(updates: BatchUpdate[]): void; // ОБЯЗАТЕЛЬНО (для атомарности)
 }
 ```
 
@@ -242,12 +242,14 @@ effects/shared/safe-record.ts
 **Граница ответственности:**
 
 **SessionManager (domain):**
+
 - ✅ Вычисляет deadlines (`getRefreshDeadline`)
 - ✅ Решает expire/invalidate (`isExpired`, `shouldInvalidate`)
 - ✅ Решает, нужно ли refresh (`shouldRefresh`)
 - ❌ Не знает про HTTP/ошибки API
 
 **Effect (orchestration):**
+
 - ✅ Делает HTTP-запросы
 - ✅ Обрабатывает ошибки API
 - ✅ Применяет store-updater
@@ -289,7 +291,7 @@ effects/shared/safe-record.ts
 ##### 1️⃣ Режимы
 
 ```typescript
-type LogoutMode = 'local' | 'remote'
+type LogoutMode = 'local' | 'remote';
 ```
 
 - **`local`** → без ApiClient, без ErrorMapper, без timeout
@@ -323,11 +325,13 @@ type LogoutMode = 'local' | 'remote'
 **Единственная точка reset:**
 
 Использует канонические initial states из `types/auth-initial.ts`:
+
 - `INITIAL_AUTH_STATE`
 - `INITIAL_SESSION_STATE`
 - `INITIAL_SECURITY_STATE`
 
 Сбрасывает через `batchUpdate` (атомарно):
+
 - `AuthState` → `INITIAL_AUTH_STATE`
 - `SessionState` → `INITIAL_SESSION_STATE`
 - `SecurityState` → `INITIAL_SECURITY_STATE`
@@ -545,6 +549,7 @@ type LogoutMode = 'local' | 'remote'
 - `mapRefreshResponseToDomain` (из DTO в `TokenPair`/`MeResponse`)
 
 **Важно:** Использовать `effects/shared/auth-api.mappers.ts`:
+
 - `mapTokenPairValuesToDomain`
 - `mapMeResponseValuesToDomain`
 
@@ -564,6 +569,7 @@ type LogoutMode = 'local' | 'remote'
 **Стратегия при частично успешном refresh (fail-closed):**
 
 Если `/refresh` успешен, но `/me` падает:
+
 - ❌ Не принимать новые токены без `/me`
 - ❌ Не сохранять старый session
 - ✅ Invalidate session (как в login)
@@ -589,6 +595,7 @@ type LogoutMode = 'local' | 'remote'
 **Строгий инвариант о статусе:**
 
 Refresh не имеет права менять `authStatus` кроме перехода:
+
 - `authenticated → expired`, или
 - `authenticated → invalidated`
 

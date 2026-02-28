@@ -349,6 +349,40 @@ function validateOAuthFields(
   return validateOAuthProviderToken(providerToken);
 }
 
+/** Валидирует push MFA (обязателен deviceId, token отсутствует) */
+function validatePushMfaInfo(mfaObj: Record<string, unknown>): boolean {
+  // Для push: обязателен deviceId, token отсутствует
+  if (!('deviceId' in mfaObj) || typeof mfaObj['deviceId'] !== 'string') {
+    return false;
+  }
+  const deviceId = mfaObj['deviceId'];
+  if (deviceId.length === 0) {
+    return false;
+  }
+  // Проверка, что token отсутствует для push
+  return !('token' in mfaObj);
+}
+
+/** Валидирует token-based MFA (totp/sms/email: обязателен token) */
+function validateTokenBasedMfaInfo(mfaObj: Record<string, unknown>): boolean {
+  // Для totp/sms/email: обязателен token
+  if (!('token' in mfaObj) || typeof mfaObj['token'] !== 'string') {
+    return false;
+  }
+  const token = mfaObj['token'];
+  if (token.length === 0) {
+    return false;
+  }
+  // deviceId опционален, но если присутствует - должен быть string
+  if (
+    ('deviceId' in mfaObj && mfaObj['deviceId'] !== undefined)
+    && typeof mfaObj['deviceId'] !== 'string'
+  ) {
+    return false;
+  }
+  return true;
+}
+
 /**
  * Валидирует структуру MfaInfo (strict shape + типы)
  *
@@ -374,25 +408,10 @@ function isValidMfaInfo(mfaObj: Record<string, unknown>): boolean {
     return false;
   }
 
-  // Проверка обязательного поля token
-  if (!('token' in mfaObj) || typeof mfaObj['token'] !== 'string') {
-    return false;
-  }
-
-  const token = mfaObj['token'];
-  if (token.length === 0) {
-    return false;
-  }
-
-  // deviceId опционален, но если присутствует - должен быть string
-  if (
-    ('deviceId' in mfaObj && mfaObj['deviceId'] !== undefined)
-    && typeof mfaObj['deviceId'] !== 'string'
-  ) {
-    return false;
-  }
-
-  return true;
+  // Discriminated union validation: push не имеет token, остальные требуют token
+  return mfaType === 'push'
+    ? validatePushMfaInfo(mfaObj)
+    : validateTokenBasedMfaInfo(mfaObj);
 }
 
 /** Валидирует базовую структуру объекта и identifier */

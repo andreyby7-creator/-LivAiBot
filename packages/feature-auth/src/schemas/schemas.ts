@@ -165,8 +165,22 @@ export const loginRequestSchema = z.object({
     }).optional(),
   }).optional(),
   mfa: z.union([
-    z.object({ type: z.string(), token: z.string(), deviceId: z.string().optional() }),
-    z.array(z.object({ type: z.string(), token: z.string(), deviceId: z.string().optional() })),
+    z.union([
+      z.object({
+        type: z.enum(['totp', 'sms', 'email']),
+        token: z.string(),
+        deviceId: z.string().optional(),
+      }),
+      z.object({ type: z.literal('push'), deviceId: z.string() }),
+    ]),
+    z.array(z.union([
+      z.object({
+        type: z.enum(['totp', 'sms', 'email']),
+        token: z.string(),
+        deviceId: z.string().optional(),
+      }),
+      z.object({ type: z.literal('push'), deviceId: z.string() }),
+    ])),
   ]).optional(), // Multi-factor authentication
   provider: z.string().optional(), // OAuth provider
   providerToken: z.string().optional(), // OAuth provider token

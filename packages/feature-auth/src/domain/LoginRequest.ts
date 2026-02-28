@@ -40,6 +40,9 @@
  * };
  */
 
+import type { ClientContext } from './ClientContext.js';
+import type { MfaInfo } from './MfaInfo.js';
+
 /* ============================================================================
 * 🧭 TYPES
 * ============================================================================
@@ -52,25 +55,6 @@ export type LoginIdentifierType = 'email' | 'username' | 'phone' | 'oauth';
 export type LoginIdentifier<T extends LoginIdentifierType = 'email'> = {
   readonly type: T;
   readonly value: string;
-};
-
-/** Тип MFA token */
-export type MfaInfo = {
-  readonly type: 'totp' | 'sms' | 'email' | 'push';
-  readonly token: string;
-  readonly deviceId?: string;
-};
-
-/** Информация о клиентском окружении */
-export type ClientContext = {
-  readonly ip?: string;
-  readonly deviceId?: string;
-  readonly userAgent?: string;
-  readonly locale?: string;
-  readonly timezone?: string;
-  readonly geo?: { lat: number; lng: number; };
-  readonly sessionId?: string;
-  readonly appVersion?: string;
 };
 
 /** Базовые поля для всех типов login запросов */

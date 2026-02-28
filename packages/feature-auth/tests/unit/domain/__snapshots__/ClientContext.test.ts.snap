@@ -1,0 +1,103 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`ClientContext comprehensive snapshots > client context with different locales - полный snapshot 1`] = `
+{
+  "appVersion": "1.0.0",
+  "deviceId": "device-123",
+  "geo": {
+    "lat": 40.7128,
+    "lng": -74.006,
+  },
+  "ip": "192.168.1.1",
+  "locale": "en-US",
+  "sessionId": "session-123",
+  "timezone": "America/New_York",
+  "userAgent": "Mozilla/5.0",
+}
+`;
+
+exports[`ClientContext comprehensive snapshots > client context with different locales - полный snapshot 2`] = `
+{
+  "appVersion": "1.0.0",
+  "deviceId": "device-123",
+  "geo": {
+    "lat": 40.7128,
+    "lng": -74.006,
+  },
+  "ip": "192.168.1.1",
+  "locale": "ru-RU",
+  "sessionId": "session-123",
+  "timezone": "America/New_York",
+  "userAgent": "Mozilla/5.0",
+}
+`;
+
+exports[`ClientContext comprehensive snapshots > client context with different locales - полный snapshot 3`] = `
+{
+  "appVersion": "1.0.0",
+  "deviceId": "device-123",
+  "geo": {
+    "lat": 40.7128,
+    "lng": -74.006,
+  },
+  "ip": "192.168.1.1",
+  "locale": "de-DE",
+  "sessionId": "session-123",
+  "timezone": "America/New_York",
+  "userAgent": "Mozilla/5.0",
+}
+`;
+
+exports[`ClientContext comprehensive snapshots > client context with different locales - полный snapshot 4`] = `
+{
+  "appVersion": "1.0.0",
+  "deviceId": "device-123",
+  "geo": {
+    "lat": 40.7128,
+    "lng": -74.006,
+  },
+  "ip": "192.168.1.1",
+  "locale": "fr-FR",
+  "sessionId": "session-123",
+  "timezone": "America/New_York",
+  "userAgent": "Mozilla/5.0",
+}
+`;
+
+exports[`ClientContext comprehensive snapshots > client context with geo - полный snapshot 1`] = `
+{
+  "appVersion": "1.0.0",
+  "deviceId": "device-123",
+  "geo": {
+    "lat": 55.7558,
+    "lng": 37.6173,
+  },
+  "ip": "192.168.1.1",
+  "locale": "en-US",
+  "sessionId": "session-123",
+  "timezone": "America/New_York",
+  "userAgent": "Mozilla/5.0",
+}
+`;
+
+exports[`ClientContext comprehensive snapshots > full client context - полный snapshot 1`] = `
+{
+  "appVersion": "2.0.0",
+  "deviceId": "device-full",
+  "geo": {
+    "lat": 40.7128,
+    "lng": -74.006,
+  },
+  "ip": "192.168.1.1",
+  "locale": "en-US",
+  "sessionId": "session-full",
+  "timezone": "America/New_York",
+  "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
+}
+`;
+
+exports[`ClientContext comprehensive snapshots > minimal client context - полный snapshot 1`] = `
+{
+  "ip": "192.168.1.1",
+}
+`;

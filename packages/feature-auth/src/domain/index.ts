@@ -22,12 +22,18 @@ export { type DeviceInfo, type DeviceType } from './DeviceInfo.js';
  * @public
  */
 export {
-  type ClientContext as LoginClientContext,
   type LoginIdentifier,
   type LoginIdentifierType,
   type LoginRequest,
-  type MfaInfo,
 } from './LoginRequest.js';
+
+/**
+ * Login Client Context: алиас для обратной совместимости.
+ *
+ * @public
+ * @deprecated Используйте ClientContext из './ClientContext.js'
+ */
+export { type ClientContext as LoginClientContext } from './ClientContext.js';
 
 /**
  * Logout Request: запрос на выход из системы.
@@ -42,12 +48,18 @@ export { type ClientContext as LogoutClientContext, type LogoutRequest } from '.
  * @public
  */
 export {
-  type ClientContext as RegisterClientContext,
-  type MfaInfo as RegisterMfaInfo,
   type RegisterIdentifier,
   type RegisterIdentifierType,
   type RegisterRequest,
 } from './RegisterRequest.js';
+
+/**
+ * Register Client Context: алиас для обратной совместимости.
+ *
+ * @public
+ * @deprecated Используйте ClientContext из './ClientContext.js'
+ */
+export { type ClientContext as RegisterClientContext } from './ClientContext.js';
 
 /**
  * Register Response: ответ на регистрацию.
@@ -125,6 +137,34 @@ export {
 /* ============================================================================
  * 🔒 MFA — МНОГОФАКТОРНАЯ АУТЕНТИФИКАЦИЯ
  * ========================================================================== */
+
+/**
+ * MFA Info: информация о многофакторной аутентификации.
+ *
+ * @public
+ */
+export { type MfaInfo, type MfaType } from './MfaInfo.js';
+
+/**
+ * Client Context: информация о клиентском окружении.
+ *
+ * @public
+ */
+export {
+  type ClientContext,
+  type ClientContextSafe,
+  type ClientContextV1,
+  createEmptyClientContext,
+  getAppVersion,
+  getDeviceId,
+  getGeo,
+  getIp,
+  getLocale,
+  getSessionId,
+  getTimezone,
+  getUserAgent,
+  sanitizeClientContext,
+} from './ClientContext.js';
 
 /**
  * MFA Challenge Request: запрос на прохождение MFA.

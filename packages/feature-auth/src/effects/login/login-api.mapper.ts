@@ -19,6 +19,7 @@ import type { LoginIdentifierType, LoginRequest } from '../../domain/LoginReques
 import type { DomainLoginResult } from '../../domain/LoginResult.js';
 import type { MeResponse } from '../../domain/MeResponse.js';
 import type { MfaChallengeRequest, MfaType } from '../../domain/MfaChallengeRequest.js';
+import type { MfaInfo } from '../../domain/MfaInfo.js';
 import type { TokenPair } from '../../domain/TokenPair.js';
 import type {
   LoginRequestValues,
@@ -36,6 +37,7 @@ import type { LoginResponseDto } from '../../types/login.dto.js';
 /**
  * Нормализует mfa-информацию в формат LoginRequestValues['mfa'].
  * @note Выполняет copy-on-write для массивов и объектов, не возвращая исходные ссылки.
+ * @note Поддерживает discriminated union: для push типа token отсутствует.
  */
 function normalizeMfa(
   mfa: LoginRequest<LoginIdentifierType>['mfa'],
@@ -44,17 +46,30 @@ function normalizeMfa(
     return undefined;
   }
 
-  type NormalizedMfaItem = {
-    readonly type: string;
-    readonly token: string;
-    readonly deviceId?: string;
-  };
+  type NormalizedMfaItem =
+    | {
+      type: 'totp' | 'sms' | 'email';
+      token: string;
+      deviceId?: string;
+    }
+    | {
+      type: 'push';
+      deviceId: string;
+    };
 
-  const mapOne = (value: NormalizedMfaItem): NormalizedMfaItem => ({
-    type: value.type,
-    token: value.token,
-    ...(value.deviceId !== undefined ? { deviceId: value.deviceId } : {}),
-  });
+  const mapOne = (value: MfaInfo): NormalizedMfaItem => {
+    if (value.type === 'push') {
+      return {
+        type: 'push',
+        deviceId: value.deviceId,
+      };
+    }
+    return {
+      type: value.type,
+      token: value.token,
+      ...(value.deviceId !== undefined ? { deviceId: value.deviceId } : {}),
+    };
+  };
 
   if (Array.isArray(mfa)) {
     // Возвращаем новый mutable-массив (schema-уровень), не исходный input

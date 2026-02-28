@@ -5,12 +5,9 @@
 
 import { describe, expect, it } from 'vitest';
 
-import type {
-  ClientContext,
-  LoginIdentifierType,
-  LoginRequest,
-  MfaInfo,
-} from '../../../../src/domain/LoginRequest.js';
+import type { ClientContext } from '../../../../src/domain/ClientContext.js';
+import type { MfaInfo } from '../../../../src/domain/MfaInfo.js';
+import type { LoginIdentifierType, LoginRequest } from '../../../../src/domain/LoginRequest.js';
 import { isValidLoginRequest } from '../../../../src/effects/login/validation.js';
 
 // ============================================================================
@@ -44,8 +41,11 @@ function createMfaInfo(
   token: string = '123456',
   deviceId?: string,
 ): MfaInfo {
-  const base: MfaInfo = { type, token };
-  return deviceId !== undefined ? { ...base, deviceId } : base;
+  return type === 'push'
+    ? { type: 'push', deviceId: deviceId ?? 'device-push' }
+    : deviceId !== undefined
+    ? { type, token, deviceId }
+    : { type, token };
 }
 
 // ============================================================================
@@ -123,7 +123,7 @@ describe('isValidLoginRequest - валидные случаи', () => {
     const request = createValidLoginRequest('oauth', {
       provider: 'yandex',
       providerToken: 'a'.repeat(100),
-      mfa: createMfaInfo('push', 'push-token'),
+      mfa: createMfaInfo('push', '', 'device-push'),
       dtoVersion: '1.0',
       rememberMe: true,
     });
@@ -728,7 +728,7 @@ describe('isValidLoginRequest - edge cases', () => {
         createMfaInfo('totp', '111'),
         createMfaInfo('sms', '222'),
         createMfaInfo('email', '333'),
-        createMfaInfo('push', '444'),
+        createMfaInfo('push', '', 'device-push'),
       ],
     });
 
@@ -766,7 +766,7 @@ describe('isValidLoginRequest - edge cases', () => {
       providerToken: 'a'.repeat(100),
       dtoVersion: '1.0',
       rememberMe: false,
-      mfa: createMfaInfo('push', 'push-token', 'mobile-device'),
+      mfa: createMfaInfo('push', '', 'mobile-device'),
       clientContext: { ip: '10.0.0.1' },
     });
 

@@ -47,7 +47,6 @@ exports[`LoginRequest discriminated union - OAuth > oauth login request - snapsh
     },
     {
       "deviceId": "mobile-1",
-      "token": "push-token",
       "type": "push",
     },
   ],

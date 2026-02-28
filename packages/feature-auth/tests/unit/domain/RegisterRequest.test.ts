@@ -4,9 +4,9 @@
  */
 
 import { describe, expect, it } from 'vitest';
+import type { ClientContext } from '../../../src/domain/ClientContext.js';
+import type { MfaInfo } from '../../../src/domain/MfaInfo.js';
 import type {
-  ClientContext,
-  MfaInfo,
   RegisterIdentifier,
   RegisterIdentifierType,
   RegisterRequest,
@@ -285,7 +285,7 @@ describe('RegisterRequest полный DTO', () => {
     // eslint-disable-next-line functional/no-conditional-statements
     if (request.mfa && !Array.isArray(request.mfa)) {
       expect(request.mfa.type).toBe('sms');
-      expect(request.mfa.token).toBe('654321');
+      void (request.mfa.type !== 'push' && expect(request.mfa.token).toBe('654321'));
     }
     expect(request.clientContext?.ip).toBe('10.0.0.1');
     expect(request.rememberMe).toBe(false);
@@ -460,7 +460,7 @@ describe('RegisterRequest optional fields', () => {
     // eslint-disable-next-line functional/no-conditional-statements
     if (requestWithMfa.mfa && !Array.isArray(requestWithMfa.mfa)) {
       expect(requestWithMfa.mfa.type).toBe('totp');
-      expect(requestWithMfa.mfa.token).toBe('123456');
+      void (requestWithMfa.mfa.type !== 'push' && expect(requestWithMfa.mfa.token).toBe('123456'));
     }
     expect(requestWithoutMfa.mfa).toBeUndefined();
   });
@@ -585,7 +585,8 @@ describe('RegisterRequest conditional fields', () => {
     // eslint-disable-next-line functional/no-conditional-statements
     if (requestWithSingleMfa.mfa && !Array.isArray(requestWithSingleMfa.mfa)) {
       expect(requestWithSingleMfa.mfa.type).toBe('totp');
-      expect(requestWithSingleMfa.mfa.token).toBe('123456');
+      void (requestWithSingleMfa.mfa.type !== 'push'
+        && expect(requestWithSingleMfa.mfa.token).toBe('123456'));
     }
   });
 });
@@ -753,7 +754,7 @@ describe('RegisterRequest immutability', () => {
     // eslint-disable-next-line functional/no-conditional-statements
     if (request.mfa && !Array.isArray(request.mfa)) {
       expect(request.mfa.type).toBe('totp');
-      expect(request.mfa.token).toBe('123456');
+      void (request.mfa.type !== 'push' && expect(request.mfa.token).toBe('123456'));
     }
   });
 

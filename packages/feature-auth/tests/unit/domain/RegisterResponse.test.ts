@@ -4,7 +4,7 @@
  */
 
 import { describe, expect, it } from 'vitest';
-import type { MfaInfo } from '../../../src/domain/LoginRequest.js';
+import type { MfaInfo } from '../../../src/domain/MfaInfo.js';
 import type { RegisterResponse } from '../../../src/domain/RegisterResponse.js';
 import type { TokenPair } from '../../../src/domain/TokenPair.js';
 // Примечание: существующая схема registerResponseSchema не соответствует DTO RegisterResponse
@@ -304,7 +304,8 @@ describe('RegisterResponse MFA Challenge', () => {
     // eslint-disable-next-line no-unused-expressions
     response.mfaChallenge && !Array.isArray(response.mfaChallenge)
       ? (expect(response.mfaChallenge.type).toBe('totp'),
-        expect(response.mfaChallenge.token).toBe('123456'))
+        response.mfaChallenge.type !== 'push'
+        && expect(response.mfaChallenge.token).toBe('123456'))
       : void 0;
   });
 
@@ -563,7 +564,8 @@ describe('RegisterResponse immutability', () => {
     // eslint-disable-next-line no-unused-expressions
     response.mfaChallenge && !Array.isArray(response.mfaChallenge)
       ? (expect(response.mfaChallenge.type).toBe('totp'),
-        expect(response.mfaChallenge.token).toBe('123456'))
+        response.mfaChallenge.type !== 'push'
+        && expect(response.mfaChallenge.token).toBe('123456'))
       : void 0;
   });
 
@@ -701,7 +703,8 @@ describe('Zod schema validation', () => {
     // eslint-disable-next-line no-unused-expressions
     response.mfaChallenge && !Array.isArray(response.mfaChallenge)
       ? (expect(response.mfaChallenge.type).toBe('totp'),
-        expect(response.mfaChallenge.token).toBe('123456'))
+        response.mfaChallenge.type !== 'push'
+        && expect(response.mfaChallenge.token).toBe('123456'))
       : void 0;
   });
 

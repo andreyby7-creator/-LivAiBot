@@ -9,11 +9,8 @@
 import { describe, expect, it, vi } from 'vitest';
 
 import type { DeviceInfo } from '../../../../src/domain/DeviceInfo.js';
-import type {
-  LoginIdentifierType,
-  LoginRequest,
-  MfaInfo,
-} from '../../../../src/domain/LoginRequest.js';
+import type { MfaInfo } from '../../../../src/domain/MfaInfo.js';
+import type { LoginIdentifierType, LoginRequest } from '../../../../src/domain/LoginRequest.js';
 import {
   buildLoginMetadata,
   createLoginMetadataEnricher,
@@ -101,8 +98,11 @@ function createMfaInfo(
   token: string,
   deviceId?: string,
 ): MfaInfo {
-  const base: MfaInfo = { type, token };
-  return deviceId !== undefined ? { ...base, deviceId } : base;
+  return type === 'push'
+    ? { type: 'push', deviceId: deviceId ?? 'device-push' }
+    : deviceId !== undefined
+    ? { type, token, deviceId }
+    : { type, token };
 }
 
 // ============================================================================

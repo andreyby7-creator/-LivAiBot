@@ -1,0 +1,47 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`MfaInfo comprehensive snapshots > full mfa info - полный snapshot 1`] = `
+{
+  "deviceId": "device-full",
+  "token": "123456",
+  "type": "totp",
+}
+`;
+
+exports[`MfaInfo comprehensive snapshots > mfa info with different types - полный snapshot 1`] = `
+{
+  "deviceId": "device-123",
+  "token": "123456",
+  "type": "totp",
+}
+`;
+
+exports[`MfaInfo comprehensive snapshots > mfa info with different types - полный snapshot 2`] = `
+{
+  "deviceId": "device-123",
+  "token": "123456",
+  "type": "sms",
+}
+`;
+
+exports[`MfaInfo comprehensive snapshots > mfa info with different types - полный snapshot 3`] = `
+{
+  "deviceId": "device-123",
+  "token": "123456",
+  "type": "email",
+}
+`;
+
+exports[`MfaInfo comprehensive snapshots > mfa info with different types - полный snapshot 4`] = `
+{
+  "deviceId": "device-push",
+  "type": "push",
+}
+`;
+
+exports[`MfaInfo comprehensive snapshots > minimal mfa info - полный snapshot 1`] = `
+{
+  "token": "123456",
+  "type": "totp",
+}
+`;
