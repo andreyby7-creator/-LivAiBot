@@ -44,6 +44,22 @@ export {
 } from './auth.js';
 
 /* ============================================================================
+ * 🔐 AUTH INITIAL STATES — КАНОНИЧЕСКИЕ НАЧАЛЬНЫЕ СОСТОЯНИЯ
+ * ========================================================================== */
+
+/**
+ * Auth Initial States: канонические начальные состояния для reset операций.
+ * Единый источник истины для initialAuthState, createInitialSessionState(), initialSecurityState.
+ *
+ * @public
+ */
+export {
+  createInitialSessionState,
+  initialAuthState,
+  initialSecurityState,
+} from './auth-initial.js';
+
+/* ============================================================================
  * 🎯 AUTH RISK TYPES — ТИПЫ ОЦЕНКИ РИСКОВ
  * ========================================================================== */
 

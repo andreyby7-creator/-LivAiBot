@@ -152,44 +152,44 @@ effects/shared/auth-api.mappers.ts ✅
 
 ---
 
-### 📝 Шаг 1.4 Создать канонические initial states
+### ✅ Шаг 1.4 Создать канонические initial states [ВЫПОЛНЕНО]
 
 #### ➤ Создать
 
 ```
-types/auth-initial.ts
+types/auth-initial.ts ✅
 ```
 
 #### ➤ Константы
 
-- `INITIAL_AUTH_STATE: AuthState` — `{ status: 'unauthenticated' }`
-- `INITIAL_SESSION_STATE: SessionState | null` — `null`
-- `INITIAL_SECURITY_STATE: SecurityState` — `{ status: 'secure' }`
+- ✅ `initialAuthState: AuthState` — `{ status: 'unauthenticated' }`
+- ✅ `createInitialSessionState(): SessionState | null` — возвращает `null` (фабрика для соблюдения линтера)
+- ✅ `initialSecurityState: SecurityState` — `{ status: 'secure' }`
 
 #### ➤ Зависимости
 
-- `types/auth.ts` (AuthState, SessionState, SecurityState)
+- ✅ `types/auth.ts` (AuthState, SessionState, SecurityState)
 
 #### ➤ Инварианты
 
 - ✅ Канонические значения (единый источник истины для reset)
 - ✅ Type-safe (соответствуют типам из `types/auth.ts`)
-- ✅ Immutable (readonly константы)
-- ❌ Не зависит от store или effects
-- ❌ Не содержит бизнес-логики
+- ✅ Immutable (readonly константы + Object.freeze)
+- ✅ Не зависит от store или effects
+- ✅ Не содержит бизнес-логики
 
 #### ➤ Использование
 
-- `logout-store-updater.ts` (для атомарного reset через `batchUpdate`)
-- Возможно, другие эффекты для reset/cleanup операций
+- ⏳ `logout-store-updater.ts` (для атомарного reset через `batchUpdate`)
+- ⏳ Возможно, другие эффекты для reset/cleanup операций
 
 #### ⚠️ Важно
 
 **Единый источник истины для reset:**
 
-- Избегаем дублирования `{ status: 'unauthenticated' }` в разных местах
-- Гарантируем консистентность при сбросе состояний
-- Упрощаем тестирование (можно мокать константы)
+- ✅ Избегаем дублирования `{ status: 'unauthenticated' }` в разных местах
+- ✅ Гарантируем консистентность при сбросе состояний
+- ✅ Упрощаем тестирование (можно мокать константы)
 
 ---
 
@@ -353,15 +353,15 @@ type LogoutMode = 'local' | 'remote';
 
 Использует канонические initial states из `types/auth-initial.ts`:
 
-- `INITIAL_AUTH_STATE`
-- `INITIAL_SESSION_STATE`
-- `INITIAL_SECURITY_STATE`
+- `initialAuthState`
+- `initialSessionState`
+- `initialSecurityState`
 
 Сбрасывает через `batchUpdate` (атомарно):
 
-- `AuthState` → `INITIAL_AUTH_STATE`
-- `SessionState` → `INITIAL_SESSION_STATE`
-- `SecurityState` → `INITIAL_SECURITY_STATE`
+- `AuthState` → `initialAuthState`
+- `SessionState` → `createInitialSessionState()`
+- `SecurityState` → `initialSecurityState`
 - `applyEventType('logout')`
 
 - ❌ Не читает текущее состояние
