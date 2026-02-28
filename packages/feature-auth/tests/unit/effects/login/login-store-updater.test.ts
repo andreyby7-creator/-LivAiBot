@@ -629,14 +629,14 @@ describe('updateLoginState', () => {
     expect(activeSession.expiresAt).toBe('2026-01-02T00:00:00.000Z');
   });
 
-  it('использует tokenPair.expiresAt как последний fallback для issuedAt если tokenPair.issuedAt отсутствует', () => {
-    const { store, captured } = createMockStore();
+  it('выбрасывает ошибку если issuedAt отсутствует в me.session и tokenPair (fail-fast)', () => {
+    const { store } = createMockStore();
     const tokenPair: TokenPair = {
       accessToken: 'access-token',
       refreshToken: 'refresh-token',
-      // issuedAt отсутствует - должен использоваться expiresAt как fallback
       expiresAt: '2026-01-02T00:00:00.000Z',
       scope: ['read'],
+      // issuedAt отсутствует
     };
     const domainResult: Extract<DomainLoginResult, { readonly type: 'success'; }> = {
       type: 'success',
@@ -651,7 +651,7 @@ describe('updateLoginState', () => {
         permissions: ['profile.read'],
         session: {
           sessionId: 'session-1',
-          // issuedAt отсутствует - должен использоваться tokenPair.expiresAt
+          // issuedAt отсутствует
         },
       },
     };
@@ -661,19 +661,11 @@ describe('updateLoginState', () => {
       action: 'login',
     });
 
-    updateLoginState(store, securityResult, domainResult);
-
-    // SessionState: issuedAt = tokenPair.expiresAt (последний fallback)
-    const activeSession = captured.sessionState as Extract<
-      SessionState,
-      { readonly status: 'active'; }
-    >;
-    expect(activeSession.status).toBe('active');
-    expect(activeSession.sessionId).toBe('session-1');
-    // issuedAt = tokenPair.expiresAt (последний fallback, так как tokenPair.issuedAt отсутствует)
-    expect(activeSession.issuedAt).toBe('2026-01-02T00:00:00.000Z');
-    // expiresAt = tokenPair.expiresAt
-    expect(activeSession.expiresAt).toBe('2026-01-02T00:00:00.000Z');
+    expect(() => {
+      updateLoginState(store, securityResult, domainResult);
+    }).toThrow(
+      '[session-state.builder] Missing issuedAt: required field absent in me.session and tokenPair',
+    );
   });
 });
 

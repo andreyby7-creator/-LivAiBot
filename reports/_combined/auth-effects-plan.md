@@ -152,38 +152,7 @@ effects/shared/auth-api.mappers.ts ✅
 
 ---
 
-### 📝 Шаг 1.4 Вынести safe-record helper
-
-#### ➤ Создать
-
-```
-effects/shared/safe-record.ts
-```
-
-#### ➤ Перенести
-
-- `isPlainObject(value): boolean`
-- `isSafePrimitive(value): boolean`
-- `isSafePrimitiveArray(value): boolean`
-- `validateSafeRecordPayload(value, label): Record<string, unknown>`
-- `freezeShallowRecord(record): Readonly<Record<string, unknown>>`
-- `freezeArrayCopy(array): ReadonlyArray<unknown>`
-- `validateAndFreezeRecordPayload(value, label): Readonly<Record<string, unknown>>`
-
-#### ⚠️ Важно
-
-- ✅ Только **shallow freeze**
-- ❌ Никакого **deep freeze** (дорого и избыточно)
-
-#### ➤ Использование
-
-- В `login-api.mapper.ts`
-- В `register-api.mapper.ts`
-- В `refresh-api.mapper.ts` (если ответ содержит metadata/context)
-
----
-
-### 📝 Шаг 1.5 Создать канонические initial states
+### 📝 Шаг 1.4 Создать канонические initial states
 
 #### ➤ Создать
 
@@ -495,7 +464,6 @@ type LogoutMode = 'local' | 'remote';
 
 - ✅ Только pure-функции
 - ✅ Freeze выходных объектов
-- ✅ Использовать `effects/shared/safe-record.ts` helper
 - ❌ Никакой логики store внутри мэппера
 
 ---
@@ -543,7 +511,6 @@ type LogoutMode = 'local' | 'remote';
 - `domain/RegisterRequest.ts` и `domain/RegisterResponse.ts`
 - `schemas` (через `packages/feature-auth/src/schemas/index.ts`)
 - `effects/login/login-metadata.enricher.ts` (уже поддерживает `operation: 'register'`)
-- `effects/shared/safe-record.ts`
 - `effects/shared/session-state.builder.ts`
 
 ---
@@ -836,8 +803,7 @@ Hook не должен создавать эффекты напрямую
 1. ✅ `auth-store.port.ts` — единый контракт стора
 2. ✅ `session-state.builder.ts` — централизованное построение сессии
 3. ✅ `auth-api.mappers.ts` — общие мэпперы API
-4. ✅ `safe-record.ts` — безопасная работа с Record
-5. ✅ **Переподключить login к shared** — рефакторинг существующего кода
+4. ✅ **Переподключить login к shared** — рефакторинг существующего кода
 
 ### 🧠 Этап 2: Доменная политика (ФАЗА 2)
 
