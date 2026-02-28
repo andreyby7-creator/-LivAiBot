@@ -24,8 +24,8 @@ import type { LoginMetadata } from './login-metadata.enricher.js';
 import type { DomainLoginResult } from '../../domain/LoginResult.js';
 import type { SecurityPipelineResult } from '../../lib/security-pipeline.js';
 import type { RiskAssessmentResult } from '../../types/auth-risk.js';
-import type { SessionState } from '../../types/auth.js';
 import type { AuthStorePort } from '../shared/auth-store.port.js';
+import { buildSessionState } from '../shared/session-state.builder.js';
 
 /* ============================================================================
  * 🔧 INTERNAL HELPERS
@@ -89,26 +89,12 @@ function applySuccessState(
     ...(me.context !== undefined ? { context: me.context } : {}),
   };
 
-  // SessionState: active
-  const newSessionState = me.session
-    ? ((): SessionState => {
-      const issuedAt = me.session.issuedAt ?? tokenPair.issuedAt ?? tokenPair.expiresAt;
-      const expiresAt = me.session.expiresAt ?? tokenPair.expiresAt;
-
-      if (issuedAt > expiresAt) {
-        throw new Error(
-          `[login-store-updater] Invariant violated: issuedAt (${issuedAt}) > expiresAt (${expiresAt})`,
-        );
-      }
-      return {
-        status: 'active' as const,
-        sessionId: me.session.sessionId,
-        device: securityResult.deviceInfo,
-        issuedAt,
-        expiresAt,
-      };
-    })()
-    : null;
+  // SessionState: active (используем builder для консистентности)
+  const newSessionState = buildSessionState({
+    deviceInfo: securityResult.deviceInfo,
+    tokenPair,
+    meSession: me.session,
+  });
 
   // SecurityState: risk_detected/secure в зависимости от riskAssessment
   const { riskAssessment } = securityResult;

@@ -23,3 +23,16 @@ export {
   isBatchUpdateOfType,
   withStoreLock,
 } from './auth-store.port.js';
+
+/* ============================================================================
+ * 🔧 SESSION STATE BUILDER — ПОСТРОЕНИЕ СЕССИИ
+ * ========================================================================== */
+
+/**
+ * Session State Builder: единая точка построения SessionState.
+ * Используется во всех auth-эффектах (login/register/refresh) для консистентности.
+ *
+ * @public
+ */
+export type { BuildSessionStateParams } from './session-state.builder.js';
+export { buildSessionState } from './session-state.builder.js';

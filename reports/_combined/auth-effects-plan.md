@@ -29,7 +29,7 @@
 
 ---
 
-### ✅ Шаг 1. Вынести общий контракт стора [ВЫПОЛНЕНО]
+### ✅ Шаг 1.1 Вынести общий контракт стора [ВЫПОЛНЕНО]
 
 #### ➤ Создать
 
@@ -79,41 +79,46 @@ type AuthStorePort {
 
 ---
 
-### 📝 Шаг 2. Централизовать построение SessionState
+### ✅ Шаг 1.2 Централизовать построение SessionState [ВЫПОЛНЕНО]
 
 #### ➤ Создать
 
 ```
-effects/shared/session-state.builder.ts
+effects/shared/session-state.builder.ts ✅
 ```
 
 #### ➤ Вынести из
 
-- `login-store-updater.ts`
+- `login-store-updater.ts` ✅
 
 #### ➤ Инварианты builder'а
 
-- ✅ Проверка `issuedAt <= expiresAt`
-- ✅ Copy-on-write
-- ✅ Shallow freeze
-- ❌ Не читает store
+- ✅ Проверка `issuedAt <= expiresAt` через `Date.parse()` (безопасное сравнение ISO-8601)
+- ✅ Copy-on-write (shallow copy deviceInfo)
+- ✅ Shallow freeze (защита от мутаций)
+- ✅ Не читает store (pure function)
 - ✅ Единая точка построения `SessionState` из `(deviceInfo, tokenPair, me.session)`
+- ✅ Fail-fast: выбрасывает ошибку если `issuedAt` или `expiresAt` отсутствуют (предотвращает silent masking)
+- ✅ Валидация ISO формата дат (проверка на `NaN` после `Date.parse()`)
+- ✅ Возвращает `null` если `me.session` отсутствует (intentional absence)
 
 #### ➤ Подключить обратно
 
-- В `login-store-updater.ts`
+- ✅ В `login-store-updater.ts`
 
 #### ➤ Использование
 
-- В `login-store-updater.ts`
-- В `refresh-store-updater.ts`
-- В `register-store-updater.ts` (если backend возвращает TokenPair + Me)
+- ✅ В `login-store-updater.ts`
+- ⏳ В `refresh-store-updater.ts`
+- ⏳ В `register-store-updater.ts` (если backend возвращает TokenPair + Me)
 
-> **👉 После этого login становится эталоном reuse.**
+#### ⚠️ Критично
+
+> **👉 После этого login становится эталоном reuse.** ✅ **ГОТОВО К ИСПОЛЬЗОВАНИЮ**
 
 ---
 
-### 📝 Шаг 3. Централизовать API-мэпперы
+### 📝 Шаг 1.3 Централизовать API-мэпперы
 
 #### ➤ Создать
 
@@ -139,7 +144,7 @@ effects/shared/auth-api.mappers.ts
 
 ---
 
-### 📝 Шаг 4. Вынести safe-record helper
+### 📝 Шаг 1.4 Вынести safe-record helper
 
 #### ➤ Создать
 
@@ -167,6 +172,47 @@ effects/shared/safe-record.ts
 - В `login-api.mapper.ts`
 - В `register-api.mapper.ts`
 - В `refresh-api.mapper.ts` (если ответ содержит metadata/context)
+
+---
+
+### 📝 Шаг 1.5 Создать канонические initial states
+
+#### ➤ Создать
+
+```
+types/auth-initial.ts
+```
+
+#### ➤ Константы
+
+- `INITIAL_AUTH_STATE: AuthState` — `{ status: 'unauthenticated' }`
+- `INITIAL_SESSION_STATE: SessionState | null` — `null`
+- `INITIAL_SECURITY_STATE: SecurityState` — `{ status: 'secure' }`
+
+#### ➤ Зависимости
+
+- `types/auth.ts` (AuthState, SessionState, SecurityState)
+
+#### ➤ Инварианты
+
+- ✅ Канонические значения (единый источник истины для reset)
+- ✅ Type-safe (соответствуют типам из `types/auth.ts`)
+- ✅ Immutable (readonly константы)
+- ❌ Не зависит от store или effects
+- ❌ Не содержит бизнес-логики
+
+#### ➤ Использование
+
+- `logout-store-updater.ts` (для атомарного reset через `batchUpdate`)
+- Возможно, другие эффекты для reset/cleanup операций
+
+#### ⚠️ Важно
+
+**Единый источник истины для reset:**
+
+- Избегаем дублирования `{ status: 'unauthenticated' }` в разных местах
+- Гарантируем консистентность при сбросе состояний
+- Упрощаем тестирование (можно мокать константы)
 
 ---
 
@@ -204,7 +250,7 @@ effects/shared/safe-record.ts
 
 ---
 
-### 📝 Шаг 5. Реализовать lib/session-manager.ts
+### 📝 Шаг 2.1. Реализовать lib/session-manager.ts
 
 #### ➤ Domain-pure сервис
 
