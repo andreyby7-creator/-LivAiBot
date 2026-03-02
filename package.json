@@ -165,7 +165,7 @@
     "next-intl": "4.8.3",
     "rollup": "^4.59.0",
     "rollup-plugin-visualizer": "^7.0.0",
-    "snyk": "^1.1302.1",
+    "snyk": "^1.1303.0",
     "tsup": "^8.5.1",
     "tsx": "^4.21.0",
     "turbo": "^2.8.11",
