@@ -356,14 +356,14 @@ type LogoutMode = 'local' | 'remote';
 - ✅ `validateLogoutConfig` для runtime validation timeout
 - ✅ Type guards (`isRemoteLogoutDeps`, `isLocalLogoutDeps`) для discriminated unions
 
-##### 2️⃣ Store-updater (`logout-store-updater.ts`)
+##### 2️⃣ Store-updater (`logout-store-updater.ts`) ✅ [ВЫПОЛНЕНО]
 
 **Единственная точка reset:**
 
 Использует канонические initial states из `types/auth-initial.ts`:
 
 - `initialAuthState`
-- `initialSessionState`
+- `createInitialSessionState()` (возвращает `null`)
 - `initialSecurityState`
 
 Сбрасывает через `batchUpdate` (атомарно):
@@ -371,13 +371,23 @@ type LogoutMode = 'local' | 'remote';
 - `AuthState` → `initialAuthState`
 - `SessionState` → `createInitialSessionState()`
 - `SecurityState` → `initialSecurityState`
-- `applyEventType('logout')`
+- `applyEventType('user_logged_out')`
 
 - ❌ Не читает текущее состояние
 - ❌ Не использует fallback-значения
 - ✅ Атомарное обновление через `batchUpdate`
+- ✅ Вынесена константа `logoutResetActions` для централизованного расширения reset-логики
 
-**Контракт:** вход — `AuthStorePort` (из shared), `reason` (опционально), `meta` (опционально); выход — `void`
+**Контракт:** вход — `AuthStorePort` (из shared), `context?` (опциональный контекст для audit/telemetry с `reason?` и `data?: unknown`); выход — `void`
+
+**Реализовано:**
+
+- ✅ Функция `applyLogoutReset` с атомарным reset через `batchUpdate`
+- ✅ Использование канонических initial states из `types/auth-initial.ts`
+- ✅ Константа `logoutResetActions` для future-proofing (централизованное расширение)
+- ✅ Опциональный `context` параметр для audit/telemetry (зарезервирован для будущего использования)
+- ✅ Domain-pure, deterministic, без side-effects
+- ✅ Inline комментарии для параметров (без дублирования в JSDoc)
 
 **Важно:** Никакой логики reset внутри orchestrator — только в store-updater
 

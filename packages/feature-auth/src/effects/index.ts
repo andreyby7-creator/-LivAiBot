@@ -36,6 +36,17 @@ export * from './login/index.js';
 export type { RiskSignals as AdapterRiskSignals } from '../types/auth-risk.js';
 
 /* ============================================================================
+ * 🔐 LOGOUT EFFECTS — ЭФФЕКТЫ ДЛЯ ВЫХОДА
+ * ========================================================================== */
+
+/**
+ * Logout Effects: все эффекты для logout-flow.
+ *
+ * @public
+ */
+export * from './logout/index.js';
+
+/* ============================================================================
  * 🎯 LOGIN EFFECT ORCHESTRATOR — ОСНОВНОЙ ORCHESTRATOR LOGIN-FLOW
  * ========================================================================== */
 
