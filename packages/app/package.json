@@ -42,9 +42,8 @@
       "import": "./src/lib/orchestrator.ts"
     },
     "./lib/schema-validated-effect.js": {
-      "types": "./dist/esm/lib/schema-validated-effect.d.ts",
-      "import": "./dist/esm/lib/schema-validated-effect.js",
-      "default": "./dist/esm/lib/schema-validated-effect.js"
+      "types": "./src/lib/schema-validated-effect.ts",
+      "import": "./src/lib/schema-validated-effect.ts"
     },
     "./lib/effect-timeout.js": {
       "types": "./src/lib/effect-timeout.ts",
