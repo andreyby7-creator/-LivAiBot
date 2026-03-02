@@ -47,6 +47,31 @@ export type { RiskSignals as AdapterRiskSignals } from '../types/auth-risk.js';
 export * from './logout/index.js';
 
 /* ============================================================================
+ * 🎯 LOGOUT EFFECT ORCHESTRATOR — ОСНОВНОЙ ORCHESTRATOR LOGOUT-FLOW
+ * ========================================================================== */
+
+/**
+ * Logout Effect: тонкий orchestrator для logout-flow.
+ *
+ * Реализует полную последовательность шагов:
+ * - lock store → reset store → unlock store (атомарно)
+ * - (remote mode) revoke API параллельно после unlock (best-effort, не блокирует logout)
+ * - audit logging через LogoutAuditLoggerPort
+ * - concurrency control (ignore / cancel_previous / serialize)
+ *
+ * Инварианты:
+ * - Нет бизнес-логики внутри orchestrator
+ * - Все side-effects через DI-порты
+ * - Все ошибки через injected errorMapper.map (только для remote mode)
+ * - Fail-closed: не вводит fallback-значения, не читает текущее состояние store
+ * - Remote logout: reset store всегда, revoke API best-effort (не блокирует logout)
+ * - Idempotency: reset уже выполненного состояния является no-op (через batchUpdate)
+ *
+ * @public
+ */
+export { createLogoutEffect, type LogoutResult } from './logout.js';
+
+/* ============================================================================
  * 🎯 LOGIN EFFECT ORCHESTRATOR — ОСНОВНОЙ ORCHESTRATOR LOGIN-FLOW
  * ========================================================================== */
 

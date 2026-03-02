@@ -10,6 +10,7 @@ import type {
   AuthApiClientPort,
   ClockPort,
   ErrorMapperPort,
+  EventIdGeneratorPort,
   LogoutAuditLoggerPort,
   LogoutConcurrency,
   LogoutEffectConfig,
@@ -28,6 +29,7 @@ import type { AuthStorePort } from '../../../../src/effects/shared/auth-store.po
 import type { AuthError, AuthState, SecurityState } from '../../../../src/types/auth.js';
 import type { RiskLevel } from '../../../../src/types/auth-risk.js';
 import type { SecurityPipelineResult } from '../../../../src/lib/security-pipeline.js';
+import type { AuditEventValues } from '../../../../src/schemas/index.js';
 
 /* eslint-disable fp/no-mutation, functional/no-conditional-statements, @livai/rag/source-citation */
 
@@ -74,17 +76,6 @@ function createSecurityPipelineResult(): SecurityPipelineResult {
       decisionHint: { action: 'block' },
       assessment: {} as SecurityPipelineResult['riskAssessment']['assessment'],
     },
-  };
-}
-
-/**
- * Создает тестовый AuthError
- */
-function createAuthError(): AuthError {
-  return {
-    kind: 'network',
-    retryable: true,
-    message: 'Network error',
   };
 }
 
@@ -309,14 +300,56 @@ describe('effects/logout/logout-effect.types', () => {
       });
     });
 
+    describe('EventIdGeneratorPort', () => {
+      it('предоставляет generate функцию возвращающую строку', () => {
+        const eventIdGenerator: EventIdGeneratorPort = {
+          generate: () => 'custom-event-id-123',
+        };
+
+        const eventId = eventIdGenerator.generate();
+
+        expect(eventId).toBe('custom-event-id-123');
+        expect(typeof eventId).toBe('string');
+        expect(eventId.length).toBeGreaterThan(0);
+      });
+
+      it('может генерировать уникальные eventId', () => {
+        const counter = { value: 0 };
+        const eventIdGenerator: EventIdGeneratorPort = {
+          generate: () => `event-${++counter.value}`,
+        };
+
+        const eventId1 = eventIdGenerator.generate();
+        const eventId2 = eventIdGenerator.generate();
+        const eventId3 = eventIdGenerator.generate();
+
+        expect(eventId1).toBe('event-1');
+        expect(eventId2).toBe('event-2');
+        expect(eventId3).toBe('event-3');
+        expect(eventId1).not.toBe(eventId2);
+        expect(eventId2).not.toBe(eventId3);
+      });
+
+      it('может использовать crypto.randomUUID для генерации', () => {
+        const eventIdGenerator: EventIdGeneratorPort = {
+          generate: () => crypto.randomUUID(),
+        };
+
+        const eventId1 = eventIdGenerator.generate();
+        const eventId2 = eventIdGenerator.generate();
+
+        expect(eventId1).not.toBe(eventId2);
+        expect(typeof eventId1).toBe('string');
+        expect(typeof eventId2).toBe('string');
+        // UUID формат: 8-4-4-4-12 символов
+        expect(eventId1.length).toBe(36);
+        expect(eventId2.length).toBe(36);
+      });
+    });
+
     describe('LogoutAuditLoggerPort', () => {
       it('поддерживает logLogoutEvent функцию', () => {
-        const loggedEvents: {
-          userId?: string;
-          timestamp: number;
-          type: 'logout_success' | 'logout_failure' | 'revoke_error';
-          error?: AuthError;
-        }[] = [];
+        const loggedEvents: AuditEventValues[] = [];
 
         const auditLogger: LogoutAuditLoggerPort = {
           logLogoutEvent: (event) => {
@@ -324,23 +357,26 @@ describe('effects/logout/logout-effect.types', () => {
           },
         };
 
-        const successEvent = {
+        const successEvent: AuditEventValues = {
+          eventId: 'event-1',
+          timestamp: '2024-01-01T00:00:00.000Z',
+          type: 'logout_success',
           userId: 'user-123',
-          timestamp: 1704067200000,
-          type: 'logout_success' as const,
         };
 
-        const failureEvent = {
+        const failureEvent: AuditEventValues = {
+          eventId: 'event-2',
+          timestamp: '2024-01-01T00:01:00.000Z',
+          type: 'logout_failure',
           userId: 'user-456',
-          timestamp: 1704067260000,
-          type: 'logout_failure' as const,
-          error: createAuthError(),
+          errorCode: 'network',
         };
 
-        const revokeErrorEvent = {
-          timestamp: 1704067320000,
-          type: 'revoke_error' as const,
-          error: createAuthError(),
+        const revokeErrorEvent: AuditEventValues = {
+          eventId: 'event-3',
+          timestamp: '2024-01-01T00:02:00.000Z',
+          type: 'revoke_error',
+          errorCode: 'network',
         };
 
         auditLogger.logLogoutEvent(successEvent);
@@ -354,12 +390,7 @@ describe('effects/logout/logout-effect.types', () => {
       });
 
       it('поддерживает pre-auth logout сценарии (userId undefined)', () => {
-        const loggedEvents: {
-          userId?: string;
-          timestamp: number;
-          type: 'logout_success' | 'logout_failure' | 'revoke_error';
-          error?: AuthError;
-        }[] = [];
+        const loggedEvents: AuditEventValues[] = [];
 
         const auditLogger: LogoutAuditLoggerPort = {
           logLogoutEvent: (event) => {
@@ -367,16 +398,17 @@ describe('effects/logout/logout-effect.types', () => {
           },
         };
 
-        const preAuthLogout = {
-          timestamp: 1704067200000,
-          type: 'logout_success' as const,
+        const preAuthLogout: AuditEventValues = {
+          eventId: 'event-1',
+          timestamp: '2024-01-01T00:00:00.000Z',
+          type: 'logout_success',
         };
 
         auditLogger.logLogoutEvent(preAuthLogout);
 
         expect(loggedEvents).toHaveLength(1);
         expect(loggedEvents[0]?.userId).toBeUndefined();
-        expect(loggedEvents[0]?.timestamp).toBe(1704067200000);
+        expect(loggedEvents[0]?.timestamp).toBe('2024-01-01T00:00:00.000Z');
         expect(loggedEvents[0]?.type).toBe('logout_success');
       });
     });

@@ -13,6 +13,7 @@
  */
 
 import type { SecurityPipelineResult } from '../../lib/security-pipeline.js';
+import type { AuditEventValues } from '../../schemas/index.js';
 import type { RiskLevel } from '../../types/auth-risk.js';
 import type { AuthError } from '../../types/auth.js';
 import type { AuthApiClientPort } from '../shared/api-client.port.js';
@@ -94,12 +95,20 @@ export type ErrorMapperPort = Readonly<{
 }>;
 
 /**
- * Порт времени.
- * @note Один источник времени для logout-effect, легко подменяется в тестах.
+ * Порт для времени (clock).
  * @note Обязателен: используется для audit/telemetry (timestamp для security-событий).
  */
 export type ClockPort = Readonly<{
   now: () => number; // UnixTimestampMs (milliseconds)
+}>;
+
+/**
+ * Порт для генерации eventId.
+ * @note Опционален: если не задан, используется дефолтная генерация с crypto.randomUUID.
+ *       Для детерминизма в тестах рекомендуется передавать кастомный генератор.
+ */
+export type EventIdGeneratorPort = Readonly<{
+  generate: () => string; // Генератор уникального eventId для audit-событий
 }>;
 
 /**
@@ -109,15 +118,11 @@ export type ClockPort = Readonly<{
  */
 export type LogoutAuditLoggerPort = Readonly<{
   /**
-   * Логирование logout-событий (logout_success/logout_failure/revoke_error).
-   * @note События должны быть заранее провалидированы через соответствующие схемы.
+   * Логирование logout-событий (logout_success/logout_failure).
+   * @note События должны быть заранее провалидированы через auditEventSchema.
+   * @note Использует AuditEventValues для консистентности с login-audit.
    */
-  logLogoutEvent: (event: {
-    userId?: string; // ID пользователя (undefined = pre-auth logout scenario)
-    timestamp: number; // UnixTimestampMs
-    type: 'logout_success' | 'logout_failure' | 'revoke_error';
-    error?: AuthError; // Опциональная ошибка для logout_failure/revoke_error
-  }) => void;
+  logLogoutEvent: (event: AuditEventValues) => void;
 }>;
 
 /**
@@ -140,6 +145,7 @@ type BaseLogoutEffectDeps = Readonly<{
   authStore: AuthStorePort; // Порт для работы с store (обязателен для всех режимов)
   clock: ClockPort; // Порт времени (обязателен для audit/telemetry)
   auditLogger: LogoutAuditLoggerPort; // Порт для audit-логирования logout-событий
+  eventIdGenerator?: EventIdGeneratorPort | undefined; // Порт для генерации eventId (опционален, для детерминизма в тестах)
 }>;
 
 /** Зависимости для remote logout (дополнительно к базовым). */
@@ -196,6 +202,12 @@ export type LogoutEffectConfig =
      */
     concurrency?: LogoutConcurrency | undefined;
 
+    /**
+     * Причина logout-операции (для audit/telemetry).
+     * @default 'user_initiated'
+     */
+    reason?: string | undefined;
+
     featureFlags?: LogoutFeatureFlags; // Feature flags для logout-flow
   }>
   | Readonly<{
@@ -215,6 +227,12 @@ export type LogoutEffectConfig =
      *       Используйте validateLogoutConfig для проверки перед использованием.
      */
     timeout?: number | undefined; // Milliseconds, опционален, только для remote mode
+
+    /**
+     * Причина logout-операции (для audit/telemetry).
+     * @default 'user_initiated'
+     */
+    reason?: string | undefined;
 
     featureFlags?: LogoutFeatureFlags; // Feature flags для logout-flow
   }>;

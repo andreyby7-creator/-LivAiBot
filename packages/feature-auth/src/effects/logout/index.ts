@@ -18,6 +18,7 @@
  * @public
  */
 export type {
+  EventIdGeneratorPort,
   LogoutAuditLoggerPort,
   LogoutConcurrency,
   LogoutEffectConfig,
@@ -44,3 +45,11 @@ export {
  * @public
  */
 export { applyLogoutReset } from './logout-store-updater.js';
+
+export {
+  type LogoutAuditContext,
+  type LogoutResultForAudit,
+  mapLogoutResultToAuditEvent,
+  mapRevokeErrorToAuditEvent,
+  mapRevokeSkippedToAuditEvent,
+} from './logout-audit.mapper.js';

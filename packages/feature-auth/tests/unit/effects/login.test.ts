@@ -739,6 +739,51 @@ describe('createLoginEffect', () => {
         const result2 = await promise2;
         expect(result2.type).toBe('success');
       });
+
+      it('возвращает rate_limited ошибку при переполнении очереди serialize', async () => {
+        const serializeConfig = createConfigWithConcurrency('serialize');
+        const request = createValidLoginRequest();
+        const tokenPair = createMockTokenPair();
+        const meResponse = createMockMeResponse();
+        const securityResult = createMockLoginSecurityResult({ type: 'allow' });
+
+        // Создаем долгий запрос, чтобы заполнить очередь
+        // Используем задержку, чтобы запросы не выполнялись мгновенно
+        mockSecurityPipelineRun.mockReturnValue(
+          async () => {
+            await new Promise((resolve) => setTimeout(resolve, 20));
+            return securityResult;
+          },
+        );
+        mockApiClient.mockReturnValue(async () => tokenPair);
+        mockGet.mockReturnValue(async () => meResponse);
+
+        const loginEffect = createLoginEffect(deps, serializeConfig);
+
+        // Запускаем 10 запросов одновременно (максимальная длина очереди = 10)
+        // Все они должны попасть в очередь до начала выполнения
+        const requestPromises = Array.from({ length: 10 }, () => {
+          const effect = loginEffect(request);
+          // Не ждем выполнения, просто добавляем в очередь
+          return effect();
+        });
+
+        // Небольшая задержка, чтобы убедиться, что все 10 запросов попали в очередь
+        await new Promise((resolve) => setTimeout(resolve, 10));
+
+        // 11-й запрос должен вернуть rate_limited ошибку, так как очередь переполнена
+        const effect11 = loginEffect(request);
+        const result11 = await effect11();
+
+        expect(result11.type).toBe('error');
+        if (result11.type === 'error') {
+          expect(result11.error.kind).toBe('rate_limited');
+          expect(result11.error.message).toBe('Login queue is full, please try again later');
+        }
+
+        // Ждем завершения всех предыдущих запросов
+        await Promise.allSettled(requestPromises);
+      });
     });
   });
 

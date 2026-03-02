@@ -391,20 +391,28 @@ type LogoutMode = 'local' | 'remote';
 
 **Важно:** Никакой логики reset внутри orchestrator — только в store-updater
 
-##### 3️⃣ Orchestrator (`logout.ts`)
+##### 3️⃣ Orchestrator (`logout.ts`) ✅ [ВЫПОЛНЕНО]
 
 - ✅ Чистый сценарий
 - ✅ Idempotency (двойной logout → no-op)
 - ✅ Блокировка store только на время reset (lock → reset → unlock), revoke не держит lock (идёт параллельно после unlock)
-- ❌ Нет бизнес-логики (только сценарий)
-- ❌ Нет прямых `Date.now()` (использовать `ClockPort`, если нужен timestamp для audit/telemetry)
+- ✅ Нет бизнес-логики (только сценарий)
+- ✅ Нет прямых `Date.now()` (используется `ClockPort` через `deps.clock.now()`)
 - ✅ Все side-effects только через DI-порты
 - ✅ Fail-closed: не вводит fallback-значения, не читает текущее состояние store
-- ❌ Не вызывает другие эффекты напрямую (cross-effect вызовы запрещены)
+- ✅ Не вызывает другие эффекты напрямую (cross-effect вызовы запрещены)
 
 **Remote logout:** reset store (с lock) + revoke API параллельно после unlock (best-effort, не ждём успеха revoke)
 
-Использует `@livai/app/lib/orchestrator` — если потребуется последовательность шагов (например, audit → store-reset)
+**Реализовано:**
+
+- ✅ `performStoreReset` использует `withStoreLock` для атомарного lock → reset → unlock
+- ✅ `handleRevokeRequest` выполняется параллельно после unlock, не блокирует logout
+- ✅ Все timestamp'ы через `deps.clock.now()` и `epochMsToIsoString()` (детерминизм)
+- ✅ Audit logging через `LogoutAuditLoggerPort` (синхронно внутри `runOnce`)
+- ✅ Concurrency control: `ignore`, `cancel_previous`, `serialize` с DoS-защитой
+- ✅ Idempotency через `batchUpdate` в `applyLogoutReset`
+- ✅ Fail-closed: ошибки revoke логируются, но не влияют на результат logout
 
 ---
 

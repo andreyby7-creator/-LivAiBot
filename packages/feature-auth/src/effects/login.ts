@@ -59,6 +59,8 @@ const TRACE_ID_FALLBACK_LENGTH = 11;
 const EVENT_ID_UUID_LENGTH = 8;
 /** Длина случайной части eventId при fallback генерации (slice(2) убирает "0.") */
 const EVENT_ID_FALLBACK_LENGTH = 10;
+/** Максимальная длина очереди для serialize стратегии (защита от DoS) */
+const MAX_SERIALIZE_QUEUE_LENGTH = 10;
 
 /* ============================================================================
  * 🧭 TYPES — PUBLIC LOGIN RESULT
@@ -303,8 +305,11 @@ export function createLoginEffect(
 ): (request: LoginRequest<LoginIdentifierType>) => Effect<LoginResult> {
   // Примитивная конкурентная защита: cancel_previous / ignore / serialize.
   let inFlight: Promise<LoginResult> | null = null;
+  // @note login один запрос → currentController достаточно
+  //       logout может иметь несколько параллельных запросов → controllerMap
   let currentController: AbortController | null = null;
   let queueTail: Promise<LoginResult> | null = null;
+  let queueLength = 0; // Счетчик длины очереди для serialize (защита от DoS)
 
   return (request: LoginRequest<LoginIdentifierType>): Effect<LoginResult> =>
   async (externalSignal?: AbortSignal): Promise<LoginResult> => {
@@ -500,6 +505,16 @@ export function createLoginEffect(
       }
 
       if (config.concurrency === 'serialize') {
+        // Защита от DoS: проверяем лимит длины очереди
+        if (queueLength >= MAX_SERIALIZE_QUEUE_LENGTH) {
+          const error: AuthError = {
+            kind: 'rate_limited',
+            message: 'Login queue is full, please try again later',
+          };
+          return { type: 'error', error };
+        }
+
+        queueLength++;
         const previous = queueTail;
         const current = (async (): Promise<LoginResult> => {
           if (previous) {
@@ -511,6 +526,15 @@ export function createLoginEffect(
           return runOnce();
         })();
         queueTail = current; // Обновляем хвост очереди для следующего запроса
+        // Очищаем счетчик после завершения
+        current.finally(() => {
+          queueLength--;
+          if (queueTail === current) {
+            queueTail = null;
+          }
+        }).catch(() => {
+          // Игнорируем ошибки при очистке
+        });
         return current;
       }
 
