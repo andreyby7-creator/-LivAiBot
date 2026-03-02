@@ -16,9 +16,9 @@
  */
 export type {
   AbortControllerPort,
-  ApiClient,
   ApiRequestOptions,
   AuditLoggerPort,
+  AuthApiClientPort,
   ClockPort,
   ErrorMapperPort,
   IdentifierHasher,

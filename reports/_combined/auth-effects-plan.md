@@ -309,7 +309,7 @@ types/auth-initial.ts ✅
 
 #### 📁 Создать
 
-- `effects/logout/logout-effect.types.ts`
+- ✅ `effects/logout/logout-effect.types.ts` [ВЫПОЛНЕНО]
 - `effects/logout/logout-store-updater.ts`
 - `effects/logout.ts`
 
@@ -331,23 +331,30 @@ type LogoutMode = 'local' | 'remote';
 
 **Стратегия remote logout:** optimistic reset — reset store всегда, revoke API best-effort (не блокирует logout при timeout/500/network error)
 
-##### ➤ DI-тип (`logout-effect.types.ts`)
+##### ➤ DI-тип (`logout-effect.types.ts`) ✅ [ВЫПОЛНЕНО]
 
-- `AuthStorePort` (общий, из `effects/shared/auth-store.port.ts`)
-- `ClockPort` — только если нужен timestamp для audit/event
-- `LogoutEffectDeps`:
-  - `store` + `clock` при необходимости
-  - `apiClient` и `errorMapper` только при `mode: 'remote'`
-- `LogoutEffectConfig`:
-  - `mode: 'local' | 'remote'` (обязательно)
-  - `concurrency: 'ignore' | 'cancel_previous' | 'serialize'`
-  - `timeout?` (только при `mode: 'remote'`)
+- ✅ `AuthStorePort` (общий, из `effects/shared/auth-store.port.ts`) — реализовано в BaseLogoutEffectDeps
+- ✅ `ClockPort` — обязателен для audit/telemetry — реализовано в BaseLogoutEffectDeps
+- ✅ `LogoutEffectDeps` — discriminated union для compile-time safety:
+  - ✅ `store` + `clock` + `auditLogger` — базовые зависимости (BaseLogoutEffectDeps)
+  - ✅ `apiClient` и `errorMapper` только при `mode: 'remote'` — реализовано в RemoteLogoutEffectDeps
+- ✅ `LogoutEffectConfig` — discriminated union:
+  - ✅ `mode: 'local' | 'remote'` (обязательно) — реализовано
+  - ✅ `concurrency: 'ignore' | 'cancel_previous' | 'serialize'` — реализовано как LogoutConcurrency
+  - ✅ `timeout?` (только при `mode: 'remote'`) — реализовано в remote варианте
+  - ✅ `featureFlags?: LogoutFeatureFlags` — добавлено для консистентности с login
 
-**Инвариант:** Logout не должен импортировать конкретные эффекты/мапперы напрямую — только через deps
+**Инвариант:** ✅ Logout не импортирует конкретные эффекты/мапперы напрямую — только типы через `import type`
 
-**Важно:** Эффект не должен быть универсальным — явное разделение на local/remote
+**Важно:** ✅ Эффект не универсальный — явное разделение на local/remote через discriminated unions
 
-**Isolation:** не обязателен для logout (если `concurrency = 'ignore'` — достаточно, isolation guard не нужен)
+**Isolation:** ✅ не обязателен для logout — упомянуто в комментариях
+
+**Дополнительно реализовано:**
+
+- ✅ `LogoutSecurityDecision` и `LogoutSecurityResult` для extensibility
+- ✅ `validateLogoutConfig` для runtime validation timeout
+- ✅ Type guards (`isRemoteLogoutDeps`, `isLocalLogoutDeps`) для discriminated unions
 
 ##### 2️⃣ Store-updater (`logout-store-updater.ts`)
 

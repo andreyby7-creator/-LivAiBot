@@ -48,3 +48,28 @@ export { buildSessionState } from './session-state.builder.js';
  * @public
  */
 export { mapMeResponseValuesToDomain, mapTokenPairValuesToDomain } from './auth-api.mappers.js';
+
+/* ============================================================================
+ * 🔧 API CLIENT PORT — ЕДИНЫЙ КОНТРАКТ HTTP-КЛИЕНТА
+ * ========================================================================== */
+
+/**
+ * AuthApiClient Port: Effect-based DI-контракт для HTTP-клиента auth-домена.
+ * Обеспечивает единую async-модель в orchestrator.
+ *
+ * @public
+ */
+export type { ApiRequestOptions, AuthApiClientPort } from './api-client.port.js';
+
+/* ============================================================================
+ * 🔧 API CLIENT ADAPTER — АДАПТАЦИЯ PROMISE → EFFECT
+ * ========================================================================== */
+
+/**
+ * ApiClient Adapter: преобразование Promise-based HTTP-клиента в Effect-based AuthApiClientPort.
+ * Используется во всех auth-эффектах для единой async-модели в orchestrator.
+ *
+ * @public
+ */
+export { createApiClientPortAdapter } from './api-client.adapter.js';
+export type { LegacyApiClient } from './api-client.adapter.js';

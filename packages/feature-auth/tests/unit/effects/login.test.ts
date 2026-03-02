@@ -256,8 +256,8 @@ describe('createLoginEffect', () => {
       mockSecurityPipelineRun.mockReturnValue(
         async () => securityResult,
       );
-      mockApiClient.mockResolvedValue(tokenPair);
-      mockGet.mockResolvedValue(meResponse);
+      mockApiClient.mockReturnValue(async () => tokenPair);
+      mockGet.mockReturnValue(async () => meResponse);
 
       const loginEffect = createLoginEffect(deps, config);
       const effect = loginEffect(request);
@@ -276,7 +276,6 @@ describe('createLoginEffect', () => {
         expect.objectContaining({
           identifier: request.identifier,
         }),
-        expect.any(Object),
       );
       expect(mockGet).toHaveBeenCalledWith(
         '/v1/auth/me',
@@ -308,8 +307,8 @@ describe('createLoginEffect', () => {
       config.timeouts.loginHardTimeoutMs = 120_000;
 
       mockSecurityPipelineRun.mockReturnValue(async () => securityResult);
-      mockApiClient.mockResolvedValue(tokenPair);
-      mockGet.mockResolvedValue(meResponse);
+      mockApiClient.mockReturnValue(async () => tokenPair);
+      mockGet.mockReturnValue(async () => meResponse);
 
       const loginEffect = createLoginEffect(deps, config);
       const effect = loginEffect(request);
@@ -318,19 +317,26 @@ describe('createLoginEffect', () => {
       expect(result.type).toBe('success');
     });
 
-    it('использует DEFAULT_LOGIN_HARD_TIMEOUT_MS если loginHardTimeoutMs не указан', async () => {
+    it('использует loginHardTimeoutMs из config (обязательное поле)', async () => {
       const request = createValidLoginRequest();
       const tokenPair = createMockTokenPair();
       const meResponse = createMockMeResponse();
       const securityResult = createMockLoginSecurityResult({ type: 'allow' });
 
-      delete config.timeouts.loginHardTimeoutMs;
+      // loginHardTimeoutMs теперь обязательное поле (default задаётся в composer)
+      const configWithTimeout = {
+        ...config,
+        timeouts: {
+          ...config.timeouts,
+          loginHardTimeoutMs: 90000, // 90 секунд
+        },
+      };
 
       mockSecurityPipelineRun.mockReturnValue(async () => securityResult);
-      mockApiClient.mockResolvedValue(tokenPair);
-      mockGet.mockResolvedValue(meResponse);
+      mockApiClient.mockReturnValue(async () => tokenPair);
+      mockGet.mockReturnValue(async () => meResponse);
 
-      const loginEffect = createLoginEffect(deps, config);
+      const loginEffect = createLoginEffect(deps, configWithTimeout);
       const effect = loginEffect(request);
       const result = await effect();
 
@@ -438,8 +444,8 @@ describe('createLoginEffect', () => {
       const securityResult = createMockLoginSecurityResult({ type: 'allow' });
 
       mockSecurityPipelineRun.mockReturnValue(async () => securityResult);
-      mockApiClient.mockResolvedValue(tokenPair);
-      mockGet.mockResolvedValue(meResponse);
+      mockApiClient.mockReturnValue(async () => tokenPair);
+      mockGet.mockReturnValue(async () => meResponse);
 
       const loginEffect = createLoginEffect(deps, config);
       const effect = loginEffect(request);
@@ -458,8 +464,8 @@ describe('createLoginEffect', () => {
       });
 
       mockSecurityPipelineRun.mockReturnValue(async () => securityResult);
-      mockApiClient.mockResolvedValue(tokenPair);
-      mockGet.mockResolvedValue(meResponse);
+      mockApiClient.mockReturnValue(async () => tokenPair);
+      mockGet.mockReturnValue(async () => meResponse);
 
       const loginEffect = createLoginEffect(deps, config);
       const effect = loginEffect(request);
@@ -478,8 +484,8 @@ describe('createLoginEffect', () => {
       const securityResult = createMockLoginSecurityResult({ type: 'allow' });
 
       mockSecurityPipelineRun.mockReturnValue(async () => securityResult);
-      mockApiClient.mockResolvedValue(tokenPair);
-      mockGet.mockResolvedValue(meResponse);
+      mockApiClient.mockReturnValue(async () => tokenPair);
+      mockGet.mockReturnValue(async () => meResponse);
 
       const loginEffect = createLoginEffect(deps, config);
       const effect = loginEffect(request);
@@ -506,8 +512,8 @@ describe('createLoginEffect', () => {
       } as DomainLoginResult);
 
       mockSecurityPipelineRun.mockReturnValue(async () => securityResult);
-      mockApiClient.mockResolvedValue(tokenPair);
-      mockGet.mockResolvedValue(meResponse);
+      mockApiClient.mockReturnValue(async () => tokenPair);
+      mockGet.mockReturnValue(async () => meResponse);
 
       const loginEffect = createLoginEffect(deps, config);
       const effect = loginEffect(request);
@@ -546,7 +552,9 @@ describe('createLoginEffect', () => {
       const error = new Error('Login API failed');
 
       mockSecurityPipelineRun.mockReturnValue(async () => securityResult);
-      mockApiClient.mockRejectedValue(error);
+      mockApiClient.mockReturnValue(async () => {
+        throw error;
+      });
 
       const loginEffect = createLoginEffect(deps, config);
       const effect = loginEffect(request);
@@ -564,8 +572,10 @@ describe('createLoginEffect', () => {
       const error = new Error('Me API failed');
 
       mockSecurityPipelineRun.mockReturnValue(async () => securityResult);
-      mockApiClient.mockResolvedValue(tokenPair);
-      mockGet.mockRejectedValue(error);
+      mockApiClient.mockReturnValue(async () => tokenPair);
+      mockGet.mockReturnValue(async () => {
+        throw error;
+      });
 
       const loginEffect = createLoginEffect(deps, config);
       const effect = loginEffect(request);
@@ -587,8 +597,8 @@ describe('createLoginEffect', () => {
         const securityResult = createMockLoginSecurityResult({ type: 'allow' });
 
         mockSecurityPipelineRun.mockReturnValue(async () => securityResult);
-        mockApiClient.mockResolvedValue(tokenPair);
-        mockGet.mockResolvedValue(meResponse);
+        mockApiClient.mockReturnValue(async () => tokenPair);
+        mockGet.mockReturnValue(async () => meResponse);
 
         const loginEffect = createLoginEffect(deps, cancelConfig);
         const effect1 = loginEffect(request);
@@ -621,8 +631,8 @@ describe('createLoginEffect', () => {
         const securityResult = createMockLoginSecurityResult({ type: 'allow' });
 
         mockSecurityPipelineRun.mockReturnValue(async () => securityResult);
-        mockApiClient.mockResolvedValue(tokenPair);
-        mockGet.mockResolvedValue(meResponse);
+        mockApiClient.mockReturnValue(async () => tokenPair);
+        mockGet.mockReturnValue(async () => meResponse);
 
         const loginEffect = createLoginEffect(deps, ignoreConfig);
         const effect1 = loginEffect(request);
@@ -651,8 +661,8 @@ describe('createLoginEffect', () => {
         const securityResult = createMockLoginSecurityResult({ type: 'allow' });
 
         mockSecurityPipelineRun.mockReturnValue(async () => securityResult);
-        mockApiClient.mockResolvedValue(tokenPair);
-        mockGet.mockResolvedValue(meResponse);
+        mockApiClient.mockReturnValue(async () => tokenPair);
+        mockGet.mockReturnValue(async () => meResponse);
 
         const loginEffect = createLoginEffect(deps, ignoreConfig);
         const effect1 = loginEffect(request);
@@ -676,8 +686,8 @@ describe('createLoginEffect', () => {
         const securityResult = createMockLoginSecurityResult({ type: 'allow' });
 
         mockSecurityPipelineRun.mockReturnValue(async () => securityResult);
-        mockApiClient.mockResolvedValue(tokenPair);
-        mockGet.mockResolvedValue(meResponse);
+        mockApiClient.mockReturnValue(async () => tokenPair);
+        mockGet.mockReturnValue(async () => meResponse);
 
         const loginEffect = createLoginEffect(deps, serializeConfig);
         const effect1 = loginEffect(request);
@@ -709,8 +719,8 @@ describe('createLoginEffect', () => {
           })
           .mockReturnValueOnce(async () => securityResult);
 
-        mockApiClient.mockResolvedValue(tokenPair);
-        mockGet.mockResolvedValue(meResponse);
+        mockApiClient.mockReturnValue(async () => tokenPair);
+        mockGet.mockReturnValue(async () => meResponse);
 
         const loginEffect = createLoginEffect(deps, serializeConfig);
         const effect1 = loginEffect(request);
@@ -777,8 +787,8 @@ describe('createLoginEffect', () => {
       const meResponse = createMockMeResponse();
 
       mockSecurityPipelineRun.mockReturnValue(async () => securityResult);
-      mockApiClient.mockResolvedValue(tokenPair);
-      mockGet.mockResolvedValue(meResponse);
+      mockApiClient.mockReturnValue(async () => tokenPair);
+      mockGet.mockReturnValue(async () => meResponse);
 
       const loginEffect = createLoginEffect(deps, config);
       const effect = loginEffect(request);
@@ -804,8 +814,8 @@ describe('createLoginEffect', () => {
       const meResponse = createMockMeResponse();
 
       mockSecurityPipelineRun.mockReturnValue(async () => securityResult);
-      mockApiClient.mockResolvedValue(tokenPair);
-      mockGet.mockResolvedValue(meResponse);
+      mockApiClient.mockReturnValue(async () => tokenPair);
+      mockGet.mockReturnValue(async () => meResponse);
 
       const loginEffect = createLoginEffect(deps, config);
       const effect = loginEffect(request);
@@ -834,8 +844,8 @@ describe('createLoginEffect', () => {
       const meResponse = createMockMeResponse();
 
       mockSecurityPipelineRun.mockReturnValue(async () => securityResult);
-      mockApiClient.mockResolvedValue(tokenPair);
-      mockGet.mockResolvedValue(meResponse);
+      mockApiClient.mockReturnValue(async () => tokenPair);
+      mockGet.mockReturnValue(async () => meResponse);
 
       const loginEffect = createLoginEffect(deps, config);
       const effect = loginEffect(request);
@@ -862,8 +872,8 @@ describe('createLoginEffect', () => {
       const meResponse = createMockMeResponse();
 
       mockSecurityPipelineRun.mockReturnValue(async () => securityResult);
-      mockApiClient.mockResolvedValue(tokenPair);
-      mockGet.mockResolvedValue(meResponse);
+      mockApiClient.mockReturnValue(async () => tokenPair);
+      mockGet.mockReturnValue(async () => meResponse);
 
       const loginEffect = createLoginEffect(deps, config);
       const effect = loginEffect(request);
@@ -883,8 +893,8 @@ describe('createLoginEffect', () => {
       const meResponse = createMockMeResponse();
 
       mockSecurityPipelineRun.mockReturnValue(async () => securityResult);
-      mockApiClient.mockResolvedValue(tokenPair);
-      mockGet.mockResolvedValue(meResponse);
+      mockApiClient.mockReturnValue(async () => tokenPair);
+      mockGet.mockReturnValue(async () => meResponse);
 
       const loginEffect = createLoginEffect(deps, config);
       const effect = loginEffect(request);
@@ -906,8 +916,8 @@ describe('createLoginEffect', () => {
       const meResponse = createMockMeResponse();
 
       mockSecurityPipelineRun.mockReturnValue(async () => securityResult);
-      mockApiClient.mockResolvedValue(tokenPair);
-      mockGet.mockResolvedValue(meResponse);
+      mockApiClient.mockReturnValue(async () => tokenPair);
+      mockGet.mockReturnValue(async () => meResponse);
 
       const loginEffect = createLoginEffect(deps, config);
       const effect = loginEffect(request);
@@ -934,8 +944,8 @@ describe('createLoginEffect', () => {
       const meResponse = createMockMeResponse();
 
       mockSecurityPipelineRun.mockReturnValue(async () => securityResult);
-      mockApiClient.mockResolvedValue(tokenPair);
-      mockGet.mockResolvedValue(meResponse);
+      mockApiClient.mockReturnValue(async () => tokenPair);
+      mockGet.mockReturnValue(async () => meResponse);
 
       const loginEffect = createLoginEffect(deps, config);
       const effect = loginEffect(request);
@@ -962,8 +972,8 @@ describe('createLoginEffect', () => {
       const securityResult = createMockLoginSecurityResult({ type: 'allow' });
 
       mockSecurityPipelineRun.mockReturnValue(async () => securityResult);
-      mockApiClient.mockResolvedValue(tokenPair);
-      mockGet.mockResolvedValue(meResponse);
+      mockApiClient.mockReturnValue(async () => tokenPair);
+      mockGet.mockReturnValue(async () => meResponse);
 
       const loginEffect = createLoginEffect(deps, config);
       const effect = loginEffect(request);
@@ -988,8 +998,8 @@ describe('createLoginEffect', () => {
       const securityResult = createMockLoginSecurityResult({ type: 'allow' });
 
       mockSecurityPipelineRun.mockReturnValue(async () => securityResult);
-      mockApiClient.mockResolvedValue(tokenPair);
-      mockGet.mockResolvedValue(meResponse);
+      mockApiClient.mockReturnValue(async () => tokenPair);
+      mockGet.mockReturnValue(async () => meResponse);
 
       const loginEffect = createLoginEffect(deps, cancelConfig);
       const effect1 = loginEffect(request);
@@ -1014,8 +1024,8 @@ describe('createLoginEffect', () => {
       const meResponse = createMockMeResponse();
 
       mockSecurityPipelineRun.mockReturnValue(async () => securityResult);
-      mockApiClient.mockResolvedValue(tokenPair);
-      mockGet.mockResolvedValue(meResponse);
+      mockApiClient.mockReturnValue(async () => tokenPair);
+      mockGet.mockReturnValue(async () => meResponse);
 
       const loginEffect = createLoginEffect(deps, config);
       const effect = loginEffect(requestWithoutClientContext);
@@ -1050,8 +1060,8 @@ describe('createLoginEffect', () => {
       const meResponse = createMockMeResponse();
 
       mockSecurityPipelineRun.mockReturnValue(async () => securityResultWithoutRules);
-      mockApiClient.mockResolvedValue(tokenPair);
-      mockGet.mockResolvedValue(meResponse);
+      mockApiClient.mockReturnValue(async () => tokenPair);
+      mockGet.mockReturnValue(async () => meResponse);
 
       const loginEffect = createLoginEffect(deps, config);
       const effect = loginEffect(request);
@@ -1082,8 +1092,8 @@ describe('createLoginEffect', () => {
       const meResponse = createMockMeResponse();
 
       mockSecurityPipelineRun.mockReturnValue(async () => securityResultWithInvalidRules);
-      mockApiClient.mockResolvedValue(tokenPair);
-      mockGet.mockResolvedValue(meResponse);
+      mockApiClient.mockReturnValue(async () => tokenPair);
+      mockGet.mockReturnValue(async () => meResponse);
 
       const loginEffect = createLoginEffect(deps, config);
       const effect = loginEffect(request);
@@ -1107,8 +1117,8 @@ describe('createLoginEffect', () => {
       const meResponse = createMockMeResponse();
 
       mockSecurityPipelineRun.mockReturnValue(async () => securityResultWithoutDeviceInfo);
-      mockApiClient.mockResolvedValue(tokenPair);
-      mockGet.mockResolvedValue(meResponse);
+      mockApiClient.mockReturnValue(async () => tokenPair);
+      mockGet.mockReturnValue(async () => meResponse);
 
       const loginEffect = createLoginEffect(deps, config);
       const effect = loginEffect(request);
@@ -1130,8 +1140,8 @@ describe('createLoginEffect', () => {
       const meResponse = createMockMeResponse();
 
       mockSecurityPipelineRun.mockReturnValue(async () => securityResult);
-      mockApiClient.mockResolvedValue(tokenPair);
-      mockGet.mockResolvedValue(meResponse);
+      mockApiClient.mockReturnValue(async () => tokenPair);
+      mockGet.mockReturnValue(async () => meResponse);
 
       const loginEffect = createLoginEffect(deps, config);
       const effect = loginEffect(request);
@@ -1152,19 +1162,21 @@ describe('createLoginEffect', () => {
       mockSecurityPipelineRun.mockReturnValue(async () => securityResult);
       // Мокаем apiClient.post чтобы проверить, что он вызывается без signal в некоторых случаях
       // @see packages/feature-auth/src/effects/login.ts:279-287
-      mockApiClient.mockImplementation(async (url, _body, options) => {
+      mockApiClient.mockImplementation((url, _body, options) => {
         // Проверяем, что options может быть undefined (когда sig === undefined)
         // @see packages/feature-auth/src/effects/login.ts:281
-        if (url === '/v1/auth/login' && options === undefined) {
-          return tokenPair;
-        }
-        if (url === '/v1/auth/login') {
-          return tokenPair;
-        }
-        // @see packages/feature-auth/src/effects/login.ts:282-286
-        return meResponse;
+        return async () => {
+          if (url === '/v1/auth/login' && options === undefined) {
+            return tokenPair;
+          }
+          if (url === '/v1/auth/login') {
+            return tokenPair;
+          }
+          // @see packages/feature-auth/src/effects/login.ts:282-286
+          return meResponse;
+        };
       });
-      mockGet.mockResolvedValue(meResponse);
+      mockGet.mockReturnValue(async () => meResponse);
 
       const loginEffect = createLoginEffect(deps, config);
       const effect = loginEffect(request);
@@ -1182,22 +1194,24 @@ describe('createLoginEffect', () => {
       const meResponse = createMockMeResponse();
 
       mockSecurityPipelineRun.mockReturnValue(async () => securityResult);
-      mockApiClient.mockResolvedValue(tokenPair);
+      mockApiClient.mockReturnValue(async () => tokenPair);
       // Мокаем apiClient.get чтобы проверить, что он вызывается без signal в некоторых случаях
       // @see packages/feature-auth/src/effects/login.ts:310-321
-      mockGet.mockImplementation(async (_url, options) => {
-        // Проверяем, что options.signal может быть undefined
-        // @see packages/feature-auth/src/effects/login.ts:318
-        if (
-          options !== undefined
-          && typeof options === 'object'
-          && 'signal' in options
-          && options.signal === undefined
-        ) {
+      mockGet.mockImplementation((_url, options) => {
+        return async () => {
+          // Проверяем, что options.signal может быть undefined
+          // @see packages/feature-auth/src/effects/login.ts:318
+          if (
+            options !== undefined
+            && typeof options === 'object'
+            && 'signal' in options
+            && options.signal === undefined
+          ) {
+            return meResponse;
+          }
+          // @see packages/feature-auth/src/effects/login.ts:321
           return meResponse;
-        }
-        // @see packages/feature-auth/src/effects/login.ts:321
-        return meResponse;
+        };
       });
 
       const loginEffect = createLoginEffect(deps, config);
@@ -1235,8 +1249,8 @@ describe('createLoginEffect', () => {
       };
 
       mockSecurityPipelineRun.mockReturnValue(async () => securityResult);
-      mockApiClient.mockResolvedValue(tokenPair);
-      mockGet.mockResolvedValue(meResponse);
+      mockApiClient.mockReturnValue(async () => tokenPair);
+      mockGet.mockReturnValue(async () => meResponse);
 
       const loginEffect = createLoginEffect(deps, config);
       const effect = loginEffect(request);
@@ -1256,41 +1270,45 @@ describe('createLoginEffect', () => {
 
       // Мокаем apiClient.post чтобы проверить, что он вызывается с правильными параметрами
       mockSecurityPipelineRun.mockReturnValue(async () => securityResult);
-      mockApiClient.mockImplementation(async (url, _body, options) => {
+      mockApiClient.mockImplementation((url, _body, options) => {
         // Покрывает строку 366: проверка sig !== undefined
-        if (url === '/v1/auth/login') {
-          // Проверяем, что options может быть undefined или содержать signal
-          if (options === undefined || (options !== undefined && 'signal' in options)) {
+        return async () => {
+          if (url === '/v1/auth/login') {
+            // Проверяем, что options может быть undefined или содержать signal
+            if (options === undefined || (options !== undefined && 'signal' in options)) {
+              return tokenPair;
+            }
             return tokenPair;
           }
-          return tokenPair;
-        }
-        return meResponse;
+          return meResponse;
+        };
       });
       // Мокаем apiClient.get чтобы проверить, что он вызывается с правильными параметрами
-      mockGet.mockImplementation(async (_url, options) => {
-        // Покрывает строки 396-405: создание options с headers и signal
-        if (
-          options !== undefined
-          && typeof options === 'object'
-          && 'headers' in options
-          && 'signal' in options
-        ) {
-          // Проверяем, что signal может быть undefined (строка 403)
-          const signal = (options as { signal?: AbortSignal; }).signal;
-          if (signal === undefined || signal instanceof AbortSignal) {
+      mockGet.mockImplementation((_url, options) => {
+        return async () => {
+          // Покрывает строки 396-405: создание options с headers и signal
+          if (
+            options !== undefined
+            && typeof options === 'object'
+            && 'headers' in options
+            && 'signal' in options
+          ) {
+            // Проверяем, что signal может быть undefined (строка 403)
+            const signal = (options as { signal?: AbortSignal; }).signal;
+            if (signal === undefined || signal instanceof AbortSignal) {
+              return meResponse;
+            }
+          }
+          // Покрывает случай когда signal не передан (строка 403)
+          if (
+            options !== undefined
+            && typeof options === 'object'
+            && 'headers' in options
+          ) {
             return meResponse;
           }
-        }
-        // Покрывает случай когда signal не передан (строка 403)
-        if (
-          options !== undefined
-          && typeof options === 'object'
-          && 'headers' in options
-        ) {
           return meResponse;
-        }
-        return meResponse;
+        };
       });
 
       const loginEffect = createLoginEffect(deps, config);

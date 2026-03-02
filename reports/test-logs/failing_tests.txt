@@ -1,12 +1,12 @@
-/home/boss/Projects/livai/packages/feature-auth/tests/unit/domain/LoginRequest.test.ts: oauth login request - snapshot
-Error: Snapshot `LoginRequest discriminated union - OAuth > oauth login request - snapshot 1` mismatched
-    at createMismatchError (file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+snapshot@4.0.18/node_modules/@vitest/snapshot/dist/index.js:1327:16)
-    at SnapshotClient.assert (file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+snapshot@4.0.18/node_modules/@vitest/snapshot/dist/index.js:1411:10)
-    at Proxy.<anonymous> (file:///home/boss/Projects/livai/node_modules/.pnpm/vitest@4.0.18_@opentelemetry+api@1.9.0_@types+node@25.3.1_@vitest+ui@4.0.18_jsdom@28.1._a8eb06086a8433873aa9e737e1ca097e/node_modules/vitest/dist/chunks/vi.2VT5v0um.js:210:23)
+/home/boss/Projects/livai/packages/feature-auth/tests/unit/effects/shared/api-client.port.test.ts: должен обеспечивать неизменяемость headers
+AssertionError: expected [Function] to throw an error
+    at Proxy.<anonymous> (file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+expect@4.0.18/node_modules/@vitest/expect/dist/index.js:1485:16)
+    at Proxy.<anonymous> (file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+expect@4.0.18/node_modules/@vitest/expect/dist/index.js:1090:14)
     at Proxy.methodWrapper (file:///home/boss/Projects/livai/node_modules/.pnpm/chai@6.2.2/node_modules/chai/index.js:1700:25)
-    at /home/boss/Projects/livai/packages/feature-auth/tests/unit/domain/LoginRequest.test.ts:306:21
+    at /home/boss/Projects/livai/packages/feature-auth/tests/unit/effects/shared/api-client.port.test.ts:155:10
     at file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.18/node_modules/@vitest/runner/dist/index.js:145:11
     at file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.18/node_modules/@vitest/runner/dist/index.js:915:26
     at file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.18/node_modules/@vitest/runner/dist/index.js:1243:20
     at new Promise (<anonymous>)
     at runWithTimeout (file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.18/node_modules/@vitest/runner/dist/index.js:1209:10)
+    at file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.18/node_modules/@vitest/runner/dist/index.js:1653:37

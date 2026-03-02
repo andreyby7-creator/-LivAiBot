@@ -9,9 +9,9 @@ import { describe, expect, it } from 'vitest';
 
 import type {
   AbortControllerPort,
-  ApiClient,
   ApiRequestOptions,
   AuditLoggerPort,
+  AuthApiClientPort,
   ClockPort,
   ErrorMapperPort,
   IdentifierHasher,
@@ -200,7 +200,7 @@ describe('effects/login/login-effect.types', () => {
     expect(calls.batchCount).toBe(1);
   });
 
-  it('ApiClient поддерживает post/get с ApiRequestOptions', async () => {
+  it('AuthApiClientPort поддерживает post/get с ApiRequestOptions (Effect-based)', async () => {
     const captured: {
       url?: string;
       body?: unknown;
@@ -208,38 +208,44 @@ describe('effects/login/login-effect.types', () => {
       signalUsed?: boolean;
     } = {};
 
-    const apiClient: ApiClient = {
-      async post<T>(url: string, body: unknown, options?: ApiRequestOptions) {
-        captured.url = url;
-        captured.body = body;
-        captured.headers = options?.headers;
-        captured.signalUsed = options?.signal instanceof AbortSignal;
-        return { ok: true } as unknown as T;
+    const apiClient: AuthApiClientPort = {
+      post<T>(url: string, body: unknown, options?: ApiRequestOptions) {
+        return async (signal?: AbortSignal) => {
+          captured.url = url;
+          captured.body = body;
+          captured.headers = options?.headers;
+          captured.signalUsed = signal instanceof AbortSignal;
+          return { ok: true } as unknown as T;
+        };
       },
-      async get<T>(url: string, options?: ApiRequestOptions) {
-        captured.url = url;
-        captured.headers = options?.headers;
-        captured.signalUsed = options?.signal instanceof AbortSignal;
-        return { ok: true } as unknown as T;
+      get<T>(url: string, options?: ApiRequestOptions) {
+        return async (signal?: AbortSignal) => {
+          captured.url = url;
+          captured.headers = options?.headers;
+          captured.signalUsed = signal instanceof AbortSignal;
+          return { ok: true } as unknown as T;
+        };
       },
     };
 
     const controller = new AbortController();
     await apiClient.post('/v1/auth/login', { email: 'user@example.com' }, {
-      signal: controller.signal,
       headers: {
         Authorization: 'Bearer test-token',
       },
-    });
+    })(controller.signal);
 
     expect(captured.url).toBe('/v1/auth/login');
     expect(captured.body).toEqual({ email: 'user@example.com' });
     expect(captured.headers).toEqual({ Authorization: 'Bearer test-token' });
     expect(captured.signalUsed).toBe(true);
 
-    await apiClient.get('/v1/auth/me', { headers: { Authorization: 'Bearer test-token' } });
+    await apiClient.get('/v1/auth/me', { headers: { Authorization: 'Bearer test-token' } })(
+      controller.signal,
+    );
     expect(captured.url).toBe('/v1/auth/me');
     expect(captured.headers).toEqual({ Authorization: 'Bearer test-token' });
+    expect(captured.signalUsed).toBe(true);
   });
 
   it('LoginSecurityDecision поддерживает все варианты discriminated union', () => {
@@ -448,12 +454,12 @@ describe('effects/login/login-effect.types', () => {
   });
 
   it('LoginEffectDeps описывает полный DI-контракт login-effect', async () => {
-    const apiClient: ApiClient = {
-      async post<T>(_url: string, _body: unknown): Promise<T> {
-        return { ok: true } as unknown as T;
+    const apiClient: AuthApiClientPort = {
+      post<T>(_url: string, _body: unknown) {
+        return async (): Promise<T> => ({ ok: true } as unknown as T);
       },
-      async get<T>(_url: string): Promise<T> {
-        return { ok: true } as unknown as T;
+      get<T>(_url: string) {
+        return async (): Promise<T> => ({ ok: true } as unknown as T);
       },
     };
 
@@ -579,6 +585,7 @@ describe('effects/login/login-effect.types', () => {
       timeouts: {
         loginApiTimeoutMs: 5_000,
         meApiTimeoutMs: 3_000,
+        loginHardTimeoutMs: 60_000,
       },
       featureFlags,
       concurrency: 'cancel_previous',
@@ -615,6 +622,7 @@ describe('effects/login/login-effect.types', () => {
         timeouts: {
           loginApiTimeoutMs: 5_000,
           meApiTimeoutMs: 3_000,
+          loginHardTimeoutMs: 60_000,
         },
         concurrency: strategy,
       };

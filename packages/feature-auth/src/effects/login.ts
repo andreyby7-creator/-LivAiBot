@@ -51,8 +51,6 @@ import { applyBlockedState, updateLoginState } from './login/login-store-updater
  * ============================================================================
  */
 
-/** Дефолтный global hard timeout для login-effect (60 секунд) */
-const DEFAULT_LOGIN_HARD_TIMEOUT_MS = 60_000;
 /** Radix для base36 конвертации (используется для traceId и eventId) */
 const BASE36_RADIX = 36;
 /** Длина случайной части traceId при fallback генерации */
@@ -359,17 +357,13 @@ export function createLoginEffect(
         // Step 5 — двухфазный API-calls через orchestrator + validatedEffect
         const loginRequestPayload = mapLoginRequestToApiPayload(validatedRequest);
 
+        // Effect-based API-клиент: AbortSignal передаётся через параметр Effect
         const loginEffect = validatedEffect(
           loginTokenPairSchema,
-          async (sig?: AbortSignal): Promise<LoginTokenPairValues> => {
-            // Передаем AbortSignal только если он предоставлен (для отмены запроса)
-            const options = sig !== undefined ? { signal: sig } : undefined;
-            return deps.apiClient.post<LoginTokenPairValues>(
-              '/v1/auth/login',
-              loginRequestPayload,
-              options,
-            );
-          },
+          deps.apiClient.post<LoginTokenPairValues>(
+            '/v1/auth/login',
+            loginRequestPayload,
+          ),
           { service: 'AUTH' },
         );
 
@@ -378,9 +372,7 @@ export function createLoginEffect(
         >([
           step(
             'auth-login',
-            async (sig?: AbortSignal): Promise<LoginTokenPairValues> => {
-              return loginEffect(sig);
-            },
+            loginEffect, // Effect уже готов, передаём напрямую
             config.timeouts.loginApiTimeoutMs,
           ),
           step(
@@ -389,22 +381,12 @@ export function createLoginEffect(
               // Type assertion безопасен: orchestrator гарантирует тип из предыдущего step
               const previousTokenPair = previous as LoginTokenPairValues;
 
-              // Используем accessToken из previous аргумента вместо closure (избегаем race conditions)
+              // Effect-based API-клиент: AbortSignal передаётся через параметр Effect
               const meEffect = validatedEffect(
                 meResponseSchema,
-                async (sig?: AbortSignal): Promise<MeResponseValues> => {
-                  const options: {
-                    signal?: AbortSignal;
-                    headers: Readonly<Record<string, string>>;
-                  } = {
-                    headers: { Authorization: `Bearer ${previousTokenPair.accessToken}` },
-                  };
-                  // Добавляем signal только если он передан (для отмены запроса)
-                  if (sig !== undefined) {
-                    options.signal = sig;
-                  }
-                  return deps.apiClient.get<MeResponseValues>('/v1/auth/me', options);
-                },
+                deps.apiClient.get<MeResponseValues>('/v1/auth/me', {
+                  headers: { Authorization: `Bearer ${previousTokenPair.accessToken}` },
+                }),
                 { service: 'AUTH' },
               );
 
@@ -422,8 +404,8 @@ export function createLoginEffect(
         ]);
 
         // Global hard timeout для всего login-effect (защита от зависания orchestration logic)
-        const loginHardTimeoutMs = config.timeouts.loginHardTimeoutMs
-          ?? DEFAULT_LOGIN_HARD_TIMEOUT_MS;
+        // Default задаётся в composer, не здесь (уменьшает количество состояний системы)
+        const loginHardTimeoutMs = config.timeouts.loginHardTimeoutMs;
         const orchestratedWithHardTimeout = withTimeout(
           orchestrated,
           { timeoutMs: loginHardTimeoutMs, tag: 'login-orchestrator' },
