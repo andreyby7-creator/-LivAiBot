@@ -54,6 +54,8 @@ export type AuthAuditEventType =
   | 'phone_verification'
   | 'oauth_login'
   | 'oauth_register'
+  | 'oauth_register_success'
+  | 'oauth_register_failure'
   | 'risk_detected'
   | 'policy_violation';
 

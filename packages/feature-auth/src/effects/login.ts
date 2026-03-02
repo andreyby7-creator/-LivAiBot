@@ -34,8 +34,8 @@ import { loginRequestSchema, loginTokenPairSchema, meResponseSchema } from '../s
 import type { AuthError } from '../types/auth.js';
 import type { LoginResponseDto } from '../types/login.dto.js';
 import { mapLoginRequestToApiPayload, mapLoginResponseToDomain } from './login/login-api.mapper.js';
-import type { LoginAuditContext, LoginResultForAudit } from './login/login-audit.mapper.js';
-import { mapLoginResultToAuditEvent } from './login/login-audit.mapper.js';
+import type { LoginResultForAudit } from './login/login-audit.mapper.js';
+import { createLoginAuditContext, mapLoginResultToAuditEvent } from './login/login-audit.mapper.js';
 import type {
   ClockPort,
   LoginEffectConfig,
@@ -233,7 +233,7 @@ function handleBlockedResult(
   // См. login-audit.mapper.ts для деталей маппинга в audit-события
   try {
     const eventId = generateEventId(deps.clock);
-    const auditContext = createFlattenedAuditContext(
+    const auditContext = createLoginAuditContext(
       createLoginContext(validatedRequest, deps, securityResult),
       securityResult,
       undefined,
@@ -247,38 +247,6 @@ function handleBlockedResult(
 
   // См. login-store-updater.ts:applyBlockedState для деталей обновления store
   return blockedResult; // eslint-disable-line @livai/rag/source-citation
-}
-
-/**
- * Создает flattened LoginAuditContext из loginContext и securityResult.
- * @note Flattened контекст уменьшает coupling маппера к внутренней структуре pipeline.
- */
-function createFlattenedAuditContext(
-  loginContext: LoginContext,
-  securityResult: LoginSecurityResult | undefined,
-  domainResult: DomainLoginResult | undefined,
-  eventId: string,
-): LoginAuditContext {
-  const deviceInfo = securityResult?.pipelineResult.deviceInfo;
-  const blockReason = securityResult?.pipelineResult.riskAssessment.decisionHint.blockReason;
-
-  return {
-    domainResult,
-    timestamp: loginContext.timestamp,
-    traceId: loginContext.traceId,
-    eventId,
-    ip: loginContext.request.clientContext?.ip,
-    userAgent: loginContext.request.clientContext?.userAgent,
-    deviceId: deviceInfo?.deviceId,
-    geo: deviceInfo?.geo !== undefined
-      ? {
-        lat: deviceInfo.geo.lat,
-        lng: deviceInfo.geo.lng,
-      }
-      : undefined,
-    riskScore: securityResult?.riskScore,
-    blockReason,
-  };
 }
 
 /**
@@ -452,7 +420,7 @@ export function createLoginEffect(
         // См. login-audit.mapper.ts для деталей маппинга в audit-события
         try {
           const eventId = generateEventId(deps.clock);
-          const auditContext = createFlattenedAuditContext(
+          const auditContext = createLoginAuditContext(
             loginContext,
             securityResult,
             domainResult,
@@ -482,7 +450,7 @@ export function createLoginEffect(
             error,
           };
           const eventId = generateEventId(deps.clock);
-          const auditContext = createFlattenedAuditContext(
+          const auditContext = createLoginAuditContext(
             createLoginContext(request, deps, undefined),
             undefined,
             undefined,

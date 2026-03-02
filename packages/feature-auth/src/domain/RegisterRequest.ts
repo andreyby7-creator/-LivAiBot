@@ -71,6 +71,9 @@ export type RegisterRequest<T extends RegisterIdentifierType = 'email'> = {
   /** Пароль пользователя (plain-text, должен быть хеширован на сервере) */
   readonly password?: T extends 'oauth' ? never : string;
 
+  /** Имя workspace для регистрации (обязательно для email/username/phone registration) */
+  readonly workspaceName?: T extends 'oauth' ? never : string;
+
   /** Multi-factor authentication */
   readonly mfa?: MfaInfo | MfaInfo[];
 

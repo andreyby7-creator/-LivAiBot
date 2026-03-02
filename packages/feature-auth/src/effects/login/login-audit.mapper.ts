@@ -14,6 +14,8 @@
  * - ✅ Immutable возвращаемые объекты.
  */
 
+import type { LoginSecurityResult } from './login-effect.types.js';
+import type { LoginContext } from './login-metadata.enricher.js';
 import type { DomainLoginResult } from '../../domain/LoginResult.js';
 import { auditEventSchema } from '../../schemas/index.js';
 import type { AuditEventValues } from '../../schemas/index.js';
@@ -68,6 +70,50 @@ export type LoginAuditContext = Readonly<{
   /** Причина блокировки (flattened из security-pipeline, только для blocked событий). */
   blockReason: string | undefined;
 }>;
+
+/* ============================================================================
+ * 🔧 CONTEXT BUILDER — ПОСТРОЕНИЕ AUDIT КОНТЕКСТА
+ * ============================================================================
+ */
+
+/**
+ * Создает flattened LoginAuditContext из loginContext и securityResult.
+ * @note Flattened контекст уменьшает coupling маппера к внутренней структуре pipeline.
+ *       Экспортируется для использования в orchestrator.
+ */
+export function createLoginAuditContext(
+  loginContext: LoginContext,
+  securityResult: LoginSecurityResult | undefined,
+  domainResult: DomainLoginResult | undefined,
+  eventId: string,
+): LoginAuditContext {
+  const deviceInfo = securityResult !== undefined
+    ? securityResult.pipelineResult.deviceInfo
+    : undefined;
+  const blockReason = securityResult !== undefined
+    ? securityResult.pipelineResult.riskAssessment.decisionHint.blockReason
+    : undefined;
+
+  const clientContext = loginContext.request.clientContext;
+
+  return {
+    domainResult,
+    timestamp: loginContext.timestamp,
+    traceId: loginContext.traceId,
+    eventId,
+    ip: clientContext?.ip,
+    userAgent: clientContext?.userAgent,
+    deviceId: deviceInfo?.deviceId,
+    geo: deviceInfo?.geo !== undefined
+      ? {
+        lat: deviceInfo.geo.lat,
+        lng: deviceInfo.geo.lng,
+      }
+      : undefined,
+    riskScore: securityResult?.riskScore,
+    blockReason,
+  };
+}
 
 /* ============================================================================
  * 🔧 HELPERS

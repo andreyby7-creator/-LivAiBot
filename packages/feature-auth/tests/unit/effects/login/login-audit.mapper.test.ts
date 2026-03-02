@@ -7,7 +7,11 @@
 
 import { describe, expect, it } from 'vitest';
 
-import { mapLoginResultToAuditEvent } from '../../../../src/effects/login/login-audit.mapper.js';
+import { createLoginRiskEvaluation, createLoginRiskResult } from '../../../../src/domain/index.js';
+import {
+  createLoginAuditContext,
+  mapLoginResultToAuditEvent,
+} from '../../../../src/effects/login/login-audit.mapper.js';
 import type {
   LoginAuditContext,
   LoginResultForAudit,
@@ -17,6 +21,11 @@ import type { MeResponse } from '../../../../src/domain/MeResponse.js';
 import type { MfaChallengeRequest } from '../../../../src/domain/MfaChallengeRequest.js';
 import type { TokenPair } from '../../../../src/domain/TokenPair.js';
 import type { AuthError } from '../../../../src/types/auth.js';
+import type { LoginContext } from '../../../../src/effects/login/login-metadata.enricher.js';
+import type { LoginSecurityResult } from '../../../../src/effects/login/login-effect.types.js';
+import type { DeviceInfo } from '../../../../src/domain/DeviceInfo.js';
+import type { SecurityPipelineResult } from '../../../../src/lib/security-pipeline.js';
+import type { RiskAssessmentResult } from '../../../../src/types/auth-risk.js';
 
 // ============================================================================
 // 🔧 HELPERS
@@ -491,6 +500,273 @@ describe('effects/login/login-audit.mapper', () => {
           expect(event.eventId).toBe('event-123');
         });
       });
+    });
+  });
+
+  describe('createLoginAuditContext', () => {
+    const createMockLoginContext = (
+      overrides: Partial<LoginContext> = {},
+    ): LoginContext => ({
+      request: {
+        dtoVersion: '1.0',
+        identifier: { type: 'email', value: 'user@example.com' },
+        password: 'password',
+        clientContext: {
+          ip: '192.168.1.1',
+          userAgent: 'Mozilla/5.0',
+        },
+      },
+      traceId: 'trace-123',
+      timestamp: '2026-01-01T00:00:00.000Z',
+      ...overrides,
+    });
+
+    const createMockSecurityResult = (
+      overrides: Partial<LoginSecurityResult> = {},
+    ): LoginSecurityResult => {
+      const deviceInfo: DeviceInfo = {
+        deviceId: 'device-123',
+        deviceType: 'desktop',
+        geo: { lat: 55.7558, lng: 37.6173 },
+      };
+
+      const riskAssessment: RiskAssessmentResult = {
+        riskScore: 50,
+        riskLevel: 'medium',
+        triggeredRules: [],
+        decisionHint: {
+          action: 'login',
+          blockReason: 'policy-high-risk',
+        },
+        assessment: createLoginRiskEvaluation(
+          createLoginRiskResult({
+            score: 50,
+            level: 'medium',
+            reasons: [],
+            modelVersion: '1.0.0',
+          }),
+          { timestamp: 0 },
+        ),
+      };
+
+      const pipelineResult: SecurityPipelineResult = {
+        deviceInfo,
+        riskAssessment,
+      };
+
+      return {
+        decision: { type: 'allow' },
+        riskScore: 50,
+        riskLevel: 'medium',
+        pipelineResult,
+        ...overrides,
+      };
+    };
+
+    it('создает контекст с undefined securityResult (deviceInfo и blockReason должны быть undefined)', () => {
+      const loginContext = createMockLoginContext();
+      const domainResult = createSuccessDomainResult();
+      const eventId = 'event-123';
+
+      const context = createLoginAuditContext(
+        loginContext,
+        undefined,
+        domainResult,
+        eventId,
+      );
+
+      expect(context.domainResult).toBe(domainResult);
+      expect(context.timestamp).toBe('2026-01-01T00:00:00.000Z');
+      expect(context.traceId).toBe('trace-123');
+      expect(context.eventId).toBe('event-123');
+      expect(context.ip).toBe('192.168.1.1');
+      expect(context.userAgent).toBe('Mozilla/5.0');
+      expect(context.deviceId).toBeUndefined();
+      expect(context.geo).toBeUndefined();
+      expect(context.riskScore).toBeUndefined();
+      expect(context.blockReason).toBeUndefined();
+    });
+
+    it('создает контекст с securityResult (извлекает deviceInfo и blockReason)', () => {
+      const loginContext = createMockLoginContext();
+      const securityResult = createMockSecurityResult();
+      const domainResult = createSuccessDomainResult();
+      const eventId = 'event-123';
+
+      const context = createLoginAuditContext(
+        loginContext,
+        securityResult,
+        domainResult,
+        eventId,
+      );
+
+      expect(context.domainResult).toBe(domainResult);
+      expect(context.timestamp).toBe('2026-01-01T00:00:00.000Z');
+      expect(context.traceId).toBe('trace-123');
+      expect(context.eventId).toBe('event-123');
+      expect(context.ip).toBe('192.168.1.1');
+      expect(context.userAgent).toBe('Mozilla/5.0');
+      expect(context.deviceId).toBe('device-123');
+      expect(context.geo).toEqual({ lat: 55.7558, lng: 37.6173 });
+      expect(context.riskScore).toBe(50);
+      expect(context.blockReason).toBe('policy-high-risk');
+    });
+
+    it('создает контекст с securityResult без blockReason (blockReason должен быть undefined)', () => {
+      const loginContext = createMockLoginContext();
+      const securityResult = createMockSecurityResult({
+        pipelineResult: {
+          deviceInfo: {
+            deviceId: 'device-123',
+            deviceType: 'desktop',
+            geo: { lat: 55.7558, lng: 37.6173 },
+          },
+          riskAssessment: {
+            riskScore: 50,
+            riskLevel: 'medium',
+            triggeredRules: [],
+            decisionHint: {
+              action: 'login',
+              // blockReason отсутствует
+            },
+            assessment: createLoginRiskEvaluation(
+              createLoginRiskResult({
+                score: 50,
+                level: 'medium',
+                reasons: [],
+                modelVersion: '1.0.0',
+              }),
+              { timestamp: 0 },
+            ),
+          },
+        },
+      });
+      const domainResult = createSuccessDomainResult();
+      const eventId = 'event-123';
+
+      const context = createLoginAuditContext(
+        loginContext,
+        securityResult,
+        domainResult,
+        eventId,
+      );
+
+      expect(context.deviceId).toBe('device-123');
+      expect(context.geo).toEqual({ lat: 55.7558, lng: 37.6173 });
+      expect(context.riskScore).toBe(50);
+      expect(context.blockReason).toBeUndefined();
+    });
+
+    it('создает контекст с clientContext undefined (ip и userAgent должны быть undefined)', () => {
+      const loginContext = createMockLoginContext({
+        request: {
+          dtoVersion: '1.0',
+          identifier: { type: 'email', value: 'user@example.com' },
+          password: 'password',
+          // clientContext отсутствует
+        },
+      });
+      const domainResult = createSuccessDomainResult();
+      const eventId = 'event-123';
+
+      const context = createLoginAuditContext(
+        loginContext,
+        undefined,
+        domainResult,
+        eventId,
+      );
+
+      expect(context.ip).toBeUndefined();
+      expect(context.userAgent).toBeUndefined();
+    });
+
+    it('создает контекст с clientContext содержащим только ip (userAgent должен быть undefined)', () => {
+      const loginContext = createMockLoginContext({
+        request: {
+          dtoVersion: '1.0',
+          identifier: { type: 'email', value: 'user@example.com' },
+          password: 'password',
+          clientContext: {
+            ip: '192.168.1.1',
+            // userAgent отсутствует
+          },
+        },
+      });
+      const domainResult = createSuccessDomainResult();
+      const eventId = 'event-123';
+
+      const context = createLoginAuditContext(
+        loginContext,
+        undefined,
+        domainResult,
+        eventId,
+      );
+
+      expect(context.ip).toBe('192.168.1.1');
+      expect(context.userAgent).toBeUndefined();
+    });
+
+    it('создает контекст с полным securityResult и clientContext', () => {
+      const loginContext = createMockLoginContext({
+        request: {
+          dtoVersion: '1.0',
+          identifier: { type: 'email', value: 'user@example.com' },
+          password: 'password',
+          clientContext: {
+            ip: '10.0.0.1',
+            userAgent: 'Chrome/120.0',
+          },
+        },
+      });
+      const securityResult = createMockSecurityResult({
+        pipelineResult: {
+          deviceInfo: {
+            deviceId: 'device-456',
+            deviceType: 'mobile',
+            geo: { lat: 40.7128, lng: -74.0060 },
+          },
+          riskAssessment: {
+            riskScore: 75,
+            riskLevel: 'high',
+            triggeredRules: [],
+            decisionHint: {
+              action: 'block',
+              blockReason: 'suspicious-activity',
+            },
+            assessment: createLoginRiskEvaluation(
+              createLoginRiskResult({
+                score: 75,
+                level: 'high',
+                reasons: [],
+                modelVersion: '1.0.0',
+              }),
+              { timestamp: 0 },
+            ),
+          },
+        },
+        riskScore: 75,
+        riskLevel: 'high',
+      });
+      const domainResult = createMfaDomainResult();
+      const eventId = 'event-456';
+
+      const context = createLoginAuditContext(
+        loginContext,
+        securityResult,
+        domainResult,
+        eventId,
+      );
+
+      expect(context.domainResult).toBe(domainResult);
+      expect(context.timestamp).toBe('2026-01-01T00:00:00.000Z');
+      expect(context.traceId).toBe('trace-123');
+      expect(context.eventId).toBe('event-456');
+      expect(context.ip).toBe('10.0.0.1');
+      expect(context.userAgent).toBe('Chrome/120.0');
+      expect(context.deviceId).toBe('device-456');
+      expect(context.geo).toEqual({ lat: 40.7128, lng: -74.0060 });
+      expect(context.riskScore).toBe(75);
+      expect(context.blockReason).toBe('suspicious-activity');
     });
   });
 });

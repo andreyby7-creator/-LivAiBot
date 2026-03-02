@@ -432,15 +432,17 @@ type LogoutMode = 'local' | 'remote';
 
 ---
 
-### 🟡 3.2 Register (Login-light)
+### 🟢 3.2 Register (Login-light) — выполнено
 
 > **Почему вторым:** максимально переиспользует паттерны login, но без security-pipeline.
 
-#### 📁 Создать
+#### 📁 Реализовано
 
 - `effects/register/register-effect.types.ts`
 - `effects/register/register-api.mapper.ts`
 - `effects/register/register-store-updater.ts`
+- `effects/register/register-audit.mapper.ts`
+- `effects/register/register-metadata.enricher.ts`
 - `effects/register.ts`
 
 ---
@@ -451,10 +453,10 @@ type LogoutMode = 'local' | 'remote';
 
 **Использует:**
 
-- ✅ strict Zod (`registerRequestSchema.strict()`)
-- ✅ `validatedEffect` для `/v1/auth/register`
+- ✅ request validation (fail-fast, domain-level)
+- ✅ `validatedEffect` + `registerResponseSchema` для `/v1/auth/register`
 - ✅ `errorMapper` через DI
-- ✅ `metadata-enricher` (reuse из login, с `operation: 'register'`)
+- ✅ `register-metadata.enricher` (register-native, без login-casts)
 - ✅ `session-state builder` (reuse из shared)
 - ✅ hard timeout на весь flow
 - ❌ Без security-pipeline (если не требуется по политике)
@@ -464,19 +466,27 @@ type LogoutMode = 'local' | 'remote';
 #### ➤ DI-тип (`register-effect.types.ts`)
 
 - `AuthStorePort` (общий, из shared)
-- `ApiClient`
+- `ApiClient` (`AuthApiClientPort`)
 - `ErrorMapperPort`
-- `ClockPort` (если нужен timestamp)
-- `RegisterEffectDeps` без `securityPipeline`, без `auditLogger`
+- `ClockPort` (обязателен для timestamp/audit)
+- `TraceIdGeneratorPort` (обязателен, deterministic DI)
+- `IdentifierHasherPort` (для metadata-enricher'а)
+- `RegisterAuditLoggerPort` (audit-события регистрации)
+- `AbortControllerPort` (для `cancel_previous`)
+- `EventIdGeneratorPort` (обязателен, deterministic DI)
+- `RegisterTelemetryPort?` (опционально, best-effort observability: audit/error-mapper failures)
+- `RegisterEffectDeps` без `securityPipeline` (в отличие от login)
 - `RegisterEffectConfig`:
   - `hardTimeout` (глобальный timeout на весь flow)
   - `apiTimeout?` (для отдельных API-вызовов, если нужен)
   - `concurrency?: 'ignore' | 'cancel_previous' | 'serialize'` (конфигурируемо, не жёстко):
     - `'serialize'` — если backend не допускает параллельную регистрацию
     - `'ignore'` — если повторное нажатие допустимо
-  - Дефолт может быть задан, но не зафиксирован в типах
+  - `featureFlags?: RegisterFeatureFlags` (резерв под future-флаги, консистентно с login/logout)
+  - `validateRegisterConfig(...)` (hardTimeout > 0, apiTimeout > 0, hardTimeout > apiTimeout)
+  - `RegisterConfigError` (domain-specific config error)
 
-**Cancellation:** при `cancel_previous` effect создаёт `AbortController`, отменяет предыдущий запрос, очищает isolation state при завершении
+**Cancellation:** при `cancel_previous` отменяет предыдущий запрос через AbortController (cancellation ≠ failure).
 
 ---
 
@@ -484,14 +494,20 @@ type LogoutMode = 'local' | 'remote';
 
 **Функции:**
 
-- `RegisterRequest` → `RegisterRequestValues` (schemas-level)
-- `RegisterResponseDto` → domain (`DomainRegisterResult` или reuse `RegisterResponse`)
+- `RegisterRequest<'email'>` (domain) → `RegisterRequestValues` (transport для `/v1/auth/register`)
+- `OAuthRegisterTransportInput` (transport input) → `OAuthRegisterRequestValues` (transport для `/v1/auth/oauth/register`)
+- `RegisterResponseValues` (transport) → `RegisterResponse<'email'>` / `RegisterResponse<'oauth'>` (domain)
 
 **Инварианты:**
 
 - ✅ Только pure-функции
 - ✅ Freeze выходных объектов
 - ❌ Никакой логики store внутри мэппера
+- ✅ Fail-closed: для типов идентификатора, не поддерживаемых текущей схемой (`username`, `phone`), выбрасывает ошибку
+- ✅ Переиспользует `mapTokenPairValuesToDomain` из shared mappers для TokenPair
+- ✅ OAuth provider mapping: exhaustive switch (domain drift → fail-closed)
+- ✅ Guard: `expiresIn > 0`
+- ✅ Trim для OAuth transport полей (code/state/redirectUri/workspaceName)
 
 ---
 
@@ -499,24 +515,26 @@ type LogoutMode = 'local' | 'remote';
 
 **Логика:**
 
-- Если backend возвращает `TokenPair + Me` — использовать `effects/shared/session-state.builder.ts`
+- Если backend возвращает `TokenPair + Me` — использовать `effects/shared/session-state.builder.ts` (SessionState) и выставлять `SecurityState` в `initialSecurityState` (status: `secure`)
 
 **Инварианты:**
 
 - ❌ Не пересчитывать security/risk
 - ❌ Не читать store
 - ❌ Не делать fallback при частично успешном ответе (fail-closed)
+- ✅ Registry pattern для state handlers (scalable без разрастания if/switch)
+- ✅ Детерминированные fail-closed error messages (без JSON.stringify)
 
 ---
 
 #### ➤ Orchestrator (`register.ts`)
 
-**Наследует ключевые решения из `login.ts`:**
+**Ключевые решения:**
 
-- ✅ strict Zod (`registerRequestSchema.strict()`)
 - ✅ `validatedEffect` для `/v1/auth/register`
 - ✅ Все ошибки через `deps.errorMapper.map(...)`
-- ✅ Fail-closed: при частично успешном ответе (например, `/me` падает) — reject, не применяем токены
+- ✅ Защита от падения mapper (fallback AuthError + telemetry)
+- ✅ Best-effort audit logging (ошибки не ломают flow) + telemetry hook
 
 **Таймауты:**
 
@@ -526,7 +544,8 @@ type LogoutMode = 'local' | 'remote';
 **Различия:**
 
 - security-pipeline опционален (по плану — без него)
-- метаданные строятся тем же `buildLoginMetadata`, но с `operation: 'register'`
+- метаданные строятся через `register-metadata.enricher` (без login-casts)
+- traceId генерируется через DI (`TraceIdGeneratorPort`), без глобального `crypto`
 
 ---
 
@@ -536,9 +555,13 @@ type LogoutMode = 'local' | 'remote';
 - `lib/error-mapper.ts` (через DI-порт)
 - `stores/auth.ts` и `types/auth.ts`
 - `domain/RegisterRequest.ts` и `domain/RegisterResponse.ts`
+- `domain/OAuthRegisterRequest.ts` (для OAuth register mapper)
 - `schemas` (через `packages/feature-auth/src/schemas/index.ts`)
-- `effects/login/login-metadata.enricher.ts` (уже поддерживает `operation: 'register'`)
+  - `registerRequestSchema` для email-регистрации
+  - `oauthRegisterRequestSchema` для OAuth-регистрации
+- `identifierHasher` (shared port) — единая стратегия hash для metadata
 - `effects/shared/session-state.builder.ts`
+- `effects/shared/auth-api.mappers.ts` (для маппинга TokenPair)
 
 ---
 
@@ -560,6 +583,7 @@ type LogoutMode = 'local' | 'remote';
 - `effects/refresh/refresh-effect.types.ts`
 - `effects/refresh/refresh-api.mapper.ts`
 - `effects/refresh/refresh-store-updater.ts`
+- `effects/refresh/refresh-audit.mapper.ts`
 - `effects/refresh.ts`
 
 ---
@@ -579,15 +603,22 @@ type LogoutMode = 'local' | 'remote';
 #### ➤ DI-тип (`refresh-effect.types.ts`)
 
 - `AuthStorePort` (общий, из shared)
-- `ApiClient`
+- `ApiClient` (`AuthApiClientPort`)
 - `ErrorMapperPort`
+- `SessionManagerPort` (порт над `lib/session-manager.ts`)
+- `ClockPort` (обязателен для policy/audit timestamps)
+- `RefreshAuditLoggerPort` (audit-события refresh/invalidate)
+- `AbortControllerPort` (для отмены при `cancel_previous`, если используется)
+- `EventIdGeneratorPort?` (опционален, для детерминизма в тестах)
 - `RefreshEffectConfig`:
   - `timeout` (для `/v1/auth/refresh` и, возможно, `/v1/auth/me`)
   - `concurrency: 'serialize' | 'ignore'` (строго, чтобы не было параллельных refresh)
+- `featureFlags?: RefreshFeatureFlags` (резерв под future-флаги, консистентно с login/logout)
+- `validateRefreshConfig(...)` (валидация timeout > 0 и допустимых значений concurrency на этапе композиции)
 
-**Обязательно:** isolation guard через `@livai/app/lib/effect-isolation`
+**Обязательно:** isolation guard (один активный refresh, повторные вызовы возвращают текущий Promise; реализуется через стратегию concurrency/in-flight, без cross-effect вызовов)
 
-**Store lock:** блокирует store через `setStoreLocked(true)` в начале, unlock в `finally`
+**Store lock:** блокирует store через `withStoreLock(deps.authStore, ...)` (lock → атомарное обновление → unlock, как в logout)
 
 **Cancellation:** при `cancel_previous` effect создаёт `AbortController`, отменяет предыдущий refresh, очищает isolation state в `finally`
 
@@ -618,6 +649,11 @@ type LogoutMode = 'local' | 'remote';
 - ✅ freeze
 - ✅ Атомарное обновление через `batchUpdate`
 
+**Security:**
+
+- При успешном refresh `SecurityState` не меняется (reuse текущего состояния)
+- При invalidate использует те же initial states (`initialAuthState`/`createInitialSessionState`/`initialSecurityState`) и `batchUpdate`, что и logout-reset
+
 **Стратегия при частично успешном refresh (fail-closed):**
 
 Если `/refresh` успешен, но `/me` падает:
@@ -640,9 +676,9 @@ type LogoutMode = 'local' | 'remote';
 
 **Idempotency:**
 
-- ✅ Использовать `@livai/app/lib/effect-isolation`:
-  - один активный refresh
-  - повторный вызов возвращает текущий промис
+- ✅ Использовать idempotency guard на уровне effect:
+  - один активный refresh (in-flight Promise)
+  - повторный вызов возвращает текущий промис (очередь/serialize как в logout)
 
 **Строгий инвариант о статусе:**
 
@@ -820,27 +856,6 @@ Hook не должен создавать эффекты напрямую
 > **👉 Hook — адаптер, не координатор.**
 
 ---
-
-## 📦 Финальный линейный порядок реализации
-
-> ⚠️ **Критично:** Реализация должна идти строго по этапам. Нарушение порядка приведёт к дублированию кода и архитектурным проблемам.
-
-### 🏗️ Этап 1: Shared-слой (ФАЗА 1)
-
-1. ✅ `auth-store.port.ts` — единый контракт стора
-2. ✅ `session-state.builder.ts` — централизованное построение сессии
-3. ✅ `auth-api.mappers.ts` — общие мэпперы API
-4. ✅ **Переподключить login к shared** — рефакторинг существующего кода
-
-### 🧠 Этап 2: Доменная политика (ФАЗА 2)
-
-6. ✅ `session-manager.ts` — domain-pure сервис для политик
-
-### ⚙️ Этап 3: Эффекты (ФАЗА 3)
-
-7. ✅ `logout-effect` — самый простой, не зависит от session-manager
-8. ✅ `register-effect` — reuse login-паттерна
-9. ✅ `refresh-effect` — последним, самый чувствительный, зависит от session-manager
 
 ### 🧩 Этап 4: React-интерфейс (ФАЗА 4)
 

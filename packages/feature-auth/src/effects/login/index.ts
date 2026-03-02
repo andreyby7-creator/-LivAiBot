@@ -94,6 +94,7 @@ export { applyBlockedState, updateLoginState } from './login-store-updater.js';
  * @public
  */
 export {
+  createLoginAuditContext,
   type LoginAuditContext,
   type LoginResultForAudit,
   mapLoginResultToAuditEvent,

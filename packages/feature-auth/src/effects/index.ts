@@ -17,6 +17,17 @@
 export * from './shared/index.js';
 
 /* ============================================================================
+ * 🔐 REGISTER EFFECTS — ЭФФЕКТЫ ДЛЯ РЕГИСТРАЦИИ
+ * ========================================================================== */
+
+/**
+ * Register Effects: все эффекты для register-flow.
+ *
+ * @public
+ */
+export * from './register/index.js';
+
+/* ============================================================================
  * 🔐 LOGIN EFFECTS — ЭФФЕКТЫ ДЛЯ ВХОДА
  * ========================================================================== */
 
@@ -47,29 +58,32 @@ export type { RiskSignals as AdapterRiskSignals } from '../types/auth-risk.js';
 export * from './logout/index.js';
 
 /* ============================================================================
- * 🎯 LOGOUT EFFECT ORCHESTRATOR — ОСНОВНОЙ ORCHESTRATOR LOGOUT-FLOW
+ * 🎯 REGISTER EFFECT ORCHESTRATOR — ОСНОВНОЙ ORCHESTRATOR REGISTER-FLOW
  * ========================================================================== */
 
 /**
- * Logout Effect: тонкий orchestrator для logout-flow.
+ * Register Effect: тонкий orchestrator для register-flow.
  *
  * Реализует полную последовательность шагов:
- * - lock store → reset store → unlock store (атомарно)
- * - (remote mode) revoke API параллельно после unlock (best-effort, не блокирует logout)
- * - audit logging через LogoutAuditLoggerPort
- * - concurrency control (ignore / cancel_previous / serialize)
+ * - validate-input (domain RegisterRequest)
+ * - enrich-metadata (через buildLoginMetadata с operation: 'register')
+ * - API-call (/v1/auth/register) с strict Zod-валидацией
+ * - domain mapping
+ * - update-store (через register-store-updater)
+ * - audit logging
  *
  * Инварианты:
  * - Нет бизнес-логики внутри orchestrator
  * - Все side-effects через DI-порты
- * - Все ошибки через injected errorMapper.map (только для remote mode)
- * - Fail-closed: не вводит fallback-значения, не читает текущее состояние store
- * - Remote logout: reset store всегда, revoke API best-effort (не блокирует logout)
- * - Idempotency: reset уже выполненного состояния является no-op (через batchUpdate)
+ * - Все ошибки через injected errorMapper.map
+ * - Fail-closed: при частично успешном ответе — reject, не применяем токены
+ * - Не пересчитывает security (security-pipeline опционален, по плану без него)
+ * - Не читает store
+ * - Не делает fallback при частичном успехе
  *
  * @public
  */
-export { createLogoutEffect, type LogoutResult } from './logout.js';
+export { createRegisterEffect, type RegisterResult } from './register.js';
 
 /* ============================================================================
  * 🎯 LOGIN EFFECT ORCHESTRATOR — ОСНОВНОЙ ORCHESTRATOR LOGIN-FLOW
@@ -96,3 +110,28 @@ export { createLogoutEffect, type LogoutResult } from './logout.js';
  * @public
  */
 export { createLoginEffect, type LoginResult } from './login.js';
+
+/* ============================================================================
+ * 🎯 LOGOUT EFFECT ORCHESTRATOR — ОСНОВНОЙ ORCHESTRATOR LOGOUT-FLOW
+ * ========================================================================== */
+
+/**
+ * Logout Effect: тонкий orchestrator для logout-flow.
+ *
+ * Реализует полную последовательность шагов:
+ * - lock store → reset store → unlock store (атомарно)
+ * - (remote mode) revoke API параллельно после unlock (best-effort, не блокирует logout)
+ * - audit logging через LogoutAuditLoggerPort
+ * - concurrency control (ignore / cancel_previous / serialize)
+ *
+ * Инварианты:
+ * - Нет бизнес-логики внутри orchestrator
+ * - Все side-effects через DI-порты
+ * - Все ошибки через injected errorMapper.map (только для remote mode)
+ * - Fail-closed: не вводит fallback-значения, не читает текущее состояние store
+ * - Remote logout: reset store всегда, revoke API best-effort (не блокирует logout)
+ * - Idempotency: reset уже выполненного состояния является no-op (через batchUpdate)
+ *
+ * @public
+ */
+export { createLogoutEffect, type LogoutResult } from './logout.js';
