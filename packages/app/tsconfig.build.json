@@ -30,6 +30,7 @@
   ],
   "references": [
     { "path": "../core-contracts/tsconfig.build.json" },
-    { "path": "../ui-core/tsconfig.build.json" }
+    { "path": "../ui-core/tsconfig.build.json" },
+    { "path": "../feature-auth/tsconfig.build.json" }
   ]
 }

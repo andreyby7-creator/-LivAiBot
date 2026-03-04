@@ -21,7 +21,6 @@
   "references": [
     { "path": "../domains/tsconfig.build.json" },
     { "path": "../core/tsconfig.build.json" },
-    { "path": "../app/tsconfig.build.json" },
     { "path": "../core-contracts/tsconfig.build.json" }
   ]
 }
