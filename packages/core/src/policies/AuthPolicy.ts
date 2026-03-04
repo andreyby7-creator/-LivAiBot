@@ -3,14 +3,12 @@
  * ============================================================================
  * 🛡️ CORE — Policies (Auth Policy)
  * ============================================================================
- *
  * Архитектурная роль:
  * - Доменный слой. ЧИСТАЯ бизнес-логика. Без инфраструктуры
  * - Описывает жизненный цикл access / refresh токенов
  * - Определяет валидность сессии и правила её обновления
  * - Инкапсулирует security-инварианты (time-based, rotation, revocation)
  * - Причина изменения: policies, authentication, session management, token lifecycle
- *
  * Принципы:
  * - ✅ SRP: только типы, правила и решения, без инфраструктуры
  * - ✅ Deterministic: одинаковые входы → одинаковые решения
@@ -18,7 +16,6 @@
  * - ✅ Strict typing: exhaustive unions для TokenInvalidReason, AuthTokenType
  * - ✅ Microservice-ready: используется одинаково в API, Workers, Edge, UI
  * - ✅ Stable contract: для feature-auth, feature-chat, feature-billing
- *
  * ⚠️ ВАЖНО:
  * - 🚫 Никаких side-effects
  * - 🚫 Никаких HTTP / storage / crypto реализаций
@@ -117,7 +114,6 @@ export type RefreshDecision = PolicyDecision<'REFRESH_ALLOWED', 'REFRESH_DENIED'
  * AuthPolicy
  * --------------------------------------------------------------------------
  * Единственный источник истины по auth-правилам.
- *
  * Используется:
  * - feature-auth (login / refresh / logout)
  * - API-gateway (pre-flight checks)

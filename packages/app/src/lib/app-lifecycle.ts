@@ -3,17 +3,14 @@
  * ============================================================================
  * 📡 APP LIFECYCLE — BOOTSTRAP / TEARDOWN
  * ============================================================================
- *
  * Архитектурная роль:
  * - Централизованный контроль bootstrap / teardown приложения
  * - Управление lifecycle событий через event hub
  * - Инициализация background tasks
- *
  * Orchestrator жизненного цикла приложения:
  * - Инициализирует background tasks и подписки на lifecycle события.
  * - Не хранит state, не реализует бизнес-логику.
  * - Чисто bootstrap / teardown, reusable и микросервисно-нейтральный.
- *
  * Принципы:
  * - ❌ Нет бизнес-логики
  * - ❌ Нет зависимостей от UI / domain
@@ -55,7 +52,6 @@ const observability = {
  * Lifecycle stages для bootstrap/teardown.
  * Стадии выполняются в строгом порядке: infra → tasks → features (bootstrap)
  * или features → tasks → infra (teardown).
- *
  * infra: инфраструктурный слой (сети, конфигурация)
  * tasks: фоновые задачи и планировщик
  * features: пользовательские возможности и UI

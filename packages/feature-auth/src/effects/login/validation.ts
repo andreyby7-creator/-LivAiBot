@@ -3,12 +3,10 @@
  * ============================================================================
  * 🔐 FEATURE-AUTH — Login Validation (Type Guards)
  * ============================================================================
- *
  * Архитектурная роль:
  * - Type guards для LoginRequest
  * - Валидация структуры и формата данных
  * - Domain-pure, deterministic, microservice-ready
- *
  * Принципы:
  * - ✅ Чистые функции — без side-effects
  * - ✅ Deterministic — одинаковый вход → одинаковый выход
@@ -65,7 +63,6 @@ const MAX_EMAIL_LENGTH = 320;
 
 /**
  * Regex для базовой проверки формы email
- *
  * @note Это не полная RFC 5321 валидация, а basic shape validation
  * @note Допускает минимально валидные формы (например, "a@b.c")
  * @note Для production API boundary рекомендуется использовать Zod или специализированную библиотеку
@@ -118,7 +115,6 @@ const OAUTH_ALLOWED_KEYS: ReadonlySet<string> = Object.freeze(
 
 /**
  * Проверяет, что объект не содержит лишних полей (strict shape validation)
- *
  * @param obj - Объект для проверки
  * @param allowedKeys - Множество разрешенных ключей
  * @returns true если объект содержит только разрешенные ключи
@@ -237,7 +233,6 @@ function validateDtoVersion(dtoVersion: unknown): boolean {
 
 /**
  * Валидирует опциональные поля LoginRequest
- *
  * @note password опционален для всех типов identifier
  * @note Это intentional: поддерживаются следующие сценарии:
  *   - OAuth flow (password не требуется)
@@ -321,7 +316,6 @@ function validateOAuthProvider(
 
 /**
  * Валидирует OAuth providerToken
- *
  * @note Проверяет только базовую структуру (тип и длину)
  * @note Формат токена (JWT / opaque token / authorization code) не проверяется
  * @note Валидация формата и подписи должна выполняться в downstream layer
@@ -385,10 +379,8 @@ function validateTokenBasedMfaInfo(mfaObj: Record<string, unknown>): boolean {
 
 /**
  * Валидирует структуру MfaInfo (strict shape + типы)
- *
  * @param mfaObj - Объект MFA для валидации
  * @returns true если объект является валидным MfaInfo
- *
  * @warning Для полной schema validation используйте Zod.strict() в API boundary layer
  */
 function isValidMfaInfo(mfaObj: Record<string, unknown>): boolean {
@@ -493,14 +485,11 @@ function validateRequestFields(
 
 /**
  * Type guard для проверки валидности LoginRequest
- *
  * @param value - Значение для проверки (unknown для type safety)
  * @param allowedOAuthProviders - Whitelist разрешенных OAuth провайдеров (опционально)
  * @returns true если value является валидным LoginRequest
- *
  * @note Проверяет структуру, формат (email/phone), strict shape, MFA validation
  * @note OAuth whitelist инжектируется для гибкости
- *
  * @warning Production boundary layer: для полной schema-level exhaustiveness используйте
  * Zod.strict() или io-ts exact() в API boundary layer. Этот type guard обеспечивает
  * базовую runtime type safety, но не заменяет полноценную schema validation.

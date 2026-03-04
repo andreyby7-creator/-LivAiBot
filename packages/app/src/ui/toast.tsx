@@ -3,15 +3,12 @@
  * ============================================================================
  * 🟥 APP UI TOAST — UI МИКРОСЕРВИС TOAST
  * ============================================================================
- *
  * Единственная точка входа для Toast в приложении.
  * UI boundary между ui-core и бизнес-логикой.
- *
  * Ответственность:
  * - Policy (hidden / visibility)
  * - Telemetry
  * - Feature flags
- *
  * Не содержит:
  * - DOM-манипуляций
  * - платформенных эффектов
@@ -73,7 +70,6 @@ enum ToastTelemetryAction {
 
 /**
  * Определяет variant Toast на основе AppError или explicit props.
- *
  * Приоритет:
  * 1. error.severity
  * 2. explicit variant
@@ -187,7 +183,6 @@ type ToastPolicy = Readonly<{
  * - DOM rendering
  * - telemetry
  * - visibility state
- *
  * Ни один consumer не имеет права повторно интерпретировать props.visible
  * или feature flags.
  */
@@ -366,9 +361,7 @@ ToastComponent.displayName = 'Toast';
 
 /**
  * UI-контракт Toast компонента.
- *
  * @contract
- *
  * Гарантируется:
  * - Детерминированный рендеринг без side effects (кроме telemetry)
  * - SSR-safe и concurrent rendering compatible
@@ -376,7 +369,6 @@ ToastComponent.displayName = 'Toast';
  * - Управление feature flags для скрытия уведомлений
  * - Корректная обработка accessibility (ARIA live regions)
  * - Типизированная обработка ошибок приложения
- *
  * Инварианты:
  * - Всегда возвращает валидный JSX.Element или null
  * - Telemetry payload содержит корректный variant
@@ -384,7 +376,6 @@ ToastComponent.displayName = 'Toast';
  * - ARIA атрибуты корректно проксируются в CoreToast
  * - Telemetry отражает состояние policy, а не сырые props
  * - visible/hidden в payload являются производными только от policy
- *
  * Не допускается:
  * - Использование напрямую core Toast компонента
  * - Игнорирование feature flag логики

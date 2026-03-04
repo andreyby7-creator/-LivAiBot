@@ -3,19 +3,15 @@
  * ============================================================================
  * 🟥 APP UI SIDEBAR — UI МИКРОСЕРВИС SIDEBAR
  * ============================================================================
- *
  * Единственная точка входа для SideBar в приложении.
  * UI boundary между ui-core и бизнес-логикой.
- *
  * Ответственность:
  * - Policy (hidden / visibility / collapsed)
  * - Telemetry
  * - Feature flags
- *
  * Не содержит:
  * - DOM-манипуляций кроме Core
  * - Платформенных эффектов
- *
  * Архитектурные решения:
  * - Управление состоянием свернутости и событиями обрабатывается в App слое
  * - CoreSideBar остается полностью presentational
@@ -164,7 +160,6 @@ type SideBarPolicy = Readonly<{
  * - telemetry
  * - visibility state
  * - collapsed state
- *
  * Ни один consumer не имеет права повторно интерпретировать props.visible,
  * props.collapsed или feature flags.
  */
@@ -411,16 +406,13 @@ SideBarComponent.displayName = 'SideBar';
 
 /**
  * UI-контракт SideBar компонента.
- *
  * @contract
- *
  * Гарантируется:
  * - Детерминированный рендеринг без side effects (кроме telemetry)
  * - SSR-safe и concurrent rendering compatible
  * - Полная интеграция с централизованной telemetry системой
  * - Управление feature flags для скрытия и свертывания
  * - Корректная обработка accessibility (ARIA)
- *
  * Инварианты:
  * - Всегда возвращает валидный JSX.Element или null
  * - Telemetry payload содержит корректное количество элементов
@@ -429,7 +421,6 @@ SideBarComponent.displayName = 'SideBar';
  * - visible/hidden в payload являются производными только от policy
  * - ItemClick telemetry отправляется при каждом клике на элемент
  * - Toggle telemetry отправляется при изменении состояния свернутости
- *
  * Не допускается:
  * - Использование напрямую core SideBar компонента
  * - Игнорирование feature flag логики
@@ -446,7 +437,6 @@ SideBarComponent.displayName = 'SideBar';
  *   ]}
  *   onItemClick={(id) => console.log('Clicked:', id)}
  * />
- *
  * // С feature flags и telemetry
  * <SideBar
  *   items={items}

@@ -3,14 +3,12 @@
  * ============================================================================
  * 🔵 CORE UI TEXTAREA — BEHAVIORAL PRIMITIVE
  * ============================================================================
- *
  * Роль:
  * - Базовый UI-примитив для <textarea>
  * - Управляет DOM side-effects:
  *   - autoFocus (без прокрутки страницы)
  *   - platform-поведением
  * - Полностью deterministic, SSR-safe и side-effect isolated
- *
  * Не содержит:
  * - feature flags
  * - telemetry
@@ -31,7 +29,6 @@ export type CoreTextareaProps = Readonly<
     /**
      * Автофокус при монтировании компонента.
      * Выполняется без скролла страницы.
-     *
      * Default: false
      */
     autoFocus?: boolean | undefined;
@@ -75,12 +72,10 @@ function CoreTextareaComponent(props: CoreTextareaProps): JSX.Element {
 
 /**
  * Memoized CoreTextarea.
- *
  * Гарантии:
  * - Никаких скрытых side-effects
  * - Предсказуемый жизненный цикл
  * - Полная совместимость с strict-mode и concurrent rendering
- *
  * Подходит для:
  * - больших форм
  * - UI-мастеров

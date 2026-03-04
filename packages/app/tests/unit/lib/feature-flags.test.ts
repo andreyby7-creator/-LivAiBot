@@ -1,6 +1,5 @@
 /**
  * @file Unit тесты для packages/app/src/lib/feature-flags.ts
- *
  * Enterprise-grade тестирование feature flags core с 95-100% покрытием:
  * - Все стратегии (alwaysOn/Off, user/tenant filters, percentage rollout, logical ops)
  * - evaluateFeature с различными результатами (найден/не найден, стратегия/дефолт/ошибка)

@@ -1,6 +1,5 @@
 /**
  * @file packages/app/src/state — Application State
- *
  * Публичный API пакета state.
  * Экспортирует все публичные типы, утилиты и селекторы для управления состоянием приложения.
  */
@@ -11,7 +10,6 @@
 
 /**
  * Store: главное хранилище состояния приложения на базе Zustand.
- *
  * @public
  */
 export {
@@ -39,7 +37,6 @@ export {
 
 /**
  * Store Utils: утилиты для безопасной работы с хранилищем.
- *
  * @public
  */
 export { isStoreLocked, safeSet, type SafeSetOptions, setStoreLocked } from './store-utils.js';
@@ -50,7 +47,6 @@ export { isStoreLocked, safeSet, type SafeSetOptions, setStoreLocked } from './s
 
 /**
  * Reset: утилиты для сброса состояния приложения.
- *
  * @public
  */
 export {
@@ -66,7 +62,6 @@ export {
 
 /**
  * Query Client: конфигурация React Query клиента.
- *
  * @public
  */
 export {

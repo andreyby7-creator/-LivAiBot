@@ -3,12 +3,10 @@
  * ============================================================================
  * 🟢 SEO MICROSERVICE: ROBOTS.TXT (POLICY + RENDERER)
  * ============================================================================
- *
  * Цели:
  * - Единый источник истины для robots policy
  * - Безопасное поведение по умолчанию (fail-safe): в non-prod запрещаем индексацию
  * - Минимум зависимостей (edge-friendly): только deterministic string rendering
- *
  * Архитектурные принципы (FAANG-style):
  * - Small composable units: нормализация → policy → renderer → Response
  * - Security-by-default: non-prod = Disallow: /
@@ -57,7 +55,6 @@ export type RobotsServiceInput = Readonly<{
 /**
  * Нормализует базовый URL для использования в robots.txt (sitemap).
  * Security-hardened: принимает только http/https протоколы, возвращает только origin.
- *
  * @param input Произвольная строка (может быть null/undefined/пустая/невалидная)
  * @returns Нормализованный origin (например, "https://example.com") или null
  */
@@ -145,7 +142,6 @@ function createProdSpec(baseUrl: string | null): RobotsSpec {
 
 /**
  * Создает RobotsSpec по входным параметрам окружения/запроса.
- *
  * Контракт:
  * - production → разрешаем индексирование, но закрываем технические/приватные пути
  * - development/staging → запрещаем индексацию целиком (fail-safe)
@@ -184,7 +180,6 @@ export function buildRobotsTxt(spec: RobotsSpec): string {
 
 /**
  * Генерирует HTTP Response для `/robots.txt`.
- *
  * Cache policy:
  * - production: можно кэшировать (policy меняется редко)
  * - non-prod: no-store, чтобы случайно не закэшировать запрет/разрешение при переключениях окружения

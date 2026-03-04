@@ -3,14 +3,12 @@
  * ============================================================================
  * 🟢 SERVICE WORKER (TypeScript) — PWA/OFFLINE ЯДРО
  * ============================================================================
- *
  * Использует ядро из packages/app
  * - NetworkFirst, CacheFirst, StaleWhileRevalidate
  * - Push notifications
  * - Background sync
  * - Graceful degradation
  * - Telemetry-ready
- *
  * Принципы:
  * - Zero business logic
  * - Immutable конфигурация

@@ -3,14 +3,12 @@
  * ============================================================================
  * 🎯 BATCH CORE — ЧИСТОЕ МИКРОСЕРВИСНОЕ ЯДРО ТЕЛЕМЕТРИИ
  * ============================================================================
- *
  * Архитектурная роль:
  * - Чистая изоляция batch логики без внешних зависимостей
  * - Иммутабельные структуры данных и функциональная парадигма
  * - Enterprise-ready batch обработка для высокой производительности
  * - Полная совместимость с hexagonal architecture паттернами
  * - Нулевая связанность с React, DOM или внешними SDK
- *
  * Свойства:
  * - Effect-free архитектура для предсказуемости и тестируемости
  * - Иммутабельные структуры данных и функциональная парадигма
@@ -18,7 +16,6 @@
  * - Типобезопасность с branded types и readonly контрактами
  * - Расширяемость для enterprise сценариев (A/B тестирование, аналитика)
  * - Минимальная поверхность API для максимальной гибкости
- *
  * Принципы:
  * - Никаких I/O операций (файлы, сеть, консоль, DOM)
  * - Никакой асинхронности и таймаутов
@@ -26,7 +23,6 @@
  * - Детерминированные результаты для одного входа
  * - Предсказуемая аллокация через чистую иммутабельную модель
  * - Полная изоляция от runtime зависимостей (SSR-safe)
- *
  * Почему чистый модуль:
  * - Разделение ответственности: core ≠ transport ≠ React bindings
  * - Легкость тестирования без моков и стабов
@@ -68,7 +64,6 @@ const PII_PATTERNS = Object.freeze(
 /**
  * Middleware для PII redaction на уровне core.
  * Гарантирует, что ни одно событие не попадет с чувствительными данными до transport.
- *
  * @param metadata - Метаданные для проверки
  * @param deep - Включить глубокую рекурсивную проверку (по умолчанию false для производительности)
  * @returns true если обнаружен PII
@@ -106,7 +101,6 @@ function containsPII(
 /**
  * Redact PII из metadata.
  * Заменяет PII-поля на '[REDACTED]'.
- *
  * @param metadata - Метаданные для очистки
  * @param deep - Включить глубокую рекурсивную очистку
  * @returns Очищенные метаданные
@@ -136,7 +130,6 @@ function redactPII(
 /**
  * Middleware для PII redaction на уровне core.
  * Гарантирует, что ни одно событие не попадет с чувствительными данными до transport.
- *
  * @param event - Событие для проверки
  * @param enableDeepScan - Включить глубокую рекурсивную проверку (по умолчанию false)
  * @returns Событие с очищенными метаданными (или без metadata если содержит PII)
@@ -172,7 +165,6 @@ function applyPIIRedactionMiddleware<TMetadata extends TelemetryMetadata>(
 /**
  * Hook для transformEvent перед flush.
  * Позволяет внешним слоям адаптировать события без изменения core.
- *
  * @param event - Исходное событие
  * @returns Трансформированное событие
  */
@@ -216,7 +208,6 @@ export const defaultBatchCoreConfig = {
 /**
  * Создает начальное состояние batch core.
  * Гарантирует чистоту и предсказуемость инициализации.
- *
  * @param config - Конфигурация batch core (может включать middleware и hooks)
  */
 export function createInitialBatchCoreState<
@@ -244,7 +235,6 @@ export function createInitialBatchCoreState<
  * Добавляет событие в batch без мутаций.
  * Чистая функция, возвращает новое состояние.
  * Применяет PII redaction middleware если включен в config.
- *
  * @internal Используйте telemetryBatchCore.addEvent вместо этого
  */
 export function addEventToBatchCore<
@@ -286,7 +276,6 @@ export function addEventToBatchCore<
  * Выполняет flush batch и возвращает события для отправки.
  * Чистая функция для извлечения накопленных событий.
  * Применяет transformEvent hook к каждому событию перед flush если включен.
- *
  * @internal Используйте telemetryBatchCore.flush вместо этого
  */
 export function flushBatchCore<
@@ -314,7 +303,6 @@ export function flushBatchCore<
 /**
  * Проверяет необходимость flush batch.
  * Чистая функция для принятия решения о сбросе.
- *
  * @internal Используйте telemetryBatchCore.shouldFlush вместо этого
  */
 export function shouldFlushBatchCore<

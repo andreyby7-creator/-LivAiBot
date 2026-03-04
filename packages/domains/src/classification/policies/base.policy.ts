@@ -3,13 +3,11 @@
  * ============================================================================
  * 🎯 DOMAINS — Classification Base Policy (Decision Layer)
  * ============================================================================
- *
  * Архитектурная роль:
  * Базовая decision policy для classification domain.
  * Определяет risk level и итоговый classification label на основе:
  * - risk score + threshold policy;
  * - агрегированных фактов эскалации (triggeredRuleCount + decision signals).
- *
  * Принципы:
  * - ✅ SRP: только policy-решения (без evaluation/scoring orchestration)
  * - ✅ Deterministic: одинаковые входы -> одинаковые результаты

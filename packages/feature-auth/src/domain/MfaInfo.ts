@@ -3,12 +3,10 @@
  * ============================================================================
  * 🔐 FEATURE-AUTH — MfaInfo DTO
  * ============================================================================
- *
  * Архитектурная роль:
  * - Типизированный контракт информации о многофакторной аутентификации
  * - Используется в LoginRequest, RegisterRequest, RegisterResponse
  * - Immutable, extensible, security-aware, domain-pure
- *
  * Принципы:
  * - ❌ Нет бизнес-логики
  * - ✅ Полная типизация (discriminated union для type-safety)
@@ -24,13 +22,11 @@
  *   token: '123456',
  *   deviceId: 'device-abc'
  * };
- *
  * // SMS MFA (с токеном)
  * const smsMfa: MfaInfo = {
  *   type: 'sms',
  *   token: '654321'
  * };
- *
  * // Push MFA (без токена, обязательный deviceId)
  * const pushMfa: MfaInfo = {
  *   type: 'push',
@@ -48,11 +44,9 @@ export type MfaType = 'totp' | 'sms' | 'email' | 'push';
 
 /**
  * DTO информации о многофакторной аутентификации
- *
  * Discriminated union для type-safe branching:
  * - TOTP/SMS/Email: требуют token (string), deviceId опционален
  * - Push: не требует token, deviceId обязателен
- *
  * Это обеспечивает domain-pure структуру:
  * - Push approval не имеет "token" (это не string-based)
  * - WebAuthn (future) не будет string-based
@@ -65,7 +59,6 @@ export type MfaInfo =
 
     /**
      * MFA токен или код подтверждения
-     *
      * ⚠️ SENSITIVE: must never be logged or persisted.
      * This field contains authentication credentials that should:
      * - Never appear in logs, telemetry, or audit trails

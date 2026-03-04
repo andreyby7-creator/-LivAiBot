@@ -3,12 +3,10 @@
  * ============================================================================
  * 🛡️ CORE — Pipeline (Plugin API)
  * ============================================================================
- *
  * Архитектурная роль:
  * - Generic dependency-driven execution engine API для композиции стадий pipeline
  * - Автоматическое определение порядка выполнения на основе provides/dependsOn
  * - Причина изменения: dependency-driven execution, не middleware chain
- *
  * Принципы:
  * - ✅ SRP: разделение на TYPES, INTERNAL (validation helpers), FACTORY HELPERS, API
  * - ✅ Deterministic: pure functions, immutable execution plan (executionIndex, executionPlanVersion)
@@ -20,7 +18,6 @@
  * - ✅ Reliability: compile-time provides/slots enforcement, runtime validation (duplicate providers, unknown slots)
  * - ✅ Isolation: каждый plugin работает только со своими declared provides, fallback isolation (side-effect only)
  * - ✅ Recovery: onError hook может вернуть StageResult для восстановления выполнения
- *
  * ⚠️ ВАЖНО:
  * - ❌ НЕ middleware chain (порядок определяется зависимостями, не порядком регистрации)
  * - ❌ НЕ включает domain-специфичные значения (TSlotMap определяется domain layer)
@@ -508,7 +505,6 @@ export function defineFallback<
  *   readonly ruleContext?: RuleEvaluationContext;
  *   readonly ruleEvaluationResult?: RuleEvaluationResult;
  * };
- *
  * const scoringPlugin = defineStage<RiskPipelineSlotMap>()({
  *   provides: ['scoringContext', 'riskScore'], // автоматически as const
  *   dependsOn: ['device', 'requestContext', 'rulesConfig'],
@@ -524,7 +520,6 @@ export function defineFallback<
  *     console.error(`Scoring failed: ${error.reason.kind}`, ctx.metadata.stageId);
  *   }
  * });
- *
  * const rulePlugin = defineStage<RiskPipelineSlotMap>()({
  *   provides: ['ruleContext', 'ruleEvaluationResult'],
  *   dependsOn: ['device', 'requestContext', 'riskScore'],
@@ -536,7 +531,6 @@ export function defineFallback<
  *     return { ok: true, slots: { ruleContext: ruleContext.ruleContext, ruleEvaluationResult: result } };
  *   }
  * });
- *
  * const fallback = defineFallback<RiskPipelineSlotMap>()({
  *   provides: [] as const,
  *   async run(ctx) {

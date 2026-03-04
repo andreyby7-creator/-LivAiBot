@@ -2,12 +2,9 @@
 
 /**
  * @file Валидация конфигурации зон ESLint для LivAi
- *
  * Проверяет корректность EXPECTED_ZONES: соответствие expectedPackages,
  * уникальность пакетов в PACKAGE_ZONE_MAPPING, архитектурную целостность.
- *
  * Usage: node config/eslint/utils/validate-zones.mjs [--verbose|-v]
- *
  * Options:
  *   --verbose, -v    Показать полный список пакетов для всех зон
  */

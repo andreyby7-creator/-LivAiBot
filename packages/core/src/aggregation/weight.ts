@@ -3,11 +3,9 @@
  * ============================================================================
  * 🛡️ CORE — Aggregation (Weight)
  * ============================================================================
- *
  * Архитектурная роль:
  * - Generic операции для работы с весами: нормализация, валидация, sum, normalize, scale, combine
  * - Причина изменения: generic weight operations, не domain-специфичная логика
- *
  * Принципы:
  * - ✅ SRP: разделение на TYPES, CONSTANTS, INTERNAL (validation helpers), WEIGHT, WEIGHT ALGEBRA
  * - ✅ Deterministic: одинаковые входы → одинаковые результаты, без silent normalization, array API = thin wrapper над streaming
@@ -18,7 +16,6 @@
  * - ✅ Scalable: поддержка Iterable для streaming (O(n), zero allocations), extensible через WeightAlgebra
  * - ✅ Security: runtime validation NaN/Infinity, проверка переполнения, IEEE-754 MIN_NORMAL для numeric underflow
  * - ✅ Immutable: все операции возвращают новые значения
- *
  * ⚠️ ВАЖНО:
  * - ❌ НЕ включает domain-специфичные значения (SAFE/SUSPICIOUS/DANGEROUS - это domain labels)
  * - ❌ НЕ требует нормализации к 1.0 (поддерживает любые относительные веса)
@@ -266,6 +263,7 @@ function sumFromArrayAssumeValid(weights: readonly number[]): number {
 export const weight = {
   /**
    * Суммирует веса (Kahan summation для высокой точности)
+   *
    * @example weight.sum([0.2, 0.3, 0.5]) // { ok: true, value: 1.0 }
    */
   sum(
@@ -303,6 +301,7 @@ export const weight = {
 
   /**
    * Суммирует веса из Iterable (streaming: single-pass, zero allocations, O(n))
+   *
    * @example weight.sumFromIterable(function*() { yield 0.2; yield 0.3; yield 0.5; }())
    */
   sumFromIterable(
@@ -373,7 +372,9 @@ export const weight = {
   /**
    * Нормализует веса к целевой сумме (по умолчанию 1.0)
    * @note Orchestration: validate → sum → validateSum → scale → validate
+   *
    * @example weight.normalize([2, 3, 5]) // { ok: true, value: [0.2, 0.3, 0.5] }
+   *
    * @example weight.normalize([2, 3, 5], { targetSum: 2.0 }) // { ok: true, value: [0.4, 0.6, 1.0] }
    */
   normalize(
@@ -445,7 +446,9 @@ export const weight = {
   /**
    * Нормализует веса из Iterable
    * @note Требует материализации (необходимо знать сумму до нормализации). Защита от DoS: maxSize ограничивает размер массива.
+   *
    * @example weight.normalizeFromIterable(function*() { yield 2; yield 3; yield 5; }())
+   *
    * @example weight.normalizeFromIterable(weights(), { targetSum: 1.0, maxSize: 1000 })
    */
   normalizeFromIterable(
@@ -490,6 +493,7 @@ export const weight = {
 
   /**
    * Масштабирует веса на множитель (каждый вес * scaleFactor)
+   *
    * @example weight.scale([0.2, 0.3, 0.5], 2.0) // { ok: true, value: [0.4, 0.6, 1.0] }
    */
   scale(
@@ -529,6 +533,7 @@ export const weight = {
 
   /**
    * Комбинирует два массива весов (поэлементное сложение: weights1[i] + weights2[i])
+   *
    * @example weight.combine([0.2, 0.3], [0.1, 0.2]) // { ok: true, value: [0.3, 0.5] }
    */
   combine(
@@ -589,7 +594,9 @@ export const weight = {
 
   /**
    * Проверяет валидность весов
+   *
    * @example weight.validate([0.2, 0.3, 0.5]) // { ok: true, value: undefined }
+   *
    * @example weight.validate([-0.1, 0.3, 0.5]) // { ok: false, reason: { kind: 'NEGATIVE_WEIGHT', ... } }
    */
   validate(
@@ -601,7 +608,9 @@ export const weight = {
 
   /**
    * Проверяет нормализацию весов к целевой сумме (с учетом погрешности epsilon)
+   *
    * @example weight.isNormalized([0.2, 0.3, 0.5]) // { ok: true, value: true }
+   *
    * @example weight.isNormalized([0.2, 0.3, 0.6]) // { ok: true, value: false }
    */
   isNormalized(
@@ -703,6 +712,7 @@ export const weightAlgebra = {
    * @template TState - Тип состояния
    * @template TContext - Тип контекста (timestamp, entity, feature flags, environment, etc.)
    * @note Использует loop вместо reduce для real early termination (CPU boundedness)
+   *
    * @example const maxOp: WeightOperation<number, number> = { init: () => 0, step: (acc, w) => ({ ok: true, value: Math.max(acc, w) }), finalize: (s) => ({ ok: true, value: s }) }; weightAlgebra.operate([0.2, 0.3, 0.5], maxOp) // { ok: true, value: 0.5 }
    */
   operate<TResult = number, TState = unknown, TContext = void>(

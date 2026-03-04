@@ -3,18 +3,15 @@
  * ============================================================================
  * 🔵 CORE UI SIDEBAR — PRESENTATIONAL PRIMITIVE
  * ============================================================================
- *
  * Роль:
  * - Базовый UI-компонент для отображения боковой панели
  * - Полностью детерминированный и side-effect free
  * - SSR-safe, Concurrent-safe
- *
  * Не содержит:
  * - Feature flags
  * - Telemetry
  * - Управление состоянием свернутости
  * - Таймеров или анимаций
- *
  * Управление:
  * - Состоянием свернутости и событиями управляет App-слой
  */
@@ -451,7 +448,6 @@ CoreSideBarComponent.displayName = 'CoreSideBar';
 
 /**
  * Memoized CoreSideBar.
- *
  * Гарантии:
  * - Полностью детерминированный
  * - Side-effect free
@@ -467,14 +463,11 @@ export const SideBar = memo(CoreSideBarComponent);
 
 /**
  * CoreSideBar — чистый presentational primitive:
- *
  * - Не управляет состоянием свернутости
  * - Не содержит feature flags или telemetry
  * - Все клики и изменения обрабатываются App-слоем
  * - Поддерживает ref forwarding
- *
  * Любая бизнес-логика (routing, active state, tracking) реализуется в App слое.
- *
  * Это гарантирует:
  * - переиспользуемость
  * - тестируемость

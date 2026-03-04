@@ -3,12 +3,10 @@
  * ============================================================================
  * 🛡️ CORE — Rule Engine (Rule)
  * ============================================================================
- *
  * Архитектурная роль:
  * - Generic операции для работы с правилами: создание, валидация, сортировка по приоритету
  * - Архитектура: Rule (primitives) + RuleAlgebra (extensible contract)
  * - Причина изменения: rule-engine, generic rule operations, rule algebra
- *
  * Принципы:
  * - ✅ SRP: разделение на Rule (primitives) и RuleAlgebra (extensible contract)
  * - ✅ Deterministic: одинаковые входы → одинаковые результаты
@@ -17,7 +15,6 @@
  * - ✅ Strict typing: generic по TPredicate, TResult, без string и Record в domain
  * - ✅ Scalable: Iterable streaming для больших наборов правил
  * - ✅ Security: runtime validation для защиты от некорректных правил
- *
  * ⚠️ ВАЖНО:
  * - ❌ НЕ включает domain-специфичные значения
  * - ❌ НЕ зависит от aggregation/classification
@@ -263,6 +260,7 @@ function filterRulesByPriority<TPredicate, TResult>(
 export const rule = {
   /**
    * Создание правила из предиката и результата
+   *
    * @example
    * ```ts
    * rule.create((x: number) => x > 0, 'positive');
@@ -290,6 +288,7 @@ export const rule = {
 
   /**
    * Валидация правила
+   *
    * @example
    * ```ts
    * rule.validate({ predicate: (x) => x > 0, result: 'positive' });
@@ -310,6 +309,7 @@ export const rule = {
   /**
    * Валидация правила с предикатом типа Predicate<TFact>
    * Использует predicate.validate для валидации предиката
+   *
    * @example
    * ```ts
    * rule.validateWithPredicate<number, string>({ predicate: (x) => x > 0, result: 'positive' });
@@ -353,6 +353,7 @@ export const rule = {
 
   /**
    * Валидация массива правил
+   *
    * @example
    * ```ts
    * rule.validateAll([{ predicate: (x) => x > 0, result: 'positive' }]);
@@ -396,6 +397,7 @@ export const rule = {
 
   /**
    * Фильтрация правил по диапазону приоритетов
+   *
    * @example
    * ```ts
    * rule.filterByPriority([...rules], { minPriority: 2, maxPriority: 4 });
@@ -423,6 +425,7 @@ export const rule = {
   /**
    * Комбинированная операция: валидация, фильтрация по приоритету и сортировка
    * Thin wrapper поверх validateAll, filterByPriority и sortByPriority
+   *
    * @example
    * ```ts
    * rule.prepare([...rules], { minPriority: 2 });
@@ -460,6 +463,7 @@ export const rule = {
    * Namespace для DSL-style расширений правил
    * Позволяет добавлять domain-specific операции без изменения core
    * ⚠️ Защищено от мутаций через Object.freeze для предотвращения side-channel атак
+   *
    * @example
    * ```ts
    * rule.extensions.custom = { createWithDefaultPriority: (p, r) => rule.create(p, r, 0) };
@@ -503,13 +507,10 @@ export function isStepResult<TState, E = never>(
 /**
  * Операция для работы с правилами (extensible contract)
  * Generic по TResult, TState, TContext, TPredicate, TFact, E для full algebra extensibility
- *
  * ⚠️ КРИТИЧНО: Все методы должны быть pure и deterministic (без Date.now(), Math.random(), side-effects, мутаций).
  * step возвращает новое состояние (не мутирует), исключения автоматически перехватываются и преобразуются в RuleFailureReason.
- *
  * ⚠️ SHORT-CIRCUIT: step может возвращать TState (продолжение) или StepResult<TState> (type='break' прерывает итерацию,
  * type='continue' продолжает). Позволяет реализовать "first match wins" без throw.
- *
  * @public
  */
 export type RuleOperation<
@@ -824,7 +825,6 @@ export const ruleAlgebra = {
   /**
    * Применение RuleOperation к массиву или Iterable правил и факту
    * Поддерживает early termination (loop-based) и streaming (O(1) memory)
-   *
    * ⚠️ ВАЖНО: ожидает валидированные правила (rule.create() или rule.validate()/rule.validateAll()).
    * Невалидированные правила могут привести к runtime исключениям в RuleOperation.step.
    *
@@ -864,7 +864,6 @@ export const ruleAlgebra = {
   /**
    * Применение RuleOperation (lazy, streaming-friendly)
    * Возвращает generator для streaming evaluation с early-exit
-   *
    * ⚠️ ВАЖНО: ожидает валидированные правила (rule.create() или rule.validate()/rule.validateAll()).
    * Невалидированные правила могут привести к runtime исключениям в RuleOperation.step.
    *

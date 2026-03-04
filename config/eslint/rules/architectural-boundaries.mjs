@@ -1,10 +1,8 @@
 /**
  * @file Архитектурные границы ESLint для LivAi
- *
  * Zone-based architecture enforcement для LivAi.
  * Динамическая генерация правил на основе зон из check-zones.mjs.
  * Effect-TS aware с поддержкой type-only imports.
- *
  * @see {@link ./utils/check-zones.mjs} - определение зон и маппинг пакетов
  * @see {@link ./utils/validate-zones.mjs} - валидация конфигурации зон
  */
@@ -97,7 +95,6 @@ function generateArchitecturalBoundaries() {
  * Получает паттерны файлов для зоны LivAiBot
  * Динамически генерируется из PACKAGE_ZONE_MAPPING для 100% синхронизации
  * с реальной архитектурой проекта
- *
  * @param {string} layer - имя зоны (foundation, aiExecution, ui, apps, infrastructure)
  * @returns {string[]} массив glob паттернов для файлов зоны
  */
@@ -294,7 +291,6 @@ export const deprecatedImportsRules = {
 /**
  * Запрещает прямые импорты из внутренних модулей security-pipeline
  * Разрешен только импорт из facade (security-pipeline.ts)
- * 
  * Это закрепляет Clean Architecture физически через линтер,
  * а не только договорённостью.
  */

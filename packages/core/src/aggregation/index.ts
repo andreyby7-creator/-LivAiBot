@@ -1,6 +1,5 @@
 /**
  * @file @livai/core/aggregation — Generic Aggregation Semantics
- *
  * Публичный API пакета aggregation.
  * Экспортирует все публичные компоненты, типы и утилиты для generic агрегации значений.
  */
@@ -12,7 +11,6 @@
 /**
  * Типы для generic агрегации значений с весами.
  * WeightedValue для значений с весами, ReduceResult для effect-based API.
- *
  * @public
  */
 
@@ -47,7 +45,6 @@ export {
  * Reducer: generic функции для редукции массивов значений.
  * Чистые функции без side-effects, только generic math.
  * Все функции возвращают ReduceResult для composability.
- *
  * @public
  */
 
@@ -61,7 +58,6 @@ export { reducer } from './reducer.js';
  * Reducer Algebra: factory для создания custom aggregators.
  * Позволяет создавать median, percentile, geometric mean, confidence aggregation
  * без изменения core логики.
- *
  * @public
  */
 
@@ -75,7 +71,6 @@ export { reducerAlgebra } from './reducer.js';
  * Weight: generic функции для работы с весами.
  * Чистые функции без side-effects, только generic math.
  * Все функции возвращают WeightResult для composability.
- *
  * @public
  */
 
@@ -89,7 +84,6 @@ export { weight } from './weight.js';
  * Weight Algebra: factory для создания custom weight operations.
  * Позволяет создавать weighted median, percentile weights, weight distribution
  * без изменения core логики.
- *
  * @public
  */
 
@@ -103,7 +97,6 @@ export { weightAlgebra } from './weight.js';
  * Scoring: generic функции для scoring.
  * Чистые функции без side-effects, только generic math.
  * Все функции возвращают ScoreResult для composability.
- *
  * @public
  */
 
@@ -117,7 +110,6 @@ export { scoring } from './scoring.js';
  * Score Algebra: factory для создания custom scoring operations.
  * Позволяет создавать custom scoring strategies, score transformations
  * без изменения core логики.
- *
  * @public
  */
 

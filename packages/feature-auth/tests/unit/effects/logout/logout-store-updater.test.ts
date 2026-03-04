@@ -3,7 +3,6 @@
  * ============================================================================
  * 🔐 LOGOUT STORE UPDATER — ЕДИНАЯ ТОЧКА СБРОСА СОСТОЯНИЙ
  * ============================================================================
- *
  * Проверяет, что:
  * - applyLogoutReset атомарно сбрасывает все состояния через batchUpdate
  * - Используются канонические initial states из auth-initial.ts
@@ -89,6 +88,8 @@ function createMockStore(): { store: AuthStorePort; captured: CapturedStoreState
         return undefined;
       }, undefined);
     },
+    getSessionState: () => captured.sessionState,
+    getRefreshToken: () => 'test-refresh-token',
   };
 
   return { store, captured };

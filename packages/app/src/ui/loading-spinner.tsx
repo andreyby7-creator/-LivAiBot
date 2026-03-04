@@ -3,19 +3,15 @@
  * ============================================================================
  * 🟥 APP UI LOADING SPINNER — UI МИКРОСЕРВИС LOADING SPINNER
  * ============================================================================
- *
  * Единственная точка входа для Loading Spinner в приложении.
  * UI boundary между ui-core и бизнес-логикой.
- *
  * Ответственность:
  * - Policy (hidden / visibility)
  * - Telemetry
  * - Feature flags
- *
  * Не содержит:
  * - DOM-манипуляций кроме Core
  * - Платформенных эффектов
- *
  * Архитектурные решения:
  * - Управление видимостью и параметрами обрабатывается в App слое
  * - CoreLoadingSpinner остается полностью presentational
@@ -144,10 +140,8 @@ type LoadingSpinnerPolicy = Readonly<{
  * - DOM rendering
  * - telemetry
  * - visibility state
- *
  * Ни один consumer не имеет права повторно интерпретировать props.visible
  * или feature flags.
- *
  * @note Чистая функция без side-effects. Использует только useMemo для вычислений.
  */
 function useLoadingSpinnerPolicy(
@@ -344,7 +338,6 @@ const LoadingSpinnerComponent = forwardRef<HTMLDivElement, AppLoadingSpinnerProp
      * CoreLoadingSpinner получает visible={true} всегда, потому что policy
      * уже учитывает видимость на уровне App-слоя (early return выше).
      * Core primitive не должен повторно проверять visible.
-     *
      * data-component='AppLoadingSpinner' используется для telemetry и отладки,
      * позволяя идентифицировать App-обертку в DevTools и логах.
      */
@@ -370,23 +363,19 @@ LoadingSpinnerComponent.displayName = 'LoadingSpinner';
 
 /**
  * UI-контракт LoadingSpinner компонента.
- *
  * @contract
- *
  * Гарантируется:
  * - Детерминированный рендеринг без side effects (кроме telemetry)
  * - SSR-safe и concurrent rendering compatible
  * - Полная интеграция с централизованной telemetry системой
  * - Управление feature flags для скрытия спиннера
  * - Корректная обработка accessibility (ARIA)
- *
  * Инварианты:
  * - Всегда возвращает валидный JSX.Element или null
  * - Telemetry payload содержит корректные параметры спиннера
  * - Feature flags применяются корректно к visibility
  * - Telemetry отражает состояние policy, а не сырые props
  * - visible/hidden в payload являются производными только от policy
- *
  * Не допускается:
  * - Использование напрямую core LoadingSpinner компонента
  * - Игнорирование feature flag логики

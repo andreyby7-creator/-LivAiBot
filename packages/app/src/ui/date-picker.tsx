@@ -3,10 +3,8 @@
  * ============================================================================
  * 🟥 APP UI DATEPICKER — UI МИКРОСЕРВИС DATEPICKER
  * ============================================================================
- *
  * Единственная точка входа для DatePicker в приложении.
  * UI boundary между ui-core и бизнес-логикой.
- *
  * Ответственность:
  * - Policy (hidden / visibility)
  * - Telemetry
@@ -15,7 +13,6 @@
  * - Генерация календаря
  * - Валидация дат
  * - Управление состоянием открытия/закрытия
- *
  * Не содержит:
  * - DOM-манипуляций кроме Core
  * - Платформенных эффектов
@@ -159,7 +156,6 @@ type DatePickerPolicy = Readonly<{
  * - DOM rendering
  * - telemetry
  * - visibility state
- *
  * Ни один consumer не имеет права повторно интерпретировать props.visible
  * или feature flags.
  */
@@ -574,9 +570,7 @@ const DatePickerComponent = forwardRef<HTMLDivElement, AppDatePickerProps>(
 
 /**
  * UI-контракт DatePicker компонента.
- *
  * @contract
- *
  * Гарантируется:
  * - Детерминированный рендеринг без side effects (кроме telemetry)
  * - SSR-safe и concurrent rendering compatible
@@ -587,7 +581,6 @@ const DatePickerComponent = forwardRef<HTMLDivElement, AppDatePickerProps>(
  * - Генерация календаря
  * - Валидация дат через minDate/maxDate (включая ручной ввод)
  * - Обработка некорректного ввода через onInvalidInput callback
- *
  * Инварианты:
  * - Календарь корректно отображается для любого месяца
  * - Выбранная дата корректно подсвечивается
@@ -595,7 +588,6 @@ const DatePickerComponent = forwardRef<HTMLDivElement, AppDatePickerProps>(
  * - Telemetry payload содержит корректные значения
  * - Telemetry отражает состояние policy, а не сырые props
  * - visible/hidden в payload являются производными только от policy
- *
  * Не допускается:
  * - Использование напрямую core DatePicker компонента
  * - Игнорирование feature flag логики

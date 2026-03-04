@@ -3,13 +3,11 @@
  * ============================================================================
  * 🎨 UNIFIED UI PROVIDER — ЕДИНЫЙ ПРОВАЙДЕР UI ИНФРАСТРУКТУРЫ
  * ============================================================================
- *
  * Назначение:
  * - Единая точка доступа к UI инфраструктуре приложения
  * - Комбинированный context для featureFlags + telemetry + i18n
  * - Автоматическая инъекция сервисов во все UI компоненты
  * - Микросервисная композиция без нарушения separation of concerns
- *
  * Архитектурные принципы:
  * - Context composition без side effects в рендере
  * - SSR-safe поведение с graceful degradation
@@ -137,12 +135,10 @@ export const UnifiedUIContext = React.createContext<UnifiedUIContextType>(NOOP_C
 
 /**
  * UnifiedUIProvider — композиционный провайдер для UI инфраструктуры.
- *
  * Автоматически предоставляет доступ к:
  * - Feature flags через FeatureFlagsProvider
  * - Telemetry через TelemetryProvider
  * - I18n через IntlProvider
- *
  * Все сервисы инициализируются детерминированно в правильном порядке.
  */
 function UnifiedUIProviderComponent({
@@ -219,12 +215,10 @@ export default UnifiedUIProvider;
 
 /**
  * Хук для доступа к единому UI контексту.
- *
  * Предоставляет тонкий API для всех UI инфраструктурных сервисов:
  * - featureFlags: управление feature flags
  * - telemetry: трекинг событий и метрик
  * - i18n: информация о текущей локали и направлении текста
- *
  * @returns UnifiedUIContextType с доступом ко всем сервисам
  */
 export function useUnifiedUI(): UnifiedUIContextType {
@@ -244,10 +238,8 @@ export function useUnifiedUI(): UnifiedUIContextType {
 
 /**
  * Строгий хук для доступа к единому UI контексту с fail-fast поведением.
- *
  * В отличие от useUnifiedUI, этот хук выбрасывает ошибку если провайдер отсутствует,
  * что помогает детектировать архитектурные проблемы на ранних этапах.
- *
  * @returns UnifiedUIContextType с доступом ко всем сервисам
  * @throws Error если UnifiedUIProvider не найден в дереве компонентов
  */
@@ -266,7 +258,6 @@ export function useRequiredUnifiedUI(): UnifiedUIContextType {
 
 /**
  * Удобный хук для доступа только к feature flags из единого контекста.
- *
  * @returns FeatureFlags API
  */
 export function useUnifiedFeatureFlags(): UnifiedUIContextType['featureFlags'] {
@@ -276,7 +267,6 @@ export function useUnifiedFeatureFlags(): UnifiedUIContextType['featureFlags'] {
 
 /**
  * Удобный хук для доступа только к telemetry из единого контекста.
- *
  * @returns Telemetry API
  */
 export function useUnifiedTelemetry(): UnifiedUIContextType['telemetry'] {
@@ -286,7 +276,6 @@ export function useUnifiedTelemetry(): UnifiedUIContextType['telemetry'] {
 
 /**
  * Удобный хук для доступа к i18n информации из единого контекста.
- *
  * @returns I18n context с текущей локалью и направлением текста
  */
 export function useUnifiedI18n(): UnifiedUIContextType['i18n'] {

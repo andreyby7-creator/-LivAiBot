@@ -3,12 +3,10 @@
  * ============================================================================
  * 🛡️ CORE — Rule Engine (Predicate)
  * ============================================================================
- *
  * Архитектурная роль:
  * - Generic операции для работы с предикатами: композиция (AND, OR, NOT), валидация, evaluation
  * - Архитектура: Predicate (primitives) + PredicateAlgebra (extensible contract)
  * - Причина изменения: rule-engine, generic predicate operations, predicate algebra
- *
  * Принципы:
  * - ✅ SRP: разделение на Predicate (primitives) и PredicateAlgebra (extensible contract)
  * - ✅ Deterministic: одинаковые входы → одинаковые результаты (loop-based early termination)
@@ -17,7 +15,6 @@
  * - ✅ Strict typing: generic по TFact, E, без string и Record в domain
  * - ✅ Scalable: Iterable streaming для больших наборов предикатов
  * - ✅ Security: runtime validation для защиты от некорректных предикатов
- *
  * ⚠️ ВАЖНО:
  * - ❌ НЕ включает domain-специфичные значения
  * - ❌ НЕ зависит от aggregation/classification
@@ -75,10 +72,8 @@ export type PredicateFailureReason =
 /**
  * Hooks для observability (optional, не нарушают purity)
  * Generic по TResult для типобезопасности state между beforeStep и afterStep
- *
  * ⚠️ ВАЖНО: Hooks НЕ должны мутировать facts, state или context.
  * Все параметры передаются как readonly для предотвращения мутаций.
- *
  * @public
  */
 export type PredicateHooks<TResult, TState, TFact, TContext> = Readonly<{
@@ -449,6 +444,7 @@ function composePredicatesIterative<TFact>(
 export const predicate = {
   /**
    * Композиция предикатов через AND (short-circuit при первом false)
+   *
    * @example
    * ```ts
    * const composed = predicate.and([(x: number) => x > 0, (x: number) => x % 2 === 0]);
@@ -481,6 +477,7 @@ export const predicate = {
 
   /**
    * Композиция предикатов через OR (short-circuit при первом true)
+   *
    * @example
    * ```ts
    * const composed = predicate.or([(x: number) => x > 0, (x: number) => x < 0]);
@@ -513,6 +510,7 @@ export const predicate = {
 
   /**
    * Инверсия предиката (NOT)
+   *
    * @example
    * ```ts
    * const isNotPositive = predicate.not((x: number) => x > 0);
@@ -545,6 +543,7 @@ export const predicate = {
 
   /**
    * Вычисление предиката для факта
+   *
    * @example
    * ```ts
    * predicate.evaluate((x: number) => x > 0, 5); // { ok: true, value: true }
@@ -580,6 +579,7 @@ export const predicate = {
 
   /**
    * Вычисление массива предикатов для факта
+   *
    * @example
    * ```ts
    * predicate.evaluateAll([(x: number) => x > 0, (x: number) => x % 2 === 0], 4);
@@ -608,6 +608,7 @@ export const predicate = {
 
   /**
    * Вычисление Iterable предикатов для факта (streaming-friendly, O(1) memory)
+   *
    * @example
    * ```ts
    * const preds = function* () { yield (x: number) => x > 0; yield (x: number) => x % 2 === 0; };
@@ -656,6 +657,7 @@ export const predicate = {
   /**
    * Namespace для DSL-style расширений предикатов
    * Позволяет добавлять domain-specific операции без изменения core
+   *
    * @example
    * ```ts
    * predicate.extensions.custom = {
@@ -675,20 +677,17 @@ export const predicate = {
 /**
  * Операция для работы с предикатами (extensible contract)
  * Generic по TResult, TState, TContext, TFact, E для full algebra extensibility
- *
  * ⚠️ КРИТИЧНО: Все методы должны быть pure и deterministic:
  * - Не использовать Date.now(), Math.random() или другие non-deterministic функции
  * - Не мутировать внешнее состояние
  * - Не использовать side-effects (console.log, network calls, etc.)
  * - Возвращать одинаковые результаты для одинаковых входов
  * - step НЕ должен мутировать state (должен возвращать новое состояние)
- *
  * ⚠️ ОБРАБОТКА ИСКЛЮЧЕНИЙ:
  * - Все исключения из step и finalize автоматически перехватываются
  * - Исключения преобразуются в PredicateFailureReason с kind='EVALUATION_ERROR'
  * - В debug mode сохраняется error message, stacktrace и мета-данные
  * - step/finalize должны быть pure; исключения обрабатываются на уровне operate
- *
  * @template E Тип ошибки, используемый в возвращаемом типе {@link predicateAlgebra.operate}
  * @public
  */
@@ -922,6 +921,7 @@ export const predicateAlgebra = {
   /**
    * Применение PredicateOperation к массиву или Iterable предикатов и факту
    * Поддерживает early termination (loop-based) и streaming (O(1) memory)
+   *
    * @example
    * ```ts
    * const countTrue: PredicateOperation<number, number, void, number> = {
@@ -953,6 +953,7 @@ export const predicateAlgebra = {
   /**
    * Применение PredicateOperation (lazy, streaming-friendly)
    * Возвращает generator для streaming evaluation с early-exit
+   *
    * @example
    * ```ts
    * const countTrue: PredicateOperation<number, number, void, number> = {

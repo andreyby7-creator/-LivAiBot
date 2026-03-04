@@ -1,6 +1,5 @@
 /**
  * @file Unit тесты для packages/app/src/lib/validation.ts
- *
  * Enterprise-grade тестирование validation core с 95-100% покрытием:
  * - Все базовые валидаторы (required, isString, isNumber, refine)
  * - Композиционные функции (pipe, asyncPipe)

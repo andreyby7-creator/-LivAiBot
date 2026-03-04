@@ -3,12 +3,10 @@
  * ============================================================================
  * 🛡️ CORE — Pipeline (Runtime Overrides / On-Call Safety Switches)
  * ============================================================================
- *
  * Архитектурная роль:
  * - Runtime overrides для экстренного управления pipeline
  * - On-call safety switches для быстрого реагирования на инциденты
  * - Причина изменения: operational readiness / incident response
- *
  * Принципы:
  * - ✅ SRP: разделение на TYPES, CONSTANTS, HELPERS, PROVIDERS, API
  * - ✅ Deterministic: pure functions для применения overrides (чтение env через injectable provider, fail-safe механизмы)

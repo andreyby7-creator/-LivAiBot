@@ -3,19 +3,15 @@
  * ============================================================================
  * 🟥 APP UI CONFIRM DIALOG — UI МИКРОСЕРВИС CONFIRM DIALOG
  * ============================================================================
- *
  * Единственная точка входа для ConfirmDialog в приложении.
  * UI boundary между ui-core и бизнес-логикой.
- *
  * Ответственность:
  * - Policy (hidden / visibility / disabled)
  * - Telemetry
  * - Feature flags
- *
  * Не содержит:
  * - DOM-манипуляций кроме Core
  * - Платформенных эффектов
- *
  * Архитектурные решения:
  * - Управление видимостью и событиями обрабатывается в App слое
  * - CoreConfirmDialog остается полностью presentational
@@ -208,10 +204,8 @@ type ConfirmDialogPolicy = Readonly<{
  * - telemetry
  * - visibility state
  * - disabled state
- *
  * Ни один consumer не имеет права повторно интерпретировать props.visible,
  * props.disabled или feature flags.
- *
  * @remarks
  * isRendered всегда false, если скрыт feature flag (isHiddenByFeatureFlag),
  * независимо от значения props.visible. Это гарантирует, что feature flag
@@ -469,16 +463,13 @@ ConfirmDialogComponent.displayName = 'ConfirmDialog';
 
 /**
  * UI-контракт ConfirmDialog компонента.
- *
  * @contract
- *
  * Гарантируется:
  * - Детерминированный рендеринг без side effects (кроме telemetry)
  * - SSR-safe и concurrent rendering compatible
  * - Полная интеграция с централизованной telemetry системой
  * - Управление feature flags для скрытия и отключения
  * - Корректная обработка accessibility (ARIA)
- *
  * Инварианты:
  * - Всегда возвращает валидный JSX.Element или null
  * - Telemetry payload содержит корректные данные о диалоге
@@ -487,7 +478,6 @@ ConfirmDialogComponent.displayName = 'ConfirmDialog';
  * - visible/hidden в payload являются производными только от policy
  * - Confirm telemetry отправляется при подтверждении
  * - Cancel telemetry отправляется при отмене
- *
  * Не допускается:
  * - Использование напрямую core ConfirmDialog компонента
  * - Игнорирование feature flag логики
@@ -504,7 +494,6 @@ ConfirmDialogComponent.displayName = 'ConfirmDialog';
  *   onConfirm={() => handleConfirm()}
  *   onCancel={() => handleCancel()}
  * />
- *
  * // С feature flags и telemetry
  * <ConfirmDialog
  *   visible={isOpen}

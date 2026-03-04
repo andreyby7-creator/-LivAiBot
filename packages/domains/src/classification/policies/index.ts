@@ -1,6 +1,5 @@
 /**
  * @file packages/domains/src/classification/policies — Classification Policies
- *
  * Публичный API пакета policies.
  * Экспортирует типы и функции для decision/aggregation policy classification domain.
  */
@@ -13,7 +12,6 @@
 /**
  * Типы базовой policy принятия решения:
  * risk levels, thresholds, decision signals и decision policy contract.
- *
  * @public
  */
 export type { DecisionPolicy, DecisionSignals, RiskLevel, RiskThresholds } from './base.policy.js';
@@ -26,7 +24,6 @@ export type { DecisionPolicy, DecisionSignals, RiskLevel, RiskThresholds } from 
 /**
  * Типы aggregation strategy/policy:
  * источники, результаты агрегации, thresholds и policy-конфигурация стратегий.
- *
  * @public
  */
 export type {
@@ -49,7 +46,6 @@ export type {
 
 /**
  * Дефолтные конфигурации policy-слоя classification.
- *
  * @public
  */
 export { defaultAggregationPolicy } from './aggregation.policy.js';
@@ -64,7 +60,6 @@ export { defaultDecisionPolicy } from './base.policy.js';
  * Функции policy-слоя:
  * - decision policy (`determineRiskLevel`, `determineLabel`)
  * - aggregation policy/strategy (`applyAggregationPolicy`, `aggregateRiskSources`)
- *
  * @public
  */
 export { applyAggregationPolicy } from './aggregation.policy.js';

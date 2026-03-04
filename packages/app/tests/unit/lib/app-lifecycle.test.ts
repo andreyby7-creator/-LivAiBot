@@ -1,6 +1,5 @@
 /**
  * @file Unit тесты для packages/app/src/lib/app-lifecycle.ts
- *
  * Тестирование lifecycle orchestrator с 100% покрытием:
  * - Bootstrap/teardown стадий
  * - Подписка на lifecycle события

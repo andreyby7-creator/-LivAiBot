@@ -1,6 +1,5 @@
 /**
  * @file Middleware для i18n роутинга (next-intl).
- *
  * Обрабатывает только страницы приложений, исключая:
  * - API routes (/api/*) - для производительности и избежания багов с headers
  * - Next.js internals (/_next/*)

@@ -3,18 +3,15 @@
  * ============================================================================
  * 🟢 SEO MICROSERVICE (HTTP ENDPOINT): /robots.txt
  * ============================================================================
- *
  * Контракт:
  * - `GET /robots.txt` → `text/plain; charset=utf-8`
  * - Policy env-aware:
  *   - production: allow + закрыть приватные/технические пути + (опц.) sitemap
  *   - non-prod: Disallow: / (fail-safe от индексации)
- *
  * Архитектура (thin wrapper):
  * - Вся логика (policy, кэширование, X-Robots-Tag, форматирование) живёт в `_lib/robots-service`
  * - Этот route handler только пробрасывает env/request → renderer
  * - Никакой собственной бизнес-логики, валидации или форматирования здесь нет
- *
  * Почему route handler, а не public/robots.txt:
  * - Политика зависит от окружения и i18n маршрутов
  * - Нужна единая точка расширения (sitemap/host/будущие правила)

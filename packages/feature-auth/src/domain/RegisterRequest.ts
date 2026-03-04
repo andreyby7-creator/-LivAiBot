@@ -3,14 +3,12 @@
  * ============================================================================
  * 🔐 FEATURE-AUTH — RegisterRequest DTO
  * ============================================================================
- *
  * Архитектурная роль:
  * - Типизированный контракт запроса регистрации нового пользователя
  * - Поддержка email, username, phone, oauth
  * - Multi-factor authentication (MFA)
  * - Устойчивый и микросервисно-нейтральный
  * - Immutable, future-proof и extensible
- *
  * Принципы:
  * - ❌ Нет бизнес-логики
  * - ✅ Полная типизация
@@ -29,7 +27,6 @@
  *   mfa: { type: 'totp', token: '123456' },
  *   clientContext: { ip: '1.2.3.4', deviceId: 'device-abc', userAgent: 'browser', locale: 'en-US' }
  * };
- *
  * // OAuth registration
  * const oauthReq: RegisterRequest<'oauth'> = {
  *   dtoVersion: '1.0',

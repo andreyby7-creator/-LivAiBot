@@ -3,12 +3,10 @@
  * ============================================================================
  * 🔴 GLOBAL STATE RESET — СБРОС СОСТОЯНИЯ ПРИ LOGOUT
  * ============================================================================
- *
  * Архитектурная роль:
  * - Централизованная точка сброса UI-состояния приложения
  * - Реакция на доменно-нейтральные app-события (logout, force-reset, etc.)
  * - Изолирован от auth / api / react
- *
  * Принципы:
  * - ❌ Нет бизнес-логики
  * - ❌ Нет async / side-effects
@@ -16,7 +14,6 @@
  * - ✅ Реактивность через events
  * - ✅ SSR-safe
  * - ✅ Микросервисно-нейтральный дизайн
- *
  * Использование:
  * - Импортируется и инициализируется в bootstrap-слое приложения
  * - Возвращает cleanup-функцию
@@ -32,15 +29,12 @@ import { AppLifecycleEvent, appLifecycleEvents } from '../events/app-lifecycle-e
 
 /**
  * reset.ts — это boundary между:
- *
  * - доменными событиями (logout, session-expired, force-reset)
  * - и UI состоянием (zustand store)
- *
  * Он НЕ знает:
  * - кто инициировал logout
  * - почему он произошёл
  * - был ли это user action или server-side invalidation
- *
  * Он ЗНАЕТ только:
  * 👉 "приложению нужно вернуться в безопасное baseline-состояние"
  */
@@ -65,7 +59,6 @@ const RESET_REASON_TO_EVENT: Record<AppResetReason, AppLifecycleEvent> = {
 
 /**
  * Политика сброса состояния приложения.
- *
  * - 'full': Полный сброс всего UI state (формы, кэши, флаги)
  * - 'soft': Минимальный сброс только runtime-состояний (формы, временные флаги)
  */
@@ -77,13 +70,10 @@ export type AppResetPolicy = 'full' | 'soft';
 
 /**
  * Выполняет сброс UI-состояния приложения.
- *
  * @param reason - причина сброса (сигнал, не логика)
  * @param policy - политика сброса (по умолчанию 'full')
- *
  * @note
  * soft reset — сброс только ephemeral runtime state, сохраняет persistent state/flags
- *
  * @note
  * Store блокируется перед reset и разблокируется после для предотвращения
  * обновлений во время процесса сброса состояния.
@@ -125,7 +115,6 @@ let isRegistered = false;
 
 /**
  * Регистрирует глобальные обработчики reset-состояния.
- *
  * @returns cleanup-функция для teardown
  */
 export function registerAppStateReset(): () => void {
@@ -154,7 +143,6 @@ export function registerAppStateReset(): () => void {
 /**
  * Сбрасывает состояние регистрации для тестирования.
  * Только для использования в тестах!
- *
  * @internal
  */
 export function __resetAppStateResetRegistration(): void {

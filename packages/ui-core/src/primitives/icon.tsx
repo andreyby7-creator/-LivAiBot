@@ -3,12 +3,10 @@
  * ============================================================================
  * 🔵 CORE UI ICON — BEHAVIORAL PRIMITIVE
  * ============================================================================
- *
  * Роль:
  * - Базовый UI-примитив для отображения иконок
  * - Детерминированный и side-effect isolated
  * - SSR-safe
- *
  * Не содержит:
  * - feature flags
  * - telemetry
@@ -97,7 +95,6 @@ const CoreIconComponent = forwardRef<HTMLElementTagNameMap['i'], CoreIconProps>(
 
 /**
  * Memoized CoreIcon.
- *
  * Гарантии:
  * - Никаких скрытых side-effects
  * - Предсказуемый жизненный цикл
@@ -105,7 +102,6 @@ const CoreIconComponent = forwardRef<HTMLElementTagNameMap['i'], CoreIconProps>(
  * - Поддержка ref forwarding для UI интеграций
  * - Доступность: декоративные и смысловые иконки
  * - CSS variables: --icon-size, --icon-color для theme overrides
- *
  * CSS Variables (рекомендуется добавить):
  * ```css
  * [data-component="CoreIcon"] {
@@ -113,7 +109,6 @@ const CoreIconComponent = forwardRef<HTMLElementTagNameMap['i'], CoreIconProps>(
  *   color: var(--icon-color, currentColor);
  * }
  * ```
- *
  * Подходит для:
  * - UI-компонентов
  * - workflow

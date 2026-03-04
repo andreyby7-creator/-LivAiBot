@@ -3,14 +3,12 @@
  * ============================================================================
  * 🔵 CORE UI RADIO — BEHAVIORAL PRIMITIVE
  * ============================================================================
- *
  * Роль:
  * - Базовый UI-примитив для <input type="radio">
  * - Управляет DOM side-effects:
  *   - autoFocus (без прокрутки страницы)
  *   - platform-поведением
  * - Полностью deterministic, SSR-safe и side-effect isolated
- *
  * Не содержит:
  * - feature flags
  * - telemetry
@@ -31,7 +29,6 @@ export type CoreRadioProps = Readonly<
     /**
      * Автофокус при монтировании компонента.
      * Выполняется без скролла страницы.
-     *
      * @default false
      */
     autoFocus?: boolean;
@@ -85,13 +82,11 @@ const CoreRadioComponent = forwardRef<HTMLInputElement, CoreRadioProps>(
 
 /**
  * Memoized CoreRadio.
- *
  * Гарантии:
  * - Никаких скрытых side-effects
  * - Предсказуемый жизненный цикл
  * - Полная совместимость с strict-mode и concurrent rendering
  * - Поддержка ref forwarding для form-libs и программного доступа
- *
  * Подходит для:
  * - форм
  * - фильтров

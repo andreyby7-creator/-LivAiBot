@@ -3,12 +3,10 @@
  * ============================================================================
  * 🔵 CORE UI FILEUPLOADER — PRESENTATIONAL PRIMITIVE
  * ============================================================================
- *
  * Роль:
  * - Базовый UI-компонент для загрузки файлов
  * - Полностью детерминированный и side-effect free
  * - SSR-safe, Concurrent-safe
- *
  * Не содержит:
  * - Feature flags
  * - Telemetry
@@ -17,7 +15,6 @@
  * - Логику загрузки на сервер
  * - Форматирование данных (принимает уже отформатированные строки)
  * - Внутреннее UI-состояние (drag state приходит извне)
- *
  * Управление:
  * - Выбором файлов и событиями управляет App-слой
  * - Валидацией файлов управляет App-слой
@@ -671,7 +668,6 @@ const CoreFileUploaderComponent = forwardRef<HTMLDivElement, CoreFileUploaderPro
 
 /**
  * Memoized CoreFileUploader.
- *
  * Гарантии:
  * - Полностью детерминированный
  * - Side-effect free
@@ -687,7 +683,6 @@ export const FileUploader = memo(CoreFileUploaderComponent);
 
 /**
  * CoreFileUploader — это чистый presentational primitive:
- *
  * - Не управляет состоянием файлов (принимает готовый список files)
  * - Не валидирует файлы (валидация должна быть в App-слое)
  * - Не загружает файлы на сервер (логика загрузки в App-слое)
@@ -695,7 +690,6 @@ export const FileUploader = memo(CoreFileUploaderComponent);
  * - Не имеет внутреннего UI-состояния (drag state приходит извне)
  * - Не имеет встроенных анимаций
  * - Поддерживает ref forwarding
- *
  * Любая бизнес-логика:
  * - выбор файлов
  * - валидация файлов
@@ -704,14 +698,11 @@ export const FileUploader = memo(CoreFileUploaderComponent);
  * - обработка ошибок
  * - форматирование данных
  * - управление drag state
- *
  * должна реализовываться на App-слое.
- *
  * Это гарантирует:
  * - переиспользуемость
  * - тестируемость
  * - архитектурную чистоту
- *
  * CSS переменные для темизации:
  * - --fileuploader-border-color: цвет границы drop zone
  * - --fileuploader-border-active-color: цвет границы при drag over

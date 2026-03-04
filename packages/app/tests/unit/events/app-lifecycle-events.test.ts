@@ -1,6 +1,5 @@
 /**
  * @file Unit тесты для packages/app/src/events/app-lifecycle-events.ts
- *
  * Enterprise-grade тестирование lifecycle event hub с 100% покрытием:
  * - AppLifecycleEvent enum и его значения
  * - Подписка через on() и once()

@@ -1,18 +1,14 @@
 /**
  * @file packages/app/src/lib/api-client.ts
- *
  * Централизованный API-клиент для всех фронтенд-платформ.
- *
  * Архитектурная роль:
  * - Единая точка общения с backend/microservices.
  * - Полная изоляция транспорта (fetch, headers, tokens, errors).
  * - Совместим с Effect-подходом и retry/cancel логикой.
  * - Не содержит доменных зависимостей.
- *
  * ⚠️ Важно: НЕ устанавливает hard timeout — timeout живет только в orchestrator.
  * - Поддерживает AbortSignal для cancellation из orchestrator.
  * - Только HTTP transport (не знает про zod, не делает inline parse).
- *
  * Этот файл — «ворота» между UI/Features и распределённой системой.
  */
 
@@ -147,10 +143,8 @@ export class ApiClient {
   /* ------------------------------------------------------------------------ */
   /**
    * Базовый универсальный HTTP-запрос.
-   *
    * Используется всеми методами (get/post/put/delete).
    * Обёрнут в retry + tracing.
-   *
    * ⚠️ Важно: НЕ устанавливает hard timeout — timeout живет только в orchestrator.
    * Поддерживает AbortSignal для cancellation из orchestrator.
    */
@@ -286,7 +280,6 @@ export class ApiClient {
 /**
  * Создание стандартного API-клиента приложения.
  * Используется в app layer, DI контейнерах, тестах и сторе.
- *
  * ⚠️ Важно: timeoutMs из конфига игнорируется (оставлен для обратной совместимости) —
  * timeout живет только в orchestrator.
  */

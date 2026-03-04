@@ -3,19 +3,16 @@
  * ============================================================================
  * 🔵 CORE UI NAVIGATION MENU ITEM — PRESENTATIONAL PRIMITIVE
  * ============================================================================
- *
  * Роль:
  * - Базовый UI-компонент для элементов навигационного меню
  * - Полностью детерминированный и side-effect free
  * - SSR-safe, Concurrent-safe
- *
  * Не содержит:
  * - Feature flags
  * - Telemetry
  * - Управление состоянием активного элемента
  * - Логику роутинга
  * - Бизнес-логику
- *
  * Управление:
  * - Активным состоянием и навигацией управляет App-слой
  */
@@ -342,13 +339,10 @@ CoreNavigationMenuItemComponent.displayName = 'CoreNavigationMenuItem';
  * ```tsx
  * // Базовый
  * <NavigationMenuItem item={{ label: 'Главная', href: '/' }} />
- *
  * // Активный с иконкой
  * <NavigationMenuItem item={{ label: 'Профиль', href: '/profile', icon: <UserIcon />, isActive: true }} />
- *
  * // Отключенный с размерами
  * <NavigationMenuItem item={{ label: 'Настройки', href: '/settings', isDisabled: true }} size="large" variant="compact" />
- *
  * // Минимальный без текста
  * <NavigationMenuItem item={{ label: 'Поиск', icon: <SearchIcon /> }} variant="minimal" showLabel={false} />
  * ```
@@ -367,13 +361,10 @@ export const NavigationMenuItem = memo(CoreNavigationMenuItemComponent);
  * - --navigation-menu-item-hover-text-color: цвет текста при hover (default: #111827)
  * - --navigation-menu-item-active-bg: цвет фона активного элемента (default: #DBEAFE)
  * - --navigation-menu-item-active-text-color: цвет текста активного элемента (default: #1E40AF)
- *
  * @contract Data Attributes (для QA)
- *
  * Компонент добавляет следующие data-атрибуты для тестирования и отладки.
  * Все атрибуты используют консистентную схему строковых значений.
  * QA должен использовать именно эти строковые значения для селекторов:
- *
  * - data-component="CoreNavigationMenuItem": идентификатор компонента
  * - data-size: строго "small" | "medium" | "large" (размер отображения)
  * - data-variant: строго "default" | "compact" | "minimal" (вариант отображения)

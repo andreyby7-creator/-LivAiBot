@@ -3,7 +3,6 @@
  * ============================================================================
  * 🔐 REGISTER STORE UPDATER — ЕДИНАЯ ТОЧКА ОБНОВЛЕНИЯ СОСТОЯНИЙ
  * ============================================================================
- *
  * Проверяет, что:
  * - success- и mfa-ветки RegisterResponse корректно проецируются в AuthState/SessionState/SecurityState
  * - используется initialSecurityState без пересчёта риска
@@ -97,6 +96,8 @@ function createMockStore(): { store: AuthStorePort; captured: CapturedStoreState
         return undefined;
       }, undefined);
     },
+    getSessionState: () => captured.sessionState,
+    getRefreshToken: () => 'test-refresh-token',
   };
 
   return { store, captured };

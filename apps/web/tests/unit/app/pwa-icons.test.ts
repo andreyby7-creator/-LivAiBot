@@ -1,6 +1,5 @@
 /**
  * @file Unit tests for PWA icon microservice parsing and rendering.
- *
  * Покрытие:
  * - parsePwaIconAsset: все размеры, edge cases, security checks
  * - assertValidSpec: валидация через renderPwaIconPng

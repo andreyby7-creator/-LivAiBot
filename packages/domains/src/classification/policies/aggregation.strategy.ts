@@ -3,11 +3,9 @@
  * ============================================================================
  * 🎯 DOMAINS — Classification Aggregation Strategy (Core Algorithm)
  * ============================================================================
- *
  * Архитектурная роль:
  * Чистое ядро агрегации risk score из нескольких источников сигналов.
  * Никаких policy-решений оркестрации: только deterministic aggregation algorithm.
- *
  * Принципы:
  * - ✅ SRP: только aggregation strategy, без orchestration и IO
  * - ✅ Deterministic: стабильный порядок, tie-break по индексу источника
@@ -180,7 +178,6 @@ function calculateWeightedScore<TTriggeredRule, TEvidence>(
 
 /**
  * Агрегирует risk из множества источников.
- *
  * Правила:
  * - при пустом входе возвращает fail-safe critical fallback;
  * - если есть fail-closed источники, доминирует max risk среди fail-closed;

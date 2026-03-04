@@ -1,6 +1,5 @@
 /**
  * @file packages/app/src/providers — React Providers
- *
  * Публичный API пакета providers.
  * Экспортирует все публичные провайдеры, контексты и хуки для React компонентов.
  */
@@ -11,7 +10,6 @@
 
 /**
  * App Providers: главный провайдер приложения, объединяющий все провайдеры.
- *
  * @public
  */
 export {
@@ -27,7 +25,6 @@ export {
 
 /**
  * Feature Flags Provider: провайдер для управления feature flags через Zustand.
- *
  * @public
  */
 export {
@@ -47,7 +44,6 @@ export {
 
 /**
  * Intl Provider: провайдер для интернационализации.
- *
  * @public
  */
 export { IntlProvider, type IntlProviderProps } from './intl-provider.js';
@@ -58,7 +54,6 @@ export { IntlProvider, type IntlProviderProps } from './intl-provider.js';
 
 /**
  * Query Client Provider: провайдер для React Query с настройками по умолчанию.
- *
  * @public
  */
 export {
@@ -73,7 +68,6 @@ export {
 
 /**
  * Telemetry Provider: провайдер для телеметрии и метрик.
- *
  * @public
  */
 export {
@@ -91,7 +85,6 @@ export {
 
 /**
  * Toast Provider: провайдер для управления toast уведомлениями.
- *
  * @public
  */
 export {
@@ -112,7 +105,6 @@ export {
 
 /**
  * Unified UI Provider: объединенный провайдер для feature flags, telemetry и i18n.
- *
  * @public
  */
 export {

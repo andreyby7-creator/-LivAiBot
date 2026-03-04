@@ -3,10 +3,8 @@
  * ============================================================================
  * 🟥 APP UI FILEUPLOADER — UI МИКРОСЕРВИС FILEUPLOADER
  * ============================================================================
- *
  * Единственная точка входа для FileUploader в приложении.
  * UI boundary между ui-core и бизнес-логикой.
- *
  * Ответственность:
  * - Policy (hidden / visibility)
  * - Telemetry
@@ -16,7 +14,6 @@
  * - Конвертация File в FileInfo
  * - Форматирование данных (размер, тип)
  * - Управление drag state
- *
  * Не содержит:
  * - DOM-манипуляций кроме Core
  * - Платформенных эффектов
@@ -196,7 +193,6 @@ type FileUploaderPolicy = Readonly<{
  * - DOM rendering
  * - telemetry
  * - visibility state
- *
  * Ни один consumer не имеет права повторно интерпретировать props.visible
  * или feature flags.
  */
@@ -428,7 +424,6 @@ const FileUploaderComponent = forwardRef<HTMLDivElement, AppFileUploaderProps>(
 
     /**
      * Отправка telemetry при ошибке валидации
-     *
      * Примечание: validation-error — это отдельная категория событий.
      * В отличие от других telemetry событий, здесь filesCount и totalSize
      * всегда равны 0, так как файл не был добавлен в state из-за ошибки валидации.
@@ -898,9 +893,7 @@ const FileUploaderComponent = forwardRef<HTMLDivElement, AppFileUploaderProps>(
 
 /**
  * UI-контракт FileUploader компонента.
- *
  * @contract
- *
  * Гарантируется:
  * - Детерминированный рендеринг без side effects (кроме telemetry)
  * - SSR-safe и concurrent rendering compatible
@@ -911,7 +904,6 @@ const FileUploaderComponent = forwardRef<HTMLDivElement, AppFileUploaderProps>(
  * - Управление состоянием загрузки
  * - Поддержка drag-and-drop
  * - Форматирование данных (размер, тип, hint)
- *
  * Инварианты:
  * - Файлы корректно валидируются перед добавлением
  * - Состояние загрузки корректно отображается
@@ -919,7 +911,6 @@ const FileUploaderComponent = forwardRef<HTMLDivElement, AppFileUploaderProps>(
  * - Telemetry отражает состояние policy, а не сырые props
  * - visible/hidden в payload являются производными только от policy
  * - Drag state управляется App-слоем
- *
  * Не допускается:
  * - Использование напрямую core FileUploader компонента
  * - Игнорирование feature flag логики

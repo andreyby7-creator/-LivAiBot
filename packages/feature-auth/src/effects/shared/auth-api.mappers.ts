@@ -3,21 +3,17 @@
  * ============================================================================
  * 🔐 FEATURE-AUTH — Shared API Mappers
  * ============================================================================
- *
  * Общие мэпперы для преобразования transport-слоя (schemas) в domain-слой.
  * Используются во всех auth-эффектах (login/register/refresh) для консистентности.
- *
  * Архитектурные решения:
  * - Pure functions: без side-effects, детерминированные
  * - Copy-on-write: создает копии массивов/объектов, не мутирует входные данные
  * - Immutability: Object.freeze для защиты от мутаций
  * - Safety boundary: валидация dynamic Record и массивов перед переносом в domain
- *
  * Инварианты:
  * - Не читает store (pure functions)
  * - Все коллекции копируются и замораживаются
  * - Валидация unsafe payload (plain object + primitive values only)
- *
  * ⚠️ Ограничения API (осознанный контракт):
  * - Dynamic Record (context, metadata): разрешены только примитивы (string, number, boolean, null)
  *   и массивы примитивов. Вложенные plain objects НЕ разрешены.

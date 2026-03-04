@@ -3,7 +3,6 @@
  * ============================================================================
  * 🧱 ОБЩИЕ ТИПЫ ТЕЛЕМЕТРИИ
  * ============================================================================
- *
  * Содержит фундаментальные типы телеметрии, используемые как core,
  * так и публичным API. Разделены для избежания циклических зависимостей.
  */
@@ -62,7 +61,6 @@ export type NonPIIField = string & { readonly __brand: 'NonPII'; };
 
 /**
  * Типизированные метаданные телеметрии.
- *
  * ВАЖНО: Типы не гарантируют отсутствие PII в runtime.
  * Runtime проверка через sanitizeMetadata обязательна для enterprise систем.
  * Branded types (PIIField, NonPIIField) помогают предотвратить accidental leaks на уровне типов.
@@ -79,13 +77,11 @@ export type TelemetryTimezone = string;
 /**
  * Телеметрическое событие - иммутабельная структура данных.
  * Содержит всю необходимую информацию для аналитики и мониторинга.
- *
  * Архитектурные свойства:
  * - Полностью readonly для защиты от мутаций
  * - Поддержка distributed tracing через spanId/correlationId
  * - UTC timestamp для микросервисной архитектуры (явный default на уровне типов)
  * - Extensible: добавление новых полей не требует изменения core
- *
  * Timezone:
  * - По умолчанию UTC (явно определено на уровне типов)
  * - Для enterprise-grade trace aggregation можно указать другой timezone
@@ -228,7 +224,6 @@ export type FallbackPriorityStrategy = 'ignore' | 'log' | 'error';
 
 /**
  * Конфигурация телеметрии - передается при инициализации.
- *
  * Архитектурные свойства:
  * - Extensible: добавление новых опций не требует изменения core
  * - Testable: injection timestamp для unit-тестов (runtime зависимость)
@@ -236,12 +231,10 @@ export type FallbackPriorityStrategy = 'ignore' | 'log' | 'error';
  * - High-throughput: batching для масштабируемости
  * - Secure: throttle для защиты от DoS
  * - Enterprise-ready: timezone для distributed tracing (явный default UTC)
- *
  * Runtime зависимости:
  * - getTimestamp: runtime функция, может быть мокирована для тестов
  * - sanitizeMetadata: runtime функция, обязательна для enterprise систем
  * - customLevelPriority: runtime проверка уникальности ключей (type-level validation помогает)
- *
  * PII Protection:
  * - Типы не гарантируют отсутствие PII в metadata
  * - Runtime проверка через sanitizeMetadata обязательна
@@ -261,8 +254,8 @@ export type TelemetryConfig<
   /**
    * Функция sanitization metadata (для защиты от PII, deep freeze применяется автоматически).
    * Рекомендуется для enterprise-среды вместо regex-based detection.
-   *
    * Для реализации allow-list schema используйте typed metadata contracts:
+   *
    * @example
    * ```typescript
    * // Определите typed contract для metadata
@@ -271,13 +264,11 @@ export type TelemetryConfig<
    *   action: string;
    *   // Только разрешенные поля, без PII
    * };
-   *
    * // Создайте валидатор через schema (например, Zod)
    * const metadataSchema = z.object({
    *   userId: z.string(),
    *   action: z.string(),
    * });
-   *
    * // Используйте в config
    * const client = new TelemetryClient<SafeMetadata>({
    *   sanitizeMetadata: (metadata) => {

@@ -3,14 +3,12 @@
  * ============================================================================
  * 🛡️ CORE — Policies (Composed Policy)
  * ============================================================================
- *
  * Архитектурная роль:
  * - Доменный слой. ЧИСТАЯ бизнес-логика. Без инфраструктуры
  * - Объединяет все бизнес-политики Core/policies в одну точку истины
  * - Позволяет делать pre-flight проверки действий пользователей и ботов
  * - Возвращает объяснимые и типобезопасные решения
  * - Причина изменения: policies, policy composition, unified policy evaluation
- *
  * Принципы:
  * - ✅ SRP: только правила, решения и композиция, без инфраструктуры
  * - ✅ Deterministic: одинаковые входы → одинаковые решения
@@ -18,7 +16,6 @@
  * - ✅ Strict typing: exhaustive unions для всех policy decisions
  * - ✅ Microservice-ready: используется одинаково в API, UI, Workers
  * - ✅ Stable contract: для всех feature-модулей
- *
  * ⚠️ ВАЖНО:
  * - 🚫 Никаких side-effects
  * - 🚫 Никаких HTTP / storage / queue
@@ -95,7 +92,6 @@ export interface ComposedPolicyConfig {
  * - BotPolicy
  * - ChatPolicy
  * - BillingPolicy
- *
  * Используется:
  * - feature-auth
  * - feature-bots

@@ -1,6 +1,5 @@
 /**
  * @file Unit тесты для packages/app/src/state/reset.ts
- *
  * Тестирование глобального сброса состояния приложения:
  * - Типы и экспорты
  * - Основная функциональность registerAppStateReset

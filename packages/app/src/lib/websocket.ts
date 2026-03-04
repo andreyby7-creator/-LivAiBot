@@ -1,22 +1,17 @@
 /**
  * @file packages/app/src/lib/websocket.ts
- *
  * ============================================================================
  * 🌐 WEBSOCKET CLIENT — ЧИСТАЯ FUNCTIONAL STATE MACHINE
  * ============================================================================
- *
  * Полностью функциональная, immutable и детерминированная реализация
  * WebSocket-клиента для всех платформ (web / pwa / mobile / admin).
- *
  * ❗ Никаких классов
  * ❗ Никаких мутаций
  * ❗ Никакого внутреннего this-state
- *
  * Только:
  * - Pure state
  * - Pure transitions
  * - Referential transparency
- *
  * Совместимо с:
  * - functional/immutable-data
  * - effect-utils

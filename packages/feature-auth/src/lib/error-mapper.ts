@@ -3,7 +3,6 @@
  * ============================================================================
  * 🔐 FEATURE-AUTH — Error Mapper (Production-Grade Rule-Engine)
  * ============================================================================
- *
  * Архитектурная роль:
  * - Трансформация API ошибок (AuthErrorResponse, OAuthErrorResponse) в UI-friendly AuthError
  * - Переиспользуется для login, logout, refresh, OAuth, MFA
@@ -11,7 +10,6 @@
  * - Domain-pure: без transport-level загрязнения
  * - Security-first: sanitization sensitive data
  * - Single source of truth для всех mapping tables
- *
  * Принципы:
  * - ✅ True rule-engine: priority-based, composable, scalable (до 50+ правил)
  * - ✅ Domain-safe: sanitized raw поле, sensitive data удаляется
@@ -593,7 +591,6 @@ function createMappedError(
  * Использует production-grade rule-engine с приоритетами.
  * Domain-pure: не содержит raw transport DTO.
  * Security-first: sanitizes sensitive data.
- *
  * @param input - Входные данные (AuthErrorResponse, OAuthErrorResponse, Error, или unknown)
  * @param config - Конфигурация маппинга (locale, timestamp, service)
  * @returns Результат маппинга с UI-friendly ошибкой и MappedError для telemetry
@@ -614,7 +611,6 @@ export function mapAuthError(
 /**
  * Упрощенная версия mapAuthError, возвращающая только UI-friendly ошибку.
  * Используется когда не нужна интеграция с error-mapping.ts.
- *
  * @param input - Входные данные (AuthErrorResponse, OAuthErrorResponse, Error, или unknown)
  * @param config - Конфигурация маппинга (locale, timestamp, service)
  * @returns UI-friendly AuthError (domain-pure, без raw)

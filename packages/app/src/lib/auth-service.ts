@@ -3,24 +3,20 @@
  * ============================================================================
  * 🔐 AUTH SERVICE — СЕРВИС АУТЕНТИФИКАЦИИ
  * ============================================================================
- *
  * Архитектурная роль:
  * - Управление аутентификацией пользователя (login/logout/refresh)
  * - Синхронизация refresh токенов через mutex
  * - Чистые API контракты без UI зависимостей
  * - Модульный синглтон для всего приложения
- *
  * Свойства:
  * - Thread-safe refresh через async-mutex
  * - Effect-based error handling
  * - Zero UI coupling (чистый domain слой)
  * - SSR-safe (нет window/localStorage зависимостей)
- *
  * Логирование:
  * - Mutex operations: waiting/acquired/released для отладки параллельных refresh
  * - Auth operations: start/success/failure для всех методов
  * - Sensitive data: токены маскируются (показывается только префикс)
- *
  * Runtime validation:
  * - Строгая проверка структуры TokenPairResponse от API
  * - Валидация всех обязательных полей перед использованием

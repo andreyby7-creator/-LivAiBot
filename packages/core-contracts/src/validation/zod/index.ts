@@ -1,9 +1,7 @@
 /**
  * @file @livai/core-contracts/validation/zod — Runtime Validation (Zod)
- *
  * Публичный API пакета validation/zod.
  * Экспортирует все публичные компоненты, схемы и утилиты для runtime-валидации через Zod.
- *
  * Принципы:
  * - `generated/**` автогенерируется из OpenAPI и не правится вручную
  * - кастомные схемы/правила живут в `custom/**` и композируются через `.extend()` / `.refine()`
@@ -18,7 +16,6 @@
  * Автогенерированные схемы из OpenAPI.
  * Не редактируются вручную, обновляются через автогенерацию.
  * Используются как база для кастомных расширений.
- *
  * @public
  */
 export * as generatedAuth from './generated/auth.js';
@@ -33,7 +30,6 @@ export * as generatedConversations from './generated/conversations.js';
 /**
  * Кастомные схемы и правила для форм, условной валидации, i18n.
  * Расширяют автогенерированные схемы через `.extend()` / `.refine()`.
- *
  * @public
  */
 export * from './custom/forms.js';
@@ -48,7 +44,6 @@ export * from './custom/i18n.js';
 /**
  * Утилиты для валидации: типизация, интеграция с Effect, трансформации.
  * Включает Infer (типизация Zod схем), Effect интеграция, transform утилиты.
- *
  * @public
  */
 export * from './utils/validate.js';

@@ -1,6 +1,5 @@
 /**
  * @file packages/domains/src/classification/aggregation — Classification Aggregation
- *
  * Публичный API пакета aggregation.
  * Экспортирует все публичные компоненты, типы и утилиты для classification risk scoring и weights.
  */
@@ -15,7 +14,6 @@
  * RiskFactor - registry-style архитектура для динамического добавления факторов.
  * RiskWeights - legacy конфигурация весов для обратной совместимости.
  * ScoringContext - контекст для scoring (device, geo, ip, signals, config).
- *
  * @public
  */
 export type { RiskFactor, RiskWeights, ScoringContext } from './scoring.js';
@@ -30,7 +28,6 @@ export type { RiskFactor, RiskWeights, ScoringContext } from './scoring.js';
  * Используются, если weights не указаны в policy.
  * Immutable: защищены от мутаций через Object.freeze.
  * Deterministic: константа гарантирует детерминированный scoring.
- *
  * @public
  */
 export { defaultRiskWeights } from './scoring.js';
@@ -45,7 +42,6 @@ export { defaultRiskWeights } from './scoring.js';
  * calculateRiskScore - рассчитывает risk score используя legacy RiskWeights (обратная совместимость).
  * calculateRiskScoreWithCustomFactors - рассчитывает risk score используя registry-style факторы (extensibility).
  * validateRiskWeights - валидирует risk weights (сумма должна быть близка к 1.0, каждый вес в диапазоне 0.0-1.0).
- *
  * @public
  */
 export {

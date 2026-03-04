@@ -3,14 +3,11 @@
  * ============================================================================
  * 🎯 DOMAINS — Classification Signals Violations (Domain-Specific Violations)
  * ============================================================================
- *
  * Domain-specific violations для classification signals.
  * Семантическая валидация signals для policy-engine и explainability.
- *
  * Архитектура: библиотека из 2 модулей в одном файле
  * - SemanticViolation: типы нарушений (union types для strict typing)
  * - semanticViolationValidator: валидация signals (composable validators)
- *
  * Принципы:
  * - ✅ SRP: модульная структура (типы / валидаторы, разделение concerns)
  * - ✅ Deterministic: одинаковые входы → одинаковые результаты, без side-effects
@@ -366,12 +363,9 @@ function validateCoordinates(
 export const semanticViolationValidator = {
   /**
    * Валидирует семантику classification signals (domain logic)
-   *
    * Проверяет: диапазоны значений (0-100), finite numbers, валидность координат (WGS84),
    * invariant координат (полные или отсутствуют — защита от spoofing).
-   *
    * НЕ проверяет: безопасность, JSON-serializable, формат передачи данных (adapter layer).
-   *
    * @param signals - Сигналы для валидации
    * @returns Массив нарушений (пустой если всё валидно)
    *

@@ -1,10 +1,8 @@
 /**
  * @file packages/app/src/background/tasks.ts
- *
  * =============================================================================
  * 🛠️ BACKGROUND TASKS - PRODUCTION READY with Runtime Dashboard
  * =============================================================================
- *
  * Особенности:
  * - Унифицированные фоновые задачи через глобальный Scheduler
  * - Periodic задачи (cache refresh/sync, auth refresh) + event-driven (login sync)

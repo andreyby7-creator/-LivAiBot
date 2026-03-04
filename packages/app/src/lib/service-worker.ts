@@ -3,7 +3,6 @@
  * ============================================================================
  * 🔧 SERVICE WORKER — PWA/OFFLINE ЯДРО
  * ============================================================================
- *
  * Свойства:
  * - Гибридные стратегии кеширования (NetworkFirst, CacheFirst, StaleWhileRevalidate)
  * - Push notifications поддержка
@@ -13,7 +12,6 @@
  * - Микросервисная архитектура с traceId
  * - Отказоустойчивый и resilient
  * - Готов к production использованию
- *
  * Принципы:
  * - Zero business logic (только инфраструктура)
  * - Immutable конфигурация
@@ -154,7 +152,6 @@ export const precacheStaticUrls = precacheStaticUrlsValue;
 
 /**
  * Стратегия кеширования
- *
  * CacheFirst = CacheFirst + TTL enforcement
  * - Возвращает кеш только если он свежий (не expired)
  * - Кеш без sw-cached-date считается expired
@@ -344,7 +341,6 @@ function getRouteConfig(url: string): RouteCacheConfig {
 
 /**
  * Проверяет валидность ответа для кеширования (cache poisoning protection)
- *
  * Правила:
  * - Только статус 200 OK
  * - Content-Type должен быть валидным
@@ -583,7 +579,6 @@ async function networkFirstStrategy(
 
 /**
  * CacheFirst стратегия: пробует кеш, fallback на сеть
- *
  * Поведение: CacheFirst + TTL enforcement
  * - Возвращает кеш только если он свежий (isCacheExpired = false)
  * - Кеш без sw-cached-date считается expired → fallback на сеть
@@ -861,13 +856,11 @@ export async function handleNotificationClick(
 /**
  * Полностью удаляет Service Worker из продакшена.
  * Используется для emergency decommission.
- *
  * Чек-лист:
  * - unregister SW
  * - delete all caches by prefix
  * - reload clients
  * - verify navigator.serviceWorker.controller === null
- *
  * Вызывается из клиента через postMessage или через remote config.
  */
 export async function decommissionServiceWorker(): Promise<void> {

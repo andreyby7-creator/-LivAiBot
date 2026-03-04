@@ -3,14 +3,12 @@
  * ============================================================================
  * 🔐 FEATURE-AUTH — LoginRequest DTO
  * ============================================================================
- *
  * Архитектурная роль:
  * - Типизированный контракт запроса login
  * - Поддержка email, username, phone, oauth
  * - Multi-factor authentication (MFA)
  * - Устойчивый и микросервисно-нейтральный
  * - Immutable, future-proof и extensible
- *
  * Принципы:
  * - ❌ Нет бизнес-логики
  * - ✅ Полная типизация
@@ -29,7 +27,6 @@
  *   clientContext: { ip: '1.2.3.4', deviceId: 'device-abc', userAgent: 'browser', locale: 'en-US' },
  *   rememberMe: true
  * };
- *
  * // OAuth login
  * const oauthReq: LoginRequest<'oauth'> = {
  *   dtoVersion: '1.0',

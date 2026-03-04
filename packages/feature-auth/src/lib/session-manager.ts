@@ -3,14 +3,11 @@
  * ============================================================================
  * 🔐 FEATURE-AUTH — Session Manager (Domain-Pure Service)
  * ============================================================================
- *
  * Domain-pure сервис для управления жизненным циклом сессий аутентификации.
  * Вычисляет deadlines для proactive refresh, принимает решения о expire/invalidate,
  * проверяет лимиты одновременных сессий.
- *
  * Интегрируется с AuthPolicy (sessionMaxLifetimeMs) и SessionPolicy (TTL, concurrent limits).
  * Изолирует бизнес-логику от orchestration-слоя (effects).
- *
  * Принципы:
  * - ✅ Domain-pure: без side-effects, без HTTP / store / effects
  * - ✅ Deterministic: `now` передаётся извне (injected)
@@ -101,14 +98,12 @@ export class SessionManager {
   /**
    * Парсит ISO-8601 строку в UnixTimestampMs.
    * Fail-closed: невалидная дата → null.
-   *
    * ⚠️ ОГРАНИЧЕНИЕ: Использует Date.parse(), который имеет известные проблемы:
    * - Различия в runtime (браузер vs Node.js vs Edge)
    * - Неоднозначность timezone parsing
    * - Edge cases с ISO форматами
    * Идеологически domain должен работать с UnixTimestampMs, но текущая реализация
    * SessionState использует ISO строки для совместимости с API.
-   *
    * ⚠️ ПРОИЗВОДИТЕЛЬНОСТЬ: Метод вызывается несколько раз для одной сессии
    * (expiresAt в isExpired/getRefreshDeadline, issuedAt в shouldInvalidate).
    * Оптимизация: orchestration может распарсить один раз и передавать UnixTimestampMs.
@@ -137,7 +132,6 @@ export class SessionManager {
    * Проверяет, истёк ли срок сессии.
    * Fail-closed: отсутствие сессии или невалидная дата → `true`.
    * Валидация времени строго через injected `now`.
-   *
    * Примечание: рекомендуется проверять первым перед другими методами SessionManager,
    * так как expired сессия должна обрабатываться до refresh/invalidate решений.
    */
@@ -176,11 +170,9 @@ export class SessionManager {
    * Определяет, нужно ли триггерить refresh сессии.
    * Proactive refresh: триггерится до истечения (за refreshProactiveWindowMs мс).
    * Fail-closed: отсутствие сессии или невалидная дата → `false`.
-   *
    * ⚠️ ВАЖНО: Метод проверяет только expiresAt, не учитывает sessionMaxLifetimeMs.
    * Refresh не продлевает максимальное время жизни сессии (hard limit из AuthPolicy).
    * Если sessionAge > sessionMaxLifetimeMs, refresh может быть бессмысленным.
-   *
    * Примечание: метод может вернуть `true` для expired сессии (если deadline вычислен
    * до истечения expiresAt, но сессия уже expired по времени). Рекомендуется проверять
    * `isExpired` перед вызовом для корректной обработки expired сессий.
@@ -203,7 +195,6 @@ export class SessionManager {
 
   /**
    * Вычисляет timestamp, когда нужно начать proactive refresh.
-   *
    * ⚠️ КРИТИЧНО: Deadline — часть политики, не эффекта.
    * Избавляет от "минус 30 секунд" в эффектах.
    * Fail-closed: отсутствие сессии или невалидная дата → `0` (прошлое время).
@@ -230,14 +221,11 @@ export class SessionManager {
 
   /**
    * Определяет, нужно ли инвалидировать активную сессию на основе политики.
-   *
    * Проверяет только active сессии. Для уже инвалидированных (expired/revoked/suspended)
    * возвращает `false` (сессия уже инвалидирована, дополнительная инвалидация не требуется).
-   *
    * Проверяет: истечение по expiresAt, sessionMaxLifetimeMs (AuthPolicy),
    * TTL из SessionPolicy (если задан, применяется дополнительно).
    * Оба лимита должны быть соблюдены.
-   *
    * Fail-closed: отсутствие сессии, невалидная дата или clock skew → `true`.
    */
   public shouldInvalidate(

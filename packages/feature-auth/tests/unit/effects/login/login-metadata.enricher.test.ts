@@ -1,7 +1,6 @@
 /**
  * @file Unit тесты для effects/login/login-metadata.enricher.ts
  * Полное покрытие login metadata enricher с тестированием всех функций и edge cases
- *
  * @note Все тестовые данные создаются в контролируемой среде и валидируются через buildLoginMetadata.
  * eslint-disable комментарии для ai-security/model-poisoning добавлены там, где это требуется линтером.
  */

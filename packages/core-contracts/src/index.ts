@@ -1,6 +1,5 @@
 /**
  * @file @livai/core-contracts — Core Contracts (Foundation Layer)
- *
  * Публичный API пакета core-contracts.
  * Экспортирует все публичные компоненты, типы и утилиты для контрактов API, типов ошибок и контекстных данных.
  * Используется во всех сервисах и UI.
@@ -15,7 +14,6 @@
  * Errors подпакет: типы ошибок HTTP API и стандартизированные коды ошибок.
  * Включает ErrorResponse (единый контракт ошибки), errorCodes (стандартизированные коды).
  * Используется для единообразной обработки ошибок во всех сервисах.
- *
  * @public
  */
 export * from './errors/index.js';
@@ -29,7 +27,6 @@ export * from './errors/index.js';
  * Context подпакет: контекстные данные запроса и стандартизированные HTTP заголовки.
  * Включает HEADERS (trace_id, operation_id, workspace_id, user_id).
  * Используется для межсервисного взаимодействия, корреляции запросов, tenant isolation.
- *
  * @public
  */
 export * from './context/index.js';
@@ -44,7 +41,6 @@ export * from './context/index.js';
  * Включает common типы (UUID, Timestamp, JsonObject, Settings, Decision types),
  * auth типы, bots типы, conversations типы.
  * Используется для типизации данных между слоями.
- *
  * @public
  */
 export * from './domain/index.js';
@@ -59,7 +55,6 @@ export * from './domain/index.js';
  * Включает автогенерированные схемы из OpenAPI (generated/**),
  * кастомные схемы и правила (custom/**), утилиты для валидации (utils/**).
  * Автогенерация из OpenAPI + кастомные расширения через .extend() / .refine().
- *
  * @public
  */
 export * from './validation/zod/index.js';

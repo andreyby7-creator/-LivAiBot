@@ -1,6 +1,5 @@
 /**
  * @file @livai/domains/classification/signals — Classification Signals & Context
- *
  * Публичный API пакета classification signals.
  * Экспортирует все публичные компоненты, типы и утилиты для classification signals и context.
  */
@@ -15,7 +14,6 @@
  * ClassificationGeo для геолокации, InternalClassificationSignals для domain layer,
  * ExternalClassificationSignals для vendor signals, ClassificationSignals для объединения.
  * Разделение internal/external для чистоты domain и безопасности.
- *
  * @public
  */
 
@@ -40,7 +38,6 @@ export type {
  * Создание полных signals (internal + external) с whitelist keys для предотвращения
  * silent data propagation и rule bypass через unknown keys.
  * Shallow copy для защиты от мутаций исходных объектов.
- *
  * @public
  */
 
@@ -56,7 +53,6 @@ export { classificationSignals } from './signals.js';
  * Создание context из объекта с валидацией всех полей (ip, geo, userId, signals, timestamp).
  * Валидация строковых полей, геолокации, signals через соответствующие модули.
  * Поддержка branded types (label, evaluationScale) для type safety.
- *
  * @public
  */
 
@@ -74,7 +70,6 @@ export { classificationContext } from './signals.js';
  * Метаданные для каждого типа нарушения (ScoreViolationMeta, CoordinatesViolationMeta, etc.).
  * Причины нарушений (ScoreViolationReason, CoordinateViolationReason, etc.).
  * Строгость, область влияния и влияние нарушения для policy-engine и explainability.
- *
  * @public
  */
 
@@ -102,7 +97,6 @@ export type {
  * Composable validators для reputation score, velocity score, coordinates.
  * Возвращает массив SemanticViolation для policy-engine и explainability.
  * Immutable подход: фильтрация undefined вместо мутации массива.
- *
  * @public
  */
 

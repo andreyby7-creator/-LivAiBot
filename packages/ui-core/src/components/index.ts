@@ -1,6 +1,5 @@
 /**
  * @file @livai/ui-core/components — Композитные UI Компоненты
- *
  * Публичный API пакета components.
  * Экспортирует все публичные компоненты и типы для композитных UI компонентов.
  */
@@ -12,7 +11,6 @@
 /**
  * Toast: компонент для отображения уведомлений.
  * Presentational primitive, управление жизненным циклом в App-слое.
- *
  * @public
  */
 export { type CoreToastProps, Toast, type ToastVariant } from './Toast.js';
@@ -23,7 +21,6 @@ export { type CoreToastProps, Toast, type ToastVariant } from './Toast.js';
 
 /**
  * Skeleton: компонент скелетона для отображения состояния загрузки.
- *
  * @public
  */
 export { type CoreSkeletonProps, Skeleton, type SkeletonVariant } from './Skeleton.js';
@@ -34,7 +31,6 @@ export { type CoreSkeletonProps, Skeleton, type SkeletonVariant } from './Skelet
 
 /**
  * Modal: компонент модального окна.
- *
  * @public
  */
 export { type CoreModalProps, Modal, type ModalVariant } from './Modal.js';
@@ -45,7 +41,6 @@ export { type CoreModalProps, Modal, type ModalVariant } from './Modal.js';
 
 /**
  * Breadcrumbs: компонент навигационных хлебных крошек.
- *
  * @public
  */
 export {
@@ -61,7 +56,6 @@ export {
 
 /**
  * Tabs: компонент вкладок для переключения между разделами.
- *
  * @public
  */
 export { type CoreTabsProps, type TabItem, Tabs } from './Tabs.js';
@@ -72,7 +66,6 @@ export { type CoreTabsProps, type TabItem, Tabs } from './Tabs.js';
 
 /**
  * Accordion: компонент аккордеона для раскрывающихся секций.
- *
  * @public
  */
 export { Accordion, type AccordionItem, type CoreAccordionProps } from './Accordion.js';
@@ -83,7 +76,6 @@ export { Accordion, type AccordionItem, type CoreAccordionProps } from './Accord
 
 /**
  * DatePicker: компонент для выбора даты.
- *
  * @public
  */
 export {
@@ -100,7 +92,6 @@ export {
 
 /**
  * FileUploader: компонент для загрузки файлов.
- *
  * @public
  */
 export {
@@ -116,7 +107,6 @@ export {
 
 /**
  * SideBar: компонент боковой панели навигации.
- *
  * @public
  */
 export {
@@ -133,7 +123,6 @@ export {
 
 /**
  * SearchBar: компонент поисковой строки.
- *
  * @public
  */
 export { type CoreSearchBarProps, SearchBar } from './SearchBar.js';
@@ -144,7 +133,6 @@ export { type CoreSearchBarProps, SearchBar } from './SearchBar.js';
 
 /**
  * ConfirmDialog: компонент диалога подтверждения действия.
- *
  * @public
  */
 export { ConfirmDialog, type CoreConfirmDialogProps } from './ConfirmDialog.js';
@@ -155,7 +143,6 @@ export { ConfirmDialog, type CoreConfirmDialogProps } from './ConfirmDialog.js';
 
 /**
  * ErrorBoundary: компонент границы ошибок для обработки ошибок React.
- *
  * @public
  */
 export {
@@ -169,7 +156,6 @@ export {
 
 /**
  * UserProfileDisplay: компонент для отображения профиля пользователя.
- *
  * @public
  */
 export {
@@ -184,7 +170,6 @@ export {
 
 /**
  * NavigationMenuItem: компонент элемента навигационного меню.
- *
  * @public
  */
 export {
@@ -199,7 +184,6 @@ export {
 
 /**
  * LanguageSelector: компонент для выбора языка интерфейса.
- *
  * @public
  */
 export {
@@ -214,7 +198,6 @@ export {
 
 /**
  * SupportButton: компонент кнопки поддержки.
- *
  * @public
  */
 export {

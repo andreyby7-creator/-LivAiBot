@@ -1,6 +1,5 @@
 /**
  * @file packages/app/src/ui — UI Components
- *
  * Публичный API пакета ui.
  * Экспортирует все публичные UI компоненты и их типы.
  */
@@ -11,7 +10,6 @@
 
 /**
  * Button: кнопка с вариантами стилей и размерами.
- *
  * @public
  */
 export {
@@ -24,7 +22,6 @@ export {
 
 /**
  * Input: текстовое поле ввода.
- *
  * @public
  */
 export {
@@ -39,7 +36,6 @@ export {
 
 /**
  * Textarea: многострочное текстовое поле ввода.
- *
  * @public
  */
 export {
@@ -52,7 +48,6 @@ export {
 
 /**
  * Select: выпадающий список.
- *
  * @public
  */
 export {
@@ -65,7 +60,6 @@ export {
 
 /**
  * Checkbox: чекбокс.
- *
  * @public
  */
 export {
@@ -78,7 +72,6 @@ export {
 
 /**
  * Radio: радиокнопка.
- *
  * @public
  */
 export {
@@ -91,7 +84,6 @@ export {
 
 /**
  * Toggle: переключатель.
- *
  * @public
  */
 export {
@@ -104,7 +96,6 @@ export {
 
 /**
  * Icon: компонент для отображения иконок.
- *
  * @public
  */
 export {
@@ -117,7 +108,6 @@ export {
 
 /**
  * Avatar: компонент для отображения аватара.
- *
  * @public
  */
 export {
@@ -130,7 +120,6 @@ export {
 
 /**
  * Badge: компонент для отображения бейджа.
- *
  * @public
  */
 export {
@@ -143,7 +132,6 @@ export {
 
 /**
  * Tooltip: компонент для отображения подсказок.
- *
  * @public
  */
 export {
@@ -156,7 +144,6 @@ export {
 
 /**
  * Divider: компонент-разделитель.
- *
  * @public
  */
 export {
@@ -169,7 +156,6 @@ export {
 
 /**
  * Card: компонент карточки.
- *
  * @public
  */
 export {
@@ -182,21 +168,18 @@ export {
 
 /**
  * Dialog: компонент диалогового окна.
- *
  * @public
  */
 export { type AppDialogProps, Dialog } from './dialog.js';
 
 /**
  * Form: компонент формы.
- *
  * @public
  */
 export { type AppFormProps, Form } from './form.js';
 
 /**
  * LoadingSpinner: компонент индикатора загрузки.
- *
  * @public
  */
 export {
@@ -209,7 +192,6 @@ export {
 
 /**
  * Dropdown: компонент выпадающего меню.
- *
  * @public
  */
 export {
@@ -222,7 +204,6 @@ export {
 
 /**
  * ContextMenu: компонент контекстного меню.
- *
  * @public
  */
 export {
@@ -235,7 +216,6 @@ export {
 
 /**
  * StatusIndicator: компонент индикатора статуса.
- *
  * @public
  */
 export {
@@ -252,7 +232,6 @@ export {
 
 /**
  * Toast: компонент для отображения уведомлений.
- *
  * @public
  */
 export {
@@ -265,7 +244,6 @@ export {
 
 /**
  * Skeleton: компонент скелетона загрузки.
- *
  * @public
  */
 export {
@@ -278,14 +256,12 @@ export {
 
 /**
  * SkeletonGroup: группа скелетонов.
- *
  * @public
  */
 export { type AppSkeletonGroupProps, SkeletonGroup } from './skeleton-group.js';
 
 /**
  * Modal: компонент модального окна.
- *
  * @public
  */
 export {
@@ -298,7 +274,6 @@ export {
 
 /**
  * Breadcrumbs: компонент навигационных хлебных крошек.
- *
  * @public
  */
 export {
@@ -312,7 +287,6 @@ export {
 
 /**
  * Tabs: компонент вкладок.
- *
  * @public
  */
 export {
@@ -325,7 +299,6 @@ export {
 
 /**
  * Accordion: компонент аккордеона.
- *
  * @public
  */
 export {
@@ -338,7 +311,6 @@ export {
 
 /**
  * DatePicker: компонент для выбора даты.
- *
  * @public
  */
 export {
@@ -351,14 +323,12 @@ export {
 
 /**
  * FileUploader: компонент для загрузки файлов.
- *
  * @public
  */
 export { type AppFileUploaderProps, FileUploader } from './file-uploader.js';
 
 /**
  * SideBar: компонент боковой панели.
- *
  * @public
  */
 export {
@@ -371,14 +341,12 @@ export {
 
 /**
  * SearchBar: компонент поисковой строки.
- *
  * @public
  */
 export { type AppSearchBarProps, SearchBar } from './search-bar.js';
 
 /**
  * ConfirmDialog: компонент диалога подтверждения.
- *
  * @public
  */
 export {
@@ -391,7 +359,6 @@ export {
 
 /**
  * ErrorBoundary: компонент границы ошибок.
- *
  * @public
  */
 export {
@@ -404,7 +371,6 @@ export {
 
 /**
  * UserProfileDisplay: компонент для отображения профиля пользователя.
- *
  * @public
  */
 export {
@@ -417,7 +383,6 @@ export {
 
 /**
  * NavigationMenuItem: компонент элемента навигационного меню.
- *
  * @public
  */
 export {
@@ -430,7 +395,6 @@ export {
 
 /**
  * LanguageSelector: компонент для выбора языка.
- *
  * @public
  */
 export {
@@ -443,7 +407,6 @@ export {
 
 /**
  * SupportButton: компонент кнопки поддержки.
- *
  * @public
  */
 export { type AppSupportButtonProps, SupportButton } from './support-button.js';

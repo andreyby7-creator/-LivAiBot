@@ -1,6 +1,5 @@
 /**
  * @file Next-intl configuration for App Router
- *
  * Этот файл необходим для работы next-intl в App Router режиме.
  * Он должен находиться в корне приложения (рядом с next.config.mjs).
  */

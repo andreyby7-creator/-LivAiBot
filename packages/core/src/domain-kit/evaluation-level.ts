@@ -3,12 +3,10 @@
  * ============================================================================
  * 🛡️ CORE — Domain Kit (Evaluation Level)
  * ============================================================================
- *
  * Архитектурная роль:
  * - Generic evaluation level для decision algebra в domain-kit
  * - EvaluationLevel = числовая шкала (0..N) с parametric algebra contract
  * - Причина изменения: domain-kit, decision algebra, lattice operations, multi-rule aggregation
- *
  * Принципы:
  * - ✅ SRP: модульная структура (value object / algebra / policies)
  * - ✅ Deterministic: одинаковые входы → одинаковые результаты (scale-enforced)
@@ -18,7 +16,6 @@
  * - ✅ Microservice-ready: scale fingerprint предотвращает cross-service inconsistency
  * - ✅ Scalable: parametric algebra для partial/non-linear/multi-axis ordering
  * - ✅ Security: защита от forged levels и scale при десериализации
- *
  * ⚠️ ВАЖНО:
  * - ❌ НЕ включает domain-специфичные значения (SAFE/SUSPICIOUS/DANGEROUS - это domain labels)
  * - ❌ НЕ определяет ordering implementation (только contract через EvaluationOrder)
@@ -233,6 +230,7 @@ export const evaluationLevel = {
   /**
    * Создает evaluation level из числа с валидацией по scale
    * @template TDomain - Идентификатор домена
+   *
    * @example const scale = evaluationScale.create(0, 10, 'risk'); const result = evaluationLevel.create(5, scale.value); if (result.ok) { const level = result.value; // EvaluationLevel<'risk'> }
    * @public
    */
@@ -355,6 +353,7 @@ export const evaluationScale = {
    * Создает evaluation scale (factory для предотвращения semantic split-brain)
    * @template TDomain - Идентификатор домена
    * @note Генерирует runtime fingerprint (scaleId) с semantic version
+   *
    * @example const scale = evaluationScale.create(0, 10, 'risk', 'v2'); if (scale.ok) { const scaleId = scale.value.scaleId; // hash fingerprint }
    * @public
    */
@@ -727,6 +726,7 @@ export const evaluationAlgebraDev = {
    * Проверяет algebra laws для EvaluationOrder (dev-only)
    * @template TDomain - Идентификатор домена
    * @note Проверяет associativity, commutativity, idempotency, absorption, согласованность compare с join/meet
+   *
    * @example const result = evaluationAlgebraDev.verify(customOrder, [level1, level2, level3], scale); if (!result.ok) { console.error(result.reason); }
    * @public
    */
@@ -800,6 +800,7 @@ export const evaluationAggregation = {
    * Streaming aggregation step для rule engines
    * @template TDomain - Идентификатор домена
    * @note Для partial order может вернуть undefined если элементы incomparable
+   *
    * @example const result = levels.reduce((acc, level) => evaluationAggregation.step(acc, level, order), initialLevel);
    * @public
    */

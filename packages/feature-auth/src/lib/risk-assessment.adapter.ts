@@ -3,14 +3,12 @@
  * ============================================================================
  * 🔐 FEATURE-AUTH — Risk Assessment Adapter
  * ============================================================================
- *
  * Архитектурная роль:
  * - Адаптер между classification layer и domain layer для risk assessment
  * - Преобразование ClassificationRule → RiskReason с дедупликацией
  * - Нормализация DeviceInfo → DeviceRiskInfo (определение platform из OS)
  * - Валидация и нормализация boundary данных (timestamp, IP, geo координаты)
  * - Создание RiskEvaluation через domain factories
- *
  * Принципы:
  * - ✅ Adapter pattern — изоляция domain от classification/transport слоев
  * - ✅ Security-first — строгая валидация boundary данных (IP через ipaddr.js, timestamp через ISO 8601, geo координаты)
@@ -178,7 +176,6 @@ const ISO_8601_REGEX = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{1,3})?Z$/;
  * Canonical Time Model:
  * - External boundary (domains) → ISO 8601 string
  * - Internal domain (LoginRiskContext) → epoch ms (number)
- *
  * @note Использует только Date.parse (не new Date())
  * @note Запрещает не-ISO строки через строгую проверку
  * @note Падает на invalid input (никаких fallback)

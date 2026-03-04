@@ -3,12 +3,10 @@
  * ============================================================================
  * 🔐 FEATURE-AUTH — Register Effect Orchestrator
  * ============================================================================
- *
  * Оркестратор register-flow с разделением ответственности:
  * - validateAndEnrich: валидация и обогащение метаданных
  * - callRegisterApi: API-вызов и domain mapping
  * - handleStoreAndAudit: обновление store и audit logging
- *
  * Инварианты:
  * - ❌ Нет бизнес-логики внутри orchestrator
  * - ✅ Все side-effects только через DI-порты

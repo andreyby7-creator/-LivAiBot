@@ -1,6 +1,5 @@
 /**
  * @file packages/app/src/hooks — React Hooks
- *
  * Публичный API пакета hooks.
  * Экспортирует все публичные хуки, типы и утилиты для React компонентов.
  */
@@ -12,7 +11,6 @@
 /**
  * useApi: оркестратор вызовов API с типизацией, валидацией и телеметрией.
  * Предоставляет строго типизированные helpers для API без строковых endpoint'ов.
- *
  * @public
  */
 export {
@@ -33,7 +31,6 @@ export {
 /**
  * useAuth: React hook для управления аутентификацией.
  * Предоставляет состояние и методы для login/logout/refresh с автоматическим управлением токенами.
- *
  * @public
  */
 export { authSelectors, useAuth } from './useAuth.js';
@@ -46,7 +43,6 @@ export { authSelectors, useAuth } from './useAuth.js';
  * useOfflineCache: продвинутый хук для работы с offline cache.
  * Включает типизированный доступ, SWR staleWhileRevalidate, частичное слияние,
  * debounce/throttle, SSR гидратацию и кросс-таб синхронизацию.
- *
  * @public
  */
 export {
@@ -67,7 +63,6 @@ export {
 /**
  * useFeatureFlags: SSR-safe hook для чтения и управления feature flags.
  * Предоставляет typed доступ к флагам через Zustand selectors с dev-only toggle.
- *
  * @public
  */
 export {
@@ -84,7 +79,6 @@ export {
 /**
  * useToast: fluent API для управления уведомлениями.
  * Предоставляет методы success/error/warning/info/loading/promise с автоматической телеметрией.
- *
  * @public
  */
 export {

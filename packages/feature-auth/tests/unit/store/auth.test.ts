@@ -1,6 +1,5 @@
 /**
  * @file Unit тесты для packages/feature-auth/src/stores/auth.ts
- *
  * Тестирование Zustand store с полным покрытием:
  * - Типы и экспорты
  * - Константы

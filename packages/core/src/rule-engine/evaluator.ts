@@ -3,12 +3,10 @@
  * ============================================================================
  * 🛡️ CORE — Rule Engine (Evaluator)
  * ============================================================================
- *
  * Архитектурная роль:
  * - Generic evaluation правил: применение предикатов к фактам с выбором результата по приоритету
  * - Архитектура: Evaluator (primitives) + EvaluatorAlgebra (extensible contract)
  * - Причина изменения: rule-engine, generic rule evaluation, evaluator algebra
- *
  * Принципы:
  * - ✅ SRP: разделение на Evaluator (primitives) и EvaluatorAlgebra (extensible contract)
  * - ✅ Deterministic: одинаковые входы → одинаковые результаты
@@ -17,7 +15,6 @@
  * - ✅ Strict typing: generic по TPredicate, TResult, TFact, без string и Record в domain
  * - ✅ Scalable: Iterable streaming для больших наборов правил
  * - ✅ Security: runtime validation для защиты от некорректных правил
- *
  * ⚠️ ВАЖНО:
  * - ❌ НЕ включает domain-специфичные значения
  * - ❌ НЕ зависит от aggregation/classification
@@ -609,6 +606,7 @@ export const evaluator = {
   /**
    * Evaluation правил для факта (first-match по умолчанию)
    * Возвращает результат первого совпавшего правила или null
+   *
    * @example
    * ```ts
    * const result = evaluator.evaluate(rules, fact);
@@ -714,6 +712,7 @@ export const evaluator = {
   /**
    * Evaluation всех правил для факта (all-match)
    * Возвращает массив результатов всех совпавших правил
+   *
    * @example
    * ```ts
    * const result = evaluator.evaluateAll(rules, fact);
@@ -801,6 +800,7 @@ export const evaluator = {
    * Поддерживает first-match и all-match режимы
    * ⚠️ ВАЖНО: для first-match с приоритетами требуется сортировка, что может потребовать частичной материализации
    * Для all-match работает полностью в streaming режиме (O(1) memory)
+   *
    * @example
    * ```ts
    * const result = evaluator.evaluateIterable(ruleGenerator, fact);
@@ -841,6 +841,7 @@ export const evaluator = {
    * Namespace для DSL-style расширений evaluator
    * Позволяет добавлять domain-specific операции без изменения core
    * ⚠️ Защищено от мутаций через Object.freeze для предотвращения side-channel атак
+   *
    * @example
    * ```ts
    * evaluator.extensions.custom = { evaluateWithContext: (rules, fact, ctx) => ... };
@@ -857,10 +858,8 @@ export const evaluator = {
 /**
  * Операция для custom evaluation (extensible contract)
  * Generic по TResult, TState, TContext, TPredicate, TFact, E для full algebra extensibility
- *
  * ⚠️ КРИТИЧНО: Все методы должны быть pure и deterministic (без Date.now(), Math.random(), side-effects, мутаций).
  * step возвращает новое состояние (не мутирует), исключения автоматически перехватываются и преобразуются в EvaluationFailureReason.
- *
  * @public
  */
 export type EvaluatorOperation<
@@ -878,7 +877,6 @@ export const evaluatorAlgebra = {
   /**
    * Применение EvaluatorOperation к массиву или Iterable правил и факту
    * Поддерживает early termination (loop-based) и streaming (O(1) memory)
-   *
    * ⚠️ ВАЖНО: ожидает валидированные правила (rule.create() или rule.validate()/rule.validateAll()).
    * Невалидированные правила могут привести к runtime исключениям в EvaluatorOperation.step.
    *
@@ -919,7 +917,6 @@ export const evaluatorAlgebra = {
   /**
    * Применение EvaluatorOperation (lazy, streaming-friendly)
    * Возвращает generator для streaming evaluation с early-exit
-   *
    * ⚠️ ВАЖНО: ожидает валидированные правила (rule.create() или rule.validate()/rule.validateAll()).
    * Невалидированные правила могут привести к runtime исключениям в EvaluatorOperation.step.
    *

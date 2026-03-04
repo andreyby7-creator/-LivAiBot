@@ -3,21 +3,18 @@
  * ============================================================================
  * 🔹 TELEMETRY RUNTIME — SINGLETON ЛОГИКА ДЛЯ RUNTIME СРЕДЫ
  * ============================================================================
- *
  * Архитектурная роль:
  * - Singleton логика для глобального доступа к телеметрии
  * - Runtime инициализация и управление жизненным циклом
  * - Fire-and-forget API с batching и queue для throttling
  * - Явная инициализация без скрытого coupling
  * - Race condition protection для async инициализации
- *
  * Принципы:
  * - SRP: только singleton логика, без бизнес-логики
  * - Deterministic: явная инициализация, предсказуемое поведение
  * - Без скрытого coupling: явные зависимости от lib/telemetry
  * - Production-ready: защита от race conditions и повторной инициализации
  * - Testable: reset функции для unit-тестов
- *
  * Использование:
  * - Инициализация: `initTelemetry(config)`
  * - Получение клиента: `getGlobalTelemetryClient()`
@@ -49,7 +46,6 @@ type InternalLogger = {
 /**
  * Создает безопасный internal logger.
  * В production использует no-op, в development - console с защитой.
- *
  * @param enabled - Включить ли логирование (по умолчанию только в development)
  * @returns Internal logger
  */
@@ -105,12 +101,10 @@ const PII_PATTERNS = Object.freeze(
 /**
  * Проверяет metadata на наличие PII patterns.
  * Строгая проверка для middleware output перед логированием.
- *
  * Производительность:
  * - В production: shallow проверка (только верхний уровень) + ключи/строки
  * - В development: полная рекурсивная проверка для всех вложенных объектов
  * - Оптимизировано для высокой нагрузки в production
- *
  * @param metadata - Метаданные для проверки
  * @param deep - Включить глубокую рекурсивную проверку (по умолчанию только в development)
  * @returns true если обнаружен PII
@@ -205,7 +199,6 @@ let fireAndForgetQueue: FireAndForgetQueueState | null = null;
 
 /**
  * Инициализирует fire-and-forget queue с конфигурацией из TelemetryClient.
- *
  * @param batchConfig - Конфигурация batching из TelemetryClient
  */
 const DEFAULT_MAX_CONCURRENT_BATCHES = 5;
@@ -303,7 +296,6 @@ async function processFireAndForgetQueue(): Promise<void> {
 
 /**
  * Инициализирует глобальный singleton клиент телеметрии.
- *
  * Deterministic поведение:
  * - В production: выбрасывает ошибку при повторной инициализации
  * - В development: предупреждает, но позволяет переинициализацию
@@ -311,7 +303,6 @@ async function processFireAndForgetQueue(): Promise<void> {
  * - Параллельные async вызовы ждут один и тот же Promise
  * - Явная инициализация без скрытого coupling
  * - Поддержка middleware hook для pre-processing metadata
- *
  * @param config - Конфигурация телеметрии (опционально)
  * @param middleware - Middleware hook для pre-processing metadata (опционально)
  * @returns Инициализированный singleton клиент
@@ -382,7 +373,6 @@ export function initTelemetry(
 
 /**
  * Получает глобальный singleton клиент телеметрии.
- *
  * @returns Глобальный клиент телеметрии
  * @throws Error если телеметрия не инициализирована
  */
@@ -398,7 +388,6 @@ export function getGlobalTelemetryClient(): TelemetryClient<TelemetryMetadata> {
 
 /**
  * Проверяет, инициализирована ли телеметрия.
- *
  * @returns true если телеметрия инициализирована, false иначе
  */
 export function isTelemetryInitialized(): boolean {
@@ -407,10 +396,8 @@ export function isTelemetryInitialized(): boolean {
 
 /**
  * Сбрасывает глобальный singleton клиент.
- *
  * ВАЖНО: Только для тестов!
  * Не использовать в production коде.
- *
  * @internal-dev
  */
 export function resetGlobalTelemetryClient(): void {
@@ -422,10 +409,8 @@ export function resetGlobalTelemetryClient(): void {
 
 /**
  * Устанавливает глобальный клиент для отладки/тестов.
- *
  * ВАЖНО: Только для тестов и отладки!
  * Не использовать в production коде.
- *
  * @param client - Клиент для установки
  * @internal-dev
  */
@@ -443,7 +428,6 @@ export function setGlobalClientForDebug(
 /**
  * Выполняет функцию в fire-and-forget режиме с batching и throttling.
  * Ошибки логируются через internal logger, но не выбрасываются.
- *
  * @param fn - Функция для выполнения
  */
 export function fireAndForget(fn: () => void | Promise<void>): void {
@@ -477,7 +461,6 @@ export function fireAndForget(fn: () => void | Promise<void>): void {
 /**
  * Логирует событие в fire-and-forget режиме с middleware support.
  * Строгая проверка middleware output на PII перед логированием.
- *
  * @param level - Уровень события
  * @param message - Сообщение события
  * @param metadata - Метаданные события (опционально)
@@ -517,7 +500,6 @@ export function logFireAndForget(
 
 /**
  * Получает метрики производительности fire-and-forget queue.
- *
  * @returns Метрики queue для мониторинга производительности
  */
 export function getFireAndForgetMetrics(): FireAndForgetMetrics | null {
@@ -530,7 +512,6 @@ export function getFireAndForgetMetrics(): FireAndForgetMetrics | null {
 
 /**
  * Логирует информационное событие в fire-and-forget режиме.
- *
  * @param message - Сообщение события
  * @param metadata - Метаданные события (опционально)
  */
@@ -543,7 +524,6 @@ export function infoFireAndForget(
 
 /**
  * Логирует предупреждение в fire-and-forget режиме.
- *
  * @param message - Сообщение события
  * @param metadata - Метаданные события (опционально)
  */
@@ -556,7 +536,6 @@ export function warnFireAndForget(
 
 /**
  * Логирует ошибку в fire-and-forget режиме.
- *
  * @param message - Сообщение события
  * @param metadata - Метаданные события (опционально)
  */

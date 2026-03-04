@@ -3,7 +3,6 @@
  * ============================================================================
  * 🔐 FEATURE-AUTH — Login Effect Orchestrator
  * ============================================================================
- *
  * Оркестратор login-flow:
  * - validate-input (domain LoginRequest)
  * - security-pipeline (через SecurityPipelinePort)
@@ -13,7 +12,6 @@
  * - (опционально) обновление store через login-store-updater
  * - нормализация ошибок через injected error-mapper
  * - concurrency control (cancel_previous / ignore / serialize)
- *
  * Инварианты:
  * - ❌ Нет бизнес-логики внутри orchestrator
  * - ❌ Нет прямых вызовов Date.now()/new Date()

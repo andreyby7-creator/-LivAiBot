@@ -3,12 +3,10 @@
  * ============================================================================
  * 🛡️ CORE — Data Safety (Trust Levels)
  * ============================================================================
- *
  * Архитектурная роль:
  * - Security lattice для уровней доверия к данным в taint tracking и boundary guards
  * - TrustLevel = security lattice element, НЕ score! Запрещена арифметика, единственная операция: lattice meet (meetTrust)
  * - Причина изменения: data safety, security lattice, boundary guards
- *
  * Принципы:
  * - ✅ SRP: разделение на BRANDED TYPE, REGISTRY, CONSTANTS, HELPERS, LATTICE OPERATIONS
  * - ✅ Deterministic: immutable registry, pure functions для lattice operations, O(1) операции
@@ -17,7 +15,6 @@
  * - ✅ Strict typing: branded types для TrustLevel, union types для lattice operations
  * - ✅ Microservice-ready: stateless, immutable registry, thread-safe после build()
  * - ✅ Security: fail-closed semantics (lattice meet возвращает наименее доверенный уровень)
- *
  * ⚠️ ВАЖНО:
  * - ❌ ЗАПРЕЩЕНО: арифметика, Math.min/max, сравнения >= (кроме через dominates())
  * - ✅ РАЗРЕШЕНО: meetTrust(), dominates(), isTrustLevel()
@@ -104,6 +101,7 @@ export type TrustLevelRegistryBuilder = Readonly<{
  *       Multi-registry: можно создать несколько registry для разных pipeline contexts.
  *       Каждый registry независим и immutable после build(), что позволяет использовать
  *       разные наборы уровней доверия в разных контекстах приложения.
+ *
  * @example const defaultRegistry = createTrustLevelRegistry()...build(); const strictRegistry = createTrustLevelRegistry()...build(); // с дополнительными уровнями
  * @public
  */
@@ -247,6 +245,7 @@ export function isTrustLevel(
  * @note Возвращает наименьший уровень доверия из двух (fail-closed security model).
  *       Единственная допустимая операция над TrustLevel.
  *       Идемпотентна, коммутативна, ассоциативна. Fail-hard при неизвестных уровнях.
+ *
  * @example meetTrust(UNTRUSTED, TRUSTED) === UNTRUSTED
  * @throws {Error} Если уровень не найден в registry
  * @public

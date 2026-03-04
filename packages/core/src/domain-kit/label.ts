@@ -3,12 +3,10 @@
  * ============================================================================
  * 🛡️ CORE — Domain Kit (Label)
  * ============================================================================
- *
  * Архитектурная роль:
  * - Generic label value для domain-specific строковых меток в domain-kit
  * - Label = строковое значение с валидацией и type safety через branded types
  * - Причина изменения: domain-kit, string labels, domain-specific validation
- *
  * Принципы:
  * - ✅ SRP: модульная структура (value object / validator contract)
  * - ✅ Deterministic: одинаковые входы → одинаковые результаты
@@ -18,7 +16,6 @@
  * - ✅ Microservice-ready: runtime validation предотвращает cross-service inconsistency
  * - ✅ Scalable: extensible validation через LabelValidator contract
  * - ✅ Security: runtime validation для защиты от forged labels
- *
  * ⚠️ ВАЖНО:
  * - ❌ НЕ включает domain-специфичные значения ('SAFE'/'SUSPICIOUS'/'DANGEROUS' - это domain labels)
  * - ❌ НЕ определяет конкретные label значения (только contract через LabelValidator)
@@ -26,7 +23,6 @@
  * - ✅ Domain определяет допустимые label значения через LabelValidator
  * - ✅ Type-safe: branded type предотвращает смешивание разных доменов
  * - ✅ Runtime-safe: защита от forged labels при десериализации
- *
  * ⚠️ EDGE CASES:
  * - Phantom generic не защищает runtime от кастов через `as unknown as Label<X>`
  * - Используйте `label.isLabel()` для безопасной проверки типов в runtime
@@ -151,6 +147,7 @@ export const label = {
    * Создает label из строки с валидацией
    * @template TLabel - Union type допустимых label значений
    * @note Автоматически нормализует значение (trim) для защиты от пробельных строк
+   *
    * @example type RiskLabel = 'SAFE' | 'SUSPICIOUS' | 'DANGEROUS'; const validator: LabelValidator<RiskLabel> = { isValid: (v): v is RiskLabel => ['SAFE', 'SUSPICIOUS', 'DANGEROUS'].includes(v) }; const result = label.create('SAFE', validator); if (result.ok) { const lbl = result.value; // Label<'SAFE' | 'SUSPICIOUS' | 'DANGEROUS'> }
    * @public
    */
@@ -229,6 +226,7 @@ export const label = {
    * @param value - Значение для проверки
    * @param validator - Валидатор для проверки допустимых значений
    * @returns true если значение является валидным label
+   *
    * @example
    * ```ts
    * type RiskLabel = 'SAFE' | 'SUSPICIOUS' | 'DANGEROUS';
@@ -260,6 +258,7 @@ export const label = {
    * @note Возвращает undefined если label валиден, иначе возвращает причину ошибки.
    *       Caller решает, что делать с ошибкой (throw/logging).
    *       Используйте для критичных микросервисов, где нужно fail-fast при corrupted data
+   *
    * @example const validationError = label.assertValid(unknownLabel, validator); if (validationError !== undefined) { logger.error('Invalid label', validationError); return; } label.assertValid(unknownLabel, validator, { throwOnInvalid: true });
    * @throws Error если throwOnInvalid === true и валидация не прошла
    * @public
@@ -317,6 +316,7 @@ export const labelValidators = {
    * Создает validator для whitelist значений
    * @template TLabel - Union type допустимых label значений
    * @note Использует кеширование для reuse в high-throughput scenarios
+   *
    * @example type RiskLabel = 'SAFE' | 'SUSPICIOUS' | 'DANGEROUS'; const validator = labelValidators.whitelist<RiskLabel>(['SAFE', 'SUSPICIOUS', 'DANGEROUS']);
    * @public
    */
@@ -373,6 +373,7 @@ export const labelValidators = {
    * Создает validator для pattern matching (regex)
    * @template TLabel - Union type допустимых label значений
    * @note allowedValues опционально, используется для лучших error messages
+   *
    * @example const validator = labelValidators.pattern(/^[A-Z_]+$/, ['SAFE', 'SUSPICIOUS', 'DANGEROUS']);
    * @public
    */
@@ -394,6 +395,7 @@ export const labelValidators = {
    * Создает validator для custom функции валидации
    * @template TLabel - Union type допустимых label значений
    * @note allowedValues опционально, используется для лучших error messages
+   *
    * @example const validator = labelValidators.custom((v): v is RiskLabel => v.length > 0 && v === v.toUpperCase(), ['SAFE', 'SUSPICIOUS', 'DANGEROUS']);
    * @public
    */

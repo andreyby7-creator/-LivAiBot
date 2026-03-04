@@ -1,6 +1,5 @@
 /**
  * @file Unit тесты для packages/app/src/lib/effect-isolation.ts
- *
  * Enterprise-grade тестирование effect-isolation с 100% покрытием:
  * - IsolationError конструктор и свойства
  * - isIsolationError type guard

@@ -3,19 +3,15 @@
  * ============================================================================
  * 🟥 APP UI CONTEXT MENU — UI МИКРОСЕРВИС КОНТЕКСТНОГО МЕНЮ
  * ============================================================================
- *
  * Единственная точка входа для ContextMenu в приложении.
  * UI boundary между ui-core и бизнес-логикой.
- *
  * Ответственность:
  * - Policy (hidden / visibility)
  * - Telemetry
  * - Feature flags
- *
  * Не содержит:
  * - DOM-манипуляций кроме Core
  * - Платформенных эффектов
- *
  * Архитектурные решения:
  * - Управление позицией меню и событиями обрабатывается в App слое
  * - CoreContextMenu остается полностью presentational
@@ -170,14 +166,11 @@ type ContextMenuPolicy = Readonly<{
  * - DOM rendering (policy.isRendered определяет, рендерится ли компонент в DOM)
  * - telemetry
  * - visibility state
- *
  * @note policy.isRendered отвечает за видимость компонента (feature flags + visible prop).
  * @note isOpen - это отдельное UI-состояние для управления открытостью меню внутри Core.
  * @note Разделение ответственности: policy.isRendered → DOM rendering, isOpen → UX state.
- *
  * Ни один consumer не имеет права повторно интерпретировать props.visible
  * или feature flags.
- *
  * @note Чистая функция без side-effects. Использует только useMemo для вычислений.
  */
 function useContextMenuPolicy(props: AppContextMenuProps): ContextMenuPolicy {
@@ -550,16 +543,13 @@ ContextMenuComponent.displayName = 'ContextMenu';
 
 /**
  * UI-контракт ContextMenu компонента.
- *
  * @contract
- *
  * Гарантируется:
  * - Детерминированный рендеринг без side effects (кроме telemetry)
  * - SSR-safe и concurrent rendering compatible
  * - Полная интеграция с централизованной telemetry системой
  * - Управление feature flags для скрытия context menu
  * - Корректная обработка accessibility (ARIA)
- *
  * Инварианты:
  * - Всегда возвращает валидный JSX.Element или null
  * - Telemetry payload содержит корректное количество элементов
@@ -567,7 +557,6 @@ ContextMenuComponent.displayName = 'ContextMenu';
  * - Telemetry отражает состояние policy, а не сырые props
  * - visible/hidden в payload являются производными только от policy
  * - Select telemetry отправляется при каждом соответствующем событии
- *
  * Не допускается:
  * - Использование напрямую core ContextMenu компонента
  * - Игнорирование feature flag логики

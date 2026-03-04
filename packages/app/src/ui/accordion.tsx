@@ -3,19 +3,15 @@
  * ============================================================================
  * 🟥 APP UI ACCORDION — UI МИКРОСЕРВИС ACCORDION
  * ============================================================================
- *
  * Единственная точка входа для Accordion в приложении.
  * UI boundary между ui-core и бизнес-логикой.
- *
  * Ответственность:
  * - Policy (hidden / visibility)
  * - Telemetry
  * - Feature flags
- *
  * Не содержит:
  * - DOM-манипуляций кроме Core
  * - Платформенных эффектов
- *
  * Архитектурные решения:
  * - Управление открытыми элементами и событиями обрабатывается в App слое
  * - CoreAccordion остается полностью presentational
@@ -167,7 +163,6 @@ type AccordionPolicy = Readonly<{
  * - DOM rendering
  * - telemetry
  * - visibility state
- *
  * Ни один consumer не имеет права повторно интерпретировать props.visible
  * или feature flags.
  */
@@ -371,10 +366,8 @@ const AccordionComponent = forwardRef<HTMLDivElement, AppAccordionProps>(
 
     /**
      * Обработчик изменения элемента с telemetry.
-     *
      * @param itemId - ID элемента, который был кликнут
      * @param event - Mouse event
-     *
      * @note Toggle telemetry фиксирует состояние ДО клика (pre-click snapshot).
      * Это означает, что openItemsCount и openItemIds отражают состояние на момент рендера,
      * а не новое состояние после обработки клика App-слоем.
@@ -488,16 +481,13 @@ AccordionComponent.displayName = 'Accordion';
 
 /**
  * UI-контракт Accordion компонента.
- *
  * @contract
- *
  * Гарантируется:
  * - Детерминированный рендеринг без side effects (кроме telemetry)
  * - SSR-safe и concurrent rendering compatible
  * - Полная интеграция с централизованной telemetry системой
  * - Управление feature flags для скрытия аккордеона
  * - Корректная обработка accessibility (ARIA)
- *
  * Инварианты:
  * - Всегда возвращает валидный JSX.Element или null
  * - Telemetry payload содержит корректное количество элементов
@@ -505,7 +495,6 @@ AccordionComponent.displayName = 'Accordion';
  * - Telemetry отражает состояние policy, а не сырые props
  * - visible/hidden в payload являются производными только от policy
  * - Toggle telemetry отправляется при каждом изменении открытых элементов
- *
  * Не допускается:
  * - Использование напрямую core Accordion компонента
  * - Игнорирование feature flag логики

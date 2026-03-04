@@ -3,7 +3,6 @@
  * ============================================================================
  * 🔐 FEATURE-AUTH — Register API Mapper
  * ============================================================================
- *
  * Pure mapper между domain и transport слоями (без orchestration):
  * - RegisterRequest/OAuthRegisterRequest → transport payloads
  * - RegisterResponseValues → RegisterResponse
@@ -24,6 +23,23 @@ import type {
   RegisterResponseValues,
 } from '../../schemas/index.js';
 import { mapTokenPairValuesToDomain } from '../shared/auth-api.mappers.js';
+
+/* ============================================================================
+ * 🔧 DOMAIN-SPECIFIC ERRORS
+ * ========================================================================== */
+
+/**
+ * Ошибка мэппинга Register API.
+ * @remarks Domain-specific error для security-critical эффекта, ограничивает scope stack trace.
+ */
+// eslint-disable-next-line functional/no-classes -- классы нужны для корректного stack trace и instanceof
+export class RegisterApiMapperError extends Error {
+  constructor(message: string) {
+    super(message);
+    // eslint-disable-next-line functional/no-this-expressions -- конструктор класса требует мутации this
+    this.name = 'RegisterApiMapperError';
+  }
+}
 
 /* ============================================================================
  * 🔧 CONSTANTS
@@ -47,7 +63,7 @@ const OAUTH_REGISTER_ENDPOINT = '/v1/auth/oauth/register';
  * @note Выбрасывает ошибку, если появляется новый тип идентификатора и не обрабатывается в switch.
  */
 function assertNever(x: never): never {
-  throw new Error(
+  throw new RegisterApiMapperError(
     `[register-api.mapper] Unhandled identifier type: ${String(x)}`,
   );
 }
@@ -120,7 +136,6 @@ function normalizeOAuthClientContext(
 
 /**
  * Маппинг RegisterRequest (domain) → RegisterRequestValues (transport для /v1/auth/register).
- *
  * @note Transport-схема поддерживает только email. Остальные типы выбрасывают ошибку до добавления схемы.
  *       Password и workspaceName обязательны для email-регистрации.
  */
@@ -133,13 +148,13 @@ export function mapRegisterRequestToApiPayload(
   switch (request.identifier.type) {
     case 'email': {
       if (request.password === undefined) {
-        throw new Error(
+        throw new RegisterApiMapperError(
           '[register-api.mapper] password is required for email registration',
         );
       }
 
       if (request.workspaceName === undefined) {
-        throw new Error(
+        throw new RegisterApiMapperError(
           '[register-api.mapper] workspaceName is required for email registration',
         );
       }
@@ -156,21 +171,21 @@ export function mapRegisterRequestToApiPayload(
     }
 
     case 'username': {
-      throw new Error(
+      throw new RegisterApiMapperError(
         `[register-api.mapper] identifier.type "username" is not supported for ${REGISTER_ENDPOINT}. `
           + 'Transport `registerRequestSchema` currently accepts only email identifier.',
       );
     }
 
     case 'phone': {
-      throw new Error(
+      throw new RegisterApiMapperError(
         `[register-api.mapper] identifier.type "phone" is not supported for ${REGISTER_ENDPOINT}. `
           + 'Transport `registerRequestSchema` currently accepts only email identifier.',
       );
     }
 
     case 'oauth': {
-      throw new Error(
+      throw new RegisterApiMapperError(
         `[register-api.mapper] identifier.type "oauth" is not supported for ${REGISTER_ENDPOINT}. `
           // eslint-disable-next-line no-secrets/no-secrets -- это имя функции, а не секрет
           + `Use \`mapOAuthRegisterRequestToApiPayload\` with dedicated OAuth registration endpoint ${OAUTH_REGISTER_ENDPOINT}.`,
@@ -192,7 +207,6 @@ export function mapRegisterRequestToApiPayload(
 
 /**
  * Transport input для OAuth регистрации.
- *
  * @remarks
  * Domain `OAuthRegisterRequest` использует `providerToken` (access token flow),
  * но transport требует `code`, `state`, `redirectUri` (authorization code flow).
@@ -213,7 +227,6 @@ export type OAuthRegisterTransportInput = Readonly<{
 
 /**
  * Маппинг OAuthRegisterRequest (domain) → OAuthRegisterRequestValues (transport для /v1/auth/oauth/register).
- *
  * @note Transport использует authorization code flow, domain — access token flow.
  *       Проверяет обязательные поля и provider через exhaustive switch.
  */
@@ -228,25 +241,25 @@ export function mapOAuthRegisterRequestToApiPayload(
 
   // Fail-fast: проверка обязательных полей для transport-схемы
   if (code === '') {
-    throw new Error(
+    throw new RegisterApiMapperError(
       '[register-api.mapper] code must not be empty for OAuth registration',
     );
   }
 
   if (state === '') {
-    throw new Error(
+    throw new RegisterApiMapperError(
       '[register-api.mapper] state must not be empty for OAuth registration',
     );
   }
 
   if (redirectUri === '') {
-    throw new Error(
+    throw new RegisterApiMapperError(
       '[register-api.mapper] redirectUri must not be empty for OAuth registration',
     );
   }
 
   if (workspaceName === '') {
-    throw new Error(
+    throw new RegisterApiMapperError(
       '[register-api.mapper] workspaceName must not be empty for OAuth registration',
     );
   }
@@ -263,7 +276,7 @@ export function mapOAuthRegisterRequestToApiPayload(
     case 'yandex':
     case 'facebook':
     case 'vk':
-      throw new Error(
+      throw new RegisterApiMapperError(
         `[register-api.mapper] OAuth provider "${input.domain.provider}" is not supported by transport schema. `
           + `Supported providers: google, github, microsoft, apple`,
       );
@@ -293,7 +306,6 @@ export function mapOAuthRegisterRequestToApiPayload(
 
 /**
  * Маппинг RegisterResponseValues (transport) → RegisterResponse (domain).
- *
  * @note Использует shared mapper для expiresIn → expiresAt. Проверяет accessToken и refreshToken.
  *       Детерминированный expiresAt через injected now (для тестов). dtoVersion по умолчанию '1.0'.
  */
@@ -304,20 +316,20 @@ export function mapRegisterResponseToDomain(
   // Fail-fast: explicit проверка обязательных полей перед использованием
   // @note accessToken и refreshToken обязательны по схеме (не опциональны), но проверяем на пустую строку
   if (dto.accessToken === '') {
-    throw new Error(
+    throw new RegisterApiMapperError(
       '[register-api.mapper] accessToken must not be empty',
     );
   }
 
   if (dto.refreshToken === '') {
-    throw new Error(
+    throw new RegisterApiMapperError(
       '[register-api.mapper] refreshToken must not be empty',
     );
   }
 
   // Guard: expiresIn должен быть > 0 для предотвращения fail-open сценария
   if (dto.expiresIn !== undefined && dto.expiresIn <= 0) {
-    throw new Error(
+    throw new RegisterApiMapperError(
       '[register-api.mapper] expiresIn must be > 0',
     );
   }

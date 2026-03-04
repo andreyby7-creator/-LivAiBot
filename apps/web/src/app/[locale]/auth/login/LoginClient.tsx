@@ -16,7 +16,6 @@ type LoginClientProps = {
 
 /**
  * @file Клиентский компонент Login - содержит форму входа
- *
  * TODO: Реализовать реальный auth flow (api-gateway/next-auth)
  * TODO: Добавить валидацию и обработку ошибок
  * TODO: Интегрировать с Zustand store для состояния пользователя

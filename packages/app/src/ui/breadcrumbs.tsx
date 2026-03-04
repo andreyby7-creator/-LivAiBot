@@ -3,19 +3,15 @@
  * ============================================================================
  * 🟥 APP UI BREADCRUMBS — UI МИКРОСЕРВИС BREADCRUMBS
  * ============================================================================
- *
  * Единственная точка входа для Breadcrumbs в приложении.
  * UI boundary между ui-core и бизнес-логикой.
- *
  * Ответственность:
  * - Policy (hidden / visibility)
  * - Telemetry
  * - Feature flags
- *
  * Не содержит:
  * - DOM-манипуляций кроме Core
  * - Платформенных эффектов
- *
  * Архитектурные решения:
  * - Навигация, routing и клики обрабатываются в App слое
  * - CoreBreadcrumbs остается полностью presentational
@@ -167,7 +163,6 @@ type BreadcrumbsPolicy = Readonly<{
  * - DOM rendering
  * - telemetry
  * - visibility state
- *
  * Ни один consumer не имеет права повторно интерпретировать props.visible
  * или feature flags.
  */
@@ -412,19 +407,16 @@ BreadcrumbsComponent.displayName = 'Breadcrumbs';
 
 /**
  * Memoized App Breadcrumbs с ref forwarding.
- *
  * Подходит для:
  * - UI хлебных крошек
  * - workflow
  * - design-system интеграций
- *
  * Гарантии:
  * - Чёткое разделение Core и App слоёв
  * - Централизованная telemetry
  * - Управление feature flags в одном месте
  * - Telemetry отражает состояние policy, а не сырые props
  * - visible/hidden в payload являются производными только от policy
- *
  * Не допускается:
  * - Использование props.visible напрямую вне policy
  */

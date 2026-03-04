@@ -123,6 +123,8 @@ describe('effects/login/login-effect.types', () => {
           return undefined;
         }, undefined);
       },
+      getSessionState: () => calls.session ?? null,
+      getRefreshToken: () => 'test-refresh-token',
     };
 
     const authState = createAuthState();
@@ -180,6 +182,8 @@ describe('effects/login/login-effect.types', () => {
           return undefined;
         }, undefined);
       },
+      getSessionState: () => calls.session ?? null,
+      getRefreshToken: () => 'test-refresh-token',
     };
 
     const authState = createAuthState();
@@ -494,6 +498,8 @@ describe('effects/login/login-effect.types', () => {
           return undefined;
         }, undefined);
       },
+      getSessionState: () => storeCalls.session ?? null,
+      getRefreshToken: () => 'test-refresh-token',
     };
 
     const securityPipeline: SecurityPipelinePort = {

@@ -3,17 +3,14 @@
  * ============================================================================
  * 🟥 APP UI CARD — КОНТЕЙНЕРНЫЙ WRAPPER КАРТОЧКИ ПРИЛОЖЕНИЯ
  * ============================================================================
- *
  * Роль:
  * - Единственная точка входа для Card во всём приложении
  * - UI boundary между ui-core и бизнес-логикой
- *
  * Интеграции:
  * - telemetry ✓ (централизованная, fire-and-forget, lifecycle-aware)
  * - feature flags ✓ (hidden / disabled / variant / behavior)
  * - accessibility ✓ (aria-role, aria-disabled, tabIndex)
  * - performance ✓ (memo, useMemo, useCallback)
- *
  * Принципы:
  * - props → policy → handlers → view
  * - Side-effects строго изолированы
@@ -110,7 +107,6 @@ export type AppCardProps = Readonly<
     /**
      * Обработчик активации карточки (клик или клавиатура).
      * Вызывается при клике мыши или нажатии Enter/Space.
-     *
      * @remarks
      * Для интерактивных карточек (с onClick) автоматически добавляется:
      * - role="button"
@@ -318,16 +314,13 @@ const CardComponent = forwardRef<HTMLDivElement, AppCardProps>(
 
 /**
  * UI-контракт Card компонента.
- *
  * @contract
- *
  * Гарантируется:
  * - Детерминированный рендеринг без side effects (кроме telemetry)
  * - SSR-safe и concurrent rendering compatible
  * - Полная интеграция с централизованной telemetry системой
  * - Управление feature flags для скрытия и отключения
  * - Корректная обработка интерактивности и accessibility
- *
  * Инварианты:
  * - Всегда возвращает валидный JSX.Element или null
  * - Интерактивность определяется наличием onClick callback
@@ -335,12 +328,10 @@ const CardComponent = forwardRef<HTMLDivElement, AppCardProps>(
  * - Keyboard navigation работает для интерактивных карточек
  * - aria-disabled={true} только при disabledByFeatureFlag={true}
  * - props.variant имеет визуальный приоритет над variantByFeatureFlag (data-variant)
- *
  * Приоритет variant:
  * - props.variant → визуальный стиль карточки (передается в CoreCard)
  * - variantByFeatureFlag → data-variant атрибут для telemetry/тестирования
  * - Если оба заданы, props.variant определяет внешний вид, variantByFeatureFlag - метаданные
- *
  * CSS переменные и стилизация:
  * - Все стили передаются через CoreCard (bgColor, borderColor, shadow, width, height)
  * - CSS переменные поддерживаются через CoreCard (например, var(--card-bg))
@@ -348,13 +339,11 @@ const CardComponent = forwardRef<HTMLDivElement, AppCardProps>(
  *   не обновляться автоматически из-за мемоизации стилей в CoreCard.
  *   Для динамических значений используйте inline style через props.style.
  * - Fallback значения определены в CoreCard (DEFAULT_BG_COLOR, DEFAULT_BORDER_COLOR и т.д.)
- *
  * Accessibility для интерактивных карточек:
  * - role="button" автоматически применяется при наличии onClick
  * - aria-disabled="true" блокирует взаимодействие через pointer-events: none
  * - Keyboard navigation: Enter и Space активируют карточку
  * - tabIndex={0} для фокусируемости интерактивных карточек
- *
  * Не допускается:
  * - Использование напрямую div вместо Card компонента
  * - Игнорирование accessibility атрибутов
@@ -375,21 +364,17 @@ export const Card = memo(CardComponent);
  * ========================================================================== */
 /**
  * Этот файл — UI boundary и UI-микросервис.
- *
  * Card теперь:
  * - полностью управляется через policy
  * - telemetry готова к продуктовой аналитике
  * - feature flags не протекают в feature-код
  * - accessibility соответствует enterprise-уровню
  * - готов к A/B тестам, security audit и runtime overrides
- *
  * Любая новая:
  * - аналитика
  * - эксперимент
  * - изменение поведения
- *
  * добавляется ТОЛЬКО здесь.
- *
  * Feature-код не меняется.
  * ui-core не меняется.
  */

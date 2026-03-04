@@ -1,6 +1,5 @@
 /**
  * @file @livai/core-contracts/domain — Domain Types & DTO
- *
  * Публичный API пакета domain.
  * Экспортирует все публичные компоненты, типы и DTO для всех доменов.
  */
@@ -13,7 +12,6 @@
 /**
  * Общие типы, используемые во всех доменах.
  * Включает UUID, Timestamp, JsonObject, Settings, Decision types.
- *
  * @public
  */
 export * from './common.js';
@@ -26,7 +24,6 @@ export * from './common.js';
 /**
  * Типы для auth domain.
  * Включает типы и DTO для аутентификации и авторизации.
- *
  * @public
  */
 export * from './auth.js';
@@ -39,7 +36,6 @@ export * from './auth.js';
 /**
  * Типы для bots domain.
  * Включает типы и DTO для ботов.
- *
  * @public
  */
 export * from './bots.js';
@@ -52,7 +48,6 @@ export * from './bots.js';
 /**
  * Типы для conversations domain.
  * Включает типы и DTO для разговоров.
- *
  * @public
  */
 export * from './conversations.js';

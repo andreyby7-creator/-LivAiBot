@@ -1,6 +1,5 @@
 /**
  * @file Comprehensive tests for apps/web/src/sw.ts
- *
  * Покрытие всех веток и функций:
  * - Install event handler (успех/ошибки/kill-switch)
  * - Activate event handler (успех/ошибки/kill-switch)

@@ -3,19 +3,15 @@
  * ============================================================================
  * 🟥 APP UI DROPDOWN — UI МИКРОСЕРВИС DROPDOWN
  * ============================================================================
- *
  * Единственная точка входа для Dropdown в приложении.
  * UI boundary между ui-core и бизнес-логикой.
- *
  * Ответственность:
  * - Policy (hidden / visibility)
  * - Telemetry
  * - Feature flags
- *
  * Не содержит:
  * - DOM-манипуляций кроме Core
  * - Платформенных эффектов
- *
  * Архитектурные решения:
  * - Управление открытостью меню и событиями обрабатывается в App слое
  * - CoreDropdown остается полностью presentational
@@ -162,10 +158,8 @@ type DropdownPolicy = Readonly<{
  * - DOM rendering
  * - telemetry
  * - visibility state
- *
  * Ни один consumer не имеет права повторно интерпретировать props.visible
  * или feature flags.
- *
  * @note Чистая функция без side-effects. Использует только useMemo для вычислений.
  */
 function useDropdownPolicy(props: AppDropdownProps): DropdownPolicy {
@@ -456,16 +450,13 @@ DropdownComponent.displayName = 'Dropdown';
 
 /**
  * UI-контракт Dropdown компонента.
- *
  * @contract
- *
  * Гарантируется:
  * - Детерминированный рендеринг без side effects (кроме telemetry)
  * - SSR-safe и concurrent rendering compatible
  * - Полная интеграция с централизованной telemetry системой
  * - Управление feature flags для скрытия dropdown
  * - Корректная обработка accessibility (ARIA)
- *
  * Инварианты:
  * - Всегда возвращает валидный JSX.Element или null
  * - Telemetry payload содержит корректное количество элементов
@@ -473,7 +464,6 @@ DropdownComponent.displayName = 'Dropdown';
  * - Telemetry отражает состояние policy, а не сырые props
  * - visible/hidden в payload являются производными только от policy
  * - Toggle и Select telemetry отправляются при каждом соответствующем событии
- *
  * Не допускается:
  * - Использование напрямую core Dropdown компонента
  * - Игнорирование feature flag логики

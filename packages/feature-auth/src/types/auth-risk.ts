@@ -3,19 +3,16 @@
  * ============================================================================
  * 🛡️ FEATURE-AUTH — Risk Assessment Types (Auth-Specific)
  * ============================================================================
- *
  * Архитектурная роль:
  * - Auth-specific типы для risk assessment
  * - Адаптирует типы из @livai/domains для feature-auth
  * - Используется в lib/risk-assessment.ts, index.ts и тестах
  * - Не содержит бизнес-логику, только типы
- *
  * Принципы:
  * - ✅ Re-export из domains где возможно (ClassificationSignals, RiskLevel)
  * - ✅ Auth-specific типы только там, где нужна адаптация
  * - ✅ Immutable — все типы readonly для безопасности
  * - ✅ Self-documenting — диапазоны значений документированы в JSDoc
- *
  * Архитектура типов:
  * - Базовые типы (RiskLevel, ClassificationSignals, ClassificationRule) импортируются из @livai/domains
  * - Auth-specific типы (RiskContext, RiskPolicy, RiskAssessmentResult) определены здесь
@@ -92,7 +89,6 @@ export type InternalRiskSignals = InternalClassificationSignals;
  * - Read-only (immutable)
  * - Детерминированные (одинаковый вход → одинаковый выход)
  * - Не влияют напрямую на правила (используются только для scoring)
- *
  * @security Sanitization выполняется через sanitizeExternalSignals() из adapter layer (security boundary).
  *           Domain layer проверяет только семантику через validateClassificationSemantics().
  *           Не пробрасываются в DTO для безопасности

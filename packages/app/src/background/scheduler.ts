@@ -1,10 +1,8 @@
 /**
  * @file packages/app/src/background/scheduler.ts
- *
  * =============================================================================
  * 🚀 ADAPTIVE EFFECT SCHEDULER
  * =============================================================================
- *
  * Возможности:
  * - persistent binary heap priority queue O(log n) для тысяч задач в секунду
  * - cancellable tasks с AbortSignal и настоящая preemption

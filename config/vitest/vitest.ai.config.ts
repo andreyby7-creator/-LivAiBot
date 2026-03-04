@@ -1,6 +1,5 @@
 /**
  * @file Конфигурация Vitest для интеграционных AI тестов
- *
  * Проверяет реальные интеграции с AI провайдерами.
  * Использует реальные API ключи, простой учет стоимости.
  */
@@ -98,11 +97,9 @@ function recordAICall(provider: string, tokens: number): void {
 
 /**
  * Сброс счетчиков AI для тестов
- *
  * Использование в тестах для изоляции:
  * ```typescript
  * import { resetAICounters } from './vitest.ai.config';
- *
  * beforeEach(() => {
  *   resetAICounters(); // Чистый старт для каждого теста
  * });

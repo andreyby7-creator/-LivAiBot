@@ -3,19 +3,16 @@
  * ============================================================================
  * 🔵 CORE UI USER PROFILE DISPLAY — PRESENTATIONAL PRIMITIVE
  * ============================================================================
- *
  * Роль:
  * - Базовый UI-компонент для отображения профиля пользователя
  * - Полностью детерминированный и side-effect free
  * - SSR-safe, Concurrent-safe
- *
  * Не содержит:
  * - Feature flags
  * - Telemetry
  * - Управление состоянием данных профиля
  * - Логику загрузки данных
  * - Бизнес-логику
- *
  * Управление:
  * - Данными профиля управляет App-слой
  */
@@ -415,7 +412,6 @@ CoreUserProfileDisplayComponent.displayName = 'CoreUserProfileDisplay';
  * ```tsx
  * // Базовое использование
  * <UserProfileDisplay profile={{ email: 'user@example.com', name: 'Иван Иванов' }} />
- *
  * // С аватаром и дополнительной информацией
  * <UserProfileDisplay
  *   profile={{ email: 'user@example.com', name: 'Иван Иванов', avatarUrl: '/avatars/user.jpg', additionalInfo: 'Разработчик' }}
@@ -423,10 +419,8 @@ CoreUserProfileDisplayComponent.displayName = 'CoreUserProfileDisplay';
  *   variant="detailed"
  *   showAdditionalInfo={true}
  * />
- *
  * // Компактный вариант
  * <UserProfileDisplay profile={{ email: 'user@example.com', name: 'Иван Иванов' }} size="small" variant="compact" />
- *
  * // С кастомным аватаром
  * <UserProfileDisplay profile={{ email: 'user@example.com', name: 'Иван Иванов' }} customAvatar={<CustomAvatarComponent />} />
  * ```
@@ -444,12 +438,10 @@ export const UserProfileDisplay = memo(CoreUserProfileDisplayComponent);
  * - --user-profile-additional-info-color: цвет дополнительной информации (default: #9CA3AF)
  * - --user-profile-avatar-bg: цвет фона fallback аватара (default: #E5E7EB)
  * - --user-profile-avatar-text-color: цвет текста инициалов (default: #6B7280)
- *
  * Data Attributes для QA:
  * Компонент добавляет следующие data-атрибуты для тестирования и отладки.
  * Все атрибуты используют консистентную схему строковых значений.
  * QA должен использовать именно эти строковые значения для селекторов:
- *
  * - data-component="CoreUserProfileDisplay": идентификатор компонента
  * - data-size: строго "small" | "medium" | "large" (размер отображения профиля)
  * - data-variant: строго "default" | "compact" | "detailed" (вариант отображения)

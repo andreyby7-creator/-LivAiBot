@@ -1,12 +1,10 @@
 /**
  * @file Интеграционные тесты для Domain Layer Trust Policy
- *
  * Проверяет архитектурный контракт Domain Layer:
  * 1. Factory methods фильтруют некорректные данные (возвращают null)
  * 2. Валидированные данные могут использоваться в domain layer
  * 3. Защита от bypass валидации
  * 4. Общая архитектурная корректность
- *
  * @see ADR-001-domain-layer-trust-policy.md
  */
 import { describe, expect, it } from 'vitest';

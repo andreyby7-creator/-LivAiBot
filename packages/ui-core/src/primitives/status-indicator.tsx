@@ -3,18 +3,15 @@
  * ============================================================================
  * 🔵 CORE UI STATUS INDICATOR — PRESENTATIONAL PRIMITIVE
  * ============================================================================
- *
  * Роль:
  * - Базовый UI-компонент для отображения статуса процесса
  * - Полностью детерминированный и side-effect free
  * - SSR-safe, Concurrent-safe
- *
  * Не содержит:
  * - Feature flags
  * - Telemetry
  * - Управление состоянием статуса
  * - Бизнес-логики определения статуса
- *
  * Управление:
  * - Статусом и параметрами управляет App-слой
  */
@@ -264,14 +261,12 @@ const CoreStatusIndicatorComponent = forwardRef<
 
 /**
  * Memoized CoreStatusIndicator.
- *
  * Гарантии:
  * - Никаких side-effects
  * - Полная детерминированность
  * - Совместимость с strict-mode и concurrent rendering
  * - Поддержка ref forwarding
  * - SSR-safe
- *
  * CSS переменные для темизации:
  * - --status-indicator-color-idle: цвет для статуса 'idle' (default: #9CA3AF)
  * - --status-indicator-color-loading: цвет для статуса 'loading' (default: #3B82F6)

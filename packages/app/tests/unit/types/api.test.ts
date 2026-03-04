@@ -1,6 +1,5 @@
 /**
  * @file Unit тесты для packages/app/src/types/api.ts
- *
  * Тестирование enterprise-level API типизации с 100% покрытием:
  * - HTTP контракты и методы
  * - Discriminated unions для API ответов

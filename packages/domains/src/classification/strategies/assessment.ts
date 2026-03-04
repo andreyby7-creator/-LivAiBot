@@ -3,18 +3,15 @@
  * ============================================================================
  * 🎯 DOMAINS — Classification Assessment (Composition Layer)
  * ============================================================================
- *
  * Архитектурная роль:
  * Composition layer для orchestration оценки классификации. Объединяет scoring, rule engine и decision policy.
  * Использует deterministic.strategy.ts для rule evaluation.
- *
  * Принципы:
  * - ✅ Composition — объединяет подсистемы (scoring, rules, decision)
  * - ✅ Pure domain — детерминированная функция, одинаковый вход → одинаковый выход
  * - ✅ No side-effects — изолирован от effects layer (audit/logging в orchestrator)
  * - ✅ SRP — только orchestration, не содержит validation/error handling/context building
  * - ✅ Domain-focused — classification-специфичная логика
- *
  * @note Scoring должен быть в aggregation/ (calculateRiskScore, defaultRiskWeights)
  * @note Decision должен быть в policies/ (defaultDecisionPolicy, determineRiskLevel, determineLabel)
  * @note Validation и rule snapshot выполняются в deterministic.strategy.ts через evaluateClassificationRulesSnapshot
@@ -50,16 +47,13 @@ import type { SemanticViolation } from '../signals/violations.js';
 /**
  * Плагин для расширения контекста (опционально)
  * Расширяет DeterministicContextBuilderPlugin для поддержки scoring и assessment контекстов
- *
  * @contract Плагины должны быть pure functions:
  *   - Не использовать внешнее состояние (глобальные переменные, модульные переменные, IO)
  *   - Запрещено мутировать context (контексты заморожены через Object.freeze)
  *   - Детерминированные: одинаковый вход → одинаковый выход
  *   - Без side-effects (не вызывать API, не логировать, не изменять внешнее состояние)
- *
  * @note Versioning для защиты от breaking changes в будущем
  * @note Future: async pipeline для rules при очень высоких нагрузках
- *
  * @public
  */
 export type ContextBuilderPlugin =
@@ -189,14 +183,11 @@ function buildScoringContext(
 /**
  * Оценивает классификацию на основе device info и контекста (composition layer)
  * Pipeline: scoring → rule snapshot (strategy) → assessment context (evaluation) → assemble result
- *
  * @throws {Error} Пробрасывает ошибки из evaluateClassificationRules
- *
  * @note Config передается явно (избегает fallback на глобальный state)
  * @note Контексты клонируются и замораживаются для immutability перед передачей в плагины
  * @note Плагины должны быть pure functions: без внешнего состояния, без мутаций context
  * @note Future: async pipeline/lazy evaluation для rules, AssessmentContextBuilderPlugin через опции (после policies/)
- *
  * @public
  */
 export function assessClassification(

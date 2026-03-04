@@ -2,17 +2,14 @@
 
 /**
  * @file Скрипт для проверки покрытия кода конкретного файла в монерепо
- *
  * Автоматически парсит отчеты покрытия (JSON и HTML) и показывает метрики прямо в консоли.
  * Работает с JSON отчетами (pnpm exec vitest run --coverage) и HTML отчетами (pnpm run test:coverage:html)
- *
  * Использование: node scripts/coverage-file.js <filename>
  * Пример: node scripts/coverage-file.js fraudDetectionInterfaces.ts
  * Пример: node scripts/coverage-file.js PaymentProviderId.ts
  * Пример: node scripts/coverage-file.js SharedValidators.ts
  * Пример: node scripts/coverage-file.js core-contracts/src/errors/shared/ErrorCode.ts
  * Пример: node scripts/coverage-file.js CurrencyCode.ts
- *
  * Особенности:
  * - Автоматически определяет пакет по имени файла
  * - Поддерживает JSON отчеты от отдельных тестов (предпочтительно)

@@ -3,12 +3,10 @@
  * ============================================================================
  * 🛡️ CORE — Data Safety (Sanitization Modes)
  * ============================================================================
- *
  * Архитектурная роль:
  * - Режимы санитизации данных для защиты от PII и небезопасного контента
  * - Режимы упорядочены по строгости: NONE < BASIC < STRICT < PII_REDACTION
  * - Причина изменения: data safety, PII protection, content sanitization
- *
  * Принципы:
  * - ✅ SRP: разделение на BRANDED TYPE, REGISTRY, CONSTANTS, HELPERS, COMPARISON OPERATIONS
  * - ✅ Deterministic: immutable registry, pure functions для сравнения, O(1) операции
@@ -17,7 +15,6 @@
  * - ✅ Strict typing: branded types для SanitizationMode, union types для операций сравнения
  * - ✅ Microservice-ready: stateless, immutable registry, thread-safe после build()
  * - ✅ Security: fail-hard при неизвестных режимах, строгая валидация через registry
- *
  * ⚠️ PRODUCTION: Инициализируйте registry на старте, не на горячем пути.
  * Registry после build() immutable и thread-safe.
  */
@@ -277,6 +274,7 @@ function resolveModeIndices(
 /**
  * Общая функция сравнения режимов с кастомным компаратором
  * @template T - Тип результата сравнения
+ *
  * @example compareModes(BASIC, STRICT, (idxA, idxB) => idxA - idxB, registry)
  * @public
  */
@@ -293,6 +291,7 @@ export function compareModes<T>(
 /**
  * Проверяет, строже ли режим a чем режим b (a > b по индексу)
  * @note O(1), deterministic, no allocation
+ *
  * @example isStricter(STRICT, BASIC) === true
  * @public
  */
@@ -308,6 +307,7 @@ export function isStricter(
 /**
  * Возвращает более строгий режим из двух
  * @note O(1), deterministic, no allocation
+ *
  * @example stricterMode(BASIC, STRICT) === STRICT
  * @public
  */
@@ -323,6 +323,7 @@ export function stricterMode(
 /**
  * Возвращает менее строгий режим из двух
  * @note O(1), deterministic, no allocation
+ *
  * @example lenientMode(BASIC, STRICT) === BASIC
  * @public
  */

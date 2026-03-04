@@ -1,6 +1,5 @@
 /**
  * @file Unit тесты для packages/app/src/types/common.ts
- *
  * Тестирование enterprise-level типизации с 100% покрытием:
  * - Брендированные ID типы
  * - Discriminated unions (AsyncState, ApiResponse)

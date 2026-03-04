@@ -3,20 +3,16 @@
  * ============================================================================
  * 🟥 APP UI SKELETON — UI МИКРОСЕРВИС SKELETON
  * ============================================================================
- *
  * Единственная точка входа для Skeleton в приложении.
  * UI boundary между ui-core и бизнес-логикой.
- *
  * Ответственность:
  * - Policy (видимость / hidden)
  * - Telemetry (fire-and-forget)
  * - Feature flags (скрытие Skeleton)
  * - Контроль shimmer-анимации на App-уровне
- *
  * Не содержит:
  * - DOM-манипуляций кроме Core
  * - Таймеров или side-effects кроме telemetry
- *
  * Архитектурные решения:
  * - CoreSkeleton остаётся полностью presentational
  * - App слой управляет видимостью, анимацией и telemetry
@@ -158,10 +154,8 @@ type SkeletonPolicy = Readonly<{
  * - telemetry
  * - visibility state
  * - shimmer-анимации
- *
  * Ни один consumer не имеет права повторно интерпретировать props.visible
  * или feature flags.
- *
  * @param props AppSkeletonProps
  * @returns SkeletonPolicy
  */
@@ -328,16 +322,13 @@ SkeletonComponent.displayName = 'Skeleton';
 
 /**
  * UI-контракт Skeleton компонента.
- *
  * @contract
- *
  * Гарантируется:
  * - Детерминированный рендеринг без side effects (кроме telemetry)
  * - SSR-safe и concurrent rendering compatible
  * - Полная интеграция с централизованной telemetry системой
  * - Управление feature flags для скрытия компонента
  * - Контроль анимации на App-уровне
- *
  * Инварианты:
  * - Возвращает null при policy.isRendered = false
  * - Telemetry payload содержит корректные размеры и variant
@@ -345,7 +336,6 @@ SkeletonComponent.displayName = 'Skeleton';
  * - Анимация shimmer работает только при animated = true
  * - Telemetry отражает состояние policy, а не сырые props
  * - visible/hidden в payload являются производными только от policy
- *
  * Не допускается:
  * - Использование напрямую core Skeleton компонента
  * - Переопределение размеров через CSS вместо props

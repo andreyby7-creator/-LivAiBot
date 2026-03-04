@@ -3,12 +3,10 @@
  * ============================================================================
  * 🛡️ CORE — Data Safety (Taint Propagation)
  * ============================================================================
- *
  * Архитектурная роль:
  * - Отслеживание распространения taint через плагины и применение политик
  * - Plugins → Policies через rule-engine для контроля распространения taint
  * - Причина изменения: data safety, taint isolation, formal IFC (Information Flow Control)
- *
  * Принципы:
  * - ✅ SRP: разделение на TYPES, CONSTANTS, HELPERS, API (decision engine отделен от data transformation)
  * - ✅ Deterministic: одинаковые входы → одинаковые решения (monotonic), TOCTOU-safe через snapshot
@@ -18,7 +16,6 @@
  * - ✅ Microservice-ready: stateless, immutable registry, thread-safe после build()
  * - ✅ Security: Formal IFC (propagation = invariants_passed AND policies_allow), non-amplification, fail-closed
  * - ✅ Effect-based: core возвращает Outcome для composability, boundary может бросать исключения
- *
  * ⚠️ ВАЖНО:
  * - Formal IFC: propagation = invariants_passed AND policies_allow (не OR!)
  * - TOCTOU-safe: фиксированный snapshot правил для time-of-check semantics

@@ -3,7 +3,6 @@
  * ============================================================================
  * 🔐 FEATURE-AUTH — Register Metadata Enricher
  * ============================================================================
- *
  * Minimal, deterministic metadata builder for register-flow.
  * Keeps register independent from login-specific abstractions.
  */

@@ -3,18 +3,15 @@
  * ============================================================================
  * 🔴 APP UI DIALOG — UI МИКРОСЕРВИС МОДАЛЬНОГО ВЗАИМОДЕЙСТВИЯ
  * ============================================================================
- *
  * Роль:
  * - Единственная точка входа для Dialog во всём приложении
  * - UI boundary между ui-core/Dialog и бизнес-логикой
  * - Контроллер пользовательских модальных процессов
- *
  * Интеграции:
  * - telemetry ✓ (edge-based, fire-and-forget, lifecycle-aware)
  * - feature flags ✓ (hidden / disabled / variant / behavior)
  * - accessibility ✓ (aria-modal, role=dialog, escape/backdrop policy)
  * - performance ✓ (memo, useMemo, useCallback)
- *
  * Принципы:
  * - props → policy → handlers → view
  * - policy = единственный источник истины
@@ -338,22 +335,18 @@ function DialogComponent(props: AppDialogProps): JSX.Element | null {
 
 /**
  * UI-контракт Dialog компонента.
- *
  * @contract
- *
  * Гарантируется:
  * - Детерминированный рендеринг без side effects (кроме telemetry)
  * - SSR-safe и concurrent rendering compatible
  * - Полная интеграция с централизованной telemetry системой
  * - Управление feature flags для скрытия и отключения
  * - Корректная обработка controlled/uncontrolled состояния
- *
  * Инварианты:
  * - Всегда возвращает валидный JSX.Element или null
  * - Focus trap активируется при открытии
  * - Overlay блокирует взаимодействие с фоном
  * - Feature flags применяются корректно к visibility и disabled
- *
  * Не допускается:
  * - Использование напрямую core Dialog компонента
  * - Смешивание controlled и uncontrolled режимов
@@ -369,7 +362,6 @@ export const Dialog = Object.assign(memo(DialogComponent), {
  * ========================================================================== */
 /**
  * Этот файл — UI boundary и UI-микросервис управления модальными процессами.
- *
  * Dialog теперь:
  * - имеет один источник истины (policy)
  * - поддерживает controlled / uncontrolled режимы корректно
@@ -380,10 +372,8 @@ export const Dialog = Object.assign(memo(DialogComponent), {
  *   - security audit
  *   - platform overrides
  *   - продуктовой аналитике
- *
  * Любые изменения поведения:
  * - добавляются ТОЛЬКО здесь
- *
  * Feature-код не меняется.
  * ui-core не меняется.
  */

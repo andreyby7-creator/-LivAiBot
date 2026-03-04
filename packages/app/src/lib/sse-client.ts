@@ -1,20 +1,14 @@
 /**
  * @file packages/app/src/lib/sse-client.ts
  * SSE Streaming Runtime (Functional FSM)
- *
  * Production-ready SSE runtime как детерминированный конечный автомат.
- *
  * Принципы: Без классов/this, без мутации состояния, чистый reducer (без I/O/side effects).
- *
  * Архитектура:
  * - Reducer: (state, event) → {state, emittedEvents} - только вычисление состояния
  * - Effect-слой: emittedEvents + EventSource/таймеры/AbortController/telemetry (все side effects)
  * - Runtime: оркестрация reducer/effects, жизненный цикл FSM
- *
  * Гарантии: Детерминированный FSM, изолированные тестируемые side effects, контроль ресурсов.
- *
  * Поддержка: Полный SSE протокол + resumability + heartbeat + reconnect/jitter + подписки + декодер + telemetry.
- *
  * Это streaming runtime, не просто SSE клиент.
  */
 

@@ -3,24 +3,19 @@
  * =============================================================================
  * 📡 APP LIFECYCLE EVENTS
  * =============================================================================
- *
  * App-level lifecycle event hub.
- *
  * Назначение:
  * — Рассылка простых lifecycle-событий приложения
  * — Без payload
  * — Без domain-логики
  * — Без knowledge о typed / business events
- *
  * Используется для:
  * — bootstrap / teardown
  * — logout / reset
  * — background tasks
  * — scheduler
- *
  * ❗ НЕ использовать для domain / business событий
  * ❗ НЕ добавлять payload
- *
  * Архитектурные принципы:
  * — Minimal API
  * — Error isolation
@@ -33,12 +28,10 @@
  * const unsubscribe = appLifecycleEvents.on(AppLifecycleEvent.APP_BOOTSTRAP, () => {
  *   console.log('Bootstrap complete');
  * });
- *
  * // Одноразовая подписка
  * appLifecycleEvents.once(AppLifecycleEvent.USER_LOGOUT, () => {
  *   console.log('User logged out');
  * });
- *
  * // Отправка события
  * appLifecycleEvents.emit(AppLifecycleEvent.APP_BOOTSTRAP);
  */
@@ -52,7 +45,6 @@ import type { VoidFn } from '../types/common.js';
 
 /**
  * Все lifecycle-события приложения.
- *
  * ❗ Добавлять новые события ТОЛЬКО если:
  * — событие глобальное
  * — не относится к бизнес-домену
@@ -96,12 +88,10 @@ export type UnsubscribeFn = VoidFn;
 
 /**
  * Простой, устойчивый event hub для lifecycle-событий.
- *
  * Особенности:
  * — Error isolation (ошибка одного handler не ломает остальных)
  * — Deterministic unsubscribe
  * — Без payload → минимальный surface API
- *
  * ❗ Намеренно НЕ:
  * — async
  * — typed payload
@@ -113,7 +103,6 @@ class AppLifecycleEventBus {
 
   /**
    * Подписка на lifecycle-событие.
-   *
    * @param event lifecycle-событие
    * @param handler callback без аргументов
    * @returns функция отписки
@@ -139,7 +128,6 @@ class AppLifecycleEventBus {
 
   /**
    * Одноразовая подписка.
-   *
    * Handler будет вызван ровно один раз и автоматически удалён.
    */
   once(event: AppLifecycleEvent, handler: LifecycleHandler): UnsubscribeFn {
@@ -153,7 +141,6 @@ class AppLifecycleEventBus {
 
   /**
    * Эмиссия lifecycle-события.
-   *
    * ❗ Никогда не бросает исключения наружу.
    * Ошибки handler'ов изолированы.
    */
@@ -181,7 +168,6 @@ class AppLifecycleEventBus {
 
   /**
    * Полная очистка всех подписок.
-   *
    * Используется при teardown / тестировании.
    * Гарантированно очищает все вложенные Set объекты.
    */
@@ -202,7 +188,6 @@ class AppLifecycleEventBus {
 
 /**
  * Глобальный lifecycle event hub приложения.
- *
  * Singleton по архитектуре:
  * — единый источник lifecycle-событий
  * — доступен всем слоям приложения

@@ -85,7 +85,6 @@ function cleanupMocks() {
 
 /**
  * Запускает Effect с timeout для предотвращения hanging тестов
- *
  * @note Timeout реализован через Promise.race, что предотвращает hanging.
  * Runtime.runPromise внутри уже защищен timeout через Promise.race.
  */

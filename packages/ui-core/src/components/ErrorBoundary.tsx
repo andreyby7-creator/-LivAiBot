@@ -3,18 +3,15 @@
  * ============================================================================
  * 🔵 CORE UI ERROR BOUNDARY — PRESENTATIONAL PRIMITIVE
  * ============================================================================
- *
  * Роль:
  * - Базовый UI-компонент для перехвата и отображения ошибок React
  * - Полностью детерминированный fallback UI
  * - SSR-safe, Concurrent-safe
- *
  * Не содержит:
  * - Feature flags
  * - Telemetry
  * - Управление состоянием ошибок (только отображение)
  * - Логику восстановления (только отображение fallback)
- *
  * Управление:
  * - Обработкой ошибок и восстановлением управляет App-слой
  */
@@ -157,7 +154,6 @@ const ERROR_STACK_SUMMARY_STYLE: React.CSSProperties = {
  *   <ComponentThatMightThrow />
  * </CoreErrorBoundary>
  * ```
- *
  * @note
  * Компонент является классовым и не может быть обёрнут в React.memo.
  * Для оптимизации используйте мемоизацию дочерних компонентов.
@@ -292,28 +288,21 @@ export class CoreErrorBoundary extends Component<
 
 /**
  * CoreErrorBoundary — это чистый presentational primitive:
- *
  * - Перехватывает ошибки в дочерних компонентах
  * - Отображает fallback UI при ошибке
  * - Поддерживает кастомный fallback через props
  * - Вызывает callbacks для обработки ошибок в App слое
- *
  * Любая бизнес-логика:
  * - когда показывать fallback
  * - что делать при ошибке (telemetry, логирование)
  * - логика восстановления
- *
  * должна реализовываться на App-слое.
- *
  * Это гарантирует:
  * - переиспользуемость
  * - тестируемость
  * - архитектурную чистоту
- *
  * CSS Contract
- *
  * Компонент использует следующие CSS Variables для кастомизации через app theme:
- *
  * - --error-boundary-title-color: цвет заголовка ошибки (default: #DC2626)
  * - --error-boundary-text-color: цвет текста сообщения (default: #6B7280)
  * - --error-boundary-button-border-color: цвет границы кнопки сброса (default: #DC2626)
@@ -321,17 +310,12 @@ export class CoreErrorBoundary extends Component<
  * - --error-boundary-button-text-color: цвет текста кнопки сброса (default: #FFFFFF)
  * - --error-boundary-stack-color: цвет текста stack trace (default: #9CA3AF)
  * - --error-boundary-stack-bg: цвет фона stack trace (default: #F3F4F6)
- *
  * Это превращает компонент в UI protocol, не просто в компонент.
- *
  * Reset Button Contract
- *
  * В дефолтном fallback UI кнопка reset всегда рендерится с текстом из resetLabel
  * (по умолчанию 'Попробовать снова'). Кнопка имеет type='button' для предотвращения
  * submit в формах и aria-label для accessibility.
- *
  * Fallback Function Contract
- *
  * Если fallback передан как функция, то errorInfo всегда non-null (гарантируется компонентом).
  * App-слой не должен делать проверки на null/undefined для errorInfo в fallback функции.
  * Компонент автоматически предоставляет безопасное значение { componentStack: '' } если errorInfo отсутствует.

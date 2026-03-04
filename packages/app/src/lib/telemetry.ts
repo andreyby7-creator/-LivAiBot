@@ -3,7 +3,6 @@
  * ============================================================================
  * 🔹 TELEMETRY CORE — ЧИСТОЕ МИКРОСЕРВИСНОЕ ЯДРО ТЕЛЕМЕТРИИ
  * ============================================================================
- *
  * Архитектурная роль:
  * - Runtime-зависимый клиент телеметрии с side-effects
  * - Immutable конфигурация, но mutable внутреннее состояние (eventQueue, throttleMap)
@@ -12,7 +11,6 @@
  * - Extensible: расширяемость без изменения core-логики
  * - High-throughput: batching с event queue для масштабируемости
  * - Secure: throttle для защиты от DoS
- *
  * Принципы:
  * - SRP: разделение ответственности между domain и runtime слоями
  * - Deterministic: детерминированное поведение для одинаковых входов (где возможно)
@@ -21,12 +19,10 @@
  * - Strict typing: union types, branded types, без Record в domain
  * - Side-effects: async queue, background processing, setTimeout в retry
  * - Extensible: расширяемость через композицию без изменения core
- *
  * Использование:
  * - Создание клиента: `new TelemetryClient(config)`
  * - Создание sinks: `createConsoleSink()`, `createExternalSink()`
  * - Операции имеют side-effects: async queue, background processing, mutable state
- *
  * Timezone Behavior:
  * - Все timestamp в UTC (milliseconds since epoch)
  * - Используется Date.now() для получения UTC времени
@@ -89,16 +85,13 @@ export const levelPriority = Object.freeze(
 /**
  * Deep freeze для полной иммутабельности объектов.
  * Рекурсивно замораживает все вложенные объекты и массивы.
- *
  * Производительность:
  * - Для небольших объектов (< 100 ключей) - нет проблем
  * - Для больших объектов (тысячи ключей/вложенных объектов) - может быть медленно
  * - Используйте enableDeepFreeze: false для high-throughput систем с большими metadata
- *
  * Защита от циклических ссылок:
  * - Использует WeakSet для отслеживания уже обработанных объектов
  * - Предотвращает бесконечную рекурсию при циклических ссылках
- *
  * @param obj - Объект для заморозки
  * @param visited - WeakSet для отслеживания уже обработанных объектов (внутренний параметр)
  * @returns Замороженный объект (readonly на всех уровнях)
@@ -134,7 +127,6 @@ function deepFreeze<T>(obj: T, visited = new WeakSet<object>()): Readonly<T> {
  * Для enterprise-среды используйте:
  * - allow-list schema через typed metadata contracts
  * - Явную валидацию через sanitizeMetadata в config
- *
  * Regex-подход оставлен только для обратной совместимости и должен быть отключен
  * через enableRegexPIIDetection: false в production.
  */
@@ -165,13 +157,11 @@ function isBase64Token(value: string): boolean {
 /**
  * Deep validation и PII redaction для metadata.
  * Рекурсивно проверяет и скрывает чувствительные данные.
- *
  * ВАЖНО: Regex-based PII detection имеет false negatives!
  * Для enterprise-среды рекомендуется:
  * - Использовать allow-list schema через typed metadata contracts
  * - Передавать кастомный sanitizeMetadata в config
  * - Отключить enableRegexPIIDetection в production
- *
  * @param metadata - Метаданные для валидации
  * @param redactValue - Значение для замены PII (по умолчанию '[REDACTED]')
  * @param enableValueScan - Включить сканирование значений на PII (по умолчанию false)
@@ -290,7 +280,6 @@ function deepValidateAndRedactPII<T>(
 
 /**
  * Вычисляет задержку для exponential backoff.
- *
  * @param attempt - Номер попытки (начиная с 1)
  * @param baseDelayMs - Базовая задержка в миллисекундах
  * @param maxDelayMs - Максимальная задержка в миллисекундах
@@ -309,7 +298,6 @@ function calculateBackoffDelay(
 
 /**
  * Создает ключ для throttle на основе сообщения и уровня.
- *
  * @param level - Уровень события
  * @param message - Сообщение события
  * @returns Ключ для throttle map
@@ -325,10 +313,8 @@ function createThrottleKey(level: TelemetryLevel, message: string): string {
 
 /**
  * Type guard для проверки валидности sink.
- *
  * Runtime validation для user-friendly ошибок при неправильной конфигурации.
  * Выбрасывает ошибку сразу при создании sink, а не во время выполнения.
- *
  * @throws Error если sink невалиден
  */
 export function isValidTelemetrySink<
@@ -349,9 +335,7 @@ export function isValidTelemetrySink<
 
 /**
  * Enterprise-ready клиент телеметрии.
- *
  * См. описание в заголовке файла для общей архитектуры и принципов.
- *
  * Специфичные детали реализации:
  * - Immutable config: все поля конфигурации readonly после создания
  * - Mutable state: eventQueue (очередь событий), throttleMap (состояние throttle)
@@ -522,7 +506,6 @@ export class TelemetryClient<
   /**
    * Добавляет событие в очередь и запускает обработку если нужно.
    * Поддерживает backpressure через maxQueueSize и drop-policy.
-   *
    * @param event - Событие для добавления в очередь
    */
   private sendToSinksBatched(event: TelemetryEvent<TMetadata>): void {
@@ -650,7 +633,6 @@ export class TelemetryClient<
   /**
    * Проверяет, нужно ли throttle событие.
    * Защита от DoS через логирование повторяющихся ошибок.
-   *
    * @param level - Уровень события
    * @param message - Сообщение события
    * @returns true если событие должно быть проигнорировано (throttled)
@@ -748,10 +730,8 @@ export class TelemetryClient<
 
   /**
    * Начинает отслеживание операции (span start).
-   *
    * Для enterprise-grade tracing рекомендуется передавать spanId для связывания
    * startSpan и endSpan в distributed системах.
-   *
    * Timezone:
    * - Timestamp в UTC для корректной работы distributed tracing
    * - Timezone из config используется для агрегации/отображения
@@ -776,10 +756,8 @@ export class TelemetryClient<
 
   /**
    * Завершает отслеживание операции (span end).
-   *
    * Для enterprise-grade tracing рекомендуется передавать тот же spanId,
    * что был использован в startSpan, для связывания событий.
-   *
    * Timezone:
    * - Timestamp в UTC для корректной работы distributed tracing
    * - Timezone из config используется для агрегации/отображения
@@ -805,7 +783,6 @@ export class TelemetryClient<
   /**
    * Проверяет необходимость отправки события на основе уровня.
    * Использует immutable map приоритетов для O(1) сравнения.
-   *
    * @param level - Уровень события для проверки
    * @returns true если событие должно быть отправлено
    */
@@ -838,14 +815,12 @@ export type ConsoleSinkFormatter = (event: TelemetryEvent) => readonly [string, 
 
 /**
  * Создает console sink для вывода в консоль.
- *
  * Factory функция:
  * - Возвращает функцию-sink без выполнения I/O при создании
  * - Side-effect (console.log/warn/error) инкапсулирован внутри sink
  * - Детерминированное создание sink'а
  * - Использует методы из глобального console (позволяет мокам работать в тестах)
  * - Extensible: поддержка кастомного formatter
- *
  * Использование:
  * - Только в bootstrap коде приложения
  * - Для разработки и отладки
@@ -890,14 +865,12 @@ export type ExternalSdk<TMetadata = Readonly<Record<string, string | number | bo
 
 /**
  * Создает sink для внешнего SDK (PostHog, Sentry, Datadog и т.д.).
- *
  * Factory функция с обработкой ошибок:
  * - Возвращает функцию-sink без выполнения I/O при создании
  * - Обработка ошибок SDK инкапсулирована внутри sink
  * - Runtime-aware: использует setTimeout для exponential backoff в retry
  * - Type-safe: generic TMetadata для строгой типизации
  * - Retry-ready: опциональный retry/backoff для критичных SDK
- *
  * @throws Error если SDK не имеет метода capture
  */
 export const createExternalSink = <
@@ -953,7 +926,6 @@ export const createExternalSink = <
 
 /**
  * Создает безопасный sink для внешнего SDK (не выбрасывает ошибки).
- *
  * Production-safe версия createExternalSink:
  * - Не выбрасывает ошибки при сбоях SDK
  * - Ошибки логируются через onError callback (если задан)
@@ -1032,15 +1004,12 @@ const GLOBAL_CLIENT_KEY = '__telemetryClient';
 
 /**
  * Получает клиент телеметрии из globalThis для отладки.
- *
  * ВАЖНО: Только для dev режима!
  * Не использовать в production коде.
- *
  * Использование:
  * - Только в dev режиме
  * - Для отладки и тестирования
  * - Не для production кода
- *
  * @internal-dev
  */
 export const getGlobalClientForDebug = (): TelemetryClient | undefined => {

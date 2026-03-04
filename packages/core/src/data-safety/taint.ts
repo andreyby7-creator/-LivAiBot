@@ -3,12 +3,10 @@
  * ============================================================================
  * 🛡️ CORE — Data Safety (Taint Tracking)
  * ============================================================================
- *
  * Архитектурная роль:
  * - Система отслеживания "загрязнения" данных для boundary guards и taint isolation
  * - Taint = метаданные о небезопасности данных, распространяющиеся через pipeline
  * - Причина изменения: data safety, boundary guards, taint isolation
- *
  * Принципы:
  * - ✅ SRP: разделение на BRANDED TYPE, TYPES, CONSTANTS, HELPERS, API
  * - ✅ Deterministic: immutable taint metadata, pure functions для проверки и распространения
@@ -17,7 +15,6 @@
  * - ✅ Strict typing: branded types для TaintSource, union types для TaintMetadata
  * - ✅ Microservice-ready: stateless, immutable metadata, thread-safe registry
  * - ✅ Security: immutable taint metadata (запрещена мутация после создания), независимость от TrustLevel
- *
  * ⚠️ ВАЖНО:
  * - ❌ ЗАПРЕЩЕНО: мутация taint metadata после создания
  * - ✅ РАЗРЕШЕНО: isTainted(), stripTaint(), propagateTaint(), assertTrusted()
@@ -131,7 +128,6 @@ export function createTaintSourceRegistry(): TaintSourceRegistryBuilder { // Bui
 
 /**
  * Проверяет дубликаты источника taint
- *
  * @internal
  */
 function validateSource(
@@ -158,7 +154,6 @@ function validateSource(
 
 /**
  * Создает TaintSourceRegistry из состояния
- *
  * @internal
  */
 function buildRegistryFromState(
@@ -197,7 +192,6 @@ function buildRegistryFromState(
 
 /**
  * Создает Builder из состояния
- *
  * @internal
  */
 function createBuilderFromState(
@@ -453,6 +447,7 @@ export function assertTrusted<T>(
  * Проверяет, что значение в slot соответствует requiredTrustLevel
  * @note Делегирует assertTrusted для проверки значения в slot
  * @throws {Error} Если значение tainted или trustLevel недостаточен
+ *
  * @example const slot: Slot<string> = { value: 'data' }; assertTrustedSlot(slot, trustLevels.TRUSTED); // После этого TypeScript знает, что slot.value не tainted
  * @public
  */
@@ -468,6 +463,7 @@ export function assertTrustedSlot<T>(
 /**
  * Удаляет taint из значения в slot
  * @note Делегирует stripTaint для очистки значения в slot
+ *
  * @example const taintedSlot: Slot<Tainted<string>> = { value: addTaint('data', taintSources.EXTERNAL) }; const cleanSlot = stripTaintSlot(taintedSlot); // cleanSlot.value теперь без taint
  * @public
  */
@@ -485,6 +481,7 @@ export function stripTaintSlot<T>(
 /**
  * Распространяет taint от source slot к target slot
  * @note Делегирует propagateTaint для распространения taint между значениями в slot
+ *
  * @example const sourceSlot: Slot<Tainted<string>> = { value: addTaint('data', taintSources.EXTERNAL) }; const targetSlot: Slot<string> = { value: 'result' }; const resultSlot = propagateTaintSlot(sourceSlot, targetSlot); // resultSlot.value теперь tainted, если source был tainted
  * @public
  */

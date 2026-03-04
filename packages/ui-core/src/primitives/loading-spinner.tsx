@@ -3,18 +3,15 @@
  * ============================================================================
  * 🔵 CORE UI LOADING SPINNER — PRESENTATIONAL PRIMITIVE
  * ============================================================================
- *
  * Роль:
  * - Базовый UI-компонент для отображения индикатора загрузки
  * - Полностью детерминированный и side-effect free
  * - SSR-safe, Concurrent-safe
- *
  * Не содержит:
  * - Feature flags
  * - Telemetry
  * - Управление состоянием загрузки
  * - Таймеров или бизнес-логики
- *
  * Управление:
  * - Видимостью и параметрами управляет App-слой
  */
@@ -298,14 +295,12 @@ CoreLoadingSpinnerComponent.displayName = 'CoreLoadingSpinner';
 
 /**
  * Memoized CoreLoadingSpinner.
- *
  * Гарантии:
  * - Полностью детерминированный
  * - Side-effect free
  * - SSR и concurrent safe
  * - Поддержка ref forwarding
  * - Подходит как building-block для App-слоя
- *
  * @note CSS анимации должны быть определены в глобальных стилях приложения.
  * Для ui-core библиотеки необходимо подключить CSS с keyframes:
  * ```css
@@ -313,18 +308,15 @@ CoreLoadingSpinnerComponent.displayName = 'CoreLoadingSpinner';
  *   from { transform: rotate(0deg); }
  *   to { transform: rotate(360deg); }
  * }
- *
  * @keyframes spinner-pulse {
  *   0%, 100% { opacity: 1; }
  *   50% { opacity: 0.3; }
  * }
- *
  * @keyframes spinner-pulse-scale {
  *   0%, 100% { transform: scale(1); opacity: 0.6; }
  *   50% { transform: scale(1.1); opacity: 1; }
  * }
  * ```
- *
  * @note App-слой может добавлять BEM-модификаторы через className для кастомизации стилей.
  */
 export const LoadingSpinner = memo(CoreLoadingSpinnerComponent);
@@ -335,15 +327,12 @@ export const LoadingSpinner = memo(CoreLoadingSpinnerComponent);
 
 /**
  * CoreLoadingSpinner — чистый presentational primitive:
- *
  * - Не управляет состоянием загрузки
  * - Не содержит feature flags или telemetry
  * - Все параметры передаются через props
  * - Поддерживает ref forwarding
- *
  * Любая бизнес-логика (когда показывать, telemetry, feature flags)
  * реализуется в App слое.
- *
  * Это гарантирует:
  * - переиспользуемость
  * - тестируемость

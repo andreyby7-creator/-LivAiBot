@@ -1,6 +1,5 @@
 /**
  * @file Unit тесты для packages/app/src/background/scheduler.ts
- *
  * Enterprise-grade тестирование планировщика задач:
  * - Создание и lifecycle management
  * - Task scheduling (одноразовые и periodic задачи)

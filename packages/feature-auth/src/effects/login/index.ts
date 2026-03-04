@@ -1,6 +1,5 @@
 /**
  * @file packages/feature-auth/src/effects/login — Login Effects
- *
  * Публичный API пакета login effects.
  * Экспортирует все публичные эффекты для login-flow.
  */
@@ -11,7 +10,6 @@
 
 /**
  * Login Effect DI Types: публичный DI-контракт для login-effect.
- *
  * @public
  */
 export type {
@@ -37,7 +35,6 @@ export type {
 
 /**
  * Login Metadata Enricher: обогащение метаданных для входа.
- *
  * @public
  */
 export {
@@ -57,7 +54,6 @@ export {
 
 /**
  * Validation: валидация запросов входа.
- *
  * @public
  */
 export { isValidLoginRequest } from './validation.js';
@@ -68,7 +64,6 @@ export { isValidLoginRequest } from './validation.js';
 
 /**
  * Login API Mapper: маппинг LoginRequest/LoginResponseDto ↔ domain типов.
- *
  * @public
  */
 export { mapLoginRequestToApiPayload, mapLoginResponseToDomain } from './login-api.mapper.js';
@@ -79,7 +74,6 @@ export { mapLoginRequestToApiPayload, mapLoginResponseToDomain } from './login-a
 
 /**
  * Login Store Updater: единая точка обновления auth/session/security состояния после login-flow.
- *
  * @public
  */
 export { applyBlockedState, updateLoginState } from './login-store-updater.js';
@@ -90,7 +84,6 @@ export { applyBlockedState, updateLoginState } from './login-store-updater.js';
 
 /**
  * Login Audit Mapper: маппинг результата login-effect в audit события.
- *
  * @public
  */
 export {

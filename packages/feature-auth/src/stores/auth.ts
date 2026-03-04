@@ -3,15 +3,12 @@
  * ============================================================================
  * 🧠 FEATURE-AUTH STORE — ЧИСТОЕ СОСТОЯНИЕ АУТЕНТИФИКАЦИИ (ZUSTAND)
  * ============================================================================
- *
  * Архитектурная роль:
  * - Единственный источник правды для состояния аутентификации в feature-auth
  * - Чистое состояние без side-effects (effects вынесены в effects/)
  * - Микросервисно-нейтральный, vendor-agnostic
  * - SSR-safe, устойчивый к масштабированию
- *
  * Принцип: store = state + sync transitions, без domain orchestration/effects
- *
  * Гарантии:
  * - ❌ Нет async / side-effects
  * - ❌ Нет бизнес-логики
@@ -22,7 +19,6 @@
  * - ✅ Versioning для миграций
  * - ✅ Persistence с безопасным merge и семантической валидацией
  * - ✅ Store хранит только: sessionId, expiresAt, status (без токенов)
- *
  * Ключевые возможности:
  * - 🔒 Atomic transactions: actions.transaction() для атомарных обновлений (защита от race conditions)
  * - 🎯 Invariant rule engine: декларативная система правил с приоритетами (масштабируемо)
@@ -31,13 +27,11 @@
  * - 🔌 Extensible: поддержка расширений через AuthStoreExtensions (SSO, device trust и т.д.)
  * - 💾 Safe persistence: валидация persisted state перед merge, Set ↔ array сериализация
  * - 🛡️ Deep clone: structuredClone в transaction для runtime безопасности
- *
  * Использование:
  * - Effects (login.ts, logout.ts, refresh.ts) обновляют store через actions
  * - Hooks (useAuth.ts) инкапсулируют store + effects для React
  * - UI компоненты используют hooks, не store напрямую
  * - Store создаётся через factory (createAuthStore) для тестирования и SSR
- *
  * @warning Store = чистое состояние + синхронные transitions. НЕ добавляйте side-effects,
  * бизнес-логику, async операции или доменные модели. См. @contract в конце файла.
  */

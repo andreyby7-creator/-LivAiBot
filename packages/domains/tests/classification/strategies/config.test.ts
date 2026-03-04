@@ -1,7 +1,6 @@
 /**
  * @file Unit тесты для Classification Rules Configuration
  * Полное покрытие всех функций, веток исполнения и edge cases (100%)
- *
  * @note Покрытие: 100% (включая все ветки условий, edge cases, внутренние модули)
  */
 import { beforeEach, describe, expect, it, vi } from 'vitest';

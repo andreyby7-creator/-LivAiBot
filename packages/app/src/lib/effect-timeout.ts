@@ -3,23 +3,19 @@
  * ============================================================================
  * ⏱️ EFFECT TIMEOUT — ДЕТЕРМИНИСТИЧЕСКИЙ TIMEOUT ДЛЯ ЭФФЕКТОВ
  * ============================================================================
- *
  * Минимальный, чистый boundary-модуль для применения deterministic timeout
  * к Effect с корректной Abort-propagation.
- *
  * Архитектурная роль:
  * - Применяет timeout к Effect
  * - Бросает TimeoutError при превышении
  * - Корректно propagates AbortSignal
  * - Расширяет EffectContext метаданными (timeoutMs, source)
- *
  * Принципы:
  * - Zero business logic
  * - Zero telemetry (telemetry → observability layer)
  * - Zero orchestration (orchestration → orchestrator)
  * - Безопасная отмена без утечек ресурсов
  * - Детерминированное поведение
- *
  * ⚠️ Важно: Расширение метаданными EffectContext (timeoutMs, source)
  * делается в `effect-timeout.ts`, НЕ в `effect-utils.ts` — чтобы сохранить
  * domain-agnostic принцип и соблюсти SRP.
@@ -135,13 +131,11 @@ export function validateTimeoutMs(
 
 /**
  * Оборачивает Effect в deterministic timeout с корректной Abort-propagation.
- *
  * Обеспечивает:
  * - 🔌 AbortController для безопасной отмены
  * - 🛡️ Безопасный cancel без утечек ресурсов
  * - ⏱️ Deterministic timeout — предсказуемое поведение
  * - 🔒 Abort propagation — корректная передача AbortSignal
- *
  * @param effect - Effect для оборачивания в timeout
  * @param options - Конфигурация timeout (timeoutMs, tag)
  * @returns Effect с применённым timeout
@@ -218,7 +212,6 @@ function combineAbortSignals(signals: readonly AbortSignal[]): AbortSignal {
 /**
  * Создаёт расширенный EffectContext с метаданными timeout.
  * Расширение метаданными делается в effect-timeout.ts для соблюдения SRP.
- *
  * @param baseContext - Базовый контекст эффекта (опционально)
  * @param timeoutMs - Timeout в миллисекундах, применённый к эффекту
  * @param source - Источник timeout для трассировки и идентификации timeout в логах и телеметрии (опционально)

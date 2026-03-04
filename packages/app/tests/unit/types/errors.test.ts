@@ -1,6 +1,5 @@
 /**
  * @file Unit тесты для packages/app/src/types/errors.ts
- *
  * Тестирование enterprise-level типизации ошибок с 100% покрытием:
  * - Discriminated unions для всех типов ошибок
  * - Error handling с distributed tracing

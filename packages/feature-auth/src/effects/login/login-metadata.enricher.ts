@@ -3,12 +3,10 @@
  * ============================================================================
  * 🔐 FEATURE-AUTH — Login Metadata Enricher (Context Enricher)
  * ============================================================================
- *
  * Архитектурная роль:
  * - Реализует ContextEnricher из @livai/core для обогащения контекста метаданными логина
  * - Использует core input-boundary для dependency-driven execution
  * - Domain-pure, deterministic, microservice-ready
- *
  * Принципы:
  * - ✅ Чистые функции — без side-effects
  * - ✅ Deterministic — одинаковый вход → одинаковый выход (traceId обязателен)
@@ -390,6 +388,7 @@ function processBuilderResult(
  * Создает типизированные метаданные логина из контекста
  * @note Одинаковый контекст → одинаковые метаданные (traceId обязателен)
  * @note identifierHash через injected hasher (HMAC-SHA256 в effect layer)
+ *
  * @example
  * const metadata = buildLoginMetadata(
  *   { ...context, traceId: 'required-trace-id' },
@@ -434,6 +433,7 @@ export function buildLoginMetadata(
 
 /**
  * Создает ContextEnricher для обогащения контекста метаданными логина
+ *
  * @example
  * const enricher = createLoginMetadataEnricher({
  *   identifierHasher: (v) => hmacSha256(v, secret)

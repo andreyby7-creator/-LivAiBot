@@ -3,13 +3,11 @@
  * ============================================================================
  * 🔐 FEATURE-AUTH — ApiClient Adapter (Promise → Effect) [Shared]
  * ============================================================================
- *
  * Архитектурная роль:
  * - Адаптер для преобразования Promise-based HTTP-клиента в Effect-based AuthApiClientPort
  * - Обеспечивает единую async-модель в orchestrator (стандартизация на Effect)
  * - Изолирует Promise-based API от Effect-based orchestrator
  * - Используется во всех auth-эффектах (login/logout/refresh/register)
- *
  * Принципы:
  * - ✅ Adapter pattern: оборачивает Promise в Effect без изменения логики
  * - ✅ AbortSignal propagation: корректная передача signal из Effect в Promise
@@ -47,12 +45,10 @@ export type LegacyApiClient = Readonly<{
 
 /**
  * Создаёт AuthApiClientPort из Promise-based HTTP-клиента.
- *
  * Оборачивает Promise-методы в Effect для единой async-модели:
  * - AbortSignal передаётся из Effect-параметра в Promise options
  * - Ошибки Promise пробрасываются в Effect
  * - Готовность к композиции через orchestrator/withTimeout
- *
  * @param legacyClient - Promise-based HTTP-клиент для адаптации
  * @returns Effect-based AuthApiClientPort для использования в orchestrator
  *

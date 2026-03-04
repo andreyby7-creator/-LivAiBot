@@ -1,16 +1,13 @@
 /**
  * @file packages/app/src/routes/navigation.ts
- *
  * =============================================================================
  * 🧭 NAVIGATION — КОНФИГУРАЦИЯ НАВИГАЦИИ (SIDEBAR / HEADER / MOBILE)
  * =============================================================================
- *
  * Финальная, устойчивая и дальновидная версия навигационного контракта.
  * Является единым источником истины для:
  * - UI (Sidebar, Header, Mobile navigation)
  * - API (NavigationCapabilities /me/navigation)
  * - SSR / Edge / Workers
- *
  * Архитектурные принципы:
  * - 🧱 Stable contract (Core ↔ UI ↔ API)
  * - 🚫 Нет side-effects — только декларация и чистые функции

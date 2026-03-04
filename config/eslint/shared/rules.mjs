@@ -1,13 +1,10 @@
 /**
  * @file Общие правила и утилиты ESLint для всех режимов LivAi
- *
  * Содержит унифицированные функции преобразования уровней строгости
  * и общие правила для DEV/CANARY режимов.
- *
  * 🏗️ СТРАТЕГИЯ МАСШТАБИРОВАНИЯ:
  * - Domain-specific паттерны определяются в соответствующих domain конфигурациях
  * - Infrastructure: полностью исключена (нет кода приложения)
- *
  * 📝 Масштабирование:
  * - Новые пакеты: добавлять паттерны в соответствующие domain файлы
  * - Feature пакеты: используют паттерн feature-* для автоматического захвата
@@ -106,7 +103,6 @@ const IS_PRODUCTION = process.env.NODE_ENV === 'production';
 /**
  * Severity-aware правила - правила, которые требуют разных уровней строгости
  * в зависимости от режима и контекста (dev/test/production)
- *
  * 📌 СТРУКТУРА:
  *   ruleName: {
  *     dev: 'warn' | 'error',    // Для комфортной разработки
@@ -196,13 +192,11 @@ export const CONFIG_FILES_RULES = {
 /**
  * Статические правила для DEV режима (не зависят от режима)
  * Эти правила всегда имеют фиксированный уровень строгости
- *
  * 📌 ЛОГИКА ВЫБОРА:
  * - Стилистические правила (object-shorthand, prefer-const)
  * - Современные паттерны (@typescript-eslint/consistent-type-imports)
  * - Правила, которые не имеют mode-aware поведения
  * - Правила, конфликтующие с Effect-TS паттернами
- *
  * ⚠️ ВАЖНО: Mode-aware правила должны быть в QUALITY_WITH_SEVERITY, а не здесь!
  * (например, '@typescript-eslint/no-explicit-any' теперь там)
  */
@@ -232,12 +226,10 @@ export const DEV_EXTRA_RULES = {
 
 /**
  * Дополнительные правила для CANARY режима (максимальная строгость)
- *
  * В CANARY режиме все базовые правила уже преобразуются в 'error',
  * поэтому здесь только дополнительные правила, специфичные для canary.
  * Type-aware правила (FULL_TYPE_AWARE_RULES) применяются отдельно
  * в canary.config.mjs для файлов с type-aware настройками.
- *
  * 📌 ЛОГИКА:
  *   - CANARY = максимальная строгость, все правила = 'error'
  *   - Дополнительные правила качества сверх BASE_QUALITY_RULES
@@ -267,10 +259,8 @@ export const CANARY_EXTRA_RULES = {
 
 /**
  * Shallow клонирование опций ESLint правил
- *
  * ESLint опции обычно плоские (массивы и объекты с примитивными значениями),
  * поэтому shallow clone достаточно для предотвращения мутации.
- *
  * @param {any[]} options - массив опций ESLint правила
  * @returns {any[]} shallow склонированные опции
  */
@@ -286,15 +276,12 @@ export function cloneOptionsShallow(options) {
 
 /**
  * Универсальная функция применения уровней строгости к правилам ESLint
- *
  * ЧИСТАЯ ФУНКЦИЯ: делает только трансформацию severity, без mode-aware логики
- *
  * @param {Record<string, string | [string, ...any]>} rules - объект с правилами ESLint
  *   Правила могут быть строкой ('error', 'warn', 'off') или массивом ['error', options...]
  * @param {Record<string, 'off' | 'warn' | 'error'>} [severityMap={}] - маппинг ruleName -> severity
  *   Переопределяет уровень строгости для конкретных правил
  * @param {'off' | 'warn' | 'error'} [defaultSeverity='warn'] - уровень по умолчанию для правил не в severityMap
- *
  * @returns {Record<string, string | [string, ...any]>} преобразованные правила с примененными уровнями строгости
  */
 export function applySeverity(rules, severityMap = {}, defaultSeverity = 'warn') {
@@ -354,7 +341,6 @@ export function applySeverity(rules, severityMap = {}, defaultSeverity = 'warn')
 
 /**
  * Применяет severity-aware правила к конфигурации
- *
  * @param {Record<string, { dev: string, canary: string, test: string }>} qualityWithSeverity - severity-aware правила
  * @param {'dev'|'canary'|'test'} mode - режим для определения severity
  * @returns {Record<string, string>} правила с примененными уровнями строгости для режима
@@ -371,7 +357,6 @@ export function applySeverityAwareRules(qualityWithSeverity, mode) {
 
 /**
  * Унифицированный массив игнорируемых файлов
- *
  * ⚠️ ВАЖНО:
  * COMMON_IGNORES содержит ТОЛЬКО технические и сгенерированные файлы.
  * Бизнес-код никогда не должен сюда попадать.

@@ -3,16 +3,13 @@
  * ============================================================================
  * 🎯 DOMAINS — Classification Labels (Domain-Specific Labels)
  * ============================================================================
- *
  * Domain-specific labels для classification domain.
  * Использует generic Label<T> из @livai/core/domain-kit для type safety.
- *
  * Архитектура: библиотека из 3 модулей в одном файле
  * - ClassificationLabel: union type допустимых значений (single source of truth)
  * - classificationLabel: value object модуль (создание, валидация)
  * - classificationLabelUtils: pure label helpers (без business logic)
  * - classificationPolicy: business logic через declarative policy map (rule-engine scalable)
- *
  * Принципы:
  * - ✅ SRP: модульная структура (value object / pure utilities / policy)
  * - ✅ Deterministic: одинаковые входы → одинаковые результаты
@@ -90,6 +87,7 @@ const CLASSIFICATION_LABEL_VALIDATOR: LabelValidator<ClassificationLabelValue> =
 export const classificationLabel = {
   /**
    * Создает classification label из строки с валидацией (автоматически нормализует через trim)
+   *
    * @example
    * ```ts
    * const result = classificationLabel.create('SAFE');
@@ -105,6 +103,7 @@ export const classificationLabel = {
 
   /**
    * Десериализует classification label из строки с валидацией (для JSON/API responses)
+   *
    * @example
    * ```ts
    * const result = classificationLabel.deserialize(jsonData.label);
@@ -122,6 +121,7 @@ export const classificationLabel = {
 
   /**
    * Type guard для проверки, является ли значение classification label (runtime валидация)
+   *
    * @example
    * ```ts
    * if (classificationLabel.isLabel(unknownValue)) { const lbl = unknownValue; }
@@ -134,6 +134,7 @@ export const classificationLabel = {
   /**
    * Fail-fast проверка валидности classification label (undefined если валиден, иначе LabelFailureReason)
    * @throws Error если throwOnInvalid === true и валидация не прошла
+   *
    * @example
    * ```ts
    * const error = classificationLabel.assertValid(lbl);
@@ -165,7 +166,6 @@ function getValue(lbl: ClassificationLabel): ClassificationLabelValue {
 /**
  * Утилиты для работы с classification labels (pure helpers)
  * Только операции над самими labels, без business logic
- *
  * Гибридный подход:
  * - Семантические методы (isSafe, isSuspicious, etc.) для частых случаев и читаемости
  * - Универсальный hasValue() для динамических проверок и масштабируемости
@@ -200,6 +200,7 @@ export const classificationLabelUtils = {
   /**
    * Универсальная проверка значения label (type-safe, масштабируется автоматически)
    * Используется для динамических проверок или когда семантических методов недостаточно
+   *
    * @example
    * ```ts
    * const value = getLabelFromAPI();
@@ -259,6 +260,7 @@ function getPolicy(lbl: ClassificationLabel): Readonly<{
 export const classificationPolicy = {
   /**
    * Проверяет, требует ли label дополнительной проверки (declarative policy map, O(1) lookup)
+   *
    * @example
    * ```ts
    * if (classificationPolicy.requiresReview(lbl)) { }

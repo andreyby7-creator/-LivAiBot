@@ -3,21 +3,18 @@
  * ============================================================================
  * 🛡️ API SCHEMA GUARD — ЗАЩИТА И ВАЛИДАЦИЯ API КОНТРАКТОВ
  * ============================================================================
- *
  * Архитектурная роль:
  * - Защита от malformed данных на границе API
  * - Строгая типизация входящих/исходящих контрактов
  * - Автоматическое преобразование ошибок валидации
  * - Микросервисная изоляция валидации по сервисам
  * - Интеграция с телеметрией и observability
- *
  * Свойства:
  * - Effect-first архитектура для надежной обработки ошибок
  * - Композиционные валидаторы для сложных схем
  * - Детерминированные трансформации данных
  * - Поддержка distributed tracing и request context
  * - Graceful degradation при ошибках валидации
- *
  * Принципы:
  * - Zero runtime overhead для валидных данных
  * - Максимальная безопасность и предсказуемость
@@ -148,7 +145,6 @@ export type ApiResponseValidator<T = unknown> = Validator<T>;
 /**
  * Конфигурация валидации для конкретного API endpoint'а.
  * Позволяет гибко настраивать валидацию для разных микросервисов.
- *
  * Strict mode:
  * - Если `strictMode: true`, валидаторы обязательны для request и response
  * - Если `strictMode` не указан, используется глобальная настройка DEFAULT_STRICT_MODE
@@ -583,7 +579,6 @@ function createApiValidationError(
  * Проверяет, что в strict mode валидаторы присутствуют.
  * Используется для enforce обязательной валидации на уровне инфраструктуры.
  * Вызывается автоматически при создании конфигурации через createRestApiSchema.
- *
  * @param config - Конфигурация валидации API
  * @throws Error если в strict mode отсутствуют обязательные валидаторы
  */
@@ -624,7 +619,6 @@ export function getDefaultStrictMode(): boolean {
 /**
  * Создает валидатор запроса из Zod схемы.
  * Интегрируется с schema-validated-effect для обязательной Zod валидации.
- *
  * @param schema - Zod schema для валидации запроса
  * @returns ApiRequestValidator, совместимый с api-schema-guard
  *
@@ -632,12 +626,10 @@ export function getDefaultStrictMode(): boolean {
  * ```ts
  * import { z } from 'zod';
  * import { createZodRequestValidator } from './api-schema-guard';
- *
  * const LoginSchema = z.object({
  *   username: z.string().min(1),
  *   password: z.string().min(8),
  * });
- *
  * const validator = createZodRequestValidator(LoginSchema);
  * // Используется в createRestApiSchema({ requestValidator: validator })
  * ```
@@ -678,7 +670,6 @@ export function createZodRequestValidator<T>(
 /**
  * Создает валидатор ответа из Zod схемы.
  * Интегрируется с schema-validated-effect для обязательной Zod валидации.
- *
  * @param schema - Zod schema для валидации ответа
  * @returns ApiResponseValidator, совместимый с api-schema-guard
  *
@@ -686,12 +677,10 @@ export function createZodRequestValidator<T>(
  * ```ts
  * import { z } from 'zod';
  * import { createZodResponseValidator } from './api-schema-guard';
- *
  * const UserSchema = z.object({
  *   id: z.string(),
  *   email: z.string().email(),
  * });
- *
  * const validator = createZodResponseValidator(UserSchema);
  * // Используется в createRestApiSchema({ responseValidator: validator })
  * ```
@@ -736,10 +725,8 @@ export function createZodResponseValidator<T>(
 /**
  * Создает стандартную конфигурацию валидации для REST API.
  * Упрощает настройку типичных сценариев.
- *
  * В strict mode автоматически проверяет наличие валидаторов.
  * Если strictMode не указан, используется глобальная настройка DEFAULT_STRICT_MODE.
- *
  * @param service - Имя микросервиса
  * @param method - HTTP метод
  * @param endpoint - Путь endpoint'а

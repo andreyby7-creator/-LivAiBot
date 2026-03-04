@@ -3,21 +3,17 @@
  * ============================================================================
  * 🟥 APP UI SUPPORT BUTTON — UI МИКРОСЕРВИС SUPPORT BUTTON
  * ============================================================================
- *
  * Единственная точка входа для SupportButton в приложении.
  * UI boundary между ui-core и бизнес-логикой.
- *
  * Ответственность:
  * - Policy (hidden / visibility / disabled)
  * - Telemetry
  * - Feature flags
- *
  * Не содержит:
  * - DOM-манипуляций кроме Core
  * - Платформенных эффектов
  * - Логики отправки обращений в поддержку
  * - Бизнес-логики обработки поддержки
- *
  * Архитектурные решения:
  * - Видимость кнопки поддержки контролируется App-слоем
  * - CoreSupportButton остается полностью presentational
@@ -117,7 +113,6 @@ type SupportButtonPolicy = Readonly<{
  * - telemetry
  * - visibility state
  * - disabled state
- *
  * Ни один consumer не имеет права повторно интерпретировать props.visible
  * или feature flags.
  */
@@ -348,7 +343,6 @@ AppSupportButtonComponent.displayName = 'SupportButton';
 
 /**
  * UI-контракт SupportButton компонента.
- *
  * Stateful UI-фасад над CoreSupportButton.
  * Управляет policy, telemetry и feature flags.
  *
@@ -356,14 +350,12 @@ AppSupportButtonComponent.displayName = 'SupportButton';
  * ```tsx
  * // Базовая кнопка поддержки
  * <SupportButton onSupportRequest={() => openSupportChat()} />
- *
  * // Floating кнопка с кастомным текстом
  * <SupportButton
  *   variant="floating"
  *   label="Нужна помощь?"
  *   onSupportRequest={handleSupport}
  * />
- *
  * // Отключенная кнопка через feature flag
  * <SupportButton
  *   isDisabledByFeatureFlag={true}

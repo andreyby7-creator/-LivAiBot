@@ -37,7 +37,6 @@ const DEBUG_ESLINT_CONFIG = process.env.DEBUG_ESLINT_CONFIG === '1' || false;
 /**
  * Получает корневую директорию проекта (монорепо) по URL файла конфига.
  * Используется в mode-конфигах для единообразного tsconfigRootDir.
- *
  * @param {string} startUrl - обычно import.meta.url из вызывающего файла
  * @returns {string} абсолютный путь к корню проекта
  */
@@ -63,14 +62,11 @@ export function resolveMonorepoRoot(startUrl) {
 // ==================== TEZ AUTO-SYNC (package schema) ====================
 /**
  * Автосинхронизация TEZ из схемы пакетов (package.json).
- *
  * ✅ Минималистично: не требует новых файлов и не ломает TEZ source-of-truth
  * ✅ Monorepo-friendly: типы добавляются рядом с пакетом, а ESLint подхватывает автоматически
- *
  * Поддерживаемые поля:
  * - package.json -> "livai": { "tez": { "typeExemptions": [...] } }
  * - package.json -> "tez": { "typeExemptions": [...] } (fallback)
- *
  * Формат элементов:
  * - "RequestInit"
  * - { "from": "lib", "name": "Event" }  -> "lib.Event"

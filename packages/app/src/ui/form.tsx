@@ -3,7 +3,6 @@
  * ============================================================================
  * 🟥 APP UI FORM — UI МИКРОСЕРВИС ФОРМЫ
  * ============================================================================
- *
  * Единственная точка входа для Form в приложении.
  * UI boundary между ui-core и бизнес-логикой.
  */
@@ -278,9 +277,7 @@ function FormComponent(props: AppFormProps): JSX.Element | null {
 
 /**
  * UI-контракт Form компонента.
- *
  * @contract
- *
  * Гарантируется:
  * - Детерминированный рендеринг без side effects (кроме telemetry)
  * - SSR-safe и concurrent rendering compatible
@@ -290,14 +287,12 @@ function FormComponent(props: AppFormProps): JSX.Element | null {
  * - Клиентская валидация через централизованную систему
  * - Асинхронное состояние submit управляется извне (controlled)
  * - isSubmitting влияет только на aria-busy, не блокирует повторные submit
- *
  * Инварианты:
  * - Всегда возвращает валидный JSX.Element или null
  * - Submit/reset events передаются корректно в callbacks
  * - Feature flags применяются корректно к visibility и disabled
  * - Telemetry events отправляются только при реальных действиях
  * - Валидация выполняется до telemetry и submit callbacks
- *
  * Не допускается:
  * - Использование напрямую core Form компонента
  * - Переопределение submit/reset логики без callbacks

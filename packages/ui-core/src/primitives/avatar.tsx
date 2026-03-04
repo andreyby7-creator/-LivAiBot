@@ -3,12 +3,10 @@
  * ============================================================================
  * 🔵 CORE UI AVATAR — BEHAVIORAL PRIMITIVE
  * ============================================================================
- *
  * Роль:
  * - Базовый UI-примитив для отображения аватаров
  * - Детерминированный и side-effect isolated
  * - SSR-safe
- *
  * Не содержит:
  * - feature flags
  * - telemetry
@@ -185,30 +183,23 @@ const CoreAvatarComponent = forwardRef<HTMLDivElement, CoreAvatarProps>(
 
 /**
  * Memoized CoreAvatar.
- *
  * Гарантии:
  * - Никаких side-effects
  * - SSR-safe
  * - Полная совместимость с strict-mode и concurrent rendering
  * - Поддержка ref forwarding
- *
  * Примеры использования:
  * ```tsx
  * // Базовое использование
  * <Avatar src="/user.jpg" alt="John Doe" />
- *
  * // С theme tokens для dark/light mode
  * <Avatar bgColor="var(--avatar-bg, #E5E7EB)" alt="User" />
- *
  * // С типизированными размерами
  * <Avatar size={48} alt="Large avatar" />
- *
  * // С кастомным objectFit для square avatars
  * <Avatar src="/square.jpg" objectFit="contain" alt="Square avatar" />
- *
  * // С data-testid для тестирования
  * <Avatar src="/user.jpg" alt="Test user" data-testid="user-avatar" />
- *
  * // С кастомным fallback текстом и цветом
  * <Avatar fallbackText="JD" fallbackTextColor="var(--avatar-text, black)" alt="John Doe" />
  * ```

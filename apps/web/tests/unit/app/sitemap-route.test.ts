@@ -1,6 +1,5 @@
 /**
  * @file Unit tests for sitemap.xml route handler.
- *
  * Покрытие:
  * - GET: production → заполненный sitemap с локалями
  * - GET: non-prod → пустой sitemap (fail-safe)

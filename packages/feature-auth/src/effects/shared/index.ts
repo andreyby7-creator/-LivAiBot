@@ -1,6 +1,5 @@
 /**
  * @file packages/feature-auth/src/effects/shared — Shared Effects Utilities
- *
  * Публичный API пакета shared effects.
  * Экспортирует общие утилиты для всех auth-эффектов.
  */
@@ -13,7 +12,6 @@
  * Auth Store Port: единый контракт стора для всех auth-эффектов.
  * Абстрагирует Zustand store, гарантирует атомарность через batchUpdate,
  * изолирует effects от деталей реализации.
- *
  * @public
  */
 export {
@@ -31,7 +29,6 @@ export {
 /**
  * Session State Builder: единая точка построения SessionState.
  * Используется во всех auth-эффектах (login/register/refresh) для консистентности.
- *
  * @public
  */
 export type { BuildSessionStateParams } from './session-state.builder.js';
@@ -44,7 +41,6 @@ export { buildSessionState } from './session-state.builder.js';
 /**
  * Auth API Mappers: общие мэпперы для преобразования transport → domain.
  * Используются во всех auth-эффектах (login/register/refresh) для консистентности.
- *
  * @public
  */
 export { mapMeResponseValuesToDomain, mapTokenPairValuesToDomain } from './auth-api.mappers.js';
@@ -56,7 +52,6 @@ export { mapMeResponseValuesToDomain, mapTokenPairValuesToDomain } from './auth-
 /**
  * AuthApiClient Port: Effect-based DI-контракт для HTTP-клиента auth-домена.
  * Обеспечивает единую async-модель в orchestrator.
- *
  * @public
  */
 export type { ApiRequestOptions, AuthApiClientPort } from './api-client.port.js';
@@ -68,7 +63,6 @@ export type { ApiRequestOptions, AuthApiClientPort } from './api-client.port.js'
 /**
  * ApiClient Adapter: преобразование Promise-based HTTP-клиента в Effect-based AuthApiClientPort.
  * Используется во всех auth-эффектах для единой async-модели в orchestrator.
- *
  * @public
  */
 export { createApiClientPortAdapter } from './api-client.adapter.js';

@@ -1,6 +1,5 @@
 /**
  * @file Unit тесты для packages/app/src/lib/offline-cache.ts
- *
  * Тестирование enterprise-level offline cache с покрытием 95-100%:
  * - SWR (Stale-While-Revalidate) логика
  * - Retry механизм с экспоненциальным backoff

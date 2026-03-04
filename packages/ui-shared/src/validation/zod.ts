@@ -1,6 +1,5 @@
 /**
  * @file Интеграция Zod ошибок с UI (i18n ключи, маппинг).
- *
  * Принцип:
  * - Zod схемы возвращают `issue.message` (либо дефолтную строку, либо i18n ключ)
  * - UI решает, как переводить/показывать это сообщение
@@ -38,7 +37,6 @@ export const ValidationKeys = {
 
 /**
  * Тип для Zod error map функций.
- *
  * @param issue - Объект ошибки Zod с полями code, path, message и др.
  * @param ctx - Контекст с defaultError (стандартное сообщение Zod, используется как fallback)
  * @returns Объект с i18n ключом или готовым сообщением
@@ -58,7 +56,6 @@ export function translateZodMessage(message: string, t?: TFunction): string {
 
 /**
  * Строит nested i18n ключ с путем поля.
- *
  * @param path - Путь к полю
  * @param key - Базовый ключ
  * @param options.nested - Включить nested логику
@@ -87,7 +84,6 @@ export function buildNestedKey(
 /**
  * Создает errorMap с i18n ключами для Zod.
  * Поддерживает string/number/array валидации, required, invalidType, custom коды.
- *
  * @param options.nested - Автоматически добавлять путь поля к ключам
  * @returns Функция errorMap для ZodResolver
  *

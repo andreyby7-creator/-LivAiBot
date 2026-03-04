@@ -1,6 +1,5 @@
 /**
  * @file Unit тесты для packages/app/src/lib/effect-timeout.ts
- *
  * Enterprise-grade тестирование effect-timeout с 100% покрытием:
  * - TimeoutError конструктор и свойства
  * - isTimeoutError type guard

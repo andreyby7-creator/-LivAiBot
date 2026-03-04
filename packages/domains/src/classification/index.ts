@@ -1,6 +1,5 @@
 /**
  * @file @livai/domains/classification — Classification Domain (Domain-Specific Labels & Signals)
- *
  * Публичный API пакета classification domain.
  * Экспортирует все публичные компоненты, типы и утилиты для classification labels и signals.
  */
@@ -14,7 +13,6 @@
  * Типы для classification labels.
  * Union type выводится из CLASSIFICATION_LABELS для single source of truth.
  * Branded types через Label<T> для type safety между доменами.
- *
  * @public
  */
 
@@ -32,7 +30,6 @@ export type {
 /**
  * Массив допустимых значений classification labels.
  * Single source of truth: тип выводится из массива для предотвращения рассинхронизации.
- *
  * @public
  */
 
@@ -43,7 +40,6 @@ export { CLASSIFICATION_LABELS } from './labels.js';
  * Single source of truth для всех модулей classification domain.
  * - GEO_VALIDATION: границы для геолокации (WGS84)
  * - SCORE_VALIDATION: границы для scores (reputation, velocity)
- *
  * @public
  */
 export { GEO_VALIDATION, SCORE_VALIDATION } from './constants.js';
@@ -59,7 +55,6 @@ export { GEO_VALIDATION, SCORE_VALIDATION } from './constants.js';
  * Создание label из строки с валидацией через whitelist validator.
  * Автоматическая нормализация (trim) для защиты от пробельных строк.
  * Десериализация с проверкой для защиты от forged labels.
- *
  * @public
  */
 
@@ -76,7 +71,6 @@ export { classificationLabel } from './labels.js';
  * - Семантические методы (isSafe, isSuspicious, etc.) для частых случаев и читаемости
  * - Универсальный hasValue() для динамических проверок и масштабируемости
  * Только операции над самими labels, без business logic.
- *
  * @public
  */
 
@@ -92,7 +86,6 @@ export { classificationLabelUtils } from './labels.js';
  * Single source of truth для business logic, легко расширяется без изменения кода.
  * Использует O(1) lookup вместо if/else для rule-engine scalability.
  * Определяет requiresReview и isCritical для каждого label типа.
- *
  * @public
  */
 
@@ -111,7 +104,6 @@ export { classificationPolicy } from './labels.js';
  * Использует generic типы из @livai/core/domain-kit (EvaluationLevel, Confidence, EvaluationScale).
  * Разделение internal/external signals для чистоты domain и безопасности.
  * Whitelist keys для security-correct извлечения signals (предотвращает silent data propagation).
- *
  * @public
  */
 export * from './signals/index.js';
@@ -126,7 +118,6 @@ export * from './signals/index.js';
  * Включает ClassificationEvaluationResult (результат оценки с evaluationLevel, confidence, label, scale).
  * Использует generic типы из @livai/core/domain-kit (EvaluationLevel, Confidence, EvaluationScale).
  * Строгая типизация usedSignals через keyof ClassificationSignals для предотвращения drift.
- *
  * @public
  */
 export * from './evaluation/index.js';
@@ -143,7 +134,6 @@ export * from './evaluation/index.js';
  * calculateRiskScoreWithCustomFactors (API для расчета с кастомными факторами),
  * validateRiskWeights (валидация risk weights).
  * Использует generic aggregation semantics из @livai/core.
- *
  * @public
  */
 export * from './aggregation/index.js';
@@ -158,7 +148,6 @@ export * from './aggregation/index.js';
  * Включает:
  * - base policy (`determineRiskLevel`, `determineLabel`, `defaultDecisionPolicy`)
  * - aggregation strategy/policy (`aggregateRiskSources`, `applyAggregationPolicy`, `defaultAggregationPolicy`)
- *
  * @public
  */
 export * from './policies/index.js';
@@ -174,7 +163,6 @@ export * from './policies/index.js';
  * deterministic.strategy (pure domain engine), validation (семантическая валидация signals).
  * Использует generic rule-engine из @livai/core для вычислений.
  * НЕ использует score-calculator (это в aggregation/).
- *
  * @public
  */
 export * from './strategies/index.js';
@@ -188,7 +176,6 @@ export * from './strategies/index.js';
  * Classification Providers подпакет: provider stages для внешних источников сигналов.
  * Содержит stage-фабрики, совместимые с `@livai/core/pipeline` (`StagePlugin<TSlotMap>`),
  * для интеграции remote/vended сигналов в slot graph.
- *
  * @public
  */
 export * from './providers/index.js';

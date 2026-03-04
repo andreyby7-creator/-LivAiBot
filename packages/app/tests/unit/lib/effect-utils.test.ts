@@ -1,6 +1,5 @@
 /**
  * @file Unit тесты для packages/app/src/lib/effect-utils.ts
- *
  * Тестирование enterprise-level effect utilities с 100% покрытием:
  * - Timeout wrapper
  * - Retry механизм с backoff

@@ -3,14 +3,12 @@
  * ============================================================================
  * 🛡️ CORE — Policies (Bot Permissions)
  * ============================================================================
- *
  * Архитектурная роль:
  * - Доменный слой. ЧИСТАЯ бизнес-логика. Без инфраструктуры
  * - Формализует ACL и роли пользователей для ботов
  * - Определяет CRUD / execute / manage permissions
  * - Возвращает объяснимые и типобезопасные решения
  * - Причина изменения: policies, bot permissions, ACL, role-based access control
- *
  * Принципы:
  * - ✅ SRP: только типы, правила и решения, без инфраструктуры
  * - ✅ Deterministic: одинаковые входы → одинаковые решения
@@ -18,7 +16,6 @@
  * - ✅ Strict typing: exhaustive unions для BotAction, BotRole
  * - ✅ Microservice-ready: используется одинаково в API, UI, Workers
  * - ✅ Stable contract: для feature-bot
- *
  * ⚠️ ВАЖНО:
  * - 🚫 Никаких side-effects
  * - 🚫 Никакого HTTP / storage
@@ -92,7 +89,6 @@ export type BotPermissionDecision = PolicyDecision<
  * BotPermissions
  * --------------------------------------------------------------------------
  * Единственный источник истины по правам доступа к ботам.
- *
  * Используется:
  * - feature-bots (CRUD, execution)
  * - API-gateway (ACL checks)

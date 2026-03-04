@@ -3,16 +3,13 @@
  * ============================================================================
  * 🟥 APP UI RADIO — UI МИКРОСЕРВИС РАДИО-КНОПКИ
  * ============================================================================
- *
  * Единственная точка входа для Radio в приложении.
  * UI boundary между ui-core и бизнес-логикой.
- *
  * Ответственность:
  * - Policy (disabled / hidden / variant)
  * - Telemetry
  * - Feature flags
  * - Accessibility контекст
- *
  * Не содержит:
  * - DOM-манипуляций
  * - платформенных эффектов
@@ -317,22 +314,18 @@ const RadioComponent = forwardRef<HTMLInputElement, AppRadioProps>(
 
 /**
  * UI-контракт Radio компонента.
- *
  * @contract
- *
  * Гарантируется:
  * - Детерминированный рендеринг без side effects (кроме telemetry)
  * - SSR-safe и concurrent rendering compatible
  * - Полная интеграция с централизованной telemetry системой
  * - Управление feature flags для скрытия и отключения
  * - Корректная обработка controlled/uncontrolled состояния
- *
  * Инварианты:
  * - Всегда возвращает валидный JSX.Element или null
  * - Состояние checked синхронизировано с onChange callback
  * - Feature flags применяются корректно к visibility и disabled
  * - Telemetry events отправляются только при реальных изменениях
- *
  * Не допускается:
  * - Использование напрямую core Radio компонента
  * - Смешивание controlled и uncontrolled режимов

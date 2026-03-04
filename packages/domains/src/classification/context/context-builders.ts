@@ -3,12 +3,10 @@
  * ============================================================================
  * 🎯 DOMAINS — Classification Context Builders (Pure Functions, Slot-Based API)
  * ============================================================================
- *
  * Архитектурная роль:
  * Pure functions для построения контекстов разных слоёв classification domain.
  * Используют slot-based API для интеграции в declarative pipeline.
  * Изолированы от основной логики для соблюдения SRP.
- *
  * Принципы:
  * - ✅ Pure — детерминированные функции без side-effects, IO, async, conditions
  * - ✅ Slot-based API — функции принимают и возвращают Pick<ClassificationSlotMap, ...> для pipeline integration
@@ -17,7 +15,6 @@
  * - ✅ Immutable — все функции возвращают frozen объекты с защитой вложенных структур
  * - ✅ Scalable — O(1) по памяти: shallow copy вместо deep copy
  * - ✅ Pipeline-ready — готовы к автоматической композиции стадий через slot-based архитектуру
- *
  * @note Общие требования для всех builders:
  *       - Signals должны быть sanitized через semanticViolationValidator до вызова (adapter layer responsibility)
  *       - Builders не выполняют security checks — соблюдается разделение ответственности
@@ -46,7 +43,6 @@ import type {
 /**
  * Slot map для classification pipeline
  * Определяет все слоты данных, которые могут быть использованы в pipeline
- *
  * @note Slot-based архитектура позволяет автоматическую композицию стадий
  * @note Каждый builder работает с подмножеством слотов (Pick<ClassificationSlotMap, ...>)
  * @public
@@ -92,10 +88,8 @@ function freezeContext<T extends Readonly<Record<string, unknown>>>(context: T):
 
 /**
  * Подготавливает контекст для scoring (pure function, slot-based API)
- *
  * @param slots - Слоты данных из pipeline (device, context, config)
  * @returns ScoringContext для calculateRiskScore
- *
  * @note Pure function: нет side-effects, IO, async, conditions
  * @note Immutable: возвращает frozen объект
  * @note Slot-based API: интегрирован в declarative pipeline
@@ -166,10 +160,8 @@ function validateRiskScore(score: number | undefined): number {
 
 /**
  * Подготавливает контекст для rule evaluation (pure function, slot-based API)
- *
  * @param slots - Слоты данных из pipeline (device, context, riskScore)
  * @returns RuleEvaluationContext для evaluateRules
- *
  * @note Pure function: нет side-effects, IO, async, conditions
  * @note Immutable: возвращает frozen объект
  * @note Slot-based API: интегрирован в declarative pipeline
@@ -229,10 +221,8 @@ export function buildRuleContext(
 
 /**
  * Подготавливает контекст для assessment (pure function, slot-based API)
- *
  * @param slots - Слоты данных из pipeline (device, context, riskScore, ruleEvaluationSnapshot)
  * @returns AssessmentContext для assembleAssessmentResultFromContext
- *
  * @note Pure function: нет side-effects, IO, async, conditions
  * @note Immutable: возвращает frozen объект с защитой от мутаций вложенных объектов
  * @note Slot-based API: интегрирован в declarative pipeline

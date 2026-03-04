@@ -3,12 +3,10 @@
  * ============================================================================
  * 🛡️ CORE — Aggregation (Reducer)
  * ============================================================================
- *
  * Архитектурная роль:
  * - Generic reducer для агрегации значений с весами
  * - Чистые функции для редукции массивов значений (sum, average, weighted average, min, max)
  * - Причина изменения: generic aggregation semantics, не domain-специфичная логика
- *
  * Принципы:
  * - ✅ SRP: разделение на TYPES, CONSTANTS, INTERNAL (validation helpers), REDUCER, REDUCER ALGEBRA
  * - ✅ Deterministic: одинаковые входы → одинаковые результаты, без silent normalization, array API = thin wrapper над streaming
@@ -19,7 +17,6 @@
  * - ✅ Scalable: поддержка Iterable для streaming (O(n), zero allocations), extensible через ReducerAlgebra
  * - ✅ Security: runtime validation NaN/Infinity, проверка переполнения произведения (value * weight), IEEE-754 MIN_NORMAL для numeric underflow
  * - ✅ Immutable: все операции возвращают новые значения
- *
  * ⚠️ ВАЖНО:
  * - ❌ НЕ включает domain-специфичные значения (SAFE/SUSPICIOUS/DANGEROUS - это domain labels)
  * - ❌ НЕ нормализует веса автоматически (normalization - ответственность caller)
@@ -220,6 +217,7 @@ function validateWeightedValue(
 export const reducer = {
   /**
    * Суммирует массив чисел
+   *
    * @example reducer.sum([1, 2, 3, 4, 5]) // { ok: true, value: 15 }
    */
   sum(
@@ -273,6 +271,7 @@ export const reducer = {
 
   /**
    * Вычисляет среднее арифметическое массива чисел
+   *
    * @example reducer.average([1, 2, 3, 4, 5]) // { ok: true, value: 3 }
    */
   average(
@@ -292,7 +291,9 @@ export const reducer = {
   /**
    * Вычисляет взвешенное среднее: (∑wᵢxᵢ) / (∑wᵢ)
    * @note Поддерживает любые относительные веса (не требует нормализации к 1.0)
+   *
    * @example reducer.weightedAverage([10, 20, 30], [0.2, 0.3, 0.5]) // { ok: true, value: 23 }
+   *
    * @example reducer.weightedAverage([10, 20, 30], [2, 3, 5]) // { ok: true, value: 23 } (относительные веса)
    */
   weightedAverage(
@@ -339,6 +340,7 @@ export const reducer = {
   /**
    * Находит минимальное значение в массиве
    * @note FAIL при любом invalid элементе (NaN/Infinity)
+   *
    * @example reducer.min([5, 2, 8, 1, 9]) // { ok: true, value: 1 }
    */
   min(
@@ -396,6 +398,7 @@ export const reducer = {
   /**
    * Находит максимальное значение в массиве
    * @note FAIL при любом invalid элементе (NaN/Infinity)
+   *
    * @example reducer.max([5, 2, 8, 1, 9]) // { ok: true, value: 9 }
    */
   max(
@@ -453,6 +456,7 @@ export const reducer = {
   /**
    * Вычисляет взвешенное среднее для массива WeightedValue
    * @note НЕ нормализует веса автоматически
+   *
    * @example reducer.weightedAverageFromWeightedValues([{ value: 10, weight: 0.2 }, { value: 20, weight: 0.3 }, { value: 30, weight: 0.5 }]) // { ok: true, value: 23 }
    */
   weightedAverageFromWeightedValues(
@@ -476,6 +480,7 @@ export const reducer = {
   /**
    * Вычисляет взвешенное среднее для Iterable WeightedValue (streaming-friendly)
    * @note Single-pass, zero allocations, O(n) - поддерживает lazy evaluation для rule engines
+   *
    * @example const values = function* () { yield { value: 10, weight: 0.2 }; yield { value: 20, weight: 0.3 }; yield { value: 30, weight: 0.5 }; }; reducer.weightedAverageFromIterable(values())
    */
   weightedAverageFromIterable(
@@ -614,6 +619,7 @@ export const reducerAlgebra = {
    * @template TResult - Тип результата агрегации
    * @template TState - Тип состояния агрегатора
    * @note Generic по TResult для поддержки любых типов результатов (histogram, distribution, etc.)
+   *
    * @example const medianAggregator: NumericAggregator<number, number> = { init: () => ({ state: [] }), step: (acc, value) => ({ state: [...acc.state, value] }), finalize: (state) => { const sorted = [...state.state].sort((a, b) => a - b); const mid = Math.floor(sorted.length / 2); return { ok: true, value: sorted.length % 2 === 0 ? (sorted[mid - 1]! + sorted[mid]!) / 2 : sorted[mid]! }; } }; reducerAlgebra.aggregate([1, 2, 3, 4, 5], medianAggregator) // { ok: true, value: 3 }
    */
   aggregate<TValue = number, TResult = number, TState = unknown>(

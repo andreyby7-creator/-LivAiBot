@@ -1,12 +1,4 @@
-/home/boss/Projects/livai/packages/feature-auth/tests/unit/effects/shared/api-client.port.test.ts: должен обеспечивать неизменяемость headers
-AssertionError: expected [Function] to throw an error
-    at Proxy.<anonymous> (file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+expect@4.0.18/node_modules/@vitest/expect/dist/index.js:1485:16)
-    at Proxy.<anonymous> (file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+expect@4.0.18/node_modules/@vitest/expect/dist/index.js:1090:14)
-    at Proxy.methodWrapper (file:///home/boss/Projects/livai/node_modules/.pnpm/chai@6.2.2/node_modules/chai/index.js:1700:25)
-    at /home/boss/Projects/livai/packages/feature-auth/tests/unit/effects/shared/api-client.port.test.ts:155:10
-    at file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.18/node_modules/@vitest/runner/dist/index.js:145:11
-    at file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.18/node_modules/@vitest/runner/dist/index.js:915:26
-    at file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.18/node_modules/@vitest/runner/dist/index.js:1243:20
-    at new Promise (<anonymous>)
-    at runWithTimeout (file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.18/node_modules/@vitest/runner/dist/index.js:1209:10)
-    at file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.18/node_modules/@vitest/runner/dist/index.js:1653:37
+/home/boss/Projects/livai/packages/feature-auth/tests/unit/effects/refresh.test.ts: ignore: возвращает уже выполняющийся запрос при повторном вызове
+AssertionError: expected "vi.fn()" to be called 1 times, but got 2 times
+    at /home/boss/Projects/livai/packages/feature-auth/tests/unit/effects/refresh.test.ts:679:48
+    at file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.18/node_modules/@vitest/runner/dist/index.js:915:20

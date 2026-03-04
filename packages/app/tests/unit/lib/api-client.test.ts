@@ -1,6 +1,5 @@
 /**
  * @file Unit тесты для packages/app/src/lib/api-client.ts
- *
  * Комплексное тестирование API-клиента с 95-100% покрытием:
  * - HTTP запросы и ответы
  * - Retry и timeout логика

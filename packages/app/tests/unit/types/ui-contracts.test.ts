@@ -1,6 +1,5 @@
 /**
  * @file Unit тесты для packages/app/src/types/ui-contracts.ts
- *
  * Тестирование enterprise-level UI контрактов с 100% покрытием:
  * - Feature flags типизация
  * - Controlled/Uncontrolled компоненты

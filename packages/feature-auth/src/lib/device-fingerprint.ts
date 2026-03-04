@@ -3,12 +3,10 @@
  * ============================================================================
  * 🔐 FEATURE-AUTH — Device Fingerprint (Pure Effect)
  * ============================================================================
- *
  * Архитектурная роль:
  * - Чистая функция для сбора данных об устройстве без side-effects
  * - Генерация стабильного deviceId на основе fingerprint данных
  * - Используется для оценки риска и аудита логина
- *
  * Принципы:
  * - ✅ Чистая логика — только сбор данных об устройстве
  * - ✅ Без side-effects — не изменяет внешнее состояние
@@ -92,7 +90,6 @@ function isMobileScreen(screenWidth: number, screenHeight: number): boolean {
 
 /**
  * Проверяет, является ли устройство IoT на основе userAgent
- *
  * @note Эвристика: может классифицировать backend-requests (curl, wget, python, java, node)
  * как IoT устройства. Для auth-risk это приемлемо, так как такие запросы требуют
  * дополнительной проверки безопасности.
@@ -110,7 +107,6 @@ function isDesktopUserAgent(userAgent: string): boolean {
 
 /**
  * Определяет тип устройства на основе userAgent и screen размеров
- *
  * @note Tablet detection: проверяется раньше mobile, так как некоторые планшеты
  * могут иметь desktop UA, но tablet screen размеры. Приоритет: tablet screen > mobile UA.
  */
@@ -216,7 +212,6 @@ function parseBrowser(userAgent: string): string | undefined {
 /**
  * Генерирует стабильный deviceId на основе fingerprint данных
  * Использует простой хеш для создания уникального идентификатора
- *
  * @note Hash collision: используется 32-bit hash, что может давать коллизии.
  * Для high-security сценариев это недостаточно, но для login risk scoring
  * это приемлемо, так как deviceId используется для оценки риска, а не для
@@ -279,9 +274,7 @@ function collectFingerprintData(): FingerprintData {
 
 /**
  * Собирает информацию об устройстве и генерирует deviceId
- *
  * @returns Effect с DeviceInfo объектом
- *
  * @note Fingerprint должен быть стабильным и детерминированным.
  * lastUsedAt устанавливается в login orchestrator (effects/login.ts), не здесь.
  *

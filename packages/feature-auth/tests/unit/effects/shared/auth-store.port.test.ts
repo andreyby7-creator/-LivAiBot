@@ -3,7 +3,6 @@
  * ============================================================================
  * 🔐 AUTH STORE PORT — ЕДИНЫЙ КОНТРАКТ СТОРА
  * ============================================================================
- *
  * Проверяет, что:
  * - isBatchUpdateOfType корректно выполняет type narrowing
  * - withStoreLock блокирует и разблокирует store в try/finally
@@ -486,6 +485,95 @@ describe('effects/shared/auth-store.port', () => {
         expect(captured.patchCalls[0]?.auth).toEqual(authState2);
         // Все events должны быть применены в порядке
         expect(captured.events).toEqual(['user_logged_in', 'mfa_challenge_sent']);
+      });
+
+      describe('getSessionState', () => {
+        it('возвращает текущее состояние сессии из zustand store', () => {
+          const sessionState = createSessionState();
+
+          const store = {
+            version: 1,
+            session: sessionState,
+            actions: {
+              setAuthState: () => {},
+              setSessionState: () => {},
+              setSecurityState: () => {},
+              applyEventType: () => {},
+              patch: () => {},
+              setMfaState: () => {},
+              setOAuthState: () => {},
+              setPasswordRecoveryState: () => {},
+              setVerificationState: () => {},
+              reset: () => {},
+            },
+            getState: () => ({
+              session: sessionState,
+            }),
+          } as unknown as AuthStore;
+
+          const adapter = createAuthStorePortAdapter(store);
+
+          expect(adapter.getSessionState()).toEqual(sessionState);
+        });
+      });
+
+      describe('getRefreshToken', () => {
+        it('возвращает refreshToken если он доступен и не пустой', () => {
+          const store = {
+            version: 1,
+            actions: {
+              setAuthState: () => {},
+              setSessionState: () => {},
+              setSecurityState: () => {},
+              applyEventType: () => {},
+              patch: () => {},
+              setMfaState: () => {},
+              setOAuthState: () => {},
+              setPasswordRecoveryState: () => {},
+              setVerificationState: () => {},
+              reset: () => {},
+            },
+            getRefreshToken: () => 'refresh-token-123',
+          } as unknown as AuthStore;
+
+          const adapter = createAuthStorePortAdapter(store);
+
+          expect(adapter.getRefreshToken()).toBe('refresh-token-123');
+        });
+
+        it('кидает ошибку если refreshToken недоступен или пустой', () => {
+          const createStore = (tokenProvider?: () => string | undefined) =>
+            ({
+              version: 1,
+              actions: {
+                setAuthState: () => {},
+                setSessionState: () => {},
+                setSecurityState: () => {},
+                applyEventType: () => {},
+                patch: () => {},
+                setMfaState: () => {},
+                setOAuthState: () => {},
+                setPasswordRecoveryState: () => {},
+                setVerificationState: () => {},
+                reset: () => {},
+              },
+              ...(tokenProvider && { getRefreshToken: tokenProvider }),
+            }) as unknown as AuthStore;
+
+          const storeWithoutToken = createStore();
+          const adapterWithoutToken = createAuthStorePortAdapter(storeWithoutToken);
+
+          expect(() => adapterWithoutToken.getRefreshToken()).toThrow(
+            '[AuthStorePort] refreshToken is not available. In production, refreshToken should be obtained via httpOnly cookie or secure storage.',
+          );
+
+          const storeWithEmptyToken = createStore(() => '   ');
+          const adapterWithEmptyToken = createAuthStorePortAdapter(storeWithEmptyToken);
+
+          expect(() => adapterWithEmptyToken.getRefreshToken()).toThrow(
+            '[AuthStorePort] refreshToken is not available. In production, refreshToken should be obtained via httpOnly cookie or secure storage.',
+          );
+        });
       });
     });
   });

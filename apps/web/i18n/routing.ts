@@ -1,9 +1,8 @@
 /**
  * @file i18n routing настройки для next-intl (App Router).
- *
  * Локали должны соответствовать файлам переводов в messages/
- * @example en.json, ru.json
  *
+ * @example en.json, ru.json
  * Для добавления новой локали:
  * 1. Добавить в i18nConfig.locales
  * 2. Создать messages/[locale].json файл

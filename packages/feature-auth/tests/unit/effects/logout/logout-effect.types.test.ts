@@ -460,6 +460,8 @@ describe('effects/logout/logout-effect.types', () => {
         applyEventType: () => {},
         setStoreLocked: () => {},
         batchUpdate: () => {},
+        getSessionState: () => null,
+        getRefreshToken: () => 'test-refresh-token',
       };
 
       const auditLogger: LogoutAuditLoggerPort = {
@@ -531,6 +533,8 @@ describe('effects/logout/logout-effect.types', () => {
         applyEventType: () => {},
         setStoreLocked: () => {},
         batchUpdate: () => {},
+        getSessionState: () => null,
+        getRefreshToken: () => 'test-refresh-token',
       };
 
       const auditLogger: LogoutAuditLoggerPort = {
@@ -594,6 +598,8 @@ describe('effects/logout/logout-effect.types', () => {
         applyEventType: () => {},
         setStoreLocked: () => {},
         batchUpdate: () => {},
+        getSessionState: () => null,
+        getRefreshToken: () => 'test-refresh-token',
       };
 
       const auditLogger: LogoutAuditLoggerPort = {
@@ -878,6 +884,8 @@ describe('effects/logout/logout-effect.types', () => {
           applyEventType: () => {},
           setStoreLocked: () => {},
           batchUpdate: () => {},
+          getSessionState: () => null,
+          getRefreshToken: () => 'test-refresh-token',
         },
         clock: { now: () => Date.now() },
         auditLogger: { logLogoutEvent: () => {} },
@@ -911,6 +919,8 @@ describe('effects/logout/logout-effect.types', () => {
           applyEventType: () => {},
           setStoreLocked: () => {},
           batchUpdate: () => {},
+          getSessionState: () => null,
+          getRefreshToken: () => 'test-refresh-token',
         },
         clock: { now: () => Date.now() },
         auditLogger: { logLogoutEvent: () => {} },

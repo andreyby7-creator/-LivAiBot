@@ -3,16 +3,13 @@
  * ============================================================================
  * 🎼 ORCHESTRATOR — БЕЗОПАСНАЯ КОМПОЗИЦИЯ АСИНХРОННЫХ ОПЕРАЦИЙ
  * ============================================================================
- *
  * Минимальный, чистый boundary-модуль для безопасной композиции асинхронных
  * операций с step-level isolation и timeout.
- *
  * Архитектурная роль:
  * - Step-level isolation (единственное место isolation через runIsolated)
  * - Step-level timeout (через withTimeout)
  * - Безопасная композиция шагов с передачей результата
  * - Step-level telemetry (fire-and-forget события в observability layer)
- *
  * Принципы:
  * - Zero business logic
  * - Zero error mapping (error mapping → error-mapping layer)
@@ -20,12 +17,10 @@
  * - Zero parallel execution (parallel → scheduler layer)
  * - Zero state management (state → store layer)
  * - Только orchestration: isolation, timeout, композиция
- *
  * ⚠️ Важно: Isolation только здесь
  * - orchestrator — единственное место isolation через runIsolated
  * - validatedEffect НЕ делает isolation (только валидация + throw)
  * - api-client НЕ делает isolation (только transport)
- *
  * ⚠️ Архитектурное правило: Timeout только в orchestrator
  * - Orchestrator использует effect-timeout.ts для каждого step
  * - api-client только поддерживает AbortSignal (не устанавливает timeout)
@@ -71,7 +66,6 @@ export type StepResult<T> = Result<T, IsolationError | TimeoutError>;
 
 /**
  * Helper для создания шага оркестрации.
- *
  * @param label - Метка шага для логирования и телеметрии
  * @param effect - Effect для выполнения
  * @param timeoutMs - Timeout в миллисекундах (опционально)
@@ -102,14 +96,12 @@ export function step<T>(
 
 /**
  * Выполняет последовательность шагов с step-level isolation и timeout.
- *
  * Поведение:
  * - ✅ Каждый шаг изолирован через runIsolated (единственное место isolation)
  * - ✅ Каждый шаг имеет свой timeout (если указан)
  * - ✅ Ошибки одного шага не влияют на другие (cascading failure prevention)
  * - ✅ Результат предыдущего шага передается в следующий
  * - ✅ Step-level telemetry через fire-and-forget
- *
  * @param steps - Массив шагов для выполнения
  * @returns Effect с результатом последнего шага или ошибкой
  *
@@ -124,7 +116,6 @@ export function step<T>(
  *     return await saveUser(prev);
  *   }),
  * ]);
- *
  * if (isOk(result)) {
  *   console.log('Success:', result.value);
  * } else {

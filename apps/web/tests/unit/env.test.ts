@@ -1,6 +1,5 @@
 /**
  * @file Comprehensive tests for environment configuration (env.ts)
- *
  * Покрытие всех веток и функций:
  * - Константы
  * - generateSecret функция

@@ -1,6 +1,5 @@
 /**
  * Общие синтетические данные для тестов.
- *
  * Цель: не хранить реальные email/JWT/PII в репозитории и не триггерить ai-security правила.
  */
 export const FAKE_EMAIL = 'user@example.com';

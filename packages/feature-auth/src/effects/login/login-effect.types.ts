@@ -3,7 +3,6 @@
  * ============================================================================
  * 🔐 FEATURE-AUTH — Login Effect DI Types
  * ============================================================================
- *
  * Архитектурная роль:
  * - Определяет DI-контракт для login-effect до реализации самой логики
  * - Фиксирует строгий портовый DI-контракт для security-критичного эффекта (AuthApiClientPort, securityPipeline, store, errorMapper)
@@ -49,11 +48,9 @@ export type IdentifierHasherPort = Readonly<{
 
 /**
  * Решение security-политики для login-flow.
- *
  * @note Все варианты — объектные, чтобы union оставался однородным и расширяемым:
  * - базовые решения: allow / require_mfa / block
  * - кастомные решения rule-engine: { type: 'custom', code: string, metadata?: unknown }
- *
  * @note `metadata` в custom-решении позволяет расширять контракт без breaking changes:
  *       rule-engine может передавать дополнительный payload для обработки в effects.
  */
@@ -65,22 +62,17 @@ export type LoginSecurityDecision =
 
 /**
  * Aggregated security result для login-effect.
- *
  * Тонкий projection результата security-pipeline для login-effect.
- *
  * Инварианты:
  * - ❌ Login-effect не использует напрямую deviceInfo, signals, LoginRiskEvaluation и другие domain-структуры
  *       (доступ есть через pipelineResult, но используется только для metadata/store-updater)
  * - ✅ Только заранее принятого решения и агрегированных метрик риска для принятия решений
- *
  * @remarks
  * - `decision` / `riskScore` / `riskLevel` — тонкий projection для login-orchestrator
  * - `pipelineResult` — полный `SecurityPipelineResult` для metadata/store-updater
  *   (deviceInfo, triggeredRules, decisionHint, assessment и т.п.)
- *
  * Login-effect использует только projection-поля для принятия решения,
  * а `pipelineResult` прокидывается дальше в metadata/updater без модификации.
- *
  * @note Полный `SecurityPipelineResult` остаётся внутри security-pipeline/lib и его адаптеров.
  *       Login-effect работает только с этим projection-типом.
  */
@@ -93,13 +85,11 @@ export type LoginSecurityResult = Readonly<{
 
 /**
  * Порт над security-pipeline для login-effect.
- *
  * @note Login-effect не знает о конкретной реализации pipeline, только о run-методе.
  * @note Возвращает login-specific projection (LoginSecurityResult) для упрощения интеграции.
  *       LoginSecurityResult содержит:
  *       - decision/riskScore/riskLevel (projection для принятия решений)
  *       - pipelineResult (полный SecurityPipelineResult для metadata/store-updater)
- *
  * @note Архитектурное решение: projection создаётся внутри адаптера security-pipeline,
  *       а не в login-effect. Это упрощает использование, но создаёт coupling pipeline → login.
  *       Если pipeline будет переиспользоваться в других эффектах (register/refresh),
@@ -119,7 +109,6 @@ export type SecurityPipelinePort = Readonly<{
 
 /**
  * Порт для audit-логгера.
- *
  * @note Оборачивает MandatoryAuditLogger и логгер audit-событий в объектный порт для однородности DI.
  * @note Объединяет два механизма логирования:
  *       - pipeline-error logging (для ошибок security-pipeline через `log`)
@@ -192,7 +181,6 @@ export type LoginEffectDeps = Readonly<{
 
 /**
  * Config для login-effect (timeouts, feature-flags, concurrency).
- *
  * Инварианты:
  * - Security pipeline полностью конфигурируется снаружи и инжектится как `securityPipeline` в deps
  * - Login-effect не знает о внутреннем `SecurityPipelineConfig` и не держит его копию в config
@@ -202,7 +190,6 @@ export type LoginFeatureFlags = Readonly<{
   /**
    * Резерв под future-флаги login-flow.
    * @note Закрытый set: новые флаги добавляются явным образом, без generic map вида Record<string, boolean>.
-   *
    * Примеры будущих флагов:
    * - progressiveMode?: boolean;
    * - captchaEnabled?: boolean;
@@ -224,11 +211,9 @@ export type LoginEffectConfig = Readonly<{
   featureFlags?: LoginFeatureFlags; // Feature flags для login-flow
   /**
    * Стратегия конкурентных вызовов login-effect.
-   *
    * - 'cancel_previous' — активный вызов отменяет предыдущий через AbortController
    * - 'ignore'          — новый вызов игнорируется, пока предыдущий не завершится
    * - 'serialize'       — вызовы ставятся в очередь и выполняются по одному
-   *
    * @note Стратегия реализуется внутри stateful-инстанса login-effect, без глобального стейта.
    */
   concurrency: 'cancel_previous' | 'ignore' | 'serialize'; // Стратегия конкурентных вызовов

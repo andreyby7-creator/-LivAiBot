@@ -3,7 +3,6 @@
  * ============================================================================
  * 🔐 FEATURE-AUTH — Register Effect DI Types
  * ============================================================================
- *
  * Определяет DI-контракт для register-effect до реализации логики:
  * порты (*Port), конфигурация (timeouts, concurrency), валидация.
  * Security-critical эффект с портовым DI без глобалов и утечки инфраструктуры.
@@ -24,7 +23,6 @@ export type { ApiRequestOptions, AuthApiClientPort } from '../shared/api-client.
 
 /**
  * Стратегия конкурентных вызовов register-effect.
- *
  * @remarks
  * - 'ignore'          — новый вызов игнорируется, пока предыдущий не завершится
  * - 'cancel_previous' — активный вызов отменяет предыдущий через AbortController
@@ -38,12 +36,10 @@ export type ConcurrencyStrategy = 'ignore' | 'cancel_previous' | 'serialize';
 
 /**
  * Формальный контракт результата register-effect.
- *
  * @remarks
  * - Явно описывает все возможные исходы register-flow.
  * - Используется для type-safety и документации поведения эффекта.
  * - Соответствует RegisterResult из register.ts (type alias).
- *
  * Union является исчерпывающим.
  * Новые состояния добавляются только через расширение union
  * с обязательным обновлением всех exhaustive switch.
@@ -61,10 +57,8 @@ export type RegisterEffectResult =
 
 /**
  * Порт для error-mapper'а.
- *
  * @remarks
  * Нормализует ошибки (HTTP, валидация, инфраструктура) в типизированный AuthError.
- *
  * @warning
  * Запрещён silent fallback. Unmapped cases должны логироваться.
  * При невозможности обработать ошибку — вернуть AuthError с kind: 'unknown_error'.
@@ -79,7 +73,6 @@ export type ErrorMapperPort = Readonly<{
 
 /**
  * Порт времени (clock).
- *
  * @remarks
  * - Один источник времени для register-effect, легко подменяется в тестах.
  * - Позволяет детерминированно формировать timestamp'ы для audit/telemetry.
@@ -91,7 +84,6 @@ export type ClockPort = Readonly<{
 
 /**
  * Порт для генерации eventId.
- *
  * @remarks
  * - Обязательная зависимость: обеспечивает детерминизм и единообразие генерации eventId.
  * - В composer должна передаваться default-реализация (например, на основе crypto.randomUUID).
@@ -115,11 +107,9 @@ export type RegisterTelemetryPort = Readonly<{
 
 /**
  * Порт для audit-логгера событий регистрации.
- *
  * @remarks
  * Best-effort: ошибки логгера не должны ломать регистрацию.
  * Использует AuditEventValues для консистентности с login/logout.
- *
  * @warning
  * Не логировать raw PII. Schema validation до вызова логгера.
  * Эффект не await'ит результат (async-safe).
@@ -134,7 +124,6 @@ export type RegisterAuditLoggerPort = Readonly<{
 
 /**
  * Порт для AbortController.
- *
  * @remarks
  * - Инкапсулирует стратегию создания AbortController (pooling, tracing, telemetry и т.п.).
  * - Используется для реализации стратегии concurrency `'cancel_previous'`.
@@ -150,14 +139,12 @@ export type AbortControllerPort = Readonly<{
 
 /**
  * DI-зависимости register-effect.
- *
  * @remarks
  * Readonly deps без мутаций. Все side-effects через порты.
  */
 export type RegisterEffectDeps = Readonly<{
   /**
    * Порт стора аутентификации.
-   *
    * @remarks
    * Единый контракт для всех auth-эффектов. Атомарный batchUpdate для consistency.
    */
@@ -197,10 +184,8 @@ export type RegisterEffectDeps = Readonly<{
 
 /**
  * Feature flags для register-flow.
- *
  * @remarks
  * Закрытый набор флагов (не Record<string, boolean>).
- *
  * @warning
  * Не превращать в policy engine или numeric thresholds. Только boolean флаги.
  */
@@ -210,11 +195,9 @@ export type RegisterFeatureFlags = Readonly<{
 
 /**
  * Config для register-effect (timeouts, feature-flags, concurrency).
- *
  * Инварианты:
  * - Политики вычисляются на уровне composer'а.
  * - hardTimeout >= apiTimeout (если задан).
- *
  * Поведение:
  * - Store update только при success (не при cancellation).
  * - Audit логируется best-effort даже при отмене.
@@ -241,9 +224,7 @@ export type RegisterEffectConfig = Readonly<{
 
 /**
  * Ошибка конфигурации register-effect.
- *
- * @remarks
- * Domain-specific error для security-critical эффекта. Корректный prototype chain и stack trace.
+ * @remarks Domain-specific error для security-critical эффекта. Корректный prototype chain и stack trace.
  */
 // eslint-disable-next-line functional/no-classes -- классы нужны для корректного stack trace и instanceof
 export class RegisterConfigError extends Error {
@@ -256,11 +237,8 @@ export class RegisterConfigError extends Error {
 
 /**
  * Валидирует конфигурацию register-effect.
- *
  * @throws RegisterConfigError если hardTimeout ≤ 0, apiTimeout ≤ 0 или hardTimeout <= apiTimeout.
- *
- * @remarks
- * Валидация на уровне композиции (при создании эффекта), не при каждом вызове.
+ * @remarks Валидация на уровне композиции (при создании эффекта), не при каждом вызове.
  */
 export function validateRegisterConfig(
   config: RegisterEffectConfig,

@@ -3,12 +3,10 @@
  * ============================================================================
  * 🔵 CORE UI FORM — BEHAVIORAL PRIMITIVE
  * ============================================================================
- *
  * Роль:
  * - Управляет DOM side-effects формы
  * - Фокусом, submit trapping, SSR-safety
  * - Accessibility и platform behavior
- *
  * Не содержит:
  * - feature flags
  * - telemetry

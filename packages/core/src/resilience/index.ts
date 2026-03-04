@@ -1,6 +1,5 @@
 /**
  * @file @livai/core/resilience — Reliability Primitives
- *
  * Публичный API пакета resilience.
  * Экспортирует pure reliability primitives для circuit breaker, metrics, performance limits и связанных SLA-политик.
  */
@@ -12,7 +11,6 @@
 /**
  * Типы для circuit breaker state machine.
  * Включают policy-конфиг, runtime state, gate/outcome контракты.
- *
  * @public
  */
 export type {
@@ -33,7 +31,6 @@ export type {
  * - `createInitialCircuitBreakerState` — начальное состояние;
  * - `evaluateCircuitBreakerGate` — gate-решение до запроса;
  * - `applyCircuitBreakerOutcome` — обновление state machine после запроса.
- *
  * @public
  */
 export {
@@ -50,7 +47,6 @@ export {
 /**
  * Типы для metrics state machine.
  * Включают конфиг агрегации, runtime state, метрики и агрегаты.
- *
  * @public
  */
 export type {
@@ -76,7 +72,6 @@ export type {
  * - `addMetric` — добавление метрики в состояние;
  * - `aggregateMetrics` — агрегация метрик за временное окно;
  * - `createCounterMetric`, `createGaugeMetric`, `createHistogramMetric`, `createSummaryMetric` — фабрики метрик.
- *
  * @public
  */
 export {
@@ -97,7 +92,6 @@ export {
 /**
  * Типы для performance limits.
  * Включают конфиг лимитов, результаты проверки и валидации.
- *
  * @public
  */
 export type {
@@ -122,7 +116,6 @@ export type {
  * - `checkRulesLimit`, `checkExecutionTimeLimit`, `checkPluginsLimit`, `checkMemoryLimit`, `checkConcurrentOperationsLimit` — проверка конкретных лимитов;
  * - `createLimitExceededMetric`, `createLimitUsageMetric`, `createLimitUsageGaugeMetric`, `createLimitRemainingMetric` — генераторы метрик для отслеживания лимитов;
  * - `createAllMetricsForLimit` — атомарное создание всех метрик для лимита.
- *
  * @public
  */
 export {

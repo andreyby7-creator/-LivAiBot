@@ -1,7 +1,6 @@
 /**
  * @file Unit тесты для Classification Domain Constants
  * Полное покрытие всех констант и их свойств
- *
  * @note Покрытие: 100% (включая ветку ошибки инициализации)
  */
 import { describe, expect, it, vi } from 'vitest';

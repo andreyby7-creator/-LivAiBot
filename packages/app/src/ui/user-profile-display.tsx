@@ -3,21 +3,17 @@
  * ============================================================================
  * 🟥 APP UI USER PROFILE DISPLAY — UI МИКРОСЕРВИС USER PROFILE DISPLAY
  * ============================================================================
- *
  * Stateful UI-фасад над CoreUserProfileDisplay.
  * Единственная точка входа для UserProfileDisplay в приложении.
  * UI boundary между ui-core и бизнес-логикой.
- *
  * Ответственность:
  * - Policy (hidden / visibility / disabled)
  * - Telemetry
  * - Feature flags
- *
  * Не содержит:
  * - DOM-манипуляций кроме Core
  * - Платформенных эффектов
  * - Логики загрузки данных профиля
- *
  * Архитектурные решения:
  * - Управление данными профиля обрабатывается в App слое
  * - CoreUserProfileDisplay остается полностью presentational
@@ -169,7 +165,6 @@ type UserProfileDisplayPolicy =
  * - telemetry
  * - visibility state
  * - disabled state
- *
  * Ни один consumer не имеет права повторно интерпретировать props.visible
  * или feature flags.
  */
@@ -481,16 +476,13 @@ UserProfileDisplayComponent.displayName = 'UserProfileDisplay';
 
 /**
  * UI-контракт UserProfileDisplay компонента.
- *
  * @contract
- *
  * Гарантируется:
  * - Детерминированный рендеринг без side effects (кроме telemetry)
  * - SSR-safe и concurrent rendering compatible
  * - Полная интеграция с централизованной telemetry системой
  * - Управление feature flags для скрытия и отключения
  * - Корректная обработка accessibility (ARIA)
- *
  * Инварианты:
  * - Всегда возвращает валидный JSX.Element или null
  * - Telemetry payload содержит корректную информацию о профиле
@@ -498,7 +490,6 @@ UserProfileDisplayComponent.displayName = 'UserProfileDisplay';
  * - Telemetry отражает состояние policy, а не сырые props
  * - View telemetry отправляется только один раз при первом рендере
  * - Disabled состояние применяется через opacity и pointer-events
- *
  * Не допускается:
  * - Использование напрямую core UserProfileDisplay компонента
  * - Игнорирование feature flag логики
@@ -509,7 +500,6 @@ UserProfileDisplayComponent.displayName = 'UserProfileDisplay';
  * ```tsx
  * // Базовое использование
  * <UserProfileDisplay profile={{ email: 'user@example.com', name: 'Иван Иванов' }} />
- *
  * // С feature flags и telemetry
  * <UserProfileDisplay
  *   profile={{ email: 'user@example.com', name: 'Иван Иванов', avatarUrl: '/avatars/user.jpg', additionalInfo: 'Разработчик' }}
@@ -521,7 +511,6 @@ UserProfileDisplayComponent.displayName = 'UserProfileDisplay';
  *   variant="detailed"
  *   showAdditionalInfo={true}
  * />
- *
  * // Компактный вариант
  * <UserProfileDisplay profile={{ email: 'user@example.com', name: 'Иван Иванов' }} size="small" variant="compact" />
  * ```

@@ -3,14 +3,12 @@
  * ============================================================================
  * 🔵 CORE UI CHECKBOX — BEHAVIORAL PRIMITIVE
  * ============================================================================
- *
  * Роль:
  * - Базовый UI-примитив для <input type="checkbox">
  * - Управляет DOM side-effects:
  *   - autoFocus (без прокрутки страницы)
  *   - platform-поведением
  * - Полностью deterministic, SSR-safe и side-effect isolated
- *
  * Не содержит:
  * - feature flags
  * - telemetry
@@ -31,7 +29,6 @@ export type CoreCheckboxProps = Readonly<
     /**
      * Автофокус при монтировании компонента.
      * Выполняется без скролла страницы.
-     *
      * @default false
      */
     autoFocus?: boolean | undefined;
@@ -39,7 +36,6 @@ export type CoreCheckboxProps = Readonly<
     /**
      * Неопределённое состояние checkbox (indeterminate).
      * Используется для частично выбранных состояний.
-     *
      * @default false
      */
     indeterminate?: boolean;
@@ -101,13 +97,11 @@ const CoreCheckboxComponent = forwardRef<HTMLInputElement, CoreCheckboxProps>(
 
 /**
  * Memoized CoreCheckbox.
- *
  * Гарантии:
  * - Никаких скрытых side-effects
  * - Предсказуемый жизненный цикл
  * - Полная совместимость с strict-mode и concurrent rendering
  * - Поддержка ref forwarding для form-libs и программного доступа
- *
  * Подходит для:
  * - форм
  * - фильтров

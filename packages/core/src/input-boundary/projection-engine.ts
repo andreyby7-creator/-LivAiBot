@@ -3,12 +3,10 @@
  * ============================================================================
  * 🛡️ CORE — Input Boundary (Projection Engine)
  * ============================================================================
- *
  * Архитектурная роль:
  * - Generic projection engine для трансформации domain объектов в boundary contracts (DTO, events, persistence, audit)
  * - Архитектура: selection → enrichment slots (contributions) → merge (conflict detection) → safe-keys validation → freeze
  * - Причина изменения: input boundary, domain-to-DTO transformation, projection layer
- *
  * Принципы:
  * - ✅ SRP: разделение selection / enrichment / merge / validation
  * - ✅ Deterministic: одинаковые входы → одинаковые результаты (order-independent)
@@ -19,7 +17,6 @@
  * - ✅ Scalable: patch-based slots (order-independent, composable)
  * - ✅ Security-first: защита от object injection, prototype pollution, JSON-serializable
  * - ✅ Slot-architecture ready: deterministic projection layer
- *
  * ⚠️ ВАЖНО:
  * - ❌ НЕ включает sanitization (это в data-safety/)
  * - ✅ Только projection и enrichment (selection → contributions → merge → freeze)
@@ -53,6 +50,7 @@ export type TransformationFailureReason =
 /**
  * Field mapper: маппит fieldName → domain accessor (decouples boundary от domain shape, позволяет переименовывать поля без breaking API)
  * @template TDomain - Тип domain объекта
+ *
  * @example mapper: DtoFieldMapper<RiskSignals> = (d, f) => f === 'isVpn' ? d.isVpn : f === 'isTor' ? d.isTor : undefined;
  */
 export type DtoFieldMapper<TDomain> = (
@@ -63,6 +61,7 @@ export type DtoFieldMapper<TDomain> = (
 /**
  * DTO Schema: versioned boundary contract (fields + mapper, объединяет whitelist и mapper для type-safe versioned DTO)
  * @template TDomain - Тип domain объекта
+ *
  * @example schema: DtoSchema<RiskSignals> = { fields: ['isVpn', 'isTor'], mapper: (d, f) => d[f] };
  */
 export type DtoSchema<TDomain> = Readonly<{
@@ -76,6 +75,7 @@ export type DtoSchema<TDomain> = Readonly<{
  * Projection slot: order-independent enrichment (возвращает contribution, не мутирует DTO, structural signals, не DTO-shape)
  * @template TDomain - Тип domain объекта
  * @requirements Детерминированность, order-independence, structural signals, безопасность, идемпотентность, composable
+ *
  * @example slot: ProjectionSlot<RiskSignals> = { name: 'geo', transform: (d) => ({ ok: true, value: d.previousGeo ? { previousGeo: d.previousGeo } : {} }) };
  */
 export type ProjectionSlot<TDomain> = Readonly<{

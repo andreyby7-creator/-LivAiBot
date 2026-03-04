@@ -3,15 +3,12 @@
  * ============================================================================
  * 🛡️ STORE UTILS — БЕЗОПАСНЫЕ ОБНОВЛЕНИЯ STORE С ЗАЩИТОЙ ОТ RACE CONDITIONS
  * ============================================================================
- *
  * Минимальный, чистый boundary-модуль для безопасных обновлений store
  * с защитой от race conditions.
- *
  * Архитектурная роль:
  * - Thread-safe обновления через atomic операции (локальный lock)
  * - Блокировка update при logout — безопасность
  * - Atomic updates — все обновления атомарны, исключают race conditions полностью
- *
  * Принципы:
  * - Zero business logic
  * - Zero telemetry (telemetry → observability layer)
@@ -20,7 +17,6 @@
  * - Zero store initialization (store initialization → store layer)
  * - Детерминированное поведение
  * - Полная thread-safety
- *
  * ⚠️ Важно: Atomic операции
  * - safeSet должен быть atomic: локальный lock предотвращает параллельные обновления
  * - Atomic merge — обновление состояния происходит атомарно
@@ -54,7 +50,6 @@ export type SafeSetOptions = {
   /**
    * Опциональный callback, вызываемый после успешного обновления store.
    * Позволяет внешнему слою observability отслеживать изменения без нарушения SRP.
-   *
    * @param newState - новое состояние store после обновления
    */
   readonly onUpdate?: ((newState: AppStoreState) => void) | undefined;
@@ -67,7 +62,6 @@ export type SafeSetOptions = {
 /**
  * Проверяет, заблокирован ли store (например, при logout).
  * Store блокируется для предотвращения обновлений во время процесса logout.
- *
  * @returns true, если store заблокирован, иначе false
  */
 export function isStoreLocked(): boolean {
@@ -77,7 +71,6 @@ export function isStoreLocked(): boolean {
 /**
  * Устанавливает флаг блокировки store.
  * Используется для блокировки обновлений во время logout.
- *
  * @param locked - флаг блокировки
  * @internal
  * Эта функция должна вызываться только из logout flow.
@@ -91,7 +84,6 @@ export function setStoreLocked(locked: boolean): void {
  * Store нельзя обновлять, если:
  * - Store заблокирован (isStoreLockedFlag === true)
  * - Пользователь не аутентифицирован (userStatus === 'anonymous')
- *
  * @param currentState - текущее состояние store
  * @returns true, если можно обновлять store, иначе false
  */
@@ -136,7 +128,6 @@ let isProcessingQueue = false;
 
 /**
  * Логирует предупреждение о блокировке обновления store.
- *
  * @param label - опциональный тег операции
  */
 function logBlockedUpdate(label: string | undefined): void {
@@ -153,7 +144,6 @@ function logBlockedUpdate(label: string | undefined): void {
 /**
  * Вызывает callback после успешного обновления store.
  * Игнорирует ошибки в callback, чтобы не нарушать основной flow обновления.
- *
  * @param onUpdate - callback для вызова
  */
 function invokeUpdateCallback(onUpdate: (newState: AppStoreState) => void): void {
@@ -172,7 +162,6 @@ function invokeUpdateCallback(onUpdate: (newState: AppStoreState) => void): void
 
 /**
  * Обрабатывает одну операцию обновления store.
- *
  * @param operation - операция для обработки
  * @returns true, если операция была успешно обработана, иначе false
  */
@@ -233,22 +222,18 @@ function processUpdateQueue(): void {
 
 /**
  * Безопасно обновляет store с защитой от race conditions и блокировкой при logout.
- *
  * Обеспечивает:
  * - 🛡️ Защита от race conditions — thread-safe обновления через atomic операции (локальный lock)
  * - 🚫 Блокировка update при logout — безопасность
  * - 🔒 Atomic updates — все обновления атомарны, исключают race conditions полностью
- *
  * @param partialState - частичное состояние для обновления (merge с текущим состоянием)
  * @param options - опции обновления (опционально)
- *
  * @throws {Error} Если store заблокирован или пользователь не аутентифицирован
  *
  * @example
  * ```ts
  * // Базовое использование
  * safeSet({ user: newUser }, { label: 'user-update' });
- *
  * // Обновление auth токенов
  * safeSet({
  *   auth: {
@@ -257,7 +242,6 @@ function processUpdateQueue(): void {
  *     expiresAt: Date.now() + 3600000,
  *   },
  * }, { label: 'auth-tokens-update' });
- *
  * // С callback для observability
  * safeSet(
  *   { user: newUser },

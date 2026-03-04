@@ -3,19 +3,15 @@
  * ============================================================================
  * 🟥 APP UI MODAL — UI МИКРОСЕРВИС MODAL
  * ============================================================================
- *
  * Единственная точка входа для Modal в приложении.
  * UI boundary между ui-core и бизнес-логикой.
- *
  * Ответственность:
  * - Policy (hidden / visibility)
  * - Telemetry
  * - Feature flags
- *
  * Не содержит:
  * - DOM-манипуляций кроме Core
  * - Платформенных эффектов
- *
  * Архитектурные решения:
  * - Анимации и transitions должны реализовываться в App слое через duration пропс
  * - CoreModal остается без анимаций для максимальной производительности и простоты
@@ -166,7 +162,6 @@ type ModalPolicy = Readonly<{
  * - DOM rendering
  * - telemetry
  * - visibility state
- *
  * Ни один consumer не имеет права повторно интерпретировать props.visible
  * или feature flags.
  */
@@ -343,16 +338,13 @@ ModalComponent.displayName = 'Modal';
 
 /**
  * UI-контракт Modal компонента.
- *
  * @contract
- *
  * Гарантируется:
  * - Детерминированный рендеринг без side effects (кроме telemetry)
  * - SSR-safe и concurrent rendering compatible
  * - Полная интеграция с централизованной telemetry системой
  * - Управление feature flags для скрытия модального окна
  * - Корректная обработка accessibility (focus management, ARIA)
- *
  * Инварианты:
  * - Focus trap работает корректно при открытии
  * - Overlay блокирует взаимодействие с остальным UI
@@ -360,7 +352,6 @@ ModalComponent.displayName = 'Modal';
  * - Telemetry payload содержит корректные размеры
  * - Telemetry отражает состояние policy, а не сырые props
  * - visible/hidden в payload являются производными только от policy
- *
  * Не допускается:
  * - Использование напрямую core Modal компонента
  * - Игнорирование feature flag логики

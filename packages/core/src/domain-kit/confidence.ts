@@ -3,12 +3,10 @@
  * ============================================================================
  * 🛡️ CORE — Domain Kit (Confidence)
  * ============================================================================
- *
  * Архитектурная роль:
  * - Generic confidence value для probability и uncertainty в domain-kit
  * - Confidence = числовое значение (0..1) с валидацией и операциями комбинирования
  * - Причина изменения: domain-kit, probability/uncertainty modeling, confidence aggregation
- *
  * Принципы:
  * - ✅ SRP: модульная структура (value object / operations / combiners factory)
  * - ✅ Deterministic: одинаковые входы → одинаковые результаты, строгая валидация весов
@@ -18,7 +16,6 @@
  * - ✅ Microservice-ready: runtime validation предотвращает cross-service inconsistency
  * - ✅ Scalable: extensible operations через function composition, Kahan summation для точности
  * - ✅ Security: runtime validation NaN/Infinity, assertValid для fail-fast
- *
  * ⚠️ ВАЖНО:
  * - ❌ НЕ включает domain-специфичные значения (HIGH/MEDIUM/LOW - это domain labels)
  * - ❌ НЕ определяет конкретные стратегии комбинирования (только contract через ConfidenceCombiner)
@@ -192,6 +189,7 @@ export const confidence = {
   /**
    * Создает confidence из числа с валидацией диапазона (0..1)
    * @template TDomain - Идентификатор домена
+   *
    * @example const result = confidence.create(0.85, 'risk'); if (result.ok) { const conf = result.value; // Confidence<'risk'> }
    * @public
    */
@@ -293,6 +291,7 @@ export const confidenceOperations = {
    * Безопасное комбинирование двух confidence значений с runtime валидацией
    * @template TDomain - Идентификатор домена
    * @note Предотвращает silent failure при data corruption между микросервисами
+   *
    * @example const combiner = confidenceCombiners.average(); const result = confidenceOperations.safeCombine(conf1, conf2, combiner); if (result !== undefined) { // Использовать результат }
    * @public
    */
@@ -511,6 +510,7 @@ export const confidenceCombiners = {
    * Создает chain combiner для последовательного применения нескольких combiners
    * @template TDomain - Идентификатор домена
    * @note Полезно для pipeline комбинирования в больших rule-engine
+   *
    * @example const chain = confidenceCombiners.chain(confidenceCombiners.average(), confidenceCombiners.maximum()); // Эквивалентно: maximum(average(a, b), b)
    * @public
    */

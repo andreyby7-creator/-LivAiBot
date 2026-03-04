@@ -1,6 +1,5 @@
 /**
  * @file @livai/ui-core/primitives — UI Примитивы
- *
  * Публичный API пакета primitives.
  * Экспортирует все публичные компоненты и типы для базовых UI примитивов.
  */
@@ -12,7 +11,6 @@
 /**
  * Button: базовая кнопка с вариантами стилей и размерами.
  * Поддерживает primary/secondary варианты, размеры sm/md/lg, fullWidth.
- *
  * @public
  */
 export { Button, type ButtonProps } from './button.js';
@@ -23,7 +21,6 @@ export { Button, type ButtonProps } from './button.js';
 
 /**
  * Input: текстовое поле ввода с поддержкой различных типов и состояний.
- *
  * @public
  */
 export { Input, type InputProps } from './input.js';
@@ -34,7 +31,6 @@ export { Input, type InputProps } from './input.js';
 
 /**
  * Textarea: многострочное текстовое поле ввода.
- *
  * @public
  */
 export { type CoreTextareaProps, Textarea } from './textarea.js';
@@ -45,7 +41,6 @@ export { type CoreTextareaProps, Textarea } from './textarea.js';
 
 /**
  * Select: выпадающий список для выбора одного значения.
- *
  * @public
  */
 export { type CoreSelectProps, Select } from './select.js';
@@ -56,7 +51,6 @@ export { type CoreSelectProps, Select } from './select.js';
 
 /**
  * Checkbox: чекбокс для выбора одного или нескольких значений.
- *
  * @public
  */
 export { Checkbox, type CoreCheckboxProps } from './checkbox.js';
@@ -67,7 +61,6 @@ export { Checkbox, type CoreCheckboxProps } from './checkbox.js';
 
 /**
  * Radio: радиокнопка для выбора одного значения из группы.
- *
  * @public
  */
 export { type CoreRadioProps, Radio } from './radio.js';
@@ -78,7 +71,6 @@ export { type CoreRadioProps, Radio } from './radio.js';
 
 /**
  * Toggle: переключатель для boolean значений.
- *
  * @public
  */
 export { type CoreToggleProps, Toggle } from './toggle.js';
@@ -89,7 +81,6 @@ export { type CoreToggleProps, Toggle } from './toggle.js';
 
 /**
  * Icon: компонент для отображения иконок.
- *
  * @public
  */
 export { type CoreIconProps, Icon } from './icon.js';
@@ -100,7 +91,6 @@ export { type CoreIconProps, Icon } from './icon.js';
 
 /**
  * Avatar: компонент для отображения аватара пользователя.
- *
  * @public
  */
 export { Avatar, type AvatarSize, type CoreAvatarProps } from './avatar.js';
@@ -111,7 +101,6 @@ export { Avatar, type AvatarSize, type CoreAvatarProps } from './avatar.js';
 
 /**
  * Badge: компонент для отображения бейджа/метки.
- *
  * @public
  */
 export { Badge, type BadgeSize, type BadgeVariant, type CoreBadgeProps } from './badge.js';
@@ -122,7 +111,6 @@ export { Badge, type BadgeSize, type BadgeVariant, type CoreBadgeProps } from '.
 
 /**
  * Tooltip: компонент для отображения подсказок при наведении.
- *
  * @public
  */
 export {
@@ -138,7 +126,6 @@ export {
 
 /**
  * Divider: компонент-разделитель для визуального разделения контента.
- *
  * @public
  */
 export { type CoreDividerProps, Divider, type DividerOrientation } from './divider.js';
@@ -149,7 +136,6 @@ export { type CoreDividerProps, Divider, type DividerOrientation } from './divid
 
 /**
  * Card: компонент карточки для группировки контента.
- *
  * @public
  */
 export { Card, type CardSize, type CardVariant, type CoreCardProps } from './card.js';
@@ -160,7 +146,6 @@ export { Card, type CardSize, type CardVariant, type CoreCardProps } from './car
 
 /**
  * FormField: компонент поля формы с лейблом и ошибкой.
- *
  * @public
  */
 export { FormField, type FormFieldProps } from './form-field.js';
@@ -171,7 +156,6 @@ export { FormField, type FormFieldProps } from './form-field.js';
 
 /**
  * Dialog: компонент диалогового окна.
- *
  * @public
  */
 export { type CoreDialogProps, Dialog } from './dialog.js';
@@ -182,7 +166,6 @@ export { type CoreDialogProps, Dialog } from './dialog.js';
 
 /**
  * Form: компонент формы для группировки полей ввода.
- *
  * @public
  */
 export { type CoreFormProps, Form } from './form.js';
@@ -193,7 +176,6 @@ export { type CoreFormProps, Form } from './form.js';
 
 /**
  * LoadingSpinner: компонент индикатора загрузки.
- *
  * @public
  */
 export {
@@ -209,7 +191,6 @@ export {
 
 /**
  * Dropdown: компонент выпадающего меню.
- *
  * @public
  */
 export { type CoreDropdownProps, Dropdown, type DropdownItem } from './dropdown.js';
@@ -220,7 +201,6 @@ export { type CoreDropdownProps, Dropdown, type DropdownItem } from './dropdown.
 
 /**
  * ContextMenu: компонент контекстного меню.
- *
  * @public
  */
 export {
@@ -236,7 +216,6 @@ export {
 
 /**
  * StatusIndicator: компонент индикатора статуса.
- *
  * @public
  */
 export {

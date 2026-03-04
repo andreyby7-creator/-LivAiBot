@@ -1,6 +1,5 @@
 /**
  * @file Unit тесты для packages/app/src/events/event-bus.ts
- *
  * Enterprise-grade тестирование EventBus с 100% покрытием:
  * - Конструктор и инициализация
  * - Subscribe/unsubscribe методы

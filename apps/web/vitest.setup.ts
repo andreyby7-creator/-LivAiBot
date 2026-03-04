@@ -5,7 +5,6 @@ import '@testing-library/jest-dom';
 
 /**
  * Setup файл для @livai/web
- *
  * Специфические моки для Next.js приложения.
  * Cleanup DOM уже включен в базовый package.setup.js
  */

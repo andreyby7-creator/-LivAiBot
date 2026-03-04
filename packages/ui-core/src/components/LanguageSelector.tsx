@@ -3,19 +3,16 @@
  * ============================================================================
  * 🔵 CORE UI LANGUAGE SELECTOR — PRESENTATIONAL PRIMITIVE
  * ============================================================================
- *
  * Роль:
  * - Базовый UI-компонент для выбора языка интерфейса
  * - Полностью управляемый компонент (не имеет внутреннего UI-состояния)
  * - SSR-safe, Concurrent-safe
- *
  * Не содержит:
  * - Feature flags
  * - Telemetry
  * - Управление состоянием выбранного языка
  * - Логику загрузки списка языков
  * - Бизнес-логику локализации
- *
  * Управление:
  * - Списком языков и выбором управляет App-слой
  */
@@ -566,7 +563,6 @@ CoreLanguageSelectorComponent.displayName = 'CoreLanguageSelector';
  *   onToggle={() => setIsDropdownOpen(!isDropdownOpen)}
  *   onClose={() => setIsDropdownOpen(false)}
  * />
- *
  * // Компактный селектор с кодами
  * <LanguageSelector
  *   languages={languages}
@@ -579,7 +575,6 @@ CoreLanguageSelectorComponent.displayName = 'CoreLanguageSelector';
  *   onToggle={handleToggle}
  *   onClose={handleClose}
  * />
- *
  * // Отключенный селектор
  * <LanguageSelector
  *   languages={languages}
@@ -609,13 +604,10 @@ export const LanguageSelector = memo(CoreLanguageSelectorComponent);
  * - --language-selector-option-active-bg: фон активной опции (default: #DBEAFE)
  * - --language-selector-option-active-text-color: цвет текста активной опции (default: #1E40AF)
  * - --language-selector-code-color: цвет кодов языков (default: #6B7280)
- *
  * @contract Data Attributes (для QA)
- *
  * Компонент добавляет следующие data-атрибуты для тестирования и отладки.
  * Все атрибуты используют консистентную схему строковых значений.
  * QA должен использовать именно эти строковые значения для селекторов:
- *
  * - data-component="CoreLanguageSelector": идентификатор компонента
  * - data-size: строго "small" | "medium" | "large" (размер отображения)
  * - data-variant: строго "default" | "compact" | "minimal" (вариант отображения)

@@ -3,18 +3,15 @@
  * ============================================================================
  * 🔵 CORE UI DIALOG — МОДАЛЬНЫЙ ПРИМИТИВ
  * ============================================================================
- *
  * Роль:
  * - Абстракция модального окна для всех UI wrapper'ов приложения
  * - Управляет backdrop, фокусом, escape/backdrop закрытием
  * - Полностью platform- и accessibility-ready
- *
  * Интеграции:
  * - accessibility ✓ (role=dialog, aria-modal, focus trap)
  * - layering ✓ (zIndex, portal)
  * - side-effects изолированы (focus, scroll lock)
  * - performance ✓ (memo, useMemo, useCallback)
- *
  * Принципы:
  * - DOM и визуальные эффекты внутри core
  * - Wrapper проксирует policy и handlers

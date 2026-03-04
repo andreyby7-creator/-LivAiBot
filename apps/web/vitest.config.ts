@@ -12,7 +12,6 @@ const __dirname = resolve(__filename, '..');
 
 /**
  * Конфигурация Vitest для @livai/web
- *
  * Next.js приложение с уникальными требованиями тестирования:
  * - jsdom для React компонентов
  * - Next.js специфические моки

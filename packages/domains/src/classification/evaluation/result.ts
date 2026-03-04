@@ -3,13 +3,10 @@
  * ============================================================================
  * 🎯 DOMAINS — Classification Evaluation Result (Domain-Specific Evaluation Result)
  * ============================================================================
- *
  * Domain-specific evaluation result для classification domain.
  * Использует generic типы из @livai/core/domain-kit для type safety.
- *
  * Архитектура: библиотека из 1 модуля
  * - ClassificationEvaluationResult: полный результат оценки классификации с orchestration данными
- *
  * Принципы:
  * - ✅ SRP: модульная структура (только типы результата оценки)
  * - ✅ Deterministic: одинаковые входы → одинаковые результаты, без side-effects
@@ -39,19 +36,15 @@ import type { ClassificationRule } from '../strategies/rules.js';
  * Результат оценки классификации
  * Production-grade модель для policy-engine и explainability
  * Использует generic типы из @livai/core/domain-kit для type safety между доменами
- *
  * Содержит полный результат orchestration из domains:
  * - evaluationLevel, confidence, label, scale (generic decision algebra)
  * - riskScore, riskLevel, triggeredRules (orchestration данные для feature layer)
- *
  * @note Invariant: label и evaluationLevel должны быть согласованы (SAFE → низкий уровень, DANGEROUS → высокий уровень)
  *       Проверка invariant выполняется на уровне factory/validation layer, не на type-level
  *       Type-level проверка требует factory layer с runtime validation
- *
  * @note Архитектурный принцип: вся orchestration логика (scoring, rules, decision) находится в domains.
  *       Feature layer (auth, billing, etc.) получает полный результат и только маппит/применяет его.
  *       Это обеспечивает single source of truth и предотвращает leaking abstraction.
- *
  * @public
  */
 export type ClassificationEvaluationResult = Readonly<{
@@ -90,6 +83,7 @@ export type ClassificationEvaluationResult = Readonly<{
    * Используется для отслеживания, какие сигналы повлияли на результат
    * Строгая типизация через keyof ClassificationSignals предотвращает передачу несуществующих ключей
    * Автоматически синхронизируется с domain, предотвращает drift
+   *
    * @example ['reputationScore', 'velocityScore', 'isVpn']
    * @public
    */

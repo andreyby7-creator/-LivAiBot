@@ -3,15 +3,12 @@
  * ============================================================================
  * 🎯 DOMAINS — Classification Rules Configuration (Dynamic Configuration)
  * ============================================================================
- *
  * Динамическая конфигурация для classification rules.
  * Поддерживает обновление конфигурации без перекомпиляции.
- *
  * Архитектурная роль:
  * - Динамическая конфигурация правил (thresholds, high-risk countries)
  * - Поддержка versioned rules для A/B testing и staged rollouts
  * - Feature flags для постепенного включения правил с rollout percentage
- *
  * Принципы:
  * - ✅ Dynamic — конфигурация может обновляться runtime через updateClassificationRulesConfig
  * - ✅ Extensible — RuleThresholds поддерживает динамические пороги через Record<string, number>

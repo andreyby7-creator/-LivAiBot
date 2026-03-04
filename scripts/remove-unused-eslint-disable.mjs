@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 /**
  * @file Скрипт для удаления неиспользуемых eslint-disable директив
- * 
  * Использует ESLint API для проверки неиспользуемых директив и удаляет их.
  * Поддерживает любые правила, включая @typescript-eslint/prefer-readonly-parameter-types.
  */

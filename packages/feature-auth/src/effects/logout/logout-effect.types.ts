@@ -3,7 +3,6 @@
  * ============================================================================
  * 🔐 FEATURE-AUTH — Logout Effect DI Types
  * ============================================================================
- *
  * Архитектурная роль:
  * - Определяет DI-контракт для logout-effect до реализации самой логики
  * - Фиксирует строгий портовый DI-контракт для security-критичного эффекта
@@ -29,10 +28,8 @@ export type { ApiRequestOptions, AuthApiClientPort } from '../shared/api-client.
 
 /**
  * Режим logout-операции.
- *
  * - `local` — локальный logout без API-запроса (только reset store)
  * - `remote` — удалённый logout с revoke-запросом (reset store + API best-effort)
- *
  * @note Разделение режимов позволяет явно контролировать зависимости через discriminated unions.
  *       Compile-time гарантии: local не требует apiClient/errorMapper, remote требует.
  */
@@ -40,11 +37,9 @@ export type LogoutMode = 'local' | 'remote';
 
 /**
  * Решение security-политики для logout-flow.
- *
  * @note Все варианты — объектные, чтобы union оставался однородным и расширяемым:
  * - базовые решения: allow / block
  * - кастомные решения rule-engine: { type: 'custom', code: string, metadata?: unknown }
- *
  * @note `metadata` в custom-решении позволяет расширять контракт без breaking changes:
  *       rule-engine может передавать дополнительный payload для обработки в effects.
  */
@@ -55,9 +50,7 @@ export type LogoutSecurityDecision =
 
 /**
  * Aggregated security result для logout-effect.
- *
  * Тонкий projection результата security-pipeline для logout-effect (аналогично LoginSecurityResult).
- *
  * @note Logout-effect использует только projection-поля (decision/riskScore/riskLevel) для принятия решений.
  *       Полный `SecurityPipelineResult` прокидывается в metadata/store-updater без модификации.
  */
@@ -70,11 +63,9 @@ export type LogoutSecurityResult = Readonly<{
 
 /**
  * Стратегия конкурентных вызовов logout-effect.
- *
  * - `ignore` — новый вызов игнорируется, пока предыдущий не завершится
  * - `cancel_previous` — активный вызов отменяет предыдущий через AbortController
  * - `serialize` — вызовы ставятся в очередь и выполняются по одному
- *
  * @note Для logout обычно используется 'ignore' (idempotency через проверку состояния).
  *       Isolation guard не обязателен, если concurrency = 'ignore'.
  */
@@ -157,11 +148,9 @@ type RemoteLogoutEffectDeps = Readonly<{
 
 /**
  * DI-зависимости logout-effect (discriminated union для compile-time safety).
- *
  * Структура зависит от режима:
  * - `local` — только базовые зависимости (authStore, clock, auditLogger)
  * - `remote` — базовые + remote зависимости (apiClient, errorMapper, опционально abortController)
- *
  * @note Discriminated union обеспечивает compile-time гарантии: компилятор не позволит передать
  *       remote конфигурацию без обязательных deps. Все side-effects только через порты.
  */
@@ -176,7 +165,6 @@ export type LogoutEffectDeps =
 
 /**
  * Config для logout-effect (timeouts, feature-flags, concurrency).
- *
  * @note `timeout` доступен только в remote mode (compile-time гарантия).
  *       Все политики/режимы prod/dev вычисляются на уровне composer'а.
  */
@@ -184,7 +172,6 @@ export type LogoutFeatureFlags = Readonly<{
   /**
    * Резерв под future-флаги logout-flow.
    * @note Закрытый set: новые флаги добавляются явным образом, без generic map вида Record<string, boolean>.
-   *
    * Примеры будущих флагов:
    * - forceRemoteLogout?: boolean;
    * - skipAuditLogging?: boolean;

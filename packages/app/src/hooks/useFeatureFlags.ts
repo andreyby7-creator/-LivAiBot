@@ -3,13 +3,11 @@
  * ============================================================================
  * 🚩 USE FEATURE FLAGS — FLUENT API ДЛЯ ФЛАГОВ
  * ============================================================================
- *
  * Назначение:
  * - Typed доступ к feature flags через Zustand selectors
  * - Dev-only toggle для локальной отладки
  * - SSR-safe snapshot чтение через useSyncExternalStore
  * - Стабильный и чистый API через useMemo/useCallback
- *
  * Границы ответственности:
  * - Чтение и управление флагами
  * - Dev-only toggle и overrides
@@ -76,12 +74,10 @@ function getCombinedFlags(state: ReturnType<typeof featureFlagsStore.getState>):
 
 /**
  * SSR-safe hook для чтения и управления feature flags.
- *
  * Использует:
  * - Zustand selectors для локальных изменений и overrides
  * - useSyncExternalStore для согласованного snapshot в SSR/CSR
  * - useMemo/useCallback для стабильного API
- *
  * ⚠️ Snapshot — readonly, любые изменения только через `actions`.
  */
 export function useFeatureFlags(): UseFeatureFlagsApi {

@@ -1,7 +1,6 @@
 /**
  * @vitest-environment jsdom
  * @file Unit тесты для packages/app/src/lib/performance.ts
- *
  * Enterprise-grade тестирование системы мониторинга производительности с 90-100% покрытием:
  * - Core Web Vitals метрики и их сбор
  * - Рендеринг компонентов и API вызовов

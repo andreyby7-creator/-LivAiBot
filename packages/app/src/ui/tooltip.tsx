@@ -3,15 +3,12 @@
  * ============================================================================
  * 🟥 APP UI TOOLTIP — UI МИКРОСЕРВИС TOOLTIP
  * ============================================================================
- *
  * Единственная точка входа для Tooltip в приложении.
  * UI boundary между ui-core и бизнес-логикой.
- *
  * Ответственность:
  * - Policy (hidden / visibility)
  * - Telemetry
  * - Feature flags
- *
  * Не содержит:
  * - DOM-манипуляций
  * - платформенных эффектов
@@ -158,7 +155,6 @@ type TooltipPolicy = Readonly<{
  * - DOM rendering
  * - telemetry
  * - visibility state
- *
  * Ни один consumer не имеет права повторно интерпретировать props.visible
  * или feature flags.
  */
@@ -326,16 +322,13 @@ TooltipComponent.displayName = 'Tooltip';
 
 /**
  * UI-контракт Tooltip компонента.
- *
  * @contract
- *
  * Гарантируется:
  * - Детерминированный рендеринг без side effects (кроме telemetry)
  * - SSR-safe и concurrent rendering compatible
  * - Полная интеграция с централизованной telemetry системой
  * - Управление feature flags для скрытия подсказок
  * - Корректное позиционирование относительно trigger элемента
- *
  * Инварианты:
  * - Tooltip появляется только при hover/focus trigger элемента
  * - Автоматическое позиционирование избегает viewport границ
@@ -343,7 +336,6 @@ TooltipComponent.displayName = 'Tooltip';
  * - Telemetry payload содержит корректные размеры
  * - Telemetry отражает состояние policy, а не сырые props
  * - visible/hidden в payload являются производными только от policy
- *
  * Не допускается:
  * - Использование напрямую core Tooltip компонента
  * - Игнорирование feature flag логики

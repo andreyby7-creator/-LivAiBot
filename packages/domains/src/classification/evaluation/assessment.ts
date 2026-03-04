@@ -3,19 +3,16 @@
  * ============================================================================
  * 🎯 DOMAINS — Classification Assessment Logic (Evaluation Layer)
  * ============================================================================
- *
  * Архитектурная роль:
  * Assessment logic для финальной сборки результата оценки классификации.
  * Отдельный слой для сборки assessment context и финального результата.
  * Экспортируется через evaluation/index.ts.
- *
  * Принципы:
  * - ✅ Pure domain — детерминированная функция, одинаковый вход → одинаковый выход
  * - ✅ No side-effects — изолирован от effects layer (audit/logging)
  * - ✅ SRP — только assessment logic, не содержит validation/rule evaluation
  * - ✅ Domain-focused — classification-специфичная логика для финальной сборки результата
  * - ✅ Immutable — все функции возвращают frozen объекты
- *
  * @note Rule evaluation в strategies/deterministic.strategy.ts, scoring в aggregation/,
  *       decision logic в policies/, context builders в strategies/
  * @note Evaluation layer не меняет rule/policy-правила:
@@ -45,12 +42,10 @@ import type { ClassificationRule, DeviceInfo } from '../strategies/rules.js';
 /**
  * Контекст для assessment logic
  * Содержит всю информацию, необходимую для финальной сборки assessment result
- *
  * @note Security: не сериализуется напрямую, только через {@link assembleAssessmentResultFromContext}
  *       (предотвращает leakage полей, инжектированных плагинами)
  * @note Scalability: для больших структур (1000+ rules) рекомендуется использовать summary
  *       вместо полного rule evaluation result (используется компактный RuleEvaluationSnapshot)
- *
  * @public
  */
 export type AssessmentContext = Readonly<{
@@ -89,7 +84,6 @@ export type BuildAssessmentContextOptions = Readonly<{
 
 /**
  * Плагин для расширения assessment context
- *
  * @contract Плагины ОБЯЗАНЫ возвращать полностью immutable объекты.
  *           {@link Object.freeze} применяется только на верхнем уровне (shallow freeze),
  *           плагин должен обеспечить immutability всех вложенных структур.
@@ -97,7 +91,6 @@ export type BuildAssessmentContextOptions = Readonly<{
  *       контекст не сериализуется напрямую, см. {@link AssessmentContext})
  * @note Trust boundary: для внешних (не trusted) плагинов в adapter/orchestrator слое
  *       рекомендуется валидация допустимых полей до передачи в domain-layer.
- *
  * @public
  */
 export type AssessmentContextBuilderPlugin = Readonly<{
@@ -342,7 +335,6 @@ function applyAssessmentPlugins(
  * @note evaluationLevel/confidence/scale вычисляются здесь из snapshot и riskScore (evaluation-layer ответственность)
  * @note Слой не пересчитывает rule-результаты и не меняет policy-правила,
  *       а только применяет decision policy к уже собранному assessment context.
- *
  * @internal
  */
 function assembleAssessmentResult(

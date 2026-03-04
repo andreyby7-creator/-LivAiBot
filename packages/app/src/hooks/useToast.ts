@@ -3,13 +3,11 @@
  * ============================================================================
  * 🍞 USE TOAST — FLUENT API ДЛЯ УВЕДОМЛЕНИЙ
  * ============================================================================
- *
  * Назначение:
  * - Тонкий orchestration-слой поверх ToastProvider
  * - Fluent API: success/error/warning/info/loading/promise
  * - Стабильные ссылки (useMemo/useCallback)
  * - Telemetry только для warning/error
- *
  * Границы ответственности:
  * - Без бизнес-логики
  * - Без optimistic/cache семантики

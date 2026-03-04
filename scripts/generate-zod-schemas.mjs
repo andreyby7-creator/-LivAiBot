@@ -1,16 +1,12 @@
 #!/usr/bin/env node
 /**
  * @file Генерация Zod-схем из OpenAPI снапшотов.
- *
  * Этот файл является частью contract pipeline:
  * FastAPI → OpenAPI snapshot → (этот файл) → Zod schemas → Frontend runtime validation
- *
  * Источник истины:
  * - `services/<service>/openapi.json` (генерируется из FastAPI `app.openapi()`)
- *
  * Выход:
  * - `packages/core-contracts/src/validation/zod/generated/<service>.ts`
- *
  * ⚠️ Сгенерированные файлы перезаписываются при каждом запуске.
  */
 

@@ -3,19 +3,15 @@
  * ============================================================================
  * 🟥 APP UI DIVIDER — UI МИКРОСЕРВИС DIVIDER
  * ============================================================================
- *
  * Единственная точка входа для Divider в приложении.
  * UI boundary между ui-core и бизнес-логикой.
- *
  * Ответственность:
  * - Policy (hidden / visibility)
  * - Telemetry
  * - Feature flags
- *
  * Не содержит:
  * - DOM-манипуляций
  * - платформенных эффектов
- *
  * Пример использования:
  * <Divider orientation="vertical" thickness={2} color="red" length="50px" />
  */
@@ -226,22 +222,18 @@ DividerComponent.displayName = 'Divider';
 
 /**
  * UI-контракт Divider компонента.
- *
  * @contract
- *
  * Гарантируется:
  * - Детерминированный рендеринг без side effects (кроме telemetry)
  * - SSR-safe и concurrent rendering compatible
  * - Полная интеграция с централизованной telemetry системой
  * - Управление feature flags для скрытия разделителей
  * - Корректное применение CSS размеров (thickness)
- *
  * Инварианты:
  * - Всегда возвращает валидный JSX.Element или null
  * - CSS размеры применяются корректно через thickness prop
  * - Feature flags полностью изолированы от Core логики
  * - Orientation (horizontal/vertical) работает корректно
- *
  * Не допускается:
  * - Использование напрямую core Divider компонента
  * - Переопределение размеров через CSS вместо props

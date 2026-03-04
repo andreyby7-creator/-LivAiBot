@@ -1,6 +1,5 @@
 /**
  * @file packages/feature-auth/src/effects/logout — Logout Effects
- *
  * Публичный API пакета logout effects.
  * Экспортирует все публичные эффекты для logout-flow.
  */
@@ -11,10 +10,8 @@
 
 /**
  * Logout Effect DI Types: публичный DI-контракт для logout-effect.
- *
  * @note Общие типы (`AbortControllerPort`, `ClockPort`, `ErrorMapperPort`, `ApiRequestOptions`, `AuthApiClientPort`)
  *       доступны через `./login/index.js` или `./shared/index.js` и не дублируются здесь.
- *
  * @public
  */
 export type {
@@ -41,7 +38,6 @@ export {
 
 /**
  * Logout Store Updater: единая точка reset всех состояний аутентификации при logout.
- *
  * @public
  */
 export { applyLogoutReset } from './logout-store-updater.js';

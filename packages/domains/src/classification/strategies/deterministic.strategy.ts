@@ -3,29 +3,24 @@
  * ============================================================================
  * 🎯 DOMAINS — Classification Deterministic Strategy (Pure Domain Logic)
  * ============================================================================
- *
  * Архитектурная роль:
  * Deterministic strategy-слой для оценки классификации через локальные правила.
  * Использует generic rule-engine из @livai/core, формирует минимальный rule snapshot
  * и делегирует финальную сборку результата в evaluation layer.
- *
  * Принципы:
  * - ✅ Pure domain engine — детерминированная функция, одинаковый вход → одинаковый выход
  * - ✅ No side-effects — изолирован от effects layer (audit/logging), не мутирует внешнее состояние
  * - ✅ Testable — легко тестируется без моков внешних зависимостей
  * - ✅ Domain-focused — стратегия локальных правил без IO и инфраструктурных зависимостей
  * - ✅ SRP — валидация, context building, rule evaluation и сборка промежуточного результата разделены
- *
  * Масштабируемость: мемоизация genericRules, единый проход через evaluator.evaluateAll,
  * фильтрация по minPriority, детерминированный порядок plugin-расширений.
  * @note Scoring приходит из aggregation/, decision label рассчитывается через policies/
  *       (`determineRiskLevel` / `determineLabel`), финальная сборка выполняется в evaluation/.
- *
  * Актуальная архитектура:
  *   Strategy → validation + ruleContext + triggeredRules + minimal snapshot
  *   Policies → riskLevel/label decision
  *   Evaluation layer → evaluationLevel/confidence/label/scale и финальная сборка результата
- *
  * @note Публичный API `evaluateClassificationRules` сохранен; добавлен
  *       `evaluateClassificationRulesSnapshot` для composition-layer без дублирования финальной сборки.
  */

@@ -3,13 +3,11 @@
  * ============================================================================
  * 🔐 FEATURE-AUTH — RegisterResponse DTO
  * ============================================================================
- *
  * Архитектурная роль:
  * - Типизированный контракт ответа регистрации
  * - Возвращает токены, MFA вызовы или подтверждение аккаунта
  * - Поддержка OAuth, multi-factor authentication (MFA)
  * - Immutable, extensible, future-proof
- *
  * Принципы:
  * - ❌ Нет бизнес-логики
  * - ✅ Полная типизация
@@ -26,7 +24,6 @@
  *   tokenPair: { accessToken: 'abc', refreshToken: 'xyz', expiresAt: '2026-12-31T23:59:59Z' },
  *   mfaRequired: false
  * };
- *
  * // MFA required
  * const mfaResp: RegisterResponse<'email'> = {
  *   dtoVersion: '1.0',
@@ -34,7 +31,6 @@
  *   mfaChallenge: { type: 'totp', secret: 'xxxxxx' },
  *   mfaRequired: true
  * };
- *
  * // OAuth регистрация
  * const oauthResp: RegisterResponse<'oauth'> = {
  *   dtoVersion: '1.0',

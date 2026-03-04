@@ -3,7 +3,6 @@
  * ============================================================================
  * 🔐 FEATURE-AUTH — LoginRiskAssessment DTO
  * ============================================================================
- *
  * Архитектурная роль:
  * - Domain-типы для оценки риска аутентификации
  * - Используется при login / refresh / sensitive actions
@@ -12,7 +11,6 @@
  * - Signals остаются в adapter/classification слое, не попадают в domain
  * - Risk-engine и vendor agnostic
  * - ⚠️ Конфиденциальность: LoginRiskContext содержит PII (IP, geo, device) - помечен как @internal
- *
  * Принципы:
  * - ❌ Нет бизнес-логики (кроме pure функций: deriveLoginDecision, createRiskScore, createRiskModelVersion)
  * - ✅ Полная типизация (без Record, index signatures, generic-map структур)
@@ -108,6 +106,7 @@ export const RiskReasonCode = {
  * @note Маппится из triggeredRules в adapter-слое, без generic-map структур
  * @note Категоризация позволяет группировать и анализировать причины
  * @note Использует константы RiskReasonType и RiskReasonCode для refactor safety
+ *
  * @example { type: RiskReasonType.NETWORK; code: RiskReasonCode.NETWORK.VPN }
  */
 export type RiskReason =
@@ -161,6 +160,7 @@ export type DeviceRiskInfo = {
  * @note Только результат вычислений, без входного контекста
  * @note Decision вычисляется через deriveLoginDecision(level) и включается в result
  * @note Соответствует roadmap: score, level, decision, reasons
+ *
  * @example { score: 75, level: 'high', decision: 'block', reasons: [{ type: RiskReasonType.NETWORK, code: RiskReasonCode.NETWORK.VPN }], modelVersion: '1.0' }
  */
 export type LoginRiskResult = {

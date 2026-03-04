@@ -2,7 +2,6 @@ import type { z, ZodError } from 'zod';
 
 /**
  * @file Хелперы для i18n-форматирования ошибок Zod.
- *
  * Намеренно минимально: UI слой может маппить коды/пути на локализованные сообщения.
  */
 export type ZodI18nT = (key: string) => string | undefined;

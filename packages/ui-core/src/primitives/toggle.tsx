@@ -3,14 +3,12 @@
  * ============================================================================
  * 🔵 CORE UI TOGGLE — BEHAVIORAL PRIMITIVE
  * ============================================================================
- *
  * Роль:
  * - Базовый UI-примитив для Toggle/Switch
  * - Управляет DOM side-effects:
  *   - autoFocus (без прокрутки страницы)
  *   - platform-поведением
  * - Полностью deterministic, SSR-safe и side-effect isolated
- *
  * Не содержит:
  * - feature flags
  * - telemetry
@@ -31,14 +29,12 @@ export type CoreToggleProps = Readonly<
     /**
      * Автофокус при монтировании компонента.
      * Выполняется без скролла страницы.
-     *
      * @default false
      */
     autoFocus?: boolean;
 
     /**
      * Состояние toggle.
-     *
      * @important Всегда используйте контролируемое состояние (checked) для предсказуемости
      * в concurrent rendering. defaultChecked НЕ ИСПОЛЬЗУЙТЕ - может вызывать расхождения
      * между DOM и React state, особенно в strict mode и concurrent features.
@@ -48,7 +44,6 @@ export type CoreToggleProps = Readonly<
     /**
      * Неопределённое состояние toggle (indeterminate).
      * Используется для частично выбранных состояний.
-     *
      * @default false
      */
     indeterminate?: boolean;
@@ -111,13 +106,11 @@ const CoreToggleComponent = forwardRef<HTMLInputElement, CoreToggleProps>(
 
 /**
  * Memoized CoreToggle.
- *
  * Гарантии:
  * - Никаких скрытых side-effects
  * - Предсказуемый жизненный цикл
  * - Полная совместимость с strict-mode и concurrent rendering
  * - Поддержка ref forwarding для form-libs и программного доступа
- *
  * Подходит для:
  * - форм
  * - фильтров

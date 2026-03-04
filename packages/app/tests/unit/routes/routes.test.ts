@@ -1,6 +1,5 @@
 /**
  * @file Unit тесты для packages/app/src/routes/routes.ts
- *
  * Enterprise-grade тестирование routing системы с 100% покрытием:
  * - RouteNames константы и их синхронизация с ROUTES
  * - ROUTES массив и его структура

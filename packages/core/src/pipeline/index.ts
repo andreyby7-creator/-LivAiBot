@@ -1,6 +1,5 @@
 /**
  * @file @livai/core/pipeline — Dependency-Driven Pipeline Engine API
- *
  * Публичный API пакета pipeline.
  * Экспортирует все публичные компоненты, типы и утилиты для dependency-driven execution engine.
  */
@@ -14,7 +13,6 @@
  * Типы для dependency-driven pipeline execution engine.
  * StagePlugin для стадий pipeline, StageContext для контекста выполнения,
  * StageResult для effect-based API, PipelineConfig для конфигурации.
- *
  * @public
  */
 
@@ -42,7 +40,6 @@ export {
  * Validation: функции для валидации plugin и конфигурации pipeline.
  * validatePlugin проверяет структуру и типы plugin.
  * validatePipelineConfig проверяет конфигурацию pipeline.
- *
  * @public
  */
 
@@ -57,7 +54,6 @@ export { validatePipelineConfig, validatePlugin } from './plugin-api.js';
  * Factory Helpers: функции для создания стадий с улучшенным type inference.
  * defineStage гарантирует tuple type для provides через const assertion.
  * defineFallback создает fallback стадии (side-effect only).
- *
  * @public
  */
 
@@ -74,7 +70,6 @@ export { defineFallback, defineStage } from './plugin-api.js';
  * топологической сортировкой и построением индексов для O(1) lookup.
  * ExecutionPlanError содержит типизированные ошибки построения плана.
  * Generic по TSlotMap, domain-agnostic, детерминированный.
- *
  * @public
  */
 
@@ -94,7 +89,6 @@ export type { ExecutionPlan, ExecutionPlanError } from './plan.js';
 /**
  * Engine: типы и фабрика для выполнения скомпилированного execution plan.
  * createPipelineEngine создает immutable engine с deterministic orchestration.
- *
  * @public
  */
 
@@ -110,7 +104,6 @@ export type { ExecutionState, StageExecutionResult } from './engine.js';
 /**
  * Facade: единая точка входа для compile / execute / compile+execute
  * с rule-engine и расширяемыми обработчиками.
- *
  * @public
  */
 
@@ -146,7 +139,6 @@ export type {
  * resolveFeatureFlag возвращает полный результат с метаданными для observability.
  * Поддерживает multiple sources (tenant, user bucket, traffic percentage) с приоритетами.
  * Generic по контексту, domain-agnostic, детерминированный.
- *
  * @public
  */
 
@@ -184,7 +176,6 @@ export type {
  * applyRuntimeOverrides применяет overrides к конфигурации pipeline.
  * Поддерживает injectable env provider для deterministic testing.
  * Generic по конфигурации, domain-agnostic, детерминированный.
- *
  * @public
  */
 
@@ -226,7 +217,6 @@ export type {
  * normalizePipelineError нормализует ошибки в типизированный PipelineError.
  * pipelineErrorToStageFailureReason преобразует PipelineError в StageFailureReason.
  * pipelineErrorToStageError преобразует PipelineError в StageError.
- *
  * @public
  */
 
@@ -277,7 +267,6 @@ export type {
  * updateSafetyGuardState обновляет состояние guard'а с новыми метриками.
  * Поддерживает extensible rule engine с приоритетами и event hooks для мониторинга.
  * Generic по метрикам и конфигурации rollout, domain-agnostic, детерминированный.
- *
  * @public
  */
 
@@ -322,7 +311,6 @@ export type {
  * captureReplayEvent сохраняет событие (если включено и проходит фильтры).
  * Поддерживает extensible filter engine и sanitizer engine для PII removal.
  * Generic по типам событий, контекста и метаданных, domain-agnostic, детерминированный.
- *
  * @public
  */
 
@@ -366,7 +354,6 @@ export type {
  * createRuntimeAdapter создает generic адаптер для любого runtime'а.
  * withTimeout добавляет таймаут к pipeline эффекту.
  * Generic по типам результата и runtime, domain-agnostic, детерминированный.
- *
  * @public
  */
 

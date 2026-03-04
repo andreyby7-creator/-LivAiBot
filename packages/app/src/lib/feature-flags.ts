@@ -3,9 +3,7 @@
  * ============================================================================
  * 🔹 FEATURE FLAGS CORE — ПЛАТФОРМЕННОЕ ЯДРО УПРАВЛЕНИЯ ФУНКЦИОНАЛОМ
  * ============================================================================
- *
  * Уровень: Platform / Infrastructure kernel
- *
  * Свойства:
  * - детерминированность
  * - отказоустойчивость
@@ -108,7 +106,6 @@ export type FeatureFlagLogger = (message: string, error?: unknown) => void;
  * setGlobalFeatureFlagLogger((message, error) => {
  *   telemetry.error('FeatureFlag', message, { error });
  * });
- *
  * // Теперь все стратегии будут использовать этот logger
  * const strategy = percentageRollout(50);
  * ```
@@ -170,10 +167,8 @@ export const alwaysOff: FeatureFlagStrategy = () => false;
 
 /**
  * Создает стратегию для пользователей.
- *
  * Принцип: функциональная чистота и иммутабельность.
  * Set создается в локальном замыкании при каждом вызове.
- *
  * Оптимизация: стратегии должны создаваться один раз при старте сервиса,
  * а не на каждый запрос. Для миллионов пользователей рассмотрите
  * отдельный оптимизированный кэш на уровне сервиса.
@@ -203,10 +198,8 @@ export function enabledForUsers(
 
 /**
  * Создает стратегию для тенантов.
- *
  * Принцип: функциональная чистота и иммутабельность.
  * Set создается в локальном замыкании при каждом вызове.
- *
  * Оптимизация: стратегии должны создаваться один раз при старте сервиса,
  * а не на каждый запрос. Для миллионов пользователей рассмотрите
  * отдельный оптимизированный кэш на уровне сервиса.
@@ -562,7 +555,6 @@ export const FeatureFlagOverrideContext = React.createContext<FeatureFlagOverrid
  *     'SYSTEM_new_ui': true,
  *     'SYSTEM_telemetry_enabled': false,
  *   };
- *
  *   return (
  *     <FeatureFlagOverrideProvider overrides={overrides}>
  *       <MyApp />
@@ -591,7 +583,6 @@ export const FeatureFlagOverrideProvider: React.FC<{
  * ```typescript
  * function MyComponent() {
  *   const isNewFeatureEnabled = useFeatureFlagOverride('SYSTEM_new_feature', false);
- *
  *   return isNewFeatureEnabled ? <NewFeature /> : <OldFeature />;
  * }
  * ```

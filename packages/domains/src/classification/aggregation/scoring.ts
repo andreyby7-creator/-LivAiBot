@@ -3,18 +3,15 @@
  * ============================================================================
  * 🎯 DOMAINS — Classification Risk Scoring (Aggregation Semantics)
  * ============================================================================
- *
  * Архитектурная роль:
  * Aggregation layer для расчета risk score на основе факторов классификации.
  * Использует generic aggregation semantics из @livai/core.
- *
  * Основные компоненты:
  * - RiskFactor: тип для факторов риска с name, weight, compute
  * - RiskWeights: конфигурация весов для scoring (device, geo, network, velocity)
  * - factorsRegistry: дефолтный registry факторов
  * - calculateRiskScore: основной API для расчета risk score с RiskWeights
  * - calculateRiskScoreWithCustomFactors: API для расчета с кастомными факторами
- *
  * Принципы:
  * - ✅ Aggregation semantics — scoring = aggregation, НЕ в strategies
  * - ✅ Pure domain — детерминированная функция, одинаковый вход → одинаковый выход (без randomness, IO, глобального состояния)
@@ -133,7 +130,6 @@ const GEO_RISK_SCORES = Object.freeze(
 /**
  * Фактор риска для scoring
  * Registry-style архитектура позволяет динамически добавлять новые факторы
- *
  * @public
  */
 export type RiskFactor = Readonly<{
@@ -150,7 +146,6 @@ export type RiskFactor = Readonly<{
  * Веса суммируются в 1.0 для нормализованного weighted scoring
  * @note Валидация: сумма весов должна быть близка к 1.0 (0.9-1.1 для учета числовой точности)
  * @note Каждый вес должен быть в диапазоне 0.0-1.0
- *
  * @public
  */
 export type RiskWeights = Readonly<{
@@ -201,7 +196,6 @@ export function validateRiskWeights(
  * @note Веса валидированы: сумма = 1.0, каждый вес в диапазоне 0.0-1.0
  * @note Immutable: защищены от мутаций через Object.freeze
  * @note Deterministic: константа гарантирует детерминированный scoring
- *
  * @public
  */
 export const defaultRiskWeights: RiskWeights = Object.freeze(
@@ -273,7 +267,6 @@ function isValidIpv4(ip: string): boolean { // true если IP валиден, 
  * - IPv4-mapped адреса: ::ffff:192.168.1.1
  * - IPv4-compatible адреса: ::192.168.1.1
  * - Зоны: fe80::1%eth0 (полная поддержка RFC 4007)
- *
  * @note Security: использует battle-tested библиотеку ipaddr.js для production high-security систем
  * @internal
  */
@@ -603,10 +596,8 @@ function calculateRiskScoreWithFactors(
 /**
  * Рассчитывает общий risk score (0-100) с нормализацией
  * Использует weighted scoring: каждый фактор умножается на свой вес и суммируется
- *
  * @note Для оптимизации множественных вызовов: передавайте config в context.config
  *      чтобы избежать повторных вызовов getClassificationRulesConfig() внутри факторов
- *
  * @public
  */
 export function calculateRiskScore(
@@ -656,7 +647,6 @@ export function calculateRiskScore(
  * Позволяет динамически добавлять новые факторы без изменения core types
  * @note Использует registry-style архитектуру для extensibility
  * @note Факторы валидируются автоматически (сумма весов, диапазон весов, уникальность имен)
- *
  * @public
  */
 export function calculateRiskScoreWithCustomFactors(

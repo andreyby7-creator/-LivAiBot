@@ -1,6 +1,5 @@
 /**
  * @file packages/app/src/events — Events & Event Bus
- *
  * Публичный API пакета events.
  * Экспортирует все публичные компоненты, типы и утилиты для событий приложения и event bus.
  */
@@ -12,7 +11,6 @@
 /**
  * App Events: типизированные события приложения с валидацией и версионированием.
  * Включает типы событий, схемы payload, функции создания и проверки событий.
- *
  * @public
  */
 export {
@@ -51,7 +49,6 @@ export {
 /**
  * Event Bus: типизированная шина событий с поддержкой publish/subscribe,
  * audit log, batch push в очередь с retry и fail-safe.
- *
  * @public
  */
 export {
@@ -74,7 +71,6 @@ export {
  * App Lifecycle Events: простой event hub для lifecycle-событий приложения.
  * Включает события bootstrap, ready, teardown, logout, reset.
  * Без payload, без domain-логики, только инфраструктурные события.
- *
  * @public
  */
 export {

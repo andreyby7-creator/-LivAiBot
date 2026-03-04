@@ -1,6 +1,5 @@
 /**
  * @file next-intl request config для App Router.
- *
  * Загружает переводы асинхронно из JSON файлов в messages/.
  * Next.js автоматически кэширует импортированные модули.
  */

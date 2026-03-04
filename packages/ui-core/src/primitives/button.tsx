@@ -13,7 +13,6 @@ export type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
 
 /**
  * Компонент кнопки с вариантами primary/secondary и размерами.
- *
  * @param variant - Визуальный стиль: 'primary' (по умолчанию) или 'secondary'
  * @param size - Размер: 'sm', 'md' (по умолчанию) или 'lg'
  * @param fullWidth - Растянуть на всю ширину контейнера

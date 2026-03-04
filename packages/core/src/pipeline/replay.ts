@@ -3,12 +3,10 @@
  * ============================================================================
  * 🛡️ CORE — Pipeline (Replay Testing / Event Capture)
  * ============================================================================
- *
  * Архитектурная роль:
  * - Сохранение событий pipeline для офлайн replay и тестирования
  * - Replay dataset для обучения/тестирования правил и моделей
  * - Причина изменения: ML training / rule development / offline testing
- *
  * Принципы:
  * - ✅ SRP: разделение на TYPES, CONSTANTS, HELPERS (публичные и приватные), FILTERS, SANITIZERS, API
  * - ✅ Deterministic: pure functions для создания и фильтрации событий (injectable now для тестирования)

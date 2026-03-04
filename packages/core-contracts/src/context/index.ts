@@ -1,6 +1,5 @@
 /**
  * @file @livai/core-contracts/context — Request Context & Headers
- *
  * Публичный API пакета context.
  * Экспортирует все публичные компоненты, типы и константы для контекстных данных запроса.
  */
@@ -14,7 +13,6 @@
  * Стандартизированные HTTP заголовки для межсервисного взаимодействия.
  * Используются для корреляции запросов (trace_id), идемпотентности операций (operation_id),
  * tenant isolation (workspace_id), аутентификации (user_id).
- *
  * @public
  */
 export * from './headers.js';

@@ -3,7 +3,6 @@
  * ============================================================================
  * 🟢 FAVICON & PWA ICON MICROSERVICE
  * ============================================================================
- *
  * Микросервис для управления favicon, PWA icons и splash screens:
  * - Автоматическая вставка всех размеров и форматов (ICO, PNG, Apple Touch Icon)
  * - Dark/light mode динамика
@@ -12,7 +11,6 @@
  * - Telemetry-ready
  * - Graceful degradation для SSR/Node
  * - Feature flag для динамики и отключения
- *
  * Принципы:
  * - Zero business logic
  * - Immutable configuration

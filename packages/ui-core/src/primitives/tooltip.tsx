@@ -3,12 +3,10 @@
  * ============================================================================
  * 🔵 CORE UI TOOLTIP — BEHAVIORAL PRIMITIVE
  * ============================================================================
- *
  * Роль:
  * - Базовый UI-примитив для отображения Tooltip (подсказка)
  * - Детерминированный, предсказуемый и side-effect free
  * - SSR-safe, Concurrent-safe
- *
  * Не содержит:
  * - feature flags
  * - telemetry
@@ -139,7 +137,6 @@ const CoreTooltipComponent = forwardRef<HTMLDivElement, CoreTooltipProps>(
 
 /**
  * Memoized CoreTooltip.
- *
  * Гарантии:
  * - Никаких side-effects
  * - Полная детерминированность

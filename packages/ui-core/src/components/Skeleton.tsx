@@ -3,19 +3,16 @@
  * ============================================================================
  * 🔵 CORE UI SKELETON — PRESENTATIONAL PRIMITIVE
  * ============================================================================
- *
  * Роль:
  * - Базовый UI-компонент для отображения Skeleton (заглушка загрузки)
  * - Используется как placeholder для контента в состоянии loading
  * - Полностью детерминированный и side-effect free
  * - SSR-safe, Concurrent-safe
- *
  * Не содержит:
  * - feature flags
  * - telemetry
  * - бизнес-логики
  * - автоматического управления состояниями
- *
  * Управление:
  * - Видимостью и параметрами управляет App-слой
  */
@@ -149,7 +146,6 @@ const CoreSkeletonComponent = forwardRef<HTMLDivElement, CoreSkeletonProps>(
 
 /**
  * Memoized CoreSkeleton.
- *
  * Гарантии:
  * - Никаких side-effects
  * - Полная детерминированность
@@ -165,18 +161,14 @@ export const Skeleton = memo(CoreSkeletonComponent);
 
 /**
  * Skeleton реализован как чистый presentational primitive:
- *
  * - Нет таймеров
  * - Нет lifecycle эффектов
  * - Нет knowledge о загрузке данных
- *
  * Любая логика:
  * - когда показывать
  * - сколько Skeleton рендерить
  * - в каких состояниях
- *
  * всегда должна жить в App-слое.
- *
  * Это гарантирует:
  * - переиспользуемость
  * - тестируемость

@@ -1,6 +1,5 @@
 /**
  * @file Unit тесты для packages/app/src/routes/navigation.ts
- *
  * Enterprise-grade тестирование navigation системы с 100% покрытием:
  * - Типы и структуры данных (NavigationPlacement, NavigationItem, etc.)
  * - NAVIGATION константа и её структура

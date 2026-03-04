@@ -1,6 +1,5 @@
 /**
  * @file Unit тесты для packages/app/src/lib/service-worker.ts
- *
  * Тестирование Service Worker:
  * - Экспортируемые функции
  * - Внутренние утилиты

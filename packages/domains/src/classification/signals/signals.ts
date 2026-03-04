@@ -3,14 +3,11 @@
  * ============================================================================
  * 🎯 DOMAINS — Classification Signals & Context (Domain-Specific Signals)
  * ============================================================================
- *
  * Domain-specific signals и context для classification domain.
  * Использует generic типы из @livai/core/domain-kit для type safety.
- *
  * Архитектура: библиотека из 2 модулей в одном файле
  * - ClassificationSignals: типизированные сигналы классификации (internal + external)
  * - ClassificationContext: контекст для оценки классификации
- *
  * Принципы:
  * - ✅ SRP: модульная структура (signals / context, разделение internal/external)
  * - ✅ Deterministic: одинаковые входы → одинаковые результаты, timestamp передается извне
@@ -105,7 +102,6 @@ export type InternalClassificationSignals = Readonly<{
  * - Read-only (immutable)
  * - Детерминированные (одинаковый вход → одинаковый выход)
  * - Не влияют напрямую на правила (используются только для scoring)
- *
  * @security Sanitization выполняется через sanitizeExternalSignals() из adapter layer (security boundary).
  *           Domain layer проверяет только семантику через validateClassificationSemantics().
  *           Не пробрасываются в DTO для безопасности
@@ -382,6 +378,7 @@ export const classificationSignals = {
    * Создает internal signals из объекта с валидацией
    * @returns Результат валидации или shallow copy для immutability
    * @note Возвращает shallow copy для защиты от мутаций исходного объекта
+   *
    * @example
    * ```ts
    * const signals = classificationSignals.createInternal({
@@ -637,6 +634,7 @@ export const classificationContext = {
   /**
    * Создает context из объекта с валидацией
    * @returns Результат валидации или исходный объект если валиден
+   *
    * @example
    * ```ts
    * const context = classificationContext.create({

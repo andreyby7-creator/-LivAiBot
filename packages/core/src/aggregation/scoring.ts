@@ -3,11 +3,9 @@
  * ============================================================================
  * 🛡️ CORE — Aggregation (Scoring)
  * ============================================================================
- *
  * Архитектурная роль:
  * - Generic операции для scoring: weighted scoring, score normalization, score aggregation
  * - Причина изменения: generic scoring semantics, не domain-специфичная логика
- *
  * Принципы:
  * - ✅ SRP: разделение на TYPES, CONSTANTS, INTERNAL (layered architecture: IEEE Contract / Numeric Guards / Domain Validation / Public API), SCORING, SCORE ALGEBRA
  * - ✅ Deterministic: одинаковые входы → одинаковые результаты, без silent normalization, real early termination (loop вместо reduce)
@@ -18,7 +16,6 @@
  * - ✅ Scalable: поддержка Iterable для streaming (O(n), zero allocations, single-pass validation+accumulation), extensible через ScoreAlgebra
  * - ✅ Security: runtime validation NaN/Infinity, проверка переполнения, IEEE-754 MIN_NORMAL для numeric underflow, post-step/post-finalize numeric guards в ScoreAlgebra
  * - ✅ Immutable: все операции возвращают новые значения
- *
  * ⚠️ ВАЖНО:
  * - ❌ НЕ включает domain-специфичные значения (SAFE/SUSPICIOUS/DANGEROUS - это domain labels)
  * - ❌ НЕ зависит от domain-kit/label.ts (только generic math)
@@ -637,6 +634,7 @@ export const scoring = {
   /**
    * Рассчитывает weighted score из массивов scores и weights
    * @note Формула: (∑scoreᵢ * weightᵢ) / (∑weightᵢ)
+   *
    * @example scoring.weightedScore([80, 90, 70], [0.3, 0.4, 0.3])
    */
   weightedScore(
@@ -666,6 +664,7 @@ export const scoring = {
 
   /**
    * Рассчитывает weighted score из WeightedValue<number>
+   *
    * @example scoring.weightedScoreFromWeightedValues([{ value: 80, weight: 0.3 }, { value: 90, weight: 0.4 }])
    */
   weightedScoreFromWeightedValues(
@@ -682,6 +681,7 @@ export const scoring = {
 
   /**
    * Рассчитывает weighted score из Iterable (streaming: single-pass, O(n))
+   *
    * @example scoring.weightedScoreFromIterable([{ value: 80, weight: 0.3 }, { value: 90, weight: 0.4 }])
    */
   weightedScoreFromIterable(
@@ -699,7 +699,9 @@ export const scoring = {
   /**
    * Нормализует score из одного диапазона в другой (linear transformation)
    * @note По умолчанию разрешает extrapolation. Используйте strictRange: true для запрета.
+   *
    * @example scoring.normalizeScore(50, { min: 0, max: 100 }, { min: 0, max: 1 })
+   *
    * @example scoring.normalizeScore(150, { min: 0, max: 100 }, { min: 0, max: 1 }, { strictRange: true })
    */
   normalizeScore(
@@ -747,6 +749,7 @@ export const scoring = {
 
   /**
    * Ограничивает score к диапазону (clamp)
+   *
    * @example scoring.clampScore(150, { min: 0, max: 100 })
    */
   clampScore(
@@ -962,6 +965,7 @@ export const scoreAlgebra = {
    * @template E - Тип ошибки (core не знает shape domain errors, возвращает E | ScoreFailureReason)
    * @note Использует loop вместо reduce для real early termination (CPU boundedness).
    *       Результат операции generic по E для full algebra extensibility.
+   *
    * @example const maxOp: ScoreOperation<number, number> = { init: () => 0, step: (acc, score) => ({ ok: true, value: Math.max(acc, score) }), finalize: (s) => ({ ok: true, value: s }) }; scoreAlgebra.operate([80, 90, 70], [0.3, 0.4, 0.3], maxOp)
    */
   operate<

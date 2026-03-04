@@ -3,12 +3,10 @@
  * ============================================================================
  * 🛡️ CORE — Input Boundary (Generic Validation)
  * ============================================================================
- *
  * Архитектурная роль:
  * - Generic type guards и структурная валидация для DTO на input boundary
  * - Только DTO guards (структурная валидация), без sanitization (data-safety/)
  * - Причина изменения: input boundary, DTO validation, structural guards
- *
  * Принципы:
  * - ✅ SRP: только структурная валидация DTO, без бизнес-логики
  * - ✅ Deterministic: одинаковые входы → одинаковые результаты
@@ -17,7 +15,6 @@
  * - ✅ Strict typing: union-типы для ValidationFailureReason, без string и Record в domain
  * - ✅ Microservice-ready: строгие контракты для межсервисного взаимодействия
  * - ✅ Scalable: extensible через registry, без if/else-монолита
- *
  * ⚠️ ВАЖНО:
  * - ❌ НЕ включает sanitization (это в data-safety/)
  * - ✅ Только структурная валидация (shape, types, JSON-serializable)

@@ -1,6 +1,5 @@
 /**
  * @file Unit тесты для packages/app/src/lib/route-permissions.ts
- *
  * Enterprise-grade тестирование route permissions с 95-100% покрытием:
  * - checkRoutePermission с различными типами маршрутов и контекстов
  * - Все политики доступа (public, auth, dashboard, admin, api, settings, profile)

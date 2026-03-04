@@ -1,6 +1,5 @@
 /**
  * @file @livai/core/input-boundary — Generic Validation (DTO Guards)
- *
  * Публичный API пакета input-boundary.
  * Экспортирует все публичные компоненты, типы и утилиты для структурной валидации DTO.
  */
@@ -13,7 +12,6 @@
  * Type guards для базовых типов.
  * Проверка типов значений: string, number, boolean, null, undefined, array, object.
  * Фильтрация symbol-ключей для безопасности.
- *
  * @public
  */
 
@@ -36,7 +34,6 @@ export {
  * Проверка JSON-сериализуемости значений.
  * Рекурсивная проверка структуры без циклических ссылок.
  * Замораживание объектов для immutability.
- *
  * @public
  */
 
@@ -57,7 +54,6 @@ export {
  * Структурная валидация объектов (shape validation).
  * Проверка наличия обязательных свойств и их типов.
  * Поддержка path accumulation для глубокого error reporting.
- *
  * @public
  */
 
@@ -76,7 +72,6 @@ export {
  * Effect-based API для результатов валидации.
  * ValidationOutcome<T> для composability в pipelines.
  * Строгая типизация причин ошибок через union types.
- *
  * @public
  */
 
@@ -90,7 +85,6 @@ export { type ValidationFailureReason, type ValidationOutcome } from './generic-
  * Rule engine для extensible валидации.
  * Registry pattern: invariants (обязательные) + policies (расширяемые).
  * Composable predicates: andRule, orRule, notRule.
- *
  * @public
  */
 
@@ -113,7 +107,6 @@ export {
 /**
  * Projection Engine для трансформации domain объектов в boundary contracts (DTO, events, persistence, audit).
  * Архитектура: selection → enrichment slots (contributions) → merge (conflict detection) → safe-keys validation → freeze
- *
  * @public
  */
 
@@ -137,7 +130,6 @@ export {
  * Context Enricher для обогащения контекста метаданными на input boundary.
  * Архитектура: dependency-driven execution (signal-based DAG) → conflict detection → collect all errors
  * Поддержка telemetry через EnrichmentObserver для production monitoring
- *
  * @public
  */
 

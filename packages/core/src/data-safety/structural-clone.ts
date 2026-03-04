@@ -3,12 +3,10 @@
  * ============================================================================
  * 🛡️ CORE — Data Safety (Structural Clone)
  * ============================================================================
- *
  * Архитектурная роль:
  * - Безопасное глубокое клонирование для taint tracking и boundary guards
  * - Поддерживает примитивы, объекты, массивы, Map, Set, Date, RegExp
  * - Причина изменения: data safety, taint isolation, boundary guards
- *
  * Принципы:
  * - ✅ SRP: разделение на TYPES, CONSTANTS, UTILITY FUNCTIONS, CLONE OPERATIONS, API
  * - ✅ Deterministic: pure functions, immutable результаты, детерминированное поведение
@@ -17,7 +15,6 @@
  * - ✅ Strict typing: generic типы для Cloned<T>, type guards для CloneableType
  * - ✅ Microservice-ready: stateless, без side-effects, thread-safe
  * - ✅ Security: защита от циклических ссылок (WeakMap), Prototype Pollution (фильтрация __proto__, constructor), fail-hard при неизвестных типах
- *
  * ⚠️ PRODUCTION:
  * - Fail-hard при неизвестных типах, функции и Symbol
  * - Защита от циклических ссылок (WeakMap), Prototype Pollution (фильтрация __proto__, constructor)
@@ -65,6 +62,7 @@ type Cloned<T> = T extends Date ? Date
 /**
  * Проверяет, может ли значение быть безопасно клонировано
  * @note Защищает от функций, Symbol, и других несериализуемых типов
+ *
  * @example isCloneable({ a: 1 }) === true; isCloneable(() => {}) === false
  * @public
  */
@@ -271,6 +269,7 @@ function cloneObjectValue<T>(
  * @note Поддерживает: примитивы, объекты, массивы, Date, RegExp, Map, Set.
  *       Защита: циклические ссылки (WeakMap), Prototype Pollution (фильтрация __proto__, constructor),
  *       неизвестные типы и функции/Symbol (fail-hard).
+ *
  * @example const obj = { a: 1, b: [2, 3], date: new Date(), __proto__: { polluted: true } }; obj.self = obj; const cloned = structuralClone(obj); // OK: циклические ссылки и __proto__ обрабатываются корректно
  * @throws {Error} Если значение содержит несериализуемые типы или неизвестный тип объекта
  * @public

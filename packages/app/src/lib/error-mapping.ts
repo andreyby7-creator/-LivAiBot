@@ -3,7 +3,6 @@
  * ============================================================================
  * 🔹 УНИВЕРСАЛЬНЫЙ МАППИНГ ОШИБОК
  * ============================================================================
- *
  * Цель:
  * - Универсальный mapper для любых DomainError (не только auth)
  * - Консолидировать обработку ошибок по всем микросервисам
@@ -11,7 +10,6 @@
  * - Чистые, детерминированные мапперы
  * - Поддержка fallback и originError для telemetry и трассировки
  * - Расширяемость и локализация
- *
  * Принципы:
  * - Чистый TypeScript, без side-effects
  * - Domain-agnostic (работает с любыми DomainError)
@@ -170,7 +168,6 @@ export type MapErrorConfig = {
  * - Сохраняет безопасное представление оригинальной ошибки (без stack trace)
  * - Работает с любыми доменными ошибками (auth, billing, chat, bots и т.д.)
  * - Pure функция: не имеет side-effects, детерминирована
- *
  * @param err - Ошибка для маппинга
  * @param details - Дополнительные детали ошибки
  * @param config - Конфигурация маппинга (locale, timestamp) - обязательна для детерминированности
@@ -255,7 +252,6 @@ export type MapErrorBoundaryResult = {
  * Преобразует Error в AppError для error-boundary компонента.
  * Используется для унифицированной обработки ошибок в UI слое.
  * Pure функция: не имеет side-effects, детерминирована.
- *
  * @param error - Ошибка для маппинга
  * @param config - Конфигурация маппинга (timestamp)
  * @returns Результат маппинга с AppError и данными для telemetry
@@ -314,7 +310,6 @@ export type ValidationErrorLike = TaggedError & {
 /**
  * Создает DomainError (MappedError) из массива ошибок валидации.
  * Универсальный helper для преобразования ValidationError[] в DomainError.
- *
  * @param errors - Массив ошибок валидации
  * @param errorCode - Опциональный код ошибки (по умолчанию SYSTEM_VALIDATION_RESPONSE_SCHEMA_INVALID)
  * @param service - Опциональный сервис (по умолчанию определяется из первой ошибки или 'SYSTEM')
@@ -325,11 +320,9 @@ export type ValidationErrorLike = TaggedError & {
  * ```ts
  * import { createDomainError } from './error-mapping';
  * import type { ValidationError } from './validation';
- *
  * const validationErrors: ValidationError[] = [
  *   { code: 'SYSTEM_VALIDATION_RESPONSE_SCHEMA_INVALID', field: 'email', message: 'Invalid email' }
  * ];
- *
  * const domainError = createDomainError(validationErrors, undefined, undefined, {
  *   locale: 'en',
  *   timestamp: Date.now()

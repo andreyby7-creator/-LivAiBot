@@ -1,6 +1,5 @@
 /**
  * @file Zod → React Hook Form resolver (Zod v4 friendly).
- *
  * Причина существования:
  * - типы `@hookform/resolvers/zod` часто отстают от Zod v4
  * - нам нужен стабильный мост между Zod и RHF в рамках Фазы 2

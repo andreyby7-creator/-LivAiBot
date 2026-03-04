@@ -3,12 +3,10 @@
  * ============================================================================
  * 🎯 DOMAINS — Classification Aggregation Policy (Strategy Orchestration Layer)
  * ============================================================================
- *
  * Архитектурная роль:
  * Policy-слой для выбора и конфигурации алгоритма агрегации рисков
  * (`max_risk_wins` / `confidence_weighted` / `fail_closed_dominance`).
  * Делегирует вычисления в `aggregation.strategy.ts`, не дублируя core-алгоритм.
- *
  * Принципы:
  * - ✅ SRP: только policy orchestration (strategy selection + weight overrides)
  * - ✅ Deterministic: стабильный dispatch и порядок применения source weights

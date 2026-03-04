@@ -3,18 +3,15 @@
  * ============================================================================
  * 🔵 CORE UI DROPDOWN — PRESENTATIONAL PRIMITIVE
  * ============================================================================
- *
  * Роль:
  * - Базовый UI-компонент для отображения выпадающего меню
  * - Полностью детерминированный и side-effect free
  * - SSR-safe, Concurrent-safe
- *
  * Не содержит:
  * - Feature flags
  * - Telemetry
  * - Управление состоянием открытости меню
  * - Таймеров или анимаций
- *
  * Управление:
  * - Открытостью меню и событиями управляет App-слой
  */
@@ -97,7 +94,6 @@ export type CoreDropdownProps = Readonly<
 
 /**
  * @note CSS переменные для темизации Dropdown:
- *
  * --dropdown-border-color: цвет границы триггера и меню (default: #e0e0e0)
  * --dropdown-bg-color: фон триггера (default: #fff)
  * --dropdown-text-color: цвет текста триггера (default: #333)
@@ -105,7 +101,6 @@ export type CoreDropdownProps = Readonly<
  * --dropdown-item-text-color: цвет текста элементов меню (default: #333)
  * --dropdown-item-hover-bg-color: фон элемента меню при hover (default: #f5f5f5)
  * --dropdown-divider-color: цвет разделителей (default: #e0e0e0)
- *
  * @note Hover эффекты должны быть определены в глобальных стилях или App слое:
  * ```css
  * [data-component="CoreDropdown"] li[role="menuitem"]:hover:not([aria-disabled="true"]) {
@@ -475,14 +470,12 @@ CoreDropdownComponent.displayName = 'CoreDropdown';
 
 /**
  * Memoized CoreDropdown.
- *
  * Гарантии:
  * - Полностью детерминированный
  * - Side-effect free
  * - SSR и concurrent safe
  * - Поддержка ref forwarding
  * - Подходит как building-block для App-слоя
- *
  * @note Keyboard navigation:
  * - Enter/Space/ArrowDown на триггере открывает меню
  * - Escape закрывает меню
@@ -490,12 +483,10 @@ CoreDropdownComponent.displayName = 'CoreDropdown';
  * - ArrowUp/ArrowDown навигация по элементам меню
  * - Tab навигация работает стандартно
  * - Для сложных вложенных dropdowns можно добавить roving tabindex для полной ARIA compliance
- *
  * @note Hover эффекты:
  * - Hover реализован через CSS :hover псевдокласс
  * - Не мутирует DOM напрямую
  * - Требует определения стилей в глобальных стилях или App слое
- *
  * @note Закрытие меню:
  * - onToggle вызывается при явных действиях пользователя (клик на триггер, Escape)
  * - onClose вызывается после выбора элемента меню (без события)
@@ -510,16 +501,13 @@ export const Dropdown = memo(CoreDropdownComponent);
 
 /**
  * CoreDropdown — чистый presentational primitive:
- *
  * - Не управляет состоянием открытости меню
  * - Не содержит feature flags или telemetry
  * - Все клики и изменения обрабатываются App-слоем
  * - Поддерживает ref forwarding
  * - Полная поддержка ARIA для accessibility
- *
  * Любая бизнес-логика (state management, tracking, feature flags)
  * реализуется в App слое.
- *
  * Это гарантирует:
  * - переиспользуемость
  * - тестируемость

@@ -3,7 +3,6 @@
  * ============================================================================
  * 🌐 ЯДРО I18N — НАДЁЖНЫЕ УТИЛИТЫ ЛОКАЛИЗАЦИИ
  * ============================================================================
- *
  * Свойства:
  * - Типизированные ключи для переводов
  * - Пространства имён для модульных локалей
@@ -48,7 +47,6 @@ function interpolateParams(str: string, params?: Record<string, string | number>
 /**
  * Устанавливает локаль для dayjs.
  * SSR-safe: использует динамический импорт для bundle splitting.
- *
  * @param locale - код локали (например, 'ru', 'en', 'de')
  */
 export function setDayjsLocale(locale: string): void {
@@ -77,7 +75,6 @@ export function setDayjsLocale(locale: string): void {
 /**
  * Синхронная установка локали (для случаев когда локаль уже загружена).
  * Использовать только после предварительной загрузки через setDayjsLocale.
- *
  * @param locale - код локали
  */
 export function setDayjsLocaleSync(locale: string): void {
@@ -101,7 +98,6 @@ export function getCurrentDayjsLocale(): string {
 
 /**
  * Определяет направление текста для локали (LTR/RTL).
- *
  * @param locale - код локали
  * @returns true если локаль использует RTL направление текста
  */
@@ -111,7 +107,6 @@ export function isRtlLocale(locale: string): boolean {
 
 /**
  * Проверяет доступна ли локаль для dayjs.
- *
  * @param locale - код локали для проверки
  */
 export function isDayjsLocaleSupported(locale: string): boolean {
@@ -165,7 +160,6 @@ export function isDayjsLocaleSupported(locale: string): boolean {
 /**
  * Форматирует дату в локализованном формате.
  * Удобная обертка над dayjs с текущей локалью.
- *
  * @param date - дата для форматирования
  * @param format - формат dayjs (например, 'MMMM YYYY')
  */
@@ -177,7 +171,6 @@ export function formatDateLocalized(date: Date | dayjs.Dayjs | string, format: s
  * Простая функция перевода без React контекста.
  * Используется для базовых случаев где React контекст недоступен.
  * Пока возвращает ключ как есть (заглушка для будущей реализации).
- *
  * @param key - ключ перевода
  * @param params - параметры для интерполяции
  */
@@ -271,15 +264,12 @@ const I18nStoreContext = createContext<TranslationSnapshot | null>(null);
 
 /**
  * @internal Хук для доступа к TranslationSnapshot для текущей локали
- *
  * ⚠️ ВНИМАНИЕ: Этот хук предназначен для ТЕСТИРОВАНИЯ и ВНУТРЕННИХ УТИЛИТ.
  * Для пользовательского кода используйте translate функцию из I18nContext.
- *
  * Прямой доступ к snapshot может:
  * - Обойти fallback логику
  * - Нарушить инварианты системы
  * - Привести к неожиданному поведению
- *
  * Используйте только в тестах и внутренних компонентах!
  */
 export const useTranslations = (): TranslationSnapshot => {

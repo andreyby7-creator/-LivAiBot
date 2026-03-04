@@ -3,14 +3,12 @@
  * ============================================================================
  * 🛡️ FEATURE-AUTH — Security Pipeline (Public API)
  * ============================================================================
- *
  * Архитектурная роль:
  * - Auth-специфичная обертка над device fingerprint и risk assessment
  * - Использует orchestrator из @livai/app для композиции шагов с timeout и isolation
  * - Runtime injection для testability и feature flags
  * - Fail-closed policy с synthetic critical risk для безопасного degradation
  * - Полная immutability через ReadonlyDeep для audit hooks
- *
  * Принципы:
  * - ✅ Facade pattern — единая точка входа для security pipeline
  * - ✅ Dependency injection — Runtime, audit hooks, плагины через config

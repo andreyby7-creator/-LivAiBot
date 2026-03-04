@@ -3,12 +3,10 @@
  * ============================================================================
  * 🟢 PWA ICON MICROSERVICE (RENDERER)
  * ============================================================================
- *
  * Зачем этот модуль:
  * - Генерирует PNG-иконки PWA **на лету** (через Next.js route handlers)
  * - Убирает необходимость хранить бинарные PNG в git (чистый репозиторий)
  * - Даёт единый источник истины для размеров, maskable-паддинга и брендинга
- *
  * Архитектурные принципы (FAANG-style):
  * - Без бизнес-логики: только deterministic rendering
  * - Fail-fast: строгая валидация входных параметров
@@ -46,7 +44,6 @@ export type PwaIconSpec = Readonly<{
 /**
  * Валидирует спецификацию иконки.
  * Гарантирует cryptographically safe поведение модуля как standalone.
- *
  * @param spec Спецификация для валидации
  * @throws {Error} Если spec невалиден
  */
@@ -63,7 +60,6 @@ function assertValidSpec(spec: PwaIconSpec): void {
 /**
  * Разрешённые размеры из `apps/web/public/manifest.json`.
  * ⚠️ Это защита от генерации произвольных больших изображений по URL.
- *
  * SECURITY CONTRACT:
  * - `size` должен приходить только из allow-list (см. parsePwaIconAsset).
  * - Это не «магические числа», а явно заданный whitelist, который предотвращает DoS
@@ -140,14 +136,12 @@ function parseShortcutIconAsset(asset: string): PwaIconSpec | null {
 
 /**
  * Парсит имя ассета в формате из `manifest.json`.
- *
  * Поддерживаемые варианты:
  * - `icon-192x192.png`
  * - `icon-192-maskable.png`
  * - `shortcut-dialogs-96x96.png`
  * - `shortcut-billing-96x96.png`
  * - `shortcut-chat-96x96.png`
- *
  * @param asset Один сегмент пути без слэшей (например, `icon-192x192.png`)
  * @returns Spec или null (если неизвестный/небезопасный ассет)
  */
@@ -203,7 +197,6 @@ const DEFAULT_PALETTE: BrandPalette = {
 
 /**
  * Генерирует PNG (image/png) Response для PWA-иконки.
- *
  * @param spec Спецификация (валидированная allow-list)
  * @param options Доп. параметры (версионирование/кэширование)
  */

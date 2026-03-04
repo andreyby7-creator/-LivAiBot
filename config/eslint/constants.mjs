@@ -4,7 +4,6 @@
  * Файл Runtime DSL для определения качества кода и правил ESLint в платформе LivAi.
  * Содержит загрузку плагинов, базовые правила, критические правила и настройки для всех зон.
  * Полная философия и документация: см. ./ONTOLOGY.md
- *
  * TypeScript Governance Layer.
  * Python services are governed by:
  *  - Ruff (style & correctness)
@@ -488,7 +487,6 @@ export const EFFECT_ZONE_GUARDS = {
 /**
  * Foundation Rules - контракты между Python и TypeScript
  * Протоколы, интерфейсы, type definitions (не реализации)
- * 
  * ⚠️ СТРОГИЙ FP: foundation зона - единственное место, где применяется functional/immutable-data
  * Это гарантирует чистоту core/domain логики без конфликтов с UI/state management
  */
@@ -570,7 +568,6 @@ export const API_GATEWAY_DOMAIN_RULES = {
 /**
  * UI/Experience Domain Rules - React, Next.js, accessibility
  * AI-first интерфейсы с WCAG compliance
- * 
  * ⚠️ FP ПРАВИЛА ОТКЛЮЧЕНЫ: UI зона использует React/Zustand, где мутации неизбежны
  * (setState, Zustand set(), временные объекты для props)
  */
@@ -600,7 +597,6 @@ export const UI_DOMAIN_RULES = {
 /**
  * Apps Domain Rules - финальные приложения (тонкий слой)
  * Минимальные правила для быстрой разработки PWA
- * 
  * ⚠️ FP ПРАВИЛА ОТКЛЮЧЕНЫ: Apps используют React/Zustand, где мутации неизбежны
  */
 export const APPS_DOMAIN_RULES = {

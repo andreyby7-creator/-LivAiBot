@@ -3,19 +3,16 @@
  * ============================================================================
  * 🔵 CORE UI SUPPORT BUTTON — PRESENTATIONAL PRIMITIVE
  * ============================================================================
- *
  * Роль:
  * - Базовый UI-компонент для кнопки вызова поддержки
  * - Полностью детерминированный и side-effect free
  * - SSR-safe, Concurrent-safe
- *
  * Не содержит:
  * - Feature flags
  * - Telemetry
  * - Управление состоянием
  * - Логику отправки обращений
  * - Бизнес-логику поддержки
- *
  * Управление:
  * - Видимостью и поведением управляет App-слой
  */
@@ -263,14 +260,12 @@ CoreSupportButtonComponent.displayName = 'CoreSupportButton';
  * ```tsx
  * // Базовая кнопка поддержки
  * <SupportButton onSupportClick={() => console.log('Support clicked')} />
- *
  * // Минимальная кнопка с кастомной иконкой
  * <SupportButton
  *   variant="minimal"
  *   icon={<HelpIcon />}
  *   onSupportClick={handleSupport}
  * />
- *
  * // Floating кнопка поддержки
  * <SupportButton
  *   variant="floating"
@@ -297,13 +292,10 @@ export const SupportButton = memo(CoreSupportButtonComponent);
  * - --support-button-minimal-text-color: цвет текста минимального варианта (default: #6B7280)
  * - --support-button-floating-bg: фон floating варианта (default: #3B82F6)
  * - --support-button-floating-text-color: цвет текста floating варианта (default: #FFFFFF)
- *
  * @contract Data Attributes (для QA)
- *
  * Компонент добавляет следующие data-атрибуты для тестирования и отладки.
  * Все атрибуты используют консистентную схему строковых значений.
  * QA должен использовать именно эти строковые значения для селекторов:
- *
  * - data-component="CoreSupportButton": идентификатор компонента
  * - data-variant: строго "default" | "minimal" | "floating" (вариант отображения)
  * - data-size: строго "small" | "medium" | "large" (размер отображения)

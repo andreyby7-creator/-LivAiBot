@@ -1,13 +1,10 @@
 /**
  * @file packages/app/src/lib/effect-utils.ts
- *
  * ============================================================================
  * ⚡ EFFECT UTILS — УНИВЕРСАЛЬНЫЕ ПОМОЩНИКИ ДЛЯ ЭФФЕКТОВ
  * ============================================================================
- *
  * Этот файл — фундамент слоя side-effects во всём фронтенде.
  * Он не знает ничего о доменах (auth, chat, bots и т.д.) и не зависит от UI.
- *
  * Используется для:
  * - HTTP / WebSocket / SSE
  * - Retry / Timeout / Cancellation (AbortSignal propagation)
@@ -15,7 +12,6 @@
  * - Tracing / Observability
  * - Унифицированной обработки ошибок
  * - Поддержки микросервисной архитектуры
- *
  * Принципы:
  * - Zero business logic
  * - Zero UI dependencies
@@ -114,6 +110,7 @@ export type RetryPolicy = {
 
 /**
  * Оборачивает эффект в retry-механику.
+ *
  * @example withRetry(fetchUser, { retries: 3, delayMs: 1000, shouldRetry: (e) => e instanceof NetworkError })
  */
 export function withRetry<T>(
@@ -229,6 +226,7 @@ export function asApiEffect<T>(
 
 /**
  * Последовательно композирует эффекты. Поддерживает цепочку из любого количества эффектов.
+ *
  * @example pipeEffects(() => fetchToken(), (token) => fetchUser(token), (user) => fetchPosts(user.id))
  */
 export function pipeEffects<T>(
@@ -326,6 +324,7 @@ export type EffectError<T = unknown> = {
 /**
  * Типобезопасный результат операции (Result<T, E> или Either<L, R>).
  * Используется для типобезопасной обработки успешных результатов и ошибок без использования исключений.
+ *
  * @example if (isOk(result)) { result.value } else { result.error }
  */
 export type Result<T, E = Error> =
@@ -344,6 +343,7 @@ export function fail<T, E = Error>(error: E): Result<T, E> {
 
 /**
  * Type guard для проверки успешного результата.
+ *
  * @example if (isOk(result)) { result.value }
  */
 export function isOk<T, E>(result: Result<T, E>): result is { ok: true; value: T; } {
@@ -352,6 +352,7 @@ export function isOk<T, E>(result: Result<T, E>): result is { ok: true; value: T
 
 /**
  * Type guard для проверки ошибочного результата.
+ *
  * @example if (isFail(result)) { result.error }
  */
 export function isFail<T, E>(result: Result<T, E>): result is { ok: false; error: E; } {
@@ -360,6 +361,7 @@ export function isFail<T, E>(result: Result<T, E>): result is { ok: false; error
 
 /**
  * Преобразует значение успешного результата. Если результат ошибочный, возвращает его без изменений.
+ *
  * @example map(ok(42), (x) => x * 2) // ok(84)
  */
 export function map<T, U, E>(
@@ -374,6 +376,7 @@ export function map<T, U, E>(
 
 /**
  * Преобразует ошибку ошибочного результата. Если результат успешный, возвращает его без изменений.
+ *
  * @example mapError(fail(err), (e) => new CustomError(e.message))
  */
 export function mapError<T, E, F>(
@@ -388,6 +391,7 @@ export function mapError<T, E, F>(
 
 /**
  * Композиция результатов (flatMap / bind). Если результат успешный, применяет функцию, иначе возвращает ошибку.
+ *
  * @example flatMap(ok(42), (x) => ok(x * 2)) // ok(84)
  */
 export function flatMap<T, U, E>(
@@ -402,6 +406,7 @@ export function flatMap<T, U, E>(
 
 /**
  * Извлекает значение из результата или возвращает значение по умолчанию.
+ *
  * @example unwrapOr(fail(err), 0) // 0
  */
 export function unwrapOr<T, E>(result: Result<T, E>, defaultValue: T): T {
@@ -413,6 +418,7 @@ export function unwrapOr<T, E>(result: Result<T, E>, defaultValue: T): T {
 
 /**
  * Извлекает значение из результата или вычисляет его из ошибки.
+ *
  * @example unwrapOrElse(fail(err), (e) => 0) // 0
  */
 export function unwrapOrElse<T, E>(
@@ -431,6 +437,7 @@ export function unwrapOrElse<T, E>(
 
 /**
  * Извлекает значение из результата или бросает исключение. Используйте с осторожностью, предпочтительно unwrapOr/unwrapOrElse.
+ *
  * @example unwrap(ok(42)) // 42
  * @throws Если результат ошибочный
  */

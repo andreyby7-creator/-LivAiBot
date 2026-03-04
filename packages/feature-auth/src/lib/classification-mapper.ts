@@ -3,24 +3,20 @@
  * ============================================================================
  * 🔐 FEATURE-AUTH — Classification to Auth Action Mapper
  * ============================================================================
- *
  * Архитектурная роль:
  * - Маппинг результатов classification из domains в auth-specific decision
  * - Изолирует auth-специфичную логику от domain logic
  * - Strategy pattern для обработки различных classification labels
  * - Оптимизация производительности для больших rule sets (pre-filtering)
- *
  * Принципы:
  * - ✅ SRP: только маппинг classification → auth action
  * - ✅ Strategy Pattern: расширяемая архитектура через labelStrategy map
  * - ✅ Performance: pre-filtering правил для оптимизации оценки
  * - ✅ Runtime Safety: guards для защиты от непредвиденных значений
  * - ✅ Deterministic: одинаковый вход → одинаковый выход
- *
  * Оптимизации:
  * - Pre-filtering: фильтрация правил по decisionImpact перед оценкой
  * - Масштабируемость: эффективная работа с сотнями/тысячами правил
- *
  * Расширяемость (добавление новой label):
  * 1. Добавить значение в VALID_LABELS (например, 'NEW_LABEL')
  * 2. Создать стратегию: const newLabelStrategy: LabelStrategy = (...) => { ... }
@@ -239,13 +235,11 @@ const labelStrategy: Record<ValidLabel, LabelStrategy> = {
 
 /**
  * Маппинг ClassificationLabel и связанных данных в auth-specific DecisionResult
- *
  * Логика маппинга:
  * - DANGEROUS → 'block'
  * - SUSPICIOUS → 'challenge' (или 'block' при критических правилах)
  * - SAFE → 'login'
  * - UNKNOWN → использует логику на основе riskLevel и rules
- *
  * @note Pure function: не выполняет side-effects, только маппинг входных данных в decision
  * @note Детерминированность: одинаковый вход (label, rules, signals, policy) → одинаковый результат
  * @note Immutability: все входные параметры readonly, функция не мутирует внешнее состояние

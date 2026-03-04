@@ -1,6 +1,5 @@
 /**
  * @file Comprehensive tests for apps/web/src/app/sw-register.ts
- *
  * Покрытие всех веток и функций:
  * - registerServiceWorker (успех/ошибки/обновления/kill-switch)
  * - unregisterServiceWorker (успех/ошибки/kill-switch)

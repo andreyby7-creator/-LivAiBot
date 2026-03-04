@@ -1,6 +1,5 @@
 /**
  * @file Unit тесты для packages/app/src/lib/orchestrator.ts
- *
  * Enterprise-grade тестирование orchestrator с 100% покрытием:
  * - step helper для создания шагов
  * - orchestrate для всех сценариев (успех, ошибки, timeout, isolation)

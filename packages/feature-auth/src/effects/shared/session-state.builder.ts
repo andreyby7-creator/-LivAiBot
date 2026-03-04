@@ -3,10 +3,8 @@
  * ============================================================================
  * 🔐 FEATURE-AUTH — Session State Builder (Shared)
  * ============================================================================
- *
  * Единая точка построения SessionState из deviceInfo, tokenPair и me.session.
  * Используется во всех auth-эффектах (login/register/refresh) для консистентности.
- *
  * Архитектурные решения:
  * - Pure function: без side-effects, детерминированная
  * - Fail-closed: проверка issuedAt <= expiresAt, падает при нарушении
@@ -14,7 +12,6 @@
  * - Shallow freeze: защита от случайных мутаций корневого объекта
  * - Fallback логика: использует tokenPair как fallback для issuedAt/expiresAt
  * - Fail-fast: выбрасывает ошибку если обязательные поля отсутствуют (предотвращает silent masking)
- *
  * Инварианты:
  * - Не читает store (pure function)
  * - Проверяет согласованность дат (issuedAt <= expiresAt) через Date.parse() для безопасного сравнения
@@ -47,17 +44,13 @@ export type BuildSessionStateParams = Readonly<{
 
 /**
  * Строит SessionState из deviceInfo, tokenPair и me.session.
- *
  * Fallback для дат (приоритет: me.session > tokenPair):
  * - `issuedAt`: me.session.issuedAt ?? tokenPair.issuedAt (обязательное поле, выбрасывает ошибку если отсутствует)
  * - `expiresAt`: me.session.expiresAt ?? tokenPair.expiresAt (обязательное поле, выбрасывает ошибку если отсутствует)
- *
  * Контракт: даты в формате ISO-8601 (Date.parse() безопасно обрабатывает различные варианты формата).
- *
  * Семантика возвращаемого значения:
  * - `null`: intentional absence - me.session отсутствует, сессия не строится
  * - `SessionState`: успешно построенная сессия с валидацией всех полей
- *
  * @throws Error если issuedAt > expiresAt
  * @throws Error если issuedAt или expiresAt отсутствуют (после всех fallback'ов)
  * @throws Error если даты не в формате ISO-8601 (Date.parse() возвращает NaN)

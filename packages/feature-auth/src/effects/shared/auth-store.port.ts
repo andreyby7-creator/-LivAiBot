@@ -3,18 +3,15 @@
  * ============================================================================
  * 🔐 FEATURE-AUTH — Auth Store Port (Shared)
  * ============================================================================
- *
  * Единый контракт стора для всех auth-эффектов (login/logout/register/refresh).
  * Абстрагирует Zustand store, гарантирует атомарность через batchUpdate,
  * изолирует effects от деталей реализации.
- *
  * Архитектурные решения:
  * - Port pattern: effects работают через интерфейс, не знают про Zustand
  * - Atomic updates: batchUpdate применяет все изменения в одной транзакции
  * - Lock mechanism: setStoreLocked защищает критические операции от race conditions
  * - Type safety: AuthEvent — discriminated union, не string
  * - Separation: state-обновления через patch, events отдельно (избегаем дублирования)
- *
  * Инварианты:
  * - Все store-updater'ы ОБЯЗАНЫ использовать batchUpdate (не отдельные set-методы)
  * - Критические операции (logout/refresh) ОБЯЗАНЫ использовать setStoreLocked или withStoreLock
@@ -22,7 +19,7 @@
  * - batchUpdate не должен использоваться в async-effect без блокировки
  */
 
-import type { AuthStore } from '../../stores/auth.js';
+import type { AuthStore, AuthStoreState } from '../../stores/auth.js';
 import type { AuthEvent, AuthState, SecurityState, SessionState } from '../../types/auth.js';
 
 /* ============================================================================
@@ -81,6 +78,20 @@ export type AuthStorePort = {
    * ⚠️ Не используйте в async-effect без блокировки через setStoreLocked.
    */
   batchUpdate(updates: readonly BatchUpdate[]): void; // Массив обновлений для атомарного применения
+
+  /**
+   * Получает текущее состояние сессии.
+   * @remarks Используется для policy check в refresh-effect и других эффектах, требующих чтения состояния.
+   */
+  getSessionState(): SessionState | null; // Текущее SessionState или null
+
+  /**
+   * Получает refreshToken из secure storage (httpOnly cookie или secure memory).
+   * @remarks В production refreshToken должен быть получен через httpOnly cookie или secure storage, не из store.
+   *          Этот метод предоставляет единый интерфейс для получения refreshToken независимо от реализации storage.
+   * @throws Error если refreshToken недоступен.
+   */
+  getRefreshToken(): string; // refreshToken из secure storage
 };
 
 /* ============================================================================
@@ -207,6 +218,34 @@ export function createAuthStorePortAdapter(
       for (const eventType of eventTypes) {
         store.actions.applyEventType(eventType); // Сначала state, потом events
       }
+    },
+
+    getSessionState: (): SessionState | null => {
+      // Получаем текущее состояние сессии из Zustand store
+      // @note AuthStore - это тип, который объединяет AuthStoreState и actions.
+      //       В runtime store является Zustand store, который имеет метод getState().
+      //       Используем приведение типа для доступа к getState().
+      const zustandStore = store as unknown as { getState: () => AuthStoreState; };
+      const state = zustandStore.getState();
+      return state.session;
+    },
+
+    getRefreshToken: (): string => {
+      // @note В production refreshToken должен быть получен через httpOnly cookie или secure storage.
+      //       Для реализации используем временный механизм получения через store или отдельный механизм.
+      //       В production это должно быть через явный порт getRefreshToken() или через apiClient (который читает cookies).
+      const storeInternal = store as unknown as {
+        getRefreshToken?: () => string | undefined;
+      };
+      const token = storeInternal.getRefreshToken?.();
+      if (typeof token === 'string' && token.trim() !== '') {
+        return token;
+      }
+      // Fallback: если refreshToken недоступен, выбрасываем ошибку
+      // В production это должно быть исправлено добавлением метода в AuthStore или через отдельный механизм
+      throw new Error(
+        '[AuthStorePort] refreshToken is not available. In production, refreshToken should be obtained via httpOnly cookie or secure storage.',
+      );
     },
   };
 }

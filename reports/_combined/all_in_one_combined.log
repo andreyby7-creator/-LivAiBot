@@ -1,3 +1,13 @@
+auth-store.port tests: 100% coverage for statements, branches, functions, lines (packages/feature-auth/tests/unit/effects/shared/auth-store.port.test.ts, 2026-03-03T14:47:40.000Z)
+
+2026-03-04T00:00:00.000Z [feature-auth/refresh-api.mapper] ✅ COMPLETED - Добавлен unit-тест `packages/feature-auth/tests/unit/effects/refresh/refresh-api.mapper.test.ts` (request/response mapping + все error-ветки), достигнуто 100% покрытия (statements/branches/functions/lines) для `packages/feature-auth/src/effects/refresh/refresh-api.mapper.ts` через `pnpm test:file packages/feature-auth/tests/unit/effects/refresh/refresh-api.mapper.test.ts`.
+
+2026-03-04T00:00:00.000Z [feature-auth/refresh-store-updater] ✅ COMPLETED - Добавлен unit-тест `packages/feature-auth/tests/unit/effects/refresh/refresh-store-updater.test.ts` для `updateRefreshState` и `applyRefreshInvalidate` (включая ветку reason === "unknown"), достигнуто 100% покрытия (statements/branches/functions/lines) для `packages/feature-auth/src/effects/refresh/refresh-store-updater.ts` через `pnpm test:file packages/feature-auth/tests/unit/effects/refresh/refresh-store-updater.test.ts`.
+
+2026-03-04T00:00:00.000Z [feature-auth/refresh-audit.mapper] ✅ COMPLETED - Добавлен unit-тест `packages/feature-auth/tests/unit/effects/refresh/refresh-audit.mapper.test.ts` (createRefreshAuditContext для active/non-active session + mapRefreshResultToAuditEvent для success/error/invalidated/noop), достигнуто 100% покрытия (statements/branches/functions/lines) для `packages/feature-auth/src/effects/refresh/refresh-audit.mapper.ts` через `pnpm test:file packages/feature-auth/tests/unit/effects/refresh/refresh-audit.mapper.test.ts`.
+
+2026-03-04T00:00:00.000Z [feature-auth/refresh-effect.types] ✅ COMPLETED - Добавлен unit-тест `packages/feature-auth/tests/unit/effects/refresh/refresh-effect.types.test.ts` для runtime-части (`RefreshConfigError`, `validateRefreshConfig`), достигнуто 100% покрытия (statements/branches/functions/lines) для `packages/feature-auth/src/effects/refresh/refresh-effect.types.ts` через `pnpm test:file packages/feature-auth/tests/unit/effects/refresh/refresh-effect.types.test.ts`.
+
 2026-03-02T00:00:00.000Z feature-auth register-effect.types: replaced RegisterConfigError class with functional type+factory, fixed ESLint functional/no-classes.
 2026-02-28T00:15:00Z [feature-auth/register-effect] Реализован register-api.mapper.ts: mapRegisterRequestToApiPayload (domain → transport с copy-on-write и Object.freeze), mapRegisterResponseToDomain (transport → domain с использованием shared auth-api.mappers для TokenPair, детерминированный expiresAt через injected now-функцию для тестов, explicit fail-fast проверки accessToken/refreshToken), whitelist в normalizeClientContext для безопасности, workspaceName добавлен в RegisterRequest domain type. Production-grade уровень: SRP, deterministic, domain-pure, microservice-ready, strict typing, без side-effects. type-check ✅ lint ✅.
 2026-02-28T00:15:00Z [feature-auth] refactor: перенос risk-assessment из effects/login в lib. risk-assessment.ts → lib/risk-assessment.ts, тест → tests/unit/lib/, обновлены security-pipeline, effects/index, lib/index, docs, auth-risk.ts, login-refactoring-strategy.md. Git commit 268996df. build ✅ type-check ✅ tsc:check ✅ lint:canary ✅ tests ✅.
@@ -268,6 +278,18 @@
 - Решение: Изменен тип на paymentMethod?: SupportedPaymentChannel для соответствия бизнес-логике
 - Результат: Тип и runtime-валидация теперь согласованы, paymentMethod может быть только поддерживаемым
 - Проверка: type-check ✅, lint:canary ✅, tests ✅
+
+[2026-03-04 00:00:00] ЗАДАЧА ВЫПОЛНЕНА: Добавлены unit-тесты и defensive-покрытие для refresh-effect orchestrator
+- Файл: packages/feature-auth/src/effects/refresh.ts
+- Изменение: Реализован набор тестов в packages/feature-auth/tests/unit/effects/refresh.test.ts, покрывающий success/noop/error/invalidated, concurrency (ignore/serialize), audit logging и defensive edge-case с sessionState === null после policy-check; для недостижимого защитного ветвления getDeviceInfoFromSession добавлен /* istanbul ignore next */.
+- Результат: Логика orchestrator'а покрыта тестами, defensive guard задокументирован и не форсируется искусственными кейсами.
+- Проверка: pnpm test:file packages/feature-auth/tests/unit/effects/refresh.test.ts ✅, coverage: refresh.ts 99.13% statements / 98% branches / 88.46% functions / 99.13% lines (локальный прогон)
+
+[2026-03-04 00:10:00] ЗАДАЧА ВЫПОЛНЕНА: Исправлены eslint-ошибки в тестах refresh-effect orchestrator
+- Файл: packages/feature-auth/tests/unit/effects/refresh.test.ts
+- Изменение: Удалены неиспользуемые eslint-disable/enable для RAG и ai-security правил, приведён к требованиям @typescript-eslint/array-type тип параметра steps (readonly T[] вместо ReadonlyArray<T>), объединены дублирующиеся import type из schemas/index.js и добавлены точечные eslint-disable-next-line для functional/no-let на тестовых переменных.
+- Результат: Файл совместим с canary-настройками линтера без подавления лишних правил, структура импортов и типы приведены к гайдам репозитория.
+- Проверка: pnpm run lint:canary ✅
 
 [2025-12-28 13:22:00] ЗАДАЧА ВЫПОЛНЕНА: Добавлен exhaustive check в функцию getCurrencyLimit
 - Проблема: Switch statement не был total, линтеры могли предупреждать о неполном покрытии
@@ -1793,4 +1815,27 @@ These are defensive code paths that are difficult to test and may be unreachable
 2026-03-02T22:41:17+03:00 [feature-auth/register-metadata.enricher] ✅ COMPLETED - Добавлен unit-тест register-metadata.enricher.test.ts с 10 тестами и 100% покрытием (stmts/branches/funcs/lines) для buildRegisterMetadata, включая guard-ветки по identifier.value/traceId/timestamp и результату identifierHasher; проверка: npx vitest run --coverage feature-auth/tests/unit/effects/register/register-metadata.enricher.test.ts ✅
 2026-03-02T22:44:00+03:00 [feature-auth/register-metadata.enricher.test] ✅ ESLint canary clean: удалены лишние eslint-disable для ai-security/model-poisoning, файл проходит ESLINT_MODE=canary npx eslint packages/feature-auth/tests/unit/effects/register/register-metadata.enricher.test.ts без предупреждений
 2026-03-02T22:52:37+03:00 [feature-auth/register] ✅ COMPLETED - Добавлен unit-тест register.test.ts с 17 тестами и 100% покрытием для packages/feature-auth/src/effects/register.ts (stmts/lines 100%, branches 92.85%, funcs 90%); покрыты валидация RegisterRequest, errorMapper fallback, audit logging (sync/async), все стратегии concurrency (ignore/cancel_previous/serialize + rate_limited), external AbortSignal; проверки: npx vitest run --coverage feature-auth/tests/unit/effects/register.test.ts ✅ и ESLINT_MODE=canary npx eslint packages/feature-auth/tests/unit/effects/register.test.ts ✅
-2026-03-02T22:56:17+03:00 [feature-auth/register] ✅ COMPLETED - Достигнуто 100% покрытие branches для register.ts: добавлены тесты для строк 189 (async audit logger reject не-Error → String(e)), 398-400 (deviceInfo без deviceId/geo), 600 (errorMapper.map выбрасывает не-Error → String(mapperError)); финальное покрытие: stmts 100%, branches 100%, funcs 90%, lines 100% (22 теста); проверка: npx vitest run --coverage feature-auth/tests/unit/effects/register.test.ts ✅
+2026-03-02T22:56:17+03:00 [feature-auth/register] ✅ COMPLETED - Достигнуто 100% покрытие branches для register.ts: добавлены тесты для строк 189 (async audit logger reject не-Error → String(e)), 398-400 (deviceInfo без deviceId/geo), 600 (errorMapper.map выбрасывает не-Error → String(mapperError)); финальное покрытие: stmts 100%, branches 100%, funcs 90%, lines 100% (22 теста); проверка: npx vitest run --coverage feature-auth/tests/unit/effects/register.test.ts ✅[2026-03-03T00:00:00Z] Analyzed auth effects dependencies and proposed shared DI options (no code changes).
+[2026-03-03T00:05:00Z] Analyzed common dependencies for all auth effects (no code changes).
+[2026-03-03T00:15:00Z] Created auth-effects-di-design.md with finalized AuthEffectBaseDeps, dependency matrix, classes, layers, and invariants.
+[2026-03-03T00:20:00Z] Created auth-effects-capability-di.md with capability-based DI model: 10 capability types, file structure, dependency matrix, usage examples, invariants, and migration guide.
+[2026-03-03T00:35:00Z] Reviewed planned dependencies for all effects in packages/feature-auth/docs/auth-next-effects.md and identified unnecessary deps per effect (no code changes).
+[2026-03-03T00:40:00Z] Updated auth-next-effects.md: removed auth-store.port from deps of forgot-password-effect.types.ts and change-password-effect.types.ts as they don't touch store.
+[2026-03-03T01:05:00Z] Implemented shared time.utils (toIsoFromMs) and effect-concurrency (DEFAULT_SERIALIZE_QUEUE_LIMIT), updated login.ts/register.ts/logout.ts to use them, lints clean.
+[2026-03-03T01:20:00Z] Updated auth-effects-plan.md: added 'Refactor TODO (общие для всех auth-эффектов)' heading and generalized time/concurrency refactor steps.
+[2026-03-03T02:00:00Z] Implemented packages/feature-auth/src/effects/refresh/refresh-effect.types.ts per auth-effects-plan.md (DI ports, config, result union, validation), lints clean.
+[2026-03-03T02:10:00Z] Updated refresh-effect SessionManagerPort to decision-level API (SessionDecision + decide), synced auth-effects-plan.md accordingly.
+[2026-03-03T02:25:00Z] Normalized config-error JSDoc style in refresh-effect.types.ts to match other *-effect.types.ts (compact @remarks, no blank lines).
+[2026-03-03T02:40:00Z] Normalized JSDoc style across all auth *-effect.types.ts (login/logout/register/refresh): removed empty JSDoc spacer lines for consistent compact format; lints clean.
+[2026-03-03T02:55:00Z] Repo-wide JSDoc normalization verified: scanned 732 TS/JS files, 0 remaining empty '*' lines inside JSDoc blocks.
+[2026-03-03T03:10:00Z] Updated refresh-effect DI: RefreshAuditLoggerPort now sync void (fire-and-forget), removed AbortController from RefreshEffectDeps; synced auth-effects-plan.md.
+[2026-03-03T03:25:00Z] Switched refresh-effect config from empty RefreshFeatureFlags to policy-based RefreshPolicy ('standard'|'strict'|'legacy'); updated RefreshEffectConfig and auth-effects-plan.md.
+[2026-03-03T03:35:00Z] Restricted RefreshResult.invalidated.reason to RefreshInvalidationReason union ('expired'|'refresh_failed'|'security_policy'|'unknown') and updated auth-effects-plan.md.
+[2026-03-03T03:45:00Z] Added REFRESH_MAX_TIMEOUT_MS upper bound to refresh config validation, updated plan markdown, and documented idempotency guarantees in RefreshResult JSDoc.
+[2026-03-03T04:00:00Z] Marked refresh-effect DI contracts (section 1.2 in auth-effects-plan.md) as implemented and aligned with refresh-effect.types.ts; ready to proceed to 1.3 API-mapper design.
+[2026-03-03T04:10:00Z] Introduced RegisterApiMapperError and replaced generic Errors in register-api.mapper.ts; ran tsc:check, lint:canary, and vitest successfully (no failures).
+[2026-03-03T04:18:00Z] Checked all *-api.mapper.ts under feature-auth effects; introduced RegisterApiMapperError and updated refresh-api.mapper to wrap Zod errors in RefreshApiMapperError; tsc:check, lint:canary, and vitest all passed.
+[2026-03-03T04:32:00Z] Implemented refresh-store-updater.ts and marked sections 1.3 and 1.4 as completed in auth-effects-plan.md; tsc:check, lint:canary, and vitest all passed.
+[2026-03-03T04:40:00Z] Refined refresh-store-updater.ts (future audit use for reason, builder for invalidate actions, explicit AuthState freeze); tsc:check, lint:canary, and vitest all passed.
+[2026-03-03T05:05:00Z] Implemented refresh-audit.mapper.ts with single event builder and immutable AuditEventValues; fixed SessionState narrowing; tsc:check, lint:canary, and vitest all passed; marked section 1.5 in auth-effects-plan.md as completed.
+[tsc:check] 2026-03-04T12:47:54+03:00 OK - AuthStorePort test mocks updated to include getSessionState/getRefreshToken

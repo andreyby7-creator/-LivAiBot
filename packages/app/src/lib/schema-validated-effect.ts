@@ -3,15 +3,12 @@
  * ============================================================================
  * ✅ SCHEMA VALIDATED EFFECT — ОБЯЗАТЕЛЬНАЯ ZOD ВАЛИДАЦИЯ РЕЗУЛЬТАТОВ EFFECT
  * ============================================================================
- *
  * Минимальный, чистый boundary-модуль для обязательной Zod валидации результатов Effect.
- *
  * Архитектурная роль:
  * - Runtime валидация результатов Effect через Zod schema
  * - Защита от невалидных данных (runtime type safety)
  * - Унифицированная обработка ошибок через error-mapping
  * - Пробрасывание валидных результатов без изменений
- *
  * Принципы:
  * - Zero business logic
  * - Zero telemetry (telemetry → observability layer)
@@ -19,7 +16,6 @@
  * - Zero orchestration (orchestration → orchestrator)
  * - Только валидация и throw DomainError при fail
  * - Пробрасывает все ошибки от effect дальше
- *
  * ⚠️ Важно: НЕ делает isolation
  * - validatedEffect НЕ оборачивает в try/catch
  * - Только валидация и throw DomainError при fail
@@ -86,7 +82,6 @@ export function isSchemaValidationError(error: unknown): error is SchemaValidati
 /**
  * Создает DomainError из ValidationError через error-mapping.
  * Используется для унифицированной обработки ошибок валидации.
- *
  * @deprecated Используйте `createDomainError` из `error-mapping.ts` напрямую.
  * Эта функция оставлена для обратной совместимости.
  */
@@ -123,13 +118,11 @@ function zodErrorsToValidationErrors(
 
 /**
  * Обёртка для Effect, которая валидирует результат через Zod schema.
- *
  * Поведение:
  * - ✅ Если schema прошла → результат effect пробрасывается без изменений
  * - ❌ Если schema не прошла → бросает SchemaValidationError (DomainError через error-mapping)
  * - ✅ Не глотает ошибки → все ошибки от effect пробрасываются дальше
  * - ❌ НЕ делает isolation → isolation только на уровне orchestrator
- *
  * @param schema - Zod schema для валидации результата
  * @param effect - Effect для выполнения и валидации
  * @param options - Опции валидации (опционально)
@@ -139,20 +132,16 @@ function zodErrorsToValidationErrors(
  * ```ts
  * import { z } from 'zod';
  * import { validatedEffect } from './lib/schema-validated-effect';
- *
  * const UserSchema = z.object({
  *   id: z.string(),
  *   email: z.string().email(),
  * });
- *
  * const fetchUser = async () => {
  *   const response = await fetch('/api/user');
  *   return await response.json();
  * };
- *
  * // Валидирует результат fetchUser через UserSchema
  * const validatedFetchUser = validatedEffect(UserSchema, fetchUser);
- *
  * // Использование в orchestrator с isolation
  * const result = await runIsolated(validatedFetchUser, { tag: 'fetch-user' });
  * if (isOk(result)) {

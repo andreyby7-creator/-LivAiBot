@@ -1,6 +1,5 @@
 /**
  * @file Unit тесты для packages/app/src/lib/schema-validated-effect.ts
- *
  * Enterprise-grade тестирование schema-validated-effect с 100% покрытием:
  * - SchemaValidationError конструктор и свойства
  * - isSchemaValidationError type guard

@@ -3,12 +3,10 @@
  * ============================================================================
  * 🔵 CORE UI BADGE — BEHAVIORAL PRIMITIVE
  * ============================================================================
- *
  * Роль:
  * - Базовый UI-примитив для отображения Badge (метка, статус, счётчик)
  * - Детерминированный, предсказуемый и side-effect free
  * - SSR-safe, Concurrent-safe
- *
  * Не содержит:
  * - feature flags
  * - telemetry
@@ -157,7 +155,6 @@ const CoreBadgeComponent = forwardRef<HTMLSpanElement, CoreBadgeProps>(
 
 /**
  * Memoized CoreBadge.
- *
  * Гарантии:
  * - Никаких side-effects
  * - Полная детерминированность

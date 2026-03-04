@@ -1,6 +1,5 @@
 /**
  * @file Unit тесты для packages/app/src/lib/auth-service.ts
- *
  * Enterprise-grade тестирование AuthService с 95-100% покрытием:
  * - Login/logout/refresh операции
  * - Error handling и validation

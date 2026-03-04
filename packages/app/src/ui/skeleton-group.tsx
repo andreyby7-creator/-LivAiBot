@@ -3,15 +3,12 @@
  * ============================================================================
  * 🟥 APP UI SKELETON GROUP — UI МИКРОСЕРВИС КОМПОЗИЦИИ SKELETON
  * ============================================================================
- *
  * SkeletonGroup — эталонный композиционный UI-микросервис для массового
  * рендера Skeleton элементов как единой логической группы.
- *
  * Архитектурное место:
  *   CoreSkeleton   → атом (ui-core)
  *   Skeleton       → одиночный UI-микросервис (app/ui)
  *   SkeletonGroup  → композиционный UI-микросервис (app/ui)
- *
  * Назначение:
  * - Рендер N Skeleton элементов
  * - Полный централизованный контроль:
@@ -19,13 +16,11 @@
  *   - feature flags
  *   - shimmer-анимации
  *   - telemetry (один event вместо N)
- *
  * Ключевые гарантии:
  * - Нет telemetry-spam
  * - Синхронная shimmer-анимация всей группы
  * - Предсказуемое поведение в SSR / Concurrent React
  * - Чёткое разделение слоёв ответственности
- *
  * Не содержит:
  * - Бизнес-логики
  * - Таймеров
@@ -80,7 +75,6 @@ const EMPTY_PARAMS: Record<string, string | number> = Object.freeze({});
 
 /**
  * App props для SkeletonGroup.
- *
  * ⚠️ telemetryId обязателен.
  * Без него SkeletonGroup считается архитектурно неполноценным.
  */
@@ -164,7 +158,6 @@ type SkeletonGroupPolicy = Readonly<{
  * - telemetry
  * - visibility state
  * - shimmer-анимации
- *
  * Ни один consumer не имеет права повторно интерпретировать props.visible
  * или feature flags.
  */
@@ -399,9 +392,7 @@ SkeletonGroupComponent.displayName = 'SkeletonGroup';
 
 /**
  * UI-контракт SkeletonGroup компонента.
- *
  * @contract
- *
  * Гарантируется:
  * - Один telemetry event на всю группу вместо N отдельных
  * - Синхронная shimmer-анимация для всех элементов группы
@@ -411,7 +402,6 @@ SkeletonGroupComponent.displayName = 'SkeletonGroup';
  * - SkeletonGroupPolicy является единственным источником истины для rendering и telemetry
  * - Telemetry никогда не зависит напрямую от props
  * - SkeletonGroup не проксирует visible/feature flags в дочерние Skeleton
- *
  * Инварианты:
  * - Все Skeleton в группе имеют одинаковые размеры и variant
  * - Telemetry payload содержит корректное количество элементов (count >= 0)
@@ -421,7 +411,6 @@ SkeletonGroupComponent.displayName = 'SkeletonGroup';
  * - visible/hidden в payload являются производными только от policy
  * - data-component всегда начинается с "App" и соответствует имени публичного UI микросервиса
  * - count <= 0 обрабатывается математически корректно (safeCount = Math.max(0, count))
- *
  * Не допускается:
  * - Использование напрямую core Skeleton компонентов
  * - Передача разных variant в одну группу

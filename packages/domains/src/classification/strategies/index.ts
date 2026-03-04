@@ -1,6 +1,5 @@
 /**
  * @file packages/domains/src/classification/strategies — Classification Strategies
- *
  * Публичный API пакета strategies.
  * Экспортирует все публичные компоненты, типы и утилиты для classification-специфичных стратегий.
  */
@@ -14,7 +13,6 @@
  * Типы для classification rules.
  * ClassificationRule для идентификации правил, RuleEvaluationContext для контекста оценки,
  * RuleMetadata для метаданных правил.
- *
  * @public
  */
 export type {
@@ -39,7 +37,6 @@ export type {
 /**
  * Classification Rules: определение и оценка classification-специфичных правил.
  * Использует generic rule-engine из @livai/core для вычислений.
- *
  * @public
  */
 export {
@@ -67,7 +64,6 @@ export {
  * ContextBuilderPlugin для расширения контекста, ClassificationPolicy для политики,
  * AssessmentResult для typed error handling.
  * @note ScoringContext экспортируется из aggregation/index.ts
- *
  * @public
  */
 export type { AssessmentResult, ClassificationPolicy, ContextBuilderPlugin } from './assessment.js';
@@ -80,7 +76,6 @@ export type { AssessmentResult, ClassificationPolicy, ContextBuilderPlugin } fro
 /**
  * Classification Assessment: composition layer для оценки классификации.
  * Объединяет rules, scoring и decision engine.
- *
  * @public
  */
 export { assessClassification } from './assessment.js';
@@ -94,7 +89,6 @@ export { assessClassification } from './assessment.js';
  * Типы для classification deterministic strategy.
  * ContextBuilderPlugin для расширения контекста,
  * EvaluateClassificationRulesOptions для опций.
- *
  * @public
  */
 export type {
@@ -106,7 +100,6 @@ export type {
  * Classification Deterministic Strategy: pure domain engine для оценки классификации.
  * Использует generic rule-engine из @livai/core для вычислений.
  * НЕ использует score-calculator (это в aggregation/).
- *
  * @public
  */
 export {
@@ -123,7 +116,6 @@ export {
  * Типы для classification rules configuration.
  * ClassificationRulesConfig для динамической конфигурации,
  * RuleThresholds для порогов правил, RuleFeatureFlag для feature flags.
- *
  * @public
  */
 export type {
@@ -145,7 +137,6 @@ export type {
  * Поддерживает обновление конфигурации без перекомпиляции,
  * versioned rules для A/B testing и staged rollouts,
  * feature flags для постепенного включения правил.
- *
  * @public
  */
 export {
@@ -171,7 +162,6 @@ export {
 /**
  * Типы для classification validation.
  * ClassificationSemanticValidator для явного контракта валидатора.
- *
  * @public
  */
 export type { ClassificationSemanticValidator } from './validation.js';
@@ -185,7 +175,6 @@ export type { ClassificationSemanticValidator } from './validation.js';
  * Classification Validation: семантическая валидация classification signals.
  * Использует semanticViolationValidator из signals/violations.ts.
  * Явный контракт через ClassificationSemanticValidator для стабильности в strategy layer.
- *
  * @public
  */
 export { validateClassificationSemantics } from './validation.js';

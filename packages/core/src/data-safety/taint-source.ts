@@ -3,12 +3,10 @@
  * ============================================================================
  * 🛡️ CORE — Data Safety (Taint Source)
  * ============================================================================
- *
  * Архитектурная роль:
  * - Input boundary: пометка внешних данных как tainted и повышение уровня доверия
  * - External → Trusted через валидацию и санитизацию
  * - Причина изменения: data safety, input boundary guards, trust promotion
- *
  * Принципы:
  * - ✅ SRP: разделение на HELPERS, INPUT BOUNDARY OPERATIONS, INPUT BOUNDARY INTERFACE
  * - ✅ Deterministic: pure functions для валидации и санитизации, детерминированное поведение
@@ -17,7 +15,6 @@
  * - ✅ Strict typing: generic типы для всех операций, union types для SanitizationMode
  * - ✅ Microservice-ready: stateless, без side-effects, thread-safe
  * - ✅ Security: fail-hard при валидации, защита от covert channel (validator/sanitizer получают только чистые данные)
- *
  * ⚠️ ВАЖНО:
  * - Все внешние данные должны быть помечены через markAsExternal()
  * - Validator: fail-hard (выбрасывает Error)
@@ -90,6 +87,7 @@ function createFrozenTainted<T>(
 /**
  * Помечает внешние данные как tainted (source=EXTERNAL)
  * @template T - Тип внешних данных
+ *
  * @example const userInput = markAsExternal({ name: "John" }); // userInput.__taint.source === taintSources.EXTERNAL
  * @public
  */
@@ -106,6 +104,7 @@ export function markAsExternal<T>(
  * @template T - Тип данных для валидации
  * @note После валидации данные получают targetTrustLevel (по умолчанию PARTIAL).
  *       Validator получает только чистые данные (без taint metadata) для защиты от covert channel.
+ *
  * @example const validated = validateAndPromote(userInput, (data) => { if (!data.name) throw new Error("Name required"); });
  * @throws {Error} Если валидация не прошла или данные не tainted
  * @public
@@ -144,6 +143,7 @@ export function validateAndPromote<T>(
  * @note После санитизации данные получают targetTrustLevel (по умолчанию TRUSTED).
  *       Sanitizer получает только чистые данные (без taint metadata) для защиты от covert channel.
  *       Режим санитизации валидируется, NONE пропускает санитизацию.
+ *
  * @example const sanitized = sanitizeAndPromote(validated, (data) => ({ ...data, name: escapeHtml(data.name) }));
  * @throws {Error} Если данные не tainted или sanitizationMode невалиден
  * @public
@@ -193,6 +193,7 @@ export function sanitizeAndPromote<T>(
  * Валидирует и санитизирует tainted данные (комбинированная операция)
  * @template T - Тип данных для валидации и санитизации
  * @note Сначала валидация (PARTIAL), затем санитизация (TRUSTED)
+ *
  * @example const processed = validateAndSanitize(userInput, (data) => { if (!data.name) throw new Error("Name required"); }, (data) => ({ ...data, name: escapeHtml(data.name) }));
  * @throws {Error} Если валидация не прошла или данные не tainted
  * @public
@@ -230,6 +231,7 @@ export function validateAndSanitize<T>(
  * Generic InputBoundary интерфейс для различных источников (API, file upload, db input)
  * @template T - Тип данных для boundary
  * @note Переиспользование логики без дублирования кода
+ *
  * @example const apiBoundary: InputBoundary<ApiRequest> = { taintSource: taintSources.EXTERNAL, mark: markAsExternal, validate: validateAndPromote, sanitize: sanitizeAndPromote }; const processed = apiBoundary.sanitize(apiBoundary.validate(apiBoundary.mark(apiRequest), apiValidator), apiSanitizer);
  * @public
  */

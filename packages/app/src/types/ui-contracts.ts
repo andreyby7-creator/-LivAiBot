@@ -1,10 +1,8 @@
 /**
  * @file packages/app/src/types/ui-contracts.ts
- *
  * ============================================================================
  * 🌐 UI CONTRACTS: MAPPING CORE PRIMITIVES ↔ APP WRAPPERS
  * ============================================================================
- *
  * Этот файл описывает типы для связи базовых UI-компонентов (ui-core)
  * с приложенческими wrapper-компонентами:
  * - Контролируемые / неконтролируемые props
@@ -12,7 +10,6 @@
  * - Feature flag overrides
  * - UI state management с retry/refresh политикой
  * - Observability и distributed tracing
- *
  * Принципы:
  * - Строгая типизация и максимальная safety
  * - Generic + Discriminated unions для состояния и событий

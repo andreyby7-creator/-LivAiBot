@@ -3,20 +3,16 @@
  * ============================================================================
  * 🟥 APP UI SEARCHBAR — UI МИКРОСЕРВИС SEARCHBAR
  * ============================================================================
- *
  * Единственная точка входа для SearchBar в приложении.
  * UI boundary между ui-core и бизнес-логикой.
- *
  * Ответственность:
  * - Policy (hidden / visibility / disabled)
  * - Telemetry
  * - Feature flags
- *
  * Не содержит:
  * - DOM-манипуляций кроме Core
  * - Платформенных эффектов
  * - Debounce логики (должна быть в feature слое)
- *
  * Архитектурные решения:
  * - Управление значением и событиями обрабатывается в App слое
  * - CoreSearchBar остается полностью presentational
@@ -149,7 +145,6 @@ type SearchBarPolicy = Readonly<{
  * - telemetry
  * - visibility state
  * - disabled state
- *
  * Ни один consumer не имеет права повторно интерпретировать props.visible,
  * props.disabled или feature flags.
  */
@@ -338,7 +333,6 @@ const SearchBarComponent = forwardRef<HTMLInputElement, AppSearchBarProps>(
      * Lifecycle telemetry фиксирует состояние policy на момент первого рендера.
      * Не реагирует на последующие изменения props или policy.
      * Это архитектурная гарантия для детерминированности.
-     *
      * @remarks
      * Важно: При изменении policy между mount/unmount lifecycle payload может быть
      * менее информативным, так как отражает только начальное состояние.
@@ -482,16 +476,13 @@ SearchBarComponent.displayName = 'SearchBar';
 
 /**
  * UI-контракт SearchBar компонента.
- *
  * @contract
- *
  * Гарантируется:
  * - Детерминированный рендеринг без side effects (кроме telemetry)
  * - SSR-safe и concurrent rendering compatible
  * - Полная интеграция с централизованной telemetry системой
  * - Управление feature flags для скрытия и отключения
  * - Корректная обработка accessibility (ARIA)
- *
  * Инварианты:
  * - Всегда возвращает валидный JSX.Element или null
  * - Telemetry payload содержит корректную длину значения
@@ -501,7 +492,6 @@ SearchBarComponent.displayName = 'SearchBar';
  * - Change telemetry отправляется при каждом изменении значения
  * - Submit telemetry отправляется при отправке формы поиска
  * - Clear telemetry отправляется при очистке значения
- *
  * Не допускается:
  * - Использование напрямую core SearchBar компонента
  * - Игнорирование feature flag логики
@@ -517,7 +507,6 @@ SearchBarComponent.displayName = 'SearchBar';
  *   onSubmit={(value) => handleSearch(value)}
  *   placeholder="Search..."
  * />
- *
  * // С feature flags и telemetry
  * <SearchBar
  *   value={searchValue}

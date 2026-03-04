@@ -2,7 +2,6 @@ import { createPackageVitestConfig } from '@livai/vitest-config/vitest.packages.
 
 /**
  * Конфигурация Vitest для @livai/domains
- *
  * Domain implementation пакет: decision computing domain с максимальными требованиями качества
  * Контракт качества: 90% statements, 85% branches, 95% functions, 90% lines
  */

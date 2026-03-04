@@ -3,14 +3,12 @@
  * ============================================================================
  * 🔐 FEATURE-AUTH — Feature-Level DTO для Login Flow
  * ============================================================================
- *
  * Архитектурная роль:
  * - Feature-level агрегированный DTO для login-flow
  * - Композиция transport-level типов из schemas в единый feature-контракт
  * - Используется в effects/login.ts для оркестрации двухфазного процесса
  * - Transport-oriented, без domain leakage
  * - Future-proof для MFA расширения
- *
  * Принципы:
  * - ❌ Нет бизнес-логики (только типы)
  * - ❌ Нет optional-полей в discriminated union (явные ветки)
@@ -19,7 +17,6 @@
  * - ✅ Readonly для immutability
  * - ✅ Fail-closed: строгая типизация без partial состояний
  * - ✅ Extensible: готов к добавлению новых веток (MFA, OTP и т.д.)
- *
  * @version 1
  */
 
@@ -36,20 +33,16 @@ import type {
 
 /**
  * Агрегированный DTO для результата login-flow.
- *
  * Представляет discriminated union двух возможных исходов:
  * - `success`: успешный login с токенами и данными пользователя
  * - `mfa_required`: требуется MFA-верификация (future extension, версия 1 не использует)
- *
  * @remarks
  * **IMPORTANT:**
  * Backend does NOT return LoginResponseDto.
  * This is a feature-level aggregate composed from:
  *   1) POST /v1/auth/login → TokenPairResponse (валидируется через loginTokenPairSchema)
  *   2) GET /v1/auth/me → MeResponse (валидируется через meResponseSchema)
- *
  * Fail-closed поведение: если один из вызовов падает, LoginResponseDto не создаётся.
- *
  * @public
  */
 export type LoginResponseDto =
@@ -70,7 +63,6 @@ export type LoginResponseDto =
 
 /**
  * Type guard для проверки успешного результата login.
- *
  * @param dto - LoginResponseDto для проверки
  * @returns true, если это success-ветка
  *
@@ -88,7 +80,6 @@ export function isLoginSuccess(
 
 /**
  * Type guard для проверки MFA-требования.
- *
  * @param dto - LoginResponseDto для проверки
  * @returns true, если это mfa_required-ветка
  *
@@ -110,11 +101,9 @@ export function isMfaRequired(
 
 /**
  * Утилита для проверки исчерпывающего разбора union-типов.
- *
  * Используется в switch по `LoginResponseDto` для fail-closed поведения:
  * если появляется новая ветка union-типа и не обрабатывается явно,
  * TypeScript подсветит использование `assertNever` как ошибку компиляции.
- *
  * @throws Error Если в рантайме передан неожиданный вариант union-типа
  */
 /* eslint-disable fp/no-throw -- Намеренное исключение для защиты от некорректного состояния */

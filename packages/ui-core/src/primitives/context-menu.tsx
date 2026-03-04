@@ -3,12 +3,10 @@
  * ============================================================================
  * 🔵 CORE UI CONTEXT MENU — PRESENTATIONAL PRIMITIVE
  * ============================================================================
- *
  * Роль:
  * - Базовый UI-компонент для отображения контекстного меню
  * - Полностью детерминированный и side-effect free
  * - SSR-safe, Concurrent-safe
- *
  * Не содержит:
  * - Feature flags
  * - Telemetry
@@ -16,7 +14,6 @@
  * - Таймеров или анимаций
  * - Автоматической фокусировки (App-слой управляет фокусом)
  * - Автоматического закрытия (App-слой решает когда закрывать)
- *
  * Управление:
  * - Позицией меню управляет App-слой через style prop
  * - Открытость меню контролируется через isOpen prop (только для ARIA)
@@ -112,7 +109,6 @@ export type CoreContextMenuProps = Readonly<
 
 /**
  * @note CSS переменные для темизации ContextMenu:
- *
  * --context-menu-border-color: цвет границы меню (default: #e0e0e0)
  * --context-menu-bg-color: фон меню (default: #fff)
  * --context-menu-text-color: цвет текста меню (default: #333)
@@ -120,7 +116,6 @@ export type CoreContextMenuProps = Readonly<
  * --context-menu-item-hover-bg-color: фон элемента меню при hover (default: #f5f5f5)
  * --context-menu-divider-color: цвет разделителей (default: #e0e0e0)
  * --context-menu-shadow: тень меню (default: 0 2px 8px rgba(0, 0, 0, 0.15))
- *
  * Hover эффекты должны быть определены в глобальных стилях:
  * ```css
  * [data-component="CoreContextMenu"] li[role="menuitem"]:hover:not([aria-disabled="true"]) {
@@ -366,7 +361,6 @@ const CoreContextMenuComponent = forwardRef<HTMLDivElement, CoreContextMenuProps
 
 /**
  * Memoized CoreContextMenu.
- *
  * Гарантии:
  * - Никаких скрытых side-effects
  * - Предсказуемый жизненный цикл
@@ -374,12 +368,10 @@ const CoreContextMenuComponent = forwardRef<HTMLDivElement, CoreContextMenuProps
  * - Поддержка ref forwarding для программного доступа
  * - Полная поддержка ARIA атрибутов для accessibility
  * - Эмитит события (onSelect, onEscape) для обработки в App-слое
- *
  * @note Core не управляет фокусом, позиционированием или закрытием меню.
  * @note Все поведенческие решения принимаются в App-слое.
  * @note App-слой передает готовый style для позиционирования.
  * @note App-слой управляет фокусом через refs и useLayoutEffect.
- *
  * Подходит для:
  * - контекстных меню по правому клику
  * - меню действий для элементов списка

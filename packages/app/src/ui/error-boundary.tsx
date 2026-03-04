@@ -3,20 +3,16 @@
  * ============================================================================
  * 🟥 APP UI ERROR BOUNDARY — UI МИКРОСЕРВИС ERROR BOUNDARY
  * ============================================================================
- *
  * Единственная точка входа для ErrorBoundary в приложении.
  * UI boundary между ui-core и бизнес-логикой.
- *
  * Ответственность:
  * - Policy (hidden / disabled)
  * - Telemetry
  * - Feature flags
  * - Обработка и логирование ошибок
- *
  * Не содержит:
  * - DOM-манипуляций кроме Core
  * - Платформенных эффектов
- *
  * Архитектурные решения:
  * - Управление обработкой ошибок и восстановлением обрабатывается в App слое
  * - CoreErrorBoundary остается полностью presentational
@@ -149,7 +145,6 @@ type ErrorBoundaryPolicy = Readonly<{
  * - DOM rendering
  * - telemetry
  * - disabled state
- *
  * Ни один consumer не имеет права повторно интерпретировать
  * feature flags.
  */
@@ -551,9 +546,7 @@ function AppErrorBoundaryComponent(props: AppErrorBoundaryProps): ReactNode {
 
 /**
  * UI-контракт ErrorBoundary компонента.
- *
  * @contract
- *
  * Гарантируется:
  * - Перехват ошибок в дочерних компонентах
  * - Детерминированный fallback UI при ошибке
@@ -561,7 +554,6 @@ function AppErrorBoundaryComponent(props: AppErrorBoundaryProps): ReactNode {
  * - Полная интеграция с централизованной telemetry системой
  * - Управление feature flags для скрытия и отключения
  * - Корректная обработка accessibility (ARIA)
- *
  * Инварианты:
  * - Всегда возвращает валидный ReactNode
  * - Error telemetry отправляется при перехвате ошибки
@@ -569,18 +561,14 @@ function AppErrorBoundaryComponent(props: AppErrorBoundaryProps): ReactNode {
  * - Feature flags применяются корректно к visibility и disabled
  * - Telemetry отражает состояние policy, а не сырые props
  * - Ошибки telemetry не ломают UI (try/catch защита)
- *
  * Не допускается:
  * - Использование напрямую core ErrorBoundary компонента
  * - Игнорирование feature flag логики
  * - Модификация telemetry payload структуры
- *
  * @contract Data Attributes (для QA)
- *
  * Компонент добавляет следующие data-атрибуты для тестирования и отладки.
  * Все атрибуты используют консистентную схему строковых значений.
  * QA должен использовать именно эти строковые значения для селекторов:
- *
  * - data-component="AppErrorBoundary": идентификатор компонента
  * - data-state: строго "error" | "normal" (текущее состояние)
  * - data-disabled: строго "disabled" | отсутствует (если компонент отключен через feature flag)
@@ -593,7 +581,6 @@ function AppErrorBoundaryComponent(props: AppErrorBoundaryProps): ReactNode {
  * <ErrorBoundary>
  *   <MyComponent />
  * </ErrorBoundary>
- *
  * // Расширенное использование с feature flags, telemetry и кастомным fallback
  * <ErrorBoundary
  *   isHiddenByFeatureFlag={!featureFlags.errorBoundaryEnabled}

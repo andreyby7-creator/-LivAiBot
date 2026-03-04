@@ -3,17 +3,14 @@
  * ============================================================================
  * 🔐 FEATURE-AUTH — Register Audit Event Mapper
  * ============================================================================
- *
  * Архитектурная роль:
  * - Pure mapper из результата register-effect + контекста в AuditEventValues.
  * - Инкапсулирует форму audit-событий, чтобы orchestrator не знал про структуру аудита.
- *
  * Принципы:
  * - ❌ Нет бизнес-логики, только проекция данных.
  * - ✅ Использует auditEventSchema для валидации (fail-closed на уровне схемы).
  * - ✅ Immutable возвращаемые объекты.
  * - ✅ Табличный подход (mapping table) для масштабируемости без увеличения cyclomatic complexity.
- *
  * @note Контекст должен быть подготовлен на уровне orchestrator (flattened, валидированный, очищенный от null/empty).
  *       Не строить контекст внутри маппера, это нарушает SRP и увеличивает coupling.
  */
@@ -33,7 +30,6 @@ import type { AuthError } from '../../types/auth.js';
 
 /**
  * Возвращает безопасный для аудита error code.
- *
  * @remarks Для audit используем только `AuthError.kind` (без message/raw/stack).
  */
 function getAuditSafeErrorCode(error: AuthError): string {
@@ -433,10 +429,8 @@ export function mapAuditResultToPublicResult(
 
 /**
  * Маппит RegisterResult + контекст в AuditEventValues и валидирует через auditEventSchema.
- *
  * @note Fail-closed: несоответствие схеме → исключение.
  * @note Deterministic: eventId приходит извне (orchestrator).
- *
  * @throws ZodError если собранное событие не соответствует схеме (architectural bug).
  */
 export function mapRegisterResultToAuditEvent(

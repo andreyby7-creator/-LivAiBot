@@ -3,14 +3,12 @@
  * ============================================================================
  * 🛡️ CORE — Pipeline (Execution Engine)
  * ============================================================================
- *
  * Архитектурная роль:
  * - Generic execution engine для dependency-driven pipeline
  * - Оркестрация выполнения по уже скомпилированному execution plan
  * - Выполнение стадий с dependency resolution и error handling
  * - Поддержка последовательного и параллельного режимов (fan-out/fan-in) с throttling
  * - Причина изменения: pipeline execution, dependency-driven orchestration, scalable rule-engine
- *
  * Принципы:
  * - ✅ SRP: разделение на типы, выполнение стадии (run/error-handling/validation), orchestration (sequential/parallel)
  * - ✅ Deterministic: одинаковые входы → одинаковый execution plan и результат (детерминированное слияние слотов в порядке executionOrder)
@@ -21,7 +19,6 @@
  * - ✅ Scalable: fan-out/fan-in, batched parallel execution через maxParallelStages, timeout/cancellation guards
  * - ✅ Reliability: runtime validation (duplicate providers, unknown slots, circular dependencies, опциональная строгая валидация слотов через strictSlotCheck), DoS protection (maxStages, maxExecutionTimeMs, maxParallelStages для throttling)
  * - ✅ Явные стратегии выполнения: последовательная и параллельная orchestration без скрытого coupling
- *
  * ⚠️ ВАЖНО:
  * - ❌ НЕ включает domain-специфичные значения (TSlotMap определяется domain layer)
  * - ❌ НЕ зависит от aggregation/domain-specific logic

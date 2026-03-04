@@ -1,6 +1,5 @@
 /**
  * @file Unit тесты для packages/app/src/routes/route-meta.ts
- *
  * Enterprise-grade тестирование route-meta системы с 100% покрытием:
  * - routeMeta константа и её структура
  * - FeatureFlags enum валидация

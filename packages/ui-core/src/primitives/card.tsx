@@ -3,12 +3,10 @@
  * ============================================================================
  * 🔵 CORE UI CARD — BEHAVIORAL PRIMITIVE
  * ============================================================================
- *
  * Роль:
  * - Базовый UI-примитив для отображения Card (карточка, контейнер)
  * - Детерминированный, предсказуемый и side-effect free
  * - SSR-safe, Concurrent-safe
- *
  * Не содержит:
  * - feature flags
  * - telemetry
@@ -73,7 +71,6 @@ export type CoreCardProps = Readonly<
      * - "50%" - процент от родителя
      * - "20rem" - в rem единицах
      * - "var(--card-width)" - CSS переменная
-     *
      * @remarks
      * Передаваемый string должен быть валидным CSS значением для width.
      * Runtime валидация не выполняется - браузер сам обработает невалидные значения.
@@ -88,7 +85,6 @@ export type CoreCardProps = Readonly<
      * - "100%" - процент от родителя
      * - "10rem" - в rem единицах
      * - "var(--card-height)" - CSS переменная
-     *
      * @remarks
      * Передаваемый string должен быть валидным CSS значением для height.
      * Runtime валидация не выполняется - браузер сам обработает невалидные значения.
@@ -103,7 +99,6 @@ export type CoreCardProps = Readonly<
      * - "article" - самостоятельная статья/контент
      * - "region" - значимая область страницы
      * - "complementary" - дополнительный контент
-     *
      * @remarks
      * Все ARIA атрибуты (aria-label, aria-labelledby, aria-describedby и т.д.)
      * можно передавать через rest props, они будут проброшены в DOM элемент.
@@ -212,7 +207,6 @@ const CoreCardComponent = forwardRef<HTMLDivElement, CoreCardProps>(
 
 /**
  * Memoized CoreCard.
- *
  * Гарантии:
  * - Никаких side-effects
  * - Полная детерминированность

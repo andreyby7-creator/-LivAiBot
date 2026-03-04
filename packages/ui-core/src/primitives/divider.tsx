@@ -3,18 +3,15 @@
  * ============================================================================
  * 🔵 CORE UI DIVIDER — BEHAVIORAL PRIMITIVE
  * ============================================================================
- *
  * Роль:
  * - Базовый UI-примитив для отображения Divider (разделитель)
  * - Детерминированный, предсказуемый и side-effect free
  * - SSR-safe, Concurrent-safe
- *
  * Не содержит:
  * - feature flags
  * - telemetry
  * - бизнес-логики
  * - продуктовых решений
- *
  * Пример использования:
  * <Divider orientation="horizontal" />
  * <Divider orientation="vertical" thickness={2} color="red" length="50px" />
@@ -133,7 +130,6 @@ const CoreDividerComponent = forwardRef<HTMLElement, CoreDividerProps>(
 
 /**
  * Memoized CoreDivider.
- *
  * Гарантии:
  * - Никаких side-effects
  * - Полная детерминированность

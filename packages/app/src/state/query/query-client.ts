@@ -3,13 +3,11 @@
  * ============================================================================
  * 🧠 QUERY CLIENT — ГЛОБАЛЬНАЯ ИНФРАСТРУКТУРА REACT QUERY
  * ============================================================================
- *
  * Архитектурная роль:
  * - Единая точка конфигурации React Query для всего приложения
  * - Микросервисно-нейтральный слой (без доменной логики)
  * - SSR-safe конфигурация и централизованная телеметрия
  * - Детерминированные правила retry/кеширования
- *
  * Принципы:
  * - Никаких side-effects в queryFn (observability здесь)
  * - Никаких зависимостей на UI/feature-слои
@@ -67,11 +65,9 @@ function toSafeJson(value: unknown): string {
 
 /**
  * Извлекает HTTP статус из ошибки.
- *
  * Поддерживаемые форматы:
  * - { status: number }
  * - { response: { status: number } }
- *
  * Возвращает null, если статус не определён.
  */
 function extractHttpStatus(error: unknown): number | null {
@@ -209,7 +205,6 @@ export function createQueryClient(options: AppQueryClientOptions = {}): QueryCli
 
 /**
  * Глобальный singleton QueryClient.
- *
  * ❗ Должен создаваться ровно один раз на runtime.
  * ❗ Не использовать в тестах — создавать через createQueryClient().
  */

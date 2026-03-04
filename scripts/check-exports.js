@@ -2,12 +2,9 @@
 
 /**
  * @file scripts/check-exports.js
- *
  * Скрипт для проверки, что все экспорты из исходных файлов присутствуют в индексных файлах.
- *
  * Использование:
  *   node scripts/check-exports.js [package-path]
- *
  * Примеры:
  *   node scripts/check-exports.js packages/app/src
  *   node scripts/check-exports.js packages/feature-auth/src

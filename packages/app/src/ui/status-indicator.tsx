@@ -3,23 +3,18 @@
  * ============================================================================
  * 🟥 APP UI STATUS INDICATOR — UI МИКРОСЕРВИС STATUS INDICATOR
  * ============================================================================
- *
  * Единственная точка входа для Status Indicator в приложении.
  * UI boundary между ui-core и бизнес-логикой.
- *
  * Ответственность:
  * - Policy (hidden / visibility)
  * - Telemetry
  * - Feature flags
- *
  * Не содержит:
  * - DOM-манипуляций кроме Core
  * - Платформенных эффектов
- *
  * Архитектурные решения:
  * - Управление видимостью и параметрами обрабатывается в App слое
  * - CoreStatusIndicator остается полностью presentational
- *
  * @recommendedUsage
  * - Всегда оборачивайте в родительский layout, который контролирует `visible` и feature flags
  * - Используйте `telemetryEnabled` только при необходимости для аналитики
@@ -163,10 +158,8 @@ type StatusIndicatorPolicy = Readonly<{
  * - DOM rendering
  * - telemetry
  * - visibility state
- *
  * Ни один consumer не имеет права повторно интерпретировать props.visible
  * или feature flags.
- *
  * @note Чистая функция без side-effects. Использует только useMemo для вычислений.
  */
 function useStatusIndicatorPolicy(
@@ -191,7 +184,6 @@ function useStatusIndicatorPolicy(
 /**
  * Утилита для условного добавления свойств в объект.
  * Используется для соблюдения exactOptionalPropertyTypes.
- *
  * @template T - Тип объекта (может быть object | undefined для большей безопасности)
  */
 function optionalProp<T extends object | undefined>(
@@ -409,22 +401,18 @@ StatusIndicatorComponent.displayName = 'StatusIndicator';
 
 /**
  * UI-контракт StatusIndicator компонента.
- *
  * @contract
- *
  * Гарантируется:
  * - Детерминированный рендеринг без side effects (кроме telemetry)
  * - SSR-safe и concurrent rendering compatible
  * - Полная интеграция с централизованной telemetry системой
  * - Управление feature flags для скрытия индикаторов
  * - Корректное отображение статусов процесса
- *
  * Инварианты:
  * - Всегда возвращает валидный JSX.Element или null
  * - Статусы отображаются корректно с правильными цветами
  * - Feature flags полностью изолированы от Core логики
  * - Telemetry payload содержит корректный статус
- *
  * Не допускается:
  * - Использование напрямую core StatusIndicator компонента
  * - Передача невалидных статусов

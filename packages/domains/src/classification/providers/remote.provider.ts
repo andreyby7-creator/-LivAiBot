@@ -3,13 +3,11 @@
  * ============================================================================
  * 🎯 DOMAINS — Classification Remote Provider (Pipeline Stage)
  * ============================================================================
- *
  * Архитектурная роль:
  * - Domain provider для загрузки внешних сигналов классификации
  * - Адаптер remote-risk контракта в slot-based pipeline (`StagePlugin`)
  * - Изоляция remote transport/timeout/failure policy от domain-логики оценки
  * - Явная trust-boundary обработка: sanitize до и после пользовательского mapper
- *
  * Принципы:
  * - ✅ SRP: отдельно контракты, timeout-изоляция, маппинг сигналов и stage-фабрика
  * - ✅ Deterministic: стратегия merge/failure определяется policy-конфигом
@@ -345,11 +343,9 @@ function validateStageConfig(
 
 /**
  * Создает pipeline-stage для remote classification provider.
- *
  * Инварианты конфигурации:
  * - нельзя задавать одновременно `executionPolicy` и `timeoutMs`
  * - для `failurePolicy: 'fail_closed'` обязателен `fallbackSignals`
- *
  * Stage behavior:
  * - dependsOn: `device`, `context`
  * - provides: `signals`
@@ -359,7 +355,6 @@ function validateStageConfig(
  *   3) sanitize mapped signals
  *   4) merge через `mergeStrategy` + `asnMergeStrategy`
  * - при ошибке/таймауте: deterministic fallback через `failurePolicy`
- *
  * Важно:
  * - `mergeStrategy` применяется только к успешному remote-path
  * - fallback-path использует фиксированную policy merge

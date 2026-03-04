@@ -1,6 +1,5 @@
 /**
  * @file packages/feature-auth/src/effects/register — Register Effects
- *
  * Публичный API пакета register effects.
  * Экспортирует все публичные эффекты для register-flow.
  */
@@ -11,10 +10,8 @@
 
 /**
  * Register Effect DI Types: публичный DI-контракт для register-effect.
- *
  * @note Общие типы (`AbortControllerPort`, `ClockPort`, `ErrorMapperPort`, `ApiRequestOptions`, `AuthApiClientPort`, `EventIdGeneratorPort`)
  *       доступны через `./login/index.js`, `./logout/index.js` или `./shared/index.js` и не дублируются здесь.
- *
  * @public
  */
 export type {
@@ -49,7 +46,6 @@ export {
 
 /**
  * Register API Mapper: маппинг RegisterRequest/RegisterResponseDto ↔ domain типов.
- *
  * @public
  */
 export {
@@ -65,7 +61,6 @@ export {
 
 /**
  * Register Store Updater: единая точка обновления auth/session/security состояния после register-flow.
- *
  * @public
  */
 export {
@@ -80,7 +75,6 @@ export {
 
 /**
  * Register Audit Mapper: маппинг результата register-effect в audit события.
- *
  * @public
  */
 export {

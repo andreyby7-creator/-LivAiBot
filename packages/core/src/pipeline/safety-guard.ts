@@ -3,12 +3,10 @@
  * ============================================================================
  * 🛡️ CORE — Pipeline (Safety Guard / Auto-Rollback)
  * ============================================================================
- *
  * Архитектурная роль:
  * - Автоматический откат при превышении порогов безопасности/качества
  * - Safety guard для защиты от деградации метрик
  * - Причина изменения: rollout safety / quality policy changes
- *
  * Принципы:
  * - ✅ SRP: разделение на TYPES, CONSTANTS, HELPERS, RULES, API
  * - ✅ Deterministic: pure functions для оценки правил (injectable now для тестирования, short-circuiting с early-exit)

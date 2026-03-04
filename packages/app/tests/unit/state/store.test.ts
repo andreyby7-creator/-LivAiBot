@@ -1,6 +1,5 @@
 /**
  * @file Unit тесты для packages/app/src/state/store.ts
- *
  * Тестирование Zustand store с полным покрытием:
  * - Типы и экспорты
  * - Инициализационные функции

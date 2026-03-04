@@ -3,6 +3,7 @@
  * ============================================================================
  * 🔐 FEATURE-AUTH — Logout Audit Event Mapper
  * ============================================================================
+ * Маппит результат logout-effect и контекст в AuditEventValues для audit-слоя.
  *
  * Архитектурная роль:
  * - Pure mapper из результата logout-effect + контекста в AuditEventValues.
@@ -32,10 +33,8 @@ export type LogoutResultForAudit =
 
 /**
  * Контекст для построения audit-события.
- *
  * @note Flattened контекст для уменьшения coupling к внутренней структуре.
  *       Все необходимые данные передаются напрямую, без глубокого чтения nested структур.
- *
  * @note Поля, которые могут отсутствовать, моделируются как `T | undefined` (а не optional-property),
  *       чтобы упростить конструирование с exactOptionalPropertyTypes: true.
  */
@@ -67,11 +66,9 @@ export type LogoutAuditContext = Readonly<{
 
 /**
  * Маппит LogoutResult + контекст в AuditEventValues и валидирует через auditEventSchema.
- *
  * @note Fail-closed: любая архитектурная ошибка (несоответствие схеме) → исключение.
  * @note Deterministic: eventId генерируется в orchestrator, не внутри маппера.
  * @note Low coupling: контекст flattened, маппер не знает структуру pipeline.
- *
  * @throws ZodError если собранное событие не соответствует схеме (architectural bug).
  */
 export function mapLogoutResultToAuditEvent(
@@ -130,11 +127,9 @@ export function mapLogoutResultToAuditEvent(
 
 /**
  * Маппит revoke error в AuditEventValues и валидирует через auditEventSchema.
- *
  * @note Revoke error — отдельное событие, не являющееся результатом logout-effect.
  * @note Fail-closed: любая архитектурная ошибка (несоответствие схеме) → исключение.
  * @note Deterministic: eventId генерируется в orchestrator, не внутри маппера.
- *
  * @throws ZodError если собранное событие не соответствует схеме (architectural bug).
  */
 export function mapRevokeErrorToAuditEvent(
@@ -166,11 +161,9 @@ export function mapRevokeErrorToAuditEvent(
 
 /**
  * Маппит revoke skipped (из-за превышения лимита) в AuditEventValues и валидирует через auditEventSchema.
- *
  * @note Revoke skipped — отдельное событие, когда revoke не выполнен из-за превышения лимита параллельных запросов.
  * @note Fail-closed: любая архитектурная ошибка (несоответствие схеме) → исключение.
  * @note Deterministic: eventId генерируется в orchestrator, не внутри маппера.
- *
  * @throws ZodError если собранное событие не соответствует схеме (architectural bug).
  */
 export function mapRevokeSkippedToAuditEvent(

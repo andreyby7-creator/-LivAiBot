@@ -3,22 +3,18 @@
  * ============================================================================
  * 🌐 APP UI LANGUAGE SELECTOR — UI МИКРОСЕРВИС LANGUAGE SELECTOR
  * ============================================================================
- *
  * Stateful UI-фасад над CoreLanguageSelector.
  * Единственная точка входа для LanguageSelector в приложении.
  * UI boundary между ui-core и бизнес-логикой.
- *
  * Ответственность:
  * - Policy (hidden / visibility / disabled)
  * - Telemetry
  * - Feature flags
- *
  * Не содержит:
  * - DOM-манипуляций кроме Core
  * - Платформенных эффектов
  * - Логики загрузки списка языков
  * - Логики сохранения выбранного языка
- *
  * Архитектурные решения:
  * - Управление списком языков и выбором обрабатывается в App слое
  * - CoreLanguageSelector остается полностью presentational
@@ -194,7 +190,6 @@ type LanguageSelectorPolicy = Readonly<{
  * - telemetry
  * - visibility state
  * - disabled state
- *
  * Ни один consumer не имеет права повторно интерпретировать props.visible
  * или feature flags.
  */
@@ -733,16 +728,13 @@ LanguageSelectorComponent.displayName = 'LanguageSelector';
 
 /**
  * UI-контракт LanguageSelector компонента.
- *
  * @contract
- *
  * Гарантируется:
  * - Детерминированный рендеринг без side effects (кроме telemetry)
  * - SSR-safe и concurrent rendering compatible
  * - Полная интеграция с централизованной telemetry системой
  * - Управление feature flags для скрытия и отключения
  * - Корректная обработка accessibility (ARIA)
- *
  * Инварианты:
  * - Всегда возвращает валидный JSX.Element или null
  * - Telemetry payload содержит корректную информацию о состоянии селектора языков
@@ -750,7 +742,6 @@ LanguageSelectorComponent.displayName = 'LanguageSelector';
  * - Telemetry отражает состояние policy, а не сырые props
  * - Change telemetry отправляется при каждом выборе языка
  * - Disabled состояние применяется через disabled prop
- *
  * Не допускается:
  * - Использование напрямую core LanguageSelector компонента
  * - Игнорирование feature flag логики
@@ -769,7 +760,6 @@ LanguageSelectorComponent.displayName = 'LanguageSelector';
  *   selectedLanguageCode="ru"
  *   onLanguageSelect={(language) => setCurrentLanguage(language.code)}
  * />
- *
  * // С feature flags и telemetry
  * <LanguageSelector
  *   languages={availableLanguages}
@@ -783,7 +773,6 @@ LanguageSelectorComponent.displayName = 'LanguageSelector';
  *   showCodes={true}
  *   onLanguageSelect={handleLanguageChange}
  * />
- *
  * // Минимальный вариант
  * <LanguageSelector
  *   languages={languages}

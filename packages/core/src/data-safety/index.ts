@@ -1,6 +1,5 @@
 /**
  * @file @livai/core/data-safety — Taint Tracking и Information Flow Control
- *
  * Публичный API пакета data-safety.
  * Экспортирует все публичные компоненты, типы и утилиты для taint tracking и IFC.
  */
@@ -13,7 +12,6 @@
  * Базовые типы и утилиты для taint tracking.
  * Включает источники taint, метаданные, операции добавления/удаления taint,
  * проверку trusted состояния и propagation между значениями.
- *
  * @public
  */
 
@@ -50,7 +48,6 @@ export {
  * Security lattice для уровней доверия (UNTRUSTED < PARTIAL < TRUSTED).
  * Операции: meet (infimum), dominates (проверка доминирования).
  * Используется для формальной верификации trust levels в IFC.
- *
  * @public
  */
 
@@ -75,7 +72,6 @@ export {
  * Режимы санитизации данных (NONE, BASIC, STRICT, PII_REDACTION).
  * Операции сравнения и выбора более строгого режима.
  * Используется в input boundary для валидации и очистки внешних данных.
- *
  * @public
  */
 
@@ -102,7 +98,6 @@ export {
  * Input boundary: маркировка внешних данных как tainted и promotion trust levels.
  * Операции: markAsExternal, validateAndPromote, sanitizeAndPromote, validateAndSanitize.
  * Используется на границе входа данных в систему (API, файлы, пользовательский ввод).
- *
  * @public
  */
 
@@ -123,7 +118,6 @@ export {
  * Output boundary: проверка trusted данных перед отправкой в плагины/БД/LLM/сеть.
  * Rule-engine архитектура с invariants и policies для extensible security checks.
  * Возвращает Trusted<T> wrapper (unforgeable capability) для плагинов.
- *
  * @public
  */
 
@@ -159,7 +153,6 @@ export {
  * IFC decision engine (checkPropagation) + data transformation (computeMergedTaint).
  * Effect-based API (PropagationOutcome<T>) для composability в pipelines.
  * Поддерживает policy override для downgrade trust levels.
- *
  * @public
  */
 export {
@@ -190,7 +183,6 @@ export {
 /**
  * Безопасное глубокое клонирование с защитой от prototype pollution и циклических ссылок.
  * Используется для изоляции tainted данных перед обработкой.
- *
  * @public
  */
 

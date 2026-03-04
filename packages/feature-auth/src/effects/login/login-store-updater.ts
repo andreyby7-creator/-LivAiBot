@@ -3,14 +3,12 @@
  * ============================================================================
  * 🔐 FEATURE-AUTH — Login Store Updater
  * ============================================================================
- *
  * Назначение файла:
  * - Единственная точка применения результата login-flow к auth/session/security состояниям стора
  * - Явный мост между:
  *   - финальным security-решением (`SecurityPipelineResult`) из security-pipeline
  *   - доменным результатом логина (`DomainLoginResult`) из оркестратора login-flow
  *   - уже обогащёнными login-метаданными (`LoginMetadata[]`), которые просто прокидываются дальше (audit/telemetry)
- *
  * Гарантии уровня файла:
  * - ❌ Не пересчитывает риск и не выполняет rule-engine (использует готовый `SecurityPipelineResult`)
  * - ❌ Не читает текущее состояние store и не принимает решений (decision уже принят выше по пайплайну)
@@ -33,7 +31,6 @@ import { buildSessionState } from '../shared/session-state.builder.js';
 
 /**
  * Выводит список требуемых действий (`requiredActions`) на основе решения rule-engine.
- *
  * @param decisionHint - агрегированное решение по действию из `RiskAssessmentResult`
  * @returns Массив строк с требуемыми действиями для `SecurityState.requiredActions`
  */
@@ -58,14 +55,12 @@ function deriveRequiredActions(
 
 /**
  * Применяет success-результат логина к auth/session/security состоянию.
- *
  * Инварианты:
  * - `DomainLoginResult.success` содержит валидированные `tokenPair` и `me`
  * - `SecurityPipelineResult` уже прошёл через rule-engine и содержит финальную оценку риска
  * - Проверяет согласованность дат сессии (`issuedAt <= expiresAt`) и падает fail-closed при нарушении
  * - Если `me.session` отсутствует, `newSessionState = null` (store invariant rule автоматически переведет в `session_expired`)
  * - Permissions создаются как frozen Set для защиты от мутаций (соответствует типу ReadonlySet)
- *
  * @param store - порт стора аутентификации
  * @param securityResult - результат security-pipeline c оценкой риска и device-информацией
  * @param result - доменный результат логина в ветке `type: 'success'`
@@ -122,11 +117,9 @@ function applySuccessState(
 
 /**
  * Применяет результат `mfa_required` к auth/security состоянию.
- *
  * Инварианты:
  * - Пользователь переводится в состояние `pending_secondary_verification` без активной сессии
  * - Security-состояние отражает риск и список требуемых действий из rule-engine (через `decisionHint`)
- *
  * @param store - порт стора аутентификации
  * @param securityResult - результат security-pipeline c оценкой риска
  * @param result - доменный результат логина в ветке `type: 'mfa_required'`
@@ -162,15 +155,12 @@ function applyMfaState(
 
 /**
  * Применяет результат блокировки логина к auth/security состоянию.
- *
  * @remarks
  * Сейчас `DomainLoginResult` не содержит явной ветки `blocked`, поэтому helper ориентирован
  * на `SecurityPipelineResult` и может вызываться из login-security-policy или других эффектов.
- *
  * Инварианты:
  * - AuthState переводится в `unauthenticated` без сессии
  * - SecurityState переводится в `blocked` c причиной из `decisionHint.blockReason` (или дефолтной)
- *
  * @param store - порт стора аутентификации
  * @param securityResult - результат security-pipeline с решением `action: 'block'`
  */
@@ -202,12 +192,10 @@ export function applyBlockedState(
 
 /**
  * Обновляет auth/session/security состояние на основе результатов security pipeline и login-flow.
- *
  * Инварианты:
  * - Использует готовые `SecurityPipelineResult` и `DomainLoginResult` — не считает риск заново и не выполняет rule-engine
  * - Не читает текущее состояние store, только применяет новое (pure sink над портом стора)
  * - Не содержит fallback-логики: на вход приходят уже валидированные domain-данные
- *
  * @param store - порт стора аутентификации, через который применяются все изменения
  * @param securityResult - итоговый результат security-pipeline c оценкой риска
  * @param domainResult - доменный результат login-flow (discriminated union)

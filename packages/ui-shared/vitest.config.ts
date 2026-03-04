@@ -2,7 +2,6 @@ import { createPackageVitestConfig } from '../../config/vitest/vitest.packages.c
 
 /**
  * Конфигурация Vitest для @livai/ui-shared
- *
  * UI пакет: переиспользуемые компоненты с умеренными требованиями качества
  * Контракт качества: 70% statements, 65% branches, 75% functions, 70% lines
  */

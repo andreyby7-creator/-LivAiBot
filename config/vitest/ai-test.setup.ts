@@ -1,6 +1,5 @@
 /**
  * @file Минимальная настройка для AI интеграционных тестов
- *
  * Отличается от основной test.setup.ts тем, что не импортирует
  * @testing-library/jest-dom/vitest (DOM utilities), так как AI тесты
  * работают в Node окружении без DOM.

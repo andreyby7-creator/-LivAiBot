@@ -1,6 +1,5 @@
 /**
  * @file Unit тесты для packages/app/src/lib/logger.ts
- *
  * Enterprise-grade тестирование logger core с 95-100% покрытием:
  * - Все уровни логирования (info, warn, error) с типобезопасностью
  * - Форматирование сообщений и контекста

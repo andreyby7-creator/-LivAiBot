@@ -1,6 +1,5 @@
 /**
  * @file packages/feature-auth/src/types — Type Definitions
- *
  * Публичный API пакета types.
  * Экспортирует все публичные типы для feature-auth.
  */
@@ -12,7 +11,6 @@
 /**
  * Auth Types: типы для аутентификации.
  * Включает AuthState, MfaState, OAuthState, SecurityState, SessionState и все связанные типы.
- *
  * @public
  */
 export {
@@ -50,7 +48,6 @@ export {
 /**
  * Auth Initial States: канонические начальные состояния для reset операций.
  * Единый источник истины для initialAuthState, createInitialSessionState(), initialSecurityState.
- *
  * @public
  */
 export {
@@ -66,7 +63,6 @@ export {
 /**
  * Auth Risk Types: типы для оценки рисков аутентификации.
  * Включает RiskContext, RiskPolicy, RiskAssessmentResult и все связанные типы.
- *
  * @public
  */
 export {
@@ -92,7 +88,6 @@ export {
 /**
  * Login DTO Types: feature-level агрегированные типы для login-flow.
  * Включает LoginResponseDto и type guards для type-safe branching.
- *
  * @public
  */
 export { isLoginSuccess, isMfaRequired, type LoginResponseDto } from './login.dto.js';

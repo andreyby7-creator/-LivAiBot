@@ -3,16 +3,13 @@
  * ============================================================================
  * 🛡️ EFFECT ISOLATION — ИЗОЛЯЦИЯ ОШИБОК И ПРЕДОТВРАЩЕНИЕ CASCADING FAILURES
  * ============================================================================
- *
  * Минимальный, чистый boundary-модуль для изоляции ошибок и предотвращения
  * cascading failures в multi-agent orchestration.
- *
  * Архитектурная роль:
  * - Изолирует ошибки через try/catch boundary
  * - Предотвращает cascading failures
  * - Обеспечивает типобезопасную обработку через Result<T, E>
  * - Безопасность для multi-agent orchestration
- *
  * Принципы:
  * - Zero business logic
  * - Zero telemetry (telemetry → observability layer)
@@ -89,10 +86,8 @@ export function isIsolationError(error: unknown): error is IsolationError {
 
 /**
  * Выполняет эффект в изолированном контексте, предотвращая cascading failures.
- *
  * Все ошибки изолируются и возвращаются как Result<T, IsolationError>,
  * что обеспечивает типобезопасную обработку без исключений.
- *
  * @param effect - Эффект для выполнения
  * @param options - Опции изоляции (опционально)
  * @returns Result с успешным значением или IsolationError
@@ -103,7 +98,6 @@ export function isIsolationError(error: unknown): error is IsolationError {
  * const result = await runIsolated(async () => {
  *   return await riskyOperation();
  * }, { tag: 'user-fetch' });
- *
  * if (isOk(result)) {
  *   console.log('Success:', result.value);
  * } else {
@@ -118,11 +112,9 @@ export function isIsolationError(error: unknown): error is IsolationError {
  * const step1 = await runIsolated(async () => {
  *   return await fetchUserData();
  * }, { tag: 'step1' });
- *
  * const step2 = await runIsolated(async () => {
  *   return await fetchUserPreferences();
  * }, { tag: 'step2' });
- *
  * // Ошибка в step1 не влияет на step2 - это предотвращает cascading failure
  * // Оба результата можно обработать независимо
  * if (isOk(step1)) {

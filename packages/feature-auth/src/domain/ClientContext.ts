@@ -3,13 +3,11 @@
  * ============================================================================
  * 🔐 FEATURE-AUTH — ClientContext DTO
  * ============================================================================
- *
  * Архитектурная роль:
  * - Типизированный контракт информации о клиентском окружении
  * - Используется в LoginRequest, RegisterRequest, LogoutRequest и других запросах
  * - Immutable, extensible, security-aware
  * - **Boundary DTO**: Transport metadata, не domain entity
- *
  * Принципы:
  * - ❌ Нет бизнес-логики
  * - ✅ Полная типизация
@@ -17,7 +15,6 @@
  * - ✅ Extensible / future-proof
  * - ✅ Security-aware (PII handling)
  * - ✅ Boundary DTO (transport layer, не core domain)
- *
  * @boundary-dto Transport metadata DTO на границе domain/transport.
  * @domain-boundary Разделяет transport concerns (security, session, analytics) от core domain.
  *
@@ -41,11 +38,9 @@
 
 /**
  * DTO информации о клиентском окружении (Version 1)
- *
  * **Boundary DTO**: Transport metadata для передачи между слоями.
  * Используется для: security (IP, deviceId), analytics (locale, timezone, geo),
  * session (sessionId, appVersion).
- *
  * ⚠️ **PII**: IP и geo могут быть PII → используйте `sanitizeClientContext()` для logs/audits.
  * ⚠️ **Rule-engine**: Все поля опциональны → используйте helper функции (`getIp()`, `getDeviceId()`).
  * ⚠️ **Orchestrators**: Используйте `createEmptyClientContext()` вместо `{}` или `undefined`.

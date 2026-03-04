@@ -1,6 +1,5 @@
 /**
  * @file Unit тесты для packages/app/src/state/store-utils.ts
- *
  * Enterprise-grade тестирование store-utils с 100% покрытием:
  * - isStoreLocked и setStoreLocked
  * - safeSet для всех сценариев (успех, блокировка, anonymous user)

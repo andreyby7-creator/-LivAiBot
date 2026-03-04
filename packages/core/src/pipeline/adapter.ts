@@ -3,12 +3,10 @@
  * ============================================================================
  * 🛡️ CORE — Pipeline (Runtime Adapters)
  * ============================================================================
- *
  * Архитектурная роль:
  * - Адаптеры между различными async runtime'ами и pipeline execution engine
  * - Абстракция над cancellation механизмами (AbortSignal, Effect library cancellation)
  * - Причина изменения: transport / framework / runtime abstraction
- *
  * Принципы:
  * - ✅ SRP: разделение на TYPES, BRANDED ERROR TYPES, CONSTANTS, HELPERS (utility + event emission), ADAPTERS, API
  * - ✅ Deterministic: pure functions, injectable dependencies (nowProvider) для тестирования, единый startTime для всех событий

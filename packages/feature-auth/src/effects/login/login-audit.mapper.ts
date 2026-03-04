@@ -3,11 +3,9 @@
  * ============================================================================
  * 🔐 FEATURE-AUTH — Login Audit Event Mapper
  * ============================================================================
- *
  * Архитектурная роль:
  * - Pure mapper из результата login-effect + контекста в AuditEventValues.
  * - Инкапсулирует форму audit-событий, чтобы orchestrator не знал про структуру аудита.
- *
  * Принципы:
  * - ❌ Нет бизнес-логики, только проекция данных.
  * - ✅ Использует auditEventSchema для валидации (fail-closed на уровне схемы).
@@ -28,7 +26,6 @@ import type { AuthError } from '../../types/auth.js';
 
 /**
  * Публичный результат login-effect (структурно совместим с LoginResult из login.ts).
- *
  * @note Для mfa_required: userId должен извлекаться из domainResult.challenge.userId,
  *       а не из challengeId (challengeId ≠ userId).
  */
@@ -40,11 +37,9 @@ export type LoginResultForAudit =
 
 /**
  * Контекст для построения audit-события.
- *
  * @note Flattened контекст для уменьшения coupling к внутренней структуре pipeline.
  *       Все необходимые данные передаются напрямую, без глубокого чтения nested структур.
  *       request удален из контекста, так как все данные (ip, userAgent) уже flattened.
- *
  * @note Поля, которые могут отсутствовать, моделируются как `T | undefined` (а не optional-property),
  *       чтобы упростить конструирование с exactOptionalPropertyTypes: true.
  */
@@ -151,11 +146,9 @@ function extractSessionId(context: LoginAuditContext): string | undefined {
 
 /**
  * Маппит LoginResult + контекст в AuditEventValues и валидирует через auditEventSchema.
- *
  * @note Fail-closed: любая архитектурная ошибка (несоответствие схеме) → исключение.
  * @note Deterministic: eventId генерируется в orchestrator, не внутри маппера.
  * @note Low coupling: контекст flattened, маппер не знает структуру pipeline.
- *
  * @throws ZodError если собранное событие не соответствует схеме (architectural bug).
  */
 export function mapLoginResultToAuditEvent(

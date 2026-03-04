@@ -1,6 +1,5 @@
 /**
  * @file packages/feature-auth/src/schemas — Validation Schemas
- *
  * Публичный API пакета schemas.
  * Экспортирует все публичные схемы валидации для feature-auth.
  */
@@ -12,7 +11,6 @@
 /**
  * Validation Schemas: схемы валидации для всех запросов и ответов аутентификации.
  * Включает схемы для login, register, token, MFA, password reset, verification, OAuth и все связанные типы.
- *
  * @public
  */
 export {

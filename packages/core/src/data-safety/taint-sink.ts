@@ -3,12 +3,10 @@
  * ============================================================================
  * 🛡️ CORE — Data Safety (Taint Sink)
  * ============================================================================
- *
  * Архитектурная роль:
  * - Formal information-flow security sink: проверка trusted данных перед отправкой в плагины
  * - Trusted → Plugins через assertTrusted (Trusted<T> wrapper), результаты помечаются как PLUGIN source
  * - Причина изменения: data safety, formal IFC (Information Flow Control), output boundary guards
- *
  * Принципы:
  * - ✅ SRP: разделение на TYPES, CONSTANTS, HELPERS, OUTPUT BOUNDARY OPERATIONS, OUTPUT BOUNDARY INTERFACE
  * - ✅ Deterministic: одинаковые входы → одинаковые решения (monotonic), TOCTOU-safe через snapshot
@@ -18,7 +16,6 @@
  * - ✅ Microservice-ready: stateless, immutable registry, thread-safe после build()
  * - ✅ Security: Formal IFC (trusted = invariants_passed AND policies_allow), runtime brand для Trusted<T>, fail-closed semantics
  * - ✅ Effect-based: core возвращает TrustedCheckResult для composability, boundary может бросать исключения
- *
  * ⚠️ ВАЖНО:
  * - Formal IFC: trusted = invariants_passed AND policies_allow (не OR!)
  * - Runtime brand: Trusted<T> защищен от подделки через type assertion
@@ -375,7 +372,6 @@ function createTrusted<T>(value: T): Trusted<T> {
 /**
  * Результат assertTrusted с сохранением trustLevel для clampPluginTrust
  * TrustLevel нужен только в boundary, не передается в плагин
- *
  * @internal
  */
 type TrustedWithLevel<T> = Readonly<{

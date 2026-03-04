@@ -3,16 +3,13 @@
  * ============================================================================
  * 🎯 DOMAINS — Classification Rules (Data-Driven Rule Engine)
  * ============================================================================
- *
  * Classification-специфичные правила для оценки классификации.
  * Определяет declarative rule definitions для использования в deterministic.strategy.ts,
  * который использует generic rule-engine из @livai/core для вычислений.
- *
  * Архитектурная роль:
  * - Declarative rule definitions для classification assessment
  * - Data-driven подход для масштабируемости
  * - OCP-compliant: добавление правил не меняет core engine
- *
  * Принципы:
  * - ✅ Declarative rules — правила как данные
  * - ✅ OCP — открыт для расширения, закрыт для модификации
@@ -589,7 +586,6 @@ export const allRulesDeprecated = allRules;
 /**
  * Индекс правил по ID для быстрого поиска O(1)
  * Поддерживает масштабирование на сотни правил через Map lookup
- *
  * @note Для динамических правил (JSON/DB): можно заменить allRules на функцию,
  * загружающую правила из внешнего источника, и пересоздавать rulesIndex при изменении конфигурации
  */
@@ -897,21 +893,17 @@ export function sortRulesByPriority(
 
 /**
  * Оценивает действия правил: возвращает наиболее приоритетное (block > challenge)
- *
  * Чистая функция: нет side-effects, не зависит от policy. Детерминированная: порядок правил не важен.
- *
  * Приоритет правил внутри engine (для разработчиков):
  * 1. Правила сортируются по priority (descending) - правила с большим priority обрабатываются первыми
  * 2. action='block' получает базовый приоритет 1000 + rule.priority (всегда выше challenge)
  * 3. action='challenge' получает базовый приоритет 100 + rule.priority
  * 4. Возвращается действие с максимальным приоритетом
- *
  * Примеры приоритетов:
  * - TOR_NETWORK (priority: 100, action: 'block') → 1100
  * - CRITICAL_REPUTATION (priority: 90, action: 'block') → 1090
  * - IoT_TOR (priority: 95, action: 'block') → 1095
  * - NEW_DEVICE_VPN (priority: 0, action: 'challenge') → 100
- *
  * @note Lazy evaluation: для критических правил (priority >= 90) можно добавить short-circuit
  * чтобы прервать оценку при первом блокирующем правиле для повышения производительности
  * при больших rule sets (сотни правил)

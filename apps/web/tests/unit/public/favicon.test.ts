@@ -1,6 +1,5 @@
 /**
  * @file Comprehensive tests for apps/web/public/favicon.ts
- *
  * Покрытие всех веток и функций:
  * - isDocumentSupported (SSR/Node/browser)
  * - isDarkMode (SSR/Node/browser/dark/light)

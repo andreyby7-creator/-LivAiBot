@@ -1,6 +1,5 @@
 /**
  * @file packages/feature-auth/src/lib — Library Utilities
- *
  * Публичный API пакета lib.
  * Экспортирует все публичные утилиты для feature-auth.
  */
@@ -12,7 +11,6 @@
 /**
  * Security Pipeline: пайплайн безопасности для операций аутентификации.
  * Включает fingerprint, risk assessment и все связанные типы.
- *
  * @public
  */
 export {
@@ -48,7 +46,6 @@ export {
 
 /**
  * Error Mapper: трансформация API ошибок в UI-friendly `AuthError`.
- *
  * @public
  */
 export {
@@ -66,7 +63,6 @@ export {
 /**
  * Classification Mapper: адаптация classification labels из domains
  * в auth-специфичные решения (login / mfa / block).
- *
  * @public
  */
 export { type DecisionResult, mapLabelToDecisionHint } from './classification-mapper.js';
@@ -77,7 +73,6 @@ export { type DecisionResult, mapLabelToDecisionHint } from './classification-ma
 
 /**
  * Device Fingerprint: pure effect для сбора device info.
- *
  * @public
  */
 export { DeviceFingerprint } from './device-fingerprint.js';
@@ -88,7 +83,6 @@ export { DeviceFingerprint } from './device-fingerprint.js';
 
 /**
  * Risk Assessment: оценка рисков для login-flow.
- *
  * @public
  */
 export {
@@ -105,7 +99,6 @@ export {
 
 /**
  * Risk Assessment Adapter: адаптер между classification layer и domain layer.
- *
  * @public
  */
 export {
@@ -122,7 +115,6 @@ export {
  * Session Manager: domain-pure сервис для управления жизненным циклом сессий.
  * Изолирует бизнес-логику от orchestration-слоя (effects).
  * Вычисляет deadlines, принимает решения о expire/invalidate/refresh.
- *
  * @public
  */
 export {

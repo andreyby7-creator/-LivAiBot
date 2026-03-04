@@ -3,12 +3,10 @@
  * ============================================================================
  * 🛡️ CORE — Pipeline (Error Model)
  * ============================================================================
- *
  * Архитектурная роль:
  * - Error model для pipeline execution engine
  * - Нормализация и категоризация ошибок
  * - Translation layer между runtime errors и engine-level types
- *
  * Принципы:
  * - ✅ SRP: разделение на TYPES, BRANDED ERROR CLASSES, METADATA VALIDATION, FACTORIES, DETECTION, NORMALIZATION, MAPPERS
  * - ✅ Deterministic: структурированная категоризация (Error classes с instanceof), не message parsing

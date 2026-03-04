@@ -3,12 +3,10 @@
  * ============================================================================
  * 🟢 SEO MICROSERVICE: SITEMAP.XML (POLICY + RENDERER)
  * ============================================================================
- *
  * Цели:
  * - Единый источник истины для sitemap policy
  * - Безопасное поведение по умолчанию (fail-safe): в non-prod возвращаем пустой sitemap
  * - Минимум зависимостей (edge-friendly): только deterministic XML rendering
- *
  * Архитектурные принципы (FAANG-style):
  * - Small composable units: нормализация → policy → renderer → Response
  * - Security-by-default: non-prod = пустой sitemap (или можно вернуть 404)
@@ -63,7 +61,6 @@ const MAX_PORT = 65535;
 /**
  * Нормализует базовый URL для использования в sitemap.
  * Security-hardened: принимает только http/https протоколы, возвращает только origin.
- *
  * @param input Произвольная строка (может быть null/undefined/пустая/невалидная)
  * @returns Нормализованный origin (например, "https://example.com") или null
  */
@@ -104,7 +101,6 @@ export function normalizeAppEnv(input: string | null | undefined): AppEnv {
 /**
  * Экранирует XML-специальные символы для безопасного включения в XML.
  * Защита от XSS/инъекций через URL или другие поля.
- *
  * @param text Текст для экранирования
  * @returns Экранированный текст
  */
@@ -121,7 +117,6 @@ export function escapeXml(text: string): string {
 /**
  * Валидирует и нормализует URL для sitemap.
  * Гарантирует, что URL абсолютный и безопасный.
- *
  * @param baseUrl Базовый origin (например, "https://example.com")
  * @param path Путь (например, "/en/" или "/ru/dashboard")
  * @returns Абсолютный URL или null (если невалидный)
@@ -153,7 +148,6 @@ export function createNonProdSpec(): SitemapSpec {
 /**
  * Создаёт sitemap для production окружения.
  * Включает только публичные страницы (соответствует robots.txt policy).
- *
  * @param baseUrl Базовый URL (origin)
  */
 export function createProdSpec(baseUrl: string): SitemapSpec {
@@ -180,7 +174,6 @@ export function createProdSpec(baseUrl: string): SitemapSpec {
 
 /**
  * Создаёт SitemapSpec по входным параметрам окружения/запроса.
- *
  * Контракт:
  * - production → генерируем sitemap с публичными страницами
  * - development/staging → возвращаем пустой sitemap (fail-safe)
@@ -211,7 +204,6 @@ export function createSitemapSpec(input: SitemapServiceInput): SitemapSpec {
 /**
  * Формирует XML-строки для одного URL в sitemap.
  * Разделение логики для снижения cognitive complexity.
- *
  * @internal Экспортировано для тестирования покрытия всех веток.
  */
 export function buildUrlXmlLines(url: SitemapUrl): readonly string[] {
@@ -275,7 +267,6 @@ export function buildSitemapXml(spec: SitemapSpec): string {
 
 /**
  * Генерирует HTTP Response для `/sitemap.xml`.
- *
  * Cache policy:
  * - production: можно кэшировать (sitemap меняется редко, только при добавлении страниц)
  * - non-prod: no-store, чтобы случайно не закэшировать пустой sitemap

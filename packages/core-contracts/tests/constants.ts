@@ -1,6 +1,5 @@
 /**
  * @file Тестовые константы (fixtures) для core-contracts.
- *
  * Важно:
  * - Импортируется как `../../constants.js` из ESM-TS тестов (TS -> JS extension mapping).
  * - Значения не содержат PII и предназначены только для тестов.

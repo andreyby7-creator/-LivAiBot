@@ -134,6 +134,8 @@ function createMockDeps() {
     applyEventType: vi.fn(),
     setStoreLocked: vi.fn(),
     batchUpdate: vi.fn(),
+    getSessionState: vi.fn(() => null),
+    getRefreshToken: vi.fn(() => 'refresh-token-456'),
   };
 
   const mockSecurityPipeline = {

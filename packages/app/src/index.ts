@@ -1,10 +1,8 @@
 /**
  * @file packages/app/src — Public API для App пакета
- *
  * Публичный API пакета @livai/app.
  * Экспортирует все публичные компоненты, утилиты, типы, провайдеры и хуки для приложения.
  * Tree-shakeable: все named exports остаются, импорты будут по нужным компонентам.
- *
  * Принцип:
  * - разделение на подпакеты: background, events, hooks, lib, providers, routes, state, types, ui
  * - каждый подпакет имеет свой индексный файл с полным набором экспортов
@@ -18,7 +16,6 @@
 /**
  * Bootstrap: инициализация клиентского приложения.
  * Включает валидацию окружения, prefetch, регистрацию Service Worker и рендер.
- *
  * @public
  */
 export {
@@ -36,7 +33,6 @@ export {
 /**
  * Background подпакет: фоновые задачи и планировщик.
  * Включает Scheduler, Background Tasks, MeldablePriorityQueue и все связанные типы.
- *
  * @public
  */
 export * from './background/index.js';
@@ -48,7 +44,6 @@ export * from './background/index.js';
 /**
  * Events подпакет: события приложения и event bus.
  * Включает App Events, Event Bus, App Lifecycle Events и все связанные типы.
- *
  * @public
  */
 export * from './events/index.js';
@@ -60,7 +55,6 @@ export * from './events/index.js';
 /**
  * Hooks подпакет: React хуки для работы с API, аутентификацией, кэшем, флагами и уведомлениями.
  * Включает useApi, useAuth, useOfflineCache, useFeatureFlags, useToast и все связанные типы.
- *
  * @public
  */
 export {
@@ -100,7 +94,6 @@ export {
  * Lib подпакет: библиотечные утилиты и сервисы.
  * Включает API Client, Auth Service, Telemetry, Validation, Effect Utils,
  * Feature Flags, I18n, Logger, Orchestrator, Performance и все связанные типы.
- *
  * @public
  */
 export {
@@ -340,7 +333,6 @@ export {
  * Providers подпакет: React провайдеры для приложения.
  * Включает AppProviders, FeatureFlagsProvider, IntlProvider, QueryClientProvider,
  * TelemetryProvider, ToastProvider, UnifiedUIProvider и все связанные типы.
- *
  * @public
  */
 export {
@@ -397,7 +389,6 @@ export {
 /**
  * Routes подпакет: маршруты и навигация.
  * Включает Routes, Route Meta, Navigation и все связанные типы.
- *
  * @public
  */
 export * from './routes/index.js';
@@ -409,7 +400,6 @@ export * from './routes/index.js';
 /**
  * State подпакет: управление состоянием приложения.
  * Включает Store, Store Utils, Reset, Query Client и все связанные типы.
- *
  * @public
  */
 export * from './state/index.js';
@@ -421,7 +411,6 @@ export * from './state/index.js';
 /**
  * Types подпакет: типы для всего приложения.
  * Включает API типы, Common типы, Error типы, Telemetry типы, UI Contracts и все связанные типы.
- *
  * @public
  */
 export {
@@ -566,7 +555,6 @@ export {
  * Breadcrumbs, Tabs, Accordion, DatePicker, FileUploader, SideBar, SearchBar,
  * ConfirmDialog, ErrorBoundary, UserProfileDisplay, NavigationMenuItem,
  * LanguageSelector, SupportButton) и все связанные типы.
- *
  * @public
  */
 export * from './ui/index.js';

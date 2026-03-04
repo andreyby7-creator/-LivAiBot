@@ -3,16 +3,13 @@
  * ============================================================================
  * 🧭 APP UI NAVIGATION MENU ITEM — UI МИКРОСЕРВИС NAVIGATION MENU ITEM
  * ============================================================================
- *
  * Stateful UI-фасад над CoreNavigationMenuItem.
  * Единственная точка входа для NavigationMenuItem в приложении.
  * UI boundary между ui-core и бизнес-логикой.
- *
  * Ответственность:
  * - Policy (hidden / visibility / disabled)
  * - Telemetry
  * - Feature flags
- *
  * Не содержит:
  * - DOM-манипуляций кроме Core
  * - Платформенных эффектов
@@ -185,7 +182,6 @@ type NavigationMenuItemPolicy = Readonly<{
  * - telemetry
  * - visibility state
  * - disabled state
- *
  * Ни один consumer не имеет права повторно интерпретировать props.visible
  * или feature flags.
  */
@@ -487,16 +483,13 @@ NavigationMenuItemComponent.displayName = 'NavigationMenuItem';
 
 /**
  * UI-контракт NavigationMenuItem компонента.
- *
  * @contract
- *
  * Гарантируется:
  * - Детерминированный рендеринг без side effects (кроме telemetry)
  * - SSR-safe и concurrent rendering compatible
  * - Полная интеграция с централизованной telemetry системой
  * - Управление feature flags для скрытия и отключения
  * - Корректная обработка accessibility (ARIA)
- *
  * Инварианты:
  * - Всегда возвращает валидный JSX.Element или null
  * - Telemetry payload содержит корректную информацию о состоянии элемента меню
@@ -504,7 +497,6 @@ NavigationMenuItemComponent.displayName = 'NavigationMenuItem';
  * - Telemetry отражает состояние policy, а не сырые props
  * - Click telemetry отправляется при каждом клике на элемент
  * - Disabled состояние применяется через opacity и pointer-events
- *
  * Не допускается:
  * - Использование напрямую core NavigationMenuItem компонента
  * - Игнорирование feature flag логики
@@ -515,7 +507,6 @@ NavigationMenuItemComponent.displayName = 'NavigationMenuItem';
  * ```tsx
  * // Базовый
  * <NavigationMenuItem item={{ label: 'Главная', href: '/', icon: <HomeIcon />, isActive: currentPath === '/' }} />
- *
  * // С feature flags и telemetry
  * <NavigationMenuItem
  *   item={{ label: 'Профиль', href: '/profile', icon: <UserIcon /> }}
@@ -525,7 +516,6 @@ NavigationMenuItemComponent.displayName = 'NavigationMenuItem';
  *   telemetryEnabled={true}
  *   onClick={(item, event) => handleNavigation(item.href)}
  * />
- *
  * // Компактный для мобильного
  * <NavigationMenuItem item={{ label: 'Настройки', href: '/settings', isDisabled: !isSettingsAvailable }} size="small" variant="compact" />
  * ```

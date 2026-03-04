@@ -11,7 +11,6 @@ if (process.argv.includes('bench')) {
 
 /**
  * Конфигурация Vitest для @livai/core-contracts
- *
  * Core пакет: фундаментальная библиотека с максимальными требованиями качества
  * Контракт качества: 90% statements, 85% branches, 95% functions, 90% lines
  */

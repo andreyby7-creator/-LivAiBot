@@ -1,12 +1,9 @@
 /**
  * Конфигурация Vitest для benchmark тестов @livai/core-contracts
- *
  * Отдельный конфиг для bench, без тяжелого setup для обычных тестов
  * Не использует DOM окружение, jest-dom, глобальные хуки
- *
  * ВАЖНО: benchmark - корневая секция, НЕ внутри test!
  * Vitest парсит benchmark и test на разных этапах
- *
  * bench использует отдельный vitest config
  * test.setup НЕ подключается
  * globals disabled
@@ -14,13 +11,10 @@
 
 /**
  * Конфигурация Vitest для benchmark тестов @livai/core-contracts
- *
  * Отдельный конфиг для bench, без тяжелого setup для обычных тестов
  * Не использует DOM окружение, jest-dom, глобальные хуки
- *
  * ВАЖНО: benchmark - корневая секция, НЕ внутри test!
  * Vitest парсит benchmark и test на разных этапах
- *
  * bench использует отдельный vitest config
  * test.setup НЕ подключается
  * globals disabled

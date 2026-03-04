@@ -1,6 +1,5 @@
 /**
  * @file Unit тесты для packages/app/src/lib/sse-client.ts
- *
  * Комплексное тестирование FAANG-grade SSE Streaming Runtime с 95-100% покрытием:
  * - Reducer (reduceSSEState) - все ветки FSM
  * - Effect Layer - createSSEEffect, createHeartbeatEffect, createReconnectEffect

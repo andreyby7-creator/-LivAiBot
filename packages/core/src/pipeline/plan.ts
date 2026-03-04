@@ -3,14 +3,12 @@
  * ============================================================================
  * 🛡️ CORE — Pipeline (Execution Plan)
  * ============================================================================
- *
  * Архитектурная роль:
  * - Построение immutable execution plan для dependency-driven pipeline
  * - Топологическая сортировка стадий на основе provides/dependsOn
  * - Валидация зависимостей и построение индексов для O(1) lookup
  * - Многофазная компиляция: normalize → validate → compile → materialize
  * - Причина изменения: execution plan building, dependency resolution, DAG validation
- *
  * Принципы:
  * - ✅ SRP: разделение на TYPES, UTILITY FUNCTIONS, INTERNAL (normalize, validate, materialize, version), API
  * - ✅ Deterministic: одинаковые plugins → одинаковый execution plan (immutable после создания, детерминированная сортировка)

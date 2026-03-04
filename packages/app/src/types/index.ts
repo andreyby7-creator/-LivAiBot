@@ -1,6 +1,5 @@
 /**
  * @file packages/app/src/types — Type Definitions
- *
  * Публичный API пакета types.
  * Экспортирует все публичные типы для приложения.
  */
@@ -11,7 +10,6 @@
 
 /**
  * API Types: типы для работы с API, запросами, ответами и ошибками.
- *
  * @public
  */
 export {
@@ -50,7 +48,6 @@ export {
 
 /**
  * Common Types: общие типы для всего приложения.
- *
  * @public
  */
 export {
@@ -104,7 +101,6 @@ export {
 
 /**
  * Error Types: типы для обработки ошибок в приложении.
- *
  * @public
  */
 export {
@@ -129,7 +125,6 @@ export {
 
 /**
  * Telemetry Types: типы для телеметрии и мониторинга.
- *
  * @public
  */
 export {
@@ -163,7 +158,6 @@ export {
 
 /**
  * UI Contracts: контракты для UI компонентов и состояний.
- *
  * @public
  */
 export {

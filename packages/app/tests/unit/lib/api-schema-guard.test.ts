@@ -1,6 +1,5 @@
 /**
  * @file Unit тесты для packages/app/src/lib/api-schema-guard.ts
- *
  * Enterprise-grade тестирование API schema guard с 100% покрытием:
  * - validateApiRequest/Response/Interaction для всех сценариев
  * - Валидация размеров payload с различными условиями

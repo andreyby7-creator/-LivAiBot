@@ -3,12 +3,10 @@
  * ============================================================================
  * 🛡️ CORE — Input Boundary (Context Enricher)
  * ============================================================================
- *
  * Архитектурная роль:
  * - Generic context enricher для обогащения контекста метаданными на input boundary
  * - Архитектура: dependency-driven execution (signal-based DAG) → conflict detection → collect all errors
  * - Причина изменения: input boundary, context enrichment, signal-based metadata derivation
- *
  * Принципы:
  * - ✅ SRP: только обогащение контекста метаданными (signal derivation), без композиции логики
  * - ✅ Deterministic: одинаковые входы → одинаковые результаты (signal-based dependency graph)
@@ -20,7 +18,6 @@
  * - ✅ Security-first: конфликты сигналов = ошибка (не silent overwrite), conflict detection через stable serialization
  * - ✅ DAG-compatible: signal-based dependency graph (совместимо с pipeline)
  * - ✅ Parallel-ready: собирает все ошибки, не fail-fast, precondition enforcement
- *
  * ⚠️ ВАЖНО:
  * - ❌ НЕ включает sanitization (это в data-safety/)
  * - ❌ НЕ включает композицию логики (and/or/not) - это в rule-engine
@@ -87,6 +84,7 @@ export type EnrichmentObserver = Readonly<{
  * Enricher: обогащает контекст метаданными (pure function, extensible без изменения core)
  * @template TContext - Тип входного контекста
  * @requirements Детерминированность, signal-based dependency, безопасность, идемпотентность
+ *
  * @example enricher: ContextEnricher<RequestContext> = { name: 'geo', provides: ['geo.country'], dependsOn: [], enrich: (ctx, signals) => ({ signals: new Map([['geo.country', ctx.country]]), errors: [] }) };
  */
 export type ContextEnricher<TContext = Record<string, unknown>> = Readonly<{
@@ -742,6 +740,7 @@ function applyEnrichers<TContext = Record<string, unknown>>(
 /**
  * Обогащает контекст метаданными через registry enrichers
  * @template TContext - Тип входного контекста
+ *
  * @example const observer = { onSkippedEnricher: (e) => log.warn(e), onConflictingSignals: (e) => log.error(e) }; const result = enrichContext(context, registry, observer);
  * @public
  */

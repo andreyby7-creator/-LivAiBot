@@ -3,17 +3,14 @@
  * ============================================================================
  * 🔵 CORE UI BREADCRUMBS — PRESENTATIONAL PRIMITIVE
  * ============================================================================
- *
  * Роль:
  * - Базовый UI-компонент для отображения хлебных крошек (Breadcrumbs)
  * - Полностью детерминированный, side-effect free
  * - SSR-safe, Concurrent-safe
- *
  * Не содержит:
  * - Feature flags
  * - Telemetry
  * - Управление навигацией или состояниями
- *
  * Управление:
  * - Контентом и событиями управляет App-слой
  */
@@ -228,7 +225,6 @@ CoreBreadcrumbsComponent.displayName = 'CoreBreadcrumbs';
 
 /**
  * Memoized CoreBreadcrumbs.
- *
  * Гарантии:
  * - Полностью детерминированный
  * - Side-effect free
@@ -244,14 +240,11 @@ export const Breadcrumbs = memo(CoreBreadcrumbsComponent);
 
 /**
  * CoreBreadcrumbs — чистый presentational primitive:
- *
  * - Не управляет навигацией
  * - Не содержит feature flags или telemetry
  * - Все клики и href обрабатываются App-слоем
  * - Поддерживает ref forwarding
- *
  * Любая бизнес-логика (routing, active state, tracking) реализуется в App слое.
- *
  * Это гарантирует:
  * - переиспользуемость
  * - тестируемость

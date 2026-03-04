@@ -1,6 +1,5 @@
 /**
  * @file packages/app/src/lib — Library Utilities
- *
  * Публичный API пакета lib.
  * Экспортирует все публичные утилиты, сервисы и типы для работы приложения.
  */
@@ -11,7 +10,6 @@
 
 /**
  * API Client: клиент для выполнения HTTP запросов с поддержкой типизации и обработки ошибок.
- *
  * @public
  */
 export {
@@ -30,7 +28,6 @@ export {
 
 /**
  * API Schema Guard: валидация запросов и ответов API с типизацией.
- *
  * @public
  */
 export {
@@ -52,7 +49,6 @@ export {
 
 /**
  * Auth Service: сервис для управления аутентификацией и токенами.
- *
  * @public
  */
 export {
@@ -70,7 +66,6 @@ export {
 
 /**
  * Auth Guard: система контроля доступа с проверкой прав и ролей.
- *
  * @public
  */
 export {
@@ -92,7 +87,6 @@ export {
 
 /**
  * Offline Cache: система кэширования данных для работы в оффлайн режиме.
- *
  * @public
  */
 export {
@@ -114,7 +108,6 @@ export {
 
 /**
  * Effect Utils: утилиты для работы с Effect и асинхронными операциями.
- *
  * @public
  */
 export {
@@ -136,7 +129,6 @@ export {
 
 /**
  * Effect Isolation: изоляция выполнения Effect для безопасности.
- *
  * @public
  */
 export {
@@ -152,7 +144,6 @@ export {
 
 /**
  * Effect Timeout: управление таймаутами для Effect операций.
- *
  * @public
  */
 export {
@@ -171,7 +162,6 @@ export {
 
 /**
  * Schema Validated Effect: Effect с валидацией схем данных.
- *
  * @public
  */
 export {
@@ -188,7 +178,6 @@ export {
 
 /**
  * Error Mapping: маппинг и нормализация ошибок между сервисами.
- *
  * @public
  */
 export {
@@ -210,7 +199,6 @@ export {
 
 /**
  * Validation: система валидации данных с типизацией.
- *
  * @public
  */
 export {
@@ -232,7 +220,6 @@ export {
 
 /**
  * Telemetry: система телеметрии для мониторинга и логирования.
- *
  * @public
  */
 export {
@@ -254,7 +241,6 @@ export {
 
 /**
  * Telemetry Runtime: runtime утилиты для работы с телеметрией.
- *
  * @public
  */
 export {
@@ -277,7 +263,6 @@ export {
 
 /**
  * Telemetry Batch Core: батчинг событий телеметрии для оптимизации.
- *
  * @public
  */
 export {
@@ -297,7 +282,6 @@ export {
 
 /**
  * Feature Flags: система управления feature flags с контекстом и стратегиями.
- *
  * @public
  */
 export {
@@ -319,7 +303,6 @@ export {
 
 /**
  * I18n: система интернационализации с поддержкой локалей и форматирования дат.
- *
  * @public
  */
 export {
@@ -341,7 +324,6 @@ export {
 
 /**
  * Logger: система логирования с уровнями и контекстом.
- *
  * @public
  */
 export {
@@ -363,7 +345,6 @@ export {
 
 /**
  * Orchestrator: оркестрация выполнения шагов с изоляцией и таймаутами.
- *
  * @public
  */
 export { orchestrate, type Step, step, type StepResult } from './orchestrator.js';
@@ -374,7 +355,6 @@ export { orchestrate, type Step, step, type StepResult } from './orchestrator.js
 
 /**
  * Performance: мониторинг производительности и Web Vitals.
- *
  * @public
  */
 export {
@@ -396,7 +376,6 @@ export {
 
 /**
  * Route Permissions: проверка прав доступа к маршрутам.
- *
  * @public
  */
 export {
@@ -417,7 +396,6 @@ export {
 
 /**
  * App Lifecycle: управление жизненным циклом приложения.
- *
  * @public
  */
 export {
@@ -433,7 +411,6 @@ export {
 
 /**
  * SSE Client: клиент для работы с Server-Sent Events.
- *
  * @public
  */
 export {
@@ -455,7 +432,6 @@ export {
 
 /**
  * WebSocket: клиент для работы с WebSocket соединениями.
- *
  * @public
  */
 export {
@@ -477,7 +453,6 @@ export {
 
 /**
  * Service Worker: утилиты для работы с service worker и кэшированием.
- *
  * @public
  */
 export {

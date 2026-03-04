@@ -1,6 +1,5 @@
 /**
  * @file Unit тесты для packages/app/src/events/app-events.ts
- *
  * Enterprise-grade тестирование системы событий с 100% покрытием:
  * - AppEventType enum и его значения
  * - Zod схемы валидации payload

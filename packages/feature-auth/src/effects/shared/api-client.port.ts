@@ -3,12 +3,10 @@
  * ============================================================================
  * 🔐 FEATURE-AUTH — ApiClient Port (Shared)
  * ============================================================================
- *
  * Архитектурная роль:
  * - Единый контракт HTTP-клиента для всех auth-эффектов (login/logout/refresh/register)
  * - Стандартизирован на Effect для единой async-модели в orchestrator
  * - Изолирует effects от деталей реализации HTTP-клиента
- *
  * Принципы:
  * - ✅ Port pattern: объектный интерфейс для HTTP-операций
  * - ✅ Effect-based: все методы возвращают Effect для композиции
@@ -29,7 +27,6 @@ import type { Effect } from '@livai/app/lib/effect-utils.js';
  * @note Не знает про fetch/axios/baseURL/retry — только post/get с AbortSignal для concurrency.
  * @note Auth headers (например, Authorization) всегда передаются ЯВНО через options.headers,
  *       никакие глобальные interceptors/implicit headers не используются.
- *
  * @note AbortSignal может передаваться через options.signal для явной поддержки cancellation
  *       на уровне HTTP-запроса, либо через параметр Effect (предпочтительно для единообразия).
  *       Если signal передан в обоих местах, приоритет у параметра Effect.
@@ -52,16 +49,13 @@ export type ApiRequestOptions = Readonly<{
 
 /**
  * Порт для HTTP-клиента auth-домена (Effect-based).
- *
  * Стандартизирован на Effect для единой async-модели в orchestrator:
  * - Единая композиция через orchestrator/withTimeout
  * - Единообразная обработка cancellation через AbortSignal (передаётся через параметр Effect)
  * - Готовность к расширению (retry, isolation, tracing)
- *
  * @note AbortSignal передаётся через параметр Effect (предпочтительно), либо через options.signal.
  *       Если signal передан в обоих местах, приоритет у параметра Effect.
  *       Это обеспечивает единообразную обработку cancellation во всём orchestrator.
- *
  * @note Type naming: явно указывает доменную принадлежность (auth).
  *       Для других доменов используются отдельные порты (BillingApiClientPort, ChatApiClientPort и т.п.).
  */

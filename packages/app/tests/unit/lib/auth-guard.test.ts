@@ -1,6 +1,5 @@
 /**
  * @file Unit тесты для packages/app/src/lib/auth-guard.ts
- *
  * Enterprise-grade тестирование auth guard с 95-100% покрытием:
  * - Основные функции (checkAuthorization, checkAccess)
  * - Композиционные guard'ы (combineGuards, eitherGuard, requireRole, requirePermission)

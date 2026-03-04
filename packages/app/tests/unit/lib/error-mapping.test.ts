@@ -1,6 +1,5 @@
 /**
  * @file Unit тесты для packages/app/src/lib/error-mapping.ts
- *
  * Enterprise-grade тестирование error mapping с 95-100% покрытием:
  * - mapError для TaggedError, EffectError, неизвестных ошибок
  * - Chainable мапперы с несколькими мапперами и разными локалями

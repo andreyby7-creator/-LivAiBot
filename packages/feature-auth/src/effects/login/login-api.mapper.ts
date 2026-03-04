@@ -3,11 +3,9 @@
  * ============================================================================
  * 🔐 FEATURE-AUTH — Login API Mapper
  * ============================================================================
- *
  * Назначение (только mapping, без orchestration):
  * - Domain `LoginRequest` → transport `LoginRequestValues` (payload для `POST /v1/auth/login`)
  * - Feature/transport aggregate `LoginResponseDto` → domain `DomainLoginResult`
- *
  * Гарантии:
  * - ❌ Не содержит логики store/security/telemetry и не читает `SecurityPipelineResult`
  * - ✅ Fail-closed: exhaustive switch по `LoginResponseDto['type']` + `assertNever`
@@ -135,7 +133,6 @@ function mapMfaChallengeValuesToDomain(
 
 /**
  * Маппинг LoginRequest (domain) → LoginRequestValues (transport для /v1/auth/login).
- *
  * Инварианты:
  * - ❌ Нет логики store/security — только shape-конвертация
  * - ✅ dtoVersion всегда задан (явный default '1.0' для schema-совместимости)
@@ -187,7 +184,6 @@ export function mapLoginRequestToApiPayload(
 
 /**
  * Маппинг LoginResponseDto (feature/transport aggregate) → DomainLoginResult (domain).
- *
  * Инварианты:
  * - ❌ Нет логики store/security/telemetry
  * - ✅ Exhaustive switch по dto.type + assertNever для fail-closed поведения

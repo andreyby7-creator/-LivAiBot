@@ -3,18 +3,15 @@
  * ============================================================================
  * 🔵 CORE UI ACCORDION — PRESENTATIONAL PRIMITIVE
  * ============================================================================
- *
  * Роль:
  * - Базовый UI-компонент для отображения аккордеона
  * - Полностью детерминированный и side-effect free
  * - SSR-safe, Concurrent-safe
- *
  * Не содержит:
  * - Feature flags
  * - Telemetry
  * - Управление состоянием открытых элементов
  * - Таймеров или анимаций
- *
  * Управление:
  * - Открытыми элементами и событиями управляет App-слой
  */
@@ -269,7 +266,6 @@ CoreAccordionComponent.displayName = 'CoreAccordion';
 
 /**
  * Memoized CoreAccordion.
- *
  * Гарантии:
  * - Полностью детерминированный
  * - Side-effect free
@@ -285,14 +281,11 @@ export const Accordion = memo(CoreAccordionComponent);
 
 /**
  * CoreAccordion — чистый presentational primitive:
- *
  * - Не управляет состоянием открытых элементов
  * - Не содержит feature flags или telemetry
  * - Все клики и изменения обрабатываются App-слоем
  * - Поддерживает ref forwarding
- *
  * Любая бизнес-логика (routing, open state, tracking) реализуется в App слое.
- *
  * Это гарантирует:
  * - переиспользуемость
  * - тестируемость
