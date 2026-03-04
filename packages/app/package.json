@@ -60,6 +60,10 @@
     "./providers/intl-provider.js": {
       "types": "./src/providers/intl-provider.tsx",
       "import": "./src/providers/intl-provider.tsx"
+    },
+    "./hooks/useAuth.js": {
+      "types": "./src/hooks/useAuth-provider.tsx",
+      "import": "./src/hooks/useAuth-provider.tsx"
     }
   },
   "scripts": {

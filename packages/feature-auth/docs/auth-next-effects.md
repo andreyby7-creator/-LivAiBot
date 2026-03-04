@@ -2,6 +2,39 @@
 
 > Расширенные auth-эффекты для полного покрытия функциональности: password reset, verification, MFA, OAuth, session management, profile updates.
 
+## ⚠️ Архитектура useAuth
+
+**`useAuth` в `@livai/app`, не в `@livai/feature-auth`.**
+
+- **`@livai/feature-auth`**: store, effects, types, domain
+- **`@livai/app`**: `useAuth`, `auth-hook-deps.ts`, `auth-token-adapter.ts`
+
+**Импорт:** `import { useAuth } from '@livai/app/hooks/useAuth'` (не из `@livai/feature-auth`)
+
+**Интеграция новых эффектов:**
+
+1. **`@livai/feature-auth/effects/*.ts`**:
+   - Создать эффект с DI: `create*Effect(deps: *EffectDeps, config: *EffectConfig): Effect<Request, Result, Error>`
+   - Использовать паттерн существующих эффектов (login/logout/register/refresh)
+   - Экспортировать фабрику и типы из `effects/index.ts`
+
+2. **`@livai/app/lib/auth-hook-deps.ts`**:
+   - Расширить `AuthHookDepsConfig` новым полем: `readonly newEffect?: { readonly config: *EffectConfig; readonly deps: *EffectDeps; }`
+   - В `createAuthHookDeps`: создать эффект через `create*Effect(config.newEffect.deps, config.newEffect.config)`
+   - Обернуть в Promise: `(req) => Runtime.runPromise(runtime, effect(req))`
+   - Добавить в возвращаемый `UseAuthDeps` объект
+
+3. **`@livai/app/hooks/useAuth.ts`**:
+   - Расширить `UseAuthResult`: добавить метод `newEffect: (req: Request) => Promise<Result>`
+   - В `useAuth`: создать обёртку через `useCallback((req) => deps.newEffect(req), [deps])`
+   - Добавить в возвращаемый объект
+
+**Важно:**
+
+- Эффекты создаются один раз в `createAuthHookDeps` (singleton)
+- Типы импортируются из `@livai/feature-auth`, не дублируются
+- Хук остаётся тонким фасадом без бизнес-логики
+
 ---
 
 ## Password Reset Flow

@@ -30,10 +30,14 @@ export {
 
 /**
  * useAuth: React hook для управления аутентификацией.
- * Предоставляет состояние и методы для login/logout/refresh с автоматическим управлением токенами.
+ * Предоставляет доступ к доменному AuthState из @livai/feature-auth и методы login/logout/register/refresh.
  * @public
+ * @remarks
+ * - Публичный API: `useAuth()` без параметров (DI-зависимости берутся из контекста).
+ * - Требует обёртку приложения в `<AuthHookProvider config={...}>`.
+ * - Для внутреннего использования доступна DI-версия `useAuth(deps)` из `useAuth.ts`.
  */
-export { authSelectors, useAuth } from './useAuth.js';
+export { AuthHookProvider, type AuthHookProviderProps, useAuth } from './useAuth-provider.js';
 
 /* ============================================================================
  * 🗄️ USE OFFLINE CACHE — ХУК ДЛЯ ОФФЛАЙН КЭША

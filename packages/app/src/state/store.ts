@@ -51,17 +51,6 @@ export type AppUser = Readonly<{
   readonly role?: string;
 }>;
 
-/**
- * Состояние аутентификации.
- * Содержит только токены и runtime состояние загрузки.
- */
-export type AuthState = Readonly<{
-  readonly accessToken: string | null;
-  readonly refreshToken: string | null;
-  readonly expiresAt: number | null;
-  readonly isLoading: boolean; // runtime состояние, не persist
-}>;
-
 /* ========================================================================== */
 /* 🧠 СОСТОЯНИЕ */
 /* ========================================================================== */
@@ -79,9 +68,6 @@ export type AppStoreState = Readonly<{
 
   /** Активная тема интерфейса. */
   readonly theme: ThemeMode;
-
-  /** Состояние аутентификации. */
-  readonly auth: AuthState;
 
   /** Доступность сети (обновляется инфраструктурой). */
   readonly isOnline: boolean;
@@ -110,22 +96,6 @@ export type AppStoreActions = Readonly<{
    * Рекомендуется для auth-потоков.
    */
   readonly setAuthenticatedUser: (user: AppUser) => void;
-
-  /**
-   * Устанавливает токены аутентификации.
-   * @param tokens - объект с accessToken, refreshToken и expiresAt
-   */
-  readonly setAuthTokens: (tokens: {
-    accessToken: string;
-    refreshToken: string;
-    expiresAt: number;
-  }) => void;
-
-  /** Очищает состояние аутентификации. */
-  readonly clearAuth: () => void;
-
-  /** Устанавливает статус загрузки аутентификации. */
-  readonly setAuthLoading: (loading: boolean) => void;
 
   /** Сбрасывает состояние к безопасному baseline. */
   readonly reset: () => void;
@@ -161,12 +131,6 @@ const BASE_STATE: AppStoreState = Object.freeze({
   user: null,
   userStatus: 'anonymous',
   theme: 'light',
-  auth: {
-    accessToken: null,
-    refreshToken: null,
-    expiresAt: null,
-    isLoading: false,
-  },
   isOnline: true,
 });
 
@@ -179,24 +143,6 @@ export function createInitialState(): AppStoreState {
 }
 
 /* ========================================================================== */
-/* 🏗️ STORE - ВНУТРЕННИЕ HELPER'Ы */
-/* ========================================================================== */
-
-/**
- * Вспомогательная функция для безопасного обновления auth состояния.
- * Гарантирует, что auth обновляется только через merge, сохраняя isLoading.
- * ВАЖНО: Никогда не использовать set({ auth: {...} }) напрямую вне actions!
- * Всегда использовать этот helper для соблюдения invariants.
- */
-function updateAuth(
-  updates: Partial<Pick<AuthState, 'accessToken' | 'refreshToken' | 'expiresAt' | 'isLoading'>>,
-): (state: AppStoreState) => { auth: AuthState; } {
-  return (state: AppStoreState) => ({
-    auth: { ...state.auth, ...updates },
-  });
-}
-
-/* ========================================================================== */
 /* 🏗️ STORE */
 /* ========================================================================== */
 
@@ -205,12 +151,13 @@ const STORE_VERSION = 1;
 
 /**
  * Глобальный Zustand store.
- * Persist сохраняет theme, user.id и auth tokens (без network данных).
+ * Persist сохраняет theme и user.id (без network данных).
  * ВАЖНО:
  * - set(...) используется только в merge-режиме.
  * - Полная замена состояния допускается только через reset().
  * - UX: user.id сохраняется для восстановления сессии при reload.
  * - Sensitive данные пользователя (name, email, etc.) не сохраняются.
+ * - Auth токены теперь хранятся в feature-auth store, не здесь.
  */
 export const useAppStore = create<AppStore>()(
   persist(
@@ -238,25 +185,6 @@ export const useAppStore = create<AppStore>()(
           set({ user, userStatus: 'authenticated' });
         },
 
-        setAuthTokens: ({ accessToken, refreshToken, expiresAt }): void => {
-          set(updateAuth({ accessToken, refreshToken, expiresAt, isLoading: false }));
-        },
-
-        clearAuth: (): void => {
-          set(
-            updateAuth({
-              accessToken: null,
-              refreshToken: null,
-              expiresAt: null,
-              isLoading: false,
-            }),
-          );
-        },
-
-        setAuthLoading: (loading: boolean): void => {
-          set(updateAuth({ isLoading: loading }));
-        },
-
         reset: (): void => {
           set(createInitialState());
         },
@@ -266,10 +194,6 @@ export const useAppStore = create<AppStore>()(
             ...state,
             user: null,
             userStatus: 'anonymous',
-            auth: {
-              ...state.auth,
-              isLoading: false,
-            },
           }));
         },
       },
@@ -296,7 +220,6 @@ export const appStoreSelectors = {
   user: (store: AppStore) => store.user,
   userStatus: (store: AppStore) => store.userStatus,
   theme: (store: AppStore) => store.theme,
-  auth: (store: AppStore) => store.auth,
   isOnline: (store: AppStore) => store.isOnline,
   actions: (store: AppStore) => store.actions,
 } as const;
@@ -306,19 +229,6 @@ export const appStoreDerivedSelectors = {
   /** Пользователь аутентифицирован. */
   isAuthenticated: (store: AppStore): boolean =>
     store.userStatus === 'authenticated' && store.user != null,
-
-  /** Токен доступа доступен. */
-  hasAccessToken: (store: AppStore): boolean => store.auth.accessToken != null,
-
-  /** Токен истек. */
-  isTokenExpired: (store: AppStore): boolean =>
-    store.auth.expiresAt != null && getCurrentTime() > store.auth.expiresAt,
-
-  /** Время до истечения токена в миллисекундах. */
-  timeToExpiry: (store: AppStore): number =>
-    store.auth.expiresAt != null
-      ? Math.max(0, store.auth.expiresAt - getCurrentTime())
-      : 0,
 } as const;
 
 /* ========================================================================== */
@@ -385,17 +295,10 @@ export function registerNetworkStatusListener(): () => void {
 /** Функция partialize для persist middleware. Экспортируется только для тестирования. */
 export function storePartialize(state: AppStoreState): Pick<AppStoreState, 'theme'> & {
   userId: AppUser['id'] | null;
-  auth: Pick<AuthState, 'accessToken' | 'refreshToken' | 'expiresAt'>;
 } {
   return {
     theme: state.theme,
     userId: state.user?.id ?? null, // UX: сохраняем user.id для восстановления сессии
-    auth: {
-      accessToken: state.auth.accessToken,
-      refreshToken: state.auth.refreshToken,
-      expiresAt: state.auth.expiresAt,
-      // ❌ isLoading не сохраняется (runtime состояние)
-    },
   };
 }
 
@@ -416,12 +319,6 @@ export function storeMerge(persisted: unknown, current: AppStore): AppStore {
     ...current,
     ...persistedState,
     user: restoredUser,
-    auth: {
-      ...current.auth,
-      ...persistedState.auth,
-      // isLoading всегда берется из текущего состояния (runtime)
-      isLoading: current.auth.isLoading,
-    },
     actions: current.actions,
   };
 }

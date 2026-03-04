@@ -28,6 +28,62 @@
     ".": {
       "types": "./src/index.ts",
       "import": "./src/index.ts"
+    },
+    "./src/domain/LoginRequest.js": {
+      "types": "./src/domain/LoginRequest.ts",
+      "import": "./src/domain/LoginRequest.ts"
+    },
+    "./src/domain/RegisterRequest.js": {
+      "types": "./src/domain/RegisterRequest.ts",
+      "import": "./src/domain/RegisterRequest.ts"
+    },
+    "./src/domain/index.js": {
+      "types": "./src/domain/index.ts",
+      "import": "./src/domain/index.ts"
+    },
+    "./src/effects/login.js": {
+      "types": "./src/effects/login.ts",
+      "import": "./src/effects/login.ts"
+    },
+    "./src/effects/login/index.js": {
+      "types": "./src/effects/login/index.ts",
+      "import": "./src/effects/login/index.ts"
+    },
+    "./src/effects/logout.js": {
+      "types": "./src/effects/logout.ts",
+      "import": "./src/effects/logout.ts"
+    },
+    "./src/effects/logout/index.js": {
+      "types": "./src/effects/logout/index.ts",
+      "import": "./src/effects/logout/index.ts"
+    },
+    "./src/effects/register.js": {
+      "types": "./src/effects/register.ts",
+      "import": "./src/effects/register.ts"
+    },
+    "./src/effects/register/index.js": {
+      "types": "./src/effects/register/index.ts",
+      "import": "./src/effects/register/index.ts"
+    },
+    "./src/effects/refresh.js": {
+      "types": "./src/effects/refresh.ts",
+      "import": "./src/effects/refresh.ts"
+    },
+    "./src/effects/refresh/index.js": {
+      "types": "./src/effects/refresh/index.ts",
+      "import": "./src/effects/refresh/index.ts"
+    },
+    "./src/effects/index.js": {
+      "types": "./src/effects/index.ts",
+      "import": "./src/effects/index.ts"
+    },
+    "./src/stores/index.js": {
+      "types": "./src/stores/index.ts",
+      "import": "./src/stores/index.ts"
+    },
+    "./src/types/index.js": {
+      "types": "./src/types/index.ts",
+      "import": "./src/types/index.ts"
     }
   },
   "scripts": {

@@ -19,7 +19,6 @@ export {
   appStoreSelectors,
   type AppStoreState,
   type AppUser,
-  type AuthState,
   createInitialState,
   getCurrentTime,
   getInitialOnlineStatus,

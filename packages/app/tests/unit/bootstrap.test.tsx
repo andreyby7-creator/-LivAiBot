@@ -31,6 +31,12 @@ describe('bootstrap', () => {
   const app = React.createElement('div', { 'data-testid': 'app' }, 'App');
   const providers = {
     intl: { locale: 'en', messages: {}, children: null },
+    authHook: {
+      login: { config: {} as any, deps: {} as any },
+      logout: { config: {} as any, deps: {} as any },
+      register: { config: {} as any, deps: {} as any },
+      refresh: { config: {} as any, deps: {} as any },
+    },
   };
 
   beforeEach(() => {
@@ -161,5 +167,127 @@ describe('bootstrap', () => {
     result.rerender(React.createElement('div', {}, 'Next'));
     expect(events.filter((event) => event === 'render:start')).toHaveLength(2);
     expect(events.filter((event) => event === 'render:done')).toHaveLength(2);
+  });
+
+  it('logs warning when event handler fails in development', async () => {
+    vi.stubEnv('NODE_ENV', 'development');
+    const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const onEventError = vi.fn();
+    const onEvent = [
+      () => {
+        throw new Error('handler error');
+      },
+    ];
+
+    await bootstrap({
+      element,
+      app,
+      providers,
+      onEvent,
+      onEventError,
+    });
+
+    expect(consoleWarnSpy).toHaveBeenCalledWith(
+      'Bootstrap event handler failed:',
+      expect.any(Error),
+    );
+    expect(onEventError).toHaveBeenCalled();
+
+    consoleWarnSpy.mockRestore();
+  });
+
+  it('logs warning when safeExecute fails in development', async () => {
+    vi.stubEnv('NODE_ENV', 'development');
+    const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const onError = vi.fn();
+
+    await bootstrap({
+      element,
+      app,
+      providers,
+      prefetch: () => {
+        throw new Error('prefetch error');
+      },
+      onError,
+    });
+
+    expect(consoleWarnSpy).toHaveBeenCalledWith(
+      'Bootstrap step failed: prefetch',
+      expect.any(Error),
+    );
+    expect(onError).toHaveBeenCalled();
+
+    consoleWarnSpy.mockRestore();
+  });
+
+  it('skips service worker registration when not supported', async () => {
+    const onRegistered = vi.fn();
+    const originalServiceWorker = navigator.serviceWorker;
+
+    // @ts-expect-error test override
+    delete navigator.serviceWorker;
+
+    await bootstrap({
+      element,
+      app,
+      providers,
+      serviceWorker: { enabled: true, onRegistered },
+    });
+
+    expect(onRegistered).not.toHaveBeenCalled();
+
+    // @ts-expect-error test restore
+    navigator.serviceWorker = originalServiceWorker;
+  });
+
+  it('logs service worker registration in development', async () => {
+    vi.stubEnv('NODE_ENV', 'development');
+    const consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+    const onRegistered = vi.fn();
+    const registration = { scope: '/', update: vi.fn(), unregister: vi.fn() };
+    const register = vi.fn().mockResolvedValue(registration);
+
+    Object.defineProperty(navigator, 'serviceWorker', {
+      value: { register },
+      configurable: true,
+    });
+
+    await bootstrap({
+      element,
+      app,
+      providers,
+      serviceWorker: { enabled: true, onRegistered },
+    });
+
+    expect(consoleLogSpy).toHaveBeenCalledWith('SW registered', registration);
+    expect(onRegistered).toHaveBeenCalledWith(registration);
+
+    consoleLogSpy.mockRestore();
+  });
+
+  it('registers service worker with custom scope', async () => {
+    const onRegistered = vi.fn();
+    const registration = { scope: '/custom', update: vi.fn(), unregister: vi.fn() };
+    const register = vi.fn().mockResolvedValue(registration);
+
+    Object.defineProperty(navigator, 'serviceWorker', {
+      value: { register },
+      configurable: true,
+    });
+
+    await bootstrap({
+      element,
+      app,
+      providers,
+      serviceWorker: {
+        enabled: true,
+        scope: '/custom',
+        scriptUrl: '/custom-sw.js',
+        onRegistered,
+      },
+    });
+
+    expect(register).toHaveBeenCalledWith('/custom-sw.js', { scope: '/custom' });
+    expect(onRegistered).toHaveBeenCalledWith(registration);
   });
 });

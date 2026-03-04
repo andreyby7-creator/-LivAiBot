@@ -47,19 +47,6 @@ export {
  * 🔐 AUTH SERVICE — СЕРВИС АУТЕНТИФИКАЦИИ
  * ========================================================================== */
 
-/**
- * Auth Service: сервис для управления аутентификацией и токенами.
- * @public
- */
-export {
-  type AuthError as AuthServiceError,
-  AuthService,
-  authService,
-  createAuthService,
-  type LoginRequest,
-  type TokenPairResponse,
-} from './auth-service.js';
-
 /* ============================================================================
  * 🛡️ AUTH GUARD — ЗАЩИТА ДОСТУПА
  * ========================================================================== */
@@ -80,6 +67,35 @@ export {
   type ResourceType,
   type UserRole,
 } from './auth-guard.js';
+
+/* ============================================================================
+ * 🔗 AUTH HOOK DI — DI-ФАБРИКА ДЛЯ useAuth
+ * ========================================================================== */
+
+/**
+ * Auth Hook DI: фабрика DI-зависимостей для канонического React-хука `useAuth`.
+ * @public
+ */
+export { type AuthHookDepsConfig, createAuthHookDeps } from './auth-hook-deps.js';
+
+/* ============================================================================
+ * 🔗 AUTH TOKEN ADAPTER — АДАПТЕР ДЛЯ ПОЛУЧЕНИЯ ТОКЕНОВ ИЗ FEATURE-AUTH
+ * ========================================================================== */
+
+/**
+ * Auth Token Adapter: адаптер для получения access token из feature-auth store.
+ * Используется HTTP-клиентами для автоматического добавления Authorization header.
+ * @public
+ * @remarks
+ * - HTTP-клиент НЕ подписывается напрямую на Zustand-store.
+ * - Доступ к токенам идёт только через адаптер/порт (функции app-слоя).
+ */
+export {
+  type AuthTokenAdapter,
+  type AuthTokenAdapterConfig,
+  type AuthTokenAdapterLogger,
+  createAuthTokenAdapter,
+} from './auth-token-adapter.js';
 
 /* ============================================================================
  * 🗄️ OFFLINE CACHE — ОФФЛАЙН КЭШ

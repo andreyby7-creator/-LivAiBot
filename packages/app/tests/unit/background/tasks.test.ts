@@ -13,7 +13,11 @@ vi.mock('../../../src/lib/telemetry-runtime.js', () => ({
 
 // Mock eventBus
 vi.mock('../../../src/events/event-bus.js', () => ({
-  ConsoleLogger: vi.fn(),
+  ConsoleLogger: class {
+    info = vi.fn();
+    warn = vi.fn();
+    error = vi.fn();
+  },
   eventBus: {
     subscribe: vi.fn(),
     unsubscribe: vi.fn(),
@@ -56,6 +60,9 @@ beforeEach(() => {
 
 afterEach(() => {
   vi.restoreAllMocks();
+  // Очищаем обработчики событий после каждого теста
+  process.removeAllListeners('SIGINT');
+  process.removeAllListeners('SIGTERM');
 });
 
 /* ========================================================================== */
@@ -66,8 +73,8 @@ const createDI = () => ({
     refresh: vi.fn().mockImplementation(() => Effect.sync(() => undefined)),
     sync: vi.fn().mockImplementation(() => Effect.sync(() => undefined)),
   },
-  authService: {
-    refreshToken: vi.fn().mockImplementation(() => Effect.sync(() => undefined)),
+  auth: {
+    refreshEffect: vi.fn().mockResolvedValue({ success: true }),
   },
   logger: {
     info: vi.fn(),
@@ -294,9 +301,7 @@ describe('Background Tasks', () => {
     it('auth-refresh задача записывает error метрику при ошибке', async () => {
       ENV.ENABLE_AUTH_REFRESH = true;
       const di = createDI();
-      di.authService.refreshToken = vi.fn().mockImplementation(() => {
-        throw new TaskError('auth-refresh');
-      });
+      di.auth.refreshEffect = vi.fn().mockRejectedValue(new TaskError('auth-refresh'));
       (di as any).enqueueMetric = vi.fn().mockImplementation(() => Effect.sync(() => undefined));
 
       const tasks = backgroundTasks.createTasks(di);
@@ -312,6 +317,183 @@ describe('Background Tasks', () => {
         expect(error.message).toContain('Task auth-refresh failed');
       }
       expect((di as any).enqueueMetric).toHaveBeenCalledWith('task.auth-refresh.error', 1);
+    });
+
+    it('auth-refresh задача обрабатывает отмененный сигнал', async () => {
+      ENV.ENABLE_AUTH_REFRESH = true;
+      const di = createDI();
+      (di as any).enqueueMetric = vi.fn().mockImplementation(() => Effect.sync(() => undefined));
+
+      const tasks = backgroundTasks.createTasks(di);
+      const authTask = tasks.find((t) => t.id === 'auth-refresh');
+
+      const abortController = new AbortController();
+      abortController.abort();
+
+      try {
+        await Runtime.runPromise(
+          Runtime.defaultRuntime,
+          authTask!.task(abortController.signal),
+        );
+        expect.fail('Expected task to throw');
+      } catch (error: any) {
+        expect(error.message).toContain('Task auth-refresh failed');
+      }
+      expect((di as any).enqueueMetric).toHaveBeenCalledWith('task.auth-refresh.error', 1);
+    });
+
+    it('cache-sync-login задача работает без enqueueMetric', async () => {
+      ENV.ENABLE_CACHE_SYNC = true;
+      const di = createDI();
+      (di as any).enqueueMetric = undefined;
+
+      const tasks = backgroundTasks.createTasks(di);
+      const syncLoginTask = tasks.find((t) => t.id === 'cache-sync-login');
+      expect(syncLoginTask).toBeDefined();
+
+      await Runtime.runPromise(
+        Runtime.defaultRuntime,
+        syncLoginTask!.task(new AbortController().signal),
+      );
+      // Задача должна выполниться без ошибок, даже без enqueueMetric
+    });
+
+    it('cache-refresh задача работает без enqueueMetric при успехе', async () => {
+      ENV.ENABLE_CACHE_REFRESH = true;
+      const di = createDI();
+      (di as any).enqueueMetric = undefined;
+
+      const tasks = backgroundTasks.createTasks(di);
+      const cacheTask = tasks.find((t) => t.id === 'cache-refresh');
+      expect(cacheTask).toBeDefined();
+
+      await Runtime.runPromise(
+        Runtime.defaultRuntime,
+        cacheTask!.task(new AbortController().signal),
+      );
+      // Задача должна выполниться без ошибок, даже без enqueueMetric
+    });
+
+    it('cache-refresh задача работает без enqueueMetric при ошибке', async () => {
+      ENV.ENABLE_CACHE_REFRESH = true;
+      const di = createDI();
+      (di as any).enqueueMetric = undefined;
+      di.offlineCache.refresh = vi.fn().mockImplementation(() => {
+        throw new TaskError('cache-refresh');
+      });
+
+      const tasks = backgroundTasks.createTasks(di);
+      const cacheTask = tasks.find((t) => t.id === 'cache-refresh');
+
+      try {
+        await Runtime.runPromise(
+          Runtime.defaultRuntime,
+          cacheTask!.task(new AbortController().signal),
+        );
+        expect.fail('Expected task to throw');
+      } catch (error: any) {
+        expect(error.message).toContain('Task cache-refresh failed');
+      }
+      // Задача должна выбросить ошибку, даже без enqueueMetric
+    });
+
+    it('cache-sync задача работает без enqueueMetric при успехе', async () => {
+      ENV.ENABLE_CACHE_SYNC = true;
+      const di = createDI();
+      (di as any).enqueueMetric = undefined;
+
+      const tasks = backgroundTasks.createTasks(di);
+      const syncTask = tasks.find((t) => t.id === 'cache-sync');
+      expect(syncTask).toBeDefined();
+
+      await Runtime.runPromise(
+        Runtime.defaultRuntime,
+        syncTask!.task(new AbortController().signal),
+      );
+      // Задача должна выполниться без ошибок, даже без enqueueMetric
+    });
+
+    it('cache-sync задача работает без enqueueMetric при ошибке', async () => {
+      ENV.ENABLE_CACHE_SYNC = true;
+      const di = createDI();
+      (di as any).enqueueMetric = undefined;
+      di.offlineCache.sync = vi.fn().mockImplementation(() => {
+        throw new TaskError('cache-sync');
+      });
+
+      const tasks = backgroundTasks.createTasks(di);
+      const syncTask = tasks.find((t) => t.id === 'cache-sync');
+
+      try {
+        await Runtime.runPromise(
+          Runtime.defaultRuntime,
+          syncTask!.task(new AbortController().signal),
+        );
+        expect.fail('Expected task to throw');
+      } catch (error: any) {
+        expect(error.message).toContain('Task cache-sync failed');
+      }
+      // Задача должна выбросить ошибку, даже без enqueueMetric
+    });
+
+    it('cache-sync-login задача работает без enqueueMetric при ошибке', async () => {
+      ENV.ENABLE_CACHE_SYNC = true;
+      const di = createDI();
+      (di as any).enqueueMetric = undefined;
+      di.offlineCache.sync = vi.fn().mockImplementation(() => {
+        throw new TaskError('cache-sync-login');
+      });
+
+      const tasks = backgroundTasks.createTasks(di);
+      const syncLoginTask = tasks.find((t) => t.id === 'cache-sync-login');
+
+      try {
+        await Runtime.runPromise(
+          Runtime.defaultRuntime,
+          syncLoginTask!.task(new AbortController().signal),
+        );
+        expect.fail('Expected task to throw');
+      } catch (error: any) {
+        expect(error.message).toContain('Task cache-sync-login failed');
+      }
+      // Задача должна выбросить ошибку, даже без enqueueMetric
+    });
+
+    it('auth-refresh задача работает без enqueueMetric при успехе', async () => {
+      ENV.ENABLE_AUTH_REFRESH = true;
+      const di = createDI();
+      (di as any).enqueueMetric = undefined;
+
+      const tasks = backgroundTasks.createTasks(di);
+      const authTask = tasks.find((t) => t.id === 'auth-refresh');
+      expect(authTask).toBeDefined();
+
+      await Runtime.runPromise(
+        Runtime.defaultRuntime,
+        authTask!.task(new AbortController().signal),
+      );
+      // Задача должна выполниться без ошибок, даже без enqueueMetric
+    });
+
+    it('auth-refresh задача работает без enqueueMetric при ошибке', async () => {
+      ENV.ENABLE_AUTH_REFRESH = true;
+      const di = createDI();
+      (di as any).enqueueMetric = undefined;
+      di.auth.refreshEffect = vi.fn().mockRejectedValue(new Error('refresh failed'));
+
+      const tasks = backgroundTasks.createTasks(di);
+      const authTask = tasks.find((t) => t.id === 'auth-refresh');
+
+      try {
+        await Runtime.runPromise(
+          Runtime.defaultRuntime,
+          authTask!.task(new AbortController().signal),
+        );
+        expect.fail('Expected task to throw');
+      } catch (error: any) {
+        expect(error.message).toContain('Task auth-refresh failed');
+      }
+      // Задача должна выбросить ошибку, даже без enqueueMetric
     });
   });
 
@@ -331,6 +513,136 @@ describe('Background Tasks', () => {
     it('PermanentError наследует TaskError', () => {
       const err = new PermanentError('t', 'cause');
       expect(err).toBeInstanceOf(TaskError);
+    });
+  });
+
+  describe('safeLogTaskError', () => {
+    it('логирует TaskError с Error cause', async () => {
+      const di = createDI();
+      const error = new TaskError('shutdown', new Error('cause error'));
+      const s = {
+        ...mockScheduler,
+        interrupt: vi.fn().mockImplementation(() => Effect.fail(error)),
+      };
+      vi.mocked(getGlobalScheduler).mockReturnValue(Effect.sync(() => s));
+
+      await Runtime.runPromise(Runtime.defaultRuntime)(
+        backgroundTasks.initBackgroundTasks(di) as any,
+      );
+
+      process.emit('SIGINT');
+      await new Promise((resolve) => setTimeout(resolve, 10));
+
+      expect(di.logger.error).toHaveBeenCalledWith(
+        'Task failed',
+        expect.objectContaining({
+          taskId: 'shutdown',
+          message: expect.any(String),
+          causeType: 'Error',
+          causeMessage: 'cause error',
+        }),
+      );
+    });
+
+    it('логирует TaskError с non-Error cause', async () => {
+      const di = createDI();
+      const error = new TaskError('shutdown', 'string cause');
+      const s = {
+        ...mockScheduler,
+        interrupt: vi.fn().mockImplementation(() => Effect.fail(error)),
+      };
+      vi.mocked(getGlobalScheduler).mockReturnValue(Effect.sync(() => s));
+
+      await Runtime.runPromise(Runtime.defaultRuntime)(
+        backgroundTasks.initBackgroundTasks(di) as any,
+      );
+
+      process.emit('SIGINT');
+      await new Promise((resolve) => setTimeout(resolve, 10));
+
+      expect(di.logger.error).toHaveBeenCalledWith(
+        'Task failed',
+        expect.objectContaining({
+          taskId: 'shutdown',
+          causeType: 'string',
+        }),
+      );
+    });
+
+    it('логирует TaskError с null cause', async () => {
+      const di = createDI();
+      const error = new TaskError('shutdown', null);
+      const s = {
+        ...mockScheduler,
+        interrupt: vi.fn().mockImplementation(() => Effect.fail(error)),
+      };
+      vi.mocked(getGlobalScheduler).mockReturnValue(Effect.sync(() => s));
+
+      await Runtime.runPromise(Runtime.defaultRuntime)(
+        backgroundTasks.initBackgroundTasks(di) as any,
+      );
+
+      process.emit('SIGINT');
+      await new Promise((resolve) => setTimeout(resolve, 10));
+
+      expect(di.logger.error).toHaveBeenCalledWith(
+        'Task failed',
+        expect.objectContaining({
+          taskId: 'shutdown',
+        }),
+      );
+    });
+
+    it('логирует обычный Error', async () => {
+      const di = createDI();
+      const error = new Error('regular error');
+      const s = {
+        ...mockScheduler,
+        interrupt: vi.fn().mockImplementation(() => Effect.fail(error)),
+      };
+      vi.mocked(getGlobalScheduler).mockReturnValue(Effect.sync(() => s));
+
+      await Runtime.runPromise(Runtime.defaultRuntime)(
+        backgroundTasks.initBackgroundTasks(di) as any,
+      );
+
+      process.emit('SIGINT');
+      await new Promise((resolve) => setImmediate(resolve));
+
+      expect(di.logger.error).toHaveBeenCalledWith(
+        'Task failed',
+        expect.objectContaining({
+          taskId: 'shutdown',
+          message: 'regular error',
+          errorType: 'Error',
+        }),
+      );
+    });
+
+    it('логирует non-Error тип', async () => {
+      const di = createDI();
+      const error = 'string error';
+      const s = {
+        ...mockScheduler,
+        interrupt: vi.fn().mockImplementation(() => Effect.fail(error)),
+      };
+      vi.mocked(getGlobalScheduler).mockReturnValue(Effect.sync(() => s));
+
+      await Runtime.runPromise(Runtime.defaultRuntime)(
+        backgroundTasks.initBackgroundTasks(di) as any,
+      );
+
+      process.emit('SIGINT');
+      await new Promise((resolve) => setImmediate(resolve));
+
+      expect(di.logger.error).toHaveBeenCalledWith(
+        'Task failed',
+        expect.objectContaining({
+          taskId: 'shutdown',
+          errorType: 'string',
+          errorValue: 'string error',
+        }),
+      );
     });
   });
 
@@ -365,7 +677,7 @@ describe('Background Tasks', () => {
       vi.mocked(getGlobalScheduler).mockReturnValue(Effect.sync(() => s));
 
       // Убираем enqueueMetric из DI чтобы обогащение вступило в силу
-      delete (di as any).enqueueMetric;
+      (di as any).enqueueMetric = undefined;
 
       await Runtime.runPromise(Runtime.defaultRuntime)(
         backgroundTasks.initBackgroundTasks(di) as any,
@@ -394,9 +706,6 @@ describe('Background Tasks', () => {
       s.interrupt = vi.fn().mockImplementation(() => Effect.fail(new Error('shutdown error')));
       vi.mocked(getGlobalScheduler).mockReturnValue(Effect.sync(() => s));
 
-      // Мокаем console.error чтобы проверить вызов
-      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-
       await Runtime.runPromise(Runtime.defaultRuntime)(
         backgroundTasks.initBackgroundTasks(di) as any,
       );
@@ -407,12 +716,13 @@ describe('Background Tasks', () => {
       // Даем время для асинхронной обработки
       await new Promise((resolve) => setImmediate(resolve));
 
-      // Проверяем что console.error был вызван с ошибкой shutdown
-      expect(consoleErrorSpy).toHaveBeenCalledWith('Unhandled shutdown error', {
-        e: expect.any(Error),
-      });
-
-      consoleErrorSpy.mockRestore();
+      // Проверяем что logger.error был вызван с безопасной информацией об ошибке
+      expect(di.logger.error).toHaveBeenCalledWith(
+        'Task failed',
+        expect.objectContaining({
+          taskId: 'shutdown',
+        }),
+      );
     });
 
     it('обрабатывает graceful shutdown через SIGINT/SIGTERM', async () => {
@@ -435,6 +745,21 @@ describe('Background Tasks', () => {
       expect(s.interrupt).toHaveBeenCalled();
 
       consoleErrorSpy.mockRestore();
+    });
+
+    it('использует ConsoleLogger по умолчанию если logger не передан', async () => {
+      ENV.ENABLE_CACHE_REFRESH = true;
+      const di = createDI();
+      (di as any).logger = undefined;
+      const s = mockScheduler;
+      vi.mocked(getGlobalScheduler).mockReturnValue(Effect.sync(() => s));
+
+      await Runtime.runPromise(Runtime.defaultRuntime)(
+        backgroundTasks.initBackgroundTasks(di) as any,
+      );
+
+      expect(s.schedule).toHaveBeenCalled();
+      // ConsoleLogger должен быть создан и использован
     });
   });
 
@@ -500,6 +825,28 @@ describe('Background Tasks', () => {
 
       // getGlobalScheduler все равно должен быть вызван
       expect(getGlobalScheduler).toHaveBeenCalledTimes(1);
+    });
+
+    it('startBackgroundTasks() инициализирует задачи при передаче DI', async () => {
+      ENV.ENABLE_CACHE_REFRESH = true;
+      const di = createDI();
+      const s = mockScheduler;
+      vi.mocked(getGlobalScheduler).mockReturnValue(Effect.sync(() => s));
+
+      await startBackgroundTasks(di);
+
+      expect(getGlobalScheduler).toHaveBeenCalled();
+      expect(s.schedule).toHaveBeenCalled();
+    });
+
+    it('startBackgroundTasks() не инициализирует задачи без DI', async () => {
+      const s = mockScheduler;
+      vi.mocked(getGlobalScheduler).mockReturnValue(Effect.sync(() => s));
+
+      await startBackgroundTasks();
+
+      expect(getGlobalScheduler).toHaveBeenCalled();
+      expect(s.schedule).not.toHaveBeenCalled();
     });
   });
 });

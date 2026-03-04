@@ -3,6 +3,7 @@
  * =============================================================================
  * 🛠️ BACKGROUND TASKS - PRODUCTION READY with Runtime Dashboard
  * =============================================================================
+ *
  * Особенности:
  * - Унифицированные фоновые задачи через глобальный Scheduler
  * - Periodic задачи (cache refresh/sync, auth refresh) + event-driven (login sync)
@@ -21,6 +22,7 @@ import type { BackgroundTask, PriorityType } from './scheduler.js';
 import { AppEventType } from '../events/app-events.js';
 import { ConsoleLogger } from '../events/event-bus.js';
 import type { StructuredLogger } from '../events/event-bus.js';
+import type { UseAuthDeps } from '../hooks/useAuth.js';
 
 /* ========================================================================== */
 /* 📊 CONFIG / ENV / FEATURE FLAGS */
@@ -43,6 +45,41 @@ export class TaskError extends Error {
   }
 }
 
+/**
+ * Безопасно логирует ошибку задачи без sensitive данных.
+ * Redact токены, пароли и другую sensitive информацию из ошибок.
+ */
+function safeLogTaskError(
+  logger: StructuredLogger,
+  taskId: string,
+  error: unknown,
+): void {
+  // Извлекаем безопасную информацию из ошибки
+  const safeError: Record<string, unknown> = {
+    taskId,
+  };
+
+  if (error instanceof TaskError) {
+    safeError['message'] = error.message;
+    safeError['taskId'] = error.taskId;
+    // Не логируем cause напрямую - может содержать sensitive данные
+    if (error.cause instanceof Error) {
+      safeError['causeType'] = error.cause.constructor.name;
+      safeError['causeMessage'] = error.cause.message;
+    } else if (error.cause != null) {
+      safeError['causeType'] = typeof error.cause;
+    }
+  } else if (error instanceof Error) {
+    safeError['message'] = error.message;
+    safeError['errorType'] = error.constructor.name;
+  } else {
+    safeError['errorType'] = typeof error;
+    safeError['errorValue'] = String(error);
+  }
+
+  logger.error('Task failed', safeError);
+}
+
 /** Временная ошибка для retry логики Scheduler */
 export class TransientError extends TaskError {}
 
@@ -50,16 +87,18 @@ export class TransientError extends TaskError {}
 export class PermanentError extends TaskError {}
 
 /** Эффект выполнения фоновой задачи */
-export type TaskEffect<E = unknown> = Effect.Effect<void, E, never>;
+export type TaskEffect = Effect.Effect<void, TaskError, never>;
 
 /** DI контейнер зависимостей для фоновых задач */
 export type BackgroundTasksDI = {
   offlineCache: {
-    refresh: (signal: AbortSignal) => TaskEffect<TaskError>;
-    sync: (signal: AbortSignal) => TaskEffect<TaskError>;
+    refresh: (signal: AbortSignal) => TaskEffect;
+    sync: (signal: AbortSignal) => TaskEffect;
   };
-  authService: {
-    refreshToken: (signal: AbortSignal) => TaskEffect<TaskError>;
+  /** Auth dependencies из UseAuthDeps для использования того же store и эффектов, что и useAuth */
+  auth: {
+    /** Refresh effect из feature-auth (через DI-слой auth-hook-deps) */
+    refreshEffect: UseAuthDeps['refreshEffect'];
   };
   logger?: StructuredLogger;
   enqueueMetric?: (name: string, value: number | string) => Effect.Effect<void, never, void>;
@@ -169,21 +208,40 @@ export function createTasks(di: BackgroundTasksDI): BackgroundTask[] {
           task: (signal: AbortSignal) =>
             Effect.gen(function*() {
               const startTime = Date.now();
-              try {
-                yield* di.authService.refreshToken(signal);
-                const latency = Date.now() - startTime;
-                if (di.enqueueMetric) {
-                  yield* di.enqueueMetric('task.auth-refresh.latency', latency);
-                  yield* di.enqueueMetric('task.auth-refresh.success', 1);
-                }
-              } catch (error) {
-                const latency = Date.now() - startTime;
-                if (di.enqueueMetric) {
-                  yield* di.enqueueMetric('task.auth-refresh.latency', latency);
-                  yield* di.enqueueMetric('task.auth-refresh.error', 1);
-                }
-                throw error;
-              }
+              // Используем refreshEffect из UseAuthDeps (тот же эффект, что и useAuth)
+              // Адаптируем Promise → Effect для использования в background task
+              const result = yield* Effect.tryPromise({
+                try: () => {
+                  // Проверяем, не отменена ли задача
+                  if (signal.aborted) {
+                    return Promise.reject(new TaskError('auth-refresh', new Error('Task aborted')));
+                  }
+                  return di.auth.refreshEffect();
+                },
+                catch: (error) => new TaskError('auth-refresh', error),
+              }).pipe(
+                Effect.match({
+                  onFailure: (error) =>
+                    Effect.gen(function*() {
+                      const latency = Date.now() - startTime;
+                      if (di.enqueueMetric) {
+                        yield* di.enqueueMetric('task.auth-refresh.latency', latency);
+                        yield* di.enqueueMetric('task.auth-refresh.error', 1);
+                      }
+                      return yield* Effect.fail(error);
+                    }),
+                  onSuccess: () =>
+                    Effect.gen(function*() {
+                      const latency = Date.now() - startTime;
+                      if (di.enqueueMetric) {
+                        yield* di.enqueueMetric('task.auth-refresh.latency', latency);
+                        yield* di.enqueueMetric('task.auth-refresh.success', 1);
+                      }
+                      return Effect.succeed(undefined);
+                    }),
+                }),
+              );
+              yield* result;
             }) as TaskEffect,
         },
       ]
@@ -237,8 +295,8 @@ export function initBackgroundTasks(di: BackgroundTasksDI): Effect.Effect<void, 
         }).pipe(
           Effect.catchAll((e) =>
             Effect.sync(() => {
-              // eslint-disable-next-line no-console
-              console.error('Unhandled shutdown error', { e });
+              // Используем безопасное логирование вместо console.error
+              safeLogTaskError(logger, 'shutdown', e);
             })
           ),
         ) as Effect.Effect<never, never, never>,
@@ -259,16 +317,26 @@ export function initBackgroundTasks(di: BackgroundTasksDI): Effect.Effect<void, 
  * - Идемпотентен
  * - Безопасен для повторных вызовов
  * - Работает с глобальным scheduler'ом
+ * @param di Опциональный DI контейнер. Если не передан, auth refresh задача не будет создана.
+ * @remarks
+ * - Для использования auth refresh необходимо передать `refreshEffect` из `UseAuthDeps`
+ *   (созданного через `createAuthHookDeps`), чтобы использовать тот же store и эффекты, что и `useAuth`.
+ * - Если DI не передан, фоновые задачи будут работать без auth refresh.
  */
-export async function startBackgroundTasks(): Promise<void> {
-  // Получаем глобальный scheduler и запускаем его основной цикл
+export async function startBackgroundTasks(di?: BackgroundTasksDI): Promise<void> {
   const runtime = Runtime.defaultRuntime;
   const effect = Effect.gen(function*() {
-    const scheduler = yield* getGlobalScheduler();
-    // Scheduler автоматически запускается при планировании задач,
-    // но мы можем убедиться что он активен
-    return scheduler;
-  });
+    // Получаем scheduler для инициализации (если нужен)
+    yield* getGlobalScheduler();
+
+    // Если передан DI, инициализируем задачи
+    if (di) {
+      yield* initBackgroundTasks(di);
+    }
+
+    // Scheduler автоматически запускается при планировании задач
+    return undefined;
+  }) as Effect.Effect<void, unknown, never>;
 
   await Runtime.runPromise(runtime)(effect);
 }

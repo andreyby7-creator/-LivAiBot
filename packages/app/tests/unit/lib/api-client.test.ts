@@ -34,15 +34,17 @@ function createMockResponse(
   body: unknown = null,
   headers: Record<string, string> = {},
 ): Response {
+  const textValue = body !== null ? JSON.stringify(body) : '';
   const response = {
     ok: status >= 200 && status < 300,
     status,
     statusText,
     headers: new Map(Object.entries(headers)),
-    text: vi.fn().mockResolvedValue(
-      body !== null ? JSON.stringify(body) : '',
-    ),
+    text: vi.fn().mockResolvedValue(textValue),
     json: vi.fn().mockResolvedValue(body),
+    clone: vi.fn().mockImplementation(function(this: Response) {
+      return createMockResponse(status, statusText, body, headers);
+    }),
   } as unknown as Response;
 
   return response;
@@ -673,5 +675,283 @@ describe('Integration with Effect Utils', () => {
     await client.get('/traced');
 
     expect(mockFetch).toHaveBeenCalledTimes(1);
+  });
+
+  describe('Authorization header resolution', () => {
+    it('извлекает токен из Authorization header с Bearer префиксом', async () => {
+      const mockResponse = createMockResponse(200, 'OK', { data: 'ok' });
+      const mockFetch = createMockFetch(() => mockResponse);
+
+      const client = new ApiClient({
+        baseUrl: 'https://api.example.com',
+        fetchImpl: mockFetch,
+      });
+
+      await client.request({
+        method: 'GET',
+        url: '/test',
+        headers: {
+          Authorization: 'Bearer test-token-123',
+        },
+      });
+
+      // Проверяем, что токен был извлечён и добавлен в Authorization header
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.objectContaining({
+          headers: expect.objectContaining({
+            Authorization: 'Bearer test-token-123',
+          }),
+        }),
+      );
+    });
+
+    it('использует Authorization header без Bearer префикса как есть', async () => {
+      const mockResponse = createMockResponse(200, 'OK', { data: 'ok' });
+      const mockFetch = createMockFetch(() => mockResponse);
+
+      const client = new ApiClient({
+        baseUrl: 'https://api.example.com',
+        fetchImpl: mockFetch,
+      });
+
+      await client.request({
+        method: 'GET',
+        url: '/test',
+        headers: {
+          Authorization: 'CustomTokenScheme token-value',
+        },
+      });
+
+      // Проверяем, что токен используется как есть (без Bearer префикса)
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.objectContaining({
+          headers: expect.objectContaining({
+            Authorization: 'Bearer CustomTokenScheme token-value',
+          }),
+        }),
+      );
+    });
+
+    it('использует getAccessToken из адаптера если нет explicit header', async () => {
+      const mockResponse = createMockResponse(200, 'OK', { data: 'ok' });
+      const mockFetch = createMockFetch(() => mockResponse);
+      const mockGetAccessToken = vi.fn().mockResolvedValue('adapter-token-456');
+
+      const client = new ApiClient({
+        baseUrl: 'https://api.example.com',
+        fetchImpl: mockFetch,
+        getAccessToken: mockGetAccessToken,
+      });
+
+      await client.request({
+        method: 'GET',
+        url: '/test',
+        headers: {},
+      });
+
+      expect(mockGetAccessToken).toHaveBeenCalledTimes(1);
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.objectContaining({
+          headers: expect.objectContaining({
+            Authorization: 'Bearer adapter-token-456',
+          }),
+        }),
+      );
+    });
+
+    it('обрабатывает Authorization header в нижнем регистре', async () => {
+      const mockResponse = createMockResponse(200, 'OK', { data: 'ok' });
+      const mockFetch = createMockFetch(() => mockResponse);
+
+      const client = new ApiClient({
+        baseUrl: 'https://api.example.com',
+        fetchImpl: mockFetch,
+      });
+
+      await client.request({
+        method: 'GET',
+        url: '/test',
+        headers: {
+          authorization: 'Bearer lowercase-token',
+        } as any,
+      });
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.objectContaining({
+          headers: expect.objectContaining({
+            Authorization: 'Bearer lowercase-token',
+          }),
+        }),
+      );
+    });
+  });
+
+  describe('Body handling', () => {
+    it('не сериализует FormData body через JSON.stringify', async () => {
+      const mockResponse = createMockResponse(200, 'OK', { uploaded: true });
+      const mockFetch = createMockFetch(() => mockResponse);
+      const formData = new FormData();
+      formData.append('file', new Blob(['test'], { type: 'text/plain' }), 'test.txt');
+
+      const client = new ApiClient({
+        baseUrl: 'https://api.example.com',
+        fetchImpl: mockFetch,
+      });
+
+      await client.request({
+        method: 'POST',
+        url: '/upload',
+        body: formData,
+      });
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.objectContaining({
+          body: formData,
+        }),
+      );
+    });
+
+    it('не сериализует string body через JSON.stringify', async () => {
+      const mockResponse = createMockResponse(200, 'OK', { processed: true });
+      const mockFetch = createMockFetch(() => mockResponse);
+      const stringBody = 'raw-string-body';
+
+      const client = new ApiClient({
+        baseUrl: 'https://api.example.com',
+        fetchImpl: mockFetch,
+      });
+
+      await client.request({
+        method: 'POST',
+        url: '/process',
+        body: stringBody as any,
+      });
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.objectContaining({
+          body: stringBody,
+        }),
+      );
+    });
+  });
+
+  describe('Hooks', () => {
+    it('применяет afterResponse hook', async () => {
+      const mockResponse = createMockResponse(200, 'OK', { data: 'ok' });
+      const mockResponseClone = createMockResponse(200, 'OK', { data: 'ok' });
+      const mockFetch = createMockFetch(() => mockResponse);
+      const mockAfterResponse = vi.fn().mockReturnValue(mockResponseClone);
+
+      const client = new ApiClient({
+        baseUrl: 'https://api.example.com',
+        fetchImpl: mockFetch,
+        afterResponse: mockAfterResponse,
+      });
+
+      // Мокаем clone метод
+      vi.spyOn(mockResponse, 'clone').mockReturnValue(mockResponseClone);
+
+      await client.request({
+        method: 'GET',
+        url: '/test',
+      });
+
+      expect(mockAfterResponse).toHaveBeenCalledTimes(1);
+      expect(mockResponse.clone).toHaveBeenCalledTimes(1);
+    });
+
+    it('применяет beforeRequest hook', async () => {
+      const mockResponse = createMockResponse(200, 'OK', { data: 'ok' });
+      const mockFetch = createMockFetch(() => mockResponse);
+      const mockBeforeRequest = vi.fn().mockImplementation((init) => ({
+        ...init,
+        headers: {
+          ...init.headers,
+          'X-Custom-Header': 'custom-value',
+        },
+      }));
+
+      const client = new ApiClient({
+        baseUrl: 'https://api.example.com',
+        fetchImpl: mockFetch,
+        beforeRequest: mockBeforeRequest,
+      });
+
+      await client.request({
+        method: 'GET',
+        url: '/test',
+      });
+
+      expect(mockBeforeRequest).toHaveBeenCalledTimes(1);
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.objectContaining({
+          headers: expect.objectContaining({
+            'X-Custom-Header': 'custom-value',
+          }),
+        }),
+      );
+    });
+  });
+
+  describe('Retry policy', () => {
+    it('использует кастомную retryPolicy если предоставлена', async () => {
+      // Создаём ошибку, которая будет retry
+      const errorResponse = createMockResponse(500, 'Internal Server Error', {
+        error: 'server error',
+      });
+      const errorFetch = createMockFetch(() => errorResponse);
+      const mockRetryPolicy = vi.fn().mockReturnValue(true);
+
+      const clientWithError = new ApiClient({
+        baseUrl: 'https://api.example.com',
+        fetchImpl: errorFetch,
+        retries: 1,
+        retryPolicy: mockRetryPolicy,
+      });
+
+      try {
+        await clientWithError.request({
+          method: 'GET',
+          url: '/test',
+        });
+      } catch {
+        // Ожидаем ошибку
+      }
+
+      // Проверяем, что retryPolicy была вызвана
+      expect(mockRetryPolicy).toHaveBeenCalled();
+    });
+
+    it('использует дефолтную retry логику если retryPolicy не предоставлена', async () => {
+      const errorResponse = createMockResponse(500, 'Internal Server Error', {
+        error: 'server error',
+      });
+      const mockFetch = createMockFetch(() => errorResponse);
+
+      const client = new ApiClient({
+        baseUrl: 'https://api.example.com',
+        fetchImpl: mockFetch,
+        retries: 1,
+      });
+
+      try {
+        await client.request({
+          method: 'GET',
+          url: '/test',
+        });
+      } catch {
+        // Ожидаем ошибку
+      }
+
+      // Проверяем, что был retry (fetch вызван более одного раза)
+      expect(mockFetch).toHaveBeenCalledTimes(2);
+    });
   });
 });

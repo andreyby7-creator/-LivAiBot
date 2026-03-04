@@ -283,6 +283,43 @@ export type ApiClientConfig = {
 
   /** Кастомная реализация fetch */
   readonly fetchImpl?: typeof fetch;
+
+  /**
+   * Адаптер для получения access token из feature-auth store.
+   * @remarks
+   * - Если предоставлен, токен автоматически добавляется в Authorization header.
+   * - Поддерживает async получение токенов для SSR (например, fetch из secure memory).
+   * - Если токены хранятся в httpOnly cookies, адаптер может не использоваться
+   *   (браузер отправляет cookies автоматически).
+   * - HTTP-клиент НЕ подписывается напрямую на Zustand-store; доступ к токенам
+   *   идёт только через адаптер/порт (функции app-слоя).
+   */
+  readonly getAccessToken?: () => Promise<string | null>;
+
+  /**
+   * Политика повторных попыток для обработки ошибок.
+   * @remarks
+   * - Если не предоставлена, используется дефолтная логика: retriable из EffectError.
+   * - Позволяет кастомизировать retry логику (429, rate limits, exponential backoff и т.д.).
+   * - Расширяемость без изменения core логики.
+   */
+  readonly retryPolicy?: (error: unknown) => boolean;
+
+  /**
+   * Хук для трансформации запроса перед отправкой.
+   * @remarks
+   * - Позволяет модифицировать RequestInit перед fetch (например, добавить correlation ID).
+   * - Минимальная расширяемость без overengineering.
+   */
+  readonly beforeRequest?: (init: RequestInit) => RequestInit;
+
+  /**
+   * Хук для трансформации ответа после получения.
+   * @remarks
+   * - Позволяет модифицировать Response перед парсингом (например, логирование метрик).
+   * - Минимальная расширяемость без overengineering.
+   */
+  readonly afterResponse?: (response: Response) => Response;
 };
 
 /* ========================================================================== */

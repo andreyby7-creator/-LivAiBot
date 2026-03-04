@@ -12,6 +12,7 @@
 import { describe, expect, it } from 'vitest';
 import type {
   ApiAuthContext,
+  ApiClientConfig,
   ApiError,
   ApiErrorCategory,
   ApiErrorSource,
@@ -25,13 +26,17 @@ import type {
   ApiRetryPolicy,
   ApiServiceName,
   ApiSuccessResponse,
+  AppFileStatus,
   BaseApiDTO,
+  FileValidationResult,
   HttpMethod,
+  InternalFileInfo,
   PaginatedResult,
   PaginationParams,
   RealtimeEvent,
   RealtimeSubscription,
   SoftDeletable,
+  UploadDomainStatus,
   VersionedEntity,
 } from '../../../src/types/api.js';
 import type { ID, ISODateString } from '../../../src/types/common.js';
@@ -394,6 +399,7 @@ describe('ApiRequest тип', () => {
     expect(request.headers).toBeUndefined();
     expect(request.context).toBeUndefined();
     expect(request.retryPolicy).toBeUndefined();
+    expect(request.signal).toBeUndefined();
   });
 
   it('создает полный запрос с retry policy', () => {
@@ -420,6 +426,18 @@ describe('ApiRequest тип', () => {
     expect(request.headers).toEqual({ 'Content-Type': 'application/json' });
     expect(request.context?.traceId).toBe('trace-123');
     expect(request.retryPolicy?.retries).toBe(3);
+  });
+
+  it('создает запрос с AbortSignal', () => {
+    const controller = new AbortController();
+    const request: ApiRequest = {
+      method: 'GET',
+      url: '/api/users',
+      signal: controller.signal,
+    };
+
+    expect(request.signal).toBe(controller.signal);
+    expect(request.signal?.aborted).toBe(false);
   });
 });
 
@@ -605,6 +623,183 @@ describe('ApiMetrics тип', () => {
 });
 
 // ============================================================================
+// 🔧 API CLIENT CONFIGURATION
+// ============================================================================
+
+describe('ApiClientConfig тип', () => {
+  it('создает минимальную конфигурацию', () => {
+    const config: ApiClientConfig = {
+      baseUrl: 'https://api.example.com',
+    };
+
+    expect(config.baseUrl).toBe('https://api.example.com');
+    expect(config.defaultHeaders).toBeUndefined();
+    expect(config.timeoutMs).toBeUndefined();
+    expect(config.retries).toBeUndefined();
+    expect(config.fetchImpl).toBeUndefined();
+    expect(config.getAccessToken).toBeUndefined();
+  });
+
+  it('создает полную конфигурацию', () => {
+    const config: ApiClientConfig = {
+      baseUrl: 'https://api.example.com',
+      defaultHeaders: {
+        'x-trace-id': 'trace-123',
+        Authorization: 'Bearer token',
+      },
+      timeoutMs: 5000,
+      retries: 3,
+      fetchImpl: fetch,
+      getAccessToken: async () => 'access-token',
+    };
+
+    expect(config.baseUrl).toBe('https://api.example.com');
+    expect(config.defaultHeaders?.['x-trace-id']).toBe('trace-123');
+    expect(config.timeoutMs).toBe(5000);
+    expect(config.retries).toBe(3);
+    expect(config.fetchImpl).toBe(fetch);
+    expect(typeof config.getAccessToken).toBe('function');
+  });
+
+  it('getAccessToken может возвращать null', async () => {
+    const config: ApiClientConfig = {
+      baseUrl: 'https://api.example.com',
+      getAccessToken: async () => null,
+    };
+
+    const token = await config.getAccessToken!();
+    expect(token).toBeNull();
+  });
+});
+
+// ============================================================================
+// 📁 FILE UPLOAD CONTRACTS
+// ============================================================================
+
+describe('UploadDomainStatus тип', () => {
+  it('принимает все статусы загрузки', () => {
+    const statuses: UploadDomainStatus[] = [
+      'idle',
+      'uploading',
+      'success',
+      'error',
+    ];
+
+    statuses.forEach((status) => {
+      expect(['idle', 'uploading', 'success', 'error']).toContain(status);
+    });
+  });
+});
+
+describe('FileValidationResult тип', () => {
+  it('создает успешный результат валидации', () => {
+    const result: FileValidationResult = {
+      valid: true,
+    };
+
+    expect(result.valid).toBe(true);
+    expect(result.error).toBeUndefined();
+  });
+
+  it('создает результат с ошибкой валидации', () => {
+    const result: FileValidationResult = {
+      valid: false,
+      error: 'File size exceeds limit',
+    };
+
+    expect(result.valid).toBe(false);
+    expect(result.error).toBe('File size exceeds limit');
+  });
+});
+
+describe('AppFileStatus тип', () => {
+  it('создает pending статус', () => {
+    const status: AppFileStatus = {
+      type: 'pending',
+      label: 'Waiting to upload',
+    };
+
+    expect(status.type).toBe('pending');
+    expect(status.label).toBe('Waiting to upload');
+  });
+
+  it('создает progress статус', () => {
+    const status: AppFileStatus = {
+      type: 'progress',
+      label: 'Uploading... 50%',
+    };
+
+    expect(status.type).toBe('progress');
+    expect(status.label).toBe('Uploading... 50%');
+  });
+
+  it('создает success статус', () => {
+    const status: AppFileStatus = {
+      type: 'success',
+      label: 'Upload complete',
+    };
+
+    expect(status.type).toBe('success');
+    expect(status.label).toBe('Upload complete');
+  });
+
+  it('создает error статус', () => {
+    const status: AppFileStatus = {
+      type: 'error',
+      label: 'Upload failed',
+    };
+
+    expect(status.type).toBe('error');
+    expect(status.label).toBe('Upload failed');
+  });
+});
+
+describe('InternalFileInfo тип', () => {
+  it('создает полную информацию о файле', () => {
+    const file = new File(['content'], 'test.txt', { type: 'text/plain' });
+    const fileInfo: InternalFileInfo = {
+      id: 'file-123',
+      file,
+      uploadStatus: 'uploading',
+      uploadProgress: 50,
+    };
+
+    expect(fileInfo.id).toBe('file-123');
+    expect(fileInfo.file).toBe(file);
+    expect(fileInfo.uploadStatus).toBe('uploading');
+    expect(fileInfo.uploadProgress).toBe(50);
+    expect(fileInfo.errorMessage).toBeUndefined();
+  });
+
+  it('создает информацию о файле с ошибкой', () => {
+    const file = new File(['content'], 'test.txt', { type: 'text/plain' });
+    const fileInfo: InternalFileInfo = {
+      id: 'file-456',
+      file,
+      uploadStatus: 'error',
+      errorMessage: 'Network error',
+    };
+
+    expect(fileInfo.uploadStatus).toBe('error');
+    expect(fileInfo.errorMessage).toBe('Network error');
+    expect(fileInfo.uploadProgress).toBeUndefined();
+  });
+
+  it('создает информацию о файле в idle статусе', () => {
+    const file = new File(['content'], 'test.txt', { type: 'text/plain' });
+    const fileInfo: InternalFileInfo = {
+      id: 'file-789',
+      file,
+      uploadStatus: 'idle',
+    };
+
+    expect(fileInfo.uploadStatus).toBe('idle');
+    expect(fileInfo.uploadProgress).toBeUndefined();
+    expect(fileInfo.errorMessage).toBeUndefined();
+  });
+});
+
+// ============================================================================
 // 📊 ПОКРЫТИЕ 100%
 // ============================================================================
 
@@ -619,13 +814,13 @@ describe('Экспорты типов', () => {
       service: 'auth' as ApiServiceName,
       errorCategory: 'VALIDATION' as ApiErrorCategory,
       errorSource: 'CLIENT' as ApiErrorSource,
-      asyncStatus: 'idle' as 'idle' | 'loading' | 'success' | 'error',
+      uploadStatus: 'idle' as UploadDomainStatus,
     };
 
     expect(testValues.method).toBe('GET');
     expect(testValues.service).toBe('auth');
     expect(testValues.errorCategory).toBe('VALIDATION');
     expect(testValues.errorSource).toBe('CLIENT');
-    expect(testValues.asyncStatus).toBe('idle');
+    expect(testValues.uploadStatus).toBe('idle');
   });
 });
