@@ -12,13 +12,11 @@
 
 - `packages/feature-auth/src/hooks/useAuth.ts`
 
-**Экспортируемая функция:**
+**Экспортируемая функция (минимальный feature-level API):**
 
 ```ts
 export function useAuth(): {
   authState: AuthState;
-  authStatus: AuthStatus;
-  isAuthenticated: boolean;
   login(request: LoginRequest): Promise<LoginResult>;
   logout(): Promise<LogoutResult>;
   register(request: RegisterRequest): Promise<RegisterResult>;
@@ -44,17 +42,19 @@ export function useAuth(deps: UseAuthDeps): ReturnType<typeof useAuth>;
 
 **Чеклист инвариантов:**
 
-- ✅ Только фасад: вызывает эффекты без обёрток, не содержит бизнес‑логики
-- ✅ Derived flags (`isAuthenticated`, `authStatus`) — только вычисление из store
+- ✅ Только фасад: читает состояние и вызывает эффекты без обёрток, не содержит бизнес‑логики
 - ✅ Ошибки пробрасываются без перехвата/трансформации
 - ✅ Подписка на store через `useSyncExternalStore` или аналог
 - ✅ Эффекты передаются через DI (`UseAuthDeps` или feature factory)
 
 **Селекторы:**
 
-- `authState = authStore.getAuthState()` — текущий `AuthState`;
-- `authStatus = authState.status` — `'authenticated' | 'unauthenticated' | 'expired' | ...`;
-- `isAuthenticated = authStatus === 'authenticated'` — derived флаг.
+- `authState = authStore.getAuthState()` — текущий `AuthState`.
+
+Derived‑флаги (`authStatus`, `isAuthenticated`, сложные computed‑флаги) вычисляются:
+
+- на **app‑уровне** (например, в `features/auth.adapter.ts` или `packages/app/src/hooks/useAuth.ts`); или
+- через чистые селекторы (`selectAuthStatus(authState)`, `selectIsAuthenticated(authState)`), но вне feature‑хука.
 
 **Методы:**
 
