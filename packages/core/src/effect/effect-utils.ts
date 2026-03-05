@@ -5,16 +5,15 @@
  * ⚡ EFFECT UTILS — УНИВЕРСАЛЬНЫЕ ПОМОЩНИКИ ДЛЯ ЭФФЕКТОВ
  * ============================================================================
  *
- * Этот файл — фундамент слоя side-effects во всём фронтенде.
- * Он не знает ничего о доменах (auth, chat, bots и т.д.) и не зависит от UI.
+ * Фундамент слоя side-effects. Без доменной логики и UI-зависимостей.
  *
  * Используется для:
  * - HTTP / WebSocket / SSE
  * - Retry / Timeout / Cancellation (AbortSignal propagation)
  * - Типобезопасная обработка результатов (Result<T, E>)
  * - Tracing / Observability
- * - Унифицированной обработки ошибок
- * - Поддержки микросервисной архитектуры
+ * - Унифицированная обработка ошибок
+ * - Микросервисная архитектура
  *
  * Принципы:
  * - Zero business logic
@@ -38,6 +37,9 @@ import type {
   SanitizedJson,
 } from '@livai/core-contracts';
 
+/* eslint-disable fp/no-throw, functional/no-let, fp/no-mutation, functional/no-loop-statements, @typescript-eslint/no-unnecessary-condition */
+// Throw, let, мутации и циклы необходимы для side-effects (обработка ошибок, retry, state management)
+
 /* ========================================================================== */
 /* 🧠 БАЗОВЫЕ ТИПЫ ЭФФЕКТОВ */
 /* ========================================================================== */
@@ -46,9 +48,13 @@ import type {
 export type EffectFn<T> = () => EffectLib.Effect<T>;
 
 /** Универсальный эффект. Любая асинхронная операция должна соответствовать этому контракту. */
-export type Effect<T> = (signal?: AbortSignal) => Promise<T>;
+export type Effect<T> = (signal?: AbortSignal) => Promise<T>; // T - Тип возвращаемого значения эффекта
 
-/** Контекст выполнения эффекта для трассировки, логирования и платформенной интеграции. */
+/**
+ * Контекст выполнения эффекта для трассировки, логирования и платформенной интеграции.
+ * Расширяет ApiRequestContext. Domain-модули могут расширять (например, TimeoutEffectContext).
+ * @see ApiRequestContext из @livai/core-contracts
+ */
 export type EffectContext = ApiRequestContext & {
   /** Имя сервиса или feature, откуда был вызван эффект */
   readonly source?: string;
@@ -56,11 +62,7 @@ export type EffectContext = ApiRequestContext & {
   /** Человекочитаемое описание эффекта */
   readonly description?: string;
 
-  /**
-   * Trace ID для distributed tracing.
-   * ВАЖНО: используется только для корреляции с backend-логами и не должен
-   * логироваться в публичные логи или отображаться пользователю.
-   */
+  /** Trace ID для distributed tracing. ВАЖНО: только для корреляции с backend-логами, не логировать публично. */
   readonly traceId?: string;
 
   /** AbortSignal для cancellation через контекст */
@@ -80,89 +82,6 @@ export const defaultTimer: EffectTimer = {
     clearTimeout(id as ReturnType<typeof setTimeout>);
   },
 };
-
-/* ========================================================================== */
-/* ⏱ TIMEOUT */
-/* ========================================================================== */
-
-/** Ошибка превышения времени ожидания. */
-export type TimeoutError = Error & { readonly name: 'TimeoutError'; };
-
-/** Фабрика ошибок таймаута без использования классов. */
-export function createTimeoutError(message = 'Effect execution timeout'): TimeoutError {
-  const error = new Error(message) as TimeoutError;
-  // Императивное присваивание допустимо здесь для корректного stack trace и instanceof Error
-  // eslint-disable-next-line fp/no-mutation, functional/immutable-data
-  (error as { name: 'TimeoutError'; }).name = 'TimeoutError';
-  return error;
-}
-
-/** Оборачивает эффект в timeout. Поддерживает DI таймеров и cancellation. */
-export function withTimeout<T>(
-  effect: Effect<T>,
-  timeoutMs: number,
-  options?: {
-    readonly timer?: EffectTimer;
-    readonly signal?: AbortSignal;
-  },
-): Effect<T> {
-  const timer = options?.timer ?? defaultTimer;
-  const { signal } = options ?? {};
-
-  return async (outerSignal?: AbortSignal) => {
-    const controller = new AbortController();
-    const combinedSignal = outerSignal ?? signal;
-
-    if (combinedSignal?.aborted === true) {
-      // eslint-disable-next-line fp/no-throw
-      throw createTimeoutError('Effect execution aborted');
-    }
-
-    // Используем объект для хранения состояния timeout (необходимо для очистки ресурсов)
-    const timeoutState: { id: unknown; handler: (() => void) | undefined; } = {
-      id: undefined,
-      handler: undefined,
-    };
-
-    const timeoutPromise = new Promise<never>((_, reject) => {
-      // eslint-disable-next-line functional/immutable-data, fp/no-mutation
-      timeoutState.id = timer.setTimeout((): void => {
-        reject(createTimeoutError());
-      }, timeoutMs);
-
-      // eslint-disable-next-line functional/immutable-data, fp/no-mutation
-      timeoutState.handler = (): void => {
-        timer.clearTimeout(timeoutState.id);
-        reject(createTimeoutError('Effect execution aborted'));
-      };
-
-      controller.signal.addEventListener('abort', timeoutState.handler, { once: true });
-    });
-
-    const combinedAbortHandler = (): void => {
-      controller.abort();
-    };
-
-    if (combinedSignal) {
-      combinedSignal.addEventListener('abort', combinedAbortHandler, { once: true });
-    }
-
-    try {
-      return await Promise.race([effect(combinedSignal), timeoutPromise]);
-    } finally {
-      // Очистка всех listeners и таймера
-      if (combinedSignal) {
-        combinedSignal.removeEventListener('abort', combinedAbortHandler);
-      }
-      if (timeoutState.handler) {
-        controller.signal.removeEventListener('abort', timeoutState.handler);
-      }
-      if (timeoutState.id !== undefined) {
-        timer.clearTimeout(timeoutState.id);
-      }
-    }
-  };
-}
 
 /* ========================================================================== */
 /* 🔁 RETRY */
@@ -186,14 +105,12 @@ export interface RetryPolicy {
   readonly shouldRetry: (error: unknown) => boolean;
 }
 
-/**
- * Оборачивает эффект в retry-механику.
- *
- * @example withRetry(fetchUser, { retries: 3, delayMs: 1000, shouldRetry: (e) => e instanceof NetworkError })
- */
+/** Оборачивает эффект в retry-механику с экспоненциальным backoff. */
 export function withRetry<T>(
   effect: Effect<T>,
   policy: RetryPolicy,
+  context?: EffectContext,
+  metricTags?: readonly string[],
 ): Effect<T>;
 
 export function withRetry<T>(
@@ -201,13 +118,18 @@ export function withRetry<T>(
   policy: RetryPolicy & {
     readonly shouldRetryAsync: (error: unknown) => Promise<boolean>;
   },
+  context?: EffectContext,
+  metricTags?: readonly string[],
 ): Effect<T>;
 
 export function withRetry<T>(
   effect: Effect<T>,
   policy: RetryPolicy & {
     readonly shouldRetryAsync?: (error: unknown) => Promise<boolean>;
+    readonly logger?: EffectLogger;
   },
+  context?: EffectContext,
+  metricTags?: readonly string[],
 ): Effect<T> {
   const {
     retries,
@@ -216,45 +138,123 @@ export function withRetry<T>(
     factor = 2,
     shouldRetry,
     shouldRetryAsync,
+    logger,
   } = policy;
 
   return async (signal?: AbortSignal): Promise<T> => {
-    const executeAttempt = async (
-      attempt: number,
-      currentDelay: number,
-    ): Promise<T> => {
-      try {
-        return await effect(signal);
-      } catch (error) {
-        if (attempt >= retries) {
-          // eslint-disable-next-line fp/no-throw
-          throw error;
-        }
+    const retryStartTime = defaultTimer.now();
 
-        const shouldRetryThisError = shouldRetryAsync
-          ? await shouldRetryAsync(error)
-          : shouldRetry(error);
+    // Проверяет, нужно ли делать retry для ошибки
+    const checkShouldRetry = async (error: unknown): Promise<boolean> => {
+      if (shouldRetryAsync !== undefined) {
+        return shouldRetryAsync(error);
+      }
+      return shouldRetry(error);
+    };
 
-        if (!shouldRetryThisError) {
-          // eslint-disable-next-line fp/no-throw
-          throw error;
-        }
-
-        await sleep(currentDelay, signal);
-        const nextDelayBase = currentDelay * factor;
-        const nextDelay = maxDelayMs != null ? Math.min(nextDelayBase, maxDelayMs) : nextDelayBase;
-
-        return executeAttempt(attempt + 1, nextDelay);
+    // Логирует retry попытку
+    const logRetryAttempt = (attempt: number): void => {
+      if (logger?.onRetry !== undefined) {
+        const totalDurationMs = defaultTimer.now() - retryStartTime;
+        logger.onRetry(attempt, totalDurationMs, context, metricTags);
       }
     };
 
-    return executeAttempt(0, delayMs);
+    // Проверяет, был ли signal aborted
+    const checkAborted = (): void => {
+      const isAborted = signal?.aborted ?? false;
+      if (isAborted) {
+        const abortError: EffectError = {
+          kind: 'Cancelled',
+          message: 'Retry aborted by external signal',
+          retriable: false,
+        };
+        throw abortError;
+      }
+    };
+
+    // Вычисляет следующую задержку
+    const calculateNextDelay = (currentDelayMs: number): number => {
+      const nextDelayBase = currentDelayMs * factor;
+      return maxDelayMs !== undefined
+        ? Math.min(nextDelayBase, maxDelayMs)
+        : nextDelayBase;
+    };
+
+    // Полностью итеративный подход для 100% stack-safety
+    // Предотвращает рост stack при любом количестве retries
+    let currentAttempt = 0;
+    let currentDelay = delayMs;
+
+    while (true) {
+      // Early abort: проверяем перед выполнением эффекта
+      checkAborted();
+
+      try {
+        return await effect(signal);
+      } catch (error) {
+        // Если это последняя попытка, пробрасываем ошибку
+        if (currentAttempt >= retries) {
+          throw error;
+        }
+
+        // Проверяем, нужно ли делать retry для этой ошибки
+        const shouldRetryThisError = await checkShouldRetry(error);
+        if (!shouldRetryThisError) {
+          throw error;
+        }
+
+        // Логируем retry попытку с суммарным временем для observability
+        logRetryAttempt(currentAttempt + 1);
+
+        // Early abort: проверяем перед sleep
+        checkAborted();
+
+        // Ждем перед следующей попыткой
+        await sleep(currentDelay, signal);
+
+        // Early abort: проверяем после sleep
+        checkAborted();
+
+        // Вычисляем задержку для следующей попытки с экспоненциальным backoff
+        currentDelay = calculateNextDelay(currentDelay);
+        currentAttempt++;
+      }
+    }
   };
 }
 
 /* ========================================================================== */
 /* 🛑 CANCELLATION */
 /* ========================================================================== */
+
+/**
+ * Объединяет несколько AbortSignal в один. Если любой сигнал aborted, объединённый также aborted.
+ * Защищён от повторных подписок. Использует { once: true } для автоматической очистки.
+ */
+export function combineAbortSignals(signals: readonly AbortSignal[]): AbortSignal {
+  const controller = new AbortController();
+  const combinedSignal = controller.signal;
+
+  // Если любой сигнал уже aborted, сразу abort
+  if (signals.some((s) => s.aborted)) {
+    controller.abort();
+    return combinedSignal;
+  }
+
+  // Используем Set для фильтрации уникальных сигналов (защита от повторных подписок)
+  const uniqueSignals = new Set<AbortSignal>(signals);
+
+  // Добавляем listeners для каждого уникального сигнала с { once: true } для автоматической очистки
+  const handler = (): void => {
+    controller.abort();
+  };
+  uniqueSignals.forEach((signal) => {
+    signal.addEventListener('abort', handler, { once: true });
+  });
+
+  return combinedSignal;
+}
 
 /** Контроллер отмены эффекта. Совместим с AbortController. */
 export interface EffectAbortController {
@@ -277,8 +277,74 @@ export function createEffectAbortController(): EffectAbortController {
 /* 🧱 SAFE EXECUTION */
 /* ========================================================================== */
 
-/** Унифицированное безопасное выполнение эффекта. Никогда не кидает исключения наружу. */
-export async function safeExecute<T>(
+/**
+ * Определяет тип EffectError из неизвестной ошибки.
+ * Автоматически распознает Timeout, Cancelled, Network, Server ошибки.
+ */
+function determineEffectError(error: unknown): EffectError {
+  // Если ошибка уже является EffectError, используем её
+  if (
+    error !== null
+    && error !== undefined
+    && typeof error === 'object'
+    && 'kind' in error
+  ) {
+    return error as EffectError;
+  }
+
+  // Если это Error, определяем тип по сообщению или имени
+  if (error instanceof Error) {
+    const message = error.message.toLowerCase();
+    const kind = determineErrorKind(message, error.name);
+    const retriable = kind === 'Timeout' || kind === 'Network' || kind === 'Server';
+
+    return {
+      kind,
+      message: error.message,
+      payload: error,
+      retriable,
+      ...(error.stack !== undefined && { stack: error.stack }),
+    };
+  }
+
+  // Неизвестный тип ошибки
+  const unknownErrorStack = error instanceof Error ? error.stack : undefined;
+  return {
+    kind: 'Unknown',
+    message: String(error),
+    payload: error,
+    retriable: false,
+    ...(unknownErrorStack !== undefined && { stack: unknownErrorStack }),
+  };
+}
+
+/** Определяет EffectErrorKind по сообщению и имени ошибки. */
+function determineErrorKind(message: string, errorName: string): EffectErrorKind {
+  if (message.includes('timeout') || errorName === 'TimeoutError') {
+    return 'Timeout';
+  }
+  if (message.includes('cancelled') || message.includes('abort') || errorName === 'AbortError') {
+    return 'Cancelled';
+  }
+  if (message.includes('network') || message.includes('fetch') || message.includes('connection')) {
+    return 'Network';
+  }
+  if (
+    message.includes('server')
+    || message.includes('500')
+    || message.includes('502')
+    || message.includes('503')
+  ) {
+    return 'Server';
+  }
+  return 'Unknown';
+}
+
+/**
+ * Унифицированное безопасное выполнение эффекта. Никогда не кидает исключения наружу.
+ * Автоматически определяет тип ошибки (Timeout, Cancelled, Network, Server).
+ */
+export async function safeExecute<T>( // T - Тип результата эффекта
   effect: Effect<T>,
   mapError?: (error: unknown) => EffectError,
 ): Promise<{ ok: true; data: T; } | { ok: false; error: EffectError; }> {
@@ -287,14 +353,14 @@ export async function safeExecute<T>(
     const data = await effect();
     return { ok: true, data };
   } catch (error) {
-    const effectError: EffectError = mapError
-      ? mapError(error)
-      : {
-        kind: 'Unknown',
-        message: error instanceof Error ? error.message : String(error),
-        payload: error,
-        retriable: false,
-      };
+    // Если передан кастомный маппер, используем его
+    if (mapError) {
+      const effectError = mapError(error);
+      return { ok: false, error: effectError };
+    }
+
+    // Автоматическое определение типа ошибки для известных случаев
+    const effectError = determineEffectError(error);
     return { ok: false, error: effectError };
   }
 }
@@ -337,32 +403,99 @@ export function asApiEffect<T>(
 /* 🧩 PIPELINE / COMPOSITION */
 /* ========================================================================== */
 
-/**
- * Последовательно композирует эффекты. Поддерживает цепочку из любого количества эффектов.
- *
- * @example pipeEffects(() => fetchToken(), (token) => fetchUser(token), (user) => fetchPosts(user.id))
- */
+const MIN_EFFECTS_COUNT = 1;
+const MAX_OPTIMIZED_EFFECTS = 4;
+const THREE_EFFECTS = 3;
+
+/** Последовательно композирует эффекты с типобезопасной цепочкой (для двух эффектов). */
+export function pipeEffects<A, B>( // A - Тип результата первого эффекта, B - Тип результата второго эффекта
+  first: Effect<A>,
+  second: (value: A) => Effect<B>,
+): Effect<B>;
+
+/** Последовательно композирует эффекты с типобезопасной цепочкой (для трёх эффектов). */
+export function pipeEffects<A, B, C>( // A - Тип результата первого эффекта, B - Тип результата второго эффекта, C - Тип результата третьего эффекта
+  first: Effect<A>,
+  second: (value: A) => Effect<B>,
+  third: (value: B) => Effect<C>,
+): Effect<C>;
+
+/** Последовательно композирует эффекты с типобезопасной цепочкой (для четырёх эффектов). */
+export function pipeEffects<A, B, C, D>( // A - Тип результата первого эффекта, B - Тип результата второго эффекта, C - Тип результата третьего эффекта, D - Тип результата четвёртого эффекта
+  first: Effect<A>,
+  second: (value: A) => Effect<B>,
+  third: (value: B) => Effect<C>,
+  fourth: (value: C) => Effect<D>,
+): Effect<D>;
+
+/** Последовательно композирует эффекты с типобезопасной цепочкой (для пяти эффектов). */
+export function pipeEffects<A, B, C, D, E>( // A - Тип результата первого эффекта, B - Тип результата второго эффекта, C - Тип результата третьего эффекта, D - Тип результата четвёртого эффекта, E - Тип результата пятого эффекта
+  first: Effect<A>,
+  second: (value: A) => Effect<B>,
+  third: (value: B) => Effect<C>,
+  fourth: (value: C) => Effect<D>,
+  fifth: (value: D) => Effect<E>,
+): Effect<E>;
+
+/** Последовательно композирует эффекты. Поддерживает цепочку из любого количества эффектов. */
+export function pipeEffects<T>( // T - Тип результата первого эффекта
+  first: Effect<T>,
+  ...effects: ((value: unknown) => Effect<unknown>)[]
+): Effect<unknown>;
+
 export function pipeEffects<T>(
   first: Effect<T>,
   ...effects: ((value: unknown) => Effect<unknown>)[]
 ): Effect<unknown> {
   return async (signal?: AbortSignal): Promise<unknown> => {
-    const runNext = async (index: number, current: unknown): Promise<unknown> => {
-      if (index >= effects.length) {
-        return current;
-      }
+    const initial = await first(signal);
 
-      const nextEffect = effects[index];
-      if (!nextEffect) {
-        return current;
-      }
-
-      const nextValue = await nextEffect(current)(signal);
-      return runNext(index + 1, nextValue);
+    // Выполняет цепочку эффектов для оптимизированных случаев
+    const executeOptimizedChain = async (
+      startValue: unknown,
+      effectChain: readonly ((value: unknown) => Effect<unknown>)[],
+    ): Promise<unknown> => {
+      return effectChain.reduce(
+        async (currentPromise, nextEffect) => {
+          const current = await currentPromise;
+          return nextEffect(current)(signal);
+        },
+        Promise.resolve(startValue),
+      );
     };
 
-    const initial = await first(signal);
-    return runNext(0, initial);
+    // Общий случай для 5+ эффектов
+    const executeChain = async (
+      currentValue: unknown,
+      remainingEffects: readonly ((value: unknown) => Effect<unknown>)[],
+    ): Promise<unknown> => {
+      if (remainingEffects.length === 0) {
+        return currentValue;
+      }
+      const [nextEffect, ...rest] = remainingEffects;
+      if (nextEffect === undefined) {
+        return currentValue;
+      }
+      const nextValue = await nextEffect(currentValue)(signal);
+      return executeChain(nextValue, rest);
+    };
+
+    // Обработка типобезопасных перегрузок для 2-5 эффектов
+    if (effects.length === MIN_EFFECTS_COUNT) {
+      return executeOptimizedChain(initial, effects);
+    }
+    if (effects.length === 2) {
+      return executeOptimizedChain(initial, effects);
+    }
+    if (effects.length === THREE_EFFECTS) {
+      return executeOptimizedChain(initial, effects);
+    }
+    if (effects.length === MAX_OPTIMIZED_EFFECTS) {
+      return executeOptimizedChain(initial, effects);
+    }
+
+    // Общий случай для 5+ эффектов
+    return executeChain(initial, effects);
   };
 }
 
@@ -375,6 +508,13 @@ export interface EffectLogger {
   onStart?: (context?: EffectContext) => void;
   onSuccess?: (durationMs: number, context?: EffectContext, metricTags?: readonly string[]) => void;
   onError?: (error: unknown, context?: EffectContext, metricTags?: readonly string[]) => void;
+  /** Опциональный callback для логирования retry попыток с суммарным временем */
+  onRetry?: (
+    attempt: number,
+    totalDurationMs: number,
+    context?: EffectContext,
+    metricTags?: readonly string[],
+  ) => void;
 }
 
 /** Оборачивает эффект в логирование и метрики. */
@@ -406,35 +546,56 @@ export function withLogging<T>(
 /* 🧠 PLATFORM-SAFE SLEEP */
 /* ========================================================================== */
 
-/** Платформо-независимый sleep с поддержкой cancellation и DI таймеров. */
-export function sleep(
+/** Платформо-независимый sleep с поддержкой cancellation. При отмене бросает EffectError с kind = 'Cancelled'. */
+export async function sleep(
   ms: number,
   signal?: AbortSignal,
   timer: EffectTimer = defaultTimer,
 ): Promise<void> {
-  // Используем объект для хранения handler (необходимо для очистки ресурсов)
-  const handlerState: { handler: (() => void) | undefined; } = {
-    handler: undefined,
-  };
+  // Если signal уже aborted, сразу бросаем ошибку
+  const isAborted = signal?.aborted ?? false;
+  if (isAborted) {
+    const sleepError = new Error();
+    const cancelledError: EffectError = {
+      kind: 'Cancelled',
+      message: 'Sleep cancelled',
+      retriable: false,
+      ...(sleepError.stack !== undefined && { stack: sleepError.stack }),
+    };
+    throw cancelledError;
+  }
+
+  let timeoutId: unknown;
+  let abortHandler: (() => void) | undefined;
 
   return new Promise<void>((resolve, reject) => {
-    const timeoutId = timer.setTimeout(() => {
+    timeoutId = timer.setTimeout(() => {
       resolve(undefined);
     }, ms);
 
     if (signal) {
-      // eslint-disable-next-line functional/immutable-data, fp/no-mutation
-      handlerState.handler = (): void => {
+      abortHandler = (): void => {
         timer.clearTimeout(timeoutId);
-        reject(new Error('Sleep cancelled'));
+        const sleepError = new Error();
+        const cancelledError: EffectError = {
+          kind: 'Cancelled',
+          message: 'Sleep cancelled',
+          retriable: false,
+          ...(sleepError.stack !== undefined && { stack: sleepError.stack }),
+        };
+        reject(cancelledError);
       };
 
-      signal.addEventListener('abort', handlerState.handler, { once: true });
+      signal.addEventListener('abort', abortHandler, { once: true });
     }
   }).finally(() => {
-    // Очистка listener'а после завершения Promise
-    if (signal && handlerState.handler) {
-      signal.removeEventListener('abort', handlerState.handler);
+    // Очистка: удаляем listener и очищаем timeout на случай, если он еще не был очищен
+    if (signal && abortHandler) {
+      signal.removeEventListener('abort', abortHandler);
+    }
+    // Очищаем timeout на случай, если он еще не был очищен (защита от утечек)
+    if (timeoutId !== undefined) {
+      timer.clearTimeout(timeoutId);
     }
   });
 }
@@ -447,7 +608,13 @@ export function sleep(
 export type EffectResult<T> = Promise<{ ok: true; data: T; } | { ok: false; error: EffectError; }>;
 
 /** Типы ошибок эффектов для discriminated union. */
-export type EffectErrorKind = 'Timeout' | 'Network' | 'Server' | 'ApiError' | 'Unknown';
+export type EffectErrorKind =
+  | 'Timeout'
+  | 'Network'
+  | 'Server'
+  | 'ApiError'
+  | 'Cancelled'
+  | 'Unknown';
 
 /** Ошибка эффекта с метаданными. */
 export interface EffectError<T = unknown> {
@@ -458,6 +625,8 @@ export interface EffectError<T = unknown> {
   readonly retriable?: boolean;
   readonly tags?: readonly string[];
   readonly meta?: SanitizedJson;
+  /** Stack trace для production debugging (опционально) */
+  readonly stack?: string;
 }
 
 /* ========================================================================== */
@@ -465,14 +634,12 @@ export interface EffectError<T = unknown> {
 /* ========================================================================== */
 
 /**
- * Типобезопасный результат операции (Result<T, E> или Either<L, R>).
- * Используется для типобезопасной обработки успешных результатов и ошибок без использования исключений.
- *
- * @example if (isOk(result)) { result.value } else { result.error }
+ * Универсальный результат операции (Result<T, E> или Either<L, R>).
+ * Отличие от ValidationResult<T>: одна ошибка типа E vs массив ValidationError[].
  */
-export type Result<T, E = Error> =
-  | { readonly ok: true; readonly value: T; }
-  | { readonly ok: false; readonly error: E; };
+export type Result<T, E = Error> = // T - Тип успешного значения, E - Тип ошибки (по умолчанию Error)
+  | { readonly ok: true; readonly value: T; } // Тип успешного значения
+  | { readonly ok: false; readonly error: E; }; // Тип ошибки
 
 /** Создает успешный результат. */
 export function ok<T, E = Error>(value: T): Result<T, E> {
@@ -484,29 +651,17 @@ export function fail<T, E = Error>(error: E): Result<T, E> {
   return { ok: false, error };
 }
 
-/**
- * Type guard для проверки успешного результата.
- *
- * @example if (isOk(result)) { result.value }
- */
+/** Type guard для проверки успешного результата. */
 export function isOk<T, E>(result: Result<T, E>): result is { ok: true; value: T; } {
   return result.ok;
 }
 
-/**
- * Type guard для проверки ошибочного результата.
- *
- * @example if (isFail(result)) { result.error }
- */
+/** Type guard для проверки ошибочного результата. */
 export function isFail<T, E>(result: Result<T, E>): result is { ok: false; error: E; } {
   return !result.ok;
 }
 
-/**
- * Преобразует значение успешного результата. Если результат ошибочный, возвращает его без изменений.
- *
- * @example map(ok(42), (x) => x * 2) // ok(84)
- */
+/** Преобразует значение успешного результата. Если ошибочный, возвращает без изменений. */
 export function map<T, U, E>(
   result: Result<T, E>,
   fn: (value: T) => U,
@@ -517,11 +672,7 @@ export function map<T, U, E>(
   return result as Result<U, E>;
 }
 
-/**
- * Преобразует ошибку ошибочного результата. Если результат успешный, возвращает его без изменений.
- *
- * @example mapError(fail(err), (e) => new CustomError(e.message))
- */
+/** Преобразует ошибку ошибочного результата. Если успешный, возвращает без изменений. */
 export function mapError<T, E, F>(
   result: Result<T, E>,
   fn: (error: E) => F,
@@ -532,11 +683,7 @@ export function mapError<T, E, F>(
   return result as Result<T, F>;
 }
 
-/**
- * Композиция результатов (flatMap / bind). Если результат успешный, применяет функцию, иначе возвращает ошибку.
- *
- * @example flatMap(ok(42), (x) => ok(x * 2)) // ok(84)
- */
+/** Композиция результатов (flatMap / bind). Если успешный, применяет функцию, иначе возвращает ошибку. */
 export function flatMap<T, U, E>(
   result: Result<T, E>,
   fn: (value: T) => Result<U, E>,
@@ -547,11 +694,7 @@ export function flatMap<T, U, E>(
   return result as Result<U, E>;
 }
 
-/**
- * Извлекает значение из результата или возвращает значение по умолчанию.
- *
- * @example unwrapOr(fail(err), 0) // 0
- */
+/** Извлекает значение из результата или возвращает значение по умолчанию. */
 export function unwrapOr<T, E>(result: Result<T, E>, defaultValue: T): T {
   if (isOk(result)) {
     return result.value;
@@ -559,11 +702,7 @@ export function unwrapOr<T, E>(result: Result<T, E>, defaultValue: T): T {
   return defaultValue;
 }
 
-/**
- * Извлекает значение из результата или вычисляет его из ошибки.
- *
- * @example unwrapOrElse(fail(err), (e) => 0) // 0
- */
+/** Извлекает значение из результата или вычисляет его из ошибки. */
 export function unwrapOrElse<T, E>(
   result: Result<T, E>,
   fn: (error: E) => T,
@@ -575,25 +714,27 @@ export function unwrapOrElse<T, E>(
     return fn(result.error);
   }
   // This ветка теоретически недостижима, но нужна для type safety
-  // eslint-disable-next-line fp/no-throw
   throw new Error('Invalid Result state');
 }
 
 /**
  * Извлекает значение из результата или бросает исключение. Используйте с осторожностью, предпочтительно unwrapOr/unwrapOrElse.
- *
- * @example unwrap(ok(42)) // 42
- * @throws Если результат ошибочный
+ * Безопасно обрабатывает ошибки, проверяя instanceof Error.
+ * @throws Если результат ошибочный (Error или новый Error из строкового представления)
  */
 export function unwrap<T, E>(result: Result<T, E>): T {
   if (isOk(result)) {
     return result.value;
   }
   if (isFail(result)) {
-    // eslint-disable-next-line fp/no-throw
-    throw result.error;
+    // Безопасная обработка ошибки: проверяем, что это Error, иначе создаём новый
+    const errorToThrow = result.error instanceof Error
+      ? result.error
+      : new Error(String(result.error));
+    throw errorToThrow;
   }
   // This ветка теоретически недостижима, но нужна для type safety
-  // eslint-disable-next-line fp/no-throw
   throw new Error('Invalid Result state');
 }
+
+/* eslint-enable fp/no-throw, functional/no-let, fp/no-mutation, functional/no-loop-statements, @typescript-eslint/no-unnecessary-condition */

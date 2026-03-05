@@ -22,6 +22,7 @@
  */
 
 import type { Effect, EffectContext } from './effect-utils.js';
+import { combineAbortSignals } from './effect-utils.js';
 
 /* ============================================================================
  * 🔢 КОНСТАНТЫ
@@ -181,32 +182,6 @@ export function withTimeout<T>(
       }
     }
   };
-}
-
-/**
- * Объединяет несколько AbortSignal в один.
- * Если любой из сигналов aborted, объединённый сигнал также aborted.
- * Использует { once: true } для автоматической очистки listeners.
- */
-function combineAbortSignals(signals: readonly AbortSignal[]): AbortSignal {
-  const controller = new AbortController();
-  const combinedSignal = controller.signal;
-
-  // Если любой сигнал уже aborted, сразу abort
-  if (signals.some((s) => s.aborted)) {
-    controller.abort();
-    return combinedSignal;
-  }
-
-  // Добавляем listeners для каждого сигнала с { once: true } для автоматической очистки
-  signals.forEach((signal) => {
-    const handler = (): void => {
-      controller.abort();
-    };
-    signal.addEventListener('abort', handler, { once: true });
-  });
-
-  return combinedSignal;
 }
 
 /**

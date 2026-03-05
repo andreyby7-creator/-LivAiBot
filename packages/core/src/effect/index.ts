@@ -33,6 +33,7 @@ export type { TraceId } from '@livai/core-contracts';
 
 export {
   asApiEffect,
+  combineAbortSignals,
   createEffectAbortController,
   defaultTimer,
   fail,
