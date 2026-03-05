@@ -1,4 +1,371 @@
-/home/boss/Projects/livai/packages/feature-auth/tests/unit/effects/refresh.test.ts: ignore: возвращает уже выполняющийся запрос при повторном вызове
-AssertionError: expected "vi.fn()" to be called 1 times, but got 2 times
-    at /home/boss/Projects/livai/packages/feature-auth/tests/unit/effects/refresh.test.ts:679:48
-    at file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.18/node_modules/@vitest/runner/dist/index.js:915:20
+/home/boss/Projects/livai/packages/app/tests/unit/lib/auth-hook-deps.test.ts: кэширует deps после первого создания
+Error: Failed to resolve import "@livai/feature-auth/effects/login" from "packages/app/src/lib/auth-hook-deps.ts". Does the file exist?
+    at TransformPluginContext._formatLog (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:28999:43)
+    at TransformPluginContext.error (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:28996:14)
+    at normalizeUrl (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:27119:18)
+    at processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:27177:32
+    at async Promise.all (index 0)
+    at TransformPluginContext.transform (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:27145:4)
+    at EnvironmentPluginContainer.transform (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:28797:14)
+    at loadAndTransform (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:22670:26)
+
+---
+
+/home/boss/Projects/livai/packages/app/tests/unit/lib/auth-hook-deps.test.ts: создает UseAuthDeps с корректной структурой
+Error: Failed to resolve import "@livai/feature-auth/effects/login" from "packages/app/src/lib/auth-hook-deps.ts". Does the file exist?
+    at TransformPluginContext._formatLog (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:28999:43)
+    at TransformPluginContext.error (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:28996:14)
+    at normalizeUrl (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:27119:18)
+    at processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:27177:32
+    at async Promise.all (index 0)
+    at TransformPluginContext.transform (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:27145:4)
+    at EnvironmentPluginContainer.transform (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:28797:14)
+    at loadAndTransform (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:22670:26)
+    at fetchModule (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:33993:15)
+
+---
+
+/home/boss/Projects/livai/packages/app/tests/unit/lib/auth-hook-deps.test.ts: создает auth-store с переданной конфигурацией
+Error: Failed to resolve import "@livai/feature-auth/effects/login" from "packages/app/src/lib/auth-hook-deps.ts". Does the file exist?
+    at TransformPluginContext._formatLog (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:28999:43)
+    at TransformPluginContext.error (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:28996:14)
+    at normalizeUrl (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:27119:18)
+    at processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:27177:32
+    at async Promise.all (index 0)
+    at TransformPluginContext.transform (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:27145:4)
+    at EnvironmentPluginContainer.transform (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:28797:14)
+    at loadAndTransform (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:22670:26)
+    at fetchModule (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:33993:15)
+
+---
+
+/home/boss/Projects/livai/packages/app/tests/unit/lib/auth-hook-deps.test.ts: создает auth-store без конфигурации (undefined)
+Error: Failed to resolve import "@livai/feature-auth/effects/login" from "packages/app/src/lib/auth-hook-deps.ts". Does the file exist?
+    at TransformPluginContext._formatLog (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:28999:43)
+    at TransformPluginContext.error (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:28996:14)
+    at normalizeUrl (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:27119:18)
+    at processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:27177:32
+    at async Promise.all (index 0)
+    at TransformPluginContext.transform (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:27145:4)
+    at EnvironmentPluginContainer.transform (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:28797:14)
+    at loadAndTransform (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:22670:26)
+    at fetchModule (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:33993:15)
+
+---
+
+/home/boss/Projects/livai/packages/app/tests/unit/lib/auth-hook-deps.test.ts: создает эффекты с переданными deps и config
+Error: Failed to resolve import "@livai/feature-auth/effects/login" from "packages/app/src/lib/auth-hook-deps.ts". Does the file exist?
+    at TransformPluginContext._formatLog (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:28999:43)
+    at TransformPluginContext.error (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:28996:14)
+    at normalizeUrl (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:27119:18)
+    at processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:27177:32
+    at async Promise.all (index 0)
+    at TransformPluginContext.transform (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:27145:4)
+    at EnvironmentPluginContainer.transform (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:28797:14)
+    at loadAndTransform (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:22670:26)
+    at fetchModule (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:33993:15)
+
+---
+
+/home/boss/Projects/livai/packages/app/tests/unit/lib/auth-hook-deps.test.ts: адаптирует login Effect в Promise
+Error: Failed to resolve import "@livai/feature-auth/effects/login" from "packages/app/src/lib/auth-hook-deps.ts". Does the file exist?
+    at TransformPluginContext._formatLog (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:28999:43)
+    at TransformPluginContext.error (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:28996:14)
+    at normalizeUrl (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:27119:18)
+    at processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:27177:32
+    at async Promise.all (index 0)
+    at TransformPluginContext.transform (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:27145:4)
+    at EnvironmentPluginContainer.transform (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:28797:14)
+    at loadAndTransform (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:22670:26)
+    at fetchModule (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:33993:15)
+
+---
+
+/home/boss/Projects/livai/packages/app/tests/unit/lib/auth-hook-deps.test.ts: адаптирует logout Effect в Promise
+Error: Failed to resolve import "@livai/feature-auth/effects/login" from "packages/app/src/lib/auth-hook-deps.ts". Does the file exist?
+    at TransformPluginContext._formatLog (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:28999:43)
+    at TransformPluginContext.error (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:28996:14)
+    at normalizeUrl (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:27119:18)
+    at processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:27177:32
+    at async Promise.all (index 0)
+    at TransformPluginContext.transform (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:27145:4)
+    at EnvironmentPluginContainer.transform (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:28797:14)
+    at loadAndTransform (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:22670:26)
+    at fetchModule (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:33993:15)
+
+---
+
+/home/boss/Projects/livai/packages/app/tests/unit/lib/auth-hook-deps.test.ts: адаптирует register Effect в Promise
+Error: Failed to resolve import "@livai/feature-auth/effects/login" from "packages/app/src/lib/auth-hook-deps.ts". Does the file exist?
+    at TransformPluginContext._formatLog (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:28999:43)
+    at TransformPluginContext.error (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:28996:14)
+    at normalizeUrl (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:27119:18)
+    at processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:27177:32
+    at async Promise.all (index 0)
+    at TransformPluginContext.transform (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:27145:4)
+    at EnvironmentPluginContainer.transform (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:28797:14)
+    at loadAndTransform (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:22670:26)
+    at fetchModule (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:33993:15)
+
+---
+
+/home/boss/Projects/livai/packages/app/tests/unit/lib/auth-hook-deps.test.ts: адаптирует refresh Effect в Promise
+Error: Failed to resolve import "@livai/feature-auth/effects/login" from "packages/app/src/lib/auth-hook-deps.ts". Does the file exist?
+    at TransformPluginContext._formatLog (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:28999:43)
+    at TransformPluginContext.error (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:28996:14)
+    at normalizeUrl (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:27119:18)
+    at processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:27177:32
+    at async Promise.all (index 0)
+    at TransformPluginContext.transform (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:27145:4)
+    at EnvironmentPluginContainer.transform (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:28797:14)
+    at loadAndTransform (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:22670:26)
+    at fetchModule (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:33993:15)
+
+---
+
+/home/boss/Projects/livai/packages/app/tests/unit/lib/auth-hook-deps.test.ts: кэширует deps после первого создания
+Error: Failed to resolve import "@livai/feature-auth/effects/login" from "packages/app/src/lib/auth-hook-deps.ts". Does the file exist?
+    at TransformPluginContext._formatLog (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:28999:43)
+    at TransformPluginContext.error (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:28996:14)
+    at normalizeUrl (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:27119:18)
+    at processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:27177:32
+    at async Promise.all (index 0)
+    at TransformPluginContext.transform (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:27145:4)
+    at EnvironmentPluginContainer.transform (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:28797:14)
+    at loadAndTransform (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:22670:26)
+    at fetchModule (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:33993:15)
+
+---
+
+/home/boss/Projects/livai/packages/app/tests/unit/lib/auth-hook-deps.test.ts: пробрасывает ошибки из Effect в Promise
+Error: Failed to resolve import "@livai/feature-auth/effects/login" from "packages/app/src/lib/auth-hook-deps.ts". Does the file exist?
+    at TransformPluginContext._formatLog (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:28999:43)
+    at TransformPluginContext.error (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:28996:14)
+    at normalizeUrl (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:27119:18)
+    at processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:27177:32
+    at async Promise.all (index 0)
+    at TransformPluginContext.transform (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:27145:4)
+    at EnvironmentPluginContainer.transform (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:28797:14)
+    at loadAndTransform (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:22670:26)
+    at fetchModule (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:33993:15)
+
+---
+
+/home/boss/Projects/livai/packages/app/tests/unit/lib/auth-hook-deps.test.ts: getAuthState возвращает текущее auth-состояние
+Error: Failed to resolve import "@livai/feature-auth/effects/login" from "packages/app/src/lib/auth-hook-deps.ts". Does the file exist?
+    at TransformPluginContext._formatLog (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:28999:43)
+    at TransformPluginContext.error (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:28996:14)
+    at normalizeUrl (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:27119:18)
+    at processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:27177:32
+    at async Promise.all (index 0)
+    at TransformPluginContext.transform (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:27145:4)
+    at EnvironmentPluginContainer.transform (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:28797:14)
+    at loadAndTransform (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:22670:26)
+    at fetchModule (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:33993:15)
+
+---
+
+/home/boss/Projects/livai/packages/app/tests/unit/lib/auth-hook-deps.test.ts: subscribe вызывает listener при изменении auth-среза
+Error: Failed to resolve import "@livai/feature-auth/effects/login" from "packages/app/src/lib/auth-hook-deps.ts". Does the file exist?
+    at TransformPluginContext._formatLog (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:28999:43)
+    at TransformPluginContext.error (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:28996:14)
+    at normalizeUrl (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:27119:18)
+    at processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:27177:32
+    at async Promise.all (index 0)
+    at TransformPluginContext.transform (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:27145:4)
+    at EnvironmentPluginContainer.transform (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:28797:14)
+    at loadAndTransform (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:22670:26)
+    at fetchModule (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:33993:15)
+
+---
+
+/home/boss/Projects/livai/packages/app/tests/unit/lib/auth-hook-deps.test.ts: subscribe не вызывает listener при изменении других срезов
+Error: Failed to resolve import "@livai/feature-auth/effects/login" from "packages/app/src/lib/auth-hook-deps.ts". Does the file exist?
+    at TransformPluginContext._formatLog (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:28999:43)
+    at TransformPluginContext.error (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:28996:14)
+    at normalizeUrl (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:27119:18)
+    at processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:27177:32
+    at async Promise.all (index 0)
+    at TransformPluginContext.transform (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:27145:4)
+    at EnvironmentPluginContainer.transform (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:28797:14)
+    at loadAndTransform (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:22670:26)
+    at fetchModule (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:33993:15)
+
+---
+
+/home/boss/Projects/livai/packages/app/tests/unit/lib/auth-hook-deps.test.ts: subscribe вызывает listener только при изменении ссылки на auth-объект
+Error: Failed to resolve import "@livai/feature-auth/effects/login" from "packages/app/src/lib/auth-hook-deps.ts". Does the file exist?
+    at TransformPluginContext._formatLog (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:28999:43)
+    at TransformPluginContext.error (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:28996:14)
+    at normalizeUrl (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:27119:18)
+    at processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:27177:32
+    at async Promise.all (index 0)
+    at TransformPluginContext.transform (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:27145:4)
+    at EnvironmentPluginContainer.transform (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:28797:14)
+    at loadAndTransform (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:22670:26)
+    at fetchModule (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:33993:15)
+
+---
+
+/home/boss/Projects/livai/packages/app/tests/unit/lib/auth-hook-deps.test.ts: unsubscribe останавливает подписку
+Error: Failed to resolve import "@livai/feature-auth/effects/login" from "packages/app/src/lib/auth-hook-deps.ts". Does the file exist?
+    at TransformPluginContext._formatLog (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:28999:43)
+    at TransformPluginContext.error (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:28996:14)
+    at normalizeUrl (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:27119:18)
+    at processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:27177:32
+    at async Promise.all (index 0)
+    at TransformPluginContext.transform (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:27145:4)
+    at EnvironmentPluginContainer.transform (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:28797:14)
+    at loadAndTransform (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:22670:26)
+    at fetchModule (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:33993:15)
+
+---
+
+/home/boss/Projects/livai/packages/app/tests/unit/lib/auth-hook-deps.test.ts: subscribe обрабатывает множественные изменения
+Error: Failed to resolve import "@livai/feature-auth/effects/login" from "packages/app/src/lib/auth-hook-deps.ts". Does the file exist?
+    at TransformPluginContext._formatLog (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:28999:43)
+    at TransformPluginContext.error (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:28996:14)
+    at normalizeUrl (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:27119:18)
+    at processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:27177:32
+    at async Promise.all (index 0)
+    at TransformPluginContext.transform (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:27145:4)
+    at EnvironmentPluginContainer.transform (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:28797:14)
+    at loadAndTransform (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:22670:26)
+    at fetchModule (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:33993:15)
+
+---
+
+/home/boss/Projects/livai/packages/app/tests/unit/lib/auth-hook-deps.test.ts: subscribe сохраняет предыдущее значение auth для сравнения
+Error: Failed to resolve import "@livai/feature-auth/effects/login" from "packages/app/src/lib/auth-hook-deps.ts". Does the file exist?
+    at TransformPluginContext._formatLog (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:28999:43)
+    at TransformPluginContext.error (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:28996:14)
+    at normalizeUrl (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:27119:18)
+    at processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:27177:32
+    at async Promise.all (index 0)
+    at TransformPluginContext.transform (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:27145:4)
+    at EnvironmentPluginContainer.transform (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:28797:14)
+    at loadAndTransform (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:22670:26)
+    at fetchModule (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:33993:15)
+
+---
+
+/home/boss/Projects/livai/packages/app/tests/unit/lib/auth-hook-deps.test.ts: loginEffect использует Runtime.runPromise
+Error: Failed to resolve import "@livai/feature-auth/effects/login" from "packages/app/src/lib/auth-hook-deps.ts". Does the file exist?
+    at TransformPluginContext._formatLog (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:28999:43)
+    at TransformPluginContext.error (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:28996:14)
+    at normalizeUrl (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:27119:18)
+    at processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:27177:32
+    at async Promise.all (index 0)
+    at TransformPluginContext.transform (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:27145:4)
+    at EnvironmentPluginContainer.transform (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:28797:14)
+    at loadAndTransform (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:22670:26)
+    at fetchModule (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:33993:15)
+
+---
+
+/home/boss/Projects/livai/packages/app/tests/unit/lib/auth-hook-deps.test.ts: logoutEffect использует Runtime.runPromise
+Error: Failed to resolve import "@livai/feature-auth/effects/login" from "packages/app/src/lib/auth-hook-deps.ts". Does the file exist?
+    at TransformPluginContext._formatLog (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:28999:43)
+    at TransformPluginContext.error (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:28996:14)
+    at normalizeUrl (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:27119:18)
+    at processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:27177:32
+    at async Promise.all (index 0)
+    at TransformPluginContext.transform (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:27145:4)
+    at EnvironmentPluginContainer.transform (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:28797:14)
+    at loadAndTransform (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:22670:26)
+    at fetchModule (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:33993:15)
+
+---
+
+/home/boss/Projects/livai/packages/app/tests/unit/lib/auth-hook-deps.test.ts: registerEffect использует Runtime.runPromise
+Error: Failed to resolve import "@livai/feature-auth/effects/login" from "packages/app/src/lib/auth-hook-deps.ts". Does the file exist?
+    at TransformPluginContext._formatLog (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:28999:43)
+    at TransformPluginContext.error (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:28996:14)
+    at normalizeUrl (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:27119:18)
+    at processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:27177:32
+    at async Promise.all (index 0)
+    at TransformPluginContext.transform (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:27145:4)
+    at EnvironmentPluginContainer.transform (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:28797:14)
+    at loadAndTransform (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:22670:26)
+    at fetchModule (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:33993:15)
+
+---
+
+/home/boss/Projects/livai/packages/app/tests/unit/lib/auth-hook-deps.test.ts: refreshEffect использует Runtime.runPromise
+Error: Failed to resolve import "@livai/feature-auth/effects/login" from "packages/app/src/lib/auth-hook-deps.ts". Does the file exist?
+    at TransformPluginContext._formatLog (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:28999:43)
+    at TransformPluginContext.error (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:28996:14)
+    at normalizeUrl (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:27119:18)
+    at processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:27177:32
+    at async Promise.all (index 0)
+    at TransformPluginContext.transform (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:27145:4)
+    at EnvironmentPluginContainer.transform (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:28797:14)
+    at loadAndTransform (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:22670:26)
+    at fetchModule (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:33993:15)
+
+---
+
+/home/boss/Projects/livai/packages/app/tests/unit/lib/auth-hook-deps.test.ts: обрабатывает ошибки из Effect
+Error: Failed to resolve import "@livai/feature-auth/effects/login" from "packages/app/src/lib/auth-hook-deps.ts". Does the file exist?
+    at TransformPluginContext._formatLog (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:28999:43)
+    at TransformPluginContext.error (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:28996:14)
+    at normalizeUrl (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:27119:18)
+    at processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:27177:32
+    at async Promise.all (index 0)
+    at TransformPluginContext.transform (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:27145:4)
+    at EnvironmentPluginContainer.transform (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:28797:14)
+    at loadAndTransform (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:22670:26)
+    at fetchModule (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:33993:15)
+
+---
+
+/home/boss/Projects/livai/packages/app/tests/unit/lib/auth-hook-deps.test.ts: работает без конфигурации store
+Error: Failed to resolve import "@livai/feature-auth/effects/login" from "packages/app/src/lib/auth-hook-deps.ts". Does the file exist?
+    at TransformPluginContext._formatLog (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:28999:43)
+    at TransformPluginContext.error (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:28996:14)
+    at normalizeUrl (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:27119:18)
+    at processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:27177:32
+    at async Promise.all (index 0)
+    at TransformPluginContext.transform (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:27145:4)
+    at EnvironmentPluginContainer.transform (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:28797:14)
+    at loadAndTransform (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:22670:26)
+    at fetchModule (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:33993:15)
+
+---
+
+/home/boss/Projects/livai/packages/app/tests/unit/lib/auth-hook-deps.test.ts: работает с минимальной конфигурацией
+Error: Failed to resolve import "@livai/feature-auth/effects/login" from "packages/app/src/lib/auth-hook-deps.ts". Does the file exist?
+    at TransformPluginContext._formatLog (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:28999:43)
+    at TransformPluginContext.error (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:28996:14)
+    at normalizeUrl (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:27119:18)
+    at processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:27177:32
+    at async Promise.all (index 0)
+    at TransformPluginContext.transform (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:27145:4)
+    at EnvironmentPluginContainer.transform (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:28797:14)
+    at loadAndTransform (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:22670:26)
+    at fetchModule (file:///home/boss/Projects/livai/node_modules/.pnpm/vite@7.3.1_@types+node@25.3.3_terser@5.46.0_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:33993:15)
