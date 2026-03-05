@@ -27,13 +27,21 @@
  * - Единая точка управления timeout
  */
 
-import { runIsolated } from './effect-isolation.js';
 import type { IsolationError } from './effect-isolation.js';
-import { withTimeout } from './effect-timeout.js';
+import { runIsolated } from './effect-isolation.js';
 import type { TimeoutError } from './effect-timeout.js';
+import { withTimeout } from './effect-timeout.js';
 import type { Effect, Result } from './effect-utils.js';
 import { isFail, isOk } from './effect-utils.js';
-import { infoFireAndForget, warnFireAndForget } from './telemetry-runtime.js';
+
+// В core-слое зависимости от runtime-telemetry нет, поэтому используем no-op функции.
+function infoFireAndForget(_message: string, _data?: Record<string, unknown>): void {
+  // no-op
+}
+
+function warnFireAndForget(_message: string, _data?: Record<string, unknown>): void {
+  // no-op
+}
 
 /* ============================================================================
  * 🧩 ТИПЫ
@@ -43,7 +51,7 @@ import { infoFireAndForget, warnFireAndForget } from './telemetry-runtime.js';
  * Шаг оркестрации.
  * Каждый шаг изолирован и имеет свой timeout.
  */
-export type Step<T> = {
+export interface Step<T> {
   /** Метка шага для логирования и телеметрии */
   readonly label: string;
 
@@ -52,7 +60,7 @@ export type Step<T> = {
 
   /** Timeout в миллисекундах (опционально, по умолчанию без timeout) */
   readonly timeoutMs?: number | undefined;
-};
+}
 
 /**
  * Результат выполнения шага.

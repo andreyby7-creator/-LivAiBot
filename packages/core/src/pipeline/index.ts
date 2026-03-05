@@ -73,13 +73,12 @@ export { defineFallback, defineStage } from './plugin-api.js';
  * @public
  */
 
+export type { ExecutionPlan, ExecutionPlanError } from './plan.js';
 export {
   createExecutionPlan,
   createExecutionPlanOrThrow,
   createExecutionPlanSafe,
 } from './plan.js';
-
-export type { ExecutionPlan, ExecutionPlanError } from './plan.js';
 
 /* ============================================================================
  * ⚙️ ENGINE — EXECUTION ORCHESTRATION
@@ -92,9 +91,8 @@ export type { ExecutionPlan, ExecutionPlanError } from './plan.js';
  * @public
  */
 
-export { createPipelineEngine } from './engine.js';
-
 export type { ExecutionState, StageExecutionResult } from './engine.js';
+export { createPipelineEngine } from './engine.js';
 
 /* ============================================================================
  * 🧭 FACADE — POLICY-DRIVEN ORCHESTRATION
@@ -106,8 +104,6 @@ export type { ExecutionState, StageExecutionResult } from './engine.js';
  * с rule-engine и расширяемыми обработчиками.
  * @public
  */
-
-export { createAllowAllRule, createAllowedCommandsRule, createPipelineFacade } from './facade.js';
 
 export type {
   CompileAndExecuteCommand,
@@ -127,6 +123,7 @@ export type {
   PipelineFacadeRule,
   PipelineFacadeSuccess,
 } from './facade.js';
+export { createAllowAllRule, createAllowedCommandsRule, createPipelineFacade } from './facade.js';
 
 /* ============================================================================
  * 🚩 FEATURE FLAGS — ROLLOUT & A/B TESTING
@@ -142,6 +139,15 @@ export type {
  * @public
  */
 
+export type {
+  FeatureFlagResolver,
+  FeatureFlagResult,
+  FeatureFlagSource,
+  PipelineMode,
+  PipelineVersion,
+  ResolverPriority,
+  RolloutConfig,
+} from './feature-flags.js';
 export {
   createCombinedResolver,
   createTenantResolver,
@@ -153,16 +159,6 @@ export {
   isShadowMode,
   resolveFeatureFlag,
   resolvePipelineMode,
-} from './feature-flags.js';
-
-export type {
-  FeatureFlagResolver,
-  FeatureFlagResult,
-  FeatureFlagSource,
-  PipelineMode,
-  PipelineVersion,
-  ResolverPriority,
-  RolloutConfig,
 } from './feature-flags.js';
 
 /* ============================================================================
@@ -179,19 +175,6 @@ export type {
  * @public
  */
 
-export {
-  applyRuntimeOverrides,
-  createCustomOverrideProvider,
-  createDefaultEnvProvider,
-  createDefaultOverrideMapper,
-  createEnvProviderFromObject,
-  DEFAULT_RUNTIME_OVERRIDES,
-  getActiveOverrideKeys,
-  hasActiveOverrides,
-  readRuntimeOverridesFromEnv,
-  validateRuntimeOverrides,
-} from './runtime-overrides.js';
-
 export type {
   EnvProvider,
   OverrideApplier,
@@ -205,6 +188,18 @@ export type {
   OverrideSource,
   RuntimeOverride,
   RuntimeOverrides,
+} from './runtime-overrides.js';
+export {
+  applyRuntimeOverrides,
+  createCustomOverrideProvider,
+  createDefaultEnvProvider,
+  createDefaultOverrideMapper,
+  createEnvProviderFromObject,
+  DEFAULT_RUNTIME_OVERRIDES,
+  getActiveOverrideKeys,
+  hasActiveOverrides,
+  readRuntimeOverridesFromEnv,
+  validateRuntimeOverrides,
 } from './runtime-overrides.js';
 
 /* ============================================================================
@@ -220,6 +215,15 @@ export type {
  * @public
  */
 
+export type {
+  BrandedStageError,
+  CancelledError,
+  IsolationError,
+  PipelineError,
+  PipelineErrorMetadata,
+  PipelineStageError,
+  TimeoutError,
+} from './errors.js';
 export {
   classifyError,
   createCancelledError,
@@ -246,16 +250,6 @@ export {
   validatePipelineErrorMetadata,
 } from './errors.js';
 
-export type {
-  BrandedStageError,
-  CancelledError,
-  IsolationError,
-  PipelineError,
-  PipelineErrorMetadata,
-  PipelineStageError,
-  TimeoutError,
-} from './errors.js';
-
 /* ============================================================================
  * 🛡️ SAFETY GUARD — AUTO-ROLLBACK & QUALITY PROTECTION
  * ============================================================================
@@ -270,21 +264,6 @@ export type {
  * @public
  */
 
-export {
-  compareRulePriorities,
-  createCombinedRule,
-  createMinMeasurementsRule,
-  createRollbackConfig,
-  createThresholdRule,
-  DEFAULT_RULE_PRIORITY,
-  evaluateSafetyGuard,
-  getRulePriority,
-  RULE_PRIORITY_ORDER,
-  shouldResetMetricsWindow,
-  sortRuleResultsByPriority,
-  updateSafetyGuardState,
-} from './safety-guard.js';
-
 export type {
   MetricsAggregator,
   RollbackConfigFactory,
@@ -298,6 +277,20 @@ export type {
   SafetyRule,
   SafetyRuleResult,
   ThresholdComparator,
+} from './safety-guard.js';
+export {
+  compareRulePriorities,
+  createCombinedRule,
+  createMinMeasurementsRule,
+  createRollbackConfig,
+  createThresholdRule,
+  DEFAULT_RULE_PRIORITY,
+  evaluateSafetyGuard,
+  getRulePriority,
+  RULE_PRIORITY_ORDER,
+  shouldResetMetricsWindow,
+  sortRuleResultsByPriority,
+  updateSafetyGuardState,
 } from './safety-guard.js';
 
 /* ============================================================================
@@ -314,6 +307,18 @@ export type {
  * @public
  */
 
+export type {
+  CaptureResult,
+  ContextSanitizer,
+  EventIdGenerator,
+  FilterEvent,
+  FilterEventHandler,
+  MetadataFactory,
+  ReplayCaptureConfig,
+  ReplayEvent,
+  ReplayEventFilter,
+  ReplayEventSaver,
+} from './replay.js';
 export {
   applyFilters,
   captureReplayEvent,
@@ -330,19 +335,6 @@ export {
   shouldCaptureEvent,
 } from './replay.js';
 
-export type {
-  CaptureResult,
-  ContextSanitizer,
-  EventIdGenerator,
-  FilterEvent,
-  FilterEventHandler,
-  MetadataFactory,
-  ReplayCaptureConfig,
-  ReplayEvent,
-  ReplayEventFilter,
-  ReplayEventSaver,
-} from './replay.js';
-
 /* ============================================================================
  * 🔌 ADAPTERS — RUNTIME ADAPTERS & CANCELLATION
  * ============================================================================
@@ -357,6 +349,16 @@ export type {
  * @public
  */
 
+export type {
+  AdapterConfig,
+  AdapterEvent,
+  AdapterEventHandler,
+  AdapterEventType,
+  AdapterResult,
+  PipelineEffect,
+  RuntimeAdapter,
+  RuntimeAdapterFactory,
+} from './adapter.js';
 export {
   adaptEffectLibrary,
   AdapterTimeoutError,
@@ -370,15 +372,4 @@ export {
   isAdapterTimeoutError,
   isCancellationError,
   withTimeout,
-} from './adapter.js';
-
-export type {
-  AdapterConfig,
-  AdapterEvent,
-  AdapterEventHandler,
-  AdapterEventType,
-  AdapterResult,
-  PipelineEffect,
-  RuntimeAdapter,
-  RuntimeAdapterFactory,
 } from './adapter.js';

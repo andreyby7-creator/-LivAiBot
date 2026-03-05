@@ -13,10 +13,18 @@
 
 import { describe, expect, it } from 'vitest';
 
+import type { DeviceInfo } from '../../../../src/domain/DeviceInfo.js';
+import type { DomainLoginResult } from '../../../../src/domain/LoginResult.js';
+import type { MeResponse } from '../../../../src/domain/MeResponse.js';
+import type { MfaChallengeRequest } from '../../../../src/domain/MfaChallengeRequest.js';
+import type { TokenPair } from '../../../../src/domain/TokenPair.js';
+import type { LoginMetadata } from '../../../../src/effects/login/login-metadata.enricher.js';
 import {
   applyBlockedState,
   updateLoginState,
 } from '../../../../src/effects/login/login-store-updater.js';
+import type { AuthStorePort, BatchUpdate } from '../../../../src/effects/shared/auth-store.port.js';
+import type { SecurityPipelineResult } from '../../../../src/lib/security-pipeline.js';
 import type {
   AuthEvent,
   AuthState,
@@ -25,14 +33,6 @@ import type {
   SessionState,
 } from '../../../../src/types/auth.js';
 import type { RiskAssessmentResult } from '../../../../src/types/auth-risk.js';
-import type { AuthStorePort, BatchUpdate } from '../../../../src/effects/shared/auth-store.port.js';
-import type { LoginMetadata } from '../../../../src/effects/login/login-metadata.enricher.js';
-import type { DomainLoginResult } from '../../../../src/domain/LoginResult.js';
-import type { TokenPair } from '../../../../src/domain/TokenPair.js';
-import type { MeResponse } from '../../../../src/domain/MeResponse.js';
-import type { MfaChallengeRequest } from '../../../../src/domain/MfaChallengeRequest.js';
-import type { SecurityPipelineResult } from '../../../../src/lib/security-pipeline.js';
-import type { DeviceInfo } from '../../../../src/domain/DeviceInfo.js';
 /* eslint-disable fp/no-mutation -- в тестах намеренно используем мутации для фиксации вызовов и состояний */
 
 // ============================================================================

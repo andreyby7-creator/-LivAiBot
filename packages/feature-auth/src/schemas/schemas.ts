@@ -18,9 +18,10 @@
  * - ✅ Audit & compliance ready
  */
 
-import { generatedAuth } from '@livai/core-contracts/validation/zod';
-import { z } from 'zod';
 import type { z as ZodType } from 'zod';
+import { z } from 'zod';
+
+import { generatedAuth } from '@livai/core-contracts/validation/zod';
 
 // Zod schemas provide runtime validation for auth-related DTOs
 // Domain types are defined separately and can be validated using these schemas

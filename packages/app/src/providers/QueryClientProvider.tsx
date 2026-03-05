@@ -15,13 +15,13 @@
 
 'use client';
 
-import { QueryClientProvider as ReactQueryProvider } from '@tanstack/react-query';
 import type { QueryClient } from '@tanstack/react-query';
-import { memo, useRef, useState } from 'react';
+import { QueryClientProvider as ReactQueryProvider } from '@tanstack/react-query';
 import type { JSX, PropsWithChildren } from 'react';
+import { memo, useRef, useState } from 'react';
 
-import { createQueryClient } from '../state/query/query-client.js';
 import type { AppQueryClientOptions } from '../state/query/query-client.js';
+import { createQueryClient } from '../state/query/query-client.js';
 import type { ComponentState } from '../types/ui-contracts.js';
 
 /** Алиас для состояния компонентов в контексте query client provider */

@@ -4,6 +4,7 @@
  */
 
 import { describe, expect, it } from 'vitest';
+
 import type {
   CoreUIBaseProps,
   CoreUIComponentContract,
@@ -26,7 +27,7 @@ import type {
   UIThickness,
   UIVisibility,
   UIZIndex,
-} from '../../../src/types/ui.js';
+} from '@livai/ui-core';
 
 describe('UI Types & Contracts', () => {
   describe('Base Primitives', () => {

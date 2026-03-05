@@ -17,18 +17,18 @@
  * - ✅ При invalidate выполняет полный reset через канонические initial states (как в logout-store-updater)
  */
 
-import type { RefreshInvalidationReason } from './refresh-effect.types.js';
 import type { DeviceInfo } from '../../domain/DeviceInfo.js';
 import type { MeResponse } from '../../domain/MeResponse.js';
 import type { TokenPair } from '../../domain/TokenPair.js';
+import type { AuthState } from '../../types/auth.js';
 import {
   createInitialSessionState,
   initialAuthState,
   initialSecurityState,
 } from '../../types/auth-initial.js';
-import type { AuthState } from '../../types/auth.js';
 import type { AuthStorePort, BatchUpdate } from '../shared/auth-store.port.js';
 import { buildSessionState } from '../shared/session-state.builder.js';
+import type { RefreshInvalidationReason } from './refresh-effect.types.js';
 
 /* ============================================================================
  * 🔧 INTERNAL HELPERS — AUTH STATE MAPPING

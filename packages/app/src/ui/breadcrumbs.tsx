@@ -17,10 +17,11 @@
  * - CoreBreadcrumbs остается полностью presentational
  */
 
-import { Breadcrumbs as CoreBreadcrumbs } from '@livai/ui-core';
-import type { BreadcrumbItem, CoreBreadcrumbsProps } from '@livai/ui-core';
-import React, { forwardRef, memo, useEffect, useMemo, useRef } from 'react';
 import type { JSX, Ref } from 'react';
+import React, { forwardRef, memo, useEffect, useMemo, useRef } from 'react';
+
+import type { BreadcrumbItem, CoreBreadcrumbsProps } from '@livai/ui-core';
+import { Breadcrumbs as CoreBreadcrumbs } from '@livai/ui-core';
 
 import type { Namespace, TranslationKey } from '../lib/i18n.js';
 import { useUnifiedUI } from '../providers/UnifiedUIProvider.js';
@@ -387,6 +388,8 @@ const BreadcrumbsComponent = forwardRef<HTMLElement, AppBreadcrumbsProps>(
     // Policy: hidden (accessibility: элемент полностью удаляется из DOM)
     if (!policy.isRendered) return null;
 
+    const testId = props['data-testid'] ?? 'core-breadcrumbs';
+
     return (
       <CoreBreadcrumbs
         ref={ref}
@@ -397,6 +400,7 @@ const BreadcrumbsComponent = forwardRef<HTMLElement, AppBreadcrumbsProps>(
         data-telemetry={policy.telemetryEnabled ? 'enabled' : 'disabled'}
         aria-label={ariaLabel}
         aria-labelledby={ariaLabelledBy}
+        data-testid={testId}
         {...filteredCoreProps}
       />
     );

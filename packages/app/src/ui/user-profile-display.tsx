@@ -19,15 +19,16 @@
  * - CoreUserProfileDisplay остается полностью presentational
  */
 
-import { UserProfileDisplay as CoreUserProfileDisplay } from '@livai/ui-core';
-import type { CoreUserProfileDisplayProps, UserProfileData } from '@livai/ui-core';
-import { forwardRef, memo, useEffect, useMemo, useRef } from 'react';
 import type { CSSProperties, JSX, ReactNode, Ref } from 'react';
+import { forwardRef, memo, useEffect, useMemo, useRef } from 'react';
+
+import type { CoreUserProfileDisplayProps, UserProfileData } from '@livai/ui-core';
+import { UserProfileDisplay as CoreUserProfileDisplay } from '@livai/ui-core';
 
 import { useAuthGuardContext } from '../lib/auth-guard.js';
 import type { Namespace, TranslationKey } from '../lib/i18n.js';
-import { checkRoutePermission } from '../lib/route-permissions.js';
 import type { RoutePermissionContext } from '../lib/route-permissions.js';
+import { checkRoutePermission } from '../lib/route-permissions.js';
 import { useUnifiedUI } from '../providers/UnifiedUIProvider.js';
 import type { Json } from '../types/common.js';
 import type {
@@ -447,6 +448,8 @@ const UserProfileDisplayComponent = forwardRef<HTMLDivElement, AppUserProfileDis
     // Policy: hidden
     if (!policy.isRendered) return null;
 
+    const testId = dataTestId ?? 'core-user-profile-display';
+
     return (
       <CoreUserProfileDisplay
         ref={ref}
@@ -465,7 +468,7 @@ const UserProfileDisplayComponent = forwardRef<HTMLDivElement, AppUserProfileDis
         data-state={policy.disabledByFeatureFlag ? 'disabled' : 'active'}
         data-feature-flag={policy.hiddenByFeatureFlag ? 'hidden' : 'visible'}
         data-telemetry={policy.telemetryEnabled ? 'enabled' : 'disabled'}
-        {...(dataTestId !== undefined && { 'data-testid': dataTestId })}
+        data-testid={testId}
         {...restCoreProps}
       />
     );

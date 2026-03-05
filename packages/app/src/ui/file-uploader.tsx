@@ -19,13 +19,14 @@
  * - Платформенных эффектов
  */
 
-import { FileUploader as CoreFileUploader } from '@livai/ui-core';
-import type { CoreFileUploaderProps, FileInfo } from '@livai/ui-core';
-import { forwardRef, memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { DragEvent, JSX, Ref } from 'react';
+import { forwardRef, memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+
+import { formatFileSize, validateFileBasic } from '@livai/core/effect';
+import type { CoreFileUploaderProps, FileInfo } from '@livai/ui-core';
+import { FileUploader as CoreFileUploader } from '@livai/ui-core';
 
 import type { Namespace, TranslationKey } from '../lib/i18n.js';
-import { formatFileSize, validateFileBasic } from '../lib/validation.js';
 import { useUnifiedUI } from '../providers/UnifiedUIProvider.js';
 import type {
   AppFileStatus,
@@ -851,7 +852,7 @@ const FileUploaderComponent = forwardRef<HTMLDivElement, AppFileUploaderProps>(
       'data-state': policy.isRendered ? 'visible' : 'hidden',
       'data-feature-flag': policy.hiddenByFeatureFlag ? 'hidden' : 'visible',
       'data-telemetry': policy.telemetryEnabled ? 'enabled' : 'disabled',
-      ...(testId !== undefined ? { 'data-testid': testId } : {}),
+      'data-testid': testId ?? 'core-file-uploader',
       ...coreProps,
     } as CoreFileUploaderProps), [
       coreFiles,

@@ -9,21 +9,21 @@
  * - Конфигурация с/без store config
  */
 
-import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { Effect } from 'effect';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+
 import type {
+  AuthStoreState,
   LoginIdentifierType,
   LoginRequest,
-} from '@livai/feature-auth/src/domain/LoginRequest.js';
-import type {
+  LoginResult,
+  LogoutResult,
+  RefreshEffectResult,
   RegisterIdentifierType,
   RegisterRequest,
-} from '@livai/feature-auth/src/domain/RegisterRequest.js';
-import type { LoginResult } from '@livai/feature-auth/src/effects/login.js';
-import type { LogoutResult } from '@livai/feature-auth/src/effects/logout.js';
-import type { RefreshEffectResult } from '@livai/feature-auth/src/effects/refresh.js';
-import type { RegisterResult } from '@livai/feature-auth/src/effects/register.js';
-import type { AuthStoreState } from '@livai/feature-auth/src/stores/index.js';
+  RegisterResult,
+} from '@livai/feature-auth';
+
 import type { AuthHookDepsConfig } from '../../../src/lib/auth-hook-deps.js';
 
 // ============================================================================
@@ -153,23 +153,11 @@ const mockCreateRefreshEffectFn = vi.fn((_deps?: any, _config?: any) => () =>
 );
 const mockCreateAuthStoreFn = vi.fn((_config?: any) => createMockZustandStore());
 
-vi.mock('@livai/feature-auth/src/effects/login.js', () => ({
+vi.mock('@livai/feature-auth', () => ({
   createLoginEffect: (deps: any, config: any) => mockCreateLoginEffectFn(deps, config),
-}));
-
-vi.mock('@livai/feature-auth/src/effects/logout.js', () => ({
   createLogoutEffect: (deps: any, config: any) => mockCreateLogoutEffectFn(deps, config),
-}));
-
-vi.mock('@livai/feature-auth/src/effects/register.js', () => ({
   createRegisterEffect: (deps: any, config: any) => mockCreateRegisterEffectFn(deps, config),
-}));
-
-vi.mock('@livai/feature-auth/src/effects/refresh.js', () => ({
   createRefreshEffect: (deps: any, config: any) => mockCreateRefreshEffectFn(deps, config),
-}));
-
-vi.mock('@livai/feature-auth/src/stores/index.js', () => ({
   createAuthStore: (config?: any) => mockCreateAuthStoreFn(config),
 }));
 

@@ -18,10 +18,9 @@
  * - Платформенных эффектов
  */
 
-import { DatePicker as CoreDatePicker } from '@livai/ui-core';
-import type { CalendarDay, CalendarMonth, CalendarWeek, CoreDatePickerProps } from '@livai/ui-core';
-import dayjs from 'dayjs';
 import type { Dayjs } from 'dayjs';
+import dayjs from 'dayjs';
+import type { JSX, Ref } from 'react';
 import {
   forwardRef,
   memo,
@@ -32,7 +31,9 @@ import {
   useRef,
   useState,
 } from 'react';
-import type { JSX, Ref } from 'react';
+
+import type { CalendarDay, CalendarMonth, CalendarWeek, CoreDatePickerProps } from '@livai/ui-core';
+import { DatePicker as CoreDatePicker } from '@livai/ui-core';
 
 import { useUnifiedUI } from '../providers/UnifiedUIProvider.js';
 import type { Json } from '../types/common.js';
@@ -533,7 +534,7 @@ const DatePickerComponent = forwardRef<HTMLDivElement, AppDatePickerProps>(
       'data-feature-flag': policy.hiddenByFeatureFlag ? 'hidden' : 'visible',
       'data-disabled': policy.disabledByFeatureFlag || undefined,
       'data-telemetry': policy.telemetryEnabled ? 'enabled' : 'disabled',
-      ...(testId !== undefined ? { 'data-testid': testId } : {}),
+      'data-testid': testId ?? 'core-date-picker',
       ...coreProps,
     } as CoreDatePickerProps), [
       formattedValue,

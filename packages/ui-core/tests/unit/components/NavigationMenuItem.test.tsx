@@ -3,12 +3,14 @@
  * @file Unit тесты для NavigationMenuItem компонента
  */
 
+import { cleanup, render, within } from '@testing-library/react';
 import React from 'react';
 import { afterEach, describe, expect, it } from 'vitest';
-import { cleanup, render, within } from '@testing-library/react';
+
+import type { NavigationMenuItemData } from '@livai/ui-core';
+import { NavigationMenuItem } from '@livai/ui-core';
+
 import '@testing-library/jest-dom/vitest';
-import { NavigationMenuItem } from '../../../src/components/NavigationMenuItem.js';
-import type { NavigationMenuItemData } from '../../../src/components/NavigationMenuItem.js';
 
 // Полная очистка DOM между тестами
 afterEach(cleanup);

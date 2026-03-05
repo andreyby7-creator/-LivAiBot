@@ -14,13 +14,13 @@
 import { describe, expect, it } from 'vitest';
 
 import { applyLogoutReset } from '../../../../src/effects/logout/logout-store-updater.js';
+import type { AuthStorePort, BatchUpdate } from '../../../../src/effects/shared/auth-store.port.js';
 import type {
   AuthEvent,
   AuthState,
   SecurityState,
   SessionState,
 } from '../../../../src/types/auth.js';
-import type { AuthStorePort, BatchUpdate } from '../../../../src/effects/shared/auth-store.port.js';
 import {
   createInitialSessionState,
   initialAuthState,

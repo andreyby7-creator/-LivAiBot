@@ -3,17 +3,18 @@
  * Полное покрытие всех методов и веток исполнения (100%)
  */
 import { describe, expect, it } from 'vitest';
+
 import type {
   AggregationPolicy,
   AggregationPolicyStrategy,
   PolicyAggregationSource,
   SourceWeightOverride,
 } from '../../../src/classification/policies/aggregation.policy.js';
-import type { AggregationSourceResult } from '../../../src/classification/policies/aggregation.strategy.js';
 import {
   applyAggregationPolicy,
   defaultAggregationPolicy,
 } from '../../../src/classification/policies/aggregation.policy.js';
+import type { AggregationSourceResult } from '../../../src/classification/policies/aggregation.strategy.js';
 
 /* ============================================================================
  * 🔧 HELPER FUNCTIONS FOR TEST DATA

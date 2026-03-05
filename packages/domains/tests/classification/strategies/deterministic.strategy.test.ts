@@ -3,20 +3,21 @@
  * Полное покрытие всех функций и edge cases (100%)
  */
 import { beforeEach, describe, expect, it } from 'vitest';
+
 import type {
   ClassificationGeo,
   ClassificationSignals,
 } from '../../../src/classification/signals/signals.js';
 import { classificationContext } from '../../../src/classification/signals/signals.js';
+import {
+  DEFAULT_RULE_THRESHOLDS,
+  resetClassificationRulesConfig,
+} from '../../../src/classification/strategies/config.js';
 import type {
   ContextBuilderPlugin,
   EvaluateClassificationRulesOptions,
 } from '../../../src/classification/strategies/deterministic.strategy.js';
 import { evaluateClassificationRules } from '../../../src/classification/strategies/deterministic.strategy.js';
-import {
-  DEFAULT_RULE_THRESHOLDS,
-  resetClassificationRulesConfig,
-} from '../../../src/classification/strategies/config.js';
 import type { DeviceInfo } from '../../../src/classification/strategies/rules.js';
 import { validateClassificationSemantics } from '../../../src/classification/strategies/validation.js';
 

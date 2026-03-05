@@ -16,8 +16,8 @@
  * - продуктовых решений
  */
 
-import { forwardRef, memo, useEffect, useImperativeHandle, useRef } from 'react';
 import type { JSX, SelectHTMLAttributes } from 'react';
+import { forwardRef, memo, useEffect, useImperativeHandle, useRef } from 'react';
 
 /* ============================================================================
  * 🧬 TYPES

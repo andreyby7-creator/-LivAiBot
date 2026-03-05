@@ -54,8 +54,8 @@ export const SCORE_VALIDATION = Object.freeze(
  * ============================================================================
  */
 
-import { evaluationScale } from '@livai/core';
 import type { EvaluationScale } from '@livai/core';
+import { evaluationScale } from '@livai/core';
 
 /**
  * Evaluation scale для classification domain

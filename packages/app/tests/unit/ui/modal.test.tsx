@@ -3,58 +3,63 @@
  * @file Тесты для App Modal компонента с полным покрытием
  */
 
+import { cleanup, render, screen } from '@testing-library/react';
 import React from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { cleanup, render, screen } from '@testing-library/react';
+
 import '@testing-library/jest-dom/vitest';
 
 // Mock для Core Modal - возвращаем простой div с переданными пропсами
-vi.mock('../../../../ui-core/src/components/Modal', () => ({
-  Modal: React.forwardRef<
-    HTMLDivElement,
-    React.ComponentProps<'div'> & {
-      visible?: boolean;
-      variant?: string;
-      'data-component'?: string;
-      'data-state'?: string;
-      'aria-label'?: string;
-      'aria-labelledby'?: string;
-      duration?: string;
-      title?: string;
-    }
-  >((
-    {
-      visible,
-      variant,
-      'data-component': dataComponent,
-      'data-state': dataState,
-      'aria-label': ariaLabel,
-      'aria-labelledby': ariaLabelledBy,
-      duration,
-      title,
-      ...props
-    },
-    ref,
-  ) => {
-    if (visible !== true) return null; // CoreModal не рендерится когда visible не true
+vi.mock('@livai/ui-core', async () => {
+  const actual = await vi.importActual('@livai/ui-core');
+  return {
+    ...actual,
+    Modal: React.forwardRef<
+      HTMLDivElement,
+      React.ComponentProps<'div'> & {
+        visible?: boolean;
+        variant?: string;
+        'data-component'?: string;
+        'data-state'?: string;
+        'aria-label'?: string;
+        'aria-labelledby'?: string;
+        duration?: string;
+        title?: string;
+      }
+    >((
+      {
+        visible,
+        variant,
+        'data-component': dataComponent,
+        'data-state': dataState,
+        'aria-label': ariaLabel,
+        'aria-labelledby': ariaLabelledBy,
+        duration,
+        title,
+        ...props
+      },
+      ref,
+    ) => {
+      if (visible !== true) return null; // CoreModal не рендерится когда visible не true
 
-    return (
-      <div
-        ref={ref}
-        data-testid='core-modal'
-        data-component={dataComponent}
-        data-state={dataState}
-        data-visible={String(visible)}
-        data-variant={variant}
-        aria-label={ariaLabel}
-        aria-labelledby={ariaLabelledBy}
-        data-duration={duration}
-        title={title}
-        {...props}
-      />
-    );
-  }),
-}));
+      return (
+        <div
+          ref={ref}
+          data-testid='core-modal'
+          data-component={dataComponent}
+          data-state={dataState}
+          data-visible={String(visible)}
+          data-variant={variant}
+          aria-label={ariaLabel}
+          aria-labelledby={ariaLabelledBy}
+          data-duration={duration}
+          title={title}
+          {...props}
+        />
+      );
+    }),
+  };
+});
 
 // Mock для UnifiedUIProvider
 let mockFeatureFlagReturnValue = false;

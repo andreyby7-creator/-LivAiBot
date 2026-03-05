@@ -13,7 +13,8 @@
 
 import { describe, expect, it, vi } from 'vitest';
 
-import type { Effect } from '@livai/app/lib/effect-utils.js';
+import type { Effect } from '@livai/core/effect';
+
 import type {
   ApiRequestOptions,
   AuthApiClientPort,

@@ -25,7 +25,6 @@ export type {
   LogoutSecurityDecision,
   LogoutSecurityResult,
 } from './logout-effect.types.js';
-
 export {
   isLocalLogoutDeps,
   isRemoteLogoutDeps,
@@ -40,8 +39,6 @@ export {
  * Logout Store Updater: единая точка reset всех состояний аутентификации при logout.
  * @public
  */
-export { applyLogoutReset } from './logout-store-updater.js';
-
 export {
   type LogoutAuditContext,
   type LogoutResultForAudit,
@@ -49,3 +46,4 @@ export {
   mapRevokeErrorToAuditEvent,
   mapRevokeSkippedToAuditEvent,
 } from './logout-audit.mapper.js';
+export { applyLogoutReset } from './logout-store-updater.js';

@@ -17,12 +17,12 @@
 
 import { Effect, Runtime } from 'effect';
 
-import { ENV, getGlobalScheduler } from './scheduler.js';
-import type { BackgroundTask, PriorityType } from './scheduler.js';
 import { AppEventType } from '../events/app-events.js';
-import { ConsoleLogger } from '../events/event-bus.js';
 import type { StructuredLogger } from '../events/event-bus.js';
+import { ConsoleLogger } from '../events/event-bus.js';
 import type { UseAuthDeps } from '../hooks/useAuth.js';
+import type { BackgroundTask, PriorityType } from './scheduler.js';
+import { ENV, getGlobalScheduler } from './scheduler.js';
 
 /* ========================================================================== */
 /* 📊 CONFIG / ENV / FEATURE FLAGS */

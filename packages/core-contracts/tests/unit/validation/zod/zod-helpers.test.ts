@@ -5,8 +5,8 @@
 import { describe, expect, it } from 'vitest';
 import { z } from 'zod';
 
-import { acceptTermsSchema } from '../../../../src/validation/zod/custom/forms.js';
 import { zWhen } from '../../../../src/validation/zod/custom/conditional.js';
+import { acceptTermsSchema } from '../../../../src/validation/zod/custom/forms.js';
 import {
   formatZodError,
   formatZodErrorDetailed,

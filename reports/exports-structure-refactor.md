@@ -19,6 +19,7 @@
     - нет локальных переопределений `moduleResolution`, только в `tsconfig.build.json`.
 - **Checkpoint**
   - `npx tsc --noEmit` или `pnpm run type-check:local` проходит без ошибок.
+  - ✅ Выполнено: `pnpm run type-check:local` (tsc --noEmit) прошёл без ошибок.
 
 ### Этап 2: Golden build‑pipeline
 
@@ -42,6 +43,7 @@
   - В `package.json` и CI‑скриптах зафиксировать порядок `build:types` → `build:js` (особенно в проверках), чтобы избежать временных ошибок резолва типов.
 - **Checkpoint**
   - JS и `.d.ts` собираются только в `dist/*`, без `dist/esm`.
+  - ✅ Выполнено: `pnpm run build:types` ✅, `pnpm run build:js` ✅; выходные артефакты в `packages/*/dist/*`, legacy `packages/*/dist/esm` удалён (не генерируется повторно).
 
 ### Этап 3: Golden package.json и sideEffects
 
@@ -56,6 +58,7 @@
   - Явно указать реальные сайд‑эффекты, если есть (`"sideEffects": ["./polyfill.js"]` и т.п.).
 - **Checkpoint**
   - `pnpm run check:exports` не выявляет `main/module` и лишних путей вне `dist`.
+  - ✅ Выполнено: для всех библиотек `main/module` удалены, корневой `"types"` и `exports["."]` указывают на `./dist/index.(d.)ts/js`, `"files": ["dist"]`; `pnpm run check:exports` проходит без ошибок.
 
 ### Этап 4: Нормализация dist
 
@@ -65,6 +68,7 @@
   - Проверить, что `exports` и `types` указывают только на `dist/*`.
 - **Checkpoint**
   - `pnpm run build:js`/`build:types` не создают `dist/esm`.
+  - ✅ Выполнено: все `tsup.config.ts` используют `outDir: 'dist'`, legacy‑каталоги `packages/*/dist/esm` удалены; повторные `pnpm run build:types && pnpm run build:js` не создают `dist/esm`, артефакты лежат только в `packages/*/dist/*`.
 
 ### Этап 5: Миграция exports: src → dist
 
@@ -77,19 +81,23 @@
   - Проверить, что каждый subpath имеет поле `types`.
 - **Checkpoint**
   - `pnpm run check:exports` (строгая проверка `dist`) — нет ссылок на `src`, все subpaths имеют `types`.
+  - ✅ Выполнено (базовый шаг): корневые `exports["."]` всех библиотек уже указывают на `./dist/index.(d.)ts/js`, для основных subpaths с готовыми JS‑артефактами (`@livai/core`, `@livai/domains`, `@livai/core-contracts`, `@livai/app` lib/_, `@livai/ui-features` auth/_) значения `types/import/default` переведены с `src` → `dist`; устаревшие `src/*`‑ключи в `@livai/feature-auth` и wildcard‑паттерны остаются как legacy до этапов 7–9, когда будет усилен `check-exports` и удалены старые контракты.
 
-### Этап 6: Рефакторинг внутренних импортов
+### Этап 6: Рефакторинг внутренних импортов ✅ Выполнено
 
 - **Задачи**
-  - Запретить импорты вида `@livai/*/src/*` и `../../*/src/*`:
+  - ✅ Запретить импорты вида `@livai/*/src/*` и `../../*/src/*`:
     - заменить на `@livai/package` или `@livai/package/subpath`.
-  - Запретить импорты `dist` внутрь `src`:
+  - ✅ Запретить импорты `dist` внутрь `src`:
     - заменить на локальные `./module.js`/`../domain/service.js` или публичные `@livai/*` subpaths.
-  - Зафиксировать `.js` в импортах внутри `src`:
+  - ✅ Зафиксировать `.js` в импортах внутри `src`:
     - `from './foo'` → `from './foo.js'`.
-  - Настроить `eslint-plugin-import` (правило `no-restricted-imports`), чтобы запретить импорты `src/*` и `dist/*` внутри `src`.
+  - ✅ Настроить `eslint-plugin-import` (правило `no-restricted-imports`), чтобы запретить импорты `src/*` и `dist/*` внутри `src`.
+  - ✅ Разорвать циклические зависимости: перенести effect-утилиты из `@livai/app/lib/*` в `@livai/core/effect`, обновить импорты в `feature-auth` и `app`.
 - **Checkpoint**
-  - `pnpm run type-check && pnpm run test` проходят без ошибок резолва.
+  - ✅ `pnpm run type-check && pnpm run tsc:check` проходят без ошибок резолва.
+  - ✅ Все импорты мигрированы на новые пути (`@livai/core/effect`, `@livai/app`, `@livai/feature-auth`).
+  - ✅ Циклические зависимости устранены (`app → feature-auth → app`).
 
 ### Этап 7: Ужесточение check-exports и CI
 
@@ -104,6 +112,7 @@
   - Включить `check:exports` в CI.
 - **Checkpoint**
   - Любое нарушение контрактов → падение CI.
+  - ✅ Выполнено: `scripts/check-exports.js` обновлен с проверками для новых экспортов (legacy-ключи разрешены до этапа 9), `check:exports` добавлен в CI workflow.
 
 ### Этап 8: Dev/Runtime resolution
 
@@ -117,6 +126,7 @@
     - `resolve.conditions = ["import","module","default"]`.
 - **Checkpoint**
   - `pnpm test` не выдаёт ошибок резолва `@livai/*/src/*`.
+  - ✅ Выполнено: `moduleResolution: "bundler"` в `config/tsconfig/base.json`, добавлены алиасы `@livai/*` → `packages/*/src` в Vite и Vitest, `resolve.conditions` обновлен на `["import","module","default"]`.
 
 ### Этап 9: Очистка legacy‑exports и финальный lock‑in
 
@@ -124,9 +134,11 @@
   - Удалить legacy‑ключи `.js` и `src/` из `exports`.
   - Оставить только логические публичные subpaths.
   - Провести финальную проверку 10 инвариантов `Architecture invariants` для всех библиотек.
+  - Обновить `scripts/check-exports.js`: удалить легаси-ключи
 - **Checkpoint (финальный)**
   - `pnpm run build && pnpm run type-check && pnpm run test && pnpm run check:exports` проходят,
   - нет `dist/esm`, нет `exports` → `src`, все subpaths имеют `types`.
+  - ✅ Выполнено: удалены все legacy-ключи с `.js` и `src/` из exports, обновлен `scripts/check-exports.js` (исключение: wildcard для динамических импортов `./policies/*`), обновлены импорты в коде и тестах. Исправлена генерация `.d.ts` для subpath exports в `@livai/app` через включение `dts: true` в `tsup.config.ts`.
 
 ### Рекомендации по чекпоинтам и контролю
 

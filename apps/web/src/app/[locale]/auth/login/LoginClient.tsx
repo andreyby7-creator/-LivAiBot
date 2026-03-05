@@ -1,9 +1,10 @@
 'use client';
 
-import { LoginForm } from '@livai/ui-features/auth/login-form.js';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import type { JSX } from 'react';
+
+import { LoginForm } from '@livai/ui-features/auth/login-form';
 
 import type { Locale } from '../../../../../i18n/routing.js';
 

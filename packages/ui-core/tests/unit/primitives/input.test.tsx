@@ -3,11 +3,13 @@
  * @file Unit тесты для Input компонента
  */
 
+import { cleanup, render, within } from '@testing-library/react';
 import React, { createRef } from 'react';
 import { afterEach, describe, expect, it } from 'vitest';
-import { cleanup, render, within } from '@testing-library/react';
+
+import { Input } from '@livai/ui-core';
+
 import '@testing-library/jest-dom/vitest';
-import { Input } from '../../../src/primitives/input.js';
 
 // Полная очистка DOM между тестами
 afterEach(cleanup);

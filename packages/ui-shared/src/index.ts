@@ -4,5 +4,5 @@
  */
 
 export * from './i18n/types.js';
-export * from './validation/zod.js';
 export * from './validation/rhf-zod-resolver.js';
+export * from './validation/zod.js';

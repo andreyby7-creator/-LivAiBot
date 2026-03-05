@@ -16,6 +16,7 @@
  * - Полная типизация
  */
 
+import type { ExtendableEvent, ExtendableMessageEvent, FetchEvent } from '@livai/app';
 import {
   decommissionServiceWorker,
   handleBackgroundSync,
@@ -28,27 +29,11 @@ import {
   staticCacheName,
   swDisabled,
   swSelf,
-} from '@livai/app/lib/service-worker.js';
-import type {
-  ExtendableEvent,
-  ExtendableMessageEvent,
-  FetchEvent,
-} from '@livai/app/lib/service-worker.js';
+} from '@livai/app';
 
 /* ============================================================================
  * 📋 ТИПЫ И КОНСТАНТЫ
  * ========================================================================== */
-
-/** Тип события клика по уведомлению - соответствует типу из ServiceWorkerGlobalScope */
-type NotificationEvent = Event & {
-  notification: Notification;
-  waitUntil?: (promise: Promise<unknown>) => void;
-};
-
-/** Тип события background sync */
-type SyncEvent = ExtendableEvent & {
-  readonly tag: string;
-};
 
 /** Стандартный ответ для оффлайн режима */
 const OFFLINE_RESPONSE = new Response('Offline', {
@@ -57,7 +42,7 @@ const OFFLINE_RESPONSE = new Response('Offline', {
 });
 
 /** Kill-switch для Service Worker - значение может быть изменено через remote config */
-const SERVICE_WORKER_DISABLED: boolean = swDisabled();
+const SERVICE_WORKER_DISABLED = swDisabled();
 
 /* ============================================================================
  * 🛠️ УСТАНОВКА SERVICE WORKER
@@ -67,26 +52,28 @@ const SERVICE_WORKER_DISABLED: boolean = swDisabled();
  * Обработчик установки Service Worker
  * Предзагружает критические ресурсы в кеш
  */
-swSelf.addEventListener('install', (event: ExtendableEvent) => {
+swSelf.addEventListener('install', (event: ExtendableEvent): void => {
   // Kill-switch: если SW отключен, не устанавливаем
   if (SERVICE_WORKER_DISABLED) return;
 
-  event.waitUntil(
+  const installEvent = event as unknown as { waitUntil(promise: Promise<unknown>): void; };
+  installEvent.waitUntil(
     (async (): Promise<void> => {
       try {
         const mainCache = await caches.open(mainCacheName);
-        await mainCache.addAll(precacheMainUrls as string[]).catch((err: unknown) => {
+        await mainCache.addAll(precacheMainUrls as readonly string[]).catch((err: unknown) => {
           // eslint-disable-next-line no-console
           console.warn('[SW][Install] Failed main precache:', err);
         });
 
         const staticCache = await caches.open(staticCacheName);
-        await staticCache.addAll(precacheStaticUrls as string[]).catch((err: unknown) => {
+        await staticCache.addAll(precacheStaticUrls as readonly string[]).catch((err: unknown) => {
           // eslint-disable-next-line no-console
           console.warn('[SW][Install] Failed static precache:', err);
         });
 
-        await swSelf.skipWaiting();
+        const selfScope = swSelf as unknown as { skipWaiting(): Promise<void>; };
+        await selfScope.skipWaiting();
       } catch (error: unknown) {
         // eslint-disable-next-line no-console
         console.error('[SW][Install]', error);
@@ -103,14 +90,16 @@ swSelf.addEventListener('install', (event: ExtendableEvent) => {
  * Обработчик активации Service Worker
  * Берет контроль над всеми клиентами
  */
-swSelf.addEventListener('activate', (event: ExtendableEvent) => {
+swSelf.addEventListener('activate', (event: ExtendableEvent): void => {
   // Kill-switch: если SW отключен, не активируем
   if (SERVICE_WORKER_DISABLED) return;
 
-  event.waitUntil(
+  const activateEvent = event as unknown as { waitUntil(promise: Promise<unknown>): void; };
+  activateEvent.waitUntil(
     (async (): Promise<void> => {
       try {
-        await swSelf.clients.claim();
+        const selfScope = swSelf as unknown as { clients: { claim(): Promise<void>; }; };
+        await selfScope.clients.claim();
       } catch (error: unknown) {
         // eslint-disable-next-line no-console
         console.error('[SW][Activate]', error);
@@ -127,24 +116,29 @@ swSelf.addEventListener('activate', (event: ExtendableEvent) => {
  * Обработчик сетевых запросов
  * Использует стратегию NetworkFirst для всех GET запросов
  */
-swSelf.addEventListener('fetch', (event: FetchEvent) => {
+swSelf.addEventListener('fetch', (event: FetchEvent): void => {
   // Kill-switch: если SW отключен, не перехватываем запросы
   if (SERVICE_WORKER_DISABLED) return;
-  if (event.request.method !== 'GET') return;
-  if (!event.request.url.startsWith('http')) return;
+  const fetchEvent = event as unknown as {
+    readonly request: Request;
+    respondWith(response: Response | Promise<Response>): void;
+  };
+  if (fetchEvent.request.method !== 'GET') return;
+  const requestUrl: string = fetchEvent.request.url;
+  if (!requestUrl.startsWith('http')) return;
 
-  event.respondWith(
+  fetchEvent.respondWith(
     (async (): Promise<Response> => {
       try {
         const result = await handleRequest(
-          event.request,
+          fetchEvent.request,
           { timestamp: Date.now() },
-          { strategy: 'NetworkFirst' },
+          { strategy: 'NetworkFirst' as const },
         );
         return result.response;
       } catch (error: unknown) {
         // eslint-disable-next-line no-console
-        console.error('[SW][Fetch]', error, event.request.url);
+        console.error('[SW][Fetch]', error, fetchEvent.request.url);
         return OFFLINE_RESPONSE;
       }
     })(),
@@ -159,8 +153,9 @@ swSelf.addEventListener('fetch', (event: FetchEvent) => {
  * Обработчик push уведомлений
  * Отображает уведомления пользователю
  */
-swSelf.addEventListener('push', (event: ExtendableMessageEvent) => {
-  event.waitUntil(
+swSelf.addEventListener('push', (event: ExtendableMessageEvent): void => {
+  const pushEventWithWait = event as unknown as { waitUntil(promise: Promise<unknown>): void; };
+  pushEventWithWait.waitUntil(
     (async (): Promise<void> => {
       try {
         await handlePushNotification(event);
@@ -176,13 +171,20 @@ swSelf.addEventListener('push', (event: ExtendableMessageEvent) => {
  * Обработчик клика по уведомлению
  * Открывает соответствующее окно приложения
  */
-swSelf.addEventListener('notificationclick', (event: NotificationEvent) => {
-  const promise = handleNotificationClick(event).catch((error: unknown) => {
-    // eslint-disable-next-line no-console
-    console.error('[SW][NotificationClick]', error);
-  });
-  event.waitUntil?.(promise);
-});
+swSelf.addEventListener(
+  'notificationclick',
+  ((event: Event): void => {
+    const notificationEvent = event as Event & { notification: Notification; };
+    const promise = handleNotificationClick(notificationEvent).catch((error: unknown) => {
+      // eslint-disable-next-line no-console
+      console.error('[SW][NotificationClick]', error);
+    });
+    // waitUntil доступен через ExtendableEvent, но не определен в типе notificationclick
+    // Используем type assertion для безопасного доступа
+    const extendableEvent = event as unknown as { waitUntil(promise: Promise<unknown>): void; };
+    extendableEvent.waitUntil(promise);
+  }) as EventListener,
+);
 
 /* ============================================================================
  * 🔄 BACKGROUND SYNC
@@ -192,21 +194,25 @@ swSelf.addEventListener('notificationclick', (event: NotificationEvent) => {
  * Обработчик background sync
  * Выполняет синхронизацию данных в фоновом режиме
  */
-swSelf.addEventListener('sync', (event: SyncEvent) => {
-  event.waitUntil(
-    Promise.resolve().then(() => {
-      try {
-        // handleBackgroundSync выполняет синхронные операции
-        handleBackgroundSync(event as ExtendableEvent & { tag: string; });
-        return undefined;
-      } catch (error: unknown) {
-        // eslint-disable-next-line no-console
-        console.error('[SW][Sync]', error);
-        return undefined;
-      }
-    }),
-  );
-});
+swSelf.addEventListener(
+  'sync',
+  ((event: Event): void => {
+    const syncEvent = event as ExtendableEvent & { tag: string; };
+    syncEvent.waitUntil(
+      Promise.resolve().then(() => {
+        try {
+          // handleBackgroundSync выполняет синхронные операции
+          handleBackgroundSync(syncEvent);
+          return undefined;
+        } catch (error: unknown) {
+          // eslint-disable-next-line no-console
+          console.error('[SW][Sync]', error);
+          return undefined;
+        }
+      }),
+    );
+  }) as EventListener,
+);
 
 /* ============================================================================
  * ❌ EMERGENCY DECOMMISSION

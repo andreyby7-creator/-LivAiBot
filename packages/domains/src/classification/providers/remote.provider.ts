@@ -18,8 +18,8 @@
  * - ✅ Strict typing: union policy + value objects, без stringly-typed API
  */
 
-import { defineStage } from '@livai/core';
 import type { StageContext, StageId, StagePlugin } from '@livai/core';
+import { defineStage } from '@livai/core';
 
 import type { ClassificationContext, ClassificationSignals } from '../signals/signals.js';
 import type { DeviceInfo } from '../strategies/rules.js';

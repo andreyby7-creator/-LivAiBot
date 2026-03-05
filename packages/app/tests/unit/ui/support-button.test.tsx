@@ -3,45 +3,23 @@
  * @file Тесты для App SupportButton компонента с полным покрытием
  */
 
+import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import React from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+
 import '@testing-library/jest-dom/vitest';
 
 // Mock translate function
 const mockTranslate = vi.fn();
 
 // Mock для Core SupportButton - возвращаем простой button с переданными пропсами
-vi.mock('../../../../ui-core/src/components/SupportButton.js', () => ({
-  SupportButton: React.forwardRef<
-    HTMLButtonElement,
-    React.ComponentProps<'button'> & {
-      label?: string;
-      icon?: React.ReactNode;
-      variant?: string;
-      size?: string;
-      disabled?: boolean;
-      onSupportClick?: (event: React.MouseEvent<HTMLButtonElement>) => void;
-      'data-component'?: string;
-      'data-variant'?: string;
-      'data-size'?: string;
-      'data-disabled'?: string;
-    }
-  >((
-    {
-      label,
-      icon,
-      variant,
-      size,
-      disabled,
-      onSupportClick,
-      'data-component': dataComponent,
-      'data-variant': dataVariant,
-      'data-size': dataSize,
-      'data-disabled': dataDisabled,
-      ...props
-    }: Readonly<
-      {
+vi.mock('@livai/ui-core', async () => {
+  const actual = await vi.importActual('@livai/ui-core');
+  return {
+    ...actual,
+    SupportButton: React.forwardRef<
+      HTMLButtonElement,
+      React.ComponentProps<'button'> & {
         label?: string;
         icon?: React.ReactNode;
         variant?: string;
@@ -52,28 +30,55 @@ vi.mock('../../../../ui-core/src/components/SupportButton.js', () => ({
         'data-variant'?: string;
         'data-size'?: string;
         'data-disabled'?: string;
-      } & React.ComponentProps<'button'>
-    >,
-    ref,
-  ) => {
-    return (
-      <button
-        ref={ref}
-        data-testid='core-support-button'
-        data-component={dataComponent}
-        data-variant={variant}
-        data-size={size}
-        data-disabled={dataDisabled}
-        disabled={disabled}
-        onClick={onSupportClick}
-        {...props}
-      >
-        {icon}
-        {label}
-      </button>
-    );
-  }),
-}));
+      }
+    >((
+      {
+        label,
+        icon,
+        variant,
+        size,
+        disabled,
+        onSupportClick,
+        'data-component': dataComponent,
+        'data-variant': dataVariant,
+        'data-size': dataSize,
+        'data-disabled': dataDisabled,
+        ...props
+      }: Readonly<
+        {
+          label?: string;
+          icon?: React.ReactNode;
+          variant?: string;
+          size?: string;
+          disabled?: boolean;
+          onSupportClick?: (event: React.MouseEvent<HTMLButtonElement>) => void;
+          'data-component'?: string;
+          'data-variant'?: string;
+          'data-size'?: string;
+          'data-disabled'?: string;
+        } & React.ComponentProps<'button'>
+      >,
+      ref,
+    ) => {
+      return (
+        <button
+          ref={ref}
+          data-testid='core-support-button'
+          data-component={dataComponent}
+          data-variant={variant}
+          data-size={size}
+          data-disabled={dataDisabled}
+          disabled={disabled}
+          onClick={onSupportClick}
+          {...props}
+        >
+          {icon}
+          {label}
+        </button>
+      );
+    }),
+  };
+});
 
 // Mock для UnifiedUIProvider
 const mockInfoFireAndForget = vi.fn();

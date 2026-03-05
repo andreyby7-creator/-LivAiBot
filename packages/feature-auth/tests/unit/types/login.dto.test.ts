@@ -4,13 +4,14 @@
  */
 
 import { describe, expect, it } from 'vitest';
-import type { LoginResponseDto } from '../../../src/types/login.dto.js';
-import { assertNever, isLoginSuccess, isMfaRequired } from '../../../src/types/login.dto.js';
+
 import type {
   LoginTokenPairValues,
   MeResponseValues,
   MfaChallengeRequestValues,
 } from '../../../src/schemas/index.js';
+import type { LoginResponseDto } from '../../../src/types/login.dto.js';
+import { assertNever, isLoginSuccess, isMfaRequired } from '../../../src/types/login.dto.js';
 
 // ============================================================================
 // 🔧 HELPER FUNCTIONS FOR TEST DATA

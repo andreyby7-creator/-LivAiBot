@@ -3,6 +3,7 @@
  * Полное покрытие всех функций и edge cases (100%)
  */
 import { describe, expect, it } from 'vitest';
+
 import type {
   RiskFactor,
   RiskWeights,

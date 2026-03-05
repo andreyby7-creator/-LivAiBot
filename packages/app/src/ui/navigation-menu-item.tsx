@@ -16,10 +16,11 @@
  * - Логики роутинга (активное состояние определяется извне)
  */
 
-import { NavigationMenuItem as CoreNavigationMenuItem } from '@livai/ui-core';
-import type { CoreNavigationMenuItemProps, NavigationMenuItemData } from '@livai/ui-core';
-import { forwardRef, memo, useCallback, useEffect, useMemo, useRef } from 'react';
 import type { CSSProperties, JSX, MouseEvent, ReactNode, Ref } from 'react';
+import { forwardRef, memo, useCallback, useEffect, useMemo, useRef } from 'react';
+
+import type { CoreNavigationMenuItemProps, NavigationMenuItemData } from '@livai/ui-core';
+import { NavigationMenuItem as CoreNavigationMenuItem } from '@livai/ui-core';
 
 import type { Namespace, TranslationKey } from '../lib/i18n.js';
 import { canAccessRoute } from '../lib/route-permissions.js';
@@ -449,6 +450,8 @@ const NavigationMenuItemComponent = forwardRef<
     // Policy: hidden
     if (!policy.isRendered) return null;
 
+    const testId = props['data-testid'] ?? 'core-navigation-menu-item';
+
     return (
       <CoreNavigationMenuItem
         ref={ref}
@@ -474,6 +477,7 @@ const NavigationMenuItemComponent = forwardRef<
         data-telemetry={policy.telemetryEnabled ? 'enabled' : 'disabled'}
         {...(dataTestId !== undefined && { 'data-testid': dataTestId })}
         {...filteredCoreProps}
+        data-testid={testId}
       />
     );
   },

@@ -3,10 +3,12 @@
  * @file Unit тесты для App Dialog компонента
  */
 
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
-import '@testing-library/jest-dom/vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+
 import { Dialog } from '../../../src/ui/dialog.js';
+
+import '@testing-library/jest-dom/vitest';
 
 // Полная очистка DOM между тестами
 afterEach(() => {
@@ -15,35 +17,39 @@ afterEach(() => {
 });
 
 // Mock для Core Dialog
-vi.mock('../../../../ui-core/src/primitives/dialog', () => ({
-  Dialog: ({ children, onBackdropClick, onEscape, ...props }: any) => {
-    // Add global keydown listener for Escape when component mounts
-    if (onEscape != null) {
-      const handleKeyDown = (e: KeyboardEvent) => {
-        if (e.key === 'Escape') {
-          onEscape();
-        }
-      };
-      document.addEventListener('keydown', handleKeyDown);
-      // Note: we don't remove listener for simplicity in tests
-    }
+vi.mock('@livai/ui-core', async () => {
+  const actual = await vi.importActual('@livai/ui-core');
+  return {
+    ...actual,
+    Dialog: ({ children, onBackdropClick, onEscape, ...props }: any) => {
+      // Add global keydown listener for Escape when component mounts
+      if (onEscape != null) {
+        const handleKeyDown = (e: KeyboardEvent) => {
+          if (e.key === 'Escape') {
+            onEscape();
+          }
+        };
+        document.addEventListener('keydown', handleKeyDown);
+        // Note: we don't remove listener for simplicity in tests
+      }
 
-    return (
-      <div className='core-dialog-root' {...props}>
-        <div
-          className='core-dialog-backdrop'
-          onClick={onBackdropClick}
-          onKeyDown={() => {}}
-          role='button'
-          tabIndex={-1}
-        />
-        <div className='core-dialog-content' data-testid='core-dialog'>
-          {children}
+      return (
+        <div className='core-dialog-root' {...props}>
+          <div
+            className='core-dialog-backdrop'
+            onClick={onBackdropClick}
+            onKeyDown={() => {}}
+            role='button'
+            tabIndex={-1}
+          />
+          <div className='core-dialog-content' data-testid='core-dialog'>
+            {children}
+          </div>
         </div>
-      </div>
-    );
-  },
-}));
+      );
+    },
+  };
+});
 
 // Объявляем переменные моков перед vi.mock()
 let mockFeatureFlagReturnValue = false;

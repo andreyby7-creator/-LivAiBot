@@ -3,17 +3,62 @@
  * @file Тесты для App SideBar компонента с полным покрытием
  */
 
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import React from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
+
 import '@testing-library/jest-dom/vitest';
 
 // Mock для Core SideBar
-vi.mock('../../../../ui-core/src/components/SideBar', () => ({
-  SideBar: React.forwardRef<
-    HTMLDivElement,
-    React.ComponentProps<'div'> & {
-      items?: readonly Readonly<{
+vi.mock('@livai/ui-core', async () => {
+  const actual = await vi.importActual('@livai/ui-core');
+  return {
+    ...actual,
+    SideBar: React.forwardRef<
+      HTMLDivElement,
+      React.ComponentProps<'div'> & {
+        items?: readonly Readonly<{
+          readonly id: string;
+          readonly label: string;
+          readonly icon?: React.ReactNode;
+          readonly disabled?: boolean;
+          readonly active?: boolean;
+          readonly data?: Readonly<Record<string, string>>;
+        }>[];
+        onItemClick?: (itemId: string) => void;
+        collapsed?: boolean;
+        position?: 'left' | 'right';
+        width?: string;
+        collapsedWidth?: string;
+        header?: React.ReactNode;
+        footer?: React.ReactNode;
+        showOverlay?: boolean;
+        onOverlayClick?: () => void;
+        'data-component'?: string;
+        'data-state'?: string;
+        'data-position'?: string;
+        'data-feature-flag'?: string;
+        'data-telemetry'?: string;
+      }
+    >((props, ref) => {
+      const {
+        items: itemsProp,
+        onItemClick,
+        collapsed = false,
+        position = 'left',
+        header,
+        footer,
+        showOverlay,
+        onOverlayClick,
+        'data-component': dataComponent,
+        'data-state': dataState,
+        'data-position': dataPosition,
+        'data-feature-flag': dataFeatureFlag,
+        'data-telemetry': dataTelemetry,
+        ...rest
+      } = props as any; // Используем any для игнорирования App-специфичных пропсов
+
+      const items = (itemsProp ?? []) as readonly Readonly<{
         readonly id: string;
         readonly label: string;
         readonly icon?: React.ReactNode;
@@ -21,87 +66,47 @@ vi.mock('../../../../ui-core/src/components/SideBar', () => ({
         readonly active?: boolean;
         readonly data?: Readonly<Record<string, string>>;
       }>[];
-      onItemClick?: (itemId: string) => void;
-      collapsed?: boolean;
-      position?: 'left' | 'right';
-      width?: string;
-      collapsedWidth?: string;
-      header?: React.ReactNode;
-      footer?: React.ReactNode;
-      showOverlay?: boolean;
-      onOverlayClick?: () => void;
-      'data-component'?: string;
-      'data-state'?: string;
-      'data-position'?: string;
-      'data-feature-flag'?: string;
-      'data-telemetry'?: string;
-    }
-  >((props, ref) => {
-    const {
-      items: itemsProp,
-      onItemClick,
-      collapsed = false,
-      position = 'left',
-      header,
-      footer,
-      showOverlay,
-      onOverlayClick,
-      'data-component': dataComponent,
-      'data-state': dataState,
-      'data-position': dataPosition,
-      'data-feature-flag': dataFeatureFlag,
-      'data-telemetry': dataTelemetry,
-      ...rest
-    } = props as any; // Используем any для игнорирования App-специфичных пропсов
 
-    const items = (itemsProp ?? []) as readonly Readonly<{
-      readonly id: string;
-      readonly label: string;
-      readonly icon?: React.ReactNode;
-      readonly disabled?: boolean;
-      readonly active?: boolean;
-      readonly data?: Readonly<Record<string, string>>;
-    }>[];
-
-    return (
-      <div
-        ref={ref}
-        data-testid='core-sidebar'
-        data-component={dataComponent}
-        data-state={dataState}
-        data-position={dataPosition}
-        data-feature-flag={dataFeatureFlag}
-        data-telemetry={dataTelemetry}
-        data-collapsed={String(collapsed)}
-        {...rest}
-      >
-        {showOverlay === true && (
-          <div
-            data-testid='overlay'
-            onClick={onOverlayClick}
-            role='presentation'
-          />
-        )}
-        {header != null && <div data-testid='header'>{header}</div>}
-        <nav data-testid='nav'>
-          {items.map((item) => (
-            <button
-              key={item.id}
-              data-testid={`item-${item.id}`}
-              onClick={() => onItemClick?.(item.id)}
-              disabled={item.disabled === true}
-              data-active={String(item.active === true)}
-            >
-              {item.icon != null && <span data-testid={`icon-${item.id}`}>{item.icon}</span>}
-              {collapsed !== true && <span>{item.label}</span>}
-            </button>
-          ))}
-        </nav>
-        {footer != null && <div data-testid='footer'>{footer}</div>}
-      </div>
-    );
-  }),
-}));
+      return (
+        <div
+          ref={ref}
+          data-testid='core-sidebar'
+          data-component={dataComponent}
+          data-state={dataState}
+          data-position={dataPosition}
+          data-feature-flag={dataFeatureFlag}
+          data-telemetry={dataTelemetry}
+          data-collapsed={String(collapsed)}
+          {...rest}
+        >
+          {showOverlay === true && (
+            <div
+              data-testid='overlay'
+              onClick={onOverlayClick}
+              role='presentation'
+            />
+          )}
+          {header != null && <div data-testid='header'>{header}</div>}
+          <nav data-testid='nav'>
+            {items.map((item) => (
+              <button
+                key={item.id}
+                data-testid={`item-${item.id}`}
+                onClick={() => onItemClick?.(item.id)}
+                disabled={item.disabled === true}
+                data-active={String(item.active === true)}
+              >
+                {item.icon != null && <span data-testid={`icon-${item.id}`}>{item.icon}</span>}
+                {collapsed !== true && <span>{item.label}</span>}
+              </button>
+            ))}
+          </nav>
+          {footer != null && <div data-testid='footer'>{footer}</div>}
+        </div>
+      );
+    }),
+  };
+});
 
 // Mock для UnifiedUIProvider
 const mockInfoFireAndForget = vi.fn();
@@ -125,8 +130,8 @@ vi.mock('../../../src/providers/UnifiedUIProvider', () => ({
   }),
 }));
 
-import { SideBar } from '../../../src/ui/sidebar';
 import type { AppSideBarProps } from '../../../src/ui/sidebar';
+import { SideBar } from '../../../src/ui/sidebar';
 
 describe('App SideBar', () => {
   const testItems: AppSideBarProps['items'] = [

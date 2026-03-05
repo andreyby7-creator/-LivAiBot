@@ -10,8 +10,15 @@
  */
 
 import { describe, expect, it } from 'vitest';
-import type { ID } from '../../../src/types/common';
-import { UserRoles } from '../../../src/types/common';
+
+import type {
+  Permission,
+  RouteInfo,
+  RoutePermissionContext,
+  RoutePermissionResult,
+  RouteType,
+  UserRole,
+} from '../../../src/lib/route-permissions';
 import {
   checkRoutePermission,
   createProtectedRoute,
@@ -22,14 +29,8 @@ import {
   getRoutePolicy,
   requiresAuthentication,
 } from '../../../src/lib/route-permissions';
-import type {
-  Permission,
-  RouteInfo,
-  RoutePermissionContext,
-  RoutePermissionResult,
-  RouteType,
-  UserRole,
-} from '../../../src/lib/route-permissions';
+import type { ID } from '../../../src/types/common';
+import { UserRoles } from '../../../src/types/common';
 
 // ============================================================================
 // 🧠 MOCKS И HELPER'Ы

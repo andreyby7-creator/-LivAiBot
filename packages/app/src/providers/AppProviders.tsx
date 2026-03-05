@@ -15,20 +15,9 @@
 
 'use client';
 
-import React, { memo, useEffect, useMemo } from 'react';
 import type { JSX, PropsWithChildren } from 'react';
+import React, { memo, useEffect, useMemo } from 'react';
 
-import { FeatureFlagsProvider } from './FeatureFlagsProvider.js';
-import type { FeatureFlagsProviderProps } from './FeatureFlagsProvider.js';
-import { IntlProvider } from './intl-provider.js';
-import type { IntlProviderProps } from './intl-provider.js';
-import { AppQueryClientProvider } from './QueryClientProvider.js';
-import type { AppQueryClientProviderProps } from './QueryClientProvider.js';
-import { TelemetryProvider } from './TelemetryProvider.js';
-import type { TelemetryProviderProps } from './TelemetryProvider.js';
-import { ToastProvider } from './ToastProvider.js';
-import type { ToastProviderProps } from './ToastProvider.js';
-import { UnifiedUIProvider } from './UnifiedUIProvider.js';
 import { AuthHookProvider, useAuth } from '../hooks/useAuth-provider.js';
 import type { AuthGuardContext, Permission, UserRole } from '../lib/auth-guard.js';
 import { AuthGuardProvider } from '../lib/auth-guard.js';
@@ -36,6 +25,17 @@ import type { AuthHookDepsConfig } from '../lib/auth-hook-deps.js';
 import type { AppStore } from '../state/store.js';
 import { useAppStore } from '../state/store.js';
 import type { UiAuthContext } from '../types/ui-contracts.js';
+import type { FeatureFlagsProviderProps } from './FeatureFlagsProvider.js';
+import { FeatureFlagsProvider } from './FeatureFlagsProvider.js';
+import type { IntlProviderProps } from './intl-provider.js';
+import { IntlProvider } from './intl-provider.js';
+import type { AppQueryClientProviderProps } from './QueryClientProvider.js';
+import { AppQueryClientProvider } from './QueryClientProvider.js';
+import type { TelemetryProviderProps } from './TelemetryProvider.js';
+import { TelemetryProvider } from './TelemetryProvider.js';
+import type { ToastProviderProps } from './ToastProvider.js';
+import { ToastProvider } from './ToastProvider.js';
+import { UnifiedUIProvider } from './UnifiedUIProvider.js';
 
 /* ============================================================================
  * 🔐 AUTH GUARD BRIDGE — МОСТ МЕЖДУ USEAUTH И AUTHGUARD

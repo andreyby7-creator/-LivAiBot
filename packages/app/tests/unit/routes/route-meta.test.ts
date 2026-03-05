@@ -13,6 +13,9 @@
  */
 
 import { afterAll, describe, expect, it, vi } from 'vitest';
+
+import type { RoutePermissionContext } from '../../../src/lib/route-permissions.js';
+import type { RouteMeta } from '../../../src/routes/route-meta.js';
 import {
   canAccessRouteByName,
   checkComprehensiveRouteAccess,
@@ -21,10 +24,8 @@ import {
   getRouteMeta,
   routeMeta,
 } from '../../../src/routes/route-meta.js';
-import type { RouteMeta } from '../../../src/routes/route-meta.js';
 import { RouteNames } from '../../../src/routes/routes.js';
 import { UserRoles } from '../../../src/types/common.js';
-import type { RoutePermissionContext } from '../../../src/lib/route-permissions.js';
 
 // Мокаем console для чистоты вывода тестов
 const originalConsoleWarn = console.warn;

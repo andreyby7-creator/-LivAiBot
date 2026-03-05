@@ -10,7 +10,8 @@
  */
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { JsonValue } from '../../../src/types/common';
+
+import type { LogContext, LogLevel, LogMetadata } from '../../../src/lib/logger';
 import {
   error,
   info,
@@ -23,7 +24,7 @@ import {
   logUserAction,
   warn,
 } from '../../../src/lib/logger';
-import type { LogContext, LogLevel, LogMetadata } from '../../../src/lib/logger';
+import type { JsonValue } from '../../../src/types/common';
 
 // ============================================================================
 // 🧠 MOCKS И HELPER'Ы

@@ -5,14 +5,14 @@
 
 import { describe, expect, it } from 'vitest';
 
+import type { LoginIdentifierType, LoginRequest } from '../../../../src/domain/LoginRequest.js';
+import type { DomainLoginResult } from '../../../../src/domain/LoginResult.js';
+import type { MeResponse } from '../../../../src/domain/MeResponse.js';
+import type { TokenPair } from '../../../../src/domain/TokenPair.js';
 import {
   mapLoginRequestToApiPayload,
   mapLoginResponseToDomain,
 } from '../../../../src/effects/login/login-api.mapper.js';
-import type { LoginIdentifierType, LoginRequest } from '../../../../src/domain/LoginRequest.js';
-import type { DomainLoginResult } from '../../../../src/domain/LoginResult.js';
-import type { TokenPair } from '../../../../src/domain/TokenPair.js';
-import type { MeResponse } from '../../../../src/domain/MeResponse.js';
 import type {
   LoginRequestValues,
   LoginTokenPairValues,

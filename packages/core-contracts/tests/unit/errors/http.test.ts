@@ -2,6 +2,7 @@
  * @file Unit тесты для errors/http.ts
  */
 import { describe, expect, it } from 'vitest';
+
 import type { ErrorCode, ErrorResponse } from '../../../src/errors/http.js';
 import { errorCodes } from '../../../src/errors/http.js';
 

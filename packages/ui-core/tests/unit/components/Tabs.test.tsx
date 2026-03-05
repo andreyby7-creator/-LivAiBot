@@ -3,12 +3,14 @@
  * @file Unit тесты для Tabs компонента
  */
 
+import { cleanup, fireEvent, render, within } from '@testing-library/react';
 import React from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { cleanup, fireEvent, render, within } from '@testing-library/react';
+
+import type { TabItem } from '@livai/ui-core';
+import { Tabs } from '@livai/ui-core';
+
 import '@testing-library/jest-dom/vitest';
-import { Tabs } from '../../../src/components/Tabs.js';
-import type { TabItem } from '../../../src/components/Tabs.js';
 
 // Полная очистка DOM между тестами
 afterEach(cleanup);

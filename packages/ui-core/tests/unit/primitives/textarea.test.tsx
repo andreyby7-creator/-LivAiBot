@@ -3,11 +3,13 @@
  * @file Unit тесты для Textarea компонента
  */
 
+import { cleanup, fireEvent, render, within } from '@testing-library/react';
 import React, { StrictMode } from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { cleanup, fireEvent, render, within } from '@testing-library/react';
+
+import { Textarea } from '@livai/ui-core';
+
 import '@testing-library/jest-dom/vitest';
-import { Textarea } from '../../../src/primitives/textarea.js';
 
 // Mock для HTMLElement.prototype.focus
 const mockFocus = vi.fn();

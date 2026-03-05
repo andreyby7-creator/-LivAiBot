@@ -14,17 +14,19 @@
  */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import {
-  createInMemoryOfflineCacheStore,
-  createOfflineCache,
-  pipeEffects,
-} from '../../../src/lib/offline-cache';
+
+import type { Effect } from '@livai/core/effect';
+
 import type {
   CacheKey,
   OfflineCacheOptions,
   OfflineCacheStore,
 } from '../../../src/lib/offline-cache';
-import type { Effect } from '../../../src/lib/effect-utils';
+import {
+  createInMemoryOfflineCacheStore,
+  createOfflineCache,
+  pipeEffects,
+} from '../../../src/lib/offline-cache';
 
 // ============================================================================
 // 🧠 БАЗОВЫЕ ТИПЫ И HELPER'Ы

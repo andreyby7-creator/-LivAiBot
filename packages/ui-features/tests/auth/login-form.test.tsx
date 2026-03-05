@@ -3,11 +3,13 @@
  * @file Тесты для LoginForm компонента
  */
 
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import React from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
-import '@testing-library/jest-dom/vitest';
+
 import { LoginForm } from '../../src/auth/login-form';
+
+import '@testing-library/jest-dom/vitest';
 
 // Mock для telemetry
 vi.mock('../../../../packages/app/src/lib/telemetry', () => ({

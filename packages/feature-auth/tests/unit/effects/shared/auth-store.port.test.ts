@@ -18,19 +18,19 @@
 
 import { describe, expect, it } from 'vitest';
 
+import type { BatchUpdate } from '../../../../src/effects/shared/auth-store.port.js';
 import {
   createAuthStorePortAdapter,
   isBatchUpdateOfType,
   withStoreLock,
 } from '../../../../src/effects/shared/auth-store.port.js';
+import type { AuthStore } from '../../../../src/stores/auth.js';
 import type {
   AuthEvent,
   AuthState,
   SecurityState,
   SessionState,
 } from '../../../../src/types/auth.js';
-import type { AuthStore } from '../../../../src/stores/auth.js';
-import type { BatchUpdate } from '../../../../src/effects/shared/auth-store.port.js';
 
 // ============================================================================
 // 🔧 HELPERS

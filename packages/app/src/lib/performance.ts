@@ -29,8 +29,8 @@ import { randomUUID } from 'crypto';
 import { Effect as EffectLib } from 'effect';
 import React from 'react';
 
-import { errorFireAndForget, infoFireAndForget, warnFireAndForget } from './telemetry-runtime.js';
 import type { JsonObject } from '../types/common.js';
+import { errorFireAndForget, infoFireAndForget, warnFireAndForget } from './telemetry-runtime.js';
 
 /* ============================================================================
  * 🔢 КОНСТАНТЫ КОНФИГУРАЦИИ

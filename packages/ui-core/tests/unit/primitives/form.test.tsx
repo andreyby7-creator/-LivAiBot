@@ -3,11 +3,13 @@
  * @file Unit тесты для Form компонента
  */
 
+import { cleanup, fireEvent, render, within } from '@testing-library/react';
 import React from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { cleanup, fireEvent, render, within } from '@testing-library/react';
+
+import { Form } from '@livai/ui-core';
+
 import '@testing-library/jest-dom/vitest';
-import { Form } from '../../../src/primitives/form.js';
 
 // Полная очистка DOM между тестами
 afterEach(cleanup);

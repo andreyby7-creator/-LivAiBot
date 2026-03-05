@@ -3,44 +3,49 @@
  * @file Тесты для Tooltip компонента с полным покрытием
  */
 
+import { cleanup, render, screen } from '@testing-library/react';
 import React from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { cleanup, render, screen } from '@testing-library/react';
+
 import '@testing-library/jest-dom/vitest';
 
 // Mock для Core Tooltip - возвращаем простой div, но фильтруем внутренние пропсы
-vi.mock('../../../../ui-core/src/primitives/tooltip', () => ({
-  Tooltip: ({
-    'data-testid': testId,
-    visible,
-    placement,
-    content,
-    trigger,
-    style,
-    className,
-    ...props
-  }: Readonly<{
-    'data-testid'?: string;
-    visible?: boolean;
-    placement?: string;
-    content?: string;
-    trigger?: string;
-    style?: import('react').CSSProperties;
-    className?: string;
-    [key: string]: unknown;
-  }>) => (
-    <div
-      data-testid={testId ?? 'core-tooltip'}
-      data-visible={visible}
-      data-placement={placement}
-      data-content={content}
-      data-trigger={trigger}
-      style={style}
-      className={className}
-      {...props}
-    />
-  ),
-}));
+vi.mock('@livai/ui-core', async () => {
+  const actual = await vi.importActual('@livai/ui-core');
+  return {
+    ...actual,
+    Tooltip: ({
+      'data-testid': testId,
+      visible,
+      placement,
+      content,
+      trigger,
+      style,
+      className,
+      ...props
+    }: Readonly<{
+      'data-testid'?: string;
+      visible?: boolean;
+      placement?: string;
+      content?: string;
+      trigger?: string;
+      style?: import('react').CSSProperties;
+      className?: string;
+      [key: string]: unknown;
+    }>) => (
+      <div
+        data-testid={testId ?? 'core-tooltip'}
+        data-visible={visible}
+        data-placement={placement}
+        data-content={content}
+        data-trigger={trigger}
+        style={style}
+        className={className}
+        {...props}
+      />
+    ),
+  };
+});
 
 // Mock для UnifiedUIProvider
 let mockFeatureFlagReturnValue = false;

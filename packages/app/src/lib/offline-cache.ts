@@ -25,7 +25,8 @@
 
 import { EventEmitter } from 'events';
 
-import type { Effect } from './effect-utils.js';
+import type { Effect } from '@livai/core/effect';
+
 import { errorFireAndForget, warnFireAndForget } from './telemetry-runtime.js';
 
 /* ============================================================================

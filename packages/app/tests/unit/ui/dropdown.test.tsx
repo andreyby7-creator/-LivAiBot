@@ -3,115 +3,121 @@
  * @file Тесты для App Dropdown компонента с полным покрытием
  */
 
+import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import React from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { cleanup, fireEvent, render, screen } from '@testing-library/react';
-import '@testing-library/jest-dom/vitest';
+
 import type { DropdownItem } from '@livai/ui-core';
 
+import '@testing-library/jest-dom/vitest';
+
 // Mock для Core Dropdown
-vi.mock('../../../../ui-core/src/primitives/dropdown', () => ({
-  Dropdown: React.forwardRef<
-    HTMLDivElement,
-    Readonly<Record<string, unknown>>
-  >((
-    props: Readonly<Record<string, unknown>>,
-    ref,
-  ) => {
-    const {
-      items,
-      trigger,
-      isOpen,
-      onToggle,
-      onSelect,
-      onClose,
-      placement,
-      'data-component': dataComponent,
-      'data-state': dataState,
-      'data-feature-flag': dataFeatureFlag,
-      'data-telemetry': dataTelemetry,
-      'data-placement': dataPlacement,
-      'data-component-id': dataComponentId,
-      'data-testid': testId,
-      className,
-      style,
-      ...rest
-    } = props;
+vi.mock('@livai/ui-core', async () => {
+  const actual = await vi.importActual('@livai/ui-core');
+  return {
+    ...actual,
+    Dropdown: React.forwardRef<
+      HTMLDivElement,
+      Readonly<Record<string, unknown>>
+    >((
+      props: Readonly<Record<string, unknown>>,
+      ref,
+    ) => {
+      const {
+        items,
+        trigger,
+        isOpen,
+        onToggle,
+        onSelect,
+        onClose,
+        placement,
+        'data-component': dataComponent,
+        'data-state': dataState,
+        'data-feature-flag': dataFeatureFlag,
+        'data-telemetry': dataTelemetry,
+        'data-placement': dataPlacement,
+        'data-component-id': dataComponentId,
+        'data-testid': testId,
+        className,
+        style,
+        ...rest
+      } = props;
 
-    const itemsArray = items as readonly DropdownItem[] | undefined;
-    const triggerContent = trigger as React.ReactNode;
+      const itemsArray = items as readonly DropdownItem[] | undefined;
+      const triggerContent = trigger as React.ReactNode;
 
-    return (
-      <div
-        ref={ref}
-        data-testid={testId ?? 'core-dropdown'}
-        data-component={dataComponent}
-        data-state={dataState}
-        data-feature-flag={dataFeatureFlag}
-        data-telemetry={dataTelemetry}
-        data-placement={dataPlacement}
-        data-component-id={dataComponentId}
-        data-is-open={isOpen}
-        data-placement-prop={placement}
-        className={className as string | undefined}
-        style={style as React.CSSProperties | undefined}
-        {...rest}
-      >
-        <button
-          type='button'
-          data-testid='trigger-button'
-          onClick={(e) => {
-            if (typeof onToggle === 'function') {
-              const currentIsOpen = Boolean(isOpen);
-              onToggle(!currentIsOpen, e);
-            }
-          }}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
+      return (
+        <div
+          ref={ref}
+          data-testid={testId ?? 'core-dropdown'}
+          data-component={dataComponent}
+          data-state={dataState}
+          data-feature-flag={dataFeatureFlag}
+          data-telemetry={dataTelemetry}
+          data-placement={dataPlacement}
+          data-component-id={dataComponentId}
+          data-is-open={isOpen}
+          data-placement-prop={placement}
+          className={className as string | undefined}
+          style={style as React.CSSProperties | undefined}
+          {...rest}
+        >
+          <button
+            type='button'
+            data-testid='trigger-button'
+            onClick={(e) => {
               if (typeof onToggle === 'function') {
                 const currentIsOpen = Boolean(isOpen);
                 onToggle(!currentIsOpen, e);
               }
-            }
-          }}
-        >
-          {triggerContent}
-        </button>
-        {Boolean(isOpen) && itemsArray !== undefined && (
-          <ul data-testid='menu' role='menu'>
-            {itemsArray.map((item) => (
-              <li
-                key={item.id}
-                role='menuitem'
-                data-testid={`menu-item-${item.id}`}
-                onClick={(e) => {
-                  if (typeof onSelect === 'function') {
-                    onSelect(item.id, e);
-                  }
-                  if (typeof onClose === 'function') {
-                    onClose();
-                  }
-                }}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
+            }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                if (typeof onToggle === 'function') {
+                  const currentIsOpen = Boolean(isOpen);
+                  onToggle(!currentIsOpen, e);
+                }
+              }
+            }}
+          >
+            {triggerContent}
+          </button>
+          {Boolean(isOpen) && itemsArray !== undefined && (
+            <ul data-testid='menu' role='menu'>
+              {itemsArray.map((item) => (
+                <li
+                  key={item.id}
+                  role='menuitem'
+                  data-testid={`menu-item-${item.id}`}
+                  onClick={(e) => {
                     if (typeof onSelect === 'function') {
                       onSelect(item.id, e);
                     }
                     if (typeof onClose === 'function') {
                       onClose();
                     }
-                  }
-                }}
-              >
-                {item.label}
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
-    );
-  }),
-}));
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      if (typeof onSelect === 'function') {
+                        onSelect(item.id, e);
+                      }
+                      if (typeof onClose === 'function') {
+                        onClose();
+                      }
+                    }
+                  }}
+                >
+                  {item.label}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      );
+    }),
+  };
+});
 
 // Mock для UnifiedUIProvider
 const mockInfoFireAndForget = vi.fn();

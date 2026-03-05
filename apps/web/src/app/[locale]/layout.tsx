@@ -4,6 +4,7 @@ import { getTranslations, setRequestLocale } from 'next-intl/server';
 import type { JSX, ReactNode } from 'react';
 
 import { locales } from '../../../next-intl.config.js';
+
 import '../globals.css';
 
 /**

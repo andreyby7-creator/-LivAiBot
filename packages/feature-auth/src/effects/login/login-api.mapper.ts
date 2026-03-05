@@ -19,8 +19,8 @@ import type { DomainLoginResult } from '../../domain/LoginResult.js';
 import type { MfaChallengeRequest, MfaType } from '../../domain/MfaChallengeRequest.js';
 import type { MfaInfo } from '../../domain/MfaInfo.js';
 import type { LoginRequestValues, MfaChallengeRequestValues } from '../../schemas/index.js';
-import { assertNever } from '../../types/login.dto.js';
 import type { LoginResponseDto } from '../../types/login.dto.js';
+import { assertNever } from '../../types/login.dto.js';
 import {
   mapMeResponseValuesToDomain,
   mapTokenPairValuesToDomain,

@@ -17,11 +17,9 @@
 
 'use client';
 
-import React, { memo, useMemo } from 'react';
 import type { JSX, PropsWithChildren } from 'react';
+import React, { memo, useMemo } from 'react';
 
-import { useFeatureFlags } from './FeatureFlagsProvider.js';
-import { useTelemetryContext } from './TelemetryProvider.js';
 import { useFeatureFlagOverride } from '../lib/feature-flags.js';
 import { formatDateLocalized, isRtlLocale, setDayjsLocale, t, useI18n } from '../lib/i18n.js';
 import {
@@ -31,6 +29,8 @@ import {
 } from '../lib/telemetry-runtime.js';
 import type { TelemetryMetadata, TelemetryPrimitive } from '../types/telemetry.js';
 import type { UiFeatureFlagsApi, UiI18nContext, UiTelemetryApi } from '../types/ui-contracts.js';
+import { useFeatureFlags } from './FeatureFlagsProvider.js';
+import { useTelemetryContext } from './TelemetryProvider.js';
 
 /**
  * Преобразует Record<string, unknown> в TelemetryMetadata, конвертируя объекты и массивы в строки.

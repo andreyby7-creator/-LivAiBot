@@ -3,11 +3,12 @@
  * Полное покрытие всех методов и веток исполнения
  */
 import { describe, expect, it } from 'vitest';
-import { evaluator, evaluatorAlgebra } from '../../src/rule-engine/evaluator.js';
+
 import type { EvaluationConfig } from '../../src/rule-engine/evaluator.js';
-import { rule } from '../../src/rule-engine/rule.js';
-import type { Rule, RuleFailureReason } from '../../src/rule-engine/rule.js';
+import { evaluator, evaluatorAlgebra } from '../../src/rule-engine/evaluator.js';
 import type { Predicate } from '../../src/rule-engine/predicate.js';
+import type { Rule, RuleFailureReason } from '../../src/rule-engine/rule.js';
+import { rule } from '../../src/rule-engine/rule.js';
 
 /* ============================================================================
  * 🔧 HELPER FUNCTIONS FOR TEST DATA

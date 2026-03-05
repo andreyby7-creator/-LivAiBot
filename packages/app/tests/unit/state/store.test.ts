@@ -31,6 +31,14 @@ const createStorageMock = () => {
 };
 
 // Import everything
+import type {
+  AppStore,
+  AppStoreActions,
+  AppStoreState,
+  AppUser,
+  ThemeMode,
+  UserStatus,
+} from '../../../src/state/store';
 import {
   appStoreDerivedSelectors,
   appStoreSelectors,
@@ -41,14 +49,6 @@ import {
   storeMerge,
   storePartialize,
   useAppStore,
-} from '../../../src/state/store';
-import type {
-  AppStore,
-  AppStoreActions,
-  AppStoreState,
-  AppUser,
-  ThemeMode,
-  UserStatus,
 } from '../../../src/state/store';
 
 // ============================================================================

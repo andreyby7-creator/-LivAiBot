@@ -4,6 +4,7 @@
  */
 
 import { describe, expect, it } from 'vitest';
+
 import type { MfaBackupCodeRequest } from '../../../src/domain/MfaBackupCodeRequest.js';
 import type { MfaChallengeRequest, MfaType } from '../../../src/domain/MfaChallengeRequest.js';
 import type {

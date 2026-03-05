@@ -1,5 +1,6 @@
 /**
  * @file @livai/core-contracts/errors — HTTP Error Types & Codes
+ *
  * Публичный API пакета errors.
  * Экспортирует все публичные компоненты, типы и константы для типов ошибок HTTP API.
  */

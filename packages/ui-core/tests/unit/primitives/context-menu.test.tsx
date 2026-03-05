@@ -3,12 +3,14 @@
  * @file Unit тесты для ContextMenu компонента
  */
 
+import { cleanup, fireEvent, render, waitFor, within } from '@testing-library/react';
 import React from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { cleanup, fireEvent, render, waitFor, within } from '@testing-library/react';
+
+import type { ContextMenuItem, ContextMenuRef } from '@livai/ui-core';
+import { ContextMenu } from '@livai/ui-core';
+
 import '@testing-library/jest-dom/vitest';
-import { ContextMenu } from '../../../src/primitives/context-menu.js';
-import type { ContextMenuItem, ContextMenuRef } from '../../../src/primitives/context-menu.js';
 
 // Полная очистка DOM между тестами
 afterEach(cleanup);

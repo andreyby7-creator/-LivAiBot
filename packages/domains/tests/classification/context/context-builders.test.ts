@@ -3,20 +3,21 @@
  * Полное покрытие всех функций и edge cases
  */
 import { describe, expect, it } from 'vitest';
+
+import type { ClassificationSlotMap } from '../../../src/classification/context/context-builders.js';
 import {
   buildAssessmentContext,
   buildRuleContext,
   buildScoringContext,
 } from '../../../src/classification/context/context-builders.js';
-import type { ClassificationSlotMap } from '../../../src/classification/context/context-builders.js';
-import type { ClassificationRulesConfig } from '../../../src/classification/strategies/config.js';
-import { getClassificationRulesConfig } from '../../../src/classification/strategies/config.js';
-import type { ClassificationLabelValue } from '../../../src/classification/labels.js';
 import type { RuleEvaluationSnapshot } from '../../../src/classification/evaluation/assessment.js';
+import type { ClassificationLabelValue } from '../../../src/classification/labels.js';
 import {
   classificationContext,
   classificationSignals,
 } from '../../../src/classification/signals/signals.js';
+import type { ClassificationRulesConfig } from '../../../src/classification/strategies/config.js';
+import { getClassificationRulesConfig } from '../../../src/classification/strategies/config.js';
 
 /* ============================================================================
  * 🔧 HELPER FUNCTIONS FOR TEST DATA

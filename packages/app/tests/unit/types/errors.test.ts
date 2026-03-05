@@ -9,7 +9,9 @@
  */
 
 import { describe, expect, it, vi } from 'vitest';
-import { createServerError, handleError } from '../../../src/types/errors.js';
+
+import type { ApiError } from '../../../src/types/api.js';
+import type { ISODateString, Json, Platform } from '../../../src/types/common.js';
 import type {
   AppError,
   ClientError,
@@ -22,8 +24,7 @@ import type {
   UnknownError,
   ValidationError,
 } from '../../../src/types/errors.js';
-import type { ApiError } from '../../../src/types/api.js';
-import type { ISODateString, Json, Platform } from '../../../src/types/common.js';
+import { createServerError, handleError } from '../../../src/types/errors.js';
 
 // Helper функция для создания ISODateString в тестах
 function createISODateString(date: string): ISODateString {

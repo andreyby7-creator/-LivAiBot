@@ -4,6 +4,7 @@
  */
 
 import { describe, expect, it } from 'vitest';
+
 import type { DeviceInfo, DeviceType } from '../../../src/domain/DeviceInfo.js';
 import { deviceInfoSchema } from '../../../src/schemas/index.js';
 

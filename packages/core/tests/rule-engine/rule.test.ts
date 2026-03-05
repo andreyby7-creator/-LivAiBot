@@ -3,14 +3,15 @@
  * Полное покрытие всех методов и веток исполнения
  */
 import { describe, expect, it } from 'vitest';
-import { rule, ruleAlgebra } from '../../src/rule-engine/rule.js';
+
+import type { Predicate } from '../../src/rule-engine/predicate.js';
 import type {
   Rule,
   RuleConfig,
   RuleFailureReason,
   RuleOperation,
 } from '../../src/rule-engine/rule.js';
-import type { Predicate } from '../../src/rule-engine/predicate.js';
+import { rule, ruleAlgebra } from '../../src/rule-engine/rule.js';
 
 /* ============================================================================
  * 🔧 HELPER FUNCTIONS FOR TEST DATA

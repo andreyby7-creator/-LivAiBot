@@ -15,9 +15,18 @@
  * - Максимальная композиционность
  */
 
+import type { FileValidationResult } from '@livai/core-contracts';
+
 import type { ServiceErrorCode, ServicePrefix, TaggedError } from './error-mapping.js';
-import { errorFireAndForget, warnFireAndForget } from './telemetry-runtime.js';
-import type { FileValidationResult } from '../types/api.js';
+
+// В core-слое нет прямой зависимости от telemetry-runtime, поэтому используем no-op logger.
+function warnFireAndForget(_message: string, _data?: Record<string, unknown>): void {
+  // no-op
+}
+
+function errorFireAndForget(_message: string, _data?: Record<string, unknown>): void {
+  // no-op
+}
 
 /* ============================================================================
  * 🎭 PUBLIC API
@@ -410,7 +419,7 @@ export function validateForm(
       schemaType: typeof schema,
       ...(context?.service && { service: context.service }),
     });
-    return ok(data);
+    return ok<Record<string, unknown>>(data);
   }
 
   // Вызываем валидацию через validateObject

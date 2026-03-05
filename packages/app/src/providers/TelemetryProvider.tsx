@@ -16,16 +16,16 @@
 
 'use client';
 
-import React, { memo, useCallback, useEffect, useMemo, useRef } from 'react';
 import type { JSX, PropsWithChildren } from 'react';
+import React, { memo, useCallback, useEffect, useMemo, useRef } from 'react';
 
+import type { TelemetryClient } from '../lib/telemetry.js';
 import {
   fireAndForget,
   getGlobalTelemetryClient,
   initTelemetry,
   isTelemetryInitialized,
 } from '../lib/telemetry-runtime.js';
-import type { TelemetryClient } from '../lib/telemetry.js';
 import type { TelemetryConfig, TelemetryMetadata } from '../types/telemetry.js';
 import type { UiMetrics } from '../types/ui-contracts.js';
 

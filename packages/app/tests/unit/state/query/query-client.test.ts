@@ -25,9 +25,8 @@ vi.mock('../../../src/lib/telemetry-runtime', () => ({
 }));
 
 // Import after mocking
-import { createQueryClient, queryClient } from '../../../../src/state/query/query-client';
-
 import type { AppQueryClientOptions } from '../../../../src/state/query/query-client';
+import { createQueryClient, queryClient } from '../../../../src/state/query/query-client';
 
 /* ============================================================================
  * 🧱 HELPER ФУНКЦИИ И MOCKS

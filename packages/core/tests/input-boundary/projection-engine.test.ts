@@ -3,6 +3,7 @@
  * Полное покрытие всех методов и веток исполнения (100%)
  */
 import { describe, expect, it } from 'vitest';
+
 import type { JsonObject, JsonValue } from '../../src/input-boundary/generic-validation.js';
 import type {
   DtoSchema,

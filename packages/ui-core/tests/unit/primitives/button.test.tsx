@@ -3,11 +3,13 @@
  * @file Unit тесты для Button компонента
  */
 
+import { cleanup, render, within } from '@testing-library/react';
 import React from 'react';
 import { afterEach, describe, expect, it } from 'vitest';
-import { cleanup, render, within } from '@testing-library/react';
+
+import { Button } from '@livai/ui-core';
+
 import '@testing-library/jest-dom/vitest';
-import { Button } from '../../../src/primitives/button.js';
 
 // Полная очистка DOM между тестами
 afterEach(cleanup);

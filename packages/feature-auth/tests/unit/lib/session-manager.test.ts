@@ -9,8 +9,8 @@ import type { AuthPolicyConfig } from '@livai/core';
 import type { UnixTimestampMs } from '@livai/core-contracts';
 
 import type { SessionPolicy } from '../../../src/domain/SessionPolicy.js';
-import type { SessionState } from '../../../src/types/auth.js';
 import { SessionManager } from '../../../src/lib/session-manager.js';
+import type { SessionState } from '../../../src/types/auth.js';
 
 // ============================================================================
 // 🔧 HELPER FUNCTIONS FOR TEST DATA

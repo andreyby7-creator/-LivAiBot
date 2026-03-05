@@ -3,63 +3,68 @@
  * @file Тесты для App StatusIndicator компонента с полным покрытием
  */
 
+import { cleanup, render, screen } from '@testing-library/react';
 import React from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { cleanup, render, screen } from '@testing-library/react';
+
 import '@testing-library/jest-dom/vitest';
 
 // Mock для Core StatusIndicator
-vi.mock('../../../../ui-core/src/primitives/status-indicator', () => ({
-  StatusIndicator: React.forwardRef<
-    HTMLSpanElement,
-    Readonly<Record<string, unknown>>
-  >((
-    props: Readonly<Record<string, unknown>>,
-    ref,
-  ) => {
-    const {
-      status,
-      variant,
-      size,
-      color,
-      text,
-      'data-component': dataComponent,
-      'data-state': dataState,
-      'data-feature-flag': dataFeatureFlag,
-      'data-telemetry': dataTelemetry,
-      'data-variant': dataVariant,
-      'data-size': dataSize,
-      'data-testid': testId,
-      className,
-      style,
-      ...rest
-    } = props;
+vi.mock('@livai/ui-core', async () => {
+  const actual = await vi.importActual('@livai/ui-core');
+  return {
+    ...actual,
+    StatusIndicator: React.forwardRef<
+      HTMLSpanElement,
+      Readonly<Record<string, unknown>>
+    >((
+      props: Readonly<Record<string, unknown>>,
+      ref,
+    ) => {
+      const {
+        status,
+        variant,
+        size,
+        color,
+        text,
+        'data-component': dataComponent,
+        'data-state': dataState,
+        'data-feature-flag': dataFeatureFlag,
+        'data-telemetry': dataTelemetry,
+        'data-variant': dataVariant,
+        'data-size': dataSize,
+        'data-testid': testId,
+        className,
+        style,
+        ...rest
+      } = props;
 
-    return (
-      <span
-        ref={ref}
-        data-testid={testId ?? 'core-status-indicator'}
-        data-component={dataComponent}
-        data-state={dataState}
-        data-feature-flag={dataFeatureFlag}
-        data-telemetry={dataTelemetry}
-        data-variant={dataVariant}
-        data-size={dataSize}
-        data-status-prop={status}
-        data-variant-prop={variant}
-        data-size-prop={size}
-        data-color-prop={color}
-        data-text-prop={text}
-        aria-label={`Status: ${status}`}
-        className={className as string | undefined}
-        style={style as React.CSSProperties | undefined}
-        {...rest}
-      >
-        Status Indicator
-      </span>
-    );
-  }),
-}));
+      return (
+        <span
+          ref={ref}
+          data-testid={testId ?? 'core-status-indicator'}
+          data-component={dataComponent}
+          data-state={dataState}
+          data-feature-flag={dataFeatureFlag}
+          data-telemetry={dataTelemetry}
+          data-variant={dataVariant}
+          data-size={dataSize}
+          data-status-prop={status}
+          data-variant-prop={variant}
+          data-size-prop={size}
+          data-color-prop={color}
+          data-text-prop={text}
+          aria-label={`Status: ${status}`}
+          className={className as string | undefined}
+          style={style as React.CSSProperties | undefined}
+          {...rest}
+        >
+          Status Indicator
+        </span>
+      );
+    }),
+  };
+});
 
 // Mock для UnifiedUIProvider
 const mockInfoFireAndForget = vi.fn();

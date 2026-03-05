@@ -6,11 +6,11 @@
 
 **ESLint 10 будет установлен когда для плагинов будут обновления для совместимости:**
 
-**❌ Еще не готовы:**
+**❌ Еще не готовы (ESLint 10):**
 
-- `eslint-plugin-import` (2.32.0): Проверка импортов и зависимостей | ❌ До ESLint 9 | ❌ Нет встроенной замены
-- `eslint-plugin-eslint-comments` (3.2.0): Контроль ESLint-директив (`// eslint-disable`) | ❌ `context.getSourceCode()` удален | ❌ Нет встроенной замены
-- `eslint-plugin-no-secrets` (2.2.2): Обнаружение секретов в коде (API ключи, токены) | ❌ `context.getSourceCode()` удален | ❌ Нет встроенной замены
+- `eslint-plugin-import` (2.32.0): Импорт-правила (`import/no-unresolved`, `import/no-cycle`, `import/no-default-export`, и др.) | ❌ Помечен в `eslint.config.mjs` как несовместимый с ESLint 10.0.0 | Требуется обновление под новую архитектуру ESLint
+- `eslint-plugin-eslint-comments` (3.2.0): Контроль ESLint-директив (`// eslint-disable`) | ❌ Использует удалённый `context.getSourceCode()` | ❌ Нет встроенной замены
+- `eslint-plugin-no-secrets` (2.2.2): Обнаружение секретов в коде (API ключи, токены) | ❌ Использует удалённый `context.getSourceCode()` | ❌ Нет встроенной замены
 
 ✅ УСТАНОВЛЕН
 ❌ НЕ УСТАНОВЛЕН
@@ -30,7 +30,8 @@
 
 ### Импорты и модули
 
-`eslint-plugin-import` | Импорты и зависимости | ✅
+`eslint-plugin-import` | Проверка импортов, циклов, default-экспортов и модульной структуры | ✅
+`eslint-plugin-simple-import-sort` | Детерминированная сортировка импортов/экспортов (node → external → internal → local) | ✅
 
 ### Качество кода
 

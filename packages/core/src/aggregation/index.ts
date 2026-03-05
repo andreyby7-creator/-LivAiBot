@@ -22,20 +22,18 @@ export {
   type WeightedValue,
   type WeightValidationConfig,
 } from './reducer.js';
-
-export {
-  type NormalizationConfig,
-  type WeightFailureReason,
-  type WeightOperation,
-  type WeightResult,
-} from './weight.js';
-
 export {
   type ScoreFailureReason,
   type ScoreOperation,
   type ScoreResult,
   type ScoringConfig,
 } from './scoring.js';
+export {
+  type NormalizationConfig,
+  type WeightFailureReason,
+  type WeightOperation,
+  type WeightResult,
+} from './weight.js';
 
 /* ============================================================================
  * 🔢 REDUCER — GENERIC REDUCTION FUNCTIONS

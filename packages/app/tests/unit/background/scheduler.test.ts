@@ -14,15 +14,16 @@
  * - Error handling и resilience
  */
 
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { Effect, Ref, Runtime } from 'effect';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+
+import type { BackgroundTask, QueueItem, SchedulerDI } from '../../../src/background/scheduler';
 import {
   getGlobalScheduler,
   MeldablePriorityQueue,
   Scheduler,
   scheduler,
 } from '../../../src/background/scheduler';
-import type { BackgroundTask, QueueItem, SchedulerDI } from '../../../src/background/scheduler';
 import { AppEventType } from '../../../src/events/app-events.js';
 
 // Mock telemetry before any other imports

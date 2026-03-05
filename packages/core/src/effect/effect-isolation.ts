@@ -63,10 +63,10 @@ export class IsolationError extends Error {
 /**
  * Опции для изоляции эффекта.
  */
-export type IsolationOptions = {
+export interface IsolationOptions {
   /** Опциональный тег для идентификации изоляции в логах и телеметрии */
   readonly tag?: string | undefined;
-};
+}
 
 /* ============================================================================
  * 🔧 УТИЛИТЫ

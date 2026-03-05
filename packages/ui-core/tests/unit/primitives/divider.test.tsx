@@ -3,11 +3,13 @@
  * @file Unit тесты для Divider компонента
  */
 
+import { cleanup, render, within } from '@testing-library/react';
 import React from 'react';
 import { afterEach, describe, expect, it } from 'vitest';
-import { cleanup, render, within } from '@testing-library/react';
+
+import { Divider } from '@livai/ui-core';
+
 import '@testing-library/jest-dom/vitest';
-import { Divider } from '../../../src/primitives/divider.js';
 
 // Полная очистка DOM между тестами
 afterEach(cleanup);

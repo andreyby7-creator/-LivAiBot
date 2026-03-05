@@ -19,10 +19,11 @@
  * - CoreSupportButton остается полностью presentational
  */
 
-import { SupportButton as CoreSupportButton } from '@livai/ui-core';
-import type { CoreSupportButtonProps, SupportButtonVariant } from '@livai/ui-core';
-import { forwardRef, memo, useCallback, useEffect, useMemo } from 'react';
 import type { JSX, MouseEvent, Ref } from 'react';
+import { forwardRef, memo, useCallback, useEffect, useMemo } from 'react';
+
+import type { CoreSupportButtonProps, SupportButtonVariant } from '@livai/ui-core';
+import { SupportButton as CoreSupportButton } from '@livai/ui-core';
 
 import type { Namespace, TranslationKey } from '../lib/i18n.js';
 import { useUnifiedUI } from '../providers/UnifiedUIProvider.js';

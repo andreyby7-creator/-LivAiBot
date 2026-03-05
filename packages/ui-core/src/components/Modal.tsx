@@ -16,8 +16,8 @@
  * - Видимостью и поведением управляет App-слой
  */
 
-import { forwardRef, memo, useMemo } from 'react';
 import type { CSSProperties, HTMLAttributes, JSX, ReactNode, Ref } from 'react';
+import { forwardRef, memo, useMemo } from 'react';
 
 import type { UIDuration, UISemanticStatus, UISize } from '../types/ui.js';
 

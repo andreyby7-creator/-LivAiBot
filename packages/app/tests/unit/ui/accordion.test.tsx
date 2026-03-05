@@ -3,88 +3,93 @@
  * @file Тесты для App Accordion компонента с полным покрытием
  */
 
+import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import React from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+
 import '@testing-library/jest-dom/vitest';
 
 // Mock для Core Accordion - возвращаем простой div с кнопками
-vi.mock('../../../../ui-core/src/components/Accordion', () => ({
-  Accordion: React.forwardRef<
-    HTMLDivElement,
-    Readonly<Record<string, unknown>>
-  >((
-    props: Readonly<Record<string, unknown>>,
-    ref,
-  ) => {
-    const {
-      items = [],
-      openItemId,
-      openItemIds,
-      onChange,
-      mode,
-      'data-component': dataComponent,
-      'data-state': dataState,
-      'data-feature-flag': dataFeatureFlag,
-      'data-telemetry': dataTelemetry,
-      'data-testid': testId,
-      ...rest
-    } = props;
+vi.mock('@livai/ui-core', async () => {
+  const actual = await vi.importActual('@livai/ui-core');
+  return {
+    ...actual,
+    Accordion: React.forwardRef<
+      HTMLDivElement,
+      Readonly<Record<string, unknown>>
+    >((
+      props: Readonly<Record<string, unknown>>,
+      ref,
+    ) => {
+      const {
+        items = [],
+        openItemId,
+        openItemIds,
+        onChange,
+        mode,
+        'data-component': dataComponent,
+        'data-state': dataState,
+        'data-feature-flag': dataFeatureFlag,
+        'data-telemetry': dataTelemetry,
+        'data-testid': testId,
+        ...rest
+      } = props;
 
-    const itemsArray = items as readonly Readonly<{
-      id: string;
-      header: string;
-      content: React.ReactNode;
-      disabled?: boolean;
-    }>[];
+      const itemsArray = items as readonly Readonly<{
+        id: string;
+        header: string;
+        content: React.ReactNode;
+        disabled?: boolean;
+      }>[];
 
-    const openIdsSet = new Set<string>();
-    if (mode === 'single' && typeof openItemId === 'string') {
-      openIdsSet.add(openItemId);
-    } else if (mode === 'multiple' && Array.isArray(openItemIds)) {
-      for (const id of openItemIds) {
-        if (typeof id === 'string') {
-          openIdsSet.add(id);
+      const openIdsSet = new Set<string>();
+      if (mode === 'single' && typeof openItemId === 'string') {
+        openIdsSet.add(openItemId);
+      } else if (mode === 'multiple' && Array.isArray(openItemIds)) {
+        for (const id of openItemIds) {
+          if (typeof id === 'string') {
+            openIdsSet.add(id);
+          }
         }
       }
-    }
 
-    return (
-      <div
-        ref={ref}
-        data-testid={testId ?? 'core-accordion'}
-        data-component={dataComponent}
-        data-state={dataState}
-        data-feature-flag={dataFeatureFlag}
-        data-telemetry={dataTelemetry}
-        data-mode={mode}
-        {...rest}
-      >
-        {itemsArray.map((item) => {
-          const isOpen = openIdsSet.has(item.id);
-          return (
-            <div key={item.id} data-accordion-item={item.id}>
-              <button
-                type='button'
-                data-accordion-item-id={item.id}
-                disabled={item.disabled}
-                aria-expanded={isOpen}
-                onClick={(e) => {
-                  if (typeof onChange === 'function' && item.disabled !== true) {
-                    onChange(item.id, e as React.MouseEvent<HTMLButtonElement>);
-                  }
-                }}
-              >
-                {item.header}
-              </button>
-              {isOpen && <div data-accordion-panel={item.id}>{item.content}</div>}
-            </div>
-          );
-        })}
-      </div>
-    );
-  }),
-}));
+      return (
+        <div
+          ref={ref}
+          data-testid={testId ?? 'core-accordion'}
+          data-component={dataComponent}
+          data-state={dataState}
+          data-feature-flag={dataFeatureFlag}
+          data-telemetry={dataTelemetry}
+          data-mode={mode}
+          {...rest}
+        >
+          {itemsArray.map((item) => {
+            const isOpen = openIdsSet.has(item.id);
+            return (
+              <div key={item.id} data-accordion-item={item.id}>
+                <button
+                  type='button'
+                  data-accordion-item-id={item.id}
+                  disabled={item.disabled}
+                  aria-expanded={isOpen}
+                  onClick={(e) => {
+                    if (typeof onChange === 'function' && item.disabled !== true) {
+                      onChange(item.id, e as React.MouseEvent<HTMLButtonElement>);
+                    }
+                  }}
+                >
+                  {item.header}
+                </button>
+                {isOpen && <div data-accordion-panel={item.id}>{item.content}</div>}
+              </div>
+            );
+          })}
+        </div>
+      );
+    }),
+  };
+});
 
 // Mock для UnifiedUIProvider
 const mockInfoFireAndForget = vi.fn();

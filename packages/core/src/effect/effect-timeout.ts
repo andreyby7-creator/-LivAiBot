@@ -37,13 +37,13 @@ const DEFAULT_MAX_TIMEOUT_MS = 300_000; // 5 минут
 /**
  * Конфигурация timeout для Effect.
  */
-export type TimeoutOptions = {
+export interface TimeoutOptions {
   /** Timeout в миллисекундах */
   readonly timeoutMs: number;
 
   /** Опциональный тег для идентификации timeout в логах и телеметрии */
   readonly tag?: string | undefined;
-};
+}
 
 /**
  * Расширенный EffectContext с метаданными timeout.

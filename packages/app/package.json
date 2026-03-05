@@ -11,9 +11,7 @@
     "url": "https://github.com/livai/livai/issues"
   },
   "homepage": "https://github.com/livai/livai/tree/main/packages/app#readme",
-  "main": "./dist/esm/index.js",
-  "module": "./dist/esm/index.js",
-  "types": "./dist/esm/index.d.ts",
+  "types": "./dist/index.d.ts",
   "sideEffects": false,
   "license": "MIT",
   "type": "module",
@@ -26,49 +24,30 @@
   ],
   "exports": {
     ".": {
-      "types": "./src/index.ts",
-      "import": "./src/index.ts"
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
     },
-    "./lib/error-mapping.js": {
-      "types": "./src/lib/error-mapping.ts",
-      "import": "./src/lib/error-mapping.ts"
+    "./lib/service-worker": {
+      "types": "./dist/lib/service-worker.d.ts",
+      "import": "./dist/lib/service-worker.js",
+      "default": "./dist/lib/service-worker.js"
     },
-    "./lib/effect-utils.js": {
-      "types": "./src/lib/effect-utils.ts",
-      "import": "./src/lib/effect-utils.ts"
+    "./lib/telemetry-runtime": {
+      "types": "./dist/lib/telemetry-runtime.d.ts",
+      "import": "./dist/lib/telemetry-runtime.js",
+      "default": "./dist/lib/telemetry-runtime.js"
     },
-    "./lib/orchestrator.js": {
-      "types": "./src/lib/orchestrator.ts",
-      "import": "./src/lib/orchestrator.ts"
-    },
-    "./lib/schema-validated-effect.js": {
-      "types": "./src/lib/schema-validated-effect.ts",
-      "import": "./src/lib/schema-validated-effect.ts"
-    },
-    "./lib/effect-timeout.js": {
-      "types": "./src/lib/effect-timeout.ts",
-      "import": "./src/lib/effect-timeout.ts"
-    },
-    "./lib/service-worker.js": {
-      "types": "./src/lib/service-worker.ts",
-      "import": "./src/lib/service-worker.ts"
-    },
-    "./lib/telemetry-runtime.js": {
-      "types": "./src/lib/telemetry-runtime.ts",
-      "import": "./src/lib/telemetry-runtime.ts"
-    },
-    "./providers/intl-provider.js": {
-      "types": "./src/providers/intl-provider.tsx",
-      "import": "./src/providers/intl-provider.tsx"
-    },
-    "./hooks/useAuth.js": {
-      "types": "./src/hooks/useAuth-provider.tsx",
-      "import": "./src/hooks/useAuth-provider.tsx"
+    "./providers/intl-provider": {
+      "types": "./dist/providers/intl-provider.d.ts",
+      "import": "./dist/providers/intl-provider.js",
+      "default": "./dist/providers/intl-provider.js"
     }
   },
   "scripts": {
-    "build": "tsup",
+    "build": "pnpm run build:types && pnpm run build:js",
     "build:types": "tsc -b tsconfig.build.json",
+    "build:js": "tsup",
     "build:dev": "tsup --sourcemap --no-clean",
     "build:watch": "tsup --watch",
     "dev": "tsup --watch",
@@ -119,7 +98,9 @@
     "ui"
   ],
   "dependencies": {
+    "@livai/core": "workspace:*",
     "@livai/core-contracts": "workspace:*",
+    "@livai/feature-auth": "workspace:*",
     "@livai/ui-core": "workspace:*",
     "@tanstack/react-query": "^5.90.21",
     "async-mutex": "^0.5.0",

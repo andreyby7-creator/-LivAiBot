@@ -14,6 +14,8 @@
  */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+
+import { TelemetryClient } from '../../../src/lib/telemetry.js';
 import {
   errorFireAndForget,
   fireAndForget,
@@ -27,7 +29,6 @@ import {
   setGlobalClientForDebug,
   warnFireAndForget,
 } from '../../../src/lib/telemetry-runtime.js';
-import { TelemetryClient } from '../../../src/lib/telemetry.js';
 import type {
   TelemetryConfig,
   TelemetryLevel,

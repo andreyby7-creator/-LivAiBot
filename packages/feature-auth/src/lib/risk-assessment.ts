@@ -22,16 +22,14 @@
 import type { ScoringContext as DomainScoringContext } from '@livai/domains/aggregation';
 import { defaultDecisionPolicy } from '@livai/domains/policies';
 import type { ClassificationContext } from '@livai/domains/signals';
-import { assessClassification } from '@livai/domains/strategies';
 import type {
   ClassificationPolicy,
   ContextBuilderPlugin as DomainContextBuilderPlugin,
   DeviceInfo as DomainDeviceInfo,
   RuleEvaluationContext as DomainRuleEvaluationContext,
 } from '@livai/domains/strategies';
+import { assessClassification } from '@livai/domains/strategies';
 
-import { mapLabelToDecisionHint } from './classification-mapper.js';
-import { buildAssessment } from './risk-assessment.adapter.js';
 import type { DeviceInfo as AuthDeviceInfo } from '../domain/DeviceInfo.js';
 import { DomainValidationError } from '../domain/LoginRiskAssessment.js';
 import type {
@@ -42,6 +40,8 @@ import type {
   RiskContext,
   RiskPolicy,
 } from '../types/auth-risk.js';
+import { mapLabelToDecisionHint } from './classification-mapper.js';
+import { buildAssessment } from './risk-assessment.adapter.js';
 
 /* ============================================================================
  * 🧭 TYPES

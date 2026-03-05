@@ -15,6 +15,7 @@
 
 'use client';
 
+import type { JSX, PropsWithChildren } from 'react';
 import {
   createContext,
   memo,
@@ -25,10 +26,9 @@ import {
   useReducer,
   useRef,
 } from 'react';
-import type { JSX, PropsWithChildren } from 'react';
 
-import { useTelemetryContext } from './TelemetryProvider.js';
 import type { ComponentState } from '../types/ui-contracts.js';
+import { useTelemetryContext } from './TelemetryProvider.js';
 
 /** Алиас для состояния компонентов в контексте toast provider */
 export type ToastComponentState = ComponentState<string>;

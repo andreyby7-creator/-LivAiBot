@@ -3,12 +3,14 @@
  * @file Unit тесты для Avatar компонента
  */
 
+import { cleanup, render, within } from '@testing-library/react';
 import React from 'react';
 import { afterEach, describe, expect, it } from 'vitest';
-import { cleanup, render, within } from '@testing-library/react';
+
+import type { AvatarSize } from '@livai/ui-core';
+import { Avatar } from '@livai/ui-core';
+
 import '@testing-library/jest-dom/vitest';
-import { Avatar } from '../../../src/primitives/avatar.js';
-import type { AvatarSize } from '../../../src/primitives/avatar.js';
 
 // Полная очистка DOM между тестами
 afterEach(cleanup);

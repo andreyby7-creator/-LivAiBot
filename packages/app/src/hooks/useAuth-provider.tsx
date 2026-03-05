@@ -36,13 +36,13 @@
 
 'use client';
 
-import React, { memo, useMemo, useRef } from 'react';
 import type { JSX, PropsWithChildren } from 'react';
+import React, { memo, useMemo, useRef } from 'react';
 
-import type { UseAuthDeps, UseAuthResult } from './useAuth.js';
-import { useAuth as useAuthDI } from './useAuth.js';
 import type { AuthHookDepsConfig } from '../lib/auth-hook-deps.js';
 import { createAuthHookDeps } from '../lib/auth-hook-deps.js';
+import type { UseAuthDeps, UseAuthResult } from './useAuth.js';
+import { useAuth as useAuthDI } from './useAuth.js';
 
 /* ============================================================================
  * 🧩 CONTEXT

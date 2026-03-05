@@ -37,10 +37,10 @@
  */
 
 import type { ReadonlyDeep } from 'type-fest';
-import { create } from 'zustand';
 import type { StoreApi, UseBoundStore } from 'zustand';
-import { createJSONStorage, persist, subscribeWithSelector } from 'zustand/middleware';
+import { create } from 'zustand';
 import type { PersistOptions } from 'zustand/middleware';
+import { createJSONStorage, persist, subscribeWithSelector } from 'zustand/middleware';
 
 import type {
   AuthEvent,

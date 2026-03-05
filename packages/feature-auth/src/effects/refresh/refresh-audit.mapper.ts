@@ -14,10 +14,10 @@
  * - ✅ Deterministic: eventId и timestamp приходят извне/через DI (clock + eventIdGenerator).
  */
 
-import type { ClockPort, EventIdGeneratorPort, RefreshResult } from './refresh-effect.types.js';
-import { auditEventSchema } from '../../schemas/index.js';
 import type { AuditEventValues } from '../../schemas/index.js';
+import { auditEventSchema } from '../../schemas/index.js';
 import type { SessionState } from '../../types/auth.js';
+import type { ClockPort, EventIdGeneratorPort, RefreshResult } from './refresh-effect.types.js';
 
 /* ============================================================================
  * 🧭 TYPES

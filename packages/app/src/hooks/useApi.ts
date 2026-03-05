@@ -18,6 +18,9 @@
 import { Effect as EffectLib } from 'effect';
 import { useMemo } from 'react';
 
+import type { MappedError } from '@livai/core/effect';
+import { mapError } from '@livai/core/effect';
+
 import type { ApiClient } from '../lib/api-client.js';
 import type {
   ApiRequestValidator,
@@ -26,8 +29,6 @@ import type {
   ApiValidationContext,
 } from '../lib/api-schema-guard.js';
 import { validateApiRequest, validateApiResponse } from '../lib/api-schema-guard.js';
-import { mapError } from '../lib/error-mapping.js';
-import type { MappedError } from '../lib/error-mapping.js';
 import { logFireAndForget } from '../lib/telemetry-runtime.js';
 import type { ApiHeaders, ApiRequestContext, ApiServiceName, HttpMethod } from '../types/api.js';
 import type { ComponentState, UiEvent, UiEventMap, UiMetrics } from '../types/ui-contracts.js';

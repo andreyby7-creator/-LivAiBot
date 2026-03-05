@@ -143,17 +143,6 @@ export const QUALITY_WITH_SEVERITY = {
     canary: 'error', // Запретить в продакшене (ломает AI workflows)
     test: 'off',    // В тестах циклы менее критичны
   },
-
-  // Barrel file prevention: запрет импортов из @livai/app (barrel file)
-  // Требует использования subpath exports для избежания загрузки всех зависимостей
-  'no-restricted-imports': {
-    dev: 'warn',    // Предупреждение в dev режиме
-    canary: 'error', // Ошибка в canary режиме
-    test: 'warn',   // Предупреждение в тестах (можно использовать для моков)
-  },
-
-  // sonarjs/cognitive-complexity убрано - используется статично в domain rules
-  // с разными порогами для разных зон (core: 10, pipeline: 15, etc.)
 };
 
 /**
@@ -211,17 +200,8 @@ export const DEV_EXTRA_RULES = {
   '@typescript-eslint/consistent-type-imports': 'warn', // Лучше tree-shaking
   // prefer-arrow-callback удалено - Effect-код часто использует named functions и generators (function*)
 
-  // ESLint: запрет импортов из barrel file для всех пакетов @livai/*
-  // Barrel file prevention: запрет импортов из @livai/* (barrel file)
-  // Требует использования subpath exports для избежания загрузки всех зависимостей
-  // Исключение: сам пакет может использовать barrel file для внутренних импортов
-  // Список пакетов генерируется автоматически из packages/ и apps/ через generateRestrictedImportsPaths()
-  'no-restricted-imports': [
-    'warn',
-    {
-      paths: generateRestrictedImportsPaths(),
-    },
-  ],
+  // ESLint: правило no-restricted-imports для barrel-импортов удалено
+  // Все импорты уже мигрированы на новые пути (Этап 6 ✅)
 };
 
 /**
@@ -240,19 +220,8 @@ export const CANARY_EXTRA_RULES = {
   // Здесь только дополнительные правила сверх BASE_QUALITY_RULES
   // Пока пусто - все базовые правила в BASE_QUALITY_RULES
 
-  // ESLint: запрет импортов из barrel file для всех пакетов @livai/*
-  // Barrel file prevention: запрет импортов из @livai/* (barrel file)
-  // Требует использования subpath exports для избежания загрузки всех зависимостей
-  // Исключение: сам пакет может использовать barrel file для внутренних импортов
-  // Паттерн блокирует только прямые импорты (@livai/app, @livai/feature-auth),
-  // но разрешает subpath exports (@livai/app/lib/error-mapping.js)
-  // Список пакетов генерируется автоматически из packages/ и apps/
-  'no-restricted-imports': [
-    'error',
-    {
-      paths: generateRestrictedImportsPaths(),
-    },
-  ],
+  // ESLint: правило no-restricted-imports для barrel-импортов удалено
+  // Все импорты уже мигрированы на новые пути (Этап 6 ✅)
 };
 
 // ==================== УТИЛИТЫ ДЛЯ КЛОНИРОВАНИЯ ====================

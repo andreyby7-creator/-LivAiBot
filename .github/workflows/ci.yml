@@ -84,6 +84,9 @@ jobs:
       - name: Format check
         run: pnpm run format:check
 
+      - name: Check exports
+        run: pnpm run check:exports
+
   contracts:
     runs-on: ubuntu-latest
     timeout-minutes: 15

@@ -11,9 +11,7 @@
     "url": "https://github.com/livai/livai/issues"
   },
   "homepage": "https://github.com/livai/livai/tree/main/packages/domains/classification#readme",
-  "main": "./dist/esm/index.js",
-  "module": "./dist/esm/index.js",
-  "types": "./dist/esm/index.d.ts",
+  "types": "./dist/index.d.ts",
   "sideEffects": false,
   "license": "MIT",
   "type": "module",
@@ -26,33 +24,40 @@
   ],
   "exports": {
     ".": {
-      "types": "./src/index.ts",
-      "import": "./src/index.ts"
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
     },
     "./signals": {
-      "types": "./src/classification/signals/index.ts",
-      "import": "./src/classification/signals/index.ts"
+      "types": "./dist/classification/signals/index.d.ts",
+      "import": "./dist/classification/signals/index.js",
+      "default": "./dist/classification/signals/index.js"
     },
     "./strategies": {
-      "types": "./src/classification/strategies/index.ts",
-      "import": "./src/classification/strategies/index.ts"
+      "types": "./dist/classification/strategies/index.d.ts",
+      "import": "./dist/classification/strategies/index.js",
+      "default": "./dist/classification/strategies/index.js"
     },
     "./policies": {
-      "types": "./src/classification/policies/index.ts",
-      "import": "./src/classification/policies/index.ts"
+      "types": "./dist/classification/policies/index.d.ts",
+      "import": "./dist/classification/policies/index.js",
+      "default": "./dist/classification/policies/index.js"
     },
     "./aggregation": {
-      "types": "./src/classification/aggregation/index.ts",
-      "import": "./src/classification/aggregation/index.ts"
+      "types": "./dist/classification/aggregation/index.d.ts",
+      "import": "./dist/classification/aggregation/index.js",
+      "default": "./dist/classification/aggregation/index.js"
     },
     "./labels": {
-      "types": "./src/classification/labels.ts",
-      "import": "./src/classification/labels.ts"
+      "types": "./dist/classification/labels.d.ts",
+      "import": "./dist/classification/labels.js",
+      "default": "./dist/classification/labels.js"
     }
   },
   "scripts": {
-    "build": "tsup",
+    "build": "pnpm run build:types && pnpm run build:js",
     "build:types": "tsc -b tsconfig.build.json",
+    "build:js": "tsup",
     "build:dev": "tsup --sourcemap --no-clean",
     "build:watch": "tsup --watch",
     "dev": "tsup --watch",

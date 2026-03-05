@@ -3,11 +3,13 @@
  * @file Unit тесты для Select компонента
  */
 
+import { cleanup, fireEvent, render, within } from '@testing-library/react';
 import React, { StrictMode } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { cleanup, fireEvent, render, within } from '@testing-library/react';
+
+import { Select } from '@livai/ui-core';
+
 import '@testing-library/jest-dom/vitest';
-import { Select } from '../../../src/primitives/select.js';
 
 // Mock для HTMLElement.prototype.focus
 const mockFocus = vi.fn();

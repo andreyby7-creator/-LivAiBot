@@ -20,13 +20,8 @@
  * - ✅ Extensible: добавление нового error type = обновление только registry
  */
 
-import type {
-  MapErrorConfig,
-  MappedError,
-  ServicePrefix,
-  TaggedError,
-} from '@livai/app/lib/error-mapping.js';
-import { mapError } from '@livai/app/lib/error-mapping.js';
+import type { MapErrorConfig, MappedError, ServicePrefix, TaggedError } from '@livai/core/effect';
+import { mapError } from '@livai/core/effect';
 
 import type { AuthErrorResponse } from '../domain/AuthErrorResponse.js';
 import type { MfaType } from '../domain/MfaChallengeRequest.js';

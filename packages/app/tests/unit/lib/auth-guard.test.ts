@@ -10,6 +10,15 @@
  */
 
 import { describe, expect, it } from 'vitest';
+
+import type {
+  Action,
+  AuthDecision,
+  AuthGuardContext,
+  Permission,
+  Resource,
+  UserRole,
+} from '../../../src/lib/auth-guard';
 import {
   checkAccess,
   checkAuthorization,
@@ -20,14 +29,6 @@ import {
 } from '../../../src/lib/auth-guard';
 import type { ID } from '../../../src/types/common';
 import { UserRoles } from '../../../src/types/common';
-import type {
-  Action,
-  AuthDecision,
-  AuthGuardContext,
-  Permission,
-  Resource,
-  UserRole,
-} from '../../../src/lib/auth-guard';
 
 // ============================================================================
 // 🧠 MOCKS И HELPER'Ы

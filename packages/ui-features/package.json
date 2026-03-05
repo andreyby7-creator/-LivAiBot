@@ -11,9 +11,7 @@
     "url": "https://github.com/livai/livai/issues"
   },
   "homepage": "https://github.com/livai/livai/tree/main/packages/ui-features#readme",
-  "main": "./dist/esm/index.js",
-  "module": "./dist/esm/index.js",
-  "types": "./dist/esm/index.d.ts",
+  "types": "./dist/index.d.ts",
   "sideEffects": false,
   "license": "MIT",
   "type": "module",
@@ -26,20 +24,23 @@
   ],
   "exports": {
     ".": {
-      "types": "./src/index.ts",
-      "import": "./src/index.ts"
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
     },
-    "./auth/login-form.js": {
-      "types": "./src/auth/login-form.tsx",
-      "import": "./src/auth/login-form.tsx"
+    "./auth/login-form": {
+      "types": "./dist/auth/login-form.d.ts",
+      "import": "./dist/auth/login-form.js",
+      "default": "./dist/auth/login-form.js"
     },
-    "./auth/register-form.js": {
-      "types": "./src/auth/register-form.tsx",
-      "import": "./src/auth/register-form.tsx"
+    "./auth/register-form": {
+      "types": "./dist/auth/register-form.d.ts",
+      "import": "./dist/auth/register-form.js",
+      "default": "./dist/auth/register-form.js"
     }
   },
   "scripts": {
-    "build": "tsup",
+    "build": "pnpm run build:types && pnpm run build:js",
     "build:types": "tsc -b tsconfig.build.json",
     "build:dev": "tsup --sourcemap --no-clean",
     "build:js": "tsup",

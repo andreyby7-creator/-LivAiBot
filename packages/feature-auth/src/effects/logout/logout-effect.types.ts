@@ -13,8 +13,8 @@
 
 import type { SecurityPipelineResult } from '../../lib/security-pipeline.js';
 import type { AuditEventValues } from '../../schemas/index.js';
-import type { RiskLevel } from '../../types/auth-risk.js';
 import type { AuthError } from '../../types/auth.js';
+import type { RiskLevel } from '../../types/auth-risk.js';
 import type { AuthApiClientPort } from '../shared/api-client.port.js';
 import type { AuthStorePort } from '../shared/auth-store.port.js';
 

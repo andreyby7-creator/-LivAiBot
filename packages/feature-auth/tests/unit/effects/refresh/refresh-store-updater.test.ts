@@ -5,13 +5,15 @@
 
 import { describe, expect, it } from 'vitest';
 
+import type { DeviceInfo } from '../../../../src/domain/DeviceInfo.js';
+import type { MeResponse } from '../../../../src/domain/MeResponse.js';
+import type { TokenPair } from '../../../../src/domain/TokenPair.js';
+import type { RefreshInvalidationReason } from '../../../../src/effects/refresh/refresh-effect.types.js';
 import {
   applyRefreshInvalidate,
   updateRefreshState,
 } from '../../../../src/effects/refresh/refresh-store-updater.js';
-import type { DeviceInfo } from '../../../../src/domain/DeviceInfo.js';
-import type { MeResponse } from '../../../../src/domain/MeResponse.js';
-import type { TokenPair } from '../../../../src/domain/TokenPair.js';
+import type { AuthStorePort, BatchUpdate } from '../../../../src/effects/shared/auth-store.port.js';
 import type {
   AuthEvent,
   AuthState,
@@ -23,8 +25,6 @@ import {
   initialAuthState,
   initialSecurityState,
 } from '../../../../src/types/auth-initial.js';
-import type { AuthStorePort, BatchUpdate } from '../../../../src/effects/shared/auth-store.port.js';
-import type { RefreshInvalidationReason } from '../../../../src/effects/refresh/refresh-effect.types.js';
 
 /* eslint-disable fp/no-mutation, functional/no-conditional-statements -- в тестах намеренно используем мутации и if для фиксации вызовов и type guards */
 

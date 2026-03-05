@@ -10,13 +10,15 @@
  */
 
 import { describe, expect, it, vi } from 'vitest';
-import type { AuthState } from '@livai/feature-auth/src/types/index.js';
-import { createAuthTokenAdapter } from '../../../src/lib/auth-token-adapter.js';
+
+import type { AuthState } from '@livai/feature-auth';
+
+import type { UseAuthStorePort } from '../../../src/hooks/useAuth.js';
 import type {
   AuthTokenAdapterConfig,
   AuthTokenAdapterLogger,
 } from '../../../src/lib/auth-token-adapter.js';
-import type { UseAuthStorePort } from '../../../src/hooks/useAuth.js';
+import { createAuthTokenAdapter } from '../../../src/lib/auth-token-adapter.js';
 
 // ============================================================================
 // 🧠 MOCKS И HELPER'Ы

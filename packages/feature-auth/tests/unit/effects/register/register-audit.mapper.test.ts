@@ -5,6 +5,13 @@
 
 import { describe, expect, it } from 'vitest';
 
+import type { DeviceInfo } from '../../../../src/domain/DeviceInfo.js';
+import type { RegisterRequest } from '../../../../src/domain/RegisterRequest.js';
+import type { RegisterResponse } from '../../../../src/domain/RegisterResponse.js';
+import type {
+  RegisterAuditContext,
+  RegisterResultForAudit,
+} from '../../../../src/effects/register/register-audit.mapper.js';
 import {
   createRegisterAuditContext,
   mapAuditResultToPublicResult,
@@ -14,13 +21,6 @@ import {
   testMfaEventBuilder,
   testSuccessEventBuilder,
 } from '../../../../src/effects/register/register-audit.mapper.js';
-import type {
-  RegisterAuditContext,
-  RegisterResultForAudit,
-} from '../../../../src/effects/register/register-audit.mapper.js';
-import type { RegisterRequest } from '../../../../src/domain/RegisterRequest.js';
-import type { RegisterResponse } from '../../../../src/domain/RegisterResponse.js';
-import type { DeviceInfo } from '../../../../src/domain/DeviceInfo.js';
 import type { AuthError } from '../../../../src/types/auth.js';
 
 // ============================================================================

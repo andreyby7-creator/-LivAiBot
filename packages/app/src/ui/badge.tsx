@@ -14,10 +14,11 @@
  * - платформенных эффектов
  */
 
-import { Badge as CoreBadge } from '@livai/ui-core';
-import type { CoreBadgeProps } from '@livai/ui-core';
-import { forwardRef, memo, useEffect, useMemo, useRef } from 'react';
 import type { JSX, Ref } from 'react';
+import { forwardRef, memo, useEffect, useMemo, useRef } from 'react';
+
+import type { CoreBadgeProps } from '@livai/ui-core';
+import { Badge as CoreBadge } from '@livai/ui-core';
 
 import type { Namespace, TranslationKey } from '../lib/i18n.js';
 import { useUnifiedUI } from '../providers/UnifiedUIProvider.js';
@@ -156,7 +157,8 @@ const BadgeComponent = forwardRef<HTMLSpanElement, AppBadgeProps>(
     const { telemetry, i18n } = useUnifiedUI();
     const { translate } = i18n;
     // Фильтруем бизнес-пропсы, оставляем только DOM-безопасные
-    const domProps = omit(props, BUSINESS_PROPS);
+    // data-testid обрабатывается отдельно с дефолтным значением
+    const domProps = omit(props, [...BUSINESS_PROPS, 'data-testid']);
 
     const { value = null, ...filteredCoreProps } = domProps;
 
@@ -221,6 +223,8 @@ const BadgeComponent = forwardRef<HTMLSpanElement, AppBadgeProps>(
     // Policy: hidden
     if (!policy.isRendered) return null;
 
+    const testId = props['data-testid'] ?? 'core-badge';
+
     return (
       <CoreBadge
         ref={ref}
@@ -228,6 +232,7 @@ const BadgeComponent = forwardRef<HTMLSpanElement, AppBadgeProps>(
         data-component='AppBadge'
         {...(ariaLabel !== undefined && { 'aria-label': ariaLabel })}
         {...filteredCoreProps}
+        data-testid={testId}
       />
     );
   },

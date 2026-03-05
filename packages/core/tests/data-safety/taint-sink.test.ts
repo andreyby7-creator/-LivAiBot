@@ -3,6 +3,23 @@
  * Полное покрытие всех методов и веток исполнения (100%)
  */
 import { describe, expect, it, vi } from 'vitest';
+
+import type { Tainted, TaintSource } from '../../src/data-safety/taint.js';
+import {
+  getTaintMetadata,
+  isTainted,
+  stripTaint,
+  taintSources,
+} from '../../src/data-safety/taint.js';
+import * as taintModule from '../../src/data-safety/taint.js';
+import type {
+  SinkType,
+  Trusted,
+  TrustedCheckContext,
+  TrustedCheckFailureReason,
+  TrustedCheckRule,
+  TrustedCheckRuleRegistry,
+} from '../../src/data-safety/taint-sink.js';
 import {
   assertTrusted,
   checkTrusted,
@@ -15,25 +32,9 @@ import {
   markAsPluginOutput,
   TrustedBrand,
 } from '../../src/data-safety/taint-sink.js';
-import type {
-  SinkType,
-  Trusted,
-  TrustedCheckContext,
-  TrustedCheckFailureReason,
-  TrustedCheckRule,
-  TrustedCheckRuleRegistry,
-} from '../../src/data-safety/taint-sink.js';
 import { markAsExternal } from '../../src/data-safety/taint-source.js';
-import {
-  getTaintMetadata,
-  isTainted,
-  stripTaint,
-  taintSources,
-} from '../../src/data-safety/taint.js';
-import type { Tainted, TaintSource } from '../../src/data-safety/taint.js';
-import * as taintModule from '../../src/data-safety/taint.js';
-import { createTrustLevelRegistry, trustLevels } from '../../src/data-safety/trust-level.js';
 import type { TrustLevel } from '../../src/data-safety/trust-level.js';
+import { createTrustLevelRegistry, trustLevels } from '../../src/data-safety/trust-level.js';
 
 /* eslint-disable ai-security/model-poisoning */
 describe('Taint Sink (Output Boundary)', () => {

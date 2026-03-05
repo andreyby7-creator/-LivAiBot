@@ -5,15 +5,15 @@
 
 import { describe, expect, it } from 'vitest';
 
+import {
+  createRefreshAuditContext,
+  mapRefreshResultToAuditEvent,
+} from '../../../../src/effects/refresh/refresh-audit.mapper.js';
 import type {
   ClockPort,
   EventIdGeneratorPort,
   RefreshResult,
 } from '../../../../src/effects/refresh/refresh-effect.types.js';
-import {
-  createRefreshAuditContext,
-  mapRefreshResultToAuditEvent,
-} from '../../../../src/effects/refresh/refresh-audit.mapper.js';
 import type { AuditEventValues } from '../../../../src/schemas/index.js';
 import type { AuthError, SessionState } from '../../../../src/types/auth.js';
 

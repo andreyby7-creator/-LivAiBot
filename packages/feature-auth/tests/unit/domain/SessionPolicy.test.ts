@@ -4,6 +4,7 @@
  */
 
 import { describe, expect, it } from 'vitest';
+
 import type { GeoPolicy, IpPolicy, SessionPolicy } from '../../../src/domain/SessionPolicy.js';
 import { sessionPolicySchema } from '../../../src/schemas/index.js';
 

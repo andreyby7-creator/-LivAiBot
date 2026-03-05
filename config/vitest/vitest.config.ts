@@ -55,7 +55,20 @@ function findPnpmModule(moduleName: string): string | null {
 }
 
 // Алиасы путей для унифицированного импорта в тестах
-const aliases: Record<string, string> = {};
+// Dev-резолвер: @livai/* → packages/*/src (для правильного резолва в тестах)
+const aliases: Record<string, string> = {
+  '@livai/core': path.resolve(ROOT, 'packages/core/src'),
+  '@livai/core-contracts': path.resolve(ROOT, 'packages/core-contracts/src'),
+  '@livai/domains': path.resolve(ROOT, 'packages/domains/src'),
+  '@livai/feature-auth': path.resolve(ROOT, 'packages/feature-auth/src'),
+  '@livai/feature-bots': path.resolve(ROOT, 'packages/feature-bots/src'),
+  '@livai/feature-chat': path.resolve(ROOT, 'packages/feature-chat/src'),
+  '@livai/feature-voice': path.resolve(ROOT, 'packages/feature-voice/src'),
+  '@livai/ui-core': path.resolve(ROOT, 'packages/ui-core/src'),
+  '@livai/ui-features': path.resolve(ROOT, 'packages/ui-features/src'),
+  '@livai/ui-shared': path.resolve(ROOT, 'packages/ui-shared/src'),
+  '@livai/app': path.resolve(ROOT, 'packages/app/src'),
+};
 
 // Явное разрешение react-dom и react для гарантированного нахождения модулей в pnpm workspace
 const reactDomPath = findPnpmModule('react-dom');
@@ -279,8 +292,8 @@ function createBaseVitestConfig(
     resolve: {
       preserveSymlinks: true,
       alias: aliases, // Пустой объект - алиасы можно добавить позже при необходимости
-      // Поддержка условий экспорта из package.json (для React jsx-runtime)
-      conditions: ['import', 'module', 'browser', 'default'],
+      // Поддержка условий экспорта из package.json (для правильного резолва @livai/*)
+      conditions: ['import', 'module', 'default'],
     },
 
     // Настройки сервера для работы с pnpm workspace
@@ -309,6 +322,7 @@ function createBaseVitestConfig(
       esbuildOptions: {
         // Поддержка JSX для правильной обработки React
         jsx: 'automatic',
+        jsxImportSource: 'react',
       },
     },
 
@@ -322,8 +336,11 @@ function createBaseVitestConfig(
     // ------------------ ESBUILD НАСТРОЙКИ -----------------------------
 
     /** esbuild target: автоопределение Node 24→22→20 (минимум Node 20) */
+    /** Automatic JSX runtime для всех пакетов в монорепо */
     esbuild: {
       target: esbuildTarget,
+      jsx: 'automatic', // обязательный для автоматического JSX
+      jsxImportSource: 'react', // используем runtime из react
     },
 
     // Применяем переопределения через mergeConfig

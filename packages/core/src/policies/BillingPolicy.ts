@@ -24,8 +24,8 @@
  * - ✅ Explicit invariants, exhaustive unions, predictable decision outputs
  */
 
-import { Decision } from '@livai/core-contracts';
 import type { PolicyDecision, UnixTimestampMs } from '@livai/core-contracts';
+import { Decision } from '@livai/core-contracts';
 
 /* ============================================================================
  * 1. TYPES — BILLING POLICY MODEL (Pure Type Definitions)

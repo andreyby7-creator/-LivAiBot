@@ -32,6 +32,7 @@ const warnedPlugins = new Set();
 import typescriptEslint from '@typescript-eslint/eslint-plugin';
 import typescriptParser from '@typescript-eslint/parser';
 import importPlugin from 'eslint-plugin-import';
+import simpleImportSortPlugin from 'eslint-plugin-simple-import-sort';
 import jsxA11yPlugin from 'eslint-plugin-jsx-a11y';
 import promisePlugin from 'eslint-plugin-promise';
 import reactPlugin from 'eslint-plugin-react';
@@ -106,6 +107,7 @@ export const PLUGINS = {
 
   // Web/UI Layer
   import: importPlugin,
+  'simple-import-sort': simpleImportSortPlugin,
   'jsx-a11y': jsxA11yPlugin,
   react: reactPlugin,
   'react-hooks': reactHooksPlugin,
@@ -325,16 +327,16 @@ export const BASE_RULES = {
     },
   ],
 
-  'import/order': [
+  'import/order': 'off',
+  'simple-import-sort/imports': [
     'error',
     {
       groups: [
-        ['builtin', 'external'],
-        'internal',
-        ['parent', 'sibling', 'index'],
+        ['^node:'],   // node builtins
+        ['^@?\\w'],   // external packages
+        ['^@livai/'], // internal monorepo packages
+        ['^\\.'],     // local files
       ],
-      'newlines-between': 'always',
-      alphabetize: { order: 'asc', caseInsensitive: true },
     },
   ],
   'import/no-duplicates': 'error',                       // Дублирование импортов

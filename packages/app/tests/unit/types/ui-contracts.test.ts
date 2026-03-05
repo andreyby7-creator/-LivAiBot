@@ -10,6 +10,8 @@
  */
 
 import { describe, expect, it } from 'vitest';
+
+import type { Json } from '../../../src/types/common.js';
 import type {
   AppWrapperProps,
   ComponentState,
@@ -26,7 +28,6 @@ import type {
   UiStatePolicy,
   UncontrolledFieldProps,
 } from '../../../src/types/ui-contracts.js';
-import type { Json } from '../../../src/types/common.js';
 
 // Helper функции для создания тестовых значений
 function createJsonValue(): Json {

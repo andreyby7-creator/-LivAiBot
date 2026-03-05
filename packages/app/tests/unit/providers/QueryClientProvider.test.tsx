@@ -3,11 +3,12 @@
  * @file Unit тесты для QueryClientProvider
  */
 
+import { QueryClient } from '@tanstack/react-query';
+import { cleanup, render, screen } from '@testing-library/react';
 import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { cleanup, render, screen } from '@testing-library/react';
+
 import '@testing-library/jest-dom/vitest';
-import { QueryClient } from '@tanstack/react-query';
 
 const reactQueryMocks = vi.hoisted(() => ({
   QueryClientProvider: vi.fn(({ children }) =>

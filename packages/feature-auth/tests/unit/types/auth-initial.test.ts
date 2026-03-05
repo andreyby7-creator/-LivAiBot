@@ -4,13 +4,14 @@
  */
 
 import { describe, expect, it } from 'vitest';
+
 import type { AuthState, SecurityState, SessionState } from '../../../src/types/auth.js';
-import type { ReadonlyDeep } from '../../../src/types/auth-risk.js';
 import {
   createInitialSessionState,
   initialAuthState,
   initialSecurityState,
 } from '../../../src/types/auth-initial.js';
+import type { ReadonlyDeep } from '../../../src/types/auth-risk.js';
 
 // ============================================================================
 // 🔐 CANONICAL INITIAL STATES — КАНОНИЧЕСКИЕ НАЧАЛЬНЫЕ СОСТОЯНИЯ

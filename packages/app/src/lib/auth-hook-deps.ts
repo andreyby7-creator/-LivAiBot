@@ -25,44 +25,35 @@
  * - Runtime инжектится через `Runtime.defaultRuntime` (future: можно вынести в DI для тестирования/изоляции).
  */
 
-import type {
-  LoginIdentifierType,
-  LoginRequest,
-} from '@livai/feature-auth/src/domain/LoginRequest.js';
-import type {
-  RegisterIdentifierType,
-  RegisterRequest,
-} from '@livai/feature-auth/src/domain/RegisterRequest.js';
-import type {
-  LoginEffectConfig,
-  LoginEffectDeps,
-} from '@livai/feature-auth/src/effects/login/index.js';
-import type { LoginResult } from '@livai/feature-auth/src/effects/login.js';
-import { createLoginEffect } from '@livai/feature-auth/src/effects/login.js';
-import type {
-  LogoutEffectConfig,
-  LogoutEffectDeps,
-} from '@livai/feature-auth/src/effects/logout/index.js';
-import type { LogoutResult } from '@livai/feature-auth/src/effects/logout.js';
-import { createLogoutEffect } from '@livai/feature-auth/src/effects/logout.js';
-import type {
-  RefreshEffectConfig,
-  RefreshEffectDeps,
-} from '@livai/feature-auth/src/effects/refresh/index.js';
-import type { RefreshEffectResult } from '@livai/feature-auth/src/effects/refresh.js';
-import { createRefreshEffect } from '@livai/feature-auth/src/effects/refresh.js';
-import type {
-  RegisterEffectConfig,
-  RegisterEffectDeps,
-} from '@livai/feature-auth/src/effects/register/index.js';
-import type { RegisterResult } from '@livai/feature-auth/src/effects/register.js';
-import { createRegisterEffect } from '@livai/feature-auth/src/effects/register.js';
+import { Runtime } from 'effect';
+
 import type {
   AuthStoreState,
   CreateAuthStoreConfig,
-} from '@livai/feature-auth/src/stores/index.js';
-import { createAuthStore } from '@livai/feature-auth/src/stores/index.js';
-import { Runtime } from 'effect';
+  LoginEffectConfig,
+  LoginEffectDeps,
+  LoginIdentifierType,
+  LoginRequest,
+  LoginResult,
+  LogoutEffectConfig,
+  LogoutEffectDeps,
+  LogoutResult,
+  RefreshEffectConfig,
+  RefreshEffectDeps,
+  RefreshEffectResult,
+  RegisterEffectConfig,
+  RegisterEffectDeps,
+  RegisterIdentifierType,
+  RegisterRequest,
+  RegisterResult,
+} from '@livai/feature-auth';
+import {
+  createAuthStore,
+  createLoginEffect,
+  createLogoutEffect,
+  createRefreshEffect,
+  createRegisterEffect,
+} from '@livai/feature-auth';
 
 import type { UseAuthDeps, UseAuthStorePort } from '../hooks/useAuth.js';
 
@@ -145,8 +136,8 @@ function createAuthStorePort(store: AuthZustandStore): UseAuthStorePort {
     // Подписка на изменения только auth-среза состояния.
     subscribe: (listener: () => void): () => void => {
       let prevAuth = store.getState().auth;
-      return store.subscribe((state) => {
-        const nextAuth = (state as AuthStoreState).auth;
+      return store.subscribe((state: AuthStoreState) => {
+        const nextAuth = state.auth;
         if (nextAuth !== prevAuth) {
           prevAuth = nextAuth;
           listener();

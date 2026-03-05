@@ -15,8 +15,8 @@
  * - Контентом и событиями управляет App-слой
  */
 
-import { forwardRef, memo, useMemo } from 'react';
 import type { CSSProperties, HTMLAttributes, JSX, MouseEvent, ReactNode, Ref } from 'react';
+import { forwardRef, memo, useMemo } from 'react';
 
 import type { UIDataAttributes, UITestId } from '../types/ui.js';
 
@@ -29,7 +29,7 @@ import type { UIDataAttributes, UITestId } from '../types/ui.js';
  * Используется когда separator не передан явно.
  * Содержит aria-hidden для accessibility.
  */
-export const DefaultSeparator: ReactNode = <span aria-hidden='true'>›</span>;
+export const DefaultSeparator = (): JSX.Element => <span aria-hidden='true'>›</span>;
 
 /** Элемент хлебных крошек */
 export type BreadcrumbItem = Readonly<{
@@ -131,7 +131,7 @@ const CoreBreadcrumbsComponent = forwardRef<HTMLElement, CoreBreadcrumbsProps>(
   function CoreBreadcrumbsComponent(props, ref: Ref<HTMLElement>): JSX.Element | null {
     const {
       items,
-      separator = DefaultSeparator,
+      separator,
       style,
       className,
       'data-testid': testId,
@@ -161,7 +161,10 @@ const CoreBreadcrumbsComponent = forwardRef<HTMLElement, CoreBreadcrumbsProps>(
         const handleClick = item.disabled === true ? undefined : item.onClick;
 
         // Оборачиваем строковый separator в span с SEPARATOR_STYLE
-        const separatorContent = typeof separator === 'string'
+        // Если separator не передан, используем DefaultSeparator компонент
+        const separatorContent = separator === undefined
+          ? <DefaultSeparator />
+          : typeof separator === 'string'
           ? <span style={SEPARATOR_STYLE} aria-hidden='true'>{separator}</span>
           : separator;
 

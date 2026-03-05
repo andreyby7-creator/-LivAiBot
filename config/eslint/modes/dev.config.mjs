@@ -85,15 +85,6 @@ devConfigWithRules.push({
   },
 });
 
-
-// Исключение для всех пакетов @livai/*: могут использовать barrel file для внутренних импортов
-devConfigWithRules.push({
-  files: ['packages/*/src/**/*.{ts,tsx}'],
-  rules: {
-    'no-restricted-imports': 'off', // Пакеты @livai/* могут использовать свой barrel file для внутренних импортов
-  },
-});
-
 // ==================== EFFECTS / STORES EXCEPTIONS ====================
 // Effects, stores и setup файлы используют императивные паттерны (if, let, мутации)
 // Domain/DTO остаются строгими - это ядро системы
@@ -182,21 +173,6 @@ devConfigWithRules.push({
   plugins: PLUGINS,
   rules: {
     '@next/next/no-html-link-for-pages': 'off', // App Router (Next 13+) не использует pages/
-  },
-});
-
-// 🔥 MUST BE LAST — иначе будет перезаписано более поздними конфигами (flat config)
-// Разрешаем barrel imports из @livai/* в тестах
-devConfigWithRules.push({
-  files: [
-    '**/*.test.{ts,tsx,js,jsx}',
-    '**/*.spec.{ts,tsx,js,jsx}',
-    '**/__tests__/**/*.{ts,tsx,js,jsx}',
-    '**/test/**/*.{ts,tsx,js,jsx}',
-    '**/tests/**/*.{ts,tsx,js,jsx}',
-  ],
-  rules: {
-    'no-restricted-imports': 'off',
   },
 });
 

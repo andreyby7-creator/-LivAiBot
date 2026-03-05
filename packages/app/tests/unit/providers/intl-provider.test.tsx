@@ -3,11 +3,13 @@
  * @file Тесты для IntlProvider компонента
  */
 
+import { cleanup, render, screen } from '@testing-library/react';
 import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { cleanup, render, screen } from '@testing-library/react';
-import '@testing-library/jest-dom/vitest';
+
 import { IntlProvider } from '../../../src/providers/intl-provider';
+
+import '@testing-library/jest-dom/vitest';
 
 // Mock для NextIntlClientProvider с уникальными ID
 vi.mock('next-intl', () => ({

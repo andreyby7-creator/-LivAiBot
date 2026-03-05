@@ -17,17 +17,17 @@
  * - Exhaustive unions
  * - Predictable structure
  */
-import { RouteNames, ROUTES } from './routes.js';
-import type { RouteName } from './routes.js';
-import { checkRoutePermission, createProtectedRoute } from '../lib/route-permissions.js';
 import type {
   RouteInfo,
   RoutePermissionContext,
   RoutePermissionResult,
   RouteType,
 } from '../lib/route-permissions.js';
-import { UserRoles } from '../types/common.js';
+import { checkRoutePermission, createProtectedRoute } from '../lib/route-permissions.js';
 import type { AppModules } from '../types/common.js';
+import { UserRoles } from '../types/common.js';
+import type { RouteName } from './routes.js';
+import { RouteNames, ROUTES } from './routes.js';
 
 /** Типизированный результат проверки доступа к маршруту */
 export type RouteAccessResult =

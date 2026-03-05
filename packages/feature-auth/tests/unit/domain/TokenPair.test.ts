@@ -4,6 +4,7 @@
  */
 
 import { describe, expect, it } from 'vitest';
+
 import type { TokenPair } from '../../../src/domain/TokenPair.js';
 import { tokenPairSchema } from '../../../src/schemas/index.js';
 

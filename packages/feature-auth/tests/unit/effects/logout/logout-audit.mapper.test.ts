@@ -7,14 +7,14 @@
 
 import { describe, expect, it } from 'vitest';
 
+import type {
+  LogoutAuditContext,
+  LogoutResultForAudit,
+} from '../../../../src/effects/logout/logout-audit.mapper.js';
 import {
   mapLogoutResultToAuditEvent,
   mapRevokeErrorToAuditEvent,
   mapRevokeSkippedToAuditEvent,
-} from '../../../../src/effects/logout/logout-audit.mapper.js';
-import type {
-  LogoutAuditContext,
-  LogoutResultForAudit,
 } from '../../../../src/effects/logout/logout-audit.mapper.js';
 import type { AuthError } from '../../../../src/types/auth.js';
 

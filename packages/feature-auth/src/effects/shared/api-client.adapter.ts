@@ -16,7 +16,7 @@
  * - ❌ Нет бизнес-логики: только адаптация контракта
  */
 
-import type { Effect } from '@livai/app/lib/effect-utils.js';
+import type { Effect } from '@livai/core/effect';
 
 import type { ApiRequestOptions, AuthApiClientPort } from './api-client.port.js';
 

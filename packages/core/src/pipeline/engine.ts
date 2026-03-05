@@ -29,7 +29,6 @@
 
 import type { ExecutionPlan, ExecutionPlanError } from './plan.js'; // ExecutionPlanError нужен для type narrowing
 import { createExecutionPlan } from './plan.js';
-import { validatePipelineConfig } from './plugin-api.js';
 import type {
   PipelineConfig,
   PipelineFailureReason,
@@ -41,6 +40,7 @@ import type {
   StagePlugin,
   StageResult,
 } from './plugin-api.js';
+import { validatePipelineConfig } from './plugin-api.js';
 
 /* ============================================================================
  * 1. TYPES — EXECUTION ENGINE MODEL (Pure Type Definitions)

@@ -3,10 +3,12 @@
  * @file Тесты для Card компонента с полным покрытием
  */
 
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
-import '@testing-library/jest-dom/vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+
 import { Card } from '../../../src/ui/card';
+
+import '@testing-library/jest-dom/vitest';
 
 // Объявляем переменные моков перед vi.mock()
 let mockFeatureFlagReturnValue = false;

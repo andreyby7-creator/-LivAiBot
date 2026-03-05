@@ -4,15 +4,16 @@
 
 'use client';
 
+import type { JSX } from 'react';
+import React, { useCallback, useId } from 'react';
+import type { FieldError } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
+
 import type { RegisterValues } from '@livai/feature-auth';
 import { registerSchema } from '@livai/feature-auth';
 import { Button, FormField, Input } from '@livai/ui-core';
 import type { TFunction } from '@livai/ui-shared';
 import { translateZodMessage, zodResolver as rhfZodResolver } from '@livai/ui-shared';
-import React, { useCallback, useId } from 'react';
-import type { JSX } from 'react';
-import type { FieldError } from 'react-hook-form';
-import { useForm } from 'react-hook-form';
 
 export type RegisterFormProps = {
   readonly t?: TFunction;

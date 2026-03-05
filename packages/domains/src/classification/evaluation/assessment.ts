@@ -22,17 +22,17 @@
 import type { Confidence, EvaluationLevel } from '@livai/core';
 import { confidence, evaluationLevel } from '@livai/core';
 
-import type { ClassificationEvaluationResult } from './result.js';
 import { CLASSIFICATION_EVALUATION_SCALE } from '../constants.js';
+import type { DecisionPolicy } from '../policies/base.policy.js';
 import {
   defaultDecisionPolicy,
   determineLabel,
   determineRiskLevel,
 } from '../policies/base.policy.js';
-import type { DecisionPolicy } from '../policies/base.policy.js';
 import type { ClassificationContext } from '../signals/signals.js';
 import type { SemanticViolation } from '../signals/violations.js';
 import type { ClassificationRule, DeviceInfo } from '../strategies/rules.js';
+import type { ClassificationEvaluationResult } from './result.js';
 
 /* ============================================================================
  * 🧩 ТИПЫ — ASSESSMENT CONTEXT TYPES
@@ -366,7 +366,7 @@ function assembleAssessmentResult(
     label: resolvedLabel,
     scale: CLASSIFICATION_EVALUATION_SCALE,
     riskScore: assessmentContext.riskScore,
-    riskLevel: riskLevel,
+    riskLevel,
     triggeredRules: assessmentContext.ruleEvaluationSnapshot.triggeredRules,
     ...(triggeredRuleCount > 0 && {
       usedSignals: [] as readonly (keyof NonNullable<ClassificationContext['signals']>)[],

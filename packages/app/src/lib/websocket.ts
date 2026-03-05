@@ -18,13 +18,14 @@
  * - retry / reconnect / tracing
  */
 
-import { sleep, withLogging } from './effect-utils.js';
 import type {
   EffectAbortController,
   EffectContext,
   EffectError,
   EffectLogger,
-} from './effect-utils.js';
+} from '@livai/core/effect';
+import { sleep, withLogging } from '@livai/core/effect';
+
 import { infoFireAndForget, logFireAndForget } from './telemetry-runtime.js';
 // ApiError используется только для HTTP API, WebSocket использует EffectError
 

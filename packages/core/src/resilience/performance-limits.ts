@@ -20,8 +20,8 @@
  * - ✅ Metrics integration — функции-генераторы метрик (counter/gauge), валидация и escaping tags для безопасного экспорта в Prometheus/Influx, атомарное создание через createAllMetricsForLimit
  */
 
-import { createCounterMetric, createGaugeMetric } from './metrics.js';
 import type { MetricValue } from './metrics.js';
+import { createCounterMetric, createGaugeMetric } from './metrics.js';
 
 /* ============================================================================
  * 🧩 TYPES — PERFORMANCE LIMITS CONTRACT

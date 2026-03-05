@@ -4,6 +4,7 @@
  */
 
 import { describe, expect, it } from 'vitest';
+
 import type { MfaInfo } from '../../../src/domain/MfaInfo.js';
 
 // ============================================================================

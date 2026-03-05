@@ -3,12 +3,13 @@
  * Полное покрытие всех методов и веток исполнения
  */
 import { describe, expect, it } from 'vitest';
-import { AuthPolicy } from '../../src/policies/AuthPolicy.js';
+
 import type {
   AuthPolicyConfig,
   AuthSessionState,
   AuthTokenState,
 } from '../../src/policies/AuthPolicy.js';
+import { AuthPolicy } from '../../src/policies/AuthPolicy.js';
 
 // Mock данные для тестирования
 const MOCK_CONFIG: AuthPolicyConfig = {

@@ -34,9 +34,13 @@ const errorMappingMocks = vi.hoisted(() => ({
   })),
 }));
 
-vi.mock('../../../src/lib/error-mapping', () => ({
-  mapError: errorMappingMocks.mapError,
-}));
+vi.mock('@livai/core/effect', async () => {
+  const actual = await vi.importActual<typeof import('@livai/core/effect')>('@livai/core/effect');
+  return {
+    ...actual,
+    mapError: errorMappingMocks.mapError,
+  };
+});
 
 const telemetryMocks = vi.hoisted(() => ({
   logFireAndForget: vi.fn(),

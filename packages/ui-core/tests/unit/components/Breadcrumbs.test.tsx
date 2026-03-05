@@ -3,11 +3,13 @@
  * @file Unit тесты для Breadcrumbs компонента
  */
 
+import { cleanup, render, within } from '@testing-library/react';
 import React from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { cleanup, render, within } from '@testing-library/react';
+
+import { Breadcrumbs } from '@livai/ui-core';
+
 import '@testing-library/jest-dom/vitest';
-import { Breadcrumbs } from '../../../src/components/Breadcrumbs.js';
 
 // Полная очистка DOM между тестами
 afterEach(cleanup);

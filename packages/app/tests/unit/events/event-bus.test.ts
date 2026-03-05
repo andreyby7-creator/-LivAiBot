@@ -9,8 +9,10 @@
  * - Error handling и edge cases
  */
 
+import { Redis } from 'ioredis';
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { AppEventType, createLogoutEvent } from '../../../src/events/app-events.js';
 import {
   EventBus,
   eventBus,
@@ -19,9 +21,7 @@ import {
   onEvent,
   publishEvent,
 } from '../../../src/events/event-bus.js';
-import { AppEventType, createLogoutEvent } from '../../../src/events/app-events.js';
 import { UserRoles } from '../../../src/types/common.js';
-import { Redis } from 'ioredis';
 
 // Мокаем ioredis
 vi.mock('ioredis', () => ({

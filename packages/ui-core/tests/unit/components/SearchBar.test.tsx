@@ -3,12 +3,14 @@
  * @file Unit тесты для SearchBar компонента
  */
 
-import React from 'react';
-import type { ChangeEvent } from 'react';
-import { afterEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, fireEvent, render, within } from '@testing-library/react';
+import type { ChangeEvent } from 'react';
+import React from 'react';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+
+import { SearchBar } from '@livai/ui-core';
+
 import '@testing-library/jest-dom/vitest';
-import { SearchBar } from '../../../src/components/SearchBar.js';
 
 // Полная очистка DOM между тестами
 afterEach(cleanup);

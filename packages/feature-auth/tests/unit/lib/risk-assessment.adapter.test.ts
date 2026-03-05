@@ -9,7 +9,6 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 // 🔧 MOCKS
 // ============================================================================
 // Note: transformDomainToDto mock removed - signals no longer part of domain
-
 import type { ClassificationRule } from '@livai/domains/strategies';
 
 import type { DeviceInfo } from '../../../src/domain/DeviceInfo.js';

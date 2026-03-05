@@ -16,8 +16,8 @@
  * - Видимостью и жизненным циклом управляет App-слой
  */
 
-import { forwardRef, memo, useMemo } from 'react';
 import type { CSSProperties, HTMLAttributes, JSX, ReactNode } from 'react';
+import { forwardRef, memo, useMemo } from 'react';
 
 /* ============================================================================
  * 🧬 TYPES & CONSTANTS

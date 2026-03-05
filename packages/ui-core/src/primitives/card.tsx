@@ -14,8 +14,8 @@
  * - продуктовых решений
  */
 
-import { forwardRef, memo, useMemo } from 'react';
 import type { AriaRole, CSSProperties, HTMLAttributes, JSX, ReactNode } from 'react';
+import { forwardRef, memo, useMemo } from 'react';
 
 import type { UISize } from '../types/ui.js';
 

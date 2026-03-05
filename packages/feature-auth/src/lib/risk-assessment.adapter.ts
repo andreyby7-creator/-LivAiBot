@@ -19,8 +19,9 @@
  * - ✅ Canonical Time Model — ISO 8601 string → epoch ms (number) на boundary
  */
 
-import type { ClassificationRule } from '@livai/domains/strategies';
 import { isValid as isValidIpAddress } from 'ipaddr.js';
+
+import type { ClassificationRule } from '@livai/domains/strategies';
 
 import type { DeviceInfo } from '../domain/DeviceInfo.js';
 import type {

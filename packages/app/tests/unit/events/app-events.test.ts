@@ -10,6 +10,11 @@
 
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
+import type {
+  AuthExpiredEventPayload,
+  BillingChangedEventPayload,
+  LogoutEventPayload,
+} from '../../../src/events/app-events.js';
 import {
   AppEventType,
   AuthExpiredEventPayloadSchema,
@@ -22,11 +27,6 @@ import {
   isBillingChangedEvent,
   isLogoutEvent,
   LogoutEventPayloadSchema,
-} from '../../../src/events/app-events.js';
-import type {
-  AuthExpiredEventPayload,
-  BillingChangedEventPayload,
-  LogoutEventPayload,
 } from '../../../src/events/app-events.js';
 import { UserRoles } from '../../../src/types/common.js';
 

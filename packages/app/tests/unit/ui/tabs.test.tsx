@@ -3,71 +3,76 @@
  * @file Тесты для App Tabs компонента с полным покрытием
  */
 
+import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import React from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+
 import '@testing-library/jest-dom/vitest';
 
 // Mock для Core Tabs - возвращаем простой div
-vi.mock('../../../../ui-core/src/components/Tabs', () => ({
-  Tabs: React.forwardRef<
-    HTMLDivElement,
-    Readonly<Record<string, unknown>>
-  >((
-    props: Readonly<Record<string, unknown>>,
-    ref,
-  ) => {
-    const {
-      items = [],
-      activeTabId,
-      onChange,
-      orientation,
-      'data-component': dataComponent,
-      'data-state': dataState,
-      'data-feature-flag': dataFeatureFlag,
-      'data-telemetry': dataTelemetry,
-      'data-testid': testId,
-      ...rest
-    } = props;
+vi.mock('@livai/ui-core', async () => {
+  const actual = await vi.importActual('@livai/ui-core');
+  return {
+    ...actual,
+    Tabs: React.forwardRef<
+      HTMLDivElement,
+      Readonly<Record<string, unknown>>
+    >((
+      props: Readonly<Record<string, unknown>>,
+      ref,
+    ) => {
+      const {
+        items = [],
+        activeTabId,
+        onChange,
+        orientation,
+        'data-component': dataComponent,
+        'data-state': dataState,
+        'data-feature-flag': dataFeatureFlag,
+        'data-telemetry': dataTelemetry,
+        'data-testid': testId,
+        ...rest
+      } = props;
 
-    const itemsArray = items as readonly Readonly<{
-      id: string;
-      label: string;
-      content: React.ReactNode;
-      disabled?: boolean;
-    }>[];
+      const itemsArray = items as readonly Readonly<{
+        id: string;
+        label: string;
+        content: React.ReactNode;
+        disabled?: boolean;
+      }>[];
 
-    return (
-      <div
-        ref={ref}
-        data-testid={testId ?? 'core-tabs'}
-        data-component={dataComponent}
-        data-state={dataState}
-        data-feature-flag={dataFeatureFlag}
-        data-telemetry={dataTelemetry}
-        data-orientation={orientation}
-        data-active-tab-id={activeTabId}
-        {...rest}
-      >
-        {itemsArray.map((item) => (
-          <button
-            key={item.id}
-            data-tab-id={item.id}
-            disabled={item.disabled}
-            onClick={(e) => {
-              if (typeof onChange === 'function') {
-                onChange(item.id, e);
-              }
-            }}
-          >
-            {item.label}
-          </button>
-        ))}
-        {itemsArray.find((item) => item.id === (activeTabId ?? itemsArray[0]?.id))?.content}
-      </div>
-    );
-  }),
-}));
+      return (
+        <div
+          ref={ref}
+          data-testid={testId ?? 'core-tabs'}
+          data-component={dataComponent}
+          data-state={dataState}
+          data-feature-flag={dataFeatureFlag}
+          data-telemetry={dataTelemetry}
+          data-orientation={orientation}
+          data-active-tab-id={activeTabId}
+          {...rest}
+        >
+          {itemsArray.map((item) => (
+            <button
+              key={item.id}
+              data-tab-id={item.id}
+              disabled={item.disabled}
+              onClick={(e) => {
+                if (typeof onChange === 'function') {
+                  onChange(item.id, e);
+                }
+              }}
+            >
+              {item.label}
+            </button>
+          ))}
+          {itemsArray.find((item) => item.id === (activeTabId ?? itemsArray[0]?.id))?.content}
+        </div>
+      );
+    }),
+  };
+});
 
 // Mock для UnifiedUIProvider
 const mockInfoFireAndForget = vi.fn();

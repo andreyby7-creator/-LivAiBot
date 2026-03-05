@@ -2,16 +2,9 @@
  * @file Unit тесты для Remote Provider
  * Полное покрытие всех методов и веток исполнения (100%)
  */
-import { describe, expect, it, vi } from 'vitest';
 import type { MockedFunction } from 'vitest';
-import type {
-  ClassificationContext,
-  ClassificationSignals,
-} from '../../../src/classification/signals/signals.js';
-import type { DeviceInfo } from '../../../src/classification/strategies/rules.js';
-import {
-  createRemoteProviderStage,
-} from '../../../src/classification/providers/remote.provider.js';
+import { describe, expect, it, vi } from 'vitest';
+
 import type {
   AsyncExecutionPolicy,
   MergeStrategy,
@@ -21,6 +14,14 @@ import type {
   RemoteProviderResponse,
   RemoteProviderStageConfig,
 } from '../../../src/classification/providers/remote.provider.js';
+import {
+  createRemoteProviderStage,
+} from '../../../src/classification/providers/remote.provider.js';
+import type {
+  ClassificationContext,
+  ClassificationSignals,
+} from '../../../src/classification/signals/signals.js';
+import type { DeviceInfo } from '../../../src/classification/strategies/rules.js';
 
 // Mock defineStage since it's imported from @livai/core and may not resolve in test environment
 vi.mock('@livai/core', () => ({

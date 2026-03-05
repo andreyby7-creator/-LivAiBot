@@ -20,10 +20,11 @@
  * - Разделение ответственности: policy.isRendered → DOM rendering, isOpen → UX state
  */
 
-import { ContextMenu as CoreContextMenu } from '@livai/ui-core';
-import type { ContextMenuRef, CoreContextMenuProps } from '@livai/ui-core';
-import { forwardRef, memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef } from 'react';
 import type { CSSProperties, JSX, KeyboardEvent, MouseEvent, Ref } from 'react';
+import { forwardRef, memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef } from 'react';
+
+import type { ContextMenuRef, CoreContextMenuProps } from '@livai/ui-core';
+import { ContextMenu as CoreContextMenu } from '@livai/ui-core';
 
 import type { Namespace, TranslationKey } from '../lib/i18n.js';
 import { useUnifiedUI } from '../providers/UnifiedUIProvider.js';
@@ -530,10 +531,13 @@ const ContextMenuComponent = forwardRef<HTMLDivElement, AppContextMenuProps>(
      */
     if (!policy.isRendered) return null;
 
+    const testId = props['data-testid'] ?? 'core-context-menu';
+
     return (
       <CoreContextMenu
         ref={ref}
         {...coreContextMenuProps}
+        data-testid={testId}
       />
     );
   },

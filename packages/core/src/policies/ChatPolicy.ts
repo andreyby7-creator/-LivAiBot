@@ -24,8 +24,8 @@
  * - ✅ Explicit invariants, exhaustive unions, predictable decision outputs
  */
 
-import { Decision } from '@livai/core-contracts';
 import type { DurationMs, PolicyDecision, UnixTimestampMs } from '@livai/core-contracts';
+import { Decision } from '@livai/core-contracts';
 
 /* ============================================================================
  * 1. TYPES — CHAT POLICY MODEL (Pure Type Definitions)

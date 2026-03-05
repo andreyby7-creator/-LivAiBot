@@ -10,6 +10,7 @@
  */
 
 import { describe, expect, it } from 'vitest';
+
 import type {
   ApiError,
   ApiResponse,

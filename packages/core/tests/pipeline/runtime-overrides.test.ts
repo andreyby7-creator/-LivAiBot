@@ -3,6 +3,13 @@
  * Полное покрытие всех функций и веток исполнения (100%)
  */
 import { describe, expect, it, vi } from 'vitest';
+
+import type {
+  EnvProvider,
+  OverrideKey,
+  OverridePriority,
+  RuntimeOverrides,
+} from '../../src/pipeline/runtime-overrides.js';
 import {
   applyRuntimeOverrides,
   createCustomOverrideProvider,
@@ -14,12 +21,6 @@ import {
   hasActiveOverrides,
   readRuntimeOverridesFromEnv,
   validateRuntimeOverrides,
-} from '../../src/pipeline/runtime-overrides.js';
-import type {
-  EnvProvider,
-  OverrideKey,
-  OverridePriority,
-  RuntimeOverrides,
 } from '../../src/pipeline/runtime-overrides.js';
 
 /* ============================================================================

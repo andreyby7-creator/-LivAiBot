@@ -3,31 +3,36 @@
  * @file Тесты для App Skeleton компонента с полным покрытием
  */
 
+import { cleanup, render, screen } from '@testing-library/react';
 import React from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { cleanup, render, screen } from '@testing-library/react';
+
 import '@testing-library/jest-dom/vitest';
 
 // Mock для Core Skeleton - возвращаем простой div
-vi.mock('../../../../ui-core/src/components/Skeleton', () => ({
-  Skeleton: (
-    {
-      'data-testid': testId,
-      'data-component': dataComponent,
-      'data-feature-flag': dataFeatureFlag,
-      animated,
-      ...props
-    }: Readonly<Record<string, unknown>>,
-  ) => (
-    <div
-      data-testid={testId ?? 'core-skeleton'}
-      data-component={dataComponent}
-      data-feature-flag={dataFeatureFlag}
-      data-animated={animated?.toString()}
-      {...props}
-    />
-  ),
-}));
+vi.mock('@livai/ui-core', async () => {
+  const actual = await vi.importActual('@livai/ui-core');
+  return {
+    ...actual,
+    Skeleton: (
+      {
+        'data-testid': testId,
+        'data-component': dataComponent,
+        'data-feature-flag': dataFeatureFlag,
+        animated,
+        ...props
+      }: Readonly<Record<string, unknown>>,
+    ) => (
+      <div
+        data-testid={testId ?? 'core-skeleton'}
+        data-component={dataComponent}
+        data-feature-flag={dataFeatureFlag}
+        data-animated={animated?.toString()}
+        {...props}
+      />
+    ),
+  };
+});
 
 // Mock для UnifiedUIProvider
 const mockInfoFireAndForget = vi.fn();

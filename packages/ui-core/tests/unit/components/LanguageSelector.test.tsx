@@ -3,12 +3,14 @@
  * @file Unit тесты для LanguageSelector компонента
  */
 
+import { cleanup, fireEvent, render, within } from '@testing-library/react';
 import React from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { cleanup, fireEvent, render, within } from '@testing-library/react';
+
+import type { LanguageData } from '@livai/ui-core';
+import { LanguageSelector } from '@livai/ui-core';
+
 import '@testing-library/jest-dom/vitest';
-import { LanguageSelector } from '../../../src/components/LanguageSelector.js';
-import type { LanguageData } from '../../../src/components/LanguageSelector.js';
 
 // Полная очистка DOM между тестами
 afterEach(cleanup);

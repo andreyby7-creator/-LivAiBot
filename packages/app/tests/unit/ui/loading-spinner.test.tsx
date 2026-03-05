@@ -3,58 +3,63 @@
  * @file Тесты для App LoadingSpinner компонента с полным покрытием
  */
 
+import { cleanup, render, screen } from '@testing-library/react';
 import React from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { cleanup, render, screen } from '@testing-library/react';
+
 import '@testing-library/jest-dom/vitest';
 
 // Mock для Core LoadingSpinner
-vi.mock('../../../../ui-core/src/primitives/loading-spinner', () => ({
-  LoadingSpinner: React.forwardRef<
-    HTMLDivElement,
-    Readonly<Record<string, unknown>>
-  >((
-    props: Readonly<Record<string, unknown>>,
-    ref,
-  ) => {
-    const {
-      variant,
-      size,
-      color,
-      'aria-label': ariaLabel,
-      'data-component': dataComponent,
-      'data-state': dataState,
-      'data-feature-flag': dataFeatureFlag,
-      'data-telemetry': dataTelemetry,
-      'data-variant': dataVariant,
-      'data-testid': testId,
-      className,
-      style,
-      ...rest
-    } = props;
+vi.mock('@livai/ui-core', async () => {
+  const actual = await vi.importActual('@livai/ui-core');
+  return {
+    ...actual,
+    LoadingSpinner: React.forwardRef<
+      HTMLDivElement,
+      Readonly<Record<string, unknown>>
+    >((
+      props: Readonly<Record<string, unknown>>,
+      ref,
+    ) => {
+      const {
+        variant,
+        size,
+        color,
+        'aria-label': ariaLabel,
+        'data-component': dataComponent,
+        'data-state': dataState,
+        'data-feature-flag': dataFeatureFlag,
+        'data-telemetry': dataTelemetry,
+        'data-variant': dataVariant,
+        'data-testid': testId,
+        className,
+        style,
+        ...rest
+      } = props;
 
-    return (
-      <div
-        ref={ref}
-        data-testid={testId ?? 'core-loading-spinner'}
-        data-component={dataComponent}
-        data-state={dataState}
-        data-feature-flag={dataFeatureFlag}
-        data-telemetry={dataTelemetry}
-        data-variant={dataVariant}
-        data-variant-prop={variant}
-        data-size-prop={size}
-        data-color-prop={color}
-        aria-label={ariaLabel as string | undefined}
-        className={className as string | undefined}
-        style={style as React.CSSProperties | undefined}
-        {...rest}
-      >
-        Loading Spinner
-      </div>
-    );
-  }),
-}));
+      return (
+        <div
+          ref={ref}
+          data-testid={testId ?? 'core-loading-spinner'}
+          data-component={dataComponent}
+          data-state={dataState}
+          data-feature-flag={dataFeatureFlag}
+          data-telemetry={dataTelemetry}
+          data-variant={dataVariant}
+          data-variant-prop={variant}
+          data-size-prop={size}
+          data-color-prop={color}
+          aria-label={ariaLabel as string | undefined}
+          className={className as string | undefined}
+          style={style as React.CSSProperties | undefined}
+          {...rest}
+        >
+          Loading Spinner
+        </div>
+      );
+    }),
+  };
+});
 
 // Mock для UnifiedUIProvider
 const mockInfoFireAndForget = vi.fn();

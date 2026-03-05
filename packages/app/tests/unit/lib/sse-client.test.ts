@@ -11,6 +11,15 @@
  */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+
+import type { EffectAbortController, EffectContext, TraceId } from '@livai/core/effect';
+
+import type {
+  ReconnectStrategy,
+  SSEClientConfig,
+  SSEClientState,
+  SSEInternalEvent,
+} from '../../../src/lib/sse-client';
 import {
   calculateReconnectDelay,
   createHeartbeatEffect,
@@ -23,13 +32,6 @@ import {
   onSSEMessage,
   reduceSSEState,
 } from '../../../src/lib/sse-client';
-import type {
-  ReconnectStrategy,
-  SSEClientConfig,
-  SSEClientState,
-  SSEInternalEvent,
-} from '../../../src/lib/sse-client';
-import type { EffectAbortController, EffectContext } from '../../../src/lib/effect-utils';
 
 // ============================================================================
 // 🧠 MOCKS И HELPER'Ы
@@ -66,7 +68,7 @@ function createMockEventSource(): EventSource {
  */
 function createMockContext(): EffectContext {
   return {
-    traceId: 'test-trace-id',
+    traceId: 'test-trace-id' as TraceId,
     authToken: 'test-auth-token',
     locale: 'en',
     source: 'sse-test',

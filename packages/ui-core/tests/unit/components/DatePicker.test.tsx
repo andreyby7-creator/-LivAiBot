@@ -3,12 +3,14 @@
  * @file Unit тесты для DatePicker компонента
  */
 
+import { cleanup, fireEvent, render } from '@testing-library/react';
 import React from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { cleanup, fireEvent, render } from '@testing-library/react';
+
+import type { CalendarDay, CalendarMonth } from '@livai/ui-core';
+import { DatePicker } from '@livai/ui-core';
+
 import '@testing-library/jest-dom/vitest';
-import { DatePicker } from '../../../src/components/DatePicker.js';
-import type { CalendarDay, CalendarMonth } from '../../../src/components/DatePicker.js';
 
 // Полная очистка DOM между тестами
 afterEach(() => {

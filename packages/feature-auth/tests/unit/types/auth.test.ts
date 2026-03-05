@@ -4,17 +4,18 @@
  */
 
 import { describe, expect, it } from 'vitest';
-import type { AuthErrorResponse } from '../../../src/domain/AuthErrorResponse.js';
+
 import type { AuthAuditEvent } from '../../../src/domain/AuthAuditEvent.js';
+import type { AuthErrorResponse } from '../../../src/domain/AuthErrorResponse.js';
 import type { DeviceInfo } from '../../../src/domain/DeviceInfo.js';
 import type { LoginRequest } from '../../../src/domain/LoginRequest.js';
-import {
-  createLoginRiskEvaluation as createLoginRiskEvaluationDomain,
-  createLoginRiskResult,
-} from '../../../src/domain/LoginRiskAssessment.js';
 import type {
   LoginRiskEvaluation,
   LoginRiskResult,
+} from '../../../src/domain/LoginRiskAssessment.js';
+import {
+  createLoginRiskEvaluation as createLoginRiskEvaluationDomain,
+  createLoginRiskResult,
 } from '../../../src/domain/LoginRiskAssessment.js';
 import type { LogoutRequest } from '../../../src/domain/LogoutRequest.js';
 import type { MeResponse, MeSessionInfo, MeUserInfo } from '../../../src/domain/MeResponse.js';

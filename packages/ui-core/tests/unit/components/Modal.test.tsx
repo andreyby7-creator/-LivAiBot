@@ -3,11 +3,13 @@
  * @file Unit тесты для Modal компонента
  */
 
+import { cleanup, render } from '@testing-library/react';
 import React from 'react';
 import { afterEach, describe, expect, it } from 'vitest';
-import { cleanup, render } from '@testing-library/react';
+
+import { Modal } from '@livai/ui-core';
+
 import '@testing-library/jest-dom/vitest';
-import { Modal } from '../../../src/components/Modal.js';
 
 // Полная очистка DOM между тестами
 afterEach(cleanup);

@@ -16,7 +16,6 @@
  * - Открытостью меню и событиями управляет App-слой
  */
 
-import { forwardRef, memo, useCallback, useId, useLayoutEffect, useMemo, useRef } from 'react';
 import type {
   CSSProperties,
   HTMLAttributes,
@@ -26,6 +25,7 @@ import type {
   ReactNode,
   Ref,
 } from 'react';
+import { forwardRef, memo, useCallback, useId, useLayoutEffect, useMemo, useRef } from 'react';
 
 import type { UIDataAttributes, UITestId } from '../types/ui.js';
 

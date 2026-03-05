@@ -22,8 +22,6 @@ vi.mock('@livai/core', async () => {
 });
 
 import type { DeviceInfo } from '../../../src/domain/DeviceInfo.js';
-import type { RiskLevel } from '../../../src/types/auth.js';
-import { assessLoginRisk } from '../../../src/lib/risk-assessment.js';
 import type {
   AuditHook,
   ContextBuilderPlugin,
@@ -32,6 +30,8 @@ import type {
   RiskPolicy,
   RiskSignals,
 } from '../../../src/lib/risk-assessment.js';
+import { assessLoginRisk } from '../../../src/lib/risk-assessment.js';
+import type { RiskLevel } from '../../../src/types/auth.js';
 // defaultDecisionPolicy больше не используется в тестах, decision policy управляется через domains
 
 // ============================================================================

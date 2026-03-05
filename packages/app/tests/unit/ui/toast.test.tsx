@@ -3,29 +3,34 @@
  * @file Тесты для App Toast компонента с полным покрытием
  */
 
+import { cleanup, render, screen } from '@testing-library/react';
 import React from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { cleanup, render, screen } from '@testing-library/react';
+
 import '@testing-library/jest-dom/vitest';
 
 // Mock для Core Toast - возвращаем простой div
-vi.mock('../../../../ui-core/src/components/Toast', () => ({
-  Toast: (
-    { 'data-testid': testId, visible, content, ...props }: Readonly<
-      Record<string, unknown> & {
-        content?: React.ReactNode;
-      }
-    >,
-  ) => (
-    <div
-      data-testid={testId ?? 'core-toast'}
-      data-visible={visible?.toString()}
-      {...props}
-    >
-      {content}
-    </div>
-  ),
-}));
+vi.mock('@livai/ui-core', async () => {
+  const actual = await vi.importActual('@livai/ui-core');
+  return {
+    ...actual,
+    Toast: (
+      { 'data-testid': testId, visible, content, ...props }: Readonly<
+        Record<string, unknown> & {
+          content?: React.ReactNode;
+        }
+      >,
+    ) => (
+      <div
+        data-testid={testId ?? 'core-toast'}
+        data-visible={visible?.toString()}
+        {...props}
+      >
+        {content}
+      </div>
+    ),
+  };
+});
 
 // Mock для UnifiedUIProvider
 let mockFeatureFlagReturnValue = false;
@@ -50,9 +55,9 @@ vi.mock('../../../src/providers/UnifiedUIProvider', () => ({
   }),
 }));
 
-import { Toast } from '../../../src/ui/toast';
-import type { ClientError, NetworkError } from '../../../src/types/errors';
 import type { ISODateString } from '../../../src/types/common';
+import type { ClientError, NetworkError } from '../../../src/types/errors';
+import { Toast } from '../../../src/ui/toast';
 
 // Фабричные функции для создания тестовых ошибок
 const createTestClientError = (): ClientError => ({

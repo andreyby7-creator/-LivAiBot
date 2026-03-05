@@ -19,8 +19,8 @@
  */
 
 import { executePipeline } from './engine.js';
-import { createExecutionPlanSafe } from './plan.js';
 import type { ExecutionPlan, ExecutionPlanError } from './plan.js';
+import { createExecutionPlanSafe } from './plan.js';
 import type {
   PipelineConfig,
   PipelineFailureReason,

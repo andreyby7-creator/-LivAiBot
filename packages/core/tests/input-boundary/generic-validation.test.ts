@@ -3,6 +3,8 @@
  * Полное покрытие всех методов и веток исполнения (100%)
  */
 import { describe, expect, it } from 'vitest';
+
+import type { ValidationRule } from '../../src/input-boundary/generic-validation.js';
 import {
   andRule,
   defaultValidationRuleRegistry,
@@ -25,7 +27,6 @@ import {
   validate,
   validateObjectShape,
 } from '../../src/input-boundary/generic-validation.js';
-import type { ValidationRule } from '../../src/input-boundary/generic-validation.js';
 
 describe('Generic Validation (DTO Guards)', () => {
   describe('Type Guards — Базовые типы', () => {

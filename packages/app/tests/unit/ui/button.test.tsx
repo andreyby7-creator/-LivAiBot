@@ -3,12 +3,13 @@
  * @file Тесты для Button компонента с полным покрытием
  */
 
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
-import '@testing-library/jest-dom/vitest';
-import { Button } from '../../../src/ui/button';
-import type { AppButtonProps } from '../../../src/ui/button';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+import type { AppButtonProps } from '../../../src/ui/button';
+import { Button } from '../../../src/ui/button';
+
+import '@testing-library/jest-dom/vitest';
 // Импорт для правильного порядка моков
 import '../../../src/providers/UnifiedUIProvider';
 

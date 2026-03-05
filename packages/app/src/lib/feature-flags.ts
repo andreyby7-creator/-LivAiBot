@@ -14,7 +14,7 @@
 
 import React from 'react';
 
-import type { ServicePrefix } from './error-mapping.js';
+import type { ServicePrefix } from '@livai/core/effect';
 
 /* ============================================================================
  * 🔢 МУРМУРХЭШ КОНСТАНТЫ

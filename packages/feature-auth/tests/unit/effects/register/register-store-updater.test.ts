@@ -15,11 +15,6 @@
 
 import { describe, expect, it } from 'vitest';
 
-import {
-  // Вспомогательный экспорт только для unit-тестов (см. файл реализаци)
-  testInvalidRegisterResponseMessage,
-  updateRegisterState,
-} from '../../../../src/effects/register/register-store-updater.js';
 import type { DeviceInfo } from '../../../../src/domain/DeviceInfo.js';
 import type { MeResponse } from '../../../../src/domain/MeResponse.js';
 import type {
@@ -28,6 +23,12 @@ import type {
 } from '../../../../src/domain/RegisterRequest.js';
 import type { RegisterResponse } from '../../../../src/domain/RegisterResponse.js';
 import type { TokenPair } from '../../../../src/domain/TokenPair.js';
+import {
+  // Вспомогательный экспорт только для unit-тестов (см. файл реализаци)
+  testInvalidRegisterResponseMessage,
+  updateRegisterState,
+} from '../../../../src/effects/register/register-store-updater.js';
+import type { AuthStorePort, BatchUpdate } from '../../../../src/effects/shared/auth-store.port.js';
 import type {
   AuthEvent,
   AuthState,
@@ -35,7 +36,6 @@ import type {
   SessionState,
 } from '../../../../src/types/auth.js';
 import { initialSecurityState } from '../../../../src/types/auth-initial.js';
-import type { AuthStorePort, BatchUpdate } from '../../../../src/effects/shared/auth-store.port.js';
 
 // ============================================================================
 // 🔧 HELPERS — MOCK STORE

@@ -3,7 +3,7 @@
  * Полное покрытие всех методов и веток исполнения
  */
 import { describe, expect, it } from 'vitest';
-import { BotPolicy } from '../../src/policies/BotPolicy.js';
+
 import type {
   BotActorContext,
   BotMode,
@@ -12,6 +12,7 @@ import type {
   BotRole,
   BotState,
 } from '../../src/policies/BotPolicy.js';
+import { BotPolicy } from '../../src/policies/BotPolicy.js';
 
 // Mock данные для тестирования
 const MOCK_CONFIG: BotPolicyConfig = {

@@ -7,14 +7,15 @@
  * UI boundary между ui-core и бизнес-логикой.
  */
 
-import { Form as CoreForm } from '@livai/ui-core';
-import type { CoreFormProps } from '@livai/ui-core';
-import React, { memo, useCallback, useEffect, useMemo } from 'react';
 import type { JSX } from 'react';
+import React, { memo, useCallback, useEffect, useMemo } from 'react';
+
+import type { FormValidationResult, ValidationSchema } from '@livai/core/effect';
+import { validateForm } from '@livai/core/effect';
+import type { CoreFormProps } from '@livai/ui-core';
+import { Form as CoreForm } from '@livai/ui-core';
 
 import type { Namespace, TranslationKey } from '../lib/i18n.js';
-import { validateForm } from '../lib/validation.js';
-import type { FormValidationResult, ValidationSchema } from '../lib/validation.js';
 import { useUnifiedUI } from '../providers/UnifiedUIProvider.js';
 import type { UiTelemetryApi } from '../types/ui-contracts.js';
 

@@ -18,15 +18,20 @@
  * - Детерминированность: все параметры передаются явно
  */
 
+import type {
+  AppError,
+  ErrorBoundaryErrorCode,
+  ISODateString,
+  UnknownError,
+} from '@livai/core-contracts';
+
 import type { EffectError } from './effect-utils.js';
-import type { ISODateString } from '../types/common.js';
-import type { AppError, ErrorBoundaryErrorCode, UnknownError } from '../types/errors.js';
 
 /** Типизированная ошибка с кодом для маппинга */
-export type TaggedError<T extends ServiceErrorCode = ServiceErrorCode> = {
+export interface TaggedError<T extends ServiceErrorCode = ServiceErrorCode> {
   readonly code: T;
   readonly service?: ServicePrefix | undefined; // опциональный сервис для автоматического определения
-};
+}
 
 /* ============================================================================
  * 🧱 СЕРВИСНЫЕ ПРЕФИКСЫ
@@ -98,20 +103,20 @@ export const kindToErrorCode: Partial<Record<string, ServiceErrorCode>> = {
  * ========================================================================== */
 
 /** Безопасное представление оригинальной ошибки без stack trace */
-export type SafeOriginError = {
+export interface SafeOriginError {
   readonly name: string;
   readonly message: string;
-};
+}
 
 /** Расширенный объект ошибки для использования в runtime и telemetry */
-export type MappedError<TDetails = unknown> = {
+export interface MappedError<TDetails = unknown> {
   readonly code: ServiceErrorCode;
   readonly message: string;
   readonly details?: TDetails | undefined;
   readonly originError?: SafeOriginError | undefined; // безопасное представление оригинальной ошибки (без stack trace)
   readonly timestamp: number; // время генерации ошибки для трассировки
   readonly service?: ServicePrefix | undefined; // микросервис, где произошла ошибка
-};
+}
 
 /* ============================================================================
  * 🔧 ПОЛЕЗНЫЕ HELPERS
@@ -155,10 +160,10 @@ function isEffectError(err: unknown): err is EffectError {
  * ========================================================================== */
 
 /** Конфигурация для mapError (детерминированная, без side-effects) */
-export type MapErrorConfig = {
+export interface MapErrorConfig {
   readonly locale: string; // локаль для сообщений (обязательна для детерминированности)
   readonly timestamp: number; // время генерации ошибки (обязательно для детерминированности)
-};
+}
 
 /**
  * Универсальный mapper для любых DomainError.
@@ -231,22 +236,22 @@ export function mapError<TDetails = unknown>(
 }
 
 /** Конфигурация для mapErrorBoundaryError (детерминированная, без side-effects) */
-export type MapErrorBoundaryConfig = {
+export interface MapErrorBoundaryConfig {
   readonly timestamp: ISODateString; // ISO строка времени (обязательна для детерминированности)
-};
+}
 
 /** Данные для telemetry после маппинга error-boundary ошибки */
-export type ErrorBoundaryTelemetryData = {
+export interface ErrorBoundaryTelemetryData {
   readonly originalErrorType: string;
   readonly mappedErrorCode: ErrorBoundaryErrorCode;
   readonly errorMessage: string;
-};
+}
 
 /** Результат маппинга error-boundary ошибки */
-export type MapErrorBoundaryResult = {
+export interface MapErrorBoundaryResult {
   readonly appError: AppError;
   readonly telemetryData: ErrorBoundaryTelemetryData;
-};
+}
 
 /**
  * Преобразует Error в AppError для error-boundary компонента.

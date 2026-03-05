@@ -3,8 +3,8 @@
  * Полное покрытие всех методов и веток исполнения (100%)
  */
 import { describe, expect, it } from 'vitest';
-import { createTrustLevelRegistry, trustLevels } from '../../src/data-safety/trust-level.js';
-import type { TrustLevel } from '../../src/data-safety/trust-level.js';
+
+import type { Slot, TaintMetadata, TaintSource } from '../../src/data-safety/taint.js';
 import {
   addTaint,
   assertTrusted,
@@ -23,7 +23,8 @@ import {
   stripTaintSlot,
   taintSources,
 } from '../../src/data-safety/taint.js';
-import type { Slot, TaintMetadata, TaintSource } from '../../src/data-safety/taint.js';
+import type { TrustLevel } from '../../src/data-safety/trust-level.js';
+import { createTrustLevelRegistry, trustLevels } from '../../src/data-safety/trust-level.js';
 
 describe('Taint Tracking', () => {
   describe('taintSources константы', () => {

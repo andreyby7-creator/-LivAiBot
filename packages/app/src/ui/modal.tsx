@@ -17,10 +17,11 @@
  * - CoreModal остается без анимаций для максимальной производительности и простоты
  */
 
-import { Modal as CoreModal } from '@livai/ui-core';
-import type { CoreModalProps, ModalVariant, UIDuration } from '@livai/ui-core';
-import { forwardRef, memo, useEffect, useMemo, useRef } from 'react';
 import type { JSX, Ref } from 'react';
+import { forwardRef, memo, useEffect, useMemo, useRef } from 'react';
+
+import type { CoreModalProps, ModalVariant, UIDuration } from '@livai/ui-core';
+import { Modal as CoreModal } from '@livai/ui-core';
 
 import type { Namespace, TranslationKey } from '../lib/i18n.js';
 import { useUnifiedUI } from '../providers/UnifiedUIProvider.js';
@@ -317,6 +318,8 @@ const ModalComponent = forwardRef<HTMLDivElement, AppModalProps>(
     // Policy: hidden
     if (!policy.isRendered) return null;
 
+    const testId = props['data-testid'] ?? 'core-modal';
+
     return (
       <CoreModal
         ref={ref}
@@ -329,6 +332,7 @@ const ModalComponent = forwardRef<HTMLDivElement, AppModalProps>(
         aria-labelledby={ariaLabelledBy}
         {...(duration !== undefined && { duration })}
         {...filteredCoreProps}
+        data-testid={testId}
       />
     );
   },

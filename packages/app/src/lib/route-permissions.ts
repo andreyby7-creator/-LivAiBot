@@ -28,8 +28,8 @@
  * - Тестируемость — каждая политика отдельно проверяема
  */
 
-import type { AuthGuardContext, Permission, UserRole } from './auth-guard.js';
 import { UserRoles } from '../types/common.js';
+import type { AuthGuardContext, Permission, UserRole } from './auth-guard.js';
 
 // Re-export types for convenience
 export type { Permission, UserRole };

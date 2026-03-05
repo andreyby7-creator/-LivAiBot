@@ -21,15 +21,16 @@
  * - Убедитесь, что `status` приходит из валидированной бизнес-логики (idle | loading | success | error)
  */
 
-import { StatusIndicator as CoreStatusIndicator } from '@livai/ui-core';
+import type { JSX, Ref } from 'react';
+import { forwardRef, memo, useCallback, useEffect, useMemo, useRef } from 'react';
+
 import type {
   CoreStatusIndicatorProps,
   StatusIndicatorSize,
   StatusIndicatorStatus,
   StatusIndicatorVariant,
 } from '@livai/ui-core';
-import { forwardRef, memo, useCallback, useEffect, useMemo, useRef } from 'react';
-import type { JSX, Ref } from 'react';
+import { StatusIndicator as CoreStatusIndicator } from '@livai/ui-core';
 
 import type { Namespace, TranslationKey } from '../lib/i18n.js';
 import { useUnifiedUI } from '../providers/UnifiedUIProvider.js';
@@ -247,6 +248,8 @@ const StatusIndicatorComponent = forwardRef<
     ...additionalProps
   } = domProps;
 
+  const finalTestId = testId ?? 'core-status-indicator';
+
   // Runtime проверка валидности status
   if (
     process.env['NODE_ENV'] !== 'production'
@@ -373,7 +376,7 @@ const StatusIndicatorComponent = forwardRef<
       'data-telemetry': policy.telemetryEnabled ? 'enabled' : 'disabled',
       ...optionalProp(variant !== undefined, { 'data-variant': variant }),
       ...optionalProp(size !== undefined, { 'data-size': size }),
-      ...optionalProp(testId !== undefined, { 'data-testid': testId }),
+      'data-testid': finalTestId,
       ...additionalProps,
     }),
     [
@@ -383,7 +386,7 @@ const StatusIndicatorComponent = forwardRef<
       color,
       text,
       ariaLabel,
-      testId,
+      finalTestId,
       policy.isRendered,
       policy.hiddenByFeatureFlag,
       policy.telemetryEnabled,

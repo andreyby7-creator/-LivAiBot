@@ -11,9 +11,10 @@
  */
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { AuthError } from '../../../../src/types/auth.js';
+
 import type { DomainLoginResult } from '../../../../src/domain/LoginResult.js';
 import type { LoginTokenPairValues, MeResponseValues } from '../../../../src/schemas/index.js';
+import type { AuthError } from '../../../../src/types/auth.js';
 
 /* ============================================================================
  * 🔧 TEST HELPERS & MOCKS

@@ -3,69 +3,74 @@
  * @file Тесты для App NavigationMenuItem компонента с полным покрытием
  */
 
+import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import React from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+
 import '@testing-library/jest-dom/vitest';
 
 // Mock для Core NavigationMenuItem - возвращаем простой div с переданными пропсами
-vi.mock('../../../../ui-core/src/components/NavigationMenuItem.js', () => ({
-  NavigationMenuItem: React.forwardRef<
-    HTMLDivElement,
-    React.ComponentProps<'div'> & {
-      item?: any;
-      size?: string;
-      variant?: string;
-      showIcon?: boolean;
-      showLabel?: boolean;
-      customIcon?: any;
-      onClick?: any;
-      'data-component'?: string;
-    }
-  >((
-    {
-      item,
-      size,
-      variant,
-      showIcon,
-      showLabel,
-      customIcon,
-      onClick,
-      'data-component': dataComponent,
-      ...props
-    },
-    ref,
-  ) => {
-    return (
-      <div
-        ref={ref}
-        data-testid='core-navigation-menu-item'
-        data-size={size}
-        data-variant={variant}
-        data-show-icon={String(showIcon)}
-        data-show-label={String(showLabel)}
-        data-active={item?.isActive === true ? 'true' : undefined}
-        data-disabled={item?.isDisabled === true ? 'true' : undefined}
-        data-component={dataComponent}
-        onClick={onClick}
-        onKeyDown={onClick != null
-          ? (e) => {
-            if (e.key === 'Enter' || e.key === ' ') e.preventDefault();
-            onClick(e as any);
-          }
-          : undefined}
-        tabIndex={onClick != null ? 0 : undefined}
-        role={onClick != null ? 'button' : undefined}
-        {...props}
-      >
-        {showIcon === true && <span data-testid='nav-icon'>Icon</span>}
-        {showLabel === true && item?.label != null && (
-          <span data-testid='nav-label'>{item.label}</span>
-        )}
-      </div>
-    );
-  }),
-}));
+vi.mock('@livai/ui-core', async () => {
+  const actual = await vi.importActual('@livai/ui-core');
+  return {
+    ...actual,
+    NavigationMenuItem: React.forwardRef<
+      HTMLDivElement,
+      React.ComponentProps<'div'> & {
+        item?: any;
+        size?: string;
+        variant?: string;
+        showIcon?: boolean;
+        showLabel?: boolean;
+        customIcon?: any;
+        onClick?: any;
+        'data-component'?: string;
+      }
+    >((
+      {
+        item,
+        size,
+        variant,
+        showIcon,
+        showLabel,
+        customIcon,
+        onClick,
+        'data-component': dataComponent,
+        ...props
+      },
+      ref,
+    ) => {
+      return (
+        <div
+          ref={ref}
+          data-testid='core-navigation-menu-item'
+          data-size={size}
+          data-variant={variant}
+          data-show-icon={String(showIcon)}
+          data-show-label={String(showLabel)}
+          data-active={item?.isActive === true ? 'true' : undefined}
+          data-disabled={item?.isDisabled === true ? 'true' : undefined}
+          data-component={dataComponent}
+          onClick={onClick}
+          onKeyDown={onClick != null
+            ? (e) => {
+              if (e.key === 'Enter' || e.key === ' ') e.preventDefault();
+              onClick(e as any);
+            }
+            : undefined}
+          tabIndex={onClick != null ? 0 : undefined}
+          role={onClick != null ? 'button' : undefined}
+          {...props}
+        >
+          {showIcon === true && <span data-testid='nav-icon'>Icon</span>}
+          {showLabel === true && item?.label != null && (
+            <span data-testid='nav-label'>{item.label}</span>
+          )}
+        </div>
+      );
+    }),
+  };
+});
 
 // Mock для UnifiedUIProvider
 const mockInfoFireAndForget = vi.fn();
@@ -90,8 +95,9 @@ vi.mock('../../../src/providers/UnifiedUIProvider', () => ({
   }),
 }));
 
-import { NavigationMenuItem } from '../../../src/ui/navigation-menu-item';
 import type { NavigationMenuItemData } from '@livai/ui-core';
+
+import { NavigationMenuItem } from '../../../src/ui/navigation-menu-item';
 
 describe('App NavigationMenuItem', () => {
   // Общие тестовые переменные

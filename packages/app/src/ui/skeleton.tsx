@@ -18,10 +18,11 @@
  * - App слой управляет видимостью, анимацией и telemetry
  */
 
-import { Skeleton as CoreSkeleton } from '@livai/ui-core';
-import type { CoreSkeletonProps, SkeletonVariant } from '@livai/ui-core';
-import { forwardRef, memo, useEffect, useMemo, useRef } from 'react';
 import type { JSX, Ref } from 'react';
+import { forwardRef, memo, useEffect, useMemo, useRef } from 'react';
+
+import type { CoreSkeletonProps, SkeletonVariant } from '@livai/ui-core';
+import { Skeleton as CoreSkeleton } from '@livai/ui-core';
 
 import type { Namespace, TranslationKey } from '../lib/i18n.js';
 import { useUnifiedUI } from '../providers/UnifiedUIProvider.js';
@@ -304,6 +305,8 @@ const SkeletonComponent = forwardRef<HTMLDivElement, AppSkeletonProps>(
     // Policy: hidden → полностью удаляем из DOM
     if (!policy.isRendered) return null;
 
+    const testId = props['data-testid'] ?? 'core-skeleton';
+
     return (
       <CoreSkeleton
         ref={ref}
@@ -313,6 +316,7 @@ const SkeletonComponent = forwardRef<HTMLDivElement, AppSkeletonProps>(
         data-telemetry={policy.telemetryEnabled ? 'enabled' : 'disabled'}
         animated={policy.animated}
         {...filteredCoreProps}
+        data-testid={testId}
       />
     );
   },

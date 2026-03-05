@@ -3,11 +3,13 @@
  * @file Unit тесты для SupportButton компонента
  */
 
+import { cleanup, fireEvent, render, within } from '@testing-library/react';
 import React from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { cleanup, fireEvent, render, within } from '@testing-library/react';
+
+import { SupportButton } from '@livai/ui-core';
+
 import '@testing-library/jest-dom/vitest';
-import { SupportButton } from '../../../src/components/SupportButton.js';
 
 // Полная очистка DOM между тестами
 afterEach(cleanup);

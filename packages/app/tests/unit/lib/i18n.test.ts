@@ -2,10 +2,11 @@
  * @vitest-environment jsdom
  */
 
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, render, renderHook, screen } from '@testing-library/react';
-import '@testing-library/jest-dom/vitest';
 import React from 'react';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+
+import type { Namespace, TranslationKey } from '../../../src/lib/i18n';
 import {
   createI18nInstance,
   I18nProvider,
@@ -14,7 +15,8 @@ import {
   useTranslationNamespace,
   useTranslations,
 } from '../../../src/lib/i18n';
-import type { Namespace, TranslationKey } from '../../../src/lib/i18n';
+
+import '@testing-library/jest-dom/vitest';
 
 describe('i18n', () => {
   const mockTelemetry = vi.fn();

@@ -3,12 +3,14 @@
  * @file Unit тесты для Accordion компонента
  */
 
+import { cleanup, fireEvent, render, within } from '@testing-library/react';
 import React from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { cleanup, fireEvent, render, within } from '@testing-library/react';
+
+import type { AccordionItem } from '@livai/ui-core';
+import { Accordion } from '@livai/ui-core';
+
 import '@testing-library/jest-dom/vitest';
-import { Accordion } from '../../../src/components/Accordion.js';
-import type { AccordionItem } from '../../../src/components/Accordion.js';
 
 // Полная очистка DOM между тестами
 afterEach(cleanup);

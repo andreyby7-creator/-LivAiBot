@@ -24,7 +24,6 @@ export type {
   RegisterTelemetryPort,
   TraceIdGeneratorPort,
 } from './register-effect.types.js';
-
 export { RegisterConfigError, validateRegisterConfig } from './register-effect.types.js';
 
 /* ============================================================================

@@ -18,8 +18,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 afterEach(() => {
   vi.clearAllMocks();
 });
-import { Effect as EffectLib } from 'effect';
 import { renderHook } from '@testing-library/react';
+import { Effect as EffectLib } from 'effect';
+
 import '@testing-library/jest-dom/vitest';
 
 // Mock telemetry functions using vi.mock
@@ -51,12 +52,6 @@ vi.spyOn(Date, 'now').mockReturnValue(mockNow);
 // React hooks are imported automatically by renderHook
 
 // Импорты из тестируемого модуля
-import type {
-  PerformanceConfig,
-  PerformanceMetric,
-  WebVitalsValue,
-} from '../../../src/lib/performance.js';
-
 import {
   addMetricToBuffer,
   calculateApiResponseSeverity,
@@ -88,6 +83,11 @@ import {
   WebVitalsMetric,
   webVitalsRatingToSeverity,
 } from '../../../src/lib/performance';
+import type {
+  PerformanceConfig,
+  PerformanceMetric,
+  WebVitalsValue,
+} from '../../../src/lib/performance.js';
 
 // ============================================================================
 // 🧠 MOCKS И HELPER'Ы

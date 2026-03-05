@@ -3,9 +3,10 @@
  * @file Тесты для SearchBar компонента с полным покрытием
  */
 
+import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import React from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+
 import '@testing-library/jest-dom/vitest';
 
 // Mock для telemetry
@@ -31,114 +32,119 @@ vi.mock('../../../src/providers/UnifiedUIProvider', () => ({
 }));
 
 // Mock для CoreSearchBar
-vi.mock('../../../../ui-core/src/components/SearchBar', () => ({
-  SearchBar: React.forwardRef<
-    HTMLInputElement,
-    React.ComponentProps<'input'> & {
-      value?: string;
+vi.mock('@livai/ui-core', async () => {
+  const actual = await vi.importActual('@livai/ui-core');
+  return {
+    ...actual,
+    SearchBar: React.forwardRef<
+      HTMLInputElement,
+      React.ComponentProps<'input'> & {
+        value?: string;
 
-      onChange?: (value: string, event: React.ChangeEvent<HTMLInputElement>) => void;
-      onSubmit?: (
-        value: string,
-        event: React.SubmitEvent<HTMLFormElement> | React.KeyboardEvent<HTMLInputElement>,
-      ) => void;
-      onClear?: () => void;
-      disabled?: boolean;
-      showClearButton?: boolean;
-      showSearchButton?: boolean;
-      size?: 'small' | 'medium' | 'large';
-      'data-component'?: string;
-      'data-state'?: string;
-      'data-feature-flag'?: string;
-      'data-telemetry'?: string;
-      placeholder?: string;
-      className?: string;
-      style?: React.CSSProperties;
-    }
-  >((props, ref) => {
-    const {
-      value = '',
-      onChange,
-      onSubmit,
-      onClear,
-      disabled,
-      showClearButton,
-      showSearchButton,
-      size,
-      'data-component': dataComponent,
-      'data-state': dataState,
-      'data-feature-flag': dataFeatureFlag,
-      'data-telemetry': dataTelemetry,
-      placeholder,
-      className,
-      style,
-      ...rest
-    } = props as any; // Используем any для игнорирования App-специфичных пропсов
+        onChange?: (value: string, event: React.ChangeEvent<HTMLInputElement>) => void;
+        onSubmit?: (
+          value: string,
+          event: React.SubmitEvent<HTMLFormElement> | React.KeyboardEvent<HTMLInputElement>,
+        ) => void;
+        onClear?: () => void;
+        disabled?: boolean;
+        showClearButton?: boolean;
+        showSearchButton?: boolean;
+        size?: 'small' | 'medium' | 'large';
+        'data-component'?: string;
+        'data-state'?: string;
+        'data-feature-flag'?: string;
+        'data-telemetry'?: string;
+        placeholder?: string;
+        className?: string;
+        style?: React.CSSProperties;
+      }
+    >((props, ref) => {
+      const {
+        value = '',
+        onChange,
+        onSubmit,
+        onClear,
+        disabled,
+        showClearButton,
+        showSearchButton,
+        size,
+        'data-component': dataComponent,
+        'data-state': dataState,
+        'data-feature-flag': dataFeatureFlag,
+        'data-telemetry': dataTelemetry,
+        'data-testid': testId,
+        placeholder,
+        className,
+        style,
+        ...rest
+      } = props as any; // Используем any для игнорирования App-специфичных пропсов
 
-    return (
-      <div
-        data-testid='core-searchbar'
-        data-component={dataComponent}
-        data-state={dataState}
-        data-feature-flag={dataFeatureFlag}
-        data-telemetry={dataTelemetry}
-        className={className}
-        style={style}
-        {...rest}
-      >
-        <form
-          role='search'
-          onSubmit={(e) => {
-            e.preventDefault();
-            if (disabled !== true) {
-              onSubmit?.(value, e);
-            }
-          }}
+      return (
+        <div
+          data-testid={testId ?? 'core-search-bar'}
+          data-component={dataComponent}
+          data-state={dataState}
+          data-feature-flag={dataFeatureFlag}
+          data-telemetry={dataTelemetry}
+          className={className}
+          style={style}
+          {...rest}
         >
-          <input
-            ref={ref}
-            role='searchbox'
-            type='text'
-            value={value}
-            onChange={(e) => {
+          <form
+            role='search'
+            onSubmit={(e) => {
+              e.preventDefault();
               if (disabled !== true) {
-                onChange?.(e.target.value, e);
-              }
-            }}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' && disabled !== true) {
-                e.preventDefault();
                 onSubmit?.(value, e);
               }
             }}
-            placeholder={placeholder}
-            disabled={disabled === true}
-            data-testid='searchbar-input'
-          />
-          {Boolean(showClearButton) && Boolean(value) && disabled !== true && (
-            <button
-              type='button'
-              onClick={onClear}
-              aria-label='Clear search'
-              data-testid='searchbar-clear'
-            >
-              ×
-            </button>
-          )}
-          {Boolean(showSearchButton) && (
-            <button
-              type='submit'
+          >
+            <input
+              ref={ref}
+              role='searchbox'
+              type='text'
+              value={value}
+              onChange={(e) => {
+                if (disabled !== true) {
+                  onChange?.(e.target.value, e);
+                }
+              }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && disabled !== true) {
+                  e.preventDefault();
+                  onSubmit?.(value, e);
+                }
+              }}
+              placeholder={placeholder}
               disabled={disabled === true}
-              data-testid='searchbar-search-button'
-            >
-              Search
-            </button>
-          )}
-        </form>
-      </div>
-    );
-  }),
-}));
+              data-testid='searchbar-input'
+            />
+            {Boolean(showClearButton) && Boolean(value) && disabled !== true && (
+              <button
+                type='button'
+                onClick={onClear}
+                aria-label='Clear search'
+                data-testid='searchbar-clear'
+              >
+                ×
+              </button>
+            )}
+            {Boolean(showSearchButton) && (
+              <button
+                type='submit'
+                disabled={disabled === true}
+                data-testid='searchbar-search-button'
+              >
+                Search
+              </button>
+            )}
+          </form>
+        </div>
+      );
+    }),
+  };
+});
 
 import { SearchBar } from '../../../src/ui/search-bar';
 
@@ -160,7 +166,7 @@ describe('SearchBar', () => {
     it('должен рендерить SearchBar с обязательными пропсами', () => {
       render(<SearchBar />);
 
-      expect(screen.getByTestId('core-searchbar')).toBeInTheDocument();
+      expect(screen.getByTestId('core-search-bar')).toBeInTheDocument();
       expect(screen.getByRole('searchbox')).toBeInTheDocument();
     });
 
@@ -195,7 +201,7 @@ describe('SearchBar', () => {
     it('должен применять className', () => {
       render(<SearchBar className='custom-class' />);
 
-      expect(screen.getByTestId('core-searchbar')).toHaveClass('custom-class');
+      expect(screen.getByTestId('core-search-bar')).toHaveClass('custom-class');
     });
   });
 
@@ -203,19 +209,19 @@ describe('SearchBar', () => {
     it('должен рендерить когда visible=true (по умолчанию)', () => {
       render(<SearchBar />);
 
-      expect(screen.getByTestId('core-searchbar')).toBeInTheDocument();
+      expect(screen.getByTestId('core-search-bar')).toBeInTheDocument();
     });
 
     it('должен рендерить когда visible=true явно', () => {
       render(<SearchBar visible={true} />);
 
-      expect(screen.getByTestId('core-searchbar')).toBeInTheDocument();
+      expect(screen.getByTestId('core-search-bar')).toBeInTheDocument();
     });
 
     it('не должен рендерить когда visible=false', () => {
       render(<SearchBar visible={false} />);
 
-      expect(screen.queryByTestId('core-searchbar')).not.toBeInTheDocument();
+      expect(screen.queryByTestId('core-search-bar')).not.toBeInTheDocument();
     });
   });
 
@@ -223,19 +229,19 @@ describe('SearchBar', () => {
     it('должен рендерить когда isHiddenByFeatureFlag=false (по умолчанию)', () => {
       render(<SearchBar />);
 
-      expect(screen.getByTestId('core-searchbar')).toBeInTheDocument();
+      expect(screen.getByTestId('core-search-bar')).toBeInTheDocument();
     });
 
     it('не должен рендерить когда isHiddenByFeatureFlag=true', () => {
       render(<SearchBar isHiddenByFeatureFlag={true} />);
 
-      expect(screen.queryByTestId('core-searchbar')).not.toBeInTheDocument();
+      expect(screen.queryByTestId('core-search-bar')).not.toBeInTheDocument();
     });
 
     it('не должен рендерить когда isHiddenByFeatureFlag=true даже если visible=true', () => {
       render(<SearchBar visible={true} isHiddenByFeatureFlag={true} />);
 
-      expect(screen.queryByTestId('core-searchbar')).not.toBeInTheDocument();
+      expect(screen.queryByTestId('core-search-bar')).not.toBeInTheDocument();
     });
 
     it('должен быть disabled когда isDisabledByFeatureFlag=true', () => {
@@ -298,7 +304,7 @@ describe('SearchBar', () => {
     it('должен передавать data-component="AppSearchBar"', () => {
       render(<SearchBar />);
 
-      expect(screen.getByTestId('core-searchbar')).toHaveAttribute(
+      expect(screen.getByTestId('core-search-bar')).toHaveAttribute(
         'data-component',
         'AppSearchBar',
       );
@@ -307,13 +313,13 @@ describe('SearchBar', () => {
     it('должен передавать data-state="visible"', () => {
       render(<SearchBar />);
 
-      expect(screen.getByTestId('core-searchbar')).toHaveAttribute('data-state', 'visible');
+      expect(screen.getByTestId('core-search-bar')).toHaveAttribute('data-state', 'visible');
     });
 
     it('должен передавать data-feature-flag="visible" когда не скрыт', () => {
       render(<SearchBar />);
 
-      expect(screen.getByTestId('core-searchbar')).toHaveAttribute('data-feature-flag', 'visible');
+      expect(screen.getByTestId('core-search-bar')).toHaveAttribute('data-feature-flag', 'visible');
     });
 
     it('должен передавать data-feature-flag="hidden" когда isHiddenByFeatureFlag=true', () => {
@@ -322,31 +328,31 @@ describe('SearchBar', () => {
       // Но это покрывается через telemetry payload с hidden: true
       render(<SearchBar isHiddenByFeatureFlag={true} />);
 
-      expect(screen.queryByTestId('core-searchbar')).not.toBeInTheDocument();
+      expect(screen.queryByTestId('core-search-bar')).not.toBeInTheDocument();
     });
 
     it('должен передавать data-feature-flag="visible" когда isHiddenByFeatureFlag=false', () => {
       render(<SearchBar isHiddenByFeatureFlag={false} />);
 
-      expect(screen.getByTestId('core-searchbar')).toHaveAttribute('data-feature-flag', 'visible');
+      expect(screen.getByTestId('core-search-bar')).toHaveAttribute('data-feature-flag', 'visible');
     });
 
     it('должен передавать data-telemetry="enabled" по умолчанию', () => {
       render(<SearchBar />);
 
-      expect(screen.getByTestId('core-searchbar')).toHaveAttribute('data-telemetry', 'enabled');
+      expect(screen.getByTestId('core-search-bar')).toHaveAttribute('data-telemetry', 'enabled');
     });
 
     it('должен передавать data-telemetry="disabled" когда telemetryEnabled=false', () => {
       render(<SearchBar telemetryEnabled={false} />);
 
-      expect(screen.getByTestId('core-searchbar')).toHaveAttribute('data-telemetry', 'disabled');
+      expect(screen.getByTestId('core-search-bar')).toHaveAttribute('data-telemetry', 'disabled');
     });
 
     it('должен передавать size в CoreSearchBar', () => {
       render(<SearchBar size='large' />);
 
-      const searchBar = screen.getByTestId('core-searchbar');
+      const searchBar = screen.getByTestId('core-search-bar');
       expect(searchBar).toBeInTheDocument();
     });
   });
@@ -478,7 +484,7 @@ describe('SearchBar', () => {
         // Компонент не рендерится, но telemetry должен быть отправлен до рендера
         // На самом деле, если компонент не рендерится, telemetry не отправляется
         // Но payload формируется на основе policy
-        expect(screen.queryByTestId('core-searchbar')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('core-search-bar')).not.toBeInTheDocument();
       });
 
       it('не должен отправлять lifecycle telemetry когда telemetryEnabled=false', () => {
@@ -890,7 +896,7 @@ describe('SearchBar', () => {
           <SearchBar aria-label='Search input' />,
         );
 
-        const container = screen.getByTestId('core-searchbar');
+        const container = screen.getByTestId('core-search-bar');
         expect(container).toHaveAttribute('aria-label', 'Search input');
       });
 
@@ -902,7 +908,7 @@ describe('SearchBar', () => {
         );
 
         expect(mockTranslate).toHaveBeenCalledWith('common', 'search.label', {});
-        const container = screen.getByTestId('core-searchbar');
+        const container = screen.getByTestId('core-search-bar');
         expect(container).toHaveAttribute('aria-label', 'Translated Label');
       });
 
@@ -994,7 +1000,7 @@ describe('SearchBar', () => {
         <SearchBar aria-label='Regular label' />,
       );
 
-      const container = screen.getByTestId('core-searchbar');
+      const container = screen.getByTestId('core-search-bar');
       expect(container).toHaveAttribute('aria-label', 'Regular label');
     });
 

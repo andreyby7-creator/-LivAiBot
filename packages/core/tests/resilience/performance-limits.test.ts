@@ -3,6 +3,8 @@
  * Покрывают валидацию, проверку лимитов, нормализацию, генерацию метрик и edge-cases.
  */
 import { describe, expect, it } from 'vitest';
+
+import type { PerformanceLimitsConfig } from '../../src/resilience/performance-limits.js';
 import {
   checkConcurrentOperationsLimit,
   checkExecutionTimeLimit,
@@ -20,7 +22,6 @@ import {
   DEFAULT_PERFORMANCE_LIMITS_CONFIG,
   validatePerformanceLimits,
 } from '../../src/resilience/performance-limits.js';
-import type { PerformanceLimitsConfig } from '../../src/resilience/performance-limits.js';
 
 const BASE_TIME_MS = 1_000;
 const DEFAULT_MAX_RULES = 50;

@@ -18,8 +18,8 @@ import type { MeResponse, MeSessionInfo, MeUserInfo } from '../../domain/MeRespo
 import type { RegisterIdentifierType, RegisterRequest } from '../../domain/RegisterRequest.js';
 import type { RegisterResponse } from '../../domain/RegisterResponse.js';
 import type { TokenPair } from '../../domain/TokenPair.js';
-import { initialSecurityState } from '../../types/auth-initial.js';
 import type { AuthState } from '../../types/auth.js';
+import { initialSecurityState } from '../../types/auth-initial.js';
 import type { AuthStorePort } from '../shared/auth-store.port.js';
 import { buildSessionState } from '../shared/session-state.builder.js';
 

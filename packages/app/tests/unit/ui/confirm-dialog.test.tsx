@@ -3,97 +3,102 @@
  * @file Тесты для App ConfirmDialog компонента с полным покрытием
  */
 
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import React from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
+
 import '@testing-library/jest-dom/vitest';
 
 // Mock для Core ConfirmDialog
-vi.mock('../../../../ui-core/src/components/ConfirmDialog', () => ({
-  ConfirmDialog: React.forwardRef<
-    HTMLDivElement,
-    React.ComponentProps<'div'> & {
-      visible: boolean;
-      title?: string;
-      message?: string | React.ReactNode;
-      confirmLabel?: string;
-      cancelLabel?: string;
-      variant?: string;
-      disabled?: boolean;
-      width?: string;
-      onConfirm?: () => void;
-      onCancel?: () => void;
-      'data-testid'?: string;
-      'data-component'?: string;
-      'data-state'?: string;
-      'data-disabled'?: string | boolean;
-      'data-feature-flag'?: string;
-      'data-telemetry'?: string;
-    }
-  >((props, ref) => {
-    const {
-      visible,
-      title,
-      message,
-      confirmLabel = 'Подтвердить',
-      cancelLabel = 'Отменить',
-      variant,
-      disabled,
-      width,
-      onConfirm,
-      onCancel,
-      'data-testid': dataTestId,
-      'data-component': dataComponent,
-      'data-state': dataState,
-      'data-disabled': dataDisabled,
-      'data-feature-flag': dataFeatureFlag,
-      'data-telemetry': dataTelemetry,
-      ...rest
-    } = props as any;
+vi.mock('@livai/ui-core', async () => {
+  const actual = await vi.importActual('@livai/ui-core');
+  return {
+    ...actual,
+    ConfirmDialog: React.forwardRef<
+      HTMLDivElement,
+      React.ComponentProps<'div'> & {
+        visible: boolean;
+        title?: string;
+        message?: string | React.ReactNode;
+        confirmLabel?: string;
+        cancelLabel?: string;
+        variant?: string;
+        disabled?: boolean;
+        width?: string;
+        onConfirm?: () => void;
+        onCancel?: () => void;
+        'data-testid'?: string;
+        'data-component'?: string;
+        'data-state'?: string;
+        'data-disabled'?: string | boolean;
+        'data-feature-flag'?: string;
+        'data-telemetry'?: string;
+      }
+    >((props, ref) => {
+      const {
+        visible,
+        title,
+        message,
+        confirmLabel = 'Подтвердить',
+        cancelLabel = 'Отменить',
+        variant,
+        disabled,
+        width,
+        onConfirm,
+        onCancel,
+        'data-testid': dataTestId,
+        'data-component': dataComponent,
+        'data-state': dataState,
+        'data-disabled': dataDisabled,
+        'data-feature-flag': dataFeatureFlag,
+        'data-telemetry': dataTelemetry,
+        ...rest
+      } = props as any;
 
-    if (visible !== true) return null;
+      if (visible !== true) return null;
 
-    return (
-      <div
-        ref={ref}
-        data-testid={dataTestId ?? 'core-confirm-dialog'}
-        data-component={dataComponent}
-        data-state={dataState}
-        data-disabled={dataDisabled}
-        data-feature-flag={dataFeatureFlag}
-        data-telemetry={dataTelemetry}
-        data-variant={variant}
-        data-width={width}
-        {...rest}
-      >
-        {title != null && title !== '' && <h2 data-testid='dialog-title'>{title}</h2>}
-        {message != null && (
-          <div data-testid='dialog-message'>
-            {typeof message === 'string' ? message : message}
+      return (
+        <div
+          ref={ref}
+          data-testid={dataTestId ?? 'core-confirm-dialog'}
+          data-component={dataComponent}
+          data-state={dataState}
+          data-disabled={dataDisabled}
+          data-feature-flag={dataFeatureFlag}
+          data-telemetry={dataTelemetry}
+          data-variant={variant}
+          data-width={width}
+          {...rest}
+        >
+          {title != null && title !== '' && <h2 data-testid='dialog-title'>{title}</h2>}
+          {message != null && (
+            <div data-testid='dialog-message'>
+              {typeof message === 'string' ? message : message}
+            </div>
+          )}
+          <div data-testid='dialog-actions'>
+            <button
+              type='button'
+              onClick={onCancel}
+              disabled={disabled === true}
+              data-testid='dialog-cancel'
+            >
+              {cancelLabel}
+            </button>
+            <button
+              type='button'
+              onClick={onConfirm}
+              disabled={disabled === true}
+              data-testid='dialog-confirm'
+            >
+              {confirmLabel}
+            </button>
           </div>
-        )}
-        <div data-testid='dialog-actions'>
-          <button
-            type='button'
-            onClick={onCancel}
-            disabled={disabled === true}
-            data-testid='dialog-cancel'
-          >
-            {cancelLabel}
-          </button>
-          <button
-            type='button'
-            onClick={onConfirm}
-            disabled={disabled === true}
-            data-testid='dialog-confirm'
-          >
-            {confirmLabel}
-          </button>
         </div>
-      </div>
-    );
-  }),
-}));
+      );
+    }),
+  };
+});
 
 // Mock для UnifiedUIProvider
 const mockInfoFireAndForgetTyped = vi.fn();

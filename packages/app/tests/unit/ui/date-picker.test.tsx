@@ -3,171 +3,183 @@
  * @file Тесты для App DatePicker компонента с полным покрытием
  */
 
+import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import React from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { cleanup, fireEvent, render, screen } from '@testing-library/react';
-import '@testing-library/jest-dom/vitest';
+
 import type { CalendarMonth } from '@livai/ui-core';
 
+import '@testing-library/jest-dom/vitest';
+
 // Mock для Core DatePicker
-vi.mock('../../../../ui-core/src/components/DatePicker', () => ({
-  DatePicker: React.forwardRef<
-    HTMLDivElement,
-    Readonly<Record<string, unknown>>
-  >((
-    props: Readonly<Record<string, unknown>>,
-    ref,
-  ) => {
-    const {
-      value,
-      placeholder,
-      calendar,
-      isOpen,
-      onChange,
-      onSelectDate,
-      onNavigate,
-      onToggle,
-      currentMonthLabel,
-      minDate,
-      maxDate,
-      disabled,
-      'data-component': dataComponent,
-      'data-state': dataState,
-      'data-feature-flag': dataFeatureFlag,
-      'data-telemetry': dataTelemetry,
-      'data-testid': testId,
-      className,
-      style,
-      ...rest
-    } = props;
+vi.mock('@livai/ui-core', async () => {
+  const actual = await vi.importActual('@livai/ui-core');
+  return {
+    ...actual,
+    DatePicker: React.forwardRef<
+      HTMLDivElement,
+      Readonly<Record<string, unknown>>
+    >((
+      props: Readonly<Record<string, unknown>>,
+      ref,
+    ) => {
+      const {
+        value,
+        placeholder,
+        calendar,
+        isOpen,
+        onChange,
+        onSelectDate,
+        onNavigate,
+        onToggle,
+        currentMonthLabel,
+        minDate,
+        maxDate,
+        disabled,
+        'data-component': dataComponent,
+        'data-state': dataState,
+        'data-feature-flag': dataFeatureFlag,
+        'data-telemetry': dataTelemetry,
+        'data-testid': testId,
+        className,
+        style,
+        ...rest
+      } = props;
 
-    const calendarData = calendar as CalendarMonth | undefined;
-    const isOpenValue = Boolean(isOpen);
+      const calendarData = calendar as CalendarMonth | undefined;
+      const isOpenValue = Boolean(isOpen);
 
-    return (
-      <div
-        ref={ref}
-        data-testid={testId ?? 'core-date-picker'}
-        data-component={dataComponent}
-        data-state={dataState}
-        data-feature-flag={dataFeatureFlag}
-        data-telemetry={dataTelemetry}
-        data-is-open={isOpenValue}
-        data-current-month={currentMonthLabel}
-        data-min-date={minDate}
-        data-max-date={maxDate}
-        className={className as string | undefined}
-        style={style as React.CSSProperties | undefined}
-        {...rest}
-      >
-        <input
-          type='text'
-          data-testid='date-input'
-          value={value as string | undefined}
-          placeholder={placeholder as string | undefined}
-          disabled={disabled as boolean | undefined}
-          onChange={(e) => {
-            if (typeof onChange === 'function') {
-              onChange(e.target.value, e);
-            }
-          }}
-          onFocus={(e) => {
-            if (typeof onToggle === 'function' && !isOpenValue && Boolean(disabled) === false) {
-              onToggle(true, e);
-            }
-          }}
-          onKeyDown={(e) => {
-            if (typeof onToggle === 'function') {
-              if (e.key === 'Enter' || e.key === ' ') {
-                if (!isOpenValue) {
-                  onToggle(true, e);
-                }
-              } else if (e.key === 'Escape' && isOpenValue) {
-                onToggle(false, e);
-              }
-            }
-          }}
-        />
-        <button
-          type='button'
-          data-testid='toggle-button'
-          aria-label='Open calendar'
-          onClick={(e) => {
-            if (typeof onToggle === 'function') {
-              onToggle(!isOpenValue, e);
-            }
-          }}
-          disabled={disabled as boolean | undefined}
+      return (
+        <div
+          ref={ref}
+          data-testid={testId ?? 'core-date-picker'}
+          data-component={dataComponent}
+          data-state={dataState}
+          data-feature-flag={dataFeatureFlag}
+          data-telemetry={dataTelemetry}
+          data-is-open={isOpenValue}
+          data-current-month={currentMonthLabel}
+          data-min-date={minDate}
+          data-max-date={maxDate}
+          className={className as string | undefined}
+          style={style as React.CSSProperties | undefined}
+          {...rest}
         >
-          📅
-        </button>
-        {isOpenValue && calendarData !== undefined && (
-          <div data-testid='calendar' role='dialog'>
-            <div data-testid='month-label'>{currentMonthLabel as string}</div>
-            <button
-              type='button'
-              data-testid='nav-prev'
-              aria-label='Previous month'
-              onClick={(e) => {
-                if (typeof onNavigate === 'function') {
-                  onNavigate('prev', e);
+          <input
+            type='text'
+            data-testid='date-input'
+            value={value as string | undefined}
+            placeholder={placeholder as string | undefined}
+            disabled={disabled as boolean | undefined}
+            onChange={(e) => {
+              if (typeof onChange === 'function') {
+                onChange(e.target.value, e);
+              }
+            }}
+            onFocus={(e) => {
+              if (typeof onToggle === 'function' && !isOpenValue && Boolean(disabled) === false) {
+                onToggle(true, e);
+              }
+            }}
+            onKeyDown={(e) => {
+              if (typeof onToggle === 'function') {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  if (!isOpenValue) {
+                    onToggle(true, e);
+                  }
+                } else if (e.key === 'Escape' && isOpenValue) {
+                  onToggle(false, e);
                 }
-              }}
-            >
-              ←
-            </button>
-            <button
-              type='button'
-              data-testid='nav-next'
-              aria-label='Next month'
-              onClick={(e) => {
-                if (typeof onNavigate === 'function') {
-                  onNavigate('next', e);
-                }
-              }}
-            >
-              →
-            </button>
-            <div data-testid='calendar-days'>
-              {calendarData.map((week, weekIndex) => (
-                <div
-                  key={week.length > 0 ? week[0]?.date ?? `week-${weekIndex}` : `week-${weekIndex}`}
-                  data-testid={`week-${weekIndex}`}
-                >
-                  {week.map((day) => (
-                    <button
-                      key={day.date}
-                      type='button'
-                      data-testid={`day-${day.date}`}
-                      data-date={day.date}
-                      data-selected={day.isSelected}
-                      data-disabled={day.disabled}
-                      disabled={day.disabled}
-                      onClick={(e) => {
-                        if (typeof onSelectDate === 'function' && Boolean(day.disabled) === false) {
-                          onSelectDate(day.date, e);
-                        }
-                      }}
-                      onKeyDown={(e) => {
-                        if (typeof onSelectDate === 'function' && Boolean(day.disabled) === false) {
-                          if (e.key === 'Enter' || e.key === ' ') {
+              }
+            }}
+          />
+          <button
+            type='button'
+            data-testid='toggle-button'
+            aria-label='Open calendar'
+            onClick={(e) => {
+              if (typeof onToggle === 'function') {
+                onToggle(!isOpenValue, e);
+              }
+            }}
+            disabled={disabled as boolean | undefined}
+          >
+            📅
+          </button>
+          {isOpenValue && calendarData !== undefined && (
+            <div data-testid='calendar' role='dialog'>
+              <div data-testid='month-label'>{currentMonthLabel as string}</div>
+              <button
+                type='button'
+                data-testid='nav-prev'
+                aria-label='Previous month'
+                onClick={(e) => {
+                  if (typeof onNavigate === 'function') {
+                    onNavigate('prev', e);
+                  }
+                }}
+              >
+                ←
+              </button>
+              <button
+                type='button'
+                data-testid='nav-next'
+                aria-label='Next month'
+                onClick={(e) => {
+                  if (typeof onNavigate === 'function') {
+                    onNavigate('next', e);
+                  }
+                }}
+              >
+                →
+              </button>
+              <div data-testid='calendar-days'>
+                {calendarData.map((week, weekIndex) => (
+                  <div
+                    key={week.length > 0
+                      ? week[0]?.date ?? `week-${weekIndex}`
+                      : `week-${weekIndex}`}
+                    data-testid={`week-${weekIndex}`}
+                  >
+                    {week.map((day) => (
+                      <button
+                        key={day.date}
+                        type='button'
+                        data-testid={`day-${day.date}`}
+                        data-date={day.date}
+                        data-selected={day.isSelected}
+                        data-disabled={day.disabled}
+                        disabled={day.disabled}
+                        onClick={(e) => {
+                          if (
+                            typeof onSelectDate === 'function' && Boolean(day.disabled) === false
+                          ) {
                             onSelectDate(day.date, e);
                           }
-                        }
-                      }}
-                    >
-                      {day.day}
-                    </button>
-                  ))}
-                </div>
-              ))}
+                        }}
+                        onKeyDown={(e) => {
+                          if (
+                            typeof onSelectDate === 'function' && Boolean(day.disabled) === false
+                          ) {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                              onSelectDate(day.date, e);
+                            }
+                          }
+                        }}
+                      >
+                        {day.day}
+                      </button>
+                    ))}
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
-        )}
-      </div>
-    );
-  }),
-}));
+          )}
+        </div>
+      );
+    }),
+  };
+});
 
 // Mock для telemetry
 vi.mock('../../../src/lib/telemetry-runtime', () => ({
@@ -217,8 +229,9 @@ vi.mock('../../../src/providers/UnifiedUIProvider', () => ({
 }));
 
 import dayjs from 'dayjs';
-import { DatePicker } from '../../../src/ui/date-picker';
+
 import type { AppDatePickerProps } from '../../../src/ui/date-picker';
+import { DatePicker } from '../../../src/ui/date-picker';
 
 // Импорт для правильного порядка моков
 import '../../../src/providers/UnifiedUIProvider';

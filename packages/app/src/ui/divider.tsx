@@ -16,10 +16,11 @@
  * <Divider orientation="vertical" thickness={2} color="red" length="50px" />
  */
 
-import { Divider as CoreDivider } from '@livai/ui-core';
-import type { CoreDividerProps, DividerOrientation } from '@livai/ui-core';
-import { forwardRef, memo, useEffect, useMemo, useRef } from 'react';
 import type { JSX, Ref } from 'react';
+import { forwardRef, memo, useEffect, useMemo, useRef } from 'react';
+
+import type { CoreDividerProps, DividerOrientation } from '@livai/ui-core';
+import { Divider as CoreDivider } from '@livai/ui-core';
 
 import type { Namespace, TranslationKey } from '../lib/i18n.js';
 import { useUnifiedUI } from '../providers/UnifiedUIProvider.js';
@@ -207,12 +208,15 @@ const DividerComponent = forwardRef<HTMLElement, AppDividerProps>(
     // Policy: hidden
     if (!policy.isRendered) return null;
 
+    const testId = props['data-testid'] ?? 'core-divider';
+
     return (
       <CoreDivider
         ref={ref}
         data-component='AppDivider'
         {...(ariaLabel !== undefined && { 'aria-label': ariaLabel })}
         {...domProps}
+        data-testid={testId}
       />
     );
   },

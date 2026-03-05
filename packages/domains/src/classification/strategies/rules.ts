@@ -22,13 +22,13 @@
  */
 
 import { SCORE_VALIDATION } from '../constants.js';
+import type { ClassificationGeo } from '../signals/signals.js';
+import type { ClassificationRulesConfig, RuleThresholds } from './config.js';
 import {
   getClassificationRulesConfig,
   isClassificationRuleEnabled,
   registerConfigChangeCallback,
 } from './config.js';
-import type { ClassificationRulesConfig, RuleThresholds } from './config.js';
-import type { ClassificationGeo } from '../signals/signals.js';
 
 /* ============================================================================
  * 🧭 TYPES

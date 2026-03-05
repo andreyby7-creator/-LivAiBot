@@ -16,11 +16,11 @@
  * - 📦 Микросервисная пригодность (JSON-safe)
  */
 
-import { canAccessRouteByName } from './route-meta.js';
+import type { UserRoles } from '../types/common.js';
 import type { FeatureFlags } from './route-meta.js';
-import { RouteNames } from './routes.js';
+import { canAccessRouteByName } from './route-meta.js';
 import type { RouteName } from './routes.js';
-import { UserRoles } from '../types/common.js';
+import { RouteNames } from './routes.js';
 
 /* ========================================================================== */
 /* 🧩 NAVIGATION DOMAIN */

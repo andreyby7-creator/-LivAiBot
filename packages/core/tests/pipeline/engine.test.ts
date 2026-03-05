@@ -3,6 +3,7 @@
  * Полное покрытие всех функций и веток исполнения (100%)
  */
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+
 import { createPipelineEngine, executePipeline } from '../../src/pipeline/engine.js';
 import type { ExecutionPlan } from '../../src/pipeline/plan.js';
 import type { FallbackStage, PipelineConfig, StagePlugin } from '../../src/pipeline/plugin-api.js';

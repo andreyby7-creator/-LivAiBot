@@ -18,7 +18,6 @@
  * - Форматированием дат управляет App-слой
  */
 
-import { forwardRef, memo, useCallback, useMemo } from 'react';
 import type {
   ChangeEvent,
   CSSProperties,
@@ -29,6 +28,7 @@ import type {
   MouseEvent,
   Ref,
 } from 'react';
+import { forwardRef, memo, useCallback, useMemo } from 'react';
 
 import type { UITestId } from '../types/ui.js';
 

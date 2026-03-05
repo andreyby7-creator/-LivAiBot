@@ -7,13 +7,11 @@
 
 import { describe, expect, it, vi } from 'vitest';
 
+import type { RiskLevel } from '@livai/domains/policies';
+
 import type { DeviceInfo } from '../../../../src/domain/DeviceInfo.js';
-import type { MfaInfo } from '../../../../src/domain/MfaInfo.js';
 import type { LoginIdentifierType, LoginRequest } from '../../../../src/domain/LoginRequest.js';
-import {
-  buildLoginMetadata,
-  createLoginMetadataEnricher,
-} from '../../../../src/effects/login/login-metadata.enricher.js';
+import type { MfaInfo } from '../../../../src/domain/MfaInfo.js';
 import type {
   IdentifierHasher,
   LoginContext,
@@ -22,7 +20,10 @@ import type {
   MetadataConfig,
   RiskMetadata,
 } from '../../../../src/effects/login/login-metadata.enricher.js';
-import type { RiskLevel } from '@livai/domains/policies';
+import {
+  buildLoginMetadata,
+  createLoginMetadataEnricher,
+} from '../../../../src/effects/login/login-metadata.enricher.js';
 
 // ============================================================================
 // 🔧 HELPER FUNCTIONS FOR TEST DATA

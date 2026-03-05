@@ -3,7 +3,20 @@
  * Полное покрытие всех функций и edge cases (100%)
  */
 import { beforeEach, describe, expect, it } from 'vitest';
+
 import type { ClassificationGeo } from '../../../src/classification/signals/signals.js';
+import {
+  DEFAULT_RULE_THRESHOLDS,
+  resetClassificationRulesConfig,
+  updateClassificationRulesConfig,
+} from '../../../src/classification/strategies/config.js';
+import type {
+  ClassificationRule,
+  DeviceInfo,
+  RuleContextMetadata,
+  RuleEvaluationContext,
+  RuleSignals,
+} from '../../../src/classification/strategies/rules.js';
 import {
   allRules,
   allRulesDeprecated,
@@ -19,18 +32,6 @@ import {
   networkRules,
   sortRulesByPriority,
 } from '../../../src/classification/strategies/rules.js';
-import type {
-  ClassificationRule,
-  DeviceInfo,
-  RuleContextMetadata,
-  RuleEvaluationContext,
-  RuleSignals,
-} from '../../../src/classification/strategies/rules.js';
-import {
-  DEFAULT_RULE_THRESHOLDS,
-  resetClassificationRulesConfig,
-  updateClassificationRulesConfig,
-} from '../../../src/classification/strategies/config.js';
 
 /* ============================================================================
  * 🧹 SETUP & TEARDOWN

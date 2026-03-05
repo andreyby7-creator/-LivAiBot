@@ -3,9 +3,10 @@
  * @file Тесты для App SkeletonGroup компонента с полным покрытием
  */
 
+import { cleanup, render, screen } from '@testing-library/react';
 import React from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { cleanup, render, screen } from '@testing-library/react';
+
 import '@testing-library/jest-dom/vitest';
 
 // Mock для App Skeleton - возвращаем простой div, фильтруем бизнес-пропсы

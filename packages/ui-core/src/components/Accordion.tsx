@@ -16,8 +16,8 @@
  * - Открытыми элементами и событиями управляет App-слой
  */
 
-import { forwardRef, memo, useCallback, useId, useMemo } from 'react';
 import type { CSSProperties, HTMLAttributes, JSX, MouseEvent, ReactNode, Ref } from 'react';
+import { forwardRef, memo, useCallback, useId, useMemo } from 'react';
 
 import type { UIDataAttributes, UITestId } from '../types/ui.js';
 

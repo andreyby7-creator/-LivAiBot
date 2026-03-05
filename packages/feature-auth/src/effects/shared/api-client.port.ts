@@ -15,7 +15,7 @@
  * - ❌ Нет бизнес-логики: только контракт
  */
 
-import type { Effect } from '@livai/app/lib/effect-utils.js';
+import type { Effect } from '@livai/core/effect';
 
 /* ============================================================================
  * 🧭 TYPES

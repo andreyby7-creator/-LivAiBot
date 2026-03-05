@@ -14,10 +14,11 @@
  * - платформенных эффектов
  */
 
-import { Avatar as CoreAvatar } from '@livai/ui-core';
-import type { CoreAvatarProps } from '@livai/ui-core';
-import { forwardRef, memo, useEffect, useMemo, useRef } from 'react';
 import type { JSX, Ref } from 'react';
+import { forwardRef, memo, useEffect, useMemo, useRef } from 'react';
+
+import type { CoreAvatarProps } from '@livai/ui-core';
+import { Avatar as CoreAvatar } from '@livai/ui-core';
 
 import type { Namespace, TranslationKey } from '../lib/i18n.js';
 import { useUnifiedUI } from '../providers/UnifiedUIProvider.js';
@@ -151,7 +152,8 @@ const AvatarComponent = forwardRef<HTMLDivElement, AppAvatarProps>(
     const { telemetry, i18n } = useUnifiedUI();
     const { translate } = i18n;
     // Фильтруем бизнес-пропсы, оставляем только DOM-безопасные
-    const domProps = omit(props, BUSINESS_PROPS);
+    // data-testid обрабатывается отдельно с дефолтным значением
+    const domProps = omit(props, [...BUSINESS_PROPS, 'data-testid']);
 
     const { src, ...filteredCoreProps } = domProps;
 
@@ -238,6 +240,8 @@ const AvatarComponent = forwardRef<HTMLDivElement, AppAvatarProps>(
     // hidden
     if (!policy.isRendered) return null;
 
+    const testId = props['data-testid'] ?? 'core-avatar';
+
     return (
       <CoreAvatar
         ref={ref}
@@ -247,6 +251,7 @@ const AvatarComponent = forwardRef<HTMLDivElement, AppAvatarProps>(
         fallbackText={fallbackText}
         data-component='AppAvatar'
         {...filteredCoreProps}
+        data-testid={testId}
       />
     );
   },

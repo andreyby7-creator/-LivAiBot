@@ -17,10 +17,11 @@
  * - feature/* → используют ТОЛЬКО app/ui
  */
 
-import { Input as CoreInput } from '@livai/ui-core';
-import type { InputProps as CoreInputProps } from '@livai/ui-core';
-import React, { memo, useCallback, useEffect, useId, useMemo, useRef } from 'react';
 import type { JSX } from 'react';
+import React, { memo, useCallback, useEffect, useId, useMemo, useRef } from 'react';
+
+import type { InputProps as CoreInputProps } from '@livai/ui-core';
+import { Input as CoreInput } from '@livai/ui-core';
 
 import type { Namespace, TranslationKey } from '../lib/i18n.js';
 import { useUnifiedUI } from '../providers/UnifiedUIProvider.js';

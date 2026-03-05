@@ -20,20 +20,18 @@
  * - ✅ Type safety — строгая типизация всех компонентов
  */
 
-import { withTimeout } from '@livai/app/lib/effect-timeout.js';
-import type { Effect } from '@livai/app/lib/effect-utils.js';
-import { orchestrate, step } from '@livai/app/lib/orchestrator.js';
 import { Runtime } from 'effect';
 
-import { DeviceFingerprint } from './device-fingerprint.js';
-import type { AuditHook } from './risk-assessment.js';
-import { assessLoginRisk } from './risk-assessment.js';
+import type { Effect } from '@livai/core/effect';
+import { orchestrate, step, withTimeout } from '@livai/core/effect';
+
 import type { DeviceInfo } from '../domain/DeviceInfo.js';
 import {
   createLoginRiskEvaluation,
   createLoginRiskResult,
   emptyReasons,
 } from '../domain/LoginRiskAssessment.js';
+import type { RiskLevel } from '../types/auth.js';
 import type {
   ContextBuilderPlugin,
   ReadonlyDeep,
@@ -41,7 +39,9 @@ import type {
   RiskContext,
   RiskPolicy,
 } from '../types/auth-risk.js';
-import type { RiskLevel } from '../types/auth.js';
+import { DeviceFingerprint } from './device-fingerprint.js';
+import type { AuditHook } from './risk-assessment.js';
+import { assessLoginRisk } from './risk-assessment.js';
 
 /* ============================================================================
  * 🧭 TYPES

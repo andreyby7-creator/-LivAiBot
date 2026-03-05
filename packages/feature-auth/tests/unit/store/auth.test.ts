@@ -36,6 +36,7 @@ const createStorageMock = () => {
 };
 /* eslint-enable fp/no-mutation, security/detect-object-injection */
 // Import everything
+import type { AuthStoreState, PersistedAuthStoreState } from '../../../src/stores/auth.js';
 import {
   authStoreVersion,
   canRefresh,
@@ -66,7 +67,6 @@ import {
   validateSecuritySemantics,
   validateSessionSemantics,
 } from '../../../src/stores/auth.js';
-import type { AuthStoreState, PersistedAuthStoreState } from '../../../src/stores/auth.js';
 import type {
   AuthEvent,
   AuthState,

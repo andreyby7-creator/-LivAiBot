@@ -253,14 +253,6 @@ canaryConfig.push({
   },
 });
 
-// Исключение для всех пакетов @livai/*: могут использовать barrel file для внутренних импортов
-canaryConfig.push({
-  files: ['packages/*/src/**/*.{ts,tsx}'],
-  rules: {
-    'no-restricted-imports': 'off', // Пакеты @livai/* могут использовать свой barrel file для внутренних импортов
-  },
-});
-
 // Setup файлы могут использовать throw для обработки ошибок
 canaryConfig.push({
   files: ['**/vitest.setup.ts', '**/test.setup.ts'],
@@ -268,8 +260,6 @@ canaryConfig.push({
     'fp/no-throw': 'off', // Setup файлы могут использовать throw
   },
 });
-
-
 
 // ==================== EFFECTS / STORES EXCEPTIONS ====================
 // Effects, stores и setup файлы используют императивные паттерны (if, let, мутации)
@@ -336,21 +326,6 @@ canaryConfig.push({
   plugins: PLUGINS,
   rules: {
     '@next/next/no-html-link-for-pages': 'off', // App Router (Next 13+) не использует pages/
-  },
-});
-
-// 🔥 MUST BE LAST — иначе будет перезаписано более поздними конфигами (flat config)
-// Разрешаем barrel imports из @livai/* в тестах
-canaryConfig.push({
-  files: [
-    '**/*.test.{ts,tsx,js,jsx}',
-    '**/*.spec.{ts,tsx,js,jsx}',
-    '**/__tests__/**/*.{ts,tsx,js,jsx}',
-    '**/test/**/*.{ts,tsx,js,jsx}',
-    '**/tests/**/*.{ts,tsx,js,jsx}',
-  ],
-  rules: {
-    'no-restricted-imports': 'off',
   },
 });
 

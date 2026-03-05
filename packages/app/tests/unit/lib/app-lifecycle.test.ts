@@ -10,8 +10,9 @@
  */
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { appLifecycle } from '../../../src/lib/app-lifecycle';
+
 import { AppLifecycleEvent, appLifecycleEvents } from '../../../src/events/app-lifecycle-events';
+import { appLifecycle } from '../../../src/lib/app-lifecycle';
 
 // Mock dependencies
 vi.mock('../../../src/events/app-lifecycle-events', () => ({

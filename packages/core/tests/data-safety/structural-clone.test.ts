@@ -3,6 +3,7 @@
  * Полное покрытие всех методов и веток исполнения (100%)
  */
 import { describe, expect, it } from 'vitest';
+
 import { isCloneable, structuralClone } from '../../src/data-safety/structural-clone.js';
 
 describe('Structural Clone', () => {

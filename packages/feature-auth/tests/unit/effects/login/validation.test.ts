@@ -6,8 +6,8 @@
 import { describe, expect, it } from 'vitest';
 
 import type { ClientContext } from '../../../../src/domain/ClientContext.js';
-import type { MfaInfo } from '../../../../src/domain/MfaInfo.js';
 import type { LoginIdentifierType, LoginRequest } from '../../../../src/domain/LoginRequest.js';
+import type { MfaInfo } from '../../../../src/domain/MfaInfo.js';
 import { isValidLoginRequest } from '../../../../src/effects/login/validation.js';
 
 // ============================================================================

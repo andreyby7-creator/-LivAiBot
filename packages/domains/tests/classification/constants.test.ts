@@ -4,13 +4,15 @@
  * @note Покрытие: 100% (включая ветку ошибки инициализации)
  */
 import { describe, expect, it, vi } from 'vitest';
+
+import type { EvaluationScale } from '@livai/core/domain-kit';
+import { evaluationLevel } from '@livai/core/domain-kit';
+
 import {
   CLASSIFICATION_EVALUATION_SCALE,
   GEO_VALIDATION,
   SCORE_VALIDATION,
 } from '../../src/classification/constants.js';
-import { evaluationLevel } from '@livai/core/domain-kit';
-import type { EvaluationScale } from '@livai/core/domain-kit';
 
 /* ============================================================================
  * 📋 GEO_VALIDATION — TESTS

@@ -14,10 +14,11 @@
  * - платформенных эффектов
  */
 
-import { Toast as CoreToast } from '@livai/ui-core';
-import type { CoreToastProps, ToastVariant } from '@livai/ui-core';
-import { forwardRef, memo, useEffect, useMemo, useRef } from 'react';
 import type { JSX, ReactNode, Ref } from 'react';
+import { forwardRef, memo, useEffect, useMemo, useRef } from 'react';
+
+import type { CoreToastProps, ToastVariant } from '@livai/ui-core';
+import { Toast as CoreToast } from '@livai/ui-core';
 
 import type { Namespace, TranslationKey } from '../lib/i18n.js';
 import { useUnifiedUI } from '../providers/UnifiedUIProvider.js';

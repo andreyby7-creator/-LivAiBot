@@ -16,9 +16,8 @@
  * - ❌ Не читает store, не делает fallback
  */
 
-import { withTimeout } from '@livai/app/lib/effect-timeout.js';
-import type { Effect } from '@livai/app/lib/effect-utils.js';
-import { validatedEffect } from '@livai/app/lib/schema-validated-effect.js';
+import type { Effect } from '@livai/core/effect';
+import { validatedEffect, withTimeout } from '@livai/core/effect';
 
 import type { AuthErrorResponse } from '../domain/AuthErrorResponse.js';
 import type { DeviceInfo } from '../domain/DeviceInfo.js';

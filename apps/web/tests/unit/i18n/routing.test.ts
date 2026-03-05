@@ -3,8 +3,9 @@
  */
 
 import { beforeEach, describe, expect, it } from 'vitest';
-import { defaultLocale, i18nConfig, locales } from '../../../i18n/routing';
+
 import type { Locale } from '../../../i18n/routing';
+import { defaultLocale, i18nConfig, locales } from '../../../i18n/routing';
 
 describe('i18n routing configuration', () => {
   beforeEach(() => {

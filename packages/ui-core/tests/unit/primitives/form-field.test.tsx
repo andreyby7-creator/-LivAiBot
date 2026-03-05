@@ -3,11 +3,13 @@
  * @file Unit тесты для FormField компонента
  */
 
+import { cleanup, render, within } from '@testing-library/react';
 import React from 'react';
 import { afterEach, describe, expect, it } from 'vitest';
-import { cleanup, render, within } from '@testing-library/react';
+
+import { FormField } from '@livai/ui-core';
+
 import '@testing-library/jest-dom/vitest';
-import { FormField } from '../../../src/primitives/form-field.js';
 
 // Полная очистка DOM между тестами
 afterEach(cleanup);

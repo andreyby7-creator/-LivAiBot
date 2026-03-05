@@ -3,31 +3,36 @@
  * @file Тесты для App Breadcrumbs компонента с полным покрытием
  */
 
+import { cleanup, render, screen } from '@testing-library/react';
 import React from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { cleanup, render, screen } from '@testing-library/react';
+
 import '@testing-library/jest-dom/vitest';
 
 // Mock для Core Breadcrumbs - возвращаем простой nav
-vi.mock('../../../../ui-core/src/components/Breadcrumbs', () => ({
-  Breadcrumbs: (
-    {
-      'data-testid': testId,
-      'data-component': dataComponent,
-      'data-state': dataState,
-      'data-feature-flag': dataFeatureFlag,
-      ...props
-    }: Readonly<Record<string, unknown>>,
-  ) => (
-    <nav
-      data-testid={testId ?? 'core-breadcrumbs'}
-      data-component={dataComponent}
-      data-state={dataState}
-      data-feature-flag={dataFeatureFlag}
-      {...props}
-    />
-  ),
-}));
+vi.mock('@livai/ui-core', async () => {
+  const actual = await vi.importActual('@livai/ui-core');
+  return {
+    ...actual,
+    Breadcrumbs: (
+      {
+        'data-testid': testId,
+        'data-component': dataComponent,
+        'data-state': dataState,
+        'data-feature-flag': dataFeatureFlag,
+        ...props
+      }: Readonly<Record<string, unknown>>,
+    ) => (
+      <nav
+        data-testid={testId ?? 'core-breadcrumbs'}
+        data-component={dataComponent}
+        data-state={dataState}
+        data-feature-flag={dataFeatureFlag}
+        {...props}
+      />
+    ),
+  };
+});
 
 // Mock для UnifiedUIProvider
 const mockInfoFireAndForget = vi.fn();

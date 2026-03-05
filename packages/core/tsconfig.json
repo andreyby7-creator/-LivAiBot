@@ -2,7 +2,7 @@
   "extends": "../../config/tsconfig/strict.json",
   "compilerOptions": {
     "target": "ES2024",
-    "lib": ["ES2024"],
+    "lib": ["ES2024", "DOM", "DOM.Iterable"],
     "outDir": "dist",
     "composite": false,
     "types": ["node"],

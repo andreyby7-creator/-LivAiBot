@@ -3,18 +3,19 @@
  * Полное покрытие всех функций и веток исполнения (100%)
  */
 import { describe, expect, it } from 'vitest';
+
+import type {
+  FallbackStage,
+  PipelineConfig,
+  StagePlugin,
+  StageResult,
+} from '../../src/pipeline/plugin-api.js';
 import {
   defineFallback,
   defineStage,
   validatePipelineConfig,
   validatePlanPlugin,
   validatePlugin,
-} from '../../src/pipeline/plugin-api.js';
-import type {
-  FallbackStage,
-  PipelineConfig,
-  StagePlugin,
-  StageResult,
 } from '../../src/pipeline/plugin-api.js';
 
 /* ============================================================================

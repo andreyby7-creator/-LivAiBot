@@ -7,10 +7,10 @@ export default defineConfig({
     index: 'src/index.ts',
   },
   format: ['esm'],
-  outDir: 'dist/esm',
+  outDir: 'dist',
   dts: false, // tsc генерирует .d.ts через tsconfig.build.json
   splitting: false,
-  sourcemap: false, // Отключаем sourcemaps для скорости продакшена
+  sourcemap: true,
   clean: false, // Не удаляем .d.ts файлы от tsc
   treeshake: false, // Отключаем treeshake для скорости
   minify: false, // Не минифицируем для скорости

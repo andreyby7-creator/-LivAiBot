@@ -17,10 +17,11 @@
  * - CoreLoadingSpinner остается полностью presentational
  */
 
-import { LoadingSpinner as CoreLoadingSpinner } from '@livai/ui-core';
-import type { CoreLoadingSpinnerProps } from '@livai/ui-core';
-import { forwardRef, memo, useCallback, useEffect, useMemo, useRef } from 'react';
 import type { JSX, Ref } from 'react';
+import { forwardRef, memo, useCallback, useEffect, useMemo, useRef } from 'react';
+
+import type { CoreLoadingSpinnerProps } from '@livai/ui-core';
+import { LoadingSpinner as CoreLoadingSpinner } from '@livai/ui-core';
 
 import type { Namespace, TranslationKey } from '../lib/i18n.js';
 import { useUnifiedUI } from '../providers/UnifiedUIProvider.js';
@@ -221,7 +222,8 @@ const LoadingSpinnerComponent = forwardRef<HTMLDivElement, AppLoadingSpinnerProp
     const { telemetry, i18n } = useUnifiedUI();
     const { translate } = i18n;
     // Фильтруем бизнес-пропсы, оставляем только DOM-безопасные
-    const domProps = omit(props, BUSINESS_PROPS);
+    // data-testid обрабатывается отдельно с дефолтным значением
+    const domProps = omit(props, [...BUSINESS_PROPS, 'data-testid']);
 
     const {
       variant,
@@ -334,6 +336,8 @@ const LoadingSpinnerComponent = forwardRef<HTMLDivElement, AppLoadingSpinnerProp
     // Policy: hidden
     if (!policy.isRendered) return null;
 
+    const testId = props['data-testid'] ?? 'core-loading-spinner';
+
     /**
      * CoreLoadingSpinner получает visible={true} всегда, потому что policy
      * уже учитывает видимость на уровне App-слоя (early return выше).
@@ -351,6 +355,7 @@ const LoadingSpinnerComponent = forwardRef<HTMLDivElement, AppLoadingSpinnerProp
         data-component='AppLoadingSpinner'
         data-state='visible'
         data-feature-flag={policy.hiddenByFeatureFlag ? 'hidden' : 'visible'}
+        data-testid={testId}
         data-telemetry={policy.telemetryEnabled ? 'enabled' : 'disabled'}
         {...(variant !== undefined && { 'data-variant': variant })}
         {...filteredCoreProps}

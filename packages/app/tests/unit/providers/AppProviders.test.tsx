@@ -3,8 +3,9 @@
  * @file Unit тесты для AppProviders
  */
 
-import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, render, screen } from '@testing-library/react';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+
 import '@testing-library/jest-dom/vitest';
 
 const providerMocks = vi.hoisted(() => ({

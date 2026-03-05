@@ -16,11 +16,11 @@
 
 import { describe, expect, it } from 'vitest';
 
-import { buildSessionState } from '../../../../src/effects/shared/session-state.builder.js';
-import type { BuildSessionStateParams } from '../../../../src/effects/shared/session-state.builder.js';
 import type { DeviceInfo } from '../../../../src/domain/DeviceInfo.js';
 import type { MeSessionInfo } from '../../../../src/domain/MeResponse.js';
 import type { TokenPair } from '../../../../src/domain/TokenPair.js';
+import type { BuildSessionStateParams } from '../../../../src/effects/shared/session-state.builder.js';
+import { buildSessionState } from '../../../../src/effects/shared/session-state.builder.js';
 
 /* eslint-disable functional/no-conditional-statements -- в тестах используем if для type narrowing SessionState union type */
 /* eslint-disable fp/no-mutation -- в тестах намеренно используем мутации для удаления полей и проверки frozen */

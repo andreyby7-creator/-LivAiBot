@@ -4,6 +4,7 @@
  */
 
 import { describe, expect, it } from 'vitest';
+
 import type { ClientContext, ClientContextSafe } from '../../../src/domain/ClientContext.js';
 import {
   getAppVersion,

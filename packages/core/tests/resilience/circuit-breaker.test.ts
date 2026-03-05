@@ -3,15 +3,16 @@
  * Покрывают gate/outcome state machine и ключевые edge-cases.
  */
 import { describe, expect, it } from 'vitest';
+
+import type {
+  CircuitBreakerConfig,
+  CircuitBreakerMetrics,
+} from '../../src/resilience/circuit-breaker.js';
 import {
   applyCircuitBreakerOutcome,
   createInitialCircuitBreakerState,
   DEFAULT_CIRCUIT_BREAKER_CONFIG,
   evaluateCircuitBreakerGate,
-} from '../../src/resilience/circuit-breaker.js';
-import type {
-  CircuitBreakerConfig,
-  CircuitBreakerMetrics,
 } from '../../src/resilience/circuit-breaker.js';
 
 const HALF_OPEN_PROBE_LIMIT = 2;

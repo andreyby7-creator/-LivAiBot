@@ -3,6 +3,7 @@
  * Поддержка мульти-приложений, алиасов, простой валидации env и разных портов.
  */
 
+import { resolve } from 'path';
 import react from '@vitejs/plugin-react';
 import { type ConfigEnv, defineConfig, loadEnv, type UserConfig } from 'vite';
 
@@ -191,6 +192,21 @@ function createBaseViteConfig({
   const framework = appFramework || getAppFramework(app) as 'next' | 'vite';
   const envPrefixes = getEnvPrefixes(framework);
 
+  // Алиасы для @livai пакетов (dev-резолвер: @livai/* → packages/*/src)
+  const livaiAliases: Record<string, string> = {
+    '@livai/core': resolve(process.cwd(), 'packages/core/src'),
+    '@livai/core-contracts': resolve(process.cwd(), 'packages/core-contracts/src'),
+    '@livai/domains': resolve(process.cwd(), 'packages/domains/src'),
+    '@livai/feature-auth': resolve(process.cwd(), 'packages/feature-auth/src'),
+    '@livai/feature-bots': resolve(process.cwd(), 'packages/feature-bots/src'),
+    '@livai/feature-chat': resolve(process.cwd(), 'packages/feature-chat/src'),
+    '@livai/feature-voice': resolve(process.cwd(), 'packages/feature-voice/src'),
+    '@livai/ui-core': resolve(process.cwd(), 'packages/ui-core/src'),
+    '@livai/ui-features': resolve(process.cwd(), 'packages/ui-features/src'),
+    '@livai/ui-shared': resolve(process.cwd(), 'packages/ui-shared/src'),
+    '@livai/app': resolve(process.cwd(), 'packages/app/src'),
+  };
+
   return {
     base: cfg.base,
     build: {
@@ -207,6 +223,7 @@ function createBaseViteConfig({
         '@utils': '/src/utils',
         '@config': '/src/config',
         '@types': '/src/types',
+        ...livaiAliases,
       },
     },
     envPrefix: envPrefixes,

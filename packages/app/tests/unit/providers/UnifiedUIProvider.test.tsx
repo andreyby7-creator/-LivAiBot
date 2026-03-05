@@ -3,9 +3,10 @@
  * @file Unit тесты для UnifiedUIProvider (эталонный UI инфраструктурный провайдер)
  */
 
+import { cleanup, render, renderHook, screen } from '@testing-library/react';
 import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { cleanup, render, renderHook, screen } from '@testing-library/react';
+
 import '@testing-library/jest-dom/vitest';
 
 const providerMocks = vi.hoisted(() => ({
@@ -61,6 +62,7 @@ vi.mock('../../../src/lib/telemetry-runtime', () => ({
   errorFireAndForget: vi.fn(),
 }));
 
+import type { UnifiedUIContextType } from '../../../src/providers/UnifiedUIProvider';
 import {
   UnifiedUIProvider,
   useRequiredUnifiedUI,
@@ -69,7 +71,6 @@ import {
   useUnifiedTelemetry,
   useUnifiedUI,
 } from '../../../src/providers/UnifiedUIProvider';
-import type { UnifiedUIContextType } from '../../../src/providers/UnifiedUIProvider';
 
 describe('UnifiedUIProvider', () => {
   beforeEach(() => {

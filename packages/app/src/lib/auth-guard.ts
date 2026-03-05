@@ -30,7 +30,8 @@
 
 import React, { createContext, useContext } from 'react';
 
-import type { TaggedError } from './error-mapping.js';
+import type { TaggedError } from '@livai/core/effect';
+
 import type { AuthContext, ID } from '../types/common.js';
 import { UserRoles } from '../types/common.js';
 

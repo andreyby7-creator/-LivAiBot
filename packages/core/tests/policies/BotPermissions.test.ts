@@ -3,13 +3,14 @@
  * Полное покрытие всех методов и веток исполнения
  */
 import { describe, expect, it } from 'vitest';
-import { BotPermissions } from '../../src/policies/BotPermissions.js';
+
 import type {
   BotAction,
   BotPermissionsConfig,
   BotRole,
   BotUserContext,
 } from '../../src/policies/BotPermissions.js';
+import { BotPermissions } from '../../src/policies/BotPermissions.js';
 
 // Mock данные для тестирования
 const MOCK_CONFIG: BotPermissionsConfig = {

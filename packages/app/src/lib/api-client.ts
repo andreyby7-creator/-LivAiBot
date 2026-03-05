@@ -14,10 +14,12 @@
  * Этот файл — «ворота» между UI/Features и распределённой системой.
  */
 
-import { withLogging, withRetry } from './effect-utils.js';
-import type { EffectContext, EffectError, EffectLogger } from './effect-utils.js';
-import { infoFireAndForget, logFireAndForget } from './telemetry-runtime.js';
+import type { EffectContext, EffectError, EffectLogger } from '@livai/core/effect';
+import { withLogging, withRetry } from '@livai/core/effect';
+import type { TraceId } from '@livai/core-contracts';
+
 import type { ApiClientConfig, ApiError, ApiHeaders, ApiRequest } from '../types/api.js';
+import { infoFireAndForget, logFireAndForget } from './telemetry-runtime.js';
 
 /* ============================================================================
  * 🧩 Внутренние типы и конфигурации
@@ -355,7 +357,7 @@ export class ApiClient {
     const context: EffectContext = {
       source: 'ApiClient',
       description: `${req.method} ${req.url}`,
-      ...(req.context?.traceId != null && { traceId: req.context.traceId }),
+      ...(req.context?.traceId != null && { traceId: req.context.traceId as TraceId }),
       ...(req.context?.locale != null && { locale: req.context.locale }),
       // authToken НЕ передаём в context (security: может утечь в telemetry)
       ...(req.context?.platform != null && { platform: req.context.platform }),

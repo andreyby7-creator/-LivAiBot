@@ -28,11 +28,6 @@
 import type { Rule } from '@livai/core';
 import { evaluator } from '@livai/core';
 
-import type { ClassificationRulesConfig } from './config.js';
-import { getClassificationRulesConfig } from './config.js';
-import type { ClassificationRule, DeviceInfo, RuleEvaluationContext } from './rules.js';
-import { allRules } from './rules.js';
-import { validateClassificationSemantics } from './validation.js';
 import { buildRuleContext } from '../context/context-builders.js';
 import type {
   AssessmentContextBuilderPlugin,
@@ -43,10 +38,15 @@ import {
   buildAssessmentContextWithPlugins,
 } from '../evaluation/assessment.js';
 import type { ClassificationEvaluationResult } from '../evaluation/result.js';
-import { defaultDecisionPolicy } from '../policies/base.policy.js';
 import type { DecisionPolicy } from '../policies/base.policy.js';
+import { defaultDecisionPolicy } from '../policies/base.policy.js';
 import type { ClassificationContext } from '../signals/signals.js';
 import type { SemanticViolation } from '../signals/violations.js';
+import type { ClassificationRulesConfig } from './config.js';
+import { getClassificationRulesConfig } from './config.js';
+import type { ClassificationRule, DeviceInfo, RuleEvaluationContext } from './rules.js';
+import { allRules } from './rules.js';
+import { validateClassificationSemantics } from './validation.js';
 
 /* ============================================================================
  * 🔧 МЕМОИЗАЦИЯ GENERIC RULES (Deterministic Behavior)

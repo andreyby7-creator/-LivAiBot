@@ -12,8 +12,8 @@
 import type { Redis as RedisType } from 'ioredis';
 import { Redis } from 'ioredis';
 
-import { AppEventType, pushToQueue } from './app-events.js';
-import type { AppEvent, BaseAppEvent } from './app-events.js';
+import type { AppEvent, AppEventType, BaseAppEvent } from './app-events.js';
+import { pushToQueue } from './app-events.js';
 
 /* ========================================================================== */
 /* 📊 CONSTANTS */

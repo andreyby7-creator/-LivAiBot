@@ -7,6 +7,9 @@
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import type { DeviceInfo } from '../../../src/domain/DeviceInfo.js';
+import type { LoginIdentifierType, LoginRequest } from '../../../src/domain/LoginRequest.js';
+import type { DomainLoginResult } from '../../../src/domain/LoginResult.js';
 import { createLoginEffect } from '../../../src/effects/login.js';
 import * as loginApiMapper from '../../../src/effects/login/login-api.mapper.js';
 import type {
@@ -14,13 +17,10 @@ import type {
   LoginEffectDeps,
   LoginSecurityResult,
 } from '../../../src/effects/login/login-effect.types.js';
-import type { LoginIdentifierType, LoginRequest } from '../../../src/domain/LoginRequest.js';
-import type { DomainLoginResult } from '../../../src/domain/LoginResult.js';
+import type { SecurityPipelineResult } from '../../../src/lib/security-pipeline.js';
 import type { LoginTokenPairValues, MeResponseValues } from '../../../src/schemas/index.js';
 import type { AuthError } from '../../../src/types/auth.js';
 import type { RiskLevel } from '../../../src/types/auth-risk.js';
-import type { SecurityPipelineResult } from '../../../src/lib/security-pipeline.js';
-import type { DeviceInfo } from '../../../src/domain/DeviceInfo.js';
 
 // ============================================================================
 // 🔧 HELPER FUNCTIONS FOR TEST DATA

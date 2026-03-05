@@ -14,8 +14,8 @@
  * - продуктовых решений
  */
 
-import { forwardRef, memo, useMemo } from 'react';
 import type { HTMLAttributes, JSX } from 'react';
+import { forwardRef, memo, useMemo } from 'react';
 
 /* ============================================================================
  * 🧬 TYPES & CONSTANTS

@@ -6,10 +6,11 @@
  * Покрытие: +5-8% дополнительно к unit тестам
  */
 
-import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { Effect, Runtime } from 'effect';
-import { Scheduler } from '../../../src/background/scheduler';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+
 import type { BackgroundTask, SchedulerDI } from '../../../src/background/scheduler';
+import { Scheduler } from '../../../src/background/scheduler';
 
 // Mock telemetry for integration tests
 vi.mock('../../../src/lib/telemetry-runtime.js', () => ({

@@ -16,8 +16,8 @@
  * - ✅ Единый источник истины для reset
  */
 
-import type { ReadonlyDeep } from './auth-risk.js';
 import type { AuthState, SecurityState, SessionState } from './auth.js';
+import type { ReadonlyDeep } from './auth-risk.js';
 
 /* ============================================================================
  * 🎯 CANONICAL INITIAL STATES

@@ -18,8 +18,8 @@
  * - JSX максимально «тупой» для wrapper
  */
 
-import React, { memo, useCallback, useLayoutEffect, useRef } from 'react';
 import type { JSX } from 'react';
+import React, { memo, useCallback, useLayoutEffect, useRef } from 'react';
 import ReactDOM from 'react-dom';
 
 export type CoreDialogProps = Readonly<{

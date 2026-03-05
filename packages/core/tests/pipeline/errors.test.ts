@@ -3,6 +3,8 @@
  * Полное покрытие всех функций и веток исполнения (100%)
  */
 import { describe, expect, it } from 'vitest';
+
+import type { PipelineError, PipelineErrorMetadata } from '../../src/pipeline/errors.js';
 import {
   CancelledError,
   classifyError,
@@ -31,7 +33,6 @@ import {
   TimeoutError,
   validatePipelineErrorMetadata,
 } from '../../src/pipeline/errors.js';
-import type { PipelineError, PipelineErrorMetadata } from '../../src/pipeline/errors.js';
 
 /* ============================================================================
  * 🔧 HELPER FUNCTIONS FOR TEST DATA

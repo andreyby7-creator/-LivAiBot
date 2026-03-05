@@ -3,12 +3,14 @@
  * @file Unit тесты для SideBar компонента
  */
 
+import { cleanup, fireEvent, render, within } from '@testing-library/react';
 import React from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { cleanup, fireEvent, render, within } from '@testing-library/react';
+
+import type { SideBarItem } from '@livai/ui-core';
+import { SideBar } from '@livai/ui-core';
+
 import '@testing-library/jest-dom/vitest';
-import { SideBar } from '../../../src/components/SideBar.js';
-import type { SideBarItem } from '../../../src/components/SideBar.js';
 
 // Полная очистка DOM между тестами
 afterEach(cleanup);

@@ -20,10 +20,8 @@
  * - ✅ Двухфазный login: без успешного /me → login не считается успешным (fail-closed)
  */
 
-import { withTimeout } from '@livai/app/lib/effect-timeout.js';
-import type { Effect } from '@livai/app/lib/effect-utils.js';
-import { orchestrate, step } from '@livai/app/lib/orchestrator.js';
-import { validatedEffect } from '@livai/app/lib/schema-validated-effect.js';
+import type { Effect } from '@livai/core/effect';
+import { orchestrate, step, validatedEffect, withTimeout } from '@livai/core/effect';
 
 import type { LoginIdentifierType, LoginRequest } from '../domain/LoginRequest.js';
 import type { DomainLoginResult } from '../domain/LoginResult.js';
@@ -40,8 +38,8 @@ import type {
   LoginEffectDeps,
   LoginSecurityResult,
 } from './login/login-effect.types.js';
-import { buildLoginMetadata } from './login/login-metadata.enricher.js';
 import type { LoginContext, LoginMetadata } from './login/login-metadata.enricher.js';
+import { buildLoginMetadata } from './login/login-metadata.enricher.js';
 import { applyBlockedState, updateLoginState } from './login/login-store-updater.js';
 
 /* ============================================================================

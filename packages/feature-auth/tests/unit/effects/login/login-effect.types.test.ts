@@ -7,6 +7,7 @@
 
 import { describe, expect, it } from 'vitest';
 
+import type { DeviceInfo } from '../../../../src/domain/DeviceInfo.js';
 import type {
   AbortControllerPort,
   ApiRequestOptions,
@@ -23,6 +24,15 @@ import type {
   LoginSecurityResult,
   SecurityPipelinePort,
 } from '../../../../src/effects/login/login-effect.types.js';
+import type { AuthStorePort, BatchUpdate } from '../../../../src/effects/shared/auth-store.port.js';
+import type {
+  MandatoryAuditLogger,
+  SecurityPipelineContext,
+  SecurityPipelineError,
+  SecurityPipelineResult,
+  SecurityPipelineStep,
+} from '../../../../src/lib/security-pipeline.js';
+import type { AuditEventValues } from '../../../../src/schemas/index.js';
 import type {
   AuthError,
   AuthEvent,
@@ -35,16 +45,6 @@ import type {
   RiskLevel,
   RiskPolicy,
 } from '../../../../src/types/auth-risk.js';
-import type { DeviceInfo } from '../../../../src/domain/DeviceInfo.js';
-import type {
-  MandatoryAuditLogger,
-  SecurityPipelineContext,
-  SecurityPipelineError,
-  SecurityPipelineResult,
-  SecurityPipelineStep,
-} from '../../../../src/lib/security-pipeline.js';
-import type { AuthStorePort, BatchUpdate } from '../../../../src/effects/shared/auth-store.port.js';
-import type { AuditEventValues } from '../../../../src/schemas/index.js';
 
 // ============================================================================
 // 🔧 HELPERS

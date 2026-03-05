@@ -3,14 +3,15 @@
  * Полное покрытие всех функций и edge cases (100%)
  */
 import { describe, expect, it } from 'vitest';
+
 import type { InternalClassificationSignals } from '../../../src/classification/signals/signals.js';
 import type {
   IncompleteCoordinatesViolationMeta,
   ScoreViolationMeta,
   SemanticViolation,
 } from '../../../src/classification/signals/violations.js';
-import { validateClassificationSemantics } from '../../../src/classification/strategies/validation.js';
 import type { ClassificationSemanticValidator } from '../../../src/classification/strategies/validation.js';
+import { validateClassificationSemantics } from '../../../src/classification/strategies/validation.js';
 
 /* ============================================================================
  * 🧪 ТЕСТЫ — validateClassificationSemantics

@@ -9,11 +9,11 @@ export default defineConfig([
       index: 'src/index.ts',
     },
     format: ['esm'],
-    outDir: 'dist/esm',
-    dts: true, // Генерируем .d.ts файлы вместе с JS
+    outDir: 'dist',
+    dts: false,
     splitting: false,
-    sourcemap: false, // Для продакшена sourcemaps не нужны
-    clean: true, // Чистим dist перед сборкой для предотвращения накопления старых файлов
+    sourcemap: true,
+    clean: false, // Не удаляем .d.ts файлы от tsc (build:types)
     treeshake: true, // Tree shaking для уменьшения размера бандла
     minify: true, // Минификация для продакшена
     external: ['react', 'react-dom'], // React не бандлится - peer dependency для tree shaking в consuming apps
@@ -27,11 +27,11 @@ export default defineConfig([
       'auth/register-form': 'src/auth/register-form.tsx',
     },
     format: ['esm'],
-    outDir: 'dist/esm',
-    dts: true,
+    outDir: 'dist',
+    dts: false,
     splitting: false, // Без splitting для subpath - должен быть прямым файлом
-    sourcemap: false,
-    clean: false, // Не чистим, т.к. основной entry point уже очистил
+    sourcemap: true,
+    clean: false, // Не удаляем .d.ts файлы от tsc (build:types)
     treeshake: true,
     minify: true,
     external: ['react', 'react-dom'],

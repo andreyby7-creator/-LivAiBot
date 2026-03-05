@@ -3,6 +3,12 @@
  * Полное покрытие всех функций и веток исполнения (100%)
  */
 import { describe, expect, it, vi } from 'vitest';
+
+import type {
+  AdapterConfig,
+  AdapterEventHandler,
+  PipelineEffect,
+} from '../../src/pipeline/adapter.js';
 import {
   adaptEffectLibrary,
   AdapterTimeoutError,
@@ -14,11 +20,6 @@ import {
   isAdapterTimeoutError,
   isCancellationError,
   withTimeout,
-} from '../../src/pipeline/adapter.js';
-import type {
-  AdapterConfig,
-  AdapterEventHandler,
-  PipelineEffect,
 } from '../../src/pipeline/adapter.js';
 
 /* ============================================================================

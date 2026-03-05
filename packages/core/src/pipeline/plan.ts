@@ -19,8 +19,8 @@
  * - ✅ Reliability: runtime validation (duplicate providers, circular dependencies, unique stageId, maxEdges), SHA-256 хеширование версии (node:crypto или portable fallback)
  */
 
-import { validatePlugin } from './plugin-api.js';
 import type { FallbackStage, PipelineConfig, SlotId, StageId, StagePlugin } from './plugin-api.js';
+import { validatePlugin } from './plugin-api.js';
 
 /* ============================================================================
  * 1. TYPES — EXECUTION PLAN MODEL

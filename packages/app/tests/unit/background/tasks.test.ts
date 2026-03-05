@@ -1,6 +1,6 @@
 // packages/app/tests/unit/background/tasks.test.ts
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { Effect, Runtime } from 'effect';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 // Mock telemetry before any other imports
 vi.mock('../../../src/lib/telemetry-runtime.js', () => ({
@@ -31,6 +31,7 @@ vi.mock('../../../src/background/scheduler.js', () => ({
   getGlobalScheduler: vi.fn(),
 }));
 
+import { ENV, getGlobalScheduler } from '../../../src/background/scheduler.js';
 import {
   backgroundTasks,
   PermanentError,
@@ -39,7 +40,6 @@ import {
   TaskError,
   TransientError,
 } from '../../../src/background/tasks.js';
-import { ENV, getGlobalScheduler } from '../../../src/background/scheduler.js';
 import { AppEventType } from '../../../src/events/app-events.js';
 
 /* ========================================================================== */

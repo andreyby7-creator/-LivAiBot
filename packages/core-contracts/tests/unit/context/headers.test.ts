@@ -2,12 +2,13 @@
  * @file Unit тесты для context/headers.ts
  */
 import { describe, expect, it } from 'vitest';
-import { HEADERS } from '../../../src/context/headers.js';
+
 import type {
   AuthenticatedRequestHeaders,
   RequestHeaders,
   ServiceRequestHeaders,
 } from '../../../src/context/headers.js';
+import { HEADERS } from '../../../src/context/headers.js';
 
 type Assert<T extends true> = T;
 type IfEquals<X, Y, A = true, B = false> = (<T>() => T extends X ? 1 : 2) extends

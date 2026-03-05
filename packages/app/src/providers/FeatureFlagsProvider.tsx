@@ -15,8 +15,8 @@
 
 'use client';
 
-import { memo, useEffect, useMemo } from 'react';
 import type { JSX, PropsWithChildren } from 'react';
+import { memo, useEffect, useMemo } from 'react';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 

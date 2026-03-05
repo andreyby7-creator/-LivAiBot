@@ -18,10 +18,11 @@
  * - CoreSearchBar остается полностью presentational
  */
 
-import { SearchBar as CoreSearchBar } from '@livai/ui-core';
-import type { CoreSearchBarProps } from '@livai/ui-core';
-import React, { forwardRef, memo, useCallback, useEffect, useMemo, useRef } from 'react';
 import type { ChangeEvent, JSX, KeyboardEvent, Ref } from 'react';
+import React, { forwardRef, memo, useCallback, useEffect, useMemo, useRef } from 'react';
+
+import type { CoreSearchBarProps } from '@livai/ui-core';
+import { SearchBar as CoreSearchBar } from '@livai/ui-core';
 
 import type { Namespace, TranslationKey } from '../lib/i18n.js';
 import { useUnifiedUI } from '../providers/UnifiedUIProvider.js';
@@ -449,6 +450,8 @@ const SearchBarComponent = forwardRef<HTMLInputElement, AppSearchBarProps>(
     /** Policy: hidden */
     if (!policy.isRendered) return null;
 
+    const testId = props['data-testid'] ?? 'core-search-bar';
+
     return (
       <CoreSearchBar
         ref={ref}
@@ -467,6 +470,7 @@ const SearchBarComponent = forwardRef<HTMLInputElement, AppSearchBarProps>(
         data-feature-flag={policy.hiddenByFeatureFlag ? 'hidden' : 'visible'}
         data-telemetry={policy.telemetryEnabled ? 'enabled' : 'disabled'}
         {...coreProps}
+        data-testid={testId}
       />
     );
   },

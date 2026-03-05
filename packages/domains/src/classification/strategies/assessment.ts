@@ -21,23 +21,23 @@
  * @note Audit/logging должен быть в orchestrator layer, не здесь
  */
 
+import type { RiskWeights, ScoringContext } from '../aggregation/scoring.js';
+import { calculateRiskScore, defaultRiskWeights } from '../aggregation/scoring.js';
+import type { AssessmentContextBuilderPlugin } from '../evaluation/assessment.js';
+import {
+  assembleAssessmentResultFromContext,
+  buildAssessmentContextWithPlugins,
+} from '../evaluation/assessment.js';
+import type { ClassificationEvaluationResult } from '../evaluation/result.js';
+import type { DecisionPolicy } from '../policies/base.policy.js';
+import { defaultDecisionPolicy } from '../policies/base.policy.js';
+import type { ClassificationContext } from '../signals/signals.js';
+import type { SemanticViolation } from '../signals/violations.js';
 import type { ClassificationRulesConfig } from './config.js';
 import { getClassificationRulesConfig } from './config.js';
 import type { ContextBuilderPlugin as DeterministicContextBuilderPlugin } from './deterministic.strategy.js';
 import { evaluateClassificationRulesSnapshot } from './deterministic.strategy.js';
 import type { DeviceInfo } from './rules.js';
-import type { RiskWeights, ScoringContext } from '../aggregation/scoring.js';
-import { calculateRiskScore, defaultRiskWeights } from '../aggregation/scoring.js';
-import {
-  assembleAssessmentResultFromContext,
-  buildAssessmentContextWithPlugins,
-} from '../evaluation/assessment.js';
-import type { AssessmentContextBuilderPlugin } from '../evaluation/assessment.js';
-import type { ClassificationEvaluationResult } from '../evaluation/result.js';
-import { defaultDecisionPolicy } from '../policies/base.policy.js';
-import type { DecisionPolicy } from '../policies/base.policy.js';
-import type { ClassificationContext } from '../signals/signals.js';
-import type { SemanticViolation } from '../signals/violations.js';
 
 /* ============================================================================
  * 🧩 ТИПЫ — CLASSIFICATION ASSESSMENT TYPES

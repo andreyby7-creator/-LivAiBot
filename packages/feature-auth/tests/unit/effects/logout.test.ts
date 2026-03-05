@@ -12,10 +12,10 @@ import type {
   LogoutEffectConfig,
   LogoutEffectDeps,
 } from '../../../src/effects/logout/logout-effect.types.js';
-import type { AuthStorePort } from '../../../src/effects/shared/auth-store.port.js';
 import type { AuthApiClientPort } from '../../../src/effects/shared/api-client.port.js';
-import type { AuthError } from '../../../src/types/auth.js';
+import type { AuthStorePort } from '../../../src/effects/shared/auth-store.port.js';
 import type { AuditEventValues } from '../../../src/schemas/index.js';
+import type { AuthError } from '../../../src/types/auth.js';
 
 // ============================================================================
 // 🔧 HELPER FUNCTIONS FOR TEST DATA

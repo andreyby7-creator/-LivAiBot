@@ -3,6 +3,8 @@
  * Полное покрытие всех методов и веток исполнения (100%)
  */
 import { describe, expect, it } from 'vitest';
+
+import type { SanitizationMode } from '../../src/data-safety/sanitization-mode.js';
 import {
   compareModes,
   createSanitizationModeRegistry,
@@ -14,7 +16,6 @@ import {
   sanitizationModes,
   stricterMode,
 } from '../../src/data-safety/sanitization-mode.js';
-import type { SanitizationMode } from '../../src/data-safety/sanitization-mode.js';
 
 describe('SanitizationMode', () => {
   describe('sanitizationModes константы', () => {

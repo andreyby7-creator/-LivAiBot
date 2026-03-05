@@ -7,16 +7,16 @@
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { createRegisterEffect } from '../../../src/effects/register.js';
-import type {
-  RegisterEffectConfig,
-  RegisterEffectDeps,
-} from '../../../src/effects/register/register-effect.types.js';
 import type {
   RegisterIdentifierType,
   RegisterRequest,
 } from '../../../src/domain/RegisterRequest.js';
 import type { RegisterResponse } from '../../../src/domain/RegisterResponse.js';
+import { createRegisterEffect } from '../../../src/effects/register.js';
+import type {
+  RegisterEffectConfig,
+  RegisterEffectDeps,
+} from '../../../src/effects/register/register-effect.types.js';
 import type { RegisterResponseValues } from '../../../src/schemas/index.js';
 import type { AuthError } from '../../../src/types/auth.js';
 

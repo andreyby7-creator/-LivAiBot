@@ -3,12 +3,13 @@
  * @file Тесты для Input компонента с полным покрытием
  */
 
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
-import '@testing-library/jest-dom/vitest';
-import { Input } from '../../../src/ui/input';
-import type { AppInputProps } from '../../../src/ui/input';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+import type { AppInputProps } from '../../../src/ui/input';
+import { Input } from '../../../src/ui/input';
+
+import '@testing-library/jest-dom/vitest';
 // Импорт для правильного порядка моков
 import '../../../src/providers/UnifiedUIProvider';
 

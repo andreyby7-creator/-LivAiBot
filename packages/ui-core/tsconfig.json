@@ -9,7 +9,8 @@
     "incremental": false,
     "allowJs": false,
     "checkJs": false,
-    "downlevelIteration": true
+    "downlevelIteration": true,
+    "jsx": "preserve"
   },
   "include": ["src/**/*", "src/**/*.ts", "scripts/**/*.ts"],
   "exclude": ["node_modules", "dist", "**/*.test.ts", "**/*.spec.ts", "test/**/*"]

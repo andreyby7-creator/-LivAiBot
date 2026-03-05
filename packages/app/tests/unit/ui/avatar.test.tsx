@@ -3,37 +3,42 @@
  * @file Тесты для Avatar компонента с полным покрытием
  */
 
+import { cleanup, render, screen } from '@testing-library/react';
 import React from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { cleanup, render, screen } from '@testing-library/react';
+
 import '@testing-library/jest-dom/vitest';
 
 // Mock для Core Avatar - возвращаем простой div, фильтруя Core-специфичные пропсы
-vi.mock('../../../../ui-core/src/primitives/avatar', () => ({
-  Avatar: ({
-    'data-testid': testId,
-    src,
-    alt,
-    fallbackText,
-    size,
-    bgColor,
-    className,
-    style,
-    ...domProps
-  }: Readonly<Record<string, unknown>>) => (
-    <div
-      data-testid={testId ?? 'core-avatar'}
-      data-src={src}
-      data-alt={alt}
-      data-fallback-text={fallbackText}
-      data-size={size}
-      data-bg-color={bgColor}
-      className={className as string}
-      style={style as React.CSSProperties}
-      {...domProps}
-    />
-  ),
-}));
+vi.mock('@livai/ui-core', async () => {
+  const actual = await vi.importActual('@livai/ui-core');
+  return {
+    ...actual,
+    Avatar: ({
+      'data-testid': testId,
+      src,
+      alt,
+      fallbackText,
+      size,
+      bgColor,
+      className,
+      style,
+      ...domProps
+    }: Readonly<Record<string, unknown>>) => (
+      <div
+        data-testid={testId ?? 'core-avatar'}
+        data-src={src}
+        data-alt={alt}
+        data-fallback-text={fallbackText}
+        data-size={size}
+        data-bg-color={bgColor}
+        className={className as string}
+        style={style as React.CSSProperties}
+        {...domProps}
+      />
+    ),
+  };
+});
 
 // Mock для UnifiedUIProvider
 

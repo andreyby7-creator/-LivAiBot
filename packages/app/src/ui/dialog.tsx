@@ -20,9 +20,10 @@
  * - Компонент детерминированный, SSR-safe и platform-ready
  */
 
-import { Dialog as CoreDialog } from '@livai/ui-core';
-import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { JSX } from 'react';
+import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+
+import { Dialog as CoreDialog } from '@livai/ui-core';
 
 import type { Namespace, TranslationKey } from '../lib/i18n.js';
 import { useUnifiedUI } from '../providers/UnifiedUIProvider.js';
@@ -315,6 +316,7 @@ function DialogComponent(props: AppDialogProps): JSX.Element | null {
   }
 
   /** View (максимально «тупая») */
+  const testId = dataTestId ?? 'core-dialog';
   return (
     <CoreDialog
       open={policy.open}
@@ -323,7 +325,7 @@ function DialogComponent(props: AppDialogProps): JSX.Element | null {
       data-variant={policy.variant}
       {...(policy.disabledByFeatureFlag && { 'data-disabled': policy.disabledByFeatureFlag })}
       {...(id != null ? { id } : {})}
-      {...(dataTestId != null ? { 'data-testid': dataTestId } : {})}
+      data-testid={testId}
       {...(ariaLabel !== undefined && { 'aria-label': ariaLabel })}
       {...(ariaLabelledBy != null ? { 'aria-labelledby': ariaLabelledBy } : {})}
       {...(ariaDescribedBy != null ? { 'aria-describedby': ariaDescribedBy } : {})}

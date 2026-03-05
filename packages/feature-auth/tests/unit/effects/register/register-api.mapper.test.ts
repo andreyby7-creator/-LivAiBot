@@ -11,16 +11,16 @@ import type {
   RegisterRequest,
 } from '../../../../src/domain/RegisterRequest.js';
 import type { RegisterResponse } from '../../../../src/domain/RegisterResponse.js';
-import type {
-  OAuthRegisterRequestValues,
-  RegisterRequestValues,
-  RegisterResponseValues,
-} from '../../../../src/schemas/index.js';
 import {
   mapOAuthRegisterRequestToApiPayload as mapOAuthRegisterRequestToPayload,
   mapRegisterRequestToApiPayload as mapRegisterRequestToPayload,
   mapRegisterResponseToDomain,
 } from '../../../../src/effects/register/register-api.mapper.js';
+import type {
+  OAuthRegisterRequestValues,
+  RegisterRequestValues,
+  RegisterResponseValues,
+} from '../../../../src/schemas/index.js';
 
 // ============================================================================
 // 🔧 HELPERS

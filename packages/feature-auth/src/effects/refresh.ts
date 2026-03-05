@@ -20,10 +20,8 @@
  * - ✅ Concurrency: строго serialize или ignore, cancel_previous запрещён
  */
 
-import { withTimeout } from '@livai/app/lib/effect-timeout.js';
-import type { Effect } from '@livai/app/lib/effect-utils.js';
-import { orchestrate, step } from '@livai/app/lib/orchestrator.js';
-import { validatedEffect } from '@livai/app/lib/schema-validated-effect.js';
+import type { Effect } from '@livai/core/effect';
+import { orchestrate, step, validatedEffect, withTimeout } from '@livai/core/effect';
 
 import type { DeviceInfo } from '../domain/DeviceInfo.js';
 import type { LoginTokenPairValues, MeResponseValues } from '../schemas/index.js';

@@ -19,8 +19,8 @@
  */
 
 import type { InternalClassificationSignals } from '../signals/signals.js';
-import { semanticViolationValidator } from '../signals/violations.js';
 import type { SemanticViolation } from '../signals/violations.js';
+import { semanticViolationValidator } from '../signals/violations.js';
 
 /* ============================================================================
  * 🧩 ТИПЫ — CONTRACT TYPE ALIASES

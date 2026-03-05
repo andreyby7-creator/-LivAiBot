@@ -21,7 +21,6 @@
  * - App-слой решает, когда закрывать меню и когда фокусировать элементы
  */
 
-import { forwardRef, memo, useCallback, useEffect, useId, useMemo, useRef } from 'react';
 import type {
   CSSProperties,
   HTMLAttributes,
@@ -31,6 +30,7 @@ import type {
   ReactNode,
   Ref,
 } from 'react';
+import { forwardRef, memo, useCallback, useEffect, useId, useMemo, useRef } from 'react';
 
 import type { UIDataAttributes, UITestId } from '../types/ui.js';
 

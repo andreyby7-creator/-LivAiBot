@@ -5,8 +5,8 @@
  */
 
 import { Data, Effect } from 'effect';
-import { ZodError } from 'zod';
 import type { z } from 'zod';
+import { ZodError } from 'zod';
 
 const zodParseError = Data.TaggedError('ZodParseError')<{
   /** Оригинальная ошибка (Zod или другая). */

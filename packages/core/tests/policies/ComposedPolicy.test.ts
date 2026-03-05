@@ -3,13 +3,17 @@
  * Полное покрытие всех методов и веток исполнения
  */
 import { describe, expect, it } from 'vitest';
-import { ComposedPolicy } from '../../src/policies/ComposedPolicy.js';
-import type { ComposedPolicyConfig } from '../../src/policies/ComposedPolicy.js';
+
 import type {
   AuthPolicyConfig,
   AuthSessionState,
   AuthTokenState,
 } from '../../src/policies/AuthPolicy.js';
+import type {
+  BillingPolicyConfig,
+  BillingSubjectState,
+  BillingUsageContext,
+} from '../../src/policies/BillingPolicy.js';
 import type { BotPermissionsConfig, BotUserContext } from '../../src/policies/BotPermissions.js';
 import type { BotActorContext, BotPolicyConfig, BotState } from '../../src/policies/BotPolicy.js';
 import type {
@@ -18,11 +22,8 @@ import type {
   ChatPolicyConfig,
   ChatState,
 } from '../../src/policies/ChatPolicy.js';
-import type {
-  BillingPolicyConfig,
-  BillingSubjectState,
-  BillingUsageContext,
-} from '../../src/policies/BillingPolicy.js';
+import type { ComposedPolicyConfig } from '../../src/policies/ComposedPolicy.js';
+import { ComposedPolicy } from '../../src/policies/ComposedPolicy.js';
 
 // Mock данные для тестирования
 const MOCK_AUTH_CONFIG: AuthPolicyConfig = {

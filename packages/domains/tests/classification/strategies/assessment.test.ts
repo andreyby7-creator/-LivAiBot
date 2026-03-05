@@ -3,22 +3,23 @@
  * Полное покрытие всех функций и edge cases (100%)
  */
 import { beforeEach, describe, expect, it } from 'vitest';
+
+import { defaultRiskWeights } from '../../../src/classification/aggregation/scoring.js';
 import type {
   ClassificationGeo,
   ClassificationSignals,
 } from '../../../src/classification/signals/signals.js';
 import { classificationContext } from '../../../src/classification/signals/signals.js';
-import { assessClassification } from '../../../src/classification/strategies/assessment.js';
 import type {
   ClassificationPolicy,
   ContextBuilderPlugin,
 } from '../../../src/classification/strategies/assessment.js';
+import { assessClassification } from '../../../src/classification/strategies/assessment.js';
 import {
   DEFAULT_RULE_THRESHOLDS,
   resetClassificationRulesConfig,
 } from '../../../src/classification/strategies/config.js';
 import type { DeviceInfo } from '../../../src/classification/strategies/rules.js';
-import { defaultRiskWeights } from '../../../src/classification/aggregation/scoring.js';
 
 /* ============================================================================
  * 🧹 SETUP & TEARDOWN

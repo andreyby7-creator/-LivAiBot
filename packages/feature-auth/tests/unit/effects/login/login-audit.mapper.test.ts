@@ -7,24 +7,24 @@
 
 import { describe, expect, it } from 'vitest';
 
+import type { DeviceInfo } from '../../../../src/domain/DeviceInfo.js';
 import { createLoginRiskEvaluation, createLoginRiskResult } from '../../../../src/domain/index.js';
-import {
-  createLoginAuditContext,
-  mapLoginResultToAuditEvent,
-} from '../../../../src/effects/login/login-audit.mapper.js';
-import type {
-  LoginAuditContext,
-  LoginResultForAudit,
-} from '../../../../src/effects/login/login-audit.mapper.js';
 import type { DomainLoginResult } from '../../../../src/domain/LoginResult.js';
 import type { MeResponse } from '../../../../src/domain/MeResponse.js';
 import type { MfaChallengeRequest } from '../../../../src/domain/MfaChallengeRequest.js';
 import type { TokenPair } from '../../../../src/domain/TokenPair.js';
-import type { AuthError } from '../../../../src/types/auth.js';
-import type { LoginContext } from '../../../../src/effects/login/login-metadata.enricher.js';
+import type {
+  LoginAuditContext,
+  LoginResultForAudit,
+} from '../../../../src/effects/login/login-audit.mapper.js';
+import {
+  createLoginAuditContext,
+  mapLoginResultToAuditEvent,
+} from '../../../../src/effects/login/login-audit.mapper.js';
 import type { LoginSecurityResult } from '../../../../src/effects/login/login-effect.types.js';
-import type { DeviceInfo } from '../../../../src/domain/DeviceInfo.js';
+import type { LoginContext } from '../../../../src/effects/login/login-metadata.enricher.js';
 import type { SecurityPipelineResult } from '../../../../src/lib/security-pipeline.js';
+import type { AuthError } from '../../../../src/types/auth.js';
 import type { RiskAssessmentResult } from '../../../../src/types/auth-risk.js';
 
 // ============================================================================

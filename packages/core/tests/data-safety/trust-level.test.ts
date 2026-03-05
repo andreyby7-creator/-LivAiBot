@@ -3,6 +3,8 @@
  * Полное покрытие всех методов и веток исполнения (100%)
  */
 import { describe, expect, it } from 'vitest';
+
+import type { TrustLevel } from '../../src/data-safety/trust-level.js';
 import {
   createTrustLevelRegistry,
   defaultTrustLevelRegistry,
@@ -12,7 +14,6 @@ import {
   meetTrust,
   trustLevels,
 } from '../../src/data-safety/trust-level.js';
-import type { TrustLevel } from '../../src/data-safety/trust-level.js';
 
 describe('TrustLevel', () => {
   describe('trustLevels константы', () => {

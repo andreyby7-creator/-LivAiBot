@@ -13,8 +13,8 @@
  * - бизнес-логики
  */
 
-import React, { memo, useCallback, useEffect, useRef } from 'react';
 import type { FormHTMLAttributes, JSX } from 'react';
+import React, { memo, useCallback, useEffect, useRef } from 'react';
 
 /* ============================================================================
  * 🧬 TYPES

@@ -3,11 +3,13 @@
  * @file Unit тесты для ConfirmDialog компонента
  */
 
+import { cleanup, fireEvent, render, within } from '@testing-library/react';
 import React from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { cleanup, fireEvent, render, within } from '@testing-library/react';
+
+import { ConfirmDialog } from '@livai/ui-core';
+
 import '@testing-library/jest-dom/vitest';
-import { ConfirmDialog } from '../../../src/components/ConfirmDialog.js';
 
 // Полная очистка DOM между тестами
 afterEach(cleanup);

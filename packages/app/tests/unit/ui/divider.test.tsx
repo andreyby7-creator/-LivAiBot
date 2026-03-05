@@ -3,17 +3,22 @@
  * @file Тесты для App Divider компонента с полным покрытием
  */
 
+import { cleanup, render, screen } from '@testing-library/react';
 import React from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { cleanup, render, screen } from '@testing-library/react';
+
 import '@testing-library/jest-dom/vitest';
 
 // Mock для Core Divider - возвращаем простой div
-vi.mock('../../../../ui-core/src/primitives/divider', () => ({
-  Divider: ({ 'data-testid': testId, ...props }: Readonly<Record<string, unknown>>) => (
-    <div data-testid={testId ?? 'core-divider'} {...props} />
-  ),
-}));
+vi.mock('@livai/ui-core', async () => {
+  const actual = await vi.importActual('@livai/ui-core');
+  return {
+    ...actual,
+    Divider: ({ 'data-testid': testId, ...props }: Readonly<Record<string, unknown>>) => (
+      <div data-testid={testId ?? 'core-divider'} {...props} />
+    ),
+  };
+});
 
 // Mock для UnifiedUIProvider
 let mockFeatureFlagReturnValue = false;

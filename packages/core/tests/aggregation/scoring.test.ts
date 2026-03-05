@@ -3,6 +3,7 @@
  * Полное покрытие всех методов и веток исполнения (94%)
  */
 import { describe, expect, it } from 'vitest';
+
 import type { ScoreOperation, ScoringConfig } from '../../src/aggregation/scoring.js';
 import { scoreAlgebra, scoring } from '../../src/aggregation/scoring.js';
 

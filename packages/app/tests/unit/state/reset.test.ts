@@ -19,15 +19,14 @@ console.warn = (message, ...args) => {
 };
 
 // Import the module to test
+import { AppLifecycleEvent, appLifecycleEvents } from '../../../src/events/app-lifecycle-events.js';
+import type { AppResetPolicy, AppResetReason } from '../../../src/state/reset.js';
 import {
   __resetAppStateResetRegistration,
   registerAppStateReset,
 } from '../../../src/state/reset.js';
-import type { AppResetPolicy, AppResetReason } from '../../../src/state/reset.js';
-
 // Import dependencies for integration testing
 import { useAppStore } from '../../../src/state/store.js';
-import { AppLifecycleEvent, appLifecycleEvents } from '../../../src/events/app-lifecycle-events.js';
 
 /* ============================================================================
  * 🧪 TEST SETUP

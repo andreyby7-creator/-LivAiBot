@@ -3,11 +3,13 @@
  * @file Unit тесты для Toggle компонента
  */
 
+import { cleanup, fireEvent, render, within } from '@testing-library/react';
 import React from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { cleanup, fireEvent, render, within } from '@testing-library/react';
+
+import { Toggle } from '@livai/ui-core';
+
 import '@testing-library/jest-dom/vitest';
-import { Toggle } from '../../../src/primitives/toggle.js';
 
 // Mock для HTMLElement.prototype.focus
 const mockFocus = vi.fn();

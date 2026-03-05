@@ -8,12 +8,13 @@
  */
 
 import { describe, expect, it, vi } from 'vitest';
-import type { RegisterRequest, TokenPairResponse } from '../../src/domain/auth.js';
-import type { Conversation, CreateConversationRequest } from '../../src/domain/conversations.js';
+
 import type { AuthenticatedRequestHeaders } from '../../src/context/headers.js';
 import { HEADERS } from '../../src/context/headers.js';
-import { errorCodes } from '../../src/errors/http.js';
+import type { RegisterRequest, TokenPairResponse } from '../../src/domain/auth.js';
 import type { UUID } from '../../src/domain/common.js';
+import type { Conversation, CreateConversationRequest } from '../../src/domain/conversations.js';
+import { errorCodes } from '../../src/errors/http.js';
 import { FAKE_EMAIL, FAKE_PASSWORD, FAKE_WORKSPACE_NAME } from '../fakes';
 
 // Мокаем внешние зависимости для интеграционного тестирования

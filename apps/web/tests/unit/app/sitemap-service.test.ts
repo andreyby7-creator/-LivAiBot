@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 
+import { locales } from '../../../i18n/routing';
 import type { SitemapSpec } from '../../../src/app/sitemap.xml/_lib/sitemap-service';
 import {
   buildSitemapUrl,
@@ -13,7 +14,6 @@ import {
   normalizeBaseUrl,
   renderSitemapXmlResponse,
 } from '../../../src/app/sitemap.xml/_lib/sitemap-service';
-import { locales } from '../../../i18n/routing';
 
 describe('sitemap-service: normalizeBaseUrl', () => {
   it('returns null for null/undefined/empty input', () => {

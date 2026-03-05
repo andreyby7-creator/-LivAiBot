@@ -17,10 +17,11 @@
  * - CoreAccordion остается полностью presentational
  */
 
-import { Accordion as CoreAccordion } from '@livai/ui-core';
-import type { CoreAccordionProps } from '@livai/ui-core';
-import { forwardRef, memo, useCallback, useEffect, useMemo, useRef } from 'react';
 import type { JSX, MouseEvent, Ref } from 'react';
+import { forwardRef, memo, useCallback, useEffect, useMemo, useRef } from 'react';
+
+import type { CoreAccordionProps } from '@livai/ui-core';
+import { Accordion as CoreAccordion } from '@livai/ui-core';
 
 import type { Namespace, TranslationKey } from '../lib/i18n.js';
 import { useUnifiedUI } from '../providers/UnifiedUIProvider.js';
@@ -266,7 +267,8 @@ const AccordionComponent = forwardRef<HTMLDivElement, AppAccordionProps>(
 
     // Фильтруем бизнес-пропсы, оставляем только DOM-безопасные
     // onChange обрабатывается отдельно через handleChange
-    const domProps = omit(props, [...BUSINESS_PROPS, 'onChange']);
+    // data-testid обрабатывается отдельно с дефолтным значением
+    const domProps = omit(props, [...BUSINESS_PROPS, 'onChange', 'data-testid']);
 
     // Aria-label: i18n → обычный aria-label → undefined
     const ariaLabel = useMemo<string | undefined>(() => {
@@ -465,12 +467,15 @@ const AccordionComponent = forwardRef<HTMLDivElement, AppAccordionProps>(
     // Policy: hidden
     if (!policy.isRendered) return null;
 
+    const testId = props['data-testid'] ?? 'core-accordion';
+
     return (
       <CoreAccordion
         ref={ref}
         {...coreAccordionProps}
         aria-label={ariaLabel}
         aria-labelledby={ariaLabelledBy}
+        data-testid={testId}
         {...domProps}
       />
     );

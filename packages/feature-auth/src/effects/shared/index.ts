@@ -65,5 +65,5 @@ export type { ApiRequestOptions, AuthApiClientPort } from './api-client.port.js'
  * Используется во всех auth-эффектах для единой async-модели в orchestrator.
  * @public
  */
-export { createApiClientPortAdapter } from './api-client.adapter.js';
 export type { LegacyApiClient } from './api-client.adapter.js';
+export { createApiClientPortAdapter } from './api-client.adapter.js';

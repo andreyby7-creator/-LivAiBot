@@ -3,12 +3,14 @@
  * @file Unit тесты для FileUploader компонента
  */
 
+import { cleanup, fireEvent, render } from '@testing-library/react';
 import React, { createRef } from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { cleanup, fireEvent, render } from '@testing-library/react';
+
+import type { FileInfo, FileStatus } from '@livai/ui-core';
+import { FileUploader } from '@livai/ui-core';
+
 import '@testing-library/jest-dom/vitest';
-import { FileUploader } from '../../../src/components/FileUploader.js';
-import type { FileInfo, FileStatus } from '../../../src/components/FileUploader.js';
 
 // Полная очистка DOM между тестами
 afterEach(() => {

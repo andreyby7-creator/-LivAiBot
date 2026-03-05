@@ -2,6 +2,7 @@
  * @file Unit тесты для domain/bots.ts
  */
 import { describe, expect, it } from 'vitest';
+
 import type {
   BotListResponse,
   BotResponse,

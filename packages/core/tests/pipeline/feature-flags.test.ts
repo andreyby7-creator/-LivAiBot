@@ -3,6 +3,13 @@
  * Полное покрытие всех функций и веток исполнения (100%)
  */
 import { describe, expect, it, vi } from 'vitest';
+
+import type {
+  PipelineMode,
+  PipelineVersion,
+  ResolverPriority,
+  RolloutConfig,
+} from '../../src/pipeline/feature-flags.js';
 import {
   createCombinedResolver,
   createTenantResolver,
@@ -14,12 +21,6 @@ import {
   isShadowMode,
   resolveFeatureFlag,
   resolvePipelineMode,
-} from '../../src/pipeline/feature-flags.js';
-import type {
-  PipelineMode,
-  PipelineVersion,
-  ResolverPriority,
-  RolloutConfig,
 } from '../../src/pipeline/feature-flags.js';
 
 /* ============================================================================

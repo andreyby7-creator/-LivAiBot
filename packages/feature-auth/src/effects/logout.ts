@@ -18,8 +18,8 @@
  * - ✅ Idempotency: reset уже выполненного состояния является no-op (через batchUpdate)
  */
 
-import { withTimeout } from '@livai/app/lib/effect-timeout.js';
-import type { Effect } from '@livai/app/lib/effect-utils.js';
+import type { Effect } from '@livai/core/effect';
+import { withTimeout } from '@livai/core/effect';
 
 import type { AuthError } from '../types/auth.js';
 import type { LogoutAuditContext, LogoutResultForAudit } from './logout/logout-audit.mapper.js';

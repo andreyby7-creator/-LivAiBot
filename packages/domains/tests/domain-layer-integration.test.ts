@@ -8,6 +8,7 @@
  * @see ADR-001-domain-layer-trust-policy.md
  */
 import { describe, expect, it } from 'vitest';
+
 import {
   classificationContext,
   classificationSignals,

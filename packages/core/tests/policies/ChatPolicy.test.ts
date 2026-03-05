@@ -3,7 +3,7 @@
  * Полное покрытие всех методов и веток исполнения
  */
 import { describe, expect, it } from 'vitest';
-import { ChatPolicy } from '../../src/policies/ChatPolicy.js';
+
 import type {
   ChatAction,
   ChatActorContext,
@@ -13,6 +13,7 @@ import type {
   ChatRole,
   ChatState,
 } from '../../src/policies/ChatPolicy.js';
+import { ChatPolicy } from '../../src/policies/ChatPolicy.js';
 
 // Mock данные для тестирования
 const MOCK_CONFIG: ChatPolicyConfig = {

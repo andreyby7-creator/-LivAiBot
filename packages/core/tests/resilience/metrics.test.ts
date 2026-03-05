@@ -3,6 +3,8 @@
  * Покрывают state machine, агрегацию, фабрики метрик и edge-cases.
  */
 import { describe, expect, it } from 'vitest';
+
+import type { MetricsAggregationConfig, MetricsState } from '../../src/resilience/metrics.js';
 import {
   addMetric,
   aggregateMetrics,
@@ -13,7 +15,6 @@ import {
   createSummaryMetric,
   DEFAULT_METRICS_AGGREGATION_CONFIG,
 } from '../../src/resilience/metrics.js';
-import type { MetricsAggregationConfig, MetricsState } from '../../src/resilience/metrics.js';
 
 const BASE_TIME_MS = 1_000;
 const WINDOW_SIZE_MS = 60_000;

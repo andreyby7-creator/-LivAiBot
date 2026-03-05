@@ -14,7 +14,6 @@
 
 import { afterAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { getNavigationForContext, NAVIGATION } from '../../../src/routes/navigation.js';
 import type {
   NavigationBadge,
   NavigationBadgeSource,
@@ -25,6 +24,7 @@ import type {
   NavigationLink,
   NavigationPlacement,
 } from '../../../src/routes/navigation.js';
+import { getNavigationForContext, NAVIGATION } from '../../../src/routes/navigation.js';
 import { canAccessRouteByName } from '../../../src/routes/route-meta.js';
 import { RouteNames } from '../../../src/routes/routes.js';
 import { UserRoles } from '../../../src/types/common.js';

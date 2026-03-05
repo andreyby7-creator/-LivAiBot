@@ -1,5 +1,6 @@
 /**
  * @file @livai/core-contracts/context — Request Context & Headers
+ *
  * Публичный API пакета context.
  * Экспортирует все публичные компоненты, типы и константы для контекстных данных запроса.
  */

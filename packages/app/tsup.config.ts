@@ -9,10 +9,10 @@ export default defineConfig([
     splitting: true, // разбивает на модули
     minify: false,
     sourcemap: true,
-    clean: true,
+    clean: false, // Не удаляем .d.ts файлы от tsc (build:types)
     platform: 'node',
-    dts: true,
-    outDir: 'dist/esm',
+    dts: false,
+    outDir: 'dist',
     external: [
       'react',
       'react-dom',
@@ -29,11 +29,6 @@ export default defineConfig([
   // Subpath exports без splitting (прямые файлы)
   {
     entry: {
-      'lib/error-mapping': 'src/lib/error-mapping.ts',
-      'lib/effect-utils': 'src/lib/effect-utils.ts',
-      'lib/effect-timeout': 'src/lib/effect-timeout.ts',
-      'lib/orchestrator': 'src/lib/orchestrator.ts',
-      'lib/schema-validated-effect': 'src/lib/schema-validated-effect.ts',
       'lib/service-worker': 'src/lib/service-worker.ts',
       'lib/telemetry-runtime': 'src/lib/telemetry-runtime.ts',
       'providers/intl-provider': 'src/providers/intl-provider.tsx',
@@ -44,8 +39,8 @@ export default defineConfig([
     minify: false,
     sourcemap: true,
     platform: 'node',
-    dts: true,
-    outDir: 'dist/esm',
+    dts: true, // Генерируем .d.ts для subpath exports
+    outDir: 'dist',
     external: [
       'react',
       'react-dom',

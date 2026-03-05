@@ -17,7 +17,6 @@
  * - Значением и событиями управляет App-слой
  */
 
-import React, { forwardRef, memo, useCallback, useMemo } from 'react';
 import type {
   ChangeEvent,
   CSSProperties,
@@ -27,6 +26,7 @@ import type {
   ReactNode,
   Ref,
 } from 'react';
+import React, { forwardRef, memo, useCallback, useMemo } from 'react';
 
 import type { UISize, UITestId } from '../types/ui.js';
 

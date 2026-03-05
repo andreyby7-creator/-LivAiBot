@@ -2,6 +2,7 @@
  * @file Unit тесты для domain/common.ts
  */
 import { describe, expect, it } from 'vitest';
+
 import type {
   DurationMs,
   JsonObject,

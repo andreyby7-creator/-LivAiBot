@@ -8,6 +8,14 @@
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import * as orchestratorModule from '@livai/core/effect';
+
+import type { DeviceInfo } from '../../../src/domain/DeviceInfo.js';
+import * as riskAssessmentModule from '../../../src/lib/risk-assessment.js';
+import type {
+  SecurityPipelineConfig,
+  SecurityPipelineResult,
+} from '../../../src/lib/security-pipeline.js';
 import {
   executeSecurityPipeline,
   getRiskLevel,
@@ -16,14 +24,7 @@ import {
   requiresChallenge,
   shouldBlockOperation,
 } from '../../../src/lib/security-pipeline.js';
-import type { DeviceInfo } from '../../../src/domain/DeviceInfo.js';
 import type { RiskAssessmentResult } from '../../../src/types/auth-risk.js';
-import type {
-  SecurityPipelineConfig,
-  SecurityPipelineResult,
-} from '../../../src/lib/security-pipeline.js';
-import * as riskAssessmentModule from '../../../src/lib/risk-assessment.js';
-import * as orchestratorModule from '@livai/app/lib/orchestrator.js';
 
 /* ============================================================================
  * 🔧 TEST HELPERS

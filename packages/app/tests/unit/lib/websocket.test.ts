@@ -13,6 +13,10 @@
  */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+
+import type { EffectAbortController, EffectContext, TraceId } from '@livai/core/effect';
+
+import type { WebSocketClientConfig, WebSocketEvent } from '../../../src/lib/websocket';
 import {
   closeWebSocketEffect,
   connectWebSocket,
@@ -26,8 +30,6 @@ import {
   onWebSocketMessage,
   sendWebSocketMessageEffect,
 } from '../../../src/lib/websocket';
-import type { WebSocketClientConfig, WebSocketEvent } from '../../../src/lib/websocket';
-import type { EffectAbortController, EffectContext } from '../../../src/lib/effect-utils';
 
 // ============================================================================
 // 🧠 MOCKS И HELPER'Ы
@@ -61,7 +63,7 @@ function createMockWebSocket(): WebSocket {
  */
 function createMockContext(): EffectContext {
   return {
-    traceId: 'test-trace-id',
+    traceId: 'test-trace-id' as TraceId,
     authToken: 'test-auth-token',
     locale: 'en',
     source: 'websocket-test',

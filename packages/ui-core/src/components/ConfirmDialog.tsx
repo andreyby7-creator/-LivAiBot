@@ -16,12 +16,12 @@
  * - Видимостью и поведением управляет App-слой
  */
 
-import { forwardRef, memo, useCallback, useMemo } from 'react';
 import type { CSSProperties, HTMLAttributes, JSX, ReactNode, Ref } from 'react';
+import { forwardRef, memo, useCallback, useMemo } from 'react';
 
-import { Modal } from './Modal.js';
-import type { ModalVariant } from './Modal.js';
 import type { UITestId } from '../types/ui.js';
+import type { ModalVariant } from './Modal.js';
+import { Modal } from './Modal.js';
 
 /* ============================================================================
  * 🧬 TYPES & CONSTANTS

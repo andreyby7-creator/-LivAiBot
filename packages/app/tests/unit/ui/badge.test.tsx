@@ -3,41 +3,46 @@
  * @file Тесты для Badge компонента с полным покрытием
  */
 
+import { cleanup, render, screen } from '@testing-library/react';
 import React from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { cleanup, render, screen } from '@testing-library/react';
+
 import '@testing-library/jest-dom/vitest';
 
 // Mock для Core Badge - возвращаем простой span, но фильтруем внутренние пропсы
-vi.mock('../../../../ui-core/src/primitives/badge', () => ({
-  Badge: ({
-    'data-testid': testId,
-    value,
-    size,
-    variant,
-    style,
-    className,
-    ...props
-  }: Readonly<{
-    'data-testid'?: string;
-    value?: string;
-    size?: string;
-    variant?: string;
-    style?: import('react').CSSProperties;
-    className?: string;
-    [key: string]: unknown;
-  }>) => (
-    <span
-      data-testid={testId ?? 'core-badge'}
-      data-value={value}
-      data-size={size}
-      data-variant={variant}
-      style={style}
-      className={className}
-      {...props}
-    />
-  ),
-}));
+vi.mock('@livai/ui-core', async () => {
+  const actual = await vi.importActual('@livai/ui-core');
+  return {
+    ...actual,
+    Badge: ({
+      'data-testid': testId,
+      value,
+      size,
+      variant,
+      style,
+      className,
+      ...props
+    }: Readonly<{
+      'data-testid'?: string;
+      value?: string;
+      size?: string;
+      variant?: string;
+      style?: import('react').CSSProperties;
+      className?: string;
+      [key: string]: unknown;
+    }>) => (
+      <span
+        data-testid={testId ?? 'core-badge'}
+        data-value={value}
+        data-size={size}
+        data-variant={variant}
+        style={style}
+        className={className}
+        {...props}
+      />
+    ),
+  };
+});
 
 // Mock для UnifiedUIProvider
 let mockFeatureFlagReturnValue = false;

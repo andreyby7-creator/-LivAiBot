@@ -3,6 +3,16 @@
  * Полное покрытие всех функций и edge cases (100%)
  */
 import { describe, expect, it } from 'vitest';
+
+import type {
+  AssessmentContextBuilderPlugin,
+  BuildAssessmentContextOptions,
+  RuleEvaluationSnapshot,
+} from '../../../src/classification/evaluation/assessment.js';
+import {
+  assembleAssessmentResultFromContext,
+  buildAssessmentContextWithPlugins,
+} from '../../../src/classification/evaluation/assessment.js';
 import type { ClassificationLabelValue } from '../../../src/classification/labels.js';
 import { classificationLabel } from '../../../src/classification/labels.js';
 import type {
@@ -15,15 +25,6 @@ import type {
   ClassificationRule,
   DeviceInfo,
 } from '../../../src/classification/strategies/rules.js';
-import type {
-  AssessmentContextBuilderPlugin,
-  BuildAssessmentContextOptions,
-  RuleEvaluationSnapshot,
-} from '../../../src/classification/evaluation/assessment.js';
-import {
-  assembleAssessmentResultFromContext,
-  buildAssessmentContextWithPlugins,
-} from '../../../src/classification/evaluation/assessment.js';
 
 /* ============================================================================
  * 🔧 HELPER FUNCTIONS FOR TEST DATA

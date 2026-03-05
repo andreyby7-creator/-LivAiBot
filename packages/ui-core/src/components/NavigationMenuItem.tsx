@@ -17,8 +17,8 @@
  * - Активным состоянием и навигацией управляет App-слой
  */
 
-import React, { forwardRef, memo, useMemo } from 'react';
 import type { CSSProperties, HTMLAttributes, ReactNode } from 'react';
+import React, { forwardRef, memo, useMemo } from 'react';
 
 import type { UITestId } from '../types/ui.js';
 

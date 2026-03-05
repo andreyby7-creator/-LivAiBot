@@ -17,10 +17,11 @@
  * - CoreDropdown остается полностью presentational
  */
 
-import { Dropdown as CoreDropdown } from '@livai/ui-core';
-import type { CoreDropdownProps } from '@livai/ui-core';
-import { forwardRef, memo, useCallback, useEffect, useMemo, useRef } from 'react';
 import type { JSX, KeyboardEvent, MouseEvent, Ref } from 'react';
+import { forwardRef, memo, useCallback, useEffect, useMemo, useRef } from 'react';
+
+import type { CoreDropdownProps } from '@livai/ui-core';
+import { Dropdown as CoreDropdown } from '@livai/ui-core';
 
 import type { Namespace, TranslationKey } from '../lib/i18n.js';
 import { useUnifiedUI } from '../providers/UnifiedUIProvider.js';
@@ -437,10 +438,13 @@ const DropdownComponent = forwardRef<HTMLDivElement, AppDropdownProps>(
     // Policy: hidden
     if (!policy.isRendered) return null;
 
+    const testId = props['data-testid'] ?? 'core-dropdown';
+
     return (
       <CoreDropdown
         ref={ref}
         {...coreDropdownProps}
+        data-testid={testId}
       />
     );
   },

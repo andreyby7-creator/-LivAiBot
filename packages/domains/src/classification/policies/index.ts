@@ -63,5 +63,5 @@ export { defaultDecisionPolicy } from './base.policy.js';
  * @public
  */
 export { applyAggregationPolicy } from './aggregation.policy.js';
-export { determineLabel, determineRiskLevel } from './base.policy.js';
 export { aggregateRiskSources } from './aggregation.strategy.js';
+export { determineLabel, determineRiskLevel } from './base.policy.js';

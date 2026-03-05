@@ -27,7 +27,6 @@ export type {
   SessionDecision,
   SessionManagerPort,
 } from './refresh-effect.types.js';
-
 export { RefreshConfigError, validateRefreshConfig } from './refresh-effect.types.js';
 
 /* ============================================================================

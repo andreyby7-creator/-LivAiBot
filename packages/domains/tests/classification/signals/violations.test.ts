@@ -3,6 +3,7 @@
  * Полное покрытие всех методов и веток исполнения (100%)
  */
 import { describe, expect, it } from 'vitest';
+
 import type { InternalClassificationSignals } from '../../../src/classification/signals/signals.js';
 import type {
   IncompleteCoordinatesViolationMeta,

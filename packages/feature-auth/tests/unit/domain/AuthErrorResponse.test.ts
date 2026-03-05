@@ -4,6 +4,7 @@
  */
 
 import { describe, expect, it } from 'vitest';
+
 import type { AuthErrorResponse, AuthErrorType } from '../../../src/domain/AuthErrorResponse.js';
 import { authErrorResponseSchema } from '../../../src/schemas/index.js';
 

@@ -3,186 +3,192 @@
  * @file Тесты для App FileUploader компонента с полным покрытием
  */
 
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import React from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
-import '@testing-library/jest-dom/vitest';
+
 import type { FileInfo } from '@livai/ui-core';
 
+import '@testing-library/jest-dom/vitest';
+
 // Mock для Core FileUploader
-vi.mock('../../../../ui-core/src/components/FileUploader', () => ({
-  FileUploader: React.forwardRef<
-    HTMLDivElement,
-    Readonly<Record<string, unknown>>
-  >((
-    props: Readonly<Record<string, unknown>>,
-    ref,
-  ) => {
-    const {
-      files,
-      multiple,
-      accept,
-      disabled,
-      isDragActive,
-      buttonLabel,
-      dropZoneLabel,
-      dropZoneLabelActive,
-      hint,
-      onChange,
-      onDrop,
-      onRemove,
-      onDragEnter,
-      onDragLeave,
-      onDragOver,
-      'aria-label': ariaLabel,
-      buttonAriaLabel,
-      dropZoneAriaLabel,
-      'data-component': dataComponent,
-      'data-state': dataState,
-      'data-feature-flag': dataFeatureFlag,
-      'data-telemetry': dataTelemetry,
-      'data-testid': testId,
-      className,
-      style,
-      ...rest
-    } = props;
+vi.mock('@livai/ui-core', async () => {
+  const actual = await vi.importActual('@livai/ui-core');
+  return {
+    ...actual,
+    FileUploader: React.forwardRef<
+      HTMLDivElement,
+      Readonly<Record<string, unknown>>
+    >((
+      props: Readonly<Record<string, unknown>>,
+      ref,
+    ) => {
+      const {
+        files,
+        multiple,
+        accept,
+        disabled,
+        isDragActive,
+        buttonLabel,
+        dropZoneLabel,
+        dropZoneLabelActive,
+        hint,
+        onChange,
+        onDrop,
+        onRemove,
+        onDragEnter,
+        onDragLeave,
+        onDragOver,
+        'aria-label': ariaLabel,
+        buttonAriaLabel,
+        dropZoneAriaLabel,
+        'data-component': dataComponent,
+        'data-state': dataState,
+        'data-feature-flag': dataFeatureFlag,
+        'data-telemetry': dataTelemetry,
+        'data-testid': testId,
+        className,
+        style,
+        ...rest
+      } = props;
 
-    const filesArray = files as readonly FileInfo[] | undefined;
-    const isDragActiveValue = Boolean(isDragActive);
+      const filesArray = files as readonly FileInfo[] | undefined;
+      const isDragActiveValue = Boolean(isDragActive);
 
-    return (
-      <div
-        ref={ref}
-        data-testid={testId ?? 'core-file-uploader'}
-        data-component={dataComponent}
-        data-state={dataState}
-        data-feature-flag={dataFeatureFlag}
-        data-telemetry={dataTelemetry}
-        data-is-drag-active={isDragActiveValue}
-        className={className as string | undefined}
-        style={style as React.CSSProperties | undefined}
-        {...rest}
-      >
-        <input
-          type='file'
-          data-testid='file-input'
-          multiple={Boolean(multiple)}
-          accept={accept as string | undefined}
-          disabled={Boolean(disabled)}
-          onChange={(e) => {
-            if (typeof onChange === 'function' && e.target.files !== null) {
-              const fileList = Array.from(e.target.files);
-              onChange(fileList, e);
-            }
-          }}
-        />
+      return (
         <div
-          data-testid='drop-zone'
-          role='button'
-          tabIndex={Boolean(disabled) ? -1 : 0}
-          aria-label={dropZoneAriaLabel as string | undefined
-            ?? ariaLabel as string | undefined
-            ?? 'Drop zone'}
-          onDrop={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            if (typeof onDrop === 'function') {
-              const dragEvent = e as unknown as DragEvent;
-              const dataTransfer = dragEvent.dataTransfer;
-              const fileList = dataTransfer !== null && dataTransfer.files.length > 0
-                ? Array.from(dataTransfer.files)
-                : [];
-              onDrop(fileList, e);
-            }
-          }}
-          onDragEnter={(e) => {
-            if (typeof onDragEnter === 'function') {
-              onDragEnter(e);
-            }
-          }}
-          onDragLeave={(e) => {
-            if (typeof onDragLeave === 'function') {
-              onDragLeave(e);
-            }
-          }}
-          onDragOver={(e) => {
-            if (typeof onDragOver === 'function') {
-              onDragOver(e);
-            }
-          }}
+          ref={ref}
+          data-testid={testId ?? 'core-file-uploader'}
+          data-component={dataComponent}
+          data-state={dataState}
+          data-feature-flag={dataFeatureFlag}
+          data-telemetry={dataTelemetry}
+          data-is-drag-active={isDragActiveValue}
+          className={className as string | undefined}
+          style={style as React.CSSProperties | undefined}
+          {...rest}
         >
-          <span data-testid='drop-zone-label'>
-            {isDragActiveValue
-              ? (dropZoneLabelActive as string | undefined ?? 'Drop files here')
-              : (dropZoneLabel as string | undefined ?? 'Drag and drop files')}
-          </span>
-          <button
-            type='button'
-            data-testid='select-button'
+          <input
+            type='file'
+            data-testid='file-input'
+            multiple={Boolean(multiple)}
+            accept={accept as string | undefined}
             disabled={Boolean(disabled)}
-            aria-label={buttonAriaLabel as string | undefined
+            onChange={(e) => {
+              if (typeof onChange === 'function' && e.target.files !== null) {
+                const fileList = Array.from(e.target.files);
+                onChange(fileList, e);
+              }
+            }}
+          />
+          <div
+            data-testid='drop-zone'
+            role='button'
+            tabIndex={Boolean(disabled) ? -1 : 0}
+            aria-label={dropZoneAriaLabel as string | undefined
               ?? ariaLabel as string | undefined
-              ?? buttonLabel as string | undefined}
-            onClick={() => {
-              const input = document.querySelector('input[type="file"]');
-              if (input !== null) {
-                (input as HTMLInputElement).click();
+              ?? 'Drop zone'}
+            onDrop={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              if (typeof onDrop === 'function') {
+                const dragEvent = e as unknown as DragEvent;
+                const dataTransfer = dragEvent.dataTransfer;
+                const fileList = dataTransfer !== null && dataTransfer.files.length > 0
+                  ? Array.from(dataTransfer.files)
+                  : [];
+                onDrop(fileList, e);
+              }
+            }}
+            onDragEnter={(e) => {
+              if (typeof onDragEnter === 'function') {
+                onDragEnter(e);
+              }
+            }}
+            onDragLeave={(e) => {
+              if (typeof onDragLeave === 'function') {
+                onDragLeave(e);
+              }
+            }}
+            onDragOver={(e) => {
+              if (typeof onDragOver === 'function') {
+                onDragOver(e);
               }
             }}
           >
-            {buttonLabel as string | undefined ?? 'Select files'}
-          </button>
+            <span data-testid='drop-zone-label'>
+              {isDragActiveValue
+                ? (dropZoneLabelActive as string | undefined ?? 'Drop files here')
+                : (dropZoneLabel as string | undefined ?? 'Drag and drop files')}
+            </span>
+            <button
+              type='button'
+              data-testid='select-button'
+              disabled={Boolean(disabled)}
+              aria-label={buttonAriaLabel as string | undefined
+                ?? ariaLabel as string | undefined
+                ?? buttonLabel as string | undefined}
+              onClick={() => {
+                const input = document.querySelector('input[type="file"]');
+                if (input !== null) {
+                  (input as HTMLInputElement).click();
+                }
+              }}
+            >
+              {buttonLabel as string | undefined ?? 'Select files'}
+            </button>
+          </div>
+          {hint !== undefined && hint !== '' && (
+            <div data-testid='hint' role='note'>
+              {hint as string}
+            </div>
+          )}
+          {filesArray !== undefined && filesArray.length > 0 && (
+            <div data-testid='files-list' role='list'>
+              {filesArray.map((file) => (
+                <div
+                  key={file.id}
+                  data-testid={`file-${file.id}`}
+                  role='listitem'
+                >
+                  <span data-testid={`file-name-${file.id}`}>{file.name}</span>
+                  <span data-testid={`file-size-${file.id}`}>{file.sizeLabel}</span>
+                  <span data-testid={`file-type-${file.id}`}>{file.typeLabel}</span>
+                  <span data-testid={`file-status-${file.id}`}>{file.status.label}</span>
+                  {file.status.type === 'progress' && 'progress' in file && (
+                    <div
+                      data-testid={`file-progress-${file.id}`}
+                      role='progressbar'
+                      aria-valuenow={file.progress}
+                    >
+                      {file.progress}%
+                    </div>
+                  )}
+                  {file.status.type === 'error' && 'errorMessage' in file && (
+                    <div data-testid={`file-error-${file.id}`} role='alert'>
+                      {file.errorMessage}
+                    </div>
+                  )}
+                  {typeof onRemove === 'function' && (
+                    <button
+                      type='button'
+                      data-testid={`remove-${file.id}`}
+                      onClick={() => {
+                        onRemove(file.id);
+                      }}
+                    >
+                      Remove
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
         </div>
-        {hint !== undefined && hint !== '' && (
-          <div data-testid='hint' role='note'>
-            {hint as string}
-          </div>
-        )}
-        {filesArray !== undefined && filesArray.length > 0 && (
-          <div data-testid='files-list' role='list'>
-            {filesArray.map((file) => (
-              <div
-                key={file.id}
-                data-testid={`file-${file.id}`}
-                role='listitem'
-              >
-                <span data-testid={`file-name-${file.id}`}>{file.name}</span>
-                <span data-testid={`file-size-${file.id}`}>{file.sizeLabel}</span>
-                <span data-testid={`file-type-${file.id}`}>{file.typeLabel}</span>
-                <span data-testid={`file-status-${file.id}`}>{file.status.label}</span>
-                {file.status.type === 'progress' && 'progress' in file && (
-                  <div
-                    data-testid={`file-progress-${file.id}`}
-                    role='progressbar'
-                    aria-valuenow={file.progress}
-                  >
-                    {file.progress}%
-                  </div>
-                )}
-                {file.status.type === 'error' && 'errorMessage' in file && (
-                  <div data-testid={`file-error-${file.id}`} role='alert'>
-                    {file.errorMessage}
-                  </div>
-                )}
-                {typeof onRemove === 'function' && (
-                  <button
-                    type='button'
-                    data-testid={`remove-${file.id}`}
-                    onClick={() => {
-                      onRemove(file.id);
-                    }}
-                  >
-                    Remove
-                  </button>
-                )}
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-    );
-  }),
-}));
+      );
+    }),
+  };
+});
 
 // Mock для UnifiedUIProvider
 const mockInfoFireAndForget = vi.fn();

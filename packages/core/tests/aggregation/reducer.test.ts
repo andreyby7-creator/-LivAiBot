@@ -3,6 +3,7 @@
  * Полное покрытие всех методов и веток исполнения (98%)
  */
 import { describe, expect, it } from 'vitest';
+
 import type {
   NumericAggregator,
   WeightedValue,

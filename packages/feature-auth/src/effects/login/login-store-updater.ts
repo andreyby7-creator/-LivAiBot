@@ -18,12 +18,12 @@
  * - ✅ Обновление auth/session/security выполняется как одна логическая транзакция на уровне вызовов портов
  */
 
-import type { LoginMetadata } from './login-metadata.enricher.js';
 import type { DomainLoginResult } from '../../domain/LoginResult.js';
 import type { SecurityPipelineResult } from '../../lib/security-pipeline.js';
 import type { RiskAssessmentResult } from '../../types/auth-risk.js';
 import type { AuthStorePort } from '../shared/auth-store.port.js';
 import { buildSessionState } from '../shared/session-state.builder.js';
+import type { LoginMetadata } from './login-metadata.enricher.js';
 
 /* ============================================================================
  * 🔧 INTERNAL HELPERS

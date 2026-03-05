@@ -19,8 +19,8 @@
 
 import type { CoreUIBaseProps } from '@livai/ui-core';
 
-import type { Json } from './common.js';
 import type { Namespace, TranslationKey } from '../lib/i18n.js';
+import type { Json } from './common.js';
 
 /** Тип имени feature flag - domain-специфичный паттерн строки для типобезопасности */
 export type UiFeatureFlagName =

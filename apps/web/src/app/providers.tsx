@@ -18,10 +18,11 @@
 
 'use client';
 
-import { errorFireAndForget } from '@livai/app/lib/telemetry-runtime.js';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { memo, useMemo, useState } from 'react';
 import type { JSX, PropsWithChildren, ReactNode } from 'react';
+import { memo, useMemo, useState } from 'react';
+
+import { errorFireAndForget } from '@livai/app';
 
 /* ============================================================================
  * 🧬 TYPES & CONSTANTS
@@ -56,6 +57,7 @@ function logQueryError(context: 'query' | 'mutation', error: unknown): void {
 
   // Используем errorFireAndForget из @livai/app напрямую
   // Функция безопасна: проверяет инициализацию telemetry внутри себя
+
   errorFireAndForget(`${context.charAt(0).toUpperCase() + context.slice(1)} error`, {
     error: errorMessage,
     errorType,

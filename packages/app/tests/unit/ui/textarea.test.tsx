@@ -3,8 +3,9 @@
  * @file Тесты для Textarea компонента с полным покрытием
  */
 
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+
 import '@testing-library/jest-dom/vitest';
 
 // Mock для UnifiedUIProvider

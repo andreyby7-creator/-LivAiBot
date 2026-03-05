@@ -3,13 +3,14 @@
  * @file Тесты для App UserProfileDisplay компонента с полным покрытием
  */
 
+import { cleanup, render, screen } from '@testing-library/react';
 import React from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { cleanup, render, screen } from '@testing-library/react';
-import '@testing-library/jest-dom/vitest';
 
 // Импортируем для тестов
 import type { AuthGuardContext, ID, Permission, UserRole } from '../../../src/lib/auth-guard.js';
+
+import '@testing-library/jest-dom/vitest';
 
 // Mock useAuthGuardContext
 vi.mock('../../../src/lib/auth-guard.js', async () => {
@@ -21,60 +22,64 @@ vi.mock('../../../src/lib/auth-guard.js', async () => {
 });
 
 // Mock для Core UserProfileDisplay - возвращаем простой div с переданными пропсами
-vi.mock('../../../../ui-core/src/components/UserProfileDisplay.js', () => ({
-  UserProfileDisplay: React.forwardRef<
-    HTMLDivElement,
-    React.ComponentProps<'div'> & {
-      profile?: any;
-      size?: string;
-      variant?: string;
-      showAvatar?: boolean;
-      showName?: boolean;
-      showEmail?: boolean;
-      showAdditionalInfo?: boolean;
-      customAvatar?: React.ReactNode;
-      'data-component'?: string;
-      'data-state'?: string;
-      'data-feature-flag'?: string;
-      'data-telemetry'?: string;
-    }
-  >((
-    {
-      profile,
-      size,
-      variant,
-      showAvatar,
-      showName,
-      showEmail,
-      showAdditionalInfo,
-      customAvatar,
-      'data-component': dataComponent,
-      'data-state': dataState,
-      'data-feature-flag': dataFeatureFlag,
-      'data-telemetry': dataTelemetry,
-      ...props
-    },
-    ref,
-  ) => {
-    return (
-      <div
-        ref={ref}
-        data-testid='core-user-profile-display'
-        data-component={dataComponent}
-        data-state={dataState}
-        data-feature-flag={dataFeatureFlag}
-        data-telemetry={dataTelemetry}
-        data-size={size}
-        data-variant={variant}
-        data-show-avatar={String(showAvatar)}
-        data-show-name={String(showName)}
-        data-show-email={String(showEmail)}
-        data-show-additional-info={String(showAdditionalInfo)}
-        {...props}
-      />
-    );
-  }),
-}));
+vi.mock('@livai/ui-core', async () => {
+  const actual = await vi.importActual('@livai/ui-core');
+  return {
+    ...actual,
+    UserProfileDisplay: React.forwardRef<
+      HTMLDivElement,
+      React.ComponentProps<'div'> & {
+        profile?: any;
+        size?: string;
+        variant?: string;
+        showAvatar?: boolean;
+        showName?: boolean;
+        showEmail?: boolean;
+        showAdditionalInfo?: boolean;
+        customAvatar?: React.ReactNode;
+        'data-component'?: string;
+        'data-state'?: string;
+        'data-feature-flag'?: string;
+        'data-telemetry'?: string;
+      }
+    >((
+      {
+        profile,
+        size,
+        variant,
+        showAvatar,
+        showName,
+        showEmail,
+        showAdditionalInfo,
+        customAvatar,
+        'data-component': dataComponent,
+        'data-state': dataState,
+        'data-feature-flag': dataFeatureFlag,
+        'data-telemetry': dataTelemetry,
+        ...props
+      },
+      ref,
+    ) => {
+      return (
+        <div
+          ref={ref}
+          data-testid='core-user-profile-display'
+          data-component={dataComponent}
+          data-state={dataState}
+          data-feature-flag={dataFeatureFlag}
+          data-telemetry={dataTelemetry}
+          data-size={size}
+          data-variant={variant}
+          data-show-avatar={String(showAvatar)}
+          data-show-name={String(showName)}
+          data-show-email={String(showEmail)}
+          data-show-additional-info={String(showAdditionalInfo)}
+          {...props}
+        />
+      );
+    }),
+  };
+});
 
 // Mock для UnifiedUIProvider
 const mockInfoFireAndForget = vi.fn();

@@ -7,8 +7,8 @@
 import type { AbstractIntlMessages } from 'next-intl';
 import { getRequestConfig } from 'next-intl/server';
 
-import { defaultLocale, locales } from './routing.js';
 import type { Locale } from './routing.js';
+import { defaultLocale, locales } from './routing.js';
 
 /**
  * Type guard для проверки поддерживаемой локали

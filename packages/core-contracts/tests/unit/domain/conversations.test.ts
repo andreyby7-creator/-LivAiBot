@@ -2,6 +2,13 @@
  * @file Unit тесты для domain/conversations.ts
  */
 import { describe, expect, it } from 'vitest';
+
+import type { Timestamp, UUID } from '../../../src/domain/common.js';
+import type {
+  MessageListResponse,
+  MessageResponse,
+  ThreadResponse,
+} from '../../../src/domain/conversations.js';
 import {
   DEFAULT_ROLE,
   STATUS_ACTIVE,
@@ -13,12 +20,6 @@ import {
   TEST_WORKSPACE_ID,
   USER_ROLE,
 } from '../../constants';
-import type {
-  MessageListResponse,
-  MessageResponse,
-  ThreadResponse,
-} from '../../../src/domain/conversations.js';
-import type { Timestamp, UUID } from '../../../src/domain/common.js';
 
 describe('ThreadResponse', () => {
   it('валидная структура ThreadResponse', () => {

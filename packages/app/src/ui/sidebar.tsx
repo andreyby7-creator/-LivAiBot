@@ -17,10 +17,11 @@
  * - CoreSideBar остается полностью presentational
  */
 
-import { SideBar as CoreSideBar } from '@livai/ui-core';
-import type { CoreSideBarProps } from '@livai/ui-core';
-import { forwardRef, memo, useCallback, useEffect, useMemo, useRef } from 'react';
 import type { JSX, Ref } from 'react';
+import { forwardRef, memo, useCallback, useEffect, useMemo, useRef } from 'react';
+
+import type { CoreSideBarProps } from '@livai/ui-core';
+import { SideBar as CoreSideBar } from '@livai/ui-core';
 
 import type { Namespace, TranslationKey } from '../lib/i18n.js';
 import { useUnifiedUI } from '../providers/UnifiedUIProvider.js';
@@ -383,6 +384,8 @@ const SideBarComponent = forwardRef<HTMLDivElement, AppSideBarProps>(
     // Policy: hidden
     if (!policy.isRendered) return null;
 
+    const testId = props['data-testid'] ?? 'core-sidebar';
+
     return (
       <CoreSideBar
         ref={ref}
@@ -397,6 +400,7 @@ const SideBarComponent = forwardRef<HTMLDivElement, AppSideBarProps>(
         data-telemetry={policy.telemetryEnabled ? 'enabled' : 'disabled'}
         aria-label={ariaLabel}
         {...additionalProps}
+        data-testid={testId}
       />
     );
   },

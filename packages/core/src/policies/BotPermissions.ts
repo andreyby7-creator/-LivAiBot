@@ -23,8 +23,8 @@
  * - ✅ Explicit invariants, exhaustive unions, predictable decision outputs
  */
 
-import { Decision } from '@livai/core-contracts';
 import type { PolicyDecision } from '@livai/core-contracts';
+import { Decision } from '@livai/core-contracts';
 
 /* ========================================================================== */
 /* 🧩 БАЗОВЫЕ ТИПЫ */

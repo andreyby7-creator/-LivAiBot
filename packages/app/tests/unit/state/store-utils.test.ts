@@ -65,9 +65,9 @@ Object.defineProperty(windowObject, 'localStorage', {
   writable: true,
 });
 
-import { isStoreLocked, safeSet, setStoreLocked } from '../../../src/state/store-utils.js';
-import { useAppStore } from '../../../src/state/store.js';
 import type { AppStoreState, AppUser } from '../../../src/state/store.js';
+import { useAppStore } from '../../../src/state/store.js';
+import { isStoreLocked, safeSet, setStoreLocked } from '../../../src/state/store-utils.js';
 
 /**
  * Создает mock AppUser для тестов

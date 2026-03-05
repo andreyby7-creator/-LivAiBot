@@ -10,8 +10,17 @@
  * - Type-safe feature flag evaluation
  */
 
-import { describe, expect, it, vi } from 'vitest';
 import React from 'react';
+import { describe, expect, it, vi } from 'vitest';
+
+import type {
+  FeatureContext,
+  FeatureEvaluationResult,
+  FeatureFlagDefinition,
+  FeatureFlagName,
+  FeatureFlagProvider,
+  FeatureFlagStrategy,
+} from '../../../src/lib/feature-flags';
 import {
   alwaysOff,
   alwaysOn,
@@ -28,14 +37,6 @@ import {
   percentageRollout,
   setGlobalFeatureFlagLogger,
   useFeatureFlagOverride,
-} from '../../../src/lib/feature-flags';
-import type {
-  FeatureContext,
-  FeatureEvaluationResult,
-  FeatureFlagDefinition,
-  FeatureFlagName,
-  FeatureFlagProvider,
-  FeatureFlagStrategy,
 } from '../../../src/lib/feature-flags';
 
 // ============================================================================

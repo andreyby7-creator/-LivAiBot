@@ -3,7 +3,7 @@
  * Полное покрытие всех методов и веток исполнения
  */
 import { describe, expect, it } from 'vitest';
-import { BillingPolicy } from '../../src/policies/BillingPolicy.js';
+
 import type {
   BillingAction,
   BillingPlan,
@@ -12,6 +12,7 @@ import type {
   BillingSubjectType,
   BillingUsageContext,
 } from '../../src/policies/BillingPolicy.js';
+import { BillingPolicy } from '../../src/policies/BillingPolicy.js';
 
 // Mock данные для тестирования
 const MOCK_CONFIG: BillingPolicyConfig = {

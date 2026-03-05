@@ -3,10 +3,16 @@
  * @file Unit тесты для Dialog компонента
  */
 
-import { afterEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+// React импорт необходим для JSX в тестовых файлах, даже при automatic JSX runtime
+// esbuild компилирует тестовые файлы и требует React для JSX трансформации
+// @ts-expect-error - React импортирован для JSX, но не используется напрямую в коде
+import React from 'react';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+
+import { Dialog } from '@livai/ui-core';
+
 import '@testing-library/jest-dom/vitest';
-import { Dialog } from '../../../src/primitives/dialog.js';
 
 // Полная очистка DOM между тестами
 afterEach(() => {

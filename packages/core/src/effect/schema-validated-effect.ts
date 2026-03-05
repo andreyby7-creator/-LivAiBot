@@ -1,5 +1,5 @@
 /**
- * @file packages/app/src/lib/schema-validated-effect.ts
+ * @file @livai/core/src/effect/schema-validated-effect.ts
  * ============================================================================
  * ✅ SCHEMA VALIDATED EFFECT — ОБЯЗАТЕЛЬНАЯ ZOD ВАЛИДАЦИЯ РЕЗУЛЬТАТОВ EFFECT
  * ============================================================================
@@ -23,13 +23,11 @@
  * - Isolation только на уровне orchestrator (runIsolated)
  */
 
-import { z } from 'zod';
-
 import type { Effect } from './effect-utils.js';
-import { createDomainError } from './error-mapping.js';
 import type { MappedError, ServiceErrorCode, ServicePrefix } from './error-mapping.js';
-import { validationError } from './validation.js';
+import { createDomainError } from './error-mapping.js';
 import type { ValidationError } from './validation.js';
+import { validationError } from './validation.js';
 
 /* ============================================================================
  * 🧩 ТИПЫ
@@ -38,7 +36,7 @@ import type { ValidationError } from './validation.js';
 /**
  * Опции для валидированного эффекта.
  */
-export type ValidatedEffectOptions = {
+export interface ValidatedEffectOptions {
   /** Опциональный mapper для преобразования ValidationError в DomainError */
   readonly errorMapper?: ((errors: readonly ValidationError[]) => MappedError<unknown>) | undefined;
 
@@ -47,7 +45,7 @@ export type ValidatedEffectOptions = {
 
   /** Опциональный сервис для ошибок валидации */
   readonly service?: ServicePrefix | undefined;
-};
+}
 
 /**
  * Ошибка валидации схемы.
@@ -94,14 +92,42 @@ export function createValidationError(
 }
 
 /**
- * Преобразует Zod ошибки в ValidationError массив.
+ * Минимальный контракт схемы валидации, совместимый с Zod-like API.
+ * Нам не нужны типы из 'zod', достаточно structural-совместимости.
+ */
+interface ValidationSchemaLike<T> {
+  safeParse: (
+    value: unknown,
+  ) => { success: true; data: T; } | {
+    success: false;
+    error: {
+      issues: readonly {
+        path: readonly PropertyKey[];
+        message: string;
+        // остальные поля нам не нужны для error-mapping
+      }[];
+    };
+  };
+}
+
+/**
+ * Преобразует ошибки схемы в ValidationError массив.
  */
 function zodErrorsToValidationErrors(
-  zodError: z.ZodError,
+  zodError: {
+    issues: readonly {
+      path: readonly PropertyKey[];
+      message: string;
+    }[];
+  },
   service?: ServicePrefix | undefined,
 ): readonly ValidationError[] {
-  return zodError.issues.map((issue) => {
-    const field = issue.path.length > 0 ? issue.path.join('.') : undefined;
+  return zodError.issues.map((issue): ValidationError => {
+    // Преобразуем PropertyKey[] в string[] для field (игнорируем symbol)
+    const pathStrings = issue.path
+      .filter((key): key is string | number => typeof key === 'string' || typeof key === 'number')
+      .map((key) => String(key));
+    const field = pathStrings.length > 0 ? pathStrings.join('.') : undefined;
 
     return validationError('SYSTEM_VALIDATION_RESPONSE_SCHEMA_INVALID', {
       field,
@@ -150,7 +176,7 @@ function zodErrorsToValidationErrors(
  * ```
  */
 export function validatedEffect<T>(
-  schema: z.ZodSchema<T>,
+  schema: ValidationSchemaLike<T>,
   effect: Effect<unknown>,
   options?: ValidatedEffectOptions,
 ): Effect<T> {

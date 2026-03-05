@@ -3,9 +3,10 @@
  * @file Тесты для App ErrorBoundary компонента с 100% покрытием
  */
 
+import { act, cleanup, render, screen } from '@testing-library/react';
 import type { ErrorInfo, ReactNode } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { act, cleanup, render, screen } from '@testing-library/react';
+
 import '@testing-library/jest-dom/vitest';
 
 /* ============================================================================
@@ -29,24 +30,28 @@ type CoreErrorBoundaryMockProps = Readonly<{
 
 let lastCoreProps: CoreErrorBoundaryMockProps | null = null;
 
-vi.mock('../../../../ui-core/src/components/ErrorBoundary', () => ({
-  CoreErrorBoundary: (props: Readonly<Record<string, unknown>>) => {
-    const typedProps = props as unknown as CoreErrorBoundaryMockProps;
-    lastCoreProps = typedProps;
-    return (
-      <div
-        data-testid={typedProps['data-testid'] ?? 'core-error-boundary'}
-        data-component={typedProps['data-component']}
-        data-state={typedProps['data-state']}
-        data-disabled={typedProps['data-disabled']}
-        data-feature-flag={typedProps['data-feature-flag']}
-        data-telemetry={typedProps['data-telemetry']}
-      >
-        <div data-testid='core-children'>{typedProps.children}</div>
-      </div>
-    );
-  },
-}));
+vi.mock('@livai/ui-core', async () => {
+  const actual = await vi.importActual('@livai/ui-core');
+  return {
+    ...actual,
+    ErrorBoundary: (props: Readonly<Record<string, unknown>>) => {
+      const typedProps = props as unknown as CoreErrorBoundaryMockProps;
+      lastCoreProps = typedProps;
+      return (
+        <div
+          data-testid={typedProps['data-testid'] ?? 'core-error-boundary'}
+          data-component={typedProps['data-component']}
+          data-state={typedProps['data-state']}
+          data-disabled={typedProps['data-disabled']}
+          data-feature-flag={typedProps['data-feature-flag']}
+          data-telemetry={typedProps['data-telemetry']}
+        >
+          <div data-testid='core-children'>{typedProps.children}</div>
+        </div>
+      );
+    },
+  };
+});
 
 // Mock для UnifiedUIProvider
 const mockInfoFireAndForget = vi.fn();

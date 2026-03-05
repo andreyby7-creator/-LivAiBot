@@ -4,9 +4,10 @@
  */
 
 import { describe, expect, it } from 'vitest';
+
 import type { ClientContext } from '../../../src/domain/ClientContext.js';
-import type { MfaInfo } from '../../../src/domain/MfaInfo.js';
 import type { LoginIdentifier, LoginRequest } from '../../../src/domain/LoginRequest.js';
+import type { MfaInfo } from '../../../src/domain/MfaInfo.js';
 import { loginSchema } from '../../../src/schemas/index.js';
 
 // ============================================================================

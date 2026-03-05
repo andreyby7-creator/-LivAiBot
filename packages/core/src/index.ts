@@ -101,3 +101,21 @@ export * from './resilience/index.js';
  * @public
  */
 export * from './pipeline/index.js';
+
+/* ============================================================================
+ * ⚡ EFFECT — SIDE-EFFECTS & ERROR HANDLING
+ * ========================================================================== */
+/**
+ * Effect подпакет: универсальные утилиты для side-effects, error-mapping и validation.
+ * Включает Effect, Result<T, E>, timeout, retry, isolation, orchestration,
+ * schema validation, error mapping, и функциональную подсистему валидации.
+ * Domain-agnostic слой без зависимостей от runtime/UI.
+ *
+ * ВАЖНО: Effect подпакет доступен через subpath `@livai/core/effect`.
+ * Импортируйте: import { ... } from '@livai/core/effect';
+ *
+ * Не экспортируем через главный index, чтобы избежать конфликтов имен
+ * с другими модулями (pipeline, input-boundary).
+ * @public
+ */
+// Effect доступен только через subpath: @livai/core/effect

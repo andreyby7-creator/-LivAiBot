@@ -19,9 +19,9 @@
  * - Возвращает cleanup-функцию
  */
 
-import { setStoreLocked } from './store-utils.js';
-import { useAppStore } from './store.js';
 import { AppLifecycleEvent, appLifecycleEvents } from '../events/app-lifecycle-events.js';
+import { useAppStore } from './store.js';
+import { setStoreLocked } from './store-utils.js';
 
 /* ========================================================================== */
 /* 🧠 ARCHITECTURAL IDEA

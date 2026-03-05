@@ -4,10 +4,11 @@
  */
 
 import { describe, expect, it } from 'vitest';
+
 import type { DomainLoginResult } from '../../../src/domain/LoginResult.js';
 import { assertNever } from '../../../src/domain/LoginResult.js';
-import type { MfaChallengeRequest } from '../../../src/domain/MfaChallengeRequest.js';
 import type { MeResponse } from '../../../src/domain/MeResponse.js';
+import type { MfaChallengeRequest } from '../../../src/domain/MfaChallengeRequest.js';
 import type { TokenPair } from '../../../src/domain/TokenPair.js';
 
 // ============================================================================

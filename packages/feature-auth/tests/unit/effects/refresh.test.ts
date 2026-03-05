@@ -18,53 +18,51 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 // Мокаем инфраструктурные helper'ы (validatedEffect/orchestrate/withTimeout), чтобы
 // изолировать тесты refresh-effect от Zod-схем и сложной оркестрации и сосредоточиться
 // на самой логике orchestrator'а.
-vi.mock('@livai/app/lib/schema-validated-effect.js', () => ({
-  validatedEffect: (_schema: unknown, effectFactory: unknown) => effectFactory,
-}));
+vi.mock('@livai/core/effect', async () => {
+  const actual = await vi.importActual('@livai/core/effect');
+  return {
+    ...actual,
+    validatedEffect: (_schema: unknown, effectFactory: unknown) => effectFactory,
+    step: (name: string, effect: unknown, timeout: number) => ({
+      name,
+      effect,
+      timeout,
+    }),
+    orchestrate:
+      <T>(steps: readonly { name: string; effect: unknown; timeout: number; }[]) =>
+      async (signal?: AbortSignal): Promise<T> => {
+        const refreshStep = steps[0];
+        const meStep = steps[1];
+        // Первый шаг: /v1/auth/refresh
+        const tokenPair = await (refreshStep!.effect as (sig?: AbortSignal) => Promise<unknown>)(
+          signal,
+        );
+        // Второй шаг: /v1/auth/me, получает previous результат
+        const me = await (
+          meStep!.effect as (sig?: AbortSignal, previous?: unknown) => Promise<unknown>
+        )(signal, tokenPair);
+        // Возвращаем tuple, как ожидает refresh.ts
+        return [tokenPair, me] as unknown as T;
+      },
+    withTimeout: (effect: unknown, _config: unknown) => effect,
+  };
+});
 
-vi.mock('@livai/app/lib/orchestrator.js', () => ({
-  step: (name: string, effect: unknown, timeout: number) => ({
-    name,
-    effect,
-    timeout,
-  }),
-  orchestrate:
-    <T>(steps: readonly { name: string; effect: unknown; timeout: number; }[]) =>
-    async (signal?: AbortSignal): Promise<T> => {
-      const refreshStep = steps[0];
-      const meStep = steps[1];
-      // Первый шаг: /v1/auth/refresh
-      const tokenPair = await (refreshStep!.effect as (sig?: AbortSignal) => Promise<unknown>)(
-        signal,
-      );
-      // Второй шаг: /v1/auth/me, получает previous результат
-      const me = await (
-        meStep!.effect as (sig?: AbortSignal, previous?: unknown) => Promise<unknown>
-      )(signal, tokenPair);
-      // Возвращаем tuple, как ожидает refresh.ts
-      return [tokenPair, me] as unknown as T;
-    },
-}));
-
-vi.mock('@livai/app/lib/effect-timeout.js', () => ({
-  withTimeout: (effect: unknown, _config: unknown) => effect,
-}));
-
+import type { DeviceInfo } from '../../../src/domain/DeviceInfo.js';
 import { createRefreshEffect } from '../../../src/effects/refresh.js';
 import * as refreshApiMapper from '../../../src/effects/refresh/refresh-api.mapper.js';
-import * as refreshStoreUpdater from '../../../src/effects/refresh/refresh-store-updater.js';
 import type {
   RefreshEffectConfig,
   RefreshEffectDeps,
   RefreshResult,
 } from '../../../src/effects/refresh/refresh-effect.types.js';
+import * as refreshStoreUpdater from '../../../src/effects/refresh/refresh-store-updater.js';
 import type {
   AuditEventValues,
   LoginTokenPairValues,
   MeResponseValues,
 } from '../../../src/schemas/index.js';
 import type { AuthError, SessionState } from '../../../src/types/auth.js';
-import type { DeviceInfo } from '../../../src/domain/DeviceInfo.js';
 
 // ============================================================================
 // 🔧 HELPERS

@@ -12,12 +12,12 @@
  * - ✅ Immutable возвращаемые объекты.
  */
 
+import type { DomainLoginResult } from '../../domain/LoginResult.js';
+import type { AuditEventValues } from '../../schemas/index.js';
+import { auditEventSchema } from '../../schemas/index.js';
+import type { AuthError } from '../../types/auth.js';
 import type { LoginSecurityResult } from './login-effect.types.js';
 import type { LoginContext } from './login-metadata.enricher.js';
-import type { DomainLoginResult } from '../../domain/LoginResult.js';
-import { auditEventSchema } from '../../schemas/index.js';
-import type { AuditEventValues } from '../../schemas/index.js';
-import type { AuthError } from '../../types/auth.js';
 
 /* ============================================================================
  * 🧭 TYPES

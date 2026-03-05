@@ -17,13 +17,13 @@
  * - generic BootstrapContext для DI при расширении
  */
 
-import { StrictMode } from 'react';
 import type { JSX } from 'react';
-import { createRoot } from 'react-dom/client';
+import { StrictMode } from 'react';
 import type { Root } from 'react-dom/client';
+import { createRoot } from 'react-dom/client';
 
-import { AppProviders } from './providers/AppProviders.js';
 import type { AppProvidersProps } from './providers/AppProviders.js';
+import { AppProviders } from './providers/AppProviders.js';
 
 /* ============================================================================
  * 🧬 TYPES

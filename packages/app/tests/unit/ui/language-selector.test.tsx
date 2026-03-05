@@ -3,97 +3,103 @@
  * @file Тесты для App LanguageSelector компонента с полным покрытием
  */
 
+import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import React from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { cleanup, fireEvent, render, screen } from '@testing-library/react';
-import '@testing-library/jest-dom/vitest';
+
 import { I18nProvider } from '../../../src/lib/i18n';
 
+import '@testing-library/jest-dom/vitest';
+
 // Mock для Core LanguageSelector - возвращаем простой div с переданными пропсами
-vi.mock('../../../../ui-core/src/components/LanguageSelector.js', () => ({
-  LanguageSelector: React.forwardRef<
-    HTMLDivElement,
-    React.ComponentProps<'div'> & {
-      languages?: any[];
-      selectedLanguageCode?: string;
-      isOpen?: boolean;
-      placeholder?: string;
-      size?: string;
-      variant?: string;
-      showFlags?: boolean;
-      showCodes?: boolean;
-      disabled?: boolean;
-      onLanguageChange?: (code: string) => void;
-      onOpenChange?: (isOpen: boolean) => void;
-      onToggle?: () => void;
-      onClose?: () => void;
-      onKeyDown?: (event: any) => void;
-      activeDescendantId?: string;
-      navigatedLanguageCode?: string;
-      'data-component'?: string;
-      'data-state'?: string;
-      'data-feature-flag'?: string;
-      'data-telemetry'?: string;
-      'aria-label'?: string;
-      'data-testid'?: string;
-    }
-  >((
-    {
-      languages,
-      selectedLanguageCode,
-      isOpen,
-      placeholder,
-      size,
-      variant,
-      showFlags,
-      showCodes,
-      disabled,
-      onLanguageChange,
-      onOpenChange,
-      onToggle,
-      onClose,
-      onKeyDown,
-      activeDescendantId,
-      navigatedLanguageCode,
-      'data-component': dataComponent,
-      'data-state': dataState,
-      'data-feature-flag': dataFeatureFlag,
-      'data-telemetry': dataTelemetry,
-      'aria-label': ariaLabel,
-      'data-testid': dataTestId,
-      ...props
-    },
-    ref,
-  ) => {
-    return (
-      <div
-        ref={ref}
-        data-testid='core-language-selector'
-        data-component={dataComponent}
-        data-state={dataState}
-        data-feature-flag={dataFeatureFlag}
-        data-telemetry={dataTelemetry}
-        data-size={size}
-        data-variant={variant}
-        data-show-flags={String(showFlags)}
-        data-show-codes={String(showCodes)}
-        data-disabled={String(disabled)}
-        data-open={String(isOpen)}
-        data-selected-language-code={selectedLanguageCode}
-        data-placeholder={placeholder}
-        data-active-descendant-id={activeDescendantId}
-        data-navigated-language-code={navigatedLanguageCode}
-        aria-label={ariaLabel}
-        {...(dataTestId != null && { 'data-testid': dataTestId })}
-        onClick={onToggle}
-        onKeyDown={onKeyDown}
-        {...props}
-      >
-        {placeholder}
-      </div>
-    );
-  }),
-}));
+vi.mock('@livai/ui-core', async () => {
+  const actual = await vi.importActual('@livai/ui-core');
+  return {
+    ...actual,
+    LanguageSelector: React.forwardRef<
+      HTMLDivElement,
+      React.ComponentProps<'div'> & {
+        languages?: any[];
+        selectedLanguageCode?: string;
+        isOpen?: boolean;
+        placeholder?: string;
+        size?: string;
+        variant?: string;
+        showFlags?: boolean;
+        showCodes?: boolean;
+        disabled?: boolean;
+        onLanguageChange?: (code: string) => void;
+        onOpenChange?: (isOpen: boolean) => void;
+        onToggle?: () => void;
+        onClose?: () => void;
+        onKeyDown?: (event: any) => void;
+        activeDescendantId?: string;
+        navigatedLanguageCode?: string;
+        'data-component'?: string;
+        'data-state'?: string;
+        'data-feature-flag'?: string;
+        'data-telemetry'?: string;
+        'aria-label'?: string;
+        'data-testid'?: string;
+      }
+    >((
+      {
+        languages,
+        selectedLanguageCode,
+        isOpen,
+        placeholder,
+        size,
+        variant,
+        showFlags,
+        showCodes,
+        disabled,
+        onLanguageChange,
+        onOpenChange,
+        onToggle,
+        onClose,
+        onKeyDown,
+        activeDescendantId,
+        navigatedLanguageCode,
+        'data-component': dataComponent,
+        'data-state': dataState,
+        'data-feature-flag': dataFeatureFlag,
+        'data-telemetry': dataTelemetry,
+        'aria-label': ariaLabel,
+        'data-testid': dataTestId,
+        ...props
+      },
+      ref,
+    ) => {
+      return (
+        <div
+          ref={ref}
+          data-testid='core-language-selector'
+          data-component={dataComponent}
+          data-state={dataState}
+          data-feature-flag={dataFeatureFlag}
+          data-telemetry={dataTelemetry}
+          data-size={size}
+          data-variant={variant}
+          data-show-flags={String(showFlags)}
+          data-show-codes={String(showCodes)}
+          data-disabled={String(disabled)}
+          data-open={String(isOpen)}
+          data-selected-language-code={selectedLanguageCode}
+          data-placeholder={placeholder}
+          data-active-descendant-id={activeDescendantId}
+          data-navigated-language-code={navigatedLanguageCode}
+          aria-label={ariaLabel}
+          {...(dataTestId != null && { 'data-testid': dataTestId })}
+          onClick={onToggle}
+          onKeyDown={onKeyDown}
+          {...props}
+        >
+          {placeholder}
+        </div>
+      );
+    }),
+  };
+});
 
 // Helper для рендера с I18nProvider
 const renderWithI18n = (ui: Readonly<React.ReactElement>) => {

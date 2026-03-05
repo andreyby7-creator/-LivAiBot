@@ -26,10 +26,10 @@ import {
   validateLogoutConfig,
 } from '../../../../src/effects/logout/logout-effect.types.js';
 import type { AuthStorePort } from '../../../../src/effects/shared/auth-store.port.js';
-import type { AuthError, AuthState, SecurityState } from '../../../../src/types/auth.js';
-import type { RiskLevel } from '../../../../src/types/auth-risk.js';
 import type { SecurityPipelineResult } from '../../../../src/lib/security-pipeline.js';
 import type { AuditEventValues } from '../../../../src/schemas/index.js';
+import type { AuthError, AuthState, SecurityState } from '../../../../src/types/auth.js';
+import type { RiskLevel } from '../../../../src/types/auth-risk.js';
 
 /* eslint-disable fp/no-mutation, functional/no-conditional-statements, @livai/rag/source-citation */
 

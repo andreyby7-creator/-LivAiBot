@@ -3,11 +3,13 @@
  * @file Unit тесты для StatusIndicator компонента
  */
 
+import { cleanup, render, within } from '@testing-library/react';
 import React from 'react';
 import { afterEach, describe, expect, it } from 'vitest';
-import { cleanup, render, within } from '@testing-library/react';
+
+import { StatusIndicator } from '@livai/ui-core';
+
 import '@testing-library/jest-dom/vitest';
-import { StatusIndicator } from '../../../src/primitives/status-indicator.js';
 
 // Полная очистка DOM между тестами
 afterEach(cleanup);

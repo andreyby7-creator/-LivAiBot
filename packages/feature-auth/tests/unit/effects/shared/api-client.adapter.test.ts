@@ -5,10 +5,9 @@
 
 import { describe, expect, it, vi } from 'vitest';
 
-import type { ApiRequestOptions } from '../../../../src/effects/shared/api-client.port.js';
 import type { LegacyApiClient } from '../../../../src/effects/shared/api-client.adapter.js';
-
 import { createApiClientPortAdapter } from '../../../../src/effects/shared/api-client.adapter.js';
+import type { ApiRequestOptions } from '../../../../src/effects/shared/api-client.port.js';
 
 /* eslint-disable @livai/multiagent/orchestration-safety -- тесты не требуют таймаутов агента */
 

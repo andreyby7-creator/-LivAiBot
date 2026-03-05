@@ -6,10 +6,11 @@
 
 'use client';
 
-import { RegisterForm } from '@livai/ui-features/auth/register-form.js';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import type { JSX } from 'react';
+
+import { RegisterForm } from '@livai/ui-features/auth/register-form';
 
 import type { Locale } from '../../../../../i18n/routing.js';
 

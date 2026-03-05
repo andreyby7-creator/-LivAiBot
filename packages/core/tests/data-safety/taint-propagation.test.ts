@@ -3,14 +3,9 @@
  * Полное покрытие всех методов и веток исполнения (100%)
  */
 import { describe, expect, it } from 'vitest';
-import {
-  checkPropagation,
-  computeMergedTaint,
-  createPropagationBoundary,
-  defaultPropagationRuleRegistry,
-  propagateTaintFromSource,
-  propagateTaintFromSources,
-} from '../../src/data-safety/taint-propagation.js';
+
+import type { TaintMetadata, TaintSource } from '../../src/data-safety/taint.js';
+import { getTaintMetadata, isTainted, taintSources } from '../../src/data-safety/taint.js';
 import type {
   PropagationContext,
   PropagationFailureReason,
@@ -19,10 +14,16 @@ import type {
   PropagationRuleRegistry,
   PropagationSnapshot,
 } from '../../src/data-safety/taint-propagation.js';
-import { getTaintMetadata, isTainted, taintSources } from '../../src/data-safety/taint.js';
-import type { TaintMetadata, TaintSource } from '../../src/data-safety/taint.js';
-import { createTrustLevelRegistry, trustLevels } from '../../src/data-safety/trust-level.js';
+import {
+  checkPropagation,
+  computeMergedTaint,
+  createPropagationBoundary,
+  defaultPropagationRuleRegistry,
+  propagateTaintFromSource,
+  propagateTaintFromSources,
+} from '../../src/data-safety/taint-propagation.js';
 import type { TrustLevel } from '../../src/data-safety/trust-level.js';
+import { createTrustLevelRegistry, trustLevels } from '../../src/data-safety/trust-level.js';
 
 /* eslint-disable ai-security/model-poisoning */
 describe('Taint Propagation (Propagation Tracking)', () => {

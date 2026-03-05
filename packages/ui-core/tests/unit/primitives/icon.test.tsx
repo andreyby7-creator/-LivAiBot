@@ -3,11 +3,13 @@
  * @file Unit тесты для Icon компонента
  */
 
+import { cleanup, render, within } from '@testing-library/react';
 import React from 'react';
 import { afterEach, describe, expect, it } from 'vitest';
-import { cleanup, render, within } from '@testing-library/react';
+
+import { Icon } from '@livai/ui-core';
+
 import '@testing-library/jest-dom/vitest';
-import { Icon } from '../../../src/primitives/icon.js';
 
 // Полная очистка DOM между тестами
 afterEach(cleanup);

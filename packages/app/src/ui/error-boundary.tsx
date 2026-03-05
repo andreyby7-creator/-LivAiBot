@@ -18,12 +18,13 @@
  * - CoreErrorBoundary остается полностью presentational
  */
 
-import { ErrorBoundary as CoreErrorBoundary } from '@livai/ui-core';
-import type { CoreErrorBoundaryProps } from '@livai/ui-core';
-import React, { Component } from 'react';
 import type { ErrorInfo, ReactNode } from 'react';
+import React, { Component, useMemo } from 'react';
 
-import { mapErrorBoundaryError } from '../lib/error-mapping.js';
+import { mapErrorBoundaryError } from '@livai/core/effect';
+import type { CoreErrorBoundaryProps } from '@livai/ui-core';
+import { ErrorBoundary as CoreErrorBoundary } from '@livai/ui-core';
+
 import type { Namespace, TranslationKey } from '../lib/i18n.js';
 import { useUnifiedUI } from '../providers/UnifiedUIProvider.js';
 import type { ISODateString, Json } from '../types/common.js';
@@ -149,7 +150,7 @@ type ErrorBoundaryPolicy = Readonly<{
  * feature flags.
  */
 function useErrorBoundaryPolicy(props: AppErrorBoundaryProps): ErrorBoundaryPolicy {
-  return React.useMemo(() => {
+  return useMemo(() => {
     const hiddenByFeatureFlag = Boolean(props.isHiddenByFeatureFlag);
     const disabledByFeatureFlag = Boolean(props.isDisabledByFeatureFlag);
 
@@ -294,7 +295,10 @@ class AppErrorBoundaryInner extends Component<
     // Вызываем telemetry снаружи (pure mapper не имеет side-effects)
     if (shouldUseTelemetry) {
       try {
-        this.props.telemetry.errorFireAndForget('ErrorBoundary error mapped', telemetryData);
+        this.props.telemetry.errorFireAndForget(
+          'ErrorBoundary error mapped',
+          telemetryData as unknown as Readonly<Record<string, unknown>>,
+        );
       } catch (telemetryError) {
         // Игнорируем ошибки telemetry, чтобы не ломать UI
         // eslint-disable-next-line no-console
@@ -425,12 +429,13 @@ class AppErrorBoundaryInner extends Component<
         ? ((() => fallback) as (error: Error, errorInfo: ErrorInfo) => ReactNode)
         : defaultFallback;
 
+    const testId = dataTestId ?? 'core-error-boundary';
     return {
       ...baseProps,
       fallback: fallbackFn,
       ...(resetLabel !== undefined && { resetLabel }),
       ...(showStack !== undefined && { showStack }),
-      ...(dataTestId !== undefined && { 'data-testid': dataTestId }),
+      'data-testid': testId,
       'data-component': 'AppErrorBoundary',
       'data-state': this.state.hasError ? 'error' : 'normal',
       ...(policy.disabledByFeatureFlag && { 'data-disabled': 'disabled' }),
@@ -512,7 +517,7 @@ function AppErrorBoundaryComponent(props: AppErrorBoundaryProps): ReactNode {
   const policy = useErrorBoundaryPolicy(props);
 
   // ResetLabel: i18n → обычный resetLabel → undefined
-  const resolvedResetLabel = React.useMemo<string | undefined>(() => {
+  const resolvedResetLabel = useMemo<string | undefined>(() => {
     if ('resetLabelI18nKey' in props) {
       const effectiveNs = props.resetLabelI18nNs ?? 'common';
       return translate(

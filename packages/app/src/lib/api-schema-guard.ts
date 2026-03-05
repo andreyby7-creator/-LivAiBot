@@ -25,12 +25,16 @@
 import { createHash } from 'crypto';
 import { Effect as EffectLib } from 'effect';
 
-import { mapError } from './error-mapping.js';
-import type { TaggedError } from './error-mapping.js';
-import { errorFireAndForget, warnFireAndForget } from './telemetry-runtime.js';
-import type { ValidationContext, ValidationError, Validator } from './validation.js';
-import { pipeMany } from './validation.js';
+import type {
+  TaggedError,
+  ValidationContext,
+  ValidationError,
+  Validator,
+} from '@livai/core/effect';
+import { mapError, pipeMany } from '@livai/core/effect';
+
 import type { ApiServiceName, HttpMethod } from '../types/api.js';
+import { errorFireAndForget, warnFireAndForget } from './telemetry-runtime.js';
 
 /* ============================================================================
  * 🔢 КОНСТАНТЫ

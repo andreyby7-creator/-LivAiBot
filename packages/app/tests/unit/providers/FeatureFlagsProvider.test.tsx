@@ -3,16 +3,16 @@
  * @file Unit тесты для FeatureFlagsProvider
  */
 
+import { act, render, renderHook } from '@testing-library/react';
 import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { act, render, renderHook } from '@testing-library/react';
 
+import type { FeatureFlagName } from '../../../src/lib/feature-flags';
 import {
   FeatureFlagsProvider,
   featureFlagsStore,
   useFeatureFlags,
 } from '../../../src/providers/FeatureFlagsProvider';
-import type { FeatureFlagName } from '../../../src/lib/feature-flags';
 
 const FLAG_A = 'SYSTEM_feature_a' as FeatureFlagName;
 const FLAG_B = 'SYSTEM_feature_b' as FeatureFlagName;

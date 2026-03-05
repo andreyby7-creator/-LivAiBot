@@ -3,12 +3,14 @@
  * Полное покрытие всех функций и веток исполнения (100%)
  */
 import { describe, expect, it, vi } from 'vitest';
+
+import type { ExecutionPlan, ExecutionPlanError } from '../../src/pipeline/plan.js';
 import {
   createExecutionPlan,
   createExecutionPlanOrThrow,
   createExecutionPlanSafe,
 } from '../../src/pipeline/plan.js';
-import type { ExecutionPlan, ExecutionPlanError } from '../../src/pipeline/plan.js';
+import type { FallbackStage, PipelineConfig, StagePlugin } from '../../src/pipeline/plugin-api.js';
 import {
   defineFallback,
   defineStage,
@@ -16,7 +18,6 @@ import {
   validatePlanPlugin,
   validatePlugin,
 } from '../../src/pipeline/plugin-api.js';
-import type { FallbackStage, PipelineConfig, StagePlugin } from '../../src/pipeline/plugin-api.js';
 
 /* ============================================================================
  * 🔧 HELPER FUNCTIONS FOR TEST DATA

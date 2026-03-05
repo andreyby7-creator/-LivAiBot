@@ -6,8 +6,8 @@
 
 import type { JSX } from 'react';
 
-import DashboardClient from './DashboardClient';
 import type { Locale } from '../../../../i18n/routing';
+import DashboardClient from './DashboardClient';
 
 // Явно отключаем prerendering для страниц с интерактивными элементами
 export const dynamic = 'force-dynamic';

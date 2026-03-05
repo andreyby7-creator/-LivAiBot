@@ -10,8 +10,8 @@
  * - Effect-first архитектура с полным покрытием
  */
 
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { Effect as EffectLib } from 'effect';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 // Mock telemetry functions using vi.mock
 vi.mock('../../../src/lib/telemetry-runtime', () => ({
@@ -26,6 +26,14 @@ import { errorFireAndForget, warnFireAndForget } from '../../../src/lib/telemetr
 const mockErrorFireAndForget = vi.mocked(errorFireAndForget);
 const mockWarnFireAndForget = vi.mocked(warnFireAndForget);
 
+import type { ValidationError } from '@livai/core/effect';
+
+import type {
+  ApiSchemaConfig,
+  ApiValidationContext,
+  ApiValidationError,
+  ApiValidationErrorCode,
+} from '../../../src/lib/api-schema-guard';
 import {
   combineRequestValidators,
   combineResponseValidators,
@@ -36,13 +44,6 @@ import {
   validateApiResponse,
   validateSchemaVersion,
 } from '../../../src/lib/api-schema-guard';
-import type {
-  ApiSchemaConfig,
-  ApiValidationContext,
-  ApiValidationError,
-  ApiValidationErrorCode,
-} from '../../../src/lib/api-schema-guard';
-import type { ValidationError } from '../../../src/lib/validation';
 
 // ============================================================================
 // 🧠 MOCKS И HELPER'Ы

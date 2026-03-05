@@ -3,21 +3,23 @@
  * Полное покрытие всех типов и их свойств (100%)
  */
 import { describe, expect, it } from 'vitest';
-import { confidence, evaluationLevel, evaluationScale } from '@livai/core/domain-kit';
+
 import type { EvaluationScale } from '@livai/core/domain-kit';
+import { confidence, evaluationLevel, evaluationScale } from '@livai/core/domain-kit';
+
+import type { ClassificationEvaluationResult } from '../../../src/classification/evaluation/result.js';
 import type {
   ClassificationLabel,
   ClassificationLabelValue,
 } from '../../../src/classification/labels.js';
 import { classificationLabel } from '../../../src/classification/labels.js';
+import type { RiskLevel } from '../../../src/classification/policies/base.policy.js';
 import type { ClassificationSignals } from '../../../src/classification/signals/signals.js';
 import {
   classificationContext,
   classificationSignals,
 } from '../../../src/classification/signals/signals.js';
-import type { ClassificationEvaluationResult } from '../../../src/classification/evaluation/result.js';
 import type { ClassificationRule } from '../../../src/classification/strategies/rules.js';
-import type { RiskLevel } from '../../../src/classification/policies/base.policy.js';
 
 /* ============================================================================
  * 🔧 HELPER FUNCTIONS FOR TEST DATA

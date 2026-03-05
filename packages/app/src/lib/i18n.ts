@@ -13,9 +13,10 @@
 
 import dayjs from 'dayjs';
 import localizedFormat from 'dayjs/plugin/localizedFormat.js';
-import 'dayjs/locale/en.js';
-import React, { createContext, useCallback, useContext, useMemo, useReducer } from 'react';
 import type { ReactNode } from 'react';
+import React, { createContext, useCallback, useContext, useMemo, useReducer } from 'react';
+
+import 'dayjs/locale/en.js';
 
 // Инициализация dayjs плагинов
 dayjs.extend(localizedFormat);

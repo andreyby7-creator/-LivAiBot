@@ -4,6 +4,7 @@
  */
 
 import { describe, expect, it } from 'vitest';
+
 import type { ClientContext, VerifyEmailRequest } from '../../../src/domain/VerifyEmailRequest.js';
 // Примечание: схема verifyEmailRequestSchema не соответствует DTO VerifyEmailRequest
 // Схема требует token и email, но DTO содержит только token

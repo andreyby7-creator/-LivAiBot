@@ -12,8 +12,9 @@
  * Это streaming runtime, не просто SSE клиент.
  */
 
-import { withLogging } from './effect-utils.js';
-import type { EffectAbortController, EffectContext, EffectLogger } from './effect-utils.js';
+import type { EffectAbortController, EffectContext, EffectLogger } from '@livai/core/effect';
+import { withLogging } from '@livai/core/effect';
+
 import { infoFireAndForget, logFireAndForget } from './telemetry-runtime.js';
 
 /* ============================================================================

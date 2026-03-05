@@ -35,7 +35,7 @@ vi.mock('../../../src/lib/offline-cache', () => ({
   createOfflineCache: offlineCacheMocks.createOfflineCache,
 }));
 
-vi.mock('../../../src/lib/effect-utils', () => ({
+vi.mock('@livai/core/effect', () => ({
   Effect: vi.fn((fn) => fn),
 }));
 

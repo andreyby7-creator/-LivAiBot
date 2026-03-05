@@ -12,18 +12,19 @@
  */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+
 import type {
   ExtendableEvent,
   ExtendableMessageEvent,
   FetchEvent,
   ServiceWorkerGlobalScope,
-} from '@livai/app/lib/service-worker.js';
+} from '@livai/app';
 
 // ============================================================================
 // 🧠 MOCKS
 // ============================================================================
 
-// Mock для @livai/app/lib/service-worker.js (используется в sw.ts)
+// Mock для @livai/app (используется в sw.ts)
 const mockHandleRequest = vi.fn();
 const mockHandlePushNotification = vi.fn();
 const mockHandleNotificationClick = vi.fn();
@@ -43,7 +44,7 @@ const mockSwSelf = {
 } as unknown as ServiceWorkerGlobalScope;
 
 // Мокируем правильный путь импорта, который используется в sw.ts
-vi.mock('@livai/app/lib/service-worker.js', () => ({
+vi.mock('@livai/app', () => ({
   swSelf: mockSwSelf,
   handleRequest: mockHandleRequest,
   handlePushNotification: mockHandlePushNotification,
@@ -272,7 +273,7 @@ describe('sw.ts - Service Worker', () => {
 
     it('не должен устанавливать SW если SERVICE_WORKER_DISABLED = true', async () => {
       // Мокируем swDisabled = true
-      vi.doMock('@livai/app/lib/service-worker.js', () => ({
+      vi.doMock('@livai/app', () => ({
         swSelf: mockSwSelf,
         handleRequest: mockHandleRequest,
         handlePushNotification: mockHandlePushNotification,
@@ -316,7 +317,7 @@ describe('sw.ts - Service Worker', () => {
 
     it('должен взять контроль над клиентами при активации', async () => {
       // Убеждаемся что swDisabled = false перед импортом
-      vi.doMock('@livai/app/lib/service-worker.js', () => ({
+      vi.doMock('@livai/app', () => ({
         swSelf: mockSwSelf,
         handleRequest: mockHandleRequest,
         handlePushNotification: mockHandlePushNotification,
@@ -361,7 +362,7 @@ describe('sw.ts - Service Worker', () => {
       const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
       // Убеждаемся что swDisabled = false перед импортом
-      vi.doMock('@livai/app/lib/service-worker.js', () => ({
+      vi.doMock('@livai/app', () => ({
         swSelf: mockSwSelf,
         handleRequest: mockHandleRequest,
         handlePushNotification: mockHandlePushNotification,
@@ -412,7 +413,7 @@ describe('sw.ts - Service Worker', () => {
 
     it('не должен активировать SW если SERVICE_WORKER_DISABLED = true', async () => {
       // Мокируем swDisabled = true
-      vi.doMock('@livai/app/lib/service-worker.js', () => ({
+      vi.doMock('@livai/app', () => ({
         swSelf: mockSwSelf,
         handleRequest: mockHandleRequest,
         handlePushNotification: mockHandlePushNotification,
@@ -455,7 +456,7 @@ describe('sw.ts - Service Worker', () => {
 
     it('должен обработать GET запрос', async () => {
       // Убеждаемся что swDisabled = false перед импортом
-      vi.doMock('@livai/app/lib/service-worker.js', () => ({
+      vi.doMock('@livai/app', () => ({
         swSelf: mockSwSelf,
         handleRequest: mockHandleRequest,
         handlePushNotification: mockHandlePushNotification,
@@ -510,7 +511,7 @@ describe('sw.ts - Service Worker', () => {
       const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
       // Убеждаемся что swDisabled = false перед импортом
-      vi.doMock('@livai/app/lib/service-worker.js', () => ({
+      vi.doMock('@livai/app', () => ({
         swSelf: mockSwSelf,
         handleRequest: mockHandleRequest,
         handlePushNotification: mockHandlePushNotification,
@@ -604,7 +605,7 @@ describe('sw.ts - Service Worker', () => {
 
     it('не должен обрабатывать запросы если SERVICE_WORKER_DISABLED = true', async () => {
       // Мокируем swDisabled = true
-      vi.doMock('@livai/app/lib/service-worker.js', () => ({
+      vi.doMock('@livai/app', () => ({
         swSelf: mockSwSelf,
         handleRequest: mockHandleRequest,
         handlePushNotification: mockHandlePushNotification,
@@ -779,7 +780,7 @@ describe('sw.ts - Service Worker', () => {
       }
     });
 
-    it('должен обработать клик по уведомлению без waitUntil', async () => {
+    it('должен обработать клик по уведомлению с waitUntil', async () => {
       await import('../../src/sw');
 
       // Убеждаемся что мок настроен перед вызовом обработчика
@@ -790,17 +791,15 @@ describe('sw.ts - Service Worker', () => {
         data: { url: '/test' },
       } as unknown as Notification;
 
-      // Создаем событие без waitUntil - обработчик использует optional chaining
-      // В реальном коде: event.waitUntil?.(handleNotificationClick(event).catch(...))
-      // Если waitUntil нет, промис создается, но не передается в waitUntil
-      // Однако handleNotificationClick все равно вызывается и создает промис
-      // Промис должен выполниться независимо от наличия waitUntil
+      // Создаем событие с waitUntil - код всегда вызывает waitUntil через type assertion
+      // В реальном Service Worker событие notificationclick всегда имеет waitUntil
+      const waitUntilFn = vi.fn((promise: Readonly<Promise<unknown>>) => promise);
       const event = {
         notification: mockNotification,
-        // waitUntil отсутствует - используется optional chaining event.waitUntil?.()
+        waitUntil: waitUntilFn,
       } as unknown as Event & {
         notification: Notification;
-        waitUntil?: (promise: Readonly<Promise<unknown>>) => void;
+        waitUntil: (promise: Readonly<Promise<unknown>>) => void;
       };
 
       expect(notificationClickHandler).toBeDefined();
@@ -809,17 +808,21 @@ describe('sw.ts - Service Worker', () => {
       }
 
       // Вызываем обработчик
-      // Код: event.waitUntil?.(handleNotificationClick(event).catch(...))
-      // Если waitUntil нет, handleNotificationClick все равно вызывается
+      // Код: const extendableEvent = event as unknown as { waitUntil(...): void };
+      //      extendableEvent.waitUntil(promise);
       notificationClickHandler(event);
 
       // Ждем выполнения промиса от handleNotificationClick
-      // В реальном Service Worker промис выполнится даже без waitUntil
-      // Используем более длительную задержку для гарантии выполнения промиса
-      await new Promise((resolve) => setTimeout(resolve, 200));
+      await new Promise((resolve) => setTimeout(resolve, 0));
 
-      // handleNotificationClick должен быть вызван независимо от наличия waitUntil
-      expect(mockHandleNotificationClick).toHaveBeenCalledWith(event);
+      // handleNotificationClick должен быть вызван
+      expect(mockHandleNotificationClick).toHaveBeenCalledWith(
+        expect.objectContaining({
+          notification: mockNotification,
+        }),
+      );
+      // waitUntil должен быть вызван с промисом
+      expect(waitUntilFn).toHaveBeenCalled();
     });
   });
 

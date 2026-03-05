@@ -1,0 +1,24 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`ERROR_TAGS > структура ERROR_TAGS стабильна (snapshot) 1`] = `
+{
+  "feature": {
+    "authLogin": "feature:auth-login",
+    "authRegister": "feature:auth-register",
+    "bots": "feature:bots",
+    "conversations": "feature:conversations",
+  },
+  "service": {
+    "auth": "service:auth",
+    "billing": "service:billing",
+    "core": "service:core",
+    "web": "service:web",
+  },
+  "severity": {
+    "critical": "severity:critical",
+    "high": "severity:high",
+    "low": "severity:low",
+    "medium": "severity:medium",
+  },
+}
+`;

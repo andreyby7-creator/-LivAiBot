@@ -3,11 +3,13 @@
  * @file Тесты для RegisterForm компонента
  */
 
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import React from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
-import '@testing-library/jest-dom/vitest';
+
 import { RegisterForm } from '../../src/auth/register-form';
+
+import '@testing-library/jest-dom/vitest';
 
 // Полная очистка DOM между тестами
 afterEach(cleanup);

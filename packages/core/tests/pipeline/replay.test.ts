@@ -4,6 +4,14 @@
  * Полное покрытие всех функций и веток исполнения (100%)
  */
 import { describe, expect, it, vi } from 'vitest';
+
+import type {
+  ContextSanitizer,
+  MetadataFactory,
+  ReplayCaptureConfig,
+  ReplayEvent,
+  ReplayEventFilter,
+} from '../../src/pipeline/replay.js';
 import {
   applyFilters,
   captureReplayEvent,
@@ -18,13 +26,6 @@ import {
   deterministicEventIdGenerator,
   formatTimestamp,
   shouldCaptureEvent,
-} from '../../src/pipeline/replay.js';
-import type {
-  ContextSanitizer,
-  MetadataFactory,
-  ReplayCaptureConfig,
-  ReplayEvent,
-  ReplayEventFilter,
 } from '../../src/pipeline/replay.js';
 
 /* ============================================================================

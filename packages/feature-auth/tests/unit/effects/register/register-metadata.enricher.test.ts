@@ -9,13 +9,13 @@ import type {
   RegisterIdentifierType,
   RegisterRequest,
 } from '../../../../src/domain/RegisterRequest.js';
-import { buildRegisterMetadata } from '../../../../src/effects/register/register-metadata.enricher.js';
 import type {
   RegisterMetadata,
   RegisterMetadataConfig,
   RegisterMetadataContext,
   RegisterMetadataVersion,
 } from '../../../../src/effects/register/register-metadata.enricher.js';
+import { buildRegisterMetadata } from '../../../../src/effects/register/register-metadata.enricher.js';
 
 // ============================================================================
 // 🔧 HELPERS

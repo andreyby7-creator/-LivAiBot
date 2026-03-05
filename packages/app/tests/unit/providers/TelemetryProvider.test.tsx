@@ -3,9 +3,10 @@
  * @file Unit тесты для TelemetryProvider (shell уровень)
  */
 
+import { render, waitFor } from '@testing-library/react';
 import { useEffect } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { render, waitFor } from '@testing-library/react';
+
 import '@testing-library/jest-dom/vitest';
 
 const telemetryMocks = vi.hoisted(() => {

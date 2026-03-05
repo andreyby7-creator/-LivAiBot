@@ -17,20 +17,19 @@
  * - ✅ DI через UseAuthDeps, без глобалов
  */
 
+import { useCallback, useMemo, useSyncExternalStore } from 'react';
+
 import type {
+  AuthState,
   LoginIdentifierType,
   LoginRequest,
-  RegisterIdentifierType,
-  RegisterRequest,
-} from '@livai/feature-auth/src/domain/index.js';
-import type {
   LoginResult,
   LogoutResult,
   RefreshEffectResult,
+  RegisterIdentifierType,
+  RegisterRequest,
   RegisterResult,
-} from '@livai/feature-auth/src/effects/index.js';
-import type { AuthState } from '@livai/feature-auth/src/types/index.js';
-import { useCallback, useMemo, useSyncExternalStore } from 'react';
+} from '@livai/feature-auth';
 
 /* ============================================================================
  * 🧬 TYPES

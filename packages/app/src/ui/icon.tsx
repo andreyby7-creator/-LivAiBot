@@ -14,10 +14,11 @@
  * - платформенных эффектов
  */
 
-import { Icon as CoreIcon } from '@livai/ui-core';
-import type { CoreIconProps } from '@livai/ui-core';
-import { forwardRef, memo, useCallback, useEffect, useMemo, useRef } from 'react';
 import type { JSX, Ref } from 'react';
+import { forwardRef, memo, useCallback, useEffect, useMemo, useRef } from 'react';
+
+import type { CoreIconProps } from '@livai/ui-core';
+import { Icon as CoreIcon } from '@livai/ui-core';
 
 import type { Namespace, TranslationKey } from '../lib/i18n.js';
 import { useUnifiedUI } from '../providers/UnifiedUIProvider.js';

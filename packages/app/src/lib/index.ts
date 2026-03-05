@@ -121,114 +121,12 @@ export {
 /* ============================================================================
  * ⚡ EFFECT UTILS — УТИЛИТЫ ДЛЯ EFFECT
  * ========================================================================== */
-
 /**
- * Effect Utils: утилиты для работы с Effect и асинхронными операциями.
+ * ВАЖНО: Effect утилиты (effect-utils, effect-timeout, orchestrator,
+ * schema-validated-effect, error-mapping, validation) перемещены в @livai/core/effect.
+ * Импортируйте их напрямую: import { ... } from '@livai/core/effect';
  * @public
  */
-export {
-  createEffectAbortController,
-  type Effect,
-  type EffectAbortController,
-  type EffectContext,
-  type EffectFn,
-  type RetryPolicy,
-  safeExecute,
-  TimeoutError,
-  withRetry,
-  withTimeout,
-} from './effect-utils.js';
-
-/* ============================================================================
- * 🔒 EFFECT ISOLATION — ИЗОЛЯЦИЯ EFFECT
- * ========================================================================== */
-
-/**
- * Effect Isolation: изоляция выполнения Effect для безопасности.
- * @public
- */
-export {
-  isIsolationError,
-  IsolationError,
-  type IsolationOptions,
-  runIsolated,
-} from './effect-isolation.js';
-
-/* ============================================================================
- * ⏱️ EFFECT TIMEOUT — ТАЙМАУТЫ ДЛЯ EFFECT
- * ========================================================================== */
-
-/**
- * Effect Timeout: управление таймаутами для Effect операций.
- * @public
- */
-export {
-  createTimeoutContext,
-  isTimeoutError,
-  type TimeoutEffectContext,
-  TimeoutError as EffectTimeoutError,
-  type TimeoutOptions,
-  validateTimeoutMs,
-  withTimeout as withTimeoutEffect,
-} from './effect-timeout.js';
-
-/* ============================================================================
- * 🎯 SCHEMA VALIDATED EFFECT — ВАЛИДАЦИЯ СХЕМ
- * ========================================================================== */
-
-/**
- * Schema Validated Effect: Effect с валидацией схем данных.
- * @public
- */
-export {
-  createValidationError,
-  isSchemaValidationError,
-  SchemaValidationError,
-  validatedEffect,
-  type ValidatedEffectOptions,
-} from './schema-validated-effect.js';
-
-/* ============================================================================
- * 🚨 ERROR MAPPING — МАППИНГ ОШИБОК
- * ========================================================================== */
-
-/**
- * Error Mapping: маппинг и нормализация ошибок между сервисами.
- * @public
- */
-export {
-  errorMessages,
-  kindToErrorCode,
-  mapError,
-  type MapErrorConfig,
-  type MappedError,
-  type SafeOriginError,
-  type ServiceErrorCode,
-  type ServicePrefix,
-  SERVICES,
-  type TaggedError,
-} from './error-mapping.js';
-
-/* ============================================================================
- * ✅ VALIDATION — ВАЛИДАЦИЯ
- * ========================================================================== */
-
-/**
- * Validation: система валидации данных с типизацией.
- * @public
- */
-export {
-  type AsyncValidator,
-  fail,
-  ok,
-  pipe,
-  type ValidationContext,
-  type ValidationError,
-  validationError,
-  type ValidationResult,
-  type ValidationSchema,
-  type Validator,
-} from './validation.js';
 
 /* ============================================================================
  * 📊 TELEMETRY — ТЕЛЕМЕТРИЯ
@@ -356,16 +254,6 @@ export {
 } from './logger.js';
 
 /* ============================================================================
- * 🎭 ORCHESTRATOR — ОРКЕСТРАТОР
- * ========================================================================== */
-
-/**
- * Orchestrator: оркестрация выполнения шагов с изоляцией и таймаутами.
- * @public
- */
-export { orchestrate, type Step, step, type StepResult } from './orchestrator.js';
-
-/* ============================================================================
  * ⚡ PERFORMANCE — ПРОИЗВОДИТЕЛЬНОСТЬ
  * ========================================================================== */
 
@@ -474,12 +362,20 @@ export {
 export {
   type Client,
   type Clients,
+  decommissionServiceWorker,
   type ExtendableEvent,
+  type ExtendableMessageEvent,
   type FetchEvent,
+  handleBackgroundSync,
+  handleNotificationClick,
+  handlePushNotification,
+  handleRequest,
   mainCacheName,
   precacheMainUrls,
   precacheStaticUrls,
+  type ServiceWorkerGlobalScope,
   staticCacheName,
   swDisabled,
+  swSelf,
   type WindowClient,
 } from './service-worker.js';

@@ -1,24 +1,30 @@
 {
-  "extends": "../../tsconfig.json",
+  "extends": "./tsconfig.json",
   "compilerOptions": {
     "target": "ES2024",
     "lib": ["ES2024", "DOM", "DOM.Iterable"],
-    "outDir": "dist/esm",
+    "outDir": "./dist",
+    "rootDir": "./src",
     "composite": true,
     "incremental": true,
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
     "resolveJsonModule": false,
     "declaration": true,
-    "declarationDir": "dist/esm",
+    "declarationDir": "./dist",
     "declarationMap": true,
-    "emitDeclarationOnly": false,
+    "emitDeclarationOnly": true,
     "allowJs": false,
     "checkJs": false,
     "jsx": "react-jsx",
     "strict": true
   },
-  "include": ["src"],
+  "include": [
+    "src",
+    "src/lib/service-worker.ts",
+    "src/lib/telemetry-runtime.ts",
+    "src/providers/intl-provider.tsx"
+  ],
   "exclude": [
     "node_modules",
     "dist",

@@ -11,7 +11,7 @@
  * - Стандартизирует async-модель на Effect для единой композиции в orchestrator
  */
 
-import type { Effect } from '@livai/app/lib/effect-utils.js';
+import type { Effect } from '@livai/core/effect';
 
 import type {
   MandatoryAuditLogger,
@@ -19,8 +19,8 @@ import type {
   SecurityPipelineResult,
 } from '../../lib/security-pipeline.js';
 import type { AuditEventValues } from '../../schemas/index.js';
-import type { RiskLevel, RiskPolicy } from '../../types/auth-risk.js';
 import type { AuthError } from '../../types/auth.js';
+import type { RiskLevel, RiskPolicy } from '../../types/auth-risk.js';
 import type { AuthApiClientPort } from '../shared/api-client.port.js';
 import type { AuthStorePort } from '../shared/auth-store.port.js';
 

@@ -17,10 +17,11 @@
  * - CoreTabs остается полностью presentational
  */
 
-import { Tabs as CoreTabs } from '@livai/ui-core';
-import type { CoreTabsProps } from '@livai/ui-core';
-import { forwardRef, memo, useCallback, useEffect, useMemo, useRef } from 'react';
 import type { JSX, MouseEvent, Ref } from 'react';
+import { forwardRef, memo, useCallback, useEffect, useMemo, useRef } from 'react';
+
+import type { CoreTabsProps } from '@livai/ui-core';
+import { Tabs as CoreTabs } from '@livai/ui-core';
 
 import type { Namespace, TranslationKey } from '../lib/i18n.js';
 import { useUnifiedUI } from '../providers/UnifiedUIProvider.js';

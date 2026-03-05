@@ -3,6 +3,16 @@
  * Полное покрытие всех функций и веток исполнения (100%)
  */
 import { describe, expect, it, vi } from 'vitest';
+
+import type {
+  MetricsAggregator,
+  RollbackConfigFactory,
+  RulePriority,
+  SafetyGuardConfig,
+  SafetyGuardState,
+  SafetyRule,
+  SafetyRuleResult,
+} from '../../src/pipeline/safety-guard.js';
 import {
   compareRulePriorities,
   createCombinedRule,
@@ -16,15 +26,6 @@ import {
   shouldResetMetricsWindow,
   sortRuleResultsByPriority,
   updateSafetyGuardState,
-} from '../../src/pipeline/safety-guard.js';
-import type {
-  MetricsAggregator,
-  RollbackConfigFactory,
-  RulePriority,
-  SafetyGuardConfig,
-  SafetyGuardState,
-  SafetyRule,
-  SafetyRuleResult,
 } from '../../src/pipeline/safety-guard.js';
 
 /* ============================================================================

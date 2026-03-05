@@ -23,8 +23,8 @@
  * - ✅ Explicit invariants, exhaustive unions, predictable decision outputs
  */
 
-import { Decision, DecisionUtils } from '@livai/core-contracts';
 import type { DurationMs, PolicyDecision, UnixTimestampMs } from '@livai/core-contracts';
+import { Decision, DecisionUtils } from '@livai/core-contracts';
 
 /* ============================================================================
  * 1. TYPES — AUTH POLICY MODEL (Pure Type Definitions)

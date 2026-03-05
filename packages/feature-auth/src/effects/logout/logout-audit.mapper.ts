@@ -15,8 +15,8 @@
  * - ✅ Immutable возвращаемые объекты.
  */
 
-import { auditEventSchema } from '../../schemas/index.js';
 import type { AuditEventValues } from '../../schemas/index.js';
+import { auditEventSchema } from '../../schemas/index.js';
 import type { AuthError } from '../../types/auth.js';
 
 /* ============================================================================

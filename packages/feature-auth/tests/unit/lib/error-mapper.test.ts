@@ -47,8 +47,8 @@ import type { AuthErrorResponse } from '../../../src/domain/AuthErrorResponse.js
 import type { MfaType } from '../../../src/domain/MfaChallengeRequest.js';
 import type { OAuthErrorResponse } from '../../../src/domain/OAuthErrorResponse.js';
 import type { SessionRevokeReason } from '../../../src/domain/SessionRevokeRequest.js';
-import { mapAuthError, mapAuthErrorToUI } from '../../../src/lib/error-mapper.js';
 import type { MapAuthErrorConfig } from '../../../src/lib/error-mapper.js';
+import { mapAuthError, mapAuthErrorToUI } from '../../../src/lib/error-mapper.js';
 
 // ============================================================================
 // 🔧 HELPER FUNCTIONS FOR TEST DATA

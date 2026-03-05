@@ -3,6 +3,7 @@
  * Полное покрытие всех методов и веток исполнения (100%)
  */
 import { describe, expect, it } from 'vitest';
+
 import type { Label, LabelValidator } from '../../src/domain-kit/label.js';
 import { label, labelValidators } from '../../src/domain-kit/label.js';
 

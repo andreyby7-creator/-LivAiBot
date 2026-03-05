@@ -3,15 +3,10 @@
  * Полное покрытие всех методов и веток исполнения (100%)
  */
 import { describe, expect, it, vi } from 'vitest';
-import {
-  createExternalInputBoundary,
-  markAsExternal,
-  sanitizeAndPromote,
-  validateAndPromote,
-  validateAndSanitize,
-} from '../../src/data-safety/taint-source.js';
-import { sanitizationModes } from '../../src/data-safety/sanitization-mode.js';
+
 import type { SanitizationMode } from '../../src/data-safety/sanitization-mode.js';
+import { sanitizationModes } from '../../src/data-safety/sanitization-mode.js';
+import type { Tainted } from '../../src/data-safety/taint.js';
 import * as taintModule from '../../src/data-safety/taint.js';
 import {
   getTaintMetadata,
@@ -19,9 +14,15 @@ import {
   stripTaint,
   taintSources,
 } from '../../src/data-safety/taint.js';
-import type { Tainted } from '../../src/data-safety/taint.js';
-import { createTrustLevelRegistry, trustLevels } from '../../src/data-safety/trust-level.js';
+import {
+  createExternalInputBoundary,
+  markAsExternal,
+  sanitizeAndPromote,
+  validateAndPromote,
+  validateAndSanitize,
+} from '../../src/data-safety/taint-source.js';
 import type { TrustLevel } from '../../src/data-safety/trust-level.js';
+import { createTrustLevelRegistry, trustLevels } from '../../src/data-safety/trust-level.js';
 
 /* eslint-disable ai-security/model-poisoning */
 describe('Taint Source (Input Boundary)', () => {

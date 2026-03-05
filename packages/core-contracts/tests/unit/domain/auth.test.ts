@@ -2,6 +2,7 @@
  * @file Unit тесты для domain/auth.ts
  */
 import { describe, expect, it } from 'vitest';
+
 import type {
   LoginRequest,
   MeResponse,
@@ -10,7 +11,7 @@ import type {
   TokenPairResponse,
 } from '../../../src/domain/auth.js';
 import type { UUID } from '../../../src/domain/common.js';
-
+import { TOKEN_TYPE_BEARER } from '../../constants';
 import {
   FAKE_EMAIL,
   FAKE_EMAIL_WITH_TAG,
@@ -19,7 +20,6 @@ import {
   FAKE_UUID,
   FAKE_WORKSPACE_NAME,
 } from '../../fakes';
-import { TOKEN_TYPE_BEARER } from '../../constants';
 
 describe('RegisterRequest', () => {
   it('валидная структура RegisterRequest', () => {

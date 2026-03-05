@@ -7,17 +7,17 @@ import { describe, expect, it } from 'vitest';
 
 import type { MeResponse } from '../../../../src/domain/MeResponse.js';
 import type { TokenPair } from '../../../../src/domain/TokenPair.js';
+import {
+  mapRefreshRequestToApiPayload,
+  mapRefreshResponseToDomain,
+  RefreshApiMapperError,
+} from '../../../../src/effects/refresh/refresh-api.mapper.js';
 import type {
   LoginTokenPairValues,
   MeResponseValues,
   RefreshTokenRequestValues,
 } from '../../../../src/schemas/index.js';
 import type { SessionState } from '../../../../src/types/auth.js';
-import {
-  mapRefreshRequestToApiPayload,
-  mapRefreshResponseToDomain,
-  RefreshApiMapperError,
-} from '../../../../src/effects/refresh/refresh-api.mapper.js';
 
 describe('effects/refresh/refresh-api.mapper', () => {
   describe('RefreshApiMapperError', () => {

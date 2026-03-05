@@ -3,11 +3,13 @@
  * @file Unit тесты для Checkbox компонента
  */
 
+import { cleanup, fireEvent, render, within } from '@testing-library/react';
 import React from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { cleanup, fireEvent, render, within } from '@testing-library/react';
+
+import { Checkbox } from '@livai/ui-core';
+
 import '@testing-library/jest-dom/vitest';
-import { Checkbox } from '../../../src/primitives/checkbox.js';
 
 // Mock для HTMLElement.prototype.focus
 const mockFocus = vi.fn();

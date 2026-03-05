@@ -7,6 +7,7 @@
 /* eslint-disable functional/no-conditional-statements -- В тестах проверка if (!result.success) - стандартный паттерн для Zod safeParse */
 
 import { describe, expect, it } from 'vitest';
+
 import {
   auditEventSchema,
   authErrorResponseSchema,

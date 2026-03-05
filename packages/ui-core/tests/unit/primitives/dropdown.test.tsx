@@ -3,12 +3,14 @@
  * @file Unit тесты для Dropdown компонента
  */
 
+import { cleanup, fireEvent, render, within } from '@testing-library/react';
 import React from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { cleanup, fireEvent, render, within } from '@testing-library/react';
+
+import type { DropdownItem } from '@livai/ui-core';
+import { Dropdown } from '@livai/ui-core';
+
 import '@testing-library/jest-dom/vitest';
-import { Dropdown } from '../../../src/primitives/dropdown.js';
-import type { DropdownItem } from '../../../src/primitives/dropdown.js';
 
 // Полная очистка DOM между тестами
 afterEach(cleanup);

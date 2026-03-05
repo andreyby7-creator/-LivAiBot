@@ -25,7 +25,6 @@
 
 import type { UnixTimestampMs } from '@livai/core-contracts';
 
-import { AuthPolicy } from './AuthPolicy.js';
 import type {
   AuthPolicyConfig,
   AuthSessionState,
@@ -34,7 +33,7 @@ import type {
   SessionDecision,
   TokenDecision,
 } from './AuthPolicy.js';
-import { BillingPolicy } from './BillingPolicy.js';
+import { AuthPolicy } from './AuthPolicy.js';
 import type {
   BillingAction,
   BillingDecision,
@@ -42,14 +41,14 @@ import type {
   BillingSubjectState,
   BillingUsageContext,
 } from './BillingPolicy.js';
-import { BotPermissions } from './BotPermissions.js';
+import { BillingPolicy } from './BillingPolicy.js';
 import type {
   BotAction,
   BotPermissionDecision,
   BotPermissionsConfig,
   BotUserContext,
 } from './BotPermissions.js';
-import { BotPolicy } from './BotPolicy.js';
+import { BotPermissions } from './BotPermissions.js';
 import type {
   BotActorContext,
   BotPolicyAction,
@@ -57,7 +56,7 @@ import type {
   BotPolicyDecision,
   BotState,
 } from './BotPolicy.js';
-import { ChatPolicy } from './ChatPolicy.js';
+import { BotPolicy } from './BotPolicy.js';
 import type {
   ChatAction,
   ChatActorContext,
@@ -66,6 +65,7 @@ import type {
   ChatPolicyConfig,
   ChatState,
 } from './ChatPolicy.js';
+import { ChatPolicy } from './ChatPolicy.js';
 
 /* ========================================================================== */
 /* 🧱 СОСТАВНАЯ КОНФИГУРАЦИЯ */
