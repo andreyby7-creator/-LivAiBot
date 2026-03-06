@@ -135,6 +135,23 @@ export const effectFpNamingRules = [
         { selector: 'variable', filter: { regex: '^ErrorCode$', match: true }, format: ['PascalCase'], modifiers: ['const'] },
         // Brand symbols для branded types: PascalCase (IDBrand, ISODateBrand, TrustLevelBrand)
         { selector: 'variable', filter: { regex: '.*Brand$', match: true }, format: ['PascalCase'], modifiers: ['const'] },
+        // Константы верхнего уровня: UPPER_CASE и PascalCase (ПЕРЕД общим правилом для переменных)
+        // Используем централизованную константу TOP_LEVEL_CONST_FORMATS для future-proofing
+        // Это включает константы версий (BatchCoreConfigVersion), константы массивов (TelemetryLevels) и т.д.
+        // Применяется только к const переменным, которые начинаются с заглавной буквы (PascalCase или UPPER_CASE)
+        // Это автоматически исключает camelCase локальные переменные
+        {
+          selector: 'variable',
+          modifiers: ['const'],
+          format: TOP_LEVEL_CONST_FORMATS,
+          filter: {
+            // Только переменные, которые начинаются с заглавной буквы (PascalCase или UPPER_CASE)
+            regex: '^[A-Z]',
+            match: true,
+            // Исключаем ErrorCode и Brand symbols (обрабатываются отдельными правилами выше)
+            // Но они уже обработаны выше, так что это правило не применится к ним
+          },
+        },
         { selector: 'variable', format: ['camelCase'] },
 
         // Экспортируемые функции-константы Effect API: camelCase (приоритет над общим правилом для const)
@@ -168,18 +185,6 @@ export const effectFpNamingRules = [
         { selector: 'typeAlias', filter: { regex: NAMING_EXCEPTIONS.GRAPHQL_TYPES, match: true }, format: ['PascalCase'] },
         { selector: 'enum', filter: { regex: NAMING_EXCEPTIONS.GRAPHQL_ENUMS, match: true }, format: ['PascalCase'] },
         { selector: 'variable', filter: { regex: NAMING_EXCEPTIONS.REACT_COMPONENTS, match: true }, format: ['PascalCase'] },
-        // Константы верхнего уровня: UPPER_CASE и PascalCase
-        // Используем централизованную константу TOP_LEVEL_CONST_FORMATS для future-proofing
-        {
-          selector: 'variable',
-          modifiers: ['const'],
-          format: TOP_LEVEL_CONST_FORMATS,
-          filter: {
-            // Исключаем ErrorCode (обрабатывается отдельным правилом выше)
-            regex: '^ErrorCode$',
-            match: false,
-          },
-        },
       ],
 
       // Запрет default export для всех Effect/FP файлов

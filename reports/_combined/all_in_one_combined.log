@@ -2151,3 +2151,15 @@ Verification:
 - Updated: packages/core/src/effect/effect-isolation.ts
   - Fixed @file path to packages/core/...
   - уточнил: runIsolated изолирует исключения эффекта через Result (в dev возможен throw для programmer errors), и это не sandbox для side-effects
+
+[2026-03-06] core/telemetry client.ts architecture audit (production-grade)
+- Target: packages/core/src/telemetry/client.ts
+- Summary: проведен архитектурный аудит (SRP/determinism/scalability/domain purity/security/extensibility) уровня production. Выявлены ключевые риски: смешение ответственностей (client + sanitization + queue + throttling + sink factories + dev global), потенциальный unbounded рост throttleMap по уникальным сообщениям, неограниченная fan-out concurrency sinks*batchSize, неоднозначная семантика async log() (не await'ит flush), dropPolicy='error' не маршрутизируется через onError.
+- Recommendation (non-overengineered): (1) ограничить память throttleMap (eviction/TTL cleanup/max entries), (2) ограничить concurrency при отправке в sinks (простая очередь/батч по sinks или лимит промисов), (3) привести API к честной семантике (log(): void или возвращать Promise реального flush/ack, + explicit flush()), (4) централизовать error policy (dropPolicy error + sink errors → onError + optional throw), (5) минимально разнести файл по модулям: client / sanitization / sinks (без изменения публичного API).
+2026-03-06T21:05:19+03:00 | telemetry: sanitization.ts comments translated to Russian; @livai/core type-check OK
+2026-03-06T21:12:00+03:00 | telemetry: sanitization.ts hardened (hide visited, unified PII policy, extended key patterns); @livai/core type-check OK
+2026-03-06T21:14:45+03:00 | telemetry: sanitization.ts polish (simplified base64 check, extracted magic numbers/strings to constants); @livai/core type-check OK
+2026-03-06T21:22:29+03:00 | telemetry: sanitization.ts lint fixes (refactored loops to functional style, removed unnecessary suppressions); @livai/core type-check OK
+2026-03-06T21:26:39+03:00 | telemetry: client.ts added eslint-disable block for TelemetryClient class with justification; @livai/core type-check OK
+2026-03-06T21:42:26+03:00 | telemetry: sinks.ts created (sink factories, retry logic, re-export TelemetrySink); @livai/core type-check OK
+2026-03-06T21:48:05+03:00 | telemetry: sinks.ts improved (shared retry engine, MAX_ALLOWED_RETRIES, removed duplication ~60 lines); @livai/core type-check OK

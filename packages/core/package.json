@@ -41,6 +41,21 @@
     "./policies/*": {
       "types": "./src/policies/*.ts",
       "import": "./src/policies/*.ts"
+    },
+    "./telemetry": {
+      "types": "./dist/telemetry/index.d.ts",
+      "import": "./dist/telemetry/index.js",
+      "default": "./dist/telemetry/index.js"
+    },
+    "./telemetry/batch-core": {
+      "types": "./dist/telemetry/batch-core.d.ts",
+      "import": "./dist/telemetry/batch-core.js",
+      "default": "./dist/telemetry/batch-core.js"
+    },
+    "./telemetry/client": {
+      "types": "./dist/telemetry/client.d.ts",
+      "import": "./dist/telemetry/client.js",
+      "default": "./dist/telemetry/client.js"
     }
   },
   "scripts": {

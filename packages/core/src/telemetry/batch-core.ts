@@ -1,14 +1,15 @@
 /**
- * @file packages/app/src/lib/telemetry.batch-core.ts
+ * @file @livai/core/src/telemetry/batch-core.ts
  * ============================================================================
  * 🎯 BATCH CORE — ЧИСТОЕ МИКРОСЕРВИСНОЕ ЯДРО ТЕЛЕМЕТРИИ
  * ============================================================================
+ *
  * Архитектурная роль:
  * - Чистая изоляция batch логики без внешних зависимостей
- * - Иммутабельные структуры данных и функциональная парадигма
  * - Enterprise-ready batch обработка для высокой производительности
  * - Полная совместимость с hexagonal architecture паттернами
  * - Нулевая связанность с React, DOM или внешними SDK
+ *
  * Свойства:
  * - Effect-free архитектура для предсказуемости и тестируемости
  * - Иммутабельные структуры данных и функциональная парадигма
@@ -16,6 +17,7 @@
  * - Типобезопасность с branded types и readonly контрактами
  * - Расширяемость для enterprise сценариев (A/B тестирование, аналитика)
  * - Минимальная поверхность API для максимальной гибкости
+ *
  * Принципы:
  * - Никаких I/O операций (файлы, сеть, консоль, DOM)
  * - Никакой асинхронности и таймаутов
@@ -23,6 +25,7 @@
  * - Детерминированные результаты для одного входа
  * - Предсказуемая аллокация через чистую иммутабельную модель
  * - Полная изоляция от runtime зависимостей (SSR-safe)
+ *
  * Почему чистый модуль:
  * - Разделение ответственности: core ≠ transport ≠ React bindings
  * - Легкость тестирования без моков и стабов
@@ -36,131 +39,15 @@ import type {
   TelemetryEvent,
   TelemetryLevel,
   TelemetryMetadata,
-} from '../types/telemetry.js';
-import { BatchCoreConfigVersion } from '../types/telemetry.js';
+} from '@livai/core-contracts';
+import { BatchCoreConfigVersion } from '@livai/core-contracts';
+
+import { applyPIIRedactionMiddleware } from './sanitization.js';
 
 /* ============================================================================
  * 🔧 ТИПЫ И ИНТЕРФЕЙСЫ
  * ============================================================================
  */
-
-/**
- * PII redaction patterns для проверки на уровне core.
- * Используется для гарантии, что ни одно событие не попадет с PII до transport.
- */
-const PII_PATTERNS = Object.freeze(
-  [
-    /password/gi,
-    /token/gi,
-    /secret/gi,
-    /api[_-]?key/gi,
-    /authorization/gi,
-    /credit[_-]?card/gi,
-    /ssn/gi,
-    /social[_-]?security/gi,
-  ] as const,
-);
-
-/**
- * Middleware для PII redaction на уровне core.
- * Гарантирует, что ни одно событие не попадет с чувствительными данными до transport.
- * @param metadata - Метаданные для проверки
- * @param deep - Включить глубокую рекурсивную проверку (по умолчанию false для производительности)
- * @returns true если обнаружен PII
- */
-function containsPII(
-  metadata: TelemetryMetadata | undefined,
-  deep = false,
-): boolean {
-  if (!metadata) {
-    return false;
-  }
-
-  for (const [key, value] of Object.entries(metadata)) {
-    // Проверка ключа на PII patterns (всегда включена)
-    if (PII_PATTERNS.some((pattern) => pattern.test(key))) {
-      return true;
-    }
-
-    // Проверка значения на PII patterns (если строка)
-    if (typeof value === 'string' && PII_PATTERNS.some((pattern) => pattern.test(value))) {
-      return true;
-    }
-
-    // Рекурсивная проверка вложенных объектов (опционально)
-    if (deep && value !== null && typeof value === 'object' && !Array.isArray(value)) {
-      if (containsPII(value as TelemetryMetadata, true)) {
-        return true;
-      }
-    }
-  }
-
-  return false;
-}
-
-/**
- * Redact PII из metadata.
- * Заменяет PII-поля на '[REDACTED]'.
- * @param metadata - Метаданные для очистки
- * @param deep - Включить глубокую рекурсивную очистку
- * @returns Очищенные метаданные
- */
-function redactPII(
-  metadata: TelemetryMetadata,
-  deep = false,
-): TelemetryMetadata {
-  const sanitized = { ...metadata } as Record<string, unknown>;
-
-  for (const [key, value] of Object.entries(sanitized)) {
-    // Проверка ключа на PII patterns
-    if (PII_PATTERNS.some((pattern) => pattern.test(key))) {
-      sanitized[key] = '[REDACTED]';
-    } else if (typeof value === 'string' && PII_PATTERNS.some((pattern) => pattern.test(value))) {
-      // Проверка значения на PII patterns
-      sanitized[key] = '[REDACTED]';
-    } else if (deep && value !== null && typeof value === 'object' && !Array.isArray(value)) {
-      // Рекурсивная очистка вложенных объектов
-      sanitized[key] = redactPII(value as TelemetryMetadata, true);
-    }
-  }
-
-  return sanitized as TelemetryMetadata;
-}
-
-/**
- * Middleware для PII redaction на уровне core.
- * Гарантирует, что ни одно событие не попадет с чувствительными данными до transport.
- * @param event - Событие для проверки
- * @param enableDeepScan - Включить глубокую рекурсивную проверку (по умолчанию false)
- * @returns Событие с очищенными метаданными (или без metadata если содержит PII)
- */
-function applyPIIRedactionMiddleware<TMetadata extends TelemetryMetadata>(
-  event: TelemetryEvent<TMetadata>,
-  enableDeepScan = false,
-): TelemetryEvent<TMetadata> {
-  if (!event.metadata) {
-    return event;
-  }
-
-  // Проверяем на PII
-  if (containsPII(event.metadata, enableDeepScan)) {
-    // Если обнаружен PII, удаляем metadata полностью для безопасности
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { metadata: _removedMetadata, ...eventWithoutMetadata } = event;
-    return eventWithoutMetadata as TelemetryEvent<TMetadata>;
-  }
-
-  // Если PII не обнаружен, но включена очистка, применяем redaction
-  if (enableDeepScan) {
-    const sanitizedMetadata = redactPII(event.metadata, true);
-    return {
-      ...event,
-      metadata: sanitizedMetadata as TMetadata,
-    };
-  }
-
-  return event;
-}
 
 /**
  * Hook для transformEvent перед flush.
@@ -172,9 +59,7 @@ export type TransformEventHook<TMetadata extends TelemetryMetadata = TelemetryMe
   event: TelemetryEvent<TMetadata>,
 ) => TelemetryEvent<TMetadata>;
 
-/**
- * Конфигурация batch core с опциональными middleware и hooks.
- */
+/** Конфигурация batch core с опциональными middleware и hooks. */
 export type TelemetryBatchCoreConfigExtended<
   TMetadata extends TelemetryMetadata = TelemetryMetadata,
 > =
@@ -196,6 +81,7 @@ export type TelemetryBatchCoreConfigExtended<
  * Конфигурация по умолчанию для batch core.
  * Оптимизирована для enterprise сценариев.
  */
+// eslint-disable-next-line ai-security/model-poisoning -- Константа конфигурации (не пользовательские данные)
 export const defaultBatchCoreConfig = {
   maxBatchSize: 50,
   configVersion: BatchCoreConfigVersion,
@@ -225,6 +111,9 @@ export function createInitialBatchCoreState<
         configVersion: config.configVersion,
       }
       : config as TelemetryBatchCoreConfig;
+
+  // NOTE: При будущих изменениях configVersion добавить валидацию версии для backward-compatibility
+  // Например: if (baseConfig.configVersion > BatchCoreConfigVersion) { throw new Error('Unsupported config version') }
   return {
     batch: [],
     config: baseConfig,
@@ -247,7 +136,8 @@ export function addEventToBatchCore<
   timestamp: number,
   extendedConfig?: TelemetryBatchCoreConfigExtended<TMetadata>,
 ): TelemetryBatchCoreState<TMetadata> {
-  let event: TelemetryEvent<TMetadata> = {
+  // eslint-disable ai-security/model-poisoning -- event создается из валидированных параметров, не из пользовательских данных
+  const initialEvent: TelemetryEvent<TMetadata> = {
     level,
     message,
     timestamp,
@@ -255,16 +145,18 @@ export function addEventToBatchCore<
   };
 
   // Применяем PII redaction middleware если включен
-  if (extendedConfig?.enablePIIRedaction === true) {
-    event = applyPIIRedactionMiddleware(event, extendedConfig.enableDeepPIIScan === true);
-  }
+  const eventAfterPII = extendedConfig?.enablePIIRedaction === true
+    ? applyPIIRedactionMiddleware(initialEvent, extendedConfig.enableDeepPIIScan === true)
+    : initialEvent;
 
   // Применяем transformEvent hook если есть
-  if (extendedConfig?.transformEvent) {
-    event = extendedConfig.transformEvent(event);
-  }
+  const finalEvent = extendedConfig?.transformEvent
+    ? extendedConfig.transformEvent(eventAfterPII)
+    : eventAfterPII;
+  // eslint-enable ai-security/model-poisoning
 
-  const newBatch = [...state.batch, event];
+  // eslint-disable-next-line ai-security/model-poisoning -- finalEvent создан из валидированных параметров
+  const newBatch = [...state.batch, finalEvent];
 
   return {
     batch: newBatch,
@@ -284,13 +176,13 @@ export function flushBatchCore<
   state: TelemetryBatchCoreState<TMetadata>,
   extendedConfig?: TelemetryBatchCoreConfigExtended<TMetadata>,
 ): [TelemetryBatchCoreState<TMetadata>, readonly TelemetryEvent<TMetadata>[]] {
-  let eventsToFlush = [...state.batch];
-
   // Применяем transformEvent hook к каждому событию перед flush
-  if (extendedConfig?.transformEvent) {
-    const transformEvent = extendedConfig.transformEvent;
-    eventsToFlush = eventsToFlush.map((event) => transformEvent(event));
-  }
+  const eventsToFlush = extendedConfig?.transformEvent
+    ? state.batch.map((event) => {
+      const transformEvent = extendedConfig.transformEvent;
+      return transformEvent ? transformEvent(event) : event;
+    })
+    : state.batch;
 
   const newState = {
     batch: [],
@@ -322,6 +214,7 @@ export function shouldFlushBatchCore<
  * Предоставляет чистое API для работы с batch без зависимостей.
  * Поддерживает опциональные middleware для PII redaction и hooks для transformEvent.
  */
+// eslint-disable-next-line ai-security/model-poisoning -- Константа API объекта (не пользовательские данные)
 export const telemetryBatchCore = {
   /** Создает начальное состояние batch. */
   createInitialState<
@@ -374,34 +267,3 @@ export const telemetryBatchCore = {
     return shouldFlushBatchCore(state);
   },
 } as const;
-
-/* ============================================================================
- * 📚 ДОКУМЕНТАЦИЯ И ПРИМЕРЫ ИСПОЛЬЗОВАНИЯ
- * ========================================================================== */
-
-/**
- * @example Базовое использование
- * ```typescript
- * let state = telemetryBatchCore.createInitialState();
- * state = telemetryBatchCore.addEvent('INFO', 'User action', { id: '123' }, Date.now())(state);
- * if (telemetryBatchCore.shouldFlush(state)) {
- *   const [newState, events] = telemetryBatchCore.flush(state);
- *   externalService.sendBatch(events);
- * }
- * ```
- *
- * @example С PII redaction middleware
- * ```typescript
- * const config = { maxBatchSize: 50, enablePIIRedaction: true, enableDeepPIIScan: false };
- * let state = telemetryBatchCore.createInitialState(config);
- * state = telemetryBatchCore.addEvent('INFO', 'Action', { password: 'secret' }, Date.now(), config)(state);
- * // password автоматически удаляется из metadata
- * ```
- *
- * @example С transformEvent hook
- * ```typescript
- * const config = { transformEvent: (e) => ({ ...e, environment: process.env.NODE_ENV }) };
- * const [newState, events] = telemetryBatchCore.flush(state, config);
- * // events содержат трансформированные события
- * ```
- */

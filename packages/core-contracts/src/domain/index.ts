@@ -64,3 +64,16 @@ export * from './bots.js';
  * @public
  */
 export * from './conversations.js';
+
+/* ============================================================================
+ * 📊 ТИПЫ — TELEMETRY DOMAIN TYPES
+ * ============================================================================
+ */
+
+/**
+ * Типы для telemetry domain.
+ * Включает фундаментальные типы телеметрии (TelemetryEvent, TelemetryConfig, TelemetrySink и т.д.).
+ * Используются в core-модулях и публичном API.
+ * @public
+ */
+export * from './telemetry.js';

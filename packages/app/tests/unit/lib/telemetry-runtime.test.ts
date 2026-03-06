@@ -15,7 +15,9 @@
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { TelemetryClient } from '../../../src/lib/telemetry.js';
+import { TelemetryClient } from '@livai/core/telemetry';
+import type { TelemetryConfig, TelemetryLevel, TelemetryMetadata } from '@livai/core-contracts';
+
 import {
   errorFireAndForget,
   fireAndForget,
@@ -29,11 +31,6 @@ import {
   setGlobalClientForDebug,
   warnFireAndForget,
 } from '../../../src/lib/telemetry-runtime.js';
-import type {
-  TelemetryConfig,
-  TelemetryLevel,
-  TelemetryMetadata,
-} from '../../../src/types/telemetry.js';
 
 /* ============================================================================
  * 🧹 SETUP И TEARDOWN

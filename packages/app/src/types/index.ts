@@ -94,39 +94,6 @@ export {
 } from './common.js';
 
 /* ============================================================================
- * 📡 TELEMETRY — ТИПЫ ТЕЛЕМЕТРИИ
- * ========================================================================== */
-
-/**
- * Telemetry Types: типы для телеметрии и мониторинга.
- * @public
- */
-export {
-  type BatchConfig,
-  BatchCoreConfigVersion,
-  type CustomLevelPriority,
-  defaultTelemetryTimezone,
-  type DropPolicy,
-  type FallbackPriorityStrategy,
-  type NonPIIField,
-  type PIIField,
-  type RetryConfig,
-  type TelemetryBatchCoreConfig,
-  type TelemetryBatchCoreState,
-  type TelemetryConfig,
-  type TelemetryEvent,
-  type TelemetryLevel,
-  TelemetryLevels,
-  type TelemetryLevelTemplate,
-  type TelemetryMetadata,
-  type TelemetryPrimitive,
-  type TelemetrySink,
-  type TelemetryTimezone,
-  type ThrottleConfig,
-  type UiTelemetryMetrics,
-} from './telemetry.js';
-
-/* ============================================================================
  * 🎨 UI CONTRACTS — КОНТРАКТЫ UI
  * ========================================================================== */
 

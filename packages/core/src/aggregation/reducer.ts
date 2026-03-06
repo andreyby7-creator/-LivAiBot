@@ -145,7 +145,6 @@ function validateWeightSum(
    * Требуется для кросс-языковой воспроизводимости (JS / JVM / Rust / C++).
    * @internal
    */
-  // eslint-disable-next-line @typescript-eslint/naming-convention -- IEEE-754 стандартное имя константы
   const IEEE754_MIN_NORMAL = 2.2250738585072014e-308;
   if (Math.abs(sum) <= IEEE754_MIN_NORMAL) {
     return {

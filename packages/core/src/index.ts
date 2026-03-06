@@ -41,6 +41,26 @@ export * from './input-boundary/index.js';
 export * from './policies/index.js';
 
 /* ============================================================================
+ * 📊 TELEMETRY — BATCH CORE & CLIENT
+ * ============================================================================
+ */
+
+/**
+ * Telemetry подпакет: чистое batch ядро телеметрии и runtime-зависимый клиент.
+ * Включает batch core для накопления и обработки телеметрических событий,
+ * runtime-зависимый клиент с queue и throttle, sink factories с retry логикой.
+ *
+ * Доступен как через subpath `@livai/core/telemetry`,
+ * так и через главный индекс `@livai/core` под неймспейсом `telemetry`.
+ *
+ * Рекомендуется для feature-пакетов импортировать из `@livai/core/telemetry`
+ * для явного разграничения слоев, но экспорт через главный индекс оставлен
+ * для удобства и tree-shakeable usage.
+ * @public
+ */
+export * as telemetry from './telemetry/index.js';
+
+/* ============================================================================
  * 🧩 DOMAIN-KIT — DECISION ALGEBRA & PROBABILITY/UNCERTAINTY
  * ========================================================================== */
 /**

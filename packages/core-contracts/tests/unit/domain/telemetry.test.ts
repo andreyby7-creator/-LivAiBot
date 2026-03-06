@@ -1,5 +1,5 @@
 /**
- * @file packages/app/tests/unit/types/telemetry.test.ts
+ * @file @livai/core-contracts/tests/unit/domain/telemetry.test.ts
  * ============================================================================
  * 🔹 ТИПЫ ТЕЛЕМЕТРИИ — 100% ПОКРЫТИЕ
  * ============================================================================
@@ -34,13 +34,14 @@ import type {
   TelemetrySink,
   TelemetryTimezone,
   ThrottleConfig,
-  UiTelemetryMetrics,
-} from '../../../src/types/telemetry.js';
+} from '@livai/core-contracts';
+
 import {
   BatchCoreConfigVersion,
   defaultTelemetryTimezone,
   TelemetryLevels,
-} from '../../../src/types/telemetry.js';
+  validateCustomLevelPriority,
+} from '../../../src/domain/telemetry.js';
 
 // Helper функции для создания тестовых данных
 function createTestMetadata(): TelemetryMetadata {
@@ -143,6 +144,7 @@ describe('TelemetryLevel тип', () => {
 
 describe('TelemetryMetadata тип', () => {
   it('принимает примитивные значения', () => {
+    // eslint-disable-next-line ai-security/model-poisoning
     const metadata: TelemetryMetadata = {
       string: 'test',
       number: 42,
@@ -157,6 +159,7 @@ describe('TelemetryMetadata тип', () => {
   });
 
   it('является readonly Record', () => {
+    // eslint-disable-next-line ai-security/model-poisoning
     const metadata: TelemetryMetadata = createTestMetadata();
 
     // TypeScript предотвращает мутацию
@@ -196,6 +199,7 @@ describe('TelemetryEvent тип', () => {
   });
 
   it('создает событие с метаданными', () => {
+    // eslint-disable-next-line ai-security/model-poisoning
     const metadata = createTestMetadata();
     const event: TelemetryEvent = {
       level: 'ERROR',
@@ -224,12 +228,13 @@ describe('TelemetryEvent тип', () => {
 
   it('работает с кастомными типами метаданных', () => {
     // Пользовательский тип метаданных
-    type CustomMetadata = {
+    interface CustomMetadata {
       userId: string;
       actionType: 'login' | 'logout' | 'update';
       sessionId: string;
-    };
+    }
 
+    // eslint-disable-next-line ai-security/model-poisoning
     const customMetadata: CustomMetadata = {
       userId: 'user-456',
       actionType: 'login',
@@ -249,12 +254,14 @@ describe('TelemetryEvent тип', () => {
   });
 
   it('metadata опционален', () => {
+    // eslint-disable-next-line ai-security/model-poisoning
     const eventWithoutMetadata: TelemetryEvent = {
       level: 'WARN',
       message: 'Simple warning',
       timestamp: 1000,
     };
 
+    // eslint-disable-next-line ai-security/model-poisoning
     const eventWithMetadata: TelemetryEvent = {
       level: 'ERROR',
       message: 'Error with details',
@@ -352,7 +359,10 @@ describe('TelemetryBatchCoreState тип', () => {
   });
 
   it('работает с кастомными типами метаданных', () => {
-    type CustomMetadata = { sessionId: string; userRole: 'admin' | 'user'; };
+    interface CustomMetadata {
+      sessionId: string;
+      userRole: 'admin' | 'user';
+    }
 
     const config = createTestBatchConfig();
     const customEvent: TelemetryEvent<CustomMetadata> = {
@@ -430,7 +440,9 @@ describe('TelemetrySink тип', () => {
   });
 
   it('работает с кастомными метаданными', () => {
-    type CustomMetadata = { priority: 'high' | 'low'; };
+    interface CustomMetadata {
+      priority: 'high' | 'low';
+    }
 
     const events: TelemetryEvent<CustomMetadata>[] = [];
 
@@ -503,7 +515,9 @@ describe('TelemetryConfig тип', () => {
   });
 
   it('работает с кастомными метаданными', () => {
-    type CustomMetadata = { traceId: string; };
+    interface CustomMetadata {
+      traceId: string;
+    }
 
     const customSink: TelemetrySink<CustomMetadata> = () => {};
 
@@ -523,13 +537,11 @@ describe('TelemetryConfig тип', () => {
   });
 
   it('onError получает правильные типы параметров', () => {
-    let capturedError: unknown;
-    let capturedEvent: TelemetryEvent | undefined;
+    const captured: { error: unknown; event: TelemetryEvent; }[] = [];
 
     const config: TelemetryConfig = {
       onError: (error, event) => {
-        capturedError = error;
-        capturedEvent = event;
+        captured.push({ error, event });
       },
     };
 
@@ -539,8 +551,9 @@ describe('TelemetryConfig тип', () => {
       const testEvent = createTestEvent();
       config.onError(testError, testEvent);
 
-      expect(capturedError).toBe(testError);
-      expect(capturedEvent).toBe(testEvent);
+      expect(captured).toHaveLength(1);
+      expect(captured[0]?.error).toBe(testError);
+      expect(captured[0]?.event).toBe(testEvent);
     }
   });
 });
@@ -552,6 +565,7 @@ describe('TelemetryConfig тип', () => {
 describe('Типы работают вместе', () => {
   it('создает полную телеметрическую экосистему', () => {
     // Конфигурация batch core
+    // eslint-disable-next-line ai-security/model-poisoning
     const batchConfig = createTestBatchConfig();
 
     // События для batch
@@ -561,6 +575,7 @@ describe('Типы работают вместе', () => {
     ];
 
     // Состояние batch core
+    // eslint-disable-next-line ai-security/model-poisoning
     const batchState: TelemetryBatchCoreState = {
       batch: events,
       config: batchConfig,
@@ -594,14 +609,14 @@ describe('Типы работают вместе', () => {
 
   it('поддерживает end-to-end типобезопасность', () => {
     // Кастомный тип метаданных
-    type EcommerceMetadata = {
+    interface EcommerceMetadata {
       userId: string;
       productId: string;
       price: number;
       currency: string;
       quantity: number;
       discountApplied: boolean;
-    };
+    }
 
     // Конфиг с кастомными метаданными
     const config: TelemetryConfig<EcommerceMetadata> = {
@@ -633,6 +648,7 @@ describe('Типы работают вместе', () => {
     };
 
     // Batch состояние с кастомными метаданными
+    // eslint-disable-next-line ai-security/model-poisoning
     const batchState: TelemetryBatchCoreState<EcommerceMetadata> = {
       batch: [event],
       config: createTestBatchConfig(),
@@ -688,7 +704,10 @@ describe('Экспорты типов telemetry', () => {
   it('все типы являются generic-friendly', () => {
     // Проверяем что типы работают с generic параметрами
 
-    type CustomMeta = { customField: string; value: number; };
+    interface CustomMeta {
+      customField: string;
+      value: number;
+    }
 
     // Все типы должны работать с кастомными метаданными
     const customEvent: TelemetryEvent<CustomMeta> = {
@@ -703,6 +722,7 @@ describe('Экспорты типов telemetry', () => {
       sinks: [customSink],
     };
 
+    // eslint-disable-next-line ai-security/model-poisoning
     const customBatchState: TelemetryBatchCoreState<CustomMeta> = {
       batch: [customEvent],
       config: createTestBatchConfig(),
@@ -961,6 +981,7 @@ describe('TelemetryEvent distributed tracing поля', () => {
 
 describe('TelemetryConfig дополнительные поля', () => {
   it('создает конфигурацию с batchConfig', () => {
+    // eslint-disable-next-line ai-security/model-poisoning
     const batchConfig: BatchConfig = {
       maxBatchSize: 20,
       maxConcurrentBatches: 5,
@@ -1035,15 +1056,8 @@ describe('TelemetryConfig дополнительные поля', () => {
   });
 });
 
-describe('UiTelemetryMetrics тип', () => {
-  it('является алиасом для UiMetrics', () => {
-    // UiTelemetryMetrics - это алиас, проверяем что тип существует
-    const metrics: UiTelemetryMetrics = {} as UiTelemetryMetrics;
-
-    expect(metrics).toBeDefined();
-    expect(typeof metrics).toBe('object');
-  });
-});
+// UiTelemetryMetrics больше не экспортируется из core-contracts
+// (это app-специфичный тип, который будет удален после полного переключения импортов)
 
 describe('TelemetryPrimitive тип', () => {
   it('принимает все примитивные типы', () => {
@@ -1059,6 +1073,7 @@ describe('TelemetryPrimitive тип', () => {
   });
 
   it('используется в TelemetryMetadata', () => {
+    // eslint-disable-next-line ai-security/model-poisoning
     const metadata: TelemetryMetadata = {
       string: 'value' as TelemetryPrimitive,
       number: 123 as TelemetryPrimitive,
@@ -1106,5 +1121,161 @@ describe('DropPolicy тип', () => {
     const config: BatchConfig = {};
 
     expect(config.dropPolicy).toBeUndefined();
+  });
+});
+
+// ============================================================================
+// 🔧 RUNTIME ВАЛИДАЦИЯ
+// ============================================================================
+
+describe('validateCustomLevelPriority функция', () => {
+  it('возвращает пустой объект для undefined', () => {
+    const result = validateCustomLevelPriority(undefined);
+    expect(result).toEqual({});
+  });
+
+  it('возвращает пустой объект для пустого объекта', () => {
+    const result = validateCustomLevelPriority({});
+    expect(result).toEqual({});
+  });
+
+  it('валидирует корректный customLevelPriority', () => {
+    const input = {
+      DEBUG: 0,
+      TRACE: -1,
+      FATAL: 100,
+    };
+    const result = validateCustomLevelPriority(input);
+    expect(result).toEqual(input);
+  });
+
+  it('выбрасывает ошибку при конфликте со стандартным уровнем INFO', () => {
+    const input = {
+      INFO: 0,
+      DEBUG: 1,
+    };
+    expect(() => validateCustomLevelPriority(input)).toThrow(
+      'customLevelPriority: ключ "INFO" конфликтует со стандартным уровнем. Используйте другой ключ.',
+    );
+  });
+
+  it('выбрасывает ошибку при конфликте со стандартным уровнем WARN', () => {
+    const input = {
+      WARN: 0,
+      DEBUG: 1,
+    };
+    expect(() => validateCustomLevelPriority(input)).toThrow(
+      'customLevelPriority: ключ "WARN" конфликтует со стандартным уровнем. Используйте другой ключ.',
+    );
+  });
+
+  it('выбрасывает ошибку при конфликте со стандартным уровнем ERROR', () => {
+    const input = {
+      ERROR: 0,
+      DEBUG: 1,
+    };
+    expect(() => validateCustomLevelPriority(input)).toThrow(
+      'customLevelPriority: ключ "ERROR" конфликтует со стандартным уровнем. Используйте другой ключ.',
+    );
+  });
+
+  it('выбрасывает ошибку при дубликате ключей (case-insensitive)', () => {
+    const input = {
+      DEBUG: 0,
+      debug: 1,
+    };
+    expect(() => validateCustomLevelPriority(input)).toThrow(
+      'customLevelPriority: обнаружен дубликат ключа "debug". Ключи должны быть уникальными.',
+    );
+  });
+
+  it('выбрасывает ошибку при дубликате ключей (разный регистр)', () => {
+    const input = {
+      Trace: 0,
+      TRACE: 1,
+    };
+    expect(() => validateCustomLevelPriority(input)).toThrow(
+      'customLevelPriority: обнаружен дубликат ключа "TRACE". Ключи должны быть уникальными.',
+    );
+  });
+
+  it('выбрасывает ошибку при невалидном значении (string)', () => {
+    const input = {
+      DEBUG: 'invalid' as unknown as number,
+    };
+    expect(() => validateCustomLevelPriority(input)).toThrow(
+      'customLevelPriority: значение для ключа "DEBUG" должно быть конечным числом, получено: string',
+    );
+  });
+
+  it('выбрасывает ошибку при невалидном значении (NaN)', () => {
+    const input = {
+      DEBUG: Number.NaN,
+    };
+    expect(() => validateCustomLevelPriority(input)).toThrow(
+      'customLevelPriority: значение для ключа "DEBUG" должно быть конечным числом, получено: number',
+    );
+  });
+
+  it('выбрасывает ошибку при невалидном значении (Infinity)', () => {
+    const input = {
+      DEBUG: Number.POSITIVE_INFINITY,
+    };
+    expect(() => validateCustomLevelPriority(input)).toThrow(
+      'customLevelPriority: значение для ключа "DEBUG" должно быть конечным числом, получено: number',
+    );
+  });
+
+  it('выбрасывает ошибку при невалидном значении (-Infinity)', () => {
+    const input = {
+      DEBUG: Number.NEGATIVE_INFINITY,
+    };
+    expect(() => validateCustomLevelPriority(input)).toThrow(
+      'customLevelPriority: значение для ключа "DEBUG" должно быть конечным числом, получено: number',
+    );
+  });
+
+  it('принимает отрицательные числа', () => {
+    const input = {
+      TRACE: -1,
+      DEBUG: -10,
+    };
+    const result = validateCustomLevelPriority(input);
+    expect(result).toEqual(input);
+  });
+
+  it('принимает нулевое значение', () => {
+    const input = {
+      DEBUG: 0,
+    };
+    const result = validateCustomLevelPriority(input);
+    expect(result).toEqual(input);
+  });
+
+  it('принимает большие числа', () => {
+    const input = {
+      FATAL: 1000,
+      CRITICAL: 9999,
+    };
+    const result = validateCustomLevelPriority(input);
+    expect(result).toEqual(input);
+  });
+
+  it('принимает дробные числа', () => {
+    const input = {
+      DEBUG: 0.5,
+      TRACE: -0.1,
+    };
+    const result = validateCustomLevelPriority(input);
+    expect(result).toEqual(input);
+  });
+
+  it('возвращает тот же объект (не создает копию)', () => {
+    const input = {
+      DEBUG: 0,
+      TRACE: -1,
+    };
+    const result = validateCustomLevelPriority(input);
+    expect(result).toBe(input);
   });
 });

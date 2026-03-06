@@ -116,7 +116,7 @@
 
 ## 2️⃣ Telemetry
 
-### 2.0 `types/telemetry.ts` → `core-contracts/domain/telemetry.ts`
+### 2.0 `types/telemetry.ts` → `core-contracts/domain/telemetry.ts` ✅ **ВЫПОЛНЕНО**
 
 **Порядок:** Типы → адаптация зависимостей → валидация → тесты
 
@@ -124,7 +124,7 @@
 
 - ✅ Перенести типы телеметрии в `packages/core-contracts/src/domain/telemetry.ts`
 - ✅ Убрать зависимость от `UiMetrics` (app-специфичный тип), оставить только фундаментальные типы
-- ✅ `UiTelemetryMetrics` → удалить или сделать опциональным расширением в app
+- ✅ `UiTelemetryMetrics` → временно оставлен в app для сборки, после полного переключения импортов будет заменен на `UiMetrics` и удален алиас
 
 **Файлы:**
 
@@ -141,27 +141,28 @@
 
 **Миграция импорта:**
 
-- `app/src/types/telemetry.ts` → переместить в `core-contracts/src/domain/telemetry.ts`
-- Удалить `import type { UiMetrics } from './ui-contracts.js'` и `export type UiTelemetryMetrics = UiMetrics`
-- Если `UiTelemetryMetrics` нужен в app → создать `app/src/types/telemetry-extensions.ts` (опциональное расширение)
-- Обновить все импорты: `grep -r "from.*types/telemetry" packages/app/src` → заменить на `@livai/core-contracts/domain/telemetry`
-- Валидация: `pnpm run type-check && pnpm run check:exports && pnpm run lint:canary`
+- ✅ `app/src/types/telemetry.ts` → скопирован в `core-contracts/src/domain/telemetry.ts` (исходник оставлен для совместимости)
+- ✅ Удален `import type { UiMetrics } from './ui-contracts.js'` и `export type UiTelemetryMetrics = UiMetrics` из нового файла
+- ✅ Обновлены все импорты в `app/src/lib/*.ts`, `app/src/providers/*.tsx` на `@livai/core-contracts` (импорт из корня)
+- ✅ Обновлен реэкспорт в `app/src/types/index.ts` (типы из `@livai/core-contracts`, `UiTelemetryMetrics` временно из локального файла)
+- ✅ Валидация: `pnpm run type-check && pnpm run check:exports && pnpm run lint:canary` — пройдена
 
 **Тесты:**
 
-- `app/tests/unit/types/telemetry.test.ts` → переместить в `core-contracts/tests/domain/telemetry.test.ts`
-- Обновить импорты в тестах
+- ✅ `app/tests/unit/types/telemetry.test.ts` → скопирован в `core-contracts/tests/unit/domain/telemetry.test.ts` (исходник оставлен для совместимости)
+- ✅ Обновлены импорты в тестах (используется прямой импорт из `../../../src/domain/telemetry.js` для тестов внутри core-contracts)
+- ✅ Удален тест для `UiTelemetryMetrics` (тип больше не экспортируется из core-contracts)
 
 **Экспорты:**
 
-- Добавить в `core-contracts/src/index.ts`: `export * from './domain/telemetry.js'`
-- Проверить tree-shaking: убедиться, что типы экспортируются корректно
+- ✅ Добавлено в `core-contracts/src/domain/index.ts`: `export * from './telemetry.js'` (через domain/index.ts)
+- ✅ Проверено tree-shaking: типы экспортируются корректно через `@livai/core-contracts`
 
-**Обновление:** Перенесены типы телеметрии в `@livai/core-contracts/domain/telemetry`. Удалена зависимость от `UiMetrics`. Обновлены импорты в `telemetry.ts`, `telemetry.batch-core.ts`, `telemetry-runtime.ts`, `logger.ts` и тестах.
+**Обновление:** Перенесены типы телеметрии в `@livai/core-contracts/src/domain/telemetry.ts`. Удалена зависимость от `UiMetrics`. Обновлены импорты в `telemetry.ts`, `telemetry.batch-core.ts`, `telemetry-runtime.ts`, `logger.ts`, `TelemetryProvider.tsx`, `UnifiedUIProvider.tsx` и тестах. Все типы теперь импортируются из `@livai/core-contracts` (из корня). `UiTelemetryMetrics` временно оставлен в app для совместимости, будет удален после полного переключения импортов.
 
 ---
 
-### 2.1 `telemetry.batch-core.ts` → `core/telemetry/batch-core.ts`
+### 2.1 `telemetry.batch-core.ts` → `core/telemetry/batch-core.ts` ✅ **ВЫПОЛНЕНО**
 
 **Порядок:** Перенос → адаптация зависимостей → валидация → тесты
 
@@ -172,44 +173,43 @@
 
 **Файлы:**
 
-- `packages/app/src/lib/telemetry.batch-core.ts` → `packages/core/src/telemetry/batch-core.ts`
+- ✅ `packages/app/src/lib/telemetry.batch-core.ts` → `packages/core/src/telemetry/batch-core.ts` (удален из app)
 
 **Причина:** Чистое ядро без side-effects, переиспользуемо в backend и других фронтах.
 
 **Зависимости:**
 
-- Текущий файл: импортирует только типы из `../types/telemetry.js` (TelemetryBatchCoreConfig, TelemetryEvent, etc.)
-- **Типы телеметрии (`app/src/types/telemetry.ts`) → нужно перенести в `core-contracts/src/domain/telemetry.ts`** (используются в core-модулях)
-- Нет runtime/React/DOM зависимостей → чистое ядро, безопасно переносить
-- Используется в: `app/src/lib/telemetry.ts` (TelemetryClient использует batch-core)
-- Влияние: `telemetry.ts` должен импортировать из `@livai/core/telemetry` после переноса
+- ✅ Текущий файл: импортирует только типы из `@livai/core-contracts` (TelemetryBatchCoreConfig, TelemetryEvent, etc.)
+- ✅ Типы телеметрии перенесены в `core-contracts/src/domain/telemetry.ts`
+- ✅ Нет runtime/React/DOM зависимостей → чистое ядро, безопасно переносить
+- ✅ Используется в: `core/src/telemetry/client.ts` (TelemetryClient использует batch-core)
+- ✅ Влияние: все импорты обновлены на `@livai/core/telemetry`
 
 **Миграция импорта:**
 
-- `app/src/types/telemetry.ts` → перенести в `core-contracts/src/domain/telemetry.ts` (убрать зависимость от `UiMetrics`, оставить только `UiTelemetryMetrics` как опциональный алиас или удалить)
-- `app/src/lib/telemetry.batch-core.ts` → переместить в `core/src/telemetry/batch-core.ts`, обновить импорт типов на `@livai/core-contracts/domain/telemetry`
-- `app/src/lib/telemetry.ts` → заменить `import { ... } from './telemetry.batch-core.js'` на `import { ... } from '@livai/core/telemetry/batch-core'`, обновить импорт типов
-- Проверить: `grep -r "telemetry.batch-core" packages/app/src` → обновить все вхождения
-- Проверить: `grep -r "from.*types/telemetry" packages/app/src` → обновить все вхождения на `@livai/core-contracts/domain/telemetry`
-- Валидация: `pnpm run type-check && pnpm run check:exports && pnpm run lint:canary`
+- ✅ `app/src/types/telemetry.ts` → удален, типы в `core-contracts/src/domain/telemetry.ts`
+- ✅ `app/src/lib/telemetry.batch-core.ts` → перемещен в `core/src/telemetry/batch-core.ts`, обновлен импорт типов на `@livai/core-contracts`
+- ✅ `core/src/telemetry/client.ts` → использует `import { ... } from './batch-core.js'`
+- ✅ Проверено: все вхождения `telemetry.batch-core` обновлены
+- ✅ Проверено: все вхождения `from.*types/telemetry` обновлены на `@livai/core-contracts`
+- ✅ Валидация: `pnpm run type-check && pnpm run check:exports && pnpm run lint:canary` — пройдена
 
 **Тесты:**
 
-- `app/tests/unit/lib/telemetry.batch-core.test.ts` → переместить в `core/tests/telemetry/batch-core.test.ts`
-- Обновить импорты в тестах: `import { ... } from '@livai/core/telemetry/batch-core'`
+- ✅ `app/tests/unit/lib/telemetry.batch-core.test.ts` → перемещен в `core/tests/telemetry/batch-core.test.ts`
+- ✅ Обновлены импорты в тестах: `import { ... } from '@livai/core/telemetry/batch-core'`
 
 **Экспорты:**
 
-- Добавить в `core-contracts/src/index.ts`: `export * from './domain/telemetry.js'` (типы)
-- Добавить в `core/src/telemetry/index.ts`: `export * from './batch-core.js'`
-- Добавить в `core/src/index.ts`: `export * as telemetry from './telemetry/index.js'` (или точечные экспорты)
-- Проверить tree-shaking: убедиться, что не экспортируются неиспользуемые функции
+- ✅ Добавлено в `core-contracts/src/domain/index.ts`: `export * from './telemetry.js'` (типы)
+- ✅ Добавлено в `core/src/telemetry/index.ts`: `export * from './batch-core.js'`
+- ✅ Проверено tree-shaking: функции экспортируются корректно через `@livai/core/telemetry`
 
-**Обновление:** Перенесены типы телеметрии в `@livai/core-contracts/domain/telemetry`, `telemetry.batch-core.ts` в `@livai/core/telemetry/batch-core`. Обновлены импорты в `telemetry.ts` и тестах.
+**Обновление:** Перенесены типы телеметрии в `@livai/core-contracts/domain/telemetry`, `telemetry.batch-core.ts` в `@livai/core/telemetry/batch-core`. Обновлены импорты в `client.ts` и тестах. Удалены старые файлы из app.
 
 ---
 
-### 2.2 `telemetry.ts` → `core/telemetry/client.ts`
+### 2.2 `telemetry.ts` → `core/telemetry/client.ts` ✅ **ВЫПОЛНЕНО**
 
 **Порядок:** Перенос → адаптация зависимостей → валидация → тесты
 
@@ -217,86 +217,89 @@
 
 - ✅ Перенести `TelemetryClient` в `packages/core/src/telemetry/client.ts`
 - ✅ Оставить очередь/ретраи/дросселинг в core
+- ✅ Выделить `sanitization.ts` и `sinks.ts` для разделения ответственности (SRP)
 
 **Файлы:**
 
-- `packages/app/src/lib/telemetry.ts` → `packages/core/src/telemetry/client.ts`
+- ✅ `packages/app/src/lib/telemetry.ts` → `packages/core/src/telemetry/client.ts` (удален из app)
+- ✅ Создан `packages/core/src/telemetry/sanitization.ts` (PII detection & metadata sanitization)
+- ✅ Создан `packages/core/src/telemetry/sinks.ts` (sink factories и retry логика)
 
 **Причина:** Инфраструктурная подсистема для всех сервисов, не привязана к конкретному runtime.
 
 **Зависимости:**
 
-- Текущий файл: импортирует типы из `../types/telemetry.js`, использует `setTimeout` для retry (runtime, но не React/DOM)
-- **Типы телеметрии (`app/src/types/telemetry.ts`) → нужно перенести в `core-contracts/src/domain/telemetry.ts`** (используются в core-модулях)
-- Есть mutable state (eventQueue, throttleMap) → но это допустимо для инфраструктурного слоя
-- Используется в: `app/src/lib/telemetry-runtime.ts`, `app/src/providers/TelemetryProvider.tsx`
-- Влияние: `telemetry-runtime.ts` должен импортировать из `@livai/core/telemetry` после переноса
+- ✅ Текущий файл: импортирует типы из `@livai/core-contracts`, использует `setTimeout` для retry (runtime, но не React/DOM)
+- ✅ Типы телеметрии перенесены в `core-contracts/src/domain/telemetry.ts`
+- ✅ Есть mutable state (eventQueue, throttleMap) → допустимо для инфраструктурного слоя
+- ✅ Используется в: `app/src/lib/telemetry-runtime.ts`, `app/src/providers/TelemetryProvider.tsx`
+- ✅ Влияние: `telemetry-runtime.ts` импортирует из `@livai/core/telemetry`
 
 **Миграция импорта:**
 
-- `app/src/types/telemetry.ts` → перенести в `core-contracts/src/domain/telemetry.ts` (убрать зависимость от `UiMetrics`, оставить только `UiTelemetryMetrics` как опциональный алиас или удалить)
-- `app/src/lib/telemetry.ts` → переместить в `core/src/telemetry/client.ts`, обновить импорт типов на `@livai/core-contracts/domain/telemetry`
-- `app/src/lib/telemetry.batch-core.ts` → обновить импорт типов на `@livai/core-contracts/domain/telemetry`
-- `app/src/lib/telemetry-runtime.ts` → заменить `import { TelemetryClient, ... } from './telemetry.js'` на `import { TelemetryClient, ... } from '@livai/core/telemetry/client'`, обновить импорт типов
-- `app/src/providers/TelemetryProvider.tsx` → обновить импорты
-- `app/src/lib/logger.ts` → обновить импорт типов на `@livai/core-contracts/domain/telemetry`
-- Проверить: `grep -r "from.*types/telemetry" packages/app/src` → обновить все вхождения на `@livai/core-contracts/domain/telemetry`
-- Проверить: `grep -r "from.*lib/telemetry" packages/app/src` → обновить все вхождения (кроме `telemetry-runtime.ts`)
-- Валидация: `pnpm run type-check && pnpm run check:exports && pnpm run lint:canary`
+- ✅ `app/src/types/telemetry.ts` → удален, типы в `core-contracts/src/domain/telemetry.ts`
+- ✅ `app/src/lib/telemetry.ts` → перемещен в `core/src/telemetry/client.ts`, обновлен импорт типов на `@livai/core-contracts`
+- ✅ `app/src/lib/telemetry-runtime.ts` → заменен `import { TelemetryClient, ... } from './telemetry.js'` на `import { TelemetryClient, ... } from '@livai/core/telemetry'`
+- ✅ `app/src/providers/TelemetryProvider.tsx` → обновлены импорты на `@livai/core/telemetry`
+- ✅ `app/src/lib/logger.ts` → обновлен импорт типов на `@livai/core-contracts`
+- ✅ Проверено: все вхождения `from.*types/telemetry` обновлены на `@livai/core-contracts`
+- ✅ Проверено: все вхождения `from.*lib/telemetry` обновлены (кроме `telemetry-runtime.ts`)
+- ✅ Валидация: `pnpm run type-check && pnpm run check:exports && pnpm run lint:canary` — пройдена
 
 **Тесты:**
 
-- `app/tests/unit/lib/telemetry.test.ts` → переместить в `core/tests/telemetry/client.test.ts`
-- Обновить импорты в тестах: `import { TelemetryClient, ... } from '@livai/core/telemetry/client'`
+- ✅ `app/tests/unit/lib/telemetry.test.ts` → перемещен в `core/tests/telemetry/client.test.ts`
+- ✅ Обновлены импорты в тестах: `import { TelemetryClient, ... } from '@livai/core/telemetry'`
 
 **Экспорты:**
 
-- Добавить в `core-contracts/src/index.ts`: `export * from './domain/telemetry.js'` (типы)
-- Добавить в `core/src/telemetry/index.ts`: `export * from './client.js'`
-- Обновить `core/src/index.ts`: добавить экспорты telemetry
-- Проверить tree-shaking: убедиться, что `TelemetryClient` и утилиты экспортируются корректно
+- ✅ Добавлено в `core-contracts/src/domain/index.ts`: `export * from './telemetry.js'` (типы)
+- ✅ Добавлено в `core/src/telemetry/index.ts`: `export { TelemetryClient } from './client.js'` и экспорты из `sinks.ts`
+- ✅ Проверено tree-shaking: `TelemetryClient` и утилиты экспортируются корректно через `@livai/core/telemetry`
 
-**Обновление:** Перенесены типы телеметрии в `@livai/core-contracts/domain/telemetry`, `TelemetryClient` в `@livai/core/telemetry/client`. Обновлены импорты в `telemetry-runtime.ts`, `telemetry.batch-core.ts`, `logger.ts`, `TelemetryProvider.tsx` и тестах.
+**Обновление:** Перенесены типы телеметрии в `@livai/core-contracts/domain/telemetry`, `TelemetryClient` в `@livai/core/telemetry/client`. Выделены модули `sanitization.ts` и `sinks.ts` для разделения ответственности (SRP). Обновлены импорты в `telemetry-runtime.ts`, `logger.ts`, `TelemetryProvider.tsx` и тестах. Удалены старые файлы из app. Удалены легаси-экспорты из `app/src/lib/index.ts` и `app/src/index.ts`.
 
 ---
 
-### 2.3 `telemetry-runtime.ts` → оставить в app
+### 2.3 `telemetry-runtime.ts` → оставить в app ✅ **ВЫПОЛНЕНО**
 
 **Порядок:** Обновление импортов → валидация
 
 **Действия:**
 
 - ✅ Оставить в `packages/app/src/lib/telemetry-runtime.ts`
-- ✅ Если есть runtime/React обвязка — остается в app
+- ✅ Обновить импорты на новые пути из `@livai/core/telemetry` и `@livai/core-contracts`
 
 **Файлы:**
 
-- `packages/app/src/lib/telemetry-runtime.ts` (без изменений)
+- ✅ `packages/app/src/lib/telemetry-runtime.ts` (обновлены импорты)
 
 **Причина:** Runtime singleton логика специфична для app-слоя.
 
 **Зависимости:**
 
-- Текущий файл: использует `TelemetryClient` из `./telemetry.js` (после миграции → `@livai/core/telemetry/client`)
-- Есть runtime singleton логика (глобальный клиент) → специфично для app
-- Используется в: `app/src/lib/*.ts` (offline-cache, sse-client, websocket, performance, api-schema-guard), `app/src/providers/TelemetryProvider.tsx`
+- ✅ Текущий файл: использует `TelemetryClient` из `@livai/core/telemetry`
+- ✅ Есть runtime singleton логика (глобальный клиент) → специфично для app
+- ✅ Используется в: `app/src/lib/*.ts` (offline-cache, sse-client, websocket, performance, api-schema-guard), `app/src/providers/TelemetryProvider.tsx`
 
 **Миграция импорта:**
 
-- Обновить импорт `TelemetryClient`: `import { TelemetryClient } from '@livai/core/telemetry/client'`
-- Остальные импорты остаются без изменений
-- Валидация: `pnpm run type-check && pnpm run check:exports && pnpm run lint:canary`
+- ✅ Обновлен импорт `TelemetryClient`: `import { TelemetryClient } from '@livai/core/telemetry'`
+- ✅ Обновлены импорты типов: `import type { ... } from '@livai/core-contracts'`
+- ✅ Остальные импорты остаются без изменений
+- ✅ Валидация: `pnpm run type-check && pnpm run check:exports && pnpm run lint:canary` — пройдена
 
 **Тесты:**
 
-- `app/tests/unit/lib/telemetry-runtime.test.ts` → обновить импорт `TelemetryClient` на `@livai/core/telemetry/client`
-- Остальные тесты остаются без изменений
+- ✅ `app/tests/unit/lib/telemetry-runtime.test.ts` → восстановлен из коммита ea76668f, обновлен импорт `TelemetryClient` на `@livai/core/telemetry`
+- ✅ Обновлены импорты типов на `@livai/core-contracts`
+- ✅ Остальные тесты остаются без изменений
 
 **Экспорты:**
 
-- Без изменений (файл остается в app)
+- ✅ Без изменений (файл остается в app, экспортируется через `app/src/lib/index.ts`)
 
-**Обновление:** Обновлен импорт `TelemetryClient` в `telemetry-runtime.ts` на `@livai/core/telemetry/client`. Runtime singleton остается в app.
+**Обновление:** Обновлен импорт `TelemetryClient` в `telemetry-runtime.ts` на `@livai/core/telemetry`. Обновлены импорты типов на `@livai/core-contracts`. Runtime singleton остается в app. Восстановлен тест из коммита ea76668f с обновленными импортами. Удалены легаси-экспорты телеметрии из `app/src/lib/index.ts` и `app/src/index.ts` — все функции из core должны импортироваться напрямую из `@livai/core/telemetry`.
 
 ---
 

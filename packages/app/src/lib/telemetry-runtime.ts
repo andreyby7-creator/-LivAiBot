@@ -21,13 +21,13 @@
  * - Fire-and-forget: `infoFireAndForget()`, `warnFireAndForget()`, `errorFireAndForget()`
  */
 
-import { TelemetryClient } from '../lib/telemetry.js';
+import { TelemetryClient } from '@livai/core/telemetry';
 import type {
   BatchConfig,
   TelemetryConfig,
   TelemetryLevel,
   TelemetryMetadata,
-} from '../types/telemetry.js';
+} from '@livai/core-contracts';
 
 /* ============================================================================
  * 🔧 INTERNAL LOGGER (SAFE, NO CONSOLE LEAKS)

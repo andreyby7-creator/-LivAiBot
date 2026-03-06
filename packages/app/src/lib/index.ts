@@ -44,10 +44,6 @@ export {
 } from './api-schema-guard.js';
 
 /* ============================================================================
- * 🔐 AUTH SERVICE — СЕРВИС АУТЕНТИФИКАЦИИ
- * ========================================================================== */
-
-/* ============================================================================
  * 🛡️ AUTH GUARD — ЗАЩИТА ДОСТУПА
  * ========================================================================== */
 
@@ -118,37 +114,6 @@ export {
 } from './offline-cache.js';
 
 /* ============================================================================
- * ⚡ EFFECT UTILS — УТИЛИТЫ ДЛЯ EFFECT
- * ========================================================================== */
-/**
- * ВАЖНО: Effect утилиты (effect-utils, effect-timeout, orchestrator,
- * schema-validated-effect, error-mapping, validation) перемещены в @livai/core/effect.
- * Импортируйте их напрямую: import { ... } from '@livai/core/effect';
- * @public
- */
-
-/* ============================================================================
- * 📊 TELEMETRY — ТЕЛЕМЕТРИЯ
- * ========================================================================== */
-
-/**
- * Telemetry: система телеметрии для мониторинга и логирования.
- * @public
- */
-export {
-  type ConsoleSinkFormatter,
-  createConsoleSink,
-  createExternalSink,
-  createExternalSinkSafe,
-  type ExternalSdk,
-  getGlobalClientForDebug,
-  isValidTelemetrySink,
-  levelPriority,
-  TelemetryClient,
-  telemetryLevels,
-} from './telemetry.js';
-
-/* ============================================================================
  * 📡 TELEMETRY RUNTIME — РАНТАЙМ ТЕЛЕМЕТРИИ
  * ========================================================================== */
 
@@ -169,25 +134,6 @@ export {
   setGlobalClientForDebug,
   warnFireAndForget,
 } from './telemetry-runtime.js';
-
-/* ============================================================================
- * 📦 TELEMETRY BATCH CORE — БАТЧИНГ ТЕЛЕМЕТРИИ
- * ========================================================================== */
-
-/**
- * Telemetry Batch Core: батчинг событий телеметрии для оптимизации.
- * @public
- */
-export {
-  addEventToBatchCore,
-  createInitialBatchCoreState,
-  defaultBatchCoreConfig,
-  flushBatchCore,
-  shouldFlushBatchCore,
-  telemetryBatchCore,
-  type TelemetryBatchCoreConfigExtended,
-  type TransformEventHook,
-} from './telemetry.batch-core.js';
 
 /* ============================================================================
  * 🚩 FEATURE FLAGS — ФЛАГИ ФУНКЦИЙ

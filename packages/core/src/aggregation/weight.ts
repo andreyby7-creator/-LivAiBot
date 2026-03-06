@@ -218,7 +218,6 @@ function validateWeights(
  * IEEE-754 MIN_NORMAL: порог для subnormal чисел (кросс-языковая воспроизводимость)
  * @internal
  */
-// eslint-disable-next-line @typescript-eslint/naming-convention -- IEEE-754 стандартное имя константы
 const IEEE754_MIN_NORMAL = 2.2250738585072014e-308;
 
 /**

@@ -33,8 +33,9 @@
  * - Синхронная обработка для лучшей производительности
  */
 
+import type { TelemetryMetadata, TelemetryPrimitive } from '@livai/core-contracts';
+
 import type { JsonValue, Loggable } from '../types/common.js';
-import type { TelemetryMetadata, TelemetryPrimitive } from '../types/telemetry.js';
 import { errorFireAndForget, infoFireAndForget, warnFireAndForget } from './telemetry-runtime.js';
 
 /* ============================================================================
