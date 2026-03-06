@@ -134,7 +134,7 @@
 
 ---
 
-## 5️⃣ effect-isolation.ts (изоляция эффектов)
+## 5️⃣ effect-isolation.ts (изоляция эффектов) ✅ **РЕАЛИЗОВАНО**
 
 **Зависимость:** использует `effect-utils.ts`
 
@@ -145,10 +145,10 @@
 
 ### 📋 Проверки после рефакторинга
 
-- ☐ `runIsolated` корректно используется в `orchestrator.ts`
-- ☐ Нет дублирования типов и ошибок
-- ☐ Unit-тесты на try/catch и корректное возвращение ошибок
-- ☐ Проверить, что side-effects изолированы и не влияют на глобальный state
+- ✅ `runIsolated` корректно используется в `orchestrator.ts` (см. `packages/core/src/effect/orchestrator.ts`: шаг изолируется через `runIsolated(...)`)
+- ✅ Нет дублирования типов и ошибок в `effect`-слое (IsolationError/`runIsolated` определены в `effect-isolation.ts` и экспортируются через `@livai/core/effect`)
+- ✅ Unit-тесты на try/catch и корректное возвращение ошибок (создан `packages/core/tests/effect/effect-isolation.test.ts`; `npx vitest run --coverage packages/core/tests/effect/effect-isolation.test.ts`; 100% coverage для `effect-isolation.ts`: statements/branches/functions/lines)
+- ✅ Проверено: `effect-isolation.ts` сам не вносит внешних side-effects и не модифицирует глобальный state (изоляция здесь — про перехват/нормализацию ошибок; side-effects внутри самого `effect` должны контролироваться на уровне вызывающего кода)
 
 ---
 

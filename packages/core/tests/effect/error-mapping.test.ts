@@ -12,7 +12,12 @@ import type {
   ServicePrefix,
   ValidationErrorLike,
 } from '../../src/effect/error-mapping.js';
-import { chainMappers, createDomainError, mapError, mapErrorBoundaryError } from '../../src/effect/error-mapping.js';
+import {
+  chainMappers,
+  createDomainError,
+  mapError,
+  mapErrorBoundaryError,
+} from '../../src/effect/error-mapping.js';
 
 const BASE_CONFIG: MapErrorConfig = { locale: 'en', timestamp: 123_456_789 };
 const RU_CONFIG: MapErrorConfig = { locale: 'ru', timestamp: 123_456_789 };
@@ -69,12 +74,22 @@ describe('effect/error-mapping', () => {
       ] as const satisfies readonly ServiceErrorCode[];
 
       codesToCover.forEach((code) => {
-        const mappedEn = mapError({ code, service: 'SYSTEM' } as const, undefined, BASE_CONFIG, undefined);
+        const mappedEn = mapError(
+          { code, service: 'SYSTEM' } as const,
+          undefined,
+          BASE_CONFIG,
+          undefined,
+        );
         expect(mappedEn.code).toBe(code);
         expect(typeof mappedEn.message).toBe('string');
         expect(mappedEn.message.length).toBeGreaterThan(0);
 
-        const mappedRu = mapError({ code, service: 'SYSTEM' } as const, undefined, RU_CONFIG, undefined);
+        const mappedRu = mapError(
+          { code, service: 'SYSTEM' } as const,
+          undefined,
+          RU_CONFIG,
+          undefined,
+        );
         expect(mappedRu.code).toBe(code);
         expect(typeof mappedRu.message).toBe('string');
         expect(mappedRu.message.length).toBeGreaterThan(0);
@@ -122,7 +137,7 @@ describe('effect/error-mapping', () => {
       expect(mapped.message).toBe('Unknown error');
     });
 
-    it('если kind начинается с / (пустой префикс), service не определяется (getServiceFromKind: kindParts[0] === \"\")', () => {
+    it('если kind начинается с / (пустой префикс), service не определяется (getServiceFromKind: kindParts[0] === "")', () => {
       const effectLike = { kind: '/no-prefix' };
       const mapped = mapError(effectLike, undefined, BASE_CONFIG, undefined);
       expect(mapped.code).toBe('SYSTEM_UNKNOWN_ERROR');
@@ -153,7 +168,7 @@ describe('effect/error-mapping', () => {
 
   describe('mapErrorBoundaryError', () => {
     it('определяет NETWORK_ERROR по структурному type (не по тексту) и строит UnknownError + telemetry', () => {
-      const e = new Error('validation failed') as Error & { type?: string };
+      const e = new Error('validation failed') as Error & { type?: string; };
       // eslint-disable-next-line fp/no-mutation
       e.type = 'NetworkError';
 
@@ -182,13 +197,22 @@ describe('effect/error-mapping', () => {
     });
 
     it('делает fallback на message: fetch/network → NETWORK_ERROR; validation → VALIDATION_ERROR; иначе UNKNOWN_ERROR', () => {
-      expect(mapErrorBoundaryError(new Error('fetch failed'), { timestamp: ISO_TS as never }).telemetryData.mappedErrorCode)
+      expect(
+        mapErrorBoundaryError(new Error('fetch failed'), { timestamp: ISO_TS as never })
+          .telemetryData.mappedErrorCode,
+      )
         .toBe('NETWORK_ERROR');
 
-      expect(mapErrorBoundaryError(new Error('Validation: bad input'), { timestamp: ISO_TS as never }).telemetryData.mappedErrorCode)
+      expect(
+        mapErrorBoundaryError(new Error('Validation: bad input'), { timestamp: ISO_TS as never })
+          .telemetryData.mappedErrorCode,
+      )
         .toBe('VALIDATION_ERROR');
 
-      expect(mapErrorBoundaryError(new Error('something else'), { timestamp: ISO_TS as never }).telemetryData.mappedErrorCode)
+      expect(
+        mapErrorBoundaryError(new Error('something else'), { timestamp: ISO_TS as never })
+          .telemetryData.mappedErrorCode,
+      )
         .toBe('UNKNOWN_ERROR');
     });
   });
@@ -218,7 +242,12 @@ describe('effect/error-mapping', () => {
       expect(domainErrFallback.service).toBe('SYSTEM');
       expect(domainErrFallback.message).toBe('Response schema validation failed');
 
-      const domainErrOverride = createDomainError(empty, BASE_CONFIG, 'SYSTEM_UNKNOWN_ERROR', 'AUTH');
+      const domainErrOverride = createDomainError(
+        empty,
+        BASE_CONFIG,
+        'SYSTEM_UNKNOWN_ERROR',
+        'AUTH',
+      );
       expect(domainErrOverride.code).toBe('SYSTEM_UNKNOWN_ERROR');
       expect(domainErrOverride.service).toBe('AUTH');
       expect(domainErrOverride.message).toBe('Unknown error');
@@ -241,7 +270,7 @@ describe('effect/error-mapping', () => {
     it('если ранние мапперы возвращают UNKNOWN, берет первый non-UNKNOWN дальше по цепочке', () => {
       const m1 = vi.fn(() => mkMappedError('SYSTEM_UNKNOWN_ERROR'));
       const m2 = vi.fn((_err: unknown, details: unknown) =>
-        mkMappedError('BILLING_INSUFFICIENT_FUNDS', { service: 'BILLING', details }),
+        mkMappedError('BILLING_INSUFFICIENT_FUNDS', { service: 'BILLING', details })
       );
 
       const chained = chainMappers(m1, m2);
@@ -272,4 +301,3 @@ describe('effect/error-mapping', () => {
     });
   });
 });
-

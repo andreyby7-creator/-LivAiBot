@@ -1,15 +1,17 @@
 /**
- * @file packages/app/src/lib/effect-isolation.ts
+ * @file packages/core/src/effect/effect-isolation.ts
  * ============================================================================
  * 🛡️ EFFECT ISOLATION — ИЗОЛЯЦИЯ ОШИБОК И ПРЕДОТВРАЩЕНИЕ CASCADING FAILURES
  * ============================================================================
- * Минимальный, чистый boundary-модуль для изоляции ошибок и предотвращения
- * cascading failures в multi-agent orchestration.
+ *
+ * Минимальный, чистый boundary-модуль для изоляции ошибок (исключений) эффекта
+ * и снижения риска cascading failures в orchestration.
  * Архитектурная роль:
- * - Изолирует ошибки через try/catch boundary
- * - Предотвращает cascading failures
+ * - Изолирует ошибки через try/catch boundary → возвращает Result вместо throw
+ * - Помогает предотвращать cascading failures при корректной обработке Result на уровне orchestrator
  * - Обеспечивает типобезопасную обработку через Result<T, E>
  * - Безопасность для multi-agent orchestration
+ *
  * Принципы:
  * - Zero business logic
  * - Zero telemetry (telemetry → observability layer)
@@ -17,11 +19,18 @@
  * - Zero error mapping (error mapping → error-mapping layer)
  * - Zero fallback logic (fallback → business logic layer)
  * - Детерминированное поведение
- * - Полная изоляция ошибок
+ * - Изоляция runtime-ошибок эффекта (programmer errors в dev могут бросаться для раннего фейла)
+ * - Не является sandbox для side-effects: изоляция здесь — про error boundary, а не про запрет мутаций
  */
 
 import type { Effect, Result } from './effect-utils.js';
 import { fail, ok } from './effect-utils.js';
+
+/* eslint-disable functional/no-classes, fp/no-mutation, functional/no-this-expressions, fp/no-throw */
+// В этом модуле допустимы классы/мутации/this/throw, потому что:
+// - `IsolationError extends Error` нужен для корректного stack trace и `instanceof` (type-safe detection).
+// - мутации `this.*` неизбежны в конструкторе Error-класса.
+// - `throw TypeError` в dev — сознательный fail-fast для programmer errors (не для runtime ошибок эффекта).
 
 /* ============================================================================
  * 🧩 ТИПЫ
@@ -104,38 +113,16 @@ export function isIsolationError(error: unknown): error is IsolationError {
  *   console.error('Isolated error:', result.error);
  * }
  * ```
- *
- * @example
- * ```ts
- * // Chaining нескольких runIsolated для предотвращения cascading failures
- * // Если первый эффект падает, второй всё равно выполнится
- * const step1 = await runIsolated(async () => {
- *   return await fetchUserData();
- * }, { tag: 'step1' });
- * const step2 = await runIsolated(async () => {
- *   return await fetchUserPreferences();
- * }, { tag: 'step2' });
- * // Ошибка в step1 не влияет на step2 - это предотвращает cascading failure
- * // Оба результата можно обработать независимо
- * if (isOk(step1)) {
- *   console.log('User data:', step1.value);
- * }
- * if (isOk(step2)) {
- *   console.log('Preferences:', step2.value);
- * }
- * ```
  */
 export async function runIsolated<T>(
   effect: Effect<T>,
   options?: IsolationOptions,
 ): Promise<Result<T, IsolationError>> {
   // В development режиме проверяем тип effect для раннего обнаружения programmer errors
-  if (process.env['NODE_ENV'] === 'development') {
-    if (typeof effect !== 'function') {
-      throw new TypeError(
-        `[effect-isolation] runIsolated: effect must be a function, got ${typeof effect}`,
-      );
-    }
+  if (process.env['NODE_ENV'] === 'development' && typeof effect !== 'function') {
+    throw new TypeError(
+      `[effect-isolation] runIsolated: effect must be a function, got ${typeof effect}`,
+    );
   }
 
   const { tag } = options ?? {};
@@ -154,3 +141,5 @@ export async function runIsolated<T>(
     return fail(isolationError);
   }
 }
+
+/* eslint-enable functional/no-classes, fp/no-mutation, functional/no-this-expressions, fp/no-throw */
