@@ -38,8 +38,7 @@ import type { Effect, Result } from './effect-utils.js';
 import { isFail, isOk } from './effect-utils.js';
 
 /* eslint-disable ai-security/data-leakage */
-// Orchestrator предоставляет optional fire-and-forget telemetry hooks.
-// Здесь мы НЕ логируем user payloads/PII — только step label и числовые метрики (index/total).
+// В этом модуле telemetry-хуки передают только служебные метки шагов и счётчики, без пользовательских данных.
 
 /* ============================================================================
  * 🔭 OBSERVABILITY (OPTIONAL DI)
@@ -186,7 +185,9 @@ export function orchestrate<T extends readonly unknown[]>(
  * @remarks
  * В `@livai/core/effect` по умолчанию экспортируется no-op orchestrator через `orchestrate(...)`.
  */
-export function createOrchestrator(options?: Readonly<{ telemetry?: OrchestratorTelemetry }>): Readonly<{
+export function createOrchestrator(
+  options?: Readonly<{ telemetry?: OrchestratorTelemetry; }>,
+): Readonly<{
   orchestrate: typeof orchestrate;
   step: typeof step;
   stepWithPrevious: typeof stepWithPrevious;
@@ -196,67 +197,67 @@ export function createOrchestrator(options?: Readonly<{ telemetry?: Orchestrator
   const orchestrateImpl = <T extends readonly unknown[]>(
     steps: readonly [...{ [K in keyof T]: Step<T[K]>; }],
   ): Effect<T[number]> => {
-  if (steps.length === 0) {
-    return () => Promise.reject(new Error('[orchestrator] Cannot orchestrate empty steps array'));
-  }
+    if (steps.length === 0) {
+      return () => Promise.reject(new Error('[orchestrator] Cannot orchestrate empty steps array'));
+    }
 
-  return async (signal?: AbortSignal): Promise<T[number]> => {
-    const runStep = async (
-      previousResult: unknown,
-      currentStep: Step<unknown>,
-      stepIndex: number,
-    ): Promise<unknown> => {
-      const { label, effect, timeoutMs } = currentStep;
+    return async (signal?: AbortSignal): Promise<T[number]> => {
+      const runStep = async (
+        previousResult: unknown,
+        currentStep: Step<unknown>,
+        stepIndex: number,
+      ): Promise<unknown> => {
+        const { label, effect, timeoutMs } = currentStep;
 
-      // Создаем effect с доступом к результату предыдущего шага
-      const stepEffect: Effect<unknown> = async (stepSignal?: AbortSignal) => {
-        const effectiveSignal = stepSignal ?? signal;
-        return effect(effectiveSignal, previousResult);
+        // Создаем effect с доступом к результату предыдущего шага
+        const stepEffect: Effect<unknown> = async (stepSignal?: AbortSignal) => {
+          const effectiveSignal = stepSignal ?? signal;
+          return effect(effectiveSignal, previousResult);
+        };
+
+        // Применяем timeout, если указан
+        const effectWithTimeout = timeoutMs != null && timeoutMs > 0
+          ? withTimeout(stepEffect, { timeoutMs, tag: label })
+          : stepEffect;
+
+        // Изолируем шаг (единственное место isolation)
+        const stepResult = await runIsolated(effectWithTimeout, { tag: label });
+
+        if (isOk(stepResult)) {
+          telemetry.info?.('Step completed', {
+            stepIndex,
+            stepLabel: label,
+            totalSteps: steps.length,
+          });
+          return stepResult.value;
+        }
+
+        if (isFail(stepResult)) {
+          const error = stepResult.error;
+          telemetry.warn?.('Step failed', {
+            stepIndex,
+            stepLabel: label,
+            totalSteps: steps.length,
+            error: error instanceof Error
+              ? error.message
+              : String(error),
+          });
+          return Promise.reject(error);
+        }
+
+        // Теоретически недостижимо, но оставляем safety fallback
+        return Promise.reject(new Error('[orchestrator] Invalid Result state'));
       };
 
-      // Применяем timeout, если указан
-      const effectWithTimeout = timeoutMs != null && timeoutMs > 0
-        ? withTimeout(stepEffect, { timeoutMs, tag: label })
-        : stepEffect;
+      const initial: Promise<unknown> = Promise.resolve(undefined as unknown);
+      const chain = steps.reduce(
+        (prevPromise, currentStep, stepIndex) =>
+          prevPromise.then((prev) => runStep(prev, currentStep as Step<unknown>, stepIndex)),
+        initial,
+      );
 
-      // Изолируем шаг (единственное место isolation)
-      const stepResult = await runIsolated(effectWithTimeout, { tag: label });
-
-      if (isOk(stepResult)) {
-        telemetry.info?.('Step completed', {
-          stepIndex,
-          stepLabel: label,
-          totalSteps: steps.length,
-        });
-        return stepResult.value;
-      }
-
-      if (isFail(stepResult)) {
-        const error = stepResult.error;
-        telemetry.warn?.('Step failed', {
-          stepIndex,
-          stepLabel: label,
-          totalSteps: steps.length,
-          error: error instanceof Error
-            ? error.message
-            : String(error),
-        });
-        return Promise.reject(error);
-      }
-
-      // Теоретически недостижимо, но оставляем safety fallback
-      return Promise.reject(new Error('[orchestrator] Invalid Result state'));
+      return await chain as T[number];
     };
-
-    const initial: Promise<unknown> = Promise.resolve(undefined as unknown);
-    const chain = steps.reduce(
-      (prevPromise, currentStep, stepIndex) =>
-        prevPromise.then((prev) => runStep(prev, currentStep as Step<unknown>, stepIndex)),
-      initial,
-    );
-
-    return await chain as T[number];
-  };
   };
 
   return Object.freeze({

@@ -3,23 +3,25 @@
  * ============================================================================
  * ✅ SCHEMA VALIDATED EFFECT — ОБЯЗАТЕЛЬНАЯ ZOD ВАЛИДАЦИЯ РЕЗУЛЬТАТОВ EFFECT
  * ============================================================================
- * Минимальный, чистый boundary-модуль для обязательной Zod валидации результатов Effect.
+ *
+ * Минимальный, чистый boundary-модуль для обязательной Zod-валидации результатов Effect.
+ *
  * Архитектурная роль:
- * - Runtime валидация результатов Effect через Zod schema
- * - Защита от невалидных данных (runtime type safety)
- * - Унифицированная обработка ошибок через error-mapping
+ * - Runtime-валидация результатов Effect через Zod-подобную schema (`safeParse`)
+ * - Защита от невалидных данных (runtime type safety) на границе эффекта
+ * - Унифицированная обработка ошибок через error-mapping (`createDomainError`)
  * - Пробрасывание валидных результатов без изменений
+ *
  * Принципы:
  * - Zero business logic
- * - Zero telemetry (telemetry → observability layer)
+ * - Zero side-effect telemetry (telemetry → observability layer; допускается DI-hook без собственного логирования)
  * - Zero isolation (isolation → effect-isolation layer)
  * - Zero orchestration (orchestration → orchestrator)
- * - Только валидация и throw DomainError при fail
- * - Пробрасывает все ошибки от effect дальше
+ * - Только валидация и throw DomainError / SchemaValidationError при fail
+ * - Пробрасывает все ошибки от исходного effect дальше (не ловит и не маппит их)
  * ⚠️ Важно: НЕ делает isolation
- * - validatedEffect НЕ оборачивает в try/catch
- * - Только валидация и throw DomainError при fail
- * - Все ошибки от effect пробрасываются дальше
+ * - validatedEffect НЕ оборачивает effect в try/catch
+ * - Все ошибки от effect пробрасываются как есть, без скрытого маппинга
  * - Isolation только на уровне orchestrator (runIsolated)
  */
 
@@ -33,24 +35,49 @@ import { validationError } from './validation.js';
  * 🧩 ТИПЫ
  * ========================================================================== */
 
-/**
- * Опции для валидированного эффекта.
- */
+/** Опции для валидированного эффекта. */
 export interface ValidatedEffectOptions {
-  /** Опциональный mapper для преобразования ValidationError в DomainError */
+  /**
+   * Опциональный mapper для преобразования ValidationError[] в DomainError.
+   * По умолчанию используется `createDomainError` из `error-mapping.ts`.
+   */
   readonly errorMapper?: ((errors: readonly ValidationError[]) => MappedError<unknown>) | undefined;
 
-  /** Опциональный код ошибки для валидации (по умолчанию SYSTEM_VALIDATION_RESPONSE_SCHEMA_INVALID) */
+  /**
+   * Опциональный код ошибки для валидации.
+   * По умолчанию используется `SYSTEM_VALIDATION_RESPONSE_SCHEMA_INVALID` (продакшн-safe fallback).
+   */
   readonly errorCode?: ServiceErrorCode | undefined;
 
-  /** Опциональный сервис для ошибок валидации */
+  /**
+   * Опциональный сервис для ошибок валидации.
+   * По умолчанию используется `SYSTEM` (служебный namespace для технических ошибок валидации).
+   */
   readonly service?: ServicePrefix | undefined;
+
+  /**
+   * Опциональный hook для observability-слоя (метрики по валидации).
+   * На уровне core не делает логирования сам по себе.
+   */
+  readonly telemetry?: {
+    readonly onSuccess?: (info: {
+      readonly service?: ServicePrefix | undefined;
+      readonly errorCode?: ServiceErrorCode | undefined;
+    }) => void;
+    readonly onValidationError?: (info: {
+      readonly service?: ServicePrefix | undefined;
+      readonly errorCode?: ServiceErrorCode | undefined;
+      readonly errors: readonly ValidationError[];
+    }) => void;
+  } | undefined;
 }
 
 /**
  * Ошибка валидации схемы.
  * Бросается когда результат effect не проходит Zod валидацию.
  */
+/* eslint-disable functional/no-classes, fp/no-mutation, functional/no-this-expressions */
+// В этом boundary-классе ошибки допустимы класс/this/мутации для корректного Error API.
 export class SchemaValidationError extends Error {
   /** Mapped error для унифицированной обработки */
   readonly mappedError: MappedError<unknown>;
@@ -65,30 +92,15 @@ export class SchemaValidationError extends Error {
     this.validationErrors = validationErrors;
   }
 }
+/* eslint-enable functional/no-classes, fp/no-mutation, functional/no-this-expressions */
 
 /* ============================================================================
  * 🔧 УТИЛИТЫ
  * ========================================================================== */
 
-/**
- * Type guard для проверки, является ли ошибка SchemaValidationError.
- */
+/** Type guard для проверки, является ли ошибка SchemaValidationError. */
 export function isSchemaValidationError(error: unknown): error is SchemaValidationError {
   return error instanceof SchemaValidationError;
-}
-
-/**
- * Создает DomainError из ValidationError через error-mapping.
- * Используется для унифицированной обработки ошибок валидации.
- * @deprecated Используйте `createDomainError` из `error-mapping.ts` напрямую.
- * Эта функция оставлена для обратной совместимости.
- */
-export function createValidationError(
-  errors: readonly ValidationError[],
-  errorCode?: ServiceErrorCode | undefined,
-  service?: ServicePrefix | undefined,
-): MappedError<unknown> {
-  return createDomainError(errors, { locale: 'ru', timestamp: Date.now() }, errorCode, service);
 }
 
 /**
@@ -110,9 +122,7 @@ interface ValidationSchemaLike<T> {
   };
 }
 
-/**
- * Преобразует ошибки схемы в ValidationError массив.
- */
+/** Преобразует ошибки схемы в ValidationError массив. */
 function zodErrorsToValidationErrors(
   zodError: {
     issues: readonly {
@@ -152,50 +162,56 @@ function zodErrorsToValidationErrors(
  * @param schema - Zod schema для валидации результата
  * @param effect - Effect для выполнения и валидации
  * @param options - Опции валидации (опционально)
- * @returns Effect с валидированным результатом
- *
- * @example
- * ```ts
- * import { z } from 'zod';
- * import { validatedEffect } from './lib/schema-validated-effect';
- * const UserSchema = z.object({
- *   id: z.string(),
- *   email: z.string().email(),
- * });
- * const fetchUser = async () => {
- *   const response = await fetch('/api/user');
- *   return await response.json();
- * };
- * // Валидирует результат fetchUser через UserSchema
- * const validatedFetchUser = validatedEffect(UserSchema, fetchUser);
- * // Использование в orchestrator с isolation
- * const result = await runIsolated(validatedFetchUser, { tag: 'fetch-user' });
- * if (isOk(result)) {
- *   console.log('Valid user:', result.value); // Тип: { id: string; email: string; }
- * }
- * ```
+ * @returns Effect с валидированным результатом.
+ * Поддерживает как обычный `Effect<T>`, так и использование внутри `stepWithPrevious`
+ * (через типобезопасный generic `P` для previousResult).
  */
 export function validatedEffect<T>(
   schema: ValidationSchemaLike<T>,
   effect: Effect<unknown>,
   options?: ValidatedEffectOptions,
-): Effect<T> {
-  const { errorMapper, errorCode, service } = options ?? {};
+): Effect<T>;
 
-  return async (signal?: AbortSignal): Promise<T> => {
-    // Выполняем effect (пробрасываем все ошибки дальше, не глотаем)
-    const result = await effect(signal);
+export function validatedEffect<T, P>(
+  schema: ValidationSchemaLike<T>,
+  effect: (
+    signal?: AbortSignal,
+    previousResult?: P,
+  ) => Promise<unknown>,
+  options?: ValidatedEffectOptions,
+): (
+  signal?: AbortSignal,
+  previousResult?: P,
+) => Promise<T>;
 
-    // Валидируем результат через Zod schema
+export function validatedEffect<T, P>(
+  schema: ValidationSchemaLike<T>,
+  effect: (
+    signal?: AbortSignal,
+    previousResult?: P,
+  ) => Promise<unknown>,
+  options?: ValidatedEffectOptions,
+):
+  | Effect<T>
+  | ((
+    signal?: AbortSignal,
+    previousResult?: P,
+  ) => Promise<T>)
+{
+  const { errorMapper, errorCode, service, telemetry } = options ?? {};
+
+  const validateResult = (result: unknown): T => {
     const parseResult = schema.safeParse(result);
 
     // Если валидация прошла, пробрасываем результат без изменений
     if (parseResult.success) {
+      telemetry?.onSuccess?.({ service, errorCode });
       return parseResult.data;
     }
 
     // Если валидация не прошла, преобразуем Zod ошибки в ValidationError
     const validationErrors = zodErrorsToValidationErrors(parseResult.error, service);
+    telemetry?.onValidationError?.({ service, errorCode, errors: validationErrors });
 
     // Создаем DomainError через error-mapping (или используем кастомный mapper)
     const mappedError = errorMapper != null
@@ -207,7 +223,19 @@ export function validatedEffect<T>(
         service,
       );
 
-    // Бросаем SchemaValidationError для унифицированной обработки
+    // Бросаем SchemaValidationError как часть публичного API validatedEffect
+    // eslint-disable-next-line fp/no-throw
     throw new SchemaValidationError(mappedError, validationErrors);
   };
+
+  const wrapped = async (
+    signal?: AbortSignal,
+    previousResult?: P,
+  ): Promise<T> => {
+    // Выполняем effect (пробрасываем все ошибки дальше, не глотаем)
+    const result = await effect(signal, previousResult);
+    return validateResult(result);
+  };
+
+  return wrapped;
 }

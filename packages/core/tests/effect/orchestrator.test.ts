@@ -61,7 +61,9 @@ describe('effect/orchestrator', () => {
       return { ...actual, runIsolated };
     });
 
-    const { createOrchestrator, step, stepWithPrevious } = await import('../../src/effect/orchestrator.js');
+    const { createOrchestrator, step, stepWithPrevious } = await import(
+      '../../src/effect/orchestrator.js'
+    );
 
     const info = vi.fn();
     const warn = vi.fn();
@@ -72,7 +74,9 @@ describe('effect/orchestrator', () => {
     const s2 = stepWithPrevious('s2', async (_sig, prev) => `${String(prev)}b`);
     const s3 = step('s3', async () => 'ignored-timeout', 0); // timeoutMs=0 → no withTimeout
 
-    const effect = orch.orchestrate([s1, s2, s3] as unknown as readonly [Step<string>, Step<string>, Step<string>]);
+    const effect = orch.orchestrate(
+      [s1, s2, s3] as unknown as readonly [Step<string>, Step<string>, Step<string>],
+    );
     const result = await effect();
 
     // Последний шаг возвращает 'ignored-timeout'
@@ -106,7 +110,9 @@ describe('effect/orchestrator', () => {
     const warn = vi.fn();
     const orch = createOrchestrator({ telemetry: { warn } });
 
-    const effect = orch.orchestrate([step('s1', async () => 'x', 10)] as unknown as readonly [Step<string>]);
+    const effect = orch.orchestrate(
+      [step('s1', async () => 'x', 10)] as unknown as readonly [Step<string>],
+    );
 
     await expect(effect()).rejects.toBe(isolationError);
     expect(warn).toHaveBeenCalledTimes(1);
@@ -132,7 +138,9 @@ describe('effect/orchestrator', () => {
     const warn = vi.fn();
     const orch = createOrchestrator({ telemetry: { warn } });
 
-    const effect = orch.orchestrate([step('s1', async () => 'x')] as unknown as readonly [Step<string>]);
+    const effect = orch.orchestrate(
+      [step('s1', async () => 'x')] as unknown as readonly [Step<string>],
+    );
 
     await expect(effect()).rejects.toBe('boom');
     expect(warn).toHaveBeenCalledTimes(1);
@@ -168,9 +176,10 @@ describe('effect/orchestrator', () => {
 
     const { createOrchestrator, step } = await import('../../src/effect/orchestrator.js');
     const orch = createOrchestrator();
-    const eff = orch.orchestrate([step('s1', async () => 'x')] as unknown as readonly [Step<string>]);
+    const eff = orch.orchestrate(
+      [step('s1', async () => 'x')] as unknown as readonly [Step<string>],
+    );
 
     await expect(eff()).rejects.toThrowError('[orchestrator] Invalid Result state');
   });
 });
-

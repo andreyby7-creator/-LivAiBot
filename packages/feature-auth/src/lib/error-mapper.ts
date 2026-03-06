@@ -3,6 +3,7 @@
  * ============================================================================
  * 🔐 FEATURE-AUTH — Error Mapper (Production-Grade Rule-Engine)
  * ============================================================================
+ *
  * Архитектурная роль:
  * - Трансформация API ошибок (AuthErrorResponse, OAuthErrorResponse) в UI-friendly AuthError
  * - Переиспользуется для login, logout, refresh, OAuth, MFA
@@ -10,6 +11,7 @@
  * - Domain-pure: без transport-level загрязнения
  * - Security-first: sanitization sensitive data
  * - Single source of truth для всех mapping tables
+ *
  * Принципы:
  * - ✅ True rule-engine: priority-based, composable, scalable (до 50+ правил)
  * - ✅ Domain-safe: sanitized raw поле, sensitive data удаляется
@@ -20,7 +22,13 @@
  * - ✅ Extensible: добавление нового error type = обновление только registry
  */
 
-import type { MapErrorConfig, MappedError, ServicePrefix, TaggedError } from '@livai/core/effect';
+import type {
+  MapErrorConfig,
+  MappedError,
+  ServiceErrorCode,
+  ServicePrefix,
+  TaggedError,
+} from '@livai/core/effect';
 import { mapError } from '@livai/core/effect';
 
 import type { AuthErrorResponse } from '../domain/AuthErrorResponse.js';
@@ -104,6 +112,8 @@ function isError(value: unknown): value is Error {
 
 /** Извлекает безопасное значение поля error */
 function extractSafeError<T extends Record<string, unknown>>(data: T): string | undefined {
+  // Защитный guard для некорректных вызовов sanitizeErrorData; при текущем публичном API недостижим
+  /* istanbul ignore next */
   if (!('error' in data) || typeof data['error'] !== 'string') {
     return undefined;
   }
@@ -176,7 +186,7 @@ type ErrorMappingConfig = {
   /** UI-friendly kind для AuthError */
   readonly uiKind: AuthError['kind'];
   /** ServiceErrorCode для error-mapping.ts */
-  readonly serviceCode: `AUTH_${string}`;
+  readonly serviceCode: ServiceErrorCode;
   /** Функция извлечения дополнительных полей из errorContext */
   readonly extractFields?: ExtractFieldsFn;
 };
@@ -313,7 +323,7 @@ const AUTH_ERROR_MAPPING_REGISTRY: Record<AuthErrorResponse['error'], ErrorMappi
   createAuthErrorMappingRegistry();
 
 /** Registry маппингов OAuthErrorType */
-const OAUTH_ERROR_MAPPING_REGISTRY: Record<OAuthErrorResponse['error'], `AUTH_OAUTH_${string}`> = {
+const OAUTH_ERROR_MAPPING_REGISTRY: Record<OAuthErrorResponse['error'], ServiceErrorCode> = {
   invalid_token: 'AUTH_OAUTH_INVALID_TOKEN',
   expired_token: 'AUTH_OAUTH_EXPIRED_TOKEN',
   provider_unavailable: 'AUTH_OAUTH_PROVIDER_UNAVAILABLE',
@@ -392,6 +402,8 @@ const authErrorResponseRule: MappingRule = {
   priority: 10,
   match: (input) => isAuthErrorResponse(input),
   map: (input) => {
+    // Защитный guard от прямого вызова map с неверным типом; через applyMappingRules не возникает
+    /* istanbul ignore next */
     if (!isAuthErrorResponse(input)) {
       throw new Error('Rule mismatch: expected AuthErrorResponse');
     }
@@ -413,6 +425,8 @@ const oauthErrorResponseRule: MappingRule = {
   priority: 20,
   match: (input) => isOAuthErrorResponse(input),
   map: (input) => {
+    // Защитный guard от прямого вызова map с неверным типом; через applyMappingRules не возникает
+    /* istanbul ignore next */
     if (!isOAuthErrorResponse(input)) {
       throw new Error('Rule mismatch: expected OAuthErrorResponse');
     }
@@ -466,6 +480,8 @@ const networkErrorRule: MappingRule = {
   priority: 30,
   match: (input) => isError(input) && isNetworkError(input),
   map: (input) => {
+    // Защитный guard от прямого вызова map с неверным типом; через applyMappingRules не возникает
+    /* istanbul ignore next */
     if (!isError(input)) {
       throw new Error('Rule mismatch: expected Error');
     }
@@ -521,6 +537,7 @@ function applyMappingRules(
 
   // Этот код недостижим, так как unknownErrorRule всегда совпадает
   // Но TypeScript требует явного возврата
+  /* istanbul ignore next */
   return unknownErrorRule.map(input, config);
 }
 

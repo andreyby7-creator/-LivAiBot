@@ -111,11 +111,12 @@ export * from './pipeline/index.js';
  * schema validation, error mapping, и функциональную подсистему валидации.
  * Domain-agnostic слой без зависимостей от runtime/UI.
  *
- * ВАЖНО: Effect подпакет доступен через subpath `@livai/core/effect`.
- * Импортируйте: import { ... } from '@livai/core/effect';
+ * Доступен как через subpath `@livai/core/effect`,
+ * так и через главный индекс `@livai/core` под неймспейсом `effect`.
  *
- * Не экспортируем через главный index, чтобы избежать конфликтов имен
- * с другими модулями (pipeline, input-boundary).
+ * Рекомендуется для feature-пакетов импортировать из `@livai/core/effect`
+ * для явного разграничения слоев, но экспорт через главный индекс оставлен
+ * для удобства и tree-shakeable usage.
  * @public
  */
-// Effect доступен только через subpath: @livai/core/effect
+export * as effect from './effect/index.js';

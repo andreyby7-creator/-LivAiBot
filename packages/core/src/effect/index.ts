@@ -115,7 +115,6 @@ export { createOrchestrator, orchestrate, step, stepWithPrevious } from './orche
 export type { ValidatedEffectOptions } from './schema-validated-effect.js';
 
 export {
-  createValidationError,
   isSchemaValidationError,
   SchemaValidationError,
   validatedEffect,

@@ -35,7 +35,10 @@ vi.mock('@livai/core/effect', async () => {
         const resultPromise = steps.reduce(
           async (prevPromise, s) => {
             const prev = await prevPromise;
-            return (s.effect as (sig?: AbortSignal, previous?: unknown) => Promise<unknown>)(signal, prev);
+            return (s.effect as (sig?: AbortSignal, previous?: unknown) => Promise<unknown>)(
+              signal,
+              prev,
+            );
           },
           Promise.resolve(undefined as unknown),
         );

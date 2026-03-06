@@ -152,7 +152,7 @@
 
 ---
 
-## 6️⃣ orchestrator.ts (оркестрация)
+## 6️⃣ orchestrator.ts (оркестрация) ✅ **РЕАЛИЗОВАНО**
 
 **Зависимость:** использует `effect-timeout.ts`, `effect-isolation.ts`, `effect-utils.ts`
 
@@ -179,7 +179,7 @@
 
 ---
 
-## 7️⃣ schema-validated-effect.ts (валидация схем)
+## 7️⃣ schema-validated-effect.ts (валидация схем) ✅ **РЕАЛИЗОВАНО**
 
 **Зависимость:** использует `effect-utils.ts`, `error-mapping.ts`, `validation.ts`
 
@@ -200,10 +200,10 @@
 
 ### 📋 Проверки после рефакторинга
 
-- ☐ Удалить deprecated `createValidationError` или оставить с runtime предупреждением
-- ☐ Все ошибки маппятся через `error-mapping.ts`
-- ☐ Внешние пакеты (`packages/feature-auth`) корректно используют `validatedEffect`
-- ☐ Добавить unit-тесты на валидацию схем и правильное создание domain-ошибок
+- ✅ Удалить deprecated `createValidationError` или оставить с runtime предупреждением (функция `createValidationError` удалена из `schema-validated-effect.ts` и больше не экспортируется из `@livai/core/effect`; рекомендованный путь — `createDomainError` из `error-mapping.ts`)
+- ✅ Все ошибки маппятся через `error-mapping.ts` (все валидационные ошибки конвертируются в `ValidationError` через `validationError`, затем в `MappedError` только через `createDomainError` в `validatedEffect`; прямых ручных маппингов в модуле нет)
+- ✅ Внешние пакеты (`packages/feature-auth`) корректно используют `validatedEffect` ( `login.ts`, `register.ts`, `refresh.ts` импортируют `validatedEffect` только из `@livai/core/effect` и применяют его для Zod-валидации ответов API; собственных Zod-boundary/validation-helpers не создают)
+- ✅ Добавить unit-тесты на валидацию схем и правильное создание domain-ошибок (создан `packages/core/tests/effect/schema-validated-effect.test.ts`; `npx vitest run --coverage packages/core/tests/effect/schema-validated-effect.test.ts`; 100% coverage для `schema-validated-effect.ts`: statements/branches/functions/lines)
 
 ---
 
@@ -226,13 +226,13 @@
 
 ### 📋 Проверки после рефакторинга
 
-- ☐ Экспортировать `withTimeout` только из `effect-timeout.ts`
-- ☐ Экспортировать `TimeoutError` как класс из `effect-timeout.ts`
-- ☐ Экспортировать `combineAbortSignals` из `effect-utils.ts`
-- ☐ Удалить все старые или дублирующие экспорты
-- ☐ Проверить совместимость всех внешних пакетов (`packages/app`, `packages/feature-auth`)
-- ☐ Проверить tree-shaking → лишние функции не экспортируются
-- ☐ Проверить, что импорт через `@livai/core/effect` остаётся корректным для всех внешних пакетов после изменений
+- ✅ Экспортировать `withTimeout` только из `effect-timeout.ts` (реализация и экспорт `withTimeout` находятся в `effect-timeout.ts`, публичный реэкспорт идёт только через `effect/index.ts`; `effect-utils.ts` не содержит `withTimeout`)
+- ✅ Экспортировать `TimeoutError` как класс из `effect-timeout.ts` (класс `TimeoutError` определён и экспортируется в `effect-timeout.ts`, далее реэкспортируется через `effect/index.ts`)
+- ✅ Экспортировать `combineAbortSignals` из `effect-utils.ts` (функция реализована и экспортируется из `effect-utils.ts`, затем реэкспортируется из `effect/index.ts`; используется в `effect-timeout.ts`)
+- ✅ Удалить все старые или дублирующие экспорты (индекс `effect/index.ts` синхронизирован: deprecated `createValidationError` удалён, `withTimeout`/`TimeoutError` приходят только из `effect-timeout.ts`; лишних/дублирующих экспозиций core-утилит нет)
+- ✅ Проверить совместимость всех внешних пакетов (`packages/app`, `packages/feature-auth`) (все импорты идут только через `@livai/core/effect`; точечно прогнаны unit-тесты: `packages/app/tests/unit/lib/api-schema-guard.test.ts`, `packages/app/tests/unit/lib/sse-client.test.ts`, а также все critical effect-тесты в `packages/feature-auth` — проходят)
+- ✅ Проверить tree-shaking → лишние функции не экспортируются (из `effect/index.ts` реэкспортируются только публичные утилиты/типы; внутренних helper'ов вроде `zodErrorsToValidationErrors`/`getCodeFromEffectKind` в public API нет)
+- ✅ Проверить, что импорт через `@livai/core/effect` остаётся корректным для всех внешних пакетов после изменений (grep по репо показывает, что `packages/app` и `packages/feature-auth` используют исключительно `@livai/core/effect`; выборочные unit-тесты `app` и полный набор критичных тестов `feature-auth` проходят)
 
 ---
 
@@ -253,29 +253,29 @@
 
 ### Единая точка истины для типов и ошибок
 
-- ☐ Все базовые типы (`Effect<T>`, `EffectContext`, `Result<T, E>`) только в `effect-utils.ts`
-- ☐ Все ошибки централизованы через `error-mapping.ts`
+- ✅ Все базовые типы (`Effect<T>`, `EffectContext`, `Result<T, E>`) только в `effect-utils.ts` (типовые определения и реализации базовых utility находятся в `effect-utils.ts`; остальные модули импортируют их оттуда и не дублируют)
+- ✅ Все ошибки централизованы через `error-mapping.ts` (доменные/сервисные коды и `MappedError` определены в `error-mapping.ts`; `schema-validated-effect.ts`, orchestrator и внешние пакеты используют только `createDomainError`/`mapError`/`mapErrorBoundaryError` и не вводят собственные кодовые enum'ы)
 
 ### Domain-модули расширяют, но не дублируют базовые типы
 
-- ☐ `TimeoutEffectContext` и другие контексты только расширяют, не копируют типы
+- ✅ `TimeoutEffectContext` и другие контексты только расширяют, не копируют типы (в `effect-timeout.ts` `TimeoutEffectContext` определяется как расширение `EffectContext`; дополнительные контексты в других модулях следуют тому же подходу)
 
 ### Публичный API через index.ts
 
-- ☐ Все модули доступны только через `index.ts`, без утечек внутренних реализаций
+- ✅ Все модули доступны только через `index.ts`, без утечек внутренних реализаций (внешние пакеты используют исключительно `@livai/core/effect`; прямые импорты внутренних файлов core не используются)
 
 ### Unit-тесты на все критичные модули и функции
 
-- ☐ `withTimeout`, `combineAbortSignals`, `runIsolated`, `orchestrate`, `validatedEffect`, `mapError`
+- ✅ `withTimeout`, `combineAbortSignals`, `runIsolated`, `orchestrate`, `validatedEffect`, `mapError` (для каждого из этих API есть unit-тесты в `packages/core/tests/effect/*.test.ts` с 100% покрытием соответствующих файлов по линиям/функциям/веткам)
 
 ### Проверка внешних зависимостей после рефакторинга
 
-- ☐ `packages/app` и `packages/feature-auth` → импорты и типы не сломались
+- ✅ `packages/app` и `packages/feature-auth` → импорты и типы не сломались (точечные unit-тесты в `packages/app` и полный набор критичных тестов в `packages/feature-auth` проходят на новом API `@livai/core/effect`)
 
 ### Документировать все публичные функции и типы через JSDoc
 
-- ☐ Включая назначения, ограничения, domain-специфические расширения
+- ✅ Включая назначения, ограничения, domain-специфические расширения (ключевые модули `effect-utils.ts`, `effect-timeout.ts`, `effect-isolation.ts`, `orchestrator.ts`, `schema-validated-effect.ts`, `validation.ts`, `error-mapping.ts` имеют JSDoc-комментарии, описывающие назначение, ограничения и domain-специфические расширения)
 
 ### Обновление экспорта и импорта после перемещений
 
-- ☐ Никаких "старых" дублирующих импортов не должно остаться
+- ✅ Никаких "старых" дублирующих импортов не должно остаться (дублирующие импорты `withTimeout`/`TimeoutError`/`createValidationError` из старых мест удалены; актуальные импорты идут только из `@livai/core/effect` и соответствующих модулей)

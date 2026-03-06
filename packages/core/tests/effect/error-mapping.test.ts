@@ -15,6 +15,7 @@ import type {
 import {
   chainMappers,
   createDomainError,
+  errorMessages,
   mapError,
   mapErrorBoundaryError,
 } from '../../src/effect/error-mapping.js';
@@ -96,6 +97,20 @@ describe('effect/error-mapping', () => {
         // Для ru ветки (locale !== 'en') — сообщение должно отличаться от en для кодов где это заложено
         expect(mappedRu.message).not.toBe(mappedEn.message);
       });
+    });
+
+    it('покрывает все errorMessages (en/ru) напрямую', () => {
+      (Object.entries(errorMessages) as [ServiceErrorCode, (locale?: string) => string][])
+        .forEach(([, factory]) => {
+          const en = factory('en');
+          const ru = factory('ru');
+
+          expect(typeof en).toBe('string');
+          expect(en.length).toBeGreaterThan(0);
+
+          expect(typeof ru).toBe('string');
+          expect(ru.length).toBeGreaterThan(0);
+        });
     });
 
     it('маппит EffectError.kind через прямой доменный маппинг и выводит service из префикса kind', () => {

@@ -61,10 +61,73 @@ type BaseServiceErrorCode = `${ServicePrefix}_${string}`;
  * ========================================================================== */
 
 export const errorMessages = {
+  // ---- AUTH (core + feature-auth) ----
   'AUTH_INVALID_TOKEN': (locale?: string) =>
     locale === 'en' ? 'Invalid token' : 'Токен недействителен',
   'AUTH_USER_NOT_FOUND': (locale?: string) =>
     locale === 'en' ? 'User not found' : 'Пользователь не найден',
+  'AUTH_INVALID_CREDENTIALS': (locale?: string) =>
+    locale === 'en' ? 'Invalid credentials' : 'Неверные учетные данные',
+  'AUTH_ACCOUNT_LOCKED': (locale?: string) =>
+    locale === 'en' ? 'Account locked' : 'Аккаунт заблокирован',
+  'AUTH_ACCOUNT_DISABLED': (locale?: string) =>
+    locale === 'en' ? 'Account disabled' : 'Аккаунт отключен',
+  'AUTH_EMAIL_NOT_VERIFIED': (locale?: string) =>
+    locale === 'en' ? 'Email not verified' : 'Email не подтвержден',
+  'AUTH_PHONE_NOT_VERIFIED': (locale?: string) =>
+    locale === 'en' ? 'Phone not verified' : 'Телефон не подтвержден',
+  'AUTH_MFA_REQUIRED': (locale?: string) => locale === 'en' ? 'MFA required' : 'Требуется MFA',
+  'AUTH_MFA_FAILED': (locale?: string) => locale === 'en' ? 'MFA failed' : 'Ошибка MFA',
+  'AUTH_RATE_LIMITED': (locale?: string) =>
+    locale === 'en' ? 'Too many requests' : 'Слишком много запросов',
+  'AUTH_SESSION_EXPIRED': (locale?: string) =>
+    locale === 'en' ? 'Session expired' : 'Сессия истекла',
+  'AUTH_SESSION_REVOKED': (locale?: string) =>
+    locale === 'en' ? 'Session revoked' : 'Сессия отозвана',
+  'AUTH_TOKEN_EXPIRED': (locale?: string) => locale === 'en' ? 'Token expired' : 'Токен истек',
+  'AUTH_TOKEN_INVALID': (locale?: string) =>
+    locale === 'en' ? 'Token invalid' : 'Токен недействителен',
+  'AUTH_EXPIRED_TOKEN': (locale?: string) => locale === 'en' ? 'Token expired' : 'Токен истек',
+  'AUTH_MISSING_TOKEN': (locale?: string) =>
+    locale === 'en' ? 'Token is missing' : 'Токен отсутствует',
+  'AUTH_INVALID_ROLE': (locale?: string) => locale === 'en' ? 'Invalid role' : 'Некорректная роль',
+  'AUTH_INSUFFICIENT_PERMISSIONS': (locale?: string) =>
+    locale === 'en' ? 'Insufficient permissions' : 'Недостаточно прав',
+  'AUTH_RESOURCE_ACCESS_DENIED': (locale?: string) =>
+    locale === 'en' ? 'Resource access denied' : 'Доступ к ресурсу запрещен',
+  'AUTH_TOKEN_MALFORMED': (locale?: string) =>
+    locale === 'en' ? 'Malformed token' : 'Некорректный формат токена',
+  'AUTH_USER_BLOCKED': (locale?: string) =>
+    locale === 'en' ? 'User blocked' : 'Пользователь заблокирован',
+  'AUTH_PERMISSION_DENIED': (locale?: string) =>
+    locale === 'en' ? 'Permission denied' : 'Доступ запрещен',
+  'AUTH_RISK_BLOCKED': (locale?: string) =>
+    locale === 'en' ? 'Blocked due to risk' : 'Заблокировано по риску',
+  'AUTH_CONFLICT': (locale?: string) => locale === 'en' ? 'Auth conflict' : 'Конфликт авторизации',
+  'AUTH_UNKNOWN_ERROR': (locale?: string) =>
+    locale === 'en' ? 'Unknown auth error' : 'Неизвестная ошибка авторизации',
+
+  // ---- AUTH OAuth ----
+  'AUTH_OAUTH_INVALID_TOKEN': (locale?: string) =>
+    locale === 'en' ? 'OAuth token invalid' : 'Некорректный OAuth токен',
+  'AUTH_OAUTH_EXPIRED_TOKEN': (locale?: string) =>
+    locale === 'en' ? 'OAuth token expired' : 'OAuth токен истек',
+  'AUTH_OAUTH_PROVIDER_UNAVAILABLE': (locale?: string) =>
+    locale === 'en' ? 'OAuth provider unavailable' : 'OAuth-провайдер недоступен',
+  'AUTH_OAUTH_USER_DENIED': (locale?: string) =>
+    locale === 'en' ? 'User denied access' : 'Пользователь отклонил доступ',
+  'AUTH_OAUTH_INVALID_SCOPE': (locale?: string) =>
+    locale === 'en' ? 'Invalid OAuth scope' : 'Некорректный OAuth scope',
+  'AUTH_OAUTH_ACCOUNT_CONFLICT': (locale?: string) =>
+    locale === 'en' ? 'OAuth account conflict' : 'Конфликт OAuth-аккаунта',
+  'AUTH_OAUTH_EMAIL_NOT_VERIFIED': (locale?: string) =>
+    locale === 'en' ? 'Email not verified (OAuth)' : 'Email не подтвержден (OAuth)',
+  'AUTH_OAUTH_RATE_LIMITED': (locale?: string) =>
+    locale === 'en' ? 'Too many OAuth requests' : 'Слишком много OAuth-запросов',
+  'AUTH_OAUTH_UNKNOWN_ERROR': (locale?: string) =>
+    locale === 'en' ? 'Unknown OAuth error' : 'Неизвестная OAuth-ошибка',
+
+  // ---- Billing / AI / System (как были) ----
   'BILLING_INSUFFICIENT_FUNDS': (locale?: string) =>
     locale === 'en' ? 'Insufficient funds' : 'Недостаточно средств на счете',
   'AI_MODEL_NOT_FOUND': (locale?: string) =>
