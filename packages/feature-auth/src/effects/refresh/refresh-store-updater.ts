@@ -20,7 +20,7 @@
 import type { DeviceInfo } from '../../domain/DeviceInfo.js';
 import type { MeResponse } from '../../domain/MeResponse.js';
 import type { TokenPair } from '../../domain/TokenPair.js';
-import type { AuthState } from '../../types/auth.js';
+import type { AuthState, SessionState } from '../../types/auth.js';
 import {
   createInitialSessionState,
   initialAuthState,
@@ -66,7 +66,7 @@ function buildAuthenticatedAuthState(me: MeResponse): AuthState {
 function buildRefreshInvalidateActions(): readonly BatchUpdate[] {
   return [
     { type: 'setAuthState', state: initialAuthState },
-    { type: 'setSessionState', state: createInitialSessionState() },
+    { type: 'setSessionState', state: createInitialSessionState() as SessionState | null },
     { type: 'setSecurityState', state: initialSecurityState },
     { type: 'applyEventType', event: 'session_revoked' },
   ] as const;

@@ -3,10 +3,12 @@
  * ============================================================================
  * 🛡️ CORE — Input Boundary (Generic Validation)
  * ============================================================================
+ *
  * Архитектурная роль:
  * - Generic type guards и структурная валидация для DTO на input boundary
  * - Только DTO guards (структурная валидация), без sanitization (data-safety/)
  * - Причина изменения: input boundary, DTO validation, structural guards
+ *
  * Принципы:
  * - ✅ SRP: только структурная валидация DTO, без бизнес-логики
  * - ✅ Deterministic: одинаковые входы → одинаковые результаты
@@ -22,26 +24,15 @@
  * - ✅ Immutable: все результаты frozen
  */
 
+import type { Json, JsonArray, JsonObject, JsonPrimitive, JsonValue } from '@livai/core-contracts';
+
+// Re-export для использования в этом модуле
+export type { Json, JsonArray, JsonObject, JsonPrimitive, JsonValue };
+
 /* ============================================================================
  * 1. TYPES — VALIDATION MODEL (Pure Type Definitions)
  * ============================================================================
  */
-
-/** Базовые JSON-примитивы (union type для строгой типизации) */
-export type JsonPrimitive = string | number | boolean | null;
-
-/** JSON-значение (рекурсивный union type, без Record<string, unknown>) */
-export type JsonValue = JsonPrimitive | JsonArray | JsonObject;
-
-/** JSON-массив (рекурсивный) */
-export type JsonArray = readonly JsonValue[];
-
-/** JSON-объект (immutable, domain-pure типизация) */
-export type JsonObject = Readonly<
-  {
-    readonly [K in string]?: JsonValue;
-  }
->;
 
 /** Результат валидации (effect-based, для composability) */
 export type ValidationOutcome<T> =

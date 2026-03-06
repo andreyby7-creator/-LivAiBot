@@ -8,7 +8,8 @@ import React from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 // Импортируем для тестов
-import type { AuthGuardContext, ID, Permission, UserRole } from '../../../src/lib/auth-guard.js';
+import type { AuthGuardContext, ID, Permission } from '../../../src/lib/auth-guard.js';
+import { UserRoles } from '../../../src/types/common.js';
 
 import '@testing-library/jest-dom/vitest';
 
@@ -120,7 +121,7 @@ const mockAuthContext: AuthGuardContext = {
   ipAddress: '127.0.0.1',
   sessionId: 'test-session',
   userId: 'test-user-id' as ID,
-  roles: new Set(['USER'] as UserRole[]),
+  roles: new Set([UserRoles.USER]),
   permissions: new Set(['READ_PUBLIC'] as Permission[]),
 };
 

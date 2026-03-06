@@ -34,6 +34,7 @@ import type {
   ApiError,
   ApiRequestContext,
   ApiResponse,
+  ReadonlyJsonObject,
   SanitizedJson,
 } from '@livai/core-contracts';
 
@@ -432,7 +433,7 @@ export function asApiEffect<T>(
   effect: Effect<T>,
   mapError: (error: unknown) => ApiError,
   options?: {
-    readonly meta?: SanitizedJson;
+    readonly meta?: ReadonlyJsonObject;
   },
 ): Effect<ApiResponse<T>> {
   return async () => {

@@ -65,7 +65,6 @@ export {
   type Permission,
   type Resource,
   type ResourceType,
-  type UserRole,
 } from './auth-guard.js';
 
 /* ============================================================================

@@ -17,7 +17,6 @@ import type {
   AuthGuardContext,
   Permission,
   Resource,
-  UserRole,
 } from '../../../src/lib/auth-guard';
 import {
   checkAccess,
@@ -57,7 +56,7 @@ function createMockAuthGuardContext(overrides: Record<string, any> = {}): AuthGu
       userId: createMockID('test-user-123'),
       isAuthenticated: true,
       accessToken: 'test-access-token',
-      roles: new Set<UserRole>(),
+      roles: new Set<UserRoles>(),
       permissions: new Set<Permission>(),
       ...overrides,
     } as AuthGuardContext;
@@ -87,7 +86,7 @@ function createMockResource(
 /**
  * Создает mock UserRole set
  */
-function createMockRoles(...roles: readonly UserRole[]): ReadonlySet<UserRole> {
+function createMockRoles(...roles: readonly UserRoles[]): ReadonlySet<UserRoles> {
   return new Set(roles);
 }
 
@@ -332,7 +331,7 @@ describe('Auth Guard - Enterprise Grade', () => {
       const action: Action = 'READ';
       const context = createMockAuthGuardContext({
         isAuthenticated: true,
-        roles: new Set<UserRole>(),
+        roles: new Set<UserRoles>(),
         permissions: new Set<Permission>(),
       });
 
@@ -523,7 +522,7 @@ describe('Auth Guard - Enterprise Grade', () => {
       const adminGuard = requireRole(UserRoles.ADMIN);
       const context = createMockAuthGuardContext({
         isAuthenticated: true,
-        roles: new Set<UserRole>(),
+        roles: new Set<UserRoles>(),
       });
 
       const result = adminGuard(context);
@@ -912,7 +911,7 @@ describe('Auth Guard - Enterprise Grade', () => {
     });
 
     it('должен поддерживать все типы UserRole', () => {
-      const roles: UserRole[] = [
+      const roles: UserRoles[] = [
         UserRoles.GUEST,
         UserRoles.USER,
         UserRoles.PREMIUM_USER,
@@ -972,7 +971,7 @@ describe('Auth Guard - Enterprise Grade', () => {
       // Тестируем с undefined полями
       const contextWithUndefined = createMockAuthGuardContext({
         userId: createMockID('test-user-123'),
-        roles: new Set<UserRole>(),
+        roles: new Set<UserRoles>(),
         permissions: new Set<Permission>(),
       });
 

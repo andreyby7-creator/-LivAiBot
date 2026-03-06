@@ -233,7 +233,7 @@ function createAuthErrorMappingRegistry(): Record<AuthErrorResponse['error'], Er
       extractFields: (errorContext) => {
         if (errorContext === undefined) return {};
         const lockedUntil = errorContext.lockedUntil;
-        return typeof lockedUntil === 'string' ? { lockedUntil } : {};
+        return typeof lockedUntil === 'string' ? { lockedUntil: lockedUntil as ISODateString } : {};
       },
     },
     account_disabled: {
@@ -274,7 +274,7 @@ function createAuthErrorMappingRegistry(): Record<AuthErrorResponse['error'], Er
       extractFields: (errorContext) => {
         if (errorContext === undefined) return {};
         const retryAfter = errorContext.retryAfter;
-        return typeof retryAfter === 'string' ? { retryAfter } : {};
+        return typeof retryAfter === 'string' ? { retryAfter: retryAfter as ISODateString } : {};
       },
     },
     session_expired: createSessionExpiredConfig(),

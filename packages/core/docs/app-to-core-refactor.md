@@ -18,7 +18,7 @@
 
 ## 1️⃣ Типы
 
-### 1.1 `common.ts` → `core-contracts/domain/common.ts`
+### 1.1 `common.ts` → `core-contracts/domain/common.ts` ✅ **ВЫПОЛНЕНО**
 
 **Порядок:** Типы → адаптация зависимостей → валидация → тесты
 
@@ -44,23 +44,23 @@
 
 **Миграция импорта:**
 
-- `app/src/types/common.ts` → удалить `ID<T>`, `ISODateString`, `Json*`, оставить только app-специфичные (`Platform`, `AppContext`, `BaseDTO`, `RouteConfig`, `UserRoles`, `AppModules`)
-- `app/src/types/errors.ts` → обновить `import type { ISODateString, Json } from '@livai/core-contracts'`
-- `app/src/lib/*.ts` → обновить все импорты `ID`, `ISODateString`, `Json*` на `@livai/core-contracts`
-- `feature-*` пакеты → обновить импорты на `@livai/core-contracts`
-- `feature-auth/src/types/auth.ts` → удалить локальное определение `ISODateString` (строка 79), импортировать из `@livai/core-contracts/domain/common`
-- `core/input-boundary/generic-validation.ts` → удалить локальные `Json*`, импортировать из `@livai/core-contracts`
-- Валидация: `pnpm run type-check && pnpm run check:exports && pnpm run lint:canary`
+- ✅ `app/src/types/common.ts` → удалить `ID<T>`, `ISODateString`, `Json*`, оставить только app-специфичные (`Platform`, `AppContext`, `BaseDTO`, `RouteConfig`, `UserRoles`, `AppModules`)
+- ✅ `app/src/types/errors.ts` → обновить `import type { ISODateString, Json } from '@livai/core-contracts'` (через реэкспорт из `common.ts`)
+- ✅ `app/src/lib/*.ts` → обновить все импорты `ID`, `ISODateString`, `Json*` на `@livai/core-contracts`
+- ✅ `feature-*` пакеты → обновить импорты на `@livai/core-contracts`
+- ✅ `feature-auth/src/types/auth.ts` → удалить локальное определение `ISODateString` (строка 79), импортировать из `@livai/core-contracts/domain/common`
+- ✅ `core/input-boundary/generic-validation.ts` → удалить локальные `Json*`, импортировать из `@livai/core-contracts`
+- ✅ Валидация: `pnpm run type-check && pnpm run check:exports && pnpm run lint:canary`
 
 **Тесты:**
 
-- `app/tests/unit/types/common.test.ts` → обновить импорты, оставить тесты для app-специфичных типов
-- Создать `core-contracts/tests/domain/common.test.ts` для branded типов и `Json*` утилит
+- ✅ `app/tests/unit/types/common.test.ts` → обновить импорты, оставить тесты для app-специфичных типов
+- ✅ Создать `core-contracts/tests/domain/common.test.ts` для branded типов и `Json*` утилит
 
 **Экспорты:**
 
-- Добавить в `core-contracts/src/index.ts`: `export * from './domain/common.js'`
-- Проверить tree-shaking: убедиться, что не экспортируются неиспользуемые типы
+- ✅ Добавить в `core-contracts/src/index.ts`: `export * from './domain/common.js'` (через `domain/index.ts`)
+- ✅ Проверить tree-shaking: убедиться, что не экспортируются неиспользуемые типы
 
 **Обновление:** Обновлены импорты `ID<T>`, `ISODateString`, `Json*` в app и feature-пакетах на `@livai/core-contracts/domain/common`. Унифицированы `Json*` типы, удалены дубли из `core/input-boundary`. Исправлено дублирование `ISODateString` в `feature-auth/src/types/auth.ts` (удалено локальное определение, импорт из `@livai/core-contracts/domain/common`).
 

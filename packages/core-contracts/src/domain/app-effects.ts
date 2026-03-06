@@ -1,7 +1,36 @@
 /**
- * @file @livai/core-contracts/domain/app-effects — Shared app-level effect & error contracts
+ * @file @livai/core-contracts/src/domain/app-effects.ts
+ *
+ * ============================================================================
+ * ⚡ APP EFFECTS & ERROR CONTRACTS — КОНТРАКТЫ ДЛЯ ЭФФЕКТОВ И ОШИБОК
+ * ============================================================================
+ *
  * Минимальный набор типов, необходимых для core effect-слоя и error-mapping.
- * Важно: эти типы намеренно дублируют форму типов из @livai/app, но живут в foundation-слое.
+ * Без доменной логики и runtime-зависимостей.
+ *
+ * Используется для:
+ * - API контракты (ApiRequestContext, ApiError, ApiResponse) для типизации запросов/ответов
+ * - Error контракты (AppError, ClientError, ServerError, ValidationError, NetworkError, UnknownError)
+ * - Tracing типы (TraceId, IdempotencyKey) для distributed tracing
+ * - Error tags для динамической фильтрации и алертинга
+ * - Re-export типов из common.ts (ISODateString, Json*) для обратной совместимости
+ *
+ * Принципы:
+ * - Zero business logic
+ * - Zero runtime dependencies
+ * - Детерминированность
+ * - Полная типобезопасность через branded types (TraceId, IdempotencyKey)
+ * - Immutability по умолчанию (readonly)
+ * - SanitizedJson контракт для предотвращения утечки PII/секретов
+ * - Future-proof расширяемость через metadata в ApiResponse
+ *
+ * Границы слоёв:
+ * - @livai/core-contracts (app-effects) — чистый типовой слой, foundation для effect-слоя.
+ * - @livai/core (effect) — использует эти контракты для реализации доменной логики и error-mapping.
+ * - @livai/app — использует эти контракты для UI и runtime-специфичных модулей.
+ *
+ * @note Эти типы намеренно дублируют форму типов из @livai/app, но живут в foundation-слое
+ *       для независимости core от app и возможности переиспользования в других runtime.
  */
 
 /* ============================================================================
@@ -16,17 +45,18 @@
  * - Слой app добавляет runtime-детали (конкретные transport-клиенты, UI, логирование).
  */
 
-import type { JsonObject, Timestamp } from './common.js';
+import type {
+  ISODateString,
+  Json,
+  JsonArray,
+  JsonObject,
+  JsonPrimitive,
+  JsonValue,
+  ReadonlyJsonObject,
+} from './common.js';
 
-/** Универсальный JSON-совместимый тип (переиспользует JsonObject из common.ts). */
-export type JsonPrimitive = string | number | boolean | null;
-export type JsonValue = JsonPrimitive | JsonObject | JsonArray;
-export type JsonArray = readonly JsonValue[];
-
-export type Json = JsonValue;
-
-/** ISO-8601 строка даты (алиас Timestamp из common.ts). */
-export type ISODateString = Timestamp;
+// Re-export для обратной совместимости (если где-то используется прямой импорт из app-effects)
+export type { ISODateString, Json, JsonArray, JsonObject, JsonPrimitive, JsonValue };
 
 /* ============================================================================
  * 🧩 TRACING & ERROR TAGS
@@ -158,8 +188,9 @@ export interface ApiError {
   /**
    * Дополнительные структурированные данные для расширения контракта
    * без изменения union-типов.
+   * Immutable JSON-объект для явной фиксации immutability.
    */
-  readonly meta?: Json;
+  readonly meta?: ReadonlyJsonObject;
 
   /**
    * Теги для динамической фильтрации/алертинга.
@@ -172,14 +203,16 @@ export interface ApiError {
 export interface ApiSuccessResponse<T> {
   readonly success: true;
   readonly data: T;
-  readonly meta?: Json;
+  /** Immutable JSON-объект для явной фиксации immutability. */
+  readonly meta?: ReadonlyJsonObject;
 }
 
 /** Ошибочный ответ API. */
 export interface ApiFailureResponse {
   readonly success: false;
   readonly error: ApiError;
-  readonly meta?: Json;
+  /** Immutable JSON-объект для явной фиксации immutability. */
+  readonly meta?: ReadonlyJsonObject;
 }
 
 /** Универсальный ответ API. */
@@ -212,7 +245,8 @@ export interface ClientError {
   readonly source: FrontendErrorSource;
   readonly code: string;
   readonly message: string;
-  readonly context?: Json;
+  /** Immutable JSON-объект для явной фиксации immutability. */
+  readonly context?: ReadonlyJsonObject;
   /** Trace-id для корреляции с backend-логами (не показывать пользователю). */
   readonly traceId?: TraceId;
   /**
@@ -263,8 +297,8 @@ export interface ServerError {
 
   readonly endpoint?: string;
   readonly platform?: string;
-  /** Дополнительные структурированные данные для расширения контракта. */
-  readonly meta?: Json;
+  /** Дополнительные структурированные данные для расширения контракта. Immutable JSON-объект для явной фиксации immutability. */
+  readonly meta?: ReadonlyJsonObject;
   /**
    * Теги для динамической фильтрации/алертинга.
    * Формат тегов: "service:<name>", "severity:<level>", "feature:<name>" и т.п.

@@ -15,7 +15,6 @@ import type {
   ApiError,
   ApiResponse,
   AppContext,
-  AppModule,
   AsyncState,
   AuthContext,
   BaseDTO,
@@ -35,7 +34,7 @@ import type {
   RealtimeEvent,
   RouteConfig,
   Subscription,
-  UserRole,
+  TraceId,
   VoidFn,
 } from '../../../src/types/common.js';
 import { AllUserRoles, AppModules, UserRoles } from '../../../src/types/common.js';
@@ -183,8 +182,8 @@ describe('Immutable тип', () => {
     };
 
     // TypeScript не позволит мутировать (runtime проверка для демонстрации)
-    expect(immutable.name).toBe('John');
-    expect(immutable.age).toBe(30);
+    expect(immutable['name']).toBe('John');
+    expect(immutable['age']).toBe(30);
   });
 });
 
@@ -334,7 +333,7 @@ describe('ApiError тип', () => {
       category: 'INTERNAL',
       message: 'Service unavailable',
       source: 'SERVICE',
-      traceId: 'abc-123-def',
+      traceId: 'abc-123-def' as TraceId,
       details: { service: 'auth-service', version: '1.0.0' },
     };
 
@@ -598,9 +597,9 @@ describe('ApiResponse discriminated union', () => {
 // 🛣️ ROUTING И НАВИГАЦИЯ
 // ============================================================================
 
-describe('UserRole тип', () => {
+describe('UserRoles enum', () => {
   it('принимает все поддерживаемые роли пользователей', () => {
-    const roles: UserRole[] = [
+    const roles = [
       UserRoles.USER,
       UserRoles.ADMIN,
       UserRoles.OWNER,
@@ -617,16 +616,16 @@ describe('UserRole тип', () => {
 
   it('не принимает неподдерживаемые роли', () => {
     // Эти значения не должны компилироваться (runtime проверки для демонстрации)
-    // const invalidRole: UserRole = 'superadmin'; // TypeScript error
-    // const anotherInvalidRole: UserRole = 'guest'; // TypeScript error
+    // const invalidRole = 'superadmin' as UserRoles; // TypeScript error
+    // const anotherInvalidRole = 'guest' as UserRoles; // TypeScript error
 
     expect(true).toBe(true); // Заглушка для теста
   });
 });
 
-describe('AppModule тип', () => {
+describe('AppModules enum', () => {
   it('принимает все поддерживаемые модули приложения', () => {
-    const modules: AppModule[] = [
+    const modules = [
       AppModules.AUTH,
       AppModules.BOTS,
       AppModules.CHAT,
@@ -640,8 +639,8 @@ describe('AppModule тип', () => {
 
   it('не принимает неподдерживаемые модули', () => {
     // Эти значения не должны компилироваться (runtime проверки для демонстрации)
-    // const invalidModule: AppModule = 'dashboard'; // TypeScript error
-    // const anotherInvalidModule: AppModule = 'analytics'; // TypeScript error
+    // const invalidModule = 'dashboard' as AppModules; // TypeScript error
+    // const anotherInvalidModule = 'analytics' as AppModules; // TypeScript error
 
     expect(true).toBe(true); // Заглушка для теста
   });
@@ -803,8 +802,8 @@ describe('Экспорты типов', () => {
       errorCategory: 'VALIDATION' as ErrorCategory,
       errorSource: 'CLIENT' as ErrorSource,
       asyncStatus: 'idle' as AsyncState<any>['status'],
-      userRole: 'admin' as UserRole,
-      appModule: 'auth' as AppModule,
+      userRole: UserRoles.ADMIN,
+      appModule: AppModules.AUTH,
       routeConfig: {
         path: '/test',
         name: 'test',
@@ -820,7 +819,7 @@ describe('Экспорты типов', () => {
     expect(testValues.errorCategory).toBe('VALIDATION');
     expect(testValues.errorSource).toBe('CLIENT');
     expect(testValues.asyncStatus).toBe('idle');
-    expect(testValues.userRole).toBe('admin');
+    expect(testValues.userRole).toBe('ADMIN');
     expect(testValues.appModule).toBe('auth');
     expect(testValues.routeConfig.path).toBe('/test');
   });

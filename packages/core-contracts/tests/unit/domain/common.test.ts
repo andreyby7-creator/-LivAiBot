@@ -18,15 +18,15 @@ import { TEST_USER_ID } from '../../constants';
 
 describe('UUID type', () => {
   it('принимает строковые значения', () => {
-    // Type check - это должно компилироваться без ошибок
-    const validUUID: UUID = TEST_USER_ID;
+    // Type assertion необходим для branded type
+    const validUUID: UUID = TEST_USER_ID as UUID;
     expect(typeof validUUID).toBe('string');
     expect(validUUID).toBe(TEST_USER_ID);
   });
 
-  it('является алиасом string', () => {
-    const uuid: UUID = 'test-uuid';
-    const str: string = uuid; // Должно компилироваться
+  it('совместим с string', () => {
+    const uuid: UUID = 'test-uuid' as UUID;
+    const str: string = uuid; // Branded type совместим с string
     expect(str).toBe('test-uuid');
   });
 });
@@ -147,7 +147,7 @@ describe('Settings type', () => {
 
 describe('Интеграционные тесты типов', () => {
   it('все типы являются строками или объектами на runtime', () => {
-    const uuid: UUID = 'test-uuid';
+    const uuid: UUID = 'test-uuid' as UUID;
     const timestamp: Timestamp = '2024-01-01T00:00:00Z';
     const jsonObject: JsonObject = { key: 'value' };
     const settings: Settings = { setting: true };
@@ -251,6 +251,18 @@ describe('Decision class', () => {
         reason: 'CUSTOM_SUCCESS',
       });
     });
+
+    it('создает положительное решение с metadata', () => {
+      // eslint-disable-next-line ai-security/model-poisoning
+      const metadata: JsonObject = { traceId: 'abc-123', source: 'test' };
+      const decision = Decision.allow('SUCCESS', metadata);
+
+      expect(decision).toEqual({
+        allow: true,
+        reason: 'SUCCESS',
+        metadata,
+      });
+    });
   });
 
   describe('deny method', () => {
@@ -264,6 +276,20 @@ describe('Decision class', () => {
         violation: { code: 'TEST_DENY' },
       });
     });
+
+    it('создает отрицательное решение с violation и metadata', () => {
+      const violation: PolicyViolation = { code: 'TEST_DENY' };
+      // eslint-disable-next-line ai-security/model-poisoning
+      const metadata: JsonObject = { traceId: 'xyz-789', source: 'auth' };
+      const decision = Decision.deny('DENIED', violation, metadata);
+
+      expect(decision).toEqual({
+        allow: false,
+        reason: 'DENIED',
+        violation: { code: 'TEST_DENY' },
+        metadata,
+      });
+    });
   });
 
   describe('denySimple method', () => {
@@ -273,6 +299,18 @@ describe('Decision class', () => {
       expect(decision).toEqual({
         allow: false,
         reason: 'SIMPLE_DENY',
+      });
+    });
+
+    it('создает отрицательное решение с metadata', () => {
+      // eslint-disable-next-line ai-security/model-poisoning
+      const metadata: JsonObject = { traceId: 'def-456' };
+      const decision = Decision.denySimple('SIMPLE_DENY', metadata);
+
+      expect(decision).toEqual({
+        allow: false,
+        reason: 'SIMPLE_DENY',
+        metadata,
       });
     });
   });
@@ -295,6 +333,32 @@ describe('Decision class', () => {
       expect(decision).toEqual({
         allow: false,
         reason: 'OPTIONAL_DENIED_SIMPLE',
+      });
+    });
+
+    it('создает отрицательное решение с violation и metadata', () => {
+      const violation: PolicyViolation = { code: 'OPTIONAL_DENY' };
+      // eslint-disable-next-line ai-security/model-poisoning
+      const metadata: JsonObject = { traceId: 'ghi-012', source: 'policy' };
+      const decision = Decision.denyOptional('OPTIONAL_DENIED', violation, metadata);
+
+      expect(decision).toEqual({
+        allow: false,
+        reason: 'OPTIONAL_DENIED',
+        violation: { code: 'OPTIONAL_DENY' },
+        metadata,
+      });
+    });
+
+    it('создает отрицательное решение только с metadata без violation', () => {
+      // eslint-disable-next-line ai-security/model-poisoning
+      const metadata: JsonObject = { traceId: 'jkl-345', audit: true };
+      const decision = Decision.denyOptional('OPTIONAL_DENIED', undefined, metadata);
+
+      expect(decision).toEqual({
+        allow: false,
+        reason: 'OPTIONAL_DENIED',
+        metadata,
       });
     });
   });

@@ -6,7 +6,7 @@
 import { describe, expect, it } from 'vitest';
 
 import type { AuthPolicyConfig } from '@livai/core';
-import type { UnixTimestampMs } from '@livai/core-contracts';
+import type { ISODateString, UnixTimestampMs } from '@livai/core-contracts';
 
 import type { SessionPolicy } from '../../../src/domain/SessionPolicy.js';
 import { SessionManager } from '../../../src/lib/session-manager.js';
@@ -45,8 +45,8 @@ function createActiveSession(overrides: Partial<SessionState> = {}): SessionStat
   return {
     status: 'active',
     sessionId: 'session-123',
-    issuedAt: new Date(now - 1000).toISOString(), // 1 second ago
-    expiresAt: new Date(now + 3600_000).toISOString(), // 1 hour from now
+    issuedAt: new Date(now - 1000).toISOString() as ISODateString, // 1 second ago
+    expiresAt: new Date(now + 3600_000).toISOString() as ISODateString, // 1 hour from now
     ...overrides,
   } as SessionState;
 }
@@ -57,9 +57,7 @@ function createExpiredSession(overrides: Partial<SessionState> = {}): SessionSta
   return {
     status: 'expired',
     sessionId: 'session-expired',
-    issuedAt: new Date(past - 3600_000).toISOString(),
-    expiresAt: new Date(past - 1000).toISOString(), // expired sessions still have expiresAt
-    expiredAt: new Date(past).toISOString(),
+    expiredAt: new Date(past).toISOString() as ISODateString,
     ...overrides,
   } as SessionState;
 }
@@ -70,7 +68,7 @@ function createRevokedSession(overrides: Partial<SessionState> = {}): SessionSta
     status: 'revoked',
     sessionId: 'session-revoked',
     reason: 'user_logout' as const,
-    revokedAt: new Date(Date.now() - 1000).toISOString(),
+    revokedAt: new Date(Date.now() - 1000).toISOString() as ISODateString,
     ...overrides,
   } as SessionState;
 }
@@ -81,7 +79,7 @@ function createSuspendedSession(overrides: Partial<SessionState> = {}): SessionS
     status: 'suspended',
     sessionId: 'session-suspended',
     reason: 'security_violation',
-    suspendedUntil: new Date(Date.now() + 3600_000).toISOString(),
+    suspendedUntil: new Date(Date.now() + 3600_000).toISOString() as ISODateString,
     ...overrides,
   } as SessionState;
 }
@@ -172,8 +170,8 @@ describe('SessionManager', () => {
       const session: SessionState = {
         status: 'active',
         sessionId: 'session-123',
-        issuedAt: new Date(past - 3600_000).toISOString(),
-        expiresAt: new Date(past).toISOString(), // истекла 1 секунду назад
+        issuedAt: new Date(past - 3600_000).toISOString() as ISODateString,
+        expiresAt: new Date(past).toISOString() as ISODateString, // истекла 1 секунду назад
       };
 
       expect(manager.isExpired(session, Date.now())).toBe(true);
@@ -184,8 +182,8 @@ describe('SessionManager', () => {
       const session: SessionState = {
         status: 'active',
         sessionId: 'session-123',
-        issuedAt: new Date(now - 1000).toISOString(),
-        expiresAt: new Date(now + 3600_000).toISOString(), // истечёт через 1 час
+        issuedAt: new Date(now - 1000).toISOString() as ISODateString,
+        expiresAt: new Date(now + 3600_000).toISOString() as ISODateString, // истечёт через 1 час
       };
 
       expect(manager.isExpired(session, now)).toBe(false);
@@ -195,8 +193,8 @@ describe('SessionManager', () => {
       const session: SessionState = {
         status: 'active',
         sessionId: 'session-123',
-        issuedAt: new Date(Date.now() - 1000).toISOString(),
-        expiresAt: 'invalid-date-string',
+        issuedAt: new Date(Date.now() - 1000).toISOString() as ISODateString,
+        expiresAt: 'invalid-date-string' as ISODateString,
       };
 
       expect(manager.isExpired(session, Date.now())).toBe(true);
@@ -245,8 +243,8 @@ describe('SessionManager', () => {
       const session: SessionState = {
         status: 'active',
         sessionId: 'session-123',
-        issuedAt: new Date(now - 3600_000).toISOString(),
-        expiresAt: new Date(now + 10_000).toISOString(), // истечёт через 10 сек
+        issuedAt: new Date(now - 3600_000).toISOString() as ISODateString,
+        expiresAt: new Date(now + 10_000).toISOString() as ISODateString, // истечёт через 10 сек
       };
 
       expect(manager.shouldRefresh(session, now)).toBe(true);
@@ -259,8 +257,8 @@ describe('SessionManager', () => {
       const session: SessionState = {
         status: 'active',
         sessionId: 'session-123',
-        issuedAt: new Date(now - 3600_000).toISOString(),
-        expiresAt: new Date(now + 60_000).toISOString(), // истечёт через 60 сек
+        issuedAt: new Date(now - 3600_000).toISOString() as ISODateString,
+        expiresAt: new Date(now + 60_000).toISOString() as ISODateString, // истечёт через 60 сек
       };
 
       expect(manager.shouldRefresh(session, now)).toBe(false);
@@ -270,8 +268,8 @@ describe('SessionManager', () => {
       const session: SessionState = {
         status: 'active',
         sessionId: 'session-123',
-        issuedAt: new Date(Date.now() - 1000).toISOString(),
-        expiresAt: 'invalid-date-string',
+        issuedAt: new Date(Date.now() - 1000).toISOString() as ISODateString,
+        expiresAt: 'invalid-date-string' as ISODateString,
       };
 
       expect(manager.shouldRefresh(session, Date.now())).toBe(false);
@@ -304,8 +302,8 @@ describe('SessionManager', () => {
       const session: SessionState = {
         status: 'active',
         sessionId: 'session-123',
-        issuedAt: new Date(now - 3600_000).toISOString(),
-        expiresAt: new Date(expiresAt).toISOString(),
+        issuedAt: new Date(now - 3600_000).toISOString() as ISODateString,
+        expiresAt: new Date(expiresAt).toISOString() as ISODateString,
       };
 
       expect(manager.getRefreshDeadline(session)).toBe(expectedDeadline);
@@ -322,8 +320,8 @@ describe('SessionManager', () => {
       const session: SessionState = {
         status: 'active',
         sessionId: 'session-123',
-        issuedAt: new Date(1000).toISOString(), // 1 сек после начала эпохи
-        expiresAt: new Date(500).toISOString(), // 500 мс после начала эпохи
+        issuedAt: new Date(1000).toISOString() as ISODateString, // 1 сек после начала эпохи
+        expiresAt: new Date(500).toISOString() as ISODateString, // 500 мс после начала эпохи
       };
 
       expect(managerShort.getRefreshDeadline(session)).toBe(0);
@@ -333,8 +331,8 @@ describe('SessionManager', () => {
       const session: SessionState = {
         status: 'active',
         sessionId: 'session-123',
-        issuedAt: new Date(Date.now() - 1000).toISOString(),
-        expiresAt: 'invalid-date-string',
+        issuedAt: new Date(Date.now() - 1000).toISOString() as ISODateString,
+        expiresAt: 'invalid-date-string' as ISODateString,
       };
 
       expect(manager.getRefreshDeadline(session)).toBe(0);
@@ -366,8 +364,8 @@ describe('SessionManager', () => {
       const session: SessionState = {
         status: 'active',
         sessionId: 'session-123',
-        issuedAt: new Date(past - 3600_000).toISOString(),
-        expiresAt: new Date(past).toISOString(), // истекла
+        issuedAt: new Date(past - 3600_000).toISOString() as ISODateString,
+        expiresAt: new Date(past).toISOString() as ISODateString, // истекла
       };
 
       expect(manager.shouldInvalidate(session, Date.now())).toBe(true);
@@ -381,8 +379,8 @@ describe('SessionManager', () => {
       const session: SessionState = {
         status: 'active',
         sessionId: 'session-123',
-        issuedAt: new Date(now - 2000).toISOString(), // выдана 2 сек назад
-        expiresAt: new Date(now + 3600_000).toISOString(), // не истекла
+        issuedAt: new Date(now - 2000).toISOString() as ISODateString, // выдана 2 сек назад
+        expiresAt: new Date(now + 3600_000).toISOString() as ISODateString, // не истекла
       };
 
       expect(managerShort.shouldInvalidate(session, now)).toBe(true);
@@ -394,8 +392,8 @@ describe('SessionManager', () => {
       const session: SessionState = {
         status: 'active',
         sessionId: 'session-123',
-        issuedAt: new Date(future).toISOString(), // issuedAt в будущем
-        expiresAt: new Date(now + 3600_000).toISOString(),
+        issuedAt: new Date(future).toISOString() as ISODateString, // issuedAt в будущем
+        expiresAt: new Date(now + 3600_000).toISOString() as ISODateString,
       };
 
       expect(manager.shouldInvalidate(session, now)).toBe(true);
@@ -405,8 +403,8 @@ describe('SessionManager', () => {
       const session: SessionState = {
         status: 'active',
         sessionId: 'session-123',
-        issuedAt: 'invalid-date-string',
-        expiresAt: new Date(Date.now() + 3600_000).toISOString(),
+        issuedAt: 'invalid-date-string' as ISODateString,
+        expiresAt: new Date(Date.now() + 3600_000).toISOString() as ISODateString,
       };
 
       expect(manager.shouldInvalidate(session, Date.now())).toBe(true);
@@ -416,8 +414,8 @@ describe('SessionManager', () => {
       const session: SessionState = {
         status: 'active',
         sessionId: 'session-123',
-        issuedAt: new Date(Date.now() - 1000).toISOString(),
-        expiresAt: 'invalid-date-string',
+        issuedAt: new Date(Date.now() - 1000).toISOString() as ISODateString,
+        expiresAt: 'invalid-date-string' as ISODateString,
       };
 
       expect(manager.shouldInvalidate(session, Date.now())).toBe(true);
@@ -432,8 +430,8 @@ describe('SessionManager', () => {
       const session: SessionState = {
         status: 'active',
         sessionId: 'session-123',
-        issuedAt: new Date(now - 60_000).toISOString(), // выдана 60 сек назад > 30 сек TTL
-        expiresAt: new Date(now + 3600_000).toISOString(),
+        issuedAt: new Date(now - 60_000).toISOString() as ISODateString, // выдана 60 сек назад > 30 сек TTL
+        expiresAt: new Date(now + 3600_000).toISOString() as ISODateString,
       };
 
       expect(managerWithPolicy.shouldInvalidate(session, now)).toBe(true);
@@ -448,8 +446,8 @@ describe('SessionManager', () => {
       const session: SessionState = {
         status: 'active',
         sessionId: 'session-123',
-        issuedAt: new Date(now - 60_000).toISOString(), // выдана 60 сек назад < 120 сек TTL
-        expiresAt: new Date(now + 3600_000).toISOString(),
+        issuedAt: new Date(now - 60_000).toISOString() as ISODateString, // выдана 60 сек назад < 120 сек TTL
+        expiresAt: new Date(now + 3600_000).toISOString() as ISODateString,
       };
 
       // Сессия не должна инвалидироваться по TTL (sessionAgeMs <= maxLifetimeMs)
@@ -462,8 +460,8 @@ describe('SessionManager', () => {
       const session: SessionState = {
         status: 'active',
         sessionId: 'session-123',
-        issuedAt: new Date(now - 1000).toISOString(), // выдана 1 сек назад
-        expiresAt: new Date(now + 3600_000).toISOString(), // истечёт через 1 час
+        issuedAt: new Date(now - 1000).toISOString() as ISODateString, // выдана 1 сек назад
+        expiresAt: new Date(now + 3600_000).toISOString() as ISODateString, // истечёт через 1 час
       };
 
       expect(manager.shouldInvalidate(session, now)).toBe(false);
@@ -535,8 +533,8 @@ describe('SessionManager', () => {
         {
           status: 'active',
           sessionId: 'session-1',
-          issuedAt: new Date(now - 3600_000).toISOString(),
-          expiresAt: new Date(now - 1000).toISOString(), // истекла
+          issuedAt: new Date(now - 3600_000).toISOString() as ISODateString,
+          expiresAt: new Date(now - 1000).toISOString() as ISODateString, // истекла
         },
       ];
 
@@ -565,7 +563,7 @@ describe('SessionManager', () => {
     it('корректно парсит валидные ISO строки', () => {
       const now = Date.now();
       const issuedAt = now - 1000; // 1 second ago
-      const isoString = new Date(issuedAt).toISOString();
+      const isoString = new Date(issuedAt).toISOString() as ISODateString;
 
       // Тестируем через shouldInvalidate - если парсинг работает, метод не должен возвращать true
       // из-за невалидного issuedAt
@@ -573,7 +571,7 @@ describe('SessionManager', () => {
         status: 'active',
         sessionId: 'session-123',
         issuedAt: isoString, // issuedAt в прошлом (валидное время)
-        expiresAt: new Date(now + 3600_000).toISOString(),
+        expiresAt: new Date(now + 3600_000).toISOString() as ISODateString,
       };
 
       // Если парсинг работает, метод должен проверить остальные условия
@@ -585,8 +583,8 @@ describe('SessionManager', () => {
       const session: SessionState = {
         status: 'active',
         sessionId: 'session-123',
-        issuedAt: 'invalid-date-string',
-        expiresAt: new Date(Date.now() + 3600_000).toISOString(),
+        issuedAt: 'invalid-date-string' as ISODateString,
+        expiresAt: new Date(Date.now() + 3600_000).toISOString() as ISODateString,
       };
 
       // Если парсинг возвращает null, shouldInvalidate должен вернуть true

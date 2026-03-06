@@ -383,7 +383,6 @@ export {
   type AppContext,
   type AppError,
   type AppFileStatus,
-  type AppModule,
   AppModules,
   type AppWrapperProps,
   type AsyncError,
@@ -481,7 +480,6 @@ export {
   type UncontrolledFieldProps,
   type UnknownError,
   type UploadDomainStatus,
-  type UserRole,
   // Common Types
   UserRoles,
   type ValidationError,

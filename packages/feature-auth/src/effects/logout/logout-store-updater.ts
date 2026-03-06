@@ -16,6 +16,7 @@
  * - ✅ Использует канонические initial states из `types/auth-initial.ts` (единый источник истины для reset)
  */
 
+import type { SessionState } from '../../types/auth.js';
 import {
   createInitialSessionState,
   initialAuthState,
@@ -33,7 +34,7 @@ import type { AuthStorePort, BatchUpdate } from '../shared/auth-store.port.js';
  */
 const logoutResetActions: readonly BatchUpdate[] = [
   { type: 'setAuthState', state: initialAuthState },
-  { type: 'setSessionState', state: createInitialSessionState() },
+  { type: 'setSessionState', state: createInitialSessionState() as SessionState | null },
   { type: 'setSecurityState', state: initialSecurityState },
   { type: 'applyEventType', event: 'user_logged_out' },
 ] as const;

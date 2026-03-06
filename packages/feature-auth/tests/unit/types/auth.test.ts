@@ -14,8 +14,13 @@ import type {
   LoginRiskResult,
 } from '../../../src/domain/LoginRiskAssessment.js';
 import {
+  createEmptyLoginRiskResult,
   createLoginRiskEvaluation as createLoginRiskEvaluationDomain,
   createLoginRiskResult,
+  createRiskModelVersion,
+  createRiskScore,
+  DomainValidationError,
+  RiskReasonCode,
 } from '../../../src/domain/LoginRiskAssessment.js';
 import type { LogoutRequest } from '../../../src/domain/LogoutRequest.js';
 import type { MeResponse, MeSessionInfo, MeUserInfo } from '../../../src/domain/MeResponse.js';
@@ -67,7 +72,7 @@ import type {
 // 🔧 HELPER FUNCTIONS FOR TEST DATA
 // ============================================================================
 
-const createISODateString = (): ISODateString => '2026-01-01T00:00:00.000Z';
+const createISODateString = (): ISODateString => '2026-01-01T00:00:00.000Z' as ISODateString;
 
 const createAuthErrorResponse = (
   overrides: Partial<AuthErrorResponse> = {},
@@ -218,7 +223,7 @@ const ISO_8601_DATETIME_REGEX = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{3})?Z
 
 describe('ISODateString', () => {
   it('должен быть строкой', () => {
-    const date: ISODateString = '2026-01-01T00:00:00.000Z';
+    const date: ISODateString = '2026-01-01T00:00:00.000Z' as ISODateString;
     expect(typeof date).toBe('string');
     expect(date.length <= MAX_ISO_8601_DATETIME_LENGTH && ISO_8601_DATETIME_REGEX.test(date)).toBe(
       true,
@@ -226,8 +231,8 @@ describe('ISODateString', () => {
   });
 
   it('должен поддерживать различные форматы ISO 8601', () => {
-    const date1: ISODateString = '2026-01-01T00:00:00Z';
-    const date2: ISODateString = '2026-01-01T00:00:00.000Z';
+    const date1: ISODateString = '2026-01-01T00:00:00Z' as ISODateString;
+    const date2: ISODateString = '2026-01-01T00:00:00.000Z' as ISODateString;
     expect(typeof date1).toBe('string');
     expect(typeof date2).toBe('string');
   });
@@ -1578,5 +1583,143 @@ describe('AuthEvent', () => {
       },
     };
     expect(event.type).toBe('oauth_error');
+  });
+});
+
+// ============================================================================
+// 🧪 LOGIN RISK ASSESSMENT - FACTORY FUNCTIONS
+// ============================================================================
+
+describe('LoginRiskAssessment - Factory Functions', () => {
+  describe('createRiskScore', () => {
+    it('должен создавать валидный score', () => {
+      const score1 = createRiskScore(0);
+      const score2 = createRiskScore(50);
+      const score3 = createRiskScore(100);
+
+      expect(score1).toBe(0);
+      expect(score2).toBe(50);
+      expect(score3).toBe(100);
+    });
+
+    it('должен выбрасывать ошибку для невалидного числа (не finite) (строка 281)', () => {
+      expect(() => createRiskScore(NaN)).toThrow(DomainValidationError);
+      expect(() => createRiskScore(Infinity)).toThrow(DomainValidationError);
+      expect(() => createRiskScore(-Infinity)).toThrow(DomainValidationError);
+    });
+
+    it('должен выбрасывать ошибку для значения вне диапазона 0-100 (строка 289)', () => {
+      expect(() => createRiskScore(-1)).toThrow(DomainValidationError);
+      expect(() => createRiskScore(101)).toThrow(DomainValidationError);
+      expect(() => createRiskScore(-100)).toThrow(DomainValidationError);
+      expect(() => createRiskScore(200)).toThrow(DomainValidationError);
+    });
+  });
+
+  describe('createRiskModelVersion', () => {
+    it('должен создавать валидную версию модели', () => {
+      const version1 = createRiskModelVersion('1.0');
+      const version2 = createRiskModelVersion('2.5');
+      const version3 = createRiskModelVersion('1.0.0-beta');
+
+      expect(version1).toBe('1.0');
+      expect(version2).toBe('2.5');
+      expect(version3).toBe('1.0.0-beta');
+    });
+
+    it('должен выбрасывать ошибку для невалидного типа (строка 313)', () => {
+      expect(() => createRiskModelVersion('')).toThrow();
+      expect(() => createRiskModelVersion(null as unknown as string)).toThrow();
+      expect(() => createRiskModelVersion(undefined as unknown as string)).toThrow();
+      expect(() => createRiskModelVersion(123 as unknown as string)).toThrow();
+    });
+
+    it('должен выбрасывать ошибку для невалидного формата (строка 322)', () => {
+      expect(() => createRiskModelVersion('invalid')).toThrow();
+      expect(() => createRiskModelVersion('1')).toThrow();
+      expect(() => createRiskModelVersion('v1.0')).toThrow();
+      expect(() => createRiskModelVersion('1.0.0.0')).toThrow();
+    });
+  });
+
+  describe('DomainValidationError', () => {
+    it('должен сериализовать ошибку через toJSON (строка 263)', () => {
+      const error = new DomainValidationError(
+        'Test error',
+        'testField',
+        'testValue',
+        'TEST_CODE',
+      );
+
+      const json = error.toJSON();
+
+      expect(json.name).toBe('DomainValidationError');
+      expect(json.message).toBe('Test error');
+      expect(json.field).toBe('testField');
+      expect(json.value).toBe('testValue');
+      expect(json.code).toBe('TEST_CODE');
+    });
+
+    it('должен сериализовать ошибку без опциональных полей', () => {
+      const error = new DomainValidationError('Test error');
+
+      const json = error.toJSON();
+
+      expect(json.name).toBe('DomainValidationError');
+      expect(json.message).toBe('Test error');
+      expect(json.code).toBe('DOMAIN_VALIDATION_ERROR');
+      expect(json.field).toBeUndefined();
+      expect(json.value).toBeUndefined();
+    });
+  });
+
+  describe('createEmptyLoginRiskResult', () => {
+    it('должен создавать пустой результат оценки риска (строка 343)', () => {
+      const result = createEmptyLoginRiskResult();
+
+      expect(result.score).toBe(0);
+      expect(result.level).toBe('low');
+      expect(result.decision).toBe('login');
+      expect(result.reasons).toEqual([]);
+      expect(result.modelVersion).toBe('1.0');
+    });
+  });
+
+  describe('createLoginRiskResult', () => {
+    it('должен использовать переданные reasons когда они определены', () => {
+      const reasons = [
+        { type: 'network' as const, code: 'vpn' as const },
+        { type: 'geo' as const, code: 'velocity' as const },
+      ];
+      const result = createLoginRiskResult({
+        score: 75,
+        level: 'high',
+        reasons,
+        modelVersion: '1.0',
+      });
+
+      expect(result.reasons).toEqual(reasons);
+      expect(result.reasons).not.toBe(reasons); // Должна быть копия
+    });
+
+    it('должен использовать emptyReasons когда reasons не переданы (строка 370)', () => {
+      const result = createLoginRiskResult({
+        score: 50,
+        level: 'medium',
+        modelVersion: '1.0',
+        // reasons не переданы
+      });
+
+      expect(result.reasons).toEqual([]);
+    });
+  });
+
+  describe('RiskReasonCode constants', () => {
+    it('должен экспортировать константы GEO (строка 89)', () => {
+      expect(RiskReasonCode.GEO.VELOCITY).toBe('velocity');
+      expect(RiskReasonCode.GEO.IMPOSSIBLE_TRAVEL).toBe('impossible_travel');
+      expect(RiskReasonCode.GEO.HIGH_RISK_COUNTRY).toBe('high_risk_country');
+      expect(RiskReasonCode.GEO.SUSPICIOUS).toBe('suspicious');
+    });
   });
 });

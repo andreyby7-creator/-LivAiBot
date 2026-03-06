@@ -54,7 +54,7 @@ export type AuthGuardContext = AuthContext & {
   readonly ipAddress?: string;
   readonly sessionId?: string;
   readonly userId?: ID;
-  readonly roles?: ReadonlySet<UserRole>;
+  readonly roles?: ReadonlySet<UserRoles>;
   readonly permissions?: ReadonlySet<Permission>;
 };
 
@@ -63,7 +63,7 @@ export type AuthGuardContext = AuthContext & {
  * ========================================================================== */
 
 /** Система ролей с иерархией для enterprise приложений */
-export type UserRole = UserRoles;
+// Используем UserRoles enum напрямую для type-safety
 
 /** Разрешения для детального контроля доступа */
 export type Permission =
@@ -116,9 +116,9 @@ export type AuthErrorCode =
 export type AuthError = TaggedError<AuthErrorCode> & {
   readonly field?: string | undefined;
   readonly resource?: Resource | undefined;
-  readonly requiredRole?: UserRole | undefined;
+  readonly requiredRole?: UserRoles | undefined;
   readonly requiredPermissions?: readonly Permission[] | undefined;
-  readonly userRoles?: readonly UserRole[] | undefined;
+  readonly userRoles?: readonly UserRoles[] | undefined;
   readonly userPermissions?: readonly Permission[] | undefined;
 };
 
@@ -188,7 +188,7 @@ export type DenyDecision = Extract<AuthDecision, { allow: false; }>;
  * @returns решение об авторизации
  */
 export function checkAuthorization(
-  userRoles: ReadonlySet<UserRole>,
+  userRoles: ReadonlySet<UserRoles>,
   userPermissions: ReadonlySet<Permission>,
   action: Action,
   resource: Resource,
@@ -280,7 +280,7 @@ export function checkAccess(
   }
 
   // 2. Получаем роли и разрешения из context
-  const userRoles = context.roles ?? new Set<UserRole>();
+  const userRoles = context.roles ?? new Set<UserRoles>();
   const userPermissions = context.permissions ?? new Set<Permission>();
 
   // 3. Проверяем авторизацию
@@ -298,22 +298,22 @@ function isGuestActionAllowed(action: Action, resource: Resource): boolean {
 }
 
 /** Проверяет наличие системного доступа. */
-function hasSystemAccess(roles: ReadonlySet<UserRole>): boolean {
+function hasSystemAccess(roles: ReadonlySet<UserRoles>): boolean {
   return roles.has(UserRoles.SYSTEM);
 }
 
 /** Проверяет наличие административного доступа. */
-function hasAdminAccess(roles: ReadonlySet<UserRole>): boolean {
+function hasAdminAccess(roles: ReadonlySet<UserRoles>): boolean {
   return roles.has(UserRoles.ADMIN) || roles.has(UserRoles.SUPER_ADMIN) || hasSystemAccess(roles);
 }
 
 /** Проверяет наличие модераторского доступа. */
-function hasModeratorAccess(roles: ReadonlySet<UserRole>): boolean {
+function hasModeratorAccess(roles: ReadonlySet<UserRoles>): boolean {
   return roles.has(UserRoles.MODERATOR) || hasAdminAccess(roles);
 }
 
 /** Проверяет наличие повышенного доступа. */
-function hasElevatedAccess(roles: ReadonlySet<UserRole>): boolean {
+function hasElevatedAccess(roles: ReadonlySet<UserRoles>): boolean {
   return hasModeratorAccess(roles);
 }
 
@@ -357,7 +357,7 @@ function createAuthError(
   code: AuthErrorCode,
   field?: string | undefined,
   resource?: Resource | undefined,
-  requiredRole?: UserRole | undefined,
+  requiredRole?: UserRoles | undefined,
   requiredPermissions?: readonly Permission[] | undefined,
   userPermissions?: readonly Permission[] | undefined,
 ): AuthError {
@@ -431,13 +431,13 @@ export function eitherGuard(
 }
 
 /** Создает guard для проверки конкретной роли. */
-export function requireRole(requiredRole: UserRole): (context: AuthGuardContext) => AuthDecision {
+export function requireRole(requiredRole: UserRoles): (context: AuthGuardContext) => AuthDecision {
   return (context: AuthGuardContext): AuthDecision => {
     if (!context.isAuthenticated) {
       return deny('NOT_AUTHENTICATED', createAuthError('AUTH_MISSING_TOKEN'));
     }
 
-    const userRoles = context.roles ?? new Set<UserRole>();
+    const userRoles = context.roles ?? new Set<UserRoles>();
 
     if (!userRoles.has(requiredRole)) {
       return deny(

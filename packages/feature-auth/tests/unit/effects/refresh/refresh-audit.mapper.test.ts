@@ -5,6 +5,8 @@
 
 import { describe, expect, it } from 'vitest';
 
+import type { ISODateString } from '@livai/core-contracts';
+
 import {
   createRefreshAuditContext,
   mapRefreshResultToAuditEvent,
@@ -48,8 +50,8 @@ function createActiveSessionState(
         lng: 37.6173,
       },
     },
-    issuedAt: '2026-01-01T00:00:00.000Z',
-    expiresAt: '2026-12-31T23:59:59.000Z',
+    issuedAt: '2026-01-01T00:00:00.000Z' as ISODateString,
+    expiresAt: '2026-12-31T23:59:59.000Z' as ISODateString,
     ...overrides,
   };
 }
@@ -59,7 +61,7 @@ function createNonActiveSessionState(): SessionState {
     status: 'revoked',
     sessionId: 'session-expired-1',
     reason: 'expired',
-    revokedAt: '2026-01-01T00:00:00.000Z',
+    revokedAt: '2026-01-01T00:00:00.000Z' as ISODateString,
   };
 }
 

@@ -36,6 +36,11 @@ const createStorageMock = () => {
 };
 /* eslint-enable fp/no-mutation, security/detect-object-injection */
 // Import everything
+// ============================================================================
+// 🧠 HELPER FUNCTIONS FOR TEST DATA
+// ============================================================================
+import type { ISODateString } from '@livai/core-contracts';
+
 import type { AuthStoreState, PersistedAuthStoreState } from '../../../src/stores/auth.js';
 import {
   authStoreVersion,
@@ -78,11 +83,7 @@ import type {
   VerificationState,
 } from '../../../src/types/auth.js';
 
-// ============================================================================
-// 🧠 HELPER FUNCTIONS FOR TEST DATA
-// ============================================================================
-
-const createISODateString = (): string => '2026-01-01T00:00:00.000Z';
+const createISODateString = (): ISODateString => '2026-01-01T00:00:00.000Z' as ISODateString;
 
 // Для discriminated union нужно правильно создавать объекты
 /* eslint-disable @livai/rag/context-leakage -- Тестовые helper функции, не используются в production */

@@ -31,6 +31,7 @@ import type {
   ValidationError,
 } from '../../../src/domain/app-effects.js';
 import { ERROR_TAGS } from '../../../src/domain/app-effects.js';
+import type { ISODateString } from '../../../src/domain/common.js';
 
 describe('ERROR_TAGS', () => {
   it('содержит ожидаемые service/severity/feature теги', () => {
@@ -168,7 +169,7 @@ describe('AppError контракты', () => {
       context: { field: 'email' },
       traceId: TRACE_ID,
       tags: [ERROR_TAGS.severity.low],
-      timestamp: '2024-01-01T00:00:00.000Z',
+      timestamp: '2024-01-01T00:00:00.000Z' as ISODateString,
     };
 
     const validationError: ValidationError = {
@@ -178,7 +179,7 @@ describe('AppError контракты', () => {
       message: 'Validation failed',
       traceId: TRACE_ID,
       tags: [ERROR_TAGS.severity.medium],
-      timestamp: '2024-01-01T00:00:00.000Z',
+      timestamp: '2024-01-01T00:00:00.000Z' as ISODateString,
     };
 
     const networkError: NetworkError = {
@@ -190,7 +191,7 @@ describe('AppError контракты', () => {
       platform: 'web',
       traceId: TRACE_ID,
       tags: [ERROR_TAGS.service.core, ERROR_TAGS.severity.high],
-      timestamp: '2024-01-01T00:00:00.000Z',
+      timestamp: '2024-01-01T00:00:00.000Z' as ISODateString,
     };
 
     const serverError: ServerError = {
@@ -207,7 +208,7 @@ describe('AppError контракты', () => {
       platform: 'web',
       meta: { retryable: true },
       tags: [ERROR_TAGS.service.auth, ERROR_TAGS.severity.critical],
-      timestamp: '2024-01-01T00:00:00.000Z',
+      timestamp: '2024-01-01T00:00:00.000Z' as ISODateString,
     };
 
     const unknownError: UnknownError = {
@@ -217,7 +218,7 @@ describe('AppError контракты', () => {
       original: new Error('boom'),
       traceId: TRACE_ID,
       tags: [ERROR_TAGS.severity.high],
-      timestamp: '2024-01-01T00:00:00.000Z',
+      timestamp: '2024-01-01T00:00:00.000Z' as ISODateString,
     };
 
     const errors: AppError[] = [

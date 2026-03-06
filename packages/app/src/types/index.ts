@@ -57,7 +57,6 @@ export {
   type ApiResponse as CommonApiResponse,
   type ApiSuccess,
   type AppContext,
-  type AppModule,
   AppModules,
   type AsyncError,
   type AsyncFn,
@@ -90,7 +89,6 @@ export {
   type RealtimeEvent as CommonRealtimeEvent,
   type RouteConfig,
   type Subscription,
-  type UserRole,
   UserRoles,
   type VoidFn,
 } from './common.js';

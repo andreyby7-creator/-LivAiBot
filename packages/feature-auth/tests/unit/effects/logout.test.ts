@@ -286,6 +286,43 @@ describe('createLogoutEffect', () => {
         expect(result1.type).toBe('success');
         expect(result2.type).toBe('success');
       });
+
+      it('возвращает rate_limited ошибку при переполнении очереди (строки 402-406)', async () => {
+        const localDeps = createLocalDeps();
+        const serializeConfig = createConfigWithConcurrency('serialize');
+
+        // Мокируем batchUpdate, чтобы он выполнялся медленно
+        const resolveState = { resolve: undefined as (() => void) | undefined };
+        // eslint-disable-next-line ai-security/model-poisoning -- Тестовые данные для мокирования Promise, не используются в production
+        const batchUpdatePromise = new Promise<void>((resolve) => {
+          resolveState.resolve = resolve;
+        });
+        (localDeps.mocks.authStore.batchUpdate as ReturnType<typeof vi.fn>).mockImplementation(
+          () => batchUpdatePromise,
+        );
+
+        const logoutEffect = createLogoutEffect(localDeps, serializeConfig);
+
+        // Запускаем 10 запросов (MAX_SERIALIZE_QUEUE_LENGTH = 10)
+        const promises = Array.from({ length: 10 }, () => {
+          const effect = logoutEffect();
+          return effect();
+        });
+
+        // 11-й запрос должен вернуть rate_limited ошибку
+        const effect11 = logoutEffect();
+        const result11 = await effect11();
+
+        expect(result11.type).toBe('error');
+        if (result11.type === 'error') {
+          expect(result11.error.kind).toBe('rate_limited');
+          expect(result11.error.message).toContain('queue is full');
+        }
+
+        // Разрешаем выполнение batchUpdate для очистки
+        resolveState.resolve!();
+        await Promise.allSettled(promises);
+      });
     });
   });
 
@@ -441,6 +478,56 @@ describe('createLogoutEffect', () => {
       await new Promise((resolve) => setTimeout(resolve, 10));
       expect(remoteDeps.mocks.apiClient.post).toHaveBeenCalled();
     });
+
+    it('передает signal в revoke запрос когда signal определен (строка 149)', async () => {
+      const remoteDeps = createRemoteDeps();
+      const remoteConfig: LogoutEffectConfig = {
+        mode: 'remote',
+      };
+
+      const capturedState = { signal: undefined as AbortSignal | undefined };
+      (remoteDeps.mocks.apiClient.post as ReturnType<typeof vi.fn>).mockImplementation(
+        (_path, _body, options) => {
+          capturedState.signal = options?.signal;
+          return async () => ({});
+        },
+      );
+
+      const logoutEffect = createLogoutEffect(remoteDeps, remoteConfig);
+      const effect = logoutEffect();
+      const externalController = new AbortController();
+      await effect(externalController.signal);
+
+      await new Promise((resolve) => setTimeout(resolve, 10));
+      // Signal всегда передается, так как он создается из внутреннего controller
+      // Внутренний controller может быть связан с externalSignal через addEventListener
+      expect(capturedState.signal).toBeDefined();
+      expect(capturedState.signal).toBeInstanceOf(AbortSignal);
+    });
+
+    it('передает signal в revoke запрос (signal всегда определен из controller) (строка 149)', async () => {
+      const remoteDeps = createRemoteDeps();
+      const remoteConfig: LogoutEffectConfig = {
+        mode: 'remote',
+      };
+
+      const capturedState = { options: undefined as { signal?: AbortSignal; } | undefined };
+      (remoteDeps.mocks.apiClient.post as ReturnType<typeof vi.fn>).mockImplementation(
+        (_path, _body, options) => {
+          capturedState.options = options;
+          return async () => ({});
+        },
+      );
+
+      const logoutEffect = createLogoutEffect(remoteDeps, remoteConfig);
+      const effect = logoutEffect();
+      await effect(); // Без externalSignal, но внутренний controller создается
+
+      await new Promise((resolve) => setTimeout(resolve, 10));
+      // Signal всегда передается, так как он создается из внутреннего controller
+      expect(capturedState.options).toBeDefined();
+      expect(capturedState.options?.signal).toBeDefined();
+    });
   });
 
   describe('eventId generation', () => {
@@ -474,10 +561,26 @@ describe('createLogoutEffect', () => {
       expect(typeof event.eventId).toBe('string');
     });
 
-    it('использует fallback генерацию если crypto.randomUUID недоступен', async () => {
+    it('использует crypto.getRandomValues если crypto.randomUUID недоступен (строки 105-112)', async () => {
       const originalCrypto = global.crypto;
-      // @ts-expect-error - намеренно удаляем для теста
-      delete global.crypto;
+      // Мокируем crypto без randomUUID, но с getRandomValues
+      const mockCrypto = {
+        getRandomValues: (arr: Uint8Array) => {
+          // Заполняем массив случайными значениями для теста
+          arr.forEach((_, i) => {
+            // eslint-disable-next-line security/detect-object-injection -- Индекс массива контролируется длиной массива, безопасно
+            arr[i] = Math.floor(Math.random() * 256);
+          });
+          return arr;
+        },
+      } as Crypto;
+
+      // Используем Object.defineProperty для перезаписи crypto
+      Object.defineProperty(global, 'crypto', {
+        value: mockCrypto,
+        writable: true,
+        configurable: true,
+      });
 
       const localDeps = createLocalDeps();
       const localConfig = createDefaultConfig();
@@ -491,6 +594,63 @@ describe('createLogoutEffect', () => {
         ?.[0] as AuditEventValues;
       expect(event.eventId).toBeDefined();
       expect(typeof event.eventId).toBe('string');
+      expect(event.eventId).toMatch(/^logout-\d+-/);
+
+      // Восстанавливаем оригинальный crypto
+      Object.defineProperty(global, 'crypto', {
+        value: originalCrypto,
+        writable: true,
+        configurable: true,
+      });
+    });
+
+    it('использует fallback генерацию если crypto полностью недоступен (строки 116-121)', async () => {
+      const originalCrypto = global.crypto;
+      const originalProcess = global.process;
+      // @ts-expect-error - намеренно удаляем для теста
+      delete global.crypto;
+      // @ts-expect-error - намеренно удаляем process для теста fallback
+      delete global.process;
+
+      const localDeps = createLocalDeps();
+      const localConfig = createDefaultConfig();
+
+      const logoutEffect = createLogoutEffect(localDeps, localConfig);
+      const effect = logoutEffect();
+      await effect();
+
+      expect(localDeps.mocks.auditLogger.logLogoutEvent).toHaveBeenCalled();
+      const event = localDeps.mocks.auditLogger.logLogoutEvent.mock.calls[0]
+        ?.[0] as AuditEventValues;
+      expect(event.eventId).toBeDefined();
+      expect(typeof event.eventId).toBe('string');
+      // Должен содержать 'no-crypto' так как process тоже недоступен
+      expect(event.eventId).toMatch(/logout-\d+-no-crypto/);
+
+      global.crypto = originalCrypto;
+      global.process = originalProcess;
+    });
+
+    it('использует process.hrtime fallback если crypto недоступен но process доступен', async () => {
+      const originalCrypto = global.crypto;
+      // @ts-expect-error - намеренно удаляем для теста
+      delete global.crypto;
+      // process остается доступным (Node.js окружение)
+
+      const localDeps = createLocalDeps();
+      const localConfig = createDefaultConfig();
+
+      const logoutEffect = createLogoutEffect(localDeps, localConfig);
+      const effect = logoutEffect();
+      await effect();
+
+      expect(localDeps.mocks.auditLogger.logLogoutEvent).toHaveBeenCalled();
+      const event = localDeps.mocks.auditLogger.logLogoutEvent.mock.calls[0]
+        ?.[0] as AuditEventValues;
+      expect(event.eventId).toBeDefined();
+      expect(typeof event.eventId).toBe('string');
+      // Должен содержать 'fallback-' так как process.hrtime доступен
+      expect(event.eventId).toMatch(/logout-\d+-fallback-/);
 
       global.crypto = originalCrypto;
     });

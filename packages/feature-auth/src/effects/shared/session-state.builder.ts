@@ -21,6 +21,8 @@
  * - Все поля readonly для иммутабельности
  */
 
+import type { ISODateString } from '@livai/core-contracts';
+
 import type { DeviceInfo } from '../../domain/DeviceInfo.js';
 import type { MeSessionInfo } from '../../domain/MeResponse.js';
 import type { TokenPair } from '../../domain/TokenPair.js';
@@ -109,8 +111,8 @@ export function buildSessionState(
     status: 'active' as const,
     sessionId: meSession.sessionId,
     device: deviceInfoCopy,
-    issuedAt,
-    expiresAt,
+    issuedAt: issuedAt as ISODateString, // Type assertion: уже валидировано как ISO-8601 выше
+    expiresAt: expiresAt as ISODateString, // Type assertion: уже валидировано как ISO-8601 выше
   });
 
   return sessionState;

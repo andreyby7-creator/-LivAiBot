@@ -29,10 +29,10 @@
  */
 
 import { UserRoles } from '../types/common.js';
-import type { AuthGuardContext, Permission, UserRole } from './auth-guard.js';
+import type { AuthGuardContext, Permission } from './auth-guard.js';
 
 // Re-export types for convenience
-export type { Permission, UserRole };
+export type { Permission };
 
 /* ============================================================================
  * 🛤️ ТИПЫ МАРШРУТОВ
@@ -64,7 +64,7 @@ export type RouteInfo = {
 export type RoutePermissionRule = {
   readonly routeType: RouteType;
   readonly allow?: boolean; // Явное разрешение доступа (deny-by-default)
-  readonly requiredRoles?: readonly UserRole[];
+  readonly requiredRoles?: readonly UserRoles[];
   readonly requiredPermissions?: readonly Permission[];
   readonly allowGuests?: boolean;
   readonly allowAuthenticated?: boolean;
@@ -75,7 +75,7 @@ export type RoutePermissionRule = {
 export type RoutePermissionContext = Omit<AuthGuardContext, 'roles' | 'permissions'> & {
   readonly platform?: string; // web, mobile, etc.
   readonly isAdminMode?: boolean; // флаг для админских режимов
-  readonly userRoles?: ReadonlySet<UserRole>; // унифицированное имя
+  readonly userRoles?: ReadonlySet<UserRoles>; // унифицированное имя
   readonly userPermissions?: ReadonlySet<Permission>; // унифицированное имя
   // ПРИМЕЧАНИЕ: можно синхронизировать с AuthGuardContext в будущем - поддерживать совместимость
 };
@@ -98,7 +98,7 @@ export type RoutePermissionResult =
   | {
     readonly allowed: false;
     readonly reason: RouteDecisionReason;
-    readonly requiredRoles?: readonly UserRole[];
+    readonly requiredRoles?: readonly UserRoles[];
     readonly requiredPermissions?: readonly Permission[];
   };
 
@@ -370,7 +370,7 @@ export function requiresAuthentication(routeType: RouteType): boolean {
  * @param routeType - тип маршрута
  * @returns массив требуемых ролей или пустой массив
  */
-export function getRequiredRoles(routeType: RouteType): readonly UserRole[] {
+export function getRequiredRoles(routeType: RouteType): readonly UserRoles[] {
   const roles = (ROUTE_PERMISSION_POLICIES[routeType] as RoutePermissionRule).requiredRoles;
   return roles ? Object.freeze([...roles]) : Object.freeze([]);
 }

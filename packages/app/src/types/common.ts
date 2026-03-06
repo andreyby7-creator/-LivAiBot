@@ -3,11 +3,13 @@
  * ============================================================================
  * 🧱 ОБЩИЕ ТИПЫ ПРИЛОЖЕНИЯ
  * ============================================================================
+ *
  * Этот файл содержит фундаментальные типы, которые:
  * - Не зависят от конкретных доменов (auth, bots, chat и т.д.)
  * - Используются всеми feature-пакетами и инфраструктурными слоями
  * - Подходят для микросервисной архитектуры
  * - Устойчивы к росту системы и расширению на новые платформы
+ *
  * Принципы:
  * - Минимум связей
  * - Максимум переиспользования
@@ -18,39 +20,21 @@
 /* 🔑 БАЗОВЫЕ УТИЛИТАРНЫЕ ТИПЫ */
 /* ========================================================================== */
 
-declare const IDBrand: unique symbol;
+// Импортируем фундаментальные типы из core-contracts
+import type {
+  ID,
+  ISODateString,
+  Json,
+  JsonArray,
+  JsonObject,
+  JsonPrimitive,
+  JsonValue,
+  ReadonlyJsonObject,
+  TraceId,
+} from '@livai/core-contracts';
 
-/**
- * Уникальный идентификатор сущности с брендингом типов.
- * Предотвращает перепутывание ID разных сущностей.
- *
- * @example
- * export type UserID = ID<"UserID">;
- * export type BotID = ID<"BotID">;
- * export type ConversationID = ID<"ConversationID">;
- */
-export type ID<T extends string = string> = string & {
-  readonly [IDBrand]: T;
-};
-
-declare const ISODateBrand: unique symbol;
-
-/**
- * ISO-8601 строка даты.
- * Пример: "2026-01-16T12:34:56.000Z"
- */
-export type ISODateString = string & { readonly [ISODateBrand]: 'ISODateString'; };
-
-/**
- * Универсальный JSON-совместимый тип.
- * Применяется для метаданных, payload'ов и логирования.
- */
-export type JsonPrimitive = string | number | boolean | null;
-export type JsonValue = JsonPrimitive | JsonObject | JsonArray;
-export type JsonObject = { readonly [key: string]: JsonValue; };
-export type JsonArray = readonly JsonValue[];
-
-export type Json = JsonValue;
+// Re-export для обратной совместимости
+export type { ID, ISODateString, Json, JsonArray, JsonObject, JsonPrimitive, JsonValue, TraceId };
 
 /** Nullable helper. */
 export type Nullable<T> = T | null;
@@ -61,8 +45,16 @@ export type Optional<T> = T | undefined;
 /** Maybe helper - объединяет null и undefined. Полезно для API ответов и Effect паттернов. */
 export type Maybe<T> = T | null | undefined;
 
-/** Deep readonly helper. Используется для иммутабельных DTO. */
+/**
+ * Deep readonly helper. Используется для иммутабельных DTO.
+ * Для JSON payload использует ReadonlyJsonObject для более строгой типизации.
+ *
+ * @note Для JSON-объектов применяется ReadonlyJsonObject для явной фиксации immutability
+ *       и предотвращения случайных мутаций в runtime.
+ */
 export type Immutable<T> = T extends Function ? T
+  : T extends JsonObject ? ReadonlyJsonObject
+  : T extends JsonArray ? readonly Immutable<JsonValue>[]
   : T extends (infer U)[] ? readonly Immutable<U>[]
   : T extends object ? { readonly [K in keyof T]: Immutable<T[K]>; }
   : T;
@@ -175,8 +167,8 @@ export type ApiError = {
   /** Источник ошибки для observability */
   source?: ErrorSource;
 
-  /** Trace ID для distributed tracing */
-  traceId?: string;
+  /** Trace ID для distributed tracing (branded type для type-safety) */
+  traceId?: TraceId;
 
   /** Дополнительные данные для логирования и аналитики */
   details?: Json;
@@ -306,11 +298,20 @@ export enum UserRoles {
   SYSTEM = 'SYSTEM',
 }
 
-/** @deprecated Используйте UserRoles enum вместо UserRole type */
-export type UserRole = UserRoles;
-
 /** Все доступные роли пользователей (для exhaustive проверок). */
 export const AllUserRoles = Object.values(UserRoles) as readonly UserRoles[];
+
+/**
+ * Branded type для ID роли пользователя.
+ * Обеспечивает полную type-safety для feature flag checks и route guards.
+ */
+export type UserRoleID = ID<'UserRole'>;
+
+/**
+ * Branded type для ID модуля приложения.
+ * Обеспечивает полную type-safety для feature flag checks и route guards.
+ */
+export type AppModuleID = ID<'AppModule'>;
 
 /** Вспомогательный тип для exhaustive проверки ролей. Гарантирует, что все роли из UserRoles учтены в массиве. */
 export type ExhaustiveRoleCheck<T extends readonly UserRoles[]> = T extends
@@ -326,14 +327,15 @@ export enum AppModules {
   BILLING = 'billing',
 }
 
-/** @deprecated Используйте AppModules enum вместо AppModule type */
-export type AppModule = AppModules;
-
 /**
  * Конфигурация маршрута приложения.
  * Описывает метаданные для декларативной маршрутизации.
+ *
+ * @template TMeta - Опциональный тип метаданных для future-proof расширения конфигурации маршрута
+ *                   без изменения базовой структуры. Позволяет добавлять route-specific metadata
+ *                   (breadcrumbs, analytics, permissions и т.п.) без breaking changes.
  */
-export type RouteConfig = {
+export type RouteConfig<TMeta extends ReadonlyJsonObject = ReadonlyJsonObject> = {
   /** Путь маршрута (например, '/login', '/bots/:botId') */
   readonly path: string;
 
@@ -348,4 +350,7 @@ export type RouteConfig = {
 
   /** Список ролей, которым разрешен доступ (только если protected: true) */
   readonly allowedRoles?: readonly UserRoles[];
+
+  /** Опциональные метаданные для расширения конфигурации маршрута */
+  readonly meta?: TMeta;
 };

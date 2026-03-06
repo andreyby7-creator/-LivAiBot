@@ -38,6 +38,7 @@
  * ============================================================================
  */
 
+import type { ISODateString } from '@livai/core-contracts';
 import type { RiskLevel } from '@livai/domains/policies';
 
 import type { AuthAuditEvent } from '../domain/AuthAuditEvent.js';
@@ -75,8 +76,8 @@ import type { VerifyPhoneRequest } from '../domain/VerifyPhoneRequest.js';
  * ============================================================================
  */
 
-/** ISO 8601 строка даты и времени */
-export type ISODateString = string;
+// Re-export для использования в других файлах feature-auth
+export type { ISODateString };
 
 /* ============================================================================
  * 📋 METADATA TYPES

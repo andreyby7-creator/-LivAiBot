@@ -19,11 +19,12 @@ import type { JSX, PropsWithChildren } from 'react';
 import React, { memo, useEffect, useMemo } from 'react';
 
 import { AuthHookProvider, useAuth } from '../hooks/useAuth-provider.js';
-import type { AuthGuardContext, Permission, UserRole } from '../lib/auth-guard.js';
+import type { AuthGuardContext, Permission } from '../lib/auth-guard.js';
 import { AuthGuardProvider } from '../lib/auth-guard.js';
 import type { AuthHookDepsConfig } from '../lib/auth-hook-deps.js';
 import type { AppStore } from '../state/store.js';
 import { useAppStore } from '../state/store.js';
+import type { UserRoles } from '../types/common.js';
 import type { UiAuthContext } from '../types/ui-contracts.js';
 import type { FeatureFlagsProviderProps } from './FeatureFlagsProvider.js';
 import { FeatureFlagsProvider } from './FeatureFlagsProvider.js';
@@ -54,7 +55,7 @@ import { UnifiedUIProvider } from './UnifiedUIProvider.js';
  */
 type AuthGuardContextOptions = Readonly<{
   /** Роли пользователя для RBAC. */
-  readonly roles?: ReadonlySet<UserRole>;
+  readonly roles?: ReadonlySet<UserRoles>;
   /** Разрешения пользователя для ABAC. */
   readonly permissions?: ReadonlySet<Permission>;
 }>;
@@ -84,7 +85,7 @@ const buildAuthGuardContext = (
   requestId: string,
   options?: AuthGuardContextOptions,
 ): AuthGuardContext => {
-  const roles = options?.roles ?? new Set<UserRole>();
+  const roles = options?.roles ?? new Set<UserRoles>();
   const permissions = options?.permissions ?? new Set<Permission>();
 
   const baseContext = {

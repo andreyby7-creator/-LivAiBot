@@ -7,6 +7,8 @@
 
 import { describe, expect, it } from 'vitest';
 
+import type { ISODateString } from '@livai/core-contracts';
+
 import type { DeviceInfo } from '../../../../src/domain/DeviceInfo.js';
 import type {
   AbortControllerPort,
@@ -60,8 +62,8 @@ const createAuthState = (): AuthState => ({
 const createSessionState = (): SessionState => ({
   status: 'active',
   sessionId: 'session-123',
-  issuedAt: '2026-01-01T00:00:00.000Z',
-  expiresAt: '2026-12-31T23:59:59.000Z',
+  issuedAt: '2026-01-01T00:00:00.000Z' as ISODateString,
+  expiresAt: '2026-12-31T23:59:59.000Z' as ISODateString,
 });
 
 const createSecurityState = (): SecurityState => ({
@@ -442,7 +444,7 @@ describe('effects/login/login-effect.types', () => {
     const testEvent: AuditEventValues = {
       type: 'login_success',
       eventId: 'event-123',
-      timestamp: '2026-01-01T00:00:00.000Z',
+      timestamp: '2026-01-01T00:00:00.000Z' as ISODateString,
       userId: 'user-123',
       sessionId: 'session-123',
     } as AuditEventValues;

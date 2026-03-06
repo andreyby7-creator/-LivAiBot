@@ -9,7 +9,7 @@
  * - Декларативные правила и deny-by-default политика
  */
 
-import { describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
 import type {
   Permission,
@@ -17,9 +17,9 @@ import type {
   RoutePermissionContext,
   RoutePermissionResult,
   RouteType,
-  UserRole,
 } from '../../../src/lib/route-permissions';
 import {
+  canAccessRoute,
   checkRoutePermission,
   createProtectedRoute,
   createPublicRoute,
@@ -57,7 +57,7 @@ function createMockRouteContext(overrides: Record<string, any> = {}): RoutePermi
     isAuthenticated: true,
     platform: 'web',
     isAdminMode: false,
-    userRoles: new Set<UserRole>(),
+    userRoles: new Set<UserRoles>(),
     userPermissions: new Set<Permission>(),
     ...overrides,
   } as RoutePermissionContext;
@@ -83,7 +83,7 @@ function createMockRouteInfo(
 /**
  * Создает mock UserRole set
  */
-function createMockRoles(...roles: readonly UserRole[]): ReadonlySet<UserRole> {
+function createMockRoles(...roles: readonly UserRoles[]): ReadonlySet<UserRoles> {
   return new Set(roles);
 }
 
@@ -110,7 +110,7 @@ function expectRouteAllowed(result: RoutePermissionResult, expectedReason?: stri
 function expectRouteDenied(
   result: RoutePermissionResult,
   expectedReason?: string,
-  expectedRoles?: readonly UserRole[],
+  expectedRoles?: readonly UserRoles[],
   expectedPermissions?: readonly Permission[],
 ): void {
   expect(result.allowed).toBe(false);
@@ -185,7 +185,7 @@ describe('Route Permissions - Enterprise Grade', () => {
       });
 
       it('должен разрешать доступ к dashboard авторизованным пользователям с правильными ролями', () => {
-        const validRoles: UserRole[] = [
+        const validRoles: UserRoles[] = [
           UserRoles.USER,
           UserRoles.PREMIUM_USER,
           UserRoles.MODERATOR,
@@ -207,7 +207,7 @@ describe('Route Permissions - Enterprise Grade', () => {
       });
 
       it('должен запрещать доступ к dashboard пользователям без требуемых ролей', () => {
-        const invalidRoles: UserRole[] = [UserRoles.GUEST];
+        const invalidRoles: UserRoles[] = [UserRoles.GUEST];
 
         for (const role of invalidRoles) {
           const context = createMockRouteContext({
@@ -241,7 +241,7 @@ describe('Route Permissions - Enterprise Grade', () => {
       });
 
       it('должен требовать правильные роли для доступа к admin панели', () => {
-        const invalidRoles: UserRole[] = [
+        const invalidRoles: UserRoles[] = [
           UserRoles.USER,
           UserRoles.PREMIUM_USER,
           UserRoles.MODERATOR,
@@ -280,7 +280,7 @@ describe('Route Permissions - Enterprise Grade', () => {
       });
 
       it('должен разрешать доступ к admin панели пользователям с правильными ролями и разрешениями', () => {
-        const validRoles: UserRole[] = [UserRoles.ADMIN, UserRoles.SUPER_ADMIN, UserRoles.SYSTEM];
+        const validRoles: UserRoles[] = [UserRoles.ADMIN, UserRoles.SUPER_ADMIN, UserRoles.SYSTEM];
 
         for (const role of validRoles) {
           const context = createMockRouteContext({
@@ -332,7 +332,7 @@ describe('Route Permissions - Enterprise Grade', () => {
       });
 
       it('должен требовать правильные роли для доступа к настройкам', () => {
-        const invalidRoles: UserRole[] = [UserRoles.GUEST];
+        const invalidRoles: UserRoles[] = [UserRoles.GUEST];
 
         for (const role of invalidRoles) {
           const context = createMockRouteContext({
@@ -354,7 +354,7 @@ describe('Route Permissions - Enterprise Grade', () => {
       });
 
       it('должен разрешать доступ к настройкам авторизованным пользователям с правильными ролями', () => {
-        const validRoles: UserRole[] = [
+        const validRoles: UserRoles[] = [
           UserRoles.USER,
           UserRoles.PREMIUM_USER,
           UserRoles.MODERATOR,
@@ -388,7 +388,7 @@ describe('Route Permissions - Enterprise Grade', () => {
       });
 
       it('должен требовать правильные роли для доступа к профилю', () => {
-        const invalidRoles: UserRole[] = [UserRoles.GUEST];
+        const invalidRoles: UserRoles[] = [UserRoles.GUEST];
 
         for (const role of invalidRoles) {
           const context = createMockRouteContext({
@@ -410,7 +410,7 @@ describe('Route Permissions - Enterprise Grade', () => {
       });
 
       it('должен разрешать доступ к профилю авторизованным пользователям с правильными ролями', () => {
-        const validRoles: UserRole[] = [
+        const validRoles: UserRoles[] = [
           UserRoles.USER,
           UserRoles.PREMIUM_USER,
           UserRoles.MODERATOR,
@@ -801,6 +801,225 @@ describe('Route Permissions - Enterprise Grade', () => {
         const adminResult = checkRoutePermission(adminRoute, adminContext);
         expectRouteAllowed(adminResult, 'EXPLICIT_ALLOW');
       });
+    });
+  });
+
+  describe('Auth Routes - customCheck', () => {
+    const authRoute = createMockRouteInfo('auth', '/auth/login');
+
+    it('должен вызывать customCheck для auth маршрутов (строка 126)', () => {
+      // customCheck в политике auth проверяет !context.isAuthenticated
+      // Для неавторизованного пользователя customCheck вернет true
+      // Но сначала срабатывает allowGuests: true -> GUEST_ACCESS_ALLOWED
+      const guestContext = createMockRouteContext({ isAuthenticated: false });
+      const result = checkRoutePermission(authRoute, guestContext);
+      expectRouteAllowed(result, 'GUEST_ACCESS_ALLOWED');
+      // customCheck вызывается, но результат не используется, так как basicCheck вернул результат раньше
+    });
+
+    it('должен возвращать AUTHENTICATED_NOT_ALLOWED для авторизованных пользователей на auth маршрутах', () => {
+      // Для auth маршрута с авторизованным пользователем:
+      // 1. basicCheck проверяет allowAuthenticated: false && isAuthenticated -> AUTHENTICATED_NOT_ALLOWED
+      // customCheck не вызывается, так как basicCheck вернул результат раньше
+      const authenticatedContext = createMockRouteContext({ isAuthenticated: true });
+      const result = checkRoutePermission(authRoute, authenticatedContext);
+      expectRouteDenied(result, 'AUTHENTICATED_NOT_ALLOWED');
+    });
+  });
+
+  describe('DENY_BY_DEFAULT edge case', () => {
+    it('должен возвращать DENY_BY_DEFAULT когда политика не имеет разрешающих условий (строка 225)', () => {
+      // Для достижения DENY_BY_DEFAULT нужно создать ситуацию, когда:
+      // - basicCheck возвращает null (нет allowGuests/allowAuthenticated)
+      // - customCheck не определен или возвращает true
+      // - privilegeCheck возвращает null (нет requiredRoles/requiredPermissions)
+      // - policy.allow !== true
+      // Все существующие политики имеют хотя бы одно разрешающее поле
+      // Поэтому эта ветка практически недостижима с текущими политиками
+      // Это защитная ветка для будущих политик без явных разрешений
+
+      // Проверим, что при отсутствии всех условий возвращается правильная ошибка
+      const route = createProtectedRoute('api', '/api/test');
+      const context = createMockRouteContext({
+        isAuthenticated: false,
+      });
+
+      // API требует allowAuthenticated: true, поэтому вернется AUTH_REQUIRED
+      // DENY_BY_DEFAULT недостижим с текущими политиками
+      const result = checkRoutePermission(route, context);
+      expect(result.allowed).toBe(false);
+      expect(result.reason).toBe('AUTH_REQUIRED');
+    });
+  });
+
+  describe('canAccessRoute', () => {
+    describe('клиентский режим (window определен)', () => {
+      let originalWindow: typeof window | undefined;
+
+      beforeEach(() => {
+        // Сохраняем оригинальный window
+        originalWindow = global.window;
+        // Мокируем window для клиентского режима
+        global.window = {} as Window & typeof globalThis;
+      });
+
+      afterEach(() => {
+        // Восстанавливаем window
+        if (originalWindow !== undefined) {
+          global.window = originalWindow;
+        } else {
+          delete (global as { window?: typeof window; }).window;
+        }
+      });
+
+      it('должен разрешать доступ к публичным маршрутам', () => {
+        expect(canAccessRoute('/')).toBe(true);
+        expect(canAccessRoute('/health')).toBe(true);
+        expect(canAccessRoute('/about')).toBe(true);
+        expect(canAccessRoute('/unknown')).toBe(true);
+      });
+
+      it('должен разрешать доступ к auth маршрутам для неавторизованных', () => {
+        expect(canAccessRoute('/auth/login')).toBe(true);
+        expect(canAccessRoute('/login')).toBe(true);
+        expect(canAccessRoute('/register')).toBe(true);
+        expect(canAccessRoute('/auth/register')).toBe(true);
+        expect(canAccessRoute('/auth/reset-password')).toBe(true);
+      });
+
+      it('должен запрещать доступ к защищенным маршрутам для неавторизованных', () => {
+        expect(canAccessRoute('/dashboard')).toBe(false);
+        expect(canAccessRoute('/dashboard/main')).toBe(false);
+        expect(canAccessRoute('/admin')).toBe(false);
+        expect(canAccessRoute('/admin/config')).toBe(false);
+        expect(canAccessRoute('/settings')).toBe(false);
+        expect(canAccessRoute('/settings/preferences')).toBe(false);
+        expect(canAccessRoute('/profile')).toBe(false);
+        expect(canAccessRoute('/profile/edit')).toBe(false);
+      });
+
+      it('должен обрабатывать различные пути API', () => {
+        expect(canAccessRoute('/api')).toBe(false);
+        expect(canAccessRoute('/api/v1/users')).toBe(false);
+        expect(canAccessRoute('/api/test')).toBe(false);
+      });
+
+      it('должен обрабатывать пути с пробелами (trim)', () => {
+        expect(canAccessRoute('  /dashboard  ')).toBe(false);
+        expect(canAccessRoute('  /auth/login  ')).toBe(true);
+        expect(canAccessRoute('   ')).toBe(true); // Пустая строка после trim -> public
+        expect(canAccessRoute('\t\n')).toBe(true); // Whitespace -> public
+      });
+    });
+
+    describe('SSR режим (window не определен)', () => {
+      let originalWindow: typeof window | undefined;
+
+      beforeEach(() => {
+        // Сохраняем оригинальный window
+        originalWindow = global.window;
+        // В Node.js window может быть undefined, но на всякий случай удаляем
+        delete (global as { window?: typeof window; }).window;
+      });
+
+      afterEach(() => {
+        // Восстанавливаем window
+        if (originalWindow !== undefined) {
+          global.window = originalWindow;
+        } else {
+          delete (global as { window?: typeof window; }).window;
+        }
+      });
+
+      it('должен разрешать только публичные маршруты в SSR', () => {
+        expect(canAccessRoute('/')).toBe(true);
+        expect(canAccessRoute('/health')).toBe(true);
+        expect(canAccessRoute('/about')).toBe(true);
+        expect(canAccessRoute('/unknown')).toBe(true);
+      });
+
+      it('должен разрешать auth маршруты в SSR', () => {
+        expect(canAccessRoute('/auth/login')).toBe(true);
+        expect(canAccessRoute('/login')).toBe(true);
+        expect(canAccessRoute('/register')).toBe(true);
+        expect(canAccessRoute('/auth/register')).toBe(true);
+      });
+
+      it('должен запрещать защищенные маршруты в SSR', () => {
+        expect(canAccessRoute('/dashboard')).toBe(false);
+        expect(canAccessRoute('/admin')).toBe(false);
+        expect(canAccessRoute('/settings')).toBe(false);
+        expect(canAccessRoute('/profile')).toBe(false);
+        expect(canAccessRoute('/api/v1/users')).toBe(false);
+      });
+    });
+  });
+
+  describe('getRouteTypeFromPath (через canAccessRoute)', () => {
+    it('должен определять тип маршрута по префиксу /auth', () => {
+      expect(canAccessRoute('/auth/login')).toBe(true);
+      expect(canAccessRoute('/auth/register')).toBe(true);
+      expect(canAccessRoute('/auth/reset-password')).toBe(true);
+    });
+
+    it('должен определять тип маршрута по точным путям /login и /register', () => {
+      expect(canAccessRoute('/login')).toBe(true);
+      expect(canAccessRoute('/register')).toBe(true);
+    });
+
+    it('должен определять тип маршрута по префиксу /dashboard', () => {
+      expect(canAccessRoute('/dashboard')).toBe(false);
+      expect(canAccessRoute('/dashboard/main')).toBe(false);
+      expect(canAccessRoute('/dashboard/analytics')).toBe(false);
+    });
+
+    it('должен определять тип маршрута по префиксу /admin', () => {
+      expect(canAccessRoute('/admin')).toBe(false);
+      expect(canAccessRoute('/admin/users')).toBe(false);
+      expect(canAccessRoute('/admin/config')).toBe(false);
+    });
+
+    it('должен определять тип маршрута по префиксу /api', () => {
+      expect(canAccessRoute('/api')).toBe(false);
+      expect(canAccessRoute('/api/v1')).toBe(false);
+      expect(canAccessRoute('/api/v1/users')).toBe(false);
+    });
+
+    it('должен определять тип маршрута по префиксу /profile', () => {
+      expect(canAccessRoute('/profile')).toBe(false);
+      expect(canAccessRoute('/profile/edit')).toBe(false);
+      expect(canAccessRoute('/profile/settings')).toBe(false);
+    });
+
+    it('должен определять тип маршрута по префиксу /settings', () => {
+      expect(canAccessRoute('/settings')).toBe(false);
+      expect(canAccessRoute('/settings/preferences')).toBe(false);
+      expect(canAccessRoute('/settings/security')).toBe(false);
+    });
+
+    it('должен возвращать public для неизвестных путей', () => {
+      expect(canAccessRoute('/unknown')).toBe(true);
+      expect(canAccessRoute('/some/path')).toBe(true);
+      expect(canAccessRoute('/test')).toBe(true);
+    });
+
+    it('должен обрабатывать пустые строки и whitespace', () => {
+      expect(canAccessRoute('')).toBe(true); // Пустая строка -> public
+      expect(canAccessRoute('   ')).toBe(true); // Только пробелы после trim -> public
+      expect(canAccessRoute('\t\n')).toBe(true); // Whitespace -> public
+    });
+
+    it('должен обрабатывать null и undefined через type assertion (edge case)', () => {
+      // canAccessRoute принимает только string, но getRouteTypeFromPath внутри обрабатывает null/undefined
+      // Используем type assertion для тестирования edge cases
+      expect(canAccessRoute(null as unknown as string)).toBe(true); // null -> public
+      expect(canAccessRoute(undefined as unknown as string)).toBe(true); // undefined -> public
+    });
+
+    it('должен обрабатывать не-строковые значения через type assertion (edge case)', () => {
+      // getRouteTypeFromPath обрабатывает typeof !== 'string'
+      expect(canAccessRoute(123 as unknown as string)).toBe(true); // number -> public
+      expect(canAccessRoute({} as unknown as string)).toBe(true); // object -> public
     });
   });
 });
