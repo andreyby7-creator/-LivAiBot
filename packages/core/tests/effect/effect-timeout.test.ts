@@ -185,14 +185,18 @@ describe('effect-timeout', () => {
     });
 
     it('если callback таймера выполнится после завершения эффекта, он не должен ставить timeout флаг (completed guard)', async () => {
-      const state: { cb?: () => void } = {};
+      const state: { cb?: () => void; } = {};
 
-      const setTimeoutSpy = vi.spyOn(globalThis, 'setTimeout').mockImplementation((cb: () => void) => {
-        // eslint-disable-next-line fp/no-mutation -- тест: сохраняем callback таймера для ручного вызова после completion
-        state.cb = cb;
-        return Symbol('t') as unknown as ReturnType<typeof setTimeout>;
-      });
-      const clearTimeoutSpy = vi.spyOn(globalThis, 'clearTimeout').mockImplementation(() => undefined);
+      const setTimeoutSpy = vi.spyOn(globalThis, 'setTimeout').mockImplementation(
+        (cb: () => void) => {
+          // eslint-disable-next-line fp/no-mutation -- тест: сохраняем callback таймера для ручного вызова после completion
+          state.cb = cb;
+          return Symbol('t') as unknown as ReturnType<typeof setTimeout>;
+        },
+      );
+      const clearTimeoutSpy = vi.spyOn(globalThis, 'clearTimeout').mockImplementation(() =>
+        undefined
+      );
 
       const effect = vi.fn(async () => 'ok');
       const wrapped = withTimeout(effect, { timeoutMs: 100, tag: 't' });
@@ -208,4 +212,3 @@ describe('effect-timeout', () => {
     });
   });
 });
-

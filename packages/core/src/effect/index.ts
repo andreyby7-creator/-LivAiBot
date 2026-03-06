@@ -167,15 +167,18 @@ export {
 export type {
   AsyncValidator,
   FormValidationResult,
+  // validateFormData возвращает FormValidationResult (переэкспорт типа уже покрывает)
   ObjectSchema,
   ValidationContext,
   ValidationError,
   ValidationResult,
   ValidationSchema,
+  ValidationStep,
   Validator,
 } from './validation.js';
 
 export {
+  all,
   asyncPipe,
   fail as validationFail,
   formatFileSize,
@@ -185,12 +188,14 @@ export {
   ok as validationOk,
   optional,
   pipe,
+  pipeChain,
   pipeMany,
   refine,
   required,
   toAsync,
   validateFileBasic,
   validateForm,
+  validateFormData,
   validateObject,
   validationError,
 } from './validation.js';

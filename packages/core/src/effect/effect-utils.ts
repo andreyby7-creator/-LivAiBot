@@ -270,16 +270,19 @@ export function combineAbortSignals(signals: readonly AbortSignal[]): AbortSigna
   if (
     typeof AbortSignal !== 'undefined'
     && 'any' in AbortSignal
-    && typeof (AbortSignal as unknown as { any: (signals: AbortSignal[]) => AbortSignal }).any === 'function'
+    && typeof (AbortSignal as unknown as { any: (signals: AbortSignal[]) => AbortSignal; }).any
+      === 'function'
   ) {
-    return (AbortSignal as unknown as { any: (signals: AbortSignal[]) => AbortSignal }).any(uniqueSignals);
+    return (AbortSignal as unknown as { any: (signals: AbortSignal[]) => AbortSignal; }).any(
+      uniqueSignals,
+    );
   }
 
   const controller = new AbortController();
   const combinedSignal = controller.signal;
 
   const token = Symbol('combineAbortSignals');
-  const state: { cleaned: boolean } = { cleaned: false };
+  const state: { cleaned: boolean; } = { cleaned: false };
 
   const cleanup = (): void => {
     if (state.cleaned) {

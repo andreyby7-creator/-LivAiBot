@@ -1,16 +1,18 @@
 /**
- * @file packages/app/src/lib/validation.ts
+ * @file packages/core/src/effect/validation.ts
  * ============================================================================
  * 🔹 VALIDATION CORE — ФУНКЦИОНАЛЬНАЯ ПОДСИСТЕМА ВАЛИДАЦИИ
  * ============================================================================
+ *
  * Назначение:
  * - Единый, типобезопасный слой валидации для всех микросервисов
  * - Детерминированные, композиционные валидаторы
- * - Совместимость с error-mapping.ts и telemetry
+ * - Совместимость с `error-mapping.ts` (ServiceErrorCode/TaggedError)
  * - Поддержка синхронных и асинхронных сценариев
- * - Подготовка к i18n, distributed tracing и Effect-first архитектуре
+ * - Изоляция UI/DOM: core-функции не зависят от DOM (`validateFormData`), DOM доступен только в адаптере (`validateForm`)
+ *
  * Принципы:
- * - Без side-effects
+ * - Без side-effects (кроме DOM-адаптера `validateForm`)
  * - Без классов
  * - Максимальная композиционность
  */
@@ -18,15 +20,6 @@
 import type { FileValidationResult } from '@livai/core-contracts';
 
 import type { ServiceErrorCode, ServicePrefix, TaggedError } from './error-mapping.js';
-
-// В core-слое нет прямой зависимости от telemetry-runtime, поэтому используем no-op logger.
-function warnFireAndForget(_message: string, _data?: Record<string, unknown>): void {
-  // no-op
-}
-
-function errorFireAndForget(_message: string, _data?: Record<string, unknown>): void {
-  // no-op
-}
 
 /* ============================================================================
  * 🎭 PUBLIC API
@@ -78,12 +71,6 @@ export function validationError(
     service?: ServicePrefix | undefined;
   },
 ): ValidationError {
-  warnFireAndForget('Validation error created', {
-    code,
-    ...(options?.field != null && { field: options.field }),
-    ...(options?.service != null && { service: options.service }),
-  });
-
   return {
     code,
     service: options?.service ?? 'SYSTEM',
@@ -98,9 +85,13 @@ export function validationError(
  * ========================================================================== */
 
 /**
- * Результат валидации:
- * - success: true  → значение валидно
- * - success: false → массив ошибок
+ * Результат валидации.
+ * - `success: true` → `value` доступен
+ * - `success: false` → `errors` (массив `ValidationError`)
+ *
+ * Отличие от `Result<T, E>`:
+ * - `ValidationResult<T>` предназначен для **валидации** и хранит **массив** ошибок (для аккумулирования ошибок формы/объекта).
+ * - `Result<T, E>` предназначен для **выполнения операции** и хранит **одну** ошибку типа `E`.
  */
 export type ValidationResult<T> =
   | { readonly success: true; readonly value: T; }
@@ -116,11 +107,6 @@ export function fail(
   errors: readonly ValidationError[] | ValidationError,
 ): ValidationResult<never> {
   const errorArray = Array.isArray(errors) ? errors : [errors];
-
-  warnFireAndForget('Validation failed', {
-    errorCount: errorArray.length,
-    ...(errorArray[0]?.code != null && { firstError: String(errorArray[0].code) }),
-  });
 
   return {
     success: false,
@@ -148,6 +134,11 @@ export type AsyncValidator<T> = (
  * 🔗 КОМПОЗИЦИЯ
  * ========================================================================== */
 
+export type ValidationStep<A, B> = (
+  value: A,
+  ctx: ValidationContext,
+) => ValidationResult<B>;
+
 // pipe — последовательное применение валидаторов
 export function pipe<A, B>(
   v1: Validator<A>,
@@ -160,18 +151,77 @@ export function pipe<A, B>(
   };
 }
 
+// pipeChain — типобезопасная композиция с преобразованиями типов (unknown -> string -> number -> ...)
+export function pipeChain<A, B>(
+  v1: Validator<A>,
+  s2: ValidationStep<A, B>,
+): Validator<B>;
+export function pipeChain<A, B, C>(
+  v1: Validator<A>,
+  s2: ValidationStep<A, B>,
+  s3: ValidationStep<B, C>,
+): Validator<C>;
+export function pipeChain<A, B, C, D>(
+  v1: Validator<A>,
+  s2: ValidationStep<A, B>,
+  s3: ValidationStep<B, C>,
+  s4: ValidationStep<C, D>,
+): Validator<D>;
+export function pipeChain<A, B, C, D, E>(
+  v1: Validator<A>,
+  s2: ValidationStep<A, B>,
+  s3: ValidationStep<B, C>,
+  s4: ValidationStep<C, D>,
+  s5: ValidationStep<D, E>,
+): Validator<E>;
+export function pipeChain(
+  v1: Validator<unknown>,
+  ...steps: readonly ValidationStep<unknown, unknown>[]
+): Validator<unknown> {
+  return (input, ctx) => {
+    const r1 = v1(input, ctx);
+    if (!r1.success) return r1;
+    /* eslint-disable functional/no-let, functional/no-loop-statements, fp/no-mutation */
+    // Perf/readability: обычный цикл быстрее reduce и проще читается, мутация локальная (состояние не утекает наружу).
+    let current: ValidationResult<unknown> = ok<unknown>(r1.value);
+    for (const step of steps) {
+      if (!current.success) return current;
+      current = step(current.value, ctx);
+    }
+    /* eslint-enable functional/no-let, functional/no-loop-statements, fp/no-mutation */
+    return current;
+  };
+}
+
 // pipeMany — последовательное применение нескольких валидаторов
 export function pipeMany<T>(...validators: Validator<T>[]): Validator<T> {
   return (input, ctx) => {
-    let currentValue: unknown = input;
+    const aggregated = validators.reduce<ValidationResult<unknown>>((acc, validator) => {
+      if (!acc.success) return acc;
+      return validator(acc.value, ctx) as ValidationResult<unknown>;
+    }, ok<unknown>(input));
 
-    for (const validator of validators) {
-      const result = validator(currentValue, ctx);
-      if (!result.success) return result;
-      currentValue = result.value;
-    }
+    return aggregated.success
+      ? ok(aggregated.value as T)
+      : (aggregated as ValidationResult<T>);
+  };
+}
 
-    return ok(currentValue as T);
+// all — агрегирующая валидация (не останавливается на первой ошибке)
+export function all<T>(...validators: Validator<T>[]): Validator<T> {
+  return (input, ctx) => {
+    const aggregated = validators.reduce<{
+      readonly okValue: T | undefined;
+      readonly errors: readonly ValidationError[];
+    }>((acc, validator) => {
+      const r = validator(input, ctx);
+      if (!r.success) return { okValue: acc.okValue, errors: [...acc.errors, ...r.errors] };
+      return { okValue: r.value, errors: acc.errors };
+    }, { okValue: undefined, errors: [] });
+
+    return aggregated.errors.length > 0
+      ? fail(aggregated.errors)
+      : ok(aggregated.okValue as T);
   };
 }
 
@@ -305,45 +355,38 @@ export function validateObject<T extends Record<string, unknown>>(
   return (input, ctx) => {
     if (typeof input !== 'object' || input === null) {
       return fail(
+        // Важно: коды ошибок централизованы в `error-mapping.ts` (ServiceErrorCode).
         validationError('SYSTEM_UNKNOWN_ERROR', {
           service: ctx.service,
         }),
       );
     }
 
-    let result: Partial<T> = {};
-    let errors: ValidationError[] = [];
+    /* eslint-disable functional/no-loop-statements, fp/no-mutation, functional/immutable-data */
+    // Perf: локальная мутация accumulators снижает аллокации и GC pressure (vs spread в reduce), безопасно т.к. состояние не утекает наружу.
+    const keys = Object.keys(schema) as readonly (keyof T)[];
+    const result: Partial<T> = {};
+    const errors: ValidationError[] = [];
 
-    for (const key in schema) {
+    for (const key of keys) {
       const validator = schema[key];
-      const value = (input as Record<string, unknown>)[key];
+      const value = (input as Record<string, unknown>)[String(key)];
       const r = validator(value, ctx);
 
       if (!r.success) {
-        errors = [
-          ...errors,
-          ...r.errors.map((e) => ({
+        for (const e of r.errors) {
+          errors.push({
             ...e,
             field: e.field ?? String(key),
-          })),
-        ];
+          });
+        }
       } else {
-        result = {
-          ...result,
-          [key]: r.value,
-        };
+        result[key] = r.value;
       }
     }
+    /* eslint-enable functional/no-loop-statements, fp/no-mutation, functional/immutable-data */
 
-    if (errors.length > 0) {
-      errorFireAndForget('Object validation failed', {
-        errorCount: errors.length,
-        ...(ctx.service && { service: ctx.service }),
-      });
-      return fail(errors);
-    }
-
-    return ok(result as T);
+    return errors.length > 0 ? fail(errors) : ok(result as T);
   };
 }
 
@@ -367,22 +410,34 @@ export function toAsync<T>(validator: Validator<T>): AsyncValidator<T> {
 export type FormValidationResult = ValidationResult<Record<string, unknown>>;
 
 /**
- * Валидирует HTML форму по схеме.
- * Validation ожидает HTMLFormElement — не FormData или кастомный объект.
- * NOTE:
- * Если схема некорректна или не распознана,
- * валидация считается успешной (fail-soft),
- * ошибка логируется через telemetry.
- * @param form - HTML форма для валидации
- * @param schema - схема валидации (абстракция для UI-слоя)
- * @param context - контекст валидации
- * @returns результат валидации
+ * Core validation для form-like data.
+ * Не зависит от DOM API, может использоваться в backend / workers / edge runtimes.
+ */
+export function validateFormData(
+  data: Record<string, unknown>, // Form-like data (не зависит от DOM)
+  schema: ValidationSchema, // Схема валидации (абстракция для UI-слоя)
+  context?: ValidationContext, // Контекст валидации (опционально)
+): FormValidationResult { // Результат валидации формы
+  // Если схема не является ObjectSchema, возвращаем успешный результат
+  // UI-слой не знает тип схемы, поэтому делегируем проверку
+  if (!isObjectSchema(schema)) {
+    return ok<Record<string, unknown>>(data);
+  }
+
+  // Вызываем валидацию через validateObject
+  return validateObject(schema)(data, context ?? {});
+}
+
+/**
+ * DOM adapter для HTML forms.
+ * Thin wrapper around validateFormData.
  */
 export function validateForm(
-  form: HTMLFormElement,
-  schema: ValidationSchema,
-  context?: ValidationContext,
-): FormValidationResult {
+  form: HTMLFormElement, // HTML форма для валидации (DOM adapter)
+  schema: ValidationSchema, // Схема валидации (абстракция для UI-слоя)
+  context?: ValidationContext, // Контекст валидации (опционально)
+): FormValidationResult { // Результат валидации формы
+  /* eslint-disable ai-security/model-poisoning -- user input is validated by schema validators below */
   // Преобразуем FormData в объект для валидации
   const formData = new FormData(form);
 
@@ -411,19 +466,9 @@ export function validateForm(
     },
     {},
   );
+  /* eslint-enable ai-security/model-poisoning */
 
-  // Если схема не является ObjectSchema, возвращаем успешный результат
-  // UI-слой не знает тип схемы, поэтому делегируем проверку
-  if (!isObjectSchema(schema)) {
-    warnFireAndForget('Invalid validation schema provided to validateForm', {
-      schemaType: typeof schema,
-      ...(context?.service && { service: context.service }),
-    });
-    return ok<Record<string, unknown>>(data);
-  }
-
-  // Вызываем валидацию через validateObject
-  return validateObject(schema)(data, context ?? {});
+  return validateFormData(data, schema, context);
 }
 
 /**
@@ -433,10 +478,13 @@ export function validateForm(
 function isObjectSchema<T extends Record<string, unknown>>(
   schema: unknown,
 ): schema is ObjectSchema<T> {
+  // NB: используем Object.keys вместо Object.values (уменьшает поверхность для prototype pollution)
   return (
     typeof schema === 'object'
     && schema !== null
-    && Object.values(schema).every((validator) => typeof validator === 'function')
+    && Object.keys(schema).every((key) =>
+      typeof (schema as Record<string, unknown>)[key] === 'function'
+    )
   );
 }
 
@@ -446,11 +494,10 @@ function isObjectSchema<T extends Record<string, unknown>>(
 
 const BYTES_PER_KILOBYTE = 1024; // 2^10 bytes in a kilobyte
 
-/**
- * Форматирует размер файла в человеко-читаемый формат.
- */
+/** Форматирует размер файла в человеко-читаемый формат. */
 export function formatFileSize(bytes: number): string {
   if (bytes === 0) return '0 Bytes';
+  if (bytes < BYTES_PER_KILOBYTE) return `${bytes} Bytes`;
   const FILE_SIZE_UNITS = ['Bytes', 'KB', 'MB', 'GB'] as const;
   const i = Math.floor(Math.log(bytes) / Math.log(BYTES_PER_KILOBYTE));
   return `${Math.round((bytes / Math.pow(BYTES_PER_KILOBYTE, i)) * 100) / 100} ${

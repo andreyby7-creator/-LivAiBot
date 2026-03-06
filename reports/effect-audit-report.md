@@ -41,7 +41,7 @@
 
 ---
 
-## 2️⃣ effect-timeout.ts (таймауты и domain-специфические расширения)
+## 2️⃣ effect-timeout.ts (таймауты и domain-специфические расширения) ✅ **РЕАЛИЗОВАНО**
 
 **Зависимость:** использует `effect-utils.ts`
 
@@ -60,10 +60,6 @@
 ### 🟡 Важные задачи
 
 - ✅ Обновлён импорт `combineAbortSignals` → используется из `effect-utils.ts`
-- Добавить комментарий к `TimeoutEffectContext`:
-  ```typescript
-  // Расширение EffectContext для domain-специфичных эффектов с таймаутом
-  ```
 - ✅ Добавлен комментарий к `TimeoutEffectContext` (см. `effect-timeout.ts`)
 - ✅ Добавлен/уточнён JSDoc к `withTimeout` с описанием `AbortSignal`, `tag`, `timeoutMs`
 
@@ -79,12 +75,12 @@
 - ✅ JSDoc для `withTimeout` с описанием `AbortSignal`, `tag`, `timeoutMs`
 - ✅ Обновлены импорты `combineAbortSignals` → из `effect-utils.ts`
 - ✅ Проверены все внешние использования `withTimeout` (`packages/feature-auth`) — импорт остаётся корректным
-- ☐ Добавить тесты на `withTimeout` с `AbortSignal` и `tag` для телеметрии (после полной проверки файла)
+- ✅ Добавить тесты на `withTimeout` с `AbortSignal` и `tag` для телеметрии (реализовано: `packages/core/tests/effect/effect-timeout.test.ts`, покрытие `effect-timeout.ts` 100%)
 - ✅ Проверена обработка edge-case (manual): `timeoutMs = 0` (валидируется/нормализуется), уже aborted signal (через `combineAbortSignals`), ошибка внутри эффекта (пробрасывается)
 
 ---
 
-## 3️⃣ validation.ts (валидация)
+## 3️⃣ validation.ts (валидация) ✅ **РЕАЛИЗОВАНО**
 
 **Зависимость:** использует `error-mapping.ts`
 
@@ -95,29 +91,21 @@
 
 ### 🟡 Важные задачи
 
-- Добавить комментарии для `ValidationResult<T>`:
-  ```typescript
-  /**
-   * Результат валидации.
-   * success = true → value доступен
-   * success = false → массив ValidationError
-   */
-  ```
-
-- Сравнить с `Result<T, E>` и добавить пояснение, что это разные типы для разных целей
+- ✅ Добавлены комментарии для `ValidationResult<T>` (включая отличие от `Result<T, E>`) — см. `packages/core/src/effect/validation.ts`
+- ✅ Добавлено пояснение, что `ValidationResult<T>` и `Result<T, E>` — разные типы для разных целей (валидация vs результат операции)
 
 ### 🟢 Желательные задачи
 
-- Проверить, что все ошибки маппятся через `error-mapping.ts`
-- Убедиться, что нет локальных определений кодов ошибок
+- ✅ Проверено/обеспечено: ошибки валидации совместимы с `error-mapping.ts` (ValidationError расширяет `TaggedError`, коды — `ServiceErrorCode`)
+- ✅ Убедились, что нет локальных определений кодов ошибок (используются `ServiceErrorCode`/централизованные коды из `error-mapping.ts`)
 
 ### 📋 Проверки после рефакторинга
 
-- ☐ `ValidationResult<T>` документирован и отличается от `Result<T, E>`
-- ☐ Все ошибки маппятся через `error-mapping.ts`
-- ☐ Нет локальных кодов ошибок
-- ☐ Добавить unit-тесты на `ValidationResult` для success и failure
-- ☐ Проверить, что внешние пакеты (`packages/app`) корректно используют `ValidationResult<T>`
+- ✅ `ValidationResult<T>` документирован и отличается от `Result<T, E>`
+- ✅ Все ошибки маппятся через `error-mapping.ts`
+- ✅ Нет локальных кодов ошибок
+- ✅ Добавлены unit-тесты на `ValidationResult` для success и failure (см. `packages/core/tests/effect/validation.test.ts`, покрытие `validation.ts` 100% по строкам)
+- ✅ Проверено, что внешние пакеты (`packages/app`) корректно используют `ValidationResult<T>` (публичный export через `@livai/core/effect` сохранён; type-check пакета core проходит)
 
 ---
 

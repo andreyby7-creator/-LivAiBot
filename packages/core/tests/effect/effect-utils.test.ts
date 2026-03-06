@@ -309,14 +309,18 @@ describe('combineAbortSignals', () => {
     const controller1 = new AbortController();
     const controller2 = new AbortController();
 
-    const anyFn = (AbortSignal as unknown as { any?: (signals: AbortSignal[]) => AbortSignal }).any;
+    const anyFn =
+      (AbortSignal as unknown as { any?: (signals: AbortSignal[]) => AbortSignal; }).any;
     if (anyFn === undefined) {
       // Если рантайм не поддерживает AbortSignal.any, этот тест не применим.
       expect(true).toBe(true);
       return;
     }
 
-    const spy = vi.spyOn(AbortSignal as unknown as { any: (signals: AbortSignal[]) => AbortSignal }, 'any');
+    const spy = vi.spyOn(
+      AbortSignal as unknown as { any: (signals: AbortSignal[]) => AbortSignal; },
+      'any',
+    );
     const combined = combineAbortSignals([controller1.signal, controller2.signal]);
     expect(spy).toHaveBeenCalled();
 
@@ -360,7 +364,7 @@ describe('combineAbortSignals', () => {
   });
 
   it('FinalizationRegistry: callback вызывает cleanup и удаляет запись из registry map (best-effort)', async () => {
-    const fakeState: { triggerLast?: () => void } = {};
+    const fakeState: { triggerLast?: () => void; } = {};
 
     // Нужен именно "конструктор", т.к. в effect-utils используется `new FinalizationRegistry(...)`.
     function fakeFinalizationRegistry<T>(cb: (value: T) => void): unknown {
