@@ -55,8 +55,9 @@ vi.mock('../../../src/providers/UnifiedUIProvider', () => ({
   }),
 }));
 
+import type { ClientError, NetworkError, TraceId } from '@livai/core-contracts';
+
 import type { ISODateString } from '../../../src/types/common';
-import type { ClientError, NetworkError } from '../../../src/types/errors';
 import { Toast } from '../../../src/ui/toast';
 
 // Фабричные функции для создания тестовых ошибок
@@ -67,7 +68,7 @@ const createTestClientError = (): ClientError => ({
   code: 'TEST_ERROR',
   message: 'Test client error',
   context: {},
-  traceId: 'test-trace-id',
+  traceId: 'test-trace-id' as TraceId,
   timestamp: new Date().toISOString() as ISODateString,
 });
 
@@ -77,7 +78,7 @@ const createTestNetworkError = (): NetworkError => ({
   statusCode: 500,
   message: 'Test network error',
   endpoint: '/test',
-  traceId: 'test-trace-id',
+  traceId: 'test-trace-id' as TraceId,
   timestamp: new Date().toISOString() as ISODateString,
 });
 
@@ -415,6 +416,20 @@ describe('App Toast', () => {
       const toast = screen.getByTestId('core-toast');
       // Ожидаем warning от error, а не info от explicit variant
       expect(toast).toHaveAttribute('data-variant', 'warning');
+    });
+
+    it('должен использовать error variant для ошибки с неожиданным severity (default case)', () => {
+      // Создаем ошибку с неожиданным severity для покрытия default ветки
+      const errorWithUnexpectedSeverity = {
+        ...createTestClientError(),
+        severity: 'info' as any, // Обходим типизацию для тестирования default case
+      };
+
+      render(<Toast content='Error toast' visible={true} error={errorWithUnexpectedSeverity} />);
+
+      const toast = screen.getByTestId('core-toast');
+      // Default case возвращает 'error'
+      expect(toast).toHaveAttribute('data-variant', 'error');
     });
 
     it('explicit variant работает когда нет error', () => {

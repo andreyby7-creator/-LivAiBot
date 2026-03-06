@@ -94,30 +94,6 @@ export {
 } from './common.js';
 
 /* ============================================================================
- * 🚨 ERRORS — ТИПЫ ОШИБОК
- * ========================================================================== */
-
-/**
- * Error Types: типы для обработки ошибок в приложении.
- * @public
- */
-export {
-  type AppError,
-  type ClientError,
-  createServerError,
-  type ErrorBoundaryErrorCode,
-  type ErrorFn,
-  type ErrorHandler,
-  type FrontendErrorSource,
-  handleError,
-  type IsErrorOfType,
-  type NetworkError,
-  type ServerError,
-  type UnknownError,
-  type ValidationError,
-} from './errors.js';
-
-/* ============================================================================
  * 📡 TELEMETRY — ТИПЫ ТЕЛЕМЕТРИИ
  * ========================================================================== */
 

@@ -66,7 +66,7 @@
 
 ---
 
-### 1.2 `errors.ts` → удалить из app
+### 1.2 `errors.ts` → удалить из app ✅ **ВЫПОЛНЕНО**
 
 **Порядок:** Удаление → адаптация зависимостей → валидация → тесты
 
@@ -91,24 +91,26 @@
 
 **Миграция импорта:**
 
-- `app/src/types/errors.ts` → удалить файл полностью
-- `app/src/lib/*.ts` → заменить `import type { AppError, ... } from '../types/errors.js'` на `import type { AppError, ... } from '@livai/core-contracts'`
-- `app/src/ui/error-boundary.tsx` → обновить импорт
-- `app/src/hooks/*.ts` → обновить импорты
-- Проверить: `grep -r "from.*types/errors" packages/app/src` → заменить все вхождения
-- Валидация: `pnpm run type-check && pnpm run check:exports && pnpm run lint:canary`
+- ✅ `app/src/types/errors.ts` → удалить файл полностью
+- ✅ `app/src/lib/*.ts` → заменить `import type { AppError, ... } from '../types/errors.js'` на `import type { AppError, ... } from '@livai/core-contracts'`
+- ✅ `app/src/ui/toast.tsx` → обновить импорт на `@livai/core-contracts`
+- ✅ `app/src/ui/error-boundary.tsx` → использует `mapErrorBoundaryError` из `@livai/core/effect` (не требует прямого импорта типов ошибок)
+- ✅ `app/src/hooks/*.ts` → обновить импорты (если используются)
+- ✅ Проверить: `grep -r "from.*types/errors" packages/app/src` → все вхождения заменены
+- ✅ Валидация: `pnpm run type-check && pnpm run check:exports && pnpm run lint:canary`
 
 **Тесты:**
 
-- `app/tests/unit/types/errors.test.ts` → удалить или перенести в `core-contracts/tests/domain/app-effects.test.ts`
-- Обновить все тесты в `app/tests/unit/lib/*.test.ts`, использующие `AppError`
+- ✅ `app/tests/unit/types/errors.test.ts` → удален
+- ✅ Обновлены все тесты в `app/tests/unit/ui/*.test.tsx` (toast.test.tsx, error-boundary.test.tsx) на импорт из `@livai/core-contracts`
+- ✅ `core-contracts/tests/domain/app-effects.test.ts` → расширен тестами для всех типов и утилитарных типов (ErrorFn, ErrorHandler, IsErrorOfType)
 
 **Экспорты:**
 
-- Убедиться, что `core-contracts/src/index.ts` экспортирует `export * from './domain/app-effects.js'`
-- Проверить, что `app/src/types/index.ts` (если есть) не реэкспортирует удаленные типы
+- ✅ Убедиться, что `core-contracts/src/index.ts` экспортирует `export * from './domain/app-effects.js'` (через `domain/index.ts`)
+- ✅ Проверить, что `app/src/types/index.ts` не реэкспортирует удаленные типы (реэкспорты удалены)
 
-**Обновление:** Удален `app/src/types/errors.ts`, все импорты обновлены на `@livai/core-contracts/domain/app-effects`. Убрано дублирование типов ошибок.
+**Обновление:** Удален `app/src/types/errors.ts`, все импорты обновлены на `@livai/core-contracts`. Убрано дублирование типов ошибок. Добавлены утилитарные типы (ErrorFn, ErrorHandler, IsErrorOfType) в `core-contracts/src/domain/app-effects.ts`. Удалены реэкспорты типов ошибок из `app/src/types/index.ts` и `app/src/index.ts`. Все тесты обновлены и расширены для полного покрытия типов.
 
 ---
 

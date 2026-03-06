@@ -19,9 +19,13 @@ import type {
   AppError,
   ClientError,
   ErrorBoundaryErrorCode,
+  ErrorFn,
+  ErrorHandler,
   ErrorTag,
   FileValidationResult,
   FrontendErrorSource,
+  IdempotencyKey,
+  IsErrorOfType,
   KnownErrorTag,
   NetworkError,
   SanitizedJson,
@@ -253,5 +257,182 @@ describe('AppError контракты', () => {
     // @ts-expect-error - произвольный код не должен быть валидным ErrorBoundaryErrorCode
     const invalidCode: ErrorBoundaryErrorCode = 'SERVER_ERROR';
     expect(invalidCode).toBeDefined();
+  });
+});
+
+describe('Утилитарные типы', () => {
+  it('ErrorFn тип работает как функция, возвращающая ошибку', () => {
+    const errorFn: ErrorFn<ClientError> = () => ({
+      type: 'ClientError',
+      severity: 'warning',
+      source: 'UI',
+      code: 'TEST_ERROR',
+      message: 'Test error',
+      timestamp: '2024-01-01T00:00:00.000Z' as ISODateString,
+    });
+
+    const error = errorFn();
+    expect(error.type).toBe('ClientError');
+    expect(error.code).toBe('TEST_ERROR');
+  });
+
+  it('ErrorHandler тип работает как обработчик ошибок', () => {
+    const handledErrors: string[] = [];
+
+    const errorHandler: ErrorHandler = (error) => {
+      const getMessage = (err: AppError): string => {
+        switch (err.type) {
+          case 'ClientError':
+          case 'ValidationError':
+          case 'NetworkError':
+          case 'UnknownError':
+            return err.message;
+          case 'ServerError':
+            return err.apiError.message;
+        }
+      };
+      const message = getMessage(error);
+      handledErrors.push(`${error.type}: ${message}`);
+    };
+
+    const clientError: ClientError = {
+      type: 'ClientError',
+      severity: 'warning',
+      source: 'UI',
+      code: 'TEST',
+      message: 'Test client error',
+      timestamp: '2024-01-01T00:00:00.000Z' as ISODateString,
+    };
+
+    const networkError: NetworkError = {
+      type: 'NetworkError',
+      severity: 'error',
+      message: 'Test network error',
+      timestamp: '2024-01-01T00:00:00.000Z' as ISODateString,
+    };
+
+    errorHandler(clientError);
+    errorHandler(networkError);
+
+    expect(handledErrors).toEqual([
+      'ClientError: Test client error',
+      'NetworkError: Test network error',
+    ]);
+  });
+
+  it('IsErrorOfType тип работает как type guard', () => {
+    const isClientError: IsErrorOfType<'ClientError'> = (error): error is ClientError => {
+      return error.type === 'ClientError';
+    };
+
+    const clientError: ClientError = {
+      type: 'ClientError',
+      severity: 'warning',
+      source: 'UI',
+      code: 'TEST',
+      message: 'Test error',
+      timestamp: '2024-01-01T00:00:00.000Z' as ISODateString,
+    };
+
+    const validationError: ValidationError = {
+      type: 'ValidationError',
+      severity: 'warning',
+      message: 'Validation error',
+      timestamp: '2024-01-01T00:00:00.000Z' as ISODateString,
+    };
+
+    expect(isClientError(clientError)).toBe(true);
+    expect(isClientError(validationError)).toBe(false);
+
+    if (isClientError(clientError)) {
+      // TypeScript знает, что здесь clientError является ClientError
+      expect(clientError.source).toBe('UI');
+      expect(clientError.code).toBe('TEST');
+    }
+  });
+});
+
+describe('Дополнительные типы и контракты', () => {
+  it('ApiErrorCategory поддерживает все категории', () => {
+    const categories: ApiErrorCategory[] = [
+      'VALIDATION',
+      'AUTH',
+      'PERMISSION',
+      'NOT_FOUND',
+      'CONFLICT',
+      'RATE_LIMIT',
+      'TIMEOUT',
+      'DEPENDENCY',
+      'INTERNAL',
+    ];
+
+    expect(categories).toHaveLength(9);
+    expect(categories).toContain('VALIDATION');
+    expect(categories).toContain('AUTH');
+    expect(categories).toContain('INTERNAL');
+  });
+
+  it('ApiErrorSource поддерживает все источники', () => {
+    const sources: ApiErrorSource[] = ['CLIENT', 'GATEWAY', 'SERVICE'];
+
+    expect(sources).toHaveLength(3);
+    expect(sources).toContain('CLIENT');
+    expect(sources).toContain('GATEWAY');
+    expect(sources).toContain('SERVICE');
+  });
+
+  it('FrontendErrorSource поддерживает все источники', () => {
+    const sources: FrontendErrorSource[] = [
+      'UI',
+      'NETWORK',
+      'VALIDATION',
+      'AUTH',
+      'UNKNOWN',
+    ];
+
+    expect(sources).toHaveLength(5);
+    expect(sources).toContain('UI');
+    expect(sources).toContain('NETWORK');
+    expect(sources).toContain('VALIDATION');
+    expect(sources).toContain('AUTH');
+    expect(sources).toContain('UNKNOWN');
+  });
+
+  it('IdempotencyKey поддерживает branded тип', () => {
+    const idempotencyKey = 'idem-123' as IdempotencyKey;
+    const context: ApiRequestContext = {
+      idempotencyKey,
+    };
+
+    expect(context.idempotencyKey).toBe(idempotencyKey);
+  });
+
+  it('SanitizedJson совместим с Json', () => {
+    const sanitized: SanitizedJson = {
+      reason: 'expired',
+      hint: 're-login',
+      count: 3,
+    };
+
+    const error: ApiError = {
+      code: 'AUTH_INVALID_TOKEN',
+      category: 'AUTH',
+      message: 'Invalid token',
+      details: sanitized,
+    };
+
+    expect(error.details).toEqual(sanitized);
+    // Проверяем доступ к полям через type guard для JsonObject
+    if (
+      error.details !== undefined
+      && typeof error.details === 'object'
+      && !Array.isArray(error.details)
+      && error.details !== null
+    ) {
+      const details = error.details as Record<string, unknown>;
+      expect(details['reason']).toBe('expired');
+      expect(details['hint']).toBe('re-login');
+      expect(details['count']).toBe(3);
+    }
   });
 });

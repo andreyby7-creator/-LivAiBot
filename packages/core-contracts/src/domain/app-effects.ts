@@ -332,3 +332,19 @@ export type ErrorBoundaryErrorCode =
   | 'NETWORK_ERROR'
   | 'VALIDATION_ERROR'
   | 'UNKNOWN_ERROR';
+
+/* ============================================================================
+ * 🛠️ UTILITY TYPES — УТИЛИТАРНЫЕ ТИПЫ ДЛЯ РАБОТЫ С ОШИБКАМИ
+ * ============================================================================
+ */
+
+/** Тип функции, которая возвращает ошибку. */
+export type ErrorFn<T extends AppError = AppError> = () => T;
+
+/** Тип обработчика ошибок. */
+export type ErrorHandler<T extends AppError = AppError> = (error: T) => void;
+
+/** Проверка типа ошибки по discriminated union. */
+export type IsErrorOfType<T extends AppError['type']> = (
+  error: AppError,
+) => error is Extract<AppError, { type: T; }>;
