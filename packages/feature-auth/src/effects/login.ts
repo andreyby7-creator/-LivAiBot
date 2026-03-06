@@ -3,6 +3,7 @@
  * ============================================================================
  * 🔐 FEATURE-AUTH — Login Effect Orchestrator
  * ============================================================================
+ *
  * Оркестратор login-flow:
  * - validate-input (domain LoginRequest)
  * - security-pipeline (через SecurityPipelinePort)
@@ -12,6 +13,7 @@
  * - (опционально) обновление store через login-store-updater
  * - нормализация ошибок через injected error-mapper
  * - concurrency control (cancel_previous / ignore / serialize)
+ *
  * Инварианты:
  * - ❌ Нет бизнес-логики внутри orchestrator
  * - ❌ Нет прямых вызовов Date.now()/new Date()
@@ -21,7 +23,7 @@
  */
 
 import type { Effect } from '@livai/core/effect';
-import { orchestrate, step, validatedEffect, withTimeout } from '@livai/core/effect';
+import { orchestrate, step, stepWithPrevious, validatedEffect, withTimeout } from '@livai/core/effect';
 
 import type { LoginIdentifierType, LoginRequest } from '../domain/LoginRequest.js';
 import type { DomainLoginResult } from '../domain/LoginResult.js';
@@ -344,7 +346,7 @@ export function createLoginEffect(
             loginEffect, // Effect уже готов, передаём напрямую
             config.timeouts.loginApiTimeoutMs,
           ),
-          step(
+          stepWithPrevious(
             'auth-me',
             async (sig?: AbortSignal, previous?: unknown): Promise<LoginResponseDto> => {
               // Type assertion безопасен: orchestrator гарантирует тип из предыдущего step

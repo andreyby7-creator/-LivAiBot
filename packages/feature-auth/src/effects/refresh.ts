@@ -3,6 +3,7 @@
  * ============================================================================
  * 🔐 FEATURE-AUTH — Refresh Effect Orchestrator
  * ============================================================================
+ *
  * Оркестратор refresh-flow:
  * - policy check через sessionManager.decide() перед API-вызовом
  * - двухфазный API-call (/v1/auth/refresh + /v1/auth/me) с strict Zod-валидацией
@@ -10,6 +11,7 @@
  * - обновление store через refresh-store-updater с withStoreLock (атомарность)
  * - нормализация ошибок через injected error-mapper
  * - concurrency control (serialize / ignore, cancel_previous запрещён)
+ *
  * Инварианты:
  * - ❌ Нет бизнес-логики внутри orchestrator
  * - ❌ Нет прямых вызовов Date.now()/new Date()
@@ -21,7 +23,7 @@
  */
 
 import type { Effect } from '@livai/core/effect';
-import { orchestrate, step, validatedEffect, withTimeout } from '@livai/core/effect';
+import { orchestrate, step, stepWithPrevious, validatedEffect, withTimeout } from '@livai/core/effect';
 
 import type { DeviceInfo } from '../domain/DeviceInfo.js';
 import type { LoginTokenPairValues, MeResponseValues } from '../schemas/index.js';
@@ -267,7 +269,7 @@ async function performRefreshApiCalls(
       refreshEffect,
       config.timeout,
     ),
-    step(
+    stepWithPrevious(
       'auth-me',
       async (sig?: AbortSignal, previous?: unknown): Promise<MeResponseValues> => {
         // Type assertion безопасен: orchestrator гарантирует тип из предыдущего step

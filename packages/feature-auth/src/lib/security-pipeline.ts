@@ -23,7 +23,7 @@
 import { Runtime } from 'effect';
 
 import type { Effect } from '@livai/core/effect';
-import { orchestrate, step, withTimeout } from '@livai/core/effect';
+import { orchestrate, step, stepWithPrevious } from '@livai/core/effect';
 
 import type { DeviceInfo } from '../domain/DeviceInfo.js';
 import {
@@ -528,10 +528,10 @@ export function executeSecurityPipeline(
   const orchestrated = orchestrate<[DeviceInfo, SecurityPipelineResult]>([
     step(
       'fingerprint',
-      withTimeout(fingerprintEffect, { timeoutMs: fingerprintTimeout, tag: 'fingerprint' }),
+      fingerprintEffect,
       fingerprintTimeout,
     ),
-    step(
+    stepWithPrevious(
       'risk_assessment',
       (_signal?: AbortSignal, previousResult?: unknown): Promise<SecurityPipelineResult> => {
         // Валидация previousResult
@@ -583,7 +583,7 @@ export function executeSecurityPipeline(
   // Wrapper для обработки ошибок с fail-closed policy и audit logging
   return async (signal?: AbortSignal): Promise<SecurityPipelineResult> => {
     try {
-      // eslint-disable-next-line @livai/multiagent/orchestration-safety -- timeout применяется через withTimeout в step
+      // eslint-disable-next-line @livai/multiagent/orchestration-safety -- timeout применяется через orchestrator step timeout
       const result = await orchestrated(signal);
       // Type guard: проверяем, что результат - SecurityPipelineResult (последний шаг)
       if (typeof result === 'object' && 'deviceInfo' in result && 'riskAssessment' in result) {

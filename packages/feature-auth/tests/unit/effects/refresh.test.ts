@@ -28,6 +28,11 @@ vi.mock('@livai/core/effect', async () => {
       effect,
       timeout,
     }),
+    stepWithPrevious: (name: string, effect: unknown, timeout: number) => ({
+      name,
+      effect,
+      timeout,
+    }),
     orchestrate:
       <T>(steps: readonly { name: string; effect: unknown; timeout: number; }[]) =>
       async (signal?: AbortSignal): Promise<T> => {

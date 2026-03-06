@@ -7,6 +7,44 @@
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+// Мокаем validatedEffect/withTimeout, чтобы unit-тесты register-effect не зависели от core timeout/orchestrator деталей.
+/* eslint-disable ai-security/data-leakage */
+vi.mock('@livai/core/effect', async () => {
+  const actual = await vi.importActual('@livai/core/effect');
+  return {
+    ...actual,
+    validatedEffect: (_schema: unknown, effectFactory: unknown) => effectFactory,
+    withTimeout: (effect: unknown) => effect,
+    // На всякий случай: если register-effect начнет использовать orchestrate/step, тесты останутся стабильными.
+    step: (label: string, effect: unknown, timeoutMs?: number) => ({
+      label,
+      effect,
+      timeoutMs,
+    }),
+    stepWithPrevious: (label: string, effect: unknown, timeoutMs?: number) => ({
+      label,
+      effect,
+      timeoutMs,
+    }),
+    orchestrate:
+      <T>(steps: readonly { label: string; effect: unknown; timeoutMs?: number; }[]) =>
+      async (signal?: AbortSignal): Promise<T> => {
+        if (steps.length === 0) {
+          throw new Error('mock orchestrate: empty steps');
+        }
+        const resultPromise = steps.reduce(
+          async (prevPromise, s) => {
+            const prev = await prevPromise;
+            return (s.effect as (sig?: AbortSignal, previous?: unknown) => Promise<unknown>)(signal, prev);
+          },
+          Promise.resolve(undefined as unknown),
+        );
+        return await resultPromise as T;
+      },
+  };
+});
+/* eslint-enable ai-security/data-leakage */
+
 import type {
   RegisterIdentifierType,
   RegisterRequest,

@@ -3,11 +3,13 @@
  * ============================================================================
  * 🔐 FEATURE-AUTH — Logout Effect Orchestrator
  * ============================================================================
+ *
  * Оркестратор logout-flow:
  * - lock store → reset store → unlock store (атомарно)
  * - (remote mode) revoke API параллельно после unlock (best-effort, не блокирует logout)
  * - audit logging через LogoutAuditLoggerPort
  * - concurrency control (ignore / cancel_previous / serialize)
+ *
  * Инварианты:
  * - ❌ Нет бизнес-логики внутри orchestrator
  * - ❌ Нет прямых вызовов Date.now()/new Date()

@@ -170,12 +170,12 @@
 
 ### 📋 Проверки после рефакторинга
 
-- ☐ Импорты `withTimeout` → только из `effect-timeout.ts`
-- ☐ `runIsolated` → только из `effect-isolation.ts`
-- ☐ Передача `AbortSignal` в шаги
-- ☐ Проверить, что внешние пакеты (`packages/feature-auth`) корректно используют `orchestrate` и `step`
-- ☐ Добавить unit-тест на последовательное выполнение шагов с таймаутами и сигналами abort
-- ☐ Проверить, что оркестратор не дублирует логику таймаутов или ошибок
+- ✅ Импорты `withTimeout` → только из `effect-timeout.ts` (см. `packages/core/src/effect/orchestrator.ts`: `import { withTimeout } from './effect-timeout.js'`; публичный re-export также идёт из `effect-timeout.ts` через `packages/core/src/effect/index.ts`)
+- ✅ `runIsolated` → только из `effect-isolation.ts` (см. `packages/core/src/effect/orchestrator.ts`: `import { runIsolated } from './effect-isolation.js'`)
+- ✅ Передача `AbortSignal` в шаги (см. `packages/core/src/effect/orchestrator.ts`: `orchestrate(...)` принимает `signal?: AbortSignal` и передаёт его в каждый step-effect; timeout объединяет внешние сигналы через `combineAbortSignals`)
+- ✅ Проверить, что внешние пакеты (`packages/feature-auth`) корректно используют `orchestrate` и `step` (используют API `@livai/core/effect`; устранено дублирование timeout внутри step: `packages/feature-auth/src/lib/security-pipeline.ts` — fingerprint step больше не оборачивается в `withTimeout`, timeout применяется только через step DSL)
+- ✅ Добавить unit-тест на последовательное выполнение шагов с таймаутами и сигналами abort (создан `packages/core/tests/effect/orchestrator.test.ts`; `npx vitest run --coverage packages/core/tests/effect/orchestrator.test.ts`; 100% coverage для `orchestrator.ts`: statements/branches/functions/lines)
+- ✅ Проверить, что оркестратор не дублирует логику таймаутов или ошибок (timeout применяется ровно один раз на шаг при `timeoutMs > 0` внутри `orchestrator.ts`; orchestrator не делает error-mapping и не добавляет fallback’и — только isolation boundary через `runIsolated`)
 
 ---
 

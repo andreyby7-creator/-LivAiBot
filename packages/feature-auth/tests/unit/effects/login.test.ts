@@ -7,6 +7,41 @@
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+// Мокаем orchestrate/step/withTimeout/validatedEffect, чтобы тесты login-effect
+// проверяли бизнес-оркестрацию login-flow, а не детали реализации core orchestrator/timeout.
+/* eslint-disable ai-security/data-leakage */
+vi.mock('@livai/core/effect', async () => {
+  const actual = await vi.importActual('@livai/core/effect');
+  return {
+    ...actual,
+    validatedEffect: (_schema: unknown, effectFactory: unknown) => effectFactory,
+    step: (label: string, effect: unknown, timeoutMs?: number) => ({
+      label,
+      effect,
+      timeoutMs,
+    }),
+    stepWithPrevious: (label: string, effect: unknown, timeoutMs?: number) => ({
+      label,
+      effect,
+      timeoutMs,
+    }),
+    orchestrate:
+      <T>(steps: readonly { label: string; effect: unknown; timeoutMs?: number; }[]) =>
+      async (signal?: AbortSignal): Promise<T> => {
+        const first = steps[0];
+        const second = steps[1];
+        const firstValue = await (first!.effect as (sig?: AbortSignal) => Promise<unknown>)(signal);
+        const secondValue = await (
+          second!.effect as (sig?: AbortSignal, previous?: unknown) => Promise<unknown>
+        )(signal, firstValue);
+        // Возвращаем результат последнего шага (как и реальный orchestrator)
+        return secondValue as T;
+      },
+    withTimeout: (effect: unknown) => effect,
+  };
+});
+/* eslint-enable ai-security/data-leakage */
+
 import type { DeviceInfo } from '../../../src/domain/DeviceInfo.js';
 import type { LoginIdentifierType, LoginRequest } from '../../../src/domain/LoginRequest.js';
 import type { DomainLoginResult } from '../../../src/domain/LoginResult.js';

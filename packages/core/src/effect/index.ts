@@ -98,7 +98,9 @@ export { isIsolationError, IsolationError, runIsolated } from './effect-isolatio
 
 export type { Step, StepResult } from './orchestrator.js';
 
-export { orchestrate, step } from './orchestrator.js';
+export type { EffectWithPrevious, OrchestratorTelemetry } from './orchestrator.js';
+
+export { createOrchestrator, orchestrate, step, stepWithPrevious } from './orchestrator.js';
 
 /* ============================================================================
  * ✅ SCHEMA VALIDATED EFFECT — ZOD ВАЛИДАЦИЯ РЕЗУЛЬТАТОВ
