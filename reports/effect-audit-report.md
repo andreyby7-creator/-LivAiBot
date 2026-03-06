@@ -52,34 +52,35 @@
 
 ### 🔴 Критичные задачи
 
-- Проверить все импорты `TimeoutError` → использовать только класс `TimeoutError` в этом файле
-- Убедиться, что `withTimeout` экспортируется только отсюда
-- Обновить импорты в `orchestrator.ts` на использование этого `withTimeout`
-- ⚠️ **КРИТИЧНО:** Обновить импорты в `packages/feature-auth` (login.ts, logout.ts, register.ts, refresh.ts, security-pipeline.ts) - они уже используют `withTimeout` из `@livai/core/effect`, нужно убедиться, что после рефакторинга импорт останется корректным
+- ✅ Проверены импорты `TimeoutError` → используется только класс `TimeoutError` из `effect-timeout.ts` (внутренние/внешние импорты не найдены)
+- ✅ `withTimeout` экспортируется из `effect-timeout.ts` и доступен через `index.ts` (нет дублирования в `effect-utils.ts`)
+- ✅ `orchestrator.ts` использует `withTimeout` из `effect-timeout.ts`
+- ✅ ⚠️ Проверены внешние использования `withTimeout` в `packages/feature-auth` (login.ts, logout.ts, register.ts, refresh.ts, security-pipeline.ts): импорт идёт из `@livai/core/effect`, после рефакторинга остаётся корректным
 
 ### 🟡 Важные задачи
 
-- Обновить локальный импорт `combineAbortSignals` → использовать из `effect-utils.ts`
+- ✅ Обновлён импорт `combineAbortSignals` → используется из `effect-utils.ts`
 - Добавить комментарий к `TimeoutEffectContext`:
   ```typescript
   // Расширение EffectContext для domain-специфичных эффектов с таймаутом
   ```
-- Добавить JSDoc к `withTimeout` с описанием `AbortSignal`, `tag`, `timeoutMs`
+- ✅ Добавлен комментарий к `TimeoutEffectContext` (см. `effect-timeout.ts`)
+- ✅ Добавлен/уточнён JSDoc к `withTimeout` с описанием `AbortSignal`, `tag`, `timeoutMs`
 
 ### 🟢 Желательные задачи
 
-- Опционально оставить `validateTimeoutMs` локально, если она используется только здесь
+- ✅ `validateTimeoutMs` оставлен локально в `effect-timeout.ts` как internal (используется только этим модулем; не экспортируется)
 
 ### 📋 Проверки после рефакторинга
 
-- ☐ Все импорты `TimeoutError` ссылаются только на класс внутри этого файла
-- ☐ `withTimeout` используется как единственная точка, экспортируется и доступен через `index.ts`
-- ☐ `TimeoutEffectContext` документирован как domain-специфичное расширение `EffectContext`
-- ☐ JSDoc для `withTimeout` с описанием `AbortSignal`, `tag`, `timeoutMs`
-- ☐ Обновлены импорты `combineAbortSignals` → из `effect-utils.ts`
-- ☐ Проверены все внешние использования `withTimeout` (`packages/feature-auth`) и убедиться, что после удаления старого дублирования импорт остаётся корректным
-- ☐ Добавить тесты на `withTimeout` с `AbortSignal` и `tag` для телеметрии
-- ☐ Проверить обработку edge-case: `timeoutMs = 0`, уже завершённый сигнал, ошибка внутри эффекта
+- ✅ Все импорты `TimeoutError` ссылаются только на класс внутри этого файла
+- ✅ `withTimeout` используется как единственная точка, экспортируется и доступен через `index.ts`
+- ✅ `TimeoutEffectContext` документирован как domain-специфичное расширение `EffectContext`
+- ✅ JSDoc для `withTimeout` с описанием `AbortSignal`, `tag`, `timeoutMs`
+- ✅ Обновлены импорты `combineAbortSignals` → из `effect-utils.ts`
+- ✅ Проверены все внешние использования `withTimeout` (`packages/feature-auth`) — импорт остаётся корректным
+- ☐ Добавить тесты на `withTimeout` с `AbortSignal` и `tag` для телеметрии (после полной проверки файла)
+- ✅ Проверена обработка edge-case (manual): `timeoutMs = 0` (валидируется/нормализуется), уже aborted signal (через `combineAbortSignals`), ошибка внутри эффекта (пробрасывается)
 
 ---
 

@@ -69,7 +69,6 @@ export {
   createTimeoutContext,
   isTimeoutError,
   TimeoutError,
-  validateTimeoutMs,
   withTimeout,
 } from './effect-timeout.js';
 

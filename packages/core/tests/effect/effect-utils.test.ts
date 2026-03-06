@@ -304,6 +304,122 @@ describe('combineAbortSignals', () => {
     controller2.abort();
     expect(combined.aborted).toBe(true);
   });
+
+  it('использует AbortSignal.any если доступен (без ручных listeners)', () => {
+    const controller1 = new AbortController();
+    const controller2 = new AbortController();
+
+    const anyFn = (AbortSignal as unknown as { any?: (signals: AbortSignal[]) => AbortSignal }).any;
+    if (anyFn === undefined) {
+      // Если рантайм не поддерживает AbortSignal.any, этот тест не применим.
+      expect(true).toBe(true);
+      return;
+    }
+
+    const spy = vi.spyOn(AbortSignal as unknown as { any: (signals: AbortSignal[]) => AbortSignal }, 'any');
+    const combined = combineAbortSignals([controller1.signal, controller2.signal]);
+    expect(spy).toHaveBeenCalled();
+
+    expect(combined.aborted).toBe(false);
+    controller1.abort();
+    expect(combined.aborted).toBe(true);
+  });
+
+  it('fallback: снимает listeners с исходных сигналов после abort', () => {
+    const controller1 = new AbortController();
+    const controller2 = new AbortController();
+
+    const abortSignalAnyContainer = AbortSignal as unknown as Record<string, unknown>;
+    const originalAnyDescriptor = Object.getOwnPropertyDescriptor(abortSignalAnyContainer, 'any');
+    Reflect.deleteProperty(abortSignalAnyContainer, 'any');
+
+    try {
+      const addSpy1 = vi.spyOn(controller1.signal, 'addEventListener');
+      const addSpy2 = vi.spyOn(controller2.signal, 'addEventListener');
+      const removeSpy1 = vi.spyOn(controller1.signal, 'removeEventListener');
+      const removeSpy2 = vi.spyOn(controller2.signal, 'removeEventListener');
+
+      const combined = combineAbortSignals([controller1.signal, controller2.signal]);
+
+      expect(addSpy1).toHaveBeenCalledWith('abort', expect.any(Function), { once: true });
+      expect(addSpy2).toHaveBeenCalledWith('abort', expect.any(Function), { once: true });
+
+      controller1.abort();
+      expect(combined.aborted).toBe(true);
+
+      expect(removeSpy1).toHaveBeenCalledWith('abort', expect.any(Function));
+      expect(removeSpy2).toHaveBeenCalledWith('abort', expect.any(Function));
+    } finally {
+      // Восстанавливаем исходное состояние AbortSignal.any (через descriptor, без прямого присваивания).
+      if (originalAnyDescriptor === undefined) {
+        Reflect.deleteProperty(abortSignalAnyContainer, 'any');
+      } else {
+        Object.defineProperty(abortSignalAnyContainer, 'any', originalAnyDescriptor);
+      }
+    }
+  });
+
+  it('FinalizationRegistry: callback вызывает cleanup и удаляет запись из registry map (best-effort)', async () => {
+    const fakeState: { triggerLast?: () => void } = {};
+
+    // Нужен именно "конструктор", т.к. в effect-utils используется `new FinalizationRegistry(...)`.
+    function fakeFinalizationRegistry<T>(cb: (value: T) => void): unknown {
+      // eslint-disable-next-line functional/no-let -- тестовая имитация FinalizationRegistry требует внутреннего состояния
+      let lastHeldValue: T | undefined;
+      // eslint-disable-next-line fp/no-mutation -- тестовый хук для ручного вызова callback
+      fakeState.triggerLast = (): void => {
+        if (lastHeldValue === undefined) {
+          return;
+        }
+        cb(lastHeldValue);
+      };
+
+      return {
+        register: (_target: object, heldValue: T, _unregisterToken?: unknown): void => {
+          // eslint-disable-next-line fp/no-mutation -- тестовая имитация FinalizationRegistry требует внутреннего состояния
+          lastHeldValue = heldValue;
+        },
+        unregister: (_unregisterToken: unknown): void => {
+          // no-op
+        },
+      };
+    }
+
+    try {
+      vi.stubGlobal('FinalizationRegistry', fakeFinalizationRegistry);
+      vi.resetModules();
+      const mod = await import('../../src/effect/effect-utils.js');
+
+      const abortSignalAnyContainer = AbortSignal as unknown as Record<string, unknown>;
+      const originalAnyDescriptor = Object.getOwnPropertyDescriptor(abortSignalAnyContainer, 'any');
+      Reflect.deleteProperty(abortSignalAnyContainer, 'any');
+
+      try {
+        const controller1 = new AbortController();
+        const controller2 = new AbortController();
+
+        const removeSpy1 = vi.spyOn(controller1.signal, 'removeEventListener');
+        const removeSpy2 = vi.spyOn(controller2.signal, 'removeEventListener');
+
+        mod.combineAbortSignals([controller1.signal, controller2.signal]);
+
+        fakeState.triggerLast?.();
+
+        // Cleanup должен попытаться снять listeners (best-effort), что подтверждает выполнение callback ветки.
+        expect(removeSpy1).toHaveBeenCalled();
+        expect(removeSpy2).toHaveBeenCalled();
+      } finally {
+        // Восстанавливаем AbortSignal.any (через descriptor, без прямого присваивания).
+        if (originalAnyDescriptor === undefined) {
+          Reflect.deleteProperty(abortSignalAnyContainer, 'any');
+        } else {
+          Object.defineProperty(abortSignalAnyContainer, 'any', originalAnyDescriptor);
+        }
+      }
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
 });
 
 /* ========================================================================== */

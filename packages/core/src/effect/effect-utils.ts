@@ -37,7 +37,7 @@ import type {
   SanitizedJson,
 } from '@livai/core-contracts';
 
-/* eslint-disable fp/no-throw, functional/no-let, fp/no-mutation, functional/no-loop-statements, @typescript-eslint/no-unnecessary-condition */
+/* eslint-disable fp/no-throw, functional/no-let, fp/no-mutation, functional/immutable-data, functional/no-loop-statements, @typescript-eslint/no-unnecessary-condition */
 // Throw, let, мутации и циклы необходимы для side-effects (обработка ошибок, retry, state management)
 
 /* ========================================================================== */
@@ -228,27 +228,82 @@ export function withRetry<T>(
 /* 🛑 CANCELLATION */
 /* ========================================================================== */
 
+const combineAbortSignalsCleanupMap = new Map<symbol, () => void>();
+
+const combineAbortSignalsCleanupRegistry = typeof FinalizationRegistry === 'undefined'
+  ? undefined
+  : new FinalizationRegistry<symbol>((token) => {
+    const cleanup = combineAbortSignalsCleanupMap.get(token);
+    if (cleanup !== undefined) {
+      cleanup();
+      combineAbortSignalsCleanupMap.delete(token);
+    }
+  });
+
 /**
  * Объединяет несколько AbortSignal в один. Если любой сигнал aborted, объединённый также aborted.
- * Защищён от повторных подписок. Использует { once: true } для автоматической очистки.
+ * Защищён от повторных подписок, снимает listeners при abort и при GC объединённого сигнала (best-effort, через FinalizationRegistry).
  */
 export function combineAbortSignals(signals: readonly AbortSignal[]): AbortSignal {
+  // Уникализируем сигналы, чтобы не подписываться несколько раз на один и тот же AbortSignal.
+  const uniqueSignals = Array.from(new Set<AbortSignal>(signals));
+
+  if (uniqueSignals.length === 0) {
+    // Пустой набор сигналов → "никогда не aborted" сигнал.
+    return new AbortController().signal;
+  }
+
+  const alreadyAborted = uniqueSignals.find((s) => s.aborted);
+  if (alreadyAborted !== undefined) {
+    // Если хотя бы один уже aborted, объединённый также должен быть aborted.
+    // Возвращаем уже aborted signal без создания нового controller/listeners.
+    return alreadyAborted;
+  }
+
+  if (uniqueSignals.length === 1) {
+    // Один сигнал → возвращаем его как есть (без лишних controller/listeners).
+    return uniqueSignals[0] as AbortSignal;
+  }
+
+  // Production-grade: используем native AbortSignal.any, если доступен.
+  // Реализация в рантайме избегает утечек подписок и корректно ведёт себя с GC.
+  if (
+    typeof AbortSignal !== 'undefined'
+    && 'any' in AbortSignal
+    && typeof (AbortSignal as unknown as { any: (signals: AbortSignal[]) => AbortSignal }).any === 'function'
+  ) {
+    return (AbortSignal as unknown as { any: (signals: AbortSignal[]) => AbortSignal }).any(uniqueSignals);
+  }
+
   const controller = new AbortController();
   const combinedSignal = controller.signal;
 
-  // Если любой сигнал уже aborted, сразу abort
-  if (signals.some((s) => s.aborted)) {
-    controller.abort();
-    return combinedSignal;
-  }
+  const token = Symbol('combineAbortSignals');
+  const state: { cleaned: boolean } = { cleaned: false };
 
-  // Используем Set для фильтрации уникальных сигналов (защита от повторных подписок)
-  const uniqueSignals = new Set<AbortSignal>(signals);
+  const cleanup = (): void => {
+    if (state.cleaned) {
+      return;
+    }
+    state.cleaned = true;
+    uniqueSignals.forEach((signal) => {
+      signal.removeEventListener('abort', handler);
+    });
+    combineAbortSignalsCleanupMap.delete(token);
+    combineAbortSignalsCleanupRegistry?.unregister(token);
+  };
 
-  // Добавляем listeners для каждого уникального сигнала с { once: true } для автоматической очистки
   const handler = (): void => {
+    cleanup();
     controller.abort();
   };
+
+  // Подписки снимаются:
+  // - при первом abort (cleanup вызывается из handler)
+  // - или best-effort, когда combinedSignal станет недостижим (FinalizationRegistry)
+  combineAbortSignalsCleanupMap.set(token, cleanup);
+  combineAbortSignalsCleanupRegistry?.register(combinedSignal, token, token);
+
   uniqueSignals.forEach((signal) => {
     signal.addEventListener('abort', handler, { once: true });
   });
@@ -737,4 +792,4 @@ export function unwrap<T, E>(result: Result<T, E>): T {
   throw new Error('Invalid Result state');
 }
 
-/* eslint-enable fp/no-throw, functional/no-let, fp/no-mutation, functional/no-loop-statements, @typescript-eslint/no-unnecessary-condition */
+/* eslint-enable fp/no-throw, functional/no-let, fp/no-mutation, functional/immutable-data, functional/no-loop-statements, @typescript-eslint/no-unnecessary-condition */

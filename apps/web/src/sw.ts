@@ -61,13 +61,13 @@ swSelf.addEventListener('install', (event: ExtendableEvent): void => {
     (async (): Promise<void> => {
       try {
         const mainCache = await caches.open(mainCacheName);
-        await mainCache.addAll(precacheMainUrls as readonly string[]).catch((err: unknown) => {
+        await mainCache.addAll(precacheMainUrls).catch((err: unknown) => {
           // eslint-disable-next-line no-console
           console.warn('[SW][Install] Failed main precache:', err);
         });
 
         const staticCache = await caches.open(staticCacheName);
-        await staticCache.addAll(precacheStaticUrls as readonly string[]).catch((err: unknown) => {
+        await staticCache.addAll(precacheStaticUrls).catch((err: unknown) => {
           // eslint-disable-next-line no-console
           console.warn('[SW][Install] Failed static precache:', err);
         });
