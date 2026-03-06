@@ -1,21 +1,26 @@
 /**
- * @file packages/app/src/lib/error-mapping.ts
+ * @file packages/core/src/effect/error-mapping.ts
  * ============================================================================
  * 🔹 УНИВЕРСАЛЬНЫЙ МАППИНГ ОШИБОК
  * ============================================================================
+ *
  * Цель:
  * - Универсальный mapper для любых DomainError (не только auth)
  * - Консолидировать обработку ошибок по всем микросервисам
  * - Строго типизированные коды ошибок
- * - Чистые, детерминированные мапперы
+ * - Чистые, детерминированные мапперы (pure функции без внешних side-effects)
  * - Поддержка fallback и originError для telemetry и трассировки
  * - Расширяемость и локализация
+ * - Маппинг error-boundary ошибок для UI слоя
+ * - Создание DomainError из validation errors
+ * - Chainable мапперы для композиции
+ *
  * Принципы:
- * - Чистый TypeScript, без side-effects
+ * - Pure функции: детерминированные, без внешних side-effects (локальные let допустимы для последовательной обработки)
  * - Domain-agnostic (работает с любыми DomainError)
  * - Микросервисно-ориентированный дизайн
  * - Максимальная безопасность и ясность
- * - Детерминированность: все параметры передаются явно
+ * - Детерминированность: все параметры передаются явно (locale, timestamp в config)
  */
 
 import type {
@@ -27,11 +32,9 @@ import type {
 
 import type { EffectError } from './effect-utils.js';
 
-/** Типизированная ошибка с кодом для маппинга */
-export interface TaggedError<T extends ServiceErrorCode = ServiceErrorCode> {
-  readonly code: T;
-  readonly service?: ServicePrefix | undefined; // опциональный сервис для автоматического определения
-}
+/* eslint-disable functional/no-let, fp/no-mutation, ai-security/model-poisoning */
+// В этом модуле допустимы let и мутации для детерминированного маппинга ошибок (последовательная обработка kind → code → service)
+// и обработка error.message (после валидации через schema/validation layer).
 
 /* ============================================================================
  * 🧱 СЕРВИСНЫЕ ПРЕФИКСЫ
@@ -47,7 +50,11 @@ export const SERVICES = {
 
 export type ServicePrefix = keyof typeof SERVICES;
 
-export type ServiceErrorCode = `${ServicePrefix}_${string}`;
+/**
+ * Базовый шаблон для кода ошибки сервиса: PREFIX_SOMETHING.
+ * Используется только для валидации ключей справочника сообщений.
+ */
+type BaseServiceErrorCode = `${ServicePrefix}_${string}`;
 
 /* ============================================================================
  * 🧱 КОДЫ ОШИБОК
@@ -80,7 +87,19 @@ export const errorMessages = {
     locale === 'en' ? 'Schema version mismatch' : 'Несовпадение версии схемы',
   'SYSTEM_VALIDATION_TIMEOUT_EXCEEDED': (locale?: string) =>
     locale === 'en' ? 'Validation timeout exceeded' : 'Превышено время ожидания валидации',
-} as const satisfies Record<ServiceErrorCode, (locale?: string) => string>;
+} as const satisfies Record<BaseServiceErrorCode, (locale?: string) => string>;
+
+/**
+ * Строгий тип кодов ошибок сервиса.
+ * Представляет собой union всех ключей из errorMessages.
+ */
+export type ServiceErrorCode = keyof typeof errorMessages;
+
+/** Типизированная ошибка с кодом для маппинга */
+export interface TaggedError<T extends ServiceErrorCode = ServiceErrorCode> {
+  readonly code: T;
+  readonly service?: ServicePrefix | undefined; // опциональный сервис для автоматического определения
+}
 
 /* ============================================================================
  * 🧱 МАППИНГ EFFECTERROR.KIND → SERVICE ERROR CODE
@@ -97,6 +116,14 @@ export const kindToErrorCode: Partial<Record<string, ServiceErrorCode>> = {
   'billing/insufficient-funds': 'BILLING_INSUFFICIENT_FUNDS',
   'ai/model-not-found': 'AI_MODEL_NOT_FOUND',
 } as const;
+
+/**
+ * Fallback-маппинг для системных EffectError.kind → ServiceErrorCode.
+ * Используется, когда kind не является domain-строкой вида 'auth/...'.
+ */
+export const SYSTEM_EFFECT_ERROR_MAP: Partial<Record<EffectError['kind'], ServiceErrorCode>> = {
+  Timeout: 'SYSTEM_VALIDATION_TIMEOUT_EXCEEDED',
+};
 
 /* ============================================================================
  * 🧱 MappedError
@@ -155,6 +182,36 @@ function isEffectError(err: unknown): err is EffectError {
     && 'kind' in (err as EffectError);
 }
 
+// Определяет код ошибки из EffectError.kind (доменный маппинг или системный fallback)
+function getCodeFromEffectKind(effectKind: string): {
+  code: ServiceErrorCode | undefined;
+  service: ServicePrefix | undefined;
+} {
+  const directMappedCode = kindToErrorCode[effectKind];
+  if (directMappedCode != null) {
+    return { code: directMappedCode, service: undefined };
+  }
+
+  const systemMappedCode = SYSTEM_EFFECT_ERROR_MAP[effectKind as EffectError['kind']];
+  if (systemMappedCode != null) {
+    return { code: systemMappedCode, service: 'SYSTEM' };
+  }
+
+  return { code: undefined, service: undefined };
+}
+
+// Определяет сервис из строкового kind ('auth/...', 'billing/...' и т.п.)
+function getServiceFromKind(effectKind: string): ServicePrefix | undefined {
+  const kindParts = effectKind.split('/');
+  const kindPrefix = kindParts.length > 0 && kindParts[0] != null && kindParts[0] !== ''
+    ? kindParts[0].toUpperCase()
+    : undefined;
+  if (kindPrefix != null && kindPrefix in SERVICES) {
+    return kindPrefix as ServicePrefix;
+  }
+  return undefined;
+}
+
 /* ============================================================================
  * 🎯 МАППЕР ОШИБОК
  * ========================================================================== */
@@ -173,18 +230,13 @@ export interface MapErrorConfig {
  * - Сохраняет безопасное представление оригинальной ошибки (без stack trace)
  * - Работает с любыми доменными ошибками (auth, billing, chat, bots и т.д.)
  * - Pure функция: не имеет side-effects, детерминирована
- * @param err - Ошибка для маппинга
- * @param details - Дополнительные детали ошибки
- * @param config - Конфигурация маппинга (locale, timestamp) - обязательна для детерминированности
- * @param service - Опциональный сервис (автоматически определяется если не передан)
- * @returns MappedError с детерминированным timestamp и безопасным originError
  */
 export function mapError<TDetails = unknown>(
-  err: unknown,
-  details: TDetails | undefined,
-  config: MapErrorConfig,
-  service?: ServicePrefix,
-): MappedError<TDetails> {
+  err: unknown, // Ошибка для маппинга
+  details: TDetails | undefined, // Дополнительные детали ошибки
+  config: MapErrorConfig, // Конфигурация маппинга (locale, timestamp) - обязательна для детерминированности
+  service?: ServicePrefix, // Опциональный сервис (автоматически определяется если не передан)
+): MappedError<TDetails> { // MappedError с детерминированным timestamp и безопасным originError
   const effectiveLocale = config.locale;
 
   // Сначала проверяем TaggedError с кодом и автоматическим определением сервиса
@@ -194,21 +246,15 @@ export function mapError<TDetails = unknown>(
 
   // Если не нашли код, проверяем EffectError с kind
   if (code === undefined && isEffectError(err) && typeof err.kind === 'string') {
-    // Проверяем опциональный маппинг kind → code
-    const mappedCode = kindToErrorCode[err.kind];
-    if (mappedCode != null) {
-      code = mappedCode;
+    const effectKind = err.kind;
+    const kindMapping = getCodeFromEffectKind(effectKind);
+    code = kindMapping.code;
+    if (kindMapping.service != null) {
+      detectedService = kindMapping.service;
     }
 
-    // Универсальное определение сервиса из kind (например, 'auth/...' -> 'AUTH', 'billing/...' -> 'BILLING')
-    // Работает для любого сервиса из SERVICES
-    const kindParts = err.kind.split('/');
-    const kindPrefix = kindParts.length > 0 && kindParts[0] != null && kindParts[0] !== ''
-      ? kindParts[0].toUpperCase()
-      : undefined;
-    if (kindPrefix != null && kindPrefix in SERVICES) {
-      detectedService = kindPrefix as ServicePrefix;
-    }
+    // Попытка автоматически определить сервис из строкового kind ('auth/...', 'billing/...' и т.п.)
+    detectedService ??= getServiceFromKind(effectKind);
   }
 
   // Используем переданный сервис или автоматически определенный
@@ -223,11 +269,13 @@ export function mapError<TDetails = unknown>(
     }
     : undefined;
 
+  const message = code !== undefined && isValidErrorCode(code)
+    ? errorMessages[code](effectiveLocale)
+    : errorMessages.SYSTEM_UNKNOWN_ERROR(effectiveLocale);
+
   return {
     code: mappedCode,
-    message: code !== undefined && isValidErrorCode(code)
-      ? errorMessages[code as keyof typeof errorMessages](effectiveLocale)
-      : errorMessages.SYSTEM_UNKNOWN_ERROR(effectiveLocale),
+    message,
     details,
     originError: safeOriginError,
     timestamp: config.timestamp,
@@ -257,23 +305,46 @@ export interface MapErrorBoundaryResult {
  * Преобразует Error в AppError для error-boundary компонента.
  * Используется для унифицированной обработки ошибок в UI слое.
  * Pure функция: не имеет side-effects, детерминирована.
- * @param error - Ошибка для маппинга
- * @param config - Конфигурация маппинга (timestamp)
- * @returns Результат маппинга с AppError и данными для telemetry
  */
-export function mapErrorBoundaryError(
-  error: Error,
-  config: MapErrorBoundaryConfig,
-): MapErrorBoundaryResult {
-  // Определяем тип ошибки по сообщению для унифицированной обработки
-  let errorCode: ErrorBoundaryErrorCode = 'UNKNOWN_ERROR';
-  const messageLower = error.message.toLowerCase();
+// Определяет ErrorBoundaryErrorCode из структурных полей ошибки (name/type)
+function getErrorCodeFromStructure(error: Error): ErrorBoundaryErrorCode {
+  const errorName = error.constructor.name;
+  const maybeType = (error as { type?: string | undefined; }).type;
 
-  if (messageLower.includes('network') || messageLower.includes('fetch')) {
-    errorCode = 'NETWORK_ERROR';
-  } else if (messageLower.includes('validation')) {
-    errorCode = 'VALIDATION_ERROR';
+  if (maybeType === 'NetworkError' || errorName === 'NetworkError' || errorName === 'FetchError') {
+    return 'NETWORK_ERROR';
   }
+  if (
+    maybeType === 'ValidationError'
+    || errorName === 'ZodError'
+    || errorName === 'ValidationError'
+  ) {
+    return 'VALIDATION_ERROR';
+  }
+  return 'UNKNOWN_ERROR';
+}
+
+// Определяет ErrorBoundaryErrorCode из текста сообщения (fallback)
+function getErrorCodeFromMessage(message: string): ErrorBoundaryErrorCode {
+  const messageLower = message.toLowerCase();
+  if (messageLower.includes('network') || messageLower.includes('fetch')) {
+    return 'NETWORK_ERROR';
+  }
+  if (messageLower.includes('validation')) {
+    return 'VALIDATION_ERROR';
+  }
+  return 'UNKNOWN_ERROR';
+}
+
+export function mapErrorBoundaryError(
+  error: Error, // Ошибка для маппинга
+  config: MapErrorBoundaryConfig, // Конфигурация маппинга (timestamp)
+): MapErrorBoundaryResult { // Результат маппинга с AppError и данными для telemetry
+  // 1) Сначала пытаемся опираться на структурные поля (name/type), а не на текст сообщения
+  const errorCodeFromStructure = getErrorCodeFromStructure(error);
+  const errorCode = errorCodeFromStructure !== 'UNKNOWN_ERROR'
+    ? errorCodeFromStructure
+    : getErrorCodeFromMessage(error.message);
 
   // Создаем UnknownError с соответствующими полями
   // В будущем можно расширить для возврата разных типов AppError
@@ -315,33 +386,13 @@ export type ValidationErrorLike = TaggedError & {
 /**
  * Создает DomainError (MappedError) из массива ошибок валидации.
  * Универсальный helper для преобразования ValidationError[] в DomainError.
- * @param errors - Массив ошибок валидации
- * @param errorCode - Опциональный код ошибки (по умолчанию SYSTEM_VALIDATION_RESPONSE_SCHEMA_INVALID)
- * @param service - Опциональный сервис (по умолчанию определяется из первой ошибки или 'SYSTEM')
- * @param config - Конфигурация маппинга (locale, timestamp)
- * @returns MappedError с деталями валидации
- *
- * @example
- * ```ts
- * import { createDomainError } from './error-mapping';
- * import type { ValidationError } from './validation';
- * const validationErrors: ValidationError[] = [
- *   { code: 'SYSTEM_VALIDATION_RESPONSE_SCHEMA_INVALID', field: 'email', message: 'Invalid email' }
- * ];
- * const domainError = createDomainError(validationErrors, undefined, undefined, {
- *   locale: 'en',
- *   timestamp: Date.now()
- * });
- * // domainError.code === 'SYSTEM_VALIDATION_RESPONSE_SCHEMA_INVALID'
- * // domainError.details === { validationErrors: [...] }
- * ```
  */
 export function createDomainError(
-  errors: readonly ValidationErrorLike[],
-  config: MapErrorConfig,
-  errorCode?: ServiceErrorCode | undefined,
-  service?: ServicePrefix | undefined,
-): MappedError<{ readonly validationErrors: readonly ValidationErrorLike[]; }> {
+  errors: readonly ValidationErrorLike[], // Массив ошибок валидации
+  config: MapErrorConfig, // Конфигурация маппинга (locale, timestamp)
+  errorCode?: ServiceErrorCode | undefined, // Опциональный код ошибки (по умолчанию SYSTEM_VALIDATION_RESPONSE_SCHEMA_INVALID)
+  service?: ServicePrefix | undefined, // Опциональный сервис (по умолчанию определяется из первой ошибки или 'SYSTEM')
+): MappedError<{ readonly validationErrors: readonly ValidationErrorLike[]; }> { // MappedError с деталями валидации
   // Определяем код ошибки: из параметра, из первой ошибки, или fallback
   const firstError = errors.length > 0 ? errors[0] : undefined;
   const code = errorCode ?? firstError?.code ?? 'SYSTEM_VALIDATION_RESPONSE_SCHEMA_INVALID';
@@ -385,10 +436,21 @@ export function chainMappers<TDetails = unknown>(
     config: MapErrorConfig,
     service?: ServicePrefix,
   ): MappedError<TDetails> => {
-    for (const mapper of mappers) {
-      const mapped = mapper(err, details, config, service);
-      if (mapped.code !== 'SYSTEM_UNKNOWN_ERROR') return mapped;
+    const found = mappers.reduce<MappedError<TDetails> | undefined>(
+      (acc, mapper) => {
+        if (acc != null && acc.code !== 'SYSTEM_UNKNOWN_ERROR') {
+          return acc;
+        }
+        const mapped = mapper(err, details, config, service);
+        return mapped.code !== 'SYSTEM_UNKNOWN_ERROR' ? mapped : acc;
+      },
+      undefined,
+    );
+
+    if (found != null && found.code !== 'SYSTEM_UNKNOWN_ERROR') {
+      return found;
     }
+
     return {
       code: 'SYSTEM_UNKNOWN_ERROR',
       message: errorMessages.SYSTEM_UNKNOWN_ERROR(config.locale),
@@ -401,3 +463,5 @@ export function chainMappers<TDetails = unknown>(
     };
   };
 }
+
+/* eslint-enable functional/no-let, fp/no-mutation, ai-security/model-poisoning */

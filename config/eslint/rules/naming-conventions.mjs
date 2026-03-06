@@ -107,6 +107,17 @@ export const effectFpNamingRules = [
         // Все функции и методы: camelCase
         { selector: 'function', format: ['camelCase'] },
         { selector: 'method', format: ['camelCase'] },
+        // Исключение для objectLiteralMethod: разрешаем SCREAMING_SNAKE_CASE для кодов ошибок (ServiceErrorCode)
+        // Это необходимо для errorMessages и подобных объектов, где ключи — константные коды ошибок в формате PREFIX_ERROR_NAME
+        {
+          selector: 'objectLiteralMethod',
+          filter: {
+            // Разрешаем SCREAMING_SNAKE_CASE ключи (например, AUTH_INVALID_TOKEN, SYSTEM_VALIDATION_TIMEOUT_EXCEEDED)
+            regex: '^[A-Z_]+$',
+            match: true,
+          },
+          format: null, // Отключаем проверку формата для таких ключей
+        },
         // Исключение для objectLiteralMethod: разрешаем snake_case для ключей, соответствующих union-типам
         // Это необходимо для Record<UnionType, Function>, где ключи должны точно соответствовать значениям union-типа
         {

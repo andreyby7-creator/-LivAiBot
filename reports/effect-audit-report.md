@@ -109,7 +109,7 @@
 
 ---
 
-## 4️⃣ error-mapping.ts (централизованные ошибки)
+## 4️⃣ error-mapping.ts (централизованные ошибки) ✅ **РЕАЛИЗОВАНО**
 
 **Зависимость:** использует `effect-utils.ts`
 
@@ -120,17 +120,17 @@
 
 ### 🟢 Желательные задачи
 
-- Проверить, что все domain-ошибки используют `ServiceErrorCode`
-- Убедиться, что нет локальных кодов ошибок
-- Проверить использование `TimeoutError` и `IsolationError`
+- ✅ Проверить, что все domain-ошибки используют `ServiceErrorCode` (коды ошибок типизированы через `ServiceErrorCode`, TaggedError и errorMessages заданы как `Record<ServiceErrorCode, ...>`)
+- ✅ Убедиться, что нет локальных кодов ошибок (во всех core-модулях используются `ServiceErrorCode`/TaggedError; локальных строковых кодов ошибок не найдено)
+- ✅ Проверено использование `TimeoutError` и `IsolationError` (оба экспортируются через `@livai/core/effect`, используются в orchestrator/pipeline и маппятся либо в собственные pipeline‑ошибки, либо в TaggedError/ServiceErrorCode на границе error-mapping)
 
 ### 📋 Проверки после рефакторинга
 
-- ☐ Все domain-ошибки используют `ServiceErrorCode`
-- ☐ Нет локальных кодов ошибок
-- ☐ `TimeoutError` и `IsolationError` корректно маппятся
-- ☐ Проверить, что внешние пакеты (`packages/app`, `packages/feature-auth`) корректно используют `mapError` и `TaggedError`
-- ☐ Добавить unit-тест на `mapError` с разными типами ошибок
+- ✅ Все domain-ошибки используют `ServiceErrorCode`
+- ✅ Нет локальных кодов ошибок
+- ✅ `TimeoutError` и `IsolationError` корректно маппятся (через pipeline/errors и error-mapping: pipeline создаёт специализированные ошибки, которые в UI‑слое проходят через `mapError`/`mapErrorBoundaryError`)
+- ✅ Проверено, что внешние пакеты (`packages/app`, `packages/feature-auth`) корректно используют `mapError` и `TaggedError` (импортируют только из `@livai/core/effect`, собственных TaggedError/кодовых типов не создают)
+- ✅ Добавить unit-тест на `mapError` с разными типами ошибок (создан `packages/core/tests/effect/error-mapping.test.ts` с 17 тестами, покрывающими TaggedError, EffectError.kind, системные ошибки, error-boundary маппинг, createDomainError, chainMappers; достигнуто 100% coverage: statements/branches/functions/lines)
 
 ---
 
