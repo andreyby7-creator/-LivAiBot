@@ -27,8 +27,9 @@ import type { TelemetryEvent, TelemetryMetadata } from '@livai/core-contracts';
  * - Явную валидацию через sanitizeMetadata в конфиге
  * Regex-подход оставлен только для обратной совместимости и должен быть отключен
  * через enableRegexPIIDetection: false в продакшене.
+ * @public
  */
-const PII_PATTERNS = Object.freeze(
+export const PII_PATTERNS = Object.freeze(
   [
     /^(password|pwd|passwd)$/i,
     /^(access[_-]?token|auth[_-]?token|bearer[_-]?token|refresh[_-]?token)$/i,
@@ -79,13 +80,15 @@ function isPIIValue(value: string): boolean {
 }
 
 /**
+ * Проверяет metadata на наличие PII patterns.
  * Middleware для скрытия PII на уровне core.
  * Гарантирует, что ни одно событие не попадет с чувствительными данными до отправки.
  * @param metadata - Метаданные для проверки
  * @param deep - Включить глубокую рекурсивную проверку (по умолчанию false для производительности)
  * @returns true если обнаружен PII
+ * @public
  */
-function containsPII(
+export function containsPII(
   metadata: TelemetryMetadata | undefined,
   deep = false,
 ): boolean {

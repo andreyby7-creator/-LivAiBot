@@ -148,7 +148,6 @@ export {
   type FeatureFlagName,
   type FeatureFlagStrategy,
   type FetchEvent,
-  fireAndForget,
   formatDateLocalized,
   getAvailableRouteTypes,
   getCurrentDayjsLocale,

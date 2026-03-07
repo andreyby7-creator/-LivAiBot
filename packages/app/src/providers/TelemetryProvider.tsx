@@ -23,7 +23,6 @@ import type { TelemetryClient } from '@livai/core/telemetry';
 import type { TelemetryConfig, TelemetryMetadata } from '@livai/core-contracts';
 
 import {
-  fireAndForget,
   getGlobalTelemetryClient,
   initTelemetry,
   isTelemetryInitialized,
@@ -172,11 +171,24 @@ function TelemetryProviderComponent({
 
     // Порядок событий сохраняется внутри одного flush batch.
     // Между batch порядок best-effort.
-    fireAndForget(async () => {
+    // Выполняем в fire-and-forget режиме (не ждем завершения)
+    async function flushEvents(telemetryClient: TelemetryClient): Promise<void> {
       for (const entry of eventsToFlush) {
-        await client.log('INFO', entry.event, entry.metadata, entry.timestamp);
+        await telemetryClient.log('INFO', entry.event, entry.metadata, entry.timestamp);
       }
-    });
+    }
+
+    function handleFlushError(error: unknown): void {
+      // Игнорируем ошибки flush - не логируем через telemetry client,
+      // чтобы избежать циклической зависимости (ошибка в telemetry → логирование через telemetry)
+      // В production это fire-and-forget операция, ошибки не критичны
+      if (process.env['NODE_ENV'] !== 'production') {
+        // eslint-disable-next-line no-console -- Только в development для отладки
+        console.error('[TelemetryProvider] Flush error:', error);
+      }
+    }
+
+    flushEvents(client).catch(handleFlushError);
   }, [enabled, ensureClient]);
 
   const track = useCallback<TelemetryContextType['track']>((event, data) => {

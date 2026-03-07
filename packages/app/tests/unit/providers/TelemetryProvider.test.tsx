@@ -16,9 +16,6 @@ const telemetryMocks = vi.hoisted(() => {
   return {
     client,
     log,
-    fireAndForget: vi.fn(async (fn: () => Promise<void> | void) => {
-      await fn();
-    }),
     getGlobalTelemetryClient: vi.fn(() => client),
     initTelemetry: vi.fn(() => client),
     isTelemetryInitialized: vi.fn(() => false),
@@ -30,7 +27,6 @@ vi.mock('../../../src/lib/telemetry-runtime', async () => {
 
   return {
     ...actual,
-    fireAndForget: telemetryMocks.fireAndForget,
     getGlobalTelemetryClient: telemetryMocks.getGlobalTelemetryClient,
     initTelemetry: telemetryMocks.initTelemetry,
     isTelemetryInitialized: telemetryMocks.isTelemetryInitialized,
@@ -78,10 +74,7 @@ describe('TelemetryProvider', () => {
       </TelemetryProvider>,
     );
 
-    await waitFor(() => {
-      expect(telemetryMocks.fireAndForget).toHaveBeenCalledTimes(1);
-    });
-
+    // Проверяем, что log вызывается для обоих событий (flush происходит автоматически при достижении maxBatchSize)
     await waitFor(() => {
       expect(telemetryMocks.log).toHaveBeenCalledTimes(2);
     });
@@ -124,9 +117,10 @@ describe('TelemetryProvider', () => {
       </TelemetryProvider>,
     );
 
-    await waitFor(() => {
-      expect(telemetryMocks.fireAndForget).not.toHaveBeenCalled();
-    });
+    // Даем время для обработки, если бы она происходила
+    await new Promise((resolve) => setTimeout(resolve, 100));
+
+    expect(telemetryMocks.log).not.toHaveBeenCalled();
     expect(telemetryMocks.initTelemetry).not.toHaveBeenCalled();
     expect(telemetryMocks.getGlobalTelemetryClient).not.toHaveBeenCalled();
   });
@@ -140,8 +134,8 @@ describe('TelemetryProvider', () => {
       </TelemetryProvider>,
     );
 
-    // Initially should not have called fireAndForget
-    expect(telemetryMocks.fireAndForget).not.toHaveBeenCalled();
+    // Initially should not have called log (event is buffered)
+    expect(telemetryMocks.log).not.toHaveBeenCalled();
 
     // Get the interval callback and call it manually
     const intervalCallback = setIntervalSpy.mock.calls[0]?.[0] as (() => void);
@@ -149,8 +143,9 @@ describe('TelemetryProvider', () => {
 
     intervalCallback();
 
+    // Проверяем, что log вызывается после flush через интервал
     await waitFor(() => {
-      expect(telemetryMocks.fireAndForget).toHaveBeenCalledTimes(1);
+      expect(telemetryMocks.log).toHaveBeenCalledTimes(1);
     });
 
     setIntervalSpy.mockRestore();
@@ -163,8 +158,9 @@ describe('TelemetryProvider', () => {
       </TelemetryProvider>,
     );
 
+    // maxBatchSize=0 корректируется до 1, поэтому flush должен произойти сразу
     await waitFor(() => {
-      expect(telemetryMocks.fireAndForget).toHaveBeenCalledTimes(1);
+      expect(telemetryMocks.log).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -192,8 +188,9 @@ describe('TelemetryProvider', () => {
       </TelemetryProvider>,
     );
 
+    // Проверяем, что log вызывается после flush
     await waitFor(() => {
-      expect(telemetryMocks.fireAndForget).toHaveBeenCalledTimes(1);
+      expect(telemetryMocks.log).toHaveBeenCalledTimes(1);
     });
 
     expect(telemetryMocks.log).toHaveBeenCalledWith(
@@ -222,10 +219,14 @@ describe('TelemetryProvider', () => {
       expect(telemetryMocks.initTelemetry).toHaveBeenCalled();
     });
 
+    // Event должен быть в буфере, но еще не отправлен
+    expect(telemetryMocks.log).not.toHaveBeenCalled();
+
     unmount();
 
+    // После unmount должен произойти flush (cleanup вызывает flush)
     await waitFor(() => {
-      expect(telemetryMocks.fireAndForget).toHaveBeenCalledTimes(1);
+      expect(telemetryMocks.log).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -244,5 +245,105 @@ describe('TelemetryProvider', () => {
     }).not.toThrow();
 
     consoleWarnSpy.mockRestore();
+  });
+
+  it('uses NOOP_CONTEXT when useTelemetryContext is used without provider', () => {
+    const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+    function TestComponent() {
+      const { track, flush } = useTelemetryContext();
+
+      // Проверяем, что noop функции вызываются без ошибок
+      expect(() => {
+        track('test-event', { data: 'test' });
+        flush();
+      }).not.toThrow();
+
+      // Проверяем, что функции возвращают undefined
+      expect(track('test-event', { data: 'test' })).toBeUndefined();
+      expect(flush()).toBeUndefined();
+
+      return null;
+    }
+
+    render(<TestComponent />);
+
+    consoleWarnSpy.mockRestore();
+  });
+
+  it('handles flush errors in development mode', async () => {
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    // Используем vi.stubEnv для мокирования NODE_ENV
+    vi.stubEnv('NODE_ENV', 'development');
+
+    // Мокаем log чтобы он выбрасывал ошибку
+    const logError = new Error('Flush error');
+    telemetryMocks.log.mockRejectedValueOnce(logError);
+
+    render(
+      <TelemetryProvider maxBatchSize={1}>
+        <TrackOnMount events={[{ name: 'event-error' }]} />
+      </TelemetryProvider>,
+    );
+
+    // Ждем, пока flush попытается выполниться и упадет с ошибкой
+    await waitFor(() => {
+      expect(telemetryMocks.log).toHaveBeenCalled();
+    }, { timeout: 2000 });
+
+    // В development режиме должна быть вызвана console.error
+    await waitFor(() => {
+      expect(consoleErrorSpy).toHaveBeenCalled();
+    }, { timeout: 2000 });
+
+    // Проверяем, что console.error был вызван с правильными аргументами
+    expect(consoleErrorSpy).toHaveBeenCalledWith(
+      '[TelemetryProvider] Flush error:',
+      expect.any(Error),
+    );
+
+    // Восстанавливаем окружение
+    vi.unstubAllEnvs();
+    consoleErrorSpy.mockRestore();
+  });
+
+  it('handles ensureClient returning null when enabled is false', async () => {
+    render(
+      <TelemetryProvider enabled={false} maxBatchSize={1}>
+        <TrackOnMount events={[{ name: 'event-disabled-client' }]} />
+      </TelemetryProvider>,
+    );
+
+    // Даем время для обработки
+    await new Promise((resolve) => setTimeout(resolve, 100));
+
+    // log не должен быть вызван, так как enabled=false
+    expect(telemetryMocks.log).not.toHaveBeenCalled();
+    expect(telemetryMocks.initTelemetry).not.toHaveBeenCalled();
+  });
+
+  it('calls cleanup interval on unmount', async () => {
+    const clearIntervalSpy = vi.spyOn(globalThis, 'clearInterval');
+
+    const { unmount } = render(
+      <TelemetryProvider flushIntervalMs={100}>
+        <TrackOnMount events={[{ name: 'event-cleanup-interval' }]} />
+      </TelemetryProvider>,
+    );
+
+    // Ждем, пока interval установится
+    await waitFor(() => {
+      expect(telemetryMocks.initTelemetry).toHaveBeenCalled();
+    });
+
+    unmount();
+
+    // Проверяем, что clearInterval был вызван для cleanup
+    await waitFor(() => {
+      expect(clearIntervalSpy).toHaveBeenCalled();
+    });
+
+    clearIntervalSpy.mockRestore();
   });
 });

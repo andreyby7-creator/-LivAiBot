@@ -3,31 +3,55 @@
  * ============================================================================
  * 🔹 TELEMETRY RUNTIME — SINGLETON ЛОГИКА ДЛЯ RUNTIME СРЕДЫ
  * ============================================================================
+ *
  * Архитектурная роль:
  * - Singleton логика для глобального доступа к телеметрии
  * - Runtime инициализация и управление жизненным циклом
  * - Fire-and-forget API с batching и queue для throttling
+ * - Middleware pipeline для pre-processing metadata
  * - Явная инициализация без скрытого coupling
- * - Race condition protection для async инициализации
+ *
  * Принципы:
- * - SRP: только singleton логика, без бизнес-логики
+ * - SRP: модульная архитектура с изолированными компонентами (TelemetrySingleton, FireAndForgetQueue)
  * - Deterministic: явная инициализация, предсказуемое поведение
- * - Без скрытого coupling: явные зависимости от lib/telemetry
- * - Production-ready: защита от race conditions и повторной инициализации
+ * - Без скрытого coupling: явные зависимости от @livai/core/telemetry
+ * - Production-ready: защита от race conditions, memory leaks, mutations, unbounded queue
  * - Testable: reset функции для unit-тестов
+ *
  * Использование:
- * - Инициализация: `initTelemetry(config)`
+ * - Инициализация: `initTelemetry(config, middlewares?)`
  * - Получение клиента: `getGlobalTelemetryClient()`
  * - Fire-and-forget: `infoFireAndForget()`, `warnFireAndForget()`, `errorFireAndForget()`
+ * - Метрики: `getFireAndForgetMetrics()`
  */
 
-import { TelemetryClient } from '@livai/core/telemetry';
+import { containsPII, TelemetryClient } from '@livai/core/telemetry';
 import type {
   BatchConfig,
   TelemetryConfig,
   TelemetryLevel,
   TelemetryMetadata,
 } from '@livai/core-contracts';
+
+/* ============================================================================
+ * 🔧 КОНСТАНТЫ
+ * ============================================================================
+ */
+
+/**
+ * Детерминированная константа для production режима.
+ * Исключает runtime drift и улучшает производительность.
+ */
+const IS_PRODUCTION = process.env['NODE_ENV'] === 'production';
+
+/** Префикс для internal logger сообщений. */
+const INTERNAL_PREFIX = '[telemetry-runtime]';
+
+/** Максимальный размер queue для предотвращения memory leaks. */
+const MAX_QUEUE_SIZE = 10_000;
+
+/** Дефолтное значение для maxConcurrentBatches. */
+const DEFAULT_MAX_CONCURRENT_BATCHES = 5;
 
 /* ============================================================================
  * 🔧 INTERNAL LOGGER (SAFE, NO CONSOLE LEAKS)
@@ -40,16 +64,16 @@ import type {
  */
 type InternalLogger = {
   /** Логирует ошибку */
-  error: (message: string, error: unknown) => void;
+  error: (message: string, error: unknown) => void; // message: Сообщение об ошибке, error: Ошибка
 };
 
 /**
  * Создает безопасный internal logger.
  * В production использует no-op, в development - console с защитой.
- * @param enabled - Включить ли логирование (по умолчанию только в development)
  * @returns Internal logger
  */
-function createInternalLogger(enabled = process.env['NODE_ENV'] !== 'production'): InternalLogger {
+function createInternalLogger(enabled = !IS_PRODUCTION // Включить ли логирование (по умолчанию только в development)
+): InternalLogger {
   if (!enabled) {
     return {
       error: (): void => {
@@ -63,7 +87,7 @@ function createInternalLogger(enabled = process.env['NODE_ENV'] !== 'production'
       // Только в development, с защитой от отсутствия console
       /* eslint-disable no-console -- Internal logger для development */
       if (typeof console !== 'undefined' && typeof console.error === 'function') {
-        console.error(`[telemetry-runtime] ${message}`, error);
+        console.error(`${INTERNAL_PREFIX} ${message}`, error);
       }
       /* eslint-enable no-console */
     },
@@ -71,304 +95,421 @@ function createInternalLogger(enabled = process.env['NODE_ENV'] !== 'production'
 }
 
 /* ============================================================================
- * 🔒 SINGLETON STATE
+ * 🔒 MIDDLEWARE ORCHESTRATION
  * ============================================================================
  */
 
 /**
- * Глобальный singleton клиент телеметрии.
- * Инициализируется через initTelemetry().
- */
-let globalClient: TelemetryClient<TelemetryMetadata> | null = null;
-
-/**
- * PII redaction patterns для проверки middleware output.
- * Используется для строгой проверки на PII перед логированием.
- */
-const PII_PATTERNS = Object.freeze(
-  [
-    /password/gi,
-    /token/gi,
-    /secret/gi,
-    /api[_-]?key/gi,
-    /authorization/gi,
-    /credit[_-]?card/gi,
-    /ssn/gi,
-    /social[_-]?security/gi,
-  ] as const,
-);
-
-/**
- * Проверяет metadata на наличие PII patterns.
- * Строгая проверка для middleware output перед логированием.
- * Производительность:
- * - В production: shallow проверка (только верхний уровень) + ключи/строки
- * - В development: полная рекурсивная проверка для всех вложенных объектов
- * - Оптимизировано для высокой нагрузки в production
- * @param metadata - Метаданные для проверки
- * @param deep - Включить глубокую рекурсивную проверку (по умолчанию только в development)
- * @returns true если обнаружен PII
- */
-function containsPII(
-  metadata: TelemetryMetadata | undefined,
-  deep = process.env['NODE_ENV'] !== 'production',
-): boolean {
-  if (!metadata) {
-    return false;
-  }
-
-  for (const [key, value] of Object.entries(metadata)) {
-    // Проверка ключа на PII patterns (всегда включена)
-    if (PII_PATTERNS.some((pattern) => pattern.test(key))) {
-      return true;
-    }
-
-    // Проверка значения на PII patterns (если строка)
-    if (typeof value === 'string' && PII_PATTERNS.some((pattern) => pattern.test(value))) {
-      return true;
-    }
-
-    // Рекурсивная проверка вложенных объектов (только в development или если deep=true)
-    if (deep && value !== null && typeof value === 'object' && !Array.isArray(value)) {
-      if (containsPII(value as TelemetryMetadata, true)) {
-        return true;
-      }
-    }
-  }
-
-  return false;
-}
-
-/**
  * Middleware hook для pre-processing metadata перед логированием.
- * Позволяет runtime поддерживать custom telemetry middleware.
+ * Позволяет runtime поддерживать custom telemetry middleware pipeline.
  * ВАЖНО: Output middleware проверяется на PII перед логированием.
  */
 type TelemetryMiddleware = (
-  metadata: TelemetryMetadata | undefined,
-  level: TelemetryLevel,
-  message: string,
+  metadata: TelemetryMetadata | undefined, // Метаданные события
+  level: TelemetryLevel, // Уровень события
+  message: string, // Сообщение события
 ) => TelemetryMetadata | undefined;
 
-let globalMiddleware: TelemetryMiddleware | null = null;
+/**
+ * Применяет pipeline middleware к metadata.
+ * Защищает от mutation через structuredClone.
+ * Проверяет output на PII.
+ * @returns Обработанные метаданные или undefined если содержит PII
+ */
+function applyMiddleware(
+  metadata: TelemetryMetadata | undefined, // Исходные метаданные
+  level: TelemetryLevel, // Уровень события
+  message: string, // Сообщение события
+  middlewares: readonly TelemetryMiddleware[], // Массив middleware для применения
+): TelemetryMetadata | undefined {
+  if (middlewares.length === 0) {
+    return metadata;
+  }
+
+  // Защита от mutation: клонируем metadata перед middleware
+  let processed: TelemetryMetadata | undefined;
+  if (metadata) {
+    if (typeof structuredClone !== 'undefined') {
+      // structuredClone возвращает глубокую копию с тем же типом
+      processed = structuredClone(metadata);
+    } else {
+      // JSON.parse возвращает unknown, приводим к TelemetryMetadata после сериализации
+      const serialized = JSON.stringify(metadata);
+      const parsed: unknown = JSON.parse(serialized);
+      processed = parsed as TelemetryMetadata;
+    }
+  } else {
+    processed = undefined;
+  }
+
+  // Применяем pipeline middleware
+  for (const middleware of middlewares) {
+    processed = middleware(processed, level, message);
+  }
+
+  // Проверка на PII: в production - shallow, в development - deep
+  const deep = !IS_PRODUCTION;
+  if (processed !== undefined && containsPII(processed, deep)) {
+    return undefined;
+  }
+
+  return processed;
+}
+
+/* ============================================================================
+ * 🔒 TELEMETRY SINGLETON MODULE
+ * ============================================================================
+ */
 
 /**
- * Internal logger для ошибок fire-and-forget.
+ * Изолированный модуль для управления singleton lifecycle.
+ * Инкапсулирует состояние и логику инициализации.
  */
-let internalLogger: InternalLogger = createInternalLogger();
+const TelemetrySingleton = ((): {
+  init: (
+    config?: TelemetryConfig<TelemetryMetadata>,
+    middlewareArray?: readonly TelemetryMiddleware[],
+  ) => TelemetryClient<TelemetryMetadata>;
+  get: () => TelemetryClient<TelemetryMetadata>;
+  isInitialized: () => boolean;
+  getMiddlewares: () => readonly TelemetryMiddleware[];
+  getInternalLogger: () => InternalLogger;
+  reset: () => void;
+  setForDebug: (newClient: TelemetryClient<TelemetryMetadata> | null) => void;
+} => {
+  let client: TelemetryClient<TelemetryMetadata> | null = null;
+  let middlewares: readonly TelemetryMiddleware[] = [];
+  let internalLogger: InternalLogger = createInternalLogger();
+
+  function init(
+    config?: TelemetryConfig<TelemetryMetadata>, // Конфигурация телеметрии
+    middlewareArray?: readonly TelemetryMiddleware[], // Массив middleware hooks
+  ): TelemetryClient<TelemetryMetadata> {
+    // Если уже инициализирован, возвращаем существующий клиент
+    if (client !== null) {
+      if (IS_PRODUCTION) {
+        throw new Error('Telemetry already initialized. Cannot reinitialize in production.');
+      }
+
+      // В development режиме предупреждаем, но позволяем переинициализацию
+      internalLogger.error(
+        'Telemetry already initialized. Reinitializing in development mode.',
+        undefined,
+      );
+      return client;
+    }
+
+    // Синхронная инициализация клиента
+    client = new TelemetryClient(config);
+
+    // Настраиваем middleware pipeline
+    if (middlewareArray && middlewareArray.length > 0) {
+      middlewares = middlewareArray;
+    }
+
+    // Настраиваем internal logger с onError callback если предоставлен
+    const onErrorCallback = config?.onError;
+    if (onErrorCallback !== undefined) {
+      internalLogger = {
+        error: (message: string, error: unknown): void => {
+          const errorEvent = {
+            level: 'ERROR' as TelemetryLevel,
+            message: `[fire-and-forget] ${message}`,
+            timestamp: Date.now(),
+          };
+          onErrorCallback(error, errorEvent);
+        },
+      };
+    } else {
+      internalLogger = createInternalLogger();
+    }
+
+    return client;
+  }
+
+  function get(): TelemetryClient<TelemetryMetadata> {
+    if (client === null) {
+      throw new Error(
+        'Telemetry not initialized. Call initTelemetry() first.',
+      );
+    }
+
+    return client;
+  }
+
+  function isInitialized(): boolean {
+    return client !== null;
+  }
+
+  function getMiddlewares(): readonly TelemetryMiddleware[] {
+    return middlewares;
+  }
+
+  function getInternalLogger(): InternalLogger {
+    return internalLogger;
+  }
+
+  function reset(): void {
+    client = null;
+    middlewares = [];
+    internalLogger = createInternalLogger();
+  }
+
+  function setForDebug(newClient: TelemetryClient<TelemetryMetadata> | null // Клиент для установки (только для отладки)
+  ): void {
+    client = newClient;
+  }
+
+  return {
+    init,
+    get,
+    isInitialized,
+    getMiddlewares,
+    getInternalLogger,
+    reset,
+    setForDebug,
+  };
+})();
+
+/* ============================================================================
+ * 🔥 FIRE-AND-FORGET QUEUE MODULE
+ * ============================================================================
+ */
 
 /**
- * Конфигурация batching для fire-and-forget queue.
+ * Структурированная задача для queue вместо closures.
+ * Предотвращает memory leaks от больших объектов в closures.
  */
+type LogTask = Readonly<{
+  level: TelemetryLevel;
+  message: string;
+  metadata: TelemetryMetadata | undefined;
+}>;
+
+/** Конфигурация batching для fire-and-forget queue. */
 type FireAndForgetQueueConfig = Readonly<{
   maxBatchSize: number;
   maxConcurrentBatches: number;
+  maxQueueSize: number;
 }>;
 
-/**
- * Метрики производительности для мониторинга queue.
- */
+/** Метрики производительности для мониторинга queue. */
 type FireAndForgetMetrics = Readonly<{
-  /** Текущая длина queue */
-  queueLength: number;
+  /** Начальная длина queue перед обработкой batch */
+  initialQueueLength: number;
+  /** Оставшаяся длина queue после обработки */
+  remainingQueueLength: number;
   /** Время обработки последнего batch в миллисекундах */
   lastBatchProcessingTimeMs: number;
   /** Количество обработанных batches */
   processedBatchesCount: number;
 }>;
 
-/**
- * Состояние queue для fire-and-forget batching.
- */
+/** Состояние queue для fire-and-forget batching. */
 type FireAndForgetQueueState = {
-  queue: (() => void | Promise<void>)[];
+  queue: LogTask[];
   processing: boolean;
   config: FireAndForgetQueueConfig;
   metrics: FireAndForgetMetrics;
 };
 
 /**
- * Глобальное состояние queue для fire-and-forget.
+ * Изолированный модуль для управления fire-and-forget queue.
+ * Инкапсулирует queue engine, batching и метрики.
  */
-let fireAndForgetQueue: FireAndForgetQueueState | null = null;
+const FireAndForgetQueue = ((): {
+  init: (batchConfig?: BatchConfig) => void;
+  enqueue: (task: LogTask) => void;
+  getMetrics: () => FireAndForgetMetrics | null;
+  reset: () => void;
+} => {
+  let state: FireAndForgetQueueState | null = null;
 
-/* ============================================================================
- * 🚀 ИНИЦИАЛИЗАЦИЯ И УПРАВЛЕНИЕ
- * ============================================================================
- */
+  function init(batchConfig?: BatchConfig // Конфигурация batching
+  ): void {
+    const config: FireAndForgetQueueConfig = {
+      maxBatchSize: batchConfig?.maxBatchSize ?? 10,
+      maxConcurrentBatches: batchConfig?.maxConcurrentBatches ?? DEFAULT_MAX_CONCURRENT_BATCHES,
+      maxQueueSize: batchConfig?.maxQueueSize ?? MAX_QUEUE_SIZE,
+    };
 
-/**
- * Инициализирует fire-and-forget queue с конфигурацией из TelemetryClient.
- * @param batchConfig - Конфигурация batching из TelemetryClient
- */
-const DEFAULT_MAX_CONCURRENT_BATCHES = 5;
-
-function initFireAndForgetQueue(batchConfig?: BatchConfig): void {
-  const config: FireAndForgetQueueConfig = {
-    maxBatchSize: batchConfig?.maxBatchSize ?? 10,
-    maxConcurrentBatches: batchConfig?.maxConcurrentBatches ?? DEFAULT_MAX_CONCURRENT_BATCHES,
-  };
-
-  fireAndForgetQueue = {
-    queue: [],
-    processing: false,
-    config,
-    metrics: {
-      queueLength: 0,
-      lastBatchProcessingTimeMs: 0,
-      processedBatchesCount: 0,
-    },
-  };
-}
-
-/**
- * Обрабатывает fire-and-forget queue с batching и throttling.
- * Собирает метрики производительности для мониторинга.
- */
-async function processFireAndForgetQueue(): Promise<void> {
-  const queue = fireAndForgetQueue;
-  if (!queue || queue.processing || queue.queue.length === 0) {
-    return;
+    state = {
+      queue: [],
+      processing: false,
+      config,
+      metrics: {
+        initialQueueLength: 0,
+        remainingQueueLength: 0,
+        lastBatchProcessingTimeMs: 0,
+        processedBatchesCount: 0,
+      },
+    };
   }
 
-  queue.processing = true;
-  const batchStartTime = Date.now();
-
-  try {
-    const { maxBatchSize, maxConcurrentBatches } = queue.config;
-    const batches: (() => void | Promise<void>)[][] = [];
-
-    // Разбиваем queue на batches
-    for (let i = 0; i < queue.queue.length; i += maxBatchSize) {
-      batches.push(queue.queue.slice(i, i + maxBatchSize));
+  function enqueue(task: LogTask // Задача для добавления в queue
+  ): void {
+    // Инициализируем queue если еще не инициализирована
+    if (!state) {
+      init();
     }
 
-    // Обновляем метрику queue length
-    queue.metrics = {
-      ...queue.metrics,
-      queueLength: queue.queue.length,
-    };
-
-    // Очищаем queue
-    queue.queue = [];
-
-    // Обрабатываем batches с ограничением параллелизма
-    for (let i = 0; i < batches.length; i += maxConcurrentBatches) {
-      const concurrentBatches = batches.slice(i, i + maxConcurrentBatches);
-
-      await Promise.allSettled(
-        concurrentBatches.map((batch) =>
-          Promise.allSettled(
-            batch.map((fn) =>
-              Promise.resolve(fn()).catch((error) => {
-                internalLogger.error('Fire-and-forget error', error);
-              })
-            ),
-          )
-        ),
-      );
+    if (!state) {
+      // Fallback если инициализация не удалась
+      return;
     }
 
-    // Обновляем метрики после обработки
-    const batchProcessingTime = Date.now() - batchStartTime;
-    queue.metrics = {
-      queueLength: queue.queue.length,
-      lastBatchProcessingTimeMs: batchProcessingTime,
-      processedBatchesCount: queue.metrics.processedBatchesCount + batches.length,
-    };
-  } finally {
-    const currentQueue = fireAndForgetQueue;
-    if (currentQueue !== null) {
-      currentQueue.processing = false;
+    // Защита от unbounded queue: применяем drop policy
+    if (state.queue.length >= state.config.maxQueueSize) {
+      // Drop oldest (FIFO)
+      state.queue.shift();
+    }
+
+    // Добавляем задачу в queue
+    state.queue.push(task);
+
+    // Запускаем обработку если не обрабатывается
+    if (!state.processing) {
+      // Используем queueMicrotask для меньшей latency
+      queueMicrotask(() => {
+        process().catch(() => {
+          // Игнорируем ошибки обработки queue
+        });
+      });
+    }
+  }
+
+  async function process(): Promise<void> {
+    if (!state || state.processing || state.queue.length === 0) {
+      return;
+    }
+
+    state.processing = true;
+    const batchStartTime = Date.now();
+    const initialQueueLength = state.queue.length;
+
+    try {
+      // Защита от resetGlobalTelemetryClient() между enqueue и processing
+      let client: TelemetryClient<TelemetryMetadata> | null = null;
+      try {
+        client = TelemetrySingleton.get();
+      } catch {
+        // Telemetry был сброшен, прекращаем обработку
+        return;
+      }
+
+      // Получаем зависимости один раз до batch loop для оптимизации
+      const middlewares = TelemetrySingleton.getMiddlewares();
+      const internalLogger = TelemetrySingleton.getInternalLogger();
+
+      const { maxBatchSize, maxConcurrentBatches } = state.config;
+      const batches: LogTask[][] = [];
+
+      // Разбиваем queue на batches
+      for (let i = 0; i < state.queue.length; i += maxBatchSize) {
+        batches.push(state.queue.slice(i, i + maxBatchSize));
+      }
+
+      // Очищаем queue
+      state.queue = [];
+
+      // Обрабатываем batches с ограничением параллелизма
+      for (let i = 0; i < batches.length; i += maxConcurrentBatches) {
+        const concurrentBatches = batches.slice(i, i + maxConcurrentBatches);
+
+        await Promise.allSettled(
+          concurrentBatches.map((batch) =>
+            Promise.allSettled(
+              batch.map(async (task) => {
+                try {
+                  // Применяем middleware pipeline (PII проверка уже включена в applyMiddleware)
+                  const processedMetadata = applyMiddleware(
+                    task.metadata,
+                    task.level,
+                    task.message,
+                    middlewares,
+                  );
+
+                  await client.log(task.level, task.message, processedMetadata);
+                } catch (error) {
+                  internalLogger.error('Fire-and-forget error', error);
+                }
+              }),
+            )
+          ),
+        );
+      }
+
+      // Обновляем метрики после обработки
+      const batchProcessingTime = Date.now() - batchStartTime;
+      const remainingQueueLength = state.queue.length;
+      state.metrics = {
+        initialQueueLength,
+        remainingQueueLength,
+        lastBatchProcessingTimeMs: batchProcessingTime,
+        processedBatchesCount: state.metrics.processedBatchesCount + batches.length,
+      };
+    } finally {
+      // state гарантированно не null здесь, так как проверен в начале функции
+      state.processing = false;
 
       // Если в queue появились новые задачи, обрабатываем их
-      if (currentQueue.queue.length > 0) {
-        // Используем setTimeout для асинхронной обработки следующего batch
-        setTimeout(() => {
-          processFireAndForgetQueue().catch(() => {
+      if (state.queue.length > 0) {
+        // Используем queueMicrotask для меньшей latency
+        queueMicrotask(() => {
+          process().catch(() => {
             // Игнорируем ошибки обработки queue
           });
-        }, 0);
+        });
       }
     }
   }
-}
+
+  function getMetrics(): FireAndForgetMetrics | null {
+    if (!state) {
+      return null;
+    }
+
+    return state.metrics;
+  }
+
+  function reset(): void {
+    state = null;
+  }
+
+  return {
+    init,
+    enqueue,
+    getMetrics,
+    reset,
+  };
+})();
+
+/* ============================================================================
+ * 🚀 RUNTIME API (ORCHESTRATION)
+ * ============================================================================
+ */
 
 /**
  * Инициализирует глобальный singleton клиент телеметрии.
  * Deterministic поведение:
  * - В production: выбрасывает ошибку при повторной инициализации
  * - В development: предупреждает, но позволяет переинициализацию
- * - Защита от race conditions через lock-флаг и Promise
- * - Параллельные async вызовы ждут один и тот же Promise
+ * - Синхронная инициализация (без async/Promise)
  * - Явная инициализация без скрытого coupling
- * - Поддержка middleware hook для pre-processing metadata
- * @param config - Конфигурация телеметрии (опционально)
- * @param middleware - Middleware hook для pre-processing metadata (опционально)
+ * - Поддержка middleware pipeline для pre-processing metadata
  * @returns Инициализированный singleton клиент
  * @throws Error если уже инициализирован в production режиме
  */
 export function initTelemetry(
-  config?: TelemetryConfig<TelemetryMetadata>,
-  middleware?: TelemetryMiddleware,
+  config?: TelemetryConfig<TelemetryMetadata>, // Конфигурация телеметрии (опционально)
+  middlewares?: readonly TelemetryMiddleware[], // Массив middleware hooks для pre-processing metadata (опционально)
 ): TelemetryClient<TelemetryMetadata> {
-  // Если уже инициализирован, возвращаем существующий клиент
-  if (globalClient !== null) {
-    const isProduction = process.env['NODE_ENV'] === 'production';
-
-    if (isProduction) {
-      throw new Error('Telemetry already initialized. Cannot reinitialize in production.');
-    }
-
-    // В development режиме предупреждаем, но позволяем переинициализацию
-    internalLogger.error(
-      'Telemetry already initialized. Reinitializing in development mode.',
-      undefined,
-    );
-    return globalClient;
-  }
-
-  // Синхронная инициализация клиента
-  globalClient = new TelemetryClient(config);
-
-  // Настраиваем middleware с проверкой PII
-  if (middleware) {
-    globalMiddleware = (
-      metadata: TelemetryMetadata | undefined,
-      level: TelemetryLevel,
-      message: string,
-    ): TelemetryMetadata | undefined => {
-      const processed = middleware(metadata, level, message);
-      if (processed !== undefined && containsPII(processed)) {
-        internalLogger.error(
-          'Middleware output contains PII. Metadata will be redacted.',
-          { level, message },
-        );
-        return undefined;
-      }
-      return processed;
-    };
-  }
+  const client = TelemetrySingleton.init(config, middlewares);
 
   // Инициализируем fire-and-forget queue (синхронно)
-  initFireAndForgetQueue(config?.batchConfig);
+  FireAndForgetQueue.init(config?.batchConfig);
 
-  // Настраиваем internal logger с onError callback если предоставлен
-  const onErrorCallback = config?.onError;
-  if (onErrorCallback !== undefined) {
-    internalLogger = {
-      error: (message: string, error: unknown): void => {
-        const errorEvent = {
-          level: 'ERROR' as TelemetryLevel,
-          message: `[fire-and-forget] ${message}`,
-          timestamp: Date.now(),
-        };
-        onErrorCallback(error, errorEvent);
-      },
-    };
-  }
-
-  return globalClient;
+  return client;
 }
 
 /**
@@ -377,13 +518,7 @@ export function initTelemetry(
  * @throws Error если телеметрия не инициализирована
  */
 export function getGlobalTelemetryClient(): TelemetryClient<TelemetryMetadata> {
-  if (globalClient === null) {
-    throw new Error(
-      'Telemetry not initialized. Call initTelemetry() first.',
-    );
-  }
-
-  return globalClient;
+  return TelemetrySingleton.get();
 }
 
 /**
@@ -391,111 +526,51 @@ export function getGlobalTelemetryClient(): TelemetryClient<TelemetryMetadata> {
  * @returns true если телеметрия инициализирована, false иначе
  */
 export function isTelemetryInitialized(): boolean {
-  return globalClient !== null;
+  return TelemetrySingleton.isInitialized();
 }
 
 /**
  * Сбрасывает глобальный singleton клиент.
- * ВАЖНО: Только для тестов!
- * Не использовать в production коде.
+ * ВАЖНО: Только для тестов! Не использовать в production коде.
  * @internal-dev
  */
 export function resetGlobalTelemetryClient(): void {
-  globalClient = null;
-  globalMiddleware = null;
-  fireAndForgetQueue = null;
-  internalLogger = createInternalLogger();
+  TelemetrySingleton.reset();
+  FireAndForgetQueue.reset();
 }
 
 /**
  * Устанавливает глобальный клиент для отладки/тестов.
- * ВАЖНО: Только для тестов и отладки!
- * Не использовать в production коде.
- * @param client - Клиент для установки
+ * ВАЖНО: Только для тестов и отладки! Не использовать в production коде.
  * @internal-dev
  */
 export function setGlobalClientForDebug(
-  client: TelemetryClient<TelemetryMetadata> | null,
+  client: TelemetryClient<TelemetryMetadata> | null, // Клиент для установки
 ): void {
-  globalClient = client;
-}
-
-/* ============================================================================
- * 🔥 FIRE-AND-FORGET API (WITH BATCHING AND QUEUE)
- * ============================================================================
- */
-
-/**
- * Выполняет функцию в fire-and-forget режиме с batching и throttling.
- * Ошибки логируются через internal logger, но не выбрасываются.
- * @param fn - Функция для выполнения
- */
-export function fireAndForget(fn: () => void | Promise<void>): void {
-  // Инициализируем queue если еще не инициализирована
-  if (!fireAndForgetQueue) {
-    initFireAndForgetQueue();
-  }
-
-  if (!fireAndForgetQueue) {
-    // Fallback если инициализация не удалась
-    Promise.resolve(fn()).catch((error) => {
-      internalLogger.error('Fire-and-forget error (fallback)', error);
-    });
-    return;
-  }
-
-  // Добавляем в queue
-  fireAndForgetQueue.queue.push(fn);
-
-  // Запускаем обработку если не обрабатывается
-  if (!fireAndForgetQueue.processing) {
-    // Используем setTimeout для асинхронной обработки
-    setTimeout(() => {
-      processFireAndForgetQueue().catch(() => {
-        // Игнорируем ошибки обработки queue
-      });
-    }, 0);
-  }
+  TelemetrySingleton.setForDebug(client);
 }
 
 /**
- * Логирует событие в fire-and-forget режиме с middleware support.
- * Строгая проверка middleware output на PII перед логированием.
- * @param level - Уровень события
- * @param message - Сообщение события
- * @param metadata - Метаданные события (опционально)
+ * Логирует событие в fire-and-forget режиме с middleware pipeline support.
+ * PII проверка выполняется внутри applyMiddleware.
  */
 export function logFireAndForget(
-  level: TelemetryLevel,
-  message: string,
-  metadata?: TelemetryMetadata,
+  level: TelemetryLevel, // Уровень события
+  message: string, // Сообщение события
+  metadata?: TelemetryMetadata, // Метаданные события (опционально)
 ): void {
-  if (!isTelemetryInitialized()) {
+  if (!TelemetrySingleton.isInitialized()) {
     return; // Молча игнорируем, если не инициализировано
   }
 
-  fireAndForget(async () => {
-    const client = getGlobalTelemetryClient();
+  // Создаем структурированную задачу вместо closure
+  const task: LogTask = {
+    level,
+    message,
+    metadata,
+  };
 
-    // Применяем middleware если есть
-    let processedMetadata = metadata;
-    if (globalMiddleware) {
-      processedMetadata = globalMiddleware(metadata, level, message);
-    }
-
-    // Строгая проверка на PII перед логированием (дополнительная защита)
-    if (processedMetadata !== undefined) {
-      if (containsPII(processedMetadata)) {
-        internalLogger.error(
-          'Metadata contains PII before logging. Metadata will be redacted.',
-          { level, message },
-        );
-        processedMetadata = undefined;
-      }
-    }
-
-    await client.log(level, message, processedMetadata);
-  });
+  FireAndForgetQueue.enqueue(task);
 }
 
 /**
@@ -503,45 +578,29 @@ export function logFireAndForget(
  * @returns Метрики queue для мониторинга производительности
  */
 export function getFireAndForgetMetrics(): FireAndForgetMetrics | null {
-  if (!fireAndForgetQueue) {
-    return null;
-  }
-
-  return fireAndForgetQueue.metrics;
+  return FireAndForgetQueue.getMetrics();
 }
 
-/**
- * Логирует информационное событие в fire-and-forget режиме.
- * @param message - Сообщение события
- * @param metadata - Метаданные события (опционально)
- */
+/** Логирует информационное событие в fire-and-forget режиме. */
 export function infoFireAndForget(
-  message: string,
-  metadata?: TelemetryMetadata,
+  message: string, // Сообщение события
+  metadata?: TelemetryMetadata, // Метаданные события (опционально)
 ): void {
   logFireAndForget('INFO', message, metadata);
 }
 
-/**
- * Логирует предупреждение в fire-and-forget режиме.
- * @param message - Сообщение события
- * @param metadata - Метаданные события (опционально)
- */
+/** Логирует предупреждение в fire-and-forget режиме. */
 export function warnFireAndForget(
-  message: string,
-  metadata?: TelemetryMetadata,
+  message: string, // Сообщение события
+  metadata?: TelemetryMetadata, // Метаданные события (опционально)
 ): void {
   logFireAndForget('WARN', message, metadata);
 }
 
-/**
- * Логирует ошибку в fire-and-forget режиме.
- * @param message - Сообщение события
- * @param metadata - Метаданные события (опционально)
- */
+/** Логирует ошибку в fire-and-forget режиме. */
 export function errorFireAndForget(
-  message: string,
-  metadata?: TelemetryMetadata,
+  message: string, // Сообщение события
+  metadata?: TelemetryMetadata, // Метаданные события (опционально)
 ): void {
   logFireAndForget('ERROR', message, metadata);
 }

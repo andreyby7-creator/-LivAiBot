@@ -123,7 +123,6 @@ export {
  */
 export {
   errorFireAndForget,
-  fireAndForget,
   getFireAndForgetMetrics,
   getGlobalTelemetryClient,
   infoFireAndForget,

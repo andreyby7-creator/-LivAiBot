@@ -47,3 +47,21 @@ export {
 export { createConsoleSink, createExternalSink, createExternalSinkSafe } from './sinks.js';
 
 export type { ConsoleSinkFormatter, ExternalSdk, TelemetrySink } from './sinks.js';
+
+/* ============================================================================
+ * 🔒 SANITIZATION — ДЕТЕКТ PII И ОЧИСТКА METADATA
+ * ========================================================================== */
+
+/**
+ * Sanitization утилиты для детекта PII и очистки metadata.
+ * Включает containsPII, PII_PATTERNS, deepFreeze, deepValidateAndRedactPII, applyPIIRedactionMiddleware.
+ * @public
+ */
+
+export {
+  applyPIIRedactionMiddleware,
+  containsPII,
+  deepFreeze,
+  deepValidateAndRedactPII,
+  PII_PATTERNS,
+} from './sanitization.js';
