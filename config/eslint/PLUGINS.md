@@ -8,9 +8,12 @@
 
 **❌ Еще не готовы (ESLint 10):**
 
-- `eslint-plugin-import` (2.32.0): Импорт-правила (`import/no-unresolved`, `import/no-cycle`, `import/no-default-export`, и др.) | ❌ Помечен в `eslint.config.mjs` как несовместимый с ESLint 10.0.0 | Требуется обновление под новую архитектуру ESLint
-- `eslint-plugin-eslint-comments` (3.2.0): Контроль ESLint-директив (`// eslint-disable`) | ❌ Использует удалённый `context.getSourceCode()` | ❌ Нет встроенной замены
-- `eslint-plugin-no-secrets` (2.2.2): Обнаружение секретов в коде (API ключи, токены) | ❌ Использует удалённый `context.getSourceCode()` | ❌ Нет встроенной замены
+- `eslint-plugin-import` (2.32.0): Импорт-правила (`import/no-unresolved`, `import/no-cycle`, `import/no-default-export`, и др.) | ❌ Помечен в `eslint.config.mjs` как несовместимый с ESLint 10.0.0 | ❌ peerDependencies: `eslint ^2-^9` (не включает ^10) | ❌ Проверено в npm registry: версия 2.32.0 не поддерживает ESLint 10 | Требуется обновление под новую архитектуру ESLint
+
+**⚠️ Требуют проверки реальной совместимости (peerDependencies допускают ESLint 10, но реальная совместимость не подтверждена):**
+
+- `eslint-plugin-no-secrets` (2.3.3): peerDependencies: `eslint >=5` | ✅ В devDependencies есть `eslint10@^10.0.0` (плагин тестируется с ESLint 10) | ⚠️ Но реальная совместимость в production не подтверждена
+- `eslint-plugin-eslint-comments` (3.2.0): peerDependencies: `eslint >=4.19.1` | ❌ Открыт GitHub issue #82 про совместимость с ESLint v9 и flat configs (с августа 2024) | ❌ В devDependencies нет упоминания ESLint 10 | ⚠️ Вероятно несовместим с ESLint 10
 
 ✅ УСТАНОВЛЕН
 ❌ НЕ УСТАНОВЛЕН
