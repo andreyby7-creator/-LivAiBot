@@ -116,7 +116,6 @@ export {
   type AuthHookDepsConfig,
   buildHeaders,
   buildUrl,
-  type CacheEntry,
   // Route Permissions
   checkRoutePermission,
   type Client,
@@ -127,9 +126,6 @@ export {
   createInitialSSEState,
   // WebSocket
   createInitialWebSocketState,
-  createInMemoryOfflineCacheStore,
-  // Offline Cache
-  createOfflineCache,
   createWebSocketEffect,
   createWebSocketLogger,
   decommissionServiceWorker,
@@ -173,11 +169,6 @@ export {
   mainCacheName,
   // Error Mapping
   mapHttpError,
-  type OfflineCacheContext,
-  type OfflineCacheEvents,
-  type OfflineCacheOptions,
-  type OfflineCacheResult,
-  type OfflineCacheStore,
   parseJsonSafe,
   type PerformanceConfig,
   type PerformanceError,
@@ -190,7 +181,6 @@ export {
   PerformanceSeverity,
   type PerformanceSeverity as PerformanceSeverityType,
   type Permission,
-  pipeEffects,
   precacheMainUrls,
   precacheStaticUrls,
   type ReconnectStrategy,

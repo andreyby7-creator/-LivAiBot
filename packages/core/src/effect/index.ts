@@ -200,3 +200,15 @@ export {
   validateObject,
   validationError,
 } from './validation.js';
+
+/* ============================================================================
+ * 🗄️ OFFLINE CACHE — STALE-WHILE-REVALIDATE CACHE ENGINE
+ * ========================================================================== */
+
+/**
+ * Offline Cache: SWR ядро оффлайн-кэша (hybrid memory + persistent store).
+ * Не зависит от React/DOM; логирование и телеметрия вносятся через onError/onUpdate/onEvaluate.
+ * @public
+ */
+
+export * from './offline-cache.js';

@@ -31,7 +31,7 @@ const offlineCacheMocks = vi.hoisted(() => ({
   },
 }));
 
-vi.mock('../../../src/lib/offline-cache', () => ({
+vi.mock('@livai/core/effect/offline-cache', () => ({
   createOfflineCache: offlineCacheMocks.createOfflineCache,
 }));
 

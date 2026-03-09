@@ -305,7 +305,7 @@
 
 ## 3️⃣ Feature Flags
 
-### 3.1 `feature-flags.ts` → `core/feature-flags/`
+### 3.1 `feature-flags.ts` → `core/feature-flags/` ✅ **ВЫПОЛНЕНО**
 
 **Порядок:** Перенос → адаптация зависимостей → валидация → тесты
 
@@ -360,52 +360,42 @@
 
 ---
 
-## 4️⃣ Offline Cache / Effect
+## 4️⃣ Offline Cache / Effect ✅ **ВЫПОЛНЕНО**
 
-### 4.1 `offline-cache.ts` → `core/effect/offline-cache.ts`
-
-**Порядок:** Перенос → адаптация зависимостей → валидация → тесты
-
-**Действия:**
-
-- ✅ Перенести SWR-ядро в `packages/core/src/effect/offline-cache.ts`
-- ✅ Убрать зависимости от React/DOM, оставить только Effect-интерфейс
+**Статус:** Полностью перенесено в `@livai/core/effect/offline-cache`, все зависимости обновлены, тесты проходят.
 
 **Файлы:**
 
-- `packages/app/src/lib/offline-cache.ts` → `packages/core/src/effect/offline-cache.ts`
-
-**Причина:** Универсальный механизм кэширования для любых эффектов, не привязан к UI.
+- ✅ `packages/core/src/effect/offline-cache.ts` — SWR-ядро с TypedOfflineCacheEmitter (без Node.js зависимостей)
+- ✅ `packages/core/tests/effect/offline-cache.test.ts` — тесты (40 passed, 96.51% coverage)
+- ✅ `packages/app/src/lib/offline-cache.ts` — удален (legacy)
+- ✅ `packages/app/src/hooks/useOfflineCache.ts` — использует прямой импорт из `@livai/core/effect/offline-cache`
 
 **Зависимости:**
 
-- Текущий файл: импортирует `EventEmitter` из `events` (Node.js), `Effect` из `@livai/core/effect`, `telemetry-runtime` из `./telemetry-runtime.js`
-- `EventEmitter` → можно заменить на lightweight альтернативу или оставить (Node.js core модуль)
-- `telemetry-runtime` → нужно убрать зависимость, использовать DI или опциональный logger
-- Используется в: `app/src/hooks/useOfflineCache.ts` (React hook)
-- Влияние: после переноса hook должен импортировать из `@livai/core/effect/offline-cache`
-
-**Миграция импорта:**
-
-- `app/src/lib/offline-cache.ts` → переместить в `core/src/effect/offline-cache.ts`
-- Убрать зависимость от `telemetry-runtime`: использовать DI для logger или сделать опциональным
-- `app/src/hooks/useOfflineCache.ts` → заменить `import { ... } from '../lib/offline-cache.js'` на `import { ... } from '@livai/core/effect/offline-cache'`
-- Проверить: `grep -r "from.*lib/offline-cache" packages/app/src` → обновить все вхождения
-- Валидация: `pnpm run type-check && pnpm run check:exports && pnpm run lint:canary`
-
-**Тесты:**
-
-- `app/tests/unit/lib/offline-cache.test.ts` → переместить в `core/tests/effect/offline-cache.test.ts`
-- Обновить импорты в тестах: `import { ... } from '@livai/core/effect/offline-cache'`
-- Обновить моки для logger (если используется DI)
+- ✅ `EventEmitter` из `events` → заменен на `TypedOfflineCacheEmitter` (platform-neutral)
+- ✅ `telemetry-runtime` → убрана, используется DI через `onError`/`onUpdate`/`onEvaluate`
+- ✅ Все импорты обновлены на прямой импорт из `@livai/core/effect/offline-cache`
 
 **Экспорты:**
 
-- Добавить в `core/src/effect/index.ts`: `export * from './offline-cache.js'`
-- Обновить `core/src/index.ts`: добавить экспорты effect (уже есть `export * as effect from './effect/index.js'`)
-- Проверить tree-shaking: убедиться, что `createOfflineCache` и типы экспортируются корректно
+- ✅ `core/src/effect/index.ts`: `export * from './offline-cache.js'`
+- ✅ `core/src/index.ts`: `export * as effect from './effect/index.js'` (уже было)
+- ✅ Реэкспорты из `app/src/lib/index.ts` и `app/src/index.ts` удалены (без legacy)
 
-**Обновление:** Перенесен SWR-ядро в `@livai/core/effect/offline-cache`. Убрана зависимость от `telemetry-runtime`, используется DI для logger. Обновлены импорты в `useOfflineCache.ts` и тестах.
+**Валидация:**
+
+- ✅ TypeScript: `pnpm --filter @livai/core type-check` — проходит
+- ✅ TypeScript: `pnpm --filter @livai/app type-check` — проходит
+- ✅ ESLint: `pnpm run lint:canary` — проходит
+- ✅ Тесты: `npx vitest run --coverage core/tests/effect/offline-cache.test.ts` — 40/40 passed
+
+**Архитектура:**
+
+- Структурированные секции: Types → Store Adapter → Cache Engine → Store Implementations → Retry System → Utilities → Event System
+- Безопасные helpers: `safeEmit()`, `safeListener()`, `safeOnError()` для обработки ошибок listener'ов
+- In-flight fetches tracking через `Map<CacheKey, ...>` с cleanup
+- DI для `timer`, `random`, `evictionStrategy`, `retryStrategy`, `freezeMode`, `maxFetchDurationMs`, `onRetry`
 
 ---
 

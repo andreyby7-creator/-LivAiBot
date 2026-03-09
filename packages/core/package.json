@@ -53,6 +53,11 @@
       "import": "./dist/effect/index.js",
       "default": "./dist/effect/index.js"
     },
+    "./effect/offline-cache": {
+      "types": "./dist/effect/offline-cache.d.ts",
+      "import": "./dist/effect/offline-cache.js",
+      "default": "./dist/effect/offline-cache.js"
+    },
     "./policies/*": {
       "types": "./src/policies/*.ts",
       "import": "./src/policies/*.ts"

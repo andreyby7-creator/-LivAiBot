@@ -16,13 +16,13 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import type { Effect } from '@livai/core/effect';
-
 import type {
   OfflineCacheContext,
   OfflineCacheResult,
   OfflineCacheStore,
-} from '../lib/offline-cache.js';
-import { createOfflineCache } from '../lib/offline-cache.js';
+} from '@livai/core/effect/offline-cache';
+import { createOfflineCache } from '@livai/core/effect/offline-cache';
+
 import type { ComponentState } from '../types/ui-contracts.js';
 
 /** Алиас для состояния компонентов в контексте offline cache хуков */

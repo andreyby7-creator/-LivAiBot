@@ -93,27 +93,6 @@ export {
 } from './auth-token-adapter.js';
 
 /* ============================================================================
- * 🗄️ OFFLINE CACHE — ОФФЛАЙН КЭШ
- * ========================================================================== */
-
-/**
- * Offline Cache: система кэширования данных для работы в оффлайн режиме.
- * @public
- */
-export {
-  type CacheEntry,
-  type CacheKey,
-  createInMemoryOfflineCacheStore,
-  createOfflineCache,
-  type OfflineCacheContext,
-  type OfflineCacheEvents,
-  type OfflineCacheOptions,
-  type OfflineCacheResult,
-  type OfflineCacheStore,
-  pipeEffects,
-} from './offline-cache.js';
-
-/* ============================================================================
  * 📡 TELEMETRY RUNTIME — РАНТАЙМ ТЕЛЕМЕТРИИ
  * ========================================================================== */
 
