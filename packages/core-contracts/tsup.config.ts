@@ -5,6 +5,7 @@ export default defineConfig({
   platform: 'node', // Core contracts используют Node.js crypto модуль для correlation ID
   entry: {
     index: 'src/index.ts',
+    'validation/zod/index': 'src/validation/zod/index.ts',
   },
   format: ['esm'],
   outDir: 'dist',
