@@ -55,3 +55,38 @@ export {
   onSSEMessage,
   reduceSSEState,
 } from './sse-client.js';
+
+/* ============================================================================
+ * 🌐 WEBSOCKET CLIENT — WEBSOCKET RUNTIME
+ * ========================================================================== */
+
+/**
+ * WebSocket Client: production-ready WebSocket runtime как детерминированный конечный автомат.
+ * Включает FSM-based архитектуру, reconnect с exponential backoff.
+ * Поддерживает браузер и Node.js через опциональный WebSocketFactory.
+ * @public
+ */
+
+export type {
+  WebSocketClientConfig,
+  WebSocketClientState,
+  WebSocketConnectionState,
+  WebSocketEffect,
+  WebSocketEvent,
+  WebSocketFactory,
+  WebSocketHandlers,
+  WebSocketLike,
+} from './websocket.js';
+
+export {
+  attachWebSocketInstance,
+  closeWebSocketEffect,
+  connectWebSocket,
+  createInitialWebSocketState,
+  createWebSocketEffect,
+  handleWebSocketClose,
+  handleWebSocketOpen,
+  offWebSocketMessage,
+  onWebSocketMessage,
+  sendWebSocketMessageEffect,
+} from './websocket.js';

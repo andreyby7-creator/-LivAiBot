@@ -166,8 +166,8 @@ export * from './feature-flags/index.js';
  * 🔌 TRANSPORT — TRANSPORT LAYER (SSE, WebSocket)
  * ========================================================================== */
 /**
- * Transport подпакет: универсальные транспортные протоколы для всех пакетов.
- * Включает SSE runtime (FSM-based) с поддержкой браузера и Node.js через адаптеры.
+ * Transport подпакет: универсальные транспортные протоколы (SSE, WebSocket) для всех пакетов.
+ * Включает SSE и WebSocket runtime как детерминированные FSM с поддержкой браузера и Node.js через адаптеры.
  * Не привязан к app-слою, переиспользуем в backend и других фронтах.
  *
  * Доступен как через subpath `@livai/core/transport`,

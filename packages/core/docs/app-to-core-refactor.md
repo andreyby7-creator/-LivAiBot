@@ -452,7 +452,7 @@
 
 ---
 
-### 5.2 `websocket.ts` → `core/transport/websocket.ts`
+### 5.2 `websocket.ts` → `core/transport/websocket.ts` ✅ **ВЫПОЛНЕНО**
 
 **Порядок:** Перенос → адаптация зависимостей → валидация → тесты
 
@@ -476,11 +476,11 @@
 
 **Миграция импорта:**
 
-- `app/src/lib/websocket.ts` → переместить в `core/src/transport/websocket.ts`
-- Убрать зависимость от `telemetry-runtime`: использовать DI для logger
-- Создать адаптер для `WebSocket` (браузер/Node.js) или сделать опциональным
-- Проверить: `grep -r "from.*lib/websocket" packages/app/src` → обновить все вхождения
-- Валидация: `pnpm run type-check && pnpm run check:exports && pnpm run lint:canary`
+- ✅ `app/src/lib/websocket.ts` → перемещен в `core/src/transport/websocket.ts`
+- ✅ Убрана зависимость от `telemetry-runtime`: используется DI для logger (`EffectLogger`)
+- ✅ Создан адаптер для `WebSocket` (`WebSocketFactory` и `defaultWebSocketFactory`)
+- ✅ Проверено: `grep -r "from.*lib/websocket" packages/app/src` → старых импортов не найдено
+- ✅ Валидация: `pnpm run type-check && pnpm run lint:canary` — пройдена
 
 **Тесты:**
 
@@ -490,11 +490,13 @@
 
 **Экспорты:**
 
-- Добавить в `core/src/transport/index.ts`: `export * from './websocket.js'`
-- Обновить `core/src/index.ts`: добавить экспорты transport
-- Проверить tree-shaking: убедиться, что FSM и типы экспортируются корректно
+- ✅ Добавлен в `core/src/transport/index.ts`: `export * from './websocket.js'`
+- ✅ Обновлен `core/src/index.ts`: экспорты transport уже настроены
+- ✅ Tree-shaking: FSM и типы экспортируются корректно
 
-**Обновление:** Перенесен WebSocket FSM в `@livai/core/transport/websocket`. Убрана зависимость от `telemetry-runtime`, используется DI для logger. Создан адаптер для WebSocket. Обновлены импорты и тесты.
+**Статус:** ✅ **ЗАВЕРШЕНО**
+
+**Обновление:** Перенесен WebSocket FSM в `@livai/core/transport/websocket`. Убрана зависимость от `telemetry-runtime`, используется DI для logger (`EffectLogger`). Создан адаптер для WebSocket (`WebSocketFactory` и `defaultWebSocketFactory`). Добавлена валидация данных для предотвращения model poisoning (аналогично SSE). Добавлен `RuntimeClock` для детерминированного тестирования. Файл удален из `packages/app/src/lib/websocket.ts`. Все валидации пройдены (`type-check`, `lint:canary`).
 
 ---
 

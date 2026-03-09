@@ -212,27 +212,6 @@ export {
 } from './app-lifecycle.js';
 
 /* ============================================================================
- * 🔌 WEBSOCKET — КЛИЕНТ WEBSOCKET
- * ========================================================================== */
-
-/**
- * WebSocket: клиент для работы с WebSocket соединениями.
- * @public
- */
-export {
-  createInitialWebSocketState,
-  createWebSocketEffect,
-  createWebSocketLogger,
-  type WebSocketClientConfig,
-  type WebSocketClientState,
-  type WebSocketConnectionState,
-  type WebSocketEffect,
-  type WebSocketEvent,
-  type WebSocketHandlers,
-  type WebSocketHandlersWithTracing,
-} from './websocket.js';
-
-/* ============================================================================
  * 🔧 SERVICE WORKER — СЕРВИСНЫЙ ВОРКЕР
  * ========================================================================== */
 
