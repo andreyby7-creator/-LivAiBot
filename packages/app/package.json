@@ -84,7 +84,7 @@
     "@testing-library/jest-dom": "6.1.4",
     "@testing-library/react": "16.3.2",
     "@vitest/coverage-v8": "4.0.18",
-    "eslint": "9.39.3",
+    "eslint": "9.39.4",
     "ioredis": "^5.10.0",
     "jsdom": "28.1.0",
     "react-dom": "19.2.4",
