@@ -24,5 +24,10 @@ export default defineConfig({
   clean: false, // Не удаляем .d.ts файлы от tsc (build:types)
   treeshake: true,
   minify: true,
-  external: ['effect'],
+  external: [
+    'effect',
+    // Внутренние subpath imports должны быть external, чтобы tsup не пытался их бандлить
+    // Они будут разрешены через package.json exports после сборки
+    /^@livai\/core\//,
+  ],
 });

@@ -242,7 +242,18 @@ describe('Taint Source (Input Boundary)', () => {
 
       const sanitized = sanitizeAndPromote(
         tainted,
-        (value) => ({ ...value, name: value.name.replace(/<[^>]*>/g, '') }),
+        // Упрощённая санитизация для тестов: удаляем только простые HTML теги.
+        // Ограничиваем длину и используем безопасный regex для защиты от ReDoS.
+        // В production используйте DOMPurify или аналогичную библиотеку.
+        (value) => {
+          // Ограничиваем длину для защиты от ReDoS
+          const maxLength = 10000;
+          const limitedValue = value.name.length > maxLength
+            ? value.name.slice(0, maxLength)
+            : value.name;
+          // Используем более безопасный regex с ограничением на количество совпадений
+          return { ...value, name: limitedValue.replace(/<[^>]{0,1000}>/g, '') };
+        },
       );
 
       const metadata = getTaintMetadata(sanitized);
@@ -437,7 +448,18 @@ describe('Taint Source (Input Boundary)', () => {
             throw new Error('Name required');
           }
         },
-        (value) => ({ ...value, name: value.name.replace(/<[^>]*>/g, '') }),
+        // Упрощённая санитизация для тестов: удаляем только простые HTML теги.
+        // Ограничиваем длину и используем безопасный regex для защиты от ReDoS.
+        // В production используйте DOMPurify или аналогичную библиотеку.
+        (value) => {
+          // Ограничиваем длину для защиты от ReDoS
+          const maxLength = 10000;
+          const limitedValue = value.name.length > maxLength
+            ? value.name.slice(0, maxLength)
+            : value.name;
+          // Используем более безопасный regex с ограничением на количество совпадений
+          return { ...value, name: limitedValue.replace(/<[^>]{0,1000}>/g, '') };
+        },
         sanitizationModes.STRICT as SanitizationMode,
         trustLevels.TRUSTED as TrustLevel,
       );

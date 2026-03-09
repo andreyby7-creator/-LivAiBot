@@ -84,6 +84,9 @@ jobs:
       - name: Format check
         run: pnpm run format:check
 
+      - name: Build packages (required for check:exports)
+        run: pnpm run build:ci
+
       - name: Check exports
         run: pnpm run check:exports
 
