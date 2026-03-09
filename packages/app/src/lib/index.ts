@@ -212,27 +212,6 @@ export {
 } from './app-lifecycle.js';
 
 /* ============================================================================
- * 🔌 SSE CLIENT — КЛИЕНТ SSE
- * ========================================================================== */
-
-/**
- * SSE Client: клиент для работы с Server-Sent Events.
- * @public
- */
-export {
-  createInitialSSEState,
-  defaultDecoder,
-  type ReconnectStrategy,
-  type SSEClientConfig,
-  type SSEClientState,
-  type SSEConnectionState,
-  type SSEDecoder,
-  type SSEFrame,
-  type SSEProtocolEvent,
-  type SSETelemetry,
-} from './sse-client.js';
-
-/* ============================================================================
  * 🔌 WEBSOCKET — КЛИЕНТ WEBSOCKET
  * ========================================================================== */
 

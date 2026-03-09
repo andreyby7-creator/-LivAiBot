@@ -401,7 +401,7 @@
 
 ## 5️⃣ Transport
 
-### 5.1 `sse-client.ts` → `core/transport/sse-client.ts`
+### 5.1 `sse-client.ts` → `core/transport/sse-client.ts` ✅ **ВЫПОЛНЕНО**
 
 **Порядок:** Перенос → адаптация зависимостей → валидация → тесты
 
@@ -426,25 +426,29 @@
 
 **Миграция импорта:**
 
-- `app/src/lib/sse-client.ts` → переместить в `core/src/transport/sse-client.ts`
-- Убрать зависимость от `telemetry-runtime`: использовать DI для logger
-- Создать адаптер для `EventSource` (браузер/Node.js) или сделать опциональным
-- Проверить: `grep -r "from.*lib/sse-client" packages/app/src` → обновить все вхождения
-- Валидация: `pnpm run type-check && pnpm run check:exports && pnpm run lint:canary`
+- ✅ `app/src/lib/sse-client.ts` → перемещен в `core/src/transport/sse-client.ts`
+- ✅ Убрана зависимость от `telemetry-runtime`: используется DI для logger (`EffectLogger`)
+- ✅ Создан адаптер для `EventSource` (`EventSourceFactory` и `defaultEventSourceFactory`)
+- ✅ Проверено: `grep -r "from.*lib/sse-client" packages/app/src` → старых импортов не найдено
+- ✅ Валидация: `pnpm run type-check && pnpm run lint:canary` — пройдена
 
 **Тесты:**
 
-- `app/tests/unit/lib/sse-client.test.ts` → переместить в `core/tests/transport/sse-client.test.ts`
-- Обновить импорты в тестах: `import { ... } from '@livai/core/transport/sse-client'`
-- Обновить моки для EventSource и logger
+- ✅ `app/tests/unit/lib/sse-client.test.ts` → перемещен в `core/tests/transport/sse-client.test.ts`
+- ✅ Обновлены импорты в тестах: `import { ... } from '../../src/transport/sse-client.js'`
+- ✅ Обновлены моки для EventSource и logger
 
 **Экспорты:**
 
-- Создать `core/src/transport/index.ts`: `export * from './sse-client.js'`
-- Добавить в `core/src/index.ts`: `export * as transport from './transport/index.js'` (или точечные экспорты)
-- Проверить tree-shaking: убедиться, что FSM и типы экспортируются корректно
+- ✅ Создан `core/src/transport/index.ts`: `export * from './sse-client.js'`
+- ✅ Добавлен в `core/src/index.ts`: `export * as transport from './transport/index.js'`
+- ✅ Настроен в `tsup.config.ts`: `'transport/index': 'src/transport/index.ts'`
+- ✅ Настроен в `package.json`: экспорт `"./transport"` с types/import/default
+- ✅ Tree-shaking: FSM и типы экспортируются корректно
 
-**Обновление:** Перенесен SSE FSM в `@livai/core/transport/sse-client`. Убрана зависимость от `telemetry-runtime`, используется DI для logger. Создан адаптер для EventSource. Обновлены импорты и тесты.
+**Статус:** ✅ **ЗАВЕРШЕНО**
+
+**Обновление:** Перенесен SSE FSM в `@livai/core/transport/sse-client`. Убрана зависимость от `telemetry-runtime`, используется DI для logger (`EffectLogger`). Создан адаптер для EventSource (`EventSourceFactory` и `defaultEventSourceFactory`). Обновлены импорты и тесты. Файл удален из `packages/app/src/lib/sse-client.ts`. Все валидации пройдены (`type-check`, `lint:canary`). Экспорты настроены в `package.json` и `tsup.config.ts`.
 
 ---
 

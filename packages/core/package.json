@@ -76,6 +76,11 @@
       "types": "./dist/telemetry/client.d.ts",
       "import": "./dist/telemetry/client.js",
       "default": "./dist/telemetry/client.js"
+    },
+    "./transport": {
+      "types": "./dist/transport/index.d.ts",
+      "import": "./dist/transport/index.js",
+      "default": "./dist/transport/index.js"
     }
   },
   "scripts": {

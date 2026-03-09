@@ -161,3 +161,21 @@ export * from './hash.js';
  * @public
  */
 export * from './feature-flags/index.js';
+
+/* ============================================================================
+ * 🔌 TRANSPORT — TRANSPORT LAYER (SSE, WebSocket)
+ * ========================================================================== */
+/**
+ * Transport подпакет: универсальные транспортные протоколы для всех пакетов.
+ * Включает SSE runtime (FSM-based) с поддержкой браузера и Node.js через адаптеры.
+ * Не привязан к app-слою, переиспользуем в backend и других фронтах.
+ *
+ * Доступен как через subpath `@livai/core/transport`,
+ * так и через главный индекс `@livai/core` под неймспейсом `transport`.
+ *
+ * Рекомендуется для feature-пакетов импортировать из `@livai/core/transport`
+ * для явного разграничения слоев, но экспорт через главный индекс оставлен
+ * для удобства и tree-shakeable usage.
+ * @public
+ */
+export * as transport from './transport/index.js';

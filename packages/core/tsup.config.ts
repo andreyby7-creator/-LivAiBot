@@ -13,6 +13,7 @@ export default defineConfig({
     'telemetry/index': 'src/telemetry/index.ts',
     'telemetry/batch-core': 'src/telemetry/batch-core.ts',
     'telemetry/client': 'src/telemetry/client.ts',
+    'transport/index': 'src/transport/index.ts',
   },
   format: ['esm'],
   outDir: 'dist',
