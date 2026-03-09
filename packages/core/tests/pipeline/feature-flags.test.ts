@@ -4,6 +4,7 @@
  */
 import { describe, expect, it, vi } from 'vitest';
 
+import { stableHash } from '../../src/hash.js';
 import type {
   PipelineMode,
   PipelineVersion,
@@ -136,6 +137,31 @@ describe('Resolver Factories', () => {
       // Since we don't know the exact bucket, just test that it's either shadow or forced
       expect(['shadow', 'forced']).toContain(result.kind);
     });
+
+    it('использует fallback версии (default/shadow/active) когда они не заданы', () => {
+      // shadow fallback: shadowVersion по умолчанию 'v2'
+      const shadowConfig: RolloutConfig<TestContext> = {
+        shadowTrafficPercentage: 100,
+      };
+      const shadowResolver = createUserBucketResolver(shadowConfig);
+      expect(shadowResolver(createTestContext())).toEqual({ kind: 'shadow', version: 'v2' });
+
+      // active fallback: activeVersion по умолчанию 'v2'
+      const activeConfig: RolloutConfig<TestContext> = {
+        shadowTrafficPercentage: 0,
+        activeTrafficPercentage: 100,
+      };
+      const activeResolver = createUserBucketResolver(activeConfig);
+      expect(activeResolver(createTestContext())).toEqual({ kind: 'active', version: 'v2' });
+
+      // default fallback: defaultVersion по умолчанию 'v1' (forced при totalPercentage=0)
+      const forcedConfig: RolloutConfig<TestContext> = {
+        shadowTrafficPercentage: 0,
+        activeTrafficPercentage: 0,
+      };
+      const forcedResolver = createUserBucketResolver(forcedConfig);
+      expect(forcedResolver(createTestContext())).toEqual({ kind: 'forced', version: 'v1' });
+    });
   });
 
   describe('createTenantResolver', () => {
@@ -202,8 +228,46 @@ describe('Resolver Factories', () => {
       // Simulate context without userId
       const contextWithoutUserId = { tenantId: context.tenantId, ip: context.ip };
       const result = resolver(contextWithoutUserId as TestContext);
-      expect(result.kind).toBe('shadow');
-      expect(result.version).toBe('v2');
+
+      // Новый контракт: при отсутствии userId распределение делается по tenantId,
+      // поэтому при shadowTrafficPercentage=50 результат может быть forced или shadow,
+      // но обязан быть детерминированным по tenantId и не зависеть от ip.
+      const tenantId = contextWithoutUserId.tenantId!;
+      const bucketValue = stableHash(tenantId) % 100;
+      const expectedKind = bucketValue < 50 ? 'shadow' : 'forced';
+      const expectedVersion = expectedKind === 'shadow' ? 'v2' : 'v1';
+
+      expect(result).toEqual({ kind: expectedKind, version: expectedVersion });
+
+      const sameTenantDifferentIp = { tenantId: context.tenantId, ip: '10.0.0.1' };
+      expect(resolver(sameTenantDifferentIp as TestContext)).toEqual(result);
+    });
+
+    it('использует fallback версии (default/shadow/active) когда они не заданы', () => {
+      const context = createTestContext();
+
+      // shadow fallback: shadowVersion по умолчанию 'v2'
+      const shadowConfig: RolloutConfig<TestContext> = {
+        shadowTrafficPercentage: 100,
+      };
+      const shadowResolver = createTenantResolver(shadowConfig);
+      expect(shadowResolver(context)).toEqual({ kind: 'shadow', version: 'v2' });
+
+      // active fallback: activeVersion по умолчанию 'v2'
+      const activeConfig: RolloutConfig<TestContext> = {
+        shadowTrafficPercentage: 0,
+        activeTrafficPercentage: 100,
+      };
+      const activeResolver = createTenantResolver(activeConfig);
+      expect(activeResolver(context)).toEqual({ kind: 'active', version: 'v2' });
+
+      // default fallback: defaultVersion по умолчанию 'v1' (forced при totalPercentage=0)
+      const forcedConfig: RolloutConfig<TestContext> = {
+        shadowTrafficPercentage: 0,
+        activeTrafficPercentage: 0,
+      };
+      const forcedResolver = createTenantResolver(forcedConfig);
+      expect(forcedResolver(context)).toEqual({ kind: 'forced', version: 'v1' });
     });
   });
 
@@ -253,6 +317,31 @@ describe('Resolver Factories', () => {
       const result = resolver(contextMinimal as TestContext);
       expect(result.kind).toBe('shadow');
       expect(result.version).toBe('v2');
+    });
+
+    it('использует fallback версии (default/shadow/active) когда они не заданы', () => {
+      // shadow fallback: shadowVersion по умолчанию 'v2'
+      const shadowConfig: RolloutConfig<TestContext> = {
+        shadowTrafficPercentage: 100,
+      };
+      const shadowResolver = createTrafficPercentageResolver(shadowConfig);
+      expect(shadowResolver(createTestContext())).toEqual({ kind: 'shadow', version: 'v2' });
+
+      // active fallback: activeVersion по умолчанию 'v2'
+      const activeConfig: RolloutConfig<TestContext> = {
+        shadowTrafficPercentage: 0,
+        activeTrafficPercentage: 100,
+      };
+      const activeResolver = createTrafficPercentageResolver(activeConfig);
+      expect(activeResolver(createTestContext())).toEqual({ kind: 'active', version: 'v2' });
+
+      // default fallback: defaultVersion по умолчанию 'v1' (forced при totalPercentage=0)
+      const forcedConfig: RolloutConfig<TestContext> = {
+        shadowTrafficPercentage: 0,
+        activeTrafficPercentage: 0,
+      };
+      const forcedResolver = createTrafficPercentageResolver(forcedConfig);
+      expect(forcedResolver(createTestContext())).toEqual({ kind: 'forced', version: 'v1' });
     });
   });
 
@@ -353,6 +442,15 @@ describe('Resolver Factories', () => {
       const context = createTestContext();
       const result = resolver(context);
       expect(result).toEqual({ kind: 'forced', version: 'v1' });
+    });
+
+    it('возвращает forced когда resolverPipeline не пустой, но все resolvers возвращают forced (и использует defaultVersion fallback)', () => {
+      const config: RolloutConfig<TestContext> = {
+        resolverPipeline: [() => ({ kind: 'forced', version: 'v1' })],
+        // defaultVersion намеренно не задаём → fallback 'v1'
+      };
+      const resolver = createCombinedResolver(config);
+      expect(resolver(createTestContext())).toEqual({ kind: 'forced', version: 'v1' });
     });
   });
 });

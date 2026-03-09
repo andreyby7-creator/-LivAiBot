@@ -10,14 +10,16 @@
  * - Причина изменения: rollout strategy changes, A/B testing
  *
  * Принципы:
- * - ✅ SRP: разделение на TYPES, CONSTANTS, HELPERS (hash, валидация ID), RESOLVERS, API
- * - ✅ Deterministic: одинаковый вход → одинаковый результат (pure functions, детерминированный hash с | 0 для 32-bit)
+ * - ✅ SRP: разделение на TYPES, CONSTANTS, HELPERS (stableHash + валидация ID), RESOLVERS, API
+ * - ✅ Deterministic: одинаковый вход → одинаковый результат (pure functions + общий stableHash из `core/hash.ts`, MurmurHash3, 32-bit unsigned)
  * - ✅ Domain-pure: generic по TContext, без привязки к domain-специфичным типам
  * - ✅ Extensible: strategy pattern (customResolver, resolverPipeline, resolverPriorities) без изменения core логики
  * - ✅ Strict typing: union-типы (PipelineVersion, PipelineMode, FeatureFlagSource, ResolverPriority), без string literals в domain
  * - ✅ Microservice-ready: stateless, без side-effects (Date.now() опционально для deterministic testing), без скрытого coupling
  * - ✅ Scalable: поддержка множественных источников (tenant, bucket, percentage) с конфигурируемыми приоритетами
  */
+
+import { stableHash } from '../hash.js';
 
 /* ============================================================================
  * 1. TYPES — FEATURE FLAG MODEL (Pure Type Definitions)
@@ -135,29 +137,12 @@ const BUCKET_COUNT = 100;
  */
 
 /**
- * Детерминированный hash для bucket assignment
- * @note Pure function: одинаковый вход → одинаковый выход
- * @note Явное преобразование в 32-bit integer через | 0 для избежания побочных эффектов JS
- * @internal
- */
-function deterministicHash(str: string): number {
-  const SHIFT_BITS = 5;
-  const hash = Array.from(str).reduce((acc, _, index) => {
-    const char = str.charCodeAt(index);
-    const newHash = ((acc << SHIFT_BITS) - acc) + char;
-    return (newHash | 0); // Convert to 32bit integer (explicit)
-  }, 0);
-  return Math.abs(hash);
-}
-
-/**
  * Вычисляет bucket ID на основе строки (детерминированно)
  * @note Pure function: одинаковый вход → одинаковый bucket ID (0-99)
  * @internal
  */
 function computeBucketId(value: string): number {
-  const hash = deterministicHash(value);
-  return hash % BUCKET_COUNT;
+  return stableHash(value) % BUCKET_COUNT;
 }
 
 /**

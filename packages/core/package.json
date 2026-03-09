@@ -28,6 +28,21 @@
       "import": "./dist/index.js",
       "default": "./dist/index.js"
     },
+    "./hash": {
+      "types": "./dist/hash.d.ts",
+      "import": "./dist/hash.js",
+      "default": "./dist/hash.js"
+    },
+    "./feature-flags": {
+      "types": "./dist/feature-flags/index.d.ts",
+      "import": "./dist/feature-flags/index.js",
+      "default": "./dist/feature-flags/index.js"
+    },
+    "./feature-flags/react": {
+      "types": "./dist/feature-flags/react.d.ts",
+      "import": "./dist/feature-flags/react.js",
+      "default": "./dist/feature-flags/react.js"
+    },
     "./domain-kit": {
       "types": "./dist/domain-kit/index.d.ts",
       "import": "./dist/domain-kit/index.js",
@@ -61,7 +76,8 @@
   "scripts": {
     "build": "pnpm run build:types && pnpm run build:js",
     "build:types": "tsc -b tsconfig.build.json",
-    "build:js": "tsup",
+    "build:js": "tsup && pnpm run build:react",
+    "build:react": "mkdir -p dist/feature-flags && pnpm exec esbuild src/feature-flags/react.tsx --bundle --format=esm --platform=neutral --target=es2024 --minify --sourcemap --outfile=dist/feature-flags/react.js --external:react",
     "build:dev": "tsup --sourcemap --no-clean",
     "build:watch": "tsup --watch",
     "dev": "tsup --watch",

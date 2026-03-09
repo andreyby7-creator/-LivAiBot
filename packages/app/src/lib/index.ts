@@ -135,27 +135,6 @@ export {
 } from './telemetry-runtime.js';
 
 /* ============================================================================
- * 🚩 FEATURE FLAGS — ФЛАГИ ФУНКЦИЙ
- * ========================================================================== */
-
-/**
- * Feature Flags: система управления feature flags с контекстом и стратегиями.
- * @public
- */
-export {
-  type FeatureAttributes,
-  type FeatureAttributeValue,
-  type FeatureContext,
-  type FeatureFlagDefinition,
-  type FeatureFlagLogger,
-  type FeatureFlagName,
-  type FeatureFlagStrategy,
-  getGlobalFeatureFlagLogger,
-  type KnownFeatureAttributes,
-  setGlobalFeatureFlagLogger,
-} from './feature-flags.js';
-
-/* ============================================================================
  * 🌐 I18N — ИНТЕРНАЦИОНАЛИЗАЦИЯ
  * ========================================================================== */
 

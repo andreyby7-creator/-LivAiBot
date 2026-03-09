@@ -317,7 +317,7 @@
 
 **Файлы:**
 
-- `packages/app/src/lib/feature-flags.ts` → `packages/core/src/feature-flags/index.ts`
+- `packages/app/src/lib/feature-flags.ts` → удалён (логика перенесена в core)
 - Создать структуру:
   - `packages/core/src/feature-flags/strategies.ts` (percentageRollout, etc.)
   - `packages/core/src/feature-flags/hash.ts` (MurmurHash)
@@ -343,17 +343,20 @@
 
 **Тесты:**
 
-- `app/tests/unit/lib/feature-flags.test.ts` → переместить в `core/tests/feature-flags/index.test.ts`
-- `app/tests/unit/providers/FeatureFlagsProvider.test.tsx` → обновить импорт на `@livai/core/feature-flags`
-- Обновить импорты в тестах
+- Core engine: `packages/core/tests/feature-flags/core.test.ts` (стратегии, meta, logger, evaluateFeature/evaluateFeatures, freezeContext)
+- React части: `packages/core/tests/feature-flags/react.test.tsx` (`FeatureFlagOverrideProvider`, `useFeatureFlagOverride`, `useFeatureFlagOverrides`)
+- Pipeline rollout: `packages/core/tests/pipeline/feature-flags.test.ts` (использует тот же `stableHash`)
+- App уровень: `packages/app/tests/unit/providers/FeatureFlagsProvider.test.tsx` обновлён на `@livai/core/feature-flags`; интеграционные хуки/провайдеры (`useFeatureFlags`, `UnifiedUIProvider`) покрыты существующими app‑тестами
+- Верификация: `npx vitest run --coverage` для core feature-flags/hash/pipeline и для feature-auth effects (login/logout/register/refresh) — тесты зелёные
 
 **Экспорты:**
 
-- Создать `core/src/feature-flags/index.ts`: `export * from './types.js'`, `export * from './hash.js'`, `export * from './strategies.js'`
-- Добавить в `core/src/index.ts`: `export * as featureFlags from './feature-flags/index.js'` (или точечные экспорты)
-- Проверить tree-shaking: убедиться, что MurmurHash и стратегии экспортируются корректно
+- `core/src/hash.ts` экспортируется как `@livai/core/hash` (subpath экспорт в `packages/core/package.json`)
+- `core/src/feature-flags/index.ts` экспортирует core‑engine; React‑части собираются отдельным entrypoint‑ом и доступны как `@livai/core/feature-flags/react`
+- `core/src/index.ts` реэкспортирует hash и feature‑flags (core‑engine) в главный индекс `@livai/core`
+- Проверка export map: `pnpm run check:exports` проходит без ошибок
 
-**Обновление:** Перенесен feature flags engine в `@livai/core/feature-flags`. Удален React импорт. Обновлены импорты в `FeatureFlagsProvider.tsx`, `useFeatureFlags.ts` и тестах. Pipeline feature flags остаются в `core/pipeline/feature-flags.ts`.
+**Обновление:** Feature flags engine перенесён в `@livai/core/feature-flags` с разделением на core (`core.ts`) и React (`react.tsx`), а MurmurHash3 вынесен в общий `@livai/core/hash`. Core‑engine очищен от React/env/console зависимостей, добавлены strategy meta (`FeatureFlagStrategyMeta`), защита от коррелированных rollout‑ов через `stableHash(\`\${flagName}:\${id}\`)`и атрибутные стратегии (`enabledForAttribute`). App‑слой использует только публичные API`@livai/core/feature-flags`и`@livai/core/feature-flags/react`;`app/src/lib/feature-flags.ts`удалён. Pipeline feature flags остаются в`core/pipeline/feature-flags.ts`, но теперь используют тот же`stableHash`из`core/hash.ts` для консистентного детерминированного rollout‑а.
 
 ---
 

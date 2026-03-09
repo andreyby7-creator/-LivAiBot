@@ -140,3 +140,24 @@ export * from './pipeline/index.js';
  * @public
  */
 export * as effect from './effect/index.js';
+
+/* ============================================================================
+ * 🔢 HASH — DETERMINISTIC HASH UTILITIES
+ * ========================================================================== */
+/**
+ * Hash utilities: non-cryptographic deterministic hash (MurmurHash3).
+ * Используется в feature flags и pipeline rollout.
+ * @public
+ */
+export * from './hash.js';
+
+/* ============================================================================
+ * 🚩 FEATURE-FLAGS — FEATURE FLAG ENGINE
+ * ========================================================================== */
+/**
+ * Feature Flags: детерминированный engine для управления feature flags.
+ * Core engine без React/env/console зависимостей.
+ * React части доступны через subpath `@livai/core/feature-flags/react`.
+ * @public
+ */
+export * from './feature-flags/index.js';

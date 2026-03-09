@@ -20,9 +20,9 @@
 import type { JSX, PropsWithChildren } from 'react';
 import React, { memo, useMemo } from 'react';
 
+import { useFeatureFlagOverride } from '@livai/core/feature-flags/react';
 import type { TelemetryMetadata, TelemetryPrimitive } from '@livai/core-contracts';
 
-import { useFeatureFlagOverride } from '../lib/feature-flags.js';
 import { formatDateLocalized, isRtlLocale, setDayjsLocale, t, useI18n } from '../lib/i18n.js';
 import {
   errorFireAndForget,

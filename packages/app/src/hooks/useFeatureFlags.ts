@@ -16,7 +16,8 @@
 
 import { useCallback, useMemo, useSyncExternalStore } from 'react';
 
-import type { FeatureFlagName } from '../lib/feature-flags.js';
+import type { FeatureFlagName } from '@livai/core/feature-flags';
+
 import { featureFlagsStore, useFeatureFlagsStore } from '../providers/FeatureFlagsProvider.js';
 import type { FeatureFlags } from '../types/common.js';
 import type { UiFeatureFlags } from '../types/ui-contracts.js';

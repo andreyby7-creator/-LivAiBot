@@ -7,7 +7,8 @@ import { act, render, renderHook } from '@testing-library/react';
 import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type { FeatureFlagName } from '../../../src/lib/feature-flags';
+import type { FeatureFlagName } from '@livai/core/feature-flags';
+
 import {
   FeatureFlagsProvider,
   featureFlagsStore,

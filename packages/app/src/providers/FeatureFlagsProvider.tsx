@@ -20,7 +20,8 @@ import { memo, useEffect, useMemo } from 'react';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
-import type { FeatureFlagName } from '../lib/feature-flags.js';
+import type { FeatureFlagName } from '@livai/core/feature-flags';
+
 import type { FeatureFlags } from '../types/common.js';
 import type { UiFeatureFlags } from '../types/ui-contracts.js';
 
