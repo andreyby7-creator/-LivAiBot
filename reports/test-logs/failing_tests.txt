@@ -1,12 +1,40 @@
-/home/boss/Projects/livai/packages/core/tests/effect/error-mapping.test.ts: если ранние мапперы возвращают UNKNOWN, берет первый non-UNKNOWN дальше по цепочке
-AssertionError: expected undefined to deeply equal { d: 1 }
-    at /home/boss/Projects/livai/packages/core/tests/effect/error-mapping.test.ts:190:27
-    at file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.18/node_modules/@vitest/runner/dist/index.js:145:11
-    at file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.18/node_modules/@vitest/runner/dist/index.js:915:26
-    at file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.18/node_modules/@vitest/runner/dist/index.js:1243:20
-    at new Promise (<anonymous>)
-    at runWithTimeout (file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.18/node_modules/@vitest/runner/dist/index.js:1209:10)
-    at file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.18/node_modules/@vitest/runner/dist/index.js:1653:37
-    at Traces.$ (file:///home/boss/Projects/livai/node_modules/.pnpm/vitest@4.0.18_@opentelemetry+api@1.9.0_@types+node@25.3.3_@vitest+ui@4.0.18_jsdom@28.1._2b800fe1a927e630b5b8132836e0698f/node_modules/vitest/dist/chunks/traces.CCmnQaNT.js:142:27)
-    at trace (file:///home/boss/Projects/livai/node_modules/.pnpm/vitest@4.0.18_@opentelemetry+api@1.9.0_@types+node@25.3.3_@vitest+ui@4.0.18_jsdom@28.1._2b800fe1a927e630b5b8132836e0698f/node_modules/vitest/dist/chunks/test.B8ej_ZHS.js:239:21)
-    at runTest (file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.18/node_modules/@vitest/runner/dist/index.js:1653:12)
+/home/boss/Projects/livai/packages/core/tests/transport/websocket.test.ts: createWebSocketEffect пробрасывает события и context в handlers
+AssertionError: expected "vi.fn()" to be called with arguments: [ Any<Event>, …(1) ]
+
+Received: 
+
+  1st vi.fn() call:
+
+  [
+-   Any<Event>,
++   {},
+    {
+      "source": "websocket-adapter",
+    },
+  ]
+
+
+Number of calls: 1
+
+    at Proxy.<anonymous> (file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+expect@4.0.18/node_modules/@vitest/expect/dist/index.js:1420:10)
+    at Proxy.<anonymous> (file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+expect@4.0.18/node_modules/@vitest/expect/dist/index.js:1090:14)
+    at Proxy.methodWrapper (file:///home/boss/Projects/livai/node_modules/.pnpm/chai@6.2.2/node_modules/chai/index.js:1700:25)
+    at /home/boss/Projects/livai/packages/core/tests/transport/websocket.test.ts:244:19
+    at processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.18/node_modules/@vitest/runner/dist/index.js:915:20
+
+---
+
+/home/boss/Projects/livai/packages/core/tests/transport/websocket.test.ts: closeWebSocketEffect использует withLogging когда logger задан
+AssertionError: expected "vi.fn()" to be called 1 times, but got 0 times
+    at /home/boss/Projects/livai/packages/core/tests/transport/websocket.test.ts:573:30
+    at processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.18/node_modules/@vitest/runner/dist/index.js:915:20
+
+---
+
+/home/boss/Projects/livai/packages/core/tests/transport/websocket.test.ts: sendWebSocketMessageEffect интегрируется с logger через withLogging и логирует ошибку при сбое send
+AssertionError: expected "vi.fn()" to be called 1 times, but got 0 times
+    at /home/boss/Projects/livai/packages/core/tests/transport/websocket.test.ts:647:28
+    at processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.18/node_modules/@vitest/runner/dist/index.js:915:20

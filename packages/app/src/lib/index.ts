@@ -156,27 +156,6 @@ export {
 } from './logger.js';
 
 /* ============================================================================
- * ⚡ PERFORMANCE — ПРОИЗВОДИТЕЛЬНОСТЬ
- * ========================================================================== */
-
-/**
- * Performance: мониторинг производительности и Web Vitals.
- * @public
- */
-export {
-  type PerformanceConfig,
-  type PerformanceError,
-  type PerformanceErrorCode,
-  PerformanceErrorCodes,
-  type PerformanceMetric,
-  PerformanceMetricType,
-  type PerformanceMetricType as PerformanceMetricTypeType,
-  PerformanceSeverity,
-  type PerformanceSeverity as PerformanceSeverityType,
-  WebVitalsMetric,
-} from './performance.js';
-
-/* ============================================================================
  * 🛣️ ROUTE PERMISSIONS — ПРАВА ДОСТУПА К МАРШРУТАМ
  * ========================================================================== */
 

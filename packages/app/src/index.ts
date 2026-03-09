@@ -163,16 +163,6 @@ export {
   // Error Mapping
   mapHttpError,
   parseJsonSafe,
-  type PerformanceConfig,
-  type PerformanceError,
-  type PerformanceErrorCode,
-  PerformanceErrorCodes,
-  type PerformanceMetric,
-  // Performance
-  PerformanceMetricType,
-  type PerformanceMetricType as PerformanceMetricTypeType,
-  PerformanceSeverity,
-  type PerformanceSeverity as PerformanceSeverityType,
   type Permission,
   precacheMainUrls,
   precacheStaticUrls,
@@ -203,7 +193,6 @@ export {
   validateApiResponse,
   warn,
   warnFireAndForget,
-  WebVitalsMetric,
   type WindowClient,
 } from './lib/index.js';
 

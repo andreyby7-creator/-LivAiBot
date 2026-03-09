@@ -179,3 +179,22 @@ export * from './feature-flags/index.js';
  * @public
  */
 export * as transport from './transport/index.js';
+
+/* ============================================================================
+ * 🚀 PERFORMANCE — PERFORMANCE METRICS TRACKING
+ * ========================================================================== */
+/**
+ * Performance подпакет: система мониторинга производительности приложения.
+ * Включает трекинг метрик (Web Vitals, компоненты, API), батчинг, sampling,
+ * threshold фильтрацию и DI для logger.
+ *
+ * Доступен как через subpath `@livai/core/performance`,
+ * так и через главный индекс `@livai/core` под неймспейсом `performance`.
+ * React части доступны через subpath `@livai/core/performance/react`.
+ *
+ * Рекомендуется для feature-пакетов импортировать из `@livai/core/performance`
+ * для явного разграничения слоев, но экспорт через главный индекс оставлен
+ * для удобства и tree-shakeable usage.
+ * @public
+ */
+export * as performance from './performance/index.js';

@@ -500,57 +500,77 @@
 
 ---
 
-## 6️⃣ Performance
+## 6️⃣ Performance ✅ **ВЫПОЛНЕНО**
 
-### 6.1 `performance.ts` → разделить
+### 6.1 `performance.ts` → разделить (по паттерну feature-flags)
 
 **Порядок:** Разделение → адаптация зависимостей → валидация → тесты
 
 **Действия:**
 
-- ✅ Ядро → `packages/core/src/performance/core.ts` (метрики, пороговые значения, интеграция с telemetry)
-- ✅ React-хуки → оставить в `packages/app/src/lib/performance.ts` (только хуки)
+- ✅ Ядро → `packages/core/src/performance/core.ts` (метрики, пороговые значения, батчинг, DI для logger)
+- ✅ React-хуки → `packages/core/src/performance/react.tsx` (изолированы через subpath экспорт)
 
 **Файлы:**
 
 - `packages/app/src/lib/performance.ts` → разделить на:
-  - `packages/core/src/performance/core.ts` (чистое ядро)
-  - `packages/app/src/lib/performance.ts` (только React hooks)
+  - `packages/core/src/performance/core.ts` (чистое ядро без React)
+  - `packages/core/src/performance/react.tsx` (React hooks, изолированы)
+  - `packages/core/src/performance/index.ts` (экспортирует только core)
 
-**Причина:** Метрики нужны и другим приложениям, но React-хуки специфичны для app.
+**Причина:**
+
+- **Архитектурная консистентность:** единый паттерн с `feature-flags` (`core.ts` + `react.tsx` в одном модуле)
+- **Правильное разделение зависимостей:** core не зависит от React, React layer зависит от core
+- **Tree-shaking:** subpath экспорт (`@livai/core/performance` vs `@livai/core/performance/react`) обеспечивает perfect tree separation
+- **Переиспользование:** React hooks универсальны и могут использоваться в других приложениях
+- **Масштабируемость:** единый паттерн упрощает добавление новых runtime-адаптеров
 
 **Зависимости:**
 
 - Текущий файл: импортирует `randomUUID` из `crypto`, `Effect` из `effect`, `React`, `JsonObject` из `../types/common.js`, `telemetry-runtime` из `./telemetry-runtime.js`
-- Ядро (метрики, пороги): `crypto`, `Effect`, `JsonObject` → можно перенести в core
-- React-хуки: `usePerformanceProfiling`, `useWebVitalsTracking`, `useApiPerformanceTracking` → остаются в app
-- `telemetry-runtime` → убрать зависимость из ядра, использовать DI для logger
-- Используется в: возможно, в app компонентах через hooks
+- Ядро (`core.ts`): `crypto`, `Effect`, `JsonObject` из `@livai/core-contracts` → можно перенести в core
+- React-хуки (`react.tsx`): `React`, импорт из `./core.js` → изолированы в отдельном файле
+- `telemetry-runtime` → убрать зависимость из ядра, использовать DI для logger (аналогично `feature-flags`)
+- Используется в: app компонентах через hooks из `@livai/core/performance/react`
 
 **Миграция импорта:**
 
-- Разделить файл: ядро → `core/src/performance/core.ts`, hooks → `app/src/lib/performance.ts`
-- Ядро: `createPerformanceMetric`, `collectWebVitalsMetric`, `collectComponentRenderMetric`, `collectApiResponseMetric`, `collectMemoryUsageMetric`, `addMetricToBuffer`, `flushMetricsBuffer`, `initPerformanceMonitoring`, `stopPerformanceMonitoring`, типы
-- Hooks: `usePerformanceProfiling`, `useWebVitalsTracking`, `useApiPerformanceTracking`
-- `app/src/lib/performance.ts` → импортировать ядро из `@livai/core/performance/core`
-- Убрать зависимость от `telemetry-runtime` из ядра: использовать DI для logger
-- Проверить: `grep -r "from.*lib/performance" packages/app/src` → обновить импорты hooks
-- Валидация: `pnpm run type-check && pnpm run check:exports && pnpm run lint:canary`
+- ✅ Разделить файл: ядро → `core/src/performance/core.ts`, hooks → `core/src/performance/react.tsx`
+- ✅ Ядро (`core.ts`): `PerformanceTracker`, `createPerformanceTracker`, `PerformanceMetric`, `PerformanceLogger`, `PerformanceConfig`, `MetricRule`, `MetricProcessor`, типы, DI интерфейс для logger
+- ✅ Hooks (`react.tsx`): `usePerformanceProfiling`, `useWebVitalsTracking`, `useApiPerformanceTracking`, `useFlushOnPageHide`, `usePerformanceTracker` → импортируют из `./core.js`
+- ✅ Убрать зависимость от `telemetry-runtime` из ядра: используется DI для logger (`PerformanceLogger` интерфейс)
+- ✅ Проверить: `grep -r "from.*lib/performance" packages/app/src` → старый файл удален, импорты обновлены
+- ✅ Валидация: `pnpm run type-check && pnpm run check:exports && pnpm run lint:canary` → все проверки пройдены
 
 **Тесты:**
 
-- `app/tests/unit/lib/performance.test.ts` → разделить:
-  - `core/tests/performance/core.test.ts` (тесты ядра)
-  - `app/tests/unit/lib/performance.test.ts` (тесты hooks)
-- Обновить импорты в тестах
+- ✅ `app/tests/unit/lib/performance.test.ts` → разделен:
+  - ✅ `core/tests/performance/core.test.ts` (тесты ядра)
+  - ✅ `core/tests/performance/react.test.tsx` (тесты React hooks)
+- ✅ Обновить импорты в тестах: core из `@livai/core/performance`, hooks из `@livai/core/performance/react`
 
 **Экспорты:**
 
-- Создать `core/src/performance/index.ts`: `export * from './core.js'`
-- Добавить в `core/src/index.ts`: `export * as performance from './performance/index.js'` (или точечные экспорты)
-- `app/src/lib/performance.ts` → экспортировать hooks (без изменений для внешних импортов)
+- ✅ Создать `core/src/performance/index.ts`: `export * from './core.js'` (только core, без React)
+- ✅ Добавить в `core/src/index.ts`: `export * as performance from './performance/index.js'`
+- ✅ Настроить в `package.json` exports:
+  ```json
+  "./performance": {
+    "types": "./dist/performance/index.d.ts",
+    "import": "./dist/performance/index.js"
+  },
+  "./performance/react": {
+    "types": "./dist/performance/react.d.ts",
+    "import": "./dist/performance/react.js"
+  }
+  ```
+- ✅ Настроить в `tsup.config.ts`: добавлен entry point для `performance/index.ts`
+- ✅ Обновить `build:react` в `package.json` для сборки React-частей performance
 
-**Обновление:** Разделен `performance.ts`: ядро перенесено в `@livai/core/performance/core`, React-хуки остались в `app/src/lib/performance.ts`. Убрана зависимость от `telemetry-runtime` из ядра, используется DI для logger. Обновлены импорты и тесты.
+**Статус:** ✅ **ЗАВЕРШЕНО**
+
+**Обновление:** Разделен `performance.ts` по паттерну `feature-flags`: ядро перенесено в `@livai/core/performance/core`, React-хуки в `@livai/core/performance/react`. Убрана зависимость от `telemetry-runtime` из ядра, используется DI для logger (`PerformanceLogger`). Настроены subpath экспорты для tree-shaking. Созданы тесты для core и React hooks. Старый файл `packages/app/src/lib/performance.ts` удален. Все валидации пройдены (`type-check`, `lint:canary`). Архитектурная консистентность с `feature-flags` обеспечена.
 
 ---
 
@@ -928,11 +948,11 @@
 
 - `telemetry/batch-core.ts` — чистое batch-ядро
 - `telemetry/client.ts` — TelemetryClient
-- `feature-flags/` — общий engine
+- `feature-flags/` — общий engine (`core.ts` + `react.tsx`)
 - `effect/offline-cache.ts` — SWR-ядро
 - `transport/sse-client.ts` — SSE runtime
 - `transport/websocket.ts` — WebSocket runtime
-- `performance/core.ts` — метрики и пороги
+- `performance/` — метрики и пороги (`core.ts` + `react.tsx`, по паттерну feature-flags)
 - `input-boundary/api-schema-guard.ts` — API валидация
 - `policies/route-permissions.ts` — правила доступа
 - `policies/auth-guard.ts` — логика авторизации
@@ -940,7 +960,6 @@
 ### App (runtime-специфичное)
 
 - `lib/telemetry-runtime.ts` — runtime singleton
-- `lib/performance.ts` — React hooks
 - Остальные UI-специфичные модули
 
 ---
