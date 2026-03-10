@@ -22,10 +22,10 @@
 import type { CSSProperties, JSX, ReactNode, Ref } from 'react';
 import { forwardRef, memo, useEffect, useMemo, useRef } from 'react';
 
+import { useAuthGuardContext } from '@livai/core/access-control';
 import type { CoreUserProfileDisplayProps, UserProfileData } from '@livai/ui-core';
 import { UserProfileDisplay as CoreUserProfileDisplay } from '@livai/ui-core';
 
-import { useAuthGuardContext } from '../lib/auth-guard.js';
 import type { Namespace, TranslationKey } from '../lib/i18n.js';
 import type { RoutePermissionContext } from '../lib/route-permissions.js';
 import { checkRoutePermission } from '../lib/route-permissions.js';

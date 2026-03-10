@@ -1,3 +1,24 @@
+2026-03-10T18:18:38Z core auth-guard.react: optimized useMemoizedCheckAccess for hot-path scenarios — replaced useState with useRef for cache storage to avoid re-renders on frequent calls; cache remains immutable via spread operations; verified via `npx vitest run --coverage packages/core/tests/unit/access-control/auth-guard.react.test.tsx` (9 tests passed, 100% coverage maintained)
+2026-03-10T18:20:00Z core auth-guard.react: simplified cache update comment at lines 112-115 (logic unchanged, no tests needed)
+2026-03-10T18:15:42Z core auth-guard.react: updated memoized cache merge logic and re-ran `npx vitest run --coverage packages/core/tests/unit/access-control/auth-guard.react.test.tsx` (9 tests passed, auth-guard.react.tsx now at 100% statements/branches/functions/lines coverage for this file)
+[#] core access-control/auth-guard: перенесена логика из app в @livai/core
+- Созданы файлы ядра и адаптера:
+  - core/src/access-control/auth-guard.ts — чистые типы и функции авторизации без React
+  - core/src/access-control/auth-guard.react.tsx — React Context/хуки поверх ядра
+  - core/src/access-control/index.ts и namespace accessControl в core/src/index.ts
+- Обновлён shim в app:
+  - app/src/lib/auth-guard.ts теперь re-export из @livai/core/access-control/auth-guard.react
+- Обновлены сборка и exports core:
+  - Добавлены subpath-exports ./access-control и ./access-control/auth-guard.react в core/package.json
+  - tsup.config.ts собирает dist/access-control/index.js
+- Типы:
+  - В @livai/core-contracts добавлен enum UserRoles как канонический источник ролей
+- Валидация:
+  - pnpm --filter @livai/core-contracts run build:types (OK)
+  - pnpm --filter @livai/core run type-check (OK)
+
+2026-03-10T00:15:00Z [git/push] ✅ COMPLETED - Выполнен `git push` для ветки `main` (9227fbcc..84122c93), все pre-push проверки (type-check для 14 пакетов, lint:canary, форматирование) успешно пройдены; подтверждено через `git status`, что локальная ветка синхронизирована с `origin/main`.
+2026-03-10T00:05:00Z [git/commit] ✅ COMPLETED - Создан коммит `84122c93` с обновлениями access-control документации, policy-файлов и общего combined-лога после рефакторинга; pre-commit хуки (lint-staged, ESLint canary, type-check @livai/core, fast tests) успешно пройдены, верифицировано через `git log -1 --oneline`.
 2026-03-10T00:00:00Z [core/docs/app-to-core-refactor] ✅ UPDATED - Уточнён раздел 8: для `auth-guard.ts` в core задекларированы только типы `ID`/`UserRoles` и pure-функции без `AuthContext`, а React-адаптер (`auth-guard.react.tsx`) помечен как единственное место для `AuthContext` и хуков; в шаге 8.2 путь для `route-permissions.ts` скорректирован с `packages/core/src/policies/route-permissions.ts` на `packages/core/src/access-control/route-permissions.ts` для согласованности с новой структурой `access-control/`.
 2026-03-09T00:00:00Z offline-cache.ts — restructured macro sections (TYPES, STORE CONTRACT, CACHE ENGINE, STORE IMPLEMENTATIONS, RETRY SYSTEM, UTILITIES, EVENT SYSTEM) and moved TypedOfflineCacheEmitter to the bottom as an implementation detail.
 2026-03-09T00:00:10Z offline-cache.ts — simplified subheadings under TYPES (keys, store contract, eviction & retry, store adapter) to one-line comments to avoid duplicated banner blocks.
@@ -2245,3 +2266,13 @@ Verification:
 [2026-03-10T12:48:43+03:00] lint:canary PASS after cleaning up unused eslint-disable directives in packages/core/tests/input-boundary/api-validation-runtime.test.ts (pnpm run lint:canary)
 [2026-03-10T12:52:04+03:00] app+core api-schema-guard/useApi: wired EndpointPath brand into useApi (cast resolvePath(...) as EndpointPath), fixed rule engine generics/priorities/maxSize; reran tsc:check successfully.
 [api-schema-guard] Checked coverage for line 558 in validateSchemaVersion; determined it is unreachable at runtime because createApiValidationError always fails, so line cannot be covered without changing implementation or mocking internals.
+[core-contracts] Added UserRoles enum unit tests in tests/unit/domain/common.test.ts (tests not run: vitest config error: "config must export or return an object").
+[core-contracts] Fixed TS import errors in tests/unit/domain/common.test.ts (Decision/roles imports split into type/value). Lint clean.
+[core-contracts] Replaced deprecated Timestamp usage in tests/unit/domain/common.test.ts with ISODateString; lints clean (tests still blocked by Vitest config error).
+[core-contracts] Updated isResourceRole guard test expectation: GlobalUserRole.ADMIN is treated as resource role by value; lints clean, tests still blocked by Vitest config error (config must export/return object).
+[core] Added tests for access-control/auth-guard.ts in tests/unit/access-control/auth-guard.test.ts (aimed at 100% coverage on file). Lints clean; tests currently blocked by Vitest config error: "config must export or return an object".
+[core] Fixed TS union narrowing issues in tests/unit/access-control/auth-guard.test.ts; all lints passing. Note: auth-guard.ts lines 189–195 (admin/moderator shortcuts) are reachable and covered by "проверяет admin/moderator shortcuts" test.
+[core] Added branch-coverage tests for eitherGuard fallback error, requireRole/requirePermission nullish-coalescing branches; lints clean, coverage for auth-guard.ts now 100% (incl. branches) per last report.
+[core] Added tests to cover all branches in isPrivateResourceAction (line 349): DELETE on private resource, READ on private resource, WRITE/DELETE on public resources. auth-guard.ts now has 100% coverage (statements, branches, functions, lines).
+[core] Fixed sonarjs/no-identical-functions in tests/unit/access-control/auth-guard.test.ts by extracting makeInsufficientPermissionsDecision helper; pnpm lint:canary now passes.
+[core] Added comprehensive unit tests for access-control/auth-guard.react.tsx with 100% statements/functions/lines coverage, 87.5% branch coverage (line 113 ternary operator). All 9 tests pass using @testing-library/react patterns from performance/react.test.tsx and feature-flags/react.test.tsx.

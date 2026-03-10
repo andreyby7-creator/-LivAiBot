@@ -23,26 +23,6 @@ export {
 } from './api-client.js';
 
 /* ============================================================================
- * 🛡️ AUTH GUARD — ЗАЩИТА ДОСТУПА
- * ========================================================================== */
-
-/**
- * Auth Guard: система контроля доступа с проверкой прав и ролей.
- * @public
- */
-export {
-  type Action,
-  type AuthDecisionReason,
-  type AuthError,
-  type AuthErrorCode,
-  type AuthGuardContext,
-  type ID,
-  type Permission,
-  type Resource,
-  type ResourceType,
-} from './auth-guard.js';
-
-/* ============================================================================
  * 🔗 AUTH HOOK DI — DI-ФАБРИКА ДЛЯ useAuth
  * ========================================================================== */
 

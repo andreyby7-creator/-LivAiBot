@@ -9,24 +9,24 @@
  * Без доменной логики и runtime-зависимостей.
  *
  * Используется для:
- * - Branded типы (ID<T>, ISODateString) для type-safety
+ * - Branded типы (ID<T>, ISODateString, UUID) для type-safety
  * - JSON типы (JsonObject, JsonValue, JsonArray) для метаданных и payload'ов
- * - Policy Decision типы для декларативных политик доступа
+ * - Policy Decision типы (PolicyDecision, Decision, DecisionUtils) для декларативных политик доступа
  * - Time типы (DurationMs, UnixTimestampMs) для работы со временем
- * - Утилитарные типы (Settings, UUID)
+ * - Утилитарные типы (Settings) и базовые контракты ролей (GlobalUserRole, ResourceRole, SystemRole)
  *
  * Принципы:
  * - Zero business logic
  * - Zero runtime dependencies
  * - Детерминированность
- * - Полная типобезопасность через branded types
+ * - Полная типобезопасность через branded types и string-union ролей
  * - Immutability по умолчанию (readonly)
- * - Future-proof расширяемость через metadata
+ * - Future-proof расширяемость через metadata и унифицированные role‑типы/guards
  *
  * Границы слоёв:
- * - @livai/core-contracts (common) — чистый типовой слой, foundation для всех доменов.
- * - @livai/core — использует эти типы для реализации доменной логики.
- * - @livai/app — использует эти типы для UI и runtime-специфичных модулей.
+ * - @livai/core-contracts (common) — чистый типовой слой, foundation для всех доменов и policy‑/auth‑модулей.
+ * - @livai/core — использует эти типы и role‑контракты для реализации доменной логики и auth‑guard'ов.
+ * - @livai/app — использует эти типы для UI и runtime-специфичных модулей (guards, providers, hooks).
  */
 
 /* ========================================================================== */
@@ -269,3 +269,76 @@ export type DurationMs = number;
  * Используется для точных временных меток.
  */
 export type UnixTimestampMs = number;
+
+/* ========================================================================== */
+/* 👤 USER ROLES - БАЗОВЫЕ РОЛИ ПОЛЬЗОВАТЕЛЕЙ */
+/* ========================================================================== */
+
+/**
+ * Глобальные роли пользователя в системе.
+ * Используются для auth/billing/moderation/admin доступа.
+ */
+export enum GlobalUserRole {
+  GUEST = 'GUEST',
+  USER = 'USER',
+  PREMIUM = 'PREMIUM',
+  MODERATOR = 'MODERATOR',
+  ADMIN = 'ADMIN',
+  PLATFORM_OWNER = 'PLATFORM_OWNER',
+  SUPER_ADMIN = 'SUPER_ADMIN',
+}
+
+/**
+ * Роли пользователя внутри конкретного ресурса (workspace, chat, bot и т.п.).
+ * Это не глобальные роли пользователя, а membership-роль в объекте.
+ */
+export const ResourceRoles = {
+  OWNER: 'OWNER',
+  ADMIN: 'ADMIN',
+  EDITOR: 'EDITOR',
+  PARTICIPANT: 'PARTICIPANT',
+  VIEWER: 'VIEWER',
+} as const;
+
+export type ResourceRole = typeof ResourceRoles[keyof typeof ResourceRoles];
+
+/**
+ * Системные роли / service identities (cron jobs, backend tasks, system bots).
+ */
+export enum SystemRole {
+  SYSTEM = 'SYSTEM',
+}
+
+/**
+ * Любая роль в системе (глобальная, ресурсная или системная).
+ * Удобно для audit logs / tracing / policy-debugging.
+ */
+export type AnyRole = GlobalUserRole | ResourceRole | SystemRole;
+
+/**
+ * Роли, которые могут выступать как actor (человек или система),
+ * в отличие от чисто ресурсных ролей.
+ */
+export type ActorRole = GlobalUserRole | SystemRole;
+
+const GLOBAL_ROLES_SET: ReadonlySet<GlobalUserRole> = new Set(
+  Object.values(GlobalUserRole),
+);
+const SYSTEM_ROLES_SET: ReadonlySet<SystemRole> = new Set(
+  Object.values(SystemRole),
+);
+const RESOURCE_ROLES_SET: ReadonlySet<ResourceRole> = new Set(
+  Object.values(ResourceRoles),
+);
+
+export function isGlobalUserRole(role: AnyRole): role is GlobalUserRole {
+  return GLOBAL_ROLES_SET.has(role as GlobalUserRole);
+}
+
+export function isSystemRole(role: AnyRole): role is SystemRole {
+  return SYSTEM_ROLES_SET.has(role as SystemRole);
+}
+
+export function isResourceRole(role: AnyRole): role is ResourceRole {
+  return RESOURCE_ROLES_SET.has(role as ResourceRole);
+}

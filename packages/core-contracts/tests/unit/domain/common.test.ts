@@ -4,16 +4,27 @@
 import { describe, expect, it } from 'vitest';
 
 import type {
+  ActorRole,
+  AnyRole,
   DurationMs,
+  ISODateString,
   JsonObject,
   PolicyDecision,
   PolicyViolation,
+  ResourceRole,
   Settings,
-  Timestamp,
   UnixTimestampMs,
   UUID,
 } from '../../../src/domain/common.js';
-import { Decision, DecisionUtils } from '../../../src/domain/common.js';
+import {
+  Decision,
+  DecisionUtils,
+  GlobalUserRole,
+  isGlobalUserRole,
+  isResourceRole,
+  isSystemRole,
+  SystemRole,
+} from '../../../src/domain/common.js';
 import { TEST_USER_ID } from '../../constants';
 
 describe('UUID type', () => {
@@ -31,25 +42,25 @@ describe('UUID type', () => {
   });
 });
 
-describe('Timestamp type', () => {
+describe('ISODateString type', () => {
   it('принимает ISO 8601 строки', () => {
     // Type check - это должно компилироваться без ошибок
-    const validTimestamp: Timestamp = '2026-01-09T21:34:12.123Z';
+    const validTimestamp: ISODateString = '2026-01-09T21:34:12.123Z' as ISODateString;
     expect(typeof validTimestamp).toBe('string');
     expect(validTimestamp).toBe('2026-01-09T21:34:12.123Z');
   });
 
-  it('является алиасом string', () => {
-    const timestamp: Timestamp = '2024-01-01T00:00:00.000Z';
+  it('является алиасом string с брендингом', () => {
+    const timestamp: ISODateString = '2024-01-01T00:00:00.000Z' as ISODateString;
     const str: string = timestamp; // Должно компилироваться
     expect(str).toBe('2024-01-01T00:00:00.000Z');
   });
 
   it('принимает различные форматы ISO строк', () => {
-    const timestamps: Timestamp[] = [
-      '2024-01-01T00:00:00.000Z',
-      '2024-01-01T00:00:00Z',
-      '2024-01-01T00:00:00.123Z',
+    const timestamps: ISODateString[] = [
+      '2024-01-01T00:00:00.000Z' as ISODateString,
+      '2024-01-01T00:00:00Z' as ISODateString,
+      '2024-01-01T00:00:00.123Z' as ISODateString,
     ];
 
     timestamps.forEach((ts) => {
@@ -148,7 +159,7 @@ describe('Settings type', () => {
 describe('Интеграционные тесты типов', () => {
   it('все типы являются строками или объектами на runtime', () => {
     const uuid: UUID = 'test-uuid' as UUID;
-    const timestamp: Timestamp = '2024-01-01T00:00:00Z';
+    const timestamp: ISODateString = '2024-01-01T00:00:00Z' as ISODateString;
     const jsonObject: JsonObject = { key: 'value' };
     const settings: Settings = { setting: true };
 
@@ -162,7 +173,7 @@ describe('Интеграционные тесты типов', () => {
   it('снапшот примеров использования', () => {
     const exampleFixture = {
       uuid: TEST_USER_ID as UUID,
-      timestamp: '2026-01-09T21:34:12.123Z' as Timestamp,
+      timestamp: '2026-01-09T21:34:12.123Z' as ISODateString,
       jsonObject: {
         user: 'john',
         age: 30,
@@ -412,5 +423,137 @@ describe('PolicyDecision type', () => {
     expect(decision.allow).toBe(false);
     expect(decision.reason).toBe('DENIED');
     expect('violation' in decision).toBe(false);
+  });
+});
+
+describe('GlobalUserRole enum (глобальные роли)', () => {
+  it('содержит все ожидаемые значения', () => {
+    expect(GlobalUserRole.GUEST).toBe('GUEST');
+    expect(GlobalUserRole.USER).toBe('USER');
+    expect(GlobalUserRole.PREMIUM).toBe('PREMIUM');
+    expect(GlobalUserRole.MODERATOR).toBe('MODERATOR');
+    expect(GlobalUserRole.ADMIN).toBe('ADMIN');
+    expect(GlobalUserRole.PLATFORM_OWNER).toBe('PLATFORM_OWNER');
+    expect(GlobalUserRole.SUPER_ADMIN).toBe('SUPER_ADMIN');
+  });
+
+  it('является canonical-источником глобальных ролей (фиксированный набор)', () => {
+    const roleKeys = Object.keys(GlobalUserRole);
+    const roleValues = Object.values(GlobalUserRole);
+
+    expect(roleKeys).toEqual([
+      'GUEST',
+      'USER',
+      'PREMIUM',
+      'MODERATOR',
+      'ADMIN',
+      'PLATFORM_OWNER',
+      'SUPER_ADMIN',
+    ]);
+
+    expect(roleValues).toEqual([
+      'GUEST',
+      'USER',
+      'PREMIUM',
+      'MODERATOR',
+      'ADMIN',
+      'PLATFORM_OWNER',
+      'SUPER_ADMIN',
+    ]);
+
+    expect(roleKeys).toHaveLength(7);
+    expect(roleValues).toHaveLength(7);
+  });
+});
+
+describe('ResourceRole type (роли в ресурсах)', () => {
+  it('поддерживает все ожидаемые строковые значения', () => {
+    const roles: ResourceRole[] = [
+      'OWNER',
+      'ADMIN',
+      'EDITOR',
+      'PARTICIPANT',
+      'VIEWER',
+    ];
+
+    expect(roles).toContain('VIEWER');
+    expect(roles).toContain('PARTICIPANT');
+    expect(roles).toContain('EDITOR');
+    expect(roles).toContain('OWNER');
+    expect(roles).toContain('ADMIN');
+  });
+
+  it('не позволяет присвоить произвольную строку (compile-time check)', () => {
+    // @ts-expect-error - 'UNKNOWN' не является допустимым ResourceRole
+    const invalidRole: ResourceRole = 'UNKNOWN';
+    expect(invalidRole).toBe('UNKNOWN');
+  });
+});
+
+describe('SystemRole enum (системные роли)', () => {
+  it('содержит SYSTEM роль', () => {
+    expect(SystemRole.SYSTEM).toBe('SYSTEM');
+  });
+});
+
+describe('AnyRole тип (унион всех ролей)', () => {
+  it('принимает глобальные, ресурсные и системные роли', () => {
+    const global: AnyRole = GlobalUserRole.ADMIN;
+    const resource: AnyRole = 'VIEWER';
+    const system: AnyRole = SystemRole.SYSTEM;
+
+    expect(global).toBe(GlobalUserRole.ADMIN);
+    expect(resource).toBe('VIEWER');
+    expect(system).toBe(SystemRole.SYSTEM);
+  });
+});
+
+describe('ActorRole тип (роли акторов, а не membership)', () => {
+  it('принимает только глобальные и системные роли', () => {
+    const global: ActorRole = GlobalUserRole.USER;
+    const system: ActorRole = SystemRole.SYSTEM;
+
+    expect(global).toBe(GlobalUserRole.USER);
+    expect(system).toBe(SystemRole.SYSTEM);
+  });
+
+  it('не принимает чисто ресурсные роли (compile-time check)', () => {
+    // @ts-expect-error - ResourceRole не должен быть ActorRole
+    const invalidActorRole: ActorRole = 'VIEWER';
+    expect(invalidActorRole).toBe('VIEWER');
+  });
+});
+
+describe('role type guards', () => {
+  it('isGlobalUserRole корректно определяет глобальные роли', () => {
+    const admin: AnyRole = GlobalUserRole.ADMIN;
+    const viewer: AnyRole = 'VIEWER';
+    const system: AnyRole = SystemRole.SYSTEM;
+
+    expect(isGlobalUserRole(admin)).toBe(true);
+    expect(isGlobalUserRole(viewer)).toBe(false);
+    expect(isGlobalUserRole(system)).toBe(false);
+  });
+
+  it('isSystemRole корректно определяет системные роли', () => {
+    const system: AnyRole = SystemRole.SYSTEM;
+    const user: AnyRole = GlobalUserRole.USER;
+    const editor: AnyRole = 'EDITOR';
+
+    expect(isSystemRole(system)).toBe(true);
+    expect(isSystemRole(user)).toBe(false);
+    expect(isSystemRole(editor)).toBe(false);
+  });
+
+  it('isResourceRole корректно определяет ресурсные роли', () => {
+    const editor: AnyRole = 'EDITOR';
+    const viewer: AnyRole = 'VIEWER';
+    const admin: AnyRole = GlobalUserRole.ADMIN;
+    const system: AnyRole = SystemRole.SYSTEM;
+
+    expect(isResourceRole(editor)).toBe(true);
+    expect(isResourceRole(viewer)).toBe(true);
+    expect(isResourceRole(admin)).toBe(true);
+    expect(isResourceRole(system)).toBe(false);
   });
 });

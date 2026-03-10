@@ -95,6 +95,11 @@
       "types": "./dist/performance/react.d.ts",
       "import": "./dist/performance/react.js",
       "default": "./dist/performance/react.js"
+    },
+    "./access-control": {
+      "types": "./dist/access-control/index.d.ts",
+      "import": "./dist/access-control/index.js",
+      "default": "./dist/access-control/index.js"
     }
   },
   "scripts": {

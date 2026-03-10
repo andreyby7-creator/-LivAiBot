@@ -28,8 +28,9 @@
  * - Тестируемость — каждая политика отдельно проверяема
  */
 
+import type { AuthGuardContext, Permission } from '@livai/core/access-control';
+
 import { UserRoles } from '../types/common.js';
-import type { AuthGuardContext, Permission } from './auth-guard.js';
 
 // Re-export types for convenience
 export type { Permission };

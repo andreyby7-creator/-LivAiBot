@@ -15,6 +15,7 @@ export default defineConfig({
     'telemetry/client': 'src/telemetry/client.ts',
     'transport/index': 'src/transport/index.ts',
     'performance/index': 'src/performance/index.ts',
+    'access-control/index': 'src/access-control/index.ts',
   },
   format: ['esm'],
   outDir: 'dist',

@@ -198,3 +198,22 @@ export * as transport from './transport/index.js';
  * @public
  */
 export * as performance from './performance/index.js';
+
+/* ============================================================================
+ * 🛡️ ACCESS CONTROL — AUTHORIZATION & ACCESS GUARD
+ * ========================================================================== */
+/**
+ * Access Control подпакет: система авторизации и контроля доступа.
+ * Включает core engine для проверки прав доступа (roles, permissions, resources),
+ * guards, authorization checks, error handling, и React hooks для интеграции с UI.
+ *
+ * Доступен как через subpath `@livai/core/access-control`,
+ * так и через главный индекс `@livai/core` под неймспейсом `accessControl`.
+ * React части включены в основной subpath `@livai/core/access-control`.
+ *
+ * Рекомендуется для feature-пакетов импортировать из `@livai/core/access-control`
+ * для явного разграничения слоев, но экспорт через главный индекс оставлен
+ * для удобства и tree-shakeable usage.
+ * @public
+ */
+export * as accessControl from './access-control/index.js';

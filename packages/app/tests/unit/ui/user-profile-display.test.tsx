@@ -8,14 +8,15 @@ import React from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 // Импортируем для тестов
-import type { AuthGuardContext, ID, Permission } from '../../../src/lib/auth-guard.js';
-import { UserRoles } from '../../../src/types/common.js';
+import type { AuthGuardContext, Permission } from '@livai/core/access-control';
+import type { AnyRole, ID } from '@livai/core-contracts';
+import { GlobalUserRole } from '@livai/core-contracts';
 
 import '@testing-library/jest-dom/vitest';
 
 // Mock useAuthGuardContext
-vi.mock('../../../src/lib/auth-guard.js', async () => {
-  const actual = await vi.importActual('../../../src/lib/auth-guard.js');
+vi.mock('@livai/core/access-control', async () => {
+  const actual = await vi.importActual('@livai/core/access-control');
   return {
     ...actual,
     useAuthGuardContext: () => mockAuthContext,
@@ -121,8 +122,8 @@ const mockAuthContext: AuthGuardContext = {
   ipAddress: '127.0.0.1',
   sessionId: 'test-session',
   userId: 'test-user-id' as ID,
-  roles: new Set([UserRoles.USER]),
-  permissions: new Set(['READ_PUBLIC'] as Permission[]),
+  roles: new Set<AnyRole>([GlobalUserRole.USER]),
+  permissions: new Set<Permission>(['READ_PUBLIC']),
 };
 
 describe('App UserProfileDisplay', () => {

@@ -96,17 +96,11 @@ export {
  * @public
  */
 export {
-  type Action,
   // API Client
   ApiClient,
   type ApiClientOptions,
   // App Lifecycle
   appLifecycle,
-  type AuthDecisionReason,
-  type AuthError,
-  type AuthErrorCode,
-  // Auth Guard (ID excluded - exported from types)
-  type AuthGuardContext,
   type AuthHookDepsConfig,
   buildHeaders,
   buildUrl,
@@ -156,12 +150,9 @@ export {
   // Error Mapping
   mapHttpError,
   parseJsonSafe,
-  type Permission,
   precacheMainUrls,
   precacheStaticUrls,
   resetGlobalTelemetryClient,
-  type Resource,
-  type ResourceType,
   type RouteDecisionReason,
   type RouteInfo,
   type RoutePermissionContext,
