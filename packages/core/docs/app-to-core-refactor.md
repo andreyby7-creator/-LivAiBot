@@ -574,52 +574,36 @@
 
 ---
 
-## 7️⃣ API / Boundary
+## 7️⃣ API / Boundary ✅ **ВЫПОЛНЕНО**
 
 ### 7.1 `api-schema-guard.ts` → `core/input-boundary/api-schema-guard.ts`
 
 **Порядок:** Перенос → адаптация зависимостей → валидация → тесты
 
-**Действия:**
+**Статус:** ✅ **ЗАВЕРШЕНО**
 
-- ✅ Перенести в `packages/core/src/input-boundary/api-schema-guard.ts`
-- ✅ Оставить Effect-based валидацию, strict mode, размеры
+**Краткий итог:** Логика старого `api-schema-guard.ts` перенесена и разделена на два модуля в core: orchestration‑слой `@livai/core/input-boundary/api-schema-guard` и runtime‑слой `@livai/core/input-boundary/api-validation-runtime` (security/errors/Zod/telemetry), с архитектурным апгрейдом (rule‑pipeline, EndpointPath, schema version, payload‑limits) и обновлённой интеграцией в app.
 
-**Файлы:**
+**Что сделано (orchestration + runtime):**
 
-- `packages/app/src/lib/api-schema-guard.ts` → `packages/core/src/input-boundary/api-schema-guard.ts`
-
-**Причина:** Boundary-слой между транспортом и доменом, архитектурно ближе к core, чем к app.
-
-**Зависимости:**
-
-- Текущий файл: импортирует `createHash` из `crypto`, `Effect` из `effect`, `TaggedError`, `ValidationContext`, `ValidationError`, `Validator` из `@livai/core/effect`, `ApiServiceName`, `HttpMethod` из `../types/api.js`, `telemetry-runtime` из `./telemetry-runtime.js`
-- Нет React/DOM зависимостей → безопасно переносить в core
-- `telemetry-runtime` → убрать зависимость, использовать DI для logger
-- `ApiServiceName`, `HttpMethod` → возможно, нужно перенести в `core-contracts` или оставить в app
-- Используется в: возможно, в app API клиентах
-
-**Миграция импорта:**
-
-- `app/src/lib/api-schema-guard.ts` → переместить в `core/src/input-boundary/api-schema-guard.ts`
-- Убрать зависимость от `telemetry-runtime`: использовать DI для logger
-- Решить судьбу `ApiServiceName`, `HttpMethod`: перенести в `core-contracts` или сделать generic
-- Проверить: `grep -r "from.*lib/api-schema-guard" packages/app/src` → обновить все вхождения
-- Валидация: `pnpm run type-check && pnpm run check:exports && pnpm run lint:canary`
+- ✅ Перенесён `packages/app/src/lib/api-schema-guard.ts` → `packages/core/src/input-boundary/api-schema-guard.ts` и выделен отдельный runtime‑слой `packages/core/src/input-boundary/api-validation-runtime.ts`
+- ✅ Сохранена и расширена Effect-based валидация, strict mode, проверки размеров payload (логика security/size вынесена в `api-validation-runtime.ts`, orchestration и типы — в `api-schema-guard.ts`)
+- ✅ Убрана зависимость от `telemetry-runtime`, вместо этого используется DI через `ApiValidationTelemetry` в runtime‑слое (`api-validation-runtime.ts`)
+- ✅ `ApiServiceName`/`HttpMethod` перенесены в `@livai/core-contracts/src/context/http-contracts.ts` как `ServiceName`/`HttpMethod`; app использует их из `@livai/core-contracts`
+- ✅ Обновлены все импорты в app на `@livai/core/input-boundary/api-schema-guard` и `@livai/core-contracts`
+- ✅ Реализован rule‑engine (`ApiValidationRule`, фазы pre/post, priority, maxSize) и брендинг путей через `EndpointPath`
 
 **Тесты:**
 
-- `app/tests/unit/lib/api-schema-guard.test.ts` → переместить в `core/tests/input-boundary/api-schema-guard.test.ts`
-- Обновить импорты в тестах: `import { ... } from '@livai/core/input-boundary/api-schema-guard'`
-- Обновить моки для logger
+- ✅ Старые тесты `app/tests/unit/lib/api-schema-guard.test.ts` удалены; написаны новые: `core/tests/input-boundary/api-schema-guard.test.ts`
+- ✅ Добавлены и прогнаны unit‑тесты для `api-validation-runtime`: `core/tests/input-boundary/api-validation-runtime.test.ts`
+- ✅ Тесты для HTTP‑контрактов (`core-contracts/tests/unit/context/http-contracts.test.ts`) актуализированы под новые `HttpMethod`/`ServiceName`
 
-**Экспорты:**
+**Экспорты и валидация:**
 
-- Добавить в `core/src/input-boundary/index.ts`: `export * from './api-schema-guard.js'`
-- Обновить `core/src/index.ts`: добавить экспорты input-boundary (если есть namespace)
-- Проверить tree-shaking: убедиться, что валидаторы экспортируются корректно
-
-**Обновление:** Перенесен `api-schema-guard.ts` в `@livai/core/input-boundary/api-schema-guard`. Убрана зависимость от `telemetry-runtime`, используется DI для logger. Решена судьба `ApiServiceName`/`HttpMethod` (перенесены в `core-contracts` или сделаны generic). Обновлены импорты и тесты.
+- ✅ `core/src/input-boundary/index.ts` и `core/src/index.ts` экспортируют API schema guard по договорённому публичному пути
+- ✅ Обновлён `useApi` в app для работы с `EndpointPath` и новым input‑boundary
+- ✅ Валидация пакетов: `tsc:check`, `@livai/core` build:types/build:js, `@livai/app` build:types/build проходят успешно; vitest‑тесты для core‑contracts и input‑boundary зелёные
 
 ---
 

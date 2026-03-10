@@ -3,11 +3,13 @@
  * ============================================================================
  * 🔌 USE API — ОРКЕСТРАТОР ВЫЗОВОВ API
  * ============================================================================
+ *
  * Назначение:
  * - Строго типизированные helpers для API (без строковых endpoint'ов)
  * - Нормализация ошибок через error-mapping
  * - Runtime безопасность через api-schema-guard
  * - Telemetry как side-effect
+ *
  * Принципы:
  * - useApi не знает детали транспорта
  * - useApi не содержит бизнес-логики
@@ -20,17 +22,21 @@ import { useMemo } from 'react';
 
 import type { MappedError } from '@livai/core/effect';
 import { mapError } from '@livai/core/effect';
-
-import type { ApiClient } from '../lib/api-client.js';
 import type {
   ApiRequestValidator,
   ApiResponseValidator,
   ApiSchemaConfig,
   ApiValidationContext,
-} from '../lib/api-schema-guard.js';
-import { validateApiRequest, validateApiResponse } from '../lib/api-schema-guard.js';
+  EndpointPath,
+} from '@livai/core/input-boundary/api-schema-guard';
+import {
+  validateApiRequest,
+  validateApiResponse,
+} from '@livai/core/input-boundary/api-schema-guard';
+
+import type { ApiClient } from '../lib/api-client.js';
 import { logFireAndForget } from '../lib/telemetry-runtime.js';
-import type { ApiHeaders, ApiRequestContext, ApiServiceName, HttpMethod } from '../types/api.js';
+import type { ApiHeaders, ApiRequestContext, HttpMethod, ServiceName } from '../types/api.js';
 import type { ComponentState, UiEvent, UiEventMap, UiMetrics } from '../types/ui-contracts.js';
 
 /** Алиас для UI событий в контексте API хуков */
@@ -49,7 +55,7 @@ export type ApiUiMetrics = UiMetrics;
 /** Определение endpoint'а с типизированными request/response и опциональной валидацией. */
 export type ApiEndpointDefinition<TRequest, TResponseRaw, TResponse = TResponseRaw> = Readonly<{
   /** Микросервис */
-  readonly service: ApiServiceName;
+  readonly service: ServiceName;
   /** HTTP метод */
   readonly method: HttpMethod;
   /** Endpoint path (string или фабрика) */
@@ -216,7 +222,7 @@ function prepareApiContexts(
 } {
   const requestId = createRequestId();
   const method = endpoint.method;
-  const endpointPath = resolvePath(endpoint.path, input);
+  const endpointPath = resolvePath(endpoint.path, input) as EndpointPath;
   const headers = resolveHeaders(endpoint.headers, input);
   const requestPayload = endpoint.mapRequest ? endpoint.mapRequest(input) : input;
 

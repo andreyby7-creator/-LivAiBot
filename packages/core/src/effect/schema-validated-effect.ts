@@ -122,24 +122,26 @@ interface ValidationSchemaLike<T> {
   };
 }
 
-/** Преобразует ошибки схемы в ValidationError массив. */
-function zodErrorsToValidationErrors(
-  zodError: {
-    issues: readonly {
-      path: readonly PropertyKey[];
-      message: string;
-    }[];
-  },
+/**
+ * Преобразует Zod-like issues в ValidationError[].
+ * Production: единый helper чтобы не дублировать mapping в boundary-модулях.
+ */
+export function zodIssuesToValidationErrors(
+  errorCode: ServiceErrorCode,
+  issues: readonly {
+    path: readonly PropertyKey[];
+    message: string;
+  }[],
   service?: ServicePrefix | undefined,
 ): readonly ValidationError[] {
-  return zodError.issues.map((issue): ValidationError => {
+  return issues.map((issue): ValidationError => {
     // Преобразуем PropertyKey[] в string[] для field (игнорируем symbol)
     const pathStrings = issue.path
       .filter((key): key is string | number => typeof key === 'string' || typeof key === 'number')
       .map((key) => String(key));
     const field = pathStrings.length > 0 ? pathStrings.join('.') : undefined;
 
-    return validationError('SYSTEM_VALIDATION_RESPONSE_SCHEMA_INVALID', {
+    return validationError(errorCode, {
       field,
       message: issue.message,
       details: issue,
@@ -210,7 +212,11 @@ export function validatedEffect<T, P>(
     }
 
     // Если валидация не прошла, преобразуем Zod ошибки в ValidationError
-    const validationErrors = zodErrorsToValidationErrors(parseResult.error, service);
+    const validationErrors = zodIssuesToValidationErrors(
+      errorCode ?? 'SYSTEM_VALIDATION_RESPONSE_SCHEMA_INVALID',
+      parseResult.error.issues,
+      service,
+    );
     telemetry?.onValidationError?.({ service, errorCode, errors: validationErrors });
 
     // Создаем DomainError через error-mapping (или используем кастомный mapper)

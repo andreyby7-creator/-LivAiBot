@@ -62,6 +62,10 @@
       "types": "./src/policies/*.ts",
       "import": "./src/policies/*.ts"
     },
+    "./input-boundary/*": {
+      "types": "./src/input-boundary/*.ts",
+      "import": "./src/input-boundary/*.ts"
+    },
     "./telemetry": {
       "types": "./dist/telemetry/index.d.ts",
       "import": "./dist/telemetry/index.js",

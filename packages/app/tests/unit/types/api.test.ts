@@ -25,7 +25,6 @@ import type {
   ApiRequestContext,
   ApiResponse,
   ApiRetryPolicy,
-  ApiServiceName,
   ApiSuccessResponse,
   AppFileStatus,
   BaseApiDTO,
@@ -36,6 +35,7 @@ import type {
   PaginationParams,
   RealtimeEvent,
   RealtimeSubscription,
+  ServiceName,
   SoftDeletable,
   UploadDomainStatus,
   VersionedEntity,
@@ -81,9 +81,9 @@ describe('HttpMethod тип', () => {
   });
 });
 
-describe('ApiServiceName тип', () => {
+describe('ServiceName тип', () => {
   it('принимает все поддерживаемые микросервисы', () => {
-    const services: ApiServiceName[] = [
+    const services: ServiceName[] = [
       'auth',
       'billing',
       'chat',
@@ -812,7 +812,7 @@ describe('Экспорты типов', () => {
     // Проверяем что типы существуют и могут быть использованы
     const testValues = {
       method: 'GET' as HttpMethod,
-      service: 'auth' as ApiServiceName,
+      service: 'auth' as ServiceName,
       errorCategory: 'VALIDATION' as ApiErrorCategory,
       errorSource: 'CLIENT' as ApiErrorSource,
       uploadStatus: 'idle' as UploadDomainStatus,

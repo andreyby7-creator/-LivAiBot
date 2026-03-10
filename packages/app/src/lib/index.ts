@@ -23,27 +23,6 @@ export {
 } from './api-client.js';
 
 /* ============================================================================
- * 🛡️ API SCHEMA GUARD — ВАЛИДАЦИЯ API
- * ========================================================================== */
-
-/**
- * API Schema Guard: валидация запросов и ответов API с типизацией.
- * @public
- */
-export {
-  type ApiRequestValidator,
-  type ApiResponseValidator,
-  type ApiSchemaConfig,
-  type ApiValidationContext,
-  type ApiValidationError,
-  type ApiValidationErrorCode,
-  enforceStrictValidation,
-  validateApiInteraction,
-  validateApiRequest,
-  validateApiResponse,
-} from './api-schema-guard.js';
-
-/* ============================================================================
  * 🛡️ AUTH GUARD — ЗАЩИТА ДОСТУПА
  * ========================================================================== */
 

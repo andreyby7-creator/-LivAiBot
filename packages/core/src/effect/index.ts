@@ -118,6 +118,7 @@ export {
   isSchemaValidationError,
   SchemaValidationError,
   validatedEffect,
+  zodIssuesToValidationErrors,
 } from './schema-validated-effect.js';
 
 /* ============================================================================

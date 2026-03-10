@@ -18,11 +18,6 @@
  * - ✅ StrictMode-safe: `createAuthHookDeps` не имеет side-effects кроме создания store.
  *   Store создаётся синхронно без автоматических refresh/подписок/background tasks.
  *
- * Тестирование:
- * - AuthHookProvider — чисто композиционный компонент, покрытие unit-тестом пропущено.
- * - Основная логика протестирована через useAuth DI-хук и auth-hook-deps.
- * - Транзитивные импорты ломают unit-тесты из-за ограничений Vite при разрешении модулей.
- *
  * Использование:
  * ```tsx
  * <AuthHookProvider config={authConfig}>

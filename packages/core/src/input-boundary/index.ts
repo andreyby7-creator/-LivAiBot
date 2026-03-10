@@ -143,3 +143,31 @@ export {
   type EnrichmentResult,
   registerEnricher,
 } from './context-enricher.js';
+
+/* ============================================================================
+ * 🛡️ API SCHEMA GUARD — API CONTRACT VALIDATION
+ * ========================================================================== */
+
+/**
+ * API Schema Guard: валидация запросов/ответов API на boundary-слое.
+ * @public
+ */
+export {
+  type ApiRequestValidator,
+  type ApiResponseValidator,
+  type ApiSchemaConfig,
+  type ApiValidationContext,
+  type ApiValidationError,
+  type ApiValidationErrorCode,
+  combineRequestValidators,
+  combineResponseValidators,
+  createRestApiSchema,
+  createZodRequestValidator,
+  createZodResponseValidator,
+  enforceStrictValidation,
+  getDefaultStrictMode,
+  validateApiInteraction,
+  validateApiRequest,
+  validateApiResponse,
+  validateSchemaVersion,
+} from './api-schema-guard.js';

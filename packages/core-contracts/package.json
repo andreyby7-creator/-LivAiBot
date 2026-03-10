@@ -28,6 +28,10 @@
       "import": "./dist/index.js",
       "default": "./dist/index.js"
     },
+    "./context/*": {
+      "types": "./dist/context/*.d.ts",
+      "import": "./dist/context/*.js"
+    },
     "./validation/zod": {
       "types": "./dist/validation/zod/index.d.ts",
       "import": "./dist/validation/zod/index.js",

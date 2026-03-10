@@ -17,11 +17,11 @@ vi.mock('effect', () => ({
 }));
 
 const schemaGuardMocks = vi.hoisted(() => ({
-  validateApiRequest: vi.fn((request: unknown) => request),
-  validateApiResponse: vi.fn((response: unknown) => response),
+  validateApiRequest: vi.fn((...args: any[]) => args[0]),
+  validateApiResponse: vi.fn((...args: any[]) => args[0]),
 }));
 
-vi.mock('../../../src/lib/api-schema-guard', () => ({
+vi.mock('@livai/core/input-boundary/api-schema-guard', () => ({
   validateApiRequest: schemaGuardMocks.validateApiRequest,
   validateApiResponse: schemaGuardMocks.validateApiResponse,
 }));
@@ -240,6 +240,234 @@ describe('useApi', () => {
     expect(telemetryMocks.logFireAndForget).not.toHaveBeenCalled();
   });
 
+  it('не логирует telemetry при telemetryEnabled=false даже для MappedError', async () => {
+    const mappedError = {
+      code: 'HTTP_500',
+      message: 'server',
+      timestamp: 1,
+    };
+
+    const client = {
+      request: vi.fn().mockRejectedValue(mappedError),
+    } as any;
+
+    const contract = {
+      fail: {
+        service: 'gateway',
+        method: 'GET',
+        path: '/fail',
+      },
+    } as const;
+
+    const { result } = renderHook(() => useApi({ client, contract, telemetryEnabled: false }));
+    await expect(result.current['fail'](undefined as never)).rejects.toBe(mappedError);
+    expect(telemetryMocks.logFireAndForget).not.toHaveBeenCalled();
+  });
+
+  it('прокидывает traceId/locale в validationContext когда они заданы', async () => {
+    const client = {
+      request: vi.fn().mockResolvedValue({ ok: true }),
+    } as any;
+
+    const contract = {
+      ok: {
+        service: 'gateway',
+        method: 'POST',
+        path: '/ok',
+        requestValidator: vi.fn((value: unknown) => ({ success: true as const, value })),
+      },
+    } as const;
+
+    const { result } = renderHook(() =>
+      useApi({ client, contract, context: { traceId: 't-1', locale: 'en' } })
+    );
+
+    await result.current['ok']({} as never);
+
+    const [, , validationContext] = schemaGuardMocks.validateApiRequest.mock.calls[0]!;
+    expect(validationContext).toEqual(expect.objectContaining({ traceId: 't-1', locale: 'en' }));
+  });
+
+  it('не добавляет пустые traceId/locale в validationContext', async () => {
+    const client = {
+      request: vi.fn().mockResolvedValue({ ok: true }),
+    } as any;
+
+    const contract = {
+      ok: {
+        service: 'gateway',
+        method: 'POST',
+        path: '/ok',
+        requestValidator: vi.fn((value: unknown) => ({ success: true as const, value })),
+      },
+    } as const;
+
+    const { result } = renderHook(() =>
+      useApi({ client, contract, context: { traceId: '', locale: '' } })
+    );
+
+    await result.current['ok']({} as never);
+
+    const [, , validationContext] = schemaGuardMocks.validateApiRequest.mock.calls[0]!;
+    expect(validationContext).not.toHaveProperty('traceId');
+    expect(validationContext).not.toHaveProperty('locale');
+  });
+
+  it('классифицирует telemetry errorKind как server по status>=500 (object, not MappedError)', async () => {
+    const client = {
+      request: vi.fn().mockRejectedValue(new Error('raw error')),
+    } as any;
+
+    const mappedError = { status: 503 };
+    errorMappingMocks.mapError.mockReturnValue(mappedError as any);
+
+    const contract = {
+      fail: {
+        service: 'gateway',
+        method: 'GET',
+        path: '/fail',
+      },
+    } as const;
+
+    const { result } = renderHook(() => useApi({ client, contract }));
+    await expect(result.current['fail'](undefined as never)).rejects.toBe(mappedError);
+
+    expect(telemetryMocks.logFireAndForget).toHaveBeenCalledWith(
+      'ERROR',
+      'API call failed',
+      expect.objectContaining({ errorKind: 'server' }),
+    );
+  });
+
+  it('классифицирует telemetry errorKind как client по status>=400 (object, not MappedError)', async () => {
+    const client = {
+      request: vi.fn().mockRejectedValue(new Error('raw error')),
+    } as any;
+
+    const mappedError = { status: 404 };
+    errorMappingMocks.mapError.mockReturnValue(mappedError as any);
+
+    const contract = {
+      fail: {
+        service: 'gateway',
+        method: 'GET',
+        path: '/fail',
+      },
+    } as const;
+
+    const { result } = renderHook(() => useApi({ client, contract }));
+    await expect(result.current['fail'](undefined as never)).rejects.toBe(mappedError);
+
+    expect(telemetryMocks.logFireAndForget).toHaveBeenCalledWith(
+      'ERROR',
+      'API call failed',
+      expect.objectContaining({ errorKind: 'client' }),
+    );
+  });
+
+  it('классифицирует telemetry errorKind как network по name=TypeError (object, not MappedError)', async () => {
+    const client = {
+      request: vi.fn().mockRejectedValue(new Error('raw error')),
+    } as any;
+
+    const mappedError = { name: 'TypeError' };
+    errorMappingMocks.mapError.mockReturnValue(mappedError as any);
+
+    const contract = {
+      fail: {
+        service: 'gateway',
+        method: 'GET',
+        path: '/fail',
+      },
+    } as const;
+
+    const { result } = renderHook(() => useApi({ client, contract }));
+    await expect(result.current['fail'](undefined as never)).rejects.toBe(mappedError);
+
+    expect(telemetryMocks.logFireAndForget).toHaveBeenCalledWith(
+      'ERROR',
+      'API call failed',
+      expect.objectContaining({ errorKind: 'network' }),
+    );
+  });
+
+  it('классифицирует telemetry errorKind как unknown для не-объектов (primitive from mapError)', async () => {
+    const client = {
+      request: vi.fn().mockRejectedValue(new Error('raw error')),
+    } as any;
+
+    errorMappingMocks.mapError.mockReturnValue('boom' as any);
+
+    const contract = {
+      fail: {
+        service: 'gateway',
+        method: 'GET',
+        path: '/fail',
+      },
+    } as const;
+
+    const { result } = renderHook(() => useApi({ client, contract }));
+    await expect(result.current['fail'](undefined as never)).rejects.toBe('boom');
+
+    expect(telemetryMocks.logFireAndForget).toHaveBeenCalledWith(
+      'ERROR',
+      'API call failed',
+      expect.objectContaining({ errorKind: 'unknown' }),
+    );
+  });
+
+  it('классифицирует telemetry errorKind как unknown для объектов без status и без name=TypeError', async () => {
+    const client = {
+      request: vi.fn().mockRejectedValue(new Error('raw error')),
+    } as any;
+
+    const mappedError = { foo: 'bar' };
+    errorMappingMocks.mapError.mockReturnValue(mappedError as any);
+
+    const contract = {
+      fail: {
+        service: 'gateway',
+        method: 'GET',
+        path: '/fail',
+      },
+    } as const;
+
+    const { result } = renderHook(() => useApi({ client, contract }));
+    await expect(result.current['fail'](undefined as never)).rejects.toBe(mappedError);
+
+    expect(telemetryMocks.logFireAndForget).toHaveBeenCalledWith(
+      'ERROR',
+      'API call failed',
+      expect.objectContaining({ errorKind: 'unknown' }),
+    );
+  });
+
+  it('классифицирует telemetry errorKind как unknown для объектов со status<400', async () => {
+    const client = {
+      request: vi.fn().mockRejectedValue(new Error('raw error')),
+    } as any;
+
+    const mappedError = { status: 200 };
+    errorMappingMocks.mapError.mockReturnValue(mappedError as any);
+
+    const contract = {
+      fail: {
+        service: 'gateway',
+        method: 'GET',
+        path: '/fail',
+      },
+    } as const;
+
+    const { result } = renderHook(() => useApi({ client, contract }));
+    await expect(result.current['fail'](undefined as never)).rejects.toBe(mappedError);
+
+    expect(telemetryMocks.logFireAndForget).toHaveBeenCalledWith(
+      'ERROR',
+      'API call failed',
+      expect.objectContaining({ errorKind: 'unknown' }),
+    );
+  });
+
   it('использует randomUUID для requestId если доступно', async () => {
     const randomUUID = vi.fn(() => 'uuid-123');
     Object.defineProperty(globalThis, 'crypto', {
@@ -274,6 +502,74 @@ describe('useApi', () => {
       expect.any(Error),
       expect.objectContaining({ requestId: 'uuid-123' }),
       expect.objectContaining({ locale: 'ru', timestamp: expect.any(Number) }),
+    );
+  });
+
+  it('использует fallback requestId если crypto есть, но randomUUID недоступен', async () => {
+    // crypto есть, но без randomUUID
+    Object.defineProperty(globalThis, 'crypto', {
+      value: {},
+      configurable: true,
+    });
+
+    const client = {
+      request: vi.fn().mockRejectedValue(new Error('raw error')),
+    } as any;
+
+    errorMappingMocks.mapError.mockReturnValue({
+      code: 'SYSTEM_UNKNOWN_ERROR',
+      message: 'mapped',
+      timestamp: 1,
+    });
+
+    const contract = {
+      fail: {
+        service: 'gateway',
+        method: 'GET',
+        path: '/fail',
+      },
+    } as const;
+
+    const { result } = renderHook(() => useApi({ client, contract }));
+
+    vi.spyOn(Date, 'now').mockReturnValue(1234567890000);
+    vi.spyOn(Math, 'random').mockReturnValue(0.123456789);
+
+    await expect(result.current['fail'](undefined as never)).rejects.toEqual(
+      expect.objectContaining({ code: 'SYSTEM_UNKNOWN_ERROR' }),
+    );
+
+    // requestId должен быть сгенерен через fallback
+    expect(errorMappingMocks.mapError).toHaveBeenCalledWith(
+      expect.any(Error),
+      expect.objectContaining({
+        requestId: expect.stringMatching(/^req_1234567890000_/),
+      }),
+      expect.objectContaining({ locale: 'ru', timestamp: expect.any(Number) }),
+    );
+  });
+
+  it('поддерживает headers как объект (не функция)', async () => {
+    const client = {
+      request: vi.fn().mockResolvedValue({ ok: true }),
+    } as any;
+
+    const contract = {
+      health: {
+        service: 'gateway',
+        method: 'GET',
+        path: '/health',
+        headers: { 'x-static': '1' } as any,
+      },
+    } as const;
+
+    const { result } = renderHook(() => useApi({ client, contract }));
+    await result.current['health'](undefined as never);
+
+    expect(client.request).toHaveBeenCalledWith(
+      expect.objectContaining({
+        headers: { 'x-static': '1' },
+      }),
     );
   });
 

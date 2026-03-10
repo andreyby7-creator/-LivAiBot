@@ -3,8 +3,10 @@
  * ============================================================================
  * 🌐 БАЗОВЫЕ API КОНТРАКТЫ ПРИЛОЖЕНИЯ
  * ============================================================================
+ *
  * Этот файл описывает универсальные типы для взаимодействия с backend
  * микросервисами (REST, WebSocket, SSE).
+ *
  * Принципы:
  * - Строгая типизация
  * - Discriminated unions вместо boolean-флагов
@@ -13,6 +15,9 @@
  * - Zero-runtime-cost, только типы
  */
 
+export type { HttpMethod, ServiceName } from '@livai/core-contracts';
+import type { HttpMethod } from '@livai/core-contracts';
+
 import type { ID, ISODateString, Json, Platform } from './common.js';
 import type { UiAuthContext } from './ui-contracts.js';
 
@@ -20,26 +25,7 @@ import type { UiAuthContext } from './ui-contracts.js';
 /* 🧱 БАЗОВЫЕ HTTP КОНТРАКТЫ */
 /* ========================================================================== */
 
-/** Поддерживаемые HTTP методы. Используется api-client и эффектами. */
-export type HttpMethod =
-  | 'GET'
-  | 'POST'
-  | 'PUT'
-  | 'PATCH'
-  | 'DELETE'
-  | 'OPTIONS'
-  | 'HEAD';
-
-/**
- * 🌍 Имена микросервисов для service discovery.
- * Используется api-client для маршрутизации запросов.
- */
-export type ApiServiceName =
-  | 'auth'
-  | 'billing'
-  | 'chat'
-  | 'bots'
-  | 'gateway';
+// HttpMethod и ServiceName импортируются из @livai/core-contracts (foundation)
 
 /** Контекст API запроса. Используется для трассировки и авторизации. */
 export type ApiRequestContext = {

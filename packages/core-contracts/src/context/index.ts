@@ -17,3 +17,14 @@
  * @public
  */
 export * from './headers.js';
+
+/* ============================================================================
+ * 🌐 HTTP — METHODS & SERVICE DISCOVERY
+ * ========================================================================== */
+
+/**
+ * Foundation-типы HTTP (методы) и service discovery (имена микросервисов).
+ * Используются input-boundary/transport без зависимости от app.
+ * @public
+ */
+export * from './http-contracts.js';
