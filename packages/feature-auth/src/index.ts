@@ -42,7 +42,8 @@ export * from './schemas/index.js';
 /**
  * Types подпакет: агрегирующие типы для состояния и статусов аутентификации.
  * Включает AuthState, MfaState, OAuthState, SecurityState, SessionState,
- * RiskContext, RiskPolicy, RiskAssessmentResult и все связанные типы.
+ * VerificationState, PasswordRecoveryState, RiskContext, RiskPolicy, RiskAssessmentResult
+ * и все связанные типы.
  * @public
  */
 export * from './types/index.js';
@@ -53,9 +54,11 @@ export * from './types/index.js';
 
 /**
  * Effects подпакет: pure effects для аутентификации.
- * Включает Login Metadata Enricher, Risk Assessment Adapter, Risk Assessment,
+ * Включает orchestrators (createLoginEffect, createRegisterEffect, createRefreshEffect, createLogoutEffect),
+ * Login Metadata Enricher, Register Metadata Enricher, Risk Assessment Adapter, Risk Assessment,
  * Classification Mapper, Error Mapper, Validation, Device Fingerprint,
- * Login API Mapper, Login Store Updater, Login Effect DI Types и все связанные типы.
+ * API Mappers (Login, Register, Refresh), Store Updaters (Login, Register, Refresh, Logout),
+ * Audit Mappers, Effect DI Types и все связанные типы.
  * @public
  */
 export * from './effects/index.js';
@@ -66,7 +69,11 @@ export * from './effects/index.js';
 
 /**
  * Lib подпакет: библиотечные утилиты для безопасности.
- * Включает Security Pipeline для оценки рисков и принятия решений.
+ * Включает Security Pipeline для оценки рисков и принятия решений,
+ * Error Mapper для трансформации API ошибок, Classification Mapper для адаптации classification labels,
+ * Device Fingerprint для сбора данных об устройстве, Risk Assessment для оценки рисков входа,
+ * Risk Assessment Adapter для адаптации между classification и domain слоями,
+ * Session Manager для управления жизненным циклом сессий.
  * @public
  */
 export * from './lib/index.js';

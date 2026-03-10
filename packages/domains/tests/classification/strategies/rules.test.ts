@@ -19,7 +19,6 @@ import type {
 } from '../../../src/classification/strategies/rules.js';
 import {
   allRules,
-  allRulesDeprecated,
   clearEnabledRulesCache,
   compositeRules,
   deviceRules,
@@ -97,9 +96,8 @@ describe('allRules и экспорты правил', () => {
     expect(Array.isArray(allRules)).toBe(true);
   });
 
-  it('allRulesDeprecated равен allRules', () => {
-    expect(allRulesDeprecated).toBe(allRules);
-  });
+  // Удалено: allRulesDeprecated был deprecated alias для allRules
+  // Используйте allRules напрямую
 
   it('deviceRules содержит правила устройств', () => {
     expect(deviceRules.length).toBeGreaterThan(0);

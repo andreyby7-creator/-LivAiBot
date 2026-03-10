@@ -23,12 +23,12 @@ import type { CSSProperties, JSX, ReactNode, Ref } from 'react';
 import { forwardRef, memo, useEffect, useMemo, useRef } from 'react';
 
 import { useAuthGuardContext } from '@livai/core/access-control';
+import type { RoutePermissionContext } from '@livai/core/access-control/route-permissions';
+import { checkRoutePermission } from '@livai/core/access-control/route-permissions';
 import type { CoreUserProfileDisplayProps, UserProfileData } from '@livai/ui-core';
 import { UserProfileDisplay as CoreUserProfileDisplay } from '@livai/ui-core';
 
 import type { Namespace, TranslationKey } from '../lib/i18n.js';
-import type { RoutePermissionContext } from '../lib/route-permissions.js';
-import { checkRoutePermission } from '../lib/route-permissions.js';
 import { useUnifiedUI } from '../providers/UnifiedUIProvider.js';
 import type { Json } from '../types/common.js';
 import type {

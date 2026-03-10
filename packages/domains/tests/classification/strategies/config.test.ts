@@ -12,14 +12,12 @@ import type {
   RuleThresholds,
 } from '../../../src/classification/strategies/config.js';
 import {
-  classificationRulesConfigManager,
   DEFAULT_CLASSIFICATION_RULES_CONFIG,
   DEFAULT_CRITICAL_RULE_PRIORITY_THRESHOLD,
   DEFAULT_HIGH_RISK_COUNTRIES,
   DEFAULT_RULE_THRESHOLDS,
   getClassificationRulesConfig,
   isClassificationRuleEnabled,
-  registerClearEnabledRulesCacheCallback,
   registerConfigChangeCallback,
   resetClassificationRulesConfig,
   unregisterConfigChangeCallback,
@@ -429,28 +427,8 @@ describe('unregisterConfigChangeCallback', () => {
   });
 });
 
-// eslint-disable-next-line ai-security/token-leakage -- registerClearEnabledRulesCacheCallback это имя функции, не токен
-describe('registerClearEnabledRulesCacheCallback', () => {
-  it('регистрирует callback (deprecated, но работает)', () => {
-    const callback = vi.fn();
-    registerClearEnabledRulesCacheCallback(callback);
-    updateClassificationRulesConfig({ criticalRulePriorityThreshold: 85 });
-    expect(callback).toHaveBeenCalledTimes(1);
-    unregisterConfigChangeCallback(callback);
-  });
-
-  it('работает как alias для registerConfigChangeCallback', () => {
-    const callback1 = vi.fn();
-    const callback2 = vi.fn();
-    registerConfigChangeCallback(callback1);
-    registerClearEnabledRulesCacheCallback(callback2);
-    updateClassificationRulesConfig({ criticalRulePriorityThreshold: 85 });
-    expect(callback1).toHaveBeenCalledTimes(1);
-    expect(callback2).toHaveBeenCalledTimes(1);
-    unregisterConfigChangeCallback(callback1);
-    unregisterConfigChangeCallback(callback2);
-  });
-});
+// Удалено: registerClearEnabledRulesCacheCallback был deprecated alias для registerConfigChangeCallback
+// Используйте registerConfigChangeCallback напрямую
 
 describe('Callback Protection from Recursion', () => {
   it('защищает от рекурсии при вызове callbacks', () => {
@@ -858,52 +836,8 @@ describe('FNV-1a Hash (через rollout)', () => {
   });
 });
 
-/* ============================================================================
- * 📦 CONFIG MANAGER (Deprecated) — TESTS
- * ============================================================================
- */
-
-// eslint-disable-next-line ai-security/token-leakage -- classificationRulesConfigManager это имя объекта, не токен
-describe('classificationRulesConfigManager', () => {
-  it('экспортирует все необходимые методы', () => {
-    expect(classificationRulesConfigManager).toHaveProperty('getConfig');
-    expect(classificationRulesConfigManager).toHaveProperty('updateConfig');
-    expect(classificationRulesConfigManager).toHaveProperty('resetConfig');
-    expect(classificationRulesConfigManager).toHaveProperty('isRuleEnabled');
-  });
-
-  it('getConfig возвращает конфигурацию', () => {
-    const config = classificationRulesConfigManager.getConfig();
-    expect(config).toBeDefined();
-    expect(config).toEqual(getClassificationRulesConfig());
-  });
-
-  it('updateConfig обновляет конфигурацию', () => {
-    classificationRulesConfigManager.updateConfig({ criticalRulePriorityThreshold: 85 });
-    const config = classificationRulesConfigManager.getConfig();
-    expect(config.criticalRulePriorityThreshold).toBe(85);
-    resetClassificationRulesConfig();
-  });
-
-  it('resetConfig сбрасывает конфигурацию', () => {
-    classificationRulesConfigManager.updateConfig({ criticalRulePriorityThreshold: 85 });
-    classificationRulesConfigManager.resetConfig();
-    const config = classificationRulesConfigManager.getConfig();
-    expect(config).toEqual(DEFAULT_CLASSIFICATION_RULES_CONFIG);
-  });
-
-  it('isRuleEnabled проверяет включение правила', () => {
-    const featureFlags: readonly RuleFeatureFlag[] = [
-      {
-        ruleId: 'test-rule',
-        enabled: true,
-      },
-    ];
-    classificationRulesConfigManager.updateConfig({ featureFlags });
-    expect(classificationRulesConfigManager.isRuleEnabled('test-rule')).toBe(true);
-    resetClassificationRulesConfig();
-  });
-});
+// Удалено: classificationRulesConfigManager был deprecated объект
+// Используйте функции напрямую: getClassificationRulesConfig, updateClassificationRulesConfig, resetClassificationRulesConfig, isClassificationRuleEnabled
 
 /* ============================================================================
  * 🔗 INTEGRATION — TESTS

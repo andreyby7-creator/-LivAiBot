@@ -1,7 +1,7 @@
 /**
  * @file Типы и DTO для управления диалогами и сообщениями
  */
-import type { Timestamp, UUID } from './common.js';
+import type { ISODateString, UUID } from './common.js';
 
 /**
  * Ответ с информацией о треде диалога.
@@ -11,7 +11,7 @@ export interface ThreadResponse {
   workspace_id: UUID;
   bot_id?: UUID;
   status: 'active';
-  created_at: Timestamp;
+  created_at: ISODateString;
 }
 
 /**
@@ -22,7 +22,7 @@ export interface MessageResponse {
   thread_id: UUID;
   role: 'user' | 'assistant' | 'system';
   content: string;
-  created_at: Timestamp;
+  created_at: ISODateString;
 }
 
 /**
@@ -76,7 +76,7 @@ export interface Conversation {
   type?: string;
   created_by: UUID;
   status: 'active' | 'archived';
-  created_at: Timestamp;
-  updated_at: Timestamp;
+  created_at: ISODateString;
+  updated_at: ISODateString;
   metadata?: Record<string, unknown>;
 }

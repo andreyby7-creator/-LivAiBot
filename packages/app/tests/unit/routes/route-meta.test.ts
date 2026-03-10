@@ -14,7 +14,10 @@
 
 import { afterAll, describe, expect, it, vi } from 'vitest';
 
-import type { RoutePermissionContext } from '../../../src/lib/route-permissions.js';
+import type { RoutePermissionContext } from '@livai/core/access-control/route-permissions';
+import type { AnyRole } from '@livai/core-contracts';
+import { GlobalUserRole } from '@livai/core-contracts';
+
 import type { RouteMeta } from '../../../src/routes/route-meta.js';
 import {
   canAccessRouteByName,
@@ -427,7 +430,7 @@ describe('checkComprehensiveRouteAccess функция', () => {
   ): RoutePermissionContext => ({
     requestId: 'test-request',
     isAuthenticated: true,
-    userRoles: new Set([UserRoles.USER]),
+    userRoles: new Set([GlobalUserRole.USER]) as ReadonlySet<AnyRole>,
     userPermissions: new Set(),
     ...overrides,
   });
@@ -437,7 +440,7 @@ describe('checkComprehensiveRouteAccess функция', () => {
       RouteNames.LOGIN,
       createMockRouteContext({
         isAuthenticated: false,
-        userRoles: new Set(),
+        userRoles: new Set() as ReadonlySet<AnyRole>,
       }),
     );
 
@@ -461,7 +464,7 @@ describe('checkComprehensiveRouteAccess функция', () => {
     const result = checkComprehensiveRouteAccess(
       RouteNames.BOTS_CREATE,
       createMockRouteContext({
-        userRoles: new Set([UserRoles.USER]), // USER недостаточно для BOTS_CREATE
+        userRoles: new Set([GlobalUserRole.USER]) as ReadonlySet<AnyRole>, // USER недостаточно для BOTS_CREATE
       }),
     );
 
@@ -474,7 +477,7 @@ describe('checkComprehensiveRouteAccess функция', () => {
     const result = checkComprehensiveRouteAccess(
       RouteNames.PROFILE,
       createMockRouteContext({
-        userRoles: new Set([UserRoles.USER]),
+        userRoles: new Set([GlobalUserRole.USER]) as ReadonlySet<AnyRole>,
       }),
     );
 
@@ -487,7 +490,7 @@ describe('checkComprehensiveRouteAccess функция', () => {
     const result = checkComprehensiveRouteAccess(
       RouteNames.BOTS_LIST,
       createMockRouteContext({
-        userRoles: new Set([UserRoles.USER]),
+        userRoles: new Set([GlobalUserRole.USER]) as ReadonlySet<AnyRole>,
       }),
     );
 
@@ -528,7 +531,7 @@ describe('checkComprehensiveRouteAccess функция', () => {
     const result = checkComprehensiveRouteAccess(
       RouteNames.BOTS_CREATE,
       createMockRouteContext({
-        userRoles: new Set([UserRoles.ADMIN]), // правильная роль из route-meta.ts
+        userRoles: new Set([GlobalUserRole.ADMIN]) as ReadonlySet<AnyRole>, // правильная роль из route-meta.ts
         userPermissions: new Set(), // но нет необходимых permissions для route-permissions.ts
       }),
     );
@@ -752,7 +755,7 @@ describe('Экспорты модуля', () => {
         context: {
           requestId: 'test',
           isAuthenticated: true,
-          userRoles: new Set([UserRoles.USER]),
+          userRoles: new Set([GlobalUserRole.USER]) as ReadonlySet<AnyRole>,
         },
         expected: true,
       },
@@ -761,7 +764,7 @@ describe('Экспорты модуля', () => {
         context: {
           requestId: 'test',
           isAuthenticated: true,
-          userRoles: new Set([UserRoles.USER]),
+          userRoles: new Set([GlobalUserRole.USER]) as ReadonlySet<AnyRole>,
         },
         expected: false,
       },
@@ -770,7 +773,7 @@ describe('Экспорты модуля', () => {
         context: {
           requestId: 'test',
           isAuthenticated: true,
-          userRoles: new Set([UserRoles.ADMIN]),
+          userRoles: new Set([GlobalUserRole.ADMIN]) as ReadonlySet<AnyRole>,
           userPermissions: new Set(['SYSTEM_ADMIN', 'MANAGE_USERS']),
         },
         expected: true,

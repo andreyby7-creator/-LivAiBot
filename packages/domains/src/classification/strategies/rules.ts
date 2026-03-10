@@ -580,9 +580,6 @@ export const allRules: readonly ExtendedRuleDefinition[] = [
   ...COMPOSITE_RULES,
 ] as const;
 
-/** @deprecated Используйте allRules */
-export const allRulesDeprecated = allRules;
-
 /**
  * Индекс правил по ID для быстрого поиска O(1)
  * Поддерживает масштабирование на сотни правил через Map lookup

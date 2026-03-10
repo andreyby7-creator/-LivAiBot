@@ -1,7 +1,7 @@
 /**
  * @file Типы и DTO для управления ботами
  */
-import type { JsonObject, Timestamp, UUID } from './common.js';
+import type { ISODateString, JsonObject, UUID } from './common.js';
 
 /**
  * Ответ с информацией о боте.
@@ -11,7 +11,7 @@ export interface BotResponse {
   workspace_id: UUID;
   name: string;
   status: 'draft' | 'active';
-  created_at: Timestamp;
+  created_at: ISODateString;
   current_version: number;
 }
 

@@ -11,7 +11,7 @@ import type {
   AuthGuardContextCore,
   Permission,
   Resource,
-} from '../../../src/access-control/auth-guard.js';
+} from '../../src/access-control/auth-guard.js';
 import {
   checkAccess,
   checkAuthorization,
@@ -20,7 +20,7 @@ import {
   eitherGuard,
   requirePermission,
   requireRole,
-} from '../../../src/access-control/auth-guard.js';
+} from '../../src/access-control/auth-guard.js';
 
 const makeResource = (overrides: Partial<Resource> = {}): Resource => ({
   type: 'public',
@@ -63,8 +63,9 @@ describe('checkAccess', () => {
 
     expect(decision.allow).toBe(false);
     expect(decision.reason).toBe('NOT_AUTHENTICATED');
-    const deny = decision as Extract<AuthDecision, { allow: false; }>;
-    expect(deny.error?.code).toBe('AUTH_MISSING_TOKEN');
+    if (!decision.allow) {
+      expect(decision.error?.code).toBe('AUTH_MISSING_TOKEN');
+    }
   });
 
   it('делегирует в checkAuthorization с пустыми наборами, если роли/permissions не заданы', () => {
@@ -73,8 +74,9 @@ describe('checkAccess', () => {
 
     expect(decision.allow).toBe(false);
     expect(decision.reason).toBe('NO_ROLES');
-    const deny = decision as Extract<AuthDecision, { allow: false; }>;
-    expect(deny.error?.code).toBe('AUTH_INVALID_ROLE');
+    if (!decision.allow) {
+      expect(decision.error?.code).toBe('AUTH_INVALID_ROLE');
+    }
   });
 });
 
@@ -87,8 +89,9 @@ describe('checkAuthorization', () => {
 
     expect(decision.allow).toBe(false);
     expect(decision.reason).toBe('NO_ROLES');
-    const deny = decision as Extract<AuthDecision, { allow: false; }>;
-    expect(deny.error?.code).toBe('AUTH_INVALID_ROLE');
+    if (!decision.allow) {
+      expect(decision.error?.code).toBe('AUTH_INVALID_ROLE');
+    }
   });
 
   it('использует guest shortcut и ограничивает действия', () => {
@@ -161,9 +164,10 @@ describe('checkAuthorization', () => {
 
     expect(decision.allow).toBe(false);
     expect(decision.reason).toBe('INSUFFICIENT_PERMISSIONS');
-    const deny = decision as Extract<AuthDecision, { allow: false; }>;
-    expect(deny.error?.code).toBe('AUTH_INSUFFICIENT_PERMISSIONS');
-    expect(deny.error?.requiredPermissions).toEqual(['READ_PUBLIC']);
+    if (!decision.allow) {
+      expect(decision.error?.code).toBe('AUTH_INSUFFICIENT_PERMISSIONS');
+      expect(decision.error?.requiredPermissions).toEqual(['READ_PUBLIC']);
+    }
   });
 
   it('отказывает, если нет владения приватным ресурсом и нет elevated доступа', () => {
@@ -204,78 +208,46 @@ describe('checkAuthorization', () => {
       );
 
     // READ
-    expect(
-      (makeDecision('READ', makeResource({ type: 'public' })) as Extract<
-        AuthDecision,
-        { allow: false; }
-      >)
-        .error?.requiredPermissions,
-    )
-      .toEqual(['READ_PUBLIC']);
-    expect(
-      (makeDecision('READ', makeResource({ type: 'private' })) as Extract<
-        AuthDecision,
-        { allow: false; }
-      >)
-        .error?.requiredPermissions,
-    )
-      .toEqual(['READ_PRIVATE']);
+    const readPublicDecision = makeDecision('READ', makeResource({ type: 'public' }));
+    if (!readPublicDecision.allow) {
+      expect(readPublicDecision.error?.requiredPermissions).toEqual(['READ_PUBLIC']);
+    }
+    const readPrivateDecision = makeDecision('READ', makeResource({ type: 'private' }));
+    if (!readPrivateDecision.allow) {
+      expect(readPrivateDecision.error?.requiredPermissions).toEqual(['READ_PRIVATE']);
+    }
 
     // WRITE
-    expect(
-      (makeDecision('WRITE', makeResource({ type: 'public' })) as Extract<
-        AuthDecision,
-        { allow: false; }
-      >)
-        .error?.requiredPermissions,
-    )
-      .toEqual(['WRITE_PUBLIC']);
-    expect(
-      (makeDecision('WRITE', makeResource({ type: 'private' })) as Extract<
-        AuthDecision,
-        { allow: false; }
-      >)
-        .error?.requiredPermissions,
-    )
-      .toEqual(['WRITE_PRIVATE']);
+    const writePublicDecision = makeDecision('WRITE', makeResource({ type: 'public' }));
+    if (!writePublicDecision.allow) {
+      expect(writePublicDecision.error?.requiredPermissions).toEqual(['WRITE_PUBLIC']);
+    }
+    const writePrivateDecision = makeDecision('WRITE', makeResource({ type: 'private' }));
+    if (!writePrivateDecision.allow) {
+      expect(writePrivateDecision.error?.requiredPermissions).toEqual(['WRITE_PRIVATE']);
+    }
 
     // DELETE
-    expect(
-      (makeDecision('DELETE', makeResource({ type: 'public' })) as Extract<
-        AuthDecision,
-        { allow: false; }
-      >)
-        .error?.requiredPermissions,
-    )
-      .toEqual(['DELETE_PUBLIC']);
-    expect(
-      (makeDecision('DELETE', makeResource({ type: 'private' })) as Extract<
-        AuthDecision,
-        { allow: false; }
-      >)
-        .error?.requiredPermissions,
-    )
-      .toEqual(['DELETE_PRIVATE']);
+    const deletePublicDecision = makeDecision('DELETE', makeResource({ type: 'public' }));
+    if (!deletePublicDecision.allow) {
+      expect(deletePublicDecision.error?.requiredPermissions).toEqual(['DELETE_PUBLIC']);
+    }
+    const deletePrivateDecision = makeDecision('DELETE', makeResource({ type: 'private' }));
+    if (!deletePrivateDecision.allow) {
+      expect(deletePrivateDecision.error?.requiredPermissions).toEqual(['DELETE_PRIVATE']);
+    }
 
     // MODERATE
-    expect(
-      (makeDecision('MODERATE', makeResource({ type: 'public' })) as Extract<
-        AuthDecision,
-        { allow: false; }
-      >)
-        .error?.requiredPermissions,
-    )
-      .toEqual(['MODERATE_CONTENT']);
+    const moderateDecision = makeDecision('MODERATE', makeResource({ type: 'public' }));
+    if (!moderateDecision.allow) {
+      expect(moderateDecision.error?.requiredPermissions).toEqual(['MODERATE_CONTENT']);
+    }
 
     // ADMIN
-    expect(
-      (makeDecision('ADMIN', makeResource({ type: 'public' })) as Extract<
-        AuthDecision,
-        { allow: false; }
-      >)
-        .error?.requiredPermissions,
-    )
-      .toEqual(['SYSTEM_ADMIN']);
+    const adminDecision = makeDecision('ADMIN', makeResource({ type: 'public' }));
+    if (!adminDecision.allow) {
+      expect(adminDecision.error?.requiredPermissions).toEqual(['SYSTEM_ADMIN']);
+    }
   });
 
   it('разрешает доступ владельцу приватного ресурса при наличии permissions', () => {
@@ -358,11 +330,13 @@ describe('combineGuards', () => {
     const denyGuard = makeInsufficientPermissionsDecision;
 
     const combined = combineGuards(allowGuard, denyGuard, allowGuard);
-    const decision = combined(makeContext()) as Extract<AuthDecision, { allow: false; }>;
+    const decision = combined(makeContext());
 
     expect(decision.allow).toBe(false);
     expect(decision.reason).toBe('INSUFFICIENT_PERMISSIONS');
-    expect(decision.error?.code).toBe('AUTH_INSUFFICIENT_PERMISSIONS');
+    if (!decision.allow) {
+      expect(decision.error?.code).toBe('AUTH_INSUFFICIENT_PERMISSIONS');
+    }
   });
 
   it("возвращает SUCCESS, если все guard'ы allow", () => {
@@ -394,11 +368,13 @@ describe('eitherGuard', () => {
     const denyGuard2 = makeInsufficientPermissionsDecision;
 
     const combined = eitherGuard(denyGuard1, denyGuard2);
-    const decision = combined(makeContext()) as Extract<AuthDecision, { allow: false; }>;
+    const decision = combined(makeContext());
 
     expect(decision.allow).toBe(false);
     expect(decision.reason).toBe('RESOURCE_ACCESS_DENIED');
-    expect(decision.error?.code).toBe('AUTH_MISSING_TOKEN');
+    if (!decision.allow) {
+      expect(decision.error?.code).toBe('AUTH_MISSING_TOKEN');
+    }
   });
 
   it("использует fallback ошибку, если guard'ы не вернули error", () => {
@@ -412,48 +388,53 @@ describe('eitherGuard', () => {
     });
 
     const combined = eitherGuard(denyGuard1, denyGuard2);
-    const decision = combined(makeContext()) as Extract<AuthDecision, { allow: false; }>;
+    const decision = combined(makeContext());
 
     expect(decision.allow).toBe(false);
     expect(decision.reason).toBe('RESOURCE_ACCESS_DENIED');
-    expect(decision.error?.code).toBe('AUTH_RESOURCE_ACCESS_DENIED');
+    if (!decision.allow) {
+      expect(decision.error?.code).toBe('AUTH_RESOURCE_ACCESS_DENIED');
+    }
   });
 });
 
 describe('requireRole', () => {
   it('отказывает неаутентифицированному пользователю', () => {
     const guard = requireRole(GlobalUserRole.ADMIN);
-    const decision = guard(makeContext({ isAuthenticated: false })) as Extract<
-      AuthDecision,
-      { allow: false; }
-    >;
+    const decision = guard(makeContext({ isAuthenticated: false }));
 
     expect(decision.allow).toBe(false);
     expect(decision.reason).toBe('NOT_AUTHENTICATED');
-    expect(decision.error?.code).toBe('AUTH_MISSING_TOKEN');
+    if (!decision.allow) {
+      expect(decision.error?.code).toBe('AUTH_MISSING_TOKEN');
+    }
   });
 
   it('отказывает при отсутствии требуемой роли', () => {
     const guard = requireRole(GlobalUserRole.ADMIN);
     const context = makeContext({ roles: new Set([GlobalUserRole.USER]) });
 
-    const decision = guard(context) as Extract<AuthDecision, { allow: false; }>;
+    const decision = guard(context);
     expect(decision.allow).toBe(false);
     expect(decision.reason).toBe('INVALID_ROLE');
-    expect(decision.error?.code).toBe('AUTH_INVALID_ROLE');
-    expect(decision.error?.requiredRole).toBe(GlobalUserRole.ADMIN);
+    if (!decision.allow) {
+      expect(decision.error?.code).toBe('AUTH_INVALID_ROLE');
+      expect(decision.error?.requiredRole).toBe(GlobalUserRole.ADMIN);
+    }
   });
 
   it('использует пустой набор ролей, если roles не заданы', () => {
     const guard = requireRole(GlobalUserRole.ADMIN);
     const context = makeContext(); // roles === undefined → EMPTY_ROLE_SET
 
-    const decision = guard(context) as Extract<AuthDecision, { allow: false; }>;
+    const decision = guard(context);
 
     expect(decision.allow).toBe(false);
     expect(decision.reason).toBe('INVALID_ROLE');
-    expect(decision.error?.code).toBe('AUTH_INVALID_ROLE');
-    expect(decision.error?.requiredRole).toBe(GlobalUserRole.ADMIN);
+    if (!decision.allow) {
+      expect(decision.error?.code).toBe('AUTH_INVALID_ROLE');
+      expect(decision.error?.requiredRole).toBe(GlobalUserRole.ADMIN);
+    }
   });
 
   it('разрешает при наличии требуемой роли', () => {
@@ -469,40 +450,43 @@ describe('requireRole', () => {
 describe('requirePermission', () => {
   it('отказывает неаутентифицированному пользователю', () => {
     const guard = requirePermission('READ_PRIVATE');
-    const decision = guard(makeContext({ isAuthenticated: false })) as Extract<
-      AuthDecision,
-      { allow: false; }
-    >;
+    const decision = guard(makeContext({ isAuthenticated: false }));
 
     expect(decision.allow).toBe(false);
     expect(decision.reason).toBe('NOT_AUTHENTICATED');
-    expect(decision.error?.code).toBe('AUTH_MISSING_TOKEN');
+    if (!decision.allow) {
+      expect(decision.error?.code).toBe('AUTH_MISSING_TOKEN');
+    }
   });
 
   it('отказывает при отсутствии permissions', () => {
     const guard = requirePermission('READ_PRIVATE');
     const context = makeContext({ permissions: new Set<Permission>(['READ_PUBLIC']) });
 
-    const decision = guard(context) as Extract<AuthDecision, { allow: false; }>;
+    const decision = guard(context);
 
     expect(decision.allow).toBe(false);
     expect(decision.reason).toBe('INSUFFICIENT_PERMISSIONS');
-    expect(decision.error?.code).toBe('AUTH_INSUFFICIENT_PERMISSIONS');
-    expect(decision.error?.requiredPermissions).toEqual(['READ_PRIVATE']);
-    expect(decision.error?.userPermissions).toEqual(['READ_PUBLIC']);
+    if (!decision.allow) {
+      expect(decision.error?.code).toBe('AUTH_INSUFFICIENT_PERMISSIONS');
+      expect(decision.error?.requiredPermissions).toEqual(['READ_PRIVATE']);
+      expect(decision.error?.userPermissions).toEqual(['READ_PUBLIC']);
+    }
   });
 
   it('использует пустой набор permissions, если permissions не заданы', () => {
     const guard = requirePermission('READ_PRIVATE');
     const context = makeContext(); // permissions === undefined → EMPTY_PERMISSION_SET
 
-    const decision = guard(context) as Extract<AuthDecision, { allow: false; }>;
+    const decision = guard(context);
 
     expect(decision.allow).toBe(false);
     expect(decision.reason).toBe('INSUFFICIENT_PERMISSIONS');
-    expect(decision.error?.code).toBe('AUTH_INSUFFICIENT_PERMISSIONS');
-    expect(decision.error?.requiredPermissions).toEqual(['READ_PRIVATE']);
-    expect(decision.error?.userPermissions).toEqual([]);
+    if (!decision.allow) {
+      expect(decision.error?.code).toBe('AUTH_INSUFFICIENT_PERMISSIONS');
+      expect(decision.error?.requiredPermissions).toEqual(['READ_PRIVATE']);
+      expect(decision.error?.userPermissions).toEqual([]);
+    }
   });
 
   it('разрешает при наличии требуемого permission', () => {

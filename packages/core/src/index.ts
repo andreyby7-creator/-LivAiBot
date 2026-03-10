@@ -21,9 +21,9 @@ export * from './data-safety/index.js';
  * ========================================================================== */
 
 /**
- * Input Boundary подпакет: валидация DTO, type guards, JSON-serialization, projection engine, context enricher.
+ * Input Boundary подпакет: валидация DTO, type guards, JSON-serialization, projection engine, context enricher, API schema guard.
  * Включает generic validation, rule engine, projection engine для domain → DTO трансформации,
- * и context enricher для обогащения контекста метаданными.
+ * context enricher для обогащения контекста метаданными, и API schema guard для валидации запросов/ответов API.
  * @public
  */
 export * from './input-boundary/index.js';
@@ -48,7 +48,8 @@ export * from './policies/index.js';
 /**
  * Telemetry подпакет: чистое batch ядро телеметрии и runtime-зависимый клиент.
  * Включает batch core для накопления и обработки телеметрических событий,
- * runtime-зависимый клиент с queue и throttle, sink factories с retry логикой.
+ * runtime-зависимый клиент с queue и throttle, sink factories с retry логикой,
+ * и sanitization утилиты для детекта PII и очистки metadata.
  *
  * Доступен как через subpath `@livai/core/telemetry`,
  * так и через главный индекс `@livai/core` под неймспейсом `telemetry`.
@@ -103,7 +104,8 @@ export * from './rule-engine/index.js';
  * ========================================================================== */
 /**
  * Resilience подпакет: reliability primitives для отказоустойчивости.
- * Включает deterministic circuit breaker как pure state machine без side-effects.
+ * Включает deterministic circuit breaker как pure state machine без side-effects,
+ * metrics aggregation для мониторинга метрик, и performance limits для контроля производительности.
  * @public
  */
 export * from './resilience/index.js';

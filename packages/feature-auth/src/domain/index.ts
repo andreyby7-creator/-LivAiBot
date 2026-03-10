@@ -25,13 +25,6 @@ export {
 } from './LoginRequest.js';
 
 /**
- * Login Client Context: алиас для обратной совместимости.
- * @public
- * @deprecated Используйте ClientContext из './ClientContext.js'
- */
-export { type ClientContext as LoginClientContext } from './ClientContext.js';
-
-/**
  * Logout Request: запрос на выход из системы.
  * @public
  */
@@ -46,13 +39,6 @@ export {
   type RegisterIdentifierType,
   type RegisterRequest,
 } from './RegisterRequest.js';
-
-/**
- * Register Client Context: алиас для обратной совместимости.
- * @public
- * @deprecated Используйте ClientContext из './ClientContext.js'
- */
-export { type ClientContext as RegisterClientContext } from './ClientContext.js';
 
 /**
  * Register Response: ответ на регистрацию.

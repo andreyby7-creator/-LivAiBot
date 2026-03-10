@@ -140,14 +140,12 @@ export type {
  * @public
  */
 export {
-  classificationRulesConfigManager,
   DEFAULT_CLASSIFICATION_RULES_CONFIG,
   DEFAULT_CRITICAL_RULE_PRIORITY_THRESHOLD,
   DEFAULT_HIGH_RISK_COUNTRIES,
   DEFAULT_RULE_THRESHOLDS,
   getClassificationRulesConfig,
   isClassificationRuleEnabled,
-  registerClearEnabledRulesCacheCallback,
   registerConfigChangeCallback,
   resetClassificationRulesConfig,
   unregisterConfigChangeCallback,

@@ -115,24 +115,14 @@ export {
 } from './logger.js';
 
 /* ============================================================================
- * 🛣️ ROUTE PERMISSIONS — ПРАВА ДОСТУПА К МАРШРУТАМ
+ * 🛣️ ROUTE ACCESS — ПРОВЕРКА ДОСТУПА К МАРШРУТАМ ДЛЯ UI
  * ========================================================================== */
 
 /**
- * Route Permissions: проверка прав доступа к маршрутам.
+ * Route Access: UI-специфичные утилиты для проверки доступа к маршрутам.
  * @public
  */
-export {
-  checkRoutePermission,
-  getAvailableRouteTypes,
-  getRoutePolicy,
-  type RouteDecisionReason,
-  type RouteInfo,
-  type RoutePermissionContext,
-  type RoutePermissionResult,
-  type RoutePermissionRule,
-  type RouteType,
-} from './route-permissions.js';
+export { canAccessRoute } from './route-access.js';
 
 /* ============================================================================
  * 🔄 APP LIFECYCLE — ЖИЗНЕННЫЙ ЦИКЛ ПРИЛОЖЕНИЯ

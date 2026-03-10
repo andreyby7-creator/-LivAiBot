@@ -91,8 +91,8 @@ export {
 
 /**
  * Lib подпакет: библиотечные утилиты и сервисы.
- * Включает API Client, Auth Service, Telemetry, Validation, Effect Utils,
- * Feature Flags, I18n, Logger, Orchestrator, Performance и все связанные типы.
+ * Включает API Client, Auth Hook DI, Auth Token Adapter, Telemetry Runtime,
+ * I18n, Logger, Route Access, App Lifecycle, Service Worker и все связанные типы.
  * @public
  */
 export {
@@ -102,14 +102,18 @@ export {
   // App Lifecycle
   appLifecycle,
   type AuthHookDepsConfig,
+  // Auth Token Adapter
+  type AuthTokenAdapter,
+  type AuthTokenAdapterConfig,
+  type AuthTokenAdapterLogger,
   buildHeaders,
   buildUrl,
-  // Route Permissions
-  checkRoutePermission,
+  canAccessRoute,
   type Client,
   type Clients,
   createApiClient,
   createAuthHookDeps,
+  createAuthTokenAdapter,
   decommissionServiceWorker,
   error,
   errorFireAndForget,
@@ -118,11 +122,9 @@ export {
   type FallbackType,
   type FetchEvent,
   formatDateLocalized,
-  getAvailableRouteTypes,
   getCurrentDayjsLocale,
   getFireAndForgetMetrics,
   getGlobalTelemetryClient,
-  getRoutePolicy,
   handleBackgroundSync,
   handleNotificationClick,
   handlePushNotification,
@@ -153,12 +155,6 @@ export {
   precacheMainUrls,
   precacheStaticUrls,
   resetGlobalTelemetryClient,
-  type RouteDecisionReason,
-  type RouteInfo,
-  type RoutePermissionContext,
-  type RoutePermissionResult,
-  type RoutePermissionRule,
-  type RouteType,
   type ServiceWorkerGlobalScope,
   // I18n
   setDayjsLocale,
@@ -363,8 +359,8 @@ export {
  * UI подпакет: UI компоненты приложения.
  * Включает примитивы (Button, Input, Textarea, Select, Checkbox, Radio, Toggle, Icon,
  * Avatar, Badge, Tooltip, Divider, Card, Dialog, Form, LoadingSpinner, Dropdown,
- * ContextMenu, StatusIndicator) и композитные компоненты (Toast, Skeleton, Modal,
- * Breadcrumbs, Tabs, Accordion, DatePicker, FileUploader, SideBar, SearchBar,
+ * ContextMenu, StatusIndicator) и композитные компоненты (Toast, Skeleton, SkeletonGroup,
+ * Modal, Breadcrumbs, Tabs, Accordion, DatePicker, FileUploader, SideBar, SearchBar,
  * ConfirmDialog, ErrorBoundary, UserProfileDisplay, NavigationMenuItem,
  * LanguageSelector, SupportButton) и все связанные типы.
  * @public

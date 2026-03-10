@@ -23,7 +23,7 @@ import {
   isUndefined,
   notRule,
   orRule,
-  registerRule,
+  registerValidationRule,
   validate,
   validateObjectShape,
 } from '../../src/input-boundary/generic-validation.js';
@@ -563,7 +563,7 @@ describe('Generic Validation (DTO Guards)', () => {
             });
           },
         });
-        const registry = registerRule(defaultValidationRuleRegistry, customRule, false);
+        const registry = registerValidationRule(defaultValidationRuleRegistry, customRule, false);
         // JSON-serializable проходит (invariant), но custom-policy проваливается (policy)
         const result1 = validate({ a: 1 }, {}, registry);
         expect(result1.ok).toBe(false);
@@ -601,13 +601,17 @@ describe('Generic Validation (DTO Guards)', () => {
       });
     });
 
-    describe('registerRule', () => {
+    describe('registerValidationRule', () => {
       it('создает новый registry с добавленным правилом (policy)', () => {
         const customRule: ValidationRule<unknown, unknown> = Object.freeze({
           name: 'custom-rule',
           validate: (value) => Object.freeze({ ok: true, value }),
         });
-        const newRegistry = registerRule(defaultValidationRuleRegistry, customRule, false);
+        const newRegistry = registerValidationRule(
+          defaultValidationRuleRegistry,
+          customRule,
+          false,
+        );
         expect(newRegistry.policies).toHaveLength(1);
         expect(newRegistry.policies[0]?.name).toBe('custom-rule');
         expect(newRegistry.invariants).toEqual(defaultValidationRuleRegistry.invariants);
@@ -618,7 +622,7 @@ describe('Generic Validation (DTO Guards)', () => {
           name: 'custom-invariant',
           validate: (value) => Object.freeze({ ok: true, value }),
         });
-        const newRegistry = registerRule(defaultValidationRuleRegistry, customRule, true);
+        const newRegistry = registerValidationRule(defaultValidationRuleRegistry, customRule, true);
         expect(newRegistry.invariants).toHaveLength(3);
         expect(newRegistry.invariants[2]?.name).toBe('custom-invariant');
         expect(newRegistry.policies).toEqual(defaultValidationRuleRegistry.policies);
@@ -629,7 +633,11 @@ describe('Generic Validation (DTO Guards)', () => {
           name: 'custom-rule',
           validate: (value) => Object.freeze({ ok: true, value }),
         });
-        const newRegistry = registerRule(defaultValidationRuleRegistry, customRule, false);
+        const newRegistry = registerValidationRule(
+          defaultValidationRuleRegistry,
+          customRule,
+          false,
+        );
         expect(newRegistry.ruleMap.has('custom-rule')).toBe(true);
         expect(newRegistry.ruleMap.get('custom-rule')).toBe(customRule);
       });
@@ -640,7 +648,7 @@ describe('Generic Validation (DTO Guards)', () => {
           validate: (value) => Object.freeze({ ok: true, value }),
         });
         expect(() => {
-          registerRule(defaultValidationRuleRegistry, customRule, false);
+          registerValidationRule(defaultValidationRuleRegistry, customRule, false);
         }).toThrow('Validation rule "json-serializable" already exists in registry');
       });
 
@@ -649,7 +657,11 @@ describe('Generic Validation (DTO Guards)', () => {
           name: 'custom-rule',
           validate: (value) => Object.freeze({ ok: true, value }),
         });
-        const newRegistry = registerRule(defaultValidationRuleRegistry, customRule, false);
+        const newRegistry = registerValidationRule(
+          defaultValidationRuleRegistry,
+          customRule,
+          false,
+        );
         expect(Object.isFrozen(newRegistry)).toBe(true);
         expect(Object.isFrozen(newRegistry.policies)).toBe(true);
         expect(Object.isFrozen(newRegistry.ruleMap)).toBe(true);
@@ -684,8 +696,12 @@ describe('Generic Validation (DTO Guards)', () => {
               }),
             }),
         });
-        const registry1 = registerRule(defaultValidationRuleRegistry, failingPolicy1, false);
-        const registry2 = registerRule(registry1, failingPolicy2, false);
+        const registry1 = registerValidationRule(
+          defaultValidationRuleRegistry,
+          failingPolicy1,
+          false,
+        );
+        const registry2 = registerValidationRule(registry1, failingPolicy2, false);
         // Валидное JSON-значение, которое пройдет invariants
         const result = validate({ a: 1 }, {}, registry2);
         expect(result.ok).toBe(false);

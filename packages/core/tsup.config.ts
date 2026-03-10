@@ -16,6 +16,7 @@ export default defineConfig({
     'transport/index': 'src/transport/index.ts',
     'performance/index': 'src/performance/index.ts',
     'access-control/index': 'src/access-control/index.ts',
+    'access-control/route-permissions': 'src/access-control/route-permissions.ts',
   },
   format: ['esm'],
   outDir: 'dist',

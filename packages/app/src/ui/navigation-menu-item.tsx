@@ -23,7 +23,7 @@ import type { CoreNavigationMenuItemProps, NavigationMenuItemData } from '@livai
 import { NavigationMenuItem as CoreNavigationMenuItem } from '@livai/ui-core';
 
 import type { Namespace, TranslationKey } from '../lib/i18n.js';
-import { canAccessRoute } from '../lib/route-permissions.js';
+import { canAccessRoute } from '../lib/route-access.js';
 import { useUnifiedUI } from '../providers/UnifiedUIProvider.js';
 import type { Json } from '../types/common.js';
 import type {

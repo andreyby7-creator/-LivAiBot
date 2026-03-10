@@ -3,7 +3,7 @@
  */
 import { describe, expect, it } from 'vitest';
 
-import type { Timestamp, UUID } from '../../../src/domain/common.js';
+import type { ISODateString, UUID } from '../../../src/domain/common.js';
 import type {
   MessageListResponse,
   MessageResponse,
@@ -27,7 +27,7 @@ describe('ThreadResponse', () => {
       id: TEST_THREAD_ID as UUID,
       workspace_id: TEST_WORKSPACE_ID as UUID,
       status: STATUS_ACTIVE,
-      created_at: '2026-01-09T21:34:12.123Z' as Timestamp,
+      created_at: '2026-01-09T21:34:12.123Z' as ISODateString,
     };
 
     expect(response).toMatchObject({
@@ -43,7 +43,7 @@ describe('ThreadResponse', () => {
       id: TEST_THREAD_ID as UUID,
       workspace_id: TEST_WORKSPACE_ID as UUID,
       status: STATUS_ACTIVE,
-      created_at: '2024-01-01T00:00:00Z' as Timestamp,
+      created_at: '2024-01-01T00:00:00Z' as ISODateString,
     };
 
     expect(response.status).toBe(STATUS_ACTIVE);
@@ -55,14 +55,14 @@ describe('ThreadResponse', () => {
       workspace_id: TEST_WORKSPACE_ID as UUID,
       bot_id: TEST_BOT_ID as UUID,
       status: STATUS_ACTIVE,
-      created_at: '2024-01-01T00:00:00Z' as Timestamp,
+      created_at: '2024-01-01T00:00:00Z' as ISODateString,
     };
 
     const withoutBot: ThreadResponse = {
       id: 'thread-2' as UUID,
       workspace_id: 'workspace-2' as UUID,
       status: STATUS_ACTIVE,
-      created_at: '2024-01-01T00:00:00Z' as Timestamp,
+      created_at: '2024-01-01T00:00:00Z' as ISODateString,
     };
 
     expect(withBot).toHaveProperty('bot_id');
@@ -75,7 +75,7 @@ describe('ThreadResponse', () => {
       const invalid: ThreadResponse = {
         workspace_id: 'workspace-1' as UUID,
         status: STATUS_ACTIVE,
-        created_at: '2024-01-01T00:00:00Z' as Timestamp,
+        created_at: '2024-01-01T00:00:00Z' as ISODateString,
       };
       expect(invalid).toBeDefined();
     }).not.toThrow();
@@ -89,7 +89,7 @@ describe('ThreadResponse', () => {
       workspace_id: '123e4567-e89b-12d3-a456-426614174000' as UUID,
       bot_id: '6ba7b810-9dad-11d1-80b4-00c04fd430c8' as UUID,
       status: STATUS_ACTIVE,
-      created_at: '2026-01-09T21:34:12.123Z' as Timestamp,
+      created_at: '2026-01-09T21:34:12.123Z' as ISODateString,
     };
 
     expect(response).toMatchSnapshot();
@@ -103,7 +103,7 @@ describe('MessageResponse', () => {
       thread_id: TEST_THREAD_ID as UUID,
       role: USER_ROLE,
       content: TEST_MESSAGE_CONTENT,
-      created_at: '2026-01-09T21:34:12.123Z' as Timestamp,
+      created_at: '2026-01-09T21:34:12.123Z' as ISODateString,
     };
 
     expect(response).toMatchObject({
@@ -121,7 +121,7 @@ describe('MessageResponse', () => {
       thread_id: 'thread-1' as UUID,
       role: USER_ROLE,
       content: 'User message',
-      created_at: '2024-01-01T00:00:00Z' as Timestamp,
+      created_at: '2024-01-01T00:00:00Z' as ISODateString,
     };
 
     const assistantMessage: MessageResponse = {
@@ -129,7 +129,7 @@ describe('MessageResponse', () => {
       thread_id: 'thread-1' as UUID,
       role: DEFAULT_ROLE,
       content: 'Assistant response',
-      created_at: '2024-01-01T00:00:01Z' as Timestamp,
+      created_at: '2024-01-01T00:00:01Z' as ISODateString,
     };
 
     const systemMessage: MessageResponse = {
@@ -137,7 +137,7 @@ describe('MessageResponse', () => {
       thread_id: 'thread-1' as UUID,
       role: SYSTEM_ROLE,
       content: 'System prompt',
-      created_at: '2024-01-01T00:00:02Z' as Timestamp,
+      created_at: '2024-01-01T00:00:02Z' as ISODateString,
     };
 
     expect(userMessage.role).toBe(USER_ROLE);
@@ -152,7 +152,7 @@ describe('MessageResponse', () => {
       thread_id: 'thread-1' as UUID,
       role: 'admin' as any, // Обход проверки типов для теста
       content: 'Invalid role',
-      created_at: '2024-01-01T00:00:00Z' as Timestamp,
+      created_at: '2024-01-01T00:00:00Z' as ISODateString,
     } as MessageResponse;
 
     expect(invalidMessage.role).toBe('admin');
@@ -165,21 +165,21 @@ describe('MessageResponse', () => {
         thread_id: 'thread-1' as UUID,
         role: USER_ROLE,
         content: 'Simple text',
-        created_at: '2024-01-01T00:00:00Z' as Timestamp,
+        created_at: '2024-01-01T00:00:00Z' as ISODateString,
       },
       {
         id: 'msg-2' as UUID,
         thread_id: 'thread-1' as UUID,
         role: DEFAULT_ROLE,
         content: 'Multi-line\nresponse\nwith\nnewlines',
-        created_at: '2024-01-01T00:00:01Z' as Timestamp,
+        created_at: '2024-01-01T00:00:01Z' as ISODateString,
       },
       {
         id: 'msg-3' as UUID,
         thread_id: 'thread-1' as UUID,
         role: SYSTEM_ROLE,
         content: '',
-        created_at: '2024-01-01T00:00:02Z' as Timestamp,
+        created_at: '2024-01-01T00:00:02Z' as ISODateString,
       },
     ];
 
@@ -196,7 +196,7 @@ describe('MessageResponse', () => {
       thread_id: threadId,
       role: USER_ROLE,
       content: 'Message in thread',
-      created_at: '2024-01-01T00:00:00Z' as Timestamp,
+      created_at: '2024-01-01T00:00:00Z' as ISODateString,
     };
 
     expect(message.thread_id).toBe(threadId);
@@ -209,7 +209,7 @@ describe('MessageResponse', () => {
         thread_id: 'thread-1' as UUID,
         role: USER_ROLE,
         content: 'content',
-        created_at: '2024-01-01T00:00:00Z' as Timestamp,
+        created_at: '2024-01-01T00:00:00Z' as ISODateString,
       };
       expect(invalid).toBeDefined();
     }).not.toThrow();
@@ -223,7 +223,7 @@ describe('MessageResponse', () => {
       thread_id: '550e8400-e29b-41d4-a716-446655440000' as UUID,
       role: DEFAULT_ROLE,
       content: "Hello! I'm an AI assistant. How can I help you today?",
-      created_at: '2026-01-09T21:34:12.123Z' as Timestamp,
+      created_at: '2026-01-09T21:34:12.123Z' as ISODateString,
     };
 
     expect(response).toMatchSnapshot();
@@ -239,14 +239,14 @@ describe('MessageListResponse', () => {
           thread_id: 'thread-1' as UUID,
           role: USER_ROLE,
           content: 'Hello',
-          created_at: '2024-01-01T10:00:00Z' as Timestamp,
+          created_at: '2024-01-01T10:00:00Z' as ISODateString,
         },
         {
           id: 'msg-2' as UUID,
           thread_id: 'thread-1' as UUID,
           role: DEFAULT_ROLE,
           content: 'Hi there!',
-          created_at: '2024-01-01T10:00:01Z' as Timestamp,
+          created_at: '2024-01-01T10:00:01Z' as ISODateString,
         },
       ],
     };
@@ -273,7 +273,7 @@ describe('MessageListResponse', () => {
           thread_id: 'thread-1' as UUID,
           role: SYSTEM_ROLE,
           content: TEST_INSTRUCTION,
-          created_at: '2024-01-01T00:00:00Z' as Timestamp,
+          created_at: '2024-01-01T00:00:00Z' as ISODateString,
         },
       ],
     };
@@ -290,21 +290,21 @@ describe('MessageListResponse', () => {
           thread_id: 'thread-1' as UUID,
           role: USER_ROLE,
           content: 'First message',
-          created_at: '2024-01-01T10:00:00Z' as Timestamp,
+          created_at: '2024-01-01T10:00:00Z' as ISODateString,
         },
         {
           id: 'msg-2' as UUID,
           thread_id: 'thread-1' as UUID,
           role: DEFAULT_ROLE,
           content: 'Second message',
-          created_at: '2024-01-01T10:00:01Z' as Timestamp,
+          created_at: '2024-01-01T10:00:01Z' as ISODateString,
         },
         {
           id: 'msg-3' as UUID,
           thread_id: 'thread-1' as UUID,
           role: USER_ROLE,
           content: 'Third message',
-          created_at: '2024-01-01T10:00:02Z' as Timestamp,
+          created_at: '2024-01-01T10:00:02Z' as ISODateString,
         },
       ],
     };
@@ -332,14 +332,14 @@ describe('MessageListResponse', () => {
           thread_id: threadId,
           role: USER_ROLE,
           content: 'Hello',
-          created_at: '2024-01-01T10:00:00Z' as Timestamp,
+          created_at: '2024-01-01T10:00:00Z' as ISODateString,
         },
         {
           id: 'msg-2' as UUID,
           thread_id: threadId,
           role: DEFAULT_ROLE,
           content: 'Hi!',
-          created_at: '2024-01-01T10:00:01Z' as Timestamp,
+          created_at: '2024-01-01T10:00:01Z' as ISODateString,
         },
       ],
     };
@@ -357,7 +357,7 @@ describe('MessageListResponse', () => {
           thread_id: 'thread-1' as UUID,
           role: USER_ROLE,
           content: 'User message',
-          created_at: '2024-01-01T00:00:00Z' as Timestamp,
+          created_at: '2024-01-01T00:00:00Z' as ISODateString,
         },
       ],
     };
@@ -380,7 +380,7 @@ describe('MessageListResponse', () => {
           thread_id: '550e8400-e29b-41d4-a716-446655440000' as UUID,
           role: USER_ROLE,
           content: 'Can you help me with my account settings?',
-          created_at: '2026-01-09T21:34:10.000Z' as Timestamp,
+          created_at: '2026-01-09T21:34:10.000Z' as ISODateString,
         },
         {
           id: '550e8400-e29b-41d4-a716-446655440002' as UUID,
@@ -388,7 +388,7 @@ describe('MessageListResponse', () => {
           role: DEFAULT_ROLE,
           content:
             "Of course! I'd be happy to help you with your account settings. What specific settings would you like to modify?",
-          created_at: '2026-01-09T21:34:12.123Z' as Timestamp,
+          created_at: '2026-01-09T21:34:12.123Z' as ISODateString,
         },
       ],
     };
@@ -404,7 +404,7 @@ describe('Интеграционные тесты conversation flow', () => {
       workspace_id: 'workspace-456' as UUID,
       bot_id: 'bot-789' as UUID,
       status: STATUS_ACTIVE,
-      created_at: '2024-01-01T10:00:00Z' as Timestamp,
+      created_at: '2024-01-01T10:00:00Z' as ISODateString,
     };
 
     const messages: MessageListResponse = {
@@ -414,14 +414,14 @@ describe('Интеграционные тесты conversation flow', () => {
           thread_id: thread.id, // Ссылка на thread
           role: USER_ROLE,
           content: 'Hello bot!',
-          created_at: '2024-01-01T10:00:01Z' as Timestamp,
+          created_at: '2024-01-01T10:00:01Z' as ISODateString,
         },
         {
           id: 'msg-2' as UUID,
           thread_id: thread.id, // Ссылка на thread
           role: DEFAULT_ROLE,
           content: 'Hello! How can I help you?',
-          created_at: '2024-01-01T10:00:02Z' as Timestamp,
+          created_at: '2024-01-01T10:00:02Z' as ISODateString,
         },
       ],
     };
@@ -445,35 +445,35 @@ describe('Интеграционные тесты conversation flow', () => {
           thread_id: 'thread' as UUID,
           role: SYSTEM_ROLE,
           content: 'Setup',
-          created_at: '2024-01-01T10:00:00Z' as Timestamp,
+          created_at: '2024-01-01T10:00:00Z' as ISODateString,
         },
         {
           id: '2' as UUID,
           thread_id: 'thread' as UUID,
           role: USER_ROLE,
           content: 'Hello',
-          created_at: '2024-01-01T10:00:01Z' as Timestamp,
+          created_at: '2024-01-01T10:00:01Z' as ISODateString,
         },
         {
           id: '3' as UUID,
           thread_id: 'thread' as UUID,
           role: DEFAULT_ROLE,
           content: 'Hi!',
-          created_at: '2024-01-01T10:00:02Z' as Timestamp,
+          created_at: '2024-01-01T10:00:02Z' as ISODateString,
         },
         {
           id: '4' as UUID,
           thread_id: 'thread' as UUID,
           role: USER_ROLE,
           content: 'How are you?',
-          created_at: '2024-01-01T10:00:03Z' as Timestamp,
+          created_at: '2024-01-01T10:00:03Z' as ISODateString,
         },
         {
           id: '5' as UUID,
           thread_id: 'thread' as UUID,
           role: DEFAULT_ROLE,
           content: 'Good!',
-          created_at: '2024-01-01T10:00:04Z' as Timestamp,
+          created_at: '2024-01-01T10:00:04Z' as ISODateString,
         },
       ],
     };
@@ -497,7 +497,7 @@ describe('Интеграционные тесты conversation flow', () => {
         thread_id: TEST_THREAD_ID as UUID,
         role,
         content: TEST_MESSAGE_CONTENT,
-        created_at: '2024-01-01T00:00:00Z' as Timestamp,
+        created_at: '2024-01-01T00:00:00Z' as ISODateString,
       };
 
       expect([USER_ROLE, DEFAULT_ROLE, SYSTEM_ROLE]).toContain(message.role);
@@ -512,35 +512,35 @@ describe('Интеграционные тесты conversation flow', () => {
           thread_id: 'conv-1' as UUID,
           role: SYSTEM_ROLE,
           content: TEST_INSTRUCTION,
-          created_at: '2024-01-01T10:00:00Z' as Timestamp,
+          created_at: '2024-01-01T10:00:00Z' as ISODateString,
         },
         {
           id: 'user-msg-1' as UUID,
           thread_id: 'conv-1' as UUID,
           role: USER_ROLE,
           content: 'What is the weather like?',
-          created_at: '2024-01-01T10:00:05Z' as Timestamp,
+          created_at: '2024-01-01T10:00:05Z' as ISODateString,
         },
         {
           id: 'assistant-msg-1' as UUID,
           thread_id: 'conv-1' as UUID,
           role: DEFAULT_ROLE,
           content: 'I need your location to provide weather information.',
-          created_at: '2024-01-01T10:00:06Z' as Timestamp,
+          created_at: '2024-01-01T10:00:06Z' as ISODateString,
         },
         {
           id: 'user-msg-2' as UUID,
           thread_id: 'conv-1' as UUID,
           role: USER_ROLE,
           content: 'I am in New York.',
-          created_at: '2024-01-01T10:00:10Z' as Timestamp,
+          created_at: '2024-01-01T10:00:10Z' as ISODateString,
         },
         {
           id: 'assistant-msg-2' as UUID,
           thread_id: 'conv-1' as UUID,
           role: DEFAULT_ROLE,
           content: 'The weather in New York is currently 72°F and sunny.',
-          created_at: '2024-01-01T10:00:11Z' as Timestamp,
+          created_at: '2024-01-01T10:00:11Z' as ISODateString,
         },
       ],
     };
@@ -582,7 +582,7 @@ describe('Интеграционные тесты conversation flow', () => {
           workspace_id: '123e4567-e89b-12d3-a456-426614174000' as UUID,
           bot_id: '6ba7b810-9dad-11d1-80b4-00c04fd430c8' as UUID,
           status: 'active' as const,
-          created_at: '2026-01-09T21:30:00.000Z' as Timestamp,
+          created_at: '2026-01-09T21:30:00.000Z' as ISODateString,
         } as ThreadResponse,
       },
       messages: {
@@ -593,14 +593,14 @@ describe('Интеграционные тесты conversation flow', () => {
               thread_id: '550e8400-e29b-41d4-a716-446655440000' as UUID,
               role: 'system' as const,
               content: 'You are a helpful customer support assistant.',
-              created_at: '2026-01-09T21:30:00.100Z' as Timestamp,
+              created_at: '2026-01-09T21:30:00.100Z' as ISODateString,
             },
             {
               id: '550e8400-e29b-41d4-a716-446655440002' as UUID,
               thread_id: '550e8400-e29b-41d4-a716-446655440000' as UUID,
               role: 'user' as const,
               content: 'I need help with my order.',
-              created_at: '2026-01-09T21:34:00.000Z' as Timestamp,
+              created_at: '2026-01-09T21:34:00.000Z' as ISODateString,
             },
             {
               id: '550e8400-e29b-41d4-a716-446655440003' as UUID,
@@ -608,7 +608,7 @@ describe('Интеграционные тесты conversation flow', () => {
               role: 'assistant' as const,
               content:
                 "I'd be happy to help you with your order. Could you please provide your order number?",
-              created_at: '2026-01-09T21:34:02.000Z' as Timestamp,
+              created_at: '2026-01-09T21:34:02.000Z' as ISODateString,
             },
           ],
         } as MessageListResponse,

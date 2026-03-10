@@ -33,3 +33,17 @@ export * from './auth-guard.js';
  */
 
 export * from './auth-guard.react.js';
+
+/* ============================================================================
+ * 🛤️ ROUTE PERMISSIONS — DECLARATIVE ROUTE POLICIES
+ * ========================================================================== */
+
+/**
+ * Route permissions module:
+ * - RoutePermissionRule, RoutePermissionContext, RoutePermissionResult
+ * - checkRoutePermission, getRoutePolicy, getAvailableRouteTypes
+ * - Route factories: createPublicRoute, createProtectedRoute
+ * @public
+ */
+
+export * from './route-permissions.js';

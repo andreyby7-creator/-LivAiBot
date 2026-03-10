@@ -25,7 +25,8 @@ export * from './errors/index.js';
 
 /**
  * Context подпакет: контекстные данные запроса и стандартизированные HTTP заголовки.
- * Включает HEADERS (trace_id, operation_id, workspace_id, user_id).
+ * Включает HEADERS (trace_id, operation_id, workspace_id, user_id),
+ * HTTP методы (HttpMethod) и имена сервисов (ServiceName).
  * Используется для межсервисного взаимодействия, корреляции запросов, tenant isolation.
  * @public
  */
@@ -38,8 +39,9 @@ export * from './context/index.js';
 
 /**
  * Domain подпакет: доменные типы и DTO для всех доменов.
- * Включает common типы (UUID, Timestamp, JsonObject, Settings, Decision types),
- * auth типы, bots типы, conversations типы.
+ * Включает common типы (UUID, ISODateString, JsonObject, Settings, Decision types),
+ * app-effects типы (ApiRequestContext, ApiError, ApiResponse, AppError),
+ * auth типы, bots типы, conversations типы, telemetry типы.
  * Используется для типизации данных между слоями.
  * @public
  */

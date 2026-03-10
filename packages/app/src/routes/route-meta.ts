@@ -22,8 +22,12 @@ import type {
   RoutePermissionContext,
   RoutePermissionResult,
   RouteType,
-} from '../lib/route-permissions.js';
-import { checkRoutePermission, createProtectedRoute } from '../lib/route-permissions.js';
+} from '@livai/core/access-control/route-permissions';
+import {
+  checkRoutePermission,
+  createProtectedRoute,
+} from '@livai/core/access-control/route-permissions';
+
 import type { AppModules } from '../types/common.js';
 import { UserRoles } from '../types/common.js';
 import type { RouteName } from './routes.js';
@@ -303,8 +307,16 @@ export function checkComprehensiveRouteAccess(
 
   // Проверяем роли через route-meta.ts
   if (meta.allowedRoles && meta.allowedRoles.length > 0) {
-    const userRolesSet = context.userRoles ?? new Set<UserRoles>();
-    const hasRequiredRole = meta.allowedRoles.some((role) => userRolesSet.has(role));
+    if (!context.userRoles) {
+      return {
+        allowed: false,
+        reason: 'INSUFFICIENT_ROLES',
+        details: { requiredRoles: meta.allowedRoles },
+      };
+    }
+    // Convert UserRoles enum values to strings for comparison
+    const userRolesArray = Array.from(context.userRoles).map(String);
+    const hasRequiredRole = meta.allowedRoles.some((role) => userRolesArray.includes(String(role)));
     if (!hasRequiredRole) {
       return {
         allowed: false,

@@ -415,15 +415,6 @@ export function unregisterConfigChangeCallback(callback: ConfigChangeCallback): 
 }
 
 /**
- * Регистрирует callback для очистки кэша enabledRulesPerUser
- * @deprecated Используйте registerConfigChangeCallback для более generic подхода
- * @internal
- */
-export function registerClearEnabledRulesCacheCallback(callback: () => void): void {
-  callbackManager.registerCallback(callback);
-}
-
-/**
  * Сбрасывает конфигурацию на значения по умолчанию
  * @public
  */
@@ -480,18 +471,6 @@ export function isClassificationRuleEnabled(
 
   return flag.enabled;
 }
-
-/**
- * Менеджер конфигурации правил (объект для обратной совместимости)
- * @deprecated Используйте функции getClassificationRulesConfig, updateClassificationRulesConfig, etc.
- * @public
- */
-export const classificationRulesConfigManager = {
-  getConfig: getClassificationRulesConfig,
-  updateConfig: updateClassificationRulesConfig,
-  resetConfig: resetClassificationRulesConfig,
-  isRuleEnabled: isClassificationRuleEnabled,
-} as const;
 
 // Lazy init: индексы будут инициализированы при первом вызове isClassificationRuleEnabled
 // Это ускоряет старт приложения, если конфигурация большая

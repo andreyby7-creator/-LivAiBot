@@ -156,6 +156,103 @@ const policy = new AuthPolicy({
 const result = policy.evaluateToken(token, Date.now());
 ```
 
+### 📊 Telemetry
+
+**Система телеметрии и мониторинга**
+
+- `TelemetryClient` — клиент для отправки телеметрических событий
+- `TelemetryBatchCore` — batch ядро для накопления событий
+- Sanitization утилиты для детекта PII и очистки metadata
+
+```typescript
+import { telemetry } from '@livai/core';
+// или
+import { TelemetryClient } from '@livai/core/telemetry';
+
+const client = new TelemetryClient(config);
+await client.emit('event', { data });
+```
+
+### 🚩 Feature Flags
+
+**Детерминированный engine для управления feature flags**
+
+- Core engine без React/env/console зависимостей
+- Стратегии rollout/segmentation (percentage, users, tenants, attributes)
+- React адаптер доступен через `@livai/core/feature-flags/react`
+
+```typescript
+import { evaluateFeature } from '@livai/core/feature-flags';
+// или
+import { featureFlags } from '@livai/core';
+
+const result = evaluateFeature('feature-name', context, provider);
+```
+
+### 🚀 Performance
+
+**Система мониторинга производительности**
+
+- Трекинг метрик (Web Vitals, компоненты, API)
+- Батчинг, sampling, threshold фильтрация
+- React hooks доступны через `@livai/core/performance/react`
+
+```typescript
+import { performance } from '@livai/core';
+// или
+import { trackMetric } from '@livai/core/performance';
+
+trackMetric('component-render', { duration: 100 });
+```
+
+### 🛡️ Access Control
+
+**Система авторизации и контроля доступа**
+
+- Core engine для проверки прав доступа (roles, permissions, resources)
+- Guards, authorization checks, error handling
+- React hooks для интеграции с UI
+
+```typescript
+import { accessControl } from '@livai/core';
+// или
+import { checkAccess, useCheckAccess } from '@livai/core/access-control';
+
+const result = checkAccess(context, { resource, action });
+```
+
+### ⚡ Effect
+
+**Утилиты для side-effects и обработки ошибок**
+
+- Effect, Result<T, E>, timeout, retry, isolation
+- Schema validation, error mapping
+- Функциональная подсистема валидации
+
+```typescript
+import { effect } from '@livai/core';
+// или
+import { withRetry, withTimeout } from '@livai/core/effect';
+
+const result = await withRetry(policy, async () => operation());
+```
+
+### 🔌 Transport
+
+**Транспортные протоколы (SSE, WebSocket)**
+
+- SSE и WebSocket runtime как детерминированные FSM
+- Поддержка браузера и Node.js через адаптеры
+- Переиспользуем в backend и других фронтах
+
+```typescript
+import { transport } from '@livai/core';
+// или
+import { createSSEClient } from '@livai/core/transport';
+
+const client = createSSEClient(url, { onMessage: handleMessage });
+```
+
 ---
 
 ## 🏗️ Архитектура

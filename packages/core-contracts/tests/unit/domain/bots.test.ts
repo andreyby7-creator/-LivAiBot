@@ -9,7 +9,7 @@ import type {
   CreateBotRequest,
   UpdateInstructionRequest,
 } from '../../../src/domain/bots.js';
-import type { JsonObject, Timestamp, UUID } from '../../../src/domain/common.js';
+import type { ISODateString, JsonObject, UUID } from '../../../src/domain/common.js';
 import {
   STATUS_ACTIVE,
   STATUS_DRAFT,
@@ -26,7 +26,7 @@ describe('BotResponse', () => {
       workspace_id: TEST_WORKSPACE_ID as UUID,
       name: TEST_BOT_NAME,
       status: STATUS_ACTIVE,
-      created_at: '2026-01-09T21:34:12.123Z' as Timestamp,
+      created_at: '2026-01-09T21:34:12.123Z' as ISODateString,
       current_version: 1,
     };
 
@@ -46,7 +46,7 @@ describe('BotResponse', () => {
       workspace_id: 'workspace-1' as UUID,
       name: 'Draft Bot',
       status: STATUS_DRAFT,
-      created_at: '2024-01-01T00:00:00Z' as Timestamp,
+      created_at: '2024-01-01T00:00:00Z' as ISODateString,
       current_version: 1,
     };
 
@@ -55,7 +55,7 @@ describe('BotResponse', () => {
       workspace_id: 'workspace-2' as UUID,
       name: 'Active Bot',
       status: STATUS_ACTIVE,
-      created_at: '2024-01-01T00:00:00Z' as Timestamp,
+      created_at: '2024-01-01T00:00:00Z' as ISODateString,
       current_version: 2,
     };
 
@@ -70,7 +70,7 @@ describe('BotResponse', () => {
       workspace_id: 'workspace-1' as UUID,
       name: 'Bot',
       status: 'inactive' as any, // Обход проверки типов для теста
-      created_at: '2024-01-01T00:00:00Z' as Timestamp,
+      created_at: '2024-01-01T00:00:00Z' as ISODateString,
       current_version: 1,
     } as BotResponse;
 
@@ -83,7 +83,7 @@ describe('BotResponse', () => {
       workspace_id: 'workspace-1' as UUID,
       name: 'Bot',
       status: STATUS_ACTIVE,
-      created_at: '2024-01-01T00:00:00Z' as Timestamp,
+      created_at: '2024-01-01T00:00:00Z' as ISODateString,
       current_version: 5,
     };
 
@@ -98,7 +98,7 @@ describe('BotResponse', () => {
         workspace_id: 'workspace-1' as UUID,
         name: 'Bot',
         status: STATUS_ACTIVE,
-        created_at: '2024-01-01T00:00:00Z' as Timestamp,
+        created_at: '2024-01-01T00:00:00Z' as ISODateString,
         current_version: 1,
       };
       expect(invalid).toBeDefined();
@@ -113,7 +113,7 @@ describe('BotResponse', () => {
       workspace_id: '123e4567-e89b-12d3-a456-426614174000' as UUID,
       name: 'Assistant Bot',
       status: STATUS_ACTIVE,
-      created_at: '2026-01-09T21:34:12.123Z' as Timestamp,
+      created_at: '2026-01-09T21:34:12.123Z' as ISODateString,
       current_version: 3,
     };
 
@@ -273,7 +273,7 @@ describe('BotListResponse', () => {
           workspace_id: 'workspace-1' as UUID,
           name: 'Bot 1',
           status: 'active',
-          created_at: '2024-01-01T00:00:00Z' as Timestamp,
+          created_at: '2024-01-01T00:00:00Z' as ISODateString,
           current_version: 1,
         },
         {
@@ -281,7 +281,7 @@ describe('BotListResponse', () => {
           workspace_id: 'workspace-1' as UUID,
           name: 'Bot 2',
           status: 'draft',
-          created_at: '2024-01-02T00:00:00Z' as Timestamp,
+          created_at: '2024-01-02T00:00:00Z' as ISODateString,
           current_version: 1,
         },
       ],
@@ -309,7 +309,7 @@ describe('BotListResponse', () => {
           workspace_id: 'workspace-1' as UUID,
           name: 'Single Bot',
           status: 'active',
-          created_at: '2024-01-01T00:00:00Z' as Timestamp,
+          created_at: '2024-01-01T00:00:00Z' as ISODateString,
           current_version: 2,
         },
       ],
@@ -327,7 +327,7 @@ describe('BotListResponse', () => {
           workspace_id: 'workspace-1' as UUID,
           name: 'Bot 1',
           status: 'active',
-          created_at: '2024-01-01T00:00:00Z' as Timestamp,
+          created_at: '2024-01-01T00:00:00Z' as ISODateString,
           current_version: 1,
         },
       ],
@@ -353,7 +353,7 @@ describe('BotListResponse', () => {
           workspace_id: '123e4567-e89b-12d3-a456-426614174000' as UUID,
           name: 'Customer Support Bot',
           status: 'active',
-          created_at: '2026-01-09T10:00:00.000Z' as Timestamp,
+          created_at: '2026-01-09T10:00:00.000Z' as ISODateString,
           current_version: 5,
         },
         {
@@ -361,7 +361,7 @@ describe('BotListResponse', () => {
           workspace_id: '123e4567-e89b-12d3-a456-426614174000' as UUID,
           name: 'Sales Assistant',
           status: 'draft',
-          created_at: '2026-01-09T11:00:00.000Z' as Timestamp,
+          created_at: '2026-01-09T11:00:00.000Z' as ISODateString,
           current_version: 1,
         },
       ],
@@ -386,7 +386,7 @@ describe('Интеграционные тесты bot lifecycle', () => {
       workspace_id: 'workspace-uuid-456' as UUID,
       name: createRequest.name,
       status: STATUS_DRAFT,
-      created_at: '2024-01-01T12:00:00Z' as Timestamp,
+      created_at: '2024-01-01T12:00:00Z' as ISODateString,
       current_version: 1,
     };
 
@@ -402,7 +402,7 @@ describe('Интеграционные тесты bot lifecycle', () => {
       workspace_id: 'workspace-1' as UUID,
       name: 'Bot',
       status: STATUS_ACTIVE,
-      created_at: '2024-01-01T00:00:00Z' as Timestamp,
+      created_at: '2024-01-01T00:00:00Z' as ISODateString,
       current_version: 2,
     };
 
@@ -417,7 +417,7 @@ describe('Интеграционные тесты bot lifecycle', () => {
     const updatedBot: BotResponse = {
       ...originalBot,
       current_version: originalBot.current_version + 1,
-      created_at: '2024-01-02T00:00:00Z' as Timestamp,
+      created_at: '2024-01-02T00:00:00Z' as ISODateString,
     };
 
     expect(updatedBot.current_version).toBe(originalBot.current_version + 1);
@@ -435,7 +435,7 @@ describe('Интеграционные тесты bot lifecycle', () => {
           workspace_id: workspaceId,
           name: 'Bot 1',
           status: 'active',
-          created_at: '2024-01-01T00:00:00Z' as Timestamp,
+          created_at: '2024-01-01T00:00:00Z' as ISODateString,
           current_version: 1,
         },
         {
@@ -443,7 +443,7 @@ describe('Интеграционные тесты bot lifecycle', () => {
           workspace_id: workspaceId,
           name: 'Bot 2',
           status: 'draft',
-          created_at: '2024-01-01T00:00:00Z' as Timestamp,
+          created_at: '2024-01-01T00:00:00Z' as ISODateString,
           current_version: 1,
         },
       ],
@@ -465,7 +465,7 @@ describe('Интеграционные тесты bot lifecycle', () => {
         workspace_id: 'workspace-1' as UUID,
         name: 'Bot',
         status,
-        created_at: '2024-01-01T00:00:00Z' as Timestamp,
+        created_at: '2024-01-01T00:00:00Z' as ISODateString,
         current_version: 1,
       };
 
@@ -489,7 +489,7 @@ describe('Интеграционные тесты bot lifecycle', () => {
           workspace_id: 'workspace-uuid-456' as UUID,
           name: 'AI Assistant',
           status: 'draft' as const,
-          created_at: '2024-01-01T10:00:00Z' as Timestamp,
+          created_at: '2024-01-01T10:00:00Z' as ISODateString,
           current_version: 1,
         } as BotResponse,
       },
@@ -507,7 +507,7 @@ describe('Интеграционные тесты bot lifecycle', () => {
           workspace_id: 'workspace-uuid-456' as UUID,
           name: 'AI Assistant',
           status: 'active' as const,
-          created_at: '2024-01-01T10:00:00Z' as Timestamp,
+          created_at: '2024-01-01T10:00:00Z' as ISODateString,
           current_version: 2,
         } as BotResponse,
       },
@@ -519,7 +519,7 @@ describe('Интеграционные тесты bot lifecycle', () => {
               workspace_id: 'workspace-uuid-456' as UUID,
               name: 'AI Assistant',
               status: 'active' as const,
-              created_at: '2024-01-01T10:00:00Z' as Timestamp,
+              created_at: '2024-01-01T10:00:00Z' as ISODateString,
               current_version: 2,
             },
           ],

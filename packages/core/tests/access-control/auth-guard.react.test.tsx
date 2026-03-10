@@ -7,23 +7,23 @@ import { renderHook } from '@testing-library/react';
 import React from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type { Action, AuthDecision, Resource } from '../../../src/access-control/auth-guard.js';
-import type { AuthGuardContext } from '../../../src/access-control/auth-guard.react.js';
+import type { Action, AuthDecision, Resource } from '../../src/access-control/auth-guard.js';
+import type { AuthGuardContext } from '../../src/access-control/auth-guard.react.js';
 import {
   AuthGuardProvider,
   useAuthGuardContext,
   useCheckAccess,
   useMemoizedCheckAccess,
-} from '../../../src/access-control/auth-guard.react.js';
+} from '../../src/access-control/auth-guard.react.js';
 
 // Мокаем checkAccess из core-guard, чтобы контролировать решения
 const checkAccessMock = vi.hoisted(() =>
   vi.fn<(action: Action, resource: Resource, context: AuthGuardContext) => AuthDecision>()
 );
 
-vi.mock('../../../src/access-control/auth-guard.js', async () => {
-  const actual = await vi.importActual<typeof import('../../../src/access-control/auth-guard.js')>(
-    '../../../src/access-control/auth-guard.js',
+vi.mock('../../src/access-control/auth-guard.js', async () => {
+  const actual = await vi.importActual<typeof import('../../src/access-control/auth-guard.js')>(
+    '../../src/access-control/auth-guard.js',
   );
 
   return {

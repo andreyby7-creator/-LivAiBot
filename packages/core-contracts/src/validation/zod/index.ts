@@ -44,8 +44,8 @@ export * from './custom/i18n.js';
  */
 
 /**
- * Утилиты для валидации: типизация, интеграция с Effect, трансформации.
- * Включает Infer (типизация Zod схем), Effect интеграция, transform утилиты.
+ * Утилиты для валидации: типизация и интеграция с Effect.
+ * Включает Infer (типизация Zod схем) и Effect интеграцию.
  * @public
  */
 export * from './utils/effect.js';

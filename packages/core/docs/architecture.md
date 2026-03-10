@@ -179,6 +179,59 @@ Stage A (provides: ['input'])
 - ComposedPolicy для композиции
 - Rule-engine архитектура
 
+### 📊 Telemetry
+
+**Система телеметрии и мониторинга**
+
+- TelemetryClient — клиент для отправки телеметрических событий
+- TelemetryBatchCore — batch ядро для накопления событий
+- Sanitization утилиты для детекта PII и очистки metadata
+- Runtime-зависимый клиент с queue и throttle
+
+### 🚩 Feature Flags
+
+**Детерминированный engine для управления feature flags**
+
+- Core engine без React/env/console зависимостей
+- Стратегии rollout/segmentation (percentage, users, tenants, attributes)
+- Evaluation API + provider pattern (single/bulk)
+- React адаптер доступен через `@livai/core/feature-flags/react`
+
+### 🚀 Performance
+
+**Система мониторинга производительности**
+
+- Трекинг метрик (Web Vitals, компоненты, API)
+- Батчинг, sampling, threshold фильтрация
+- DI для logger
+- React hooks доступны через `@livai/core/performance/react`
+
+### 🛡️ Access Control
+
+**Система авторизации и контроля доступа**
+
+- Core engine для проверки прав доступа (roles, permissions, resources)
+- Guards, authorization checks, error handling
+- Route permissions для декларативных политик доступа
+- React hooks для интеграции с UI
+
+### ⚡ Effect
+
+**Утилиты для side-effects и обработки ошибок**
+
+- Effect, Result<T, E>, timeout, retry, isolation
+- Schema validation, error mapping
+- Orchestration для композиции асинхронных операций
+- Функциональная подсистема валидации
+
+### 🔌 Transport
+
+**Транспортные протоколы (SSE, WebSocket)**
+
+- SSE и WebSocket runtime как детерминированные FSM
+- Поддержка браузера и Node.js через адаптеры
+- Переиспользуем в backend и других фронтах
+
 ---
 
 ## 📚 Использование в feature-auth

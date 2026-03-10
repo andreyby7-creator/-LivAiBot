@@ -12,7 +12,7 @@ import { describe, expect, it, vi } from 'vitest';
 import type { AuthenticatedRequestHeaders } from '../../src/context/headers.js';
 import { HEADERS } from '../../src/context/headers.js';
 import type { RegisterRequest, TokenPairResponse } from '../../src/domain/auth.js';
-import type { UUID } from '../../src/domain/common.js';
+import type { ISODateString, UUID } from '../../src/domain/common.js';
 import type { Conversation, CreateConversationRequest } from '../../src/domain/conversations.js';
 import { errorCodes } from '../../src/errors/http.js';
 import { FAKE_EMAIL, FAKE_PASSWORD, FAKE_WORKSPACE_NAME } from '../fakes';
@@ -87,8 +87,8 @@ describe('Authentication & Conversation Creation Flow', () => {
         type: conversationRequest.type ?? 'chat',
         workspace_id: result.workspace_id,
         created_by: result.user_id,
-        created_at: '2024-01-12T10:00:00Z',
-        updated_at: '2024-01-12T10:00:00Z',
+        created_at: '2024-01-12T10:00:00Z' as ISODateString,
+        updated_at: '2024-01-12T10:00:00Z' as ISODateString,
         status: 'active',
         metadata: {
           initial_message: conversationRequest.initial_message,
@@ -184,10 +184,10 @@ describe('Authentication & Conversation Creation Flow', () => {
             title: request.title,
             type: request.type,
             workspace_id: workspaceId,
-            created_at: '2024-01-12T10:00:00Z',
+            created_at: '2024-01-12T10:00:00Z' as ISODateString,
             created_by: headers[HEADERS.USER_ID] ?? 'user_123',
             status: 'active' as const,
-            updated_at: '2024-01-12T10:00:00Z',
+            updated_at: '2024-01-12T10:00:00Z' as ISODateString,
             metadata: {
               initial_message: 'Hello! How can I help you today?',
             },
@@ -233,10 +233,10 @@ describe('Authentication & Conversation Creation Flow', () => {
         title: conversationRequest.title,
         type: conversationRequest.type,
         workspace_id: authHeaders[HEADERS.WORKSPACE_ID],
-        created_at: '2024-01-12T10:00:00Z',
+        created_at: '2024-01-12T10:00:00Z' as ISODateString,
         created_by: authHeaders[HEADERS.USER_ID],
         status: 'active' as const,
-        updated_at: '2024-01-12T10:00:00Z',
+        updated_at: '2024-01-12T10:00:00Z' as ISODateString,
         metadata: {
           initial_message: 'Hello! How can I help you today?',
           trace_id: traceId,

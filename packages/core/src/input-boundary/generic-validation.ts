@@ -548,9 +548,6 @@ export function registerValidationRule<T = unknown, TMetadata = unknown>(
   });
 }
 
-/** @deprecated Используйте registerValidationRule */
-export const registerRule = registerValidationRule;
-
 /* ============================================================================
  * 4. COMPOSABLE PREDICATES — RULE COMPOSITION
  * ============================================================================

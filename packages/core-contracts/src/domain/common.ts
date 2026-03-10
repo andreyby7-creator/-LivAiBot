@@ -54,13 +54,6 @@ declare const ISODateBrand: unique symbol;
  */
 export type ISODateString = string & { readonly [ISODateBrand]: 'ISODateString'; };
 
-/**
- * Timestamp в формате ISO 8601 (UTC).
- * Пример: "2026-01-09T21:34:12.123Z"
- * @deprecated Используйте ISODateString для type-safety
- */
-export type Timestamp = string;
-
 declare const UUIDBrand: unique symbol;
 
 /**

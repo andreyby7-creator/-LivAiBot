@@ -100,6 +100,11 @@
       "types": "./dist/access-control/index.d.ts",
       "import": "./dist/access-control/index.js",
       "default": "./dist/access-control/index.js"
+    },
+    "./access-control/route-permissions": {
+      "types": "./dist/access-control/route-permissions.d.ts",
+      "import": "./dist/access-control/route-permissions.js",
+      "default": "./dist/access-control/route-permissions.js"
     }
   },
   "scripts": {

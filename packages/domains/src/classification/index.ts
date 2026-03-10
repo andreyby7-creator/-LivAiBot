@@ -40,9 +40,10 @@ export { CLASSIFICATION_LABELS } from './labels.js';
  * Single source of truth для всех модулей classification domain.
  * - GEO_VALIDATION: границы для геолокации (WGS84)
  * - SCORE_VALIDATION: границы для scores (reputation, velocity)
+ * - CLASSIFICATION_EVALUATION_SCALE: evaluation scale для classification domain (0-100)
  * @public
  */
-export { GEO_VALIDATION, SCORE_VALIDATION } from './constants.js';
+export { CLASSIFICATION_EVALUATION_SCALE, GEO_VALIDATION, SCORE_VALIDATION } from './constants.js';
 
 /* ============================================================================
  * 🏗️ CLASSIFICATION LABEL — VALUE OBJECT MODULE
