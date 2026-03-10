@@ -607,97 +607,106 @@
 
 ---
 
-## 8️⃣ Policies / Auth
+## 8️⃣ Access Control / Auth
 
-### 8.1 `route-permissions.ts` → `core/policies/route-permissions.ts`
-
-**Порядок:** Перенос → адаптация зависимостей → валидация → тесты
-
-**Действия:**
-
-- ✅ Перенести декларативные правила доступа в `packages/core/src/policies/route-permissions.ts`
-- ✅ Оставить только чистую политику без React зависимостей
-
-**Файлы:**
-
-- `packages/app/src/lib/route-permissions.ts` → `packages/core/src/policies/route-permissions.ts`
-
-**Причина:** Декларативная политика как код, переиспользуема в разных runtime.
-
-**Зависимости:**
-
-- Текущий файл: импортирует `UserRoles` из `../types/common.js`, `AuthGuardContext`, `Permission`, `UserRole` из `./auth-guard.js`
-- Нет React/DOM/runtime зависимостей → чистая политика, безопасно переносить
-- Используется в: возможно, в app routes или guards
-- Влияние: после переноса `auth-guard.ts` также нужно перенести, чтобы избежать циклических зависимостей
-
-**Миграция импорта:**
-
-- `app/src/lib/route-permissions.ts` → переместить в `core/src/policies/route-permissions.ts`
-- Обновить импорты: `UserRoles` из `@livai/core-contracts` (после миграции 1.1), `AuthGuardContext`, `Permission`, `UserRole` из `@livai/core/policies/auth-guard` (после миграции 8.2)
-- Проверить: `grep -r "from.*lib/route-permissions" packages/app/src` → обновить все вхождения
-- Валидация: `pnpm run type-check && pnpm run check:exports && pnpm run lint:canary`
-
-**Тесты:**
-
-- `app/tests/unit/lib/route-permissions.test.ts` → переместить в `core/tests/policies/route-permissions.test.ts`
-- Обновить импорты в тестах: `import { ... } from '@livai/core/policies/route-permissions'`
-
-**Экспорты:**
-
-- Создать `core/src/policies/index.ts`: `export * from './route-permissions.js'`
-- Добавить в `core/src/index.ts`: `export * as policies from './policies/index.js'` (или точечные экспорты)
-- Проверить tree-shaking: убедиться, что политики экспортируются корректно
-
-**Обновление:** Перенесены декларативные правила доступа в `@livai/core/policies/route-permissions`. Обновлены импорты `UserRoles` и `AuthGuardContext`. Обновлены импорты и тесты.
-
----
-
-### 8.2 `auth-guard.ts` → `core/policies/auth-guard.ts`
+### 8.1 `auth-guard.ts` → `core/access-control/auth-guard.ts (+ React adapter)`
 
 **Порядок:** Перенос → адаптация зависимостей → валидация → тесты
 
 **Действия:**
 
-- ✅ Перенести типы и логику авторизации в `packages/core/src/policies/auth-guard.ts`
-- ✅ Убрать React зависимости, оставить только pure логику
+- ✅ Перенести типы и логику авторизации в `packages/core/src/access-control/auth-guard.ts` (pure ядро без React)
+- ✅ Создать React-адаптер по паттерну `performance` / `feature-flags`, например `packages/core/src/access-control/auth-guard.react.tsx`
 
 **Файлы:**
 
-- `packages/app/src/lib/auth-guard.ts` → `packages/core/src/policies/auth-guard.ts`
+- `packages/app/src/lib/auth-guard.ts` → разделить на:
+  - `packages/core/src/access-control/auth-guard.ts` — чистая политика, только типы и pure-функции
+  - `packages/core/src/access-control/auth-guard.react.tsx` — React Context/хуки поверх ядра
 
-**Причина:** Логика авторизации не привязана к UI, переиспользуема в backend и других фронтах.
+**Причина:** Логика авторизации не привязана к UI, должна быть доступна в разных рантаймах; React-обёртка — адаптер, аналогичный `performance/react` и `feature-flags/react`.
 
 **Зависимости:**
 
 - Текущий файл: импортирует `React`, `createContext`, `useContext` из `react`, `TaggedError` из `@livai/core/effect`, `AuthContext`, `ID`, `UserRoles` из `../types/common.js`
-- React Context (`createContext`, `useContext`) → убрать, оставить только pure логику и типы
-- Используется в: `app/src/lib/route-permissions.ts`, возможно, в app guards или components
-- Влияние: после переноса `route-permissions.ts` должен импортировать из `@livai/core/policies/auth-guard`
+- В ядре (`auth-guard.ts`) убрать React Context: оставить только типы `ID`/`UserRoles` и pure-функции авторизации (без `AuthContext`)
+- В `auth-guard.react.tsx` реализовать:
+  - React Context (`createContext`, `useContext`)
+  - провайдер/хуки, опирающиеся на core-политику (`auth-guard.ts`)
+- Используется в: `app/src/lib/route-permissions.ts`, guards и компоненты в app (через React-адаптер)
 
 **Миграция импорта:**
 
-- `app/src/lib/auth-guard.ts` → переместить в `core/src/policies/auth-guard.ts`
-- Убрать React Context: удалить `createContext`, `useContext`, оставить только типы и pure функции
-- Обновить импорты: `AuthContext`, `ID`, `UserRoles` из `@livai/core-contracts` (после миграции 1.1)
-- `app/src/lib/route-permissions.ts` → обновить импорт на `@livai/core/policies/auth-guard` (после переноса)
-- Если нужен React Context в app → создать `app/src/lib/auth-guard-context.tsx` (обертка над core)
+- `app/src/lib/auth-guard.ts` → переместить и разделить на `core/src/access-control/auth-guard.ts` и `core/src/access-control/auth-guard.react.tsx`
+- Обновить импорты:
+  - `AuthContext`, `ID`, `UserRoles` из `@livai/core-contracts` (после миграции 1.1)
+  - потребители React-контекста: `import { AuthProvider, useAuthGuard } from '@livai/core/access-control/auth-guard.react'`
+  - `route-permissions.ts` в app → завязать на `@livai/core/access-control/auth-guard` / `.react` после переноса
 - Проверить: `grep -r "from.*lib/auth-guard" packages/app/src` → обновить все вхождения
-- Валидация: `pnpm run type-check && pnpm run check:exports && pnpm run lint:canary` после удаления React
+- Валидация: `pnpm run type-check && pnpm run check:exports && pnpm run lint:canary` после разделения ядра и React-адаптера
 
 **Тесты:**
 
-- `app/tests/unit/lib/auth-guard.test.ts` → переместить в `core/tests/policies/auth-guard.test.ts`
-- Обновить импорты в тестах: `import { ... } from '@livai/core/policies/auth-guard'`
-- Убрать тесты React Context (если есть) → оставить в app
+- `app/tests/unit/lib/auth-guard.test.ts` → разделить:
+  - ядро → `core/tests/access-control/auth-guard.test.ts`
+  - React Context-часть → оставить/создать в app, но тестировать через `@livai/core/access-control/auth-guard.react`
+- Обновить импорты в тестах: `import { ... } from '@livai/core/access-control/auth-guard'` и `@livai/core/access-control/auth-guard.react'`
 
 **Экспорты:**
 
-- Добавить в `core/src/policies/index.ts`: `export * from './auth-guard.js'`
-- Обновить `core/src/index.ts`: добавить экспорты policies
-- Проверить tree-shaking: убедиться, что типы и функции экспортируются корректно
+- В `core/src/access-control/index.ts`: `export * from './auth-guard.js'; export * from './auth-guard.react.js';`
+- В `core/src/index.ts`: добавить namespace `accessControl` по аналогии с `performance` / `feature-flags`
+- Проверить tree-shaking: ядро и React-обёртка не должны тянуть лишний runtime
 
-**Обновление:** Перенесены типы и логика авторизации в `@livai/core/policies/auth-guard`. Убраны React зависимости (Context), оставлена только pure логика. Создан `app/src/lib/auth-guard-context.tsx` для React обертки (если нужен). Обновлены импорты в `route-permissions.ts` и тестах.
+**Обновление:** Перенесены типы и логика авторизации в `@livai/core/access-control/auth-guard` (ядро) и создан React-адаптер `@livai/core/access-control/auth-guard.react` по паттерну `performance`/`feature-flags`. Убраны React-зависимости из ядра. Обновлены импорты в `route-permissions.ts`, app и тестах.
+
+---
+
+### 8.2 `route-permissions.ts` → `core/access-control/route-permissions.ts`
+
+**Порядок:** Перенос → адаптация зависимостей → валидация → тесты
+
+**Действия:**
+
+- ✅ Перенести декларативные правила доступа в `packages/core/src/access-control/route-permissions.ts`
+- ✅ Зависеть от core-политики авторизации (`auth-guard.ts`) и/или её React-обёртки, не имея собственных React-зависимостей
+
+**Файлы:**
+
+- `packages/app/src/lib/route-permissions.ts` → `packages/core/src/access-control/route-permissions.ts`
+
+**Причина:** Декларативная политика как код, переиспользуема в разных runtime; должна жить рядом с ядром авторизации в core.
+
+**Зависимости:**
+
+- Текущий файл: импортирует `UserRoles` из `../types/common.js`, `AuthGuardContext`, `Permission`, `UserRole` из `./auth-guard.js`
+- После шага 8.1:
+  - `UserRoles` и связанные типы → из `@livai/core-contracts`
+  - `Permission`, `UserRole`, auth-политика → из `@livai/core/access-control/auth-guard`
+  - для UI-guard’ов в app допускается использование React-адаптера `@livai/core/access-control/auth-guard.react`
+- Используется в: app routes/guards, может быть переиспользована в других фронтах и backend.
+
+**Миграция импорта:**
+
+- `app/src/lib/route-permissions.ts` → переместить в `core/src/access-control/route-permissions.ts`
+- Обновить импорты:
+  - `UserRoles` из `@livai/core-contracts`
+  - `Permission`, `UserRole`, `AuthGuardContext`-совместимые типы → из `@livai/core/access-control/auth-guard`
+- Проверить: `grep -r \"from.*lib/route-permissions\" packages/app/src` → обновить все вхождения
+- Валидация: `pnpm run type-check && pnpm run check:exports && pnpm run lint:canary`
+
+**Тесты:**
+
+- `app/tests/unit/lib/route-permissions.test.ts` → переместить в `core/tests/access-control/route-permissions.test.ts`
+- Обновить импорты в тестах: `import { ... } from '@livai/core/access-control/route-permissions'`
+
+**Экспорты:**
+
+- В `core/src/access-control/index.ts`: `export * from './auth-guard.js'; export * from './auth-guard.react.js'; export * from './route-permissions.js';`
+- В `core/src/index.ts`: `export * as accessControl from './access-control/index.js';`
+- Проверить tree-shaking: политики и их React-обёртки не должны тянуть лишний runtime.
+
+**Обновление:** Перенесены декларативные правила доступа в `@livai/core/access-control/route-permissions`, настроены зависимости на ядро `auth-guard` и его React-адаптер. Обновлены импорты в app и тестах, access-control слой экспортируется по паттерну `performance`/`feature-flags`.
 
 ---
 
