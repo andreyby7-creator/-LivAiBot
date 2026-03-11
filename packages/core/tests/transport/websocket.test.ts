@@ -516,7 +516,7 @@ describe('websocket.ts — handleWebSocketClose (reconnect FSM)', () => {
     expect(effect).toBeNull();
   });
 
-  it('handleWebSocketClose планирует reconnect с exponential backoff и доставкой сообщений подписчикам', async () => {
+  it('handleWebSocketClose планирует reconnect с exponential backoff + jitter и доставкой сообщений подписчикам', async () => {
     const listener = vi.fn<(e: WebSocketEvent<string>) => void>();
     const abortController = createEffectAbortController();
 
@@ -537,6 +537,10 @@ describe('websocket.ts — handleWebSocketClose (reconnect FSM)', () => {
       },
     );
 
+    // Фиксируем random, чтобы jitter был детерминированным: factor = 0.9 + 0.5 * 0.2 = 1.0
+    const originalRandom = Math.random;
+    Math.random = vi.fn(() => 0.5);
+
     const [reconnectState, effect] = handleWebSocketClose(state);
     expect(reconnectState.connectionState).toBe('CONNECTING');
     expect(reconnectState.retries).toBe(2);
@@ -545,7 +549,11 @@ describe('websocket.ts — handleWebSocketClose (reconnect FSM)', () => {
     sleepMock.mockClear();
     await effect!();
 
+    // baseDelay = 1000 * 2^(2-1) = 2000; jitter factor при random=0.5 даёт ровно 1.0
     expect(sleepMock).toHaveBeenCalledWith(2000, abortController.signal);
+
+    // Восстанавливаем Math.random
+    Math.random = originalRandom;
 
     const messageHandler = listenersRef.listeners?.message[0];
     expect(messageHandler).toBeDefined();
@@ -583,6 +591,10 @@ describe('websocket.ts — handleWebSocketClose (reconnect FSM)', () => {
       logger,
     });
 
+    // Фиксируем random=0, чтобы jitter всегда давал минимальный фактор 0.9.
+    const originalRandom = Math.random;
+    Math.random = vi.fn(() => 0);
+
     const [, effect] = handleWebSocketClose(state);
     expect(effect).not.toBeNull();
 
@@ -591,11 +603,16 @@ describe('websocket.ts — handleWebSocketClose (reconnect FSM)', () => {
 
     await effect!();
 
-    expect(sleepMock).toHaveBeenCalledWith(30_000, state.abortController?.signal);
+    // baseDelay = min(10_000 * 10^(2-1), 30_000) = 30_000
+    // jitter factor при random=0 → 0.9, поэтому в sleep уходит 27_000.
+    expect(sleepMock).toHaveBeenCalledWith(27_000, state.abortController?.signal);
     expect(logger.onError).toHaveBeenCalledWith(
       sleepError,
       state.context,
     );
+
+    // Восстанавливаем Math.random
+    Math.random = originalRandom;
   });
 });
 

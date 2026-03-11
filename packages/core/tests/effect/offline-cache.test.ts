@@ -84,6 +84,27 @@ describe('offline-cache.ts — createInMemoryOfflineCacheStore', () => {
     await store.clear()();
     await expect(store.snapshot!()()).resolves.toEqual([]);
   });
+
+  it('обновляет порядок LRU при get/set и корректно работает при повторной установке ключа', async () => {
+    const store = createInMemoryOfflineCacheStore();
+
+    // Вставляем три ключа последовательно.
+    await store.set(createEntry('k1', 'v1', 0))();
+    await store.set(createEntry('k2', 'v2', 0))();
+    await store.set(createEntry('k3', 'v3', 0))();
+
+    // Доступ к k1 делает её наиболее недавно использованной.
+    await store.get('k1')();
+
+    // Повторно устанавливаем k2 (обновляем её позицию как недавно использованную).
+    await store.set(createEntry('k2', 'v2-updated', 0))();
+
+    const snapshot = await store.snapshot!()();
+    const keys = snapshot.map((entry) => entry.key);
+
+    // Ожидаем порядок LRU: после get(k1) и повторного set(k2) порядок должен быть [k3, k1, k2].
+    expect(keys).toEqual(['k3', 'k1', 'k2']);
+  });
 });
 
 describe('offline-cache.ts — createOfflineCache basic flows', () => {

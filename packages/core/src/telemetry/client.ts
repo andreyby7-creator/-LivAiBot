@@ -47,6 +47,7 @@ import type {
   TelemetryConfig,
   TelemetryEvent,
   TelemetryLevel,
+  TelemetryMetadata,
   TelemetrySink,
   TelemetryTimezone,
 } from '@livai/core-contracts';
@@ -59,10 +60,13 @@ import { deepFreeze, deepValidateAndRedactPII } from './sanitization.js';
  * ============================================================================
  */
 
-// eslint-disable-next-line ai-security/model-poisoning -- Константы конфигурации (не пользовательские данные)
+// eslint-disable-next-line ai-security/model-poisoning -- Константы конфигурации TelemetryClient (batch/throttle/size), не пользовательские данные
 const DEFAULT_MAX_CONCURRENT_BATCHES = 5;
 const DEFAULT_THROTTLE_PERIOD_MS = 60000;
 const DEFAULT_MAX_QUEUE_SIZE = 1000;
+// Максимальный размер события телеметрии в байтах (приблизительно через JSON.stringify().length).
+// Используется для защиты от DoS атак через огромные payload-объекты.
+const MAX_EVENT_SIZE_BYTES = 1_000_000;
 const DEFAULT_DROP_POLICY: DropPolicy = 'oldest';
 
 /* ============================================================================
@@ -100,6 +104,24 @@ export const levelPriority = Object.freeze(
  */
 function createThrottleKey(level: TelemetryLevel, message: string): string {
   return `${level}:${message}`;
+}
+
+/**
+ * Проверяет, что событие телеметрии не превышает безопасный размер.
+ * Использует JSON.stringify для оценки размера в байтах (приближенно).
+ * ВАЖНО: эта проверка выполняется до добавления события в очередь,
+ * чтобы предотвратить DoS через переполнение очереди огромными объектами.
+ */
+type BaseTelemetryEventForSizeCheck = TelemetryEvent<TelemetryMetadata>;
+
+function isEventSizeWithinLimit(event: BaseTelemetryEventForSizeCheck): boolean {
+  try {
+    const serialized = JSON.stringify(event);
+    return serialized.length <= MAX_EVENT_SIZE_BYTES;
+  } catch {
+    // Если сериализация падает (например, из-за циклов), считаем событие небезопасным.
+    return false;
+  }
 }
 
 /* ============================================================================
@@ -319,6 +341,14 @@ export class TelemetryClient<
    */
   private sendToSinksBatched(event: TelemetryEvent<TMetadata>): void {
     const { maxQueueSize, dropPolicy } = this.batchConfig;
+
+    // Структурная защита от DoS: не добавлять в очередь события, которые
+    // превышают безопасный размер или не сериализуются.
+    if (!isEventSizeWithinLimit(event as unknown as BaseTelemetryEventForSizeCheck)) {
+      // Для безопасности просто игнорируем событие. В случае необходимости
+      // можно добавить дополнительное логирование через onError.
+      return;
+    }
 
     // Backpressure: проверяем размер очереди
     if (maxQueueSize > 0 && this.eventQueue.length >= maxQueueSize) {

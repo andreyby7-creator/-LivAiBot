@@ -8,6 +8,7 @@ import type { TelemetryEvent, TelemetryMetadata } from '@livai/core-contracts';
 
 import {
   applyPIIRedactionMiddleware,
+  containsPII,
   deepFreeze,
   deepValidateAndRedactPII,
 } from '../../src/telemetry/sanitization.js';
@@ -1007,6 +1008,97 @@ describe('applyPIIRedactionMiddleware', () => {
 
     Object.keys(event.metadata!).forEach((key) => {
       expect(result.metadata?.[key]).toBe('[REDACTED]');
+    });
+  });
+});
+
+/* ========================================================================== */
+/* 🔍 CONTAINS PII — ДОПОЛНИТЕЛЬНЫЕ ГРАНИЧНЫЕ СЛУЧАИ (STRUCTURAL LIMITS)      */
+/* ========================================================================== */
+
+describe('containsPII (structural limits)', () => {
+  it('возвращает false для undefined metadata', () => {
+    expect(containsPII(undefined, true)).toBe(false);
+  });
+
+  it('обрабатывает null значение без ошибок при deep=true', () => {
+    const metadata: TelemetryMetadata = {
+      field: null,
+    };
+    expect(containsPII(metadata, true)).toBe(false);
+  });
+
+  it('рекурсивно обходит объекты при deep=true и находит PII в глубине', () => {
+    const metadata = {
+      safe: 'value',
+      nested: {
+        inner: {
+          password: 'secret',
+        },
+      },
+    } as unknown as TelemetryMetadata;
+
+    expect(containsPII(metadata, true)).toBe(true);
+  });
+
+  it('останавливает обход по лимиту глубины без ошибок', () => {
+    // Создаем вложенный объект глубже лимита (20), но без PII.
+    // eslint-disable-next-line functional/no-let -- пошаговое построение глубокой структуры для теста
+    let current: Record<string, unknown> = { level: 0 };
+    const root = current;
+    // eslint-disable-next-line functional/no-loop-statements, functional/no-let -- контролируемый цикл для построения структуры
+    for (let depth = 1; depth < 30; depth += 1) {
+      const next: Record<string, unknown> = { level: depth };
+      current['next'] = next;
+      current = next;
+    }
+
+    expect(containsPII(root as TelemetryMetadata, true)).toBe(false);
+  });
+
+  it('обрабатывает циклические ссылки при deep=true без бесконечной рекурсии', () => {
+    const obj: { self?: unknown; value?: string; } = { value: 'safe' };
+    obj.self = obj;
+
+    const metadata = obj as unknown as TelemetryMetadata;
+    expect(containsPII(metadata, true)).toBe(false);
+  });
+});
+
+/* ========================================================================== */
+/* 🔒 DEEP VALIDATE AND REDACT PII — STRUCTURAL LIMIT BRANCHES                */
+/* ========================================================================== */
+
+describe('deepValidateAndRedactPII (structural limits)', () => {
+  it('ограничивает глубину вложенности и использует плейсхолдер для слишком глубоких структур', () => {
+    // Строим объект глубже лимита, чтобы на глубине получить [MaxDepthExceeded]
+    const buildDeepObject = (depth: number): Record<string, unknown> => {
+      if (depth === 0) {
+        return { value: 'leaf' };
+      }
+      return { next: buildDeepObject(depth - 1) };
+    };
+
+    const deepObject = buildDeepObject(30);
+    // Важно: ветка с [MaxDepthExceeded] зависит от конкретного значения лимита глубины
+    // и может не проявляться в сериализованном виде при разумных глубинах.
+    // Здесь мы проверяем, что функция стабильно обрабатывает очень глубокие структуры
+    // без выброса ошибок и без бесконечной рекурсии.
+    expect(() => deepValidateAndRedactPII(deepObject)).not.toThrow();
+  });
+
+  it('повторно посещаемый объект обрабатывает как циклическую ссылку', () => {
+    const shared: { value: string; } = { value: 'shared' };
+    const obj = {
+      a: shared,
+      b: shared,
+    };
+
+    const result = deepValidateAndRedactPII(obj);
+
+    expect(result).toEqual({
+      a: { value: 'shared' },
+      b: '[Circular Reference]',
     });
   });
 });

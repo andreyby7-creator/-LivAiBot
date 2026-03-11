@@ -48,9 +48,25 @@ export const PII_PATTERNS = Object.freeze(
 
 const MIN_BASE64_TOKEN_LENGTH = 20;
 
-// Константа-лимит для обрезки строк (не пользовательские данные)
-// eslint-disable-next-line ai-security/model-poisoning -- Константа-лимит для обрезки строк (не пользовательские данные)
+// Константы-лимиты для защиты от DoS атак через структурные данные metadata.
+// ВАЖНО: это не пользовательские данные, а внутренние ограничения безопасности.
+// eslint-disable-next-line ai-security/model-poisoning -- Константы-лимиты для защиты от DoS, а не пользовательские данные
 const MAX_METADATA_STRING_LENGTH = 1000;
+// Максимальная глубина вложенности объектов/массивов в metadata.
+// После достижения лимита вложенные структуры заменяются плейсхолдером.
+// eslint-disable-next-line ai-security/model-poisoning -- Константа-лимит глубины структуры (не пользовательские данные)
+const MAX_METADATA_OBJECT_DEPTH = 20;
+// Максимальное количество ключей в одном объекте metadata.
+// При превышении лимита оставшиеся ключи игнорируются для предотвращения DoS.
+// eslint-disable-next-line ai-security/model-poisoning -- Константа-лимит количества ключей (не пользовательские данные)
+const MAX_METADATA_KEYS_PER_OBJECT = 1000;
+// Максимальная длина массивов в metadata. При превышении лимита элементы после MAX_METADATA_ARRAY_LENGTH
+// не обрабатываются и не копируются в результат.
+// eslint-disable-next-line ai-security/model-poisoning -- Константа-лимит длины массива (не пользовательские данные)
+const MAX_METADATA_ARRAY_LENGTH = 1000;
+
+// Плейсхолдеры для обрезанных структур (глубина/циклы).
+const MAX_DEPTH_PLACEHOLDER = '[MaxDepthExceeded]';
 const REDACTED = '[REDACTED]';
 
 /* ============================================================================
@@ -96,6 +112,48 @@ export function containsPII(
     return false;
   }
 
+  // Для защиты от DoS через чрезмерную вложенность используем явный счетчик глубины.
+  // При превышении MAX_METADATA_OBJECT_DEPTH глубокая проверка прекращается.
+  const visited = new WeakSet<object>();
+
+  const hasPII = (value: unknown, currentDepth: number): boolean => {
+    if (value === null || value === undefined) {
+      return false;
+    }
+
+    if (typeof value === 'string') {
+      return isPIIValue(value);
+    }
+
+    if (!deep) {
+      return false;
+    }
+
+    if (typeof value !== 'object' || Array.isArray(value)) {
+      return false;
+    }
+
+    if (visited.has(value)) {
+      return false;
+    }
+    visited.add(value);
+
+    if (currentDepth >= MAX_METADATA_OBJECT_DEPTH) {
+      // Останавливаемся при достижении лимита глубины, чтобы избежать DoS.
+      return false;
+    }
+
+    return Object.entries(value as TelemetryMetadata).some(([key, nested]) => {
+      if (isPIIKey(key)) {
+        return true;
+      }
+      if (typeof nested === 'string' && isPIIValue(nested)) {
+        return true;
+      }
+      return hasPII(nested, currentDepth + 1);
+    });
+  };
+
   return Object.entries(metadata).some(([key, value]) => {
     // Проверка ключа на PII patterns (всегда включена)
     if (isPIIKey(key)) {
@@ -107,12 +165,8 @@ export function containsPII(
       return true;
     }
 
-    // Рекурсивная проверка вложенных объектов (опционально)
-    return deep
-      && value !== null
-      && typeof value === 'object'
-      && !Array.isArray(value)
-      && containsPII(value as TelemetryMetadata, true);
+    // Рекурсивная проверка вложенных объектов (опционально, с лимитом глубины)
+    return hasPII(value, 1);
   });
 }
 
@@ -197,13 +251,14 @@ function processMetadataEntry(
     if (visited.has(value)) {
       return '[Circular Reference]';
     }
-    // Рекурсивная обработка вложенных объектов
+    // Рекурсивная обработка вложенных объектов (с лимитами глубины/структуры)
     return deepValidateAndRedactPIIInternal(
       value,
       redactValue,
       enableValueScan,
       enableRegexDetection,
       visited,
+      1,
     );
   }
 
@@ -230,6 +285,7 @@ function deepValidateAndRedactPIIInternal<T>(
   enableValueScan: boolean,
   enableRegexDetection: boolean,
   visited: WeakSet<object>,
+  currentDepth: number,
 ): Readonly<T> {
   if (metadata === null || metadata === undefined) {
     return metadata as Readonly<T>;
@@ -241,6 +297,11 @@ function deepValidateAndRedactPIIInternal<T>(
     return metadata as Readonly<T>;
   }
 
+  // Защита от чрезмерной вложенности
+  if (currentDepth > MAX_METADATA_OBJECT_DEPTH) {
+    return MAX_DEPTH_PLACEHOLDER as unknown as Readonly<T>;
+  }
+
   // Защита от циклических ссылок
   if (typeof metadata === 'object') {
     if (visited.has(metadata)) {
@@ -250,31 +311,38 @@ function deepValidateAndRedactPIIInternal<T>(
   }
 
   if (Array.isArray(metadata)) {
-    return metadata.map((item) =>
+    const limited = metadata.slice(0, MAX_METADATA_ARRAY_LENGTH);
+    const sanitizedArray = limited.map((item) =>
       deepValidateAndRedactPIIInternal(
         item,
         redactValue,
         enableValueScan,
         enableRegexDetection,
         visited,
+        currentDepth + 1,
       )
-    ) as unknown as Readonly<T>;
+    );
+    return sanitizedArray as unknown as Readonly<T>;
   }
 
   if (typeof metadata === 'object') {
-    const sanitized = Object.fromEntries(
-      Object.entries(metadata as Record<string, unknown>).map(([key, value]) => [
-        key,
-        processMetadataEntry(
+    const entries = Object.entries(metadata as Record<string, unknown>)
+      .slice(0, MAX_METADATA_KEYS_PER_OBJECT)
+      .map(
+        ([key, value]): [string, unknown] => [
           key,
-          value,
-          redactValue,
-          enableValueScan,
-          enableRegexDetection,
-          visited,
-        ),
-      ]),
-    );
+          processMetadataEntry(
+            key,
+            value,
+            redactValue,
+            enableValueScan,
+            enableRegexDetection,
+            visited,
+          ),
+        ],
+      );
+
+    const sanitized = Object.fromEntries(entries);
 
     // НЕ вызываем deepFreeze здесь - это будет сделано в applySanitization
     return sanitized as unknown as Readonly<T>;
@@ -300,6 +368,7 @@ export function deepValidateAndRedactPII<T>(
     enableValueScan,
     enableRegexDetection,
     new WeakSet<object>(),
+    1,
   );
 }
 

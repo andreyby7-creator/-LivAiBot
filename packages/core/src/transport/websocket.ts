@@ -158,13 +158,35 @@ export interface WebSocketClientConfig {
 const DEFAULT_MAX_RETRIES = 5;
 const MAX_RETRY_DELAY_MS = 30_000; // Максимальный delay 30 секунд
 const MAX_WS_MESSAGE_SIZE = 1_000_000; // 1MB — ограничение размера входящих сообщений
+const JITTER_MIN_FACTOR = 0.9;
+const JITTER_SPREAD = 0.2;
 
-/** Вычисляет delay для reconnect с exponential backoff (ограничен MAX_RETRY_DELAY_MS). */
-function computeBackoffDelay<T>(state: WebSocketClientState<T>): number {
+/** Вычисляет базовый delay для reconnect с exponential backoff (без jitter, ограничен MAX_RETRY_DELAY_MS). */
+function computeBaseBackoffDelay<T>(state: WebSocketClientState<T>): number {
   return Math.min(
     state.retryDelayMs * Math.pow(state.retryBackoffFactor, state.retries - 1),
     MAX_RETRY_DELAY_MS,
   );
+}
+
+/**
+ * Применяет jitter к delay для предотвращения thundering herd при массовом reconnect.
+ * Используется стратегия:
+ *   delay' = delay * (0.9 + random() * 0.2)
+ * что даёт равномерный разброс ±10% от базового значения.
+ */
+function applyJitter(delay: number, random: () => number): number {
+  const factor = JITTER_MIN_FACTOR + random() * JITTER_SPREAD;
+  return delay * factor;
+}
+
+/** Вычисляет delay для reconnect с exponential backoff и jitter (ограничен MAX_RETRY_DELAY_MS). */
+function computeBackoffDelayWithJitter<T>(
+  state: WebSocketClientState<T>,
+  random: () => number = Math.random,
+): number {
+  const baseDelay = computeBaseBackoffDelay(state);
+  return applyJitter(baseDelay, random);
 }
 
 /**
@@ -452,8 +474,8 @@ export function handleWebSocketClose<T>(
       attachAbortController,
     ] = connectWebSocket(nextState, deliverToListeners);
 
-    // Создаем effect с exponential backoff delay
-    const delayMs = computeBackoffDelay(nextState);
+    // Создаем effect с exponential backoff + jitter delay
+    const delayMs = computeBackoffDelayWithJitter(nextState);
     const delayedReconnectEffect = async (): Promise<void> => {
       await sleep(delayMs, nextState.abortController?.signal);
       const ws = reconnectEffect();

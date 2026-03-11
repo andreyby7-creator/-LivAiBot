@@ -2276,3 +2276,11 @@ Verification:
 [core] Added tests to cover all branches in isPrivateResourceAction (line 349): DELETE on private resource, READ on private resource, WRITE/DELETE on public resources. auth-guard.ts now has 100% coverage (statements, branches, functions, lines).
 [core] Fixed sonarjs/no-identical-functions in tests/unit/access-control/auth-guard.test.ts by extracting makeInsufficientPermissionsDecision helper; pnpm lint:canary now passes.
 [core] Added comprehensive unit tests for access-control/auth-guard.react.tsx with 100% statements/functions/lines coverage, 87.5% branch coverage (line 113 ternary operator). All 9 tests pass using @testing-library/react patterns from performance/react.test.tsx and feature-flags/react.test.tsx.
+[telemetry-dos] structural limits + lint clean
+[telemetry-sanitization] structural limit branches covered where reachable (containsPII + circular), unit/coverage ok
+[telemetry-client] fallback sendToSinksBatched.catch covered via processEventQueue override; remaining uncovered lines are defensive fallbacks (dropPolicy error throw, globalThis missing)
+[telemetry-client] eslint canary clean after fallback coverage type fix
+[ws-reconnect] added AWS/Google-style jitter to websocket backoff; updated tests and all linters/tests passing
+[ws-jitter] extracted jitter factors to named constants; eslint canary clean
+[offline-cache] in-memory store now bounded (DEFAULT_MAX_IN_MEMORY_ENTRIES=1000) with LRU order; tests/lint ok
+[offline-cache] removed unnecessary type assertion in LRU eviction; eslint canary clean

@@ -1019,6 +1019,40 @@ describe('TelemetryClient', () => {
 });
 
 /* ========================================================================== */
+/* ⚠️ ERROR HANDLING / FALLBACK BRANCHES                                      */
+/* ========================================================================== */
+
+describe('TelemetryClient error handling (fallback branches)', () => {
+  it('вызывает onError из fallback-ветки processEventQueue.catch', async () => {
+    const sink = createMockSink();
+    const onError = vi.fn();
+    const config = createTestConfig({
+      sinks: [sink],
+      onError,
+      batchConfig: {
+        maxBatchSize: 1,
+        maxConcurrentBatches: 1,
+        maxQueueSize: 10,
+        dropPolicy: 'oldest',
+      },
+    });
+    const client = new TelemetryClient(config);
+
+    // Подменяем приватный метод processEventQueue, чтобы он всегда отклонял промис.
+    // Это позволяет детерминированно покрыть fallback-ветку .catch(...) в sendToSinksBatched.
+    (client as unknown as { processEventQueue: () => Promise<void>; }).processEventQueue = () =>
+      Promise.reject(new Error('process queue failure'));
+
+    await client.log('INFO', 'test message');
+    // Даём микротаскам завершиться, чтобы сработал .catch(...)
+    await new Promise((resolve) => setTimeout(resolve, 10));
+
+    expect(onError).toHaveBeenCalledTimes(1);
+    expect(onError.mock.calls[0]?.[0]).toBeInstanceOf(Error);
+  });
+});
+
+/* ========================================================================== */
 /* 🐛 УТИЛИТЫ ОТЛАДКИ */
 /* ========================================================================== */
 

@@ -176,6 +176,9 @@ const DEFAULT_RETRY_DELAY = 1000;
 const DEFAULT_RETRY_BACKOFF = 2;
 const RETRY_JITTER_FACTOR = 0.25;
 
+// 📦 IN-MEMORY STORE LIMITS
+const DEFAULT_MAX_IN_MEMORY_ENTRIES = 1000;
+
 /* ============================================================================
  * 🎯 OFFLINE CACHE ENGINE
  * ========================================================================== */
@@ -677,11 +680,38 @@ export function createInMemoryOfflineCacheStore(): OfflineCacheStore {
   const cache = new Map<string, CacheEntry<unknown>>();
 
   const get: OfflineCacheStore['get'] =
-    <T>(key: CacheKey): Effect<CacheEntry<T> | undefined> => () =>
-      Promise.resolve(cache.get(key) as CacheEntry<T> | undefined);
+    <T>(key: CacheKey): Effect<CacheEntry<T> | undefined> => () => {
+      const existing = cache.get(key) as CacheEntry<T> | undefined;
+      if (existing === undefined) {
+        return Promise.resolve(undefined);
+      }
+
+      // LRU: переносим ключ в конец, чтобы отметить его как недавно использованный.
+      cache.delete(key);
+      cache.set(key, existing);
+
+      return Promise.resolve(existing);
+    };
 
   const set: OfflineCacheStore['set'] = <T>(entry: CacheEntry<T>): Effect<void> => () => {
-    cache.set(entry.key, freeze(entry));
+    const key = entry.key;
+    const frozen = freeze(entry);
+
+    // Если ключ уже существует, удаляем его, чтобы обновить порядок LRU.
+    if (cache.has(key)) {
+      cache.delete(key);
+    }
+
+    cache.set(key, frozen);
+
+    // LRU eviction: если размер кэша превысил лимит, удаляем самый старый (наименее недавно использованный) ключ.
+    if (cache.size > DEFAULT_MAX_IN_MEMORY_ENTRIES) {
+      const oldestKey = cache.keys().next().value;
+      if (oldestKey !== undefined) {
+        cache.delete(oldestKey);
+      }
+    }
+
     return Promise.resolve();
   };
 
