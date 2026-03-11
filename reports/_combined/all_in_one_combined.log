@@ -2363,3 +2363,4 @@ Verification:
 [2026-03-11T22:10:09+03:00] phase2-UI-platform.md deps updated (block 920-928): Web/Bots, Balance & Billing, Marketplace - updated all file types from 'ts+react' to 'tsx+react' for .tsx files. All deps match planned structure.
 [2026-03-11T22:10:37+03:00] phase2-UI-platform.md deps checked (block 929-937): Web/Chat and Admin & Analytics - all files correctly formatted as 'tsx+react' for .tsx files. All deps match planned structure. No changes needed.
 [2026-03-11T22:10:48+03:00] phase2-UI-platform.md deps updated (block 929-937): Web/Chat and Admin & Analytics - updated all file types from 'ts+react' to 'tsx+react' for .tsx files. All deps match planned structure.
+[2026-03-11T22:14:17+03:00] Обновлены зависимости: eslint-plugin-sonarjs (4.0.1→4.0.2), lint-staged (16.3.2→16.3.3), turbo (2.8.15→2.8.16). Все зависимости находятся только в корневом package.json и синхронизированы.
