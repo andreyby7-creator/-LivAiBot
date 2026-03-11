@@ -473,7 +473,7 @@ Toast / UI feedback
 
 ### **Feature-bots / types** ⚪
 
-- ⚪ `bots.ts` — ts — deps: @livai/core-contracts, domain/*, @livai/core/policies/BotPolicy — агрегирующие типы состояния и операций ботов для store/effects/UI (BotState, BotStatus, BotError с категоризацией: validation, policy, permission, channel, webhook, parsing, integration, severity: 'low' | 'medium' | 'high' для telemetry/alerts, структура error-mapping с кодами и контекстом)
+- 🟢 `bots.ts` — ts — deps: @livai/core-contracts, @livai/core — агрегирующие типы состояния и операций ботов для store/effects/UI (BotState, BotStatus с 7 вариантами и причинами приостановки, BotError с 7 категориями и severity для telemetry/alerts, exhaustive union кодов ошибок, error-mapping для rule-engine, BotOperationState, BotInfo)
 - ⚪ `bots-initial.ts` — ts — deps: types/bots, domain/BotAuditEvent, types/bot-commands, types/bot-events — канонические начальные состояния Bot для reset-операций в store/effects, шаблоны для audit-событий (BotAuditEventTemplate), pipeline-hooks (BotPipelineHookTemplate) для автоматических действий при lifecycle-событиях
 - ⚪ `bot-commands.ts` — ts — deps: domain/*, types/bots — типы и константы команд ботов (create_bot_from_template, create_custom_bot, update_instruction, manage_multi_agent, publish_bot, pause/resume/archive, delete_bot, test_bot_simulator)
 - ⚪ `bot-events.ts` — ts — deps: domain/*, types/bots — типы и константы событий ботов (bot_created, bot_published, bot_updated, bot_deleted, instruction_updated, multi_agent_updated, bot_paused/resumed/archived, config_changed)

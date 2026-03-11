@@ -81,6 +81,8 @@
     "critical"
   ],
   "dependencies": {
+    "@livai/core": "workspace:*",
+    "@livai/core-contracts": "workspace:*",
     "@effect/ai": "^0.33.0",
     "@effect/ai-amazon-bedrock": "^0.13.0",
     "@effect/ai-anthropic": "^0.23.0",

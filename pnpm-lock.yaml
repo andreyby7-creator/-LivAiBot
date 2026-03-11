@@ -770,6 +770,12 @@ importers:
       '@effect/workflow':
         specifier: ^0.16.0
         version: 0.16.0(@effect/experimental@0.58.0(@effect/platform@0.94.5(effect@3.19.19))(effect@3.19.19)(ioredis@5.10.0))(@effect/platform@0.94.5(effect@3.19.19))(@effect/rpc@0.73.2(@effect/platform@0.94.5(effect@3.19.19))(effect@3.19.19))(effect@3.19.19)
+      '@livai/core':
+        specifier: workspace:*
+        version: link:../core
+      '@livai/core-contracts':
+        specifier: workspace:*
+        version: link:../core-contracts
       effect:
         specifier: ^3.19.19
         version: 3.19.19
