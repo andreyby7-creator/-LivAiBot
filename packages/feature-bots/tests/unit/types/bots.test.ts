@@ -8,9 +8,10 @@ import { describe, expect, it } from 'vitest';
 import type { BotPolicyAction, BotPolicyDeniedReason } from '@livai/core';
 import type { ID, ISODateString, JsonObject, TraceId } from '@livai/core-contracts';
 
+import type { BotCommandType } from '../../../src/types/bot-commands.js';
+import type { BotEnforcementReason, BotPauseReason } from '../../../src/types/bot-lifecycle.js';
 import type {
   BotChannelErrorCode,
-  BotCommandType,
   BotError,
   BotErrorCategory,
   BotErrorCode,
@@ -30,13 +31,11 @@ import type {
   BotOperationData,
   BotOperationState,
   BotParsingErrorCode,
-  BotPauseReason,
   BotPermissionErrorCode,
   BotPolicyErrorCode,
   BotState,
   BotStatus,
   BotSuccess,
-  BotSuspendReason,
   BotValidationErrorCode,
   BotWebhookErrorCode,
 } from '../../../src/types/bots.js';
@@ -60,6 +59,32 @@ const createBotError = (overrides: Partial<BotError> = {}): BotError => ({
   retryable: false,
   ...overrides,
 });
+
+/**
+ * Дефолтная политика retryability для тестов.
+ * Это не “заглушка”, а явное правило: permission/policy обычно fail-fast,
+ * parsing/validation тоже, а интеграции/webhook/channel могут быть ретраебельны.
+ */
+const defaultRetryableByCategory: Readonly<Record<BotErrorCategory, boolean>> = {
+  validation: false,
+  policy: false,
+  permission: false,
+  parsing: false,
+  channel: true,
+  webhook: true,
+  integration: true,
+} as const;
+
+const createBotErrorByCategory = (
+  category: BotErrorCategory,
+  overrides: Partial<BotError> = {},
+): BotError =>
+  createBotError({
+    category,
+    // eslint-disable-next-line security/detect-object-injection -- category строго типизирован (union), безопасный lookup
+    retryable: defaultRetryableByCategory[category],
+    ...overrides,
+  });
 
 /* eslint-disable @livai/rag/context-leakage -- Тестовые данные для unit тестов, не используются в production */
 const createBotErrorContext = (overrides: Partial<BotErrorContext> = {}): BotErrorContext => ({
@@ -87,12 +112,11 @@ describe('BotPauseReason', () => {
   it('должен поддерживать все варианты причин приостановки', () => {
     const reasons: BotPauseReason[] = [
       'manual',
-      'policy_violation',
       'rate_limit',
       'integration_error',
       'quota_exceeded',
     ];
-    expect(reasons).toHaveLength(5);
+    expect(reasons).toHaveLength(4);
     reasons.forEach((reason) => {
       const pauseStatus: BotStatus = {
         type: 'paused',
@@ -104,15 +128,14 @@ describe('BotPauseReason', () => {
   });
 });
 
-describe('BotSuspendReason', () => {
+describe('BotEnforcementReason', () => {
   it('должен поддерживать все варианты причин приостановки (внешняя интеграция)', () => {
-    const reasons: BotSuspendReason[] = [
-      'integration_failure',
-      'external_policy',
-      'security_incident',
-      'maintenance',
+    const reasons: BotEnforcementReason[] = [
+      'policy_violation',
+      'security_risk',
+      'billing_issue',
     ];
-    expect(reasons).toHaveLength(4);
+    expect(reasons).toHaveLength(3);
     reasons.forEach((reason) => {
       const suspendStatus: BotStatus = {
         type: 'suspended',
@@ -143,9 +166,10 @@ describe('BotStatus', () => {
     const status: BotStatus = {
       type: 'paused',
       pausedAt: createISODateString(),
+      reason: 'manual',
     };
     expect(status.type).toBe('paused');
-    expect(status.reason).toBeUndefined();
+    expect(status.reason).toBe('manual');
   });
 
   it('должен поддерживать тип paused с причиной', () => {
@@ -180,10 +204,10 @@ describe('BotStatus', () => {
     const status: BotStatus = {
       type: 'suspended',
       suspendedAt: createISODateString(),
-      reason: 'integration_failure',
+      reason: 'security_risk',
     };
     expect(status.type).toBe('suspended');
-    expect(status.reason).toBe('integration_failure');
+    expect(status.reason).toBe('security_risk');
   });
 
   it('должен поддерживать тип deprecated без замены', () => {
@@ -223,11 +247,7 @@ describe('BotErrorCategory', () => {
     ];
     expect(categories).toHaveLength(7);
     categories.forEach((category) => {
-      const error: BotError = {
-        category,
-        code: 'BOT_NAME_INVALID',
-        severity: 'medium',
-      };
+      const error: BotError = createBotErrorByCategory(category);
       expect(error.category).toBe(category);
     });
   });
@@ -242,6 +262,7 @@ describe('BotErrorSeverity', () => {
         category: 'validation',
         code: 'BOT_NAME_INVALID',
         severity,
+        retryable: false,
       };
       expect(error.severity).toBe(severity);
     });
@@ -266,11 +287,7 @@ describe('BotValidationErrorCode', () => {
     ];
     expect(codes).toHaveLength(12);
     codes.forEach((code) => {
-      const error: BotError = {
-        category: 'validation',
-        code,
-        severity: 'medium',
-      };
+      const error: BotError = createBotErrorByCategory('validation', { code });
       expect(error.code).toBe(code);
     });
   });
@@ -287,11 +304,7 @@ describe('BotPolicyErrorCode', () => {
     ];
     expect(codes).toHaveLength(5);
     codes.forEach((code) => {
-      const error: BotError = {
-        category: 'policy',
-        code,
-        severity: 'high',
-      };
+      const error: BotError = createBotErrorByCategory('policy', { code, severity: 'high' });
       expect(error.code).toBe(code);
     });
   });
@@ -309,11 +322,7 @@ describe('BotPermissionErrorCode', () => {
     ];
     expect(codes).toHaveLength(6);
     codes.forEach((code) => {
-      const error: BotError = {
-        category: 'permission',
-        code,
-        severity: 'high',
-      };
+      const error: BotError = createBotErrorByCategory('permission', { code, severity: 'high' });
       expect(error.code).toBe(code);
     });
   });
@@ -330,11 +339,7 @@ describe('BotChannelErrorCode', () => {
     ];
     expect(codes).toHaveLength(5);
     codes.forEach((code) => {
-      const error: BotError = {
-        category: 'channel',
-        code,
-        severity: 'medium',
-      };
+      const error: BotError = createBotErrorByCategory('channel', { code });
       expect(error.code).toBe(code);
     });
   });
@@ -352,11 +357,7 @@ describe('BotWebhookErrorCode', () => {
     ];
     expect(codes).toHaveLength(6);
     codes.forEach((code) => {
-      const error: BotError = {
-        category: 'webhook',
-        code,
-        severity: 'medium',
-      };
+      const error: BotError = createBotErrorByCategory('webhook', { code });
       expect(error.code).toBe(code);
     });
   });
@@ -373,11 +374,7 @@ describe('BotParsingErrorCode', () => {
     ];
     expect(codes).toHaveLength(5);
     codes.forEach((code) => {
-      const error: BotError = {
-        category: 'parsing',
-        code,
-        severity: 'low',
-      };
+      const error: BotError = createBotErrorByCategory('parsing', { code, severity: 'low' });
       expect(error.code).toBe(code);
     });
   });
@@ -395,11 +392,7 @@ describe('BotIntegrationErrorCode', () => {
     ];
     expect(codes).toHaveLength(6);
     codes.forEach((code) => {
-      const error: BotError = {
-        category: 'integration',
-        code,
-        severity: 'high',
-      };
+      const error: BotError = createBotErrorByCategory('integration', { code, severity: 'high' });
       expect(error.code).toBe(code);
     });
   });
@@ -483,6 +476,7 @@ describe('BotError', () => {
       category: 'validation',
       code: 'BOT_NAME_INVALID',
       severity: 'medium',
+      retryable: false,
     };
     expect(error.category).toBe('validation');
     expect(error.code).toBe('BOT_NAME_INVALID');
@@ -631,15 +625,18 @@ describe('BotInfo', () => {
 describe('BotCommandType', () => {
   it('должен поддерживать все типы команд', () => {
     const commands: BotCommandType[] = [
-      'create',
-      'update',
-      'delete',
-      'publish',
-      'pause',
-      'resume',
-      'archive',
+      'create_bot_from_template',
+      'create_custom_bot',
+      'update_instruction',
+      'manage_multi_agent',
+      'publish_bot',
+      'pause_bot',
+      'resume_bot',
+      'archive_bot',
+      'delete_bot',
+      'simulate_bot_message',
     ];
-    expect(commands).toHaveLength(7);
+    expect(commands).toHaveLength(10);
     commands.forEach((command) => {
       const loading: BotLoading = {
         status: 'loading',
@@ -658,19 +655,13 @@ describe('BotIdle', () => {
 });
 
 describe('BotLoading', () => {
-  it('должен поддерживать состояние загрузки без операции', () => {
-    const loading: BotLoading = { status: 'loading' };
-    expect(loading.status).toBe('loading');
-    expect(loading.operation).toBeUndefined();
-  });
-
   it('должен поддерживать состояние загрузки с операцией', () => {
     const loading: BotLoading = {
       status: 'loading',
-      operation: 'create',
+      operation: 'create_custom_bot',
     };
     expect(loading.status).toBe('loading');
-    expect(loading.operation).toBe('create');
+    expect(loading.operation).toBe('create_custom_bot');
   });
 });
 
@@ -714,7 +705,7 @@ describe('BotOperationState', () => {
   it('должен поддерживать состояние loading', () => {
     const state: BotOperationState = {
       status: 'loading',
-      operation: 'create',
+      operation: 'create_custom_bot',
     };
     expect(state.status).toBe('loading');
   });

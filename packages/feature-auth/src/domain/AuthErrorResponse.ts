@@ -59,7 +59,7 @@ export type AuthErrorResponse = {
   readonly message?: string;
 
   /** Можно ли повторить операцию */
-  readonly retryable?: boolean;
+  readonly retryable: boolean;
 
   /** HTTP статус (если используется на API boundary) */
   readonly statusCode?: number;

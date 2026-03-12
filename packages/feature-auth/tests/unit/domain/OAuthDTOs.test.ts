@@ -210,6 +210,7 @@ describe('OAuthErrorResponse полный DTO', () => {
   it('создает минимальный ответ (обязательные поля)', () => {
     const response: OAuthErrorResponse = {
       error: 'invalid_token',
+      retryable: false,
     };
 
     expect(response.error).toBe('invalid_token');
@@ -237,6 +238,7 @@ describe('OAuthErrorResponse optional fields', () => {
     const responseWithProvider = createOAuthErrorResponse({ provider: 'google' });
     const responseWithoutProvider: OAuthErrorResponse = {
       error: 'invalid_token',
+      retryable: false,
     };
 
     expect(responseWithProvider.provider).toBe('google');
@@ -247,20 +249,22 @@ describe('OAuthErrorResponse optional fields', () => {
     const responseWithMessage = createOAuthErrorResponse({ message: 'Error message' });
     const responseWithoutMessage: OAuthErrorResponse = {
       error: 'invalid_token',
+      retryable: false,
     };
 
     expect(responseWithMessage.message).toBe('Error message');
     expect(responseWithoutMessage.message).toBeUndefined();
   });
 
-  it('retryable опционально для возможности повтора', () => {
+  it('retryable обязателен и задаётся явно', () => {
     const responseWithRetryable = createOAuthErrorResponse({ retryable: true });
-    const responseWithoutRetryable: OAuthErrorResponse = {
+    const responseWithDefault: OAuthErrorResponse = {
       error: 'invalid_token',
+      retryable: false,
     };
 
     expect(responseWithRetryable.retryable).toBe(true);
-    expect(responseWithoutRetryable.retryable).toBeUndefined();
+    expect(responseWithDefault.retryable).toBe(false);
   });
 });
 
@@ -564,6 +568,7 @@ describe('OAuth requests immutability', () => {
     const response: OAuthErrorResponse = {
       error: 'invalid_token',
       provider: 'google',
+      retryable: false,
     };
 
     // TypeScript предотвращает мутацию
@@ -617,6 +622,7 @@ describe('OAuth requests comprehensive snapshots', () => {
   it('minimal OAuthErrorResponse - полный snapshot', () => {
     const response: OAuthErrorResponse = {
       error: 'invalid_token',
+      retryable: false,
     };
 
     expect(response).toMatchSnapshot();

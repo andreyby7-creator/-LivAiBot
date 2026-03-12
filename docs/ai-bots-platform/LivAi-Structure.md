@@ -293,7 +293,7 @@ livai/
 │   │   │   │   ├── create_custom_bot.py        # U4
 │   │   │   │   ├── update_instruction.py       # U5
 │   │   │   │   ├── manage_multi_agent.py       # U5.1
-│   │   │   │   ├── test_bot_simulator.py       # U10 (test chat)
+│   │   │   │   ├── simulate_bot_message.py     # U10 (test chat)
 │   │   │   │   └── publish_bot.py              # U10
 │   │   │   ├── templates/
 │   │   │   │   ├── catalog.json

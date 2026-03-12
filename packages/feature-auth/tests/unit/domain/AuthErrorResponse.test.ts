@@ -19,6 +19,7 @@ function createAuthErrorResponse(
   return {
     error,
     message: `Error: ${error}`,
+    retryable: false,
     ...overrides,
   };
 }
@@ -26,6 +27,7 @@ function createAuthErrorResponse(
 function createMinimalAuthErrorResponse(error: AuthErrorType): AuthErrorResponse {
   return {
     error,
+    retryable: false,
   };
 }
 
@@ -156,7 +158,7 @@ describe('AuthErrorResponse полный DTO', () => {
 
     expect(error.error).toBe('invalid_credentials');
     expect(error.message).toBeUndefined();
-    expect(error.retryable).toBeUndefined();
+    expect(error.retryable).toBe(false);
     expect(error.statusCode).toBeUndefined();
     expect(error.userId).toBeUndefined();
     expect(error.correlationId).toBeUndefined();
@@ -406,7 +408,7 @@ describe('AuthErrorResponse edge cases', () => {
     expect(errorWithoutStatusCode.statusCode).toBeUndefined();
   });
 
-  it('retryable опционально и может быть undefined', () => {
+  it('retryable обязателен и задаётся явно', () => {
     const errorWithRetryable = createAuthErrorResponse('invalid_credentials', {
       retryable: true,
     });
@@ -414,7 +416,7 @@ describe('AuthErrorResponse edge cases', () => {
     const errorWithoutRetryable = createAuthErrorResponse('invalid_credentials');
 
     expect(errorWithRetryable.retryable).toBe(true);
-    expect(errorWithoutRetryable.retryable).toBeUndefined();
+    expect(errorWithoutRetryable.retryable).toBe(false);
   });
 
   it('message опционально для минимальных ошибок', () => {
@@ -473,6 +475,7 @@ describe('AuthErrorResponse immutability', () => {
   it('context readonly - предотвращает мутацию вложенных объектов', () => {
     const error: AuthErrorResponse = {
       error: 'invalid_credentials',
+      retryable: false,
       context: {
         remainingAttempts: 3,
         lockoutDuration: 300,

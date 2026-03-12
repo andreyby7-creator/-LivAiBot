@@ -71,6 +71,7 @@ function createAuthErrorResponse(
   return {
     error,
     message: `Test message for ${error}`,
+    retryable: false,
     ...overrides,
   };
 }
@@ -84,6 +85,7 @@ function createOAuthErrorResponse(
     error,
     provider: 'google',
     message: `Test OAuth message for ${error}`,
+    retryable: false,
     ...overrides,
   };
 }
@@ -470,6 +472,7 @@ describe('mapAuthError', () => {
       const input: OAuthErrorResponse = {
         error: 'invalid_token',
         message: 'Test OAuth message for invalid_token',
+        retryable: false,
       };
       // Добавляем provider: undefined для проверки isOAuthErrorResponse
       // (isOAuthErrorResponse проверяет 'provider' in value, что вернет true)

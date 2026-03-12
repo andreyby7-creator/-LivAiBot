@@ -2365,3 +2365,30 @@ Verification:
 [2026-03-11T22:10:48+03:00] phase2-UI-platform.md deps updated (block 929-937): Web/Chat and Admin & Analytics - updated all file types from 'ts+react' to 'tsx+react' for .tsx files. All deps match planned structure.
 [2026-03-11T22:14:17+03:00] Обновлены зависимости: eslint-plugin-sonarjs (4.0.1→4.0.2), lint-staged (16.3.2→16.3.3), turbo (2.8.15→2.8.16). Все зависимости находятся только в корневом package.json и синхронизированы.
 [2026-03-11T22:23:04+03:00] ✅ Все изменения закоммичены и запушены в origin/main. Коммит: chore: обновление зависимостей и документации (4b125825). Обновлены зависимости: eslint-plugin-sonarjs (4.0.2), lint-staged (16.3.3), turbo (2.8.16). Обновлена документация phase2-UI-platform.md. Все проверки пройдены.
+[2026-03-12T06:53:13Z] feature-bots: fix BotCommandType test import; tsc+unit ok
+[2026-03-12T06:54:58Z] docs: reordered feature-bots/types entries; bots.ts deps now include types/bot-commands
+[2026-03-12T07:18:27Z] feature-bots: moved lifecycle contract note to header; tsc ok
+[2026-03-12T07:19:47Z] feature-bots: reordered src/types/index.ts exports (lifecycle -> commands -> bots); tsc ok
+[2026-03-12T07:24:46Z] feature-bots: introduced BotEnforcementReason (no overlap), updated types+tests+docs; lint/tsc/tests ok
+[2026-03-12T07:27:26Z] feature-bots: added BotLifecycleReason + dependency-free rule to bot-lifecycle; tsc+unit ok
+[2026-03-12T07:34:12Z] feature-bots: made paused.reason and BotLoading.operation required; narrowed BotErrorContext.value to primitives; tsc+unit ok
+[2026-03-12T07:37:51Z] feature-bots: fixed tests import BotPauseReason/BotEnforcementReason from bot-lifecycle; tsc+unit ok
+[2026-03-12T07:38:50Z] feature-bots: fixed BotPauseReason test (removed policy_violation); tsc+unit ok
+[2026-03-12T07:42:26Z] feature-bots: BotError.retryable now required; bots.ts header severity docs synced; tsc+unit ok
+[2026-03-12T07:46:48Z] feature-bots: refactored bot-commands to map-based BotCommandPayloadMap->BotCommand; AllBotCommandTypes now satisfies; BotCommandMeta includes traceId; tsc+unit ok
+[2026-03-12T07:48:32Z] feature-bots: refined bot-commands.ts header JSDoc to reflect map-based model + exhaustiveness + lifecycle deps; tsc ok
+[2026-03-12T07:53:44Z] feature-bots: BotCommandPayloadMap keys now derived from BotCommandTypes (computed keys) to prevent drift; tsc+unit ok
+[2026-03-12T07:57:13Z] feature-bots: renamed command TEST_BOT_SIMULATOR/test_bot_simulator -> SIMULATE_BOT_MESSAGE/simulate_bot_message (wire string); updated types/tests/docs; lint+tsc+unit ok
+[2026-03-12T07:59:38Z] backend: make quality-fast ok (bots-service + conversations-service)
+[2026-03-12T08:03:05Z] docs: clarified backend-swappability claim with stable contract + versioned migrations note
+[2026-03-12T08:10:21Z] feature-bots: made PauseBotPayload.reason required to match BotStatus.paused.reason (deterministic command->state); tsc+unit ok
+[2026-03-12T08:16:54Z] tooling: added repo-wide check:contract-asymmetry (baseline-based) + docs entry
+[2026-03-12T08:21:20Z] tooling: removed contract-asymmetry baseline; checker now fails on any hit (currently 5)
+[2026-03-12T08:36:18Z] fixes: removed unknown value + required retryable across core/auth; updated tests+snapshots; check:contract-asymmetry + lint:canary + tsc ok
+[2026-03-12T08:42:08Z] cleanup: introduced BotError DTO factories + default retryable policy in bots tests; documented retryable semantics in bots.ts; checks ok
+[2026-03-12T09:05:13Z] core: added resilience/retry-policy primitive + exports; docs updated; lint+tsc+contract-asymmetry ok
+[2026-03-12T12:19:15+03:00] retry-policy tests: PASS (100% coverage for retry-policy.ts)
+[2026-03-12T12:23:32+03:00] bot-lifecycle tests: PASS (types-only module, runtime coverage not applicable)
+[2026-03-12T12:26:02+03:00] bot-commands tests: PASS (100% coverage for bot-commands.ts)
+[2026-03-12T12:27:16+03:00] bot-commands tests: PASS after exactOptionalPropertyTypes fix (100% coverage for bot-commands.ts)
+[2026-03-12T12:30:07+03:00] bot-commands lint fix: removed switch per functional/no-conditional-statements; tests PASS (100% coverage)

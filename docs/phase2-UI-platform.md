@@ -258,6 +258,7 @@ Toast / UI feedback
 - 🟢 `circuit-breaker.ts` — ts — deps: — circuit breaker для внешних вызовов
 - 🟢 `metrics.ts` — ts — deps: — метрики устойчивости (ошибки, retries, latency)
 - 🟢 `performance-limits.ts` — ts — deps: resilience/metrics — ограничение нагрузки и лимиты производительности
+- 🟢 `retry-policy.ts` — ts — deps: — generic retry-policy primitive (RetryPolicy<T>, createRetryPolicy) для deterministic retryability lookup в feature-пакетах
 
 ### **Core / policies** ✅
 
@@ -473,10 +474,11 @@ Toast / UI feedback
 
 ### **Feature-bots / types** ⚪
 
-- 🟢 `bots.ts` — ts — deps: @livai/core-contracts, @livai/core — агрегирующие типы состояния и операций ботов для store/effects/UI (BotState, BotStatus с 7 вариантами и причинами приостановки, BotError с 7 категориями и severity для telemetry/alerts, exhaustive union кодов ошибок, error-mapping для rule-engine, BotOperationState, BotInfo)
-- ⚪ `bots-initial.ts` — ts — deps: types/bots, domain/BotAuditEvent, types/bot-commands, types/bot-events — канонические начальные состояния Bot для reset-операций в store/effects, шаблоны для audit-событий (BotAuditEventTemplate), pipeline-hooks (BotPipelineHookTemplate) для автоматических действий при lifecycle-событиях
-- ⚪ `bot-commands.ts` — ts — deps: domain/*, types/bots — типы и константы команд ботов (create_bot_from_template, create_custom_bot, update_instruction, manage_multi_agent, publish_bot, pause/resume/archive, delete_bot, test_bot_simulator)
+- 🟢 `bot-lifecycle.ts` — ts — deps: none — атомарные lifecycle-контракты (BotPauseReason, BotEnforcementReason)
+- 🟢 `bot-commands.ts` — ts — deps: @livai/core-contracts, types/bot-lifecycle — типы и константы команд ботов (BotCommandTypes/BotCommandType/AllBotCommandTypes, BotCommand discriminated union + строгие payload'ы для: create_bot_from_template, create_custom_bot, update_instruction, manage_multi_agent, publish_bot, pause_bot, resume_bot, archive_bot, delete_bot, simulate_bot_message)
+- 🟢 `bots.ts` — ts — deps: @livai/core-contracts, @livai/core, types/bot-commands, types/bot-lifecycle — агрегирующие типы состояния и операций ботов для store/effects/UI (BotState, BotStatus с 7 вариантами и причинами приостановки, BotError с 7 категориями и severity для telemetry/alerts, exhaustive union кодов ошибок, error-mapping для rule-engine, BotOperationState, BotInfo)
 - ⚪ `bot-events.ts` — ts — deps: domain/*, types/bots — типы и константы событий ботов (bot_created, bot_published, bot_updated, bot_deleted, instruction_updated, multi_agent_updated, bot_paused/resumed/archived, config_changed)
+- ⚪ `bots-initial.ts` — ts — deps: types/bots, domain/BotAuditEvent, types/bot-commands, types/bot-events — канонические начальные состояния Bot для reset-операций в store/effects, шаблоны для audit-событий (BotAuditEventTemplate), pipeline-hooks (BotPipelineHookTemplate) для автоматических действий при lifecycle-событиях
 
 ### **Feature-bots / domain** ⚪
 
@@ -1044,7 +1046,7 @@ Toast / UI feedback
 - **PermissionGate / RoleGate / AuthGuard** — UI-гейты.
 - **feature-*.contract.ts** — типобезопасные контракты app ↔ feature.
 
-Позволяет менять backend, делать white-label, выносить features в отдельные пакеты, подключать REST/GraphQL/BFF.
+Позволяет менять backend, делать white-label, выносить features в отдельные пакеты, подключать REST/GraphQL/BFF — при условии стабильного контракта (ports/DTO/schemas) и versioned migrations при изменениях API.
 
 ### **Phase Extensions / Optional**
 

@@ -1,40 +1,12 @@
-/home/boss/Projects/livai/packages/core/tests/transport/websocket.test.ts: createWebSocketEffect пробрасывает события и context в handlers
-AssertionError: expected "vi.fn()" to be called with arguments: [ Any<Event>, …(1) ]
-
-Received: 
-
-  1st vi.fn() call:
-
-  [
--   Any<Event>,
-+   {},
-    {
-      "source": "websocket-adapter",
-    },
-  ]
-
-
-Number of calls: 1
-
-    at Proxy.<anonymous> (file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+expect@4.0.18/node_modules/@vitest/expect/dist/index.js:1420:10)
-    at Proxy.<anonymous> (file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+expect@4.0.18/node_modules/@vitest/expect/dist/index.js:1090:14)
-    at Proxy.methodWrapper (file:///home/boss/Projects/livai/node_modules/.pnpm/chai@6.2.2/node_modules/chai/index.js:1700:25)
-    at /home/boss/Projects/livai/packages/core/tests/transport/websocket.test.ts:244:19
-    at processTicksAndRejections (node:internal/process/task_queues:103:5)
-    at file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.18/node_modules/@vitest/runner/dist/index.js:915:20
-
----
-
-/home/boss/Projects/livai/packages/core/tests/transport/websocket.test.ts: closeWebSocketEffect использует withLogging когда logger задан
-AssertionError: expected "vi.fn()" to be called 1 times, but got 0 times
-    at /home/boss/Projects/livai/packages/core/tests/transport/websocket.test.ts:573:30
-    at processTicksAndRejections (node:internal/process/task_queues:103:5)
-    at file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.18/node_modules/@vitest/runner/dist/index.js:915:20
-
----
-
-/home/boss/Projects/livai/packages/core/tests/transport/websocket.test.ts: sendWebSocketMessageEffect интегрируется с logger через withLogging и логирует ошибку при сбое send
-AssertionError: expected "vi.fn()" to be called 1 times, but got 0 times
-    at /home/boss/Projects/livai/packages/core/tests/transport/websocket.test.ts:647:28
-    at processTicksAndRejections (node:internal/process/task_queues:103:5)
-    at file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.18/node_modules/@vitest/runner/dist/index.js:915:20
+/home/boss/Projects/livai/packages/feature-auth/tests/unit/domain/AuthErrorResponse.test.ts: создает минимальное сообщение об ошибке с обязательными полями
+AssertionError: expected false to be undefined
+    at /home/boss/Projects/livai/packages/feature-auth/tests/unit/domain/AuthErrorResponse.test.ts:161:29
+    at file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.18/node_modules/@vitest/runner/dist/index.js:145:11
+    at file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.18/node_modules/@vitest/runner/dist/index.js:915:26
+    at file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.18/node_modules/@vitest/runner/dist/index.js:1243:20
+    at new Promise (<anonymous>)
+    at runWithTimeout (file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.18/node_modules/@vitest/runner/dist/index.js:1209:10)
+    at file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.18/node_modules/@vitest/runner/dist/index.js:1653:37
+    at Traces.$ (file:///home/boss/Projects/livai/node_modules/.pnpm/vitest@4.0.18_@opentelemetry+api@1.9.0_@types+node@25.4.0_@vitest+ui@4.0.18_jsdom@28.1._e6db33ec95182f7a0a18a95a2632aa7a/node_modules/vitest/dist/chunks/traces.CCmnQaNT.js:142:27)
+    at trace (file:///home/boss/Projects/livai/node_modules/.pnpm/vitest@4.0.18_@opentelemetry+api@1.9.0_@types+node@25.4.0_@vitest+ui@4.0.18_jsdom@28.1._e6db33ec95182f7a0a18a95a2632aa7a/node_modules/vitest/dist/chunks/test.B8ej_ZHS.js:239:21)
+    at runTest (file:///home/boss/Projects/livai/node_modules/.pnpm/@vitest+runner@4.0.18/node_modules/@vitest/runner/dist/index.js:1653:12)

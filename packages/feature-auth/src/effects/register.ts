@@ -601,6 +601,7 @@ export function createRegisterEffect(
           const fallbackRaw: AuthErrorResponse = {
             error: 'unknown_error',
             message: 'Unexpected error',
+            retryable: false,
           };
           error = {
             kind: 'unknown',

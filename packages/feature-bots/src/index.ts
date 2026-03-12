@@ -17,7 +17,7 @@
  *   шаблоны для audit-событий (BotAuditEventTemplate), pipeline-hooks (BotPipelineHookTemplate)
  *   для автоматических действий при lifecycle-событиях
  * - Типы и константы команд ботов (create_bot_from_template, create_custom_bot, update_instruction,
- *   manage_multi_agent, publish_bot, pause/resume/archive, delete_bot, test_bot_simulator)
+ *   manage_multi_agent, publish_bot, pause/resume/archive, delete_bot, simulate_bot_message)
  * - Типы и константы событий ботов (bot_created, bot_published, bot_updated, bot_deleted,
  *   instruction_updated, multi_agent_updated, bot_paused/resumed/archived, config_changed)
  * @public

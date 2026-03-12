@@ -217,6 +217,7 @@ pnpm run pre-commit                       # Lint + format + tests + deps
 pnpm run format:check                     # Проверка форматирования
 pnpm run check:circular-deps              # Циклические зависимости
 pnpm run check:exports                    # Проверка экспортов в индексных файлах
+pnpm run check:contract-asymmetry         # Repo-wide guard rail: contract asymmetries / leakage patterns
 node config/eslint/utils/check-zones.mjs  # Валидация архитектурных зон пакетов
 node config/eslint/utils/validate-zones.mjs # Валидация конфигурации зон ESLint
 node config/eslint/test-context.js        # Диагностика контекста выполнения ESLint (canary.config.mjs)

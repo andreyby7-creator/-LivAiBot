@@ -81,6 +81,7 @@
     "deps:unused": "node scripts/check-deps-unused.js",
     "check:dependency-policy": "node scripts/check-dependency-policy.js",
     "check:deprecated": "node scripts/check-deprecated.js",
+    "check:contract-asymmetry": "node scripts/check-contract-asymmetry.mjs",
     "test:ui": "pnpm run -r test:ui",
     "test:coverage:html": "pnpm run -r test:coverage:html",
     "test:coverage:watch": "pnpm run -r test:coverage:watch",

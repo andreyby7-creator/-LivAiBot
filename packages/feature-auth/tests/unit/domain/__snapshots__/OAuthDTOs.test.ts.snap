@@ -74,6 +74,7 @@ exports[`OAuth requests comprehensive snapshots > full OAuthRegisterRequest - п
 exports[`OAuth requests comprehensive snapshots > minimal OAuthErrorResponse - полный snapshot 1`] = `
 {
   "error": "invalid_token",
+  "retryable": false,
 }
 `;
 

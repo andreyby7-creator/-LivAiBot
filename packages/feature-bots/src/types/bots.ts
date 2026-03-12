@@ -7,12 +7,13 @@
  * Архитектурная роль:
  * - Агрегирующие типы состояния и операций ботов для store/effects/UI
  * - Типы статусов ботов (BotStatus: draft, active, paused, archived, deleted, suspended, deprecated)
- *   с причинами приостановки (BotPauseReason, BotSuspendReason)
+ *   с причинами паузы/ограничений (BotPauseReason, BotEnforcementReason)
  * - Система ошибок с категоризацией (7 категорий: validation, policy, permission, channel, webhook, parsing, integration),
- *   severity (low/medium/high), exhaustive union кодов ошибок и контекстом (BotError, BotErrorContext, BotField)
+ *   severity (low/medium/high/critical), exhaustive union кодов ошибок и контекстом (BotError, BotErrorContext, BotField)
  * - Структура error-mapping для rule-engine (BotErrorMappingConfig, BotErrorMappingRegistry)
  * - Состояния операций для store (BotState, BotListState, BotOperationState: idle/loading/success/error)
- * - Базовая информация о боте (BotInfo) и временный тип команд (BotCommandType)
+ * - Базовая информация о боте (BotInfo) и тип команд (BotCommandType)
+ * - BotPauseReason/BotEnforcementReason — атомарные lifecycle-контракты в `types/bot-lifecycle.ts` (единый source-of-truth, без drift/циклов)
  *
  * Принципы:
  * - ❌ Нет бизнес-логики, нет локализации (message генерируется в UI через i18n)
@@ -26,31 +27,13 @@
 import type { BotPolicyAction, BotPolicyDeniedReason } from '@livai/core';
 import type { ID, ISODateString, JsonObject, TraceId } from '@livai/core-contracts';
 
+import type { BotCommandType } from './bot-commands.js';
+import type { BotEnforcementReason, BotPauseReason } from './bot-lifecycle.js';
+
 /* ============================================================================
  * 🧭 TYPES — BOT STATUS (Discriminated Union)
  * ============================================================================
  */
-
-/**
- * Причина приостановки бота.
- * Exhaustive union для type-safe обработки причин приостановки.
- */
-export type BotPauseReason =
-  | 'manual'
-  | 'policy_violation'
-  | 'rate_limit'
-  | 'integration_error'
-  | 'quota_exceeded';
-
-/**
- * Причина приостановки бота (внешняя интеграция).
- * Exhaustive union для type-safe обработки причин приостановки.
- */
-export type BotSuspendReason =
-  | 'integration_failure'
-  | 'external_policy'
-  | 'security_incident'
-  | 'maintenance';
 
 /**
  * Статус бота в системе.
@@ -74,8 +57,8 @@ export type BotStatus =
     readonly type: 'paused';
     /** Дата приостановки */
     readonly pausedAt: ISODateString;
-    /** Причина приостановки (опционально) */
-    readonly reason?: BotPauseReason;
+    /** Причина приостановки */
+    readonly reason: BotPauseReason;
   }>
   | Readonly<{
     /** Тип статуса: заархивирован */
@@ -95,7 +78,7 @@ export type BotStatus =
     /** Дата приостановки */
     readonly suspendedAt: ISODateString;
     /** Причина приостановки */
-    readonly reason: BotSuspendReason;
+    readonly reason: BotEnforcementReason;
   }>
   | Readonly<{
     /** Тип статуса: устарел (deprecated) */
@@ -253,7 +236,7 @@ export type BotErrorContext = Readonly<{
   /** Поле формы, в котором произошла ошибка */
   readonly field?: BotField;
   /** Значение поля, вызвавшее ошибку */
-  readonly value?: unknown;
+  readonly value?: string | number | boolean;
   /** Дополнительные данные для логирования */
   readonly details?: JsonObject;
   /** Идентификатор бота (если применимо) */
@@ -284,8 +267,11 @@ export type BotError = Readonly<{
   readonly severity: BotErrorSeverity;
   /** Контекст ошибки */
   readonly context?: BotErrorContext;
-  /** Можно ли повторить операцию */
-  readonly retryable?: boolean;
+  /**
+   * Можно ли повторить операцию.
+   * Обязательное поле, когда ошибка влияет на retry-логику (rule-engine / effects / UI).
+   */
+  readonly retryable: boolean;
 }>;
 
 /* ============================================================================
@@ -361,24 +347,11 @@ export type BotIdle = Readonly<{
   readonly status: 'idle';
 }>;
 
-/**
- * Тип команды бота (временный тип до реализации bot-commands.ts).
- * TODO: заменить на BotCommandType из types/bot-commands.ts
- */
-export type BotCommandType =
-  | 'create'
-  | 'update'
-  | 'delete'
-  | 'publish'
-  | 'pause'
-  | 'resume'
-  | 'archive';
-
 /** Состояние загрузки операций с ботами. */
 export type BotLoading = Readonly<{
   readonly status: 'loading';
   /** Тип операции */
-  readonly operation?: BotCommandType;
+  readonly operation: BotCommandType;
 }>;
 
 /** Состояние успешного выполнения операций с ботами. */

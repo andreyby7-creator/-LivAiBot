@@ -247,7 +247,7 @@ export class DomainValidationError extends Error {
   constructor(
     message: string,
     public readonly field?: string,
-    public readonly value?: unknown,
+    public readonly value?: string | number | boolean,
     public readonly code: string = 'DOMAIN_VALIDATION_ERROR',
   ) {
     super(message);
@@ -259,7 +259,13 @@ export class DomainValidationError extends Error {
    * Сериализует ошибку для structured logging
    * @note Используется в production для логов и мониторинга
    */
-  toJSON(): { name: string; message: string; field?: string; value?: unknown; code: string; } {
+  toJSON(): {
+    name: string;
+    message: string;
+    field?: string;
+    value?: string | number | boolean;
+    code: string;
+  } {
     return Object.freeze({
       name: this.name,
       message: this.message,

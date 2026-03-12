@@ -94,7 +94,8 @@ export type ApiValidationErrorCode =
 
 export type ApiValidationError = TaggedError<ApiValidationErrorCode> & {
   readonly field?: string | undefined;
-  readonly value?: unknown;
+  /** Безопасное значение (для логов/telemetry), без утечки объектов/секретов */
+  readonly value?: string | number | boolean;
   readonly schema?: string;
   readonly details?: unknown;
 };

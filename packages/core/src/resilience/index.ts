@@ -23,6 +23,22 @@ export type {
 } from './circuit-breaker.js';
 
 /* ============================================================================
+ * 🔁 RETRY POLICY — GENERIC PRIMITIVE
+ * ========================================================================== */
+
+/**
+ * Retry Policy: generic типы и helper для retryability.
+ * @public
+ */
+export type { RetryPolicy } from './retry-policy.js';
+
+/**
+ * Retry Policy helpers.
+ * @public
+ */
+export { createRetryPolicy, getRetryable, mergeRetryPolicies } from './retry-policy.js';
+
+/* ============================================================================
  * 🔧 CIRCUIT BREAKER — PURE STATE MACHINE
  * ========================================================================== */
 
