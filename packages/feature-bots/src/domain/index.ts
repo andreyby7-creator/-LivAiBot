@@ -8,6 +8,28 @@
  * ========================================================================== */
 
 /**
+ * Bot Aggregate: доменная модель бота.
+ * @public
+ */
+export {
+  type ActiveBot,
+  type ActiveBotStatus,
+  assertBotInvariant,
+  type Bot,
+  type BotId,
+  type BotInvariantError,
+  type BotMetadata,
+  type BotUserId,
+  type BotVersion,
+  type BotWorkspaceId,
+  createBotInvariantError,
+  type DeletedBot,
+  type DeletedBotStatus,
+  type Revision,
+  type Timestamp,
+} from './Bot.js';
+
+/**
  * Bot Retry Policy: централизованная retry-политика для ошибок ботов.
  * @public
  */

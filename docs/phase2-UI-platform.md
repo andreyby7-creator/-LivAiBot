@@ -483,7 +483,7 @@ Toast / UI feedback
 
 ### **Feature-bots / domain** ⚪
 
-- ⚪ `Bot.ts` — ts — deps: @livai/core-contracts/bots, types/bots, @livai/core/policies/BotPolicy — доменная модель бота (id, name, status: 'draft' | 'active' | 'paused' | 'archived' | 'deleted' | 'suspended' | 'deprecated', workspaceId, currentVersion, metadata, createdAt, updatedAt, deletedAt, createdBy, updatedBy, operationId для идемпотентности; suspended/deprecated для внешних интеграций и временной блокировки)
+- 🟢 `Bot.ts` — ts — deps: @livai/core-contracts/bots, types/bots, @livai/core/policies/BotPolicy — доменная модель бота (Active/Deleted union c status: 'draft' | 'active' | 'paused' | 'archived' | 'deleted' | 'suspended' | 'deprecated', branded revision/currentVersion, workspaceId, metadata (non-sensitive only), createdAt, updatedAt, deletedAt, createdBy, updatedBy + runtime-инварианты для deletedAt/revision/currentVersion)
 - ⚪ `BotVersion.ts` — ts — deps: @livai/core-contracts/bots, types/bots — доменная модель версии бота (version, instruction, settings, operationId, createdBy, createdAt, metadata для отката, rollbackVersion опционально, tags/labels для фильтрации версий без изменения структуры, immutable)
 - ⚪ `BotTemplate.ts` — ts — deps: @livai/core-contracts/bots, types/bots — доменная модель шаблона бота (id, name, role, description, defaultInstruction, defaultSettings, capabilities, tags/labels для фильтрации шаблонов без изменения структуры)
 - ⚪ `Prompt.ts` — ts — deps: @livai/core-contracts/bots, types/bots — доменная модель prompt-блоков инструкции (systemPrompt, greeting, language, style, constraints, handoffRules)

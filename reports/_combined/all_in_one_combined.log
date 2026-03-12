@@ -2400,3 +2400,17 @@ Verification:
 [2026-03-12 14:54:42] retry-policy: BotErrorMappingRegistry now validated against BotRetryPolicy in bots.test; docs and plan updated for future runtime registry.
 [2026-03-12 14:57:21] retry-policy: removed reports/retry-policy-integration-plan.md; phase2-UI-platform.md is now the single planning/documentation source for retry integration.
 [2026-03-12 15:01:24] lint:canary passed after fixing optional chaining in BotErrorMappingRegistry test.
+[2026-03-12 15:12:40] feature-bots Bot.ts: removed operationId (idempotency is app/command concern), updated docs metadata note; tsc:check passed.
+[feature-bots] Updated Bot domain model and BotStatusTransition; tests: packages/feature-bots/tests/unit/types/bots.test.ts ✅
+[feature-bots] Refined Bot domain lifecycle types and BotInvariantError; tests: packages/feature-bots/tests/unit/types/bots.test.ts ✅
+[feature-bots] Branded Timestamp in Bot domain; tests: packages/feature-bots/tests/unit/types/bots.test.ts ✅
+[feature-bots] Simplified Status helper and branded Revision in Bot domain; tests: packages/feature-bots/tests/unit/types/bots.test.ts ✅
+[2026-03-12T16:00:17+03:00] Bot.ts invariant polish OK; local eslint for file passed; global lint:canary previously green before cosmetic tweaks.
+[2026-03-12T16:04:04+03:00] Bot.ts invariant error factory updated with immutable BotInvariantError literal; lint:canary=OK.
+[2026-03-12T16:10:01+03:00] Bot.ts createBotInvariantError reverted to real Error instance with name mutation and eslint scoped disables; lint:canary=OK.
+[2026-03-12T16:12:09+03:00] Bot.ts added asNumber helper for branded numbers; lint:canary=OK.
+[2026-03-12T16:16:02+03:00] feature-bots domain/index.ts exports extended to include Bot invariants and branded types; lint:canary=OK.
+[2026-03-12T16:18:10+03:00] Bot.ts fully covered by Bot.test.ts (100% statements/branches/functions/lines) via custom unit runner.
+[2026-03-12T16:19:34+03:00] Bot.test.ts TS/ESLint issues fixed; tests stable with 100% coverage for Bot.ts.
+[2026-03-12T16:20:16+03:00] Updated docs/phase2-UI-platform.md Bot.ts entry to match Active/Deleted union, branded versions and invariants.
+[2026-03-12T16:22:09+03:00] Fixed no-unnecessary-condition in Bot.test.ts stack assertion; lint:canary=OK.
