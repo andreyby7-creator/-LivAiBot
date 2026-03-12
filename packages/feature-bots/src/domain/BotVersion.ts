@@ -20,6 +20,7 @@ import type { ID, JsonObject } from '@livai/core-contracts';
 
 import type { OperationId } from '../types/bot-commands.js';
 import type { BotId, BotUserId, BotVersion, BotWorkspaceId, Timestamp } from './Bot.js';
+import type { BotSettings } from './BotSettings.js';
 
 /* ============================================================================
  * 🔐 ID/BRAND ТИПЫ
@@ -75,12 +76,9 @@ export type BotVersionMetadata = Readonly<{
 
 /**
  * Снимок настроек бота на момент создания версии.
- * Domain-алиас поверх JsonObject, чтобы не размывать границу между типобезопасной моделью и raw-конфигурацией.
- * @remarks
- * В будущем может быть заменён на строго типизированный `BotSettings`,
- * при этом публичный контракт `BotVersionAggregate.settings` останется стабильным.
+ * Domain-алиас поверх строго типизированного `BotSettings`, который может эволюционировать независимо.
  */
-export type BotSettingsSnapshot = JsonObject;
+export type BotSettingsSnapshot = BotSettings;
 
 /* ============================================================================
  * 🧩 DOMAIN MODEL

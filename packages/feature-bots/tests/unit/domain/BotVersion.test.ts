@@ -12,6 +12,7 @@ import type {
   BotWorkspaceId,
   Timestamp,
 } from '../../../src/domain/Bot.js';
+import type { BotSettings, ContextWindow, Temperature } from '../../../src/domain/BotSettings.js';
 import type {
   BotVersionAggregate,
   BotVersionId,
@@ -45,6 +46,26 @@ const createInstruction = (value = 'Test instruction'): string & {
   readonly __brand: 'BotInstruction';
 } => value as string & { readonly __brand: 'BotInstruction'; };
 
+// Константные тестовые настройки BotSettings для unit-тестов (локальные фикстуры).
+const createBotSettings = (overrides: Partial<BotSettings> = {}): BotSettings => ({
+  temperature: 0 as Temperature,
+  // eslint-disable-next-line @livai/rag/context-leakage -- константное тестовое значение, не используемое в RAG/training
+  contextWindow: 0 as ContextWindow,
+  piiMasking: false,
+  imageRecognition: false,
+  unrecognizedMessage: {
+    message: 'fallback',
+    showSupportHint: false,
+  },
+  interruptionRules: {
+    allowUserInterruption: true,
+    // eslint-disable-next-line @livai/rag/context-leakage -- константное тестовое значение, не используемое в RAG/training
+    maxConcurrentSessions: 1,
+  },
+  extra: {},
+  ...overrides,
+});
+
 const createValidBotVersion = (
   overrides: Partial<BotVersionAggregate> = {},
 ): BotVersionAggregate => ({
@@ -53,7 +74,7 @@ const createValidBotVersion = (
   workspaceId: createWorkspaceId(),
   version: createBotVersion(1),
   instruction: createInstruction(),
-  settings: {},
+  settings: createBotSettings(),
   operationId: createOperationId(),
   createdAt: createTimestamp(1),
   createdBy: createUserId(),

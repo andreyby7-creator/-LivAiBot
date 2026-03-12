@@ -45,6 +45,25 @@ export {
 } from './BotVersion.js';
 
 /**
+ * BotSettings: доменная модель настроек бота.
+ * @public
+ */
+export {
+  assertBotSettingsInvariant,
+  type BotFeatureFlag,
+  type BotFeatureFlags,
+  type BotIntegrationConfig,
+  type BotSettings,
+  type BotSettingsExtra,
+  type ContextWindow,
+  type ImageRecognitionEnabled,
+  type InterruptionRules,
+  type PiiMaskingEnabled,
+  type Temperature,
+  type UnrecognizedMessageSettings,
+} from './BotSettings.js';
+
+/**
  * Bot Retry Policy: централизованная retry-политика для ошибок ботов.
  * @public
  */
