@@ -22,6 +22,7 @@ import type { Effect } from '@livai/core/effect';
 import { validatedEffect, withTimeout } from '@livai/core/effect';
 
 import type { AuthErrorResponse } from '../domain/AuthErrorResponse.js';
+import { getAuthRetryable } from '../domain/AuthRetry.js';
 import type { DeviceInfo } from '../domain/DeviceInfo.js';
 import type { RegisterIdentifierType, RegisterRequest } from '../domain/RegisterRequest.js';
 import type { RegisterResponse } from '../domain/RegisterResponse.js';
@@ -594,6 +595,7 @@ export function createRegisterEffect(
         } catch (mapperError: unknown) {
           // Fallback: если mapper сам упал, создаём unknown error
           // raw обязателен для kind: 'unknown', создаём минимальный AuthErrorResponse
+          // retryable определяется через централизованную политику AuthRetryPolicy
           deps.telemetry?.recordErrorMapperFailure({
             operation: 'register',
             reason: mapperError instanceof Error ? mapperError.message : String(mapperError),
@@ -601,7 +603,7 @@ export function createRegisterEffect(
           const fallbackRaw: AuthErrorResponse = {
             error: 'unknown_error',
             message: 'Unexpected error',
-            retryable: false,
+            retryable: getAuthRetryable('unknown_error'),
           };
           error = {
             kind: 'unknown',

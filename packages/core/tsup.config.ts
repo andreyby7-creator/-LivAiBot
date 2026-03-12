@@ -10,6 +10,7 @@ export default defineConfig({
     'effect/offline-cache': 'src/effect/offline-cache.ts',
     hash: 'src/hash.ts',
     'feature-flags/index': 'src/feature-flags/index.ts',
+    'resilience/index': 'src/resilience/index.ts',
     'telemetry/index': 'src/telemetry/index.ts',
     'telemetry/batch-core': 'src/telemetry/batch-core.ts',
     'telemetry/client': 'src/telemetry/client.ts',

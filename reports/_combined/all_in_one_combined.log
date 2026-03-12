@@ -2392,3 +2392,11 @@ Verification:
 [2026-03-12T12:26:02+03:00] bot-commands tests: PASS (100% coverage for bot-commands.ts)
 [2026-03-12T12:27:16+03:00] bot-commands tests: PASS after exactOptionalPropertyTypes fix (100% coverage for bot-commands.ts)
 [2026-03-12T12:30:07+03:00] bot-commands lint fix: removed switch per functional/no-conditional-statements; tests PASS (100% coverage)
+[2026-03-12 13:12:33] retry-policy plan update: no code changes, only reports/docs roadmap.
+[2026-03-12 13:15:05] retry-policy step 2.1: AuthErrorType/OAuthErrorType already exhaustive unions, no code changes.
+[2026-03-12 13:57:16] auth retry: fixing @livai/core/resilience export & build failure
+[2026-03-12 14:15:09] retry-policy plan: Feature-auth AuthRetry complete; next steps 3.x BotRetry pending.
+[2026-03-12 14:49:49] retry-policy integration: Feature-auth AuthRetry + Feature-bots BotRetry implemented; plan checkpoints in reports and docs/phase2-UI-platform.md now in sync and complete.
+[2026-03-12 14:54:42] retry-policy: BotErrorMappingRegistry now validated against BotRetryPolicy in bots.test; docs and plan updated for future runtime registry.
+[2026-03-12 14:57:21] retry-policy: removed reports/retry-policy-integration-plan.md; phase2-UI-platform.md is now the single planning/documentation source for retry integration.
+[2026-03-12 15:01:24] lint:canary passed after fixing optional chaining in BotErrorMappingRegistry test.

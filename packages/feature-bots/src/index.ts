@@ -9,17 +9,20 @@
  */
 
 /**
- * Types подпакет: агрегирующие типы состояния и операций ботов.
- * Включает:
- * - BotState, BotStatus, BotError с категоризацией (validation, policy, permission, channel, webhook, parsing, integration)
- *   и severity ('low' | 'medium' | 'high') для telemetry/alerts, структуру error-mapping с кодами и контекстом
- * - Канонические начальные состояния Bot для reset-операций в store/effects,
- *   шаблоны для audit-событий (BotAuditEventTemplate), pipeline-hooks (BotPipelineHookTemplate)
- *   для автоматических действий при lifecycle-событиях
- * - Типы и константы команд ботов (create_bot_from_template, create_custom_bot, update_instruction,
- *   manage_multi_agent, publish_bot, pause/resume/archive, delete_bot, simulate_bot_message)
- * - Типы и константы событий ботов (bot_created, bot_published, bot_updated, bot_deleted,
- *   instruction_updated, multi_agent_updated, bot_paused/resumed/archived, config_changed)
+ * Bot Types: агрегирующие типы состояния и операций ботов.
+ * Включает BotState/BotStatus/BotError, команды, события и error-mapping для store/effects/UI.
  * @public
  */
 export * from './types/index.js';
+
+/* ============================================================================
+ * 🧩 DOMAIN — ДОМЕННЫЕ ТИПЫ БОТОВ
+ * ============================================================================
+ */
+
+/**
+ * Domain подпакет: доменные типы и политики для ботов.
+ * Включает BotRetryPolicy и helper'ы для централизованной retry-политики.
+ * @public
+ */
+export * from './domain/index.js';

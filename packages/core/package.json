@@ -58,6 +58,11 @@
       "import": "./dist/effect/offline-cache.js",
       "default": "./dist/effect/offline-cache.js"
     },
+    "./resilience": {
+      "types": "./dist/resilience/index.d.ts",
+      "import": "./dist/resilience/index.js",
+      "default": "./dist/resilience/index.js"
+    },
     "./policies/*": {
       "types": "./src/policies/*.ts",
       "import": "./src/policies/*.ts"

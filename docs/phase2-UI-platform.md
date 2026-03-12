@@ -258,7 +258,7 @@ Toast / UI feedback
 - 🟢 `circuit-breaker.ts` — ts — deps: — circuit breaker для внешних вызовов
 - 🟢 `metrics.ts` — ts — deps: — метрики устойчивости (ошибки, retries, latency)
 - 🟢 `performance-limits.ts` — ts — deps: resilience/metrics — ограничение нагрузки и лимиты производительности
-- 🟢 `retry-policy.ts` — ts — deps: — generic retry-policy primitive (RetryPolicy<T>, createRetryPolicy) для deterministic retryability lookup в feature-пакетах
+- 🟢 `retry-policy.ts` — ts — deps: — generic retry-policy primitive (RetryPolicy<T>, createRetryPolicy, mergeRetryPolicies, getRetryable) для deterministic retryability lookup в feature-пакетах, используется в AuthRetry/BotRetry/ChatRetry для централизованной политики ретраев
 
 ### **Core / policies** ✅
 
@@ -313,13 +313,13 @@ Toast / UI feedback
 ### **Feature-auth / domain** ✅
 
 - 🟢 `AuthAuditEvent.ts` — ts — deps: — доменные события аудита аутентификации для SIEM/логирования
-- 🟢 `AuthErrorResponse.ts` — ts — deps: — нормализованный контракт ошибок аутентификации backend
+- 🟢 `AuthErrorResponse.ts` — ts — deps: — нормализованный контракт ошибок аутентификации backend (строгий union AuthErrorType, обязательный retryable: boolean без transport-деталей)
 - 🟢 `ClientContext.ts` — ts — deps: — типизированный клиентский контекст (ip/geo/device/session) для auth-запросов
 - 🟢 `DeviceInfo.ts` — ts — deps: — доменная модель устройства клиента для аудита и политик сессий
 - 🟢 `EmailTemplateRequest.ts` — ts — deps: — DTO запросов на отправку auth email-шаблонов
 - 🟢 `LoginRequest.ts` — ts — deps: domain/ClientContext, domain/MfaInfo — доменный DTO запроса логина с универсальным идентификатором
 - 🟢 `LoginResult.ts` — ts — deps: domain/MeResponse, domain/MfaChallengeRequest, domain/TokenPair — domain-level результат login-flow (успех/ошибка/требование MFA)
-- 🟢 `LoginRiskAssessment.ts` — ts — deps: @livai/domains/policies — доменная модель оценки риска логина, причин и решений политики
+- 🟢 `LoginRiskAssessment.ts` — ts — deps: @livai/domains/policies — доменная модель оценки риска логина, причин и решений политики (DomainValidationError.value ограничен примитивами string | number | boolean для избежания утечек)
 - 🟢 `LogoutRequest.ts` — ts — deps: — DTO запроса logout с контекстом клиента/сессии
 - 🟢 `MeResponse.ts` — ts — deps: — доменный ответ «текущий пользователь» с ролями, правами и сессией
 - 🟢 `MfaBackupCodeRequest.ts` — ts — deps: — DTO использования backup-кода MFA
@@ -327,7 +327,7 @@ Toast / UI feedback
 - 🟢 `MfaInfo.ts` — ts — deps: — доменная модель настроек и статуса MFA
 - 🟢 `MfaRecoveryRequest.ts` — ts — deps: — DTO восстановления доступа через MFA-recovery
 - 🟢 `MfaSetupRequest.ts` — ts — deps: — DTO настройки MFA-методов
-- 🟢 `OAuthErrorResponse.ts` — ts — deps: — доменный контракт ошибок OAuth-провайдеров
+- 🟢 `OAuthErrorResponse.ts` — ts — deps: — доменный контракт ошибок OAuth-провайдеров (строгий union OAuthErrorType, обязательный retryable: boolean без transport-деталей)
 - 🟢 `OAuthLoginRequest.ts` — ts — deps: — DTO OAuth-login (provider/code/state/redirectUri)
 - 🟢 `OAuthRegisterRequest.ts` — ts — deps: — DTO регистрации через OAuth с workspace-контекстом
 - 🟢 `PasswordResetConfirm.ts` — ts — deps: — DTO подтверждения сброса пароля по токену
@@ -341,6 +341,7 @@ Toast / UI feedback
 - 🟢 `TokenPair.ts` — ts — deps: — доменная модель пары токенов (access/refresh) и метаданных
 - 🟢 `VerifyEmailRequest.ts` — ts — deps: — DTO подтверждения email с clientContext
 - 🟢 `VerifyPhoneRequest.ts` — ts — deps: — DTO подтверждения телефона с кодом и clientContext
+- 🟢 `AuthRetry.ts` — ts — deps: @livai/core/resilience, AuthErrorResponse, OAuthErrorResponse — централизованные retry-политики для AuthErrorType и OAuthErrorType (AuthRetryPolicy/OAuthRetryPolicy + getAuthRetryable/getOAuthRetryable/merge* для overrides; edge-case unknown_error всегда non-retryable)
 
 ### **Feature-auth / schemas** ✅
 
@@ -476,7 +477,7 @@ Toast / UI feedback
 
 - 🟢 `bot-lifecycle.ts` — ts — deps: none — атомарные lifecycle-контракты (BotPauseReason, BotEnforcementReason)
 - 🟢 `bot-commands.ts` — ts — deps: @livai/core-contracts, types/bot-lifecycle — типы и константы команд ботов (BotCommandTypes/BotCommandType/AllBotCommandTypes, BotCommand discriminated union + строгие payload'ы для: create_bot_from_template, create_custom_bot, update_instruction, manage_multi_agent, publish_bot, pause_bot, resume_bot, archive_bot, delete_bot, simulate_bot_message)
-- 🟢 `bots.ts` — ts — deps: @livai/core-contracts, @livai/core, types/bot-commands, types/bot-lifecycle — агрегирующие типы состояния и операций ботов для store/effects/UI (BotState, BotStatus с 7 вариантами и причинами приостановки, BotError с 7 категориями и severity для telemetry/alerts, exhaustive union кодов ошибок, error-mapping для rule-engine, BotOperationState, BotInfo)
+- 🟢 `bots.ts` — ts — deps: @livai/core-contracts, @livai/core, types/bot-commands, types/bot-lifecycle — агрегирующие типы состояния и операций ботов для store/effects/UI (BotState, BotStatus с 7 вариантами и причинами приостановки, BotError с 7 категориями и severity для telemetry/alerts, exhaustive union BotErrorCode, BotErrorMappingRegistry с retryable: boolean для rule-engine, BotOperationState, BotInfo)
 - ⚪ `bot-events.ts` — ts — deps: domain/*, types/bots — типы и константы событий ботов (bot_created, bot_published, bot_updated, bot_deleted, instruction_updated, multi_agent_updated, bot_paused/resumed/archived, config_changed)
 - ⚪ `bots-initial.ts` — ts — deps: types/bots, domain/BotAuditEvent, types/bot-commands, types/bot-events — канонические начальные состояния Bot для reset-операций в store/effects, шаблоны для audit-событий (BotAuditEventTemplate), pipeline-hooks (BotPipelineHookTemplate) для автоматических действий при lifecycle-событиях
 
@@ -496,6 +497,7 @@ Toast / UI feedback
 - ⚪ `UpdateInstructionRequest.ts` — ts — deps: @livai/core-contracts/bots, types/bots — DTO обновления инструкции (instruction, settings, operationId для идемпотентности)
 - ⚪ `PublishBotRequest.ts` — ts — deps: @livai/core-contracts/bots, types/bots — DTO публикации бота (version, rollbackVersion опционально)
 - ⚪ `TestBotRequest.ts` — ts — deps: @livai/core-contracts/bots, types/bots — DTO тестового запроса к боту (message, conversationId, context)
+- 🟢 `BotRetry.ts` — ts — deps: @livai/core/resilience, types/bots — централизованная retry-политика для BotErrorCode (BotRetryPolicy, getBotRetryable, mergeBotRetryPolicies; validation/policy/permission/parsing — non‑retryable, сетевые channel/webhook/integration ошибки по умолчанию retryable; `BotErrorMappingRegistry.retryable` в tests валидируется против `getBotRetryable(code)` для сохранения единой точки правды)
 
 ### **Feature-bots / schemas** ⚪
 
@@ -503,8 +505,8 @@ Toast / UI feedback
 
 ### **Feature-bots / lib** ⚪
 
-- ⚪ `error-mapper.ts` — ts — deps: @livai/core, domain/BotErrorResponse, types/bots — маппинг transport/domain ошибок в нормализованный BotError и UI-дружественные коды
-- ⚪ `bot-errors.ts` — ts — deps: domain/BotErrorResponse, types/bots — константы кодов ошибок, категоризация ошибок (validation, policy, permission, channel, webhook, parsing, integration) и специфичная логика маппинга сложных ошибок
+- ⚪ `error-mapper.ts` — ts — deps: @livai/core, domain/BotErrorResponse, types/bots, domain/BotRetry — маппинг transport/domain ошибок в нормализованный BotError и UI-дружественные коды с использованием централизованной retry-политики
+- ⚪ `bot-errors.ts` — ts — deps: domain/BotErrorResponse, types/bots, domain/BotRetry — константы кодов ошибок, категоризация ошибок (validation, policy, permission, channel, webhook, parsing, integration) и специфичная логика маппинга сложных ошибок с опорой на BotRetryPolicy
 - ⚪ `policy-adapter.ts` — ts — deps: @livai/core/policies/BotPolicy, @livai/core/policies/BotPermissions, types/bots — адаптер между core/policies и feature-bots (BotMode → BotStatus, BotPolicyAction → BotCommand)
 - ⚪ `instruction-builder.ts` — ts — deps: domain/Prompt, domain/BotSettings — построитель полной инструкции из prompt-блоков и настроек
 - ⚪ `multi-agent-validator.ts` — ts — deps: domain/MultiAgentSchema — валидатор мультиагентных схем (проверка циклов, конфликтов, guardrails, поддержка custom rule plugins для будущих сценариев)
@@ -567,7 +569,7 @@ Toast / UI feedback
 
 ### **Feature-chat / types** ⚪
 
-- ⚪ `chat.ts` — ts — deps: @livai/core-contracts, domain/*, @livai/core/policies/ChatPolicy — агрегирующие типы состояния и операций чата для store/effects/UI (ChatState, ChatStatus, ChatError с категоризацией: validation, policy, permission, rate_limit, real_time, network, severity: 'low' | 'medium' | 'high' для telemetry/alerts, структура error-mapping с кодами и контекстом)
+- ⚪ `chat.ts` — ts — deps: @livai/core-contracts, domain/*, @livai/core/policies/ChatPolicy — агрегирующие типы состояния и операций чата для store/effects/UI (ChatState, ChatStatus, ChatError с категоризацией: validation, policy, permission, rate_limit, real_time, network, severity: 'low' | 'medium' | 'high' для telemetry/alerts, exhaustive union ChatErrorCode и структура error-mapping с retryable: boolean, кодами и контекстом)
 - ⚪ `chat-initial.ts` — ts — deps: types/chat, domain/ChatAuditEvent, types/chat-commands, types/chat-events — канонические начальные состояния Chat для reset-операций в store/effects, шаблоны для audit-событий (ChatAuditEventTemplate), pipeline-hooks (ChatPipelineHookTemplate) для автоматических действий при lifecycle-событиях
 - ⚪ `chat-commands.ts` — ts — deps: domain/*, types/chat — типы и константы команд чата (send_message, create_conversation, edit_message, delete_message, archive_conversation, send_feedback, request_handoff, connect_realtime, disconnect_realtime)
 - ⚪ `chat-events.ts` — ts — deps: domain/*, types/chat — типы и константы событий чата (message_sent, message_received, message_edited, message_deleted, conversation_created, conversation_archived, feedback_submitted, handoff_requested, realtime_connected, realtime_disconnected, realtime_error)
@@ -577,7 +579,7 @@ Toast / UI feedback
 - ⚪ `Message.ts` — ts — deps: @livai/core-contracts/conversations, types/chat — доменная модель сообщения (id, threadId, role: 'user' | 'assistant' | 'system', content, status: 'sending' | 'sent' | 'delivered' | 'failed', createdAt, updatedAt, operationId для идемпотентности, attachments, metadata)
 - ⚪ `Conversation.ts` — ts — deps: @livai/core-contracts/conversations, types/chat, @livai/core/policies/ChatPolicy — доменная модель разговора/треда (id, workspaceId, botId, title, type, status: 'active' | 'archived' | 'deleted', createdBy, createdAt, updatedAt, deletedAt, metadata, tags/labels для фильтрации)
 - ⚪ `Thread.ts` — ts — deps: @livai/core-contracts/conversations, types/chat — доменная модель треда (id, workspaceId, botId, status: 'active' | 'archived', createdAt, последнее сообщение для UI)
-- ⚪ `ChatErrorResponse.ts` — ts — deps: @livai/core-contracts/conversations, types/chat — нормализованный контракт ошибок чата (validation, policy, permission, rate_limit, real_time, network, not_found)
+- ⚪ `ChatErrorResponse.ts` — ts — deps: @livai/core-contracts/conversations, types/chat — нормализованный контракт ошибок чата (строгий union ChatErrorType: validation, policy, permission, rate_limit, real_time, network, not_found; обязательный retryable: boolean без transport-деталей)
 - ⚪ `ChatAuditEvent.ts` — ts — deps: @livai/core-contracts/conversations, types/chat — доменная модель событий аудита чата для SIEM/логирования (message_sent, message_received, message_edited, message_deleted, conversation_created, conversation_archived, feedback_submitted, handoff_requested, realtime_connected, realtime_disconnected, policy_violation)
 - ⚪ `Feedback.ts` — ts — deps: @livai/core-contracts/conversations, types/chat — доменная модель обратной связи (id, messageId, threadId, rating: 'positive' | 'negative', comment, createdAt, createdBy)
 - ⚪ `Handoff.ts` — ts — deps: @livai/core-contracts/conversations, types/chat — доменная модель передачи диалога человеку (id, threadId, reason, status: 'requested' | 'accepted' | 'rejected', requestedAt, acceptedAt, assignedTo)
@@ -587,6 +589,7 @@ Toast / UI feedback
 - ⚪ `TurnResponse.ts` — ts — deps: @livai/core-contracts/conversations, types/chat — DTO результата хода (threadId, userMessage, assistantMessage)
 - ⚪ `FeedbackRequest.ts` — ts — deps: @livai/core-contracts/conversations, types/chat — DTO отправки обратной связи (messageId, threadId, rating, comment опционально)
 - ⚪ `HandoffRequest.ts` — ts — deps: @livai/core-contracts/conversations, types/chat — DTO запроса передачи диалога (threadId, reason, assignedTo опционально)
+- ⚪ `ChatRetry.ts` — ts — deps: @livai/core/resilience, domain/ChatErrorResponse, types/chat — централизованная retry-политика для ChatErrorType/ChatErrorCode (ChatRetryPolicy, getChatRetryable, mergeChatRetryPolicies; validation/policy/permission/parsing — non‑retryable, сетевые rate_limit/real_time/network ошибки по умолчанию retryable, с возможностью overrides для конкретных сценариев)
 
 ### **Feature-chat / schemas** ⚪
 
@@ -594,8 +597,8 @@ Toast / UI feedback
 
 ### **Feature-chat / lib** ⚪
 
-- ⚪ `error-mapper.ts` — ts — deps: @livai/core, domain/ChatErrorResponse, types/chat — маппинг transport/domain ошибок в нормализованный ChatError и UI-дружественные коды
-- ⚪ `chat-errors.ts` — ts — deps: domain/ChatErrorResponse, types/chat — константы кодов ошибок, категоризация ошибок (validation, policy, permission, rate_limit, real_time, network, parsing) и специфичная логика маппинга сложных ошибок
+- ⚪ `error-mapper.ts` — ts — deps: @livai/core, domain/ChatErrorResponse, types/chat, domain/ChatRetry — маппинг transport/domain ошибок в нормализованный ChatError и UI-дружественные коды с использованием централизованной retry-политики
+- ⚪ `chat-errors.ts` — ts — deps: domain/ChatErrorResponse, types/chat, domain/ChatRetry — константы кодов ошибок, категоризация ошибок (validation, policy, permission, rate_limit, real_time, network, parsing) и специфичная логика маппинга сложных ошибок с опорой на ChatRetryPolicy
 - ⚪ `policy-adapter.ts` — ts — deps: @livai/core/policies/ChatPolicy, types/chat — адаптер между core/policies и feature-chat (ChatMode → ChatStatus, ChatAction → ChatCommand)
 - ⚪ `message-normalizer.ts` — ts — deps: domain/Message, types/chat — нормализация входящих сообщений API/WS/SSE → Message entity (статусы доставки, timestamps, idempotency, forward-compatibility)
 - ⚪ `real-time-manager.ts` — ts — deps: @livai/core/websocket, @livai/core/sse-client, domain/Message, types/chat — domain-pure менеджер real-time соединений (WebSocket/SSE lifecycle, reconnect, idempotency, синхронизация состояния)
@@ -734,7 +737,7 @@ Toast / UI feedback
 - 🟢 `ui-contracts.ts` — ts — deps: @livai/ui-core, lib/i18n, types/common — контракты UI (UiAuthContext, UiFeatureFlagsApi, UiI18nContext, UiTelemetryApi, UiPrimitiveProps, ComponentState, FeatureFlags, UiFeatureFlagName)
 - 🟢 `api.ts` — ts — deps: @livai/core-contracts, types/common, types/ui-contracts — типы API (ApiRequest, ApiResponse, ApiRequestContext, ApiError, ApiSuccess, ApiFailure, ApiRetryPolicy, ApiMetrics, HttpMethod, ServiceName)
 
-### **App / lib** ✅
+### **App / lib** 🟡
 
 - 🟢 `api-client.ts` — ts+effect — deps: @livai/core-contracts, @livai/core/effect, types/api, lib/telemetry-runtime — HTTP клиент для выполнения API запросов с типизацией, обработкой ошибок, retry, cancellation, telemetry (ApiClient, createApiClient, buildHeaders, buildUrl, mapHttpError, parseJsonSafe, использует @livai/core/effect для withLogging, withRetry)
 - 🟢 `telemetry-runtime.ts` — ts — deps: @livai/core-contracts, @livai/core/telemetry — runtime телеметрии (initTelemetry, getGlobalTelemetryClient, errorFireAndForget, infoFireAndForget, logFireAndForget, warnFireAndForget, getFireAndForgetMetrics, resetGlobalTelemetryClient, setGlobalClientForDebug, isTelemetryInitialized, адаптер для @livai/core/telemetry)
@@ -851,7 +854,7 @@ Toast / UI feedback
 - ⚪ `bots.adapter.ts` — ts — deps: hooks/useBots, types/ui-contracts — адаптер bots feature для app (proxy, flags, SSR-safe, UI импортирует только адаптер и/или @livai/app/hooks/useBots, но не @livai/feature-bots, по аналогии с auth.adapter)
 - ⚪ `chat.adapter.ts` — ts — deps: hooks/useChat, types/ui-contracts — адаптер chat feature для app (proxy, flags, SSR-safe, UI импортирует только адаптер и/или @livai/app/hooks/useChat, но не @livai/feature-chat, по аналогии с auth.adapter)
 
-### **UI-features / Auth** ✅
+### **UI-features / Auth** 🟡
 
 - 🟡 `auth/login-form.tsx` — tsx+react — deps: @livai/feature-auth, @livai/ui-core, @livai/ui-shared — UI-компонент формы логина (**нарушение границ**: прямой импорт `@livai/feature-auth` для `LoginValues` и `loginSchema`). **План исправления**: (1) убрать импорт `@livai/feature-auth` из `ui-features`; (2) принимать в пропсах чистый DTO/контракт (например, `{ email: string; password: string }`) и callback `onSubmit`, который уже реализован в app-слое поверх `@livai/app/hooks/useAuth` / эффектов; (3) валидацию (`loginSchema`) выполнять в app-слое или передавать в форму через пропсы, чтобы ui-features не знали про доменные схемы feature-auth
 - 🟡 `auth/register-form.tsx` — tsx+react — deps: @livai/feature-auth, @livai/ui-core, @livai/ui-shared — UI-компонент формы регистрации (**нарушение границ**: прямой импорт `@livai/feature-auth` для `RegisterValues` и `registerSchema`). **План исправления**: (1) убрать импорт `@livai/feature-auth` из `ui-features`; (2) заменить `RegisterValues` на локальный UI-тип (email/password/workspaceName) и получать `onSubmit` из app-слоя; (3) схему `registerSchema` и логику регистрации держать в feature/auth + app (hooks/effects), а в форму передавать только ошибки/валидацию через пропсы
@@ -972,25 +975,25 @@ Toast / UI feedback
 - 🟢 `apps/web/src/app/[locale]/layout.tsx` — tsx+react — deps: next-intl, next-intl.config — root layout с i18n (валidaция locale, `setRequestLocale`, генерация metadata/viewport)
 - 🟢 `apps/web/src/app/providers.tsx` — tsx+react — deps: @livai/app — клиентский провайдер (композиция QueryClientProvider + провайдеры из `@livai/app`, логирование ошибок через `errorFireAndForget`)
 
-### **Web / SW регистрация** ⚪
+### **Web / SW регистрация** 🟡
 
 - 🟡 `apps/web/src/app/sw-register.ts` — ts — deps: — регистрация Service Worker на клиенте (инвариант: никаких доменных/бизнес-эффектов, только UX-обёртка — запрос разрешений, показ toast-уведомлений, перерегистрация)
 
-### **Web / страницы (общие)** ⚪
+### **Web / страницы (общие)** 🟡
 
 - 🟡 `apps/web/src/app/[locale]/page.tsx` — tsx+react — deps: next-intl, i18n/routing — главная страница с i18n и навигацией (инвариант: никаких прямых API-вызовов и бизнес-логики, только ссылки/композиция `ui-features`/страниц)
 - 🟡 `apps/web/src/app/[locale]/not-found.tsx` — tsx+react — deps: — кастомная 404-страница (НЕТ; инвариант: локализованное сообщение + fallback-ссылка, без feature-/API-кода)
 - 🟡 `apps/web/src/app/[locale]/error.tsx` — tsx+react — deps: — кастомная 500-страница (НЕТ; инвариант: отображение ошибки + логирование через `@livai/app`, без прямых вызовов feature-слоя)
 - 🟡 `apps/web/src/app/global-error.tsx` — tsx+react — deps: — глобальная error boundary Next.js 16+ (НЕТ; инвариант: логирование всех необработанных ошибок через `@livai/app`, UI-fallback без знания доменных деталей)
 
-### **Web / Auth страницы** ⚪
+### **Web / Auth страницы** 🟡
 
 - 🟡 `apps/web/src/app/[locale]/auth/login/page.tsx` — tsx+react — deps: i18n/routing, auth/login/LoginClient — серверный контейнер login (инвариант: чистый RSC без client-хуков и бизнес-логики, только проксирование клиента)
 - 🟡 `apps/web/src/app/[locale]/auth/login/LoginClient.tsx` — tsx+react — deps: @livai/ui-features/auth/login-form, i18n/routing, next-intl — клиентский компонент login (инвариант: `LoginClient` не импортирует `@livai/feature-auth`, вся аутентификация идёт через app-слой/колбэки, переданные в форму)
 - 🟡 `apps/web/src/app/[locale]/auth/register/page.tsx` — tsx+react — deps: i18n/routing, auth/register/RegisterClient — серверный контейнер register (аналогично login: только прокси)
 - 🟡 `apps/web/src/app/[locale]/auth/register/RegisterClient.tsx` — tsx+react — deps: @livai/ui-features/auth/register-form, i18n/routing, next-intl — клиентский компонент register (инвариант: нет прямых импортов feature-auth, форма получает `onSubmit`/валидацию из app-слоя)
 
-### **Web / Dashboard** ⚪
+### **Web / Dashboard** 🟡
 
 - 🟡 `apps/web/src/app/[locale]/dashboard/page.tsx` — tsx+react — deps: i18n/routing, dashboard/DashboardClient — серверный контейнер dashboard (инвариант: только композиция/передача props, без client-хуков и побочных эффектов)
 - 🟡 `apps/web/src/app/[locale]/dashboard/DashboardClient.tsx` — tsx+react — deps: i18n/routing — клиентский dashboard (инвариант: нет прямых импортов `@livai/feature-*` и `@livai/core`, только `@livai/app` + `ui-features/admin`)

@@ -44,6 +44,7 @@ vi.mock('../../../../../app/src/background/scheduler.js', () => ({
 }));
 
 import type { AuthErrorResponse } from '../../../src/domain/AuthErrorResponse.js';
+import { getAuthRetryable, getOAuthRetryable } from '../../../src/domain/index.js';
 import type { MfaType } from '../../../src/domain/MfaChallengeRequest.js';
 import type { OAuthErrorResponse } from '../../../src/domain/OAuthErrorResponse.js';
 import type { SessionRevokeReason } from '../../../src/domain/SessionRevokeRequest.js';
@@ -71,7 +72,7 @@ function createAuthErrorResponse(
   return {
     error,
     message: `Test message for ${error}`,
-    retryable: false,
+    retryable: getAuthRetryable(error),
     ...overrides,
   };
 }
@@ -85,7 +86,7 @@ function createOAuthErrorResponse(
     error,
     provider: 'google',
     message: `Test OAuth message for ${error}`,
-    retryable: false,
+    retryable: getOAuthRetryable(error),
     ...overrides,
   };
 }

@@ -8,6 +8,8 @@ import { describe, expect, it } from 'vitest';
 import type { BotPolicyAction, BotPolicyDeniedReason } from '@livai/core';
 import type { ID, ISODateString, JsonObject, TraceId } from '@livai/core-contracts';
 
+import type { BotRetryKey } from '../../../src/domain/BotRetry.js';
+import { getBotRetryable } from '../../../src/domain/BotRetry.js';
 import type { BotCommandType } from '../../../src/types/bot-commands.js';
 import type { BotEnforcementReason, BotPauseReason } from '../../../src/types/bot-lifecycle.js';
 import type {
@@ -574,6 +576,17 @@ describe('BotErrorMappingRegistry', () => {
     } as BotErrorMappingRegistry;
     expect(registry.BOT_NAME_INVALID).toBeDefined();
     expect(registry.BOT_POLICY_ACTION_DENIED).toBeDefined();
+
+    // Инвариант retry-политики: registry.retryable должен совпадать с BotRetryPolicy.
+    const checkedCodes: BotRetryKey[] = ['BOT_NAME_INVALID', 'BOT_POLICY_ACTION_DENIED'];
+
+    checkedCodes.forEach((code) => {
+      // eslint-disable-next-line security/detect-object-injection -- code строго типизирован как BotRetryKey (exhaustive union), безопасный lookup
+      const fromRegistry = registry[code].retryable;
+      const fromPolicy = getBotRetryable(code);
+
+      expect(fromRegistry).toBe(fromPolicy);
+    });
   });
 });
 

@@ -5,6 +5,7 @@
 
 import { describe, expect, it } from 'vitest';
 
+import { getOAuthRetryable } from '../../../src/domain/AuthRetry.js';
 import type {
   OAuthErrorResponse,
   OAuthErrorType,
@@ -24,10 +25,10 @@ import {
 
 function createOAuthErrorResponse(overrides: Partial<OAuthErrorResponse> = {}): OAuthErrorResponse {
   return {
-    error: 'invalid_token',
+    error: overrides.error ?? 'invalid_token',
     provider: 'google',
     message: 'OAuth access token is invalid or expired',
-    retryable: false,
+    retryable: getOAuthRetryable(overrides.error ?? 'invalid_token'),
     statusCode: 401,
     providerErrorCode: 'invalid_grant',
     correlationId: 'corr-abc-123',

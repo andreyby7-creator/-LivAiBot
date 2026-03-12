@@ -278,6 +278,21 @@ export {
  */
 export { type AuthErrorResponse, type AuthErrorType } from './AuthErrorResponse.js';
 
+/**
+ * Auth/OAuth Retry Policy: централизованные retry-политики для auth-ошибок.
+ * @public
+ */
+export {
+  type AuthRetryKey,
+  AuthRetryPolicy,
+  getAuthRetryable,
+  getOAuthRetryable,
+  mergeAuthRetryPolicies,
+  mergeOAuthRetryPolicies,
+  type OAuthRetryKey,
+  OAuthRetryPolicy,
+} from './AuthRetry.js';
+
 /* ============================================================================
  * 🔐 SESSION POLICY — ПОЛИТИКА СЕССИЙ
  * ========================================================================== */

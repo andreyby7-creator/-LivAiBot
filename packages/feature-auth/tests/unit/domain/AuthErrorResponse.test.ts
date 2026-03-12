@@ -6,6 +6,7 @@
 import { describe, expect, it } from 'vitest';
 
 import type { AuthErrorResponse, AuthErrorType } from '../../../src/domain/AuthErrorResponse.js';
+import { getAuthRetryable } from '../../../src/domain/AuthRetry.js';
 import { authErrorResponseSchema } from '../../../src/schemas/index.js';
 
 // ============================================================================
@@ -19,7 +20,7 @@ function createAuthErrorResponse(
   return {
     error,
     message: `Error: ${error}`,
-    retryable: false,
+    retryable: getAuthRetryable(error),
     ...overrides,
   };
 }
@@ -27,7 +28,7 @@ function createAuthErrorResponse(
 function createMinimalAuthErrorResponse(error: AuthErrorType): AuthErrorResponse {
   return {
     error,
-    retryable: false,
+    retryable: getAuthRetryable(error),
   };
 }
 
