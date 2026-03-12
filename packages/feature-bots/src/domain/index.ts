@@ -64,6 +64,22 @@ export {
 } from './BotSettings.js';
 
 /**
+ * BotTemplate: доменная модель шаблона бота.
+ * @public
+ */
+export {
+  assertBotTemplateInvariant,
+  type BotTemplate,
+  type BotTemplateCapabilities,
+  type BotTemplateCapability,
+  type BotTemplateId,
+  type BotTemplateInvariantError,
+  type BotTemplateRole,
+  type BotTemplateTags,
+  createBotTemplateInvariantError,
+} from './BotTemplate.js';
+
+/**
  * Bot Retry Policy: централизованная retry-политика для ошибок ботов.
  * @public
  */
