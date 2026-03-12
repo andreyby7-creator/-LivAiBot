@@ -80,6 +80,29 @@ export {
 } from './BotTemplate.js';
 
 /**
+ * Prompt: доменная модель prompt-блоков инструкции.
+ * @public
+ */
+export {
+  assertPromptInvariant,
+  type Constraints,
+  createPrompt,
+  createPromptInvariantError,
+  type Greeting,
+  type HandoffAction,
+  type HandoffCondition,
+  type HandoffRule,
+  type HandoffRules,
+  type HandoffTrigger,
+  type Prompt,
+  type PromptInvariantError,
+  type PromptLanguage,
+  type PromptRaw,
+  type PromptStyle,
+  type SystemPrompt,
+} from './Prompt.js';
+
+/**
  * Bot Retry Policy: централизованная retry-политика для ошибок ботов.
  * @public
  */

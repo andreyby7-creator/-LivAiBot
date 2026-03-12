@@ -481,23 +481,29 @@ Toast / UI feedback
 - ⚪ `bot-events.ts` — ts — deps: domain/*, types/bots — типы и константы событий ботов (bot_created, bot_published, bot_updated, bot_deleted, instruction_updated, multi_agent_updated, bot_paused/resumed/archived, config_changed)
 - ⚪ `bots-initial.ts` — ts — deps: types/bots, domain/BotAuditEvent, types/bot-commands, types/bot-events — канонические начальные состояния Bot для reset-операций в store/effects, шаблоны для audit-событий (BotAuditEventTemplate), pipeline-hooks (BotPipelineHookTemplate) для автоматических действий при lifecycle-событиях
 
-### **Feature-bots / domain** ⚪
+### **Feature-bots / domain** 🟢
 
-- 🟢 `Bot.ts` — ts — deps: @livai/core-contracts, types/bots — доменная модель бота (Active/Deleted union со статусами draft/active/paused/archived/deleted/suspended/deprecated, branded revision/currentVersion, workspaceId, metadata (non-sensitive only), audit-поля createdAt/updatedAt/deletedAt/createdBy/updatedBy + runtime-инварианты для deletedAt/revision/currentVersion)
-- 🟢 `BotSettings.ts` — ts — deps: @livai/core-contracts — доменная модель настроек бота (BotSettings с branded temperature/contextWindow, PII/image-флагами, секции unrecognizedMessage/interruptionRules/extra + runtime-инварианты для temperature/contextWindow/maxSessions/fallbackMessage)
-- 🟢 `BotVersion.ts` — ts — deps: @livai/core-contracts, types/bot-commands, domain/Bot, domain/BotSettings — доменная модель версии бота (BotVersionAggregate с version, branded instruction, BotSettingsSnapshot (BotSettings), operationId, workspaceId, audit-поля createdAt/createdBy, metadata для rollback/tags + runtime-инварианты для instruction/settings/version/rollbackFromVersion)
-- 🟢 `BotTemplate.ts` — ts — deps: @livai/core-contracts, domain/BotSettings — доменная модель шаблона бота (BotTemplate c id, name, role, description, defaultInstruction, defaultSettings: BotSettings, capabilities (exhaustive union), tags/labels для фильтрации шаблонов + runtime-инварианты для name/defaultInstruction/capabilities)
-- ⚪ `Prompt.ts` — ts — deps: @livai/core-contracts/bots, types/bots — доменная модель prompt-блоков инструкции (systemPrompt, greeting, language, style, constraints, handoffRules)
-- ⚪ `MultiAgentSchema.ts` — ts — deps: @livai/core-contracts/bots, types/bots — доменная модель мультиагентной схемы (agentGraph, switchRules, callRules, guardrails)
-- ⚪ `Publishing.ts` — ts — deps: @livai/core-contracts/bots, types/bots — доменная модель публикации бота (status: draft/active/paused, publishedAt, publishedVersion, rollbackVersion)
-- ⚪ `BotErrorResponse.ts` — ts — deps: @livai/core-contracts/bots, types/bots — нормализованный контракт ошибок ботов (validation, policy, permission, not_found)
-- ⚪ `BotAuditEvent.ts` — ts — deps: @livai/core-contracts/bots, types/bots — доменная модель событий аудита ботов для SIEM/логирования (bot_created, bot_published, bot_updated, bot_deleted, instruction_updated, multi_agent_updated, config_changed, policy_violation)
-- ⚪ `CreateBotRequest.ts` — ts — deps: @livai/core-contracts/bots, types/bots — DTO создания бота (name, instruction, settings, templateId для from-template)
-- ⚪ `UpdateBotRequest.ts` — ts — deps: @livai/core-contracts/bots, types/bots — DTO обновления бота (name, instruction, settings, version-aware)
-- ⚪ `UpdateInstructionRequest.ts` — ts — deps: @livai/core-contracts/bots, types/bots — DTO обновления инструкции (instruction, settings, operationId для идемпотентности)
-- ⚪ `PublishBotRequest.ts` — ts — deps: @livai/core-contracts/bots, types/bots — DTO публикации бота (version, rollbackVersion опционально)
-- ⚪ `TestBotRequest.ts` — ts — deps: @livai/core-contracts/bots, types/bots — DTO тестового запроса к боту (message, conversationId, context)
-- 🟢 `BotRetry.ts` — ts — deps: @livai/core/resilience, types/bots — централизованная retry-политика для BotErrorCode (BotRetryPolicy, getBotRetryable, mergeBotRetryPolicies; validation/policy/permission/parsing — non‑retryable, сетевые channel/webhook/integration ошибки по умолчанию retryable; `BotErrorMappingRegistry.retryable` в tests валидируется против `getBotRetryable(code)` для сохранения единой точки правды)
+- 🟢 `domain/Bot.ts` — ts — deps: @livai/core-contracts, types/bots — доменная модель бота (Active/Deleted union со статусами draft/active/paused/archived/deleted/suspended/deprecated, branded revision/currentVersion, workspaceId, metadata (non-sensitive only), audit-поля createdAt/updatedAt/deletedAt/createdBy/updatedBy + runtime-инварианты для deletedAt/revision/currentVersion)
+- 🟢 `domain/BotSettings.ts` — ts — deps: @livai/core-contracts — доменная модель настроек бота (BotSettings с branded temperature/contextWindow, PII/image-флагами, секции unrecognizedMessage/interruptionRules/extra + runtime-инварианты для temperature/contextWindow/maxSessions/fallbackMessage)
+- 🟢 `domain/BotVersion.ts` — ts — deps: @livai/core-contracts, types/bot-commands, domain/Bot, domain/BotSettings — доменная модель версии бота (BotVersionAggregate с version, branded instruction, BotSettingsSnapshot (BotSettings), operationId, workspaceId, audit-поля createdAt/createdBy, metadata для rollback/tags + runtime-инварианты для instruction/settings/version/rollbackFromVersion)
+- 🟢 `domain/BotTemplate.ts` — ts — deps: @livai/core-contracts, domain/BotSettings — доменная модель шаблона бота (BotTemplate c id, name, role, description, defaultInstruction, defaultSettings: BotSettings, capabilities (exhaustive union), tags/labels для фильтрации шаблонов + runtime-инварианты для name/defaultInstruction/capabilities/tags/defaultSettings)
+- 🟢 `domain/Prompt.ts` — ts — deps: — доменная модель prompt-блоков инструкции (Prompt с branded systemPrompt/greeting/constraints, exhaustive unions PromptLanguage/PromptStyle/HandoffTrigger/HandoffAction/HandoffCondition, HandoffRules с priority и typed conditions, factory createPrompt для нормализации строк через trim + runtime-инварианты для systemPrompt/greeting/constraints/handoffRules дубликаты/priority)
+- ⚪ `domain/MultiAgentSchema.ts` — ts — deps: @livai/core-contracts/bots, types/bots — доменная модель мультиагентной схемы (agentGraph, switchRules, callRules, guardrails)
+- ⚪ `domain/Publishing.ts` — ts — deps: @livai/core-contracts/bots, types/bots — доменная модель публикации бота (status: draft/active/paused, publishedAt, publishedVersion, rollbackVersion)
+- ⚪ `domain/BotAuditEvent.ts` — ts — deps: @livai/core-contracts/bots, types/bots — доменная модель событий аудита ботов для SIEM/логирования (bot_created, bot_published, bot_updated, bot_deleted, instruction_updated, multi_agent_updated, config_changed, policy_violation)
+- 🟢 `domain/BotRetry.ts` — ts — deps: @livai/core/resilience, types/bots — централизованная retry-политика для BotErrorCode (BotRetryPolicy, getBotRetryable, mergeBotRetryPolicies; validation/policy/permission/parsing — non‑retryable, сетевые channel/webhook/integration ошибки по умолчанию retryable; `BotErrorMappingRegistry.retryable` в tests валидируется против `getBotRetryable(code)` для сохранения единой точки правды)
+
+### **Feature-bots / contracts** ⚪
+
+- ⚪ `contracts/BotErrorResponse.ts` — ts — deps: @livai/core-contracts/bots, types/bots — нормализованный контракт ошибок ботов (validation, policy, permission, not_found)
+
+### **Feature-bots / dto** ⚪
+
+- ⚪ `dto/CreateBotRequest.ts` — ts — deps: @livai/core-contracts/bots, types/bots — DTO создания бота (name, instruction, settings, templateId для from-template)
+- ⚪ `dto/UpdateBotRequest.ts` — ts — deps: @livai/core-contracts/bots, types/bots — DTO обновления бота (name, instruction, settings, version-aware)
+- ⚪ `dto/UpdateInstructionRequest.ts` — ts — deps: @livai/core-contracts/bots, types/bots — DTO обновления инструкции (instruction, settings, operationId для идемпотентности)
+- ⚪ `dto/PublishBotRequest.ts` — ts — deps: @livai/core-contracts/bots, types/bots — DTO публикации бота (version, rollbackVersion опционально)
+- ⚪ `dto/TestBotRequest.ts` — ts — deps: @livai/core-contracts/bots, types/bots — DTO тестового запроса к боту (message, conversationId, context)
 
 ### **Feature-bots / schemas** ⚪
 
