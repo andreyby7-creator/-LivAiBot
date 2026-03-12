@@ -30,6 +30,21 @@ export {
 } from './Bot.js';
 
 /**
+ * BotVersion Aggregate: доменная модель версии бота.
+ * @public
+ */
+export {
+  assertBotVersionInvariant,
+  type BotInstruction,
+  type BotSettingsSnapshot,
+  type BotVersionAggregate,
+  type BotVersionId,
+  type BotVersionInvariantError,
+  type BotVersionMetadata,
+  createBotVersionInvariantError,
+} from './BotVersion.js';
+
+/**
  * Bot Retry Policy: централизованная retry-политика для ошибок ботов.
  * @public
  */

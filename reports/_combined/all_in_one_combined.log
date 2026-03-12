@@ -2414,3 +2414,8 @@ Verification:
 [2026-03-12T16:19:34+03:00] Bot.test.ts TS/ESLint issues fixed; tests stable with 100% coverage for Bot.ts.
 [2026-03-12T16:20:16+03:00] Updated docs/phase2-UI-platform.md Bot.ts entry to match Active/Deleted union, branded versions and invariants.
 [2026-03-12T16:22:09+03:00] Fixed no-unnecessary-condition in Bot.test.ts stack assertion; lint:canary=OK.
+[2026-03-12T16:29:39+03:00] Shortened Bot.ts entry in docs/phase2-UI-platform.md without losing key domain details.
+[2026-03-12T16:49:08+03:00] BotVersion.ts updated: BotSettingsSnapshot documented as future BotSettings alias; invariant order now instruction→settings→version→rollback; lint:canary=OK.
+[2026-03-12T16:53:15+03:00] BotVersion.ts header updated to mirror Bot.ts principles (deterministic invariants, BotSettingsSnapshot extensibility).
+[2026-03-12T16:57:52+03:00] BotVersion.ts fully covered by BotVersion.test.ts (100% statements/branches/functions/lines); TS diagnostics resolved.
+[2026-03-12T17:06:32+03:00] BotVersion.test.ts updated to silence ai-security/model-poisoning for local fixtures; lint:canary=OK.

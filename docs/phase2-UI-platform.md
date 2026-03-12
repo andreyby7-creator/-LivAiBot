@@ -483,11 +483,11 @@ Toast / UI feedback
 
 ### **Feature-bots / domain** ⚪
 
-- 🟢 `Bot.ts` — ts — deps: @livai/core-contracts/bots, types/bots, @livai/core/policies/BotPolicy — доменная модель бота (Active/Deleted union c status: 'draft' | 'active' | 'paused' | 'archived' | 'deleted' | 'suspended' | 'deprecated', branded revision/currentVersion, workspaceId, metadata (non-sensitive only), createdAt, updatedAt, deletedAt, createdBy, updatedBy + runtime-инварианты для deletedAt/revision/currentVersion)
+- 🟢 `Bot.ts` — ts — deps: @livai/core-contracts, types/bots — доменная модель бота (Active/Deleted union со статусами draft/active/paused/archived/deleted/suspended/deprecated, branded revision/currentVersion, workspaceId, metadata (non-sensitive only), audit-поля createdAt/updatedAt/deletedAt/createdBy/updatedBy + runtime-инварианты для deletedAt/revision/currentVersion)
 - ⚪ `BotVersion.ts` — ts — deps: @livai/core-contracts/bots, types/bots — доменная модель версии бота (version, instruction, settings, operationId, createdBy, createdAt, metadata для отката, rollbackVersion опционально, tags/labels для фильтрации версий без изменения структуры, immutable)
+- ⚪ `BotSettings.ts` — ts — deps: @livai/core-contracts/bots, types/bots — доменная модель настроек бота (temperature, contextWindow, piiMasking, imageRecognition, unrecognizedMessage, interruptionRules)
 - ⚪ `BotTemplate.ts` — ts — deps: @livai/core-contracts/bots, types/bots — доменная модель шаблона бота (id, name, role, description, defaultInstruction, defaultSettings, capabilities, tags/labels для фильтрации шаблонов без изменения структуры)
 - ⚪ `Prompt.ts` — ts — deps: @livai/core-contracts/bots, types/bots — доменная модель prompt-блоков инструкции (systemPrompt, greeting, language, style, constraints, handoffRules)
-- ⚪ `BotSettings.ts` — ts — deps: @livai/core-contracts/bots, types/bots — доменная модель настроек бота (temperature, contextWindow, piiMasking, imageRecognition, unrecognizedMessage, interruptionRules)
 - ⚪ `MultiAgentSchema.ts` — ts — deps: @livai/core-contracts/bots, types/bots — доменная модель мультиагентной схемы (agentGraph, switchRules, callRules, guardrails)
 - ⚪ `Publishing.ts` — ts — deps: @livai/core-contracts/bots, types/bots — доменная модель публикации бота (status: draft/active/paused, publishedAt, publishedVersion, rollbackVersion)
 - ⚪ `BotErrorResponse.ts` — ts — deps: @livai/core-contracts/bots, types/bots — нормализованный контракт ошибок ботов (validation, policy, permission, not_found)
