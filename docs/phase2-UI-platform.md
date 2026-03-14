@@ -493,13 +493,13 @@ Toast / UI feedback
 - 🟢 `domain/BotAuditEvent.ts` — ts — deps: domain/Bot — доменная модель событий аудита ботов для SIEM/логирования (BotAuditEvent с exhaustive union BotAuditEventType: bot_created/bot_published/bot_updated/bot_deleted/instruction_updated/multi_agent_updated/config_changed/policy_violation; eventId, botId, workspaceId, timestamp, userId, context; error type BotAuditEventInvariantError; SIEM-ready структура)
 - 🟢 `domain/BotRetry.ts` — ts — deps: @livai/core/resilience, types/bots — централизованная retry-политика для BotErrorCode (BotRetryPolicy, getBotRetryable, mergeBotRetryPolicies; validation/policy/permission/parsing — non‑retryable, сетевые channel/webhook/integration ошибки по умолчанию retryable; `BotErrorMappingRegistry.retryable` в tests валидируется против `getBotRetryable(code)` для сохранения единой точки правды)
 
-### **Feature-bots / contracts** ⚪
+### **Feature-bots / contracts** ✅
 
 - 🟢 `contracts/BotErrorResponse.ts` — ts — deps: @livai/core-contracts, types/bots — нормализованный контракт ошибок ботов (BotErrorResponse с error (exhaustive union BotErrorType: validation_error/policy_error/permission_error/not_found/unknown_error и детальные коды), code (BotErrorCode), category (BotErrorCategory), severity (BotErrorSeverity), retryable, message, statusCode, context (BotErrorContext), traceId, timestamp)
 
 ### **Feature-bots / dto** ⚪
 
-- ⚪ `dto/CreateBotRequest.ts` — ts — deps: @livai/core-contracts/bots, types/bots — DTO создания бота (name, instruction, settings, templateId для from-template)
+- 🟢 `dto/CreateBotRequest.ts` — ts — deps: domain/BotSettings, domain/BotTemplate — DTO создания бота (CreateBotRequest с name, instruction, settings (BotSettings), templateId (BotTemplateId, опционально для from-template))
 - ⚪ `dto/UpdateBotRequest.ts` — ts — deps: @livai/core-contracts/bots, types/bots — DTO обновления бота (name, instruction, settings, version-aware)
 - ⚪ `dto/UpdateInstructionRequest.ts` — ts — deps: @livai/core-contracts/bots, types/bots — DTO обновления инструкции (instruction, settings, operationId для идемпотентности)
 - ⚪ `dto/PublishBotRequest.ts` — ts — deps: @livai/core-contracts/bots, types/bots — DTO публикации бота (version, rollbackVersion опционально)

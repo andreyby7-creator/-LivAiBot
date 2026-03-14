@@ -11,7 +11,8 @@
  * Принципы:
  * - ✅ SRP: только структура версии и инварианты (без бизнес-логики и transport-деталей).
  * - ✅ Deterministic: явная, монотонно неубывающая версия (BotVersion) и инварианты instruction/settings/version/rollback.
- * - ✅ Domain-pure: без HTTP/DB/DTO-специфики, только доменные типы и инварианты.
+ * - ✅ Domain-pure: без HTTP/DB/DTO-деталей, только доменные типы и инварианты.
+ * - ✅ Immutable: все поля readonly для истории версий и rollback integrity.
  * - ✅ Extensible: metadata/tags и BotSettingsSnapshot для эволюции без изменения core-схемы.
  * - ✅ Microservice-ready: строгие типы, удобные для передачи между сервисами.
  */

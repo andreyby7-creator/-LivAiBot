@@ -9,11 +9,13 @@
  * - Отдельная от Bot модель: Publishing описывает lifecycle публикации (draft/active/paused) и версионирование.
  * - Используется для управления публикацией ботов и отслеживания версий (publishedVersion, rollbackVersion).
  * - State machine: draft → active, active → paused, paused → active, active(v5) → active(v3) (rollback к предыдущей версии).
+ * - ВАЖНО: Валидация инвариантов находится в lib/publishing-validator.ts (assertPublishingInvariant).
  *
  * Принципы:
  * - ✅ SRP: только структура публикации и инварианты (без бизнес-логики и transport-деталей).
  * - ✅ Deterministic: явный lifecycle через discriminated union (DraftPublishing/ActivePublishing/PausedPublishing).
  * - ✅ Domain-pure: без HTTP/DB/DTO-деталей, только доменные типы и инварианты.
+ * - ✅ Immutable: все поля readonly для audit trail integrity.
  * - ✅ Type-safe: discriminated union исключает impossible states на уровне типов.
  * - ✅ Extensible: добавление новых статусов не требует изменения nullable-комбинаций.
  * - ✅ Microservice-ready: строгая, сериализуемая модель, удобная для межсервисного взаимодействия.

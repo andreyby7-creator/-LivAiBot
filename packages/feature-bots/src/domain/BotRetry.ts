@@ -10,9 +10,9 @@
  * - Source-of-truth для retryability в feature-bots (effects, error-mapper, DTO-фабрики).
  *
  * Принципы:
- * - ✅ SRP: только retry-политика и helper’ы, без бизнес-логики.
+ * - ✅ SRP: только retry-политика и helper'ы, без бизнес-логики.
  * - ✅ Deterministic: один код ошибки → одно решение по retry.
- * - ✅ Domain-pure: без side-effects и transport-деталей.
+ * - ✅ Domain-pure: без HTTP/DB/DTO-деталей, только доменные типы и инварианты.
  * - ✅ Extensible: добавление нового кода ошибки требует явного обновления политики.
  *
  * @remarks
