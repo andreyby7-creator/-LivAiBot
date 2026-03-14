@@ -192,12 +192,14 @@ vi.mock('dayjs/locale/en.js', () => ({}));
 
 // Переменная для мока telemetry
 const mockInfoFireAndForget = vi.fn();
+// Переменная для мока translate
+const mockTranslate = vi.fn();
 
 // Mock для UnifiedUIProvider
 vi.mock('../../../src/providers/UnifiedUIProvider', () => ({
   useUnifiedUI: () => ({
     i18n: {
-      translate: vi.fn(),
+      translate: mockTranslate,
       locale: 'en',
       direction: 'ltr' as const,
       loadNamespace: vi.fn(),
@@ -241,6 +243,8 @@ describe('App DatePicker', () => {
     vi.clearAllMocks();
     // Сбрасываем locale dayjs перед каждым тестом
     dayjs.locale('en');
+    // Настраиваем мок translate для возврата переведенного текста
+    mockTranslate.mockReturnValue('Translated Placeholder');
   });
 
   afterEach(() => {
@@ -890,6 +894,66 @@ describe('App DatePicker', () => {
 
       const input = screen.getByTestId('date-input');
       expect(input).toHaveAttribute('placeholder', 'Выберите дату');
+    });
+
+    it('должен рендерить i18n placeholder (строки 343-349)', () => {
+      // Покрытие строк 343-349: обработка i18n placeholder
+      render(<DatePicker {...{ i18nPlaceholderKey: 'date.select' } as AppDatePickerProps} />);
+
+      expect(mockTranslate).toHaveBeenCalledWith('common', 'date.select', {});
+      const input = screen.getByTestId('date-input');
+      expect(input).toHaveAttribute('placeholder', 'Translated Placeholder');
+    });
+
+    it('должен передавать namespace для i18n placeholder (строка 343)', () => {
+      // Покрытие строки 343: использование кастомного namespace
+      render(
+        <DatePicker
+          {...{
+            i18nPlaceholderKey: 'date.select',
+            i18nPlaceholderNs: 'calendar',
+          } as AppDatePickerProps}
+        />,
+      );
+
+      expect(mockTranslate).toHaveBeenCalledWith('calendar', 'date.select', {});
+    });
+
+    it('должен передавать параметры для i18n placeholder (строка 345)', () => {
+      // Покрытие строки 345: использование параметров
+      const params = { format: 'DD.MM.YYYY' };
+      render(
+        <DatePicker
+          {...{
+            i18nPlaceholderKey: 'date.select',
+            i18nPlaceholderParams: params,
+          } as AppDatePickerProps}
+        />,
+      );
+
+      expect(mockTranslate).toHaveBeenCalledWith('common', 'date.select', params);
+    });
+
+    it('должен использовать дефолтный placeholder если i18n возвращает пустую строку (строка 348)', () => {
+      // Покрытие строки 348: fallback на дефолтный placeholder когда i18nText пустой
+      // В discriminated union нельзя использовать placeholder вместе с i18nPlaceholderKey
+      mockTranslate.mockReturnValueOnce('');
+      render(<DatePicker {...{ i18nPlaceholderKey: 'date.missing' } as AppDatePickerProps} />);
+
+      const input = screen.getByTestId('date-input');
+      // Fallback на дефолтный placeholder 'Select date'
+      expect(input).toHaveAttribute('placeholder', 'Select date');
+    });
+
+    it('должен использовать дефолтный placeholder если i18n возвращает undefined (строка 348)', () => {
+      // Покрытие строки 348: fallback на дефолтный placeholder когда i18nText undefined
+      // В discriminated union нельзя использовать placeholder вместе с i18nPlaceholderKey
+      mockTranslate.mockReturnValueOnce(undefined as unknown as string);
+      render(<DatePicker {...{ i18nPlaceholderKey: 'date.missing' } as AppDatePickerProps} />);
+
+      const input = screen.getByTestId('date-input');
+      // Fallback на дефолтный placeholder 'Select date'
+      expect(input).toHaveAttribute('placeholder', 'Select date');
     });
   });
 

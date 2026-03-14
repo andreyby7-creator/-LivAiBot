@@ -32,8 +32,13 @@ vi.mock('../../../src/background/tasks', () => ({
   stopBackgroundTasks: vi.fn().mockResolvedValue(undefined),
 }));
 
+vi.mock('../../../src/lib/telemetry-runtime', () => ({
+  errorFireAndForget: vi.fn(),
+}));
+
 // Import after mocking
 import { startBackgroundTasks, stopBackgroundTasks } from '../../../src/background/tasks';
+import { errorFireAndForget } from '../../../src/lib/telemetry-runtime';
 
 /* ============================================================================
  * 🧠 HELPER FUNCTIONS
@@ -148,6 +153,15 @@ describe('App Lifecycle', () => {
       expect(appLifecycleEvents.emit).toHaveBeenCalledWith(AppLifecycleEvent.APP_TEARDOWN);
     });
 
+    it('не должен финализировать teardown если features stage не включен', async () => {
+      // Строка 212: проверка когда features не включен в stagesToExecute
+      await appLifecycle.teardown(['tasks']);
+
+      expect(stopBackgroundTasks).toHaveBeenCalledTimes(1);
+      // Финализация не должна произойти, так как features не включен
+      expect(appLifecycleEvents.emit).not.toHaveBeenCalledWith(AppLifecycleEvent.APP_TEARDOWN);
+    });
+
     it('должен выполнять tasks и features стадии', async () => {
       await appLifecycle.teardown('tasks');
 
@@ -210,6 +224,28 @@ describe('App Lifecycle', () => {
       await appLifecycle.bootstrap();
 
       expect(handler).not.toHaveBeenCalled();
+    });
+
+    it('должен удалять bucket когда он становится пустым после отписки', async () => {
+      // Строка 245: проверка когда bucket.size === 0 после удаления
+      const handler = createMockHandler();
+
+      // Подписываемся на событие
+      const unsubscribe = appLifecycle.onLifecycle('BOOTSTRAP', handler);
+
+      // Отписываемся ДО вызова bootstrap - bucket должен стать пустым и быть удален (строка 245)
+      unsubscribe();
+
+      // Проверяем, что можно снова подписаться (bucket был удален)
+      const handler2 = createMockHandler();
+      const unsubscribe2 = appLifecycle.onLifecycle('BOOTSTRAP', handler2);
+      expect(unsubscribe2).toBeDefined();
+
+      // Проверяем, что новый handler работает
+      await appLifecycle.bootstrap();
+      expect(handler2).toHaveBeenCalledTimes(1);
+      expect(handler).not.toHaveBeenCalled(); // Старый handler не вызывается после отписки
+      unsubscribe2();
     });
 
     it('должен логировать повторную подписку в dev режиме', async () => {
@@ -306,6 +342,15 @@ describe('App Lifecycle', () => {
       expect(appLifecycleEvents.emit).toHaveBeenCalledWith(
         AppLifecycleEvent.APP_LIFECYCLE_HANDLER_ERROR,
       );
+
+      // Проверяем, что ошибка была отправлена в observability layer
+      expect(errorFireAndForget).toHaveBeenCalledWith(
+        expect.stringContaining('[app-lifecycle] Handler error'),
+        expect.objectContaining({
+          component: 'app-lifecycle',
+          context: 'app-lifecycle-handler',
+        }),
+      );
     });
 
     it('должен отправлять специальное событие при ошибке handler', async () => {
@@ -331,6 +376,57 @@ describe('App Lifecycle', () => {
 
       expect(throwingHandler).toHaveBeenCalledTimes(1);
       expect(normalHandler).toHaveBeenCalledTimes(1);
+    });
+
+    it('должен обрабатывать не-Error ошибки в observability layer', async () => {
+      // Строки 41-42: обработка когда error не является Error
+      const nonError = 'String error';
+      const throwingHandler = vi.fn().mockImplementation(() => {
+        throw nonError;
+      });
+
+      appLifecycle.onLifecycle('BOOTSTRAP', throwingHandler);
+      await appLifecycle.bootstrap();
+
+      // Проверяем, что не-Error ошибка была обработана
+      expect(errorFireAndForget).toHaveBeenCalledWith(
+        expect.stringContaining('[app-lifecycle] String error'),
+        expect.objectContaining({
+          component: 'app-lifecycle',
+        }),
+      );
+    });
+
+    it('должен фильтровать несовместимые типы из context в observability', async () => {
+      // Строка 54: проверка фильтрации типов в context (string | number | boolean | null)
+      // Для покрытия нужно, чтобы filter проверил разные типы значений
+      // Но captureError вызывается из safeCall с фиксированным context
+      // Поэтому строка 54 может быть не покрыта, если context всегда содержит только примитивы
+      const error = new Error('Test error');
+      const throwingHandler = createThrowingHandler(error);
+
+      appLifecycle.onLifecycle('BOOTSTRAP', throwingHandler);
+      await appLifecycle.bootstrap();
+
+      // Проверяем, что errorFireAndForget был вызван
+      expect(errorFireAndForget).toHaveBeenCalled();
+
+      // Проверяем, что метаданные содержат только примитивные типы
+      const calls = (errorFireAndForget as ReturnType<typeof vi.fn>).mock.calls;
+      expect(calls.length).toBeGreaterThan(0);
+      const callArgs = calls[0];
+      expect(callArgs).toBeDefined();
+      const metadata = callArgs?.[1];
+      expect(metadata).toBeDefined();
+      // Все значения в metadata должны быть примитивными (string | number | boolean | null)
+      if (metadata != null) {
+        Object.values(metadata).forEach((value) => {
+          const type = typeof value;
+          expect(
+            type === 'string' || type === 'number' || type === 'boolean' || value === null,
+          ).toBe(true);
+        });
+      }
     });
   });
 

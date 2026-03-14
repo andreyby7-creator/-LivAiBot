@@ -3,6 +3,7 @@
  * ============================================================================
  * 📡 APP LIFECYCLE — BOOTSTRAP / TEARDOWN
  * ============================================================================
+ *
  * Архитектурная роль:
  * - Централизованный контроль bootstrap / teardown приложения
  * - Управление lifecycle событий через event hub
@@ -11,6 +12,7 @@
  * - Инициализирует background tasks и подписки на lifecycle события.
  * - Не хранит state, не реализует бизнес-логику.
  * - Чисто bootstrap / teardown, reusable и микросервисно-нейтральный.
+ *
  * Принципы:
  * - ❌ Нет бизнес-логики
  * - ❌ Нет зависимостей от UI / domain
@@ -25,21 +27,43 @@
  * await appLifecycle.teardown();
  */
 
+import type { TelemetryMetadata } from '@livai/core-contracts';
+
 import { startBackgroundTasks, stopBackgroundTasks } from '../background/tasks.js';
 import { AppLifecycleEvent, appLifecycleEvents } from '../events/app-lifecycle-events.js';
 import type { VoidFn } from '../types/common.js';
+import { errorFireAndForget } from './telemetry-runtime.js';
 
 /**
- * @internal Stub для observability layer
- * В production заменить на реальную функцию логирования ошибок
+ * @internal Observability layer для логирования ошибок
+ * Использует telemetry runtime для отправки ошибок в observability систему
  */
 const observability = {
   captureError: (error: unknown, context?: Record<string, unknown>): void => {
-    if (process.env['NODE_ENV'] === 'development') {
-      // eslint-disable-next-line no-console
-      console.error('[app-lifecycle] observability stub:', error, context);
-    }
-    // TODO: Подключить реальный observability layer
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    const errorStack = error instanceof Error ? error.stack : undefined;
+
+    // Формируем метаданные для observability (TelemetryMetadata = Record<string, TelemetryPrimitive>)
+    const metadata: TelemetryMetadata = {
+      component: 'app-lifecycle',
+      ...(errorStack != null && { stack: errorStack }),
+      ...(error instanceof Error && { errorName: error.name }),
+      // Конвертируем context в TelemetryMetadata, фильтруя несовместимые типы
+      ...(context != null && Object.fromEntries(
+        Object.entries(context)
+          .filter(([, value]) => {
+            const type = typeof value;
+            return type === 'string' || type === 'number' || type === 'boolean' || value === null;
+          })
+          .map(([key, value]) => [key, value as string | number | boolean | null] as const),
+      )),
+    };
+
+    // Отправляем ошибку через telemetry layer
+    errorFireAndForget(
+      `[app-lifecycle] ${errorMessage}`,
+      metadata,
+    );
   },
 };
 

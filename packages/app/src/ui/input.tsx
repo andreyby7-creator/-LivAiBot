@@ -256,17 +256,36 @@ function InputComponent<T extends HTMLInputElement['value'] = string>(
 
   const { i18n, featureFlags, telemetry } = useUnifiedUI();
   const { translate } = i18n;
-  const flagDisabled = Boolean(isDisabledByFeatureFlag);
-  const flagHidden = Boolean(isHiddenByFeatureFlag);
+  const inputId = useId();
   const telemetryEnabled = featureFlags.getOverride('SYSTEM_telemetry_enabled', true);
 
-  // TODO: Runtime overrides для A/B тестирования
-  // Нужен context provider для динамического переключения флагов на лету
-  // Пока что feature flags работают только на основе useFeatureFlagOverride
+  // Runtime overrides для A/B тестирования
+  // Позволяет динамически переключать флаги через featureFlags.getOverride()
+  // Приоритет: runtime override > пропс компонента
+  // Используем стандартные SYSTEM_ флаги для runtime overrides
+  // Для A/B тестирования можно использовать setOverride() для динамического переключения
+  const runtimeDisabledFlag: 'SYSTEM_input_disabled' = 'SYSTEM_input_disabled';
+  const runtimeHiddenFlag: 'SYSTEM_input_hidden' = 'SYSTEM_input_hidden';
+  const runtimeVariantEnabledFlag: 'SYSTEM_input_variant_enabled' = 'SYSTEM_input_variant_enabled';
 
-  const effectiveDisabled = disabled || flagDisabled;
-  const effectiveHidden = flagHidden;
-  const inputId = useId();
+  // Проверяем runtime overrides, если они есть - используем их, иначе используем пропсы
+  const flagDisabledOverride = featureFlags.getOverride(
+    runtimeDisabledFlag,
+    isDisabledByFeatureFlag ?? false,
+  );
+  const flagHiddenOverride = featureFlags.getOverride(
+    runtimeHiddenFlag,
+    isHiddenByFeatureFlag ?? false,
+  );
+  // Для variant: если runtime override включен, используем значение из пропса
+  const variantOverrideEnabled = featureFlags.getOverride(
+    runtimeVariantEnabledFlag,
+    variantByFeatureFlag !== undefined,
+  );
+  const variantOverride = variantOverrideEnabled ? variantByFeatureFlag : undefined;
+
+  const effectiveDisabled = disabled || flagDisabledOverride;
+  const effectiveHidden = flagHiddenOverride;
   const hasLabel = Boolean(label?.trim());
   const debouncedTelemetry = useDebouncedTelemetry(telemetry);
 
@@ -364,8 +383,8 @@ function InputComponent<T extends HTMLInputElement['value'] = string>(
         aria-invalid={hasError} // accessibility: состояние ошибки валидации
         aria-describedby={errorId} // accessibility: связь с элементом ошибки
         aria-live={hasError ? 'polite' : undefined} // accessibility: оповещение об ошибках
-        {...(variantByFeatureFlag !== undefined ? { 'data-variant': variantByFeatureFlag } : {})}
-        // feature flag: вариант компонента для стилизации
+        {...(variantOverride !== undefined ? { 'data-variant': variantOverride } : {})}
+        // feature flag: вариант компонента для стилизации (с runtime override для A/B тестирования)
         onChange={handleChange}
         onFocus={handleFocus}
         onBlur={handleBlur}

@@ -35,6 +35,7 @@ import {
 import type { CalendarDay, CalendarMonth, CalendarWeek, CoreDatePickerProps } from '@livai/ui-core';
 import { DatePicker as CoreDatePicker } from '@livai/ui-core';
 
+import type { Namespace, TranslationKey } from '../lib/i18n.js';
 import { useUnifiedUI } from '../providers/UnifiedUIProvider.js';
 import type { Json } from '../types/common.js';
 import type {
@@ -78,7 +79,8 @@ type DatePickerTelemetryPayload = Readonly<{
 }>;
 
 export type AppDatePickerProps = Readonly<
-  Omit<CoreDatePickerProps, 'value' | 'calendar' | 'currentMonthLabel' | 'isOpen'> & {
+  & Omit<CoreDatePickerProps, 'value' | 'calendar' | 'currentMonthLabel' | 'isOpen' | 'placeholder'>
+  & {
     /** Значение даты (Date, string в формате ISO, или dayjs объект) */
     value?: Date | string | Dayjs | null;
 
@@ -118,15 +120,37 @@ export type AppDatePickerProps = Readonly<
     /** Callback при некорректном вводе даты */
     onInvalidInput?: (value: string) => void;
   }
+  & (
+    | {
+      /** I18n режим: placeholder обязателен */
+      i18nPlaceholderKey: TranslationKey;
+      i18nPlaceholderNs?: Namespace;
+      i18nPlaceholderParams?: Readonly<Record<string, string | number>>;
+      placeholder?: never;
+    }
+    | {
+      /** Без i18n */
+      i18nPlaceholderKey?: never;
+      i18nPlaceholderNs?: never;
+      i18nPlaceholderParams?: never;
+      placeholder?: string;
+    }
+  )
 >;
 
 const DEFAULT_FORMAT = 'YYYY-MM-DD';
+
+/** Стабильная ссылка на пустой объект параметров */
+const EMPTY_PARAMS: Record<string, string | number> = Object.freeze({});
 
 const BUSINESS_PROPS = [
   'visible',
   'isHiddenByFeatureFlag',
   'isDisabledByFeatureFlag',
   'telemetryEnabled',
+  'i18nPlaceholderKey',
+  'i18nPlaceholderNs',
+  'i18nPlaceholderParams',
 ] as const;
 
 function omit<T extends Record<string, unknown>, K extends readonly string[]>(
@@ -282,6 +306,12 @@ const DatePickerComponent = forwardRef<HTMLDivElement, AppDatePickerProps>(
     ref: Ref<HTMLDivElement>,
   ): JSX.Element | null {
     const { i18n, telemetry } = useUnifiedUI();
+    const { translate } = i18n;
+    const {
+      i18nPlaceholderKey: _i18nPlaceholderKey,
+      i18nPlaceholderNs: _i18nPlaceholderNs,
+      i18nPlaceholderParams: _i18nPlaceholderParams,
+    } = props;
     const filteredProps = omit(props, BUSINESS_PROPS);
     const {
       value: valueProp,
@@ -292,7 +322,7 @@ const DatePickerComponent = forwardRef<HTMLDivElement, AppDatePickerProps>(
       minDate: minDateProp,
       maxDate: maxDateProp,
       disabled = false,
-      placeholder = 'Select date', // TODO: i18n placeholder через unified UI
+      placeholder: placeholderProp = 'Select date',
       'data-testid': testId,
       ...coreProps
     } = filteredProps;
@@ -303,6 +333,34 @@ const DatePickerComponent = forwardRef<HTMLDivElement, AppDatePickerProps>(
     useImperativeHandle(ref, () => internalRef.current ?? document.createElement('div'), [
       internalRef,
     ]);
+
+    /** Получить финальный placeholder с i18n fallback */
+    const getPlaceholder = useCallback((): string => {
+      // Используем i18n если ключ определен, иначе обычный placeholder
+      const key = _i18nPlaceholderKey;
+      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-condition
+      if (key) {
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+        const ns = _i18nPlaceholderNs || 'common';
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+        const params = _i18nPlaceholderParams || EMPTY_PARAMS;
+        const i18nText = translate(ns, key, params);
+        // Если i18n вернул пустую строку или undefined, используем обычный placeholder
+        if (i18nText) {
+          return i18nText;
+        }
+      }
+      return placeholderProp;
+    }, [
+      _i18nPlaceholderKey,
+      _i18nPlaceholderNs,
+      _i18nPlaceholderParams,
+      placeholderProp,
+      translate,
+    ]);
+
+    /** Placeholder: i18n → fallback → значение по умолчанию */
+    const placeholder = useMemo<string>(getPlaceholder, [getPlaceholder]);
 
     // Инициализация locale для dayjs через централизованную систему
     // SSR-safe: не вызывать side-effects на сервере

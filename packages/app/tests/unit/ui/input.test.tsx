@@ -17,6 +17,7 @@ import '../../../src/providers/UnifiedUIProvider';
 const mockTranslate = vi.fn();
 const mockInfoFireAndForget = vi.fn();
 let mockFeatureFlagReturnValue = false;
+const mockGetOverride = vi.fn();
 
 // Mock для UnifiedUIProvider
 vi.mock('../../../src/providers/UnifiedUIProvider', () => ({
@@ -32,7 +33,7 @@ vi.mock('../../../src/providers/UnifiedUIProvider', () => ({
       isEnabled: () => mockFeatureFlagReturnValue,
       setOverride: vi.fn(),
       clearOverrides: vi.fn(),
-      getOverride: vi.fn(() => true),
+      getOverride: mockGetOverride,
     },
     telemetry: {
       track: vi.fn(),
@@ -50,8 +51,25 @@ vi.mock('../../../src/lib/telemetry-runtime', () => ({
 }));
 
 // Mock для setTimeout/clearTimeout
-const mockSetTimeout = vi.fn();
-const mockClearTimeout = vi.fn();
+// Используем реальные функции, но отслеживаем вызовы для тестирования
+let timeoutCallbacks: (() => void)[] = [];
+let timeoutIds: number[] = [];
+let nextTimeoutId = 1;
+
+const mockSetTimeout = vi.fn((callback: () => void, _delay?: number): number => {
+  const id = nextTimeoutId++;
+  timeoutCallbacks.push(callback);
+  timeoutIds.push(id);
+  return id;
+});
+
+const mockClearTimeout = vi.fn((id: number): void => {
+  const index = timeoutIds.indexOf(id);
+  if (index !== -1) {
+    timeoutCallbacks.splice(index, 1);
+    timeoutIds.splice(index, 1);
+  }
+});
 
 vi.stubGlobal('setTimeout', mockSetTimeout);
 vi.stubGlobal('clearTimeout', mockClearTimeout);
@@ -64,7 +82,12 @@ describe('Input', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockTranslate.mockReturnValue('Translated Placeholder');
-    mockSetTimeout.mockReturnValue(123);
+    timeoutCallbacks = [];
+    timeoutIds = [];
+    nextTimeoutId = 1;
+    // getOverride возвращает defaultValue (второй параметр) по умолчанию
+    // Это позволяет runtime overrides работать корректно
+    mockGetOverride.mockImplementation((_name: string, defaultValue = false) => defaultValue);
   });
 
   afterEach(() => {
@@ -178,6 +201,32 @@ describe('Input', () => {
       );
 
       expect(mockTranslate).toHaveBeenCalledWith('common', 'common.field', params);
+    });
+
+    it('должен использовать обычный placeholder если i18n возвращает пустую строку (строка 304)', () => {
+      // Покрытие строки 304: fallback на обычный placeholder когда i18nText пустой
+      mockTranslate.mockReturnValueOnce(''); // i18n возвращает пустую строку
+      render(
+        <Input
+          placeholder='Fallback Placeholder'
+          {...{ i18nPlaceholderKey: 'common.missing' } as AppInputProps}
+        />,
+      );
+
+      expect(screen.getByPlaceholderText('Fallback Placeholder')).toBeInTheDocument();
+    });
+
+    it('должен использовать обычный placeholder если i18n возвращает undefined (строка 304)', () => {
+      // Покрытие строки 304: fallback на обычный placeholder когда i18nText undefined
+      mockTranslate.mockReturnValueOnce(undefined as unknown as string);
+      render(
+        <Input
+          placeholder='Fallback Placeholder'
+          {...{ i18nPlaceholderKey: 'common.missing' } as AppInputProps}
+        />,
+      );
+
+      expect(screen.getByPlaceholderText('Fallback Placeholder')).toBeInTheDocument();
     });
 
     it('должен использовать пустой объект для undefined параметров i18n', () => {
@@ -329,9 +378,20 @@ describe('Input', () => {
 
   describe('Telemetry', () => {
     it('должен отправлять telemetry при изменении значения (debounced)', () => {
-      // Пропускаем этот тест из-за проблем с debounce в тестовой среде
-      // Основная функциональность telemetry проверена в других тестах
-      expect(true).toBe(true);
+      // Строки 188-190: покрытие callback внутри setTimeout
+      render(<Input value='test' onChange={mockOnChange} />);
+
+      fireEvent.change(screen.getByRole('textbox'), { target: { value: 'new value' } });
+
+      // Выполняем все pending callbacks для покрытия строк 188-190
+      timeoutCallbacks.forEach((callback) => callback());
+
+      expect(mockInfoFireAndForget).toHaveBeenCalledWith('Input changed', {
+        component: 'Input',
+        action: 'change',
+        disabled: false,
+        value: 'new value',
+      });
     });
 
     it('должен отправлять telemetry при получении фокуса', async () => {
@@ -382,9 +442,21 @@ describe('Input', () => {
       render(<Input value='test' onChange={mockOnChange} />);
 
       fireEvent.change(screen.getByRole('textbox'), { target: { value: 'first' } });
+      const firstTimeoutId = timeoutIds[0];
       fireEvent.change(screen.getByRole('textbox'), { target: { value: 'second' } });
 
-      expect(mockClearTimeout).toHaveBeenCalledWith(123);
+      // Проверяем, что первый timeout был отменен
+      expect(mockClearTimeout).toHaveBeenCalledWith(firstTimeoutId);
+      // Выполняем оставшийся callback
+      timeoutCallbacks.forEach((callback) => callback());
+      // Должен быть вызван только один раз с последним значением
+      expect(mockInfoFireAndForget).toHaveBeenCalledTimes(1);
+      expect(mockInfoFireAndForget).toHaveBeenCalledWith('Input changed', {
+        component: 'Input',
+        action: 'change',
+        disabled: false,
+        value: 'second',
+      });
     });
   });
 
@@ -455,10 +527,12 @@ describe('Input', () => {
       const { unmount } = render(<Input onChange={mockOnChange} />);
 
       fireEvent.change(screen.getByRole('textbox'), { target: { value: 'test' } });
+      const timeoutId = timeoutIds[0];
 
       unmount();
 
-      expect(mockClearTimeout).toHaveBeenCalledWith(123);
+      // Проверяем, что timeout был очищен при unmount
+      expect(mockClearTimeout).toHaveBeenCalledWith(timeoutId);
     });
   });
 

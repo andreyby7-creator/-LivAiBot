@@ -10,11 +10,10 @@ import type { AppButtonProps } from '../../../src/ui/button';
 import { Button } from '../../../src/ui/button';
 
 import '@testing-library/jest-dom/vitest';
-// Импорт для правильного порядка моков
-import '../../../src/providers/UnifiedUIProvider';
 
-// Mock для UnifiedUIProvider
+// Mock для UnifiedUIProvider (должен быть до импорта Button)
 const mockTranslate = vi.fn();
+const mockInfoFireAndForget = vi.fn();
 vi.mock('../../../src/providers/UnifiedUIProvider', () => ({
   useUnifiedUI: () => ({
     i18n: {
@@ -31,7 +30,7 @@ vi.mock('../../../src/providers/UnifiedUIProvider', () => ({
     },
     telemetry: {
       track: vi.fn(),
-      infoFireAndForget: vi.fn(),
+      infoFireAndForget: mockInfoFireAndForget,
       warnFireAndForget: vi.fn(),
       errorFireAndForget: vi.fn(),
       flush: vi.fn(),
@@ -39,19 +38,13 @@ vi.mock('../../../src/providers/UnifiedUIProvider', () => ({
   }),
 }));
 
-// Mock для telemetry - временно отключен для диагностики
-// const mockInfoFireAndForget = vi.fn();
-// vi.mock('../../../src/lib/telemetry', () => ({
-//   infoFireAndForget: mockInfoFireAndForget,
-//   initTelemetry: vi.fn(),
-// }));
-
 describe('Button', () => {
   const mockOnClick = vi.fn();
 
   beforeEach(() => {
     vi.clearAllMocks();
     mockTranslate.mockReturnValue('Translated Text');
+    mockInfoFireAndForget.mockClear();
   });
 
   afterEach(() => {
@@ -121,7 +114,23 @@ describe('Button', () => {
         <Button {...{ i18nKey: 'common.greeting', i18nParams: undefined } as AppButtonProps} />,
       );
 
+      // Покрывает EMPTY_PARAMS (строка 69) для i18nParams
       expect(mockTranslate).toHaveBeenCalledWith('common', 'common.greeting', {});
+    });
+
+    it('должен использовать пустой объект для undefined ariaLabelI18nParams', () => {
+      render(
+        <Button
+          {...{
+            i18nKey: 'common.greeting',
+            ariaLabelI18nKey: 'common.ariaLabel',
+            ariaLabelI18nParams: undefined,
+          } as AppButtonProps}
+        />,
+      );
+
+      // Покрывает EMPTY_PARAMS (строка 69) для ariaLabelI18nParams
+      expect(mockTranslate).toHaveBeenCalledWith('common', 'common.ariaLabel', {});
     });
   });
 
@@ -143,8 +152,16 @@ describe('Button', () => {
 
       fireEvent.click(screen.getByRole('button'));
 
-      // TODO: Добавить проверку telemetry после исправления mock
-      expect(true).toBe(true);
+      expect(mockInfoFireAndForget).toHaveBeenCalledTimes(1);
+      expect(mockInfoFireAndForget).toHaveBeenCalledWith(
+        'Button click',
+        expect.objectContaining({
+          component: 'Button',
+          action: 'click',
+          variant: 'primary',
+          disabled: false,
+        }),
+      );
     });
 
     it('не должен отправлять telemetry для disabled кнопки', () => {
@@ -156,7 +173,7 @@ describe('Button', () => {
 
       fireEvent.click(screen.getByRole('button'));
 
-      // TODO: Добавить проверку telemetry после исправления mock
+      expect(mockInfoFireAndForget).not.toHaveBeenCalled();
     });
 
     it('должен передавать undefined variant в telemetry', () => {
@@ -164,7 +181,16 @@ describe('Button', () => {
 
       fireEvent.click(screen.getByRole('button'));
 
-      // TODO: Добавить проверку telemetry после исправления mock
+      expect(mockInfoFireAndForget).toHaveBeenCalledTimes(1);
+      expect(mockInfoFireAndForget).toHaveBeenCalledWith(
+        'Button click',
+        expect.objectContaining({
+          component: 'Button',
+          action: 'click', // Покрывает ButtonTelemetryAction.Click (строка 64)
+          variant: null,
+          disabled: false,
+        }),
+      );
     });
   });
 
@@ -291,8 +317,16 @@ describe('Button', () => {
 
       fireEvent.click(screen.getByRole('button'));
 
-      // TODO: Добавить проверку telemetry после исправления mock
-      expect(true).toBe(true);
+      expect(mockInfoFireAndForget).toHaveBeenCalledTimes(1);
+      expect(mockInfoFireAndForget).toHaveBeenCalledWith(
+        'Button click',
+        expect.objectContaining({
+          component: 'Button',
+          action: 'click', // Покрывает ButtonTelemetryAction.Click (строка 64)
+          variant: 'primary',
+          disabled: false,
+        }),
+      );
     });
 
     it('не должен отправлять telemetry для disabled кнопки', () => {
@@ -300,7 +334,7 @@ describe('Button', () => {
 
       fireEvent.click(screen.getByRole('button'));
 
-      // TODO: Добавить проверку telemetry после исправления mock
+      expect(mockInfoFireAndForget).not.toHaveBeenCalled();
     });
   });
 
@@ -324,6 +358,41 @@ describe('Button', () => {
     it('должен поддерживать различные конфигурации пропсов', () => {
       // Проверяем, что типы доступны (нельзя проверить в runtime, но тест проходит)
       expect(true).toBe(true);
+    });
+  });
+
+  describe('Константы и enum покрытие', () => {
+    it('использует ButtonTelemetryAction.Click в telemetry payload', () => {
+      // Покрывает строку 64: enum ButtonTelemetryAction { Click = 'click' }
+      render(<Button variant='secondary'>Test</Button>);
+
+      fireEvent.click(screen.getByRole('button'));
+
+      // Проверяем, что action равен 'click' (значение enum ButtonTelemetryAction.Click)
+      expect(mockInfoFireAndForget).toHaveBeenCalledWith(
+        'Button click',
+        expect.objectContaining({
+          action: 'click', // Значение из ButtonTelemetryAction.Click
+        }),
+      );
+    });
+
+    it('использует EMPTY_PARAMS для undefined i18nParams и ariaLabelI18nParams', () => {
+      // Покрывает строку 69: const EMPTY_PARAMS = Object.freeze({})
+      render(
+        <Button
+          {...{
+            i18nKey: 'common.test',
+            i18nParams: undefined, // Использует EMPTY_PARAMS
+            ariaLabelI18nKey: 'common.aria',
+            ariaLabelI18nParams: undefined, // Использует EMPTY_PARAMS
+          } as AppButtonProps}
+        />,
+      );
+
+      // Проверяем, что EMPTY_PARAMS используется для обоих случаев
+      expect(mockTranslate).toHaveBeenCalledWith('common', 'common.test', {});
+      expect(mockTranslate).toHaveBeenCalledWith('common', 'common.aria', {});
     });
   });
 });

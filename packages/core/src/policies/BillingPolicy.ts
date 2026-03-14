@@ -259,8 +259,8 @@ export class BillingPolicy {
         return Decision.allow('BILLING_ALLOWED_WITH_WARNING', {
           warning: true,
           overuse: true,
-          planLimit: planLimit,
-          projectedUsage: projectedUsage,
+          planLimit,
+          projectedUsage,
         });
 
       case 'block':
