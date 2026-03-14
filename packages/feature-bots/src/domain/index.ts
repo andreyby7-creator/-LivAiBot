@@ -112,3 +112,32 @@ export {
   getBotRetryable,
   mergeBotRetryPolicies,
 } from './BotRetry.js';
+
+/**
+ * MultiAgentSchema: доменная модель мультиагентной схемы.
+ * @public
+ */
+export {
+  type AgentCallTimeout,
+  type AgentEdge,
+  type AgentEdgeType,
+  type AgentGraph,
+  type AgentId,
+  type AgentNode,
+  type CallCondition,
+  type CallRule,
+  type CallRules,
+  type CallTrigger,
+  createMultiAgentSchemaInvariantError,
+  type Guardrail,
+  type Guardrails,
+  type MaxCallDepth,
+  type MaxCallsPerAgent,
+  type MultiAgentSchema,
+  type MultiAgentSchemaInvariantError,
+  type RulePriority,
+  type SwitchCondition,
+  type SwitchRule,
+  type SwitchRules,
+  type SwitchTrigger,
+} from './MultiAgentSchema.js';
