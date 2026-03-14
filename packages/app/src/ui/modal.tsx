@@ -17,6 +17,7 @@
  * - CoreModal остается без анимаций для максимальной производительности и простоты
  */
 
+import { AnimatePresence, motion } from 'framer-motion';
 import type { JSX, Ref } from 'react';
 import { forwardRef, memo, useEffect, useMemo, useRef } from 'react';
 
@@ -64,6 +65,15 @@ function omit<T extends Record<string, unknown>, K extends keyof T>(
 
 const DEFAULT_VARIANT: ModalVariant = 'default';
 
+// Animation constants
+const DEFAULT_DURATION_SECONDS = 0.2; // 200ms default
+const INITIAL_SCALE = 0.95;
+const CUBIC_BEZIER_P1 = 0.4;
+const CUBIC_BEZIER_P2 = 0.2;
+const CUBIC_BEZIER_P3 = 1;
+const EASE_OUT_CUBIC_BEZIER = [CUBIC_BEZIER_P1, 0, CUBIC_BEZIER_P2, CUBIC_BEZIER_P3] as const;
+const EASE_IN_CUBIC_BEZIER = [CUBIC_BEZIER_P1, 0, CUBIC_BEZIER_P3, CUBIC_BEZIER_P3] as const;
+
 enum ModalTelemetryAction {
   Mount = 'mount',
   Unmount = 'unmount',
@@ -95,8 +105,8 @@ export type AppModalProps = Readonly<
     telemetryEnabled?: boolean;
 
     /**
-     * Длительность анимаций (для будущих transition эффектов в App слое).
-     * Пока не используется, но оставлено для обратной совместимости.
+     * Длительность анимаций для transition эффектов (например, '200ms', '0.5s').
+     * Используется для CSS transitions overlay и Framer Motion анимаций content.
      */
     duration?: UIDuration;
   }
@@ -245,10 +255,20 @@ const ModalComponent = forwardRef<HTMLDivElement, AppModalProps>(
 
     const {
       variant = DEFAULT_VARIANT,
-      duration, // TODO: использовать для будущих transition эффектов в App слое
+      duration = '200ms',
       ...filteredCoreProps
     } = domProps;
     const policy = useModalPolicy(props);
+
+    // Парсим duration для Framer Motion (конвертируем '200ms' -> 0.2, '0.5s' -> 0.5)
+    const durationSeconds = useMemo(() => {
+      if (!duration) return DEFAULT_DURATION_SECONDS;
+      const match = duration.match(/^(\d+(?:\.\d+)?)(ms|s)$/);
+      if (!match) return DEFAULT_DURATION_SECONDS;
+      const value = parseFloat(match[1] ?? '200');
+      const unit = match[2];
+      return unit === 'ms' ? value / 1000 : value;
+    }, [duration]);
 
     // Минимальный набор telemetry-данных
     const telemetryProps = useMemo(() => ({
@@ -315,25 +335,84 @@ const ModalComponent = forwardRef<HTMLDivElement, AppModalProps>(
       prevVisibleRef.current = currentVisibility;
     }, [policy.telemetryEnabled, policy.isRendered, showPayload, hidePayload, telemetry]);
 
-    // Policy: hidden
-    if (!policy.isRendered) return null;
-
     const testId = props['data-testid'] ?? 'core-modal';
 
+    // CSS transitions для overlay (opacity) - применяется через style CoreModal
+    const overlayTransitionStyle = useMemo(() => ({
+      transition: `opacity ${duration} ease, transform ${duration} ease`,
+    }), [duration]);
+
+    // Framer Motion variants для modal content (scale + opacity)
+    const contentVariants = useMemo(() => ({
+      initial: {
+        opacity: 0,
+        scale: INITIAL_SCALE,
+      },
+      animate: {
+        opacity: 1,
+        scale: 1,
+        transition: {
+          duration: durationSeconds,
+          ease: EASE_OUT_CUBIC_BEZIER,
+        },
+      },
+      exit: {
+        opacity: 0,
+        scale: INITIAL_SCALE,
+        transition: {
+          duration: durationSeconds,
+          ease: EASE_IN_CUBIC_BEZIER,
+        },
+      },
+    }), [durationSeconds]);
+
     return (
-      <CoreModal
-        ref={ref}
-        visible={policy.isRendered}
-        variant={variant}
-        data-component='AppModal'
-        data-state='visible'
-        data-telemetry={policy.telemetryEnabled ? 'enabled' : 'disabled'}
-        aria-label={ariaLabel}
-        aria-labelledby={ariaLabelledBy}
-        {...(duration !== undefined && { duration })}
-        {...filteredCoreProps}
-        data-testid={testId}
-      />
+      <AnimatePresence mode='wait'>
+        {policy.isRendered && (
+          <motion.div
+            key='modal-wrapper'
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: durationSeconds }}
+            style={{
+              position: 'fixed',
+              inset: 0,
+              zIndex: 9999,
+              backgroundColor: 'rgba(0,0,0,0.4)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              ...overlayTransitionStyle,
+            }}
+          >
+            <motion.div
+              variants={contentVariants}
+              initial='initial'
+              animate='animate'
+              exit='exit'
+            >
+              <CoreModal
+                ref={ref}
+                visible={true}
+                variant={variant}
+                data-component='AppModal'
+                data-state='visible'
+                data-telemetry={policy.telemetryEnabled ? 'enabled' : 'disabled'}
+                aria-label={ariaLabel}
+                aria-labelledby={ariaLabelledBy}
+                style={{
+                  backgroundColor: 'transparent',
+                  boxShadow: 'none',
+                  ...(filteredCoreProps.style as Record<string, unknown>),
+                }}
+                {...(omit(filteredCoreProps, ['style']) as typeof filteredCoreProps)}
+                data-testid={testId}
+              />
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     );
   },
 );
