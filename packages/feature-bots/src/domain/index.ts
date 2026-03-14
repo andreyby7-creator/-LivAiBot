@@ -155,3 +155,23 @@ export {
   type PublishingInvariantError,
   type PublishingStatus,
 } from './Publishing.js';
+
+/**
+ * BotAuditEvent: доменная модель событий аудита ботов.
+ * @public
+ */
+export {
+  type BotAuditEvent,
+  type BotAuditEventContextMap,
+  type BotAuditEventInvariantError,
+  type BotAuditEventType,
+  type BotCreatedContext,
+  type BotDeletedContext,
+  type BotPublishedContext,
+  type ConfigChangedContext,
+  createBotAuditEventInvariantError,
+  type EventId,
+  type InstructionUpdatedContext,
+  type MultiAgentUpdatedContext,
+  type PolicyViolationContext,
+} from './BotAuditEvent.js';
