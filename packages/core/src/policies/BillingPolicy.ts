@@ -119,7 +119,7 @@ export interface BillingPolicyConfig {
 
 /** Решение биллинговой политики */
 export type BillingDecision = PolicyDecision<
-  'BILLING_ALLOWED',
+  'BILLING_ALLOWED' | 'BILLING_ALLOWED_WITH_WARNING',
   BillingDeniedReason
 >;
 
@@ -171,7 +171,9 @@ export class BillingPolicy {
     /* ✅ ALLOWED */
     /* ---------------------------------------------------------------------- */
 
-    return Decision.allow('BILLING_ALLOWED');
+    // Возвращаем результат checkPlanLimits, который может содержать
+    // 'BILLING_ALLOWED' или 'BILLING_ALLOWED_WITH_WARNING' в зависимости от стратегии
+    return limitCheck;
   }
 
   /* ------------------------------------------------------------------------ */
@@ -253,9 +255,13 @@ export class BillingPolicy {
         return Decision.allow('BILLING_ALLOWED');
 
       case 'allow_warn':
-        // Для allow_warn возвращаем специальный decision
-        // TODO: Возможно, нужно Decision.allowWithMeta('BILLING_ALLOWED_WITH_WARNING')
-        return Decision.allow('BILLING_ALLOWED');
+        // Для allow_warn возвращаем специальный decision с предупреждением
+        return Decision.allow('BILLING_ALLOWED_WITH_WARNING', {
+          warning: true,
+          overuse: true,
+          planLimit: planLimit,
+          projectedUsage: projectedUsage,
+        });
 
       case 'block':
         return { allow: false, reason: 'plan_limit_exceeded' };

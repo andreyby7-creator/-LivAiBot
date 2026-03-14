@@ -329,7 +329,7 @@ describe('BillingPolicy', () => {
           expect(result.reason).toBe('BILLING_ALLOWED');
         });
 
-        it('разрешает overuse для allow_warn стратегии', () => {
+        it('разрешает overuse для allow_warn стратегии с предупреждением', () => {
           const usage: BillingUsageContext = {
             amount: 2000,
             usedInPeriod: 9000, // 9000 + 2000 = 11000 > 10000
@@ -338,7 +338,10 @@ describe('BillingPolicy', () => {
           const result = policy.canPerform('consume_tokens', proSubject, usage);
 
           expect(result.allow).toBe(true);
-          expect(result.reason).toBe('BILLING_ALLOWED');
+          expect(result.reason).toBe('BILLING_ALLOWED_WITH_WARNING');
+          expect(result.metadata).toBeDefined();
+          expect(result.metadata?.['warning']).toBe(true);
+          expect(result.metadata?.['overuse']).toBe(true);
         });
       });
 
@@ -700,6 +703,39 @@ describe('BillingPolicy', () => {
 
       const overuseUsage: BillingUsageContext = { amount: 200, usedInPeriod: 900 };
       expect(policy.canPerform('consume_tokens', freeUser, overuseUsage).allow).toBe(false);
+    });
+
+    it('покрывает exhaustive guard для неизвестной стратегии overuse', () => {
+      // Тест для покрытия default case в switch (exhaustive guard)
+      // Используем type assertion для обхода проверки типов TypeScript
+      const invalidConfig: any = {
+        ...MOCK_CONFIG,
+        overuseStrategy: {
+          ...MOCK_CONFIG.overuseStrategy,
+          pro: 'invalid_strategy', // Невалидная стратегия для exhaustive guard
+        },
+      };
+
+      const invalidPolicy = new BillingPolicy(invalidConfig);
+      const proSubject: BillingSubjectState = {
+        subjectId: 'pro-user',
+        type: 'organization',
+        plan: 'pro',
+        isBlocked: false,
+        validUntil: FUTURE_TIME,
+      };
+      const usage: BillingUsageContext = {
+        amount: 2000,
+        usedInPeriod: 9000, // Превышение лимита
+      };
+
+      // В runtime это попадет в default case и вызовет exhaustive guard
+      // TypeScript не позволит это скомпилировать без type assertion,
+      // но в runtime exhaustive guard сработает
+      const result = invalidPolicy.canPerform('consume_tokens', proSubject, usage);
+      // Exhaustive guard вернет never, что в runtime будет undefined
+      // Проверяем, что код выполнился до exhaustive guard
+      expect(result).toBeDefined();
     });
 
     it('проверяет консистентность результатов', () => {

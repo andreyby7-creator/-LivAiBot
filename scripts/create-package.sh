@@ -72,9 +72,16 @@ cat > "$PACKAGE_DIR/src/index.ts" << EOF
  * @file $PACKAGE_NAME - $DESCRIPTION
  *
  * Этот пакет содержит $DESCRIPTION для LivAi.
+ *
+ * @example
+ * \`\`\`ts
+ * // Добавьте экспорты здесь:
+ * // export * from './components/index.js';
+ * // export type { MyType } from './types/index.js';
+ * \`\`\`
  */
 
-// TODO: Add exports here
+// TODO: Добавьте экспорты пакета здесь
 EOF
 
 # Create basic structure based on package type
