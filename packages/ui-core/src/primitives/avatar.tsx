@@ -59,6 +59,15 @@ export type CoreAvatarProps = Readonly<
     /** Способ масштабирования изображения (для будущих square avatars или crop variants) */
     objectFit?: 'contain' | 'cover' | 'fill' | 'none' | 'scale-down';
 
+    /** Кастомный радиус углов для изображения */
+    imageBorderRadius?: string;
+
+    /** Ширина изображения */
+    imageWidth?: string | number;
+
+    /** Высота изображения */
+    imageHeight?: string | number;
+
     /** Test ID для автоматизированного тестирования */
     'data-testid'?: string;
 
@@ -83,6 +92,9 @@ const CoreAvatarComponent = forwardRef<HTMLDivElement, CoreAvatarProps>(
       alt,
       className,
       objectFit = 'cover',
+      imageBorderRadius,
+      imageWidth,
+      imageHeight,
       fallbackText,
       fallbackTextColor = DEFAULT_FALLBACK_TEXT_COLOR,
       style,
@@ -136,13 +148,16 @@ const CoreAvatarComponent = forwardRef<HTMLDivElement, CoreAvatarProps>(
       ...style,
     } as const), [validatedSize, src, bgColor, style]);
 
-    // TODO: если появятся props для image (borderRadius), добавить их в deps useMemo
     const imageStyle = useMemo(() => ({
-      width: '100%',
-      height: '100%',
-      borderRadius: 'inherit',
+      width: imageWidth != null
+        ? (typeof imageWidth === 'number' ? `${imageWidth}px` : imageWidth)
+        : '100%',
+      height: imageHeight != null
+        ? (typeof imageHeight === 'number' ? `${imageHeight}px` : imageHeight)
+        : '100%',
+      borderRadius: imageBorderRadius ?? 'inherit',
       objectFit,
-    }), [objectFit]);
+    }), [objectFit, imageBorderRadius, imageWidth, imageHeight]);
 
     return (
       <div
