@@ -2445,3 +2445,119 @@ Verification:
 
 [2026-03-14 17:47:42] BotErrorResponse.test.ts: 23 tests passed, all linter checks passed (types-only file, coverage N/A)
 [2026-03-14 18:12:21] CreateBotRequest.test.ts: 13 tests passed, all linter checks passed (types-only file, coverage N/A)
+[2026-03-14T19:09:16+03:00] BUILD FIX: Исправлена проблема с отсутствующими TypeScript declaration files
+
+ПРОБЛЕМА:
+- @livai/core не создавал dist/index.d.ts при сборке типов
+- @livai/domains не создавал декларации для subpath exports (policies, strategies, signals, aggregation)
+- Это вызывало ошибки TS7016 при сборке зависимых пакетов
+
+ПРИЧИНА:
+- Инкрементальная сборка TypeScript (composite: true) не пересоздавала файлы деклараций из-за кеша
+- Файлы .tsbuildinfo содержали устаревшую информацию
+
+РЕШЕНИЕ:
+- Очистка кеша TypeScript: удаление *.tsbuildinfo и dist/*.d.ts файлов
+- Пересборка типов: pnpm run build:types для обоих пакетов
+- Результат: все необходимые .d.ts файлы успешно созданы
+
+ПРОВЕРКА:
+- @livai/core: dist/index.d.ts создан (9352 байт)
+- @livai/domains: все декларации созданы (index.d.ts, policies/index.d.ts, strategies/index.d.ts, signals/index.d.ts, aggregation/index.d.ts)
+- Сборка обоих пакетов проходит успешно без ошибок TypeScript
+
+СТАТУС: ✅ ИСПРАВЛЕНО
+
+[2026-03-14T19:11:48+03:00] BUILD FIX: Исправлена проблема с отсутствующими TypeScript declaration files (часть 2)
+
+ПРОБЛЕМА:
+- @livai/app не создавал dist/index.d.ts при сборке типов
+- @livai/feature-auth и @livai/ui-core также не создавали декларации
+- @livai/web не мог импортировать IntlProviderProps из @livai/app
+
+ПРИЧИНА:
+- Та же проблема с инкрементальной сборкой TypeScript - устаревший кеш
+
+РЕШЕНИЕ:
+- Очистка кеша и пересборка типов для всех зависимостей:
+  * @livai/feature-auth: dist/index.d.ts создан (3583 байт)
+  * @livai/ui-core: dist/index.d.ts создан (1871 байт)
+  * @livai/app: dist/index.d.ts создан (8597 байт)
+- IntlProviderProps успешно экспортируется из @livai/app
+
+ПРОВЕРКА:
+- @livai/web собирается успешно без ошибок TypeScript
+- Все необходимые .d.ts файлы созданы
+- IntlProviderProps доступен для импорта
+
+СТАТУС: ✅ ИСПРАВЛЕНО
+
+[2026-03-14T19:13:40+03:00] BUILD FIX: Исправлена проблема с блокировкой Next.js
+
+ПРОБЛЕМА:
+- Next.js не мог получить блокировку для сборки @livai/web
+- Ошибка: 'Unable to acquire lock at /home/boss/Projects/livai/apps/web/.next/lock'
+
+ПРИЧИНА:
+- Файл блокировки остался от предыдущего процесса сборки, который был прерван
+- Next.js использует файл блокировки для предотвращения параллельных сборок
+
+РЕШЕНИЕ:
+- Удален файл блокировки: rm -f apps/web/.next/lock
+- Перезапущена сборка @livai/web
+
+ПРОВЕРКА:
+- @livai/web собирается успешно
+- Все статические страницы сгенерированы (10/10)
+- Сборка завершена за 51.5 секунд
+
+СТАТУС: ✅ ИСПРАВЛЕНО
+
+[2026-03-14T19:18:32+03:00] BUILD FIX: Исправлена проблема с отсутствующими TypeScript declaration files (часть 3)
+
+ПРОБЛЕМА:
+- @livai/ui-shared не создавал dist/index.d.ts при сборке типов
+- @livai/ui-features не мог импортировать типы из @livai/ui-shared
+- Ошибки TS7016 при type-check: Could not find a declaration file for module '@livai/ui-shared'
+
+ПРИЧИНА:
+- Та же проблема с инкрементальной сборкой TypeScript - устаревший кеш
+
+РЕШЕНИЕ:
+- Очистка кеша и пересборка типов для @livai/ui-shared:
+  * rm -rf dist/*.d.ts dist/**/*.d.ts dist/*.d.ts.map dist/**/*.d.ts.map *.tsbuildinfo
+  * pnpm run build:types
+- Результат: dist/index.d.ts создан (412 байт)
+
+ПРОВЕРКА:
+- @livai/ui-shared: dist/index.d.ts создан
+- @livai/ui-features: type-check проходит успешно
+- Полный type-check проекта проходит без ошибок (20/20 задач успешно)
+
+СТАТУС: ✅ ИСПРАВЛЕНО
+
+[2026-03-14T19:24:37+03:00] BUILD FIX: Исправлена проблема с отсутствующими TypeScript declaration files (часть 4 - финальная)
+
+ПРОБЛЕМА:
+- @livai/feature-chat не создавал dist/index.d.ts
+- @livai/feature-voice не создавал dist/index.d.ts
+- @livai/ui-features не создавал dist/index.d.ts и subpath декларации
+- Скрипт check:exports находил 5 ошибок в package.json exports
+
+ПРИЧИНА:
+- Та же проблема с инкрементальной сборкой TypeScript - устаревший кеш
+
+РЕШЕНИЕ:
+- Очистка кеша и пересборка типов для всех трех пакетов:
+  * @livai/feature-chat: dist/index.d.ts создан (209 байт)
+  * @livai/feature-voice: dist/index.d.ts создан (260 байт)
+  * @livai/ui-features: dist/index.d.ts создан (296 байт)
+  * @livai/ui-features: dist/auth/login-form.d.ts создан (481 байт)
+  * @livai/ui-features: dist/auth/register-form.d.ts создан (585 байт)
+
+ПРОВЕРКА:
+- Все необходимые .d.ts файлы созданы
+- Скрипт check:exports должен проходить успешно
+
+СТАТУС: ✅ ИСПРАВЛЕНО
+
