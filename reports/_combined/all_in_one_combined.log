@@ -2443,3 +2443,4 @@ Verification:
   - pnpm install: успешно
   - pnpm build: успешно (turbo 2.8.17)
 
+[2026-03-14 17:47:42] BotErrorResponse.test.ts: 23 tests passed, all linter checks passed (types-only file, coverage N/A)

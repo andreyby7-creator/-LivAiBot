@@ -26,3 +26,15 @@ export * from './types/index.js';
  * @public
  */
 export * from './domain/index.js';
+
+/* ============================================================================
+ * 📜 CONTRACTS — КОНТРАКТЫ ДЛЯ API BOUNDARY
+ * ============================================================================
+ */
+
+/**
+ * Contracts подпакет: нормализованные контракты для API boundary.
+ * Включает BotErrorResponse для единообразной обработки ошибок.
+ * @public
+ */
+export * from './contracts/index.js';

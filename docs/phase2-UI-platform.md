@@ -495,7 +495,7 @@ Toast / UI feedback
 
 ### **Feature-bots / contracts** ⚪
 
-- ⚪ `contracts/BotErrorResponse.ts` — ts — deps: @livai/core-contracts/bots, types/bots — нормализованный контракт ошибок ботов (validation, policy, permission, not_found)
+- 🟢 `contracts/BotErrorResponse.ts` — ts — deps: @livai/core-contracts, types/bots — нормализованный контракт ошибок ботов (BotErrorResponse с error (exhaustive union BotErrorType: validation_error/policy_error/permission_error/not_found/unknown_error и детальные коды), code (BotErrorCode), category (BotErrorCategory), severity (BotErrorSeverity), retryable, message, statusCode, context (BotErrorContext), traceId, timestamp)
 
 ### **Feature-bots / dto** ⚪
 
