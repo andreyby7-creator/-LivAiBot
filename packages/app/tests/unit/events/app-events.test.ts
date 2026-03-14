@@ -13,6 +13,8 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vites
 import type {
   AuthExpiredEventPayload,
   BillingChangedEventPayload,
+  EventDeps,
+  LoginEventPayload,
   LogoutEventPayload,
 } from '../../../src/events/app-events.js';
 import {
@@ -21,11 +23,14 @@ import {
   BillingChangedEventPayloadSchema,
   createAuthExpiredEvent,
   createBillingChangedEvent,
+  createLoginEvent,
   createLogoutEvent,
   eventSchemaVersions,
   isAuthExpiredEvent,
   isBillingChangedEvent,
+  isLoginEvent,
   isLogoutEvent,
+  LoginEventPayloadSchema,
   LogoutEventPayloadSchema,
 } from '../../../src/events/app-events.js';
 import { UserRoles } from '../../../src/types/common.js';
@@ -33,6 +38,12 @@ import { UserRoles } from '../../../src/types/common.js';
 // Мокаем uuid для предсказуемых тестов
 vi.mock('uuid', () => ({
   v4: vi.fn(() => 'test-uuid-123'),
+}));
+
+// Мокаем telemetry runtime для тестирования observability интеграции
+vi.mock('../../../src/lib/telemetry-runtime', () => ({
+  infoFireAndForget: vi.fn(),
+  warnFireAndForget: vi.fn(),
 }));
 
 // Мокаем process.env
@@ -45,25 +56,35 @@ afterAll(() => {
   process.env = originalEnv;
 });
 
+beforeEach(async () => {
+  vi.clearAllMocks();
+  // Получаем моки после импорта модуля
+  const telemetryModule = await import('../../../src/lib/telemetry-runtime.js');
+  vi.mocked(telemetryModule.infoFireAndForget).mockClear();
+  vi.mocked(telemetryModule.warnFireAndForget).mockClear();
+});
+
 /* ========================================================================== */
 /* 🧩 APP EVENT TYPE ENUM */
 /* ========================================================================== */
 
 describe('AppEventType enum', () => {
   it('содержит все ожидаемые типы событий', () => {
-    const expectedTypes = ['auth.logout', 'auth.expired', 'billing.changed'];
+    const expectedTypes = ['auth.login', 'auth.logout', 'auth.expired', 'billing.changed'];
     const actualTypes = [
+      AppEventType.AuthLogin,
       AppEventType.AuthLogout,
       AppEventType.AuthExpired,
       AppEventType.BillingChanged,
     ];
 
     expect(actualTypes).toEqual(expectedTypes);
-    expect(actualTypes).toHaveLength(3);
+    expect(actualTypes).toHaveLength(4);
   });
 
   it('все значения являются строками', () => {
     [
+      AppEventType.AuthLogin,
       AppEventType.AuthLogout,
       AppEventType.AuthExpired,
       AppEventType.BillingChanged,
@@ -75,6 +96,7 @@ describe('AppEventType enum', () => {
 
   it('содержит уникальные значения', () => {
     const types = [
+      AppEventType.AuthLogin,
       AppEventType.AuthLogout,
       AppEventType.AuthExpired,
       AppEventType.BillingChanged,
@@ -89,6 +111,73 @@ describe('AppEventType enum', () => {
 /* ========================================================================== */
 
 describe('Zod схемы валидации', () => {
+  describe('LoginEventPayloadSchema', () => {
+    it('валидирует корректный payload входа', () => {
+      const validPayload: LoginEventPayload = {
+        payloadVersion: 1,
+        userId: 'user-123',
+        roles: [UserRoles.USER],
+        method: 'email',
+      };
+
+      const result = LoginEventPayloadSchema.safeParse(validPayload);
+      expect(result.success).toBe(true);
+    });
+
+    it('отклоняет payload с неправильной версией', () => {
+      const invalidPayload = {
+        payloadVersion: 2, // неправильная версия
+        userId: 'user-123',
+        roles: [UserRoles.USER],
+        method: 'email',
+      };
+
+      const result = LoginEventPayloadSchema.safeParse(invalidPayload);
+      expect(result.success).toBe(false);
+    });
+
+    it('отклоняет payload с неправильным method', () => {
+      const invalidPayload = {
+        payloadVersion: 1,
+        userId: 'user-123',
+        roles: [UserRoles.USER],
+        method: 'invalid-method', // неправильный method
+      };
+
+      const result = LoginEventPayloadSchema.safeParse(invalidPayload);
+      expect(result.success).toBe(false);
+    });
+
+    it('поддерживает все типы method', () => {
+      const methods = ['email', 'oauth', 'sso', 'api_key'];
+
+      methods.forEach((method) => {
+        const payload: LoginEventPayload = {
+          payloadVersion: 1,
+          userId: 'user-123',
+          roles: [UserRoles.USER],
+          method: method as any,
+        };
+
+        const result = LoginEventPayloadSchema.safeParse(payload);
+        expect(result.success).toBe(true);
+      });
+    });
+
+    it('поддерживает опциональное поле source', () => {
+      const payloadWithSource: LoginEventPayload = {
+        payloadVersion: 1,
+        userId: 'user-123',
+        roles: [UserRoles.USER],
+        method: 'email',
+        source: 'web-app',
+      };
+
+      const result = LoginEventPayloadSchema.safeParse(payloadWithSource);
+      expect(result.success).toBe(true);
+    });
+  });
+
   describe('LogoutEventPayloadSchema', () => {
     it('валидирует корректный payload выхода', () => {
       const validPayload: LogoutEventPayload = {
@@ -275,6 +364,60 @@ describe('Фабрики событий', () => {
     });
   });
 
+  describe('createLoginEvent', () => {
+    it('создаёт корректное событие входа', async () => {
+      const payload: LoginEventPayload = {
+        payloadVersion: 1,
+        userId: 'user-123',
+        roles: [UserRoles.USER],
+        method: 'email',
+      };
+
+      const event = await createLoginEvent(payload);
+
+      expect(event.type).toBe(AppEventType.AuthLogin);
+      expect(event.version).toBe('1.0.0');
+      expect(event.eventVersion).toBe(eventSchemaVersions[AppEventType.AuthLogin]);
+      expect(event.payload).toEqual(payload);
+      expect(typeof event.timestamp).toBe('string');
+      expect(event.meta?.correlationId).toBe('test-uuid-123');
+      expect(event.meta?.source).toBe('test');
+      expect(event.meta?.initiator).toBe('UI');
+    });
+
+    it('бросает ошибку при невалидном payload', async () => {
+      const invalidPayload = {
+        payloadVersion: 1,
+        userId: 'user-123',
+        roles: [UserRoles.USER],
+        method: 'invalid-method', // неправильный method
+      };
+
+      await expect(createLoginEvent(invalidPayload as any)).rejects.toThrow();
+    });
+
+    it('поддерживает кастомную мета-информацию', async () => {
+      const payload: LoginEventPayload = {
+        payloadVersion: 1,
+        userId: 'user-123',
+        roles: [UserRoles.USER],
+        method: 'email',
+      };
+
+      const customMeta = {
+        correlationId: 'custom-id',
+        initiator: 'Worker' as const,
+        customField: 'value',
+      };
+
+      const event = await createLoginEvent(payload, customMeta);
+
+      expect(event.meta?.correlationId).toBe('custom-id');
+      expect(event.meta?.initiator).toBe('Worker');
+      expect(event.meta?.['customField']).toBe('value');
+    });
+  });
+
   describe('createAuthExpiredEvent', () => {
     it('создаёт корректное событие истечения авторизации', async () => {
       const payload: AuthExpiredEventPayload = {
@@ -316,6 +459,45 @@ describe('Фабрики событий', () => {
 /* ========================================================================== */
 
 describe('Type guards', () => {
+  describe('isLoginEvent', () => {
+    it('возвращает true для события входа', async () => {
+      const payload: LoginEventPayload = {
+        payloadVersion: 1,
+        userId: 'user-123',
+        roles: [UserRoles.USER],
+        method: 'email',
+      };
+
+      const event = await createLoginEvent(payload);
+
+      expect(isLoginEvent(event)).toBe(true);
+    });
+
+    it('возвращает false для других типов событий', async () => {
+      const payload: LogoutEventPayload = {
+        payloadVersion: 1,
+        userId: 'user-123',
+        roles: [UserRoles.USER],
+        reason: 'manual',
+      };
+
+      const event = await createLogoutEvent(payload);
+
+      expect(isLoginEvent(event)).toBe(false);
+    });
+
+    it('возвращает false для события с неправильным payload', () => {
+      const invalidEvent = {
+        type: AppEventType.AuthLogin,
+        version: '1.0.0',
+        timestamp: new Date().toISOString(),
+        payload: { invalid: 'payload' },
+      };
+
+      expect(isLoginEvent(invalidEvent as any)).toBe(false);
+    });
+  });
+
   describe('isLogoutEvent', () => {
     it('возвращает true для события выхода', async () => {
       const payload: LogoutEventPayload = {
@@ -474,5 +656,182 @@ describe('Интеграция и edge cases', () => {
 
     const event = await createLogoutEvent(payload);
     expect(event.payload.roles).toEqual(Object.values(UserRoles));
+  });
+
+  it('логирует создание события в production через observability (строки 219-228)', async () => {
+    vi.stubEnv('NODE_ENV', 'production');
+
+    const telemetryModule = await import('../../../src/lib/telemetry-runtime.js');
+    const infoFireAndForgetSpy = vi.mocked(telemetryModule.infoFireAndForget);
+
+    const payload: LogoutEventPayload = {
+      payloadVersion: 1,
+      userId: 'user-123',
+      roles: [UserRoles.USER],
+      reason: 'manual',
+    };
+
+    await createLogoutEvent(payload);
+
+    expect(infoFireAndForgetSpy).toHaveBeenCalledTimes(1);
+    expect(infoFireAndForgetSpy).toHaveBeenCalledWith(
+      'Event created',
+      expect.objectContaining({
+        component: 'app-events',
+        eventType: AppEventType.AuthLogout,
+        timestamp: expect.any(String),
+        correlationId: 'test-uuid-123',
+        source: 'test',
+      }),
+    );
+
+    vi.unstubAllEnvs();
+  });
+
+  it('логирует ошибку push в очередь в production через observability (строки 240-250)', async () => {
+    vi.stubEnv('NODE_ENV', 'production');
+
+    const telemetryModule = await import('../../../src/lib/telemetry-runtime.js');
+    const warnFireAndForgetSpy = vi.mocked(telemetryModule.warnFireAndForget);
+
+    // Мокаем pushToQueue чтобы выбросить ошибку
+    const mockPushToQueue = vi.fn().mockRejectedValueOnce(new Error('Queue error'));
+    const deps: EventDeps = { pushToQueue: mockPushToQueue };
+
+    const payload: LogoutEventPayload = {
+      payloadVersion: 1,
+      userId: 'user-123',
+      roles: [UserRoles.USER],
+      reason: 'manual',
+    };
+
+    await createLogoutEvent(payload, undefined, deps);
+
+    expect(warnFireAndForgetSpy).toHaveBeenCalledTimes(1);
+    expect(warnFireAndForgetSpy).toHaveBeenCalledWith(
+      'Failed to push event to queue',
+      expect.objectContaining({
+        component: 'app-events',
+        eventType: AppEventType.AuthLogout,
+        error: 'Queue error',
+        errorName: 'Error',
+        stack: expect.any(String),
+        correlationId: 'test-uuid-123',
+        source: 'test',
+      }),
+    );
+
+    vi.unstubAllEnvs();
+  });
+
+  it('логирует ошибку push в очередь в non-production через console.warn (строки 236-238)', async () => {
+    vi.stubEnv('NODE_ENV', 'development');
+    const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+    // Мокаем pushToQueue чтобы выбросить ошибку
+    const mockPushToQueue = vi.fn().mockRejectedValueOnce(new Error('Queue error'));
+    const deps: EventDeps = { pushToQueue: mockPushToQueue };
+
+    const payload: LogoutEventPayload = {
+      payloadVersion: 1,
+      userId: 'user-123',
+      roles: [UserRoles.USER],
+      reason: 'manual',
+    };
+
+    await createLogoutEvent(payload, undefined, deps);
+
+    expect(consoleWarnSpy).toHaveBeenCalledWith(
+      '[EventQueue] Failed to push event auth.logout:',
+      expect.any(Error),
+    );
+
+    consoleWarnSpy.mockRestore();
+    vi.unstubAllEnvs();
+  });
+
+  it('логирует невалидный payload в development для isLoginEvent (строка 302)', () => {
+    vi.stubEnv('NODE_ENV', 'development');
+    const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+    const invalidEvent = {
+      type: AppEventType.AuthLogin,
+      version: '1.0.0',
+      timestamp: new Date().toISOString(),
+      payload: { invalid: 'payload' },
+    };
+
+    isLoginEvent(invalidEvent as any);
+
+    expect(consoleWarnSpy).toHaveBeenCalledWith('Invalid LoginEvent payload', invalidEvent.payload);
+
+    consoleWarnSpy.mockRestore();
+    vi.unstubAllEnvs();
+  });
+
+  it('логирует невалидный payload в development для isLogoutEvent (строка 316)', () => {
+    vi.stubEnv('NODE_ENV', 'development');
+    const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+    const invalidEvent = {
+      type: AppEventType.AuthLogout,
+      version: '1.0.0',
+      timestamp: new Date().toISOString(),
+      payload: { invalid: 'payload' },
+    };
+
+    isLogoutEvent(invalidEvent as any);
+
+    expect(consoleWarnSpy).toHaveBeenCalledWith(
+      'Invalid LogoutEvent payload',
+      invalidEvent.payload,
+    );
+
+    consoleWarnSpy.mockRestore();
+    vi.unstubAllEnvs();
+  });
+
+  it('логирует невалидный payload в development для isAuthExpiredEvent (строка 330)', () => {
+    vi.stubEnv('NODE_ENV', 'development');
+    const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+    const invalidEvent = {
+      type: AppEventType.AuthExpired,
+      version: '1.0.0',
+      timestamp: new Date().toISOString(),
+      payload: { invalid: 'payload' },
+    };
+
+    isAuthExpiredEvent(invalidEvent as any);
+
+    expect(consoleWarnSpy).toHaveBeenCalledWith(
+      'Invalid AuthExpiredEvent payload',
+      invalidEvent.payload,
+    );
+
+    consoleWarnSpy.mockRestore();
+    vi.unstubAllEnvs();
+  });
+
+  it('логирует невалидный payload в development для isBillingChangedEvent (строка 344)', () => {
+    vi.stubEnv('NODE_ENV', 'development');
+    const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+    const invalidEvent = {
+      type: AppEventType.BillingChanged,
+      version: '1.0.0',
+      timestamp: new Date().toISOString(),
+      payload: { invalid: 'payload' },
+    };
+
+    isBillingChangedEvent(invalidEvent as any);
+
+    expect(consoleWarnSpy).toHaveBeenCalledWith(
+      'Invalid BillingChangedEvent payload',
+      invalidEvent.payload,
+    );
+
+    consoleWarnSpy.mockRestore();
+    vi.unstubAllEnvs();
   });
 });

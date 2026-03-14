@@ -3,13 +3,36 @@
  * =============================================================================
  * 📡 APP EVENTS — ДОМАШНЯЯ СХЕМА СОБЫТИЙ С ПОЛНОЙ ВАЛИДАЦИЕЙ, AUDIT LOG И MICROSERVICE PUSH
  * =============================================================================
- * Версия: микросервисно-ориентированная, безопасная, с версионированием,
- * deep-validation payload, расширяемой мета-информацией и автоматическим логированием/пушем.
+ *
+ * Архитектурная роль:
+ * - Централизованная схема событий приложения для audit log и микросервисной интеграции.
+ * - Инкапсулирует создание типизированных событий с полной валидацией payload через Zod.
+ * - Предоставляет type-safe фабрики событий (createLoginEvent, createLogoutEvent, etc.) и type guards.
+ * - Автоматическое логирование в production через telemetry runtime.
+ *
+ * Инварианты:
+ * - ❌ Нет бизнес-логики обработки событий (только создание и валидация структуры).
+ * - ❌ Нет прямых зависимостей от конкретных брокеров сообщений (только через DI-порт pushToQueue).
+ * - ❌ Нет UI-логики и derived-состояния (только чистые данные событий).
+ * - ✅ Type-safe: все события типизированы через discriminated union и type guards.
+ * - ✅ Версионируемо: payloadVersion и eventVersion для безопасной эволюции схем.
+ * - ✅ Observability-ready: автоматическое логирование через telemetry runtime в production.
+ * - ✅ Microservice-ready: события готовы для push в Kafka/RabbitMQ через DI-порт.
+ * - ✅ Testable: dependency injection для pushToQueue позволяет мокировать в тестах.
+ *
+ * Расширяемость:
+ * - Новые типы событий добавляются через расширение `AppEventType` enum и создание соответствующих схем/фабрик.
+ * - Версионирование payload: при изменении структуры payload повышать `payloadVersion` в схеме Zod.
+ * - Мета-информация расширяется через опциональный параметр `meta` с произвольными полями.
+ * - Push в очередь инжектируется через `EventDeps` (по умолчанию используется `pushToQueue`).
  */
 
 import { v4 as uuidv4 } from 'uuid';
 import { z } from 'zod';
 
+import type { TelemetryMetadata } from '@livai/core-contracts';
+
+import { infoFireAndForget, warnFireAndForget } from '../lib/telemetry-runtime.js';
 import { UserRoles } from '../types/common.js';
 
 /* ========================================================================== */
@@ -41,11 +64,8 @@ export const eventSchemaVersions = {
  * но рекомендуется использовать стандартные значения для консистентности
  *
  * @example 'UI' - пользовательский интерфейс
- *
  * @example 'Worker' - фоновый воркер
- *
  * @example 'Cron' - запланированная задача
- *
  * @example 'api' - внешний API вызов
  */
 export type EventInitiator = string;
@@ -147,19 +167,20 @@ export type AppEvent = LoginEvent | LogoutEvent | AuthExpiredEvent | BillingChan
 /* 🏭 EVENT FACTORIES + AUDIT LOG MICROSERVICE PUSH */
 /* ========================================================================== */
 
+/** Зависимости для создания событий (для тестирования и расширяемости) */
+export type EventDeps = {
+  pushToQueue: (event: BaseAppEvent<AppEventType, unknown>) => Promise<void>;
+};
+
 /** Генерация ISO timestamp */
 function now(): string {
   return new Date().toISOString();
 }
 
-/**
- * Создаёт мета-информацию для события (observability, tracing)
- * @param meta - дополнительные данные
- * @param initiator - инициатор события (UI, Worker, Cron)
- */
+/** Создаёт мета-информацию для события (observability, tracing) */
 function createMeta(
-  meta?: BaseAppEvent<AppEventType, unknown>['meta'],
-  initiator: EventInitiator = 'UI',
+  meta?: BaseAppEvent<AppEventType, unknown>['meta'], // дополнительные данные
+  initiator: EventInitiator = 'UI', // инициатор события (UI, Worker, Cron)
 ): NonNullable<BaseAppEvent<AppEventType, unknown>['meta']> {
   return {
     correlationId: meta?.correlationId ?? uuidv4(),
@@ -169,11 +190,61 @@ function createMeta(
   };
 }
 
-/**
- * Пуш события в микросервис/queue (Kafka/RabbitMQ)
- * @param event - событие приложения
- */
-export async function pushToQueue(event: BaseAppEvent<AppEventType, unknown>): Promise<void> {
+/** Логирует создание события (development или production) */
+function logEventCreation<TType extends AppEventType>(
+  type: TType, // тип события
+  event: BaseAppEvent<TType, unknown>, // созданное событие
+): void {
+  if (process.env['NODE_ENV'] !== 'production') {
+    // eslint-disable-next-line no-console
+    console.log(`[AuditLog] Event created: ${type} @ ${event.timestamp}`);
+    return;
+  }
+
+  // Интеграция с продакшен Logger/Observability через telemetry runtime
+  const metadata: TelemetryMetadata = {
+    component: 'app-events',
+    eventType: type,
+    timestamp: event.timestamp,
+    ...(event.meta?.correlationId != null && { correlationId: event.meta.correlationId }),
+    ...(event.meta?.source != null && { source: event.meta.source }),
+    ...(event.meta?.initiator != null && { initiator: event.meta.initiator }),
+  };
+  infoFireAndForget('Event created', metadata);
+}
+
+/** Обрабатывает ошибку при push события в очередь */
+function handlePushError<TType extends AppEventType>(
+  error: unknown, // ошибка
+  type: TType, // тип события
+  event: BaseAppEvent<TType, unknown>, // событие
+): void {
+  if (process.env['NODE_ENV'] !== 'production') {
+    // eslint-disable-next-line no-console
+    console.warn(`[EventQueue] Failed to push event ${type}:`, error);
+    return;
+  }
+
+  // Интеграция с продакшен Logger через telemetry runtime
+  const errorMessage = error instanceof Error ? error.message : String(error);
+  const errorStack = error instanceof Error ? error.stack : undefined;
+  const metadata: TelemetryMetadata = {
+    component: 'app-events',
+    eventType: type,
+    error: errorMessage,
+    ...(errorStack != null && { stack: errorStack }),
+    ...(error instanceof Error && { errorName: error.name }),
+    ...(event.meta?.correlationId != null && { correlationId: event.meta.correlationId }),
+    ...(event.meta?.source != null && { source: event.meta.source }),
+    ...(event.meta?.initiator != null && { initiator: event.meta.initiator }),
+  };
+  warnFireAndForget('Failed to push event to queue', metadata);
+}
+
+/** Пуш события в микросервис/queue (Kafka/RabbitMQ) */
+export async function pushToQueue(
+  event: BaseAppEvent<AppEventType, unknown>, // событие приложения
+): Promise<void> {
   try {
     // Placeholder для будущей реализации Kafka продюсера
     // Будет: await kafkaProducer.send({ topic: 'app-events', messages: [{ value: JSON.stringify(event) }] });
@@ -186,18 +257,13 @@ export async function pushToQueue(event: BaseAppEvent<AppEventType, unknown>): P
   }
 }
 
-/**
- * Создаёт событие с полной валидацией payload, логированием и пушем в микросервисы
- * @param type - тип события
- * @param payload - полезная нагрузка события
- * @param schema - Zod схема payload
- * @param meta - опциональная мета-информация
- */
+/** Создаёт событие с полной валидацией payload, логированием и пушем в микросервисы */
 async function createEvent<TType extends AppEventType, TPayload>(
-  type: TType,
-  payload: TPayload,
-  schema: z.ZodType<TPayload>,
-  meta?: BaseAppEvent<TType, TPayload>['meta'],
+  type: TType, // тип события
+  payload: TPayload, // полезная нагрузка события
+  schema: z.ZodType<TPayload>, // Zod схема payload
+  meta?: BaseAppEvent<TType, TPayload>['meta'], // опциональная мета-информация
+  deps: EventDeps = { pushToQueue }, // опциональные зависимости (для тестирования и расширяемости)
 ): Promise<BaseAppEvent<TType, TPayload>> {
   schema.parse(payload); // fail-fast проверка
   const event: BaseAppEvent<TType, TPayload> = {
@@ -208,27 +274,14 @@ async function createEvent<TType extends AppEventType, TPayload>(
     payload,
     meta: createMeta(meta),
   };
-  // Audit logging: в продакшене использовать Logger/Observability систему
-  if (process.env['NODE_ENV'] !== 'production') {
-    // eslint-disable-next-line no-console
-    console.log(`[AuditLog] Event created: ${type} @ ${event.timestamp}`);
-  } else {
-    // TODO: Интегрировать с продакшен Logger/Observability
-    // Пример: logger.info('Event created', { eventType: type, timestamp: event.timestamp, correlationId: event.meta?.correlationId });
-  }
+
+  logEventCreation(type, event);
 
   // Fail-safe: ошибка push не прерывает создание события
   try {
-    await pushToQueue(event);
+    await deps.pushToQueue(event);
   } catch (error) {
-    // В продакшене использовать structured logging
-    if (process.env['NODE_ENV'] !== 'production') {
-      // eslint-disable-next-line no-console
-      console.warn(`[EventQueue] Failed to push event ${type}:`, error);
-    } else {
-      // TODO: Интегрировать с продакшен Logger
-      // logger.warn('Failed to push event to queue', { eventType: type, error: error.message, correlationId: event.meta?.correlationId });
-    }
+    handlePushError(error, type, event);
     // Продолжаем выполнение - событие создано, но не отправлено в очередь
   }
 
@@ -239,29 +292,33 @@ async function createEvent<TType extends AppEventType, TPayload>(
 export const createLoginEvent = (
   payload: LoginEventPayload,
   meta?: LoginEvent['meta'],
+  deps?: EventDeps,
 ): Promise<LoginEvent> =>
-  createEvent(AppEventType.AuthLogin, payload, LoginEventPayloadSchema, meta);
+  createEvent(AppEventType.AuthLogin, payload, LoginEventPayloadSchema, meta, deps);
 
 /** Создаёт событие выхода пользователя */
 export const createLogoutEvent = (
   payload: LogoutEventPayload,
   meta?: LogoutEvent['meta'],
+  deps?: EventDeps,
 ): Promise<LogoutEvent> =>
-  createEvent(AppEventType.AuthLogout, payload, LogoutEventPayloadSchema, meta);
+  createEvent(AppEventType.AuthLogout, payload, LogoutEventPayloadSchema, meta, deps);
 
 /** Создаёт событие истечения авторизации */
 export const createAuthExpiredEvent = (
   payload: AuthExpiredEventPayload,
   meta?: AuthExpiredEvent['meta'],
+  deps?: EventDeps,
 ): Promise<AuthExpiredEvent> =>
-  createEvent(AppEventType.AuthExpired, payload, AuthExpiredEventPayloadSchema, meta);
+  createEvent(AppEventType.AuthExpired, payload, AuthExpiredEventPayloadSchema, meta, deps);
 
 /** Создаёт событие изменения биллинга */
 export const createBillingChangedEvent = (
   payload: BillingChangedEventPayload,
   meta?: BillingChangedEvent['meta'],
+  deps?: EventDeps,
 ): Promise<BillingChangedEvent> =>
-  createEvent(AppEventType.BillingChanged, payload, BillingChangedEventPayloadSchema, meta);
+  createEvent(AppEventType.BillingChanged, payload, BillingChangedEventPayloadSchema, meta, deps);
 
 /* ========================================================================== */
 /* 🔍 TYPE GUARDS */
