@@ -189,12 +189,12 @@ export type UiI18nContext = {
     key: TranslationKey<N>,
     params?: Record<string, string | number>,
   ) => string;
-  readonly loadNamespace: (ns: Namespace) => void;
+  readonly ensureNamespace: (ns: Namespace) => void;
   readonly isNamespaceLoaded: (ns: Namespace) => boolean;
   readonly t: (
     key: string,
     params?: Record<string, string | number> & { default?: string; },
   ) => string;
   readonly formatDateLocalized: (date: import('dayjs').Dayjs, format: string) => string;
-  readonly setDayjsLocale: (locale: string) => void;
+  readonly setDayjsLocale: (locale: string) => Promise<void>;
 };

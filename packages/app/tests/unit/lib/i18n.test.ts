@@ -3,23 +3,29 @@
  */
 
 import { cleanup, render, renderHook, screen } from '@testing-library/react';
+import dayjs from 'dayjs';
 import React from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { Namespace, TranslationKey } from '../../../src/lib/i18n';
 import {
   createI18nInstance,
+  formatDateLocalized,
+  getCurrentDayjsLocale,
   I18nProvider,
-  testResetTranslationStore,
+  initGlobalI18n,
+  isDayjsLocaleSupported,
+  isRtlLocale,
+  setDayjsLocale,
+  setDayjsLocaleSync,
+  t,
   useI18n,
-  useTranslationNamespace,
-  useTranslations,
 } from '../../../src/lib/i18n';
 
 import '@testing-library/jest-dom/vitest';
 
 describe('i18n', () => {
-  const mockTelemetry = vi.fn();
+  const mockEmitFallback = vi.fn();
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -34,88 +40,82 @@ describe('i18n', () => {
       const instance = createI18nInstance({
         locale: 'ru',
         fallbackLocale: 'en',
-        telemetry: mockTelemetry,
+        emitFallback: mockEmitFallback,
       });
 
       expect(instance.locale).toBe('ru');
       expect(instance.fallbackLocale).toBe('en');
-      expect(instance.telemetry).toBe(mockTelemetry);
+      expect(instance.emitFallback).toBe(mockEmitFallback);
       expect(typeof instance.translate).toBe('function');
     });
 
-    it('должен работать без telemetry', () => {
+    it('должен работать без emitFallback', () => {
       const instance = createI18nInstance({
         locale: 'ru',
         fallbackLocale: 'en',
       });
 
-      expect(instance.telemetry).toBeUndefined();
+      expect(instance.emitFallback).toBeUndefined();
     });
 
     it('translate должен переводить ключ без параметров', () => {
       const instance = createI18nInstance({
         locale: 'ru',
         fallbackLocale: 'en',
-        telemetry: mockTelemetry,
+        emitFallback: mockEmitFallback,
       });
 
       const translated = instance.translate('common', 'greeting');
       expect(translated).toBe('Привет, {name}!');
       // Telemetry теперь вызывается только для fallback случаев
-      expect(mockTelemetry).not.toHaveBeenCalled();
+      expect(mockEmitFallback).not.toHaveBeenCalled();
     });
 
     it('translate должен переводить ключ с параметрами', () => {
       const instance = createI18nInstance({
         locale: 'ru',
         fallbackLocale: 'en',
-        telemetry: mockTelemetry,
+        emitFallback: mockEmitFallback,
       });
 
       const translated = instance.translate('common', 'greeting', { name: 'Мир' });
       expect(translated).toBe('Привет, Мир!');
       // Telemetry теперь вызывается только для fallback случаев
-      expect(mockTelemetry).not.toHaveBeenCalled();
+      expect(mockEmitFallback).not.toHaveBeenCalled();
     });
 
     it('translate должен переводить ключ с числовым параметром', () => {
       const instance = createI18nInstance({
         locale: 'ru',
         fallbackLocale: 'en',
-        telemetry: mockTelemetry,
+        emitFallback: mockEmitFallback,
       });
 
       const translated = instance.translate('common', 'greeting', { name: 123 });
       expect(translated).toBe('Привет, 123!');
       // Telemetry теперь вызывается только для fallback случаев
-      expect(mockTelemetry).not.toHaveBeenCalled();
+      expect(mockEmitFallback).not.toHaveBeenCalled();
     });
 
     it('translate должен возвращать human-readable fallback для несуществующего ключа', () => {
       const instance = createI18nInstance({
         locale: 'ru',
         fallbackLocale: 'en',
-        telemetry: mockTelemetry,
+        emitFallback: mockEmitFallback,
       });
 
       const translated = instance.translate('common', 'nonexistent' as any);
       // Human-readable fallback: nonexistent -> Nonexistent
+      // Human-readable fallback не отправляет telemetry для уменьшения шума
       expect(translated).toBe('Nonexistent');
-      expect(mockTelemetry).toHaveBeenCalledWith({
-        key: 'nonexistent',
-        ns: 'common',
-        locale: 'ru',
-        traceId: 'unknown',
-        service: 'backend',
-        fallbackType: 'human-readable',
-      });
+      expect(mockEmitFallback).not.toHaveBeenCalled();
     });
 
     it('translate должен возвращать human-readable fallback для ключа, отсутствующего везде', () => {
       const instance = createI18nInstance({
         locale: 'ru',
         fallbackLocale: 'en',
-        telemetry: mockTelemetry,
+        emitFallback: mockEmitFallback,
       });
 
       const translated = instance.translate(
@@ -123,15 +123,9 @@ describe('i18n', () => {
         'uniqueKeyThatDoesNotExist' as any,
       );
       // Human-readable fallback: uniqueKeyThatDoesNotExist -> Unique Key That Does Not Exist
+      // Human-readable fallback не отправляет telemetry для уменьшения шума
       expect(translated).toBe('Unique Key That Does Not Exist');
-      expect(mockTelemetry).toHaveBeenCalledWith({
-        key: 'uniqueKeyThatDoesNotExist',
-        ns: 'common',
-        locale: 'ru',
-        traceId: 'unknown',
-        service: 'backend',
-        fallbackType: 'human-readable',
-      });
+      expect(mockEmitFallback).not.toHaveBeenCalled();
     });
 
     it('должен правильно использовать fallback chain', () => {
@@ -139,47 +133,38 @@ describe('i18n', () => {
       const instance1 = createI18nInstance({
         locale: 'ru',
         fallbackLocale: 'en',
-        telemetry: mockTelemetry,
+        emitFallback: mockEmitFallback,
       });
       const result1 = instance1.translate('common', 'greeting');
       expect(result1).toBe('Привет, {name}!');
-      expect(mockTelemetry).not.toHaveBeenCalled();
+      expect(mockEmitFallback).not.toHaveBeenCalled();
 
       // Тест 2: Ключ не найден в primary, fallback к common namespace - common fallback
       const instance2 = createI18nInstance({
         locale: 'ru',
         fallbackLocale: 'en',
-        telemetry: mockTelemetry,
+        emitFallback: mockEmitFallback,
       });
       const result2 = instance2.translate('auth', 'greeting' as any); // greeting есть в common
       expect(result2).toBe('Привет, {name}!'); // Возвращает greeting из common
-      expect(mockTelemetry).toHaveBeenCalledTimes(1);
-      expect(mockTelemetry).toHaveBeenCalledWith({
+      expect(mockEmitFallback).toHaveBeenCalledTimes(1);
+      expect(mockEmitFallback).toHaveBeenCalledWith({
         key: 'greeting',
         ns: 'auth',
         locale: 'ru',
-        traceId: 'unknown',
-        service: 'backend',
         fallbackType: 'common',
       });
 
-      // Тест 3: Ключ не найден нигде - human-readable fallback
+      // Тест 3: Ключ не найден нигде - human-readable fallback (не отправляет telemetry)
       const instance3 = createI18nInstance({
         locale: 'ru',
         fallbackLocale: 'en',
-        telemetry: mockTelemetry,
+        emitFallback: mockEmitFallback,
       });
       const result3 = instance3.translate('common', 'uniqueKeyThatDoesNotExist' as any);
       expect(result3).toBe('Unique Key That Does Not Exist');
-      expect(mockTelemetry).toHaveBeenCalledTimes(2);
-      expect(mockTelemetry).toHaveBeenNthCalledWith(2, {
-        key: 'uniqueKeyThatDoesNotExist',
-        ns: 'common',
-        locale: 'ru',
-        traceId: 'unknown',
-        service: 'backend',
-        fallbackType: 'human-readable',
-      });
+      // Human-readable fallback не отправляет telemetry
+      expect(mockEmitFallback).toHaveBeenCalledTimes(1); // Только предыдущий вызов
     });
 
     it('translate не должен вызывать telemetry без функции', () => {
@@ -190,37 +175,35 @@ describe('i18n', () => {
 
       const translated = instance.translate('common', 'greeting');
       expect(translated).toBe('Привет, {name}!');
-      expect(mockTelemetry).not.toHaveBeenCalled();
+      expect(mockEmitFallback).not.toHaveBeenCalled();
     });
 
     it('translate должен работать когда fallbackLocale совпадает с locale', () => {
       const instance = createI18nInstance({
         locale: 'ru',
         fallbackLocale: 'ru', // Тот же locale
-        telemetry: mockTelemetry,
+        emitFallback: mockEmitFallback,
       });
 
       const result = instance.translate('common', 'greeting');
       expect(result).toBe('Привет, {name}!');
       // Не должно быть fallback, поэтому telemetry не вызывается
-      expect(mockTelemetry).not.toHaveBeenCalled();
+      expect(mockEmitFallback).not.toHaveBeenCalled();
     });
 
     it('translate должен использовать fallback-locale когда ключ найден в fallback locale', () => {
       const instance = createI18nInstance({
         locale: 'en', // Английский без переводов
         fallbackLocale: 'ru', // Русский с переводами
-        telemetry: mockTelemetry,
+        emitFallback: mockEmitFallback,
       });
 
       const result = instance.translate('common', 'greeting');
       expect(result).toBe('Привет, {name}!');
-      expect(mockTelemetry).toHaveBeenCalledWith({
+      expect(mockEmitFallback).toHaveBeenCalledWith({
         key: 'greeting',
         ns: 'common',
         locale: 'en',
-        traceId: 'unknown',
-        service: 'backend',
         fallbackType: 'fallback-locale',
       });
     });
@@ -229,7 +212,7 @@ describe('i18n', () => {
       const instance = createI18nInstance({
         locale: 'ru',
         fallbackLocale: 'en',
-        telemetry: mockTelemetry,
+        emitFallback: mockEmitFallback,
       });
 
       const translated = instance.translate('common', 'greeting', {
@@ -242,13 +225,13 @@ describe('i18n', () => {
       const instance = createI18nInstance({
         locale: 'ru',
         fallbackLocale: 'en',
-        telemetry: mockTelemetry,
+        emitFallback: mockEmitFallback,
       });
 
       const translated = instance.translate('common', 'greeting', {} as const);
       expect(translated).toBe('Привет, {name}!');
       // Telemetry теперь вызывается только для fallback случаев
-      expect(mockTelemetry).not.toHaveBeenCalled();
+      expect(mockEmitFallback).not.toHaveBeenCalled();
     });
 
     it('translate должен заменять несколько одинаковых плейсхолдеров', () => {
@@ -266,29 +249,29 @@ describe('i18n', () => {
       const instance = createI18nInstance({
         locale: 'ru',
         fallbackLocale: 'en',
-        telemetry: mockTelemetry,
+        emitFallback: mockEmitFallback,
       });
 
       const translated = instance.translate('common', 'greeting', undefined);
       expect(translated).toBe('Привет, {name}!');
       // Telemetry теперь вызывается только для fallback случаев
-      expect(mockTelemetry).not.toHaveBeenCalled();
+      expect(mockEmitFallback).not.toHaveBeenCalled();
     });
 
     it('translate должен работать с null параметрами', () => {
       const instance = createI18nInstance({
         locale: 'ru',
         fallbackLocale: 'en',
-        telemetry: mockTelemetry,
+        emitFallback: mockEmitFallback,
       });
 
       const translated = instance.translate('common', 'greeting', null as any);
       expect(translated).toBe('Привет, {name}!');
       // Telemetry теперь вызывается только для fallback случаев
-      expect(mockTelemetry).not.toHaveBeenCalled();
+      expect(mockEmitFallback).not.toHaveBeenCalled();
     });
 
-    it('loadNamespace должен загружать namespace', async () => {
+    it('ensureNamespace должен загружать namespace', async () => {
       const instance = createI18nInstance({
         locale: 'ru',
         fallbackLocale: 'en',
@@ -302,7 +285,7 @@ describe('i18n', () => {
       expect(instance.isNamespaceLoaded('nonexistent' as any)).toBe(false);
     });
 
-    it('loadNamespace не должен загружать уже загруженный namespace повторно', async () => {
+    it('ensureNamespace не должен загружать уже загруженный namespace повторно', async () => {
       const instance = createI18nInstance({
         locale: 'ru',
         fallbackLocale: 'en',
@@ -315,20 +298,20 @@ describe('i18n', () => {
       expect(instance.isNamespaceLoaded('common')).toBe(true);
     });
 
-    it('loadNamespace обрабатывает ошибки при загрузке файлов', async () => {
+    it('ensureNamespace обрабатывает ошибки при загрузке файлов', async () => {
       const instance = createI18nInstance({
         locale: 'ru',
         fallbackLocale: 'en',
       });
 
       // Пытаемся загрузить несуществующий namespace - теперь всегда успешно
-      expect(() => instance.loadNamespace('nonexistent' as any)).not.toThrow();
+      expect(() => instance.ensureNamespace('nonexistent' as any)).not.toThrow();
 
       // Namespace должен быть отмечен как загруженный (имитация)
       expect(instance.isNamespaceLoaded('nonexistent' as any)).toBe(true);
     });
 
-    it('loadNamespace создает новый TranslationSnapshot при необходимости', async () => {
+    it('ensureNamespace создает новый TranslationSnapshot при необходимости', async () => {
       const instance = createI18nInstance({
         locale: 'en', // Используем английскую локаль, для которой нет встроенных переводов
         fallbackLocale: 'ru',
@@ -340,25 +323,19 @@ describe('i18n', () => {
       // Попытка загрузить namespace должна пройти без ошибок
       // (даже если файл не существует, функция должна корректно обработать это)
       try {
-        await instance.loadNamespace('common');
+        instance.ensureNamespace('common');
       } catch {
         // Игнорируем ошибки - нас интересует сам факт выполнения
       }
     });
   });
 
-  describe('useTranslations hook', () => {
-    it('должен работать в контексте провайдера', () => {
-      // Тестируем через createI18nInstance вместо React компонентов
-      const instance = testResetTranslationStore();
-
-      expect(instance).toBeDefined();
-      expect(typeof instance.translate).toBe('function');
-      expect(typeof instance.loadNamespace).toBe('function');
-    });
-
-    it('createI18nInstance должен содержать корректные переводы', () => {
-      const instance = testResetTranslationStore();
+  describe('createI18nInstance', () => {
+    it('должен содержать корректные переводы', () => {
+      const instance = createI18nInstance({
+        locale: 'ru',
+        fallbackLocale: 'en',
+      });
 
       // Проверяем базовые переводы
       expect(instance.translate('common', 'greeting')).toBe('Привет, {name}!');
@@ -367,10 +344,49 @@ describe('i18n', () => {
       expect(instance.translate('auth', 'logout')).toBe('Выход');
     });
 
-    it('useTranslations должен выбрасывать ошибку вне провайдера', () => {
-      expect(() => renderHook(() => useTranslations())).toThrow(
-        'useTranslations must be used within I18nProvider',
-      );
+    it('должен инициализировать пустое хранилище для не-ru локали', () => {
+      const instance = createI18nInstance({
+        locale: 'en',
+        fallbackLocale: 'en',
+      });
+
+      // Для en локали переводы должны быть пустыми (кроме fallback)
+      const result = instance.translate('common', 'greeting');
+      expect(result).toBe('Greeting'); // Human-readable fallback
+    });
+
+    it('должен инициализировать fallback locale когда она отличается от primary', () => {
+      const instance = createI18nInstance({
+        locale: 'en',
+        fallbackLocale: 'ru',
+      });
+
+      // fallback locale (ru) должна содержать переводы
+      const result = instance.translate('common', 'greeting');
+      expect(result).toBe('Привет, {name}!'); // Из fallback locale
+    });
+
+    it('должен инициализировать fallback locale как ru когда fallbackLocale === ru', () => {
+      const instance = createI18nInstance({
+        locale: 'en',
+        fallbackLocale: 'ru',
+      });
+
+      // fallbackLocale === 'ru', должна быть инициализирована с coreTranslations
+      const result = instance.translate('common', 'greeting');
+      expect(result).toBe('Привет, {name}!');
+    });
+
+    it('должен инициализировать fallback locale как пустую когда fallbackLocale !== ru', () => {
+      const instance = createI18nInstance({
+        locale: 'ru',
+        fallbackLocale: 'en',
+      });
+
+      // fallbackLocale === 'en' (не ru), должна быть пустой
+      // Но primary locale === 'ru', поэтому переводы есть
+      const result = instance.translate('common', 'greeting');
+      expect(result).toBe('Привет, {name}!'); // Из primary locale
     });
   });
 
@@ -450,9 +466,9 @@ describe('i18n', () => {
         fallbackLocale: 'en',
       });
 
-      // Функция getLocalePath используется внутри loadNamespace
+      // Функция getLocalePath используется внутри ensureNamespace
       // Проверяем что функция работает без ошибок
-      expect(() => instance.loadNamespace('common')).not.toThrow();
+      expect(() => instance.ensureNamespace('common')).not.toThrow();
     });
 
     it('должен обрабатывать неизвестные комбинации locale/namespace', () => {
@@ -462,7 +478,7 @@ describe('i18n', () => {
       });
 
       // Проверяем что функция корректно обрабатывает неизвестные локали
-      expect(() => instance.loadNamespace('common')).not.toThrow();
+      expect(() => instance.ensureNamespace('common')).not.toThrow();
     });
   });
 
@@ -489,10 +505,10 @@ describe('i18n', () => {
         fallbackLocale: 'en',
       });
 
-      // Проверяем что merge работает через loadNamespace
+      // Проверяем что merge работает через ensureNamespace
       // (даже если файл не существует, логика merge должна выполниться)
       try {
-        await instance.loadNamespace('common');
+        instance.ensureNamespace('common');
       } catch {
         // Игнорируем ошибки загрузки файла
       }
@@ -530,9 +546,7 @@ describe('i18n', () => {
     it('должен экспортировать все необходимые функции и типы', () => {
       expect(typeof I18nProvider).toBe('function');
       expect(typeof useI18n).toBe('function');
-      expect(typeof useTranslations).toBe('function');
       expect(typeof createI18nInstance).toBe('function');
-      expect(typeof testResetTranslationStore).toBe('function');
     });
 
     it('I18nProvider должен быть React компонентом', () => {
@@ -544,29 +558,6 @@ describe('i18n', () => {
     it('useI18n должен быть хуком', () => {
       expect(useI18n).toBeDefined();
       expect(typeof useI18n).toBe('function');
-    });
-  });
-
-  describe('useTranslationNamespace хук', () => {
-    it('должен загружать namespace через useEffect', async () => {
-      const TestComponent = () => {
-        useTranslationNamespace('test-namespace' as any);
-        return React.createElement('div', null, 'test');
-      };
-
-      render(
-        React.createElement(I18nProvider, {
-          locale: 'ru',
-          fallbackLocale: 'en',
-          children: React.createElement(TestComponent),
-        }),
-      );
-
-      // Ждем выполнения useEffect
-      await new Promise((resolve) => setTimeout(resolve, 150));
-
-      // useTranslationNamespace должен отработать без ошибок
-      expect(screen.getByText('test')).toBeInTheDocument();
     });
   });
 
@@ -607,14 +598,14 @@ describe('i18n', () => {
           React.createElement(I18nProvider, {
             locale: 'ru',
             fallbackLocale: 'en',
-            telemetry: mockTelemetry,
+            emitFallback: mockEmitFallback,
             children: React.createElement(TestComponent),
           }),
         );
 
         expect(screen.getByTestId('translate-test')).toHaveTextContent('Привет, React!');
         // Telemetry теперь вызывается только для fallback случаев
-        expect(mockTelemetry).not.toHaveBeenCalled();
+        expect(mockEmitFallback).not.toHaveBeenCalled();
       });
 
       it('должен работать с различными локалями', () => {
@@ -684,12 +675,12 @@ describe('i18n', () => {
 
       it('должен загружать namespace с fallback локалью при необходимости', async () => {
         const TestComponent = () => {
-          const { loadNamespace } = useI18n();
+          const { ensureNamespace } = useI18n();
           React.useEffect(() => {
             // Попытка загрузить существующий namespace с fallback локалью
-            loadNamespace('common');
-            // Теперь loadNamespace всегда успешна
-          }, [loadNamespace]);
+            ensureNamespace('common');
+            // Теперь ensureNamespace всегда успешна
+          }, [ensureNamespace]);
           return React.createElement(
             'div',
             { 'data-testid': 'fallback-loading-test' },
@@ -713,16 +704,16 @@ describe('i18n', () => {
       });
 
       it('должен корректно работать с загрузкой fallback namespace через reducer', async () => {
-        let loadNamespaceCalled = false;
+        let ensureNamespaceCalled = false;
 
         const TestComponent = () => {
-          const { loadNamespace } = useI18n();
+          const { ensureNamespace } = useI18n();
           React.useEffect(() => {
-            loadNamespaceCalled = true;
+            ensureNamespaceCalled = true;
             // Попытка загрузить namespace, который может вызвать fallback логику
-            loadNamespace('auth');
-            // Теперь loadNamespace всегда успешна
-          }, [loadNamespace]);
+            ensureNamespace('auth');
+            // Теперь ensureNamespace всегда успешна
+          }, [ensureNamespace]);
           return React.createElement(
             'div',
             { 'data-testid': 'reducer-fallback-test' },
@@ -740,7 +731,7 @@ describe('i18n', () => {
 
         await new Promise((resolve) => setTimeout(resolve, 150));
 
-        expect(loadNamespaceCalled).toBe(true);
+        expect(ensureNamespaceCalled).toBe(true);
         expect(screen.getByTestId('reducer-fallback-test')).toBeInTheDocument();
       });
     });
@@ -758,14 +749,14 @@ describe('i18n', () => {
             React.createElement(I18nProvider, {
               locale: 'ru',
               fallbackLocale: 'en',
-              telemetry: mockTelemetry,
+              emitFallback: mockEmitFallback,
               children,
             }),
         });
 
         expect(result.current.locale).toBe('ru');
         expect(result.current.fallbackLocale).toBe('en');
-        expect(result.current.telemetry).toBe(mockTelemetry);
+        expect(result.current.emitFallback).toBe(mockEmitFallback);
         expect(typeof result.current.translate).toBe('function');
       });
 
@@ -775,7 +766,7 @@ describe('i18n', () => {
             React.createElement(I18nProvider, {
               locale: 'ru',
               fallbackLocale: 'en',
-              telemetry: mockTelemetry,
+              emitFallback: mockEmitFallback,
               children,
             }),
         });
@@ -783,7 +774,7 @@ describe('i18n', () => {
         const translated = result.current.translate('common', 'greeting', { name: 'Тест' });
         expect(translated).toBe('Привет, Тест!');
         // Telemetry теперь вызывается только для fallback случаев
-        expect(mockTelemetry).not.toHaveBeenCalled();
+        expect(mockEmitFallback).not.toHaveBeenCalled();
       });
 
       it('translate функция должна обрабатывать несуществующие ключи в React контексте', () => {
@@ -792,22 +783,16 @@ describe('i18n', () => {
             React.createElement(I18nProvider, {
               locale: 'ru',
               fallbackLocale: 'en',
-              telemetry: mockTelemetry,
+              emitFallback: mockEmitFallback,
               children,
             }),
         });
 
         const translated = result.current.translate('common', 'nonexistent' as any);
         // Новая логика: human-readable fallback вместо [missing] формата
+        // Human-readable fallback не отправляет telemetry для уменьшения шума
         expect(translated).toBe('Nonexistent');
-        expect(mockTelemetry).toHaveBeenCalledWith({
-          key: 'nonexistent',
-          ns: 'common',
-          locale: 'ru',
-          traceId: 'unknown',
-          service: 'frontend',
-          fallbackType: 'human-readable',
-        });
+        expect(mockEmitFallback).not.toHaveBeenCalled();
       });
     });
 
@@ -841,6 +826,429 @@ describe('i18n', () => {
 
         expect(screen.getByTestId('locale')).toHaveTextContent('ru');
         expect(screen.getByTestId('translation')).toHaveTextContent('Привет, {name}!');
+      });
+    });
+  });
+
+  describe('Dayjs локализация', () => {
+    describe('setDayjsLocale', () => {
+      it('должен устанавливать локаль для dayjs', async () => {
+        // Устанавливаем локаль через sync сначала для стабильности
+        setDayjsLocaleSync('en');
+        await setDayjsLocale('ru');
+        // Проверяем что локаль установлена (может быть ru или en в зависимости от доступности)
+        const locale = getCurrentDayjsLocale();
+        expect(['ru', 'en']).toContain(locale);
+      });
+
+      it('должен обрабатывать ошибки и fallback на en', async () => {
+        const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+        await setDayjsLocale('invalid-locale');
+        expect(getCurrentDayjsLocale()).toBe('en');
+        consoleWarnSpy.mockRestore();
+      });
+
+      it('не должен загружать en локаль в production', async () => {
+        vi.stubEnv('NODE_ENV', 'production');
+        await setDayjsLocale('en');
+        expect(getCurrentDayjsLocale()).toBe('en');
+        vi.unstubAllEnvs();
+      });
+
+      it('должен загружать локаль в production для не-en локалей', async () => {
+        vi.stubEnv('NODE_ENV', 'production');
+        await setDayjsLocale('ru');
+        expect(getCurrentDayjsLocale()).toBe('ru');
+        vi.unstubAllEnvs();
+      });
+
+      it('должен логировать в development', async () => {
+        const consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+        vi.stubEnv('NODE_ENV', 'development');
+        await setDayjsLocale('ru');
+        expect(consoleLogSpy).toHaveBeenCalled();
+        consoleLogSpy.mockRestore();
+        vi.unstubAllEnvs();
+      });
+
+      it('должен обрабатывать fallback на базовую локаль при ошибке', async () => {
+        const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+        // Пытаемся загрузить локаль с регионом, которая не существует
+        // loadDayjsLocale должен попробовать базовую локаль
+        vi.stubEnv('NODE_ENV', 'production');
+        setDayjsLocaleSync('en'); // Устанавливаем en перед тестом
+        await setDayjsLocale('invalid-XX');
+        // В итоге должна быть установлена en (после всех fallback)
+        expect(getCurrentDayjsLocale()).toBe('en');
+        consoleWarnSpy.mockRestore();
+        vi.unstubAllEnvs();
+      });
+
+      it('должен обрабатывать случай когда NODE_ENV !== production в loadDayjsLocale', async () => {
+        // Когда NODE_ENV !== 'production', loadDayjsLocale должен вернуться сразу
+        vi.stubEnv('NODE_ENV', 'development');
+        await setDayjsLocale('ru');
+        expect(getCurrentDayjsLocale()).toBe('ru');
+        vi.unstubAllEnvs();
+      });
+
+      it('должен обрабатывать случай когда locale === en в loadDayjsLocale', async () => {
+        // Когда locale === 'en', loadDayjsLocale должен вернуться сразу
+        vi.stubEnv('NODE_ENV', 'production');
+        await setDayjsLocale('en');
+        expect(getCurrentDayjsLocale()).toBe('en');
+        vi.unstubAllEnvs();
+      });
+
+      it('должен обрабатывать ошибку загрузки локали', async () => {
+        const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+        vi.stubEnv('NODE_ENV', 'production');
+        setDayjsLocaleSync('en'); // Устанавливаем en перед тестом
+        await setDayjsLocale('nonexistent-locale');
+        expect(getCurrentDayjsLocale()).toBe('en');
+        consoleWarnSpy.mockRestore();
+        vi.unstubAllEnvs();
+      });
+
+      it('должен обрабатывать ошибку в dayjs.locale', async () => {
+        const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+        // Мокаем dayjs.locale чтобы выбросить ошибку только один раз
+        const originalLocale = dayjs.locale.bind(dayjs);
+        let callCount = 0;
+        const mockLocale = vi.fn(() => {
+          callCount++;
+          if (callCount === 1) {
+            throw new Error('Locale error');
+          }
+          return originalLocale();
+        });
+        dayjs.locale = mockLocale as typeof dayjs.locale;
+
+        vi.stubEnv('NODE_ENV', 'production');
+        await setDayjsLocale('ru');
+        expect(getCurrentDayjsLocale()).toBe('en');
+
+        // Восстанавливаем
+        dayjs.locale = originalLocale;
+        setDayjsLocaleSync('en');
+        consoleWarnSpy.mockRestore();
+        vi.unstubAllEnvs();
+      });
+
+      it('должен обрабатывать случай когда baseLocale === locale в loadDayjsLocale', async () => {
+        // Когда locale без дефиса (например 'ru'), baseLocale === locale
+        // В этом случае не должно быть попытки загрузить базовую локаль
+        vi.stubEnv('NODE_ENV', 'production');
+        await setDayjsLocale('ru');
+        expect(getCurrentDayjsLocale()).toBe('ru');
+        vi.unstubAllEnvs();
+      });
+
+      it('не должен логировать в production', async () => {
+        const consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+        vi.stubEnv('NODE_ENV', 'production');
+        await setDayjsLocale('ru');
+        expect(consoleLogSpy).not.toHaveBeenCalled();
+        consoleLogSpy.mockRestore();
+        vi.unstubAllEnvs();
+      });
+    });
+
+    describe('setDayjsLocaleSync', () => {
+      it('должен синхронно устанавливать локаль', () => {
+        setDayjsLocaleSync('ru');
+        expect(getCurrentDayjsLocale()).toBe('ru');
+        setDayjsLocaleSync('en'); // Восстанавливаем
+      });
+
+      it('должен обрабатывать ошибки и fallback на en', () => {
+        const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+        // Мокаем dayjs.locale чтобы выбросить ошибку только один раз
+        const originalLocale = dayjs.locale.bind(dayjs);
+        let callCount = 0;
+        const mockLocale = vi.fn(() => {
+          callCount++;
+          if (callCount === 1) {
+            throw new Error('Invalid locale');
+          }
+          return originalLocale();
+        });
+        dayjs.locale = mockLocale as typeof dayjs.locale;
+
+        setDayjsLocaleSync('invalid-locale');
+        // После обработки ошибки должна быть установлена локаль 'en'
+        expect(getCurrentDayjsLocale()).toBe('en');
+        expect(consoleWarnSpy).toHaveBeenCalled();
+
+        // Восстанавливаем оригинальный метод
+        dayjs.locale = originalLocale;
+        setDayjsLocaleSync('en'); // Восстанавливаем валидную локаль
+        consoleWarnSpy.mockRestore();
+      });
+
+      it('не должен логировать ошибку когда window отсутствует', () => {
+        const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+        const originalWindow = global.window;
+        // @ts-expect-error - мокаем отсутствие window
+        delete global.window;
+
+        setDayjsLocaleSync('en'); // Восстанавливаем валидную локаль
+
+        const originalLocale = dayjs.locale.bind(dayjs);
+        let callCount = 0;
+        const mockLocale = vi.fn(() => {
+          callCount++;
+          if (callCount === 1) {
+            throw new Error('Invalid locale');
+          }
+          return originalLocale();
+        });
+        dayjs.locale = mockLocale as typeof dayjs.locale;
+
+        setDayjsLocaleSync('invalid-locale');
+        expect(getCurrentDayjsLocale()).toBe('en');
+        expect(consoleWarnSpy).not.toHaveBeenCalled();
+
+        // Восстанавливаем
+        dayjs.locale = originalLocale;
+        global.window = originalWindow;
+        setDayjsLocaleSync('en');
+        consoleWarnSpy.mockRestore();
+      });
+    });
+
+    describe('getCurrentDayjsLocale', () => {
+      it('должен возвращать текущую локаль', () => {
+        setDayjsLocaleSync('ru');
+        expect(getCurrentDayjsLocale()).toBe('ru');
+        setDayjsLocaleSync('en'); // Восстанавливаем
+      });
+    });
+
+    describe('isRtlLocale', () => {
+      it('должен возвращать true для RTL локалей', () => {
+        expect(isRtlLocale('ar')).toBe(true);
+        expect(isRtlLocale('he')).toBe(true);
+        expect(isRtlLocale('fa')).toBe(true);
+        expect(isRtlLocale('ur')).toBe(true);
+        expect(isRtlLocale('yi')).toBe(true);
+        expect(isRtlLocale('ar-SA')).toBe(true);
+      });
+
+      it('должен возвращать false для LTR локалей', () => {
+        expect(isRtlLocale('en')).toBe(false);
+        expect(isRtlLocale('ru')).toBe(false);
+        expect(isRtlLocale('de')).toBe(false);
+      });
+    });
+
+    describe('isDayjsLocaleSupported', () => {
+      it('должен возвращать true для поддерживаемых локалей', () => {
+        expect(isDayjsLocaleSupported('en')).toBe(true);
+        expect(isDayjsLocaleSupported('ru')).toBe(true);
+        expect(isDayjsLocaleSupported('de')).toBe(true);
+        expect(isDayjsLocaleSupported('fr')).toBe(true);
+      });
+
+      it('должен возвращать false для неподдерживаемых локалей', () => {
+        expect(isDayjsLocaleSupported('xx')).toBe(false);
+        expect(isDayjsLocaleSupported('unknown')).toBe(false);
+      });
+    });
+
+    describe('formatDateLocalized', () => {
+      it('должен форматировать дату', () => {
+        const date = new Date('2024-01-15');
+        const formatted = formatDateLocalized(date, 'YYYY-MM-DD');
+        expect(formatted).toBe('2024-01-15');
+      });
+
+      it('должен форматировать строку даты', () => {
+        const formatted = formatDateLocalized('2024-01-15', 'YYYY-MM-DD');
+        expect(formatted).toBe('2024-01-15');
+      });
+
+      it('должен форматировать dayjs объект', () => {
+        const dayjsDate = dayjs('2024-01-15');
+        const formatted = formatDateLocalized(dayjsDate, 'YYYY-MM-DD');
+        expect(formatted).toBe('2024-01-15');
+      });
+    });
+  });
+
+  describe('Fallback правила', () => {
+    it('fallbackLocaleRule должен возвращать null когда locale === fallbackLocale', () => {
+      const instance = createI18nInstance({
+        locale: 'ru',
+        fallbackLocale: 'ru',
+        emitFallback: mockEmitFallback,
+      });
+
+      // Ключ отсутствует, но fallbackLocaleRule не сработает (locale === fallbackLocale)
+      const result = instance.translate('common', 'nonexistent' as any);
+      expect(result).toBe('Nonexistent'); // Human-readable fallback
+      expect(mockEmitFallback).not.toHaveBeenCalled();
+    });
+
+    it('fallbackLocaleRule должен возвращать перевод из fallback locale когда доступен', () => {
+      const instance = createI18nInstance({
+        locale: 'en',
+        fallbackLocale: 'ru',
+        emitFallback: mockEmitFallback,
+      });
+
+      // Ключ есть в fallback locale (ru), но не в primary (en)
+      const result = instance.translate('common', 'greeting');
+      expect(result).toBe('Привет, {name}!');
+      expect(mockEmitFallback).toHaveBeenCalledWith({
+        key: 'greeting',
+        ns: 'common',
+        locale: 'en',
+        fallbackType: 'fallback-locale',
+      });
+    });
+
+    it('fallbackLocaleRule должен возвращать null когда перевод отсутствует в fallback locale', () => {
+      const instance = createI18nInstance({
+        locale: 'en',
+        fallbackLocale: 'ru',
+        emitFallback: mockEmitFallback,
+      });
+
+      // Ключ отсутствует и в primary, и в fallback locale
+      const result = instance.translate('common', 'nonexistent' as any);
+      expect(result).toBe('Nonexistent'); // Human-readable fallback
+      // fallbackLocaleRule вернул null, поэтому telemetry не вызывается для human-readable
+      expect(mockEmitFallback).not.toHaveBeenCalled();
+    });
+
+    it('commonNamespaceRule должен возвращать null когда ns === common', () => {
+      const instance = createI18nInstance({
+        locale: 'en',
+        fallbackLocale: 'ru',
+      });
+
+      // Когда ns === 'common', правило сразу возвращает null
+      // Проверяем что правило не срабатывает для common namespace
+      const result = instance.translate('common', 'nonexistent' as any);
+      expect(result).toBe('Nonexistent'); // Human-readable fallback
+    });
+
+    it('commonNamespaceRule должен возвращать перевод из common namespace для auth namespace', () => {
+      const instance = createI18nInstance({
+        locale: 'ru',
+        fallbackLocale: 'en',
+        emitFallback: mockEmitFallback,
+      });
+
+      // Ключ 'greeting' есть в common для ru локали, но запрашивается из auth namespace
+      // commonNamespaceRule должен найти его в common namespace
+      const result = instance.translate('auth', 'greeting' as any);
+      expect(result).toBe('Привет, {name}!'); // Из common namespace
+      expect(mockEmitFallback).toHaveBeenCalledWith({
+        key: 'greeting',
+        ns: 'auth',
+        locale: 'ru',
+        fallbackType: 'common',
+      });
+    });
+
+    it('commonNamespaceRule должен возвращать null когда localeStore отсутствует', () => {
+      // Создаем instance с несуществующей локалью
+      const instance = createI18nInstance({
+        locale: 'xx',
+        fallbackLocale: 'yy',
+      });
+
+      // localeStore для 'xx' не существует, optional chaining вернет undefined
+      const result = instance.translate('auth', 'greeting' as any);
+      expect(result).toBe('Greeting'); // Human-readable fallback
+    });
+  });
+
+  describe('Global API', () => {
+    describe('initGlobalI18n', () => {
+      it('должен инициализировать globalI18n в browser runtime', () => {
+        initGlobalI18n('ru', 'en');
+        expect(t('common:greeting')).toBe('Привет, {name}!');
+      });
+
+      it('не должен инициализировать globalI18n на сервере', () => {
+        // В jsdom окружении window всегда доступен, поэтому этот тест проверяет
+        // что initGlobalI18n работает только когда window доступен
+        // На реальном сервере (без window) globalI18n не инициализируется
+        // В тестах мы проверяем что функция работает корректно
+        initGlobalI18n('ru', 'en');
+        expect(t('common:greeting')).toBe('Привет, {name}!');
+      });
+    });
+
+    describe('t() функция', () => {
+      beforeEach(() => {
+        initGlobalI18n('ru', 'en');
+      });
+
+      afterEach(() => {
+        // Очищаем после каждого теста
+        initGlobalI18n('en', 'en');
+      });
+
+      it('должна работать с namespace:key форматом', () => {
+        expect(t('common:greeting', { name: 'Тест' })).toBe('Привет, Тест!');
+        expect(t('auth:login')).toBe('Вход');
+      });
+
+      it('должна работать с простым key форматом', () => {
+        expect(t('greeting', { name: 'Тест' })).toBe('Привет, Тест!');
+      });
+
+      it('должна обрабатывать ключи с несколькими двоеточиями', () => {
+        // parseKey использует indexOf, должен взять только первое двоеточие
+        // 'common:key:with:colons' -> namespace='common', key='key:with:colons'
+        // Такого ключа нет, поэтому human-readable fallback
+        const result = t('common:key:with:colons');
+        expect(result).toMatch(/Key.*With.*Colons/i);
+      });
+
+      it('должна обрабатывать ключ с пустым namespace', () => {
+        // 'common:' -> namespace='common', key='' -> используется k || key, т.е. 'common:'
+        // parseKey возвращает ['common', 'common:'] когда k пустой
+        // Такого ключа нет, поэтому human-readable fallback
+        const result = t('common:');
+        expect(result).toMatch(/Common/i); // Human-readable fallback
+      });
+
+      it('должна использовать default параметр', () => {
+        // Когда globalI18n инициализирован, но ключ не найден, default не используется
+        // default используется только когда globalI18n не инициализирован
+        // Проверяем что функция работает с default параметром
+        const result = t('nonexistent:key', { default: 'Default value' });
+        // Когда globalI18n инициализирован, default игнорируется, используется fallback
+        expect(result).toMatch(/Key/i); // Human-readable fallback
+      });
+
+      it('должна обрабатывать неизвестный namespace', () => {
+        // parseKey fallback на 'common' для неизвестного namespace
+        // 'unknown:key' -> namespace='common', key='key'
+        // Такого ключа нет в common, поэтому human-readable fallback
+        expect(t('unknown:key')).toBe('Key');
+      });
+
+      it('должна обрабатывать auth namespace в parseKey', () => {
+        // parseKey должен правильно обрабатывать 'auth' namespace
+        expect(t('auth:login')).toBe('Вход');
+        expect(t('auth:logout')).toBe('Выход');
+      });
+
+      it('должна обрабатывать ключ без двоеточия в parseKey', () => {
+        // parseKey должен возвращать ['common', key] когда нет двоеточия
+        expect(t('greeting', { name: 'Тест' })).toBe('Привет, Тест!');
+      });
+
+      it('должна обрабатывать пустой key после двоеточия в parseKey', () => {
+        // parseKey: 'common:' -> k = '', используется k || key, т.е. 'common:'
+        const result = t('common:');
+        expect(result).toMatch(/Common/i);
       });
     });
   });

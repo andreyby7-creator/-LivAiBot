@@ -31,7 +31,7 @@ vi.mock('../../../src/providers/UnifiedUIProvider', () => ({
       translate: mockTranslate,
       locale: 'en',
       direction: 'ltr' as const,
-      loadNamespace: vi.fn(),
+      ensureNamespace: vi.fn(),
       isNamespaceLoaded: vi.fn(() => true),
     },
     featureFlags: {

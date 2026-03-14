@@ -89,8 +89,6 @@ export {
   setDayjsLocale,
   setDayjsLocaleSync,
   t,
-  testResetTranslationStore,
-  useTranslations,
 } from './i18n.js';
 
 /* ============================================================================

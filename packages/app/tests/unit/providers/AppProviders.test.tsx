@@ -82,7 +82,7 @@ vi.mock('../../../src/providers/intl-provider', () => ({
     locale: 'en',
     direction: 'ltr' as const,
     translate: vi.fn((ns, key, _params) => `${ns}:${key}`),
-    loadNamespace: vi.fn(),
+    ensureNamespace: vi.fn(),
     isNamespaceLoaded: vi.fn(() => true),
     t: vi.fn((key) => `t:${key}`),
     formatDateLocalized: vi.fn(),

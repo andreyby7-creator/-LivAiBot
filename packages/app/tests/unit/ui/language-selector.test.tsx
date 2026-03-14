@@ -107,9 +107,7 @@ const renderWithI18n = (ui: Readonly<React.ReactElement>) => {
     React.createElement(I18nProvider, {
       locale: 'en',
       fallbackLocale: 'en',
-      telemetry: vi.fn(),
-      traceId: 'test',
-      service: 'test',
+      emitFallback: vi.fn(),
       children: ui,
     }),
   );
@@ -124,9 +122,7 @@ const rerenderWithI18n = (
     React.createElement(I18nProvider, {
       locale: 'en',
       fallbackLocale: 'en',
-      telemetry: vi.fn(),
-      traceId: 'test',
-      service: 'test',
+      emitFallback: vi.fn(),
       children: ui,
     }),
   );
@@ -145,7 +141,7 @@ vi.mock('../../../src/providers/UnifiedUIProvider', () => ({
       translate: mockTranslate,
       locale: 'en',
       direction: 'ltr' as const,
-      loadNamespace: vi.fn(),
+      ensureNamespace: vi.fn(),
       isNamespaceLoaded: vi.fn(() => true),
     },
     featureFlags: {

@@ -52,7 +52,7 @@ const i18nMocks = vi.hoisted(() => ({
     locale: 'en',
     fallbackLocale: 'en',
     translate: vi.fn((ns, key) => `${ns}:${key}`),
-    loadNamespace: vi.fn(),
+    ensureNamespace: vi.fn(),
     isNamespaceLoaded: vi.fn(() => true),
   })),
   t: vi.fn((key, params) => params?.default ?? key),
@@ -493,7 +493,7 @@ describe('UnifiedUIProvider', () => {
           locale: 'ar',
           fallbackLocale: 'en',
           translate: vi.fn((ns, key) => `${ns}:${key}`),
-          loadNamespace: vi.fn(),
+          ensureNamespace: vi.fn(),
           isNamespaceLoaded: vi.fn(() => true),
         });
         i18nMocks.isRtlLocale.mockReturnValue(true);
@@ -582,7 +582,7 @@ describe('UnifiedUIProvider', () => {
         // NOOP i18n should be callable (without 't' in new architecture)
         expect(typeof result.current.i18n.translate).toBe('function');
         expect(result.current.i18n.translate('common', 'greeting')).toBe('');
-        expect(typeof result.current.i18n.loadNamespace).toBe('function');
+        expect(typeof result.current.i18n.ensureNamespace).toBe('function');
         expect(typeof result.current.i18n.isNamespaceLoaded).toBe('function');
         expect(result.current.i18n.isNamespaceLoaded('common')).toBe(false);
         expect(typeof result.current.i18n.formatDateLocalized).toBe('function');
@@ -593,8 +593,8 @@ describe('UnifiedUIProvider', () => {
         result.current.telemetry.warnFireAndForget('test');
         result.current.telemetry.errorFireAndForget('test');
 
-        // Call NOOP i18n loadNamespace to ensure it's covered
-        result.current.i18n.loadNamespace('auth');
+        // Call NOOP i18n ensureNamespace to ensure it's covered
+        result.current.i18n.ensureNamespace('auth');
       } finally {
         consoleWarnSpy.mockRestore();
       }

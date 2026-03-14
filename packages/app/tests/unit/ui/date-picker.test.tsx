@@ -202,7 +202,7 @@ vi.mock('../../../src/providers/UnifiedUIProvider', () => ({
       translate: mockTranslate,
       locale: 'en',
       direction: 'ltr' as const,
-      loadNamespace: vi.fn(),
+      ensureNamespace: vi.fn(),
       isNamespaceLoaded: vi.fn(() => true),
       t: vi.fn((key, params) => params?.default ?? key),
       formatDateLocalized: vi.fn((date, format) => {
@@ -212,7 +212,7 @@ vi.mock('../../../src/providers/UnifiedUIProvider', () => ({
         }
         return date.format(format);
       }),
-      setDayjsLocale: vi.fn(),
+      setDayjsLocale: vi.fn(() => Promise.resolve()),
     },
     featureFlags: {
       isEnabled: vi.fn(() => true),

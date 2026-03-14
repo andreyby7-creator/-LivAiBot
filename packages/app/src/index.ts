@@ -165,8 +165,6 @@ export {
   swDisabled,
   swSelf,
   t,
-  testResetTranslationStore,
-  useTranslations,
   warn,
   warnFireAndForget,
   type WindowClient,

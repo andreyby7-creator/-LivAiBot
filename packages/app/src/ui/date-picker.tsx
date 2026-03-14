@@ -364,9 +364,13 @@ const DatePickerComponent = forwardRef<HTMLDivElement, AppDatePickerProps>(
 
     // Инициализация locale для dayjs через централизованную систему
     // SSR-safe: не вызывать side-effects на сервере
+    // В production использует динамический импорт для уменьшения bundle size
     useEffect(() => {
       if (locale !== undefined && typeof window !== 'undefined') {
-        i18n.setDayjsLocale(locale);
+        // Используем async версию для динамической загрузки локалей в production
+        i18n.setDayjsLocale(locale).catch(() => {
+          // Игнорируем ошибки загрузки локали
+        });
       }
     }, [locale, i18n]);
 

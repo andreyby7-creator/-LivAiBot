@@ -161,10 +161,10 @@ const NOOP_I18N: UnifiedUiI18nContext = Object.freeze({
   locale: 'en',
   direction: 'ltr' as const,
   translate: () => '',
-  loadNamespace: () => undefined,
+  ensureNamespace: () => undefined,
   isNamespaceLoaded: () => false,
   formatDateLocalized: () => '',
-  setDayjsLocale: () => undefined,
+  setDayjsLocale: () => Promise.resolve(),
 });
 
 /** SSR-safe noop контекст для graceful degradation. */
@@ -227,7 +227,7 @@ function createI18nApi(
     locale: i18nContext.locale,
     direction: isRtlLocale(i18nContext.locale) ? 'rtl' : 'ltr',
     translate: i18nContext.translate,
-    loadNamespace: i18nContext.loadNamespace,
+    ensureNamespace: i18nContext.ensureNamespace,
     isNamespaceLoaded: i18nContext.isNamespaceLoaded,
     formatDateLocalized,
     setDayjsLocale,
