@@ -141,3 +141,17 @@ export {
   type SwitchRules,
   type SwitchTrigger,
 } from './MultiAgentSchema.js';
+
+/**
+ * Publishing: доменная модель публикации бота.
+ * @public
+ */
+export {
+  type ActivePublishing,
+  createPublishingInvariantError,
+  type DraftPublishing,
+  type PausedPublishing,
+  type Publishing,
+  type PublishingInvariantError,
+  type PublishingStatus,
+} from './Publishing.js';

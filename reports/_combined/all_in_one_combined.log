@@ -2427,3 +2427,5 @@ Verification:
 [2026-03-12T21:12:54+03:00] BotSettings.ts fully covered by BotSettings.test.ts (100% statements/branches/functions/lines).
 [2026-03-12T21:25:42+03:00] BotTemplate.ts domain model and invariants added; docs deps/description updated; lint:canary=OK.
 [2026-03-12T21:45:38+03:00] BotTemplate.ts fully covered by BotTemplate.test.ts (100% statements/branches/functions/lines).
+[2026-03-12T23:11:02+03:00] lint:canary passed after updating Prompt.getBehaviorConstraintsErrorMessage eslint block suppression
+[2026-03-14 16:54:32] Publishing.test.ts: 100% coverage (29 tests passed), all linter checks passed
