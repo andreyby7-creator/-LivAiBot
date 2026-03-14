@@ -3,7 +3,7 @@ from __future__ import annotations
 import uuid
 from datetime import datetime, timedelta, timezone
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from .models import DeadLetterQueue
@@ -103,17 +103,65 @@ class DLQRepository:
 
     async def get_dlq_stats(self, workspace_id: uuid.UUID | None = None) -> dict:
         """Get DLQ statistics."""
-        # In real implementation, this would have queries to count statistics
-        # For now, return mock data but use workspace_id for potential filtering
-        stats = {
-            "total_messages": 0,
-            "pending_retry": 0,
-            "max_retries_exceeded": 0,
-            "by_event_type": {},
-            "workspace_id": str(workspace_id) if workspace_id else None,
+        now = datetime.now(timezone.utc)
+
+        # Общее количество сообщений
+        total_stmt = select(func.count(DeadLetterQueue.id))
+        if workspace_id is not None:
+            total_stmt = total_stmt.where(DeadLetterQueue.workspace_id == workspace_id)
+        total_result = await self.db_session.execute(total_stmt)
+        total_messages = total_result.scalar_one() or 0
+
+        # Сообщения, готовые к retry
+        # (retry_count < max_retries и next_retry_at <= now или None)
+        pending_stmt = select(func.count(DeadLetterQueue.id)).where(
+            (DeadLetterQueue.retry_count < DeadLetterQueue.max_retries)
+            & (
+                (DeadLetterQueue.next_retry_at.is_(None))
+                | (DeadLetterQueue.next_retry_at <= now)
+            )
+        )
+        if workspace_id is not None:
+            pending_stmt = pending_stmt.where(
+                DeadLetterQueue.workspace_id == workspace_id
+            )
+        pending_result = await self.db_session.execute(pending_stmt)
+        pending_retry = pending_result.scalar_one() or 0
+
+        # Сообщения, где превышен max_retries
+        exceeded_stmt = select(func.count(DeadLetterQueue.id)).where(
+            DeadLetterQueue.retry_count >= DeadLetterQueue.max_retries
+        )
+        if workspace_id is not None:
+            exceeded_stmt = exceeded_stmt.where(
+                DeadLetterQueue.workspace_id == workspace_id
+            )
+        exceeded_result = await self.db_session.execute(exceeded_stmt)
+        max_retries_exceeded = exceeded_result.scalar_one() or 0
+
+        # Группировка по event_type
+        by_event_type_stmt = (
+            select(
+                DeadLetterQueue.event_type,
+                func.count(DeadLetterQueue.id).label("count"),
+            )
+            .group_by(DeadLetterQueue.event_type)
+        )
+        if workspace_id is not None:
+            by_event_type_stmt = by_event_type_stmt.where(
+                DeadLetterQueue.workspace_id == workspace_id
+            )
+        by_event_type_result = await self.db_session.execute(by_event_type_stmt)
+        by_event_type = {
+            row.event_type: row.count for row in by_event_type_result.all()
         }
 
-        # TODO: Add real DB queries for statistics counting
-        # considering workspace_id filter
+        stats = {
+            "total_messages": total_messages,
+            "pending_retry": pending_retry,
+            "max_retries_exceeded": max_retries_exceeded,
+            "by_event_type": by_event_type,
+            "workspace_id": str(workspace_id) if workspace_id else None,
+        }
 
         return stats

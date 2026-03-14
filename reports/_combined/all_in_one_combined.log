@@ -2561,3 +2561,35 @@ Verification:
 
 СТАТУС: ✅ ИСПРАВЛЕНО
 
+[2026-03-14T19:37:10+03:00] DLQ STATS: Реализована статистика для Dead Letter Queue
+
+ПРОБЛЕМА:
+- TODO в services/conversations-service: отсутствовали реальные запросы к БД для подсчета статистики DLQ
+- Методы get_dlq_stats возвращали заглушки с нулевыми значениями
+
+РЕШЕНИЕ:
+- Реализованы реальные SQL запросы в DLQRepository.get_dlq_stats()
+- Реализованы реальные SQL запросы в DLQService.get_dlq_stats()
+- Добавлены запросы для:
+  * total_messages - общее количество сообщений
+  * pending_retry - сообщения, готовые к retry
+  * max_retries_exceeded - сообщения с превышенным max_retries
+  * by_event_type - группировка по типу события
+
+ТЕХНИЧЕСКИЕ ДЕТАЛИ:
+- Использованы SQLAlchemy func.count() для агрегации
+- Реализована фильтрация по workspace_id (опционально)
+- Исправлены проблемы с типами (mypy) и форматированием (ruff)
+
+ПРОВЕРКИ:
+- ✅ make lint: All checks passed!
+- ✅ make type: Success: no issues found
+- ✅ make test: 6 passed
+- ✅ make quality: All checks passed
+
+ФАЙЛЫ:
+- services/conversations-service/conversations_src/adapters/db/dlq_repository.py
+- services/conversations-service/conversations_src/use_cases/dlq.py
+
+СТАТУС: ✅ РЕАЛИЗОВАНО И ПРОВЕРЕНО
+
