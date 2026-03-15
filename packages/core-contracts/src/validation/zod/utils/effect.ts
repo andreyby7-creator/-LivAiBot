@@ -1,12 +1,22 @@
 /**
- * @file Интеграция Zod-валидации с Effect (side effects / pipeline).
- * Идея: Zod остаётся runtime guard, а побочные эффекты/оркестрация — в Effect.
- * Этот файл даёт минимальные примитивы: завернуть `.parse()` в Effect и получить типизированную ошибку.
+ * @file @livai/core-contracts/validation/zod/utils/effect.ts
+ * ============================================================================
+ * ⚡ EFFECT — ZOD VALIDATION INTEGRATION WITH EFFECT
+ * ============================================================================
+ *
+ * Foundation-интеграция Zod-валидации с Effect (side effects / pipeline).
+ * Заметка по архитектуре:
+ * - Zod остаётся runtime guard, а побочные эффекты/оркестрация — в Effect.
+ * - Минимальные примитивы: завернуть `.parse()` в Effect и получить типизированную ошибку.
+ * - ZodParseError различает Zod-ошибки и runtime-ошибки для корректной обработки.
  */
-
 import { Data, Effect } from 'effect';
 import type { z } from 'zod';
 import { ZodError } from 'zod';
+
+/* ============================================================================
+ * ❌ ZOD PARSE ERROR — TYPED VALIDATION ERROR
+ * ========================================================================== */
 
 const zodParseError = Data.TaggedError('ZodParseError')<{
   /** Оригинальная ошибка (Zod или другая). */
@@ -18,6 +28,10 @@ const zodParseError = Data.TaggedError('ZodParseError')<{
 }>;
 
 export type ZodParseError = InstanceType<typeof zodParseError>;
+
+/* ============================================================================
+ * ⚡ ZOD PARSE EFFECT — VALIDATION IN EFFECT CONTEXT
+ * ========================================================================== */
 
 export function zodParseEffect<TSchema extends z.ZodTypeAny>(
   schema: TSchema,

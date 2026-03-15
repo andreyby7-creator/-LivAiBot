@@ -40,6 +40,7 @@ const FULL_TYPE_AWARE_RULES = {
   '@typescript-eslint/no-unsafe-return': 'error', // 🟢
   '@typescript-eslint/no-unsafe-assignment': 'error', // 🟢
   '@typescript-eslint/no-unsafe-call': 'error', // 🟢
+  '@typescript-eslint/consistent-type-imports': 'error', // Строгие type imports (из CRITICAL_RULES)
   '@typescript-eslint/prefer-readonly-parameter-types': 'off', // 🔇 УБРАН ШУМ - конфликтует с Effect-first архитектурой
 
   // 🔴 ДОПОЛНИТЕЛЬНЫЕ МАКСИМАЛЬНО СТРОГИЕ ПРАВИЛА ДЛЯ CANARY
@@ -241,6 +242,7 @@ canaryConfig.push({
     'functional/prefer-immutable-types': 'off', // Тесты часто нуждаются в мутабельных данных
     'functional/immutable-data': 'off', // Тесты используют моки, мутации объектов - нормальная практика
     'ai-security/pii-detection': 'off', // Тестовые данные не являются реальными PII
+    '@typescript-eslint/consistent-type-imports': 'off', // Тесты часто используют import() type annotations для моков и типов
     ...applySeverityAwareRules(QUALITY_WITH_SEVERITY, 'test'), // explicit-function-return-type: off
   },
 });
@@ -285,12 +287,14 @@ canaryConfig.push({
   },
 });
 
-// ==================== CORE-CONTRACTS: NO ANY В КОНТРАКТАХ ====================
+// ==================== CORE-CONTRACTS: NO ANY + READONLY PARAMETERS ====================
 // Фиксируем принцип: any только на границе/в инфре, в домене/DTO запрещён.
+// Readonly параметры критичны для type safety в контрактах
 canaryConfig.push({
   files: ['packages/core-contracts/src/**/*.{ts,tsx}'],
   rules: {
     '@typescript-eslint/no-explicit-any': 'error',
+    '@typescript-eslint/prefer-readonly-parameter-types': 'error', // Строго для контрактов
   },
 });
 canaryConfig.push({

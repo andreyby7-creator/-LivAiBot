@@ -346,5 +346,6 @@ export type ErrorHandler<T extends AppError = AppError> = (error: T) => void;
 
 /** Проверка типа ошибки по discriminated union. */
 export type IsErrorOfType<T extends AppError['type']> = (
+  // eslint-disable-next-line @typescript-eslint/prefer-readonly-parameter-types -- AppError - union type, все члены уже имеют readonly свойства, но ESLint не распознает union types
   error: AppError,
 ) => error is Extract<AppError, { type: T; }>;

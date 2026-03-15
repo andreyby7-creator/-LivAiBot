@@ -7,6 +7,7 @@
  */
 
 import { spawn } from 'child_process';
+import type { execSync } from 'child_process';
 import { promises as fs } from 'fs';
 import * as path from 'path';
 
@@ -123,8 +124,8 @@ async function runPythonTests(options: RunPythonTestsOptions = {}): Promise<Test
     if (coverage) {
       // Синхронная проверка наличия pytest-cov
       try {
-        const { execSync } = require('child_process') as typeof import('child_process');
-        execSync('python3 -c "import pytest_cov"', { stdio: 'pipe' });
+        const { execSync: execSyncFn } = require('child_process') as { execSync: typeof execSync; };
+        execSyncFn('python3 -c "import pytest_cov"', { stdio: 'pipe' });
         pytestArgs = [
           ...pytestArgs,
           '--cov=services',

@@ -7,7 +7,7 @@
 import typescriptParser from '@typescript-eslint/parser';
 import { CRITICAL_RULES, PLUGINS } from '../constants.mjs';
 import masterConfig, { resolveMonorepoRoot } from '../master.config.mjs';
-import { applySeverity, applySeverityAwareRules, QUALITY_WITH_SEVERITY, DEV_EXTRA_RULES } from '../shared/rules.mjs';
+import { applySeverity, applySeverityAwareRules, QUALITY_WITH_SEVERITY, DEV_EXTRA_RULES, COMMON_IGNORES } from '../shared/rules.mjs';
 // TEZ: Type Exemption Zone определена в shared/tez.config.mjs (применяется через master.config.mjs)
 
 /**
@@ -71,6 +71,51 @@ devConfigWithRules.unshift({
   ],
 });
 
+// ==================== GLOBAL TS/TSX CONFIGURATION ====================
+// Глобальная конфигурация для всех TS/TSX файлов с игнорами конфигурационных файлов
+// Унифицировано с canary режимом для консистентности
+devConfigWithRules.push({
+  files: ['**/*.ts', '**/*.tsx'], // Проверяем все TS/TSX файлы в монорепо
+  ignores: [
+    ...COMMON_IGNORES, // Используем централизованные ignores для единообразия
+    // Исключаем dev-only файлы - они проверяются отдельно через overrides
+    '**/*.dev.ts',
+    // TSUP конфиги линтим отдельным (non-type-aware) override, чтобы не падать на projectService
+    '**/tsup.config.{ts,js,mjs,cjs}',
+    // Исключаем конфигурационные файлы - они имеют свою специфику
+    '**/*.config.ts',
+    '**/*.config.tsx',
+    '**/vitest.setup.ts',
+    '**/test.setup.ts',
+  ],
+  plugins: PLUGINS,
+  languageOptions: {
+    parser: typescriptParser,
+    parserOptions: {
+      projectService: true,
+      // ⚠️ ВАЖНО: Используем PROJECT_ROOT вместо process.cwd() для единообразия
+      // Это гарантирует одинаковую проверку независимо от того, откуда запускается ESLint
+      // (корень монорепо или подпапка пакета)
+      // Для monorepo лучше запускать ESLint через корневой конфиг, а не локально в пакете
+      tsconfigRootDir: PROJECT_ROOT,
+      noWarnOnMultipleProjects: true, // Оптимизация для монорепо: подавление косметического предупреждения
+    },
+  },
+  settings: {
+    next: {
+      rootDir: ['apps/admin', 'apps/web', 'apps/mobile'],
+    },
+  },
+  rules: {
+    // ==================== ZONE-SPECIFIC: READONLY PARAMETERS ====================
+    // Отключаем prefer-readonly-parameter-types глобально для всех файлов
+    // UI primitives и apps отключены - React/Next.js типы не поддерживают readonly параметры
+    // Effect-first зоны также отключены - конфликтует с Effect API
+    // Оставляем активным только для core-contracts, где это критично для type safety
+    '@typescript-eslint/prefer-readonly-parameter-types': 'off',
+  },
+});
+
 // Отключение строгих правил для тестовых файлов
 // Тесты часто используют анонимные функции, типы которых выводятся автоматически
 devConfigWithRules.push({
@@ -81,7 +126,24 @@ devConfigWithRules.push({
     'functional/prefer-immutable-types': 'off', // Тесты часто нуждаются в мутабельных данных
     'functional/immutable-data': 'off', // Тесты используют моки, мутации объектов - нормальная практика
     'ai-security/pii-detection': 'off', // Тестовые данные не являются реальными PII
+    '@typescript-eslint/consistent-type-imports': 'off', // Тесты часто используют import() type annotations для моков и типов
     ...applySeverityAwareRules(QUALITY_WITH_SEVERITY, 'test'), // explicit-function-return-type: off
+  },
+});
+
+// Файлы с валидацией могут использовать throw для error handling
+devConfigWithRules.push({
+  files: ['**/errors/**/*.ts'],
+  rules: {
+    'fp/no-throw': 'off', // Валидационные функции могут бросать ошибки
+  },
+});
+
+// Setup файлы могут использовать throw для обработки ошибок
+devConfigWithRules.push({
+  files: ['**/vitest.setup.ts', '**/test.setup.ts'],
+  rules: {
+    'fp/no-throw': 'off', // Setup файлы могут использовать throw
   },
 });
 
@@ -109,23 +171,10 @@ devConfigWithRules.push({
   },
 });
 
-// ==================== ZONE-SPECIFIC: READONLY PARAMETERS ====================
-// Отключаем prefer-readonly-parameter-types для Effect-first зон (конфликтует с Effect API)
-// Но оставляем активным для контрактов и UI primitives где readonly параметры важны
-
-// Отключаем для всех Effect-first пакетов
-devConfigWithRules.push({
-  files: ['packages/**/src/**/*.{ts,tsx}'],
-  rules: {
-    '@typescript-eslint/prefer-readonly-parameter-types': 'off',
-  },
-});
-
-// Включаем обратно для зон где readonly параметры критичны
+// Включаем обратно только для core-contracts, где readonly параметры критичны
 devConfigWithRules.push({
   files: [
     'packages/core-contracts/src/**/*.{ts,tsx}',  // Контракты - strict readonly для type safety
-    'packages/ui-core/src/**/*.{ts,tsx}',         // UI primitives - strict readonly для immutability
   ],
   rules: {
     '@typescript-eslint/prefer-readonly-parameter-types': 'warn',

@@ -791,4 +791,71 @@ describe('Execution Plan Builder', () => {
       'stage3',
     ]);
   });
+
+  // Покрытие строки 705: continue когда узел уже обработан (!unprocessed.has(dep))
+  it('покрывает ветку continue для уже обработанных узлов в buildCyclePath (строка 705)', () => {
+    // Создаем граф с циклом, где один из узлов уже обработан
+    // stage1 -> stage2 -> stage1 (цикл)
+    // stage3 -> stage1 (stage1 уже в unprocessed, но может быть обработан в другом контексте)
+    const plugins = [
+      createValidPlugin('stage1', ['slot1'], ['slot2']),
+      createValidPlugin('stage2', ['slot2'], ['slot1']), // Цикл stage1 <-> stage2
+      createValidPlugin('stage3', ['slot3'], ['slot1']), // stage3 зависит от stage1
+    ];
+    const config = createValidConfig();
+
+    const result = createExecutionPlan(plugins, config);
+
+    // Должен быть обнаружен цикл
+    expect(result).toHaveProperty('kind', 'CIRCULAR_DEPENDENCY');
+    if ('path' in result) {
+      expect(result.path.length).toBeGreaterThan(0);
+    }
+  });
+
+  // Покрытие строк 723-726: нормальное завершение DFS без цикла
+  // Это происходит когда в графе есть несколько компонентов связности,
+  // и один из них не имеет цикла, но buildCyclePath все равно вызывается
+  it('покрывает нормальное завершение DFS без цикла в buildCyclePath (строки 723-726)', () => {
+    // Создаем граф с несколькими компонентами:
+    // - stage1 -> stage2 (без цикла, но будет проверен)
+    // - stage3 -> stage4 -> stage3 (с циклом)
+    const plugins = [
+      createValidPlugin('stage1', ['slot1'], []),
+      createValidPlugin('stage2', ['slot2'], ['slot1']), // Линейная цепочка без цикла
+      createValidPlugin('stage3', ['slot3'], ['slot4']),
+      createValidPlugin('stage4', ['slot4'], ['slot3']), // Цикл stage3 <-> stage4
+    ];
+    const config = createValidConfig();
+
+    const result = createExecutionPlan(plugins, config);
+
+    // Должен быть обнаружен цикл в stage3 <-> stage4
+    expect(result).toHaveProperty('kind', 'CIRCULAR_DEPENDENCY');
+    if ('path' in result) {
+      expect(result.path).toContain('stage3');
+      expect(result.path).toContain('stage4');
+    }
+  });
+
+  // Покрытие строки 731: continue когда узел уже посещен в основном цикле
+  it('покрывает ветку continue для уже посещенных узлов в buildCyclePath (строка 731)', () => {
+    // Создаем граф с несколькими узлами, где некоторые уже будут посещены
+    // при обходе первого узла, а затем будут пропущены в основном цикле
+    const plugins = [
+      createValidPlugin('stage1', ['slot1'], ['slot2']),
+      createValidPlugin('stage2', ['slot2'], ['slot3']),
+      createValidPlugin('stage3', ['slot3'], ['slot1']), // Цикл stage1 -> stage2 -> stage3 -> stage1
+      createValidPlugin('stage4', ['slot4'], ['slot1']), // stage4 тоже зависит от stage1
+    ];
+    const config = createValidConfig();
+
+    const result = createExecutionPlan(plugins, config);
+
+    // Должен быть обнаружен цикл
+    expect(result).toHaveProperty('kind', 'CIRCULAR_DEPENDENCY');
+    if ('path' in result) {
+      expect(result.path.length).toBeGreaterThan(0);
+    }
+  });
 });

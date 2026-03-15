@@ -17,6 +17,8 @@
  * - Микросервисная архитектура: компонент ↔ app ↔ backend
  */
 
+import type { Dayjs } from 'dayjs';
+
 import type { CoreUIBaseProps } from '@livai/ui-core/types';
 
 import type { Namespace, TranslationKey } from '../lib/i18n.js';
@@ -195,6 +197,6 @@ export type UiI18nContext = {
     key: string,
     params?: Record<string, string | number> & { default?: string; },
   ) => string;
-  readonly formatDateLocalized: (date: import('dayjs').Dayjs, format: string) => string;
+  readonly formatDateLocalized: (date: Dayjs, format: string) => string;
   readonly setDayjsLocale: (locale: string) => Promise<void>;
 };

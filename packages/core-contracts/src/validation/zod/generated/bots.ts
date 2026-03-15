@@ -57,6 +57,10 @@ const UpdateInstructionRequest = z
   .passthrough();
 export const UpdateInstructionRequestSchema = UpdateInstructionRequest;
 
+/* ============================================================================
+ * 📦 SCHEMAS EXPORT — ALL SCHEMAS REGISTRY
+ * ========================================================================== */
+
 export const schemas = {
   BotResponse: BotResponseSchema,
   BotsListResponse: BotsListResponseSchema,

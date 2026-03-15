@@ -60,6 +60,10 @@ const RegisterRequest = z
   .passthrough();
 export const RegisterRequestSchema = RegisterRequest;
 
+/* ============================================================================
+ * 📦 SCHEMAS EXPORT — ALL SCHEMAS REGISTRY
+ * ========================================================================== */
+
 export const schemas = {
   LoginRequest: LoginRequestSchema,
   TokenPairResponse: TokenPairResponseSchema,

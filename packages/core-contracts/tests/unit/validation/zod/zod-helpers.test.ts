@@ -10,6 +10,8 @@ import { acceptTermsSchema } from '../../../../src/validation/zod/custom/forms.j
 import {
   formatZodError,
   formatZodErrorDetailed,
+  formatZodIssues,
+  formatZodIssuesDetailed,
 } from '../../../../src/validation/zod/custom/i18n.js';
 
 describe('acceptTermsSchema', () => {
@@ -125,6 +127,155 @@ describe('formatZodError', () => {
       const formatted = formatZodErrorDetailed(res.error);
       expect(formatted[0]?.path).toEqual(['name']);
       expect(formatted[0]?.message).toBe('too.short');
+    }
+  });
+});
+
+describe('formatZodIssues', () => {
+  it('форматирует issues напрямую без ZodError', () => {
+    const schema = z.object({ name: z.string().min(2, 'too.short') });
+    const res = schema.safeParse({ name: 'a' });
+    expect(res.success).toBe(false);
+    if (!res.success) {
+      const formatted = formatZodIssues(res.error.issues);
+      expect(formatted).toEqual(['too.short']);
+    }
+  });
+
+  it('форматирует несколько issues', () => {
+    const schema = z.object({
+      name: z.string().min(2, 'name.too.short'),
+      email: z.string().email('email.invalid'),
+    });
+    const res = schema.safeParse({ name: 'a', email: 'not-email' });
+    expect(res.success).toBe(false);
+    if (!res.success) {
+      const formatted = formatZodIssues(res.error.issues);
+      expect(formatted).toHaveLength(2);
+      expect(formatted).toContain('name.too.short');
+      expect(formatted).toContain('email.invalid');
+    }
+  });
+
+  it('применяет функцию перевода t()', () => {
+    const schema = z.object({ name: z.string().min(2, 'name.too.short') });
+    const res = schema.safeParse({ name: 'a' });
+    expect(res.success).toBe(false);
+    if (!res.success) {
+      const t = (key: string) => key === 'name.too.short' ? 'Имя слишком короткое' : `??${key}`;
+      const formatted = formatZodIssues(res.error.issues, t);
+      expect(formatted).toEqual(['Имя слишком короткое']);
+    }
+  });
+
+  it('поддерживает keyMode=path+message', () => {
+    const schema = z.object({
+      user: z.object({ name: z.string().min(2, 'name.too.short') }),
+    });
+    const res = schema.safeParse({ user: { name: 'a' } });
+    expect(res.success).toBe(false);
+    if (!res.success) {
+      const formatted = formatZodIssues(res.error.issues, undefined, {
+        keyMode: 'path+message',
+      });
+      expect(formatted).toEqual(['user.name.name.too.short']);
+    }
+  });
+
+  it('возвращает ключ, если t() возвращает undefined', () => {
+    const schema = z.object({ name: z.string().min(2, 'name.too.short') });
+    const res = schema.safeParse({ name: 'a' });
+    expect(res.success).toBe(false);
+    if (!res.success) {
+      const t = () => undefined;
+      const formatted = formatZodIssues(res.error.issues, t);
+      expect(formatted).toEqual(['name.too.short']);
+    }
+  });
+});
+
+describe('formatZodIssuesDetailed', () => {
+  it('форматирует issues напрямую без ZodError', () => {
+    const schema = z.object({ name: z.string().min(2, 'too.short') });
+    const res = schema.safeParse({ name: 'a' });
+    expect(res.success).toBe(false);
+    if (!res.success) {
+      const formatted = formatZodIssuesDetailed(res.error.issues);
+      expect(formatted).toHaveLength(1);
+      expect(formatted[0]?.path).toEqual(['name']);
+      expect(formatted[0]?.message).toBe('too.short');
+    }
+  });
+
+  it('форматирует несколько issues с путями', () => {
+    const schema = z.object({
+      name: z.string().min(2, 'name.too.short'),
+      email: z.string().email('email.invalid'),
+    });
+    const res = schema.safeParse({ name: 'a', email: 'not-email' });
+    expect(res.success).toBe(false);
+    if (!res.success) {
+      const formatted = formatZodIssuesDetailed(res.error.issues);
+      expect(formatted).toHaveLength(2);
+      const nameIssue = formatted.find((f) => f.path.includes('name'));
+      const emailIssue = formatted.find((f) => f.path.includes('email'));
+      expect(nameIssue?.message).toBe('name.too.short');
+      expect(emailIssue?.message).toBe('email.invalid');
+    }
+  });
+
+  it('применяет функцию перевода t()', () => {
+    const schema = z.object({ name: z.string().min(2, 'name.too.short') });
+    const res = schema.safeParse({ name: 'a' });
+    expect(res.success).toBe(false);
+    if (!res.success) {
+      const t = (key: string) => key === 'name.too.short' ? 'Имя слишком короткое' : `??${key}`;
+      const formatted = formatZodIssuesDetailed(res.error.issues, t);
+      expect(formatted[0]?.message).toBe('Имя слишком короткое');
+    }
+  });
+
+  it('поддерживает keyMode=path+message', () => {
+    const schema = z.object({
+      user: z.object({ name: z.string().min(2, 'name.too.short') }),
+    });
+    const res = schema.safeParse({ user: { name: 'a' } });
+    expect(res.success).toBe(false);
+    if (!res.success) {
+      const formatted = formatZodIssuesDetailed(res.error.issues, undefined, {
+        keyMode: 'path+message',
+      });
+      expect(formatted[0]?.path).toEqual(['user', 'name']);
+      expect(formatted[0]?.message).toBe('user.name.name.too.short');
+    }
+  });
+
+  it('нормализует пути с числами (индексы массивов)', () => {
+    const schema = z.object({
+      users: z.array(z.object({ name: z.string().min(1, 'required') })),
+    });
+    const res = schema.safeParse({ users: [{ name: '' }] });
+    expect(res.success).toBe(false);
+    if (!res.success) {
+      const formatted = formatZodIssuesDetailed(res.error.issues);
+      expect(formatted[0]?.path).toContain(0);
+      expect(typeof formatted[0]?.path[1]).toBe('number');
+    }
+  });
+
+  it('обрабатывает пустой массив issues', () => {
+    const formatted = formatZodIssuesDetailed([]);
+    expect(formatted).toEqual([]);
+  });
+
+  it('возвращает ключ, если t() возвращает undefined', () => {
+    const schema = z.object({ name: z.string().min(2, 'name.too.short') });
+    const res = schema.safeParse({ name: 'a' });
+    expect(res.success).toBe(false);
+    if (!res.success) {
+      const t = () => undefined;
+      const formatted = formatZodIssuesDetailed(res.error.issues, t);
+      expect(formatted[0]?.message).toBe('name.too.short');
     }
   });
 

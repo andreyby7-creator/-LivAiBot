@@ -19,6 +19,8 @@
  * - ✅ Reliability: runtime validation (duplicate providers, circular dependencies, unique stageId, maxEdges), SHA-256 хеширование версии (node:crypto или portable fallback)
  */
 
+import type { createHash as CreateHashType } from 'crypto';
+
 import type { FallbackStage, PipelineConfig, SlotId, StageId, StagePlugin } from './plugin-api.js';
 import { validatePlugin } from './plugin-api.js';
 
@@ -26,16 +28,15 @@ import { validatePlugin } from './plugin-api.js';
  * 1. TYPES — EXECUTION PLAN MODEL
  * ============================================================================ */
 
-const createHash: typeof import('crypto').createHash | undefined =
-  ((): typeof import('crypto').createHash | undefined => {
-    try {
-      // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
-      const crypto = require('crypto') as { createHash: typeof import('crypto').createHash; };
-      return crypto.createHash;
-    } catch {
-      return undefined;
-    }
-  })();
+const createHash: typeof CreateHashType | undefined = ((): typeof CreateHashType | undefined => {
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
+    const crypto = require('crypto') as { createHash: typeof CreateHashType; };
+    return crypto.createHash;
+  } catch {
+    return undefined;
+  }
+})();
 
 function asStageId(value: string): StageId {
   return value as StageId;

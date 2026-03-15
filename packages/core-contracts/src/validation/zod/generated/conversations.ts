@@ -73,6 +73,10 @@ const TurnResponse = z
   .passthrough();
 export const TurnResponseSchema = TurnResponse;
 
+/* ============================================================================
+ * 📦 SCHEMAS EXPORT — ALL SCHEMAS REGISTRY
+ * ========================================================================== */
+
 export const schemas = {
   ThreadResponse: ThreadResponseSchema,
   ThreadsListResponse: ThreadsListResponseSchema,
