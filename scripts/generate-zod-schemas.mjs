@@ -138,25 +138,7 @@ function run() {
     ];
 
     console.log(`[gen] ${t.name}: ${path.relative(repoRoot, t.output)}`);
-    // Подавляем deprecation warning от openapi-zod-client (использует устаревший TypeScript API)
-    // Используем перенаправление stderr для фильтрации предупреждений
-    const env = { ...process.env, NODE_OPTIONS: '--no-warnings' };
-    const res = spawnSync('pnpm', args, { 
-      stdio: ['inherit', 'inherit', 'pipe'], 
-      cwd: repoRoot, 
-      env 
-    });
-    // Выводим stderr, фильтруя deprecation warnings
-    if (res.stderr) {
-      const stderr = res.stderr.toString();
-      const lines = stderr.split('\n').filter(line => 
-        !line.includes('DeprecationWarning') && 
-        !line.includes('createTypeAliasDeclaration')
-      );
-      if (lines.length > 0 && lines.some(l => l.trim())) {
-        process.stderr.write(lines.join('\n'));
-      }
-    }
+    const res = spawnSync('pnpm', args, { stdio: 'inherit', cwd: repoRoot });
     if (res.status !== 0) {
       console.error(`[error] openapi-zod-client завершился с ошибкой для: ${t.name}`);
       process.exitCode = res.status ?? 1;

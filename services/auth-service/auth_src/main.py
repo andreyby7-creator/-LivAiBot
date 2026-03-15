@@ -26,13 +26,15 @@ async def validation_exception_handler(
     assert isinstance(exc, RequestValidationError)
     trace_id = getattr(request.state, "trace_id", None)
     operation_id = getattr(request.state, "operation_id", None)
+    # Исключаем ctx и input из ошибок для безопасности (Pydantic v2)
+    errors = exc.errors(include_input=False, include_context=False)
     payload = ErrorResponse(
         code="VALIDATION_ERROR",
         message="Ошибка валидации запроса",
         trace_id=trace_id,
         details={
             "operation_id": operation_id,
-            "errors": exc.errors(),
+            "errors": errors,
         },
     ).model_dump()
     return JSONResponse(status_code=422, content=payload)
