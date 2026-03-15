@@ -37,3 +37,14 @@ export * from './bot-commands.js';
  * @public
  */
 export * from './bots.js';
+
+/* ============================================================================
+ * 📡 BOT EVENTS — ТИПЫ И КОНСТАНТЫ СОБЫТИЙ БОТОВ
+ * ========================================================================== */
+
+/**
+ * Bot Events: типы и константы событий ботов.
+ * Включает BotEventTypes, BotEventType, BotEvent и payload типы для всех событий lifecycle.
+ * @public
+ */
+export * from './bot-events.js';
