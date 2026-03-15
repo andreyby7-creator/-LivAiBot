@@ -78,7 +78,7 @@ make run
 - **Node.js** + **Next.js** + **TypeScript** + **React** - основной стек
 - **Tailwind CSS** - стилизация
 - **next-intl** - интернационализация
-- **Webpack** - бандлер
+- **Turbopack** - бандлер (Next.js 16)
 
 #### Backend
 
@@ -98,10 +98,10 @@ make run
 
 ### Технические решения
 
-#### Webpack вместо Turbopack
+#### Turbopack для сборки
 
-Используем Webpack вместо Turbopack, потому что проект TS-first и использует runtime-совместимые .js import specifiers для .ts/.tsx файлов.
-Turbopack на текущий момент требует точных расширений и не поддерживает такой паттерн без массового рефакторинга.
+Используем Turbopack (встроенный в Next.js 16) как основной бандлер. Миграция с Webpack завершена.
+Проект использует runtime-совместимые переменные окружения (`process.env`) вместо compile-time констант для лучшей совместимости с Turbopack.
 
 #### next-intl для internationalization
 

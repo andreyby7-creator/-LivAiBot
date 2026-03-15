@@ -273,9 +273,11 @@ export function createPackageVitestConfig(options: PackageConfigOptions): Packag
       // Vitest может падать. Используйте копию: { ...env }
       ...envConfig,
 
-      // Определение compile-time констант (аналог webpack.DefinePlugin)
+      // Определение compile-time констант (ранее использовался webpack.DefinePlugin)
+      // После миграции на Turbopack: __ENVIRONMENT__ заменен на process.env.NODE_ENV
       define: {
-        __ENVIRONMENT__: JSON.stringify('dev'),
+        // __ENVIRONMENT__ удален - теперь используется process.env.NODE_ENV
+        // process.env.NODE_ENV уже установлен в 'test' или 'development'
       },
 
       // Setup файлы: глобальный + пакетный

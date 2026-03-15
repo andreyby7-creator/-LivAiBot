@@ -9,8 +9,8 @@
     "pnpm": "10.28.2"
   },
   "scripts": {
-    "build": "next build --webpack",
-    "dev": "next dev --webpack",
+    "build": "next build",
+    "dev": "next dev",
     "lint": "cd ../ && pnpm run lint --filter @livai/web",
     "lint:fix": "cd ../ && pnpm run lint:fix --filter @livai/web",
     "lint:ci": "cd ../ && ESLINT_MODE=canary pnpm lint --max-warnings 0 --filter @livai/web",

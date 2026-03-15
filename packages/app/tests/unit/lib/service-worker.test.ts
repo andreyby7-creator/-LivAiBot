@@ -9,7 +9,7 @@
  * - Error handling
  */
 
-import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type {
   Client,
@@ -33,9 +33,17 @@ type MockServiceWorkerGlobalScope = ServiceWorkerGlobalScope & {
 // 🧠 SETUP И TEARDOWN
 // ============================================================================
 
+// Мокаем process.env для тестов (заменено с compile-time константы на runtime переменные для Turbopack)
+const originalEnv = process.env;
+
 beforeAll(() => {
-  // Определяем compile-time константу для service worker в тестовой среде
-  (globalThis as any).__ENVIRONMENT__ = 'dev';
+  // Устанавливаем переменные окружения для service worker в тестовой среде
+  process.env = { ...originalEnv, NODE_ENV: 'development' };
+  delete process.env['NEXT_PUBLIC_APP_ENV']; // Убеждаемся, что это dev
+});
+
+afterAll(() => {
+  process.env = originalEnv;
 });
 
 // ============================================================================

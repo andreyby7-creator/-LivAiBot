@@ -10,7 +10,7 @@ import type { MiddlewareConfig, NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 import createMiddleware from 'next-intl/middleware';
 
-import { defaultLocale, locales } from './next-intl.config.js';
+import { defaultLocale, locales } from './next-intl.config';
 
 // Создаем middleware с next-intl
 const i18nMiddleware = createMiddleware({

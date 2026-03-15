@@ -55,9 +55,12 @@ const TELEMETRY_SCHEMA_VERSION = '1.0.0';
 /** App ID для namespace изоляции */
 const APP_ID = 'livai';
 
-/** Environment compile-time constant для оптимизации bundler'а */
-declare const __ENVIRONMENT__: 'prod' | 'stage' | 'dev';
-const ENVIRONMENT = __ENVIRONMENT__;
+/** Environment runtime constant (заменено с compile-time на runtime для Turbopack) */
+const ENVIRONMENT = process.env['NODE_ENV'] === 'production'
+  ? 'prod'
+  : process.env['NEXT_PUBLIC_APP_ENV'] === 'staging'
+  ? 'stage'
+  : 'dev';
 
 /** Префикс для кешей с namespace изоляцией */
 const CACHE_PREFIX = `${APP_ID}-${ENVIRONMENT}-sw`;
