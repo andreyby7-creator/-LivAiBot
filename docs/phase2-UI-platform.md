@@ -489,7 +489,7 @@ Toast / UI feedback
 
 ### **Feature-bots / domain** ✅
 
-- 🟢 `domain/Bot.ts` — ts — deps: @livai/core-contracts, types/bots — доменная модель бота (Active/Deleted union со статусами draft/active/paused/archived/deleted/suspended/deprecated, branded revision/currentVersion, workspaceId, metadata (non-sensitive only), audit-поля createdAt/updatedAt/deletedAt/createdBy/updatedBy + runtime-инварианты для deletedAt/revision/currentVersion)
+- 🟢 `domain/Bot.ts` — ts — deps: @livai/core-contracts — доменная модель бота (Active/Deleted union со статусами draft/active/paused/archived/deleted/suspended/deprecated, branded revision/currentVersion, workspaceId, metadata (non-sensitive only), audit-поля createdAt/updatedAt/deletedAt/createdBy/updatedBy + runtime-инварианты для deletedAt/revision/currentVersion)
 - 🟢 `domain/BotSettings.ts` — ts — deps: @livai/core-contracts — доменная модель настроек бота (BotSettings с branded temperature/contextWindow, PII/image-флагами, секции unrecognizedMessage/interruptionRules/extra + runtime-инварианты для temperature/contextWindow/maxSessions/fallbackMessage)
 - 🟢 `domain/BotVersion.ts` — ts — deps: @livai/core-contracts, types/bot-commands, domain/Bot, domain/BotSettings — доменная модель версии бота (BotVersionAggregate с version, branded instruction, BotSettingsSnapshot (BotSettings), operationId, workspaceId, audit-поля createdAt/createdBy, metadata для rollback/tags + runtime-инварианты для instruction/settings/version/rollbackFromVersion)
 - 🟢 `domain/BotTemplate.ts` — ts — deps: @livai/core-contracts, domain/BotSettings — доменная модель шаблона бота (BotTemplate c id, name, role, description, defaultInstruction, defaultSettings: BotSettings, capabilities (exhaustive union), tags/labels для фильтрации шаблонов + runtime-инварианты для name/defaultInstruction/capabilities/tags/defaultSettings)
@@ -505,7 +505,7 @@ Toast / UI feedback
 
 ### **Feature-bots / dto** ✅
 
-- 🟢 `dto/CreateBotRequest.ts` — ts — deps: domain/BotSettings, domain/BotTemplate — DTO создания бота (CreateBotRequest с name, instruction, settings (BotSettings), templateId (BotTemplateId, опционально для from-template))
+- 🟢 `dto/CreateBotRequest.ts` — ts — deps: domain/BotSettings, domain/BotTemplate, domain/BotVersion — DTO создания бота (CreateBotRequest с name, instruction, settings (BotSettings), templateId (BotTemplateId, опционально для from-template))
 - 🟢 `dto/UpdateBotMetadataRequest.ts` — ts — deps: domain/Bot — DTO обновления метаданных бота (UpdateBotMetadataRequest с опциональным name через BotMetadataPatch, обязательным currentVersion для optimistic concurrency control, экспортирует AtLeastOne utility type)
 - 🟢 `dto/UpdateBotConfigRequest.ts` — ts — deps: domain/BotSettings, domain/BotVersion, types/bot-commands, dto/UpdateBotMetadataRequest — DTO обновления конфигурации бота (UpdateBotConfigRequest с опциональными instruction, settings через BotConfigurationPatch, обязательным operationId для идемпотентности)
 - 🟢 `dto/PublishBotRequest.ts` — ts — deps: domain/Bot — DTO публикации бота (PublishBotRequest с опциональными version и rollbackVersion для публикации или rollback к предыдущей версии)
@@ -591,17 +591,23 @@ Toast / UI feedback
 - ⚪ `Message.ts` — ts — deps: @livai/core-contracts/conversations, types/chat — доменная модель сообщения (id, threadId, role: 'user' | 'assistant' | 'system', content, status: 'sending' | 'sent' | 'delivered' | 'failed', createdAt, updatedAt, operationId для идемпотентности, attachments, metadata)
 - ⚪ `Conversation.ts` — ts — deps: @livai/core-contracts/conversations, types/chat, @livai/core/policies/ChatPolicy — доменная модель разговора/треда (id, workspaceId, botId, title, type, status: 'active' | 'archived' | 'deleted', createdBy, createdAt, updatedAt, deletedAt, metadata, tags/labels для фильтрации)
 - ⚪ `Thread.ts` — ts — deps: @livai/core-contracts/conversations, types/chat — доменная модель треда (id, workspaceId, botId, status: 'active' | 'archived', createdAt, последнее сообщение для UI)
-- ⚪ `ChatErrorResponse.ts` — ts — deps: @livai/core-contracts/conversations, types/chat — нормализованный контракт ошибок чата (строгий union ChatErrorType: validation, policy, permission, rate_limit, real_time, network, not_found; обязательный retryable: boolean без transport-деталей)
 - ⚪ `ChatAuditEvent.ts` — ts — deps: @livai/core-contracts/conversations, types/chat — доменная модель событий аудита чата для SIEM/логирования (message_sent, message_received, message_edited, message_deleted, conversation_created, conversation_archived, feedback_submitted, handoff_requested, realtime_connected, realtime_disconnected, policy_violation)
 - ⚪ `Feedback.ts` — ts — deps: @livai/core-contracts/conversations, types/chat — доменная модель обратной связи (id, messageId, threadId, rating: 'positive' | 'negative', comment, createdAt, createdBy)
 - ⚪ `Handoff.ts` — ts — deps: @livai/core-contracts/conversations, types/chat — доменная модель передачи диалога человеку (id, threadId, reason, status: 'requested' | 'accepted' | 'rejected', requestedAt, acceptedAt, assignedTo)
+- ⚪ `ChatRetry.ts` — ts — deps: @livai/core/resilience, contracts/ChatErrorResponse, types/chat — централизованная retry-политика для ChatErrorType/ChatErrorCode (ChatRetryPolicy, getChatRetryable, mergeChatRetryPolicies; validation/policy/permission/parsing — non‑retryable, сетевые rate_limit/real_time/network ошибки по умолчанию retryable, с возможностью overrides для конкретных сценариев)
+
+### **Feature-chat / contracts** ⚪
+
+- ⚪ `ChatErrorResponse.ts` — ts — deps: @livai/core-contracts, types/chat — нормализованный контракт ошибок чата (строгий union ChatErrorType: validation, policy, permission, rate_limit, real_time, network, not_found; обязательный retryable: boolean без transport-деталей)
+
+### **Feature-chat / dto** ⚪
+
 - ⚪ `SendMessageRequest.ts` — ts — deps: @livai/core-contracts/conversations, types/chat — DTO отправки сообщения (threadId, content, operationId для идемпотентности, attachments опционально)
 - ⚪ `CreateConversationRequest.ts` — ts — deps: @livai/core-contracts/conversations, types/chat — DTO создания разговора (title, botId, type, initialMessage опционально)
 - ⚪ `TurnRequest.ts` — ts — deps: @livai/core-contracts/conversations, types/chat — DTO выполнения хода в диалоге (content, operationId для идемпотентности)
 - ⚪ `TurnResponse.ts` — ts — deps: @livai/core-contracts/conversations, types/chat — DTO результата хода (threadId, userMessage, assistantMessage)
 - ⚪ `FeedbackRequest.ts` — ts — deps: @livai/core-contracts/conversations, types/chat — DTO отправки обратной связи (messageId, threadId, rating, comment опционально)
 - ⚪ `HandoffRequest.ts` — ts — deps: @livai/core-contracts/conversations, types/chat — DTO запроса передачи диалога (threadId, reason, assignedTo опционально)
-- ⚪ `ChatRetry.ts` — ts — deps: @livai/core/resilience, domain/ChatErrorResponse, types/chat — централизованная retry-политика для ChatErrorType/ChatErrorCode (ChatRetryPolicy, getChatRetryable, mergeChatRetryPolicies; validation/policy/permission/parsing — non‑retryable, сетевые rate_limit/real_time/network ошибки по умолчанию retryable, с возможностью overrides для конкретных сценариев)
 
 ### **Feature-chat / schemas** ⚪
 
@@ -609,8 +615,8 @@ Toast / UI feedback
 
 ### **Feature-chat / lib** ⚪
 
-- ⚪ `error-mapper.ts` — ts — deps: @livai/core, domain/ChatErrorResponse, types/chat, domain/ChatRetry — маппинг transport/domain ошибок в нормализованный ChatError и UI-дружественные коды с использованием централизованной retry-политики
-- ⚪ `chat-errors.ts` — ts — deps: domain/ChatErrorResponse, types/chat, domain/ChatRetry — константы кодов ошибок, категоризация ошибок (validation, policy, permission, rate_limit, real_time, network, parsing) и специфичная логика маппинга сложных ошибок с опорой на ChatRetryPolicy
+- ⚪ `error-mapper.ts` — ts — deps: @livai/core, contracts/ChatErrorResponse, types/chat, domain/ChatRetry — маппинг transport/domain ошибок в нормализованный ChatError и UI-дружественные коды с использованием централизованной retry-политики
+- ⚪ `chat-errors.ts` — ts — deps: contracts/ChatErrorResponse, types/chat, domain/ChatRetry — константы кодов ошибок, категоризация ошибок (validation, policy, permission, rate_limit, real_time, network, parsing) и специфичная логика маппинга сложных ошибок с опорой на ChatRetryPolicy
 - ⚪ `policy-adapter.ts` — ts — deps: @livai/core/policies/ChatPolicy, types/chat — адаптер между core/policies и feature-chat (ChatMode → ChatStatus, ChatAction → ChatCommand)
 - ⚪ `message-normalizer.ts` — ts — deps: domain/Message, types/chat — нормализация входящих сообщений API/WS/SSE → Message entity (статусы доставки, timestamps, idempotency, forward-compatibility)
 - ⚪ `real-time-manager.ts` — ts — deps: @livai/core/websocket, @livai/core/sse-client, domain/Message, types/chat — domain-pure менеджер real-time соединений (WebSocket/SSE lifecycle, reconnect, idempotency, синхронизация состояния)

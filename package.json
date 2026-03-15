@@ -199,7 +199,9 @@
     "overrides": {
       "@effect/platform": "0.94.5",
       "lodash@>=4.0.0 <=4.17.22": ">=4.17.23",
-      "minimatch": ">=10.2.3"
+      "minimatch": ">=10.2.3",
+      "flatted": ">=3.4.0",
+      "undici": ">=7.24.0"
     }
   },
   "lint-staged": {

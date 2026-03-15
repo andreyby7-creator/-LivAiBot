@@ -53,6 +53,7 @@ jobs:
       DATABASE_URL: postgresql://postgres:test_password@localhost:5432/livai_test
       REDIS_URL: redis://localhost:6379
       JWT_SECRET: test-jwt-secret-for-ci-only-do-not-use-in-production
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
     steps:
       - name: Checkout code
