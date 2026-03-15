@@ -12,7 +12,7 @@ import type { JSX } from 'react';
 
 import { RegisterForm } from '@livai/ui-features/auth/register-form';
 
-import type { Locale } from '../../../../../i18n/routing.js';
+import type { Locale } from '../../../../../i18n/routing';
 
 /**
  * Props для клиентского компонента Register

@@ -6,7 +6,7 @@ import type { JSX } from 'react';
 
 import { LoginForm } from '@livai/ui-features/auth/login-form';
 
-import type { Locale } from '../../../../../i18n/routing.js';
+import type { Locale } from '../../../../../i18n/routing';
 
 /**
  * Props для клиентского компонента Login

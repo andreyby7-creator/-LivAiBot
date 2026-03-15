@@ -11,7 +11,7 @@ vi.mock('next-intl/middleware', () => ({
 }));
 
 // Mock для routing
-vi.mock('../../i18n/routing.js', () => ({
+vi.mock('../../i18n/routing', () => ({
   defaultLocale: 'en',
   locales: ['en', 'ru'],
 }));

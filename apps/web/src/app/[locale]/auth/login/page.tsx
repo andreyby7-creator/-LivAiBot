@@ -1,6 +1,6 @@
 import type { JSX } from 'react';
 
-import type { Locale } from '../../../../../i18n/routing.js';
+import type { Locale } from '../../../../../i18n/routing';
 import { LoginClient } from './LoginClient';
 
 // Отключаем prerendering для динамической страницы с формами

@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { getTranslations } from 'next-intl/server';
 import type { JSX } from 'react';
 
-import type { Locale } from '../../../i18n/routing.js';
+import type { Locale } from '../../../i18n/routing';
 
 /**
  * @file Главная страница с полной i18n поддержкой

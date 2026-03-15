@@ -5,7 +5,7 @@ import { fileURLToPath } from 'url';
 import { defineConfig } from 'vitest/config';
 
 // Internal
-import { createPackageVitestConfig } from '../../config/vitest/vitest.packages.config.js';
+import { createPackageVitestConfig } from '../../config/vitest/vitest.packages.config';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = resolve(__filename, '..');

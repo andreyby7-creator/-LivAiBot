@@ -14,6 +14,9 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { z } from 'zod';
 
+// Мокируем server-only перед импортом env.ts (Next.js модуль блокирует импорт в тестах)
+vi.mock('server-only', () => ({}));
+
 // Мокируем модули перед импортом env.ts
 vi.mock('fs', () => ({
   default: {

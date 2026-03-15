@@ -23,7 +23,7 @@ vi.mock('next-intl/server', () => ({
 }));
 
 // Mock для i18n routing
-vi.mock('../../../../i18n/routing.js', () => ({
+vi.mock('../../../../i18n/routing', () => ({
   locales: ['en', 'ru'],
 }));
 
@@ -40,7 +40,7 @@ const mockProviders = vi.fn(({ children }) => ({
   type: 'Memo(ProvidersComponent)',
   props: { children },
 }));
-vi.mock('../../../src/app/providers.js', () => ({
+vi.mock('../../../src/app/providers', () => ({
   Providers: mockProviders,
 }));
 

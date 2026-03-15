@@ -2643,3 +2643,4 @@ $(date -Iseconds) - Проверка консистентности конфиг
 2026-03-15T16:41:24+03:00 - Создан отчет webpack-to-turbopack-migration-checklist.md с чеклистом миграции. Найдено: ~2,772 импорта с .js расширениями в ~772 файлах.
 2026-03-15T16:48:09+03:00 - Скорректирован отчет webpack-to-turbopack-migration-checklist.md: исправлены неточности про расширения файлов, обновлен порядок миграции, уточнены блокеры.
 2026-03-15T16:56:43+03:00 - Миграция на Turbopack завершена успешно: удален webpack() блок, заменен __ENVIRONMENT__ на process.env, исправлены импорты. Turbopack запускается за 608ms, production build работает (9.2s).
+2026-03-15T17:59:49+03:00 | Миграция Webpack → Turbopack завершена | Build: успешен (38.3s), Type-check: успешен, Lint: успешен, Tests: 12733/12733 прошли | Удалены временные файлы: scripts/remove-js-extensions.mjs, reports/webpack-to-turbopack-migration-checklist.md

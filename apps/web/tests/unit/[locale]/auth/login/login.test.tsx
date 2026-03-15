@@ -30,7 +30,7 @@ vi.mock('@livai/ui-features', () => ({
 }));
 
 // Mock для i18n routing
-vi.mock('../../../../../../i18n/routing.js', () => ({
+vi.mock('../../../../../../i18n/routing', () => ({
   type: {},
 }));
 

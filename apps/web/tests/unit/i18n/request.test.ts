@@ -10,7 +10,7 @@ vi.mock('next-intl/server', () => ({
 }));
 
 // Mock для routing
-vi.mock('../../../i18n/routing.js', () => ({
+vi.mock('../../../i18n/routing', () => ({
   defaultLocale: 'en',
   locales: ['en', 'ru'],
 }));

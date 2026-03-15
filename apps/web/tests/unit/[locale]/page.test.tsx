@@ -22,7 +22,7 @@ vi.mock('next-intl', () => ({
 }));
 
 // Mock для i18n routing
-vi.mock('../../../../i18n/routing.js', () => ({
+vi.mock('../../../../i18n/routing', () => ({
   type: {},
 }));
 
