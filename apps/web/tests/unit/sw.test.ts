@@ -187,14 +187,14 @@ describe('sw.ts - Service Worker', () => {
       vi.resetModules();
 
       // Импортируем модуль
-      await import('../../src/sw');
+      await import('../../src/sw.js');
 
       expect(mockSwSelf.addEventListener).toHaveBeenCalledWith('install', expect.any(Function));
       expect(installHandler).toBeDefined();
     }, 10000); // Увеличиваем таймаут до 10 секунд
 
     it('должен предзагрузить критические ресурсы при установке', async () => {
-      await import('../../src/sw');
+      await import('../../src/sw.js');
 
       const event = {
         waitUntil: vi.fn((promise: Readonly<Promise<unknown>>) => promise),
@@ -221,7 +221,7 @@ describe('sw.ts - Service Worker', () => {
       const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
       mockCache.addAll.mockRejectedValueOnce(new Error('Cache error'));
 
-      await import('../../src/sw');
+      await import('../../src/sw.js');
 
       const event = {
         waitUntil: vi.fn((promise: Readonly<Promise<unknown>>) => promise),
@@ -251,7 +251,7 @@ describe('sw.ts - Service Worker', () => {
         .mockResolvedValueOnce(undefined)
         .mockRejectedValueOnce(new Error('Static cache error'));
 
-      await import('../../src/sw');
+      await import('../../src/sw.js');
 
       const event = {
         waitUntil: vi.fn((promise: Readonly<Promise<unknown>>) => promise),
@@ -277,7 +277,7 @@ describe('sw.ts - Service Worker', () => {
       const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
       mockCaches.open.mockRejectedValueOnce(new Error('Open cache error'));
 
-      await import('../../src/sw');
+      await import('../../src/sw.js');
 
       const event = {
         waitUntil: vi.fn((promise: Readonly<Promise<unknown>>) => promise),
@@ -308,7 +308,7 @@ describe('sw.ts - Service Worker', () => {
 
       // Переимпортируем модуль и перезахватываем обработчики
       installHandler = undefined;
-      await import('../../src/sw');
+      await import('../../src/sw.js');
 
       // Ждем, пока обработчики будут установлены
       await new Promise((resolve) => setTimeout(resolve, 10));
@@ -336,7 +336,7 @@ describe('sw.ts - Service Worker', () => {
 
   describe('Activate event handler', () => {
     it('должен установить обработчик activate', async () => {
-      await import('../../src/sw');
+      await import('../../src/sw.js');
 
       expect(mockSwSelf.addEventListener).toHaveBeenCalledWith('activate', expect.any(Function));
       expect(activateHandler).toBeDefined();
@@ -358,7 +358,7 @@ describe('sw.ts - Service Worker', () => {
         swDisabled: vi.fn(() => false),
       }));
 
-      await import('../../src/sw');
+      await import('../../src/sw.js');
 
       // Убеждаемся что мок настроен перед вызовом обработчика
       const claimMock = vi.fn(() => Promise.resolve());
@@ -403,7 +403,7 @@ describe('sw.ts - Service Worker', () => {
         swDisabled: vi.fn(() => false),
       }));
 
-      await import('../../src/sw');
+      await import('../../src/sw.js');
 
       // Убеждаемся что мок настроен перед вызовом обработчика
       const claimMock = vi.fn(() => Promise.reject(new Error('Claim error')));
@@ -447,7 +447,7 @@ describe('sw.ts - Service Worker', () => {
 
       // Переимпортируем модуль и перезахватываем обработчики
       activateHandler = undefined;
-      await import('../../src/sw');
+      await import('../../src/sw.js');
 
       // Ждем, пока обработчики будут установлены
       await new Promise((resolve) => setTimeout(resolve, 10));
@@ -474,7 +474,7 @@ describe('sw.ts - Service Worker', () => {
 
   describe('Fetch event handler', () => {
     it('должен установить обработчик fetch', async () => {
-      await import('../../src/sw');
+      await import('../../src/sw.js');
 
       expect(mockSwSelf.addEventListener).toHaveBeenCalledWith('fetch', expect.any(Function));
       expect(fetchHandler).toBeDefined();
@@ -496,7 +496,7 @@ describe('sw.ts - Service Worker', () => {
         swDisabled: vi.fn(() => false),
       }));
 
-      await import('../../src/sw');
+      await import('../../src/sw.js');
 
       // Убеждаемся что мок настроен перед вызовом обработчика
       mockHandleRequest.mockResolvedValue({
@@ -551,7 +551,7 @@ describe('sw.ts - Service Worker', () => {
         swDisabled: vi.fn(() => false),
       }));
 
-      await import('../../src/sw');
+      await import('../../src/sw.js');
 
       // Убеждаемся что мок настроен перед вызовом обработчика
       mockHandleRequest.mockRejectedValueOnce(new Error('Request error'));
@@ -588,7 +588,7 @@ describe('sw.ts - Service Worker', () => {
     });
 
     it('не должен обрабатывать не-GET запросы', async () => {
-      await import('../../src/sw');
+      await import('../../src/sw.js');
 
       const request = new Request('https://example.com/test', { method: 'POST' });
       const event = {
@@ -609,7 +609,7 @@ describe('sw.ts - Service Worker', () => {
     });
 
     it('не должен обрабатывать запросы не начинающиеся с http', async () => {
-      await import('../../src/sw');
+      await import('../../src/sw.js');
 
       const request = new Request('chrome-extension://test', { method: 'GET' });
       const event = {
@@ -638,7 +638,7 @@ describe('sw.ts - Service Worker', () => {
 
       // Переимпортируем модуль и перезахватываем обработчики
       fetchHandler = undefined;
-      await import('../../src/sw');
+      await import('../../src/sw.js');
 
       // Ждем, пока обработчики будут установлены
       await new Promise((resolve) => setTimeout(resolve, 10));
@@ -667,14 +667,14 @@ describe('sw.ts - Service Worker', () => {
 
   describe('Push notification handler', () => {
     it('должен установить обработчик push', async () => {
-      await import('../../src/sw');
+      await import('../../src/sw.js');
 
       expect(mockSwSelf.addEventListener).toHaveBeenCalledWith('push', expect.any(Function));
       expect(pushHandler).toBeDefined();
     });
 
     it('должен обработать push уведомление', async () => {
-      await import('../../src/sw');
+      await import('../../src/sw.js');
 
       const event = {
         data: {
@@ -699,7 +699,7 @@ describe('sw.ts - Service Worker', () => {
       const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
       mockHandlePushNotification.mockRejectedValueOnce(new Error('Push error'));
 
-      await import('../../src/sw');
+      await import('../../src/sw.js');
 
       const event = {
         data: {
@@ -727,7 +727,7 @@ describe('sw.ts - Service Worker', () => {
 
   describe('Notification click handler', () => {
     it('должен установить обработчик notificationclick', async () => {
-      await import('../../src/sw');
+      await import('../../src/sw.js');
 
       expect(mockSwSelf.addEventListener).toHaveBeenCalledWith(
         'notificationclick',
@@ -737,7 +737,7 @@ describe('sw.ts - Service Worker', () => {
     });
 
     it('должен обработать клик по уведомлению', async () => {
-      await import('../../src/sw');
+      await import('../../src/sw.js');
 
       const mockNotification = {
         close: vi.fn(),
@@ -771,7 +771,7 @@ describe('sw.ts - Service Worker', () => {
       const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
       mockHandleNotificationClick.mockRejectedValueOnce(new Error('Notification click error'));
 
-      await import('../../src/sw');
+      await import('../../src/sw.js');
 
       const mockNotification = {
         close: vi.fn(),
@@ -806,7 +806,7 @@ describe('sw.ts - Service Worker', () => {
     });
 
     it('должен обработать клик по уведомлению с waitUntil', async () => {
-      await import('../../src/sw');
+      await import('../../src/sw.js');
 
       // Убеждаемся что мок настроен перед вызовом обработчика
       mockHandleNotificationClick.mockResolvedValue(undefined);
@@ -853,14 +853,14 @@ describe('sw.ts - Service Worker', () => {
 
   describe('Background sync handler', () => {
     it('должен установить обработчик sync', async () => {
-      await import('../../src/sw');
+      await import('../../src/sw.js');
 
       expect(mockSwSelf.addEventListener).toHaveBeenCalledWith('sync', expect.any(Function));
       expect(syncHandler).toBeDefined();
     });
 
     it('должен обработать background sync', async () => {
-      await import('../../src/sw');
+      await import('../../src/sw.js');
 
       const event = {
         tag: 'sync-messages',
@@ -885,7 +885,7 @@ describe('sw.ts - Service Worker', () => {
         throw new Error('Sync error');
       });
 
-      await import('../../src/sw');
+      await import('../../src/sw.js');
 
       const event = {
         tag: 'sync-messages',
@@ -911,7 +911,7 @@ describe('sw.ts - Service Worker', () => {
 
   describe('Экспорты', () => {
     it('должен экспортировать decommissionServiceWorker', async () => {
-      const module = await import('../../src/sw');
+      const module = await import('../../src/sw.js');
 
       expect(module).toHaveProperty('decommissionServiceWorker');
       expect(module.decommissionServiceWorker).toBe(mockDecommissionServiceWorker);
@@ -920,7 +920,7 @@ describe('sw.ts - Service Worker', () => {
 
   describe('Интеграционные тесты', () => {
     it('должен зарегистрировать все обработчики событий', async () => {
-      await import('../../src/sw');
+      await import('../../src/sw.js');
 
       expect(mockSwSelf.addEventListener).toHaveBeenCalledTimes(6);
       expect(mockSwSelf.addEventListener).toHaveBeenCalledWith('install', expect.any(Function));
@@ -935,7 +935,7 @@ describe('sw.ts - Service Worker', () => {
     });
 
     it('должен корректно обработать все обработчики при импорте', async () => {
-      await import('../../src/sw');
+      await import('../../src/sw.js');
 
       // Проверяем что все обработчики были зарегистрированы
       expect(installHandler).toBeDefined();

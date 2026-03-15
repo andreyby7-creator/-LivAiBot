@@ -12,7 +12,7 @@ afterEach(() => {
 
 describe('apps/web/src/app/robots.txt/route.ts', () => {
   it('exports runtime=edge and revalidate=false', async () => {
-    const mod = await import('../../../src/app/robots.txt/route');
+    const mod = await import('../../../src/app/robots.txt/route.js');
     expect(mod.runtime).toBe('edge');
     expect(mod.revalidate).toBe(false);
   });
@@ -20,7 +20,7 @@ describe('apps/web/src/app/robots.txt/route.ts', () => {
   it('GET: when NEXT_PUBLIC_APP_ENV is missing, it must behave fail-safe as non-prod (covers ?? null branch)', async () => {
     Reflect.deleteProperty(process.env, 'NEXT_PUBLIC_APP_ENV');
 
-    const { GET } = await import('../../../src/app/robots.txt/route');
+    const { GET } = await import('../../../src/app/robots.txt/route.js');
 
     const res = GET(createRequest('https://example.com/robots.txt') as unknown as never);
     expect(res.status).toBe(200);
@@ -34,7 +34,7 @@ describe('apps/web/src/app/robots.txt/route.ts', () => {
   it('GET: non-prod (development) must disallow all and be no-store', async () => {
     process.env['NEXT_PUBLIC_APP_ENV'] = 'development';
 
-    const { GET } = await import('../../../src/app/robots.txt/route');
+    const { GET } = await import('../../../src/app/robots.txt/route.js');
 
     const res = GET(createRequest('https://example.com/robots.txt') as unknown as never);
     expect(res.status).toBe(200);
@@ -51,7 +51,7 @@ describe('apps/web/src/app/robots.txt/route.ts', () => {
   it('GET: non-prod (staging) must disallow all and be no-store', async () => {
     process.env['NEXT_PUBLIC_APP_ENV'] = 'staging';
 
-    const { GET } = await import('../../../src/app/robots.txt/route');
+    const { GET } = await import('../../../src/app/robots.txt/route.js');
 
     const res = GET(createRequest('https://staging.example.com/robots.txt') as unknown as never);
     expect(res.headers.get('Cache-Control')).toBe('no-store');
@@ -65,7 +65,7 @@ describe('apps/web/src/app/robots.txt/route.ts', () => {
   it('GET: prod must allow root, disallow private/tech paths, include sitemap, and be cacheable', async () => {
     process.env['NEXT_PUBLIC_APP_ENV'] = 'production';
 
-    const { GET } = await import('../../../src/app/robots.txt/route');
+    const { GET } = await import('../../../src/app/robots.txt/route.js');
 
     const res = GET(createRequest('https://example.com/robots.txt') as unknown as never);
     expect(res.headers.get('Cache-Control')).toBe('public, max-age=3600');
@@ -83,7 +83,7 @@ describe('apps/web/src/app/robots.txt/route.ts', () => {
   it('GET: unknown app env should behave fail-safe as non-prod', async () => {
     process.env['NEXT_PUBLIC_APP_ENV'] = 'whatever';
 
-    const { GET } = await import('../../../src/app/robots.txt/route');
+    const { GET } = await import('../../../src/app/robots.txt/route.js');
 
     const res = GET(createRequest('https://example.com/robots.txt') as unknown as never);
     expect(res.headers.get('Cache-Control')).toBe('no-store');

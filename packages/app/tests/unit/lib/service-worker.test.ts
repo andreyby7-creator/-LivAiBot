@@ -273,7 +273,7 @@ describe('Service Worker', () => {
 
   describe('swDisabled', () => {
     it('должен возвращать false по умолчанию', async () => {
-      const { swDisabled } = await import('../../../src/lib/service-worker');
+      const { swDisabled } = await import('../../../src/lib/service-worker.js');
 
       expect(swDisabled()).toBe(false);
     });
@@ -282,7 +282,7 @@ describe('Service Worker', () => {
   describe('decommissionServiceWorker', () => {
     it('должен удалять все кеши с префиксом приложения', async () => {
       // Динамически импортируем модуль после настройки моков
-      const { decommissionServiceWorker } = await import('../../../src/lib/service-worker');
+      const { decommissionServiceWorker } = await import('../../../src/lib/service-worker.js');
 
       // Создаем кеши с правильным префиксом для тестовой среды (dev)
       await mockCaches.open('livai-dev-sw-v1.0.0');
@@ -301,7 +301,7 @@ describe('Service Worker', () => {
     });
 
     it('должен вызывать reload на клиентах с методом reload', async () => {
-      const { decommissionServiceWorker } = await import('../../../src/lib/service-worker');
+      const { decommissionServiceWorker } = await import('../../../src/lib/service-worker.js');
 
       const mockClient = {
         url: 'https://example.com',
@@ -319,7 +319,7 @@ describe('Service Worker', () => {
     });
 
     it('должен вызывать navigate на WindowClient', async () => {
-      const { decommissionServiceWorker } = await import('../../../src/lib/service-worker');
+      const { decommissionServiceWorker } = await import('../../../src/lib/service-worker.js');
 
       const mockClient = {
         url: 'https://example.com',
@@ -337,7 +337,7 @@ describe('Service Worker', () => {
     });
 
     it('должен обрабатывать клиентов без reload и navigate', async () => {
-      const { decommissionServiceWorker } = await import('../../../src/lib/service-worker');
+      const { decommissionServiceWorker } = await import('../../../src/lib/service-worker.js');
 
       const mockClient = {
         url: 'https://example.com',
@@ -353,7 +353,7 @@ describe('Service Worker', () => {
     });
 
     it('должен вызывать unregister на registration', async () => {
-      const { decommissionServiceWorker } = await import('../../../src/lib/service-worker');
+      const { decommissionServiceWorker } = await import('../../../src/lib/service-worker.js');
 
       await decommissionServiceWorker();
 
@@ -361,7 +361,7 @@ describe('Service Worker', () => {
     });
 
     it('должен обрабатывать ошибки gracefully', async () => {
-      const { decommissionServiceWorker } = await import('../../../src/lib/service-worker');
+      const { decommissionServiceWorker } = await import('../../../src/lib/service-worker.js');
 
       // Делаем caches.keys() выбрасывающим ошибку
       mockCaches.keys = vi.fn().mockRejectedValue(new Error('Cache error'));
@@ -422,7 +422,7 @@ describe('Service Worker', () => {
   describe('Cache Strategies', () => {
     beforeEach(async () => {
       // Импортируем модуль для инициализации event listeners
-      await import('../../../src/lib/service-worker');
+      await import('../../../src/lib/service-worker.js');
     });
 
     it('должен обрабатывать fetch события для GET запросов', async () => {
@@ -497,7 +497,7 @@ describe('Service Worker', () => {
 
   describe('Install Event', () => {
     it('должен кешировать precache URLs при установке', async () => {
-      await import('../../../src/lib/service-worker');
+      await import('../../../src/lib/service-worker.js');
 
       const mockWaitUntil = vi.fn().mockImplementation((promise) => {
         return promise;
@@ -517,7 +517,7 @@ describe('Service Worker', () => {
     it('должен пропускать установку если SW отключен', async () => {
       // Поскольку swDisabled всегда возвращает false, этот тест проверяет
       // что установка происходит нормально когда SW включен
-      await import('../../../src/lib/service-worker');
+      await import('../../../src/lib/service-worker.js');
 
       const mockWaitUntil = vi.fn().mockImplementation((promise) => promise);
       const mockEvent: Partial<ExtendableEvent> = {
@@ -535,7 +535,7 @@ describe('Service Worker', () => {
     });
 
     it('должен вызывать skipWaiting', async () => {
-      await import('../../../src/lib/service-worker');
+      await import('../../../src/lib/service-worker.js');
 
       const mockWaitUntil = vi.fn().mockImplementation((promise) => {
         return promise;
@@ -554,7 +554,7 @@ describe('Service Worker', () => {
 
   describe('Activate Event', () => {
     it('должен очищать старые кеши при активации', async () => {
-      await import('../../../src/lib/service-worker');
+      await import('../../../src/lib/service-worker.js');
 
       // Создаем старые кеши
       await mockCaches.open('livai-dev-sw-v0.9.0');
@@ -576,7 +576,7 @@ describe('Service Worker', () => {
     });
 
     it('должен активироваться когда SW включен', async () => {
-      await import('../../../src/lib/service-worker');
+      await import('../../../src/lib/service-worker.js');
 
       const mockWaitUntil = vi.fn().mockImplementation((promise) => promise);
       const mockEvent: Partial<ExtendableEvent> = {
@@ -595,7 +595,7 @@ describe('Service Worker', () => {
 
   describe('Push Notification', () => {
     it('должен обрабатывать push события', async () => {
-      await import('../../../src/lib/service-worker');
+      await import('../../../src/lib/service-worker.js');
 
       const mockEvent = {
         data: {
@@ -617,7 +617,7 @@ describe('Service Worker', () => {
     });
 
     it('должен обрабатывать push события с минимальными данными', async () => {
-      await import('../../../src/lib/service-worker');
+      await import('../../../src/lib/service-worker.js');
 
       const mockEvent = {
         data: null,
@@ -636,7 +636,7 @@ describe('Service Worker', () => {
 
   describe('Notification Click', () => {
     it('должен обрабатывать клики по уведомлениям', async () => {
-      await import('../../../src/lib/service-worker');
+      await import('../../../src/lib/service-worker.js');
 
       const mockNotification = {
         close: vi.fn(),
@@ -668,7 +668,7 @@ describe('Service Worker', () => {
     });
 
     it('должен открывать новое окно если клиент не найден', async () => {
-      await import('../../../src/lib/service-worker');
+      await import('../../../src/lib/service-worker.js');
 
       const mockNotification = {
         close: vi.fn(),
@@ -694,7 +694,7 @@ describe('Service Worker', () => {
     it('должен обрабатывать sync события', async () => {
       // Перезагружаем модуль после замены globalThis.self на mockSelf
       vi.resetModules();
-      await import('../../../src/lib/service-worker');
+      await import('../../../src/lib/service-worker.js');
 
       const mockWaitUntil = vi.fn().mockImplementation((promise) => {
         return promise;
@@ -717,7 +717,7 @@ describe('Service Worker', () => {
 
   describe('Error Handling', () => {
     it('должен обрабатывать ошибки при установке gracefully', async () => {
-      await import('../../../src/lib/service-worker');
+      await import('../../../src/lib/service-worker.js');
 
       // Делаем caches.open() выбрасывающим ошибку
       mockCaches.open = vi.fn().mockRejectedValue(new Error('Cache error'));
@@ -739,7 +739,7 @@ describe('Service Worker', () => {
     });
 
     it('должен обрабатывать ошибки при fetch gracefully', async () => {
-      await import('../../../src/lib/service-worker');
+      await import('../../../src/lib/service-worker.js');
 
       // Делаем fetch выбрасывающим ошибку
       mockFetch = vi.fn().mockRejectedValue(new Error('Network error')) as unknown as typeof fetch;
@@ -765,7 +765,7 @@ describe('Service Worker', () => {
 
   describe('Fetch Event - SW Enabled', () => {
     it('должен обрабатывать запросы когда SW включен', async () => {
-      await import('../../../src/lib/service-worker');
+      await import('../../../src/lib/service-worker.js');
 
       const mockRespondWith = vi.fn();
       const mockEvent: Partial<FetchEvent> = {
@@ -785,7 +785,7 @@ describe('Service Worker', () => {
 
   describe('Self Health Monitoring', () => {
     it('должен игнорировать fetch если превышен лимит ошибок', async () => {
-      await import('../../../src/lib/service-worker');
+      await import('../../../src/lib/service-worker.js');
 
       // Симулируем много ошибок через fetch
       mockFetch = vi.fn().mockRejectedValue(new Error('Network error')) as unknown as typeof fetch;
@@ -827,7 +827,7 @@ describe('Service Worker', () => {
 
   describe('Cache Validation', () => {
     it('должен проверять валидность ответов для кеширования', async () => {
-      await import('../../../src/lib/service-worker');
+      await import('../../../src/lib/service-worker.js');
 
       const validResponse = createMockResponse(200, 'test', {
         'content-type': 'application/json',
@@ -846,7 +846,7 @@ describe('Service Worker', () => {
     });
 
     it('должен проверять размер ответа', async () => {
-      await import('../../../src/lib/service-worker');
+      await import('../../../src/lib/service-worker.js');
 
       const smallResponse = createMockResponse(200, 'small', {
         'content-type': 'text/plain',
@@ -881,7 +881,7 @@ describe('Service Worker', () => {
 
   describe('Route Configuration', () => {
     it('должен определять правильную стратегию для статических ресурсов', async () => {
-      await import('../../../src/lib/service-worker');
+      await import('../../../src/lib/service-worker.js');
 
       const staticUrls = [
         'https://example.com/style.css',
@@ -905,7 +905,7 @@ describe('Service Worker', () => {
     });
 
     it('должен определять правильную стратегию для API запросов', async () => {
-      await import('../../../src/lib/service-worker');
+      await import('../../../src/lib/service-worker.js');
 
       const apiRequest = createMockRequest('https://example.com/api/test', 'GET', {
         authorization: 'Bearer token123',
@@ -925,7 +925,7 @@ describe('Service Worker', () => {
     });
 
     it('должен определять правильную стратегию для HTML страниц', async () => {
-      await import('../../../src/lib/service-worker');
+      await import('../../../src/lib/service-worker.js');
 
       const htmlRequest = createMockRequest('https://example.com/page.html');
 
@@ -945,7 +945,7 @@ describe('Service Worker', () => {
 
   describe('getUserHashFromRequest - полное покрытие', () => {
     beforeEach(async () => {
-      await import('../../../src/lib/service-worker');
+      await import('../../../src/lib/service-worker.js');
     });
 
     it('должен возвращать null для запроса без authorization header', async () => {
@@ -1067,7 +1067,7 @@ describe('Service Worker', () => {
 
   describe('getRouteConfig - полное покрытие', () => {
     beforeEach(async () => {
-      await import('../../../src/lib/service-worker');
+      await import('../../../src/lib/service-worker.js');
     });
 
     it('должен определять конфигурацию для строкового паттерна', async () => {
@@ -1117,7 +1117,7 @@ describe('Service Worker', () => {
 
   describe('isValidForCaching - полное покрытие', () => {
     beforeEach(async () => {
-      await import('../../../src/lib/service-worker');
+      await import('../../../src/lib/service-worker.js');
     });
 
     it('должен отклонять HTML ответы в API кеше', async () => {
@@ -1212,7 +1212,7 @@ describe('Service Worker', () => {
 
   describe('networkFirstStrategy - полное покрытие', () => {
     beforeEach(async () => {
-      await import('../../../src/lib/service-worker');
+      await import('../../../src/lib/service-worker.js');
     });
 
     it('должен обрабатывать таймаут сети', async () => {
@@ -1316,7 +1316,7 @@ describe('Service Worker', () => {
 
   describe('cacheFirstStrategy - полное покрытие', () => {
     beforeEach(async () => {
-      await import('../../../src/lib/service-worker');
+      await import('../../../src/lib/service-worker.js');
     });
 
     it('должен возвращать STALE кеш если сеть недоступна', async () => {
@@ -1418,7 +1418,7 @@ describe('Service Worker', () => {
 
   describe('staleWhileRevalidateStrategy - полное покрытие', () => {
     beforeEach(async () => {
-      await import('../../../src/lib/service-worker');
+      await import('../../../src/lib/service-worker.js');
     });
 
     it('должен запускать фоновое обновление для существующего кеша', async () => {
@@ -1580,7 +1580,7 @@ describe('Service Worker', () => {
 
   describe('handleRequest - NetworkOnly и CacheOnly', () => {
     beforeEach(async () => {
-      await import('../../../src/lib/service-worker');
+      await import('../../../src/lib/service-worker.js');
     });
 
     it('должен обрабатывать NetworkOnly стратегию с успешным ответом', async () => {
@@ -1677,7 +1677,7 @@ describe('Service Worker', () => {
 
   describe('cleanOldCacheEntries - полное покрытие', () => {
     beforeEach(async () => {
-      await import('../../../src/lib/service-worker');
+      await import('../../../src/lib/service-worker.js');
     });
 
     it('должен очищать старые записи при превышении maxEntries', async () => {
@@ -1743,7 +1743,7 @@ describe('Service Worker', () => {
 
   describe('getCacheSize и purgeCacheIfNeeded', () => {
     beforeEach(async () => {
-      await import('../../../src/lib/service-worker');
+      await import('../../../src/lib/service-worker.js');
     });
 
     it('должен подсчитывать размер кеша через content-length', async () => {
@@ -2051,7 +2051,7 @@ describe('Service Worker', () => {
 
   describe('runVersionMigrations', () => {
     beforeEach(async () => {
-      await import('../../../src/lib/service-worker');
+      await import('../../../src/lib/service-worker.js');
     });
 
     it('должен выполнять миграции при активации', async () => {
@@ -2087,7 +2087,7 @@ describe('Service Worker', () => {
 
   describe('Обработка ошибок в fetch', () => {
     beforeEach(async () => {
-      await import('../../../src/lib/service-worker');
+      await import('../../../src/lib/service-worker.js');
     });
 
     it('должен обрабатывать ошибки парсинга URL', async () => {
@@ -2191,7 +2191,7 @@ describe('Service Worker', () => {
 
   describe('notificationclick без waitUntil', () => {
     beforeEach(async () => {
-      await import('../../../src/lib/service-worker');
+      await import('../../../src/lib/service-worker.js');
     });
 
     it('должен обрабатывать notificationclick без waitUntil метода', async () => {
@@ -2214,7 +2214,7 @@ describe('Service Worker', () => {
 
   describe('Дополнительные edge cases', () => {
     beforeEach(async () => {
-      await import('../../../src/lib/service-worker');
+      await import('../../../src/lib/service-worker.js');
     });
 
     it('должен игнорировать запросы не начинающиеся с http', async () => {
@@ -2282,7 +2282,7 @@ describe('Service Worker', () => {
 
   describe('Дополнительные тесты для непокрытых участков', () => {
     beforeEach(async () => {
-      await import('../../../src/lib/service-worker');
+      await import('../../../src/lib/service-worker.js');
     });
 
     it('должен обрабатывать пустой токен после Bearer в getUserHashFromRequest', async () => {

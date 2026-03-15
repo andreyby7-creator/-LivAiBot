@@ -179,7 +179,7 @@ describe('sw-register.ts - Service Worker Registration', () => {
       Object.assign(process.env, { NODE_ENV: 'production' });
       delete process.env['NEXT_PUBLIC_APP_ENV'];
 
-      const { registerServiceWorker } = await import('../../../src/app/sw-register');
+      const { registerServiceWorker } = await import('../../../src/app/sw-register.js');
 
       await registerServiceWorker();
 
@@ -190,7 +190,7 @@ describe('sw-register.ts - Service Worker Registration', () => {
       Object.assign(process.env, { NODE_ENV: 'development' });
       delete process.env['NEXT_PUBLIC_APP_ENV'];
 
-      const { registerServiceWorker } = await import('../../../src/app/sw-register');
+      const { registerServiceWorker } = await import('../../../src/app/sw-register.js');
 
       await registerServiceWorker();
 
@@ -203,7 +203,7 @@ describe('sw-register.ts - Service Worker Registration', () => {
 
       const consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
 
-      const { registerServiceWorker } = await import('../../../src/app/sw-register');
+      const { registerServiceWorker } = await import('../../../src/app/sw-register.js');
 
       await registerServiceWorker();
 
@@ -219,7 +219,7 @@ describe('sw-register.ts - Service Worker Registration', () => {
 
       const consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
 
-      const { registerServiceWorker } = await import('../../../src/app/sw-register');
+      const { registerServiceWorker } = await import('../../../src/app/sw-register.js');
 
       await registerServiceWorker();
 
@@ -235,7 +235,7 @@ describe('sw-register.ts - Service Worker Registration', () => {
 
       const consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
 
-      const { registerServiceWorker } = await import('../../../src/app/sw-register');
+      const { registerServiceWorker } = await import('../../../src/app/sw-register.js');
 
       await registerServiceWorker();
 
@@ -256,7 +256,7 @@ describe('sw-register.ts - Service Worker Registration', () => {
 
       const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
-      const { registerServiceWorker } = await import('../../../src/app/sw-register');
+      const { registerServiceWorker } = await import('../../../src/app/sw-register.js');
 
       await registerServiceWorker();
 
@@ -269,7 +269,7 @@ describe('sw-register.ts - Service Worker Registration', () => {
       Object.assign(process.env, { NODE_ENV: 'production' });
       delete process.env['NEXT_PUBLIC_APP_ENV'];
 
-      const { registerServiceWorker } = await import('../../../src/app/sw-register');
+      const { registerServiceWorker } = await import('../../../src/app/sw-register.js');
 
       await registerServiceWorker();
 
@@ -294,7 +294,7 @@ describe('sw-register.ts - Service Worker Registration', () => {
 
       const consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
 
-      const { registerServiceWorker } = await import('../../../src/app/sw-register');
+      const { registerServiceWorker } = await import('../../../src/app/sw-register.js');
 
       await registerServiceWorker();
 
@@ -339,7 +339,7 @@ describe('sw-register.ts - Service Worker Registration', () => {
       const consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
       vi.useFakeTimers();
 
-      const { registerServiceWorker } = await import('../../../src/app/sw-register');
+      const { registerServiceWorker } = await import('../../../src/app/sw-register.js');
 
       await registerServiceWorker();
 
@@ -383,7 +383,7 @@ describe('sw-register.ts - Service Worker Registration', () => {
         configurable: true,
       });
 
-      const { registerServiceWorker } = await import('../../../src/app/sw-register');
+      const { registerServiceWorker } = await import('../../../src/app/sw-register.js');
 
       await registerServiceWorker();
 
@@ -408,7 +408,7 @@ describe('sw-register.ts - Service Worker Registration', () => {
       Object.assign(process.env, { NODE_ENV: 'production' });
       delete process.env['NEXT_PUBLIC_APP_ENV'];
 
-      const { unregisterServiceWorker } = await import('../../../src/app/sw-register');
+      const { unregisterServiceWorker } = await import('../../../src/app/sw-register.js');
 
       await unregisterServiceWorker();
 
@@ -419,7 +419,7 @@ describe('sw-register.ts - Service Worker Registration', () => {
       Object.assign(process.env, { NODE_ENV: 'development' });
       delete process.env['NEXT_PUBLIC_APP_ENV'];
 
-      const { unregisterServiceWorker } = await import('../../../src/app/sw-register');
+      const { unregisterServiceWorker } = await import('../../../src/app/sw-register.js');
 
       await unregisterServiceWorker();
 
@@ -439,7 +439,7 @@ describe('sw-register.ts - Service Worker Registration', () => {
 
       const consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
 
-      const { unregisterServiceWorker } = await import('../../../src/app/sw-register');
+      const { unregisterServiceWorker } = await import('../../../src/app/sw-register.js');
 
       await unregisterServiceWorker();
 
@@ -459,7 +459,7 @@ describe('sw-register.ts - Service Worker Registration', () => {
 
       const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
-      const { unregisterServiceWorker } = await import('../../../src/app/sw-register');
+      const { unregisterServiceWorker } = await import('../../../src/app/sw-register.js');
 
       await unregisterServiceWorker();
 
@@ -484,7 +484,7 @@ describe('sw-register.ts - Service Worker Registration', () => {
 
       const consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
 
-      const { unregisterServiceWorker } = await import('../../../src/app/sw-register');
+      const { unregisterServiceWorker } = await import('../../../src/app/sw-register.js');
 
       await unregisterServiceWorker();
 
@@ -519,7 +519,7 @@ describe('sw-register.ts - Service Worker Registration', () => {
 
       vi.useFakeTimers();
 
-      const { registerServiceWorker } = await import('../../../src/app/sw-register');
+      const { registerServiceWorker } = await import('../../../src/app/sw-register.js');
 
       await registerServiceWorker();
 
@@ -559,7 +559,7 @@ describe('sw-register.ts - Service Worker Registration', () => {
 
       vi.useFakeTimers();
 
-      const { registerServiceWorker } = await import('../../../src/app/sw-register');
+      const { registerServiceWorker } = await import('../../../src/app/sw-register.js');
 
       await registerServiceWorker();
 
@@ -599,7 +599,7 @@ describe('sw-register.ts - Service Worker Registration', () => {
 
       vi.useFakeTimers();
 
-      const { registerServiceWorker } = await import('../../../src/app/sw-register');
+      const { registerServiceWorker } = await import('../../../src/app/sw-register.js');
 
       await registerServiceWorker();
 
@@ -639,7 +639,7 @@ describe('sw-register.ts - Service Worker Registration', () => {
 
       vi.useFakeTimers();
 
-      const { registerServiceWorker } = await import('../../../src/app/sw-register');
+      const { registerServiceWorker } = await import('../../../src/app/sw-register.js');
 
       await registerServiceWorker();
 
@@ -679,7 +679,7 @@ describe('sw-register.ts - Service Worker Registration', () => {
 
       vi.useFakeTimers();
 
-      const { registerServiceWorker } = await import('../../../src/app/sw-register');
+      const { registerServiceWorker } = await import('../../../src/app/sw-register.js');
 
       await registerServiceWorker();
 
@@ -719,7 +719,7 @@ describe('sw-register.ts - Service Worker Registration', () => {
 
       vi.useFakeTimers();
 
-      const { registerServiceWorker } = await import('../../../src/app/sw-register');
+      const { registerServiceWorker } = await import('../../../src/app/sw-register.js');
 
       await registerServiceWorker();
 
@@ -761,7 +761,7 @@ describe('sw-register.ts - Service Worker Registration', () => {
 
       vi.useFakeTimers();
 
-      const { registerServiceWorker } = await import('../../../src/app/sw-register');
+      const { registerServiceWorker } = await import('../../../src/app/sw-register.js');
 
       await registerServiceWorker();
 
@@ -799,7 +799,7 @@ describe('sw-register.ts - Service Worker Registration', () => {
 
       const consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
 
-      const { registerServiceWorker } = await import('../../../src/app/sw-register');
+      const { registerServiceWorker } = await import('../../../src/app/sw-register.js');
 
       await registerServiceWorker();
 
@@ -866,7 +866,7 @@ describe('sw-register.ts - Service Worker Registration', () => {
       const consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
       vi.useFakeTimers();
 
-      const { registerServiceWorker } = await import('../../../src/app/sw-register');
+      const { registerServiceWorker } = await import('../../../src/app/sw-register.js');
 
       await registerServiceWorker();
 
@@ -932,7 +932,7 @@ describe('sw-register.ts - Service Worker Registration', () => {
       const consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
       vi.useFakeTimers();
 
-      const { registerServiceWorker } = await import('../../../src/app/sw-register');
+      const { registerServiceWorker } = await import('../../../src/app/sw-register.js');
 
       await registerServiceWorker();
 

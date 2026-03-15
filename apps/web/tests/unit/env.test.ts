@@ -143,7 +143,7 @@ describe('env.ts - Environment Configuration', () => {
       setupRequiredEnv({ NODE_ENV: 'test' });
       // Импортируем модуль для проверки констант
       // Константы не экспортируются, но мы можем проверить их использование через схемы
-      const { serverEnvSchema, publicEnvSchema } = await import('../../src/env');
+      const { serverEnvSchema, publicEnvSchema } = await import('../../src/env.js');
 
       // Проверяем что схемы используют правильные значения по умолчанию
       const testEnv = {
@@ -182,7 +182,7 @@ describe('env.ts - Environment Configuration', () => {
       const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
 
       // Импортируем модуль - это вызовет generateSecret
-      await import('../../src/env');
+      await import('../../src/env.js');
 
       // Проверяем что секреты были сгенерированы
       expect(process.env['NEXTAUTH_SECRET']).toBeDefined();
@@ -224,7 +224,7 @@ describe('env.ts - Environment Configuration', () => {
 
       const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
 
-      await import('../../src/env');
+      await import('../../src/env.js');
 
       expect(process.env['NEXTAUTH_SECRET']).toBeDefined();
       expect(process.env['NEXTAUTH_SECRET']).not.toBe('');
@@ -244,7 +244,7 @@ describe('env.ts - Environment Configuration', () => {
 
       const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
 
-      await import('../../src/env');
+      await import('../../src/env.js');
 
       expect(process.env['NEXTAUTH_SECRET']).toBeDefined();
       expect(process.env['NEXTAUTH_SECRET']).not.toBe('');
@@ -265,7 +265,7 @@ describe('env.ts - Environment Configuration', () => {
 
       const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
 
-      await import('../../src/env');
+      await import('../../src/env.js');
 
       expect(process.env['JWT_SECRET']).toBeDefined();
       expect(process.env['JWT_SECRET']).not.toBe('');
@@ -285,7 +285,7 @@ describe('env.ts - Environment Configuration', () => {
 
       const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
 
-      await import('../../src/env');
+      await import('../../src/env.js');
 
       expect(process.env['JWT_SECRET']).toBeDefined();
       expect(process.env['JWT_SECRET']).not.toBe('');
@@ -310,7 +310,7 @@ describe('env.ts - Environment Configuration', () => {
       });
       const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
 
-      await import('../../src/env');
+      await import('../../src/env.js');
 
       expect(process.env['NEXTAUTH_SECRET']).toBe('existing-secret-key-minimum-32-chars-long');
       expect(process.env['JWT_SECRET']).toBe('existing-jwt-secret-key-minimum-32-chars');
@@ -341,7 +341,7 @@ describe('env.ts - Environment Configuration', () => {
       });
       const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
 
-      await import('../../src/env');
+      await import('../../src/env.js');
 
       // Проверяем что не было предупреждений о генерации секретов
       const secretWarnings = consoleWarnSpy.mock.calls.filter((call) =>
@@ -364,7 +364,7 @@ describe('env.ts - Environment Configuration', () => {
       });
       const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
 
-      await import('../../src/env');
+      await import('../../src/env.js');
 
       // Проверяем что не было предупреждений о генерации секретов
       const secretWarnings = consoleWarnSpy.mock.calls.filter((call) =>
@@ -380,7 +380,7 @@ describe('env.ts - Environment Configuration', () => {
     it('должна успешно валидировать корректные server env переменные', async () => {
       setupRequiredEnv({ NODE_ENV: 'test' });
 
-      const { serverEnv } = await import('../../src/env');
+      const { serverEnv } = await import('../../src/env.js');
 
       expect(serverEnv.NODE_ENV).toBe('test');
       expect(serverEnv.WEB_BASE_URL).toBe('http://localhost:3000');
@@ -394,7 +394,7 @@ describe('env.ts - Environment Configuration', () => {
     it('должна использовать установленные значения вместо дефолтных', async () => {
       setupRequiredEnv({ NODE_ENV: 'test' });
 
-      const { serverEnv } = await import('../../src/env');
+      const { serverEnv } = await import('../../src/env.js');
 
       expect(serverEnv.JWT_REFRESH_EXPIRES_IN).toBe('7d');
       expect(serverEnv.PORT).toBe(3000);
@@ -407,7 +407,7 @@ describe('env.ts - Environment Configuration', () => {
       const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
       await expect(async () => {
-        await import('../../src/env');
+        await import('../../src/env.js');
       }).rejects.toThrow();
 
       expect(consoleErrorSpy).toHaveBeenCalledWith(
@@ -424,7 +424,7 @@ describe('env.ts - Environment Configuration', () => {
       const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
       await expect(async () => {
-        await import('../../src/env');
+        await import('../../src/env.js');
       }).rejects.toThrow();
 
       expect(consoleErrorSpy).toHaveBeenCalledWith(
@@ -447,7 +447,7 @@ describe('env.ts - Environment Configuration', () => {
       const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
       await expect(async () => {
-        await import('../../src/env');
+        await import('../../src/env.js');
       }).rejects.toThrow();
 
       expect(consoleErrorSpy).toHaveBeenCalledWith(
@@ -470,7 +470,7 @@ describe('env.ts - Environment Configuration', () => {
         NEXT_PUBLIC_SUPPORTED_LOCALES: 'en,ru,fr',
       });
 
-      const { publicEnv } = await import('../../src/env');
+      const { publicEnv } = await import('../../src/env.js');
 
       expect(publicEnv.NEXT_PUBLIC_APP_ENV).toBe('production');
       expect(publicEnv.NEXT_PUBLIC_API_URL).toBe('https://api.example.com');
@@ -482,7 +482,7 @@ describe('env.ts - Environment Configuration', () => {
     it('должна использовать установленные значения для public env', async () => {
       setupRequiredEnv({ NODE_ENV: 'test' });
 
-      const { publicEnv } = await import('../../src/env');
+      const { publicEnv } = await import('../../src/env.js');
 
       expect(publicEnv.NEXT_PUBLIC_APP_ENV).toBe('development');
       expect(publicEnv.NEXT_PUBLIC_DEFAULT_LOCALE).toBe('en');
@@ -508,7 +508,7 @@ describe('env.ts - Environment Configuration', () => {
         NEXT_PUBLIC_SUPPORTED_LOCALES: 'en, ru ,fr',
       });
 
-      const { publicEnv } = await import('../../src/env');
+      const { publicEnv } = await import('../../src/env.js');
 
       expect(publicEnv.NEXT_PUBLIC_SUPPORTED_LOCALES).toEqual(['en', 'ru', 'fr']);
     });
@@ -526,7 +526,7 @@ describe('env.ts - Environment Configuration', () => {
       // Для проверки коэрсии в false используем пустую строку
       process.env['NEXT_PUBLIC_ENABLE_ISR'] = '';
 
-      const { publicEnv } = await import('../../src/env');
+      const { publicEnv } = await import('../../src/env.js');
 
       expect(publicEnv.NEXT_PUBLIC_ANALYTICS_DEBUG).toBe(true);
       expect(publicEnv.NEXT_PUBLIC_ENABLE_ISR).toBe(false); // пустая строка коэрсится в false
@@ -539,7 +539,7 @@ describe('env.ts - Environment Configuration', () => {
         NEXT_PUBLIC_ISR_REVALIDATE: '7200',
       });
 
-      const { publicEnv } = await import('../../src/env');
+      const { publicEnv } = await import('../../src/env.js');
 
       expect(publicEnv.NEXT_PUBLIC_ISR_REVALIDATE).toBe(7200);
     });
@@ -553,7 +553,7 @@ describe('env.ts - Environment Configuration', () => {
       const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
       await expect(async () => {
-        await import('../../src/env');
+        await import('../../src/env.js');
       }).rejects.toThrow();
 
       expect(consoleErrorSpy).toHaveBeenCalledWith(
@@ -573,7 +573,7 @@ describe('env.ts - Environment Configuration', () => {
       const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
       await expect(async () => {
-        await import('../../src/env');
+        await import('../../src/env.js');
       }).rejects.toThrow();
 
       expect(consoleErrorSpy).toHaveBeenCalledWith(
@@ -606,7 +606,7 @@ describe('env.ts - Environment Configuration', () => {
       const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
       await expect(async () => {
-        await import('../../src/env');
+        await import('../../src/env.js');
       }).rejects.toThrow();
 
       expect(consoleErrorSpy).toHaveBeenCalledWith(
@@ -673,7 +673,7 @@ describe('env.ts - Environment Configuration', () => {
     });
 
     it('должен экспортировать serverEnv с корректными типами', async () => {
-      const { serverEnv } = await import('../../src/env');
+      const { serverEnv } = await import('../../src/env.js');
 
       expect(serverEnv).toBeDefined();
       expect(serverEnv.NODE_ENV).toBe('test');
@@ -687,7 +687,7 @@ describe('env.ts - Environment Configuration', () => {
       process.env['NEXT_PUBLIC_DEFAULT_LOCALE'] = 'ru';
       process.env['NEXT_PUBLIC_SUPPORTED_LOCALES'] = 'en,ru,fr';
 
-      const { publicEnv } = await import('../../src/env');
+      const { publicEnv } = await import('../../src/env.js');
 
       expect(publicEnv).toBeDefined();
       expect(publicEnv.NEXT_PUBLIC_API_URL).toBe('http://localhost:3001');
@@ -699,7 +699,7 @@ describe('env.ts - Environment Configuration', () => {
     it('должен экспортировать locales как массив строк', async () => {
       process.env['NEXT_PUBLIC_SUPPORTED_LOCALES'] = 'en,ru,fr';
 
-      const { locales } = await import('../../src/env');
+      const { locales } = await import('../../src/env.js');
 
       expect(locales).toBeDefined();
       expect(Array.isArray(locales)).toBe(true);
@@ -710,7 +710,7 @@ describe('env.ts - Environment Configuration', () => {
     it('должен экспортировать defaultLocale как строку', async () => {
       process.env['NEXT_PUBLIC_DEFAULT_LOCALE'] = 'ru';
 
-      const { defaultLocale } = await import('../../src/env');
+      const { defaultLocale } = await import('../../src/env.js');
 
       expect(defaultLocale).toBeDefined();
       expect(typeof defaultLocale).toBe('string');
@@ -720,7 +720,7 @@ describe('env.ts - Environment Configuration', () => {
     it('locales должен быть производным от publicEnv.NEXT_PUBLIC_SUPPORTED_LOCALES', async () => {
       process.env['NEXT_PUBLIC_SUPPORTED_LOCALES'] = 'en,ru';
 
-      const { locales, publicEnv } = await import('../../src/env');
+      const { locales, publicEnv } = await import('../../src/env.js');
 
       expect(locales).toBe(publicEnv.NEXT_PUBLIC_SUPPORTED_LOCALES);
     });
@@ -728,7 +728,7 @@ describe('env.ts - Environment Configuration', () => {
     it('defaultLocale должен быть производным от publicEnv.NEXT_PUBLIC_DEFAULT_LOCALE', async () => {
       process.env['NEXT_PUBLIC_DEFAULT_LOCALE'] = 'ru';
 
-      const { defaultLocale, publicEnv } = await import('../../src/env');
+      const { defaultLocale, publicEnv } = await import('../../src/env.js');
 
       expect(defaultLocale).toBe(publicEnv.NEXT_PUBLIC_DEFAULT_LOCALE);
     });
@@ -749,7 +749,7 @@ describe('env.ts - Environment Configuration', () => {
         throw new Error('File not found');
       });
 
-      await import('../../src/env');
+      await import('../../src/env.js');
 
       // Проверяем что были предупреждения о missing vars
       expect(consoleWarnSpy).toHaveBeenCalledWith(
@@ -770,7 +770,7 @@ describe('env.ts - Environment Configuration', () => {
 
       const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
 
-      await import('../../src/env');
+      await import('../../src/env.js');
 
       expect(fs.default.accessSync).toHaveBeenCalled();
       expect(fs.default.readFileSync).toHaveBeenCalled();
@@ -792,7 +792,7 @@ describe('env.ts - Environment Configuration', () => {
         'NEXT_PUBLIC_SENTRY_DSN=https://sentry.io\n  NEXT_PUBLIC_POSTHOG_KEY=test-key\nINVALID_LINE\n',
       );
 
-      await import('../../src/env');
+      await import('../../src/env.js');
 
       // Проверяем что файл был прочитан
       expect(fs.default.accessSync).toHaveBeenCalled();
@@ -811,7 +811,7 @@ describe('env.ts - Environment Configuration', () => {
       });
       const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
 
-      await import('../../src/env');
+      await import('../../src/env.js');
 
       // Проверяем что есть предупреждение о missing переменных
       const missingVarsWarnings = consoleWarnSpy.mock.calls.filter((call) =>
@@ -831,7 +831,7 @@ describe('env.ts - Environment Configuration', () => {
         throw new Error('File not found');
       });
 
-      await import('../../src/env');
+      await import('../../src/env.js');
 
       expect(consoleWarnSpy).toHaveBeenCalledWith(
         expect.stringContaining('PORT'),
@@ -852,7 +852,7 @@ describe('env.ts - Environment Configuration', () => {
       });
       const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
 
-      await import('../../src/env');
+      await import('../../src/env.js');
 
       expect(consoleWarnSpy).toHaveBeenCalledWith(
         expect.stringContaining('TEST_API_URL'),
@@ -873,7 +873,7 @@ describe('env.ts - Environment Configuration', () => {
         throw new Error('File not found');
       });
 
-      await import('../../src/env');
+      await import('../../src/env.js');
 
       expect(consoleWarnSpy).toHaveBeenCalledWith(
         expect.stringContaining('NEXT_PUBLIC_DEFAULT_LOCALE'),
@@ -894,7 +894,7 @@ describe('env.ts - Environment Configuration', () => {
         throw new Error('File not found');
       });
 
-      await import('../../src/env');
+      await import('../../src/env.js');
 
       expect(consoleWarnSpy).toHaveBeenCalledWith(
         expect.stringContaining('NEXT_PUBLIC_SENTRY_DSN'),
@@ -915,7 +915,7 @@ describe('env.ts - Environment Configuration', () => {
       });
       const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
 
-      await import('../../src/env');
+      await import('../../src/env.js');
 
       // В production runtime check не выполняется, поэтому не должно быть предупреждений о missing vars
       const missingVarsWarnings = consoleWarnSpy.mock.calls.filter((call) =>
@@ -935,7 +935,7 @@ describe('env.ts - Environment Configuration', () => {
       });
       const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
 
-      await import('../../src/env');
+      await import('../../src/env.js');
 
       // В test окружении runtime check не выполняется, поэтому не должно быть предупреждений о missing vars
       const missingVarsWarnings = consoleWarnSpy.mock.calls.filter((call) =>

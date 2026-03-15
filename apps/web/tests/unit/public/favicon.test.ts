@@ -153,7 +153,7 @@ describe('favicon.ts - Favicon Service', () => {
 
   describe('injectFaviconService', () => {
     it('должен вставлять все элементы при полной конфигурации', async () => {
-      const { injectFaviconService } = await import('../../../public/favicon');
+      const { injectFaviconService } = await import('../../../public/favicon.js');
       const onInject = vi.fn();
 
       injectFaviconService({
@@ -181,7 +181,7 @@ describe('favicon.ts - Favicon Service', () => {
     });
 
     it('должен возвращать undefined', async () => {
-      const { injectFaviconService } = await import('../../../public/favicon');
+      const { injectFaviconService } = await import('../../../public/favicon.js');
       const result = injectFaviconService();
       expect(result).toBeUndefined();
     });
@@ -189,13 +189,13 @@ describe('favicon.ts - Favicon Service', () => {
     it('должен возвращать undefined если document не поддерживается', async () => {
       delete (global as { document?: Document; }).document;
 
-      const { injectFaviconService } = await import('../../../public/favicon');
+      const { injectFaviconService } = await import('../../../public/favicon.js');
       const result = injectFaviconService();
       expect(result).toBeUndefined();
     });
 
     it('должен возвращать undefined если enabled = false', async () => {
-      const { injectFaviconService } = await import('../../../public/favicon');
+      const { injectFaviconService } = await import('../../../public/favicon.js');
       vi.clearAllMocks();
       // Нужно также отключить дефолтные элементы, чтобы они не вставлялись
       const result = injectFaviconService({
@@ -209,7 +209,7 @@ describe('favicon.ts - Favicon Service', () => {
     });
 
     it('должен фильтровать иконки по darkMode в dynamic режиме', async () => {
-      const { injectFaviconService } = await import('../../../public/favicon');
+      const { injectFaviconService } = await import('../../../public/favicon.js');
       mockMatchMedia.mockReturnValue(createMockMediaQueryList(true));
 
       injectFaviconService({
@@ -224,7 +224,7 @@ describe('favicon.ts - Favicon Service', () => {
     });
 
     it('должен пропускать иконки с пустым url', async () => {
-      const { injectFaviconService } = await import('../../../public/favicon');
+      const { injectFaviconService } = await import('../../../public/favicon.js');
       injectFaviconService({
         icons: [{ url: '' }, { url: '/valid.png' }],
         appleIcons: [],
@@ -235,7 +235,7 @@ describe('favicon.ts - Favicon Service', () => {
     });
 
     it('должен пропускать appleIcons с пустым url', async () => {
-      const { injectFaviconService } = await import('../../../public/favicon');
+      const { injectFaviconService } = await import('../../../public/favicon.js');
       vi.clearAllMocks();
       injectFaviconService({
         icons: [],
@@ -263,7 +263,7 @@ describe('favicon.ts - Favicon Service', () => {
     });
 
     it('должен пропускать splashScreens с пустым url', async () => {
-      const { injectFaviconService } = await import('../../../public/favicon');
+      const { injectFaviconService } = await import('../../../public/favicon.js');
       vi.clearAllMocks();
       injectFaviconService({
         icons: [],
@@ -290,7 +290,7 @@ describe('favicon.ts - Favicon Service', () => {
     });
 
     it('должен обрабатывать ошибки через onError callback', async () => {
-      const { injectFaviconService } = await import('../../../public/favicon');
+      const { injectFaviconService } = await import('../../../public/favicon.js');
       const onError = vi.fn();
       const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
       (mockHead.appendChild as ReturnType<typeof vi.fn>).mockImplementation(() => {
@@ -307,7 +307,7 @@ describe('favicon.ts - Favicon Service', () => {
     });
 
     it('должен логировать ошибки в debug режиме', async () => {
-      const { injectFaviconService } = await import('../../../public/favicon');
+      const { injectFaviconService } = await import('../../../public/favicon.js');
       const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
       (mockHead.appendChild as ReturnType<typeof vi.fn>).mockImplementation(() => {
         throw new Error('Test error');
@@ -320,7 +320,7 @@ describe('favicon.ts - Favicon Service', () => {
     });
 
     it('должен использовать версионирование для URL', async () => {
-      const { injectFaviconService } = await import('../../../public/favicon');
+      const { injectFaviconService } = await import('../../../public/favicon.js');
       vi.clearAllMocks();
       injectFaviconService({
         icons: [{ url: '/icon.png', version: '2.0.0' }],
@@ -337,7 +337,7 @@ describe('favicon.ts - Favicon Service', () => {
     });
 
     it('должен делать shallow clone массивов', async () => {
-      const { injectFaviconService } = await import('../../../public/favicon');
+      const { injectFaviconService } = await import('../../../public/favicon.js');
       vi.clearAllMocks();
       const icons = [{ url: '/icon.png' }];
       injectFaviconService({
@@ -360,7 +360,7 @@ describe('favicon.ts - Favicon Service', () => {
 
   describe('initFaviconService', () => {
     it('должен инициализировать сервис и вернуть unsubscribe функцию', async () => {
-      const { initFaviconService } = await import('../../../public/favicon');
+      const { initFaviconService } = await import('../../../public/favicon.js');
       mockMatchMedia.mockReturnValue(createMockMediaQueryList(false));
 
       const unsubscribe = initFaviconService({ dynamic: true });
@@ -369,7 +369,7 @@ describe('favicon.ts - Favicon Service', () => {
     });
 
     it('должен очищать предыдущие подписки', async () => {
-      const { initFaviconService } = await import('../../../public/favicon');
+      const { initFaviconService } = await import('../../../public/favicon.js');
       const unsubscribe2 = vi.fn();
       const mockMediaQuery = createMockMediaQueryList(false);
       (mockMediaQuery.addEventListener as ReturnType<typeof vi.fn>).mockReturnValue(unsubscribe2);
@@ -383,25 +383,25 @@ describe('favicon.ts - Favicon Service', () => {
     it('должен возвращать undefined если document не поддерживается', async () => {
       delete (global as { document?: Document; }).document;
 
-      const { initFaviconService } = await import('../../../public/favicon');
+      const { initFaviconService } = await import('../../../public/favicon.js');
       const result = initFaviconService();
       expect(result).toBeUndefined();
     });
 
     it('должен возвращать undefined если enabled = false', async () => {
-      const { initFaviconService } = await import('../../../public/favicon');
+      const { initFaviconService } = await import('../../../public/favicon.js');
       const result = initFaviconService({ enabled: false });
       expect(result).toBeUndefined();
     });
 
     it('должен возвращать undefined если dynamic = false', async () => {
-      const { initFaviconService } = await import('../../../public/favicon');
+      const { initFaviconService } = await import('../../../public/favicon.js');
       const result = initFaviconService({ dynamic: false });
       expect(result).toBeUndefined();
     });
 
     it('должен использовать кастомный debounceDelay', async () => {
-      const { initFaviconService } = await import('../../../public/favicon');
+      const { initFaviconService } = await import('../../../public/favicon.js');
       mockMatchMedia.mockReturnValue(createMockMediaQueryList(false));
 
       initFaviconService({ dynamic: true, debounceDelay: 200 });
@@ -412,7 +412,9 @@ describe('favicon.ts - Favicon Service', () => {
 
   describe('cleanupFaviconService', () => {
     it('должен очищать все подписки', async () => {
-      const { cleanupFaviconService, initFaviconService } = await import('../../../public/favicon');
+      const { cleanupFaviconService, initFaviconService } = await import(
+        '../../../public/favicon.js'
+      );
       const removeEventListener = vi.fn();
       const mockMediaQuery = createMockMediaQueryList(false);
       (mockMediaQuery.removeEventListener as ReturnType<typeof vi.fn>).mockImplementation(() =>
@@ -430,7 +432,7 @@ describe('favicon.ts - Favicon Service', () => {
   describe('subscribeToThemeChange', () => {
     it('должен подписываться на изменения темы через addEventListener', async () => {
       // Нужно протестировать через initFaviconService, так как subscribeToThemeChange не экспортирована
-      const { initFaviconService } = await import('../../../public/favicon');
+      const { initFaviconService } = await import('../../../public/favicon.js');
       const mockMediaQuery = createMockMediaQueryList(false);
       const addEventListenerSpy = mockMediaQuery.addEventListener as ReturnType<typeof vi.fn>;
       mockMatchMedia.mockReturnValue(mockMediaQuery);
@@ -440,7 +442,7 @@ describe('favicon.ts - Favicon Service', () => {
     });
 
     it('должен использовать fallback addListener для старых Safari', async () => {
-      const { initFaviconService } = await import('../../../public/favicon');
+      const { initFaviconService } = await import('../../../public/favicon.js');
       const mockMediaQuery = createMockMediaQueryList(false);
       const addListenerSpy = mockMediaQuery.addListener as ReturnType<typeof vi.fn>;
       // Удаляем addEventListener для симуляции старого Safari
@@ -461,7 +463,7 @@ describe('favicon.ts - Favicon Service', () => {
       // Также удаляем document, так как isDocumentSupported проверяет document
       delete (global as { document?: Document; }).document;
 
-      const { initFaviconService } = await import('../../../public/favicon');
+      const { initFaviconService } = await import('../../../public/favicon.js');
       const result = initFaviconService({ dynamic: true });
       expect(result).toBeUndefined();
 
@@ -471,7 +473,7 @@ describe('favicon.ts - Favicon Service', () => {
     });
 
     it('должен обрабатывать ошибки подписки через onError', async () => {
-      const { initFaviconService } = await import('../../../public/favicon');
+      const { initFaviconService } = await import('../../../public/favicon.js');
       const onError = vi.fn();
       mockMatchMedia.mockImplementation(() => {
         throw new Error('MatchMedia error');
@@ -482,7 +484,7 @@ describe('favicon.ts - Favicon Service', () => {
     });
 
     it('должен логировать ошибки в debug режиме', async () => {
-      const { initFaviconService } = await import('../../../public/favicon');
+      const { initFaviconService } = await import('../../../public/favicon.js');
       const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
       mockMatchMedia.mockImplementation(() => {
         throw new Error('MatchMedia error');
@@ -498,7 +500,7 @@ describe('favicon.ts - Favicon Service', () => {
   describe('debounce', () => {
     it('должен debounce вызовы функции', async () => {
       // Тестируем через subscribeToThemeChange
-      const { initFaviconService } = await import('../../../public/favicon');
+      const { initFaviconService } = await import('../../../public/favicon.js');
       const mockMediaQuery = createMockMediaQueryList(false);
       const addEventListenerSpy = mockMediaQuery.addEventListener as ReturnType<typeof vi.fn>;
       addEventListenerSpy.mockImplementation((_event, handler) => {
@@ -524,7 +526,7 @@ describe('favicon.ts - Favicon Service', () => {
 
   describe('createImmutableConfig', () => {
     it('должен поддерживать override пустыми массивами', async () => {
-      const { injectFaviconService } = await import('../../../public/favicon');
+      const { injectFaviconService } = await import('../../../public/favicon.js');
       vi.clearAllMocks();
       injectFaviconService({
         icons: [],
@@ -545,7 +547,7 @@ describe('favicon.ts - Favicon Service', () => {
     });
 
     it('должен нормализовать boolean значения', async () => {
-      const { injectFaviconService } = await import('../../../public/favicon');
+      const { injectFaviconService } = await import('../../../public/favicon.js');
       injectFaviconService({
         dynamic: true,
         enabled: true,
@@ -556,7 +558,7 @@ describe('favicon.ts - Favicon Service', () => {
     });
 
     it('должен обрабатывать debounceDelay', async () => {
-      const { initFaviconService } = await import('../../../public/favicon');
+      const { initFaviconService } = await import('../../../public/favicon.js');
       mockMatchMedia.mockReturnValue(createMockMediaQueryList(false));
 
       initFaviconService({ dynamic: true, debounceDelay: 50 });
@@ -564,7 +566,7 @@ describe('favicon.ts - Favicon Service', () => {
     });
 
     it('должен обрабатывать onInject и onError callbacks', async () => {
-      const { injectFaviconService } = await import('../../../public/favicon');
+      const { injectFaviconService } = await import('../../../public/favicon.js');
       vi.clearAllMocks();
       const onInject = vi.fn();
       const onError = vi.fn();
@@ -590,7 +592,7 @@ describe('favicon.ts - Favicon Service', () => {
 
   describe('logDebug', () => {
     it('должен вызывать onInject для HTMLLinkElement', async () => {
-      const { injectFaviconService } = await import('../../../public/favicon');
+      const { injectFaviconService } = await import('../../../public/favicon.js');
       vi.clearAllMocks();
       const onInject = vi.fn();
       injectFaviconService({
@@ -610,7 +612,7 @@ describe('favicon.ts - Favicon Service', () => {
     });
 
     it('не должен логировать в production режиме', async () => {
-      const { injectFaviconService } = await import('../../../public/favicon');
+      const { injectFaviconService } = await import('../../../public/favicon.js');
       const consoleDebugSpy = vi.spyOn(console, 'debug').mockImplementation(() => {});
       mockProcessEnv.NODE_ENV = 'production';
 
@@ -628,7 +630,7 @@ describe('favicon.ts - Favicon Service', () => {
     it('должен возвращать false если window не определен', async () => {
       delete (global as { window?: Window & typeof globalThis; }).window;
 
-      const { injectFaviconService } = await import('../../../public/favicon');
+      const { injectFaviconService } = await import('../../../public/favicon.js');
       injectFaviconService({
         icons: [{ url: '/icon.png', darkMode: true }],
         dynamic: true,
@@ -639,7 +641,7 @@ describe('favicon.ts - Favicon Service', () => {
 
     it('должен возвращать false если matchMedia не определен', async () => {
       mockWindow.matchMedia = undefined as unknown as typeof mockWindow.matchMedia;
-      const { injectFaviconService } = await import('../../../public/favicon');
+      const { injectFaviconService } = await import('../../../public/favicon.js');
       injectFaviconService({
         icons: [{ url: '/icon.png', darkMode: true }],
         dynamic: true,
@@ -651,7 +653,7 @@ describe('favicon.ts - Favicon Service', () => {
       mockMatchMedia.mockImplementation(() => {
         throw new Error('MatchMedia error');
       });
-      const { injectFaviconService } = await import('../../../public/favicon');
+      const { injectFaviconService } = await import('../../../public/favicon.js');
       injectFaviconService({
         icons: [{ url: '/icon.png', darkMode: true }],
         dynamic: true,
@@ -662,7 +664,7 @@ describe('favicon.ts - Favicon Service', () => {
 
   describe('createLink, createManifestLink, createSplashLink', () => {
     it('должен создавать link элемент с правильными атрибутами', async () => {
-      const { injectFaviconService } = await import('../../../public/favicon');
+      const { injectFaviconService } = await import('../../../public/favicon.js');
       const createElementSpy = vi.spyOn(mockDocument, 'createElement');
       injectFaviconService({
         icons: [{ url: '/icon.png', rel: 'icon', type: 'image/png', sizes: '32x32' }],
@@ -673,7 +675,7 @@ describe('favicon.ts - Favicon Service', () => {
     });
 
     it('должен пропускать иконки с пустым url', async () => {
-      const { injectFaviconService } = await import('../../../public/favicon');
+      const { injectFaviconService } = await import('../../../public/favicon.js');
       vi.clearAllMocks();
       const onError = vi.fn();
       injectFaviconService({
@@ -692,7 +694,7 @@ describe('favicon.ts - Favicon Service', () => {
     });
 
     it('должен создавать manifest link', async () => {
-      const { injectFaviconService } = await import('../../../public/favicon');
+      const { injectFaviconService } = await import('../../../public/favicon.js');
       injectFaviconService({
         manifest: { url: '/manifest.json', version: '1.0.0' },
       });
@@ -700,7 +702,7 @@ describe('favicon.ts - Favicon Service', () => {
     });
 
     it('должен создавать splash screen link', async () => {
-      const { injectFaviconService } = await import('../../../public/favicon');
+      const { injectFaviconService } = await import('../../../public/favicon.js');
       injectFaviconService({
         splashScreens: [{ url: '/splash.png', media: '(max-width: 640px)' }],
       });
@@ -710,7 +712,7 @@ describe('favicon.ts - Favicon Service', () => {
 
   describe('removeExistingLinks', () => {
     it('должен удалять существующие ссылки', async () => {
-      const { injectFaviconService } = await import('../../../public/favicon');
+      const { injectFaviconService } = await import('../../../public/favicon.js');
       const existingLink = {
         dataset: { faviconService: 'true' },
         parentNode: { removeChild: vi.fn() },
@@ -739,7 +741,7 @@ describe('favicon.ts - Favicon Service', () => {
 
   describe('shouldInjectIcon', () => {
     it('должен возвращать true если dynamic = false', async () => {
-      const { injectFaviconService } = await import('../../../public/favicon');
+      const { injectFaviconService } = await import('../../../public/favicon.js');
       injectFaviconService({
         icons: [{ url: '/icon.png', darkMode: false }],
         dynamic: false,
@@ -748,7 +750,7 @@ describe('favicon.ts - Favicon Service', () => {
     });
 
     it('должен возвращать true если darkMode = undefined', async () => {
-      const { injectFaviconService } = await import('../../../public/favicon');
+      const { injectFaviconService } = await import('../../../public/favicon.js');
       injectFaviconService({
         icons: [{ url: '/icon.png' }],
         dynamic: true,
@@ -757,7 +759,7 @@ describe('favicon.ts - Favicon Service', () => {
     });
 
     it('должен фильтровать по darkMode в dynamic режиме', async () => {
-      const { injectFaviconService } = await import('../../../public/favicon');
+      const { injectFaviconService } = await import('../../../public/favicon.js');
       mockMatchMedia.mockReturnValue(createMockMediaQueryList(true));
 
       injectFaviconService({
@@ -774,7 +776,7 @@ describe('favicon.ts - Favicon Service', () => {
 
   describe('normalizeArray', () => {
     it('должен возвращать пустой массив если configArray.length === 0', async () => {
-      const { injectFaviconService } = await import('../../../public/favicon');
+      const { injectFaviconService } = await import('../../../public/favicon.js');
       vi.clearAllMocks();
       injectFaviconService({
         icons: [],
@@ -794,13 +796,13 @@ describe('favicon.ts - Favicon Service', () => {
     });
 
     it('должен возвращать configArray если он определен', async () => {
-      const { injectFaviconService } = await import('../../../public/favicon');
+      const { injectFaviconService } = await import('../../../public/favicon.js');
       injectFaviconService({ icons: [{ url: '/icon.png' }] });
       expect(mockHead.appendChild).toHaveBeenCalled();
     });
 
     it('должен возвращать defaultsArray если configArray undefined', async () => {
-      const { injectFaviconService } = await import('../../../public/favicon');
+      const { injectFaviconService } = await import('../../../public/favicon.js');
       injectFaviconService({});
       // Должен использовать DEFAULT_CONFIG.icons
       expect(mockHead.appendChild).toHaveBeenCalled();
@@ -809,7 +811,7 @@ describe('favicon.ts - Favicon Service', () => {
 
   describe('normalizeBoolean', () => {
     it('должен нормализовать boolean значения', async () => {
-      const { injectFaviconService } = await import('../../../public/favicon');
+      const { injectFaviconService } = await import('../../../public/favicon.js');
       injectFaviconService({
         dynamic: true,
         enabled: true,
@@ -821,7 +823,7 @@ describe('favicon.ts - Favicon Service', () => {
 
   describe('handleError', () => {
     it('должен обрабатывать Error объекты', async () => {
-      const { injectFaviconService } = await import('../../../public/favicon');
+      const { injectFaviconService } = await import('../../../public/favicon.js');
       const onError = vi.fn();
       (mockHead.appendChild as ReturnType<typeof vi.fn>).mockImplementation(() => {
         throw new Error('Test error');
@@ -834,7 +836,7 @@ describe('favicon.ts - Favicon Service', () => {
     });
 
     it('должен обрабатывать не-Error объекты', async () => {
-      const { injectFaviconService } = await import('../../../public/favicon');
+      const { injectFaviconService } = await import('../../../public/favicon.js');
       const onError = vi.fn();
       (mockHead.appendChild as ReturnType<typeof vi.fn>).mockImplementation(() => {
         throw 'String error';
@@ -849,13 +851,13 @@ describe('favicon.ts - Favicon Service', () => {
 
   describe('Edge cases', () => {
     it('должен обрабатывать undefined config', async () => {
-      const { injectFaviconService } = await import('../../../public/favicon');
+      const { injectFaviconService } = await import('../../../public/favicon.js');
       injectFaviconService(undefined);
       expect(mockHead.appendChild).toHaveBeenCalled();
     });
 
     it('должен обрабатывать частичную конфигурацию', async () => {
-      const { injectFaviconService } = await import('../../../public/favicon');
+      const { injectFaviconService } = await import('../../../public/favicon.js');
       injectFaviconService({
         icons: [{ url: '/icon.png' }],
       });
@@ -863,7 +865,7 @@ describe('favicon.ts - Favicon Service', () => {
     });
 
     it('должен обрабатывать версионирование с пустой строкой', async () => {
-      const { injectFaviconService } = await import('../../../public/favicon');
+      const { injectFaviconService } = await import('../../../public/favicon.js');
       injectFaviconService({
         icons: [{ url: '/icon.png', version: '' }],
       });
@@ -871,7 +873,7 @@ describe('favicon.ts - Favicon Service', () => {
     });
 
     it('должен обрабатывать sizes с пустой строкой', async () => {
-      const { injectFaviconService } = await import('../../../public/favicon');
+      const { injectFaviconService } = await import('../../../public/favicon.js');
       injectFaviconService({
         icons: [{ url: '/icon.png', sizes: '' }],
       });

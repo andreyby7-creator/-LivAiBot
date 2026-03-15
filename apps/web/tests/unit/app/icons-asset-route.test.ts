@@ -45,14 +45,14 @@ describe('apps/web/src/app/icons/[asset]/route.ts', () => {
   });
 
   it('exports runtime=edge and revalidate=false', async () => {
-    const mod = await import('../../../src/app/icons/[asset]/route');
+    const mod = await import('../../../src/app/icons/[asset]/route.js');
     expect(mod.runtime).toBe('edge');
     expect(mod.revalidate).toBe(false);
   });
 
   it('GET: returns 404 JSON with no-store when asset is not in allow-list', async () => {
     mockParsePwaIconAsset.mockReturnValueOnce(null);
-    const { GET } = await import('../../../src/app/icons/[asset]/route');
+    const { GET } = await import('../../../src/app/icons/[asset]/route.js');
 
     const res = GET(
       createRequest('https://example.com/icons/anything.png?v=1') as unknown as never,
@@ -66,7 +66,7 @@ describe('apps/web/src/app/icons/[asset]/route.ts', () => {
 
   it('GET: normalizes missing asset param to empty string before parsing', async () => {
     mockParsePwaIconAsset.mockReturnValueOnce(null);
-    const { GET } = await import('../../../src/app/icons/[asset]/route');
+    const { GET } = await import('../../../src/app/icons/[asset]/route.js');
 
     GET(
       createRequest('https://example.com/icons/.png') as unknown as never,
@@ -86,7 +86,7 @@ describe('apps/web/src/app/icons/[asset]/route.ts', () => {
     mockParsePwaIconAsset.mockReturnValueOnce(spec);
     mockRenderPwaIconPng.mockReturnValueOnce(rendered);
 
-    const { GET } = await import('../../../src/app/icons/[asset]/route');
+    const { GET } = await import('../../../src/app/icons/[asset]/route.js');
 
     const res = GET(
       createRequest('https://example.com/icons/icon-192x192.png?v=abc') as unknown as never,
@@ -104,7 +104,7 @@ describe('apps/web/src/app/icons/[asset]/route.ts', () => {
     mockParsePwaIconAsset.mockReturnValueOnce(spec);
     mockRenderPwaIconPng.mockReturnValueOnce(rendered);
 
-    const { GET } = await import('../../../src/app/icons/[asset]/route');
+    const { GET } = await import('../../../src/app/icons/[asset]/route.js');
 
     const res = GET(
       createRequest('https://example.com/icons/icon-192x192.png') as unknown as never,

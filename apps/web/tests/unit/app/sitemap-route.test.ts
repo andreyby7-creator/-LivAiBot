@@ -23,7 +23,7 @@ afterEach(() => {
 
 describe('apps/web/src/app/sitemap.xml/route.ts', () => {
   it('exports runtime=edge and revalidate=false', async () => {
-    const mod = await import('../../../src/app/sitemap.xml/route');
+    const mod = await import('../../../src/app/sitemap.xml/route.js');
     expect(mod.runtime).toBe('edge');
     expect(mod.revalidate).toBe(false);
   });
@@ -31,7 +31,7 @@ describe('apps/web/src/app/sitemap.xml/route.ts', () => {
   it('GET: when NEXT_PUBLIC_APP_ENV is missing, it must behave fail-safe as non-prod (covers ?? null branch)', async () => {
     Reflect.deleteProperty(process.env, 'NEXT_PUBLIC_APP_ENV');
 
-    const { GET } = await import('../../../src/app/sitemap.xml/route');
+    const { GET } = await import('../../../src/app/sitemap.xml/route.js');
 
     const res = GET(createRequest('https://example.com/sitemap.xml') as unknown as never);
     expect(res.status).toBe(200);
@@ -46,7 +46,7 @@ describe('apps/web/src/app/sitemap.xml/route.ts', () => {
   it('GET: non-prod (development) must return empty sitemap and be no-store', async () => {
     process.env['NEXT_PUBLIC_APP_ENV'] = 'development';
 
-    const { GET } = await import('../../../src/app/sitemap.xml/route');
+    const { GET } = await import('../../../src/app/sitemap.xml/route.js');
 
     const res = GET(createRequest('https://example.com/sitemap.xml') as unknown as never);
     expect(res.status).toBe(200);
@@ -63,7 +63,7 @@ describe('apps/web/src/app/sitemap.xml/route.ts', () => {
   it('GET: non-prod (staging) must return empty sitemap and be no-store', async () => {
     process.env['NEXT_PUBLIC_APP_ENV'] = 'staging';
 
-    const { GET } = await import('../../../src/app/sitemap.xml/route');
+    const { GET } = await import('../../../src/app/sitemap.xml/route.js');
 
     const res = GET(createRequest('https://staging.example.com/sitemap.xml') as unknown as never);
     expect(res.headers.get('Cache-Control')).toBe('no-store');
@@ -77,7 +77,7 @@ describe('apps/web/src/app/sitemap.xml/route.ts', () => {
   it('GET: prod must include all locales and be cacheable', async () => {
     process.env['NEXT_PUBLIC_APP_ENV'] = 'production';
 
-    const { GET } = await import('../../../src/app/sitemap.xml/route');
+    const { GET } = await import('../../../src/app/sitemap.xml/route.js');
 
     const res = GET(createRequest('https://example.com/sitemap.xml') as unknown as never);
     expect(res.status).toBe(200);
@@ -105,7 +105,7 @@ describe('apps/web/src/app/sitemap.xml/route.ts', () => {
   it('GET: unknown app env should behave fail-safe as non-prod', async () => {
     process.env['NEXT_PUBLIC_APP_ENV'] = 'whatever';
 
-    const { GET } = await import('../../../src/app/sitemap.xml/route');
+    const { GET } = await import('../../../src/app/sitemap.xml/route.js');
 
     const res = GET(createRequest('https://example.com/sitemap.xml') as unknown as never);
     expect(res.headers.get('Cache-Control')).toBe('no-store');
