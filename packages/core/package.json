@@ -64,12 +64,12 @@
       "default": "./dist/resilience/index.js"
     },
     "./policies/*": {
-      "types": "./src/policies/*.ts",
-      "import": "./src/policies/*.ts"
+      "types": "./dist/policies/*.d.ts",
+      "import": "./dist/policies/*.js"
     },
     "./input-boundary/*": {
-      "types": "./src/input-boundary/*.ts",
-      "import": "./src/input-boundary/*.ts"
+      "types": "./dist/input-boundary/*.d.ts",
+      "import": "./dist/input-boundary/*.js"
     },
     "./telemetry": {
       "types": "./dist/telemetry/index.d.ts",
