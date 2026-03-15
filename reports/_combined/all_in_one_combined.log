@@ -2669,3 +2669,4 @@ $(date -Iseconds) - Проверка консистентности конфиг
 2026-03-15T17:05:42Z [turbopack/final] ✅ COMPLETE - Все остаточные шаги выполнены: все динамические импорты исправлены на .js, dev server проверен (531ms), build успешен, кэш 563M, нет двойной компиляции. Все проверки пройдены.
 2026-03-15T17:18:36Z [git/push] ✅ PUSHED - Оптимизация Turbopack завершена, все изменения закоммичены и отправлены в репозиторий.
 2026-03-15T22:07:09+03:00: Тесты для validation/zod: добавлены тесты для formatZodIssues, formatZodIssuesDetailed, Infer (validate.ts) и transform.ts. Все 69 тестов прошли успешно, покрытие 100% (кроме пустого transform.ts).
+2026-03-15T23:24:32+03:00 | feat(feature-bots): добавлены типы событий ботов с тестами 100% покрытия | Коммит: 69df1a7e | Файлы: bot-events.ts (381 строк), bot-events.test.ts (865 строк), index.ts (11 строк) | Покрытие: 100% statements, 100% branches, 100% functions, 100% lines | Тесты: 54 passed

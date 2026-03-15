@@ -48,3 +48,15 @@ export * from './bots.js';
  * @public
  */
 export * from './bot-events.js';
+
+/* ============================================================================
+ * 🎯 BOT INITIAL STATES — КАНОНИЧЕСКИЕ НАЧАЛЬНЫЕ СОСТОЯНИЯ И ШАБЛОНЫ
+ * ========================================================================== */
+
+/**
+ * Bot Initial States: канонические начальные состояния Bot для reset-операций.
+ * Включает initialBotState, initialBotListState, initialBotOperationState,
+ * шаблоны для audit-событий (BotAuditEventTemplate) и типы pipeline hooks (BotPipelineHook, BotPipelineHookMap).
+ * @public
+ */
+export * from './bots-initial.js';

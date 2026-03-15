@@ -479,13 +479,13 @@ Toast / UI feedback
 - ⚪ `audit-logger.ts` — ts — deps: schemas/index, types/auth — централизованный audit logger для auth-событий (валидация через auditEventSchema)
 - ⚪ `auth-telemetry.ts` — ts — deps: types/auth — telemetry для auth-слоя (метрики производительности, ошибки audit/errorMapper)
 
-### **Feature-bots / types** ⚪
+### **Feature-bots / types** ✅
 
 - 🟢 `bot-lifecycle.ts` — ts — deps: none — атомарные lifecycle-контракты (BotPauseReason, BotEnforcementReason)
 - 🟢 `bot-commands.ts` — ts — deps: @livai/core-contracts, types/bot-lifecycle — типы и константы команд ботов (BotCommandTypes/BotCommandType/AllBotCommandTypes, BotCommand discriminated union + строгие payload'ы для: create_bot_from_template, create_custom_bot, update_instruction, manage_multi_agent, publish_bot, pause_bot, resume_bot, archive_bot, delete_bot, simulate_bot_message)
 - 🟢 `bots.ts` — ts — deps: @livai/core-contracts, @livai/core, types/bot-commands, types/bot-lifecycle — агрегирующие типы состояния и операций ботов для store/effects/UI (BotState, BotStatus с 7 вариантами и причинами приостановки, BotError с 7 категориями и severity для telemetry/alerts, exhaustive union BotErrorCode, BotErrorMappingRegistry с retryable: boolean для rule-engine, BotOperationState, BotInfo)
-- ⚪ `bot-events.ts` — ts — deps: domain/*, types/bots — типы и константы событий ботов (bot_created, bot_published, bot_updated, bot_deleted, instruction_updated, multi_agent_updated, bot_paused/resumed/archived, config_changed)
-- ⚪ `bots-initial.ts` — ts — deps: types/bots, domain/BotAuditEvent, types/bot-commands, types/bot-events — канонические начальные состояния Bot для reset-операций в store/effects, шаблоны для audit-событий (BotAuditEventTemplate), pipeline-hooks (BotPipelineHookTemplate) для автоматических действий при lifecycle-событиях
+- 🟢 `bot-events.ts` — ts — deps: @livai/core-contracts, domain/*, types/bots, types/bot-lifecycle — типы и константы domain events ботов для store/effects/UI/event-bus (Single Source of Truth: BotEventPayloadMap → auto-generated BotEventType → discriminated union BotEvent; rule-engine ready: aggregateId/aggregateType для routing; event versioning: schemaVersion в BotEventMeta; 10 событий lifecycle: bot_created/published/updated/deleted, instruction_updated, multi_agent_updated, bot_paused/resumed/archived, config_changed; type guards isBotEvent/isBotEventOfType)
+- 🟢 `bots-initial.ts` — ts — deps: types/bots, domain/BotAuditEvent, types/bot-events — канонические начальные состояния Bot для reset-операций в store/effects (initialBotState, initialBotListState, initialBotOperationState), шаблоны для audit-событий (BotAuditEventTemplateMap auto-generated через satisfies, createBotAuditEventTemplate), pipeline-hooks (BotPipelineHookMap с приоритетами, registerBotPipelineHook для immutable registration) для автоматических действий при lifecycle-событиях
 
 ### **Feature-bots / domain** ✅
 
