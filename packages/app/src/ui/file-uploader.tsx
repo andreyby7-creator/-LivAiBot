@@ -23,8 +23,8 @@ import type { DragEvent, JSX, Ref } from 'react';
 import { forwardRef, memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { formatFileSize, validateFileBasic } from '@livai/core/effect';
-import type { CoreFileUploaderProps, FileInfo } from '@livai/ui-core';
-import { FileUploader as CoreFileUploader } from '@livai/ui-core';
+import type { CoreFileUploaderProps, FileInfo } from '@livai/ui-core/components/FileUploader';
+import { FileUploader as CoreFileUploader } from '@livai/ui-core/components/FileUploader';
 
 import type { Namespace, TranslationKey } from '../lib/i18n.js';
 import { useUnifiedUI } from '../providers/UnifiedUIProvider.js';

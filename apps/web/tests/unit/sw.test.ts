@@ -17,8 +17,35 @@ import type {
   ExtendableEvent,
   ExtendableMessageEvent,
   FetchEvent,
-  ServiceWorkerGlobalScope,
-} from '@livai/app';
+} from '@livai/app/lib/service-worker';
+
+// Типы из Service Worker API
+type Client = {
+  id: string;
+  type: 'window' | 'worker' | 'sharedworker';
+  url: string;
+  postMessage: (message: unknown) => void;
+};
+
+type WindowClient = Client & {
+  focused: boolean;
+  visibilityState: 'hidden' | 'visible' | 'prerender' | 'unloaded';
+  focus: () => Promise<WindowClient>;
+  navigate: (url: string) => Promise<WindowClient | null>;
+};
+
+type ServiceWorkerGlobalScope = typeof globalThis & {
+  addEventListener: (type: string, listener: EventListener) => void;
+  skipWaiting: () => Promise<void>;
+  clients: {
+    claim: () => Promise<void>;
+    matchAll: () => Promise<Client[]>;
+    openWindow: (url: string) => Promise<WindowClient | null>;
+  };
+  registration: {
+    showNotification: (title: string, options?: NotificationOptions) => Promise<void>;
+  };
+};
 
 // ============================================================================
 // 🧠 MOCKS
@@ -44,7 +71,8 @@ const mockSwSelf = {
 } as unknown as ServiceWorkerGlobalScope;
 
 // Мокируем правильный путь импорта, который используется в sw.ts
-vi.mock('@livai/app', () => ({
+const mockSwDisabled = vi.fn(() => false);
+vi.mock('@livai/app/lib/service-worker', () => ({
   swSelf: mockSwSelf,
   handleRequest: mockHandleRequest,
   handlePushNotification: mockHandlePushNotification,
@@ -55,7 +83,7 @@ vi.mock('@livai/app', () => ({
   precacheStaticUrls: ['/static1', '/static2'],
   mainCacheName: 'test-main-cache',
   staticCacheName: 'test-static-cache',
-  swDisabled: vi.fn(() => false),
+  swDisabled: mockSwDisabled,
 }));
 
 // Mock для caches API
@@ -273,28 +301,24 @@ describe('sw.ts - Service Worker', () => {
 
     it('не должен устанавливать SW если SERVICE_WORKER_DISABLED = true', async () => {
       // Мокируем swDisabled = true
-      vi.doMock('@livai/app', () => ({
-        swSelf: mockSwSelf,
-        handleRequest: mockHandleRequest,
-        handlePushNotification: mockHandlePushNotification,
-        handleNotificationClick: mockHandleNotificationClick,
-        handleBackgroundSync: mockHandleBackgroundSync,
-        decommissionServiceWorker: mockDecommissionServiceWorker,
-        precacheMainUrls: ['/main1', '/main2'],
-        precacheStaticUrls: ['/static1', '/static2'],
-        mainCacheName: 'test-main-cache',
-        staticCacheName: 'test-static-cache',
-        swDisabled: vi.fn(() => true),
-      }));
+      mockSwDisabled.mockReturnValue(true);
 
+      // Перезагружаем модуль sw.ts, чтобы SERVICE_WORKER_DISABLED пересчитался
+      vi.resetModules();
+
+      // Переимпортируем модуль и перезахватываем обработчики
+      installHandler = undefined;
       await import('../../src/sw');
+
+      // Ждем, пока обработчики будут установлены
+      await new Promise((resolve) => setTimeout(resolve, 10));
 
       const event = {
         waitUntil: vi.fn((promise: Readonly<Promise<unknown>>) => promise),
       } as unknown as Readonly<ExtendableEvent>;
 
-      if (installHandler) {
-        installHandler(event);
+      if (typeof installHandler === 'function') {
+        (installHandler as (event: unknown) => void)(event);
 
         await new Promise((resolve) => setTimeout(resolve, 0));
 
@@ -304,6 +328,9 @@ describe('sw.ts - Service Worker', () => {
       } else {
         expect.fail('installHandler не определен');
       }
+
+      // Восстанавливаем мок для следующих тестов
+      mockSwDisabled.mockReturnValue(false);
     });
   });
 
@@ -413,28 +440,24 @@ describe('sw.ts - Service Worker', () => {
 
     it('не должен активировать SW если SERVICE_WORKER_DISABLED = true', async () => {
       // Мокируем swDisabled = true
-      vi.doMock('@livai/app', () => ({
-        swSelf: mockSwSelf,
-        handleRequest: mockHandleRequest,
-        handlePushNotification: mockHandlePushNotification,
-        handleNotificationClick: mockHandleNotificationClick,
-        handleBackgroundSync: mockHandleBackgroundSync,
-        decommissionServiceWorker: mockDecommissionServiceWorker,
-        precacheMainUrls: ['/main1', '/main2'],
-        precacheStaticUrls: ['/static1', '/static2'],
-        mainCacheName: 'test-main-cache',
-        staticCacheName: 'test-static-cache',
-        swDisabled: vi.fn(() => true),
-      }));
+      mockSwDisabled.mockReturnValue(true);
 
+      // Перезагружаем модуль sw.ts, чтобы SERVICE_WORKER_DISABLED пересчитался
+      vi.resetModules();
+
+      // Переимпортируем модуль и перезахватываем обработчики
+      activateHandler = undefined;
       await import('../../src/sw');
+
+      // Ждем, пока обработчики будут установлены
+      await new Promise((resolve) => setTimeout(resolve, 10));
 
       const event = {
         waitUntil: vi.fn((promise: Readonly<Promise<unknown>>) => promise),
       } as unknown as ExtendableEvent;
 
-      if (activateHandler) {
-        activateHandler(event);
+      if (typeof activateHandler === 'function') {
+        (activateHandler as (event: unknown) => void)(event);
 
         await new Promise((resolve) => setTimeout(resolve, 0));
 
@@ -443,6 +466,9 @@ describe('sw.ts - Service Worker', () => {
       } else {
         expect.fail('activateHandler не определен');
       }
+
+      // Восстанавливаем мок для следующих тестов
+      mockSwDisabled.mockReturnValue(false);
     });
   });
 
@@ -605,21 +631,17 @@ describe('sw.ts - Service Worker', () => {
 
     it('не должен обрабатывать запросы если SERVICE_WORKER_DISABLED = true', async () => {
       // Мокируем swDisabled = true
-      vi.doMock('@livai/app', () => ({
-        swSelf: mockSwSelf,
-        handleRequest: mockHandleRequest,
-        handlePushNotification: mockHandlePushNotification,
-        handleNotificationClick: mockHandleNotificationClick,
-        handleBackgroundSync: mockHandleBackgroundSync,
-        decommissionServiceWorker: mockDecommissionServiceWorker,
-        precacheMainUrls: ['/main1', '/main2'],
-        precacheStaticUrls: ['/static1', '/static2'],
-        mainCacheName: 'test-main-cache',
-        staticCacheName: 'test-static-cache',
-        swDisabled: vi.fn(() => true),
-      }));
+      mockSwDisabled.mockReturnValue(true);
 
+      // Перезагружаем модуль sw.ts, чтобы SERVICE_WORKER_DISABLED пересчитался
+      vi.resetModules();
+
+      // Переимпортируем модуль и перезахватываем обработчики
+      fetchHandler = undefined;
       await import('../../src/sw');
+
+      // Ждем, пока обработчики будут установлены
+      await new Promise((resolve) => setTimeout(resolve, 10));
 
       const request = new Request('https://example.com/test', { method: 'GET' });
       const event = {
@@ -627,8 +649,8 @@ describe('sw.ts - Service Worker', () => {
         respondWith: vi.fn((promise: Readonly<Promise<Response>>) => promise),
       } as unknown as Readonly<FetchEvent>;
 
-      if (fetchHandler) {
-        fetchHandler(event);
+      if (typeof fetchHandler === 'function') {
+        (fetchHandler as (event: unknown) => void)(event);
 
         await new Promise((resolve) => setTimeout(resolve, 0));
 
@@ -637,6 +659,9 @@ describe('sw.ts - Service Worker', () => {
       } else {
         expect.fail('fetchHandler не определен');
       }
+
+      // Восстанавливаем мок для следующих тестов
+      mockSwDisabled.mockReturnValue(false);
     });
   });
 

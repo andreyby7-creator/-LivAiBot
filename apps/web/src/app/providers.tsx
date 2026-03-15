@@ -22,7 +22,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import type { JSX, PropsWithChildren, ReactNode } from 'react';
 import { memo, useMemo, useState } from 'react';
 
-import { errorFireAndForget } from '@livai/app';
+import { errorFireAndForget } from '@livai/app/lib/telemetry-runtime';
 
 /* ============================================================================
  * 🧬 TYPES & CONSTANTS

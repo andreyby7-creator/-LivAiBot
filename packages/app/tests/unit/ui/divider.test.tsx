@@ -10,7 +10,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import '@testing-library/jest-dom/vitest';
 
 // Mock для Core Divider - возвращаем простой div
-vi.mock('@livai/ui-core', async () => {
+vi.mock('@livai/ui-core/primitives/divider', async () => {
   const actual = await vi.importActual('@livai/ui-core');
   return {
     ...actual,

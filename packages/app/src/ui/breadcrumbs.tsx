@@ -20,8 +20,8 @@
 import type { JSX, Ref } from 'react';
 import React, { forwardRef, memo, useEffect, useMemo, useRef } from 'react';
 
-import type { BreadcrumbItem, CoreBreadcrumbsProps } from '@livai/ui-core';
-import { Breadcrumbs as CoreBreadcrumbs } from '@livai/ui-core';
+import type { BreadcrumbItem, CoreBreadcrumbsProps } from '@livai/ui-core/components/Breadcrumbs';
+import { Breadcrumbs as CoreBreadcrumbs } from '@livai/ui-core/components/Breadcrumbs';
 
 import type { Namespace, TranslationKey } from '../lib/i18n.js';
 import { useUnifiedUI } from '../providers/UnifiedUIProvider.js';

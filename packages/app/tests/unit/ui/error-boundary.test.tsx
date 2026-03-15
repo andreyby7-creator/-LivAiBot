@@ -30,11 +30,11 @@ type CoreErrorBoundaryMockProps = Readonly<{
 
 let lastCoreProps: CoreErrorBoundaryMockProps | null = null;
 
-vi.mock('@livai/ui-core', async () => {
-  const actual = await vi.importActual('@livai/ui-core');
+vi.mock('@livai/ui-core/components/ErrorBoundary', async () => {
+  const actual = await vi.importActual('@livai/ui-core/components/ErrorBoundary');
   return {
     ...actual,
-    ErrorBoundary: (props: Readonly<Record<string, unknown>>) => {
+    CoreErrorBoundary: (props: Readonly<Record<string, unknown>>) => {
       const typedProps = props as unknown as CoreErrorBoundaryMockProps;
       lastCoreProps = typedProps;
       return (

@@ -20,8 +20,8 @@
 import type { JSX, Ref } from 'react';
 import { forwardRef, memo, useCallback, useEffect, useMemo, useRef } from 'react';
 
-import type { CoreLoadingSpinnerProps } from '@livai/ui-core';
-import { LoadingSpinner as CoreLoadingSpinner } from '@livai/ui-core';
+import type { CoreLoadingSpinnerProps } from '@livai/ui-core/primitives/loading-spinner';
+import { LoadingSpinner as CoreLoadingSpinner } from '@livai/ui-core/primitives/loading-spinner';
 
 import type { Namespace, TranslationKey } from '../lib/i18n.js';
 import { useUnifiedUI } from '../providers/UnifiedUIProvider.js';

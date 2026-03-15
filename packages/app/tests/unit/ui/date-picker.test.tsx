@@ -12,7 +12,7 @@ import type { CalendarMonth } from '@livai/ui-core';
 import '@testing-library/jest-dom/vitest';
 
 // Mock для Core DatePicker
-vi.mock('@livai/ui-core', async () => {
+vi.mock('@livai/ui-core/components/DatePicker', async () => {
   const actual = await vi.importActual('@livai/ui-core');
   return {
     ...actual,

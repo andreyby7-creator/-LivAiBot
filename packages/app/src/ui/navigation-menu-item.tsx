@@ -19,8 +19,11 @@
 import type { CSSProperties, JSX, MouseEvent, ReactNode, Ref } from 'react';
 import { forwardRef, memo, useCallback, useEffect, useMemo, useRef } from 'react';
 
-import type { CoreNavigationMenuItemProps, NavigationMenuItemData } from '@livai/ui-core';
-import { NavigationMenuItem as CoreNavigationMenuItem } from '@livai/ui-core';
+import type {
+  CoreNavigationMenuItemProps,
+  NavigationMenuItemData,
+} from '@livai/ui-core/components/NavigationMenuItem';
+import { NavigationMenuItem as CoreNavigationMenuItem } from '@livai/ui-core/components/NavigationMenuItem';
 
 import type { Namespace, TranslationKey } from '../lib/i18n.js';
 import { canAccessRoute } from '../lib/route-access.js';

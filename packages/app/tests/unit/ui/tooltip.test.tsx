@@ -10,7 +10,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import '@testing-library/jest-dom/vitest';
 
 // Mock для Core Tooltip - возвращаем простой div, но фильтруем внутренние пропсы
-vi.mock('@livai/ui-core', async () => {
+vi.mock('@livai/ui-core/primitives/tooltip', async () => {
   const actual = await vi.importActual('@livai/ui-core');
   return {
     ...actual,

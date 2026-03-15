@@ -11,7 +11,9 @@ import { useForm } from 'react-hook-form';
 
 import type { LoginValues } from '@livai/feature-auth';
 import { loginSchema } from '@livai/feature-auth';
-import { Button, FormField, Input } from '@livai/ui-core';
+import { Button } from '@livai/ui-core/primitives/button';
+import { FormField } from '@livai/ui-core/primitives/form-field';
+import { Input } from '@livai/ui-core/primitives/input';
 import type { TFunction } from '@livai/ui-shared';
 import { translateZodMessage, zodResolver as rhfZodResolver } from '@livai/ui-shared';
 

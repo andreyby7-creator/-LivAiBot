@@ -20,8 +20,8 @@
 import type { JSX, MouseEvent, Ref } from 'react';
 import { forwardRef, memo, useCallback, useEffect, useMemo, useRef } from 'react';
 
-import type { CoreAccordionProps } from '@livai/ui-core';
-import { Accordion as CoreAccordion } from '@livai/ui-core';
+import type { CoreAccordionProps } from '@livai/ui-core/components/Accordion';
+import { Accordion as CoreAccordion } from '@livai/ui-core/components/Accordion';
 
 import type { Namespace, TranslationKey } from '../lib/i18n.js';
 import { useUnifiedUI } from '../providers/UnifiedUIProvider.js';

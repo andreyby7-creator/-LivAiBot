@@ -18,8 +18,8 @@ import type { JSX, ReactNode, Ref } from 'react';
 import { forwardRef, memo, useEffect, useMemo, useRef } from 'react';
 
 import type { AppError } from '@livai/core-contracts';
-import type { CoreToastProps, ToastVariant } from '@livai/ui-core';
-import { Toast as CoreToast } from '@livai/ui-core';
+import type { CoreToastProps, ToastVariant } from '@livai/ui-core/components/Toast';
+import { Toast as CoreToast } from '@livai/ui-core/components/Toast';
 
 import type { Namespace, TranslationKey } from '../lib/i18n.js';
 import { useUnifiedUI } from '../providers/UnifiedUIProvider.js';

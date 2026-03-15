@@ -21,8 +21,9 @@ import { AnimatePresence, motion } from 'framer-motion';
 import type { JSX, Ref } from 'react';
 import { forwardRef, memo, useEffect, useMemo, useRef } from 'react';
 
-import type { CoreModalProps, ModalVariant, UIDuration } from '@livai/ui-core';
-import { Modal as CoreModal } from '@livai/ui-core';
+import type { CoreModalProps, ModalVariant } from '@livai/ui-core/components/Modal';
+import { Modal as CoreModal } from '@livai/ui-core/components/Modal';
+import type { UIDuration } from '@livai/ui-core/types';
 
 import type { Namespace, TranslationKey } from '../lib/i18n.js';
 import { useUnifiedUI } from '../providers/UnifiedUIProvider.js';

@@ -26,8 +26,8 @@ import React, {
   useRef,
 } from 'react';
 
-import type { CoreRadioProps } from '@livai/ui-core';
-import { Radio as CoreRadio } from '@livai/ui-core';
+import type { CoreRadioProps } from '@livai/ui-core/primitives/radio';
+import { Radio as CoreRadio } from '@livai/ui-core/primitives/radio';
 
 import type { Namespace, TranslationKey } from '../lib/i18n.js';
 import { useUnifiedUI } from '../providers/UnifiedUIProvider.js';

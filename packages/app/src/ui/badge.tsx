@@ -17,8 +17,8 @@
 import type { JSX, Ref } from 'react';
 import { forwardRef, memo, useEffect, useMemo, useRef } from 'react';
 
-import type { CoreBadgeProps } from '@livai/ui-core';
-import { Badge as CoreBadge } from '@livai/ui-core';
+import type { CoreBadgeProps } from '@livai/ui-core/primitives/badge';
+import { Badge as CoreBadge } from '@livai/ui-core/primitives/badge';
 
 import type { Namespace, TranslationKey } from '../lib/i18n.js';
 import { useUnifiedUI } from '../providers/UnifiedUIProvider.js';

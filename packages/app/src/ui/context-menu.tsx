@@ -23,8 +23,8 @@
 import type { CSSProperties, JSX, KeyboardEvent, MouseEvent, Ref } from 'react';
 import { forwardRef, memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef } from 'react';
 
-import type { ContextMenuRef, CoreContextMenuProps } from '@livai/ui-core';
-import { ContextMenu as CoreContextMenu } from '@livai/ui-core';
+import type { ContextMenuRef, CoreContextMenuProps } from '@livai/ui-core/primitives/context-menu';
+import { ContextMenu as CoreContextMenu } from '@livai/ui-core/primitives/context-menu';
 
 import type { Namespace, TranslationKey } from '../lib/i18n.js';
 import { useUnifiedUI } from '../providers/UnifiedUIProvider.js';

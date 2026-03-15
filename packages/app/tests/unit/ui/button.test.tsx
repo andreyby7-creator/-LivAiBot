@@ -4,12 +4,24 @@
  */
 
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+import type { ReactNode } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { AppButtonProps } from '../../../src/ui/button';
 import { Button } from '../../../src/ui/button';
 
 import '@testing-library/jest-dom/vitest';
+
+// Mock для Core Button из ui-core
+vi.mock('@livai/ui-core/primitives/button', async () => {
+  const actual = await vi.importActual('@livai/ui-core/primitives/button');
+  return {
+    ...actual,
+    Button: ({ children, ...props }: Readonly<Record<string, unknown>>) => (
+      <button {...props}>{children as ReactNode}</button>
+    ),
+  };
+});
 
 // Mock для UnifiedUIProvider (должен быть до импорта Button)
 const mockTranslate = vi.fn();

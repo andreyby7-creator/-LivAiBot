@@ -18,8 +18,8 @@
 import type { JSX } from 'react';
 import React, { forwardRef, memo, useCallback, useEffect, useMemo } from 'react';
 
-import type { CoreCheckboxProps } from '@livai/ui-core';
-import { Checkbox as CoreCheckbox } from '@livai/ui-core';
+import type { CoreCheckboxProps } from '@livai/ui-core/primitives/checkbox';
+import { Checkbox as CoreCheckbox } from '@livai/ui-core/primitives/checkbox';
 
 import type { Namespace, TranslationKey } from '../lib/i18n.js';
 import { useUnifiedUI } from '../providers/UnifiedUIProvider.js';

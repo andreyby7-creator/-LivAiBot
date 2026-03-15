@@ -32,7 +32,7 @@ vi.mock('../../../src/providers/UnifiedUIProvider', () => ({
 }));
 
 // Mock для CoreSearchBar
-vi.mock('@livai/ui-core', async () => {
+vi.mock('@livai/ui-core/components/SearchBar', async () => {
   const actual = await vi.importActual('@livai/ui-core');
   return {
     ...actual,

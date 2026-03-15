@@ -19,8 +19,8 @@
 import type { JSX, Ref } from 'react';
 import { forwardRef, memo, useEffect, useMemo, useRef } from 'react';
 
-import type { CoreDividerProps, DividerOrientation } from '@livai/ui-core';
-import { Divider as CoreDivider } from '@livai/ui-core';
+import type { CoreDividerProps, DividerOrientation } from '@livai/ui-core/primitives/divider';
+import { Divider as CoreDivider } from '@livai/ui-core/primitives/divider';
 
 import type { Namespace, TranslationKey } from '../lib/i18n.js';
 import { useUnifiedUI } from '../providers/UnifiedUIProvider.js';

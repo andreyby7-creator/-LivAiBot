@@ -17,7 +17,7 @@ afterEach(() => {
 });
 
 // Mock для Core Dialog
-vi.mock('@livai/ui-core', async () => {
+vi.mock('@livai/ui-core/primitives/dialog', async () => {
   const actual = await vi.importActual('@livai/ui-core');
   return {
     ...actual,

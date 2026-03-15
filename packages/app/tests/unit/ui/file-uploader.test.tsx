@@ -12,7 +12,7 @@ import type { FileInfo } from '@livai/ui-core';
 import '@testing-library/jest-dom/vitest';
 
 // Mock для Core FileUploader
-vi.mock('@livai/ui-core', async () => {
+vi.mock('@livai/ui-core/components/FileUploader', async () => {
   const actual = await vi.importActual('@livai/ui-core');
   return {
     ...actual,

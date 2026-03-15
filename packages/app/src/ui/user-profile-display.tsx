@@ -25,8 +25,11 @@ import { forwardRef, memo, useEffect, useMemo, useRef } from 'react';
 import { useAuthGuardContext } from '@livai/core/access-control';
 import type { RoutePermissionContext } from '@livai/core/access-control/route-permissions';
 import { checkRoutePermission } from '@livai/core/access-control/route-permissions';
-import type { CoreUserProfileDisplayProps, UserProfileData } from '@livai/ui-core';
-import { UserProfileDisplay as CoreUserProfileDisplay } from '@livai/ui-core';
+import type {
+  CoreUserProfileDisplayProps,
+  UserProfileData,
+} from '@livai/ui-core/components/UserProfileDisplay';
+import { UserProfileDisplay as CoreUserProfileDisplay } from '@livai/ui-core/components/UserProfileDisplay';
 
 import type { Namespace, TranslationKey } from '../lib/i18n.js';
 import { useUnifiedUI } from '../providers/UnifiedUIProvider.js';

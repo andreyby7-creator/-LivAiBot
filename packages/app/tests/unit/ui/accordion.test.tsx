@@ -10,8 +10,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import '@testing-library/jest-dom/vitest';
 
 // Mock для Core Accordion - возвращаем простой div с кнопками
-vi.mock('@livai/ui-core', async () => {
-  const actual = await vi.importActual('@livai/ui-core');
+vi.mock('@livai/ui-core/components/Accordion', async () => {
+  const actual = await vi.importActual('@livai/ui-core/components/Accordion');
   return {
     ...actual,
     Accordion: React.forwardRef<

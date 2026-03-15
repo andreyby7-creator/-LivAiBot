@@ -16,7 +16,11 @@
  * - Полная типизация
  */
 
-import type { ExtendableEvent, ExtendableMessageEvent, FetchEvent } from '@livai/app';
+import type {
+  ExtendableEvent,
+  ExtendableMessageEvent,
+  FetchEvent,
+} from '@livai/app/lib/service-worker';
 import {
   decommissionServiceWorker,
   handleBackgroundSync,
@@ -29,7 +33,7 @@ import {
   staticCacheName,
   swDisabled,
   swSelf,
-} from '@livai/app';
+} from '@livai/app/lib/service-worker';
 
 /* ============================================================================
  * 📋 ТИПЫ И КОНСТАНТЫ

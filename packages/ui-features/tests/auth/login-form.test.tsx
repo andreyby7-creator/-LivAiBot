@@ -50,8 +50,10 @@ function hasNonEmptyText(el: HasTextContent): boolean {
 }
 
 // Mock компонентов UI для изоляции тестирования LoginForm
-vi.mock('@livai/ui-core', () => ({
+vi.mock('@livai/ui-core/primitives/button', () => ({
   Button: ({ children, ...props }: any) => React.createElement('button', props, children),
+}));
+vi.mock('@livai/ui-core/primitives/form-field', () => ({
   FormField: ({ label, htmlFor, error, errorId, children }: any) =>
     React.createElement(
       'div',
@@ -62,6 +64,8 @@ vi.mock('@livai/ui-core', () => ({
         ? React.createElement('div', { id: errorId, role: 'alert', 'aria-live': 'polite' }, error)
         : null,
     ),
+}));
+vi.mock('@livai/ui-core/primitives/input', () => ({
   Input: (props: any) => React.createElement('input', { type: 'text', ...props }),
 }));
 

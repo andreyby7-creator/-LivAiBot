@@ -13,7 +13,7 @@ import '@testing-library/jest-dom/vitest';
 const mockTranslate = vi.fn();
 
 // Mock для Core SupportButton - возвращаем простой button с переданными пропсами
-vi.mock('@livai/ui-core', async () => {
+vi.mock('@livai/ui-core/components/SupportButton', async () => {
   const actual = await vi.importActual('@livai/ui-core');
   return {
     ...actual,

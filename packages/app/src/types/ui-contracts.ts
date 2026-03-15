@@ -17,7 +17,7 @@
  * - Микросервисная архитектура: компонент ↔ app ↔ backend
  */
 
-import type { CoreUIBaseProps } from '@livai/ui-core';
+import type { CoreUIBaseProps } from '@livai/ui-core/types';
 
 import type { Namespace, TranslationKey } from '../lib/i18n.js';
 import type { Json } from './common.js';

@@ -23,8 +23,11 @@
 import type { JSX, KeyboardEvent, Ref } from 'react';
 import { forwardRef, memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
-import type { CoreLanguageSelectorProps, LanguageData } from '@livai/ui-core';
-import { LanguageSelector as CoreLanguageSelector } from '@livai/ui-core';
+import type {
+  CoreLanguageSelectorProps,
+  LanguageData,
+} from '@livai/ui-core/components/LanguageSelector';
+import { LanguageSelector as CoreLanguageSelector } from '@livai/ui-core/components/LanguageSelector';
 
 import type { Namespace, TranslationKey } from '../lib/i18n.js';
 import { useUnifiedUI } from '../providers/UnifiedUIProvider.js';

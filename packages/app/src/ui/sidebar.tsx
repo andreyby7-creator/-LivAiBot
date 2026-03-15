@@ -20,8 +20,8 @@
 import type { JSX, Ref } from 'react';
 import { forwardRef, memo, useCallback, useEffect, useMemo, useRef } from 'react';
 
-import type { CoreSideBarProps } from '@livai/ui-core';
-import { SideBar as CoreSideBar } from '@livai/ui-core';
+import type { CoreSideBarProps } from '@livai/ui-core/components/SideBar';
+import { SideBar as CoreSideBar } from '@livai/ui-core/components/SideBar';
 
 import type { Namespace, TranslationKey } from '../lib/i18n.js';
 import { useUnifiedUI } from '../providers/UnifiedUIProvider.js';

@@ -12,8 +12,8 @@ import React, { memo, useCallback, useEffect, useMemo } from 'react';
 
 import type { FormValidationResult, ValidationSchema } from '@livai/core/effect';
 import { validateForm } from '@livai/core/effect';
-import type { CoreFormProps } from '@livai/ui-core';
-import { Form as CoreForm } from '@livai/ui-core';
+import type { CoreFormProps } from '@livai/ui-core/primitives/form';
+import { Form as CoreForm } from '@livai/ui-core/primitives/form';
 
 import type { Namespace, TranslationKey } from '../lib/i18n.js';
 import { useUnifiedUI } from '../providers/UnifiedUIProvider.js';

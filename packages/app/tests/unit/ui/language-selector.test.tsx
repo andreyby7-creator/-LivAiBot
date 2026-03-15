@@ -12,7 +12,7 @@ import { I18nProvider } from '../../../src/lib/i18n';
 import '@testing-library/jest-dom/vitest';
 
 // Mock для Core LanguageSelector - возвращаем простой div с переданными пропсами
-vi.mock('@livai/ui-core', async () => {
+vi.mock('@livai/ui-core/components/LanguageSelector', async () => {
   const actual = await vi.importActual('@livai/ui-core');
   return {
     ...actual,

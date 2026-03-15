@@ -23,7 +23,7 @@
 import type { JSX } from 'react';
 import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
-import { Dialog as CoreDialog } from '@livai/ui-core';
+import { Dialog as CoreDialog } from '@livai/ui-core/primitives/dialog';
 
 import type { Namespace, TranslationKey } from '../lib/i18n.js';
 import { useUnifiedUI } from '../providers/UnifiedUIProvider.js';

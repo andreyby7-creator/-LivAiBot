@@ -10,8 +10,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import '@testing-library/jest-dom/vitest';
 
 // Mock для Core Avatar - возвращаем простой div, фильтруя Core-специфичные пропсы
-vi.mock('@livai/ui-core', async () => {
-  const actual = await vi.importActual('@livai/ui-core');
+vi.mock('@livai/ui-core/primitives/avatar', async () => {
+  const actual = await vi.importActual('@livai/ui-core/primitives/avatar');
   return {
     ...actual,
     Avatar: ({

@@ -12,7 +12,7 @@ import type { ContextMenuItem, ContextMenuRef } from '@livai/ui-core';
 import '@testing-library/jest-dom/vitest';
 
 // Mock для Core ContextMenu
-vi.mock('@livai/ui-core', async () => {
+vi.mock('@livai/ui-core/primitives/context-menu', async () => {
   const actual = await vi.importActual<typeof import('@livai/ui-core')>('@livai/ui-core');
   return {
     ...actual,

@@ -20,8 +20,8 @@
 import type { JSX, KeyboardEvent, MouseEvent, Ref } from 'react';
 import { forwardRef, memo, useCallback, useEffect, useMemo, useRef } from 'react';
 
-import type { CoreDropdownProps } from '@livai/ui-core';
-import { Dropdown as CoreDropdown } from '@livai/ui-core';
+import type { CoreDropdownProps } from '@livai/ui-core/primitives/dropdown';
+import { Dropdown as CoreDropdown } from '@livai/ui-core/primitives/dropdown';
 
 import type { Namespace, TranslationKey } from '../lib/i18n.js';
 import { useUnifiedUI } from '../providers/UnifiedUIProvider.js';

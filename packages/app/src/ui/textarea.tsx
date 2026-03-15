@@ -18,8 +18,8 @@
 import type { JSX } from 'react';
 import React, { memo, useCallback, useEffect, useMemo } from 'react';
 
-import type { CoreTextareaProps } from '@livai/ui-core';
-import { Textarea as CoreTextarea } from '@livai/ui-core';
+import type { CoreTextareaProps } from '@livai/ui-core/primitives/textarea';
+import { Textarea as CoreTextarea } from '@livai/ui-core/primitives/textarea';
 
 import type { Namespace, TranslationKey } from '../lib/i18n.js';
 import { useUnifiedUI } from '../providers/UnifiedUIProvider.js';

@@ -29,8 +29,8 @@ import type {
   StatusIndicatorSize,
   StatusIndicatorStatus,
   StatusIndicatorVariant,
-} from '@livai/ui-core';
-import { StatusIndicator as CoreStatusIndicator } from '@livai/ui-core';
+} from '@livai/ui-core/primitives/status-indicator';
+import { StatusIndicator as CoreStatusIndicator } from '@livai/ui-core/primitives/status-indicator';
 
 import type { Namespace, TranslationKey } from '../lib/i18n.js';
 import { useUnifiedUI } from '../providers/UnifiedUIProvider.js';

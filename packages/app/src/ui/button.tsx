@@ -18,8 +18,8 @@
 import type { JSX } from 'react';
 import React, { memo, useCallback, useMemo } from 'react';
 
-import type { ButtonProps as CoreButtonProps } from '@livai/ui-core';
-import { Button as CoreButton } from '@livai/ui-core';
+import type { ButtonProps as CoreButtonProps } from '@livai/ui-core/primitives/button';
+import { Button as CoreButton } from '@livai/ui-core/primitives/button';
 
 import type { Namespace, TranslationKey } from '../lib/i18n.js';
 import { useUnifiedUI } from '../providers/UnifiedUIProvider.js';

@@ -20,8 +20,9 @@
 import type { JSX, ReactNode, Ref } from 'react';
 import { forwardRef, memo, useCallback, useEffect, useMemo, useRef } from 'react';
 
-import type { CoreConfirmDialogProps, ModalVariant } from '@livai/ui-core';
-import { ConfirmDialog as CoreConfirmDialog } from '@livai/ui-core';
+import type { CoreConfirmDialogProps } from '@livai/ui-core/components/ConfirmDialog';
+import { ConfirmDialog as CoreConfirmDialog } from '@livai/ui-core/components/ConfirmDialog';
+import type { ModalVariant } from '@livai/ui-core/components/Modal';
 
 import type { Namespace, TranslationKey } from '../lib/i18n.js';
 import { useUnifiedUI } from '../providers/UnifiedUIProvider.js';
@@ -213,26 +214,34 @@ type ConfirmDialogPolicy = Readonly<{
  * имеет абсолютный приоритет над видимостью.
  */
 function useConfirmDialogPolicy(props: AppConfirmDialogProps): ConfirmDialogPolicy {
-  return useMemo(() => {
-    const hiddenByFeatureFlag = Boolean(props.isHiddenByFeatureFlag);
-    const disabledByFeatureFlag = Boolean(props.isDisabledByFeatureFlag);
+  const {
+    isHiddenByFeatureFlag,
+    isDisabledByFeatureFlag,
+    visible,
+    disabled,
+    telemetryEnabled,
+  } = props;
 
-    const isRendered = !hiddenByFeatureFlag && props.visible !== false;
-    const isDisabled = disabledByFeatureFlag || props.disabled === true;
+  return useMemo(() => {
+    const hiddenByFeatureFlag = Boolean(isHiddenByFeatureFlag);
+    const disabledByFeatureFlag = Boolean(isDisabledByFeatureFlag);
+
+    const isRendered = !hiddenByFeatureFlag && visible !== false;
+    const isDisabled = disabledByFeatureFlag || disabled === true;
 
     return {
       hiddenByFeatureFlag,
       disabledByFeatureFlag,
       isRendered,
       isDisabled,
-      telemetryEnabled: props.telemetryEnabled !== false,
+      telemetryEnabled: telemetryEnabled !== false,
     };
   }, [
-    props.isHiddenByFeatureFlag,
-    props.isDisabledByFeatureFlag,
-    props.visible,
-    props.disabled,
-    props.telemetryEnabled,
+    isHiddenByFeatureFlag,
+    isDisabledByFeatureFlag,
+    visible,
+    disabled,
+    telemetryEnabled,
   ]);
 }
 

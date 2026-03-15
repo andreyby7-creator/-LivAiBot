@@ -10,7 +10,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import '@testing-library/jest-dom/vitest';
 
 // Mock для Core Badge - возвращаем простой span, но фильтруем внутренние пропсы
-vi.mock('@livai/ui-core', async () => {
+vi.mock('@livai/ui-core/primitives/badge', async () => {
   const actual = await vi.importActual('@livai/ui-core');
   return {
     ...actual,

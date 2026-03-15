@@ -21,8 +21,8 @@
 import type { ChangeEvent, JSX, KeyboardEvent, Ref } from 'react';
 import React, { forwardRef, memo, useCallback, useEffect, useMemo, useRef } from 'react';
 
-import type { CoreSearchBarProps } from '@livai/ui-core';
-import { SearchBar as CoreSearchBar } from '@livai/ui-core';
+import type { CoreSearchBarProps } from '@livai/ui-core/components/SearchBar';
+import { SearchBar as CoreSearchBar } from '@livai/ui-core/components/SearchBar';
 
 import type { Namespace, TranslationKey } from '../lib/i18n.js';
 import { useUnifiedUI } from '../providers/UnifiedUIProvider.js';

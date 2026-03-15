@@ -32,8 +32,13 @@ import {
   useState,
 } from 'react';
 
-import type { CalendarDay, CalendarMonth, CalendarWeek, CoreDatePickerProps } from '@livai/ui-core';
-import { DatePicker as CoreDatePicker } from '@livai/ui-core';
+import type {
+  CalendarDay,
+  CalendarMonth,
+  CalendarWeek,
+  CoreDatePickerProps,
+} from '@livai/ui-core/components/DatePicker';
+import { DatePicker as CoreDatePicker } from '@livai/ui-core/components/DatePicker';
 
 import type { Namespace, TranslationKey } from '../lib/i18n.js';
 import { useUnifiedUI } from '../providers/UnifiedUIProvider.js';

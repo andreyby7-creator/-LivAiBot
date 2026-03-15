@@ -26,8 +26,8 @@ import React, {
   useRef,
 } from 'react';
 
-import type { CoreToggleProps } from '@livai/ui-core';
-import { Toggle as CoreToggle } from '@livai/ui-core';
+import type { CoreToggleProps } from '@livai/ui-core/primitives/toggle';
+import { Toggle as CoreToggle } from '@livai/ui-core/primitives/toggle';
 
 import type { Namespace, TranslationKey } from '../lib/i18n.js';
 import { useUnifiedUI } from '../providers/UnifiedUIProvider.js';

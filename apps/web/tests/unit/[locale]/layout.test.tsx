@@ -28,7 +28,7 @@ vi.mock('../../../../i18n/routing', () => ({
 }));
 
 // Mock для IntlProvider
-vi.mock('@livai/app', () => ({
+vi.mock('@livai/app/providers/intl-provider', () => ({
   IntlProvider: vi.fn(({ children, ...props }) => ({
     type: 'IntlProvider',
     props: { ...props, children },

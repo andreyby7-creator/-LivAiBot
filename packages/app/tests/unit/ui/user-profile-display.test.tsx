@@ -24,7 +24,7 @@ vi.mock('@livai/core/access-control', async () => {
 });
 
 // Mock для Core UserProfileDisplay - возвращаем простой div с переданными пропсами
-vi.mock('@livai/ui-core', async () => {
+vi.mock('@livai/ui-core/components/UserProfileDisplay', async () => {
   const actual = await vi.importActual('@livai/ui-core');
   return {
     ...actual,

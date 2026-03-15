@@ -22,8 +22,8 @@ import type { ErrorInfo, ReactNode } from 'react';
 import React, { Component, useMemo } from 'react';
 
 import { mapErrorBoundaryError } from '@livai/core/effect';
-import type { CoreErrorBoundaryProps } from '@livai/ui-core';
-import { ErrorBoundary as CoreErrorBoundary } from '@livai/ui-core';
+import type { CoreErrorBoundaryProps } from '@livai/ui-core/components/ErrorBoundary';
+import { CoreErrorBoundary } from '@livai/ui-core/components/ErrorBoundary';
 
 import type { Namespace, TranslationKey } from '../lib/i18n.js';
 import { useUnifiedUI } from '../providers/UnifiedUIProvider.js';
