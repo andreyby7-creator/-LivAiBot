@@ -9,7 +9,6 @@
  * - Используется всеми bot endpoints для создания нового бота.
  * - Поддерживает создание бота с нуля или из шаблона (templateId).
  * - Безопасен для API boundary (не раскрывает внутренние детали).
- * - ВАЖНО: Runtime validation выполняется в lib/bot-request-validator.ts.
  *
  * Принципы:
  * - ✅ SRP: только структура запроса (без бизнес-логики и transport-деталей).
@@ -30,17 +29,15 @@ import type { BotInstruction } from '../domain/BotVersion.js';
 
 /**
  * DTO запроса создания бота.
- * Используется для создания нового бота с нуля или из шаблона.
  *
  * Инварианты:
- * - name: непустая строка (после trim, проверяется в validator).
- * - instruction: непустая строка (после trim, проверяется в validator).
- * - settings: валидные настройки бота (проверяется в validator через assertBotSettingsInvariant).
+ * - name: непустая строка (после trim).
+ * - instruction: непустая строка (после trim).
+ * - settings: валидные настройки бота (через assertBotSettingsInvariant).
  * - templateId: опциональный идентификатор шаблона (если задан, используется для from-template создания).
  *
  * @remarks
- * Runtime validation (проверка name/instruction на пустоту, валидация settings,
- * проверка существования templateId) выполняется в lib/bot-request-validator.ts, не в dto слое.
+ * Runtime validation выполняется в lib/bot-request-validator.ts.
  */
 export type CreateBotRequest = Readonly<{
   /** Имя бота (обязательно). */

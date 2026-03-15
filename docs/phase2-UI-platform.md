@@ -497,13 +497,13 @@ Toast / UI feedback
 
 - 🟢 `contracts/BotErrorResponse.ts` — ts — deps: @livai/core-contracts, types/bots — нормализованный контракт ошибок ботов (BotErrorResponse с error (exhaustive union BotErrorType: validation_error/policy_error/permission_error/not_found/unknown_error и детальные коды), code (BotErrorCode), category (BotErrorCategory), severity (BotErrorSeverity), retryable, message, statusCode, context (BotErrorContext), traceId, timestamp)
 
-### **Feature-bots / dto** ⚪
+### **Feature-bots / dto** ✅
 
 - 🟢 `dto/CreateBotRequest.ts` — ts — deps: domain/BotSettings, domain/BotTemplate — DTO создания бота (CreateBotRequest с name, instruction, settings (BotSettings), templateId (BotTemplateId, опционально для from-template))
-- ⚪ `dto/UpdateBotRequest.ts` — ts — deps: @livai/core-contracts/bots, types/bots — DTO обновления бота (name, instruction, settings, version-aware)
-- ⚪ `dto/UpdateInstructionRequest.ts` — ts — deps: @livai/core-contracts/bots, types/bots — DTO обновления инструкции (instruction, settings, operationId для идемпотентности)
-- ⚪ `dto/PublishBotRequest.ts` — ts — deps: @livai/core-contracts/bots, types/bots — DTO публикации бота (version, rollbackVersion опционально)
-- ⚪ `dto/TestBotRequest.ts` — ts — deps: @livai/core-contracts/bots, types/bots — DTO тестового запроса к боту (message, conversationId, context)
+- 🟢 `dto/UpdateBotMetadataRequest.ts` — ts — deps: domain/Bot — DTO обновления метаданных бота (UpdateBotMetadataRequest с опциональным name через BotMetadataPatch, обязательным currentVersion для optimistic concurrency control, экспортирует AtLeastOne utility type)
+- 🟢 `dto/UpdateBotConfigRequest.ts` — ts — deps: domain/BotSettings, domain/BotVersion, types/bot-commands, dto/UpdateBotMetadataRequest — DTO обновления конфигурации бота (UpdateBotConfigRequest с опциональными instruction, settings через BotConfigurationPatch, обязательным operationId для идемпотентности)
+- 🟢 `dto/PublishBotRequest.ts` — ts — deps: domain/Bot — DTO публикации бота (PublishBotRequest с опциональными version и rollbackVersion для публикации или rollback к предыдущей версии)
+- 🟢 `dto/TestBotRequest.ts` — ts — deps: @livai/core-contracts — DTO тестового запроса к боту (TestBotRequest с обязательным message, опциональными conversationId и context для тестирования бота)
 
 ### **Feature-bots / schemas** ⚪
 

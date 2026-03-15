@@ -9,7 +9,6 @@
  * - Используется всеми bot endpoints для единообразной обработки ошибок.
  * - Безопасен для API boundary (не раскрывает внутренние детали).
  * - Совместим с retry-политикой и error-mapping registry.
- * - ВАЖНО: Runtime validation и sanitization выполняются в lib/bot-error-response-mapper.ts.
  *
  * Принципы:
  * - ✅ SRP: только структура контракта ошибок (без бизнес-логики и transport-деталей).
@@ -92,8 +91,8 @@ export type BotErrorType =
  * - timestamp: временная метка ошибки (ISO 8601, опционально, branded ISODateString).
  *
  * @remarks
- * Runtime validation и sanitization (фильтрация чувствительных данных из context/message,
- * проверка формата traceId) выполняются в lib/bot-error-response-mapper.ts, не в contracts слое.
+ * Runtime validation и sanitization выполняются в lib/bot-error-response-mapper.ts.
+ * Sanitization включает фильтрацию чувствительных данных из context/message и проверку формата traceId.
  */
 export type BotErrorResponse = Readonly<{
   /** Тип ошибки. */

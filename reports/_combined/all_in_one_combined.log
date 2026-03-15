@@ -2593,3 +2593,4 @@ Verification:
 
 СТАТУС: ✅ РЕАЛИЗОВАНО И ПРОВЕРЕНО
 
+[2026-03-15 09:54:41] UpdateBotRequest.test.ts: 27 tests passed, all linter checks passed (types-only file, coverage N/A)

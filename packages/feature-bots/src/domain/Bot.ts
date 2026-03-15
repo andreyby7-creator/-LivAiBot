@@ -11,7 +11,7 @@
  * Принципы:
  * - ✅ SRP: только структура агрегата и доменные типы (status, metadata, revision, timestamps), без бизнес-методов.
  * - ✅ Deterministic: явный lifecycle (Active/Deleted), optimistic-lock `revision` и branded timestamps.
- * - ✅ Domain-pure: нет HTTP-деталей, response-обёрток и UI-полей; transport-форматы маппятся снаружи.
+ * - ✅ Domain-pure: без HTTP/DB/DTO-деталей, только доменные типы и инварианты.
  * - ✅ Extensible: типобезопасные, контролируемо расширяемые метаданные без unbounded JSON-дыр.
  */
 

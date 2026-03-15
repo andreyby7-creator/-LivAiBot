@@ -16,7 +16,7 @@
  * - ✅ Deterministic: одна команда = один тип + один payload shape
  * - ✅ Strict typing: discriminated unions, без «магических» строк по проекту
  * - ✅ Extensible: добавление команды не требует изменения существующих типов consumers
- * - ✅ Domain-pure: без side-effects, без скрытого coupling
+ * - ✅ Domain-pure: без HTTP/DB/DTO-деталей, только доменные типы и инварианты
  * - ✅ Observability-friendly: BotCommandMeta поддерживает operationId и traceId
  */
 

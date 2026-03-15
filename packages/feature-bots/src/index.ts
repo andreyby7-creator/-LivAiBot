@@ -46,7 +46,7 @@ export * from './contracts/index.js';
 
 /**
  * DTO подпакет: контракты запросов для API boundary.
- * Включает CreateBotRequest для создания ботов.
+ * Включает CreateBotRequest, UpdateBotMetadataRequest, UpdateBotConfigRequest, PublishBotRequest, TestBotRequest и type guards.
  * @public
  */
 export * from './dto/index.js';
