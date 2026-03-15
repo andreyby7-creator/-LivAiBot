@@ -1,8 +1,4 @@
 // apps/web/src/env.ts
-import crypto from 'crypto';
-import fs from 'fs';
-import path from 'path';
-import { z } from 'zod';
 
 /**
  * ============================================================
@@ -15,6 +11,13 @@ import { z } from 'zod';
  * - Поддержка next-intl
  * ============================================================
  */
+
+import crypto from 'crypto';
+import fs from 'fs';
+import path from 'path';
+import { z } from 'zod';
+
+import 'server-only';
 
 /* ============================================================
  * 1️⃣ HELPERS & CONSTANTS

@@ -22,6 +22,8 @@
 import type { FallbackStage, PipelineConfig, SlotId, StageId, StagePlugin } from './plugin-api.js';
 import { validatePlugin } from './plugin-api.js';
 
+import 'server-only';
+
 /* ============================================================================
  * 1. TYPES — EXECUTION PLAN MODEL
  * ============================================================================ */
