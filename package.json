@@ -177,12 +177,6 @@
     "vitest": "4.1.0",
     "web-vitals": "^5.1.0"
   },
-  "overrides": {
-    "@effect/rpc": "^0.73.2",
-    "@effect/rpc-http": "^0.53.0",
-    "@effect/vitest": "^0.28.0",
-    "@effect/platform": "^0.94.5"
-  },
   "dependencies": {
     "@opentelemetry/api": "^1.9.0",
     "@opentelemetry/sdk-node": "^0.213.0",
@@ -198,6 +192,9 @@
   "pnpm": {
     "overrides": {
       "@effect/platform": "0.94.5",
+      "@effect/rpc": "^0.73.2",
+      "@effect/rpc-http": "^0.52.4",
+      "@effect/vitest": "^0.27.0",
       "lodash@>=4.0.0 <=4.17.22": ">=4.17.23",
       "minimatch": ">=10.2.3",
       "flatted": ">=3.4.0",
