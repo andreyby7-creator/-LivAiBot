@@ -3,16 +3,18 @@
  * ============================================================================
  * 🔐 FEATURE-AUTH — Login Audit Event Mapper
  * ============================================================================
+ *
  * Архитектурная роль:
  * - Pure mapper из результата login-effect + контекста в AuditEventValues.
  * - Инкапсулирует форму audit-событий, чтобы orchestrator не знал про структуру аудита.
+ *
  * Принципы:
  * - ❌ Нет бизнес-логики, только проекция данных.
  * - ✅ Использует auditEventSchema для валидации (fail-closed на уровне схемы).
  * - ✅ Immutable возвращаемые объекты.
  */
 
-import type { DomainLoginResult } from '../../domain/LoginResult.js';
+import type { DomainLoginResult } from '../../dto/LoginResult.js';
 import type { AuditEventValues } from '../../schemas/index.js';
 import { auditEventSchema } from '../../schemas/index.js';
 import type { AuthError } from '../../types/auth.js';

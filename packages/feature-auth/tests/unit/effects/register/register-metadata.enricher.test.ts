@@ -8,7 +8,7 @@ import { describe, expect, it, vi } from 'vitest';
 import type {
   RegisterIdentifierType,
   RegisterRequest,
-} from '../../../../src/domain/RegisterRequest.js';
+} from '../../../../src/dto/RegisterRequest.js';
 import type {
   RegisterMetadata,
   RegisterMetadataConfig,

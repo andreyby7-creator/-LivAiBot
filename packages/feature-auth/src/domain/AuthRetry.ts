@@ -30,8 +30,8 @@
 import type { RetryPolicy } from '@livai/core/resilience';
 import { createRetryPolicy, getRetryable, mergeRetryPolicies } from '@livai/core/resilience';
 
-import type { AuthErrorType } from './AuthErrorResponse.js';
-import type { OAuthErrorType } from './OAuthErrorResponse.js';
+import type { AuthErrorType } from '../contracts/AuthErrorResponse.js';
+import type { OAuthErrorType } from '../contracts/OAuthErrorResponse.js';
 
 /* ============================================================================
  * 🔐 AUTH — RETRY POLICY

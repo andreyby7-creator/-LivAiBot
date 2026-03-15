@@ -3,9 +3,11 @@
  * ============================================================================
  * 🔐 FEATURE-AUTH — Register Audit Event Mapper
  * ============================================================================
+ *
  * Архитектурная роль:
  * - Pure mapper из результата register-effect + контекста в AuditEventValues.
  * - Инкапсулирует форму audit-событий, чтобы orchestrator не знал про структуру аудита.
+ *
  * Принципы:
  * - ❌ Нет бизнес-логики, только проекция данных.
  * - ✅ Использует auditEventSchema для валидации (fail-closed на уровне схемы).
@@ -18,8 +20,8 @@
 import { z } from 'zod';
 
 import type { DeviceInfo } from '../../domain/DeviceInfo.js';
-import type { RegisterIdentifierType, RegisterRequest } from '../../domain/RegisterRequest.js';
-import type { RegisterResponse } from '../../domain/RegisterResponse.js';
+import type { RegisterIdentifierType, RegisterRequest } from '../../dto/RegisterRequest.js';
+import type { RegisterResponse } from '../../dto/RegisterResponse.js';
 import type { AuditEventValues } from '../../schemas/index.js';
 import { auditEventSchema } from '../../schemas/index.js';
 import type { AuthError } from '../../types/auth.js';

@@ -31,10 +31,10 @@ import type {
 } from '@livai/core/effect';
 import { mapError } from '@livai/core/effect';
 
-import type { AuthErrorResponse } from '../domain/AuthErrorResponse.js';
-import type { MfaType } from '../domain/MfaChallengeRequest.js';
-import type { OAuthErrorResponse } from '../domain/OAuthErrorResponse.js';
-import type { SessionRevokeReason } from '../domain/SessionRevokeRequest.js';
+import type { AuthErrorResponse } from '../contracts/AuthErrorResponse.js';
+import type { OAuthErrorResponse } from '../contracts/OAuthErrorResponse.js';
+import type { MfaType } from '../domain/MfaInfo.js';
+import type { SessionRevokeReason } from '../dto/SessionRevokeRequest.js';
 import type { AuthError, ISODateString } from '../types/auth.js';
 
 /* ============================================================================

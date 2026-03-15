@@ -17,12 +17,37 @@
 
 /**
  * Domain подпакет: доменные типы для аутентификации.
- * Включает LoginRequest, RegisterRequest, TokenPair, MFA типы, OAuth типы,
- * Password Reset, Verification, Email/SMS Templates, Risk Assessment,
- * Audit Events, Error Responses, Session Policy и все связанные типы.
+ * Включает DeviceInfo, MFA Info, ClientContext, Risk Assessment,
+ * Audit Events, Session Policy и все связанные типы.
  * @public
  */
 export * from './domain/index.js';
+
+/* ============================================================================
+ * 📜 CONTRACTS — КОНТРАКТЫ ДЛЯ API BOUNDARY
+ * ============================================================================
+ */
+
+/**
+ * Contracts подпакет: нормализованные контракты для API boundary.
+ * Включает AuthErrorResponse и OAuthErrorResponse для единообразной обработки ошибок.
+ * @public
+ */
+export * from './contracts/index.js';
+
+/* ============================================================================
+ * 📋 DTO — КОНТРАКТЫ ЗАПРОСОВ ДЛЯ API BOUNDARY
+ * ============================================================================
+ */
+
+/**
+ * DTO подпакет: контракты запросов для API boundary.
+ * Включает LoginRequest, RegisterRequest, RegisterResponse, LoginResult, MeResponse,
+ * TokenPair, PasswordReset, RefreshToken, Logout, MFA, OAuth, Verification,
+ * SessionRevoke, EmailTemplate, SmsTemplate и все связанные типы.
+ * @public
+ */
+export * from './dto/index.js';
 
 /* ============================================================================
  * ✅ SCHEMAS — СХЕМЫ ВАЛИДАЦИИ

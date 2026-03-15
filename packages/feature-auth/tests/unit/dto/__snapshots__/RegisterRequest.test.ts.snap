@@ -1,0 +1,95 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`RegisterRequest comprehensive snapshots > full register request - полный snapshot 1`] = `
+{
+  "clientContext": {
+    "appVersion": "2.1.0",
+    "deviceId": "device-full-789",
+    "geo": {
+      "lat": 52.52,
+      "lng": 13.405,
+    },
+    "ip": "10.0.0.1",
+    "locale": "ru-RU",
+    "sessionId": "session-full-xyz",
+    "timezone": "Europe/Moscow",
+    "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X)",
+  },
+  "dtoVersion": "1.1",
+  "identifier": {
+    "type": "email",
+    "value": "full@example.com",
+  },
+  "mfa": {
+    "deviceId": "device-full-mfa",
+    "token": "654321",
+    "type": "sms",
+  },
+  "password": "full-password-123",
+  "rememberMe": false,
+  "username": "fulluser",
+}
+`;
+
+exports[`RegisterRequest comprehensive snapshots > minimal register request - полный snapshot 1`] = `
+{
+  "identifier": {
+    "type": "email",
+    "value": "user@example.com",
+  },
+  "password": "password-123",
+  "username": "user123",
+}
+`;
+
+exports[`RegisterRequest comprehensive snapshots > register request with email - полный snapshot 1`] = `
+{
+  "clientContext": {
+    "appVersion": "1.0.3",
+    "deviceId": "device-123",
+    "geo": {
+      "lat": 55.7558,
+      "lng": 37.6173,
+    },
+    "ip": "192.168.1.1",
+    "locale": "en-US",
+    "sessionId": "session-abc",
+    "timezone": "UTC",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
+  },
+  "dtoVersion": "1.0",
+  "identifier": {
+    "type": "email",
+    "value": "user@example.com",
+  },
+  "mfa": {
+    "deviceId": "device-mfa",
+    "token": "123456",
+    "type": "totp",
+  },
+  "password": "password-123",
+  "rememberMe": true,
+  "username": "user123",
+}
+`;
+
+exports[`RegisterRequest comprehensive snapshots > register request with oauth - полный snapshot 1`] = `
+{
+  "identifier": {
+    "type": "oauth",
+    "value": "oauth-id-123",
+  },
+  "provider": "google",
+  "providerToken": "oauth-access-token-123",
+}
+`;
+
+exports[`RegisterRequest comprehensive snapshots > register request with username - полный snapshot 1`] = `
+{
+  "identifier": {
+    "type": "username",
+    "value": "username123",
+  },
+  "password": "password-123",
+}
+`;

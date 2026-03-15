@@ -3,11 +3,12 @@
  * ============================================================================
  * 🔐 FEATURE-AUTH — Register Metadata Enricher
  * ============================================================================
+ *
  * Minimal, deterministic metadata builder for register-flow.
  * Keeps register independent from login-specific abstractions.
  */
 
-import type { RegisterIdentifierType, RegisterRequest } from '../../domain/RegisterRequest.js';
+import type { RegisterIdentifierType, RegisterRequest } from '../../dto/RegisterRequest.js';
 
 export type RegisterMetadataVersion = '1';
 

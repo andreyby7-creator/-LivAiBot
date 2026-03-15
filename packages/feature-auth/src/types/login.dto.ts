@@ -3,12 +3,14 @@
  * ============================================================================
  * 🔐 FEATURE-AUTH — Feature-Level DTO для Login Flow
  * ============================================================================
+ *
  * Архитектурная роль:
  * - Feature-level агрегированный DTO для login-flow
  * - Композиция transport-level типов из schemas в единый feature-контракт
  * - Используется в effects/login.ts для оркестрации двухфазного процесса
  * - Transport-oriented, без domain leakage
  * - Future-proof для MFA расширения
+ *
  * Принципы:
  * - ❌ Нет бизнес-логики (только типы)
  * - ❌ Нет optional-полей в discriminated union (явные ветки)

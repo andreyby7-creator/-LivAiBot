@@ -3,8 +3,10 @@
  * ============================================================================
  * 🔐 FEATURE-AUTH — Register Store Updater
  * ============================================================================
+ *
  * Единственная точка применения результата register-flow к auth/session/security состояниям.
  * Атомарное обновление через batchUpdate, использует `buildSessionState` для консистентности.
+ *
  * Инварианты:
  * - ❌ Не пересчитывает security/risk (использует `initialSecurityState`)
  * - ❌ Не читает store, не принимает решений (pure sink над портом)
@@ -14,10 +16,10 @@
  */
 
 import type { DeviceInfo } from '../../domain/DeviceInfo.js';
-import type { MeResponse, MeSessionInfo, MeUserInfo } from '../../domain/MeResponse.js';
-import type { RegisterIdentifierType, RegisterRequest } from '../../domain/RegisterRequest.js';
-import type { RegisterResponse } from '../../domain/RegisterResponse.js';
-import type { TokenPair } from '../../domain/TokenPair.js';
+import type { MeResponse, MeSessionInfo, MeUserInfo } from '../../dto/MeResponse.js';
+import type { RegisterIdentifierType, RegisterRequest } from '../../dto/RegisterRequest.js';
+import type { RegisterResponse } from '../../dto/RegisterResponse.js';
+import type { TokenPair } from '../../dto/TokenPair.js';
 import type { AuthState } from '../../types/auth.js';
 import { initialSecurityState } from '../../types/auth-initial.js';
 import type { AuthStorePort } from '../shared/auth-store.port.js';

@@ -3,15 +3,18 @@
  * ============================================================================
  * 🔐 FEATURE-AUTH — Auth Store Port (Shared)
  * ============================================================================
+ *
  * Единый контракт стора для всех auth-эффектов (login/logout/register/refresh).
  * Абстрагирует Zustand store, гарантирует атомарность через batchUpdate,
  * изолирует effects от деталей реализации.
+ *
  * Архитектурные решения:
  * - Port pattern: effects работают через интерфейс, не знают про Zustand
  * - Atomic updates: batchUpdate применяет все изменения в одной транзакции
  * - Lock mechanism: setStoreLocked защищает критические операции от race conditions
  * - Type safety: AuthEvent — discriminated union, не string
  * - Separation: state-обновления через patch, events отдельно (избегаем дублирования)
+ *
  * Инварианты:
  * - Все store-updater'ы ОБЯЗАНЫ использовать batchUpdate (не отдельные set-методы)
  * - Критические операции (logout/refresh) ОБЯЗАНЫ использовать setStoreLocked или withStoreLock

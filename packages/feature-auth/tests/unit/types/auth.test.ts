@@ -5,10 +5,10 @@
 
 import { describe, expect, it } from 'vitest';
 
+import type { AuthErrorResponse } from '../../../src/contracts/AuthErrorResponse.js';
+import type { OAuthErrorResponse } from '../../../src/contracts/OAuthErrorResponse.js';
 import type { AuthAuditEvent } from '../../../src/domain/AuthAuditEvent.js';
-import type { AuthErrorResponse } from '../../../src/domain/AuthErrorResponse.js';
 import type { DeviceInfo } from '../../../src/domain/DeviceInfo.js';
-import type { LoginRequest } from '../../../src/domain/LoginRequest.js';
 import type {
   LoginRiskEvaluation,
   LoginRiskResult,
@@ -22,23 +22,23 @@ import {
   DomainValidationError,
   RiskReasonCode,
 } from '../../../src/domain/LoginRiskAssessment.js';
-import type { LogoutRequest } from '../../../src/domain/LogoutRequest.js';
-import type { MeResponse, MeSessionInfo, MeUserInfo } from '../../../src/domain/MeResponse.js';
-import type { MfaChallengeRequest } from '../../../src/domain/MfaChallengeRequest.js';
-import type { MfaRecoveryRequest } from '../../../src/domain/MfaRecoveryRequest.js';
-import type { OAuthErrorResponse } from '../../../src/domain/OAuthErrorResponse.js';
-import type { OAuthLoginRequest } from '../../../src/domain/OAuthLoginRequest.js';
-import type { OAuthRegisterRequest } from '../../../src/domain/OAuthRegisterRequest.js';
-import type { PasswordResetConfirm } from '../../../src/domain/PasswordResetConfirm.js';
-import type { PasswordResetRequest } from '../../../src/domain/PasswordResetRequest.js';
-import type { RefreshTokenRequest } from '../../../src/domain/RefreshTokenRequest.js';
-import type { RegisterRequest } from '../../../src/domain/RegisterRequest.js';
-import type { RegisterResponse } from '../../../src/domain/RegisterResponse.js';
 import type { SessionPolicy } from '../../../src/domain/SessionPolicy.js';
-import type { SessionRevokeRequest } from '../../../src/domain/SessionRevokeRequest.js';
-import type { TokenPair } from '../../../src/domain/TokenPair.js';
-import type { VerifyEmailRequest } from '../../../src/domain/VerifyEmailRequest.js';
-import type { VerifyPhoneRequest } from '../../../src/domain/VerifyPhoneRequest.js';
+import type { LoginRequest } from '../../../src/dto/LoginRequest.js';
+import type { LogoutRequest } from '../../../src/dto/LogoutRequest.js';
+import type { MeResponse, MeSessionInfo, MeUserInfo } from '../../../src/dto/MeResponse.js';
+import type { MfaChallengeRequest } from '../../../src/dto/MfaChallengeRequest.js';
+import type { MfaRecoveryRequest } from '../../../src/dto/MfaRecoveryRequest.js';
+import type { OAuthLoginRequest } from '../../../src/dto/OAuthLoginRequest.js';
+import type { OAuthRegisterRequest } from '../../../src/dto/OAuthRegisterRequest.js';
+import type { PasswordResetConfirm } from '../../../src/dto/PasswordResetConfirm.js';
+import type { PasswordResetRequest } from '../../../src/dto/PasswordResetRequest.js';
+import type { RefreshTokenRequest } from '../../../src/dto/RefreshTokenRequest.js';
+import type { RegisterRequest } from '../../../src/dto/RegisterRequest.js';
+import type { RegisterResponse } from '../../../src/dto/RegisterResponse.js';
+import type { SessionRevokeRequest } from '../../../src/dto/SessionRevokeRequest.js';
+import type { TokenPair } from '../../../src/dto/TokenPair.js';
+import type { VerifyEmailRequest } from '../../../src/dto/VerifyEmailRequest.js';
+import type { VerifyPhoneRequest } from '../../../src/dto/VerifyPhoneRequest.js';
 import type {
   AuthCommand,
   AuthError,

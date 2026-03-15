@@ -3,6 +3,7 @@
  * ============================================================================
  * 🔐 FEATURE-AUTH — Session State Builder (Shared)
  * ============================================================================
+ *
  * Единая точка построения SessionState из deviceInfo, tokenPair и me.session.
  * Используется во всех auth-эффектах (login/register/refresh) для консистентности.
  * Архитектурные решения:
@@ -12,6 +13,7 @@
  * - Shallow freeze: защита от случайных мутаций корневого объекта
  * - Fallback логика: использует tokenPair как fallback для issuedAt/expiresAt
  * - Fail-fast: выбрасывает ошибку если обязательные поля отсутствуют (предотвращает silent masking)
+ *
  * Инварианты:
  * - Не читает store (pure function)
  * - Проверяет согласованность дат (issuedAt <= expiresAt) через Date.parse() для безопасного сравнения
@@ -24,8 +26,8 @@
 import type { ISODateString } from '@livai/core-contracts';
 
 import type { DeviceInfo } from '../../domain/DeviceInfo.js';
-import type { MeSessionInfo } from '../../domain/MeResponse.js';
-import type { TokenPair } from '../../domain/TokenPair.js';
+import type { MeSessionInfo } from '../../dto/MeResponse.js';
+import type { TokenPair } from '../../dto/TokenPair.js';
 import type { SessionState } from '../../types/auth.js';
 
 /* ============================================================================

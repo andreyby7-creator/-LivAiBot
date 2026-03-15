@@ -48,11 +48,8 @@ vi.mock('@livai/core/effect', async () => {
 });
 /* eslint-enable ai-security/data-leakage */
 
-import type {
-  RegisterIdentifierType,
-  RegisterRequest,
-} from '../../../src/domain/RegisterRequest.js';
-import type { RegisterResponse } from '../../../src/domain/RegisterResponse.js';
+import type { RegisterIdentifierType, RegisterRequest } from '../../../src/dto/RegisterRequest.js';
+import type { RegisterResponse } from '../../../src/dto/RegisterResponse.js';
 import { createRegisterEffect } from '../../../src/effects/register.js';
 import type {
   RegisterEffectConfig,

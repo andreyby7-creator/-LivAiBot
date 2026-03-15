@@ -3,10 +3,12 @@
  * ============================================================================
  * 🔐 FEATURE-AUTH — Refresh Store Updater
  * ============================================================================
+ *
  * Назначение файла:
  * - Единственная точка применения результата refresh-flow к auth/session/security состояниям стора
  * - Атомарное обновление через batchUpdate, без чтения текущего состояния store
  * - Явный мост между refresh-effect и store, без бизнес-логики и policy-решений
+ *
  * Гарантии уровня файла:
  * - ❌ Не читает текущее состояние store (не использует getState или подобные методы)
  * - ❌ Не пересчитывает security/risk (решения принимает session-manager/policy-engine)
@@ -18,8 +20,8 @@
  */
 
 import type { DeviceInfo } from '../../domain/DeviceInfo.js';
-import type { MeResponse } from '../../domain/MeResponse.js';
-import type { TokenPair } from '../../domain/TokenPair.js';
+import type { MeResponse } from '../../dto/MeResponse.js';
+import type { TokenPair } from '../../dto/TokenPair.js';
 import type { AuthState, SessionState } from '../../types/auth.js';
 import {
   createInitialSessionState,

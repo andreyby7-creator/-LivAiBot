@@ -1,0 +1,156 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`MeResponse comprehensive snapshots > full me response - полный snapshot 1`] = `
+{
+  "context": {
+    "orgId": "org-full",
+    "policyVersion": "2.0",
+    "tenantId": "tenant-full",
+  },
+  "features": {
+    "apiAccess": true,
+    "betaFeatures": true,
+    "mfaEnabled": true,
+    "ssoEnabled": true,
+  },
+  "permissions": [
+    "profile.read",
+    "profile.write",
+    "admin.access",
+    "moderator.manage",
+  ],
+  "roles": [
+    "user",
+    "admin",
+    "moderator",
+  ],
+  "session": {
+    "deviceId": "device-full-abc",
+    "expiresAt": "2026-01-16T10:00:00.000Z",
+    "ip": "10.0.0.1",
+    "issuedAt": "2026-01-15T10:00:00.000Z",
+    "sessionId": "session-full-789",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
+  },
+  "user": {
+    "authProvider": "oauth",
+    "avatarUrl": "https://example.com/full-avatar.jpg",
+    "createdAt": "2026-01-01T00:00:00.000Z",
+    "displayName": "Full User",
+    "email": "full@example.com",
+    "emailVerified": true,
+    "id": "user-full",
+    "lastLoginAt": "2026-01-15T10:30:00.000Z",
+    "phone": "+9876543210",
+    "phoneVerified": true,
+    "status": "active",
+    "username": "fulluser",
+  },
+}
+`;
+
+exports[`MeResponse comprehensive snapshots > me response with features and context - полный snapshot 1`] = `
+{
+  "context": {
+    "orgId": "org-123",
+    "tenantId": "tenant-456",
+  },
+  "features": {
+    "mfaEnabled": true,
+    "ssoEnabled": false,
+  },
+  "permissions": [
+    "profile.read",
+  ],
+  "roles": [
+    "user",
+  ],
+  "session": {
+    "deviceId": "device-xyz",
+    "expiresAt": "2026-01-16T10:00:00.000Z",
+    "ip": "192.168.1.1",
+    "issuedAt": "2026-01-15T10:00:00.000Z",
+    "sessionId": "session-abc-123",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
+  },
+  "user": {
+    "id": "user-features",
+  },
+}
+`;
+
+exports[`MeResponse comprehensive snapshots > me response with profile data - полный snapshot 1`] = `
+{
+  "context": {
+    "orgId": "org-123",
+    "tenantId": "tenant-456",
+  },
+  "features": {
+    "apiAccess": true,
+    "mfaEnabled": true,
+    "ssoEnabled": false,
+  },
+  "permissions": [
+    "profile.read",
+  ],
+  "roles": [
+    "user",
+  ],
+  "session": {
+    "deviceId": "device-xyz",
+    "expiresAt": "2026-01-16T10:00:00.000Z",
+    "ip": "192.168.1.1",
+    "issuedAt": "2026-01-15T10:00:00.000Z",
+    "sessionId": "session-abc-123",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
+  },
+  "user": {
+    "avatarUrl": "https://example.com/avatar.jpg",
+    "displayName": "Profile User",
+    "email": "profile@example.com",
+    "id": "user-profile",
+    "username": "profileuser",
+  },
+}
+`;
+
+exports[`MeResponse comprehensive snapshots > me response with session - полный snapshot 1`] = `
+{
+  "context": {
+    "orgId": "org-123",
+    "tenantId": "tenant-456",
+  },
+  "features": {
+    "apiAccess": true,
+    "mfaEnabled": true,
+    "ssoEnabled": false,
+  },
+  "permissions": [
+    "profile.read",
+  ],
+  "roles": [
+    "user",
+  ],
+  "session": {
+    "deviceId": "device-xyz",
+    "expiresAt": "2026-01-16T10:00:00.000Z",
+    "ip": "192.168.1.1",
+    "issuedAt": "2026-01-15T10:00:00.000Z",
+    "sessionId": "session-abc-123",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
+  },
+  "user": {
+    "id": "user-session",
+  },
+}
+`;
+
+exports[`MeResponse comprehensive snapshots > minimal me response - полный snapshot 1`] = `
+{
+  "permissions": [],
+  "roles": [],
+  "user": {
+    "id": "user-minimal",
+  },
+}
+`;

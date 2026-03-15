@@ -43,11 +43,11 @@ vi.mock('../../../../../app/src/background/scheduler.js', () => ({
   },
 }));
 
-import type { AuthErrorResponse } from '../../../src/domain/AuthErrorResponse.js';
+import type { AuthErrorResponse } from '../../../src/contracts/AuthErrorResponse.js';
+import type { OAuthErrorResponse } from '../../../src/contracts/OAuthErrorResponse.js';
 import { getAuthRetryable, getOAuthRetryable } from '../../../src/domain/index.js';
-import type { MfaType } from '../../../src/domain/MfaChallengeRequest.js';
-import type { OAuthErrorResponse } from '../../../src/domain/OAuthErrorResponse.js';
-import type { SessionRevokeReason } from '../../../src/domain/SessionRevokeRequest.js';
+import type { MfaType } from '../../../src/domain/MfaInfo.js';
+import type { SessionRevokeReason } from '../../../src/dto/SessionRevokeRequest.js';
 import type { MapAuthErrorConfig } from '../../../src/lib/error-mapper.js';
 import { mapAuthError, mapAuthErrorToUI } from '../../../src/lib/error-mapper.js';
 

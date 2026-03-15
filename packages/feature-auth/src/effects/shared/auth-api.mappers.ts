@@ -3,6 +3,7 @@
  * ============================================================================
  * 🔐 FEATURE-AUTH — Shared API Mappers
  * ============================================================================
+ *
  * Общие мэпперы для преобразования transport-слоя (schemas) в domain-слой.
  * Используются во всех auth-эффектах (login/register/refresh) для консистентности.
  * Архитектурные решения:
@@ -10,6 +11,7 @@
  * - Copy-on-write: создает копии массивов/объектов, не мутирует входные данные
  * - Immutability: Object.freeze для защиты от мутаций
  * - Safety boundary: валидация dynamic Record и массивов перед переносом в domain
+ *
  * Инварианты:
  * - Не читает store (pure functions)
  * - Все коллекции копируются и замораживаются
@@ -21,8 +23,8 @@
  *   Объекты, числа, boolean и null в массивах НЕ разрешены.
  */
 
-import type { MeResponse } from '../../domain/MeResponse.js';
-import type { TokenPair } from '../../domain/TokenPair.js';
+import type { MeResponse } from '../../dto/MeResponse.js';
+import type { TokenPair } from '../../dto/TokenPair.js';
 import type { LoginTokenPairValues, MeResponseValues } from '../../schemas/index.js';
 
 /* ============================================================================

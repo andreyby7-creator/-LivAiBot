@@ -3,9 +3,11 @@
  * ============================================================================
  * 🔐 FEATURE-AUTH — Login API Mapper
  * ============================================================================
+ *
  * Назначение (только mapping, без orchestration):
  * - Domain `LoginRequest` → transport `LoginRequestValues` (payload для `POST /v1/auth/login`)
  * - Feature/transport aggregate `LoginResponseDto` → domain `DomainLoginResult`
+ *
  * Гарантии:
  * - ❌ Не содержит логики store/security/telemetry и не читает `SecurityPipelineResult`
  * - ✅ Fail-closed: exhaustive switch по `LoginResponseDto['type']` + `assertNever`
@@ -14,10 +16,10 @@
  * - ✅ Safety boundary: защитная валидация dynamic `Record<string, unknown>` (для TokenPair.metadata и MeResponse.context через shared мэпперы)
  */
 
-import type { LoginIdentifierType, LoginRequest } from '../../domain/LoginRequest.js';
-import type { DomainLoginResult } from '../../domain/LoginResult.js';
-import type { MfaChallengeRequest, MfaType } from '../../domain/MfaChallengeRequest.js';
-import type { MfaInfo } from '../../domain/MfaInfo.js';
+import type { MfaInfo, MfaType } from '../../domain/MfaInfo.js';
+import type { LoginIdentifierType, LoginRequest } from '../../dto/LoginRequest.js';
+import type { DomainLoginResult } from '../../dto/LoginResult.js';
+import type { MfaChallengeRequest } from '../../dto/MfaChallengeRequest.js';
 import type { LoginRequestValues, MfaChallengeRequestValues } from '../../schemas/index.js';
 import type { LoginResponseDto } from '../../types/login.dto.js';
 import { assertNever } from '../../types/login.dto.js';

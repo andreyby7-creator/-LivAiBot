@@ -21,11 +21,11 @@
 import type { Effect } from '@livai/core/effect';
 import { validatedEffect, withTimeout } from '@livai/core/effect';
 
-import type { AuthErrorResponse } from '../domain/AuthErrorResponse.js';
+import type { AuthErrorResponse } from '../contracts/AuthErrorResponse.js';
 import { getAuthRetryable } from '../domain/AuthRetry.js';
 import type { DeviceInfo } from '../domain/DeviceInfo.js';
-import type { RegisterIdentifierType, RegisterRequest } from '../domain/RegisterRequest.js';
-import type { RegisterResponse } from '../domain/RegisterResponse.js';
+import type { RegisterIdentifierType, RegisterRequest } from '../dto/RegisterRequest.js';
+import type { RegisterResponse } from '../dto/RegisterResponse.js';
 import type { RegisterResponseValues } from '../schemas/index.js';
 import { registerResponseSchema } from '../schemas/index.js';
 import type { AuthError } from '../types/auth.js';

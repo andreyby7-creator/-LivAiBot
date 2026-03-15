@@ -1,0 +1,110 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`SessionRevokeRequest comprehensive snapshots > full session revoke request - полный snapshot 1`] = `
+{
+  "deviceId": "device-full-xyz",
+  "ip": "10.0.0.1",
+  "meta": {
+    "origin": "admin-panel",
+    "priority": "high",
+    "tags": [
+      "security",
+      "audit",
+    ],
+    "version": "2.0",
+  },
+  "reason": "admin-initiated",
+  "sessionId": "session-full",
+  "timestamp": "2026-12-31T23:59:59.000Z",
+}
+`;
+
+exports[`SessionRevokeRequest comprehensive snapshots > minimal session revoke request - полный snapshot 1`] = `
+{
+  "sessionId": "session-minimal",
+}
+`;
+
+exports[`SessionRevokeRequest comprehensive snapshots > session revoke request with all reasons - полный snapshot 1`] = `
+{
+  "deviceId": "device-abc",
+  "ip": "192.168.1.1",
+  "meta": {
+    "origin": "api",
+    "version": "1.0",
+  },
+  "reason": "user-initiated",
+  "sessionId": "session-123",
+  "timestamp": "2026-01-15T10:30:00.000Z",
+}
+`;
+
+exports[`SessionRevokeRequest comprehensive snapshots > session revoke request with all reasons - полный snapshot 2`] = `
+{
+  "deviceId": "device-abc",
+  "ip": "192.168.1.1",
+  "meta": {
+    "origin": "api",
+    "version": "1.0",
+  },
+  "reason": "admin-initiated",
+  "sessionId": "session-123",
+  "timestamp": "2026-01-15T10:30:00.000Z",
+}
+`;
+
+exports[`SessionRevokeRequest comprehensive snapshots > session revoke request with all reasons - полный snapshot 3`] = `
+{
+  "deviceId": "device-abc",
+  "ip": "192.168.1.1",
+  "meta": {
+    "origin": "api",
+    "version": "1.0",
+  },
+  "reason": "security-issue",
+  "sessionId": "session-123",
+  "timestamp": "2026-01-15T10:30:00.000Z",
+}
+`;
+
+exports[`SessionRevokeRequest comprehensive snapshots > session revoke request with all reasons - полный snapshot 4`] = `
+{
+  "deviceId": "device-abc",
+  "ip": "192.168.1.1",
+  "meta": {
+    "origin": "api",
+    "version": "1.0",
+  },
+  "reason": "expired",
+  "sessionId": "session-123",
+  "timestamp": "2026-01-15T10:30:00.000Z",
+}
+`;
+
+exports[`SessionRevokeRequest comprehensive snapshots > session revoke request with all reasons - полный snapshot 5`] = `
+{
+  "deviceId": "device-abc",
+  "ip": "192.168.1.1",
+  "meta": {
+    "origin": "api",
+    "version": "1.0",
+  },
+  "reason": "unknown",
+  "sessionId": "session-123",
+  "timestamp": "2026-01-15T10:30:00.000Z",
+}
+`;
+
+exports[`SessionRevokeRequest comprehensive snapshots > session revoke request with reason - полный snapshot 1`] = `
+{
+  "deviceId": "device-abc",
+  "ip": "192.168.1.1",
+  "meta": {
+    "origin": "api",
+    "version": "1.0",
+  },
+  "reason": "security-issue",
+  "sessionId": "session-123",
+  "timestamp": "2026-01-15T10:30:00.000Z",
+}
+`;

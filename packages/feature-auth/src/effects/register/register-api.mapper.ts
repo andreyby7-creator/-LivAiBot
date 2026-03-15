@@ -3,6 +3,7 @@
  * ============================================================================
  * 🔐 FEATURE-AUTH — Register API Mapper
  * ============================================================================
+ *
  * Pure mapper между domain и transport слоями (без orchestration):
  * - RegisterRequest/OAuthRegisterRequest → transport payloads
  * - RegisterResponseValues → RegisterResponse
@@ -14,9 +15,9 @@
  * - Domain purity: OAuth transport input отделён от domain модели
  */
 
-import type { OAuthRegisterRequest } from '../../domain/OAuthRegisterRequest.js';
-import type { RegisterIdentifierType, RegisterRequest } from '../../domain/RegisterRequest.js';
-import type { RegisterResponse } from '../../domain/RegisterResponse.js';
+import type { OAuthRegisterRequest } from '../../dto/OAuthRegisterRequest.js';
+import type { RegisterIdentifierType, RegisterRequest } from '../../dto/RegisterRequest.js';
+import type { RegisterResponse } from '../../dto/RegisterResponse.js';
 import type {
   OAuthRegisterRequestValues,
   RegisterRequestValues,

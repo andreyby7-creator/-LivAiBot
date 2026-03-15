@@ -3,12 +3,14 @@
  * ============================================================================
  * 🔐 FEATURE-AUTH — Risk Assessment Adapter
  * ============================================================================
+ *
  * Архитектурная роль:
  * - Адаптер между classification layer и domain layer для risk assessment
  * - Преобразование ClassificationRule → RiskReason с дедупликацией
  * - Нормализация DeviceInfo → DeviceRiskInfo (определение platform из OS)
  * - Валидация и нормализация boundary данных (timestamp, IP, geo координаты)
  * - Создание RiskEvaluation через domain factories
+ *
  * Принципы:
  * - ✅ Adapter pattern — изоляция domain от classification/transport слоев
  * - ✅ Security-first — строгая валидация boundary данных (IP через ipaddr.js, timestamp через ISO 8601, geo координаты)

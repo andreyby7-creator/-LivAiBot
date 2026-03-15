@@ -6,8 +6,8 @@
 import { describe, expect, it } from 'vitest';
 
 import type { DeviceInfo } from '../../../../src/domain/DeviceInfo.js';
-import type { MeResponse } from '../../../../src/domain/MeResponse.js';
-import type { TokenPair } from '../../../../src/domain/TokenPair.js';
+import type { MeResponse } from '../../../../src/dto/MeResponse.js';
+import type { TokenPair } from '../../../../src/dto/TokenPair.js';
 import type { RefreshInvalidationReason } from '../../../../src/effects/refresh/refresh-effect.types.js';
 import {
   applyRefreshInvalidate,

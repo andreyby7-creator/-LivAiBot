@@ -3,12 +3,14 @@
  * ============================================================================
  * 🔐 FEATURE-AUTH — Zod Schemas & Types
  * ============================================================================
+ *
  * Архитектурная роль:
  * - Runtime валидация для UI форм аутентификации
  * - Type-safe схемы на базе OpenAPI контрактов
  * - Strict режим для предотвращения extra полей
  * - Поддержка всех auth сценариев (login, register, audit)
- * - SIEM-ready audit event validation
+ * - SIEM-ready audit event validatio
+ *
  * Принципы:
  * - ❌ Нет бизнес-логики (только валидация)
  * - ✅ Источник истины: @livai/core-contracts/validation/zod

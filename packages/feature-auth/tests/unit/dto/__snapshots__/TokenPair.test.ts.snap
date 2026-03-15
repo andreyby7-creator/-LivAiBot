@@ -1,0 +1,82 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`TokenPair comprehensive snapshots > full token pair - полный snapshot 1`] = `
+{
+  "accessToken": "access-token-full",
+  "expiresAt": "2027-12-31T23:59:59.000Z",
+  "issuedAt": "2027-01-01T00:00:00.000Z",
+  "metadata": {
+    "deviceId": "device-full",
+    "ip": "10.0.0.1",
+    "sessionId": "session-full",
+    "userId": "user-full",
+  },
+  "refreshToken": "refresh-token-full",
+  "scope": [
+    "read",
+    "write",
+    "admin",
+    "delete",
+  ],
+}
+`;
+
+exports[`TokenPair comprehensive snapshots > minimal token pair - полный snapshot 1`] = `
+{
+  "accessToken": "access-token-minimal",
+  "expiresAt": "2026-12-31T23:59:59.000Z",
+  "refreshToken": "refresh-token-minimal",
+}
+`;
+
+exports[`TokenPair comprehensive snapshots > token pair with issuedAt - полный snapshot 1`] = `
+{
+  "accessToken": "access-token-123",
+  "expiresAt": "2026-12-31T23:59:59.000Z",
+  "issuedAt": "2026-01-01T00:00:00.000Z",
+  "metadata": {
+    "deviceId": "device-123",
+    "ip": "192.168.1.1",
+  },
+  "refreshToken": "refresh-token-456",
+  "scope": [
+    "read",
+    "write",
+  ],
+}
+`;
+
+exports[`TokenPair comprehensive snapshots > token pair with metadata - полный snapshot 1`] = `
+{
+  "accessToken": "access-token-123",
+  "expiresAt": "2026-12-31T23:59:59.000Z",
+  "issuedAt": "2026-01-01T00:00:00.000Z",
+  "metadata": {
+    "deviceId": "device-xyz",
+    "ip": "10.0.0.1",
+  },
+  "refreshToken": "refresh-token-456",
+  "scope": [
+    "read",
+    "write",
+  ],
+}
+`;
+
+exports[`TokenPair comprehensive snapshots > token pair with scope - полный snapshot 1`] = `
+{
+  "accessToken": "access-token-123",
+  "expiresAt": "2026-12-31T23:59:59.000Z",
+  "issuedAt": "2026-01-01T00:00:00.000Z",
+  "metadata": {
+    "deviceId": "device-123",
+    "ip": "192.168.1.1",
+  },
+  "refreshToken": "refresh-token-456",
+  "scope": [
+    "read",
+    "write",
+    "admin",
+  ],
+}
+`;

@@ -3,10 +3,12 @@
  * ============================================================================
  * 🔐 FEATURE-AUTH — Risk Assessment (Composition Layer)
  * ============================================================================
+ *
  * Архитектурная роль:
  * - Composition layer: адаптирует feature-auth типы к domains API
  * - Вызывает assessClassification из @livai/domains/classification/strategies/assessment для полной orchestration
  * - Маппит результаты в auth-specific decision и domain объекты (LoginRiskEvaluation)
+ *
  * Принципы:
  * - ✅ Composition — делегирует orchestration в domains
  * - ✅ Adapter — адаптирует типы между feature-auth и domains

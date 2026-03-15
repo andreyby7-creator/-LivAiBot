@@ -5,10 +5,10 @@
 
 import { describe, expect, it } from 'vitest';
 
-import type { LoginIdentifierType, LoginRequest } from '../../../../src/domain/LoginRequest.js';
-import type { DomainLoginResult } from '../../../../src/domain/LoginResult.js';
-import type { MeResponse } from '../../../../src/domain/MeResponse.js';
-import type { TokenPair } from '../../../../src/domain/TokenPair.js';
+import type { LoginIdentifierType, LoginRequest } from '../../../../src/dto/LoginRequest.js';
+import type { DomainLoginResult } from '../../../../src/dto/LoginResult.js';
+import type { MeResponse } from '../../../../src/dto/MeResponse.js';
+import type { TokenPair } from '../../../../src/dto/TokenPair.js';
 import {
   mapLoginRequestToApiPayload,
   mapLoginResponseToDomain,

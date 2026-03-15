@@ -6,8 +6,8 @@
 import { describe, expect, it } from 'vitest';
 
 import type { DeviceInfo } from '../../../../src/domain/DeviceInfo.js';
-import type { RegisterRequest } from '../../../../src/domain/RegisterRequest.js';
-import type { RegisterResponse } from '../../../../src/domain/RegisterResponse.js';
+import type { RegisterRequest } from '../../../../src/dto/RegisterRequest.js';
+import type { RegisterResponse } from '../../../../src/dto/RegisterResponse.js';
 import type {
   RegisterAuditContext,
   RegisterResultForAudit,

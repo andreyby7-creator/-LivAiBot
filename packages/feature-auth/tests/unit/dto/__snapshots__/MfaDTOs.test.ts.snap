@@ -1,0 +1,91 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`MFA requests comprehensive snapshots > full MfaBackupCodeRequest - полный snapshot 1`] = `
+{
+  "backupCode": "ABCD-EFGH",
+  "deviceId": "device-abc",
+  "ip": "192.168.1.1",
+  "meta": {
+    "step": "recovery",
+  },
+  "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
+  "userId": "user-123",
+}
+`;
+
+exports[`MFA requests comprehensive snapshots > full MfaChallengeRequest - полный snapshot 1`] = `
+{
+  "deviceId": "device-abc",
+  "ip": "192.168.1.1",
+  "meta": {
+    "step": "login",
+  },
+  "timestamp": "2026-01-15T10:30:00.000Z",
+  "type": "totp",
+  "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
+  "userId": "user-123",
+}
+`;
+
+exports[`MFA requests comprehensive snapshots > full MfaRecoveryRequest - полный snapshot 1`] = `
+{
+  "context": {
+    "riskScore": 25,
+  },
+  "deviceId": "new-device",
+  "ip": "192.168.1.1",
+  "method": "backup_code",
+  "proof": {
+    "backupCode": "ABCD-EFGH",
+  },
+  "timestamp": "2026-01-15T10:30:00.000Z",
+  "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
+  "userId": "user-123",
+}
+`;
+
+exports[`MFA requests comprehensive snapshots > full MfaSetupRequest - полный snapshot 1`] = `
+{
+  "deviceId": "device-abc",
+  "deviceName": "My iPhone",
+  "ip": "192.168.1.1",
+  "meta": {
+    "step": "enrollment",
+  },
+  "secret": "JBSWY3DPEHPK3PXP",
+  "type": "totp",
+  "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
+  "userId": "user-123",
+}
+`;
+
+exports[`MFA requests comprehensive snapshots > minimal MfaBackupCodeRequest - полный snapshot 1`] = `
+{
+  "backupCode": "ABCD-EFGH",
+  "userId": "user-123",
+}
+`;
+
+exports[`MFA requests comprehensive snapshots > minimal MfaChallengeRequest - полный snapshot 1`] = `
+{
+  "type": "totp",
+  "userId": "user-123",
+}
+`;
+
+exports[`MFA requests comprehensive snapshots > minimal MfaRecoveryRequest - полный snapshot 1`] = `
+{
+  "method": "backup_code",
+  "proof": {
+    "backupCode": "ABCD-EFGH",
+  },
+  "userId": "user-123",
+}
+`;
+
+exports[`MFA requests comprehensive snapshots > minimal MfaSetupRequest - полный snapshot 1`] = `
+{
+  "type": "totp",
+  "userId": "user-123",
+}
+`;

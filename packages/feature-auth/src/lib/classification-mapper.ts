@@ -3,17 +3,20 @@
  * ============================================================================
  * 🔐 FEATURE-AUTH — Classification to Auth Action Mapper
  * ============================================================================
+ *
  * Архитектурная роль:
  * - Маппинг результатов classification из domains в auth-specific decision
  * - Изолирует auth-специфичную логику от domain logic
  * - Strategy pattern для обработки различных classification labels
  * - Оптимизация производительности для больших rule sets (pre-filtering)
+ *
  * Принципы:
  * - ✅ SRP: только маппинг classification → auth action
  * - ✅ Strategy Pattern: расширяемая архитектура через labelStrategy map
  * - ✅ Performance: pre-filtering правил для оптимизации оценки
  * - ✅ Runtime Safety: guards для защиты от непредвиденных значений
  * - ✅ Deterministic: одинаковый вход → одинаковый выход
+ *
  * Оптимизации:
  * - Pre-filtering: фильтрация правил по decisionImpact перед оценкой
  * - Масштабируемость: эффективная работа с сотнями/тысячами правил

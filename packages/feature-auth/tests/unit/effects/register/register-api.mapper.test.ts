@@ -5,12 +5,12 @@
 
 import { describe, expect, it } from 'vitest';
 
-import type { OAuthRegisterRequest } from '../../../../src/domain/OAuthRegisterRequest.js';
+import type { OAuthRegisterRequest } from '../../../../src/dto/OAuthRegisterRequest.js';
 import type {
   RegisterIdentifierType,
   RegisterRequest,
-} from '../../../../src/domain/RegisterRequest.js';
-import type { RegisterResponse } from '../../../../src/domain/RegisterResponse.js';
+} from '../../../../src/dto/RegisterRequest.js';
+import type { RegisterResponse } from '../../../../src/dto/RegisterResponse.js';
 import {
   mapOAuthRegisterRequestToApiPayload as mapOAuthRegisterRequestToPayload,
   mapRegisterRequestToApiPayload as mapRegisterRequestToPayload,

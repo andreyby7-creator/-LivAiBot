@@ -3,12 +3,14 @@
  * ============================================================================
  * 🔐 FEATURE-AUTH — Агрегирующие типы аутентификации
  * ============================================================================
+ *
  * Архитектурная роль:
  * - Агрегирующие типы для состояния и статусов аутентификации
  * - Объединяет DTO из domain/ в единую систему типов для UI/store/effects
  * - Используется в stores, hooks, effects и компонентах
  * - Микросервисно-нейтральный, vendor-agnostic
  * - Future-proof и extensible
+ *
  * Принципы:
  * - ❌ Нет бизнес-логики
  * - ✅ Полная типизация
@@ -41,35 +43,36 @@
 import type { ISODateString } from '@livai/core-contracts';
 import type { RiskLevel } from '@livai/domains/policies';
 
+import type { AuthErrorResponse } from '../contracts/AuthErrorResponse.js';
+import type { OAuthErrorResponse, OAuthProvider } from '../contracts/OAuthErrorResponse.js';
 import type { AuthAuditEvent } from '../domain/AuthAuditEvent.js';
-import type { AuthErrorResponse } from '../domain/AuthErrorResponse.js';
 import type { DeviceInfo } from '../domain/DeviceInfo.js';
-import type { EmailTemplateRequest } from '../domain/EmailTemplateRequest.js';
-import type { LoginIdentifierType, LoginRequest } from '../domain/LoginRequest.js';
 import type { LoginRiskEvaluation, LoginRiskResult } from '../domain/LoginRiskAssessment.js';
-import type { LogoutRequest } from '../domain/LogoutRequest.js';
-import type { MeResponse, MeSessionInfo, MeUserInfo } from '../domain/MeResponse.js';
-import type { MfaBackupCodeRequest } from '../domain/MfaBackupCodeRequest.js';
-import type { MfaChallengeRequest, MfaType } from '../domain/MfaChallengeRequest.js';
-import type { MfaRecoveryMethod, MfaRecoveryRequest } from '../domain/MfaRecoveryRequest.js';
-import type { MfaSetupRequest } from '../domain/MfaSetupRequest.js';
-import type { OAuthErrorResponse, OAuthProvider } from '../domain/OAuthErrorResponse.js';
-import type { OAuthLoginRequest } from '../domain/OAuthLoginRequest.js';
-import type { OAuthRegisterRequest } from '../domain/OAuthRegisterRequest.js';
-import type { PasswordResetConfirm } from '../domain/PasswordResetConfirm.js';
+import type { MfaType } from '../domain/MfaInfo.js';
+import type { SessionPolicy } from '../domain/SessionPolicy.js';
+import type { EmailTemplateRequest } from '../dto/EmailTemplateRequest.js';
+import type { LoginIdentifierType, LoginRequest } from '../dto/LoginRequest.js';
+import type { LogoutRequest } from '../dto/LogoutRequest.js';
+import type { MeResponse, MeSessionInfo, MeUserInfo } from '../dto/MeResponse.js';
+import type { MfaBackupCodeRequest } from '../dto/MfaBackupCodeRequest.js';
+import type { MfaChallengeRequest } from '../dto/MfaChallengeRequest.js';
+import type { MfaRecoveryMethod, MfaRecoveryRequest } from '../dto/MfaRecoveryRequest.js';
+import type { MfaSetupRequest } from '../dto/MfaSetupRequest.js';
+import type { OAuthLoginRequest } from '../dto/OAuthLoginRequest.js';
+import type { OAuthRegisterRequest } from '../dto/OAuthRegisterRequest.js';
+import type { PasswordResetConfirm } from '../dto/PasswordResetConfirm.js';
 import type {
   PasswordResetIdentifierType,
   PasswordResetRequest,
-} from '../domain/PasswordResetRequest.js';
-import type { RefreshTokenRequest } from '../domain/RefreshTokenRequest.js';
-import type { RegisterRequest } from '../domain/RegisterRequest.js';
-import type { RegisterResponse } from '../domain/RegisterResponse.js';
-import type { SessionPolicy } from '../domain/SessionPolicy.js';
-import type { SessionRevokeReason, SessionRevokeRequest } from '../domain/SessionRevokeRequest.js';
-import type { SmsTemplateRequest } from '../domain/SmsTemplateRequest.js';
-import type { TokenPair } from '../domain/TokenPair.js';
-import type { VerifyEmailRequest } from '../domain/VerifyEmailRequest.js';
-import type { VerifyPhoneRequest } from '../domain/VerifyPhoneRequest.js';
+} from '../dto/PasswordResetRequest.js';
+import type { RefreshTokenRequest } from '../dto/RefreshTokenRequest.js';
+import type { RegisterRequest } from '../dto/RegisterRequest.js';
+import type { RegisterResponse } from '../dto/RegisterResponse.js';
+import type { SessionRevokeReason, SessionRevokeRequest } from '../dto/SessionRevokeRequest.js';
+import type { SmsTemplateRequest } from '../dto/SmsTemplateRequest.js';
+import type { TokenPair } from '../dto/TokenPair.js';
+import type { VerifyEmailRequest } from '../dto/VerifyEmailRequest.js';
+import type { VerifyPhoneRequest } from '../dto/VerifyPhoneRequest.js';
 
 /* ============================================================================
  * 🕐 TEMPORAL TYPES

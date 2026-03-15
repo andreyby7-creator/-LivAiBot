@@ -3,10 +3,12 @@
  * ============================================================================
  * 🔐 FEATURE-AUTH — Login Validation (Type Guards)
  * ============================================================================
+ *
  * Архитектурная роль:
  * - Type guards для LoginRequest
  * - Валидация структуры и формата данных
  * - Domain-pure, deterministic, microservice-ready
+ *
  * Принципы:
  * - ✅ Чистые функции — без side-effects
  * - ✅ Deterministic — одинаковый вход → одинаковый выход
@@ -24,7 +26,7 @@
  * }
  */
 
-import type { LoginIdentifierType, LoginRequest } from '../../domain/LoginRequest.js';
+import type { LoginIdentifierType, LoginRequest } from '../../dto/LoginRequest.js';
 
 /* ============================================================================
  * 🔧 CONSTANTS

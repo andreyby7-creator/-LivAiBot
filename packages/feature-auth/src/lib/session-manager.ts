@@ -3,11 +3,13 @@
  * ============================================================================
  * 🔐 FEATURE-AUTH — Session Manager (Domain-Pure Service)
  * ============================================================================
+ *
  * Domain-pure сервис для управления жизненным циклом сессий аутентификации.
  * Вычисляет deadlines для proactive refresh, принимает решения о expire/invalidate,
  * проверяет лимиты одновременных сессий.
  * Интегрируется с AuthPolicy (sessionMaxLifetimeMs) и SessionPolicy (TTL, concurrent limits).
  * Изолирует бизнес-логику от orchestration-слоя (effects).
+ *
  * Принципы:
  * - ✅ Domain-pure: без side-effects, без HTTP / store / effects
  * - ✅ Deterministic: `now` передаётся извне (injected)

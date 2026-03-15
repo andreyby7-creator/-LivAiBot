@@ -5,8 +5,8 @@
 
 import { describe, expect, it } from 'vitest';
 
-import type { MeResponse } from '../../../../src/domain/MeResponse.js';
-import type { TokenPair } from '../../../../src/domain/TokenPair.js';
+import type { MeResponse } from '../../../../src/dto/MeResponse.js';
+import type { TokenPair } from '../../../../src/dto/TokenPair.js';
 import {
   mapRefreshRequestToApiPayload,
   mapRefreshResponseToDomain,

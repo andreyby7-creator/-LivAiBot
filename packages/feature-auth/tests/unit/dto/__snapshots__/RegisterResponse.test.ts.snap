@@ -1,0 +1,178 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`RegisterResponse comprehensive snapshots > full register response - полный snapshot 1`] = `
+{
+  "clientContext": {
+    "appVersion": "2.0.0",
+    "deviceId": "device-full",
+    "geo": {
+      "lat": 59.9343,
+      "lng": 30.3351,
+    },
+    "ip": "10.0.0.1",
+    "locale": "ru-RU",
+    "sessionId": "session-full",
+    "timezone": "Europe/Moscow",
+    "userAgent": "Mozilla/5.0 (Linux; Android 10)",
+  },
+  "dtoVersion": "1.1",
+  "mfaChallenge": [
+    {
+      "deviceId": "device-mfa",
+      "token": "111111",
+      "type": "totp",
+    },
+    {
+      "deviceId": "device-mfa",
+      "token": "222222",
+      "type": "sms",
+    },
+  ],
+  "mfaRequired": true,
+  "tokenPair": {
+    "accessToken": "access-token-full",
+    "expiresAt": "2027-12-31T23:59:59.000Z",
+    "issuedAt": "2027-01-01T00:00:00.000Z",
+    "metadata": {
+      "deviceId": "device-full",
+      "ip": "10.0.0.1",
+      "sessionId": "session-full",
+    },
+    "refreshToken": "refresh-token-full",
+    "scope": [
+      "read",
+      "write",
+      "admin",
+    ],
+  },
+  "userId": "user-full",
+}
+`;
+
+exports[`RegisterResponse comprehensive snapshots > minimal register response - полный snapshot 1`] = `
+{
+  "mfaRequired": false,
+  "userId": "user-minimal",
+}
+`;
+
+exports[`RegisterResponse comprehensive snapshots > register response with mfaChallenge - полный snapshot 1`] = `
+{
+  "clientContext": {
+    "appVersion": "1.0.3",
+    "deviceId": "device-123",
+    "geo": {
+      "lat": 55.7558,
+      "lng": 37.6173,
+    },
+    "ip": "192.168.1.1",
+    "locale": "en-US",
+    "sessionId": "session-abc",
+    "timezone": "UTC",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
+  },
+  "dtoVersion": "1.0",
+  "mfaChallenge": {
+    "deviceId": "device-mfa",
+    "token": "123456",
+    "type": "totp",
+  },
+  "mfaRequired": true,
+  "tokenPair": {
+    "accessToken": "access-token-123",
+    "expiresAt": "2026-12-31T23:59:59.000Z",
+    "issuedAt": "2026-01-01T00:00:00.000Z",
+    "metadata": {
+      "deviceId": "device-123",
+      "ip": "192.168.1.1",
+    },
+    "refreshToken": "refresh-token-456",
+    "scope": [
+      "read",
+      "write",
+    ],
+  },
+  "userId": "user-123",
+}
+`;
+
+exports[`RegisterResponse comprehensive snapshots > register response with oauth - полный snapshot 1`] = `
+{
+  "clientContext": {
+    "appVersion": "1.0.3",
+    "deviceId": "device-123",
+    "geo": {
+      "lat": 55.7558,
+      "lng": 37.6173,
+    },
+    "ip": "192.168.1.1",
+    "locale": "en-US",
+    "sessionId": "session-abc",
+    "timezone": "UTC",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
+  },
+  "dtoVersion": "1.0",
+  "mfaChallenge": {
+    "deviceId": "device-mfa",
+    "token": "123456",
+    "type": "totp",
+  },
+  "mfaRequired": false,
+  "provider": "google",
+  "tokenPair": {
+    "accessToken": "access-token-123",
+    "expiresAt": "2026-12-31T23:59:59.000Z",
+    "issuedAt": "2026-01-01T00:00:00.000Z",
+    "metadata": {
+      "deviceId": "device-123",
+      "ip": "192.168.1.1",
+    },
+    "refreshToken": "refresh-token-456",
+    "scope": [
+      "read",
+      "write",
+    ],
+  },
+  "userId": "user-123",
+}
+`;
+
+exports[`RegisterResponse comprehensive snapshots > register response with tokenPair - полный snapshot 1`] = `
+{
+  "clientContext": {
+    "appVersion": "1.0.3",
+    "deviceId": "device-123",
+    "geo": {
+      "lat": 55.7558,
+      "lng": 37.6173,
+    },
+    "ip": "192.168.1.1",
+    "locale": "en-US",
+    "sessionId": "session-abc",
+    "timezone": "UTC",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
+  },
+  "dtoVersion": "1.0",
+  "mfaChallenge": {
+    "deviceId": "device-mfa",
+    "token": "123456",
+    "type": "totp",
+  },
+  "mfaRequired": false,
+  "tokenPair": {
+    "accessToken": "access-token-123",
+    "expiresAt": "2026-12-31T23:59:59.000Z",
+    "issuedAt": "2026-01-01T00:00:00.000Z",
+    "metadata": {
+      "deviceId": "device-123",
+      "ip": "192.168.1.1",
+    },
+    "refreshToken": "refresh-token-456",
+    "scope": [
+      "read",
+      "write",
+    ],
+  },
+  "userId": "user-123",
+}
+`;

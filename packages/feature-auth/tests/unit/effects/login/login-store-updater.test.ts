@@ -14,10 +14,10 @@
 import { describe, expect, it } from 'vitest';
 
 import type { DeviceInfo } from '../../../../src/domain/DeviceInfo.js';
-import type { DomainLoginResult } from '../../../../src/domain/LoginResult.js';
-import type { MeResponse } from '../../../../src/domain/MeResponse.js';
-import type { MfaChallengeRequest } from '../../../../src/domain/MfaChallengeRequest.js';
-import type { TokenPair } from '../../../../src/domain/TokenPair.js';
+import type { DomainLoginResult } from '../../../../src/dto/LoginResult.js';
+import type { MeResponse } from '../../../../src/dto/MeResponse.js';
+import type { MfaChallengeRequest } from '../../../../src/dto/MfaChallengeRequest.js';
+import type { TokenPair } from '../../../../src/dto/TokenPair.js';
 import type { LoginMetadata } from '../../../../src/effects/login/login-metadata.enricher.js';
 import {
   applyBlockedState,

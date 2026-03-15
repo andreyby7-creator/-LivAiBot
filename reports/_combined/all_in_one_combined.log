@@ -2594,3 +2594,10 @@ Verification:
 СТАТУС: ✅ РЕАЛИЗОВАНО И ПРОВЕРЕНО
 
 [2026-03-15 09:54:41] UpdateBotRequest.test.ts: 27 tests passed, all linter checks passed (types-only file, coverage N/A)
+2026-03-15T12:20:37+03:00 - feature-auth refactoring: All legacy imports, paths, and descriptions cleaned up. All DTOs and contracts moved from domain/ to dto/ and contracts/. All ClientContext duplications replaced with imports. Build, type-check, lint, tests, and all workspace checks passed.
+2026-03-15T12:25:42+03:00 - feature-auth indexes verification: All indexes checked and corrected. Removed duplicate type definitions (OAuthProvider, MfaType). All exports are correct. All descriptions match new architecture. Build, type-check, lint, and tests passed.
+2026-03-15T12:27:12+03:00 - feature-auth test imports fix: Fixed ClientContext imports in PasswordResetConfirm.test.ts and PasswordResetRequest.test.ts to import from domain/ClientContext.js instead of dto files. All TypeScript checks passed.
+2026-03-15T12:28:24+03:00 - feature-auth test imports fix: Fixed MfaType imports in MfaDTOs.test.ts and error-mapper.test.ts to import from domain/MfaInfo.js instead of dto files. All TypeScript checks passed.
+2026-03-15T12:35:32+03:00 - feature-auth lint fix: Added eslint-disable for fp/no-throw in LoginResult.ts assertNever function. Lint check passed.
+2026-03-15T12:41:33+03:00 - feature-auth lint fix: Fixed eslint-disable for fp/no-throw in LoginResult.ts assertNever function and added newline at end of file. Lint check passed.
+2026-03-15T13:17:00+03:00 - feature-auth final verification: All files, tests, and indexes verified. All exports working correctly. Build, type-check, and runtime exports validation passed.

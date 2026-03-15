@@ -16,13 +16,13 @@
 import { describe, expect, it } from 'vitest';
 
 import type { DeviceInfo } from '../../../../src/domain/DeviceInfo.js';
-import type { MeResponse } from '../../../../src/domain/MeResponse.js';
+import type { MeResponse } from '../../../../src/dto/MeResponse.js';
 import type {
   RegisterIdentifierType,
   RegisterRequest,
-} from '../../../../src/domain/RegisterRequest.js';
-import type { RegisterResponse } from '../../../../src/domain/RegisterResponse.js';
-import type { TokenPair } from '../../../../src/domain/TokenPair.js';
+} from '../../../../src/dto/RegisterRequest.js';
+import type { RegisterResponse } from '../../../../src/dto/RegisterResponse.js';
+import type { TokenPair } from '../../../../src/dto/TokenPair.js';
 import {
   // Вспомогательный экспорт только для unit-тестов (см. файл реализаци)
   testInvalidRegisterResponseMessage,

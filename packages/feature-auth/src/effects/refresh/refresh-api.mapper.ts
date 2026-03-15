@@ -3,9 +3,11 @@
  * ============================================================================
  * 🔐 FEATURE-AUTH — Refresh API Mapper
  * ============================================================================
+ *
  * Назначение (только mapping, без orchestration):
  * - SessionState (domain) → RefreshTokenRequestValues (transport payload для `/v1/auth/refresh`)
  * - Tuple (LoginTokenPairValues, MeResponseValues?) → { tokenPair: TokenPair; me?: MeResponse } (domain)
+ *
  * Гарантии:
  * - ❌ Не содержит логики store/security/telemetry и не читает SessionManagerPort
  * - ✅ Fail-closed: строгая Zod-валидация DTO через схемы (`refreshTokenRequestSchema`, `loginTokenPairSchema`, `meResponseSchema`)
@@ -14,8 +16,8 @@
  * - ✅ Domain purity: работа только с domain/transport типами без доступа к инфраструктуре
  */
 
-import type { MeResponse } from '../../domain/MeResponse.js';
-import type { TokenPair } from '../../domain/TokenPair.js';
+import type { MeResponse } from '../../dto/MeResponse.js';
+import type { TokenPair } from '../../dto/TokenPair.js';
 import type {
   LoginTokenPairValues,
   MeResponseValues,

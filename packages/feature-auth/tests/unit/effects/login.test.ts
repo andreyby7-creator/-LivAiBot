@@ -43,8 +43,8 @@ vi.mock('@livai/core/effect', async () => {
 /* eslint-enable ai-security/data-leakage */
 
 import type { DeviceInfo } from '../../../src/domain/DeviceInfo.js';
-import type { LoginIdentifierType, LoginRequest } from '../../../src/domain/LoginRequest.js';
-import type { DomainLoginResult } from '../../../src/domain/LoginResult.js';
+import type { LoginIdentifierType, LoginRequest } from '../../../src/dto/LoginRequest.js';
+import type { DomainLoginResult } from '../../../src/dto/LoginResult.js';
 import { createLoginEffect } from '../../../src/effects/login.js';
 import * as loginApiMapper from '../../../src/effects/login/login-api.mapper.js';
 import type {

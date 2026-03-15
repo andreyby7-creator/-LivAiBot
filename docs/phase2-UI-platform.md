@@ -305,43 +305,49 @@ Toast / UI feedback
 
 ### **Feature-auth / types** ✅
 
-- 🟢 `auth-initial.ts` — ts — deps: types/auth, types/auth-risk — канонические начальные состояния Auth/Security/Session для reset-операций в store/effects
-- 🟢 `auth-risk.ts` — ts — deps: @livai/domains/aggregation, @livai/domains/policies, @livai/domains/signals, @livai/domains/strategies, domain/LoginRiskAssessment — auth-специфичные типы risk-сигналов, контекста и результатов оценки риска, адаптер поверх domains
-- 🟢 `types/auth.ts` — ts — deps: @livai/core-contracts, @livai/domains/policies, domain/* — агрегирующие типы состояния, команд, событий и операций аутентификации для store/effects/UI
-- 🟢 `login.dto.ts` — ts — deps: schemas/index — feature-level DTO результата login-flow (LoginResponseDto) и type-guards без доменной логики
+- 🟢 `types/auth-initial.ts` — ts — deps: types/auth, types/auth-risk — канонические начальные состояния Auth/Security/Session для reset-операций в store/effects
+- 🟢 `types/auth-risk.ts` — ts — deps: @livai/domains/aggregation, @livai/domains/policies, @livai/domains/signals, @livai/domains/strategies, domain/LoginRiskAssessment — auth-специфичные типы risk-сигналов, контекста и результатов оценки риска, адаптер поверх domains
+- 🟢 `types/auth.ts` — ts — deps: @livai/core-contracts, @livai/domains/policies, contracts/AuthErrorResponse, contracts/OAuthErrorResponse, domain/AuthAuditEvent, domain/DeviceInfo, domain/LoginRiskAssessment, domain/MfaInfo, domain/SessionPolicy, dto/* — агрегирующие типы состояния, команд, событий и операций аутентификации для store/effects/UI
+- 🟢 `types/login.dto.ts` — ts — deps: schemas/index — feature-level DTO результата login-flow (LoginResponseDto) и type-guards без доменной логики
 
 ### **Feature-auth / domain** ✅
 
 - 🟢 `AuthAuditEvent.ts` — ts — deps: — доменные события аудита аутентификации для SIEM/логирования
-- 🟢 `AuthErrorResponse.ts` — ts — deps: — нормализованный контракт ошибок аутентификации backend (строгий union AuthErrorType, обязательный retryable: boolean без transport-деталей)
 - 🟢 `ClientContext.ts` — ts — deps: — типизированный клиентский контекст (ip/geo/device/session) для auth-запросов
 - 🟢 `DeviceInfo.ts` — ts — deps: — доменная модель устройства клиента для аудита и политик сессий
+- 🟢 `LoginRiskAssessment.ts` — ts — deps: @livai/domains/policies — доменная модель оценки риска логина, причин и решений политики (DomainValidationError.value ограничен примитивами string | number | boolean для избежания утечек)
+- 🟢 `MfaInfo.ts` — ts — deps: — доменная модель настроек и статуса MFA
+- 🟢 `SessionPolicy.ts` — ts — deps: — доменная политика сессий (TTL, geo/ip-ограничения, лимиты)
+- 🟢 `AuthRetry.ts` — ts — deps: @livai/core/resilience, contracts/AuthErrorResponse, contracts/OAuthErrorResponse — централизованные retry-политики для AuthErrorType и OAuthErrorType (AuthRetryPolicy/OAuthRetryPolicy + getAuthRetryable/getOAuthRetryable/merge* для overrides; edge-case unknown_error всегда non-retryable)
+
+### **Feature-auth / contracts** ✅
+
+- 🟢 `AuthErrorResponse.ts` — ts — deps: — нормализованный контракт ошибок аутентификации backend (строгий union AuthErrorType, обязательный retryable: boolean без transport-деталей)
+- 🟢 `OAuthErrorResponse.ts` — ts — deps: — доменный контракт ошибок OAuth-провайдеров (строгий union OAuthErrorType, обязательный retryable: boolean без transport-деталей)
+
+### **Feature-auth / dto** ✅
+
 - 🟢 `EmailTemplateRequest.ts` — ts — deps: — DTO запросов на отправку auth email-шаблонов
 - 🟢 `LoginRequest.ts` — ts — deps: domain/ClientContext, domain/MfaInfo — доменный DTO запроса логина с универсальным идентификатором
-- 🟢 `LoginResult.ts` — ts — deps: domain/MeResponse, domain/MfaChallengeRequest, domain/TokenPair — domain-level результат login-flow (успех/ошибка/требование MFA)
-- 🟢 `LoginRiskAssessment.ts` — ts — deps: @livai/domains/policies — доменная модель оценки риска логина, причин и решений политики (DomainValidationError.value ограничен примитивами string | number | boolean для избежания утечек)
-- 🟢 `LogoutRequest.ts` — ts — deps: — DTO запроса logout с контекстом клиента/сессии
+- 🟢 `LoginResult.ts` — ts — deps: dto/MeResponse, dto/MfaChallengeRequest, dto/TokenPair — domain-level результат login-flow (успех/ошибка/требование MFA)
+- 🟢 `LogoutRequest.ts` — ts — deps: domain/ClientContext — DTO запроса logout с контекстом клиента/сессии
 - 🟢 `MeResponse.ts` — ts — deps: — доменный ответ «текущий пользователь» с ролями, правами и сессией
 - 🟢 `MfaBackupCodeRequest.ts` — ts — deps: — DTO использования backup-кода MFA
-- 🟢 `MfaChallengeRequest.ts` — ts — deps: — DTO вызова MFA-challenge (totp/sms/email/push)
-- 🟢 `MfaInfo.ts` — ts — deps: — доменная модель настроек и статуса MFA
+- 🟢 `MfaChallengeRequest.ts` — ts — deps: domain/MfaInfo — DTO вызова MFA-challenge (totp/sms/email/push)
 - 🟢 `MfaRecoveryRequest.ts` — ts — deps: — DTO восстановления доступа через MFA-recovery
-- 🟢 `MfaSetupRequest.ts` — ts — deps: — DTO настройки MFA-методов
-- 🟢 `OAuthErrorResponse.ts` — ts — deps: — доменный контракт ошибок OAuth-провайдеров (строгий union OAuthErrorType, обязательный retryable: boolean без transport-деталей)
-- 🟢 `OAuthLoginRequest.ts` — ts — deps: — DTO OAuth-login (provider/code/state/redirectUri)
-- 🟢 `OAuthRegisterRequest.ts` — ts — deps: — DTO регистрации через OAuth с workspace-контекстом
-- 🟢 `PasswordResetConfirm.ts` — ts — deps: — DTO подтверждения сброса пароля по токену
-- 🟢 `PasswordResetRequest.ts` — ts — deps: — DTO запроса на сброс пароля с clientContext
-- 🟢 `RefreshTokenRequest.ts` — ts — deps: — DTO запроса refresh токенов с clientContext
+- 🟢 `MfaSetupRequest.ts` — ts — deps: domain/MfaInfo — DTO настройки MFA-методов
+- 🟢 `OAuthLoginRequest.ts` — ts — deps: contracts/OAuthErrorResponse, domain/ClientContext — DTO OAuth-login (provider/code/state/redirectUri)
+- 🟢 `OAuthRegisterRequest.ts` — ts — deps: contracts/OAuthErrorResponse, domain/ClientContext — DTO регистрации через OAuth с workspace-контекстом
+- 🟢 `PasswordResetConfirm.ts` — ts — deps: domain/ClientContext — DTO подтверждения сброса пароля по токену
+- 🟢 `PasswordResetRequest.ts` — ts — deps: domain/ClientContext — DTO запроса на сброс пароля с clientContext
+- 🟢 `RefreshTokenRequest.ts` — ts — deps: domain/ClientContext — DTO запроса refresh токенов с clientContext
 - 🟢 `RegisterRequest.ts` — ts — deps: domain/ClientContext, domain/MfaInfo — DTO регистрации пользователя и workspace
-- 🟢 `RegisterResponse.ts` — ts — deps: domain/MfaInfo, domain/TokenPair — доменный ответ регистрации с user/workspace/token данными
-- 🟢 `SessionPolicy.ts` — ts — deps: — доменная политика сессий (TTL, geo/ip-ограничения, лимиты)
+- 🟢 `RegisterResponse.ts` — ts — deps: domain/ClientContext, domain/MfaInfo, dto/TokenPair — доменный ответ регистрации с user/workspace/token данными
 - 🟢 `SessionRevokeRequest.ts` — ts — deps: — DTO отзыва сессии с причиной
 - 🟢 `SmsTemplateRequest.ts` — ts — deps: — DTO запросов на отправку auth SMS-шаблонов
 - 🟢 `TokenPair.ts` — ts — deps: — доменная модель пары токенов (access/refresh) и метаданных
-- 🟢 `VerifyEmailRequest.ts` — ts — deps: — DTO подтверждения email с clientContext
-- 🟢 `VerifyPhoneRequest.ts` — ts — deps: — DTO подтверждения телефона с кодом и clientContext
-- 🟢 `AuthRetry.ts` — ts — deps: @livai/core/resilience, AuthErrorResponse, OAuthErrorResponse — централизованные retry-политики для AuthErrorType и OAuthErrorType (AuthRetryPolicy/OAuthRetryPolicy + getAuthRetryable/getOAuthRetryable/merge* для overrides; edge-case unknown_error всегда non-retryable)
+- 🟢 `VerifyEmailRequest.ts` — ts — deps: domain/ClientContext — DTO подтверждения email с clientContext
+- 🟢 `VerifyPhoneRequest.ts` — ts — deps: domain/ClientContext — DTO подтверждения телефона с кодом и clientContext
 
 ### **Feature-auth / schemas** ✅
 
@@ -351,10 +357,10 @@ Toast / UI feedback
 
 - 🟢 `classification-mapper.ts` — ts — deps: @livai/domains/labels, @livai/domains/policies, @livai/domains/strategies — маппинг результатов классификации/риска из domains в auth-специфичные решения и DTO
 - 🟢 `device-fingerprint.ts` — ts+effect — deps: domain/DeviceInfo — формирование/валидация device fingerprint и безопасная обработка device-метаданных
-- 🟢 `error-mapper.ts` — ts+effect — deps: domain/AuthErrorResponse, domain/MfaChallengeRequest, domain/OAuthErrorResponse, domain/SessionRevokeRequest, types/auth — маппинг transport/domain ошибок в нормализованный AuthError и UI-дружественные коды
+- 🟢 `error-mapper.ts` — ts+effect — deps: @livai/core/effect, contracts/AuthErrorResponse, contracts/OAuthErrorResponse, domain/MfaInfo, dto/SessionRevokeRequest, types/auth — маппинг transport/domain ошибок в нормализованный AuthError и UI-дружественные коды
 - 🟢 `risk-assessment.adapter.ts` — ts — deps: ipaddr.js, @livai/domains/strategies, domain/DeviceInfo, domain/LoginRiskAssessment, types/auth — адаптер между domains/classification и feature-auth risk-моделью (LoginRiskAssessment)
 - 🟢 `risk-assessment.ts` — ts — deps: @livai/domains/aggregation, @livai/domains/policies, @livai/domains/signals, @livai/domains/strategies, domain/DeviceInfo, domain/LoginRiskAssessment, types/auth-risk, lib/classification-mapper, lib/risk-assessment.adapter — оркестрация оценки риска логина на основе сигналов, политик и результатов доменного движка
-- 🟢 `security-pipeline.ts` — ts+effect — deps: core/effect, domain/DeviceInfo, domain/LoginRiskAssessment, types/auth, types/auth-risk, lib/device-fingerprint, lib/risk-assessment — декларативный security-pipeline для login/register/refresh с поддержкой плагинов и audit
+- 🟢 `security-pipeline.ts` — ts+effect — deps: @livai/core/effect, domain/DeviceInfo, domain/LoginRiskAssessment, types/auth, types/auth-risk, lib/device-fingerprint, lib/risk-assessment — декларативный security-pipeline для login/register/refresh с поддержкой плагинов и audit
 - 🟢 `session-manager.ts` — ts — deps: @livai/core, @livai/core-contracts, domain/SessionPolicy, types/auth — domain-pure менеджер жизненного цикла сессий (TTL, refresh, concurrent limits, policy checks)
 
 ### **Feature-auth / stores** ✅
@@ -363,33 +369,33 @@ Toast / UI feedback
 
 ### **Feature-auth / effects** ✅
 
-- 🟢 `shared/api-client.adapter.ts` — ts+effect — deps: effects/shared/api-client.port — адаптер HTTP-клиента под Effect-пайплайны и auth-схемы
-- 🟢 `shared/api-client.port.ts` — ts+effect — deps: — портовый контракт AuthApiClientPort для DI (login/register/logout/refresh)
-- 🟢 `shared/auth-api.mappers.ts` — ts — deps: domain/MeResponse, domain/TokenPair, schemas/index — мапперы HTTP-ответов backend → domain/feature-уровень (TokenPair/Me/AuthError)
+- 🟢 `shared/api-client.adapter.ts` — ts+effect — deps: @livai/core/effect, effects/shared/api-client.port — адаптер HTTP-клиента под Effect-пайплайны и auth-схемы
+- 🟢 `shared/api-client.port.ts` — ts+effect — deps: @livai/core/effect — портовый контракт AuthApiClientPort для DI (login/register/logout/refresh)
+- 🟢 `shared/auth-api.mappers.ts` — ts — deps: dto/MeResponse, dto/TokenPair, schemas/index — мапперы HTTP-ответов backend → domain/feature-уровень (TokenPair/Me/AuthError)
 - 🟢 `shared/auth-store.port.ts` — ts — deps: stores/auth, types/auth — портовый контракт доступа к auth-store из эффектов (Port pattern для изоляции effects от реализации store)
-- 🟢 `shared/session-state.builder.ts` — ts — deps: @livai/core-contracts, domain/DeviceInfo, domain/MeResponse, domain/TokenPair, types/auth — построитель SessionState из API-ответов/политик для store
-- 🟢 `login/login-api.mapper.ts` — ts — deps: domain/LoginRequest, domain/LoginResult, domain/MfaChallengeRequest, domain/MfaInfo, schemas/index, types/login.dto, effects/shared/auth-api.mappers — маппинг step-результатов login API (login/me) в LoginResponseDto/AuthState
-- 🟢 `login/login-audit.mapper.ts` — ts — deps: domain/LoginResult, schemas/index, types/auth, login-effect.types, login-metadata.enricher — построение audit-событий login_success/login_failure/risk_detected
+- 🟢 `shared/session-state.builder.ts` — ts — deps: @livai/core-contracts, domain/DeviceInfo, dto/MeResponse, dto/TokenPair, types/auth — построитель SessionState из API-ответов/политик для store
+- 🟢 `login/login-api.mapper.ts` — ts — deps: domain/MfaInfo, dto/LoginRequest, dto/LoginResult, dto/MfaChallengeRequest, schemas/index, types/login.dto, effects/shared/auth-api.mappers — маппинг step-результатов login API (login/me) в LoginResponseDto/AuthState
+- 🟢 `login/login-audit.mapper.ts` — ts — deps: dto/LoginResult, schemas/index, types/auth, login/login-effect.types, login/login-metadata.enricher — построение audit-событий login_success/login_failure/risk_detected
 - 🟢 `login/login-effect.types.ts` — ts+effect — deps: lib/security-pipeline, schemas/index, types/auth, types/auth-risk, effects/shared/api-client.port, effects/shared/auth-store.port — DI-контракты, порты и конфигурация login-effect (security pipeline, audit, clock)
-- 🟢 `login/login-metadata.enricher.ts` — ts — deps: @livai/core, @livai/domains/policies, domain/DeviceInfo, domain/LoginRequest — обогащение login-метаданных (risk, device, policy) для audit/store
-- 🟢 `login/login-store-updater.ts` — ts — deps: domain/LoginResult, lib/security-pipeline, types/auth-risk, effects/shared/auth-store.port, effects/shared/session-state.builder, login-metadata.enricher — pure-обновления auth-store по результатам login-flow
-- 🟢 `login/validation.ts` — ts — deps: domain/LoginRequest — валидация входных данных login-flow и contract-level проверки
+- 🟢 `login/login-metadata.enricher.ts` — ts — deps: @livai/core, @livai/domains/policies, domain/DeviceInfo, dto/LoginRequest — обогащение login-метаданных (risk, device, policy) для audit/store
+- 🟢 `login/login-store-updater.ts` — ts — deps: dto/LoginResult, lib/security-pipeline, types/auth-risk, effects/shared/auth-store.port, effects/shared/session-state.builder, login/login-metadata.enricher — pure-обновления auth-store по результатам login-flow
+- 🟢 `login/validation.ts` — ts — deps: dto/LoginRequest — валидация входных данных login-flow и contract-level проверки
 - 🟢 `logout/logout-audit.mapper.ts` — ts — deps: schemas/index, types/auth — построение audit-событий logout/session_revoked
 - 🟢 `logout/logout-effect.types.ts` — ts — deps: lib/security-pipeline, schemas/index, types/auth, types/auth-risk, effects/shared/api-client.port, effects/shared/auth-store.port — DI-контракты и конфигурация logout-effect
 - 🟢 `logout/logout-store-updater.ts` — ts — deps: types/auth, types/auth-initial, effects/shared/auth-store.port — pure-обновления auth-store при logout/ревокации сессий
-- 🟢 `refresh/refresh-api.mapper.ts` — ts — deps: domain/MeResponse, domain/TokenPair, schemas/index, types/auth, effects/shared/auth-api.mappers — маппинг ответов refresh API в TokenPair/SessionState
-- 🟢 `refresh/refresh-audit.mapper.ts` — ts — deps: schemas/index, types/auth, refresh-effect.types — audit-события для token_refresh/session_refresh
+- 🟢 `refresh/refresh-api.mapper.ts` — ts — deps: dto/MeResponse, dto/TokenPair, schemas/index, types/auth, effects/shared/auth-api.mappers — маппинг ответов refresh API в TokenPair/SessionState
+- 🟢 `refresh/refresh-audit.mapper.ts` — ts — deps: schemas/index, types/auth, refresh/refresh-effect.types — audit-события для token_refresh/session_refresh
 - 🟢 `refresh/refresh-effect.types.ts` — ts — deps: @livai/core-contracts, schemas/index, types/auth, effects/shared/api-client.port, effects/shared/auth-store.port — DI-контракты и конфигурация refresh-effect
-- 🟢 `refresh/refresh-store-updater.ts` — ts — deps: domain/DeviceInfo, domain/MeResponse, domain/TokenPair, types/auth, types/auth-initial, effects/shared/auth-store.port, effects/shared/session-state.builder, refresh-effect.types — pure-обновления auth-store при успешном refresh токенов/сессий
-- 🟢 `register/register-api.mapper.ts` — ts — deps: domain/OAuthRegisterRequest, domain/RegisterRequest, domain/RegisterResponse, schemas/index, effects/shared/auth-api.mappers — маппинг ответов регистрации в RegisterResponse/Me/SessionState
-- 🟢 `register/register-audit.mapper.ts` — ts — deps: zod, domain/DeviceInfo, domain/RegisterRequest, domain/RegisterResponse, schemas/index, types/auth — audit-события регистрации (oauth/password), policy-violations
-- 🟢 `register/register-effect.types.ts` — ts — deps: schemas/index, types/auth, login-effect.types, effects/shared/api-client.port, effects/shared/auth-store.port — DI-контракты и конфигурация register-effect
-- 🟢 `register/register-metadata.enricher.ts` — ts — deps: domain/RegisterRequest — обогащение метаданных регистрации (workspace, device, risk)
-- 🟢 `register/register-store-updater.ts` — ts — deps: domain/DeviceInfo, domain/MeResponse, domain/RegisterRequest, domain/RegisterResponse, domain/TokenPair, types/auth, types/auth-initial, effects/shared/auth-store.port, effects/shared/session-state.builder — pure-обновления auth-store и начальной сессии после регистрации
-- 🟢 `login.ts` — ts+effect — deps: core/effect, domain/LoginRequest, domain/LoginResult, schemas/index, types/auth, types/login.dto, login/login-api.mapper, login/login-audit.mapper, login/login-effect.types, login/login-metadata.enricher, login/login-store-updater — оркестратор login-flow на Effect (валидация → security-pipeline → API → store/audit)
-- 🟢 `logout.ts` — ts+effect — deps: core/effect, types/auth, logout/logout-audit.mapper, logout/logout-effect.types, logout/logout-store-updater, shared/auth-store.port — оркестратор logout-flow (ревокация токенов/сессий + обновление store/audit)
-- 🟢 `refresh.ts` — ts+effect — deps: core/effect, domain/DeviceInfo, schemas/index, types/auth, refresh/refresh-api.mapper, refresh/refresh-audit.mapper, refresh/refresh-effect.types, refresh/refresh-store-updater, shared/auth-store.port — оркестратор refresh-flow (обновление токенов/сессий + security-проверки)
-- 🟢 `register.ts` — ts+effect — deps: core/effect, domain/AuthErrorResponse, domain/DeviceInfo, domain/RegisterRequest, domain/RegisterResponse, schemas/index, types/auth, register/register-api.mapper, register/register-audit.mapper, register/register-effect.types, register/register-metadata.enricher, register/register-store-updater — оркестратор registration-flow (password/oauth) с audit и инициализацией сессии
+- 🟢 `refresh/refresh-store-updater.ts` — ts — deps: domain/DeviceInfo, dto/MeResponse, dto/TokenPair, types/auth, types/auth-initial, effects/shared/auth-store.port, effects/shared/session-state.builder, refresh/refresh-effect.types — pure-обновления auth-store при успешном refresh токенов/сессий
+- 🟢 `register/register-api.mapper.ts` — ts — deps: dto/OAuthRegisterRequest, dto/RegisterRequest, dto/RegisterResponse, schemas/index, effects/shared/auth-api.mappers — маппинг ответов регистрации в RegisterResponse/Me/SessionState
+- 🟢 `register/register-audit.mapper.ts` — ts — deps: zod, domain/DeviceInfo, dto/RegisterRequest, dto/RegisterResponse, schemas/index, types/auth — audit-события регистрации (oauth/password), policy-violations
+- 🟢 `register/register-effect.types.ts` — ts — deps: schemas/index, types/auth, login/login-effect.types, effects/shared/api-client.port, effects/shared/auth-store.port — DI-контракты и конфигурация register-effect
+- 🟢 `register/register-metadata.enricher.ts` — ts — deps: dto/RegisterRequest — обогащение метаданных регистрации (workspace, device, risk)
+- 🟢 `register/register-store-updater.ts` — ts — deps: domain/DeviceInfo, dto/MeResponse, dto/RegisterRequest, dto/RegisterResponse, dto/TokenPair, types/auth, types/auth-initial, effects/shared/auth-store.port, effects/shared/session-state.builder — pure-обновления auth-store и начальной сессии после регистрации
+- 🟢 `login.ts` — ts+effect — deps: @livai/core/effect, dto/LoginRequest, dto/LoginResult, schemas/index, types/auth, types/login.dto, login/login-api.mapper, login/login-audit.mapper, login/login-effect.types, login/login-metadata.enricher, login/login-store-updater — оркестратор login-flow на Effect (валидация → security-pipeline → API → store/audit)
+- 🟢 `logout.ts` — ts+effect — deps: @livai/core/effect, types/auth, logout/logout-audit.mapper, logout/logout-effect.types, logout/logout-store-updater, effects/shared/auth-store.port — оркестратор logout-flow (ревокация токенов/сессий + обновление store/audit)
+- 🟢 `refresh.ts` — ts+effect — deps: @livai/core/effect, domain/DeviceInfo, schemas/index, types/auth, refresh/refresh-api.mapper, refresh/refresh-audit.mapper, refresh/refresh-effect.types, refresh/refresh-store-updater, effects/shared/auth-store.port — оркестратор refresh-flow (обновление токенов/сессий + security-проверки)
+- 🟢 `register.ts` — ts+effect — deps: @livai/core/effect, contracts/AuthErrorResponse, domain/DeviceInfo, dto/RegisterRequest, dto/RegisterResponse, schemas/index, types/auth, register/register-api.mapper, register/register-audit.mapper, register/register-effect.types, register/register-metadata.enricher, register/register-store-updater — оркестратор registration-flow (password/oauth) с audit и инициализацией сессии
 
 ### **Feature-auth / effects (запланировано)** ⚪
 

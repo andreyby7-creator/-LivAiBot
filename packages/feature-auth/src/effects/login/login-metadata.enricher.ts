@@ -3,10 +3,12 @@
  * ============================================================================
  * 🔐 FEATURE-AUTH — Login Metadata Enricher (Context Enricher)
  * ============================================================================
+ *
  * Архитектурная роль:
  * - Реализует ContextEnricher из @livai/core для обогащения контекста метаданными логина
  * - Использует core input-boundary для dependency-driven execution
  * - Domain-pure, deterministic, microservice-ready
+ *
  * Принципы:
  * - ✅ Чистые функции — без side-effects
  * - ✅ Deterministic — одинаковый вход → одинаковый выход (traceId обязателен)
@@ -26,7 +28,7 @@ import type { ContextEnricher, EnrichmentError, EnrichmentResult } from '@livai/
 import type { RiskLevel } from '@livai/domains/policies';
 
 import type { DeviceInfo } from '../../domain/DeviceInfo.js';
-import type { LoginIdentifierType, LoginRequest } from '../../domain/LoginRequest.js';
+import type { LoginIdentifierType, LoginRequest } from '../../dto/LoginRequest.js';
 
 /* ============================================================================
  * 🧭 TYPES

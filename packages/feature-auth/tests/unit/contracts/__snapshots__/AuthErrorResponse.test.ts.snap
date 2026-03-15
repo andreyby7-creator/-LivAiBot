@@ -1,0 +1,94 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`AuthErrorResponse comprehensive snapshots > account_locked error - полный snapshot 1`] = `
+{
+  "context": {
+    "failedAttempts": 5,
+    "lockoutDuration": 900,
+    "unlockAt": "2026-01-15T11:00:00.000Z",
+  },
+  "correlationId": "corr-abc-123",
+  "error": "account_locked",
+  "message": "Account is locked due to multiple failed attempts",
+  "retryable": false,
+  "statusCode": 403,
+  "timestamp": "2026-01-15T10:30:00.000Z",
+  "userId": "user-123",
+}
+`;
+
+exports[`AuthErrorResponse comprehensive snapshots > invalid_credentials error - полный snapshot 1`] = `
+{
+  "context": {
+    "lastAttempt": "2026-01-15T10:00:00.000Z",
+    "remainingAttempts": 2,
+  },
+  "correlationId": "corr-abc-123",
+  "error": "invalid_credentials",
+  "message": "Invalid email or password",
+  "retryable": true,
+  "statusCode": 401,
+  "timestamp": "2026-01-15T10:30:00.000Z",
+  "userId": "user-123",
+}
+`;
+
+exports[`AuthErrorResponse comprehensive snapshots > mfa_required error - полный snapshot 1`] = `
+{
+  "context": {
+    "availableMethods": [
+      "totp",
+      "sms",
+      "push",
+    ],
+    "mfaChallengeId": "challenge-123",
+    "mfaType": "totp",
+  },
+  "correlationId": "corr-abc-123",
+  "error": "mfa_required",
+  "message": "Multi-factor authentication required",
+  "retryable": true,
+  "statusCode": 200,
+  "timestamp": "2026-01-15T10:30:00.000Z",
+  "userId": "user-123",
+}
+`;
+
+exports[`AuthErrorResponse comprehensive snapshots > rate_limited error - полный snapshot 1`] = `
+{
+  "context": {
+    "limit": 10,
+    "remaining": 0,
+    "resetAt": "2026-01-15T11:00:00.000Z",
+    "retryAfter": 60,
+  },
+  "correlationId": "corr-abc-123",
+  "error": "rate_limited",
+  "message": "Too many requests. Please try again later.",
+  "retryable": true,
+  "statusCode": 429,
+  "timestamp": "2026-01-15T10:30:00.000Z",
+  "userId": "user-123",
+}
+`;
+
+exports[`AuthErrorResponse comprehensive snapshots > risk_blocked error - полный snapshot 1`] = `
+{
+  "context": {
+    "blockedUntil": "2026-01-16T10:30:00.000Z",
+    "riskFactors": [
+      "unusual_location",
+      "suspicious_device",
+      "velocity_anomaly",
+    ],
+    "riskScore": 95,
+  },
+  "correlationId": "corr-abc-123",
+  "error": "risk_blocked",
+  "message": "Blocked due to risk assessment",
+  "retryable": false,
+  "statusCode": 403,
+  "timestamp": "2026-01-15T10:30:00.000Z",
+  "userId": "user-123",
+}
+`;

@@ -1,0 +1,86 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`SmsTemplateRequest comprehensive snapshots > full sms template request - полный snapshot 1`] = `
+{
+  "clientApp": "mobile",
+  "locale": "de-DE",
+  "meta": {
+    "provider": "twilio",
+    "reason": "phone_verification",
+  },
+  "templateId": "verify-phone",
+  "timestamp": "2026-01-15T10:30:00.000Z",
+  "to": "+491234567890",
+  "type": "verify_phone",
+  "userId": "user-123",
+  "variables": {
+    "code": "123456",
+    "expiresIn": 300,
+    "userName": "John Doe",
+  },
+}
+`;
+
+exports[`SmsTemplateRequest comprehensive snapshots > minimal sms template request - полный snapshot 1`] = `
+{
+  "templateId": "mfa-code",
+  "to": "+1234567890",
+  "variables": {},
+}
+`;
+
+exports[`SmsTemplateRequest comprehensive snapshots > sms template request with all types - полный snapshot 1`] = `
+{
+  "templateId": "verify-phone",
+  "to": "+491234567890",
+  "type": "verify_phone",
+  "variables": {},
+}
+`;
+
+exports[`SmsTemplateRequest comprehensive snapshots > sms template request with all types - полный snapshot 2`] = `
+{
+  "templateId": "verify-phone",
+  "to": "+491234567890",
+  "type": "mfa_code",
+  "variables": {},
+}
+`;
+
+exports[`SmsTemplateRequest comprehensive snapshots > sms template request with all types - полный snapshot 3`] = `
+{
+  "templateId": "verify-phone",
+  "to": "+491234567890",
+  "type": "login_alert",
+  "variables": {},
+}
+`;
+
+exports[`SmsTemplateRequest comprehensive snapshots > sms template request with all types - полный snapshot 4`] = `
+{
+  "templateId": "verify-phone",
+  "to": "+491234567890",
+  "type": "security_notification",
+  "variables": {},
+}
+`;
+
+exports[`SmsTemplateRequest comprehensive snapshots > sms template request with type - полный snapshot 1`] = `
+{
+  "templateId": "verify-phone",
+  "to": "+491234567890",
+  "type": "mfa_code",
+  "variables": {},
+}
+`;
+
+exports[`SmsTemplateRequest comprehensive snapshots > sms template request with variables - полный snapshot 1`] = `
+{
+  "templateId": "verify-phone",
+  "to": "+491234567890",
+  "variables": {
+    "code": "123456",
+    "expiresIn": 300,
+  },
+}
+`;

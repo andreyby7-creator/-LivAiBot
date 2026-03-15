@@ -10,8 +10,8 @@ import { describe, expect, it, vi } from 'vitest';
 import type { RiskLevel } from '@livai/domains/policies';
 
 import type { DeviceInfo } from '../../../../src/domain/DeviceInfo.js';
-import type { LoginIdentifierType, LoginRequest } from '../../../../src/domain/LoginRequest.js';
 import type { MfaInfo } from '../../../../src/domain/MfaInfo.js';
+import type { LoginIdentifierType, LoginRequest } from '../../../../src/dto/LoginRequest.js';
 import type {
   IdentifierHasher,
   LoginContext,

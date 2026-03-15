@@ -3,12 +3,14 @@
  * ============================================================================
  * 🔐 FEATURE-AUTH — Login Store Updater
  * ============================================================================
+ *
  * Назначение файла:
  * - Единственная точка применения результата login-flow к auth/session/security состояниям стора
  * - Явный мост между:
  *   - финальным security-решением (`SecurityPipelineResult`) из security-pipeline
  *   - доменным результатом логина (`DomainLoginResult`) из оркестратора login-flow
  *   - уже обогащёнными login-метаданными (`LoginMetadata[]`), которые просто прокидываются дальше (audit/telemetry)
+ *
  * Гарантии уровня файла:
  * - ❌ Не пересчитывает риск и не выполняет rule-engine (использует готовый `SecurityPipelineResult`)
  * - ❌ Не читает текущее состояние store и не принимает решений (decision уже принят выше по пайплайну)
@@ -18,7 +20,7 @@
  * - ✅ Обновление auth/session/security выполняется как одна логическая транзакция на уровне вызовов портов
  */
 
-import type { DomainLoginResult } from '../../domain/LoginResult.js';
+import type { DomainLoginResult } from '../../dto/LoginResult.js';
 import type { SecurityPipelineResult } from '../../lib/security-pipeline.js';
 import type { RiskAssessmentResult } from '../../types/auth-risk.js';
 import type { AuthStorePort } from '../shared/auth-store.port.js';

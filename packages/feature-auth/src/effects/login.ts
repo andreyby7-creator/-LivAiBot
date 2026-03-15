@@ -31,8 +31,8 @@ import {
   withTimeout,
 } from '@livai/core/effect';
 
-import type { LoginIdentifierType, LoginRequest } from '../domain/LoginRequest.js';
-import type { DomainLoginResult } from '../domain/LoginResult.js';
+import type { LoginIdentifierType, LoginRequest } from '../dto/LoginRequest.js';
+import type { DomainLoginResult } from '../dto/LoginResult.js';
 import type { LoginTokenPairValues, MeResponseValues } from '../schemas/index.js';
 import { loginRequestSchema, loginTokenPairSchema, meResponseSchema } from '../schemas/index.js';
 import type { AuthError } from '../types/auth.js';

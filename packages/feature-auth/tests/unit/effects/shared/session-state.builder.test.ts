@@ -17,8 +17,8 @@
 import { describe, expect, it } from 'vitest';
 
 import type { DeviceInfo } from '../../../../src/domain/DeviceInfo.js';
-import type { MeSessionInfo } from '../../../../src/domain/MeResponse.js';
-import type { TokenPair } from '../../../../src/domain/TokenPair.js';
+import type { MeSessionInfo } from '../../../../src/dto/MeResponse.js';
+import type { TokenPair } from '../../../../src/dto/TokenPair.js';
 import type { BuildSessionStateParams } from '../../../../src/effects/shared/session-state.builder.js';
 import { buildSessionState } from '../../../../src/effects/shared/session-state.builder.js';
 
