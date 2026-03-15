@@ -129,7 +129,7 @@ export interface TelemetryBatchCoreState<
  * ========================================================================== */
 
 /** Версия конфигурации batch core для миграций */
-// eslint-disable-next-line ai-security/model-poisoning
+// eslint-disable-next-line ai-security/model-poisoning -- Константа версии, не является пользовательским вводом
 export const BatchCoreConfigVersion = 1;
 
 /**
