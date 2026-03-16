@@ -90,27 +90,18 @@ if (reactPath) {
 const TEST_CONFIG = {
   /** Изоляция тестов: false в CI для скорости, true в dev для надежности */
   ISOLATE_TESTS: process.env['CI'] === 'true' ? false : true,
-  /** Параллельность: выше в CI для скорости, ниже в dev для стабильности с БД */
-  MAX_CONCURRENCY: process.env['CI'] === 'true' ? 2 : 1,
+  /** Количество потоков: в CI ограничиваем для предсказуемой нагрузки, в dev авто */
+  MAX_THREADS: process.env['CI'] === 'true' ? 2 : undefined,
   /** Режим watch: включен в dev для live-reload, отключен в CI */
   WATCH_MODE: process.env['CI'] !== 'true',
   /** Логирование: более детальное в dev, минимальное в CI */
   VERBOSE_LOGGING: process.env['CI'] !== 'true',
 } as const;
 
-// Определение Node версии для fallback esbuild target
+// Node version (для логирования/валидации окружения)
 const nodeVersion = process.versions.node || '24.0.0';
 const nodeMajorVersion = parseInt((nodeVersion as string).split('.')[0] || '24', 10);
-
-// Fallback target: Node24 → Node22 → Node20 (минимум Node 20)
-let esbuildTarget: 'node20' | 'node22' | 'node24';
-if (nodeMajorVersion >= 24) {
-  esbuildTarget = 'node24';
-} else if (nodeMajorVersion >= 22) {
-  esbuildTarget = 'node22';
-} else if (nodeMajorVersion >= 20) {
-  esbuildTarget = 'node20';
-} else {
+if (nodeMajorVersion < 20) {
   throw new Error(`Node.js ${nodeVersion} не поддерживается. Требуется Node.js 20+`);
 }
 
@@ -134,7 +125,7 @@ function logVitestConfiguration(
     console.log(`   - Environment: ${process.env['CI'] === 'true' ? 'CI' : 'Development'}`);
     console.log(`   - Node.js version: ${nodeVersion} (target: ${esbuildTarget})`);
     console.log(`   - Watch mode: ${testConfig.WATCH_MODE ? 'enabled' : 'disabled'}`);
-    console.log(`   - Max concurrency: ${testConfig.MAX_CONCURRENCY}`);
+    console.log(`   - Max threads: ${testConfig.MAX_THREADS ?? 'auto'}`);
     console.log(
       `   - Threading: ${process.env['CI'] === 'true' ? 'multi-threaded (CI)' : 'auto (dev)'}`,
     );
@@ -162,6 +153,9 @@ function createBaseVitestConfig(
   overrides: { test?: Record<string, unknown>; } = {},
 ): ReturnType<typeof defineConfig> {
   return defineConfig({
+    // Важно: когда vitest запускается с явным --config, текущий root может стать директорией конфига.
+    // Мы фиксируем root на корень репозитория, чтобы include/exclude/coverage были детерминированными.
+    root: ROOT,
     test: {
       /** Глобальные переменные Vitest (describe, it, expect) */
       globals: true,
@@ -184,16 +178,8 @@ function createBaseVitestConfig(
 
       /** Пул выполнения: threads для Node.js окружения */
       pool: 'threads',
-
-      /**
-       * Управление потоками в Vitest 4.x:
-       * - singleThread и poolOptions убраны в Vitest 4.x
-       * - Управление через переменные окружения:
-       *   * VITEST_MAX_THREADS - максимальное количество потоков
-       *   * VITEST_MIN_THREADS - минимальное количество потоков
-       * - Или через дефолтное поведение (автоматическое определение)
-       * - Пример: VITEST_MAX_THREADS=4 VITEST_MIN_THREADS=1 pnpm test
-       */
+      /** Управление количеством worker-потоков: базово через конфиг, override через env (CI) */
+      maxThreads: TEST_CONFIG.MAX_THREADS,
 
       /**
        * Изоляция тестов между запусками.
@@ -261,9 +247,6 @@ function createBaseVitestConfig(
         '**/tests-disabled/**',
       ],
 
-      /** Максимальная параллельность выполнения */
-      maxConcurrency: TEST_CONFIG.MAX_CONCURRENCY,
-
       /** Future-proof опции для расширяемости */
       /**
        * Экспериментальная опция: отключить intercept консоли для лучшей производительности в CI
@@ -277,10 +260,17 @@ function createBaseVitestConfig(
        */
       slowTestThreshold: process.env['CI'] === 'true' ? 1000 : 300,
 
-      /** Настройка покрытия кода */
+      /**
+       * Генерация покрытия кода.
+       * Все пороги, политики и фильтрация по файлам реализованы в scripts/test-unit.mjs
+       * на основе coverage/coverage-final.json (единый источник истины).
+       */
       coverage: {
         provider: 'v8',
         reporter: ['text', 'json', 'html'],
+        // Всегда писать coverage в корень репозитория, чтобы runner мог детерминированно
+        // найти coverage/coverage-final.json независимо от workspace/package cwd.
+        reportsDirectory: path.resolve(ROOT, 'coverage'),
       },
 
       /** Глобальная настройка для всех тестов */
@@ -318,12 +308,6 @@ function createBaseVitestConfig(
       exclude: [],
       // Принудительно пересобирать зависимости при изменении (для надежности)
       force: false,
-      // Эсмеральда (esbuild) опции для правильной обработки
-      esbuildOptions: {
-        // Поддержка JSX для правильной обработки React
-        jsx: 'automatic',
-        jsxImportSource: 'react',
-      },
     },
 
     // ------------------ ГЛОБАЛЬНЫЕ ОПРЕДЕЛЕНИЯ -----------------------------
@@ -333,23 +317,14 @@ function createBaseVitestConfig(
       'import.meta.vitest': 'undefined',
     },
 
-    // ------------------ ESBUILD НАСТРОЙКИ -----------------------------
-
-    /** esbuild target: автоопределение Node 24→22→20 (минимум Node 20) */
-    /** Automatic JSX runtime для всех пакетов в монорепо */
-    esbuild: {
-      target: esbuildTarget,
-      jsx: 'automatic', // обязательный для автоматического JSX
-      jsxImportSource: 'react', // используем runtime из react
-    },
-
     // Применяем переопределения через mergeConfig
     ...overrides,
   });
 }
 
 // Логируем конфигурацию при запуске
-logVitestConfiguration('Vitest', nodeVersion, esbuildTarget, TEST_CONFIG, env);
+// NOTE: мы намеренно не задаем `esbuild` опции в Vite-конфиге, чтобы не смешивать esbuild и oxc.
+logVitestConfiguration('Vitest', nodeVersion, 'oxc', TEST_CONFIG, env);
 
 // ------------------ ОСНОВНАЯ КОНФИГУРАЦИЯ VITE/VITEST -----------------------------
 
