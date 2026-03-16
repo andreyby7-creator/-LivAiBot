@@ -50,3 +50,14 @@ export * from './contracts/index.js';
  * @public
  */
 export * from './dto/index.js';
+
+/* ============================================================================
+ * ✅ SCHEMAS — СХЕМЫ ВАЛИДАЦИИ (ZOD)
+ * ========================================================================== */
+
+/**
+ * Schemas подпакет: Zod-схемы для runtime-валидации DTO и доменных структур.
+ * Включает botSettings, create/update/publish/test request, bot, botVersion, botTemplate, multiAgent, botAuditEvent и типы Values.
+ * @public
+ */
+export * from './schemas/index.js';

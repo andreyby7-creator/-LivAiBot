@@ -511,9 +511,9 @@ Toast / UI feedback
 - 🟢 `dto/PublishBotRequest.ts` — ts — deps: domain/Bot — DTO публикации бота (PublishBotRequest с опциональными version и rollbackVersion для публикации или rollback к предыдущей версии)
 - 🟢 `dto/TestBotRequest.ts` — ts — deps: @livai/core-contracts — DTO тестового запроса к боту (TestBotRequest с обязательным message, опциональными conversationId и context для тестирования бота)
 
-### **Feature-bots / schemas** ⚪
+### **Feature-bots / schemas** ✅
 
-- ⚪ `schemas.ts` — ts — deps: zod, @livai/core-contracts/validation/zod — Zod-схемы и inferred-типы для всех bot DTO (create/update/publish/test/multi-agent/template) и botAuditEventSchema для валидации audit-событий
+- 🟢 `schemas.ts` — ts — deps: zod — Zod-схемы и inferred-типы для bot DTO (create/update/publish/test), multi-agent, template, audit-события; structural refinements (граф, лимиты, уникальность приоритетов)
 
 ### **Feature-bots / lib** ⚪
 
