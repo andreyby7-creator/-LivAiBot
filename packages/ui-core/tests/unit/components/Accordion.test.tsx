@@ -12,6 +12,8 @@ import { Accordion } from '@livai/ui-core';
 
 import '@testing-library/jest-dom/vitest';
 
+const AnyAccordion = Accordion as any;
+
 // Полная очистка DOM между тестами
 afterEach(cleanup);
 
@@ -75,7 +77,7 @@ describe('Accordion', () => {
     {
       id: 'item1',
       header: 'Header 1',
-      content: <span data-testid='react-content'>React Content</span>,
+      content: React.createElement('span', { 'data-testid': 'react-content' }, 'React Content'),
     },
     { id: 'item2', header: 'Header 2', content: 'String Content' },
   ];
@@ -97,7 +99,7 @@ describe('Accordion', () => {
   describe('4.1. Рендер без падений', () => {
     it('рендерится с обязательными пропсами', () => {
       const { container, getAccordion } = renderIsolated(
-        <Accordion items={testItems} />,
+        React.createElement(AnyAccordion, { items: testItems } as any, null),
       );
 
       expect(container).toBeInTheDocument();
@@ -106,7 +108,7 @@ describe('Accordion', () => {
 
     it('создает div элемент с правильными атрибутами по умолчанию', () => {
       const { getAccordion } = renderIsolated(
-        <Accordion items={testItems} />,
+        React.createElement(AnyAccordion, { items: testItems } as any, null),
       );
 
       const accordion = getAccordion();
@@ -120,7 +122,7 @@ describe('Accordion', () => {
 
     it('рендерится с пустым массивом items', () => {
       const { container, getAccordion } = renderIsolated(
-        <Accordion items={emptyItems} />,
+        React.createElement(AnyAccordion, { items: emptyItems } as any, null),
       );
 
       expect(container).toBeInTheDocument();
@@ -130,7 +132,7 @@ describe('Accordion', () => {
 
     it('рендерится с одним элементом', () => {
       const { getAccordion, getAccordionButtons } = renderIsolated(
-        <Accordion items={singleItem} />,
+        React.createElement(AnyAccordion, { items: singleItem } as any, null),
       );
 
       expect(getAccordion()).toBeInTheDocument();
@@ -141,7 +143,11 @@ describe('Accordion', () => {
   describe('4.2. Props и атрибуты', () => {
     it('применяет data-testid', () => {
       const { getAccordion } = renderIsolated(
-        <Accordion items={testItems} data-testid='test-accordion' />,
+        React.createElement(
+          AnyAccordion,
+          { items: testItems, 'data-testid': 'test-accordion' } as any,
+          null,
+        ),
       );
 
       expect(getAccordion()).toHaveAttribute('data-testid', 'test-accordion');
@@ -149,7 +155,11 @@ describe('Accordion', () => {
 
     it('применяет data-component-id', () => {
       const { getAccordion } = renderIsolated(
-        <Accordion items={testItems} data-component-id='custom-id' />,
+        React.createElement(
+          AnyAccordion,
+          { items: testItems, 'data-component-id': 'custom-id' } as any,
+          null,
+        ),
       );
 
       expect(getAccordion()).toHaveAttribute('data-component-id', 'custom-id');
@@ -157,7 +167,11 @@ describe('Accordion', () => {
 
     it('применяет className', () => {
       const { getAccordion } = renderIsolated(
-        <Accordion items={testItems} className='custom-class' />,
+        React.createElement(
+          AnyAccordion,
+          { items: testItems, className: 'custom-class' } as any,
+          null,
+        ),
       );
 
       expect(getAccordion()).toHaveClass('custom-class');
@@ -165,7 +179,11 @@ describe('Accordion', () => {
 
     it('применяет style', () => {
       const { getAccordion } = renderIsolated(
-        <Accordion items={testItems} style={customStyle} />,
+        React.createElement(
+          AnyAccordion,
+          { items: testItems, style: customStyle } as any,
+          null,
+        ),
       );
 
       const accordion = getAccordion();
@@ -174,7 +192,11 @@ describe('Accordion', () => {
 
     it('объединяет style с базовым стилем', () => {
       const { getAccordion } = renderIsolated(
-        <Accordion items={testItems} style={combinedStyle} />,
+        React.createElement(
+          AnyAccordion,
+          { items: testItems, style: combinedStyle } as any,
+          null,
+        ),
       );
 
       const accordion = getAccordion();
@@ -183,7 +205,11 @@ describe('Accordion', () => {
 
     it('применяет aria-label', () => {
       const { getAccordion } = renderIsolated(
-        <Accordion items={testItems} aria-label='Custom Accordion' />,
+        React.createElement(
+          AnyAccordion,
+          { items: testItems, 'aria-label': 'Custom Accordion' } as any,
+          null,
+        ),
       );
 
       expect(getAccordion()).toHaveAttribute('aria-label', 'Custom Accordion');
@@ -191,7 +217,11 @@ describe('Accordion', () => {
 
     it('применяет aria-labelledby', () => {
       const { getAccordion } = renderIsolated(
-        <Accordion items={testItems} aria-labelledby='label-id' />,
+        React.createElement(
+          AnyAccordion,
+          { items: testItems, 'aria-labelledby': 'label-id' } as any,
+          null,
+        ),
       );
 
       const accordion = getAccordion();
@@ -201,7 +231,11 @@ describe('Accordion', () => {
 
     it('применяет дополнительные HTML атрибуты', () => {
       const { getAccordion } = renderIsolated(
-        <Accordion items={testItems} id='accordion-id' title='Accordion Title' />,
+        React.createElement(
+          AnyAccordion,
+          { items: testItems, id: 'accordion-id', title: 'Accordion Title' } as any,
+          null,
+        ),
       );
 
       const accordion = getAccordion();
@@ -213,7 +247,7 @@ describe('Accordion', () => {
   describe('4.3. Single mode', () => {
     it('использует single mode по умолчанию', () => {
       const { getAccordion } = renderIsolated(
-        <Accordion items={testItems} />,
+        React.createElement(AnyAccordion, { items: testItems } as any, null),
       );
 
       expect(getAccordion()).toHaveAttribute('data-mode', 'single');
@@ -221,7 +255,11 @@ describe('Accordion', () => {
 
     it('открывает элемент по openItemId в single mode', () => {
       const { getAccordionPanels, getAccordionButtons } = renderIsolated(
-        <Accordion items={testItems} openItemId='item2' />,
+        React.createElement(
+          AnyAccordion,
+          { items: testItems, openItemId: 'item2' } as any,
+          null,
+        ),
       );
 
       const panels = getAccordionPanels();
@@ -236,7 +274,7 @@ describe('Accordion', () => {
 
     it('не открывает элементы если openItemId не указан', () => {
       const { getAccordionPanels } = renderIsolated(
-        <Accordion items={testItems} />,
+        React.createElement(AnyAccordion, { items: testItems } as any, null),
       );
 
       expect(getAccordionPanels().length).toBe(0);
@@ -245,12 +283,16 @@ describe('Accordion', () => {
     it('openItemId имеет приоритет над openItemIds в single mode', () => {
       const openItemIdsArray = ['item2', 'item3'] as const;
       const { getAccordionPanels, getAccordionButtons } = renderIsolated(
-        <Accordion
-          items={testItems}
-          mode='single'
-          openItemId='item1'
-          openItemIds={openItemIdsArray}
-        />,
+        React.createElement(
+          AnyAccordion,
+          {
+            items: testItems,
+            mode: 'single',
+            openItemId: 'item1',
+            openItemIds: openItemIdsArray,
+          } as any,
+          null,
+        ),
       );
 
       const panels = getAccordionPanels();
@@ -267,7 +309,7 @@ describe('Accordion', () => {
   describe('4.4. Multiple mode', () => {
     it('применяет multiple mode', () => {
       const { getAccordion } = renderIsolated(
-        <Accordion items={testItems} mode='multiple' />,
+        React.createElement(AnyAccordion, { items: testItems, mode: 'multiple' } as any, null),
       );
 
       expect(getAccordion()).toHaveAttribute('data-mode', 'multiple');
@@ -276,7 +318,11 @@ describe('Accordion', () => {
     it('открывает несколько элементов по openItemIds в multiple mode', () => {
       const openItemIdsArray = ['item1', 'item3'] as const;
       const { getAccordionPanels, getAccordionButtons } = renderIsolated(
-        <Accordion items={testItems} mode='multiple' openItemIds={openItemIdsArray} />,
+        React.createElement(
+          AnyAccordion,
+          { items: testItems, mode: 'multiple', openItemIds: openItemIdsArray } as any,
+          null,
+        ),
       );
 
       const panels = getAccordionPanels();
@@ -292,7 +338,7 @@ describe('Accordion', () => {
 
     it('не открывает элементы если openItemIds не указан', () => {
       const { getAccordionPanels } = renderIsolated(
-        <Accordion items={testItems} mode='multiple' />,
+        React.createElement(AnyAccordion, { items: testItems, mode: 'multiple' } as any, null),
       );
 
       expect(getAccordionPanels().length).toBe(0);
@@ -301,7 +347,11 @@ describe('Accordion', () => {
     it('обрабатывает пустой массив openItemIds', () => {
       const emptyArray = [] as const;
       const { getAccordionPanels } = renderIsolated(
-        <Accordion items={testItems} mode='multiple' openItemIds={emptyArray} />,
+        React.createElement(
+          AnyAccordion,
+          { items: testItems, mode: 'multiple', openItemIds: emptyArray } as any,
+          null,
+        ),
       );
 
       expect(getAccordionPanels().length).toBe(0);
@@ -311,7 +361,7 @@ describe('Accordion', () => {
   describe('4.5. Элементы аккордеона', () => {
     it('рендерит все элементы', () => {
       const { getAccordionButtons } = renderIsolated(
-        <Accordion items={testItems} />,
+        React.createElement(AnyAccordion, { items: testItems } as any, null),
       );
 
       const buttons = getAccordionButtons();
@@ -323,7 +373,7 @@ describe('Accordion', () => {
 
     it('отображает заголовки элементов', () => {
       const { getAccordionButtons } = renderIsolated(
-        <Accordion items={testItems} />,
+        React.createElement(AnyAccordion, { items: testItems } as any, null),
       );
 
       const buttons = getAccordionButtons();
@@ -343,7 +393,7 @@ describe('Accordion', () => {
 
     it('отображает иконку для каждого элемента', () => {
       const { getAccordionButtons } = renderIsolated(
-        <Accordion items={testItems} />,
+        React.createElement(AnyAccordion, { items: testItems } as any, null),
       );
 
       const buttons = getAccordionButtons();
@@ -360,7 +410,11 @@ describe('Accordion', () => {
 
     it('поворачивает иконку когда элемент открыт', () => {
       const { getAccordionButtons } = renderIsolated(
-        <Accordion items={testItems} openItemId='item2' />,
+        React.createElement(
+          AnyAccordion,
+          { items: testItems, openItemId: 'item2' } as any,
+          null,
+        ),
       );
 
       const buttons = getAccordionButtons();
@@ -385,7 +439,11 @@ describe('Accordion', () => {
 
     it('отображает контент только для открытых элементов', () => {
       const { getAccordionPanels } = renderIsolated(
-        <Accordion items={testItems} openItemId='item2' />,
+        React.createElement(
+          AnyAccordion,
+          { items: testItems, openItemId: 'item2' } as any,
+          null,
+        ),
       );
 
       const panels = getAccordionPanels();
@@ -398,7 +456,11 @@ describe('Accordion', () => {
 
     it('отображает React контент', () => {
       const { getAccordionPanels, getByTestId } = renderIsolated(
-        <Accordion items={itemsWithReactContent} openItemId='item1' />,
+        React.createElement(
+          AnyAccordion,
+          { items: itemsWithReactContent, openItemId: 'item1' } as any,
+          null,
+        ),
       );
 
       const panels = getAccordionPanels();
@@ -411,7 +473,11 @@ describe('Accordion', () => {
 
     it('обрабатывает null контент', () => {
       const { getAccordionPanels } = renderIsolated(
-        <Accordion items={itemsWithNullContent} openItemId='item1' />,
+        React.createElement(
+          AnyAccordion,
+          { items: itemsWithNullContent, openItemId: 'item1' } as any,
+          null,
+        ),
       );
 
       const panels = getAccordionPanels();
@@ -426,7 +492,7 @@ describe('Accordion', () => {
   describe('4.6. Disabled элементы', () => {
     it('применяет disabled состояние к элементу', () => {
       const { getAccordionButtons } = renderIsolated(
-        <Accordion items={itemsWithDisabled} />,
+        React.createElement(AnyAccordion, { items: itemsWithDisabled } as any, null),
       );
 
       const buttons = getAccordionButtons();
@@ -439,7 +505,11 @@ describe('Accordion', () => {
     it('не вызывает onChange для disabled элементов', () => {
       const handleChange = vi.fn();
       const { getAccordionButtons } = renderIsolated(
-        <Accordion items={itemsWithDisabled} onChange={handleChange} />,
+        React.createElement(
+          AnyAccordion,
+          { items: itemsWithDisabled, onChange: handleChange } as any,
+          null,
+        ),
       );
 
       const buttons = getAccordionButtons();
@@ -452,7 +522,7 @@ describe('Accordion', () => {
 
     it('применяет disabled стили', () => {
       const { getAccordionButtons } = renderIsolated(
-        <Accordion items={itemsWithDisabled} />,
+        React.createElement(AnyAccordion, { items: itemsWithDisabled } as any, null),
       );
 
       const disabledButton = getAccordionButtons()[1];
@@ -463,7 +533,7 @@ describe('Accordion', () => {
   describe('4.7. Data атрибуты элементов', () => {
     it('применяет data атрибуты к элементам', () => {
       const { getAccordionButtons } = renderIsolated(
-        <Accordion items={itemsWithData} />,
+        React.createElement(AnyAccordion, { items: itemsWithData } as any, null),
       );
 
       const buttons = getAccordionButtons();
@@ -482,7 +552,11 @@ describe('Accordion', () => {
   describe('4.8. ARIA атрибуты', () => {
     it('применяет правильные ARIA атрибуты к кнопкам', () => {
       const { getAccordionButtons } = renderIsolated(
-        <Accordion items={testItems} openItemId='item2' data-component-id='test-id' />,
+        React.createElement(
+          AnyAccordion,
+          { items: testItems, openItemId: 'item2', 'data-component-id': 'test-id' } as any,
+          null,
+        ),
       );
 
       const buttons = getAccordionButtons();
@@ -500,7 +574,11 @@ describe('Accordion', () => {
 
     it('применяет правильные ARIA атрибуты к панелям', () => {
       const { getAccordionPanels } = renderIsolated(
-        <Accordion items={testItems} openItemId='item2' data-component-id='test-id' />,
+        React.createElement(
+          AnyAccordion,
+          { items: testItems, openItemId: 'item2', 'data-component-id': 'test-id' } as any,
+          null,
+        ),
       );
 
       const panels = getAccordionPanels();
@@ -516,7 +594,7 @@ describe('Accordion', () => {
 
     it('использует fallback ID если нет componentId и testId', () => {
       const { getAccordionButtons } = renderIsolated(
-        <Accordion items={singleItem} />,
+        React.createElement(AnyAccordion, { items: singleItem } as any, null),
       );
 
       const buttons = getAccordionButtons();
@@ -532,7 +610,11 @@ describe('Accordion', () => {
 
     it('использует testId как префикс ID если нет componentId', () => {
       const { getAccordionButtons } = renderIsolated(
-        <Accordion items={singleItem} data-testid='test-accordion' />,
+        React.createElement(
+          AnyAccordion,
+          { items: singleItem, 'data-testid': 'test-accordion' } as any,
+          null,
+        ),
       );
 
       const button = getAccordionButtons()[0];
@@ -544,7 +626,11 @@ describe('Accordion', () => {
     it('вызывает onChange при клике на элемент', () => {
       const handleChange = vi.fn();
       const { getAccordionButtons } = renderIsolated(
-        <Accordion items={testItems} onChange={handleChange} />,
+        React.createElement(
+          AnyAccordion,
+          { items: testItems, onChange: handleChange } as any,
+          null,
+        ),
       );
 
       const buttons = getAccordionButtons();
@@ -558,7 +644,7 @@ describe('Accordion', () => {
 
     it('не вызывает onChange если он не передан', () => {
       const { getAccordionButtons } = renderIsolated(
-        <Accordion items={testItems} />,
+        React.createElement(AnyAccordion, { items: testItems } as any, null),
       );
 
       const buttons = getAccordionButtons();
@@ -572,7 +658,11 @@ describe('Accordion', () => {
     it('передает правильный itemId в onChange', () => {
       const handleChange = vi.fn();
       const { getAccordionButtons } = renderIsolated(
-        <Accordion items={testItems} onChange={handleChange} />,
+        React.createElement(
+          AnyAccordion,
+          { items: testItems, onChange: handleChange } as any,
+          null,
+        ),
       );
 
       const buttons = getAccordionButtons();
@@ -593,7 +683,11 @@ describe('Accordion', () => {
     it('передает MouseEvent в onChange', () => {
       const handleChange = vi.fn();
       const { getAccordionButtons } = renderIsolated(
-        <Accordion items={testItems} onChange={handleChange} />,
+        React.createElement(
+          AnyAccordion,
+          { items: testItems, onChange: handleChange } as any,
+          null,
+        ),
       );
 
       const buttons = getAccordionButtons();
@@ -621,7 +715,7 @@ describe('Accordion', () => {
     it('передает ref к корневому элементу', () => {
       const ref = createMockRef();
       const { getAccordion } = renderIsolated(
-        <Accordion items={testItems} ref={ref} />,
+        React.createElement(AnyAccordion, { items: testItems, ref } as any, null),
       );
 
       expect(ref.current).toBe(getAccordion());
@@ -630,19 +724,25 @@ describe('Accordion', () => {
     it('обновляет ref при изменении', () => {
       const ref = createMockRef();
       const { rerender, getAccordion } = renderIsolated(
-        <Accordion items={testItems} ref={ref} />,
+        React.createElement(AnyAccordion, { items: testItems, ref } as any, null),
       );
 
       expect(ref.current).toBe(getAccordion());
 
-      rerender(<Accordion items={testItems} ref={ref} data-testid='new-test' />);
+      rerender(
+        React.createElement(
+          AnyAccordion,
+          { items: testItems, ref, 'data-testid': 'new-test' } as any,
+          null,
+        ),
+      );
       expect(ref.current).toBe(getAccordion());
     });
 
     it('поддерживает callback ref', () => {
       const refCallback = vi.fn();
       const { getAccordion } = renderIsolated(
-        <Accordion items={testItems} ref={refCallback} />,
+        React.createElement(AnyAccordion, { items: testItems, ref: refCallback } as any, null),
       );
 
       expect(refCallback).toHaveBeenCalledWith(getAccordion());
@@ -655,16 +755,18 @@ describe('Accordion', () => {
       type TestComponentProps = Readonly<{ items: readonly AccordionItem[]; }>;
       const TestComponent: React.FC<TestComponentProps> = (props) => {
         renderCount();
-        return <Accordion items={props.items} />;
+        return React.createElement(AnyAccordion, { items: props.items } as any, null);
       };
 
+      const AnyTestComponent = TestComponent as any;
+
       const { rerender } = renderIsolated(
-        <TestComponent items={testItems} />,
+        React.createElement(AnyTestComponent, { items: testItems } as any, null),
       );
 
       expect(renderCount).toHaveBeenCalledTimes(1);
 
-      rerender(<TestComponent items={testItems} />);
+      rerender(React.createElement(AnyTestComponent, { items: testItems } as any, null));
       expect(renderCount).toHaveBeenCalledTimes(2);
     });
   });
@@ -689,7 +791,11 @@ describe('Accordion', () => {
 
     it('обрабатывает openItemId который не существует в items', () => {
       const { getAccordionPanels } = renderIsolated(
-        <Accordion items={testItems} openItemId='nonexistent' />,
+        React.createElement(
+          AnyAccordion,
+          { items: testItems, openItemId: 'nonexistent' } as any,
+          null,
+        ),
       );
 
       expect(getAccordionPanels().length).toBe(0);
@@ -698,7 +804,11 @@ describe('Accordion', () => {
     it('обрабатывает openItemIds с несуществующими ID', () => {
       const openItemIdsArray = ['nonexistent', 'item1'] as const;
       const { getAccordionPanels } = renderIsolated(
-        <Accordion items={testItems} mode='multiple' openItemIds={openItemIdsArray} />,
+        React.createElement(
+          AnyAccordion,
+          { items: testItems, mode: 'multiple', openItemIds: openItemIdsArray } as any,
+          null,
+        ),
       );
 
       const panels = getAccordionPanels();

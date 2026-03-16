@@ -11,6 +11,8 @@ import { resolvePlacementStyle, Tooltip } from '@livai/ui-core';
 
 import '@testing-library/jest-dom/vitest';
 
+const AnyTooltip = Tooltip as any;
+
 // Полная очистка DOM между тестами
 afterEach(cleanup);
 
@@ -38,7 +40,7 @@ describe('Tooltip', () => {
   describe('3.1. Рендер без падений', () => {
     it('рендерится с обязательными пропсами', () => {
       const { container, getTooltip } = renderIsolated(
-        <Tooltip content='Test tooltip' visible={true} />,
+        React.createElement(AnyTooltip, { content: 'Test tooltip', visible: true } as any, null),
       );
 
       expect(container).toBeInTheDocument();
@@ -47,7 +49,7 @@ describe('Tooltip', () => {
 
     it('создает div элемент с правильными атрибутами по умолчанию', () => {
       const { getTooltip } = renderIsolated(
-        <Tooltip content='Test tooltip' visible={true} />,
+        React.createElement(AnyTooltip, { content: 'Test tooltip', visible: true } as any, null),
       );
 
       const tooltip = getTooltip();
@@ -60,7 +62,7 @@ describe('Tooltip', () => {
 
     it('не рендерится когда visible=false', () => {
       const { queryByRole } = renderIsolated(
-        <Tooltip content='Test tooltip' visible={false} />,
+        React.createElement(AnyTooltip, { content: 'Test tooltip', visible: false } as any, null),
       );
 
       expect(queryByRole('tooltip')).not.toBeInTheDocument();
@@ -68,7 +70,7 @@ describe('Tooltip', () => {
 
     it('не рендерится когда content=null', () => {
       const { queryByRole } = renderIsolated(
-        <Tooltip content={null as any} visible={true} />,
+        React.createElement(AnyTooltip, { content: null as any, visible: true } as any, null),
       );
 
       expect(queryByRole('tooltip')).not.toBeInTheDocument();
@@ -76,7 +78,11 @@ describe('Tooltip', () => {
 
     it('не рендерится когда content=undefined', () => {
       const { queryByRole } = renderIsolated(
-        <Tooltip content={undefined as any} visible={true} />,
+        React.createElement(
+          AnyTooltip,
+          { content: undefined as any, visible: true } as any,
+          null,
+        ),
       );
 
       expect(queryByRole('tooltip')).not.toBeInTheDocument();
@@ -86,7 +92,7 @@ describe('Tooltip', () => {
   describe('3.2. Контент (content)', () => {
     it('отображает строковый контент', () => {
       const { getTooltip } = renderIsolated(
-        <Tooltip content='Hello tooltip' visible={true} />,
+        React.createElement(AnyTooltip, { content: 'Hello tooltip', visible: true } as any, null),
       );
 
       const tooltip = getTooltip();
@@ -95,7 +101,14 @@ describe('Tooltip', () => {
 
     it('отображает React элемент как контент', () => {
       const { getTooltip } = renderIsolated(
-        <Tooltip content={<strong>Bold tooltip</strong> as any} visible={true} />,
+        React.createElement(
+          AnyTooltip,
+          {
+            content: React.createElement('strong', null, 'Bold tooltip') as any,
+            visible: true,
+          } as any,
+          null,
+        ),
       );
 
       const tooltip = getTooltip();
@@ -106,7 +119,7 @@ describe('Tooltip', () => {
 
     it('отображает число как контент', () => {
       const { getTooltip } = renderIsolated(
-        <Tooltip content={42 as any} visible={true} />,
+        React.createElement(AnyTooltip, { content: 42 as any, visible: true } as any, null),
       );
 
       const tooltip = getTooltip();
@@ -117,7 +130,7 @@ describe('Tooltip', () => {
   describe('3.3. Видимость (visible)', () => {
     it('рендерится когда visible=true', () => {
       const { getByRole } = renderIsolated(
-        <Tooltip content='Test' visible={true} />,
+        React.createElement(AnyTooltip, { content: 'Test', visible: true } as any, null),
       );
 
       expect(getByRole('tooltip')).toBeInTheDocument();
@@ -125,7 +138,7 @@ describe('Tooltip', () => {
 
     it('не рендерится когда visible=false', () => {
       const { queryByRole } = renderIsolated(
-        <Tooltip content='Test' visible={false} />,
+        React.createElement(AnyTooltip, { content: 'Test', visible: false } as any, null),
       );
 
       expect(queryByRole('tooltip')).not.toBeInTheDocument();
@@ -133,7 +146,7 @@ describe('Tooltip', () => {
 
     it('использует visible=false по умолчанию', () => {
       const { queryByRole } = renderIsolated(
-        <Tooltip content='Test' />,
+        React.createElement(AnyTooltip, { content: 'Test' } as any, null),
       );
 
       expect(queryByRole('tooltip')).not.toBeInTheDocument();
@@ -143,7 +156,7 @@ describe('Tooltip', () => {
   describe('3.4. Позиционирование (placement)', () => {
     it('применяет placement по умолчанию (top)', () => {
       const { getTooltip } = renderIsolated(
-        <Tooltip content='Test' visible={true} />,
+        React.createElement(AnyTooltip, { content: 'Test', visible: true } as any, null),
       );
 
       const tooltip = getTooltip();
@@ -159,7 +172,11 @@ describe('Tooltip', () => {
       ] as const,
     )('применяет placement %s', (placement, expected) => {
       const { getTooltip } = renderIsolated(
-        <Tooltip content='Test' visible={true} placement={placement} />,
+        React.createElement(
+          AnyTooltip,
+          { content: 'Test', visible: true, placement } as any,
+          null,
+        ),
       );
 
       const tooltip = getTooltip();
@@ -170,7 +187,7 @@ describe('Tooltip', () => {
   describe('3.5. Цвета', () => {
     it('применяет цвета по умолчанию', () => {
       const { getTooltip } = renderIsolated(
-        <Tooltip content='Test' visible={true} />,
+        React.createElement(AnyTooltip, { content: 'Test', visible: true } as any, null),
       );
 
       const tooltip = getTooltip();
@@ -180,7 +197,11 @@ describe('Tooltip', () => {
 
     it('применяет кастомный bgColor', () => {
       const { getTooltip } = renderIsolated(
-        <Tooltip content='Test' visible={true} bgColor='#FF0000' />,
+        React.createElement(
+          AnyTooltip,
+          { content: 'Test', visible: true, bgColor: '#FF0000' } as any,
+          null,
+        ),
       );
 
       const tooltip = getTooltip();
@@ -189,7 +210,11 @@ describe('Tooltip', () => {
 
     it('применяет кастомный textColor', () => {
       const { getTooltip } = renderIsolated(
-        <Tooltip content='Test' visible={true} textColor='#00FF00' />,
+        React.createElement(
+          AnyTooltip,
+          { content: 'Test', visible: true, textColor: '#00FF00' } as any,
+          null,
+        ),
       );
 
       const tooltip = getTooltip();
@@ -200,7 +225,11 @@ describe('Tooltip', () => {
   describe('3.6. Accessibility', () => {
     it('применяет id для aria-describedby связи', () => {
       const { getTooltip } = renderIsolated(
-        <Tooltip content='Test' visible={true} id='tooltip-1' />,
+        React.createElement(
+          AnyTooltip,
+          { content: 'Test', visible: true, id: 'tooltip-1' } as any,
+          null,
+        ),
       );
 
       const tooltip = getTooltip();
@@ -209,7 +238,7 @@ describe('Tooltip', () => {
 
     it('имеет правильную роль', () => {
       const { getByRole } = renderIsolated(
-        <Tooltip content='Test' visible={true} />,
+        React.createElement(AnyTooltip, { content: 'Test', visible: true } as any, null),
       );
 
       const tooltip = getByRole('tooltip');
@@ -220,7 +249,11 @@ describe('Tooltip', () => {
   describe('3.7. Data атрибуты', () => {
     it('применяет data-testid', () => {
       const { getByTestId } = renderIsolated(
-        <Tooltip content='Test' visible={true} data-testid='custom-tooltip' />,
+        React.createElement(
+          AnyTooltip,
+          { content: 'Test', visible: true, 'data-testid': 'custom-tooltip' } as any,
+          null,
+        ),
       );
 
       expect(getByTestId('custom-tooltip')).toBeInTheDocument();
@@ -228,7 +261,11 @@ describe('Tooltip', () => {
 
     it('применяет data-placement', () => {
       const { getTooltip } = renderIsolated(
-        <Tooltip content='Test' visible={true} placement='bottom' />,
+        React.createElement(
+          AnyTooltip,
+          { content: 'Test', visible: true, placement: 'bottom' } as any,
+          null,
+        ),
       );
 
       const tooltip = getTooltip();
@@ -239,7 +276,11 @@ describe('Tooltip', () => {
   describe('3.8. HTML атрибуты', () => {
     it('передает остальные HTML атрибуты', () => {
       const { getTooltip } = renderIsolated(
-        <Tooltip content='Test' visible={true} className='custom-class' tabIndex={0} />,
+        React.createElement(
+          AnyTooltip,
+          { content: 'Test', visible: true, className: 'custom-class', tabIndex: 0 } as any,
+          null,
+        ),
       );
 
       const tooltip = getTooltip();
@@ -253,7 +294,7 @@ describe('Tooltip', () => {
 
     it('применяет базовые CSS свойства', () => {
       const { getTooltip } = renderIsolated(
-        <Tooltip content='Test' visible={true} />,
+        React.createElement(AnyTooltip, { content: 'Test', visible: true } as any, null),
       );
 
       const tooltip = getTooltip();
@@ -271,7 +312,11 @@ describe('Tooltip', () => {
 
     it('применяет кастомные стили', () => {
       const { getTooltip } = renderIsolated(
-        <Tooltip content='Test' visible={true} style={customStyle} />,
+        React.createElement(
+          AnyTooltip,
+          { content: 'Test', visible: true, style: customStyle } as any,
+          null,
+        ),
       );
 
       const tooltip = getTooltip();

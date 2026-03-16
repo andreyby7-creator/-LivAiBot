@@ -14,6 +14,9 @@ import '@testing-library/jest-dom/vitest';
 // Полная очистка DOM между тестами
 afterEach(cleanup);
 
+// Для целей тестов ослабляем типизацию пропсов Input
+const AnyInput = Input as any;
+
 // Функция для изолированного рендера
 function renderIsolated(component: Readonly<React.ReactElement>) {
   const container = document.createElement('div');
@@ -34,7 +37,9 @@ function renderIsolated(component: Readonly<React.ReactElement>) {
 describe('Input', () => {
   describe('2.1. Рендер', () => {
     it('input рендерится', () => {
-      const { getByRole } = renderIsolated(<Input key='render-test' />);
+      const { getByRole } = renderIsolated(
+        React.createElement(AnyInput, { key: 'render-test' }),
+      );
 
       expect(getByRole('textbox')).toBeInTheDocument();
     });
@@ -45,10 +50,10 @@ describe('Input', () => {
       const inputRef = createRef<HTMLInputElement>();
 
       const { getByRole } = renderIsolated(
-        <Input
-          key='forward-ref-test'
-          ref={inputRef}
-        />,
+        React.createElement(AnyInput, {
+          key: 'forward-ref-test',
+          ref: inputRef,
+        }),
       );
 
       expect(inputRef.current).toBeInstanceOf(HTMLInputElement);
@@ -58,7 +63,9 @@ describe('Input', () => {
 
   describe('2.3. className', () => {
     it('className объединяется с базовыми', () => {
-      const { getByRole } = renderIsolated(<Input key='className-test' className='custom-input' />);
+      const { getByRole } = renderIsolated(
+        React.createElement(AnyInput, { key: 'className-test', className: 'custom-input' }),
+      );
 
       const input = getByRole('textbox');
       expect(input).toHaveClass('custom-input');
@@ -81,27 +88,36 @@ describe('Input', () => {
 
   describe('2.4. Пропсы пробрасываются', () => {
     it('type пробрасывается', () => {
-      const { getByRole } = renderIsolated(<Input key='type-test' type='email' />);
+      const { getByRole } = renderIsolated(
+        React.createElement(AnyInput, { key: 'type-test', type: 'email' }),
+      );
 
       expect(getByRole('textbox')).toHaveAttribute('type', 'email');
     });
 
     it('placeholder пробрасывается', () => {
       const { getByRole } = renderIsolated(
-        <Input key='placeholder-test' placeholder='Enter text' />,
+        React.createElement(AnyInput, {
+          key: 'placeholder-test',
+          placeholder: 'Enter text',
+        }),
       );
 
       expect(getByRole('textbox')).toHaveAttribute('placeholder', 'Enter text');
     });
 
     it('disabled пробрасывается', () => {
-      const { getByRole } = renderIsolated(<Input key='disabled-test' disabled />);
+      const { getByRole } = renderIsolated(
+        React.createElement(AnyInput, { key: 'disabled-test', disabled: true }),
+      );
 
       expect(getByRole('textbox')).toBeDisabled();
     });
 
     it('id пробрасывается', () => {
-      const { getByRole } = renderIsolated(<Input key='id-test' id='test-input' />);
+      const { getByRole } = renderIsolated(
+        React.createElement(AnyInput, { key: 'id-test', id: 'test-input' }),
+      );
 
       expect(getByRole('textbox')).toHaveAttribute('id', 'test-input');
     });

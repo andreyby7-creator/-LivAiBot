@@ -12,6 +12,8 @@ import { LanguageSelector } from '@livai/ui-core';
 
 import '@testing-library/jest-dom/vitest';
 
+const AnyLanguageSelector = LanguageSelector as any;
+
 // Полная очистка DOM между тестами
 afterEach(cleanup);
 
@@ -96,11 +98,15 @@ describe('LanguageSelector', () => {
   describe('4.1. Рендер без падений', () => {
     it('рендерится с обязательными пропсами', () => {
       const { container, getLanguageSelector } = renderIsolated(
-        <LanguageSelector
-          languages={languages}
-          selectedLanguageCode={selectedLanguageCode}
-          isOpen={false}
-        />,
+        React.createElement(
+          AnyLanguageSelector,
+          {
+            languages,
+            selectedLanguageCode,
+            isOpen: false,
+          } as any,
+          null,
+        ),
       );
 
       expect(container).toBeInTheDocument();
@@ -109,24 +115,28 @@ describe('LanguageSelector', () => {
 
     it('рендерится с полным набором пропсов', () => {
       const { container, getLanguageSelector } = renderIsolated(
-        <LanguageSelector
-          languages={languages}
-          selectedLanguageCode={selectedLanguageCode}
-          isOpen={true}
-          placeholder='Select language'
-          size='large'
-          variant='compact'
-          showFlags={false}
-          showCodes={true}
-          disabled={false}
-          onLanguageChange={mockOnLanguageChange}
-          onToggle={mockOnToggle}
-          onClose={mockOnClose}
-          onKeyDown={mockOnKeyDown}
-          activeDescendantId='test-id'
-          navigatedLanguageCode='en'
-          data-testid='test-selector'
-        />,
+        React.createElement(
+          AnyLanguageSelector,
+          {
+            languages,
+            selectedLanguageCode,
+            isOpen: true,
+            placeholder: 'Select language',
+            size: 'large',
+            variant: 'compact',
+            showFlags: false,
+            showCodes: true,
+            disabled: false,
+            onLanguageChange: mockOnLanguageChange,
+            onToggle: mockOnToggle,
+            onClose: mockOnClose,
+            onKeyDown: mockOnKeyDown,
+            activeDescendantId: 'test-id',
+            navigatedLanguageCode: 'en',
+            'data-testid': 'test-selector',
+          } as any,
+          null,
+        ),
       );
 
       expect(container).toBeInTheDocument();
@@ -135,11 +145,15 @@ describe('LanguageSelector', () => {
 
     it('рендерится с пустым списком языков', () => {
       const { container, getLanguageSelector } = renderIsolated(
-        <LanguageSelector
-          languages={emptyLanguages}
-          selectedLanguageCode={nonExistentLanguageCode}
-          isOpen={false}
-        />,
+        React.createElement(
+          AnyLanguageSelector,
+          {
+            languages: emptyLanguages,
+            selectedLanguageCode: nonExistentLanguageCode,
+            isOpen: false,
+          } as any,
+          null,
+        ),
       );
 
       expect(container).toBeInTheDocument();
@@ -148,11 +162,15 @@ describe('LanguageSelector', () => {
 
     it('рендерится когда выбранный язык не найден', () => {
       const { container, getLanguageSelector } = renderIsolated(
-        <LanguageSelector
-          languages={languages}
-          selectedLanguageCode={nonExistentLanguageCode}
-          isOpen={false}
-        />,
+        React.createElement(
+          AnyLanguageSelector,
+          {
+            languages,
+            selectedLanguageCode: nonExistentLanguageCode,
+            isOpen: false,
+          } as any,
+          null,
+        ),
       );
 
       expect(container).toBeInTheDocument();
@@ -161,12 +179,16 @@ describe('LanguageSelector', () => {
 
     it('рендерится с отключенным состоянием', () => {
       const { container, getLanguageSelector } = renderIsolated(
-        <LanguageSelector
-          languages={languages}
-          selectedLanguageCode={selectedLanguageCode}
-          isOpen={false}
-          disabled={true}
-        />,
+        React.createElement(
+          AnyLanguageSelector,
+          {
+            languages,
+            selectedLanguageCode,
+            isOpen: false,
+            disabled: true,
+          } as any,
+          null,
+        ),
       );
 
       expect(container).toBeInTheDocument();
@@ -175,11 +197,15 @@ describe('LanguageSelector', () => {
 
     it('рендерится с открытым dropdown', () => {
       const { container, getLanguageSelector, getDropdown } = renderIsolated(
-        <LanguageSelector
-          languages={languages}
-          selectedLanguageCode={selectedLanguageCode}
-          isOpen={true}
-        />,
+        React.createElement(
+          AnyLanguageSelector,
+          {
+            languages,
+            selectedLanguageCode,
+            isOpen: true,
+          } as any,
+          null,
+        ),
       );
 
       expect(container).toBeInTheDocument();
@@ -192,12 +218,16 @@ describe('LanguageSelector', () => {
     describe('Базовое отображение', () => {
       it('отображает выбранный язык с флагом', () => {
         const { getSelectedName, getSelectedFlag } = renderIsolated(
-          <LanguageSelector
-            languages={languages}
-            selectedLanguageCode={selectedLanguageCode}
-            isOpen={false}
-            data-testid='test'
-          />,
+          React.createElement(
+            AnyLanguageSelector,
+            {
+              languages,
+              selectedLanguageCode,
+              isOpen: false,
+              'data-testid': 'test',
+            } as any,
+            null,
+          ),
         );
 
         expect(getSelectedName()).toHaveTextContent('Русский');
@@ -207,13 +237,17 @@ describe('LanguageSelector', () => {
 
       it('отображает выбранный язык без флага когда showFlags=false', () => {
         const { getSelectedName, queryByTestId } = renderIsolated(
-          <LanguageSelector
-            languages={languages}
-            selectedLanguageCode={selectedLanguageCode}
-            isOpen={false}
-            showFlags={false}
-            data-testid='test'
-          />,
+          React.createElement(
+            AnyLanguageSelector,
+            {
+              languages,
+              selectedLanguageCode,
+              isOpen: false,
+              showFlags: false,
+              'data-testid': 'test',
+            } as any,
+            null,
+          ),
         );
 
         expect(getSelectedName()).toHaveTextContent('Русский');
@@ -222,13 +256,17 @@ describe('LanguageSelector', () => {
 
       it('отображает код языка когда showCodes=true', () => {
         const { getSelectedCode } = renderIsolated(
-          <LanguageSelector
-            languages={languages}
-            selectedLanguageCode={selectedLanguageCode}
-            isOpen={false}
-            showCodes={true}
-            data-testid='test'
-          />,
+          React.createElement(
+            AnyLanguageSelector,
+            {
+              languages,
+              selectedLanguageCode,
+              isOpen: false,
+              showCodes: true,
+              'data-testid': 'test',
+            } as any,
+            null,
+          ),
         );
 
         expect(getSelectedCode()).toHaveTextContent('ru');
@@ -236,12 +274,16 @@ describe('LanguageSelector', () => {
 
       it('отображает placeholder когда язык не найден', () => {
         const { container } = renderIsolated(
-          <LanguageSelector
-            languages={languages}
-            selectedLanguageCode={nonExistentLanguageCode}
-            isOpen={false}
-            placeholder='Choose language'
-          />,
+          React.createElement(
+            AnyLanguageSelector,
+            {
+              languages,
+              selectedLanguageCode: nonExistentLanguageCode,
+              isOpen: false,
+              placeholder: 'Choose language',
+            } as any,
+            null,
+          ),
         );
 
         const placeholderElement = container.querySelector('[style*="color"]'); // PLACEHOLDER_STYLE has color
@@ -250,21 +292,29 @@ describe('LanguageSelector', () => {
 
       it('отображает стрелку в правильном состоянии', () => {
         const { container: closedContainer } = renderIsolated(
-          <LanguageSelector
-            languages={languages}
-            selectedLanguageCode={selectedLanguageCode}
-            isOpen={false}
-            data-testid='test'
-          />,
+          React.createElement(
+            AnyLanguageSelector,
+            {
+              languages,
+              selectedLanguageCode,
+              isOpen: false,
+              'data-testid': 'test',
+            } as any,
+            null,
+          ),
         );
 
         const { container: openContainer } = renderIsolated(
-          <LanguageSelector
-            languages={languages}
-            selectedLanguageCode={selectedLanguageCode}
-            isOpen={true}
-            data-testid='test'
-          />,
+          React.createElement(
+            AnyLanguageSelector,
+            {
+              languages,
+              selectedLanguageCode,
+              isOpen: true,
+              'data-testid': 'test',
+            } as any,
+            null,
+          ),
         );
 
         const closedArrow = closedContainer.querySelector('[data-testid="test-arrow"]');
@@ -285,12 +335,16 @@ describe('LanguageSelector', () => {
     describe('Размеры', () => {
       it('применяет small размер', () => {
         const { getLanguageSelector } = renderIsolated(
-          <LanguageSelector
-            languages={languages}
-            selectedLanguageCode={selectedLanguageCode}
-            isOpen={false}
-            size='small'
-          />,
+          React.createElement(
+            AnyLanguageSelector,
+            {
+              languages,
+              selectedLanguageCode,
+              isOpen: false,
+              size: 'small',
+            } as any,
+            null,
+          ),
         );
 
         const selector = getLanguageSelector();
@@ -299,12 +353,16 @@ describe('LanguageSelector', () => {
 
       it('применяет large размер', () => {
         const { getLanguageSelector } = renderIsolated(
-          <LanguageSelector
-            languages={languages}
-            selectedLanguageCode={selectedLanguageCode}
-            isOpen={false}
-            size='large'
-          />,
+          React.createElement(
+            AnyLanguageSelector,
+            {
+              languages,
+              selectedLanguageCode,
+              isOpen: false,
+              size: 'large',
+            } as any,
+            null,
+          ),
         );
 
         const selector = getLanguageSelector();
@@ -313,11 +371,15 @@ describe('LanguageSelector', () => {
 
       it('использует medium по умолчанию', () => {
         const { getLanguageSelector } = renderIsolated(
-          <LanguageSelector
-            languages={languages}
-            selectedLanguageCode={selectedLanguageCode}
-            isOpen={false}
-          />,
+          React.createElement(
+            AnyLanguageSelector,
+            {
+              languages,
+              selectedLanguageCode,
+              isOpen: false,
+            } as any,
+            null,
+          ),
         );
 
         const selector = getLanguageSelector();
@@ -328,12 +390,16 @@ describe('LanguageSelector', () => {
     describe('Варианты', () => {
       it('применяет compact вариант', () => {
         const { getLanguageSelector } = renderIsolated(
-          <LanguageSelector
-            languages={languages}
-            selectedLanguageCode={selectedLanguageCode}
-            isOpen={false}
-            variant='compact'
-          />,
+          React.createElement(
+            AnyLanguageSelector,
+            {
+              languages,
+              selectedLanguageCode,
+              isOpen: false,
+              variant: 'compact',
+            } as any,
+            null,
+          ),
         );
 
         const selector = getLanguageSelector();
@@ -342,12 +408,16 @@ describe('LanguageSelector', () => {
 
       it('применяет minimal вариант', () => {
         const { getLanguageSelector } = renderIsolated(
-          <LanguageSelector
-            languages={languages}
-            selectedLanguageCode={selectedLanguageCode}
-            isOpen={false}
-            variant='minimal'
-          />,
+          React.createElement(
+            AnyLanguageSelector,
+            {
+              languages,
+              selectedLanguageCode,
+              isOpen: false,
+              variant: 'minimal',
+            } as any,
+            null,
+          ),
         );
 
         const selector = getLanguageSelector();
@@ -356,11 +426,15 @@ describe('LanguageSelector', () => {
 
       it('использует default по умолчанию', () => {
         const { getLanguageSelector } = renderIsolated(
-          <LanguageSelector
-            languages={languages}
-            selectedLanguageCode={selectedLanguageCode}
-            isOpen={false}
-          />,
+          React.createElement(
+            AnyLanguageSelector,
+            {
+              languages,
+              selectedLanguageCode,
+              isOpen: false,
+            } as any,
+            null,
+          ),
         );
 
         const selector = getLanguageSelector();
@@ -371,12 +445,16 @@ describe('LanguageSelector', () => {
     describe('Состояния', () => {
       it('применяет disabled состояние', () => {
         const { getLanguageSelector, getSelector } = renderIsolated(
-          <LanguageSelector
-            languages={languages}
-            selectedLanguageCode={selectedLanguageCode}
-            isOpen={false}
-            disabled={true}
-          />,
+          React.createElement(
+            AnyLanguageSelector,
+            {
+              languages,
+              selectedLanguageCode,
+              isOpen: false,
+              disabled: true,
+            } as any,
+            null,
+          ),
         );
 
         const selector = getLanguageSelector();
@@ -389,11 +467,15 @@ describe('LanguageSelector', () => {
 
       it('применяет open состояние', () => {
         const { getLanguageSelector } = renderIsolated(
-          <LanguageSelector
-            languages={languages}
-            selectedLanguageCode={selectedLanguageCode}
-            isOpen={true}
-          />,
+          React.createElement(
+            AnyLanguageSelector,
+            {
+              languages,
+              selectedLanguageCode,
+              isOpen: true,
+            } as any,
+            null,
+          ),
         );
 
         const selector = getLanguageSelector();
@@ -405,12 +487,16 @@ describe('LanguageSelector', () => {
   describe('4.3. Dropdown и опции', () => {
     it('не рендерит dropdown когда isOpen=false', () => {
       const { queryByTestId } = renderIsolated(
-        <LanguageSelector
-          languages={languages}
-          selectedLanguageCode={selectedLanguageCode}
-          isOpen={false}
-          data-testid='test'
-        />,
+        React.createElement(
+          AnyLanguageSelector,
+          {
+            languages,
+            selectedLanguageCode,
+            isOpen: false,
+            'data-testid': 'test',
+          } as any,
+          null,
+        ),
       );
 
       expect(queryByTestId('test-dropdown')).not.toBeInTheDocument();
@@ -418,12 +504,16 @@ describe('LanguageSelector', () => {
 
     it('рендерит dropdown с опциями когда isOpen=true', () => {
       const { getDropdown, getOption } = renderIsolated(
-        <LanguageSelector
-          languages={languages}
-          selectedLanguageCode={selectedLanguageCode}
-          isOpen={true}
-          data-testid='test'
-        />,
+        React.createElement(
+          AnyLanguageSelector,
+          {
+            languages,
+            selectedLanguageCode,
+            isOpen: true,
+            'data-testid': 'test',
+          } as any,
+          null,
+        ),
       );
 
       expect(getDropdown()).toBeInTheDocument();
@@ -437,12 +527,16 @@ describe('LanguageSelector', () => {
 
     it('отмечает выбранную опцию', () => {
       const { getOption } = renderIsolated(
-        <LanguageSelector
-          languages={languages}
-          selectedLanguageCode={selectedLanguageCode}
-          isOpen={true}
-          data-testid='test'
-        />,
+        React.createElement(
+          AnyLanguageSelector,
+          {
+            languages,
+            selectedLanguageCode,
+            isOpen: true,
+            'data-testid': 'test',
+          } as any,
+          null,
+        ),
       );
 
       const selectedOption = getOption('option-ru');
@@ -452,12 +546,16 @@ describe('LanguageSelector', () => {
 
     it('применяет disabled состояние к опциям', () => {
       const { getOption } = renderIsolated(
-        <LanguageSelector
-          languages={languagesWithDisabled}
-          selectedLanguageCode='en'
-          isOpen={true}
-          data-testid='test'
-        />,
+        React.createElement(
+          AnyLanguageSelector,
+          {
+            languages: languagesWithDisabled,
+            selectedLanguageCode: 'en',
+            isOpen: true,
+            'data-testid': 'test',
+          } as any,
+          null,
+        ),
       );
 
       const disabledOption = getOption('option-ru');
@@ -467,13 +565,17 @@ describe('LanguageSelector', () => {
 
     it('применяет navigated состояние к активной опции', () => {
       const { getOption } = renderIsolated(
-        <LanguageSelector
-          languages={languages}
-          selectedLanguageCode={selectedLanguageCode}
-          isOpen={true}
-          navigatedLanguageCode='en'
-          data-testid='test'
-        />,
+        React.createElement(
+          AnyLanguageSelector,
+          {
+            languages,
+            selectedLanguageCode,
+            isOpen: true,
+            navigatedLanguageCode: 'en',
+            'data-testid': 'test',
+          } as any,
+          null,
+        ),
       );
 
       const navigatedOption = getOption('option-en');
@@ -483,12 +585,16 @@ describe('LanguageSelector', () => {
 
     it('отображает флаги в опциях когда showFlags=true', () => {
       const { container } = renderIsolated(
-        <LanguageSelector
-          languages={languages}
-          selectedLanguageCode={selectedLanguageCode}
-          isOpen={true}
-          data-testid='test'
-        />,
+        React.createElement(
+          AnyLanguageSelector,
+          {
+            languages,
+            selectedLanguageCode,
+            isOpen: true,
+            'data-testid': 'test',
+          } as any,
+          null,
+        ),
       );
 
       const flag = container.querySelector('[data-testid="test-flag-en"]');
@@ -498,13 +604,17 @@ describe('LanguageSelector', () => {
 
     it('скрывает флаги в опциях когда showFlags=false', () => {
       const { container } = renderIsolated(
-        <LanguageSelector
-          languages={languages}
-          selectedLanguageCode={selectedLanguageCode}
-          isOpen={true}
-          showFlags={false}
-          data-testid='test'
-        />,
+        React.createElement(
+          AnyLanguageSelector,
+          {
+            languages,
+            selectedLanguageCode,
+            isOpen: true,
+            showFlags: false,
+            'data-testid': 'test',
+          } as any,
+          null,
+        ),
       );
 
       const flag = container.querySelector('[data-testid="test-flag-en"]');
@@ -513,13 +623,17 @@ describe('LanguageSelector', () => {
 
     it('отображает коды в опциях когда showCodes=true', () => {
       const { container } = renderIsolated(
-        <LanguageSelector
-          languages={languages}
-          selectedLanguageCode={selectedLanguageCode}
-          isOpen={true}
-          showCodes={true}
-          data-testid='test'
-        />,
+        React.createElement(
+          AnyLanguageSelector,
+          {
+            languages,
+            selectedLanguageCode,
+            isOpen: true,
+            showCodes: true,
+            'data-testid': 'test',
+          } as any,
+          null,
+        ),
       );
 
       const code = container.querySelector('[data-testid="test-code-en"]');
@@ -531,12 +645,16 @@ describe('LanguageSelector', () => {
   describe('4.4. Accessibility', () => {
     it('применяет правильные ARIA атрибуты к селектору', () => {
       const { getSelector } = renderIsolated(
-        <LanguageSelector
-          languages={languages}
-          selectedLanguageCode={selectedLanguageCode}
-          isOpen={false}
-          data-testid='test'
-        />,
+        React.createElement(
+          AnyLanguageSelector,
+          {
+            languages,
+            selectedLanguageCode,
+            isOpen: false,
+            'data-testid': 'test',
+          } as any,
+          null,
+        ),
       );
 
       const selector = getSelector();
@@ -549,12 +667,16 @@ describe('LanguageSelector', () => {
 
     it('обновляет aria-expanded при открытии', () => {
       const { getSelector } = renderIsolated(
-        <LanguageSelector
-          languages={languages}
-          selectedLanguageCode={selectedLanguageCode}
-          isOpen={true}
-          data-testid='test'
-        />,
+        React.createElement(
+          AnyLanguageSelector,
+          {
+            languages,
+            selectedLanguageCode,
+            isOpen: true,
+            'data-testid': 'test',
+          } as any,
+          null,
+        ),
       );
 
       const selector = getSelector();
@@ -563,12 +685,16 @@ describe('LanguageSelector', () => {
 
     it('применяет правильные ARIA атрибуты к dropdown', () => {
       const { getDropdown } = renderIsolated(
-        <LanguageSelector
-          languages={languages}
-          selectedLanguageCode={selectedLanguageCode}
-          isOpen={true}
-          data-testid='test'
-        />,
+        React.createElement(
+          AnyLanguageSelector,
+          {
+            languages,
+            selectedLanguageCode,
+            isOpen: true,
+            'data-testid': 'test',
+          } as any,
+          null,
+        ),
       );
 
       const dropdown = getDropdown();
@@ -577,12 +703,16 @@ describe('LanguageSelector', () => {
 
     it('устанавливает aria-activedescendant', () => {
       const { getSelector } = renderIsolated(
-        <LanguageSelector
-          languages={languages}
-          selectedLanguageCode={selectedLanguageCode}
-          isOpen={false}
-          activeDescendantId='test-active-id'
-        />,
+        React.createElement(
+          AnyLanguageSelector,
+          {
+            languages,
+            selectedLanguageCode,
+            isOpen: false,
+            activeDescendantId: 'test-active-id',
+          } as any,
+          null,
+        ),
       );
 
       const selector = getSelector();
@@ -591,13 +721,17 @@ describe('LanguageSelector', () => {
 
     it('устанавливает правильные ARIA атрибуты к опциям', () => {
       const { getOption } = renderIsolated(
-        <LanguageSelector
-          languages={languages}
-          selectedLanguageCode={selectedLanguageCode}
-          isOpen={true}
-          navigatedLanguageCode='en'
-          data-testid='test'
-        />,
+        React.createElement(
+          AnyLanguageSelector,
+          {
+            languages,
+            selectedLanguageCode,
+            isOpen: true,
+            navigatedLanguageCode: 'en',
+            'data-testid': 'test',
+          } as any,
+          null,
+        ),
       );
 
       const selectedOption = getOption('option-ru');
@@ -619,12 +753,16 @@ describe('LanguageSelector', () => {
   describe('4.5. Взаимодействия и callbacks', () => {
     it('вызывает onToggle при клике по селектору', () => {
       const { getSelector } = renderIsolated(
-        <LanguageSelector
-          languages={languages}
-          selectedLanguageCode={selectedLanguageCode}
-          isOpen={false}
-          onToggle={mockOnToggle}
-        />,
+        React.createElement(
+          AnyLanguageSelector,
+          {
+            languages,
+            selectedLanguageCode,
+            isOpen: false,
+            onToggle: mockOnToggle,
+          } as any,
+          null,
+        ),
       );
 
       const selector = getSelector();
@@ -636,12 +774,16 @@ describe('LanguageSelector', () => {
 
     it('блокирует взаимодействие когда disabled=true', () => {
       const { getSelector } = renderIsolated(
-        <LanguageSelector
-          languages={languages}
-          selectedLanguageCode={selectedLanguageCode}
-          isOpen={false}
-          disabled={true}
-        />,
+        React.createElement(
+          AnyLanguageSelector,
+          {
+            languages,
+            selectedLanguageCode,
+            isOpen: false,
+            disabled: true,
+          } as any,
+          null,
+        ),
       );
 
       const selector = getSelector();
@@ -658,14 +800,18 @@ describe('LanguageSelector', () => {
 
     it('вызывает onLanguageChange при клике по опции', () => {
       const { getOption } = renderIsolated(
-        <LanguageSelector
-          languages={languages}
-          selectedLanguageCode={selectedLanguageCode}
-          isOpen={true}
-          onLanguageChange={mockOnLanguageChange}
-          onClose={mockOnClose}
-          data-testid='test'
-        />,
+        React.createElement(
+          AnyLanguageSelector,
+          {
+            languages,
+            selectedLanguageCode,
+            isOpen: true,
+            onLanguageChange: mockOnLanguageChange,
+            onClose: mockOnClose,
+            'data-testid': 'test',
+          } as any,
+          null,
+        ),
       );
 
       const option = getOption('option-en');
@@ -680,12 +826,16 @@ describe('LanguageSelector', () => {
 
     it('применяет disabled стили к опциям', () => {
       const { getOption } = renderIsolated(
-        <LanguageSelector
-          languages={languagesWithDisabled}
-          selectedLanguageCode='en'
-          isOpen={true}
-          data-testid='test'
-        />,
+        React.createElement(
+          AnyLanguageSelector,
+          {
+            languages: languagesWithDisabled,
+            selectedLanguageCode: 'en',
+            isOpen: true,
+            'data-testid': 'test',
+          } as any,
+          null,
+        ),
       );
 
       const disabledOption = getOption('option-ru');
@@ -702,12 +852,16 @@ describe('LanguageSelector', () => {
 
     it('вызывает onKeyDown для селектора', () => {
       const { getSelector } = renderIsolated(
-        <LanguageSelector
-          languages={languages}
-          selectedLanguageCode={selectedLanguageCode}
-          isOpen={false}
-          onKeyDown={mockOnKeyDown}
-        />,
+        React.createElement(
+          AnyLanguageSelector,
+          {
+            languages,
+            selectedLanguageCode,
+            isOpen: false,
+            onKeyDown: mockOnKeyDown,
+          } as any,
+          null,
+        ),
       );
 
       const selector = getSelector();
@@ -722,12 +876,16 @@ describe('LanguageSelector', () => {
       const mockCloseForOpen = vi.fn();
 
       const { getSelector } = renderIsolated(
-        <LanguageSelector
-          languages={languages}
-          selectedLanguageCode={selectedLanguageCode}
-          isOpen={false}
-          onToggle={mockToggleForClosed}
-        />,
+        React.createElement(
+          AnyLanguageSelector,
+          {
+            languages,
+            selectedLanguageCode,
+            isOpen: false,
+            onToggle: mockToggleForClosed,
+          } as any,
+          null,
+        ),
       );
 
       const selector = getSelector();
@@ -739,12 +897,16 @@ describe('LanguageSelector', () => {
 
       // Escape должен вызвать onClose когда открыт
       const { getSelector: getOpenSelector } = renderIsolated(
-        <LanguageSelector
-          languages={languages}
-          selectedLanguageCode={selectedLanguageCode}
-          isOpen={true}
-          onClose={mockCloseForOpen}
-        />,
+        React.createElement(
+          AnyLanguageSelector,
+          {
+            languages,
+            selectedLanguageCode,
+            isOpen: true,
+            onClose: mockCloseForOpen,
+          } as any,
+          null,
+        ),
       );
 
       const openSelector = getOpenSelector();
@@ -756,14 +918,18 @@ describe('LanguageSelector', () => {
     it('обрабатывает клавиатуру для опций', () => {
       vi.clearAllMocks();
       const { getOption } = renderIsolated(
-        <LanguageSelector
-          languages={languages}
-          selectedLanguageCode={selectedLanguageCode}
-          isOpen={true}
-          onLanguageChange={mockOnLanguageChange}
-          onClose={mockOnClose}
-          data-testid='test'
-        />,
+        React.createElement(
+          AnyLanguageSelector,
+          {
+            languages,
+            selectedLanguageCode,
+            isOpen: true,
+            onLanguageChange: mockOnLanguageChange,
+            onClose: mockOnClose,
+            'data-testid': 'test',
+          } as any,
+          null,
+        ),
       );
 
       const option = getOption('option-en');
@@ -789,13 +955,17 @@ describe('LanguageSelector', () => {
     it('не обрабатывает клавиатуру для disabled опций', () => {
       const mockDisabledChange = vi.fn();
       const { getOption } = renderIsolated(
-        <LanguageSelector
-          languages={languagesWithDisabled}
-          selectedLanguageCode='en'
-          isOpen={true}
-          onLanguageChange={mockDisabledChange}
-          data-testid='test'
-        />,
+        React.createElement(
+          AnyLanguageSelector,
+          {
+            languages: languagesWithDisabled,
+            selectedLanguageCode: 'en',
+            isOpen: true,
+            onLanguageChange: mockDisabledChange,
+            'data-testid': 'test',
+          } as any,
+          null,
+        ),
       );
 
       const disabledOption = getOption('option-ru');
@@ -811,13 +981,17 @@ describe('LanguageSelector', () => {
     it('игнорирует другие клавиши в обработке клавиатуры опций', () => {
       const mockOtherKeysChange = vi.fn();
       const { getOption } = renderIsolated(
-        <LanguageSelector
-          languages={languages}
-          selectedLanguageCode={selectedLanguageCode}
-          isOpen={true}
-          onLanguageChange={mockOtherKeysChange}
-          data-testid='test'
-        />,
+        React.createElement(
+          AnyLanguageSelector,
+          {
+            languages,
+            selectedLanguageCode,
+            isOpen: true,
+            onLanguageChange: mockOtherKeysChange,
+            'data-testid': 'test',
+          } as any,
+          null,
+        ),
       );
 
       const option = getOption('option-en');
@@ -836,12 +1010,16 @@ describe('LanguageSelector', () => {
     it('поддерживает ref forwarding', () => {
       const ref = createMockRef();
       const { getLanguageSelector } = renderIsolated(
-        <LanguageSelector
-          ref={ref}
-          languages={languages}
-          selectedLanguageCode={selectedLanguageCode}
-          isOpen={false}
-        />,
+        React.createElement(
+          AnyLanguageSelector,
+          {
+            ref,
+            languages,
+            selectedLanguageCode,
+            isOpen: false,
+          } as any,
+          null,
+        ),
       );
 
       const selector = getLanguageSelector();
@@ -852,11 +1030,15 @@ describe('LanguageSelector', () => {
   describe('4.7. Data attributes', () => {
     it('применяет data-component', () => {
       const { getLanguageSelector } = renderIsolated(
-        <LanguageSelector
-          languages={languages}
-          selectedLanguageCode={selectedLanguageCode}
-          isOpen={false}
-        />,
+        React.createElement(
+          AnyLanguageSelector,
+          {
+            languages,
+            selectedLanguageCode,
+            isOpen: false,
+          } as any,
+          null,
+        ),
       );
 
       const selector = getLanguageSelector();
@@ -865,12 +1047,16 @@ describe('LanguageSelector', () => {
 
     it('применяет data-testid', () => {
       const { container } = renderIsolated(
-        <LanguageSelector
-          languages={languages}
-          selectedLanguageCode={selectedLanguageCode}
-          isOpen={false}
-          data-testid='custom-test-id'
-        />,
+        React.createElement(
+          AnyLanguageSelector,
+          {
+            languages,
+            selectedLanguageCode,
+            isOpen: false,
+            'data-testid': 'custom-test-id',
+          } as any,
+          null,
+        ),
       );
 
       const selector = container.querySelector('[data-testid="custom-test-id"]');
@@ -879,12 +1065,16 @@ describe('LanguageSelector', () => {
 
     it('генерирует правильные test IDs для внутренних элементов', () => {
       const { getSelector, queryByTestId } = renderIsolated(
-        <LanguageSelector
-          languages={languages}
-          selectedLanguageCode={selectedLanguageCode}
-          isOpen={true}
-          data-testid='test'
-        />,
+        React.createElement(
+          AnyLanguageSelector,
+          {
+            languages,
+            selectedLanguageCode,
+            isOpen: true,
+            'data-testid': 'test',
+          } as any,
+          null,
+        ),
       );
 
       expect(getSelector()).toBeInTheDocument();
@@ -897,11 +1087,15 @@ describe('LanguageSelector', () => {
   describe('4.8. Edge cases', () => {
     it('работает с языком без имени', () => {
       const { container } = renderIsolated(
-        <LanguageSelector
-          languages={languagesWithEmptyName}
-          selectedLanguageCode='test'
-          isOpen={false}
-        />,
+        React.createElement(
+          AnyLanguageSelector,
+          {
+            languages: languagesWithEmptyName,
+            selectedLanguageCode: 'test',
+            isOpen: false,
+          } as any,
+          null,
+        ),
       );
 
       expect(container).toBeInTheDocument();
@@ -909,12 +1103,16 @@ describe('LanguageSelector', () => {
 
     it('работает с null флагом', () => {
       const { container } = renderIsolated(
-        <LanguageSelector
-          languages={languagesWithNullFlag}
-          selectedLanguageCode='test'
-          isOpen={false}
-          data-testid='test'
-        />,
+        React.createElement(
+          AnyLanguageSelector,
+          {
+            languages: languagesWithNullFlag,
+            selectedLanguageCode: 'test',
+            isOpen: false,
+            'data-testid': 'test',
+          } as any,
+          null,
+        ),
       );
 
       expect(container).toBeInTheDocument();
@@ -925,12 +1123,16 @@ describe('LanguageSelector', () => {
 
     it('работает с undefined флагом', () => {
       const { container } = renderIsolated(
-        <LanguageSelector
-          languages={languagesWithoutFlag}
-          selectedLanguageCode='test'
-          isOpen={false}
-          data-testid='test'
-        />,
+        React.createElement(
+          AnyLanguageSelector,
+          {
+            languages: languagesWithoutFlag,
+            selectedLanguageCode: 'test',
+            isOpen: false,
+            'data-testid': 'test',
+          } as any,
+          null,
+        ),
       );
 
       expect(container).toBeInTheDocument();
@@ -941,12 +1143,16 @@ describe('LanguageSelector', () => {
 
     it('работает с длинными именами языков', () => {
       const { container } = renderIsolated(
-        <LanguageSelector
-          languages={languagesWithLongNames}
-          selectedLanguageCode='test'
-          isOpen={false}
-          data-testid='test'
-        />,
+        React.createElement(
+          AnyLanguageSelector,
+          {
+            languages: languagesWithLongNames,
+            selectedLanguageCode: 'test',
+            isOpen: false,
+            'data-testid': 'test',
+          } as any,
+          null,
+        ),
       );
 
       expect(container).toBeInTheDocument();
@@ -956,12 +1162,16 @@ describe('LanguageSelector', () => {
 
     it('работает с кастомным placeholder', () => {
       const { container } = renderIsolated(
-        <LanguageSelector
-          languages={languages}
-          selectedLanguageCode={nonExistentLanguageCode}
-          isOpen={false}
-          placeholder='Custom placeholder'
-        />,
+        React.createElement(
+          AnyLanguageSelector,
+          {
+            languages,
+            selectedLanguageCode: nonExistentLanguageCode,
+            isOpen: false,
+            placeholder: 'Custom placeholder',
+          } as any,
+          null,
+        ),
       );
 
       const placeholderElement = container.querySelector('[style*="color"]');
@@ -970,12 +1180,16 @@ describe('LanguageSelector', () => {
 
     it('работает с пустым placeholder', () => {
       const { container } = renderIsolated(
-        <LanguageSelector
-          languages={languages}
-          selectedLanguageCode={nonExistentLanguageCode}
-          isOpen={false}
-          placeholder=''
-        />,
+        React.createElement(
+          AnyLanguageSelector,
+          {
+            languages,
+            selectedLanguageCode: nonExistentLanguageCode,
+            isOpen: false,
+            placeholder: '',
+          } as any,
+          null,
+        ),
       );
 
       // Когда placeholder пустой, должен отображаться только контейнер без текста
@@ -989,29 +1203,41 @@ describe('LanguageSelector', () => {
   describe('4.9. Render stability', () => {
     it('не пересчитывает selectedLanguage при одинаковых пропсах', () => {
       const { rerender } = renderIsolated(
-        <LanguageSelector
-          languages={languages}
-          selectedLanguageCode={selectedLanguageCode}
-          isOpen={false}
-        />,
+        React.createElement(
+          AnyLanguageSelector,
+          {
+            languages,
+            selectedLanguageCode,
+            isOpen: false,
+          } as any,
+          null,
+        ),
       );
 
       // Первый рендер
       const firstRender = renderIsolated(
-        <LanguageSelector
-          languages={languages}
-          selectedLanguageCode={selectedLanguageCode}
-          isOpen={false}
-        />,
+        React.createElement(
+          AnyLanguageSelector,
+          {
+            languages,
+            selectedLanguageCode,
+            isOpen: false,
+          } as any,
+          null,
+        ),
       );
 
       // Второй рендер с теми же пропсами
       rerender(
-        <LanguageSelector
-          languages={languages}
-          selectedLanguageCode={selectedLanguageCode}
-          isOpen={false}
-        />,
+        React.createElement(
+          AnyLanguageSelector,
+          {
+            languages,
+            selectedLanguageCode,
+            isOpen: false,
+          } as any,
+          null,
+        ),
       );
 
       // Компонент должен оставаться стабильным
@@ -1020,24 +1246,32 @@ describe('LanguageSelector', () => {
 
     it('пересчитывает стили при изменении размера', () => {
       const { rerender, getLanguageSelector } = renderIsolated(
-        <LanguageSelector
-          languages={languages}
-          selectedLanguageCode={selectedLanguageCode}
-          isOpen={false}
-          size='medium'
-        />,
+        React.createElement(
+          AnyLanguageSelector,
+          {
+            languages,
+            selectedLanguageCode,
+            isOpen: false,
+            size: 'medium',
+          } as any,
+          null,
+        ),
       );
 
       let selector = getLanguageSelector();
       expect(selector).toHaveAttribute('data-size', 'medium');
 
       rerender(
-        <LanguageSelector
-          languages={languages}
-          selectedLanguageCode={selectedLanguageCode}
-          isOpen={false}
-          size='large'
-        />,
+        React.createElement(
+          AnyLanguageSelector,
+          {
+            languages,
+            selectedLanguageCode,
+            isOpen: false,
+            size: 'large',
+          } as any,
+          null,
+        ),
       );
 
       selector = getLanguageSelector();

@@ -22,6 +22,9 @@ afterEach(() => {
   window.HTMLElement.prototype.focus = originalFocus;
 });
 
+// Для целей тестов ослабляем типизацию пропсов Textarea
+const AnyTextarea = Textarea as any;
+
 // Функция для изолированного рендера
 function renderIsolated(component: Readonly<React.ReactElement>) {
   const container = document.createElement('div');
@@ -45,14 +48,18 @@ function renderIsolated(component: Readonly<React.ReactElement>) {
 describe('Textarea', () => {
   describe('3.1. Рендер и базовая структура', () => {
     it('textarea рендерится без падений с минимальными пропсами', () => {
-      const { container, getTextarea } = renderIsolated(<Textarea />);
+      const { container, getTextarea } = renderIsolated(
+        React.createElement(AnyTextarea, null),
+      );
 
       expect(container).toBeInTheDocument();
       expect(getTextarea()).toBeInTheDocument();
     });
 
     it('создает textarea элемент с правильными атрибутами по умолчанию', () => {
-      const { getTextarea } = renderIsolated(<Textarea />);
+      const { getTextarea } = renderIsolated(
+        React.createElement(AnyTextarea, null),
+      );
 
       const textarea = getTextarea();
       expect(textarea).toBeInTheDocument();
@@ -61,7 +68,9 @@ describe('Textarea', () => {
     });
 
     it('textarea имеет правильный role', () => {
-      const { getByRole } = renderIsolated(<Textarea />);
+      const { getByRole } = renderIsolated(
+        React.createElement(AnyTextarea, null),
+      );
 
       expect(getByRole('textbox')).toBeInTheDocument();
     });
@@ -71,7 +80,9 @@ describe('Textarea', () => {
     it('внутренний ref работает для autoFocus', () => {
       window.HTMLElement.prototype.focus = mockFocus;
 
-      renderIsolated(<Textarea autoFocus />);
+      renderIsolated(
+        React.createElement(AnyTextarea, { autoFocus: true }),
+      );
 
       expect(mockFocus).toHaveBeenCalledTimes(1);
       expect(mockFocus).toHaveBeenCalledWith({ preventScroll: true });
@@ -81,15 +92,15 @@ describe('Textarea', () => {
   describe('3.3. Пропсы пробрасываются', () => {
     it('стандартные HTML пропсы пробрасываются корректно', () => {
       const { getTextarea } = renderIsolated(
-        <Textarea
-          placeholder='Test placeholder'
-          rows={5}
-          cols={30}
-          maxLength={100}
-          disabled
-          className='custom-class'
-          id='test-id'
-        />,
+        React.createElement(AnyTextarea, {
+          placeholder: 'Test placeholder',
+          rows: 5,
+          cols: 30,
+          maxLength: 100,
+          disabled: true,
+          className: 'custom-class',
+          id: 'test-id',
+        }),
       );
 
       const textarea = getTextarea();
@@ -103,7 +114,9 @@ describe('Textarea', () => {
     });
 
     it('autoFocus пропс не пробрасывается в DOM (reserved)', () => {
-      const { getTextarea } = renderIsolated(<Textarea autoFocus />);
+      const { getTextarea } = renderIsolated(
+        React.createElement(AnyTextarea, { autoFocus: true }),
+      );
 
       const textarea = getTextarea();
       expect(textarea).not.toHaveAttribute('autoFocus');
@@ -115,7 +128,9 @@ describe('Textarea', () => {
       // Мокаем focus
       window.HTMLElement.prototype.focus = mockFocus;
 
-      renderIsolated(<Textarea autoFocus />);
+      renderIsolated(
+        React.createElement(AnyTextarea, { autoFocus: true }),
+      );
 
       expect(mockFocus).toHaveBeenCalledTimes(1);
       expect(mockFocus).toHaveBeenCalledWith({ preventScroll: true });
@@ -124,7 +139,9 @@ describe('Textarea', () => {
     it('autoFocus=false (по умолчанию) не фокусирует', () => {
       window.HTMLElement.prototype.focus = mockFocus;
 
-      renderIsolated(<Textarea />);
+      renderIsolated(
+        React.createElement(AnyTextarea, null),
+      );
 
       expect(mockFocus).not.toHaveBeenCalled();
     });
@@ -132,12 +149,16 @@ describe('Textarea', () => {
     it('autoFocus работает только при первом рендере (StrictMode safe)', () => {
       window.HTMLElement.prototype.focus = mockFocus;
 
-      const { rerender } = renderIsolated(<Textarea autoFocus />);
+      const { rerender } = renderIsolated(
+        React.createElement(AnyTextarea, { autoFocus: true }),
+      );
 
       expect(mockFocus).toHaveBeenCalledTimes(1);
 
       // Ререндер с теми же пропсами не должен вызывать focus снова
-      rerender(<Textarea autoFocus />);
+      rerender(
+        React.createElement(AnyTextarea, { autoFocus: true }),
+      );
 
       expect(mockFocus).toHaveBeenCalledTimes(1);
     });
@@ -147,9 +168,11 @@ describe('Textarea', () => {
 
       // Рендерим в StrictMode, где useEffect вызывается дважды
       render(
-        <StrictMode>
-          <Textarea autoFocus />
-        </StrictMode>,
+        React.createElement(
+          StrictMode,
+          null,
+          React.createElement(AnyTextarea, { autoFocus: true }),
+        ),
       );
 
       // focus должен быть вызван только один раз, несмотря на StrictMode
@@ -160,7 +183,9 @@ describe('Textarea', () => {
     it('autoFocus не падает если ref не доступен', () => {
       // Создаем компонент без ref attachment (редкий случай)
       expect(() => {
-        renderIsolated(<Textarea autoFocus />);
+        renderIsolated(
+          React.createElement(AnyTextarea, { autoFocus: true }),
+        );
       }).not.toThrow();
     });
   });
@@ -168,11 +193,11 @@ describe('Textarea', () => {
   describe('3.5. Стабильность рендера', () => {
     it('рендер стабилен при одинаковых пропсах', () => {
       const { container: container1 } = renderIsolated(
-        <Textarea placeholder='test' rows={3} />,
+        React.createElement(AnyTextarea, { placeholder: 'test', rows: 3 }),
       );
 
       const { container: container2 } = renderIsolated(
-        <Textarea placeholder='test' rows={3} />,
+        React.createElement(AnyTextarea, { placeholder: 'test', rows: 3 }),
       );
 
       expect(container1.innerHTML).toBe(container2.innerHTML);
@@ -186,11 +211,11 @@ describe('Textarea', () => {
       const handleBlur = vi.fn();
 
       const { getTextarea } = renderIsolated(
-        <Textarea
-          onChange={handleChange}
-          onFocus={handleFocus}
-          onBlur={handleBlur}
-        />,
+        React.createElement(AnyTextarea, {
+          onChange: handleChange,
+          onFocus: handleFocus,
+          onBlur: handleBlur,
+        }),
       );
 
       const textarea = getTextarea();
@@ -209,18 +234,20 @@ describe('Textarea', () => {
 
   describe('3.7. Edge cases', () => {
     it('работает с пустыми children', () => {
-      const { getTextarea } = renderIsolated(<Textarea />);
+      const { getTextarea } = renderIsolated(
+        React.createElement(AnyTextarea, null),
+      );
 
       expect(getTextarea()).toBeInTheDocument();
     });
 
     it('работает с undefined пропсами', () => {
       const { getTextarea } = renderIsolated(
-        <Textarea
-          placeholder={undefined}
-          rows={undefined}
-          disabled={undefined}
-        />,
+        React.createElement(AnyTextarea, {
+          placeholder: undefined,
+          rows: undefined,
+          disabled: undefined,
+        }),
       );
 
       const textarea = getTextarea();

@@ -14,6 +14,9 @@ import '@testing-library/jest-dom/vitest';
 // Полная очистка DOM между тестами
 afterEach(cleanup);
 
+// Для целей тестов ослабляем типизацию пропсов LoadingSpinner
+const AnyLoadingSpinner = LoadingSpinner as any;
+
 // Функция для изолированного рендера
 function renderIsolated(component: Readonly<React.ReactElement>) {
   const container = document.createElement('div');
@@ -49,14 +52,18 @@ describe('LoadingSpinner', () => {
 
   describe('1.1. Рендер без падений', () => {
     it('рендерится с дефолтными пропсами', () => {
-      const { container, getSpinner } = renderIsolated(<LoadingSpinner />);
+      const { container, getSpinner } = renderIsolated(
+        React.createElement(AnyLoadingSpinner, null),
+      );
 
       expect(container).toBeInTheDocument();
       expect(getSpinner()).toBeInTheDocument();
     });
 
     it('создает div элемент с правильными атрибутами по умолчанию', () => {
-      const { getSpinner } = renderIsolated(<LoadingSpinner />);
+      const { getSpinner } = renderIsolated(
+        React.createElement(AnyLoadingSpinner, null),
+      );
 
       const spinner = getSpinner();
       expect(spinner).toBeInTheDocument();
@@ -71,19 +78,25 @@ describe('LoadingSpinner', () => {
 
   describe('1.2. Видимость (visible)', () => {
     it('по умолчанию visible=true рендерит компонент', () => {
-      const { getSpinner } = renderIsolated(<LoadingSpinner />);
+      const { getSpinner } = renderIsolated(
+        React.createElement(AnyLoadingSpinner, null),
+      );
 
       expect(getSpinner()).toBeInTheDocument();
     });
 
     it('visible=true рендерит компонент', () => {
-      const { getSpinner } = renderIsolated(<LoadingSpinner visible />);
+      const { getSpinner } = renderIsolated(
+        React.createElement(AnyLoadingSpinner, { visible: true }),
+      );
 
       expect(getSpinner()).toBeInTheDocument();
     });
 
     it('visible=false возвращает null', () => {
-      const { container, getSpinner } = renderIsolated(<LoadingSpinner visible={false} />);
+      const { container, getSpinner } = renderIsolated(
+        React.createElement(AnyLoadingSpinner, { visible: false }),
+      );
 
       expect(getSpinner()).not.toBeInTheDocument();
       expect(container.querySelector('div[data-component="CoreLoadingSpinner"]')).toBeNull();
@@ -93,7 +106,7 @@ describe('LoadingSpinner', () => {
   describe('1.3. Варианты (variant)', () => {
     it('variant="spinner" (по умолчанию) рендерит spinner', () => {
       const { getSpinner, getSpinnerElement } = renderIsolated(
-        <LoadingSpinner variant='spinner' />,
+        React.createElement(AnyLoadingSpinner, { variant: 'spinner' }),
       );
 
       const spinner = getSpinner();
@@ -103,7 +116,7 @@ describe('LoadingSpinner', () => {
 
     it('variant="dots" рендерит dots контейнер с тремя точками', () => {
       const { getSpinner, getDotsContainer, getDots } = renderIsolated(
-        <LoadingSpinner variant='dots' />,
+        React.createElement(AnyLoadingSpinner, { variant: 'dots' }),
       );
 
       const spinner = getSpinner();
@@ -117,7 +130,9 @@ describe('LoadingSpinner', () => {
     });
 
     it('variant="pulse" рендерит pulse элемент', () => {
-      const { getSpinner, getSpinnerElement } = renderIsolated(<LoadingSpinner variant='pulse' />);
+      const { getSpinner, getSpinnerElement } = renderIsolated(
+        React.createElement(AnyLoadingSpinner, { variant: 'pulse' }),
+      );
 
       const spinner = getSpinner();
       expect(spinner).toHaveAttribute('data-variant', 'pulse');
@@ -127,7 +142,9 @@ describe('LoadingSpinner', () => {
 
   describe('1.4. Размеры (size)', () => {
     it('по умолчанию size="md" (24px)', () => {
-      const { getSpinnerElement } = renderIsolated(<LoadingSpinner />);
+      const { getSpinnerElement } = renderIsolated(
+        React.createElement(AnyLoadingSpinner, null),
+      );
 
       const spinnerElement = getSpinnerElement();
       expect(spinnerElement).toHaveStyle({
@@ -137,7 +154,9 @@ describe('LoadingSpinner', () => {
     });
 
     it('size="sm" устанавливает 16px', () => {
-      const { getSpinnerElement } = renderIsolated(<LoadingSpinner size='sm' />);
+      const { getSpinnerElement } = renderIsolated(
+        React.createElement(AnyLoadingSpinner, { size: 'sm' }),
+      );
 
       const spinnerElement = getSpinnerElement();
       expect(spinnerElement).toHaveStyle({
@@ -147,7 +166,9 @@ describe('LoadingSpinner', () => {
     });
 
     it('size="md" устанавливает 24px', () => {
-      const { getSpinnerElement } = renderIsolated(<LoadingSpinner size='md' />);
+      const { getSpinnerElement } = renderIsolated(
+        React.createElement(AnyLoadingSpinner, { size: 'md' }),
+      );
 
       const spinnerElement = getSpinnerElement();
       expect(spinnerElement).toHaveStyle({
@@ -157,7 +178,9 @@ describe('LoadingSpinner', () => {
     });
 
     it('size="lg" устанавливает 32px', () => {
-      const { getSpinnerElement } = renderIsolated(<LoadingSpinner size='lg' />);
+      const { getSpinnerElement } = renderIsolated(
+        React.createElement(AnyLoadingSpinner, { size: 'lg' }),
+      );
 
       const spinnerElement = getSpinnerElement();
       expect(spinnerElement).toHaveStyle({
@@ -167,7 +190,9 @@ describe('LoadingSpinner', () => {
     });
 
     it('size как число устанавливает кастомный размер', () => {
-      const { getSpinnerElement } = renderIsolated(<LoadingSpinner size={40} />);
+      const { getSpinnerElement } = renderIsolated(
+        React.createElement(AnyLoadingSpinner, { size: 40 }),
+      );
 
       const spinnerElement = getSpinnerElement();
       expect(spinnerElement).toHaveStyle({
@@ -179,7 +204,7 @@ describe('LoadingSpinner', () => {
     it('size как невалидная строка использует DEFAULT_SIZE fallback', () => {
       // Тестируем fallback для случая, когда size не является 'sm'/'md'/'lg' и не число
       const { getSpinnerElement } = renderIsolated(
-        <LoadingSpinner size={'invalid' as any} />,
+        React.createElement(AnyLoadingSpinner, { size: 'invalid' as any }),
       );
 
       const spinnerElement = getSpinnerElement();
@@ -191,7 +216,9 @@ describe('LoadingSpinner', () => {
     });
 
     it('size работает для dots варианта', () => {
-      const { getDots } = renderIsolated(<LoadingSpinner variant='dots' size='lg' />);
+      const { getDots } = renderIsolated(
+        React.createElement(AnyLoadingSpinner, { variant: 'dots', size: 'lg' }),
+      );
 
       const dots = getDots();
       expect(dots).toHaveLength(3);
@@ -203,7 +230,9 @@ describe('LoadingSpinner', () => {
     });
 
     it('size работает для pulse варианта', () => {
-      const { getSpinnerElement } = renderIsolated(<LoadingSpinner variant='pulse' size={50} />);
+      const { getSpinnerElement } = renderIsolated(
+        React.createElement(AnyLoadingSpinner, { variant: 'pulse', size: 50 }),
+      );
 
       const spinnerElement = getSpinnerElement();
       expect(spinnerElement).toHaveStyle({
@@ -215,7 +244,9 @@ describe('LoadingSpinner', () => {
 
   describe('1.5. Цвет (color)', () => {
     it('по умолчанию color="var(--spinner-color, #007bff)"', () => {
-      const { getSpinnerElement } = renderIsolated(<LoadingSpinner />);
+      const { getSpinnerElement } = renderIsolated(
+        React.createElement(AnyLoadingSpinner, null),
+      );
 
       const spinnerElement = getSpinnerElement();
       expect(spinnerElement).toHaveStyle({
@@ -226,7 +257,7 @@ describe('LoadingSpinner', () => {
 
     it('color пробрасывается для spinner варианта', () => {
       const { getSpinnerElement } = renderIsolated(
-        <LoadingSpinner variant='spinner' color='red' />,
+        React.createElement(AnyLoadingSpinner, { variant: 'spinner', color: 'red' }),
       );
 
       const spinnerElement = getSpinnerElement();
@@ -235,7 +266,9 @@ describe('LoadingSpinner', () => {
     });
 
     it('color пробрасывается для dots варианта', () => {
-      const { getDots } = renderIsolated(<LoadingSpinner variant='dots' color='blue' />);
+      const { getDots } = renderIsolated(
+        React.createElement(AnyLoadingSpinner, { variant: 'dots', color: 'blue' }),
+      );
 
       const dots = getDots();
       expect(dots[0]).toBeDefined();
@@ -246,7 +279,7 @@ describe('LoadingSpinner', () => {
 
     it('color пробрасывается для pulse варианта', () => {
       const { getSpinnerElement } = renderIsolated(
-        <LoadingSpinner variant='pulse' color='green' />,
+        React.createElement(AnyLoadingSpinner, { variant: 'pulse', color: 'green' }),
       );
 
       const spinnerElement = getSpinnerElement();
@@ -256,7 +289,9 @@ describe('LoadingSpinner', () => {
 
   describe('1.6. Accessibility (ARIA)', () => {
     it('по умолчанию aria-label="Загрузка"', () => {
-      const { getSpinner } = renderIsolated(<LoadingSpinner />);
+      const { getSpinner } = renderIsolated(
+        React.createElement(AnyLoadingSpinner, null),
+      );
 
       const spinner = getSpinner();
       expect(spinner).toHaveAttribute('aria-label', 'Загрузка');
@@ -265,7 +300,9 @@ describe('LoadingSpinner', () => {
     });
 
     it('кастомный aria-label пробрасывается', () => {
-      const { getSpinner } = renderIsolated(<LoadingSpinner aria-label='Custom loading' />);
+      const { getSpinner } = renderIsolated(
+        React.createElement(AnyLoadingSpinner, { 'aria-label': 'Custom loading' }),
+      );
 
       const spinner = getSpinner();
       expect(spinner).toHaveAttribute('aria-label', 'Custom loading');
@@ -273,17 +310,26 @@ describe('LoadingSpinner', () => {
 
     it('aria-label работает для всех вариантов', () => {
       const { getSpinner: getSpinner1 } = renderIsolated(
-        <LoadingSpinner variant='spinner' aria-label='Spinner loading' />,
+        React.createElement(AnyLoadingSpinner, {
+          variant: 'spinner',
+          'aria-label': 'Spinner loading',
+        }),
       );
       expect(getSpinner1()).toHaveAttribute('aria-label', 'Spinner loading');
 
       const { getSpinner: getSpinner2 } = renderIsolated(
-        <LoadingSpinner variant='dots' aria-label='Dots loading' />,
+        React.createElement(AnyLoadingSpinner, {
+          variant: 'dots',
+          'aria-label': 'Dots loading',
+        }),
       );
       expect(getSpinner2()).toHaveAttribute('aria-label', 'Dots loading');
 
       const { getSpinner: getSpinner3 } = renderIsolated(
-        <LoadingSpinner variant='pulse' aria-label='Pulse loading' />,
+        React.createElement(AnyLoadingSpinner, {
+          variant: 'pulse',
+          'aria-label': 'Pulse loading',
+        }),
       );
       expect(getSpinner3()).toHaveAttribute('aria-label', 'Pulse loading');
     });
@@ -293,7 +339,9 @@ describe('LoadingSpinner', () => {
     it('forwardRef работает для внешнего доступа к DOM элементу', () => {
       const ref = React.createRef<HTMLDivElement>();
 
-      const { getSpinner } = renderIsolated(<LoadingSpinner ref={ref} />);
+      const { getSpinner } = renderIsolated(
+        React.createElement(AnyLoadingSpinner, { ref }, null),
+      );
 
       const spinner = getSpinner();
       expect(ref.current).toBe(spinner);
@@ -302,7 +350,9 @@ describe('LoadingSpinner', () => {
     it('ref возвращает HTMLDivElement', () => {
       const ref = React.createRef<HTMLDivElement>();
 
-      renderIsolated(<LoadingSpinner ref={ref} />);
+      renderIsolated(
+        React.createElement(AnyLoadingSpinner, { ref }, null),
+      );
 
       expect(ref.current).toBeInstanceOf(HTMLDivElement);
       expect(ref.current?.tagName).toBe('DIV');
@@ -310,15 +360,21 @@ describe('LoadingSpinner', () => {
 
     it('ref работает для всех вариантов', () => {
       const ref1 = React.createRef<HTMLDivElement>();
-      renderIsolated(<LoadingSpinner variant='spinner' ref={ref1} />);
+      renderIsolated(
+        React.createElement(AnyLoadingSpinner, { variant: 'spinner', ref: ref1 }, null),
+      );
       expect(ref1.current).toBeInstanceOf(HTMLDivElement);
 
       const ref2 = React.createRef<HTMLDivElement>();
-      renderIsolated(<LoadingSpinner variant='dots' ref={ref2} />);
+      renderIsolated(
+        React.createElement(AnyLoadingSpinner, { variant: 'dots', ref: ref2 }, null),
+      );
       expect(ref2.current).toBeInstanceOf(HTMLDivElement);
 
       const ref3 = React.createRef<HTMLDivElement>();
-      renderIsolated(<LoadingSpinner variant='pulse' ref={ref3} />);
+      renderIsolated(
+        React.createElement(AnyLoadingSpinner, { variant: 'pulse', ref: ref3 }, null),
+      );
       expect(ref3.current).toBeInstanceOf(HTMLDivElement);
     });
   });
@@ -326,12 +382,12 @@ describe('LoadingSpinner', () => {
   describe('1.8. HTML атрибуты пробрасываются', () => {
     it('стандартные HTML атрибуты пробрасываются корректно', () => {
       const { getSpinner } = renderIsolated(
-        <LoadingSpinner
-          id='test-id'
-          className='test-class'
-          title='Test title'
-          data-testid='test-spinner'
-        />,
+        React.createElement(AnyLoadingSpinner, {
+          id: 'test-id',
+          className: 'test-class',
+          title: 'Test title',
+          'data-testid': 'test-spinner',
+        }),
       );
 
       const spinner = getSpinner();
@@ -342,7 +398,9 @@ describe('LoadingSpinner', () => {
     });
 
     it('style пробрасывается и объединяется с базовыми стилями', () => {
-      const { getSpinner } = renderIsolated(<LoadingSpinner style={customStyle} />);
+      const { getSpinner } = renderIsolated(
+        React.createElement(AnyLoadingSpinner, { style: customStyle }),
+      );
 
       const spinner = getSpinner();
       expect(spinner).toHaveStyle({
@@ -355,7 +413,9 @@ describe('LoadingSpinner', () => {
 
   describe('1.9. Стили для разных вариантов', () => {
     it('spinner вариант имеет правильные стили границы', () => {
-      const { getSpinnerElement } = renderIsolated(<LoadingSpinner variant='spinner' size={24} />);
+      const { getSpinnerElement } = renderIsolated(
+        React.createElement(AnyLoadingSpinner, { variant: 'spinner', size: 24 }),
+      );
 
       const spinnerElement = getSpinnerElement();
       expect(spinnerElement.style.borderStyle).toBe('solid');
@@ -368,7 +428,9 @@ describe('LoadingSpinner', () => {
     });
 
     it('spinner вариант с маленьким размером имеет минимальную ширину границы 2px', () => {
-      const { getSpinnerElement } = renderIsolated(<LoadingSpinner variant='spinner' size={8} />);
+      const { getSpinnerElement } = renderIsolated(
+        React.createElement(AnyLoadingSpinner, { variant: 'spinner', size: 8 }),
+      );
 
       const spinnerElement = getSpinnerElement();
       // Для 8px: borderWidth = max(2, 8/8) = max(2, 1) = 2px
@@ -378,7 +440,9 @@ describe('LoadingSpinner', () => {
     });
 
     it('dots вариант имеет правильные стили контейнера', () => {
-      const { getDotsContainer } = renderIsolated(<LoadingSpinner variant='dots' />);
+      const { getDotsContainer } = renderIsolated(
+        React.createElement(AnyLoadingSpinner, { variant: 'dots' }),
+      );
 
       const dotsContainer = getDotsContainer();
       expect(dotsContainer).toHaveStyle({
@@ -389,7 +453,9 @@ describe('LoadingSpinner', () => {
     });
 
     it('dots вариант имеет правильные стили точек', () => {
-      const { getDots } = renderIsolated(<LoadingSpinner variant='dots' size={24} />);
+      const { getDots } = renderIsolated(
+        React.createElement(AnyLoadingSpinner, { variant: 'dots', size: 24 }),
+      );
 
       const dots = getDots();
       expect(dots).toHaveLength(3);
@@ -405,7 +471,9 @@ describe('LoadingSpinner', () => {
     });
 
     it('dots вариант имеет правильные задержки анимации', () => {
-      const { getDots } = renderIsolated(<LoadingSpinner variant='dots' />);
+      const { getDots } = renderIsolated(
+        React.createElement(AnyLoadingSpinner, { variant: 'dots' }),
+      );
 
       const dots = getDots();
       expect(dots[0]).toHaveStyle({
@@ -420,7 +488,9 @@ describe('LoadingSpinner', () => {
     });
 
     it('dots вариант с маленьким размером имеет минимальный размер точки 4px', () => {
-      const { getDots } = renderIsolated(<LoadingSpinner variant='dots' size={8} />);
+      const { getDots } = renderIsolated(
+        React.createElement(AnyLoadingSpinner, { variant: 'dots', size: 8 }),
+      );
 
       const dots = getDots();
       // Для 8px: dotSize = max(4, 8/4) = max(4, 2) = 4px
@@ -431,7 +501,9 @@ describe('LoadingSpinner', () => {
     });
 
     it('pulse вариант имеет правильные стили', () => {
-      const { getSpinnerElement } = renderIsolated(<LoadingSpinner variant='pulse' size={24} />);
+      const { getSpinnerElement } = renderIsolated(
+        React.createElement(AnyLoadingSpinner, { variant: 'pulse', size: 24 }),
+      );
 
       const spinnerElement = getSpinnerElement();
       expect(spinnerElement).toHaveStyle({
@@ -444,12 +516,20 @@ describe('LoadingSpinner', () => {
   describe('1.10. Стабильность рендера', () => {
     it('рендер стабилен при одинаковых пропсах', () => {
       const { container, rerender } = renderIsolated(
-        <LoadingSpinner variant='spinner' size={20} color='blue' />,
+        React.createElement(AnyLoadingSpinner, {
+          variant: 'spinner',
+          size: 20,
+          color: 'blue',
+        }),
       );
 
       const firstRender = container.innerHTML;
 
-      rerender(<LoadingSpinner variant='spinner' size={20} color='blue' />);
+      rerender(React.createElement(AnyLoadingSpinner, {
+        variant: 'spinner',
+        size: 20,
+        color: 'blue',
+      }));
 
       expect(container.innerHTML).toBe(firstRender);
     });
@@ -459,14 +539,14 @@ describe('LoadingSpinner', () => {
 
       const TestComponent = React.memo(() => {
         renderCount++;
-        return <LoadingSpinner variant='spinner' />;
+        return React.createElement(AnyLoadingSpinner, { variant: 'spinner' });
       });
 
-      const { rerender } = render(<TestComponent />);
+      const { rerender } = render(React.createElement(TestComponent));
 
       expect(renderCount).toBe(1);
 
-      rerender(<TestComponent />);
+      rerender(React.createElement(TestComponent));
 
       expect(renderCount).toBe(1);
     });
@@ -474,7 +554,9 @@ describe('LoadingSpinner', () => {
 
   describe('1.11. Edge cases', () => {
     it('работает с отсутствующими пропсами', () => {
-      const { getSpinner } = renderIsolated(<LoadingSpinner />);
+      const { getSpinner } = renderIsolated(
+        React.createElement(AnyLoadingSpinner, null),
+      );
 
       const spinner = getSpinner();
       expect(spinner).toBeInTheDocument();
@@ -483,14 +565,18 @@ describe('LoadingSpinner', () => {
     });
 
     it('работает с пустой строкой aria-label', () => {
-      const { getSpinner } = renderIsolated(<LoadingSpinner aria-label='' />);
+      const { getSpinner } = renderIsolated(
+        React.createElement(AnyLoadingSpinner, { 'aria-label': '' }),
+      );
 
       const spinner = getSpinner();
       expect(spinner).toHaveAttribute('aria-label', '');
     });
 
     it('размер 0 работает корректно', () => {
-      const { getSpinnerElement } = renderIsolated(<LoadingSpinner size={0} />);
+      const { getSpinnerElement } = renderIsolated(
+        React.createElement(AnyLoadingSpinner, { size: 0 }),
+      );
 
       const spinnerElement = getSpinnerElement();
       expect(spinnerElement).toHaveStyle({
@@ -500,7 +586,9 @@ describe('LoadingSpinner', () => {
     });
 
     it('очень маленький размер для spinner (borderWidth минимум 2px)', () => {
-      const { getSpinnerElement } = renderIsolated(<LoadingSpinner variant='spinner' size={4} />);
+      const { getSpinnerElement } = renderIsolated(
+        React.createElement(AnyLoadingSpinner, { variant: 'spinner', size: 4 }),
+      );
 
       const spinnerElement = getSpinnerElement();
       // Для 4px: borderWidth = max(2, 4/8) = max(2, 0.5) = 2px
@@ -510,7 +598,9 @@ describe('LoadingSpinner', () => {
     });
 
     it('очень маленький размер для dots (dotSize минимум 4px)', () => {
-      const { getDots } = renderIsolated(<LoadingSpinner variant='dots' size={4} />);
+      const { getDots } = renderIsolated(
+        React.createElement(AnyLoadingSpinner, { variant: 'dots', size: 4 }),
+      );
 
       const dots = getDots();
       // Для 4px: dotSize = max(4, 4/4) = max(4, 1) = 4px
@@ -521,7 +611,9 @@ describe('LoadingSpinner', () => {
     });
 
     it('большой размер работает корректно', () => {
-      const { getSpinnerElement } = renderIsolated(<LoadingSpinner size={100} />);
+      const { getSpinnerElement } = renderIsolated(
+        React.createElement(AnyLoadingSpinner, { size: 100 }),
+      );
 
       const spinnerElement = getSpinnerElement();
       expect(spinnerElement).toHaveStyle({
@@ -532,15 +624,15 @@ describe('LoadingSpinner', () => {
 
     it('комбинация всех пропсов работает', () => {
       const { getSpinner } = renderIsolated(
-        <LoadingSpinner
-          variant='dots'
-          size={30}
-          color='purple'
-          aria-label='Loading data'
-          className='custom-class'
-          id='spinner-id'
-          data-testid='custom-testid'
-        />,
+        React.createElement(AnyLoadingSpinner, {
+          variant: 'dots',
+          size: 30,
+          color: 'purple',
+          'aria-label': 'Loading data',
+          className: 'custom-class',
+          id: 'spinner-id',
+          'data-testid': 'custom-testid',
+        }),
       );
 
       const spinner = getSpinner();
@@ -560,7 +652,7 @@ describe('LoadingSpinner', () => {
 
       sizes.forEach((size, index) => {
         const { getSpinnerElement } = renderIsolated(
-          <LoadingSpinner variant='spinner' size={size} />,
+          React.createElement(AnyLoadingSpinner, { variant: 'spinner', size }),
         );
         expect(getSpinnerElement()).toHaveStyle({
           width: `${expectedPixels[index]}px`,
@@ -577,7 +669,9 @@ describe('LoadingSpinner', () => {
       const expectedDotSizes = [4, 6, 8];
 
       sizes.forEach((size, index) => {
-        const { getDots } = renderIsolated(<LoadingSpinner variant='dots' size={size} />);
+        const { getDots } = renderIsolated(
+          React.createElement(AnyLoadingSpinner, { variant: 'dots', size }),
+        );
         expect(getDots()[0]).toHaveStyle({
           width: `${expectedDotSizes[index]}px`,
           height: `${expectedDotSizes[index]}px`,
@@ -591,7 +685,7 @@ describe('LoadingSpinner', () => {
 
       sizes.forEach((size, index) => {
         const { getSpinnerElement } = renderIsolated(
-          <LoadingSpinner variant='pulse' size={size} />,
+          React.createElement(AnyLoadingSpinner, { variant: 'pulse', size }),
         );
         expect(getSpinnerElement()).toHaveStyle({
           width: `${expectedPixels[index]}px`,

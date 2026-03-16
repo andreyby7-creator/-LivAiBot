@@ -12,6 +12,8 @@ import { FileUploader } from '@livai/ui-core';
 
 import '@testing-library/jest-dom/vitest';
 
+const AnyFileUploader = FileUploader as any;
+
 // Полная очистка DOM между тестами
 afterEach(() => {
   cleanup();
@@ -176,7 +178,9 @@ const customStyle: React.CSSProperties = { color: 'red' };
 describe('FileUploader', () => {
   describe('4.1. Рендер и базовая структура', () => {
     it('рендерится без падений с минимальными пропсами', () => {
-      const { container, getFileUploader } = renderIsolated(<FileUploader files={emptyFiles} />);
+      const { container, getFileUploader } = renderIsolated(
+        React.createElement(AnyFileUploader, { files: emptyFiles } as any, null),
+      );
 
       expect(container).toBeInTheDocument();
       expect(getFileUploader()).toBeInTheDocument();
@@ -184,7 +188,11 @@ describe('FileUploader', () => {
 
     it('создает корневой div с правильными атрибутами', () => {
       const { getFileUploader } = renderIsolated(
-        <FileUploader files={emptyFiles} data-testid='test-uploader' />,
+        React.createElement(
+          AnyFileUploader,
+          { files: emptyFiles, 'data-testid': 'test-uploader' } as any,
+          null,
+        ),
       );
 
       const uploader = getFileUploader();
@@ -195,14 +203,20 @@ describe('FileUploader', () => {
     });
 
     it('применяет data-state="disabled" когда disabled=true', () => {
-      const { getFileUploader } = renderIsolated(<FileUploader files={emptyFiles} disabled />);
+      const { getFileUploader } = renderIsolated(
+        React.createElement(AnyFileUploader, { files: emptyFiles, disabled: true } as any, null),
+      );
 
       expect(getFileUploader()).toHaveAttribute('data-state', 'disabled');
     });
 
     it('применяет кастомный data-state', () => {
       const { getFileUploader } = renderIsolated(
-        <FileUploader files={emptyFiles} data-state='custom-state' />,
+        React.createElement(
+          AnyFileUploader,
+          { files: emptyFiles, 'data-state': 'custom-state' } as any,
+          null,
+        ),
       );
 
       expect(getFileUploader()).toHaveAttribute('data-state', 'custom-state');
@@ -210,7 +224,11 @@ describe('FileUploader', () => {
 
     it('пробрасывает className', () => {
       const { getFileUploader } = renderIsolated(
-        <FileUploader files={emptyFiles} className='custom-class' />,
+        React.createElement(
+          AnyFileUploader,
+          { files: emptyFiles, className: 'custom-class' } as any,
+          null,
+        ),
       );
 
       expect(getFileUploader()).toHaveClass('custom-class');
@@ -218,7 +236,11 @@ describe('FileUploader', () => {
 
     it('пробрасывает style', () => {
       const { getFileUploader } = renderIsolated(
-        <FileUploader files={emptyFiles} style={customStyle} />,
+        React.createElement(
+          AnyFileUploader,
+          { files: emptyFiles, style: customStyle } as any,
+          null,
+        ),
       );
 
       expect(getFileUploader()).toHaveStyle({ color: 'rgb(255, 0, 0)' });
@@ -227,7 +249,9 @@ describe('FileUploader', () => {
 
   describe('4.2. Скрытый input для выбора файлов', () => {
     it('создает скрытый input элемент', () => {
-      const { getInput } = renderIsolated(<FileUploader files={emptyFiles} />);
+      const { getInput } = renderIsolated(
+        React.createElement(AnyFileUploader, { files: emptyFiles } as any, null),
+      );
 
       const input = getInput();
       expect(input).toBeInTheDocument();
@@ -236,32 +260,48 @@ describe('FileUploader', () => {
     });
 
     it('input имеет multiple=false по умолчанию', () => {
-      const { getInput } = renderIsolated(<FileUploader files={emptyFiles} />);
+      const { getInput } = renderIsolated(
+        React.createElement(AnyFileUploader, { files: emptyFiles } as any, null),
+      );
 
       expect(getInput()).not.toHaveAttribute('multiple');
     });
 
     it('input имеет multiple=true когда multiple=true', () => {
-      const { getInput } = renderIsolated(<FileUploader files={emptyFiles} multiple />);
+      const { getInput } = renderIsolated(
+        React.createElement(AnyFileUploader, { files: emptyFiles, multiple: true } as any, null),
+      );
 
       expect(getInput()).toHaveAttribute('multiple');
     });
 
     it('input имеет accept атрибут', () => {
-      const { getInput } = renderIsolated(<FileUploader files={emptyFiles} accept='image/*' />);
+      const { getInput } = renderIsolated(
+        React.createElement(
+          AnyFileUploader,
+          { files: emptyFiles, accept: 'image/*' } as any,
+          null,
+        ),
+      );
 
       expect(getInput()).toHaveAttribute('accept', 'image/*');
     });
 
     it('input disabled когда disabled=true', () => {
-      const { getInput } = renderIsolated(<FileUploader files={emptyFiles} disabled />);
+      const { getInput } = renderIsolated(
+        React.createElement(AnyFileUploader, { files: emptyFiles, disabled: true } as any, null),
+      );
 
       expect(getInput()).toBeDisabled();
     });
 
     it('input имеет data-testid когда передан testId', () => {
       const { getInput } = renderIsolated(
-        <FileUploader files={emptyFiles} data-testid='test-uploader' />,
+        React.createElement(
+          AnyFileUploader,
+          { files: emptyFiles, 'data-testid': 'test-uploader' } as any,
+          null,
+        ),
       );
 
       expect(getInput()).toHaveAttribute('data-testid', 'test-uploader-input');
@@ -270,7 +310,9 @@ describe('FileUploader', () => {
 
   describe('4.3. Drop zone', () => {
     it('создает drop zone с правильными атрибутами', () => {
-      const { getDropZone } = renderIsolated(<FileUploader files={emptyFiles} />);
+      const { getDropZone } = renderIsolated(
+        React.createElement(AnyFileUploader, { files: emptyFiles } as any, null),
+      );
 
       const dropZone = getDropZone();
       expect(dropZone).toBeInTheDocument();
@@ -280,7 +322,9 @@ describe('FileUploader', () => {
     });
 
     it('drop zone disabled когда disabled=true', () => {
-      const { getDropZone } = renderIsolated(<FileUploader files={emptyFiles} disabled />);
+      const { getDropZone } = renderIsolated(
+        React.createElement(AnyFileUploader, { files: emptyFiles, disabled: true } as any, null),
+      );
 
       const dropZone = getDropZone();
       expect(dropZone).toHaveAttribute('tabIndex', '-1');
@@ -289,7 +333,11 @@ describe('FileUploader', () => {
 
     it('отображает dropZoneLabel по умолчанию', () => {
       const { container } = renderIsolated(
-        <FileUploader files={emptyFiles} dropZoneLabel='Перетащите файлы' />,
+        React.createElement(
+          AnyFileUploader,
+          { files: emptyFiles, dropZoneLabel: 'Перетащите файлы' } as any,
+          null,
+        ),
       );
 
       expect(container).toHaveTextContent('Перетащите файлы');
@@ -297,12 +345,16 @@ describe('FileUploader', () => {
 
     it('отображает dropZoneLabelActive когда isDragActive=true', () => {
       const { container } = renderIsolated(
-        <FileUploader
-          files={emptyFiles}
-          isDragActive
-          dropZoneLabel='Перетащите файлы'
-          dropZoneLabelActive='Отпустите файлы'
-        />,
+        React.createElement(
+          AnyFileUploader,
+          {
+            files: emptyFiles,
+            isDragActive: true,
+            dropZoneLabel: 'Перетащите файлы',
+            dropZoneLabelActive: 'Отпустите файлы',
+          } as any,
+          null,
+        ),
       );
 
       expect(container).toHaveTextContent('Отпустите файлы');
@@ -311,7 +363,11 @@ describe('FileUploader', () => {
 
     it('drop zone имеет data-testid когда передан testId', () => {
       const { getDropZone } = renderIsolated(
-        <FileUploader files={emptyFiles} data-testid='test-uploader' />,
+        React.createElement(
+          AnyFileUploader,
+          { files: emptyFiles, 'data-testid': 'test-uploader' } as any,
+          null,
+        ),
       );
 
       expect(getDropZone()).toHaveAttribute('data-testid', 'test-uploader-dropzone');
@@ -320,7 +376,9 @@ describe('FileUploader', () => {
 
   describe('4.4. Кнопка выбора файлов', () => {
     it('создает кнопку с правильными атрибутами', () => {
-      const { getButton } = renderIsolated(<FileUploader files={emptyFiles} />);
+      const { getButton } = renderIsolated(
+        React.createElement(AnyFileUploader, { files: emptyFiles } as any, null),
+      );
 
       const button = getButton();
       expect(button).toBeInTheDocument();
@@ -330,21 +388,31 @@ describe('FileUploader', () => {
 
     it('отображает buttonLabel по умолчанию', () => {
       const { getButton } = renderIsolated(
-        <FileUploader files={emptyFiles} buttonLabel='Выбрать' />,
+        React.createElement(
+          AnyFileUploader,
+          { files: emptyFiles, buttonLabel: 'Выбрать' } as any,
+          null,
+        ),
       );
 
       expect(getButton()).toHaveTextContent('Выбрать');
     });
 
     it('кнопка disabled когда disabled=true', () => {
-      const { getButton } = renderIsolated(<FileUploader files={emptyFiles} disabled />);
+      const { getButton } = renderIsolated(
+        React.createElement(AnyFileUploader, { files: emptyFiles, disabled: true } as any, null),
+      );
 
       expect(getButton()).toBeDisabled();
     });
 
     it('кнопка имеет data-testid когда передан testId', () => {
       const { getButton } = renderIsolated(
-        <FileUploader files={emptyFiles} data-testid='test-uploader' />,
+        React.createElement(
+          AnyFileUploader,
+          { files: emptyFiles, 'data-testid': 'test-uploader' } as any,
+          null,
+        ),
       );
 
       expect(getButton()).toHaveAttribute('data-testid', 'test-uploader-button');
@@ -353,13 +421,17 @@ describe('FileUploader', () => {
 
   describe('4.5. Список файлов', () => {
     it('не отображает список файлов когда files пустой', () => {
-      const { getFileList } = renderIsolated(<FileUploader files={emptyFiles} />);
+      const { getFileList } = renderIsolated(
+        React.createElement(AnyFileUploader, { files: emptyFiles } as any, null),
+      );
 
       expect(getFileList()).not.toBeInTheDocument();
     });
 
     it('отображает список файлов когда files не пустой', () => {
-      const { getFileList } = renderIsolated(<FileUploader files={singleFileArray} />);
+      const { getFileList } = renderIsolated(
+        React.createElement(AnyFileUploader, { files: singleFileArray } as any, null),
+      );
 
       const fileList = getFileList();
       expect(fileList).toBeInTheDocument();
@@ -369,14 +441,16 @@ describe('FileUploader', () => {
 
     it('отображает все файлы из списка', () => {
       const { getFileItems } = renderIsolated(
-        <FileUploader files={threeFilesArray} />,
+        React.createElement(AnyFileUploader, { files: threeFilesArray } as any, null),
       );
 
       expect(getFileItems()).toHaveLength(3);
     });
 
     it('каждый файл имеет правильные атрибуты', () => {
-      const { getFileItem } = renderIsolated(<FileUploader files={singleFileArray} />);
+      const { getFileItem } = renderIsolated(
+        React.createElement(AnyFileUploader, { files: singleFileArray } as any, null),
+      );
 
       const fileItem = getFileItem('1');
       expect(fileItem).toBeInTheDocument();
@@ -385,19 +459,25 @@ describe('FileUploader', () => {
     });
 
     it('отображает имя файла', () => {
-      const { container } = renderIsolated(<FileUploader files={singleFileArray} />);
+      const { container } = renderIsolated(
+        React.createElement(AnyFileUploader, { files: singleFileArray } as any, null),
+      );
 
       expect(container).toHaveTextContent('test-1.txt');
     });
 
     it('отображает метаданные файла (размер и тип)', () => {
-      const { container } = renderIsolated(<FileUploader files={singleFileArray} />);
+      const { container } = renderIsolated(
+        React.createElement(AnyFileUploader, { files: singleFileArray } as any, null),
+      );
 
       expect(container).toHaveTextContent('1.5 MB • text/plain');
     });
 
     it('отображает статус файла', () => {
-      const { container } = renderIsolated(<FileUploader files={singleFileArray} />);
+      const { container } = renderIsolated(
+        React.createElement(AnyFileUploader, { files: singleFileArray } as any, null),
+      );
 
       expect(container).toHaveTextContent('Ожидание');
     });
@@ -405,14 +485,16 @@ describe('FileUploader', () => {
 
   describe('4.6. Статусы файлов', () => {
     it('отображает pending статус', () => {
-      const { container } = renderIsolated(<FileUploader files={singleFileArray} />);
+      const { container } = renderIsolated(
+        React.createElement(AnyFileUploader, { files: singleFileArray } as any, null),
+      );
 
       expect(container).toHaveTextContent('Ожидание');
     });
 
     it('отображает progress статус с прогресс-баром', () => {
       const { container, getProgressBar } = renderIsolated(
-        <FileUploader files={singleFileProgressArray} />,
+        React.createElement(AnyFileUploader, { files: singleFileProgressArray } as any, null),
       );
 
       expect(container).toHaveTextContent('Загрузка...');
@@ -425,13 +507,17 @@ describe('FileUploader', () => {
     });
 
     it('отображает success статус', () => {
-      const { container } = renderIsolated(<FileUploader files={singleFileSuccessArray} />);
+      const { container } = renderIsolated(
+        React.createElement(AnyFileUploader, { files: singleFileSuccessArray } as any, null),
+      );
 
       expect(container).toHaveTextContent('Загружено');
     });
 
     it('отображает error статус с сообщением об ошибке', () => {
-      const { container, getAlert } = renderIsolated(<FileUploader files={singleFileErrorArray} />);
+      const { container, getAlert } = renderIsolated(
+        React.createElement(AnyFileUploader, { files: singleFileErrorArray } as any, null),
+      );
 
       expect(container).toHaveTextContent('Ошибка');
       const alert = getAlert();
@@ -444,7 +530,9 @@ describe('FileUploader', () => {
 
   describe('4.7. Кнопка удаления файла', () => {
     it('не отображает кнопку удаления когда onRemove не передан', () => {
-      const { getRemoveButton } = renderIsolated(<FileUploader files={singleFileArray} />);
+      const { getRemoveButton } = renderIsolated(
+        React.createElement(AnyFileUploader, { files: singleFileArray } as any, null),
+      );
 
       expect(getRemoveButton('1')).not.toBeInTheDocument();
     });
@@ -452,7 +540,7 @@ describe('FileUploader', () => {
     it('отображает кнопку удаления когда onRemove передан', () => {
       const onRemove = vi.fn();
       const { getRemoveButton } = renderIsolated(
-        <FileUploader files={singleFileArray} onRemove={onRemove} />,
+        React.createElement(AnyFileUploader, { files: singleFileArray, onRemove } as any, null),
       );
 
       const removeButton = getRemoveButton('1');
@@ -464,7 +552,11 @@ describe('FileUploader', () => {
     it('кнопка удаления disabled когда disabled=true', () => {
       const onRemove = vi.fn();
       const { getRemoveButton } = renderIsolated(
-        <FileUploader files={singleFileArray} onRemove={onRemove} disabled />,
+        React.createElement(
+          AnyFileUploader,
+          { files: singleFileArray, onRemove, disabled: true } as any,
+          null,
+        ),
       );
 
       expect(getRemoveButton('1')).toBeDisabled();
@@ -473,11 +565,11 @@ describe('FileUploader', () => {
     it('кнопка удаления имеет data-testid когда передан testId', () => {
       const onRemove = vi.fn();
       const { getRemoveButton } = renderIsolated(
-        <FileUploader
-          files={singleFileArray}
-          onRemove={onRemove}
-          data-testid='test-uploader'
-        />,
+        React.createElement(
+          AnyFileUploader,
+          { files: singleFileArray, onRemove, 'data-testid': 'test-uploader' } as any,
+          null,
+        ),
       );
 
       expect(getRemoveButton('1')).toHaveAttribute('data-testid', 'test-uploader-remove-1');
@@ -486,20 +578,28 @@ describe('FileUploader', () => {
 
   describe('4.8. Подсказка (hint)', () => {
     it('не отображает hint когда hint не передан', () => {
-      const { getHint } = renderIsolated(<FileUploader files={emptyFiles} />);
+      const { getHint } = renderIsolated(
+        React.createElement(AnyFileUploader, { files: emptyFiles } as any, null),
+      );
 
       expect(getHint()).not.toBeInTheDocument();
     });
 
     it('не отображает hint когда hint пустая строка', () => {
-      const { getHint } = renderIsolated(<FileUploader files={emptyFiles} hint='' />);
+      const { getHint } = renderIsolated(
+        React.createElement(AnyFileUploader, { files: emptyFiles, hint: '' } as any, null),
+      );
 
       expect(getHint()).not.toBeInTheDocument();
     });
 
     it('отображает hint когда hint передан', () => {
       const { getHint, container } = renderIsolated(
-        <FileUploader files={emptyFiles} hint='Максимальный размер: 10MB' />,
+        React.createElement(
+          AnyFileUploader,
+          { files: emptyFiles, hint: 'Максимальный размер: 10MB' } as any,
+          null,
+        ),
       );
 
       const hint = getHint();
@@ -510,14 +610,20 @@ describe('FileUploader', () => {
     });
 
     it('hint имеет id="fileuploader-hint" по умолчанию', () => {
-      const { getHint } = renderIsolated(<FileUploader files={emptyFiles} hint='Test hint' />);
+      const { getHint } = renderIsolated(
+        React.createElement(AnyFileUploader, { files: emptyFiles, hint: 'Test hint' } as any, null),
+      );
 
       expect(getHint()).toHaveAttribute('id', 'fileuploader-hint');
     });
 
     it('hint имеет кастомный id когда передан testId', () => {
       const { getHint } = renderIsolated(
-        <FileUploader files={emptyFiles} hint='Test hint' data-testid='test-uploader' />,
+        React.createElement(
+          AnyFileUploader,
+          { files: emptyFiles, hint: 'Test hint', 'data-testid': 'test-uploader' } as any,
+          null,
+        ),
       );
 
       expect(getHint()).toHaveAttribute('id', 'test-uploader-hint');
@@ -525,7 +631,11 @@ describe('FileUploader', () => {
 
     it('компонент имеет aria-describedby когда hint передан', () => {
       const { getFileUploader } = renderIsolated(
-        <FileUploader files={emptyFiles} hint='Test hint' data-testid='test-uploader' />,
+        React.createElement(
+          AnyFileUploader,
+          { files: emptyFiles, hint: 'Test hint', 'data-testid': 'test-uploader' } as any,
+          null,
+        ),
       );
 
       expect(getFileUploader()).toHaveAttribute('aria-describedby', 'test-uploader-hint');
@@ -535,7 +645,11 @@ describe('FileUploader', () => {
   describe('4.9. ARIA атрибуты', () => {
     it('применяет aria-label', () => {
       const { getFileUploader } = renderIsolated(
-        <FileUploader files={emptyFiles} aria-label='File uploader' />,
+        React.createElement(
+          AnyFileUploader,
+          { files: emptyFiles, 'aria-label': 'File uploader' } as any,
+          null,
+        ),
       );
 
       expect(getFileUploader()).toHaveAttribute('aria-label', 'File uploader');
@@ -543,7 +657,11 @@ describe('FileUploader', () => {
 
     it('применяет aria-labelledby', () => {
       const { getFileUploader } = renderIsolated(
-        <FileUploader files={emptyFiles} aria-labelledby='label-id' />,
+        React.createElement(
+          AnyFileUploader,
+          { files: emptyFiles, 'aria-labelledby': 'label-id' } as any,
+          null,
+        ),
       );
 
       expect(getFileUploader()).toHaveAttribute('aria-labelledby', 'label-id');
@@ -551,7 +669,11 @@ describe('FileUploader', () => {
 
     it('drop zone использует dropZoneAriaLabel когда передан', () => {
       const { getDropZone } = renderIsolated(
-        <FileUploader files={emptyFiles} dropZoneAriaLabel='Custom drop zone' />,
+        React.createElement(
+          AnyFileUploader,
+          { files: emptyFiles, dropZoneAriaLabel: 'Custom drop zone' } as any,
+          null,
+        ),
       );
 
       expect(getDropZone()).toHaveAttribute('aria-label', 'Custom drop zone');
@@ -559,21 +681,31 @@ describe('FileUploader', () => {
 
     it('drop zone использует aria-label как fallback для dropZoneAriaLabel', () => {
       const { getDropZone } = renderIsolated(
-        <FileUploader files={emptyFiles} aria-label='Main label' />,
+        React.createElement(
+          AnyFileUploader,
+          { files: emptyFiles, 'aria-label': 'Main label' } as any,
+          null,
+        ),
       );
 
       expect(getDropZone()).toHaveAttribute('aria-label', 'Main label');
     });
 
     it('drop zone использует дефолтный aria-label когда ничего не передано', () => {
-      const { getDropZone } = renderIsolated(<FileUploader files={emptyFiles} />);
+      const { getDropZone } = renderIsolated(
+        React.createElement(AnyFileUploader, { files: emptyFiles } as any, null),
+      );
 
       expect(getDropZone()).toHaveAttribute('aria-label', 'Drag and drop zone for file upload');
     });
 
     it('кнопка использует buttonAriaLabel когда передан', () => {
       const { getButton } = renderIsolated(
-        <FileUploader files={emptyFiles} buttonAriaLabel='Custom button' />,
+        React.createElement(
+          AnyFileUploader,
+          { files: emptyFiles, buttonAriaLabel: 'Custom button' } as any,
+          null,
+        ),
       );
 
       expect(getButton()).toHaveAttribute('aria-label', 'Custom button');
@@ -581,7 +713,11 @@ describe('FileUploader', () => {
 
     it('кнопка использует aria-label как fallback для buttonAriaLabel', () => {
       const { getButton } = renderIsolated(
-        <FileUploader files={emptyFiles} aria-label='Main label' />,
+        React.createElement(
+          AnyFileUploader,
+          { files: emptyFiles, 'aria-label': 'Main label' } as any,
+          null,
+        ),
       );
 
       expect(getButton()).toHaveAttribute('aria-label', 'Main label');
@@ -589,7 +725,11 @@ describe('FileUploader', () => {
 
     it('кнопка использует buttonLabel как fallback для buttonAriaLabel', () => {
       const { getButton } = renderIsolated(
-        <FileUploader files={emptyFiles} buttonLabel='Select files' />,
+        React.createElement(
+          AnyFileUploader,
+          { files: emptyFiles, buttonLabel: 'Select files' } as any,
+          null,
+        ),
       );
 
       expect(getButton()).toHaveAttribute('aria-label', 'Select files');
@@ -599,7 +739,9 @@ describe('FileUploader', () => {
   describe('4.10. Обработчики событий - onChange', () => {
     it('вызывает onChange при выборе файлов через input', () => {
       const onChange = vi.fn();
-      const { getInput } = renderIsolated(<FileUploader files={emptyFiles} onChange={onChange} />);
+      const { getInput } = renderIsolated(
+        React.createElement(AnyFileUploader, { files: emptyFiles, onChange } as any, null),
+      );
 
       const file = new File(['content'], 'test.txt', { type: 'text/plain' });
       const fileList = Object.assign([file], {
@@ -622,7 +764,9 @@ describe('FileUploader', () => {
 
     it('не вызывает onChange когда файлы не выбраны', () => {
       const onChange = vi.fn();
-      const { getInput } = renderIsolated(<FileUploader files={emptyFiles} onChange={onChange} />);
+      const { getInput } = renderIsolated(
+        React.createElement(AnyFileUploader, { files: emptyFiles, onChange } as any, null),
+      );
 
       const input = getInput();
       Object.defineProperty(input, 'files', {
@@ -637,7 +781,9 @@ describe('FileUploader', () => {
 
     it('сбрасывает значение input после onChange', () => {
       const onChange = vi.fn();
-      const { getInput } = renderIsolated(<FileUploader files={emptyFiles} onChange={onChange} />);
+      const { getInput } = renderIsolated(
+        React.createElement(AnyFileUploader, { files: emptyFiles, onChange } as any, null),
+      );
 
       const file = new File(['content'], 'test.txt', { type: 'text/plain' });
       const fileList = Object.assign([file], {
@@ -671,7 +817,11 @@ describe('FileUploader', () => {
     it('вызывает onButtonClick при клике на кнопку', () => {
       const onButtonClick = vi.fn();
       const { getButton } = renderIsolated(
-        <FileUploader files={emptyFiles} onButtonClick={onButtonClick} />,
+        React.createElement(
+          AnyFileUploader,
+          { files: emptyFiles, onButtonClick } as any,
+          null,
+        ),
       );
 
       const button = getButton();
@@ -686,7 +836,11 @@ describe('FileUploader', () => {
     it('не вызывает onButtonClick когда disabled=true', () => {
       const onButtonClick = vi.fn();
       const { getButton } = renderIsolated(
-        <FileUploader files={emptyFiles} onButtonClick={onButtonClick} disabled />,
+        React.createElement(
+          AnyFileUploader,
+          { files: emptyFiles, onButtonClick, disabled: true } as any,
+          null,
+        ),
       );
 
       fireEvent.click(getButton());
@@ -695,7 +849,9 @@ describe('FileUploader', () => {
     });
 
     it('открывает file input при клике на кнопку', () => {
-      const { getButton, getInput } = renderIsolated(<FileUploader files={emptyFiles} />);
+      const { getButton, getInput } = renderIsolated(
+        React.createElement(AnyFileUploader, { files: emptyFiles } as any, null),
+      );
 
       const input = getInput();
       const clickSpy = vi.spyOn(input, 'click');
@@ -709,7 +865,9 @@ describe('FileUploader', () => {
   describe('4.12. Обработчики событий - onDrop', () => {
     it('вызывает onDrop при drop файлов', () => {
       const onDrop = vi.fn();
-      const { getDropZone } = renderIsolated(<FileUploader files={emptyFiles} onDrop={onDrop} />);
+      const { getDropZone } = renderIsolated(
+        React.createElement(AnyFileUploader, { files: emptyFiles, onDrop } as any, null),
+      );
 
       const file = new File(['content'], 'test.txt', { type: 'text/plain' });
       const dataTransfer = new DataTransfer();
@@ -730,7 +888,11 @@ describe('FileUploader', () => {
     it('не вызывает onDrop когда disabled=true', () => {
       const onDrop = vi.fn();
       const { getDropZone } = renderIsolated(
-        <FileUploader files={emptyFiles} onDrop={onDrop} disabled />,
+        React.createElement(
+          AnyFileUploader,
+          { files: emptyFiles, onDrop, disabled: true } as any,
+          null,
+        ),
       );
 
       const file = new File(['content'], 'test.txt', { type: 'text/plain' });
@@ -752,7 +914,9 @@ describe('FileUploader', () => {
 
     it('не вызывает onDrop когда файлы не переданы', () => {
       const onDrop = vi.fn();
-      const { getDropZone } = renderIsolated(<FileUploader files={emptyFiles} onDrop={onDrop} />);
+      const { getDropZone } = renderIsolated(
+        React.createElement(AnyFileUploader, { files: emptyFiles, onDrop } as any, null),
+      );
 
       const emptyFileList = Object.assign([], {
         item: () => null,
@@ -772,7 +936,9 @@ describe('FileUploader', () => {
 
     it('preventDefault и stopPropagation вызываются при drop', () => {
       const onDrop = vi.fn();
-      const { getDropZone } = renderIsolated(<FileUploader files={emptyFiles} onDrop={onDrop} />);
+      const { getDropZone } = renderIsolated(
+        React.createElement(AnyFileUploader, { files: emptyFiles, onDrop } as any, null),
+      );
 
       const file = new File(['content'], 'test.txt', { type: 'text/plain' });
       const fileList = Object.assign([file], {
@@ -806,7 +972,7 @@ describe('FileUploader', () => {
     it('вызывает onDragEnter при drag enter', () => {
       const onDragEnter = vi.fn();
       const { getDropZone } = renderIsolated(
-        <FileUploader files={emptyFiles} onDragEnter={onDragEnter} />,
+        React.createElement(AnyFileUploader, { files: emptyFiles, onDragEnter } as any, null),
       );
 
       fireEvent.dragEnter(getDropZone());
@@ -817,7 +983,11 @@ describe('FileUploader', () => {
     it('не вызывает onDragEnter когда disabled=true', () => {
       const onDragEnter = vi.fn();
       const { getDropZone } = renderIsolated(
-        <FileUploader files={emptyFiles} onDragEnter={onDragEnter} disabled />,
+        React.createElement(
+          AnyFileUploader,
+          { files: emptyFiles, onDragEnter, disabled: true } as any,
+          null,
+        ),
       );
 
       fireEvent.dragEnter(getDropZone());
@@ -828,7 +998,7 @@ describe('FileUploader', () => {
     it('вызывает onDragLeave при drag leave', () => {
       const onDragLeave = vi.fn();
       const { getDropZone } = renderIsolated(
-        <FileUploader files={emptyFiles} onDragLeave={onDragLeave} />,
+        React.createElement(AnyFileUploader, { files: emptyFiles, onDragLeave } as any, null),
       );
 
       fireEvent.dragLeave(getDropZone());
@@ -839,7 +1009,11 @@ describe('FileUploader', () => {
     it('не вызывает onDragLeave когда disabled=true', () => {
       const onDragLeave = vi.fn();
       const { getDropZone } = renderIsolated(
-        <FileUploader files={emptyFiles} onDragLeave={onDragLeave} disabled />,
+        React.createElement(
+          AnyFileUploader,
+          { files: emptyFiles, onDragLeave, disabled: true } as any,
+          null,
+        ),
       );
 
       fireEvent.dragLeave(getDropZone());
@@ -850,7 +1024,7 @@ describe('FileUploader', () => {
     it('вызывает onDragOver при drag over', () => {
       const onDragOver = vi.fn();
       const { getDropZone } = renderIsolated(
-        <FileUploader files={emptyFiles} onDragOver={onDragOver} />,
+        React.createElement(AnyFileUploader, { files: emptyFiles, onDragOver } as any, null),
       );
 
       fireEvent.dragOver(getDropZone());
@@ -861,7 +1035,11 @@ describe('FileUploader', () => {
     it('не вызывает onDragOver когда disabled=true', () => {
       const onDragOver = vi.fn();
       const { getDropZone } = renderIsolated(
-        <FileUploader files={emptyFiles} onDragOver={onDragOver} disabled />,
+        React.createElement(
+          AnyFileUploader,
+          { files: emptyFiles, onDragOver, disabled: true } as any,
+          null,
+        ),
       );
 
       fireEvent.dragOver(getDropZone());
@@ -872,7 +1050,7 @@ describe('FileUploader', () => {
     it('preventDefault и stopPropagation вызываются при drag событиях', () => {
       const onDragEnter = vi.fn();
       const { getDropZone } = renderIsolated(
-        <FileUploader files={emptyFiles} onDragEnter={onDragEnter} />,
+        React.createElement(AnyFileUploader, { files: emptyFiles, onDragEnter } as any, null),
       );
 
       // Создаем реальное событие для проверки preventDefault/stopPropagation
@@ -896,7 +1074,7 @@ describe('FileUploader', () => {
     it('вызывает onRemove при клике на кнопку удаления', () => {
       const onRemove = vi.fn();
       const { getRemoveButton } = renderIsolated(
-        <FileUploader files={singleFileArray} onRemove={onRemove} />,
+        React.createElement(AnyFileUploader, { files: singleFileArray, onRemove } as any, null),
       );
 
       fireEvent.click(getRemoveButton('1'));
@@ -908,7 +1086,11 @@ describe('FileUploader', () => {
     it('не вызывает onRemove когда disabled=true', () => {
       const onRemove = vi.fn();
       const { getRemoveButton } = renderIsolated(
-        <FileUploader files={singleFileArray} onRemove={onRemove} disabled />,
+        React.createElement(
+          AnyFileUploader,
+          { files: singleFileArray, onRemove, disabled: true } as any,
+          null,
+        ),
       );
 
       fireEvent.click(getRemoveButton('1'));
@@ -919,7 +1101,9 @@ describe('FileUploader', () => {
 
   describe('4.15. Keyboard navigation', () => {
     it('открывает file input при нажатии Enter на drop zone', () => {
-      const { getDropZone, getInput } = renderIsolated(<FileUploader files={emptyFiles} />);
+      const { getDropZone, getInput } = renderIsolated(
+        React.createElement(AnyFileUploader, { files: emptyFiles } as any, null),
+      );
 
       const input = getInput();
       const clickSpy = vi.spyOn(input, 'click');
@@ -930,7 +1114,9 @@ describe('FileUploader', () => {
     });
 
     it('открывает file input при нажатии Space на drop zone', () => {
-      const { getDropZone, getInput } = renderIsolated(<FileUploader files={emptyFiles} />);
+      const { getDropZone, getInput } = renderIsolated(
+        React.createElement(AnyFileUploader, { files: emptyFiles } as any, null),
+      );
 
       const input = getInput();
       const clickSpy = vi.spyOn(input, 'click');
@@ -941,7 +1127,9 @@ describe('FileUploader', () => {
     });
 
     it('не открывает file input при нажатии других клавиш на drop zone', () => {
-      const { getDropZone, getInput } = renderIsolated(<FileUploader files={emptyFiles} />);
+      const { getDropZone, getInput } = renderIsolated(
+        React.createElement(AnyFileUploader, { files: emptyFiles } as any, null),
+      );
 
       const input = getInput();
       const clickSpy = vi.spyOn(input, 'click');
@@ -953,7 +1141,7 @@ describe('FileUploader', () => {
 
     it('не обрабатывает keyboard navigation когда disabled=true', () => {
       const { getDropZone, getInput } = renderIsolated(
-        <FileUploader files={emptyFiles} disabled />,
+        React.createElement(AnyFileUploader, { files: emptyFiles, disabled: true } as any, null),
       );
 
       const input = getInput();
@@ -965,7 +1153,9 @@ describe('FileUploader', () => {
     });
 
     it('preventDefault вызывается при Enter/Space на drop zone', () => {
-      const { getDropZone } = renderIsolated(<FileUploader files={emptyFiles} />);
+      const { getDropZone } = renderIsolated(
+        React.createElement(AnyFileUploader, { files: emptyFiles } as any, null),
+      );
 
       const keyDownEvent = new KeyboardEvent('keydown', {
         bubbles: true,
@@ -983,7 +1173,7 @@ describe('FileUploader', () => {
     it('вызывает onRemove при нажатии Enter на кнопке удаления', () => {
       const onRemove = vi.fn();
       const { getRemoveButton } = renderIsolated(
-        <FileUploader files={singleFileArray} onRemove={onRemove} />,
+        React.createElement(AnyFileUploader, { files: singleFileArray, onRemove } as any, null),
       );
 
       fireEvent.keyDown(getRemoveButton('1'), { key: 'Enter' });
@@ -995,7 +1185,7 @@ describe('FileUploader', () => {
     it('вызывает onRemove при нажатии Space на кнопке удаления', () => {
       const onRemove = vi.fn();
       const { getRemoveButton } = renderIsolated(
-        <FileUploader files={singleFileArray} onRemove={onRemove} />,
+        React.createElement(AnyFileUploader, { files: singleFileArray, onRemove } as any, null),
       );
 
       fireEvent.keyDown(getRemoveButton('1'), { key: ' ' });
@@ -1007,7 +1197,7 @@ describe('FileUploader', () => {
     it('не вызывает onRemove при нажатии других клавиш на кнопке удаления', () => {
       const onRemove = vi.fn();
       const { getRemoveButton } = renderIsolated(
-        <FileUploader files={singleFileArray} onRemove={onRemove} />,
+        React.createElement(AnyFileUploader, { files: singleFileArray, onRemove } as any, null),
       );
 
       fireEvent.keyDown(getRemoveButton('1'), { key: 'Tab' });
@@ -1018,7 +1208,11 @@ describe('FileUploader', () => {
     it('не обрабатывает keyboard navigation на кнопке удаления когда disabled=true', () => {
       const onRemove = vi.fn();
       const { getRemoveButton } = renderIsolated(
-        <FileUploader files={singleFileArray} onRemove={onRemove} disabled />,
+        React.createElement(
+          AnyFileUploader,
+          { files: singleFileArray, onRemove, disabled: true } as any,
+          null,
+        ),
       );
 
       fireEvent.keyDown(getRemoveButton('1'), { key: 'Enter' });
@@ -1030,7 +1224,9 @@ describe('FileUploader', () => {
   describe('4.16. Ref forwarding', () => {
     it('пробрасывает ref на корневой элемент', () => {
       const ref = createRef<HTMLDivElement>();
-      const { getFileUploader } = renderIsolated(<FileUploader files={emptyFiles} ref={ref} />);
+      const { getFileUploader } = renderIsolated(
+        React.createElement(AnyFileUploader, { files: emptyFiles, ref } as any, null),
+      );
 
       expect(ref.current).toBe(getFileUploader());
     });
@@ -1039,12 +1235,12 @@ describe('FileUploader', () => {
   describe('4.17. Memoization', () => {
     it('компонент мемоизирован (не перерендеривается при одинаковых пропсах)', () => {
       const { rerender, getFileUploader } = renderIsolated(
-        <FileUploader files={singleFileArray} />,
+        React.createElement(AnyFileUploader, { files: singleFileArray } as any, null),
       );
 
       const firstRender = getFileUploader();
 
-      rerender(<FileUploader files={singleFileArray} />);
+      rerender(React.createElement(AnyFileUploader, { files: singleFileArray } as any, null));
 
       const secondRender = getFileUploader();
 
@@ -1057,21 +1253,29 @@ describe('FileUploader', () => {
 
   describe('4.18. Edge cases', () => {
     it('обрабатывает пустой массив files', () => {
-      const { container } = renderIsolated(<FileUploader files={emptyFiles} />);
+      const { container } = renderIsolated(
+        React.createElement(AnyFileUploader, { files: emptyFiles } as any, null),
+      );
 
       expect(container).toBeInTheDocument();
       expect(container.querySelector('div[role="list"]')).not.toBeInTheDocument();
     });
 
     it('обрабатывает undefined testId', () => {
-      const { getFileUploader } = renderIsolated(<FileUploader files={emptyFiles} />);
+      const { getFileUploader } = renderIsolated(
+        React.createElement(AnyFileUploader, { files: emptyFiles } as any, null),
+      );
 
       expect(getFileUploader()).not.toHaveAttribute('data-testid');
     });
 
     it('обрабатывает пустой testId', () => {
       const { getFileUploader } = renderIsolated(
-        <FileUploader files={emptyFiles} data-testid='' />,
+        React.createElement(
+          AnyFileUploader,
+          { files: emptyFiles, 'data-testid': '' } as any,
+          null,
+        ),
       );
 
       expect(getFileUploader()).toHaveAttribute('data-testid', '');
@@ -1079,9 +1283,7 @@ describe('FileUploader', () => {
 
     it('обрабатывает файлы с разными статусами одновременно', () => {
       const { container } = renderIsolated(
-        <FileUploader
-          files={fourFilesArray}
-        />,
+        React.createElement(AnyFileUploader, { files: fourFilesArray } as any, null),
       );
 
       expect(container).toHaveTextContent('Ожидание');
@@ -1093,7 +1295,11 @@ describe('FileUploader', () => {
 
     it('обрабатывает hint с кастомным testId', () => {
       const { getHint, getFileUploader } = renderIsolated(
-        <FileUploader files={emptyFiles} hint='Test' data-testid='custom-id' />,
+        React.createElement(
+          AnyFileUploader,
+          { files: emptyFiles, hint: 'Test', 'data-testid': 'custom-id' } as any,
+          null,
+        ),
       );
 
       expect(getHint()).toHaveAttribute('id', 'custom-id-hint');
@@ -1103,7 +1309,11 @@ describe('FileUploader', () => {
     it('обрабатывает множественный выбор файлов', () => {
       const onChange = vi.fn();
       const { getInput } = renderIsolated(
-        <FileUploader files={emptyFiles} onChange={onChange} multiple />,
+        React.createElement(
+          AnyFileUploader,
+          { files: emptyFiles, onChange, multiple: true } as any,
+          null,
+        ),
       );
 
       const file1 = new File(['content1'], 'test1.txt', { type: 'text/plain' });

@@ -22,6 +22,9 @@ afterEach(() => {
   window.HTMLElement.prototype.focus = originalFocus;
 });
 
+// Для целей тестов ослабляем типизацию пропсов Select
+const AnySelect = Select as any;
+
 // Функция для изолированного рендера
 function renderIsolated(component: Readonly<React.ReactElement>) {
   const testContainer = document.createElement('div');
@@ -44,14 +47,18 @@ function renderIsolated(component: Readonly<React.ReactElement>) {
 describe('Select', () => {
   describe('3.1. Рендер и базовая структура', () => {
     it('select рендерится без падений с минимальными пропсами', () => {
-      const { container, getSelect } = renderIsolated(<Select />);
+      const { container, getSelect } = renderIsolated(
+        React.createElement(AnySelect, null),
+      );
 
       expect(container).toBeInTheDocument();
       expect(getSelect()).toBeInTheDocument();
     });
 
     it('создает select элемент с правильными атрибутами по умолчанию', () => {
-      const { getSelect } = renderIsolated(<Select />);
+      const { getSelect } = renderIsolated(
+        React.createElement(AnySelect, null),
+      );
 
       const select = getSelect();
       expect(select).toBeInTheDocument();
@@ -60,7 +67,9 @@ describe('Select', () => {
     });
 
     it('select имеет правильный role', () => {
-      const { getByRole } = renderIsolated(<Select />);
+      const { getByRole } = renderIsolated(
+        React.createElement(AnySelect, null),
+      );
 
       expect(getByRole('combobox')).toBeInTheDocument();
     });
@@ -70,7 +79,9 @@ describe('Select', () => {
     it('forwardRef работает для внешнего доступа к DOM элементу', () => {
       const ref = React.createRef<HTMLSelectElement>();
 
-      const { getSelect } = renderIsolated(<Select ref={ref} />);
+      const { getSelect } = renderIsolated(
+        React.createElement(AnySelect, { ref }, null),
+      );
 
       const select = getSelect();
       expect(ref.current).toBe(select);
@@ -79,7 +90,9 @@ describe('Select', () => {
     it('useImperativeHandle возвращает правильный элемент', () => {
       const ref = React.createRef<HTMLSelectElement>();
 
-      renderIsolated(<Select ref={ref} />);
+      renderIsolated(
+        React.createElement(AnySelect, { ref }, null),
+      );
 
       expect(ref.current).toBeInstanceOf(HTMLSelectElement);
       expect(ref.current?.tagName).toBe('SELECT');
@@ -89,15 +102,15 @@ describe('Select', () => {
   describe('3.3. Пропсы пробрасываются', () => {
     it('стандартные HTML пропсы пробрасываются корректно', () => {
       const { getSelect } = renderIsolated(
-        <Select
-          id='test-select'
-          name='testName'
-          className='test-class'
-          disabled
-          required
-          multiple
-          size={3}
-        />,
+        React.createElement(AnySelect, {
+          id: 'test-select',
+          name: 'testName',
+          className: 'test-class',
+          disabled: true,
+          required: true,
+          multiple: true,
+          size: 3,
+        }),
       );
 
       const select = getSelect();
@@ -111,14 +124,18 @@ describe('Select', () => {
     });
 
     it('autoFocus пропс не пробрасывается в DOM (reserved)', () => {
-      const { getSelect } = renderIsolated(<Select autoFocus />);
+      const { getSelect } = renderIsolated(
+        React.createElement(AnySelect, { autoFocus: true }),
+      );
 
       const select = getSelect();
       expect(select).not.toHaveAttribute('autoFocus');
     });
 
     it('data-component всегда присутствует', () => {
-      const { getSelect } = renderIsolated(<Select />);
+      const { getSelect } = renderIsolated(
+        React.createElement(AnySelect, null),
+      );
 
       expect(getSelect()).toHaveAttribute('data-component', 'CoreSelect');
     });
@@ -130,39 +147,51 @@ describe('Select', () => {
     });
 
     it('autoFocus=true фокусирует select один раз с preventScroll', () => {
-      const { rerender } = renderIsolated(<Select autoFocus />);
+      const { rerender } = renderIsolated(
+        React.createElement(AnySelect, { autoFocus: true }),
+      );
 
       expect(mockFocus).toHaveBeenCalledTimes(1);
       expect(mockFocus).toHaveBeenCalledWith({ preventScroll: true });
 
       // Повторный рендер не вызывает focus снова
-      rerender(<Select autoFocus />);
+      rerender(
+        React.createElement(AnySelect, { autoFocus: true }),
+      );
       expect(mockFocus).toHaveBeenCalledTimes(1);
     });
 
     it('autoFocus=false (по умолчанию) не фокусирует', () => {
-      renderIsolated(<Select />);
+      renderIsolated(
+        React.createElement(AnySelect, null),
+      );
 
       expect(mockFocus).not.toHaveBeenCalled();
     });
 
     it('autoFocus работает только при первом рендере (StrictMode safe)', () => {
       renderIsolated(
-        <StrictMode>
-          <Select autoFocus />
-        </StrictMode>,
+        React.createElement(
+          StrictMode,
+          null,
+          React.createElement(AnySelect, { autoFocus: true }),
+        ),
       );
 
       expect(mockFocus).toHaveBeenCalledTimes(1);
     });
 
     it('autoFocus блокируется hasFocusedRef в StrictMode (покрытие ветки)', () => {
-      const { rerender } = renderIsolated(<Select autoFocus />);
+      const { rerender } = renderIsolated(
+        React.createElement(AnySelect, { autoFocus: true }),
+      );
 
       expect(mockFocus).toHaveBeenCalledTimes(1);
 
       // Симуляция StrictMode поведения
-      rerender(<Select autoFocus />);
+      rerender(
+        React.createElement(AnySelect, { autoFocus: true }),
+      );
       expect(mockFocus).toHaveBeenCalledTimes(1);
     });
 
@@ -173,7 +202,9 @@ describe('Select', () => {
       React.useRef = mockUseRef;
 
       expect(() => {
-        renderIsolated(<Select autoFocus />);
+        renderIsolated(
+          React.createElement(AnySelect, { autoFocus: true }),
+        );
       }).not.toThrow();
 
       React.useRef = originalUseRef;
@@ -182,24 +213,28 @@ describe('Select', () => {
 
   describe('3.5. Стабильность рендера', () => {
     it('рендер стабилен при одинаковых пропсах', () => {
-      const { container, rerender } = renderIsolated(<Select id='stable' />);
+      const { container, rerender } = renderIsolated(
+        React.createElement(AnySelect, { id: 'stable' }),
+      );
 
       const firstRender = container.innerHTML;
 
-      rerender(<Select id='stable' />);
+      rerender(
+        React.createElement(AnySelect, { id: 'stable' }),
+      );
 
       expect(container.innerHTML).toBe(firstRender);
     });
 
     it('memo предотвращает ненужные ре-рендеры', () => {
-      const renderSpy = vi.fn(() => <Select />);
+      const renderSpy = vi.fn(() => React.createElement(AnySelect, null));
       const Component = React.memo(renderSpy);
 
-      const { rerender } = render(<Component />);
+      const { rerender } = render(React.createElement(Component));
 
       expect(renderSpy).toHaveBeenCalledTimes(1);
 
-      rerender(<Component />);
+      rerender(React.createElement(Component));
 
       expect(renderSpy).toHaveBeenCalledTimes(1);
     });
@@ -212,7 +247,7 @@ describe('Select', () => {
       const onBlur = vi.fn();
 
       const { getSelect } = renderIsolated(
-        <Select onChange={onChange} onFocus={onFocus} onBlur={onBlur} />,
+        React.createElement(AnySelect, { onChange, onFocus, onBlur }),
       );
 
       const select = getSelect();
@@ -230,7 +265,9 @@ describe('Select', () => {
     it('onChange получает event с правильными данными', () => {
       const onChange = vi.fn();
 
-      const { getSelect } = renderIsolated(<Select onChange={onChange} />);
+      const { getSelect } = renderIsolated(
+        React.createElement(AnySelect, { onChange }),
+      );
 
       const select = getSelect();
       fireEvent.change(select, { target: { value: 'option1' } });
@@ -243,18 +280,20 @@ describe('Select', () => {
 
   describe('3.7. Edge cases', () => {
     it('работает с пустыми children', () => {
-      const { getSelect } = renderIsolated(<Select />);
+      const { getSelect } = renderIsolated(
+        React.createElement(AnySelect, null),
+      );
 
       expect(getSelect()).toBeInTheDocument();
     });
 
     it('работает с undefined пропсами', () => {
       const { getSelect } = renderIsolated(
-        <Select
-          title={undefined}
-          disabled={undefined}
-          autoFocus={false}
-        />,
+        React.createElement(AnySelect, {
+          title: undefined,
+          disabled: undefined,
+          autoFocus: false,
+        }),
       );
 
       const select = getSelect();
@@ -265,10 +304,12 @@ describe('Select', () => {
 
     it('работает с children (option elements)', () => {
       const { getSelect } = renderIsolated(
-        <Select>
-          <option value='1'>Option 1</option>
-          <option value='2'>Option 2</option>
-        </Select>,
+        React.createElement(
+          AnySelect,
+          null,
+          React.createElement('option', { value: '1' }, 'Option 1'),
+          React.createElement('option', { value: '2' }, 'Option 2'),
+        ),
       );
 
       const select = getSelect();
@@ -280,12 +321,12 @@ describe('Select', () => {
       const onChange = vi.fn();
 
       const { getSelect } = renderIsolated(
-        <Select
-          onChange={onChange}
-          defaultValue='default'
-          form='test-form'
-          tabIndex={1}
-        />,
+        React.createElement(AnySelect, {
+          onChange,
+          defaultValue: 'default',
+          form: 'test-form',
+          tabIndex: 1,
+        }),
       );
 
       const select = getSelect();

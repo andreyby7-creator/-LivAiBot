@@ -12,6 +12,8 @@ import { DatePicker } from '@livai/ui-core';
 
 import '@testing-library/jest-dom/vitest';
 
+const AnyDatePicker = DatePicker as any;
+
 // Полная очистка DOM между тестами
 afterEach(() => {
   cleanup();
@@ -86,7 +88,7 @@ describe('DatePicker', () => {
   describe('4.1. Рендер и базовая структура', () => {
     it('рендерится без падений с обязательными пропсами', () => {
       const { container, getDatePicker } = renderIsolated(
-        <DatePicker calendar={testCalendar} />,
+        React.createElement(AnyDatePicker, { calendar: testCalendar } as any, null),
       );
 
       expect(container).toBeInTheDocument();
@@ -95,7 +97,11 @@ describe('DatePicker', () => {
 
     it('создает корневой div с правильными атрибутами', () => {
       const { getDatePicker } = renderIsolated(
-        <DatePicker calendar={testCalendar} data-testid='test-datepicker' />,
+        React.createElement(
+          AnyDatePicker,
+          { calendar: testCalendar, 'data-testid': 'test-datepicker' } as any,
+          null,
+        ),
       );
 
       const datePicker = getDatePicker();
@@ -107,7 +113,7 @@ describe('DatePicker', () => {
 
     it('применяет data-state по умолчанию (closed)', () => {
       const { getDatePicker } = renderIsolated(
-        <DatePicker calendar={testCalendar} />,
+        React.createElement(AnyDatePicker, { calendar: testCalendar } as any, null),
       );
 
       expect(getDatePicker()).toHaveAttribute('data-state', 'closed');
@@ -115,7 +121,11 @@ describe('DatePicker', () => {
 
     it('применяет data-state=open когда isOpen=true', () => {
       const { getDatePicker } = renderIsolated(
-        <DatePicker calendar={testCalendar} isOpen={true} />,
+        React.createElement(
+          AnyDatePicker,
+          { calendar: testCalendar, isOpen: true } as any,
+          null,
+        ),
       );
 
       expect(getDatePicker()).toHaveAttribute('data-state', 'open');
@@ -123,7 +133,11 @@ describe('DatePicker', () => {
 
     it('применяет кастомный data-state', () => {
       const { getDatePicker } = renderIsolated(
-        <DatePicker calendar={testCalendar} data-state='custom' />,
+        React.createElement(
+          AnyDatePicker,
+          { calendar: testCalendar, 'data-state': 'custom' } as any,
+          null,
+        ),
       );
 
       expect(getDatePicker()).toHaveAttribute('data-state', 'custom');
@@ -133,7 +147,11 @@ describe('DatePicker', () => {
   describe('4.2. Input элемент', () => {
     it('рендерит input с правильными атрибутами', () => {
       const { getInput } = renderIsolated(
-        <DatePicker calendar={testCalendar} value='2024-01-15' placeholder='Select date' />,
+        React.createElement(
+          AnyDatePicker,
+          { calendar: testCalendar, value: '2024-01-15', placeholder: 'Select date' } as any,
+          null,
+        ),
       );
 
       const input = getInput();
@@ -146,7 +164,7 @@ describe('DatePicker', () => {
 
     it('применяет placeholder по умолчанию', () => {
       const { getInput } = renderIsolated(
-        <DatePicker calendar={testCalendar} />,
+        React.createElement(AnyDatePicker, { calendar: testCalendar } as any, null),
       );
 
       expect(getInput().placeholder).toBe('Select date');
@@ -154,7 +172,11 @@ describe('DatePicker', () => {
 
     it('применяет кастомный placeholder', () => {
       const { getInput } = renderIsolated(
-        <DatePicker calendar={testCalendar} placeholder='Выберите дату' />,
+        React.createElement(
+          AnyDatePicker,
+          { calendar: testCalendar, placeholder: 'Выберите дату' } as any,
+          null,
+        ),
       );
 
       expect(getInput().placeholder).toBe('Выберите дату');
@@ -162,7 +184,11 @@ describe('DatePicker', () => {
 
     it('применяет disabled состояние к input', () => {
       const { getInput } = renderIsolated(
-        <DatePicker calendar={testCalendar} disabled={true} />,
+        React.createElement(
+          AnyDatePicker,
+          { calendar: testCalendar, disabled: true } as any,
+          null,
+        ),
       );
 
       expect(getInput().disabled).toBe(true);
@@ -170,7 +196,11 @@ describe('DatePicker', () => {
 
     it('применяет ARIA атрибуты к input', () => {
       const { getInput } = renderIsolated(
-        <DatePicker calendar={testCalendar} isOpen={true} data-testid='test-picker' />,
+        React.createElement(
+          AnyDatePicker,
+          { calendar: testCalendar, isOpen: true, 'data-testid': 'test-picker' } as any,
+          null,
+        ),
       );
 
       const input = getInput();
@@ -182,7 +212,11 @@ describe('DatePicker', () => {
 
     it('применяет кастомный aria-label к input', () => {
       const { getInput } = renderIsolated(
-        <DatePicker calendar={testCalendar} aria-label='Custom label' />,
+        React.createElement(
+          AnyDatePicker,
+          { calendar: testCalendar, 'aria-label': 'Custom label' } as any,
+          null,
+        ),
       );
 
       expect(getInput().getAttribute('aria-label')).toBe('Custom label');
@@ -190,13 +224,21 @@ describe('DatePicker', () => {
 
     it('применяет aria-controls только когда isOpen=true', () => {
       const { getInput: getInputClosed } = renderIsolated(
-        <DatePicker calendar={testCalendar} isOpen={false} data-testid='test-picker' />,
+        React.createElement(
+          AnyDatePicker,
+          { calendar: testCalendar, isOpen: false, 'data-testid': 'test-picker' } as any,
+          null,
+        ),
       );
 
       expect(getInputClosed().getAttribute('aria-controls')).toBeNull();
 
       const { getInput: getInputOpen } = renderIsolated(
-        <DatePicker calendar={testCalendar} isOpen={true} data-testid='test-picker' />,
+        React.createElement(
+          AnyDatePicker,
+          { calendar: testCalendar, isOpen: true, 'data-testid': 'test-picker' } as any,
+          null,
+        ),
       );
 
       expect(getInputOpen().getAttribute('aria-controls')).toBe('test-picker-calendar');
@@ -204,7 +246,11 @@ describe('DatePicker', () => {
 
     it('применяет data-testid к input', () => {
       const { getInput } = renderIsolated(
-        <DatePicker calendar={testCalendar} data-testid='test-picker' />,
+        React.createElement(
+          AnyDatePicker,
+          { calendar: testCalendar, 'data-testid': 'test-picker' } as any,
+          null,
+        ),
       );
 
       expect(getInput().getAttribute('data-testid')).toBe('test-picker-input');
@@ -212,7 +258,7 @@ describe('DatePicker', () => {
 
     it('не применяет data-testid к input когда testId не указан', () => {
       const { getInput } = renderIsolated(
-        <DatePicker calendar={testCalendar} />,
+        React.createElement(AnyDatePicker, { calendar: testCalendar } as any, null),
       );
 
       expect(getInput().getAttribute('data-testid')).toBeNull();
@@ -222,7 +268,7 @@ describe('DatePicker', () => {
   describe('4.3. Кнопка открытия календаря', () => {
     it('рендерит кнопку открытия календаря', () => {
       const { getToggleButton } = renderIsolated(
-        <DatePicker calendar={testCalendar} />,
+        React.createElement(AnyDatePicker, { calendar: testCalendar } as any, null),
       );
 
       expect(getToggleButton()).toBeInTheDocument();
@@ -230,7 +276,11 @@ describe('DatePicker', () => {
 
     it('применяет правильные атрибуты к кнопке', () => {
       const { getToggleButton } = renderIsolated(
-        <DatePicker calendar={testCalendar} isOpen={true} data-testid='test-picker' />,
+        React.createElement(
+          AnyDatePicker,
+          { calendar: testCalendar, isOpen: true, 'data-testid': 'test-picker' } as any,
+          null,
+        ),
       );
 
       const button = getToggleButton();
@@ -242,7 +292,11 @@ describe('DatePicker', () => {
 
     it('применяет disabled состояние к кнопке', () => {
       const { getToggleButton } = renderIsolated(
-        <DatePicker calendar={testCalendar} disabled={true} />,
+        React.createElement(
+          AnyDatePicker,
+          { calendar: testCalendar, disabled: true } as any,
+          null,
+        ),
       );
 
       expect(getToggleButton().disabled).toBe(true);
@@ -250,7 +304,7 @@ describe('DatePicker', () => {
 
     it('рендерит SVG иконку в кнопке', () => {
       const { container } = renderIsolated(
-        <DatePicker calendar={testCalendar} />,
+        React.createElement(AnyDatePicker, { calendar: testCalendar } as any, null),
       );
 
       const svg = container.querySelector('button[aria-label="Open calendar"] svg');
@@ -263,7 +317,11 @@ describe('DatePicker', () => {
   describe('4.4. Календарь', () => {
     it('не рендерит календарь когда isOpen=false', () => {
       const { getCalendar } = renderIsolated(
-        <DatePicker calendar={testCalendar} isOpen={false} />,
+        React.createElement(
+          AnyDatePicker,
+          { calendar: testCalendar, isOpen: false } as any,
+          null,
+        ),
       );
 
       expect(getCalendar()).toBeNull();
@@ -271,7 +329,11 @@ describe('DatePicker', () => {
 
     it('рендерит календарь когда isOpen=true', () => {
       const { getCalendar } = renderIsolated(
-        <DatePicker calendar={testCalendar} isOpen={true} />,
+        React.createElement(
+          AnyDatePicker,
+          { calendar: testCalendar, isOpen: true } as any,
+          null,
+        ),
       );
 
       expect(getCalendar()).toBeInTheDocument();
@@ -279,7 +341,11 @@ describe('DatePicker', () => {
 
     it('применяет правильные ARIA атрибуты к календарю', () => {
       const { getCalendar } = renderIsolated(
-        <DatePicker calendar={testCalendar} isOpen={true} data-testid='test-picker' />,
+        React.createElement(
+          AnyDatePicker,
+          { calendar: testCalendar, isOpen: true, 'data-testid': 'test-picker' } as any,
+          null,
+        ),
       );
 
       const calendar = getCalendar();
@@ -292,7 +358,11 @@ describe('DatePicker', () => {
 
     it('использует дефолтный id когда testId не указан', () => {
       const { getCalendar } = renderIsolated(
-        <DatePicker calendar={testCalendar} isOpen={true} />,
+        React.createElement(
+          AnyDatePicker,
+          { calendar: testCalendar, isOpen: true } as any,
+          null,
+        ),
       );
 
       expect(getCalendar()?.getAttribute('id')).toBe('datepicker-calendar');
@@ -300,7 +370,11 @@ describe('DatePicker', () => {
 
     it('рендерит заголовки дней недели', () => {
       const { container } = renderIsolated(
-        <DatePicker calendar={testCalendar} isOpen={true} />,
+        React.createElement(
+          AnyDatePicker,
+          { calendar: testCalendar, isOpen: true } as any,
+          null,
+        ),
       );
 
       const calendar = container.querySelector('div[role="dialog"]');
@@ -312,7 +386,11 @@ describe('DatePicker', () => {
 
     it('рендерит дни календаря', () => {
       const { getDayButtons } = renderIsolated(
-        <DatePicker calendar={testCalendar} isOpen={true} />,
+        React.createElement(
+          AnyDatePicker,
+          { calendar: testCalendar, isOpen: true } as any,
+          null,
+        ),
       );
 
       const dayButtons = getDayButtons();
@@ -321,12 +399,16 @@ describe('DatePicker', () => {
 
     it('применяет правильные атрибуты к дням', () => {
       const { getDayButton } = renderIsolated(
-        <DatePicker
-          calendar={testCalendar}
-          isOpen={true}
-          currentMonthLabel='January 2024'
-          data-testid='test-picker'
-        />,
+        React.createElement(
+          AnyDatePicker,
+          {
+            calendar: testCalendar,
+            isOpen: true,
+            currentMonthLabel: 'January 2024',
+            'data-testid': 'test-picker',
+          } as any,
+          null,
+        ),
       );
 
       const dayButton = getDayButton('2024-01-01');
@@ -339,7 +421,11 @@ describe('DatePicker', () => {
 
     it('применяет aria-selected к выбранным дням', () => {
       const { getDayButton } = renderIsolated(
-        <DatePicker calendar={testCalendar} isOpen={true} />,
+        React.createElement(
+          AnyDatePicker,
+          { calendar: testCalendar, isOpen: true } as any,
+          null,
+        ),
       );
 
       const selectedDay = getDayButton('2024-01-03');
@@ -348,7 +434,11 @@ describe('DatePicker', () => {
 
     it('не применяет aria-selected к невыбранным дням', () => {
       const { getDayButton } = renderIsolated(
-        <DatePicker calendar={testCalendar} isOpen={true} />,
+        React.createElement(
+          AnyDatePicker,
+          { calendar: testCalendar, isOpen: true } as any,
+          null,
+        ),
       );
 
       const day = getDayButton('2024-01-01');
@@ -357,7 +447,11 @@ describe('DatePicker', () => {
 
     it('применяет disabled к disabled дням', () => {
       const { getDayButton } = renderIsolated(
-        <DatePicker calendar={testCalendar} isOpen={true} />,
+        React.createElement(
+          AnyDatePicker,
+          { calendar: testCalendar, isOpen: true } as any,
+          null,
+        ),
       );
 
       const disabledDay = getDayButton('2024-01-04');
@@ -366,7 +460,11 @@ describe('DatePicker', () => {
 
     it('отображает номер дня в кнопке', () => {
       const { getDayButton } = renderIsolated(
-        <DatePicker calendar={testCalendar} isOpen={true} />,
+        React.createElement(
+          AnyDatePicker,
+          { calendar: testCalendar, isOpen: true } as any,
+          null,
+        ),
       );
 
       const dayButton = getDayButton('2024-01-01');
@@ -377,7 +475,11 @@ describe('DatePicker', () => {
   describe('4.5. Навигация по календарю', () => {
     it('рендерит кнопки навигации', () => {
       const { getNavPrev, getNavNext } = renderIsolated(
-        <DatePicker calendar={testCalendar} isOpen={true} />,
+        React.createElement(
+          AnyDatePicker,
+          { calendar: testCalendar, isOpen: true } as any,
+          null,
+        ),
       );
 
       expect(getNavPrev()).toBeInTheDocument();
@@ -386,7 +488,11 @@ describe('DatePicker', () => {
 
     it('применяет правильные aria-label к кнопкам навигации', () => {
       const { getNavPrev, getNavNext } = renderIsolated(
-        <DatePicker calendar={testCalendar} isOpen={true} data-testid='test-picker' />,
+        React.createElement(
+          AnyDatePicker,
+          { calendar: testCalendar, isOpen: true, 'data-testid': 'test-picker' } as any,
+          null,
+        ),
       );
 
       expect(getNavPrev().getAttribute('aria-label')).toBe('Previous month');
@@ -397,7 +503,11 @@ describe('DatePicker', () => {
 
     it('отображает currentMonthLabel', () => {
       const { container } = renderIsolated(
-        <DatePicker calendar={testCalendar} isOpen={true} currentMonthLabel='January 2024' />,
+        React.createElement(
+          AnyDatePicker,
+          { calendar: testCalendar, isOpen: true, currentMonthLabel: 'January 2024' } as any,
+          null,
+        ),
       );
 
       const calendar = container.querySelector('div[role="dialog"]');
@@ -409,7 +519,11 @@ describe('DatePicker', () => {
     it('вызывает onNavigate при клике на prev', () => {
       const handleNavigate = vi.fn();
       const { getNavPrev } = renderIsolated(
-        <DatePicker calendar={testCalendar} isOpen={true} onNavigate={handleNavigate} />,
+        React.createElement(
+          AnyDatePicker,
+          { calendar: testCalendar, isOpen: true, onNavigate: handleNavigate } as any,
+          null,
+        ),
       );
 
       const prevButton = getNavPrev();
@@ -422,7 +536,11 @@ describe('DatePicker', () => {
     it('вызывает onNavigate при клике на next', () => {
       const handleNavigate = vi.fn();
       const { getNavNext } = renderIsolated(
-        <DatePicker calendar={testCalendar} isOpen={true} onNavigate={handleNavigate} />,
+        React.createElement(
+          AnyDatePicker,
+          { calendar: testCalendar, isOpen: true, onNavigate: handleNavigate } as any,
+          null,
+        ),
       );
 
       const nextButton = getNavNext();
@@ -434,7 +552,11 @@ describe('DatePicker', () => {
 
     it('не вызывает onNavigate когда callback не передан', () => {
       const { getNavPrev } = renderIsolated(
-        <DatePicker calendar={testCalendar} isOpen={true} />,
+        React.createElement(
+          AnyDatePicker,
+          { calendar: testCalendar, isOpen: true } as any,
+          null,
+        ),
       );
 
       const prevButton = getNavPrev();
@@ -449,7 +571,11 @@ describe('DatePicker', () => {
     it('вызывает onSelectDate при клике на день', () => {
       const handleSelectDate = vi.fn();
       const { getDayButton } = renderIsolated(
-        <DatePicker calendar={testCalendar} isOpen={true} onSelectDate={handleSelectDate} />,
+        React.createElement(
+          AnyDatePicker,
+          { calendar: testCalendar, isOpen: true, onSelectDate: handleSelectDate } as any,
+          null,
+        ),
       );
 
       const dayButton = getDayButton('2024-01-01');
@@ -462,7 +588,11 @@ describe('DatePicker', () => {
     it('не вызывает onSelectDate для disabled дней', () => {
       const handleSelectDate = vi.fn();
       const { getDayButton } = renderIsolated(
-        <DatePicker calendar={testCalendar} isOpen={true} onSelectDate={handleSelectDate} />,
+        React.createElement(
+          AnyDatePicker,
+          { calendar: testCalendar, isOpen: true, onSelectDate: handleSelectDate } as any,
+          null,
+        ),
       );
 
       const disabledDay = getDayButton('2024-01-04');
@@ -473,7 +603,11 @@ describe('DatePicker', () => {
 
     it('не вызывает onSelectDate когда callback не передан', () => {
       const { getDayButton } = renderIsolated(
-        <DatePicker calendar={testCalendar} isOpen={true} />,
+        React.createElement(
+          AnyDatePicker,
+          { calendar: testCalendar, isOpen: true } as any,
+          null,
+        ),
       );
 
       const dayButton = getDayButton('2024-01-01');
@@ -486,7 +620,11 @@ describe('DatePicker', () => {
     it('вызывает onSelectDate при нажатии Enter на дне', () => {
       const handleSelectDate = vi.fn();
       const { getDayButton } = renderIsolated(
-        <DatePicker calendar={testCalendar} isOpen={true} onSelectDate={handleSelectDate} />,
+        React.createElement(
+          AnyDatePicker,
+          { calendar: testCalendar, isOpen: true, onSelectDate: handleSelectDate } as any,
+          null,
+        ),
       );
 
       const dayButton = getDayButton('2024-01-01');
@@ -499,7 +637,11 @@ describe('DatePicker', () => {
     it('вызывает onSelectDate при нажатии Space на дне', () => {
       const handleSelectDate = vi.fn();
       const { getDayButton } = renderIsolated(
-        <DatePicker calendar={testCalendar} isOpen={true} onSelectDate={handleSelectDate} />,
+        React.createElement(
+          AnyDatePicker,
+          { calendar: testCalendar, isOpen: true, onSelectDate: handleSelectDate } as any,
+          null,
+        ),
       );
 
       const dayButton = getDayButton('2024-01-01');
@@ -512,7 +654,11 @@ describe('DatePicker', () => {
     it('не вызывает onSelectDate для других клавиш', () => {
       const handleSelectDate = vi.fn();
       const { getDayButton } = renderIsolated(
-        <DatePicker calendar={testCalendar} isOpen={true} onSelectDate={handleSelectDate} />,
+        React.createElement(
+          AnyDatePicker,
+          { calendar: testCalendar, isOpen: true, onSelectDate: handleSelectDate } as any,
+          null,
+        ),
       );
 
       const dayButton = getDayButton('2024-01-01');
@@ -524,7 +670,11 @@ describe('DatePicker', () => {
     it('не вызывает onSelectDate для disabled дней при нажатии Enter', () => {
       const handleSelectDate = vi.fn();
       const { getDayButton } = renderIsolated(
-        <DatePicker calendar={testCalendar} isOpen={true} onSelectDate={handleSelectDate} />,
+        React.createElement(
+          AnyDatePicker,
+          { calendar: testCalendar, isOpen: true, onSelectDate: handleSelectDate } as any,
+          null,
+        ),
       );
 
       const disabledDay = getDayButton('2024-01-04');
@@ -536,7 +686,11 @@ describe('DatePicker', () => {
     it('не вызывает onSelectDate для disabled дней при нажатии Space', () => {
       const handleSelectDate = vi.fn();
       const { getDayButton } = renderIsolated(
-        <DatePicker calendar={testCalendar} isOpen={true} onSelectDate={handleSelectDate} />,
+        React.createElement(
+          AnyDatePicker,
+          { calendar: testCalendar, isOpen: true, onSelectDate: handleSelectDate } as any,
+          null,
+        ),
       );
 
       const disabledDay = getDayButton('2024-01-04');
@@ -550,7 +704,11 @@ describe('DatePicker', () => {
     it('вызывает onChange при изменении значения', () => {
       const handleChange = vi.fn();
       const { getInput } = renderIsolated(
-        <DatePicker calendar={testCalendar} onChange={handleChange} />,
+        React.createElement(
+          AnyDatePicker,
+          { calendar: testCalendar, onChange: handleChange } as any,
+          null,
+        ),
       );
 
       const input = getInput();
@@ -562,7 +720,7 @@ describe('DatePicker', () => {
 
     it('не вызывает onChange когда callback не передан', () => {
       const { getInput } = renderIsolated(
-        <DatePicker calendar={testCalendar} />,
+        React.createElement(AnyDatePicker, { calendar: testCalendar } as any, null),
       );
 
       const input = getInput();
@@ -577,7 +735,11 @@ describe('DatePicker', () => {
     it('вызывает onToggle при нажатии Enter когда календарь закрыт', () => {
       const handleToggle = vi.fn();
       const { getInput } = renderIsolated(
-        <DatePicker calendar={testCalendar} isOpen={false} onToggle={handleToggle} />,
+        React.createElement(
+          AnyDatePicker,
+          { calendar: testCalendar, isOpen: false, onToggle: handleToggle } as any,
+          null,
+        ),
       );
 
       const input = getInput();
@@ -590,7 +752,11 @@ describe('DatePicker', () => {
     it('вызывает onToggle при нажатии Space когда календарь закрыт', () => {
       const handleToggle = vi.fn();
       const { getInput } = renderIsolated(
-        <DatePicker calendar={testCalendar} isOpen={false} onToggle={handleToggle} />,
+        React.createElement(
+          AnyDatePicker,
+          { calendar: testCalendar, isOpen: false, onToggle: handleToggle } as any,
+          null,
+        ),
       );
 
       const input = getInput();
@@ -603,7 +769,11 @@ describe('DatePicker', () => {
     it('вызывает onToggle при нажатии Escape когда календарь открыт', () => {
       const handleToggle = vi.fn();
       const { getInput } = renderIsolated(
-        <DatePicker calendar={testCalendar} isOpen={true} onToggle={handleToggle} />,
+        React.createElement(
+          AnyDatePicker,
+          { calendar: testCalendar, isOpen: true, onToggle: handleToggle } as any,
+          null,
+        ),
       );
 
       const input = getInput();
@@ -616,7 +786,11 @@ describe('DatePicker', () => {
     it('не вызывает onToggle при нажатии Escape когда календарь закрыт', () => {
       const handleToggle = vi.fn();
       const { getInput } = renderIsolated(
-        <DatePicker calendar={testCalendar} isOpen={false} onToggle={handleToggle} />,
+        React.createElement(
+          AnyDatePicker,
+          { calendar: testCalendar, isOpen: false, onToggle: handleToggle } as any,
+          null,
+        ),
       );
 
       const input = getInput();
@@ -628,7 +802,11 @@ describe('DatePicker', () => {
     it('не вызывает onToggle для других клавиш', () => {
       const handleToggle = vi.fn();
       const { getInput } = renderIsolated(
-        <DatePicker calendar={testCalendar} isOpen={false} onToggle={handleToggle} />,
+        React.createElement(
+          AnyDatePicker,
+          { calendar: testCalendar, isOpen: false, onToggle: handleToggle } as any,
+          null,
+        ),
       );
 
       const input = getInput();
@@ -642,12 +820,16 @@ describe('DatePicker', () => {
     it('вызывает onToggle при focus когда календарь закрыт и не disabled', () => {
       const handleToggle = vi.fn();
       const { getInput } = renderIsolated(
-        <DatePicker
-          calendar={testCalendar}
-          isOpen={false}
-          disabled={false}
-          onToggle={handleToggle}
-        />,
+        React.createElement(
+          AnyDatePicker,
+          {
+            calendar: testCalendar,
+            isOpen: false,
+            disabled: false,
+            onToggle: handleToggle,
+          } as any,
+          null,
+        ),
       );
 
       const input = getInput();
@@ -660,12 +842,16 @@ describe('DatePicker', () => {
     it('не вызывает onToggle при focus когда disabled', () => {
       const handleToggle = vi.fn();
       const { getInput } = renderIsolated(
-        <DatePicker
-          calendar={testCalendar}
-          isOpen={false}
-          disabled={true}
-          onToggle={handleToggle}
-        />,
+        React.createElement(
+          AnyDatePicker,
+          {
+            calendar: testCalendar,
+            isOpen: false,
+            disabled: true,
+            onToggle: handleToggle,
+          } as any,
+          null,
+        ),
       );
 
       const input = getInput();
@@ -677,7 +863,11 @@ describe('DatePicker', () => {
     it('не вызывает onToggle при focus когда календарь уже открыт', () => {
       const handleToggle = vi.fn();
       const { getInput } = renderIsolated(
-        <DatePicker calendar={testCalendar} isOpen={true} onToggle={handleToggle} />,
+        React.createElement(
+          AnyDatePicker,
+          { calendar: testCalendar, isOpen: true, onToggle: handleToggle } as any,
+          null,
+        ),
       );
 
       const input = getInput();
@@ -691,12 +881,16 @@ describe('DatePicker', () => {
     it('вызывает onToggle при клике на кнопку открытия', () => {
       const handleToggle = vi.fn();
       const { getToggleButton } = renderIsolated(
-        <DatePicker
-          calendar={testCalendar}
-          isOpen={false}
-          disabled={false}
-          onToggle={handleToggle}
-        />,
+        React.createElement(
+          AnyDatePicker,
+          {
+            calendar: testCalendar,
+            isOpen: false,
+            disabled: false,
+            onToggle: handleToggle,
+          } as any,
+          null,
+        ),
       );
 
       const button = getToggleButton();
@@ -709,12 +903,16 @@ describe('DatePicker', () => {
     it('вызывает onToggle для закрытия при клике когда календарь открыт', () => {
       const handleToggle = vi.fn();
       const { getToggleButton } = renderIsolated(
-        <DatePicker
-          calendar={testCalendar}
-          isOpen={true}
-          disabled={false}
-          onToggle={handleToggle}
-        />,
+        React.createElement(
+          AnyDatePicker,
+          {
+            calendar: testCalendar,
+            isOpen: true,
+            disabled: false,
+            onToggle: handleToggle,
+          } as any,
+          null,
+        ),
       );
 
       const button = getToggleButton();
@@ -727,12 +925,16 @@ describe('DatePicker', () => {
     it('не вызывает onToggle когда disabled', () => {
       const handleToggle = vi.fn();
       const { getToggleButton } = renderIsolated(
-        <DatePicker
-          calendar={testCalendar}
-          isOpen={false}
-          disabled={true}
-          onToggle={handleToggle}
-        />,
+        React.createElement(
+          AnyDatePicker,
+          {
+            calendar: testCalendar,
+            isOpen: false,
+            disabled: true,
+            onToggle: handleToggle,
+          } as any,
+          null,
+        ),
       );
 
       const button = getToggleButton();
@@ -744,12 +946,16 @@ describe('DatePicker', () => {
     it('не вызывает onToggle при клике на кнопку когда disabled и календарь открыт', () => {
       const handleToggle = vi.fn();
       const { getToggleButton } = renderIsolated(
-        <DatePicker
-          calendar={testCalendar}
-          isOpen={true}
-          disabled={true}
-          onToggle={handleToggle}
-        />,
+        React.createElement(
+          AnyDatePicker,
+          {
+            calendar: testCalendar,
+            isOpen: true,
+            disabled: true,
+            onToggle: handleToggle,
+          } as any,
+          null,
+        ),
       );
 
       const button = getToggleButton();
@@ -763,7 +969,7 @@ describe('DatePicker', () => {
     it('передает ref к корневому элементу', () => {
       const ref = React.createRef<HTMLDivElement>();
       const { getDatePicker } = renderIsolated(
-        <DatePicker calendar={testCalendar} ref={ref} />,
+        React.createElement(AnyDatePicker, { calendar: testCalendar, ref } as any, null),
       );
 
       expect(ref.current).toBe(getDatePicker());
@@ -772,12 +978,18 @@ describe('DatePicker', () => {
     it('обновляет ref при изменении', () => {
       const ref = React.createRef<HTMLDivElement>();
       const { rerender, getDatePicker } = renderIsolated(
-        <DatePicker calendar={testCalendar} ref={ref} />,
+        React.createElement(AnyDatePicker, { calendar: testCalendar, ref } as any, null),
       );
 
       expect(ref.current).toBe(getDatePicker());
 
-      rerender(<DatePicker calendar={testCalendar} ref={ref} value='2024-01-15' />);
+      rerender(
+        React.createElement(
+          AnyDatePicker,
+          { calendar: testCalendar, ref, value: '2024-01-15' } as any,
+          null,
+        ),
+      );
 
       expect(ref.current).toBe(getDatePicker());
     });
@@ -786,7 +998,11 @@ describe('DatePicker', () => {
   describe('4.12. HTML атрибуты', () => {
     it('передает className к корневому элементу', () => {
       const { getDatePicker } = renderIsolated(
-        <DatePicker calendar={testCalendar} className='custom-class' />,
+        React.createElement(
+          AnyDatePicker,
+          { calendar: testCalendar, className: 'custom-class' } as any,
+          null,
+        ),
       );
 
       expect(getDatePicker()).toHaveClass('custom-class');
@@ -794,7 +1010,11 @@ describe('DatePicker', () => {
 
     it('передает style к корневому элементу', () => {
       const { getDatePicker } = renderIsolated(
-        <DatePicker calendar={testCalendar} style={customStyle} />,
+        React.createElement(
+          AnyDatePicker,
+          { calendar: testCalendar, style: customStyle } as any,
+          null,
+        ),
       );
 
       const datePicker = getDatePicker();
@@ -803,7 +1023,11 @@ describe('DatePicker', () => {
 
     it('передает aria-label к корневому элементу', () => {
       const { getDatePicker } = renderIsolated(
-        <DatePicker calendar={testCalendar} aria-label='Custom date picker' />,
+        React.createElement(
+          AnyDatePicker,
+          { calendar: testCalendar, 'aria-label': 'Custom date picker' } as any,
+          null,
+        ),
       );
 
       expect(getDatePicker()).toHaveAttribute('aria-label', 'Custom date picker');
@@ -811,7 +1035,11 @@ describe('DatePicker', () => {
 
     it('передает aria-labelledby к корневому элементу', () => {
       const { getDatePicker } = renderIsolated(
-        <DatePicker calendar={testCalendar} aria-labelledby='label-id' />,
+        React.createElement(
+          AnyDatePicker,
+          { calendar: testCalendar, 'aria-labelledby': 'label-id' } as any,
+          null,
+        ),
       );
 
       expect(getDatePicker()).toHaveAttribute('aria-labelledby', 'label-id');
@@ -819,7 +1047,11 @@ describe('DatePicker', () => {
 
     it('передает другие HTML атрибуты', () => {
       const { getDatePicker } = renderIsolated(
-        <DatePicker calendar={testCalendar} id='test-id' title='Test title' />,
+        React.createElement(
+          AnyDatePicker,
+          { calendar: testCalendar, id: 'test-id', title: 'Test title' } as any,
+          null,
+        ),
       );
 
       const datePicker = getDatePicker();
@@ -831,7 +1063,11 @@ describe('DatePicker', () => {
   describe('4.13. Edge cases', () => {
     it('обрабатывает пустой calendar', () => {
       const { getDatePicker } = renderIsolated(
-        <DatePicker calendar={emptyCalendar} isOpen={true} />,
+        React.createElement(
+          AnyDatePicker,
+          { calendar: emptyCalendar, isOpen: true } as any,
+          null,
+        ),
       );
 
       expect(getDatePicker()).toBeInTheDocument();
@@ -839,7 +1075,11 @@ describe('DatePicker', () => {
 
     it('обрабатывает calendar с пустыми неделями', () => {
       const { getDatePicker } = renderIsolated(
-        <DatePicker calendar={calendarWithEmptyWeeks} isOpen={true} />,
+        React.createElement(
+          AnyDatePicker,
+          { calendar: calendarWithEmptyWeeks, isOpen: true } as any,
+          null,
+        ),
       );
 
       expect(getDatePicker()).toBeInTheDocument();
@@ -847,7 +1087,11 @@ describe('DatePicker', () => {
 
     it('обрабатывает пустое значение value', () => {
       const { getInput } = renderIsolated(
-        <DatePicker calendar={testCalendar} value='' />,
+        React.createElement(
+          AnyDatePicker,
+          { calendar: testCalendar, value: '' } as any,
+          null,
+        ),
       );
 
       expect(getInput().value).toBe('');
@@ -855,7 +1099,7 @@ describe('DatePicker', () => {
 
     it('обрабатывает undefined value', () => {
       const { getInput } = renderIsolated(
-        <DatePicker calendar={testCalendar} />,
+        React.createElement(AnyDatePicker, { calendar: testCalendar } as any, null),
       );
 
       expect(getInput().value).toBe('');
@@ -863,7 +1107,11 @@ describe('DatePicker', () => {
 
     it('обрабатывает все состояния дней (disabled, selected, today, other month)', () => {
       const { getDayButton } = renderIsolated(
-        <DatePicker calendar={testCalendar} isOpen={true} />,
+        React.createElement(
+          AnyDatePicker,
+          { calendar: testCalendar, isOpen: true } as any,
+          null,
+        ),
       );
 
       const normalDay = getDayButton('2024-01-01');
@@ -883,12 +1131,22 @@ describe('DatePicker', () => {
   describe('4.14. Memoization и стабильность', () => {
     it('не пересоздает компонент при неизменных props', () => {
       const { rerender, getDatePicker } = renderIsolated(
-        <DatePicker calendar={testCalendar} value='2024-01-15' />,
+        React.createElement(
+          AnyDatePicker,
+          { calendar: testCalendar, value: '2024-01-15' } as any,
+          null,
+        ),
       );
 
       const firstRender = getDatePicker();
 
-      rerender(<DatePicker calendar={testCalendar} value='2024-01-15' />);
+      rerender(
+        React.createElement(
+          AnyDatePicker,
+          { calendar: testCalendar, value: '2024-01-15' } as any,
+          null,
+        ),
+      );
 
       const secondRender = getDatePicker();
       // Компонент должен быть мемоизирован, но DOM элемент может быть тем же

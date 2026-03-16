@@ -11,6 +11,8 @@ import { SupportButton } from '@livai/ui-core';
 
 import '@testing-library/jest-dom/vitest';
 
+const AnySupportButton = SupportButton as any;
+
 // Полная очистка DOM между тестами
 afterEach(cleanup);
 
@@ -50,13 +52,17 @@ describe('SupportButton', () => {
   const createMockRef = () => React.createRef<HTMLButtonElement>();
 
   // Вынесенные объекты для соблюдения ESLint правил
-  const customIcon = <span>🎧</span>;
+  const customIcon = React.createElement('span', {} as any, '🎧');
   const customLabel = 'Help';
 
   describe('4.1. Рендер без падений', () => {
     it('рендерится с обязательными пропсами', () => {
       const { container, getSupportButton } = renderIsolated(
-        <SupportButton onSupportClick={mockOnSupportClick} />,
+        React.createElement(
+          AnySupportButton,
+          { onSupportClick: mockOnSupportClick } as any,
+          null,
+        ),
       );
 
       expect(container).toBeInTheDocument();
@@ -66,16 +72,20 @@ describe('SupportButton', () => {
 
     it('рендерится с полным набором пропсов', () => {
       const { container, getSupportButton } = renderIsolated(
-        <SupportButton
-          label='Custom Support'
-          icon='💬'
-          variant='floating'
-          size='large'
-          disabled={false}
-          onSupportClick={mockOnSupportClick}
-          data-testid='test-button'
-          className='custom-class'
-        />,
+        React.createElement(
+          AnySupportButton,
+          {
+            label: 'Custom Support',
+            icon: '💬',
+            variant: 'floating',
+            size: 'large',
+            disabled: false,
+            onSupportClick: mockOnSupportClick,
+            'data-testid': 'test-button',
+            className: 'custom-class',
+          } as any,
+          null,
+        ),
       );
 
       expect(container).toBeInTheDocument();
@@ -84,7 +94,11 @@ describe('SupportButton', () => {
 
     it('рендерится с disabled состоянием', () => {
       const { container, getSupportButton } = renderIsolated(
-        <SupportButton onSupportClick={mockOnSupportClick} disabled={true} />,
+        React.createElement(
+          AnySupportButton,
+          { onSupportClick: mockOnSupportClick, disabled: true } as any,
+          null,
+        ),
       );
 
       expect(container).toBeInTheDocument();
@@ -97,7 +111,11 @@ describe('SupportButton', () => {
     describe('Текст и иконка', () => {
       it('отображает дефолтный текст "Поддержка"', () => {
         const { getSupportButton } = renderIsolated(
-          <SupportButton onSupportClick={mockOnSupportClick} />,
+          React.createElement(
+            AnySupportButton,
+            { onSupportClick: mockOnSupportClick } as any,
+            null,
+          ),
         );
 
         expect(getSupportButton()).toHaveTextContent('Поддержка');
@@ -105,10 +123,11 @@ describe('SupportButton', () => {
 
       it('отображает кастомный текст', () => {
         const { getSupportButton } = renderIsolated(
-          <SupportButton
-            label={customLabel}
-            onSupportClick={mockOnSupportClick}
-          />,
+          React.createElement(
+            AnySupportButton,
+            { label: customLabel, onSupportClick: mockOnSupportClick } as any,
+            null,
+          ),
         );
 
         expect(getSupportButton()).toHaveTextContent(customLabel);
@@ -116,7 +135,11 @@ describe('SupportButton', () => {
 
       it('отображает дефолтную иконку "?"', () => {
         const { getSupportButton } = renderIsolated(
-          <SupportButton onSupportClick={mockOnSupportClick} />,
+          React.createElement(
+            AnySupportButton,
+            { onSupportClick: mockOnSupportClick } as any,
+            null,
+          ),
         );
 
         expect(getSupportButton()).toHaveTextContent('?');
@@ -124,10 +147,11 @@ describe('SupportButton', () => {
 
       it('отображает кастомную иконку', () => {
         const { getSupportButton } = renderIsolated(
-          <SupportButton
-            icon={customIcon}
-            onSupportClick={mockOnSupportClick}
-          />,
+          React.createElement(
+            AnySupportButton,
+            { icon: customIcon, onSupportClick: mockOnSupportClick } as any,
+            null,
+          ),
         );
 
         expect(getSupportButton().innerHTML).toContain('🎧');
@@ -135,11 +159,15 @@ describe('SupportButton', () => {
 
       it('не отображает текст в minimal варианте', () => {
         const { getSupportButton } = renderIsolated(
-          <SupportButton
-            variant='minimal'
-            label={customLabel}
-            onSupportClick={mockOnSupportClick}
-          />,
+          React.createElement(
+            AnySupportButton,
+            {
+              variant: 'minimal',
+              label: customLabel,
+              onSupportClick: mockOnSupportClick,
+            } as any,
+            null,
+          ),
         );
 
         expect(getSupportButton()).not.toHaveTextContent(customLabel);
@@ -150,7 +178,11 @@ describe('SupportButton', () => {
     describe('Варианты (variants)', () => {
       it('применяет default вариант по умолчанию', () => {
         const { getSupportButton } = renderIsolated(
-          <SupportButton onSupportClick={mockOnSupportClick} />,
+          React.createElement(
+            AnySupportButton,
+            { onSupportClick: mockOnSupportClick } as any,
+            null,
+          ),
         );
 
         const button = getSupportButton();
@@ -159,10 +191,11 @@ describe('SupportButton', () => {
 
       it('применяет minimal вариант', () => {
         const { getSupportButton } = renderIsolated(
-          <SupportButton
-            variant='minimal'
-            onSupportClick={mockOnSupportClick}
-          />,
+          React.createElement(
+            AnySupportButton,
+            { variant: 'minimal', onSupportClick: mockOnSupportClick } as any,
+            null,
+          ),
         );
 
         const button = getSupportButton();
@@ -171,10 +204,11 @@ describe('SupportButton', () => {
 
       it('применяет floating вариант', () => {
         const { getSupportButton } = renderIsolated(
-          <SupportButton
-            variant='floating'
-            onSupportClick={mockOnSupportClick}
-          />,
+          React.createElement(
+            AnySupportButton,
+            { variant: 'floating', onSupportClick: mockOnSupportClick } as any,
+            null,
+          ),
         );
 
         const button = getSupportButton();
@@ -185,7 +219,11 @@ describe('SupportButton', () => {
     describe('Размеры (sizes)', () => {
       it('применяет medium размер по умолчанию', () => {
         const { getSupportButton } = renderIsolated(
-          <SupportButton onSupportClick={mockOnSupportClick} />,
+          React.createElement(
+            AnySupportButton,
+            { onSupportClick: mockOnSupportClick } as any,
+            null,
+          ),
         );
 
         const button = getSupportButton();
@@ -194,10 +232,11 @@ describe('SupportButton', () => {
 
       it('применяет small размер', () => {
         const { getSupportButton } = renderIsolated(
-          <SupportButton
-            size='small'
-            onSupportClick={mockOnSupportClick}
-          />,
+          React.createElement(
+            AnySupportButton,
+            { size: 'small', onSupportClick: mockOnSupportClick } as any,
+            null,
+          ),
         );
 
         const button = getSupportButton();
@@ -206,10 +245,11 @@ describe('SupportButton', () => {
 
       it('применяет large размер', () => {
         const { getSupportButton } = renderIsolated(
-          <SupportButton
-            size='large'
-            onSupportClick={mockOnSupportClick}
-          />,
+          React.createElement(
+            AnySupportButton,
+            { size: 'large', onSupportClick: mockOnSupportClick } as any,
+            null,
+          ),
         );
 
         const button = getSupportButton();
@@ -220,10 +260,11 @@ describe('SupportButton', () => {
     describe('Состояния', () => {
       it('применяет disabled атрибут и data-disabled', () => {
         const { getSupportButton } = renderIsolated(
-          <SupportButton
-            onSupportClick={mockOnSupportClick}
-            disabled={true}
-          />,
+          React.createElement(
+            AnySupportButton,
+            { onSupportClick: mockOnSupportClick, disabled: true } as any,
+            null,
+          ),
         );
 
         const button = getSupportButton();
@@ -233,10 +274,11 @@ describe('SupportButton', () => {
 
       it('не применяет disabled атрибуты когда disabled=false', () => {
         const { getSupportButton } = renderIsolated(
-          <SupportButton
-            onSupportClick={mockOnSupportClick}
-            disabled={false}
-          />,
+          React.createElement(
+            AnySupportButton,
+            { onSupportClick: mockOnSupportClick, disabled: false } as any,
+            null,
+          ),
         );
 
         const button = getSupportButton();
@@ -249,7 +291,11 @@ describe('SupportButton', () => {
   describe('4.3. Взаимодействия и callbacks', () => {
     it('вызывает onSupportClick при клике', () => {
       const { getSupportButton } = renderIsolated(
-        <SupportButton onSupportClick={mockOnSupportClick} />,
+        React.createElement(
+          AnySupportButton,
+          { onSupportClick: mockOnSupportClick } as any,
+          null,
+        ),
       );
 
       const button = getSupportButton();
@@ -261,7 +307,11 @@ describe('SupportButton', () => {
 
     it('передает правильный event в onSupportClick', () => {
       const { getSupportButton } = renderIsolated(
-        <SupportButton onSupportClick={mockOnSupportClick} />,
+        React.createElement(
+          AnySupportButton,
+          { onSupportClick: mockOnSupportClick } as any,
+          null,
+        ),
       );
 
       const button = getSupportButton();
@@ -276,10 +326,11 @@ describe('SupportButton', () => {
 
     it('не вызывает onSupportClick когда disabled=true', () => {
       const { getSupportButton } = renderIsolated(
-        <SupportButton
-          onSupportClick={mockOnSupportClick}
-          disabled={true}
-        />,
+        React.createElement(
+          AnySupportButton,
+          { onSupportClick: mockOnSupportClick, disabled: true } as any,
+          null,
+        ),
       );
 
       const button = getSupportButton();
@@ -293,7 +344,7 @@ describe('SupportButton', () => {
 
     it('не вызывает onSupportClick когда callback не передан', () => {
       const { getSupportButton } = renderIsolated(
-        <SupportButton />,
+        React.createElement(AnySupportButton, {} as any, null),
       );
 
       const button = getSupportButton();
@@ -304,7 +355,11 @@ describe('SupportButton', () => {
   describe('4.4. Data attributes и test IDs', () => {
     it('применяет data-component', () => {
       const { getSupportButton } = renderIsolated(
-        <SupportButton onSupportClick={mockOnSupportClick} />,
+        React.createElement(
+          AnySupportButton,
+          { onSupportClick: mockOnSupportClick } as any,
+          null,
+        ),
       );
 
       const button = getSupportButton();
@@ -313,10 +368,11 @@ describe('SupportButton', () => {
 
     it('применяет data-testid', () => {
       const { container } = renderIsolated(
-        <SupportButton
-          onSupportClick={mockOnSupportClick}
-          data-testid='custom-test-id'
-        />,
+        React.createElement(
+          AnySupportButton,
+          { onSupportClick: mockOnSupportClick, 'data-testid': 'custom-test-id' } as any,
+          null,
+        ),
       );
 
       expect(container.querySelector('[data-testid="custom-test-id"]')).toBeInTheDocument();
@@ -324,10 +380,11 @@ describe('SupportButton', () => {
 
     it('генерирует правильные test IDs для внутренних элементов', () => {
       const { getIcon, getLabel } = renderIsolated(
-        <SupportButton
-          onSupportClick={mockOnSupportClick}
-          data-testid='test'
-        />,
+        React.createElement(
+          AnySupportButton,
+          { onSupportClick: mockOnSupportClick, 'data-testid': 'test' } as any,
+          null,
+        ),
       );
 
       expect(getIcon()).toBeInTheDocument();
@@ -336,7 +393,11 @@ describe('SupportButton', () => {
 
     it('не генерирует test IDs для внутренних элементов без data-testid', () => {
       const { container } = renderIsolated(
-        <SupportButton onSupportClick={mockOnSupportClick} />,
+        React.createElement(
+          AnySupportButton,
+          { onSupportClick: mockOnSupportClick } as any,
+          null,
+        ),
       );
 
       expect(container.querySelector('[data-testid*="-icon"]')).not.toBeInTheDocument();
@@ -348,10 +409,11 @@ describe('SupportButton', () => {
     it('поддерживает ref forwarding', () => {
       const ref = createMockRef();
       const { getSupportButton } = renderIsolated(
-        <SupportButton
-          ref={ref}
-          onSupportClick={mockOnSupportClick}
-        />,
+        React.createElement(
+          AnySupportButton,
+          { ref, onSupportClick: mockOnSupportClick } as any,
+          null,
+        ),
       );
 
       const button = getSupportButton();
@@ -362,23 +424,31 @@ describe('SupportButton', () => {
   describe('4.6. Render stability', () => {
     it('не пересчитывает стили при одинаковых пропсах', () => {
       const { rerender, getSupportButton } = renderIsolated(
-        <SupportButton
-          onSupportClick={mockOnSupportClick}
-          variant='default'
-          size='medium'
-          disabled={false}
-        />,
+        React.createElement(
+          AnySupportButton,
+          {
+            onSupportClick: mockOnSupportClick,
+            variant: 'default',
+            size: 'medium',
+            disabled: false,
+          } as any,
+          null,
+        ),
       );
 
       const initialStyle = (getSupportButton() as HTMLElement).style.cssText;
 
       rerender(
-        <SupportButton
-          onSupportClick={mockOnSupportClick}
-          variant='default'
-          size='medium'
-          disabled={false}
-        />,
+        React.createElement(
+          AnySupportButton,
+          {
+            onSupportClick: mockOnSupportClick,
+            variant: 'default',
+            size: 'medium',
+            disabled: false,
+          } as any,
+          null,
+        ),
       );
 
       const newStyle = (getSupportButton() as HTMLElement).style.cssText;
@@ -387,19 +457,21 @@ describe('SupportButton', () => {
 
     it('пересчитывает стили при изменении variant', () => {
       const { rerender, getSupportButton } = renderIsolated(
-        <SupportButton
-          onSupportClick={mockOnSupportClick}
-          variant='default'
-        />,
+        React.createElement(
+          AnySupportButton,
+          { onSupportClick: mockOnSupportClick, variant: 'default' } as any,
+          null,
+        ),
       );
 
       const initialVariant = getSupportButton().getAttribute('data-variant');
 
       rerender(
-        <SupportButton
-          onSupportClick={mockOnSupportClick}
-          variant='minimal'
-        />,
+        React.createElement(
+          AnySupportButton,
+          { onSupportClick: mockOnSupportClick, variant: 'minimal' } as any,
+          null,
+        ),
       );
 
       const newVariant = getSupportButton().getAttribute('data-variant');
@@ -409,19 +481,21 @@ describe('SupportButton', () => {
 
     it('пересчитывает стили при изменении size', () => {
       const { rerender, getSupportButton } = renderIsolated(
-        <SupportButton
-          onSupportClick={mockOnSupportClick}
-          size='medium'
-        />,
+        React.createElement(
+          AnySupportButton,
+          { onSupportClick: mockOnSupportClick, size: 'medium' } as any,
+          null,
+        ),
       );
 
       const initialSize = getSupportButton().getAttribute('data-size');
 
       rerender(
-        <SupportButton
-          onSupportClick={mockOnSupportClick}
-          size='large'
-        />,
+        React.createElement(
+          AnySupportButton,
+          { onSupportClick: mockOnSupportClick, size: 'large' } as any,
+          null,
+        ),
       );
 
       const newSize = getSupportButton().getAttribute('data-size');
@@ -431,19 +505,21 @@ describe('SupportButton', () => {
 
     it('пересчитывает стили при изменении disabled', () => {
       const { rerender, getSupportButton } = renderIsolated(
-        <SupportButton
-          onSupportClick={mockOnSupportClick}
-          disabled={false}
-        />,
+        React.createElement(
+          AnySupportButton,
+          { onSupportClick: mockOnSupportClick, disabled: false } as any,
+          null,
+        ),
       );
 
       const initialDisabled = getSupportButton().hasAttribute('data-disabled');
 
       rerender(
-        <SupportButton
-          onSupportClick={mockOnSupportClick}
-          disabled={true}
-        />,
+        React.createElement(
+          AnySupportButton,
+          { onSupportClick: mockOnSupportClick, disabled: true } as any,
+          null,
+        ),
       );
 
       const newDisabled = getSupportButton().hasAttribute('data-disabled');
@@ -455,10 +531,11 @@ describe('SupportButton', () => {
   describe('4.7. Edge cases', () => {
     it('работает с пустым label', () => {
       const { getSupportButton } = renderIsolated(
-        <SupportButton
-          label=''
-          onSupportClick={mockOnSupportClick}
-        />,
+        React.createElement(
+          AnySupportButton,
+          { label: '', onSupportClick: mockOnSupportClick } as any,
+          null,
+        ),
       );
 
       expect(getSupportButton()).toBeInTheDocument();
@@ -466,10 +543,11 @@ describe('SupportButton', () => {
 
     it('работает с null icon', () => {
       const { getSupportButton } = renderIsolated(
-        <SupportButton
-          icon={null}
-          onSupportClick={mockOnSupportClick}
-        />,
+        React.createElement(
+          AnySupportButton,
+          { icon: null, onSupportClick: mockOnSupportClick } as any,
+          null,
+        ),
       );
 
       expect(getSupportButton()).toBeInTheDocument();
@@ -477,10 +555,11 @@ describe('SupportButton', () => {
 
     it('работает с undefined icon', () => {
       const { getSupportButton } = renderIsolated(
-        <SupportButton
-          icon={undefined}
-          onSupportClick={mockOnSupportClick}
-        />,
+        React.createElement(
+          AnySupportButton,
+          { icon: undefined, onSupportClick: mockOnSupportClick } as any,
+          null,
+        ),
       );
 
       expect(getSupportButton()).toBeInTheDocument();
@@ -488,9 +567,11 @@ describe('SupportButton', () => {
 
     it('работает с undefined label', () => {
       const { getSupportButton } = renderIsolated(
-        <SupportButton
-          onSupportClick={mockOnSupportClick}
-        />,
+        React.createElement(
+          AnySupportButton,
+          { onSupportClick: mockOnSupportClick } as any,
+          null,
+        ),
       );
 
       expect(getSupportButton()).toHaveTextContent('Поддержка');
@@ -498,9 +579,11 @@ describe('SupportButton', () => {
 
     it('работает с undefined disabled', () => {
       const { getSupportButton } = renderIsolated(
-        <SupportButton
-          onSupportClick={mockOnSupportClick}
-        />,
+        React.createElement(
+          AnySupportButton,
+          { onSupportClick: mockOnSupportClick } as any,
+          null,
+        ),
       );
 
       expect(getSupportButton()).not.toBeDisabled();
@@ -508,9 +591,11 @@ describe('SupportButton', () => {
 
     it('работает с undefined variant', () => {
       const { getSupportButton } = renderIsolated(
-        <SupportButton
-          onSupportClick={mockOnSupportClick}
-        />,
+        React.createElement(
+          AnySupportButton,
+          { onSupportClick: mockOnSupportClick } as any,
+          null,
+        ),
       );
 
       const button = getSupportButton();
@@ -519,9 +604,11 @@ describe('SupportButton', () => {
 
     it('работает с undefined size', () => {
       const { getSupportButton } = renderIsolated(
-        <SupportButton
-          onSupportClick={mockOnSupportClick}
-        />,
+        React.createElement(
+          AnySupportButton,
+          { onSupportClick: mockOnSupportClick } as any,
+          null,
+        ),
       );
 
       const button = getSupportButton();
@@ -530,9 +617,11 @@ describe('SupportButton', () => {
 
     it('работает с undefined data-testid', () => {
       const { container } = renderIsolated(
-        <SupportButton
-          onSupportClick={mockOnSupportClick}
-        />,
+        React.createElement(
+          AnySupportButton,
+          { onSupportClick: mockOnSupportClick } as any,
+          null,
+        ),
       );
 
       expect(container.querySelector('[data-testid]')).toBeNull();
@@ -540,10 +629,11 @@ describe('SupportButton', () => {
 
     it('работает с пустым data-testid', () => {
       const { container } = renderIsolated(
-        <SupportButton
-          data-testid=''
-          onSupportClick={mockOnSupportClick}
-        />,
+        React.createElement(
+          AnySupportButton,
+          { 'data-testid': '', onSupportClick: mockOnSupportClick } as any,
+          null,
+        ),
       );
 
       expect(container.querySelector('[data-testid]')).toBeNull();
@@ -551,11 +641,15 @@ describe('SupportButton', () => {
 
     it('применяет дополнительные HTML атрибуты', () => {
       const { getSupportButton } = renderIsolated(
-        <SupportButton
-          onSupportClick={mockOnSupportClick}
-          title='Support button'
-          aria-label='Get help'
-        />,
+        React.createElement(
+          AnySupportButton,
+          {
+            onSupportClick: mockOnSupportClick,
+            title: 'Support button',
+            'aria-label': 'Get help',
+          } as any,
+          null,
+        ),
       );
 
       const button = getSupportButton();

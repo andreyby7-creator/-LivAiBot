@@ -11,6 +11,8 @@ import { Toggle } from '@livai/ui-core';
 
 import '@testing-library/jest-dom/vitest';
 
+const AnyToggle = Toggle as any;
+
 // Mock для HTMLElement.prototype.focus
 const mockFocus = vi.fn();
 const originalFocus = window.HTMLElement.prototype.focus;
@@ -46,14 +48,14 @@ function renderIsolated(component: Readonly<React.ReactElement>) {
 describe('Toggle', () => {
   describe('4.1. Рендер и базовая структура', () => {
     it('toggle рендерится без падений с минимальными пропсами', () => {
-      const { container, getToggle } = renderIsolated(<Toggle />);
+      const { container, getToggle } = renderIsolated(React.createElement(AnyToggle, null));
 
       expect(container).toBeInTheDocument();
       expect(getToggle()).toBeInTheDocument();
     });
 
     it('создает input элемент с правильными атрибутами по умолчанию', () => {
-      const { getToggle } = renderIsolated(<Toggle />);
+      const { getToggle } = renderIsolated(React.createElement(AnyToggle, null));
 
       const toggle = getToggle();
       expect(toggle).toBeInTheDocument();
@@ -64,13 +66,13 @@ describe('Toggle', () => {
     });
 
     it('toggle имеет правильный role', () => {
-      const { getByRole } = renderIsolated(<Toggle />);
+      const { getByRole } = renderIsolated(React.createElement(AnyToggle, null));
 
       expect(getByRole('switch')).toBeInTheDocument();
     });
 
     it('aria-checked=false и aria-pressed=false по умолчанию для неконтролируемого toggle', () => {
-      const { getToggle } = renderIsolated(<Toggle />);
+      const { getToggle } = renderIsolated(React.createElement(AnyToggle, null));
 
       const toggle = getToggle();
       expect(toggle).toHaveAttribute('aria-checked', 'false');
@@ -79,7 +81,9 @@ describe('Toggle', () => {
 
     it('aria-checked=true и aria-pressed=true когда checked=true', () => {
       const onChange = vi.fn();
-      const { getToggle } = renderIsolated(<Toggle checked onChange={onChange} />);
+      const { getToggle } = renderIsolated(
+        React.createElement(AnyToggle, { checked: true, onChange } as any),
+      );
 
       const toggle = getToggle();
       expect(toggle).toHaveAttribute('aria-checked', 'true');
@@ -88,7 +92,9 @@ describe('Toggle', () => {
 
     it('aria-checked=false и aria-pressed=false когда checked=false', () => {
       const onChange = vi.fn();
-      const { getToggle } = renderIsolated(<Toggle checked={false} onChange={onChange} />);
+      const { getToggle } = renderIsolated(
+        React.createElement(AnyToggle, { checked: false, onChange } as any),
+      );
 
       const toggle = getToggle();
       expect(toggle).toHaveAttribute('aria-checked', 'false');
@@ -100,7 +106,7 @@ describe('Toggle', () => {
     it('forwardRef работает для внешнего доступа к DOM элементу', () => {
       const ref = React.createRef<HTMLInputElement>();
 
-      const { getToggle } = renderIsolated(<Toggle ref={ref} />);
+      const { getToggle } = renderIsolated(React.createElement(AnyToggle, { ref } as any));
 
       const toggle = getToggle();
       expect(ref.current).toBe(toggle);
@@ -109,7 +115,7 @@ describe('Toggle', () => {
     it('useImperativeHandle возвращает правильный элемент', () => {
       const ref = React.createRef<HTMLInputElement>();
 
-      renderIsolated(<Toggle ref={ref} />);
+      renderIsolated(React.createElement(AnyToggle, { ref } as any));
 
       expect(ref.current).toBeInstanceOf(HTMLInputElement);
       expect(ref.current?.tagName).toBe('INPUT');
@@ -124,7 +130,7 @@ describe('Toggle', () => {
       const originalUseRef = React.useRef;
       React.useRef = vi.fn(() => ({ current: null }));
 
-      renderIsolated(<Toggle ref={ref} />);
+      renderIsolated(React.createElement(AnyToggle, { ref } as any));
 
       // Должен вернуть HTMLElement (document.createElement('input'))
       expect(ref.current).toBeInstanceOf(HTMLElement);
@@ -137,15 +143,18 @@ describe('Toggle', () => {
   describe('4.3. Пропсы пробрасываются', () => {
     it('стандартные HTML пропсы пробрасываются корректно', () => {
       const { getToggle } = renderIsolated(
-        <Toggle
-          id='test-toggle'
-          name='testName'
-          className='test-class'
-          disabled
-          required
-          checked
-          value='test-value'
-        />,
+        React.createElement(
+          AnyToggle,
+          {
+            id: 'test-toggle',
+            name: 'testName',
+            className: 'test-class',
+            disabled: true,
+            required: true,
+            checked: true,
+            value: 'test-value',
+          } as any,
+        ),
       );
 
       const toggle = getToggle();
@@ -159,27 +168,33 @@ describe('Toggle', () => {
     });
 
     it('autoFocus пропс не пробрасывается в DOM (reserved)', () => {
-      const { getToggle } = renderIsolated(<Toggle autoFocus />);
+      const { getToggle } = renderIsolated(
+        React.createElement(AnyToggle, { autoFocus: true } as any),
+      );
 
       const toggle = getToggle();
       expect(toggle).not.toHaveAttribute('autoFocus');
     });
 
     it('indeterminate пропс не пробрасывается в DOM (reserved)', () => {
-      const { getToggle } = renderIsolated(<Toggle indeterminate />);
+      const { getToggle } = renderIsolated(
+        React.createElement(AnyToggle, { indeterminate: true } as any),
+      );
 
       const toggle = getToggle();
       expect(toggle).not.toHaveAttribute('indeterminate');
     });
 
     it('data-component всегда присутствует', () => {
-      const { getToggle } = renderIsolated(<Toggle />);
+      const { getToggle } = renderIsolated(React.createElement(AnyToggle, null));
 
       expect(getToggle()).toHaveAttribute('data-component', 'CoreToggle');
     });
 
     it('aria-busy=true когда disabled=true', () => {
-      const { getToggle } = renderIsolated(<Toggle disabled />);
+      const { getToggle } = renderIsolated(
+        React.createElement(AnyToggle, { disabled: true } as any),
+      );
 
       const toggle = getToggle();
       expect(toggle).toHaveAttribute('aria-busy', 'true');
@@ -187,7 +202,7 @@ describe('Toggle', () => {
     });
 
     it('aria-busy отсутствует когда disabled=false или undefined', () => {
-      const { getToggle } = renderIsolated(<Toggle />);
+      const { getToggle } = renderIsolated(React.createElement(AnyToggle, null));
 
       const toggle = getToggle();
       expect(toggle).not.toHaveAttribute('aria-busy');
@@ -202,7 +217,9 @@ describe('Toggle', () => {
     });
 
     it('autoFocus=true фокусирует toggle один раз с preventScroll', () => {
-      const { rerender } = renderIsolated(<Toggle autoFocus />);
+      const { rerender } = renderIsolated(
+        React.createElement(AnyToggle, { autoFocus: true } as any),
+      );
 
       vi.runAllTimers();
 
@@ -210,26 +227,28 @@ describe('Toggle', () => {
       expect(mockFocus).toHaveBeenCalledWith({ preventScroll: true });
 
       // Повторный рендер не вызывает focus снова
-      rerender(<Toggle autoFocus />);
+      rerender(React.createElement(AnyToggle, { autoFocus: true } as any));
       vi.runAllTimers();
       expect(mockFocus).toHaveBeenCalledTimes(1);
     });
 
     it('autoFocus=false (по умолчанию) не фокусирует', () => {
-      renderIsolated(<Toggle />);
+      renderIsolated(React.createElement(AnyToggle, null));
       vi.runAllTimers();
 
       expect(mockFocus).not.toHaveBeenCalled();
     });
 
     it('autoFocus блокируется hasFocusedRef в StrictMode (покрытие ветки)', () => {
-      const { rerender } = renderIsolated(<Toggle autoFocus />);
+      const { rerender } = renderIsolated(
+        React.createElement(AnyToggle, { autoFocus: true } as any),
+      );
 
       vi.runAllTimers();
       expect(mockFocus).toHaveBeenCalledTimes(1);
 
       // Симуляция StrictMode поведения
-      rerender(<Toggle autoFocus />);
+      rerender(React.createElement(AnyToggle, { autoFocus: true } as any));
       vi.runAllTimers();
       expect(mockFocus).toHaveBeenCalledTimes(1);
     });
@@ -241,7 +260,7 @@ describe('Toggle', () => {
       React.useRef = mockUseRef;
 
       expect(() => {
-        renderIsolated(<Toggle autoFocus />);
+        renderIsolated(React.createElement(AnyToggle, { autoFocus: true } as any));
         vi.runAllTimers();
       }).not.toThrow();
 
@@ -251,7 +270,9 @@ describe('Toggle', () => {
     it('autoFocus очищает timeout при unmount', () => {
       const clearTimeoutSpy = vi.spyOn(window, 'clearTimeout');
 
-      const { unmount } = renderIsolated(<Toggle autoFocus />);
+      const { unmount } = renderIsolated(
+        React.createElement(AnyToggle, { autoFocus: true } as any),
+      );
 
       unmount();
 
@@ -261,39 +282,43 @@ describe('Toggle', () => {
 
   describe('4.5. indeterminate поведение', () => {
     it('indeterminate=false (по умолчанию) не устанавливает indeterminate', () => {
-      const { getToggle } = renderIsolated(<Toggle />);
+      const { getToggle } = renderIsolated(React.createElement(AnyToggle, null));
 
       const toggle = getToggle();
       expect(toggle.indeterminate).toBe(false);
     });
 
     it('indeterminate=true устанавливает indeterminate на DOM элементе', () => {
-      const { getToggle } = renderIsolated(<Toggle indeterminate />);
+      const { getToggle } = renderIsolated(
+        React.createElement(AnyToggle, { indeterminate: true } as any),
+      );
 
       const toggle = getToggle();
       expect(toggle.indeterminate).toBe(true);
     });
 
     it('indeterminate изменяется динамически', () => {
-      const { getToggle, rerender } = renderIsolated(<Toggle indeterminate />);
+      const { getToggle, rerender } = renderIsolated(
+        React.createElement(AnyToggle, { indeterminate: true } as any),
+      );
 
       const toggle = getToggle();
       expect(toggle.indeterminate).toBe(true);
 
-      rerender(<Toggle indeterminate={false} />);
+      rerender(React.createElement(AnyToggle, { indeterminate: false } as any));
       expect(toggle.indeterminate).toBe(false);
 
-      rerender(<Toggle indeterminate />);
+      rerender(React.createElement(AnyToggle, { indeterminate: true } as any));
       expect(toggle.indeterminate).toBe(true);
     });
 
     it('indeterminate работает с Boolean конверсией', () => {
-      const { getToggle, rerender } = renderIsolated(<Toggle />);
+      const { getToggle, rerender } = renderIsolated(React.createElement(AnyToggle, null));
 
       const toggle = getToggle();
       expect(toggle.indeterminate).toBe(false);
 
-      rerender(<Toggle indeterminate={false} />);
+      rerender(React.createElement(AnyToggle, { indeterminate: false } as any));
       expect(toggle.indeterminate).toBe(false);
     });
 
@@ -311,7 +336,7 @@ describe('Toggle', () => {
 
       // Этот тест проверяет что код не падает когда indeterminate не поддерживается
       expect(() => {
-        renderIsolated(<Toggle indeterminate />);
+        renderIsolated(React.createElement(AnyToggle, { indeterminate: true } as any));
       }).not.toThrow();
 
       React.useRef = originalUseRef;
@@ -322,25 +347,27 @@ describe('Toggle', () => {
     it('рендер стабилен при одинаковых пропсах', () => {
       const onChange = vi.fn();
       const { container, rerender } = renderIsolated(
-        <Toggle id='stable' checked onChange={onChange} />,
+        React.createElement(AnyToggle, { id: 'stable', checked: true, onChange } as any),
       );
 
       const firstRender = container.innerHTML;
 
-      rerender(<Toggle id='stable' checked onChange={onChange} />);
+      rerender(
+        React.createElement(AnyToggle, { id: 'stable', checked: true, onChange } as any),
+      );
 
       expect(container.innerHTML).toBe(firstRender);
     });
 
     it('memo предотвращает ненужные ре-рендеры', () => {
-      const renderSpy = vi.fn(() => <Toggle />);
-      const Component = React.memo(renderSpy);
+      const renderSpy = vi.fn(() => React.createElement(AnyToggle, null));
+      const Component = React.memo(renderSpy) as any;
 
-      const { rerender } = render(<Component />);
+      const { rerender } = render(React.createElement(Component));
 
       expect(renderSpy).toHaveBeenCalledTimes(1);
 
-      rerender(<Component />);
+      rerender(React.createElement(Component));
 
       expect(renderSpy).toHaveBeenCalledTimes(1);
     });
@@ -353,7 +380,10 @@ describe('Toggle', () => {
       const onBlur = vi.fn();
 
       const { getToggle } = renderIsolated(
-        <Toggle onChange={onChange} onFocus={onFocus} onBlur={onBlur} />,
+        React.createElement(
+          AnyToggle,
+          { onChange, onFocus, onBlur } as any,
+        ),
       );
 
       const toggle = getToggle();
@@ -371,7 +401,9 @@ describe('Toggle', () => {
     it('onChange получает event с правильными данными', () => {
       const onChange = vi.fn();
 
-      const { getToggle } = renderIsolated(<Toggle onChange={onChange} />);
+      const { getToggle } = renderIsolated(
+        React.createElement(AnyToggle, { onChange } as any),
+      );
 
       const toggle = getToggle();
       fireEvent.click(toggle);
@@ -383,11 +415,14 @@ describe('Toggle', () => {
   describe('4.8. Edge cases', () => {
     it('работает с undefined пропсами', () => {
       const { getToggle } = renderIsolated(
-        <Toggle
-          title={undefined}
-          disabled={undefined}
-          autoFocus={false}
-        />,
+        React.createElement(
+          AnyToggle,
+          {
+            title: undefined,
+            disabled: undefined,
+            autoFocus: false,
+          } as any,
+        ),
       );
 
       const toggle = getToggle();
@@ -398,7 +433,7 @@ describe('Toggle', () => {
     });
 
     it('работает с отсутствующими пропсами', () => {
-      const { getToggle } = renderIsolated(<Toggle />);
+      const { getToggle } = renderIsolated(React.createElement(AnyToggle, null));
 
       const toggle = getToggle();
       expect(toggle).toBeInTheDocument();
@@ -411,13 +446,16 @@ describe('Toggle', () => {
       const onChange = vi.fn();
 
       const { getToggle } = renderIsolated(
-        <Toggle
-          onChange={onChange}
-          defaultChecked
-          form='test-form'
-          tabIndex={1}
-          aria-label='Test toggle'
-        />,
+        React.createElement(
+          AnyToggle,
+          {
+            onChange,
+            defaultChecked: true,
+            form: 'test-form',
+            tabIndex: 1,
+            'aria-label': 'Test toggle',
+          } as any,
+        ),
       );
 
       const toggle = getToggle();
@@ -428,15 +466,17 @@ describe('Toggle', () => {
 
     it('checked состояние синхронизируется с DOM', () => {
       const onChange = vi.fn();
-      const { getToggle, rerender } = renderIsolated(<Toggle checked onChange={onChange} />);
+      const { getToggle, rerender } = renderIsolated(
+        React.createElement(AnyToggle, { checked: true, onChange } as any),
+      );
 
       const toggle = getToggle();
       expect(toggle).toBeChecked();
 
-      rerender(<Toggle checked={false} onChange={onChange} />);
+      rerender(React.createElement(AnyToggle, { checked: false, onChange } as any));
       expect(toggle).not.toBeChecked();
 
-      rerender(<Toggle checked onChange={onChange} />);
+      rerender(React.createElement(AnyToggle, { checked: true, onChange } as any));
       expect(toggle).toBeChecked();
     });
   });

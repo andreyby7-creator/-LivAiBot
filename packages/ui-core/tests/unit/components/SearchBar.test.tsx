@@ -12,6 +12,8 @@ import { SearchBar } from '@livai/ui-core';
 
 import '@testing-library/jest-dom/vitest';
 
+const AnySearchBar = SearchBar as any;
+
 // Полная очистка DOM между тестами
 afterEach(cleanup);
 
@@ -54,14 +56,18 @@ describe('SearchBar', () => {
 
   describe('4.1. Рендер без падений', () => {
     it('рендерится с обязательными пропсами', () => {
-      const { container, getSearchBar } = renderIsolated(<SearchBar />);
+      const { container, getSearchBar } = renderIsolated(
+        React.createElement(AnySearchBar, {} as any, null),
+      );
 
       expect(container).toBeInTheDocument();
       expect(getSearchBar()).toBeInTheDocument();
     });
 
     it('создает div элемент с правильными атрибутами по умолчанию', () => {
-      const { getSearchBar } = renderIsolated(<SearchBar />);
+      const { getSearchBar } = renderIsolated(
+        React.createElement(AnySearchBar, {} as any, null),
+      );
 
       const searchBar = getSearchBar();
       expect(searchBar).toBeInTheDocument();
@@ -73,7 +79,9 @@ describe('SearchBar', () => {
     });
 
     it('рендерит form элемент', () => {
-      const { getForm } = renderIsolated(<SearchBar />);
+      const { getForm } = renderIsolated(
+        React.createElement(AnySearchBar, {} as any, null),
+      );
 
       const form = getForm();
       expect(form).toBeInTheDocument();
@@ -83,7 +91,9 @@ describe('SearchBar', () => {
     });
 
     it('рендерит input элемент', () => {
-      const { getInput } = renderIsolated(<SearchBar />);
+      const { getInput } = renderIsolated(
+        React.createElement(AnySearchBar, {} as any, null),
+      );
 
       const input = getInput();
       expect(input).toBeInTheDocument();
@@ -96,7 +106,9 @@ describe('SearchBar', () => {
 
   describe('4.2. Пропсы компонента', () => {
     it('применяет className к контейнеру', () => {
-      const { getSearchBar } = renderIsolated(<SearchBar className='custom-class' />);
+      const { getSearchBar } = renderIsolated(
+        React.createElement(AnySearchBar, { className: 'custom-class' } as any, null),
+      );
 
       expect(getSearchBar()).toHaveClass('custom-class');
     });
@@ -105,7 +117,13 @@ describe('SearchBar', () => {
       // style применяется к input, а не к контейнеру
       // Кастомный стиль применяется последним, но paddingRight по умолчанию для medium размера = 32px
       // Чтобы переопределить paddingRight, нужно явно указать его в кастомном стиле
-      const { getInput } = renderIsolated(<SearchBar style={customStyleWithPaddingRight} />);
+      const { getInput } = renderIsolated(
+        React.createElement(
+          AnySearchBar,
+          { style: customStyleWithPaddingRight } as any,
+          null,
+        ),
+      );
 
       const input = getInput();
       const computedStyle = window.getComputedStyle(input);
@@ -117,20 +135,28 @@ describe('SearchBar', () => {
     });
 
     it('применяет data-testid', () => {
-      const { getByTestId } = renderIsolated(<SearchBar data-testid='custom-test-id' />);
+      const { getByTestId } = renderIsolated(
+        React.createElement(AnySearchBar, { 'data-testid': 'custom-test-id' } as any, null),
+      );
 
       expect(getByTestId('custom-test-id')).toBeInTheDocument();
     });
 
     it('не имеет data-testid по умолчанию', () => {
-      const { getSearchBar } = renderIsolated(<SearchBar />);
+      const { getSearchBar } = renderIsolated(
+        React.createElement(AnySearchBar, {} as any, null),
+      );
 
       expect(getSearchBar()).not.toHaveAttribute('data-testid');
     });
 
     it('прокидывает дополнительные HTML атрибуты', () => {
       const { getSearchBar } = renderIsolated(
-        <SearchBar id='searchbar-id' title='Custom title' data-custom='test-value' />,
+        React.createElement(
+          AnySearchBar,
+          { id: 'searchbar-id', title: 'Custom title', 'data-custom': 'test-value' } as any,
+          null,
+        ),
       );
 
       const searchBar = getSearchBar();
@@ -142,14 +168,18 @@ describe('SearchBar', () => {
 
   describe('4.3. Value и onChange', () => {
     it('использует пустую строку по умолчанию', () => {
-      const { getInput } = renderIsolated(<SearchBar />);
+      const { getInput } = renderIsolated(
+        React.createElement(AnySearchBar, {} as any, null),
+      );
 
       const input = getInput() as HTMLInputElement;
       expect(input.value).toBe('');
     });
 
     it('отображает переданное value', () => {
-      const { getInput } = renderIsolated(<SearchBar value='test query' />);
+      const { getInput } = renderIsolated(
+        React.createElement(AnySearchBar, { value: 'test query' } as any, null),
+      );
 
       const input = getInput() as HTMLInputElement;
       expect(input.value).toBe('test query');
@@ -157,7 +187,9 @@ describe('SearchBar', () => {
 
     it('вызывает onChange при изменении значения', () => {
       const mockOnChange = vi.fn();
-      const { getInput } = renderIsolated(<SearchBar onChange={mockOnChange} />);
+      const { getInput } = renderIsolated(
+        React.createElement(AnySearchBar, { onChange: mockOnChange } as any, null),
+      );
 
       const input = getInput() as HTMLInputElement;
       fireEvent.change(input, { target: { value: 'new value' } });
@@ -168,7 +200,13 @@ describe('SearchBar', () => {
 
     it('не вызывает onChange когда disabled=true', () => {
       const mockOnChange = vi.fn();
-      const { getInput } = renderIsolated(<SearchBar onChange={mockOnChange} disabled={true} />);
+      const { getInput } = renderIsolated(
+        React.createElement(
+          AnySearchBar,
+          { onChange: mockOnChange, disabled: true } as any,
+          null,
+        ),
+      );
 
       const input = getInput() as HTMLInputElement;
       fireEvent.change(input, { target: { value: 'new value' } });
@@ -177,7 +215,9 @@ describe('SearchBar', () => {
     });
 
     it('не вызывает onChange если он не передан', () => {
-      const { getInput } = renderIsolated(<SearchBar />);
+      const { getInput } = renderIsolated(
+        React.createElement(AnySearchBar, {} as any, null),
+      );
 
       const input = getInput() as HTMLInputElement;
       expect(() => fireEvent.change(input, { target: { value: 'new value' } })).not.toThrow();
@@ -186,14 +226,18 @@ describe('SearchBar', () => {
 
   describe('4.4. Placeholder', () => {
     it('не имеет placeholder по умолчанию', () => {
-      const { getInput } = renderIsolated(<SearchBar />);
+      const { getInput } = renderIsolated(
+        React.createElement(AnySearchBar, {} as any, null),
+      );
 
       const input = getInput();
       expect(input).not.toHaveAttribute('placeholder');
     });
 
     it('применяет placeholder', () => {
-      const { getInput } = renderIsolated(<SearchBar placeholder='Search...' />);
+      const { getInput } = renderIsolated(
+        React.createElement(AnySearchBar, { placeholder: 'Search...' } as any, null),
+      );
 
       const input = getInput();
       expect(input).toHaveAttribute('placeholder', 'Search...');
@@ -202,27 +246,37 @@ describe('SearchBar', () => {
 
   describe('4.5. Clear button', () => {
     it('показывает кнопку очистки по умолчанию когда есть значение', () => {
-      const { getClearButton } = renderIsolated(<SearchBar value='test' />);
+      const { getClearButton } = renderIsolated(
+        React.createElement(AnySearchBar, { value: 'test' } as any, null),
+      );
 
       expect(getClearButton()).toBeInTheDocument();
     });
 
     it('не показывает кнопку очистки когда значение пустое', () => {
-      const { getClearButton } = renderIsolated(<SearchBar value='' />);
+      const { getClearButton } = renderIsolated(
+        React.createElement(AnySearchBar, { value: '' } as any, null),
+      );
 
       expect(getClearButton()).toBeNull();
     });
 
     it('не показывает кнопку очистки когда showClearButton=false', () => {
       const { getClearButton } = renderIsolated(
-        <SearchBar value='test' showClearButton={false} />,
+        React.createElement(
+          AnySearchBar,
+          { value: 'test', showClearButton: false } as any,
+          null,
+        ),
       );
 
       expect(getClearButton()).toBeNull();
     });
 
     it('не показывает кнопку очистки когда disabled=true', () => {
-      const { getClearButton } = renderIsolated(<SearchBar value='test' disabled={true} />);
+      const { getClearButton } = renderIsolated(
+        React.createElement(AnySearchBar, { value: 'test', disabled: true } as any, null),
+      );
 
       expect(getClearButton()).toBeNull();
     });
@@ -230,7 +284,11 @@ describe('SearchBar', () => {
     it('вызывает onChange с пустой строкой при клике на кнопку очистки', () => {
       const mockOnChange = vi.fn();
       const { getClearButton } = renderIsolated(
-        <SearchBar value='test' onChange={mockOnChange} />,
+        React.createElement(
+          AnySearchBar,
+          { value: 'test', onChange: mockOnChange } as any,
+          null,
+        ),
       );
 
       const clearButton = getClearButton();
@@ -244,7 +302,11 @@ describe('SearchBar', () => {
       const mockOnClear = vi.fn();
       const mockOnChange = vi.fn();
       const { getClearButton } = renderIsolated(
-        <SearchBar value='test' onChange={mockOnChange} onClear={mockOnClear} />,
+        React.createElement(
+          AnySearchBar,
+          { value: 'test', onChange: mockOnChange, onClear: mockOnClear } as any,
+          null,
+        ),
       );
 
       const clearButton = getClearButton();
@@ -257,7 +319,11 @@ describe('SearchBar', () => {
     it('синтетическое событие имеет все необходимые методы и свойства', () => {
       const mockOnChange = vi.fn();
       const { getClearButton } = renderIsolated(
-        <SearchBar value='test' onChange={mockOnChange} />,
+        React.createElement(
+          AnySearchBar,
+          { value: 'test', onChange: mockOnChange } as any,
+          null,
+        ),
       );
 
       const clearButton = getClearButton();
@@ -286,7 +352,9 @@ describe('SearchBar', () => {
     });
 
     it('использует дефолтную иконку очистки', () => {
-      const { getClearButton } = renderIsolated(<SearchBar value='test' />);
+      const { getClearButton } = renderIsolated(
+        React.createElement(AnySearchBar, { value: 'test' } as any, null),
+      );
 
       const clearButton = getClearButton();
       expect(clearButton).toHaveTextContent('×');
@@ -294,7 +362,14 @@ describe('SearchBar', () => {
 
     it('использует кастомную иконку очистки', () => {
       const { getClearButton } = renderIsolated(
-        <SearchBar value='test' clearIcon={<span data-testid='custom-clear'>Clear</span>} />,
+        React.createElement(
+          AnySearchBar,
+          {
+            value: 'test',
+            clearIcon: React.createElement('span', { 'data-testid': 'custom-clear' }, 'Clear'),
+          } as any,
+          null,
+        ),
       );
 
       const clearButton = getClearButton();
@@ -302,7 +377,9 @@ describe('SearchBar', () => {
     });
 
     it('применяет правильные атрибуты к кнопке очистки', () => {
-      const { getClearButton } = renderIsolated(<SearchBar value='test' />);
+      const { getClearButton } = renderIsolated(
+        React.createElement(AnySearchBar, { value: 'test' } as any, null),
+      );
 
       const clearButton = getClearButton();
       expect(clearButton).toHaveAttribute('type', 'button');
@@ -313,19 +390,25 @@ describe('SearchBar', () => {
 
   describe('4.6. Search button', () => {
     it('не показывает кнопку поиска по умолчанию', () => {
-      const { getSearchButton } = renderIsolated(<SearchBar />);
+      const { getSearchButton } = renderIsolated(
+        React.createElement(AnySearchBar, {} as any, null),
+      );
 
       expect(getSearchButton()).toBeNull();
     });
 
     it('показывает кнопку поиска когда showSearchButton=true', () => {
-      const { getSearchButton } = renderIsolated(<SearchBar showSearchButton={true} />);
+      const { getSearchButton } = renderIsolated(
+        React.createElement(AnySearchBar, { showSearchButton: true } as any, null),
+      );
 
       expect(getSearchButton()).toBeInTheDocument();
     });
 
     it('использует дефолтный текст кнопки поиска', () => {
-      const { getSearchButton } = renderIsolated(<SearchBar showSearchButton={true} />);
+      const { getSearchButton } = renderIsolated(
+        React.createElement(AnySearchBar, { showSearchButton: true } as any, null),
+      );
 
       const searchButton = getSearchButton();
       expect(searchButton).toHaveTextContent('Search');
@@ -333,7 +416,11 @@ describe('SearchBar', () => {
 
     it('использует кастомный текст кнопки поиска', () => {
       const { getSearchButton } = renderIsolated(
-        <SearchBar showSearchButton={true} searchButtonLabel='Find' />,
+        React.createElement(
+          AnySearchBar,
+          { showSearchButton: true, searchButtonLabel: 'Find' } as any,
+          null,
+        ),
       );
 
       const searchButton = getSearchButton();
@@ -341,7 +428,9 @@ describe('SearchBar', () => {
     });
 
     it('применяет правильные атрибуты к кнопке поиска', () => {
-      const { getSearchButton } = renderIsolated(<SearchBar showSearchButton={true} />);
+      const { getSearchButton } = renderIsolated(
+        React.createElement(AnySearchBar, { showSearchButton: true } as any, null),
+      );
 
       const searchButton = getSearchButton();
       expect(searchButton).toHaveAttribute('type', 'submit');
@@ -350,7 +439,11 @@ describe('SearchBar', () => {
 
     it('disabled кнопка поиска когда disabled=true', () => {
       const { getSearchButton } = renderIsolated(
-        <SearchBar showSearchButton={true} disabled={true} />,
+        React.createElement(
+          AnySearchBar,
+          { showSearchButton: true, disabled: true } as any,
+          null,
+        ),
       );
 
       const searchButton = getSearchButton();
@@ -360,17 +453,23 @@ describe('SearchBar', () => {
 
   describe('4.7. Search icon', () => {
     it('не показывает иконку поиска по умолчанию', () => {
-      const { getIcon } = renderIsolated(<SearchBar />);
+      const { getIcon } = renderIsolated(
+        React.createElement(AnySearchBar, {} as any, null),
+      );
 
       expect(getIcon()).toBeNull();
     });
 
     it('показывает иконку поиска когда searchIcon передан', () => {
       const { getByTestId, getIcon } = renderIsolated(
-        <SearchBar
-          searchIcon={<span data-testid='search-icon'>🔍</span>}
-          data-testid='searchbar'
-        />,
+        React.createElement(
+          AnySearchBar,
+          {
+            searchIcon: React.createElement('span', { 'data-testid': 'search-icon' }, '🔍'),
+            'data-testid': 'searchbar',
+          } as any,
+          null,
+        ),
       );
 
       expect(getByTestId('search-icon')).toBeInTheDocument();
@@ -380,7 +479,14 @@ describe('SearchBar', () => {
 
     it('применяет правильные атрибуты к иконке поиска', () => {
       const { getIcon } = renderIsolated(
-        <SearchBar searchIcon={<span>🔍</span>} data-testid='searchbar' />,
+        React.createElement(
+          AnySearchBar,
+          {
+            searchIcon: React.createElement('span', null, '🔍'),
+            'data-testid': 'searchbar',
+          } as any,
+          null,
+        ),
       );
 
       const icon = getIcon();
@@ -389,7 +495,13 @@ describe('SearchBar', () => {
     });
 
     it('применяет padding слева когда есть иконка', () => {
-      const { getInput } = renderIsolated(<SearchBar searchIcon={<span>🔍</span>} />);
+      const { getInput } = renderIsolated(
+        React.createElement(
+          AnySearchBar,
+          { searchIcon: React.createElement('span', null, '🔍') } as any,
+          null,
+        ),
+      );
 
       const input = getInput();
       expect(input).toHaveStyle({ paddingLeft: '36px' });
@@ -398,13 +510,17 @@ describe('SearchBar', () => {
 
   describe('4.8. Size', () => {
     it('использует medium размер по умолчанию', () => {
-      const { getSearchBar } = renderIsolated(<SearchBar />);
+      const { getSearchBar } = renderIsolated(
+        React.createElement(AnySearchBar, {} as any, null),
+      );
 
       expect(getSearchBar()).toHaveAttribute('data-size', 'medium');
     });
 
     it('применяет small размер', () => {
-      const { getSearchBar, getInput } = renderIsolated(<SearchBar size='small' />);
+      const { getSearchBar, getInput } = renderIsolated(
+        React.createElement(AnySearchBar, { size: 'small' } as any, null),
+      );
 
       expect(getSearchBar()).toHaveAttribute('data-size', 'small');
       const input = getInput();
@@ -417,7 +533,9 @@ describe('SearchBar', () => {
     });
 
     it('применяет medium размер', () => {
-      const { getSearchBar, getInput } = renderIsolated(<SearchBar size='medium' />);
+      const { getSearchBar, getInput } = renderIsolated(
+        React.createElement(AnySearchBar, { size: 'medium' } as any, null),
+      );
 
       expect(getSearchBar()).toHaveAttribute('data-size', 'medium');
       const input = getInput();
@@ -429,7 +547,9 @@ describe('SearchBar', () => {
     });
 
     it('применяет large размер', () => {
-      const { getSearchBar, getInput } = renderIsolated(<SearchBar size='large' />);
+      const { getSearchBar, getInput } = renderIsolated(
+        React.createElement(AnySearchBar, { size: 'large' } as any, null),
+      );
 
       expect(getSearchBar()).toHaveAttribute('data-size', 'large');
       const input = getInput();
@@ -442,21 +562,27 @@ describe('SearchBar', () => {
     });
 
     it('применяет правильный padding справа для small размера', () => {
-      const { getInput } = renderIsolated(<SearchBar size='small' value='test' />);
+      const { getInput } = renderIsolated(
+        React.createElement(AnySearchBar, { size: 'small', value: 'test' } as any, null),
+      );
 
       const input = getInput();
       expect(input).toHaveStyle({ paddingRight: '28px' });
     });
 
     it('применяет правильный padding справа для medium размера', () => {
-      const { getInput } = renderIsolated(<SearchBar size='medium' value='test' />);
+      const { getInput } = renderIsolated(
+        React.createElement(AnySearchBar, { size: 'medium', value: 'test' } as any, null),
+      );
 
       const input = getInput();
       expect(input).toHaveStyle({ paddingRight: '32px' });
     });
 
     it('применяет правильный padding справа для large размера', () => {
-      const { getInput } = renderIsolated(<SearchBar size='large' value='test' />);
+      const { getInput } = renderIsolated(
+        React.createElement(AnySearchBar, { size: 'large', value: 'test' } as any, null),
+      );
 
       const input = getInput();
       expect(input).toHaveStyle({ paddingRight: '40px' });
@@ -465,21 +591,27 @@ describe('SearchBar', () => {
 
   describe('4.9. Disabled состояние', () => {
     it('не disabled по умолчанию', () => {
-      const { getSearchBar, getInput } = renderIsolated(<SearchBar />);
+      const { getSearchBar, getInput } = renderIsolated(
+        React.createElement(AnySearchBar, {} as any, null),
+      );
 
       expect(getSearchBar()).not.toHaveAttribute('data-disabled');
       expect(getInput()).not.toBeDisabled();
     });
 
     it('применяет disabled состояние', () => {
-      const { getSearchBar, getInput } = renderIsolated(<SearchBar disabled={true} />);
+      const { getSearchBar, getInput } = renderIsolated(
+        React.createElement(AnySearchBar, { disabled: true } as any, null),
+      );
 
       expect(getSearchBar()).toHaveAttribute('data-disabled', 'true');
       expect(getInput()).toBeDisabled();
     });
 
     it('применяет правильные стили для disabled состояния', () => {
-      const { getInput } = renderIsolated(<SearchBar disabled={true} />);
+      const { getInput } = renderIsolated(
+        React.createElement(AnySearchBar, { disabled: true } as any, null),
+      );
 
       const input = getInput();
       expect(input).toHaveStyle({ opacity: '0.6', cursor: 'not-allowed' });
@@ -488,28 +620,36 @@ describe('SearchBar', () => {
 
   describe('4.10. Width', () => {
     it('использует 100% по умолчанию', () => {
-      const { getSearchBar } = renderIsolated(<SearchBar />);
+      const { getSearchBar } = renderIsolated(
+        React.createElement(AnySearchBar, {} as any, null),
+      );
 
       const searchBar = getSearchBar();
       expect(searchBar).toHaveStyle({ width: '100%' });
     });
 
     it('применяет кастомную ширину', () => {
-      const { getSearchBar } = renderIsolated(<SearchBar width='300px' />);
+      const { getSearchBar } = renderIsolated(
+        React.createElement(AnySearchBar, { width: '300px' } as any, null),
+      );
 
       const searchBar = getSearchBar();
       expect(searchBar).toHaveStyle({ width: '300px' });
     });
 
     it('применяет ширину в rem', () => {
-      const { getSearchBar } = renderIsolated(<SearchBar width='20rem' />);
+      const { getSearchBar } = renderIsolated(
+        React.createElement(AnySearchBar, { width: '20rem' } as any, null),
+      );
 
       const searchBar = getSearchBar();
       expect(searchBar).toHaveStyle({ width: '20rem' });
     });
 
     it('применяет CSS переменную для ширины', () => {
-      const { getSearchBar } = renderIsolated(<SearchBar width='var(--searchbar-width)' />);
+      const { getSearchBar } = renderIsolated(
+        React.createElement(AnySearchBar, { width: 'var(--searchbar-width)' } as any, null),
+      );
 
       const searchBar = getSearchBar();
       expect(searchBar).toHaveStyle({ width: 'var(--searchbar-width)' });
@@ -519,7 +659,9 @@ describe('SearchBar', () => {
   describe('4.11. onSubmit', () => {
     it('вызывает onSubmit при submit формы', () => {
       const mockOnSubmit = vi.fn();
-      const { getForm } = renderIsolated(<SearchBar value='test' onSubmit={mockOnSubmit} />);
+      const { getForm } = renderIsolated(
+        React.createElement(AnySearchBar, { value: 'test', onSubmit: mockOnSubmit } as any, null),
+      );
 
       const form = getForm();
       fireEvent.submit(form);
@@ -530,7 +672,9 @@ describe('SearchBar', () => {
 
     it('вызывает onSubmit при нажатии Enter в input', () => {
       const mockOnSubmit = vi.fn();
-      const { getInput } = renderIsolated(<SearchBar value='test' onSubmit={mockOnSubmit} />);
+      const { getInput } = renderIsolated(
+        React.createElement(AnySearchBar, { value: 'test', onSubmit: mockOnSubmit } as any, null),
+      );
 
       const input = getInput();
       fireEvent.keyDown(input, { key: 'Enter' });
@@ -541,7 +685,9 @@ describe('SearchBar', () => {
 
     it('не вызывает onSubmit при нажатии других клавиш', () => {
       const mockOnSubmit = vi.fn();
-      const { getInput } = renderIsolated(<SearchBar value='test' onSubmit={mockOnSubmit} />);
+      const { getInput } = renderIsolated(
+        React.createElement(AnySearchBar, { value: 'test', onSubmit: mockOnSubmit } as any, null),
+      );
 
       const input = getInput();
       fireEvent.keyDown(input, { key: 'Space' });
@@ -552,7 +698,11 @@ describe('SearchBar', () => {
     it('не вызывает onSubmit когда disabled=true', () => {
       const mockOnSubmit = vi.fn();
       const { getForm } = renderIsolated(
-        <SearchBar value='test' onSubmit={mockOnSubmit} disabled={true} />,
+        React.createElement(
+          AnySearchBar,
+          { value: 'test', onSubmit: mockOnSubmit, disabled: true } as any,
+          null,
+        ),
       );
 
       const form = getForm();
@@ -562,7 +712,9 @@ describe('SearchBar', () => {
     });
 
     it('не вызывает onSubmit если он не передан', () => {
-      const { getForm } = renderIsolated(<SearchBar value='test' />);
+      const { getForm } = renderIsolated(
+        React.createElement(AnySearchBar, { value: 'test' } as any, null),
+      );
 
       const form = getForm();
       expect(() => fireEvent.submit(form)).not.toThrow();
@@ -570,7 +722,9 @@ describe('SearchBar', () => {
 
     it('вызывает preventDefault при submit', () => {
       const mockOnSubmit = vi.fn();
-      const { getForm } = renderIsolated(<SearchBar value='test' onSubmit={mockOnSubmit} />);
+      const { getForm } = renderIsolated(
+        React.createElement(AnySearchBar, { value: 'test', onSubmit: mockOnSubmit } as any, null),
+      );
 
       const form = getForm();
       const submitEvent = new Event('submit', { bubbles: true, cancelable: true });
@@ -585,7 +739,7 @@ describe('SearchBar', () => {
     it('передает ref к input элементу', () => {
       const mockRef = createMockRef();
 
-      renderIsolated(<SearchBar ref={mockRef} />);
+      renderIsolated(React.createElement(AnySearchBar, { ref: mockRef } as any, null));
 
       expect(mockRef.current).toBeInstanceOf(HTMLInputElement);
       expect(mockRef.current?.tagName).toBe('INPUT');
@@ -595,7 +749,7 @@ describe('SearchBar', () => {
     it('поддерживает callback ref', () => {
       const refCallback = vi.fn();
 
-      renderIsolated(<SearchBar ref={refCallback} />);
+      renderIsolated(React.createElement(AnySearchBar, { ref: refCallback } as any, null));
 
       expect(refCallback).toHaveBeenCalledTimes(1);
       expect(refCallback.mock.calls[0]?.[0]).toBeInstanceOf(HTMLInputElement);
@@ -604,32 +758,48 @@ describe('SearchBar', () => {
 
   describe('4.13. Test IDs', () => {
     it('применяет правильный data-testid для form', () => {
-      const { getByTestId } = renderIsolated(<SearchBar data-testid='searchbar' />);
+      const { getByTestId } = renderIsolated(
+        React.createElement(AnySearchBar, { 'data-testid': 'searchbar' } as any, null),
+      );
 
       expect(getByTestId('searchbar-form')).toBeInTheDocument();
     });
 
     it('применяет правильный data-testid для wrapper', () => {
-      const { getByTestId } = renderIsolated(<SearchBar data-testid='searchbar' />);
+      const { getByTestId } = renderIsolated(
+        React.createElement(AnySearchBar, { 'data-testid': 'searchbar' } as any, null),
+      );
 
       expect(getByTestId('searchbar-wrapper')).toBeInTheDocument();
     });
 
     it('применяет правильный data-testid для input', () => {
-      const { getByTestId } = renderIsolated(<SearchBar data-testid='searchbar' />);
+      const { getByTestId } = renderIsolated(
+        React.createElement(AnySearchBar, { 'data-testid': 'searchbar' } as any, null),
+      );
 
       expect(getByTestId('searchbar-input')).toBeInTheDocument();
     });
 
     it('применяет правильный data-testid для clear button', () => {
-      const { getByTestId } = renderIsolated(<SearchBar data-testid='searchbar' value='test' />);
+      const { getByTestId } = renderIsolated(
+        React.createElement(
+          AnySearchBar,
+          { 'data-testid': 'searchbar', value: 'test' } as any,
+          null,
+        ),
+      );
 
       expect(getByTestId('searchbar-clear')).toBeInTheDocument();
     });
 
     it('применяет правильный data-testid для search button', () => {
       const { getByTestId } = renderIsolated(
-        <SearchBar data-testid='searchbar' showSearchButton={true} />,
+        React.createElement(
+          AnySearchBar,
+          { 'data-testid': 'searchbar', showSearchButton: true } as any,
+          null,
+        ),
       );
 
       expect(getByTestId('searchbar-search-button')).toBeInTheDocument();
@@ -637,14 +807,23 @@ describe('SearchBar', () => {
 
     it('применяет правильный data-testid для icon', () => {
       const { getByTestId } = renderIsolated(
-        <SearchBar data-testid='searchbar' searchIcon={<span>🔍</span>} />,
+        React.createElement(
+          AnySearchBar,
+          {
+            'data-testid': 'searchbar',
+            searchIcon: React.createElement('span', null, '🔍'),
+          } as any,
+          null,
+        ),
       );
 
       expect(getByTestId('searchbar-icon')).toBeInTheDocument();
     });
 
     it('не применяет data-testid для вложенных элементов когда testId пустой', () => {
-      const { container } = renderIsolated(<SearchBar data-testid='' value='test' />);
+      const { container } = renderIsolated(
+        React.createElement(AnySearchBar, { 'data-testid': '', value: 'test' } as any, null),
+      );
 
       expect(container.querySelector('[data-testid*="-form"]')).toBeNull();
       expect(container.querySelector('[data-testid*="-wrapper"]')).toBeNull();
@@ -652,7 +831,9 @@ describe('SearchBar', () => {
     });
 
     it('не применяет data-testid для вложенных элементов когда testId не передан', () => {
-      const { container } = renderIsolated(<SearchBar value='test' />);
+      const { container } = renderIsolated(
+        React.createElement(AnySearchBar, { value: 'test' } as any, null),
+      );
 
       expect(container.querySelector('[data-testid*="-form"]')).toBeNull();
       expect(container.querySelector('[data-testid*="-wrapper"]')).toBeNull();
@@ -662,21 +843,31 @@ describe('SearchBar', () => {
 
   describe('4.14. ARIA атрибуты', () => {
     it('применяет aria-describedby к input', () => {
-      const { getInput } = renderIsolated(<SearchBar aria-describedby='description-id' />);
+      const { getInput } = renderIsolated(
+        React.createElement(
+          AnySearchBar,
+          { 'aria-describedby': 'description-id' } as any,
+          null,
+        ),
+      );
 
       const input = getInput();
       expect(input).toHaveAttribute('aria-describedby', 'description-id');
     });
 
     it('не применяет aria-describedby по умолчанию', () => {
-      const { getInput } = renderIsolated(<SearchBar />);
+      const { getInput } = renderIsolated(
+        React.createElement(AnySearchBar, {} as any, null),
+      );
 
       const input = getInput();
       expect(input).not.toHaveAttribute('aria-describedby');
     });
 
     it('применяет aria-required=false к input', () => {
-      const { getInput } = renderIsolated(<SearchBar />);
+      const { getInput } = renderIsolated(
+        React.createElement(AnySearchBar, {} as any, null),
+      );
 
       const input = getInput();
       expect(input).toHaveAttribute('aria-required', 'false');
@@ -685,7 +876,9 @@ describe('SearchBar', () => {
 
   describe('4.15. Edge cases', () => {
     it('работает с value=undefined', () => {
-      const { getInput } = renderIsolated(<SearchBar value={undefined as any} />);
+      const { getInput } = renderIsolated(
+        React.createElement(AnySearchBar, { value: undefined as any } as any, null),
+      );
 
       const input = getInput() as HTMLInputElement;
       expect(input.value).toBe('');
@@ -696,12 +889,16 @@ describe('SearchBar', () => {
       // Это edge case, который должен обрабатываться на уровне App-слоя
       // Тестируем что компонент не падает при рендере
       expect(() => {
-        renderIsolated(<SearchBar value={null as any} />);
+        renderIsolated(
+          React.createElement(AnySearchBar, { value: null as any } as any, null),
+        );
       }).toThrow();
     });
 
     it('работает с пустой строкой value', () => {
-      const { getInput } = renderIsolated(<SearchBar value='' />);
+      const { getInput } = renderIsolated(
+        React.createElement(AnySearchBar, { value: '' } as any, null),
+      );
 
       const input = getInput() as HTMLInputElement;
       expect(input.value).toBe('');
@@ -709,27 +906,37 @@ describe('SearchBar', () => {
 
     it('работает с длинным значением', () => {
       const longValue = 'a'.repeat(1000);
-      const { getInput } = renderIsolated(<SearchBar value={longValue} />);
+      const { getInput } = renderIsolated(
+        React.createElement(AnySearchBar, { value: longValue } as any, null),
+      );
 
       const input = getInput() as HTMLInputElement;
       expect(input.value).toBe(longValue);
     });
 
     it('работает с disabled как false', () => {
-      const { getSearchBar } = renderIsolated(<SearchBar disabled={false} />);
+      const { getSearchBar } = renderIsolated(
+        React.createElement(AnySearchBar, { disabled: false } as any, null),
+      );
 
       expect(getSearchBar()).not.toHaveAttribute('data-disabled');
     });
 
     it('работает с disabled как true', () => {
-      const { getSearchBar } = renderIsolated(<SearchBar disabled={true} />);
+      const { getSearchBar } = renderIsolated(
+        React.createElement(AnySearchBar, { disabled: true } as any, null),
+      );
 
       expect(getSearchBar()).toHaveAttribute('data-disabled', 'true');
     });
 
     it('работает с showClearButton как false', () => {
       const { getClearButton } = renderIsolated(
-        <SearchBar value='test' showClearButton={false} />,
+        React.createElement(
+          AnySearchBar,
+          { value: 'test', showClearButton: false } as any,
+          null,
+        ),
       );
 
       expect(getClearButton()).toBeNull();
@@ -737,20 +944,28 @@ describe('SearchBar', () => {
 
     it('работает с showClearButton как true', () => {
       const { getClearButton } = renderIsolated(
-        <SearchBar value='test' showClearButton={true} />,
+        React.createElement(
+          AnySearchBar,
+          { value: 'test', showClearButton: true } as any,
+          null,
+        ),
       );
 
       expect(getClearButton()).toBeInTheDocument();
     });
 
     it('работает с showSearchButton как false', () => {
-      const { getSearchButton } = renderIsolated(<SearchBar showSearchButton={false} />);
+      const { getSearchButton } = renderIsolated(
+        React.createElement(AnySearchBar, { showSearchButton: false } as any, null),
+      );
 
       expect(getSearchButton()).toBeNull();
     });
 
     it('работает с showSearchButton как true', () => {
-      const { getSearchButton } = renderIsolated(<SearchBar showSearchButton={true} />);
+      const { getSearchButton } = renderIsolated(
+        React.createElement(AnySearchBar, { showSearchButton: true } as any, null),
+      );
 
       expect(getSearchButton()).toBeInTheDocument();
     });
@@ -758,7 +973,9 @@ describe('SearchBar', () => {
 
   describe('4.16. Стилизация', () => {
     it('применяет базовые стили контейнера', () => {
-      const { getSearchBar } = renderIsolated(<SearchBar />);
+      const { getSearchBar } = renderIsolated(
+        React.createElement(AnySearchBar, {} as any, null),
+      );
 
       const searchBar = getSearchBar();
       expect(searchBar).toHaveStyle({
@@ -770,7 +987,9 @@ describe('SearchBar', () => {
     });
 
     it('применяет базовые стили form', () => {
-      const { getForm } = renderIsolated(<SearchBar />);
+      const { getForm } = renderIsolated(
+        React.createElement(AnySearchBar, {} as any, null),
+      );
 
       const form = getForm();
       expect(form).toHaveStyle({
@@ -782,7 +1001,9 @@ describe('SearchBar', () => {
     });
 
     it('применяет базовые стили input', () => {
-      const { getInput } = renderIsolated(<SearchBar />);
+      const { getInput } = renderIsolated(
+        React.createElement(AnySearchBar, {} as any, null),
+      );
 
       const input = getInput();
       expect(input).toHaveStyle({
@@ -794,7 +1015,9 @@ describe('SearchBar', () => {
     });
 
     it('объединяет кастомные стили с базовыми', () => {
-      const { getInput } = renderIsolated(<SearchBar style={customCombinedStyle} />);
+      const { getInput } = renderIsolated(
+        React.createElement(AnySearchBar, { style: customCombinedStyle } as any, null),
+      );
 
       const input = getInput();
       const computedStyle = window.getComputedStyle(input);
@@ -804,11 +1027,13 @@ describe('SearchBar', () => {
 
   describe('4.17. Memoization и производительность', () => {
     it('не перерендеривается при неизменных пропсах', () => {
-      const { rerender, getSearchBar } = renderIsolated(<SearchBar value='test' />);
+      const { rerender, getSearchBar } = renderIsolated(
+        React.createElement(AnySearchBar, { value: 'test' } as any, null),
+      );
 
       const firstRender = getSearchBar();
 
-      rerender(<SearchBar value='test' />);
+      rerender(React.createElement(AnySearchBar, { value: 'test' } as any, null));
 
       const secondRender = getSearchBar();
       // Проверяем что элементы те же (memo работает)
@@ -816,12 +1041,14 @@ describe('SearchBar', () => {
     });
 
     it('перерендеривается при изменении value', () => {
-      const { rerender, getInput } = renderIsolated(<SearchBar value='test1' />);
+      const { rerender, getInput } = renderIsolated(
+        React.createElement(AnySearchBar, { value: 'test1' } as any, null),
+      );
 
       const input1 = getInput() as HTMLInputElement;
       expect(input1.value).toBe('test1');
 
-      rerender(<SearchBar value='test2' />);
+      rerender(React.createElement(AnySearchBar, { value: 'test2' } as any, null));
 
       const input2 = getInput() as HTMLInputElement;
       expect(input2.value).toBe('test2');
@@ -834,23 +1061,27 @@ describe('SearchBar', () => {
       const mockOnSubmit = vi.fn();
       const mockOnClear = vi.fn();
       const { getSearchBar, getInput, getClearButton, getSearchButton, getIcon } = renderIsolated(
-        <SearchBar
-          value='test query'
-          onChange={mockOnChange}
-          onSubmit={mockOnSubmit}
-          onClear={mockOnClear}
-          placeholder='Search...'
-          showClearButton={true}
-          showSearchButton={true}
-          searchButtonLabel='Find'
-          searchIcon={<span>🔍</span>}
-          clearIcon={<span>×</span>}
-          disabled={false}
-          size='large'
-          width='500px'
-          aria-describedby='desc-id'
-          data-testid='searchbar'
-        />,
+        React.createElement(
+          AnySearchBar,
+          {
+            value: 'test query',
+            onChange: mockOnChange,
+            onSubmit: mockOnSubmit,
+            onClear: mockOnClear,
+            placeholder: 'Search...',
+            showClearButton: true,
+            showSearchButton: true,
+            searchButtonLabel: 'Find',
+            searchIcon: React.createElement('span', null, '🔍'),
+            clearIcon: React.createElement('span', null, '×'),
+            disabled: false,
+            size: 'large',
+            width: '500px',
+            'aria-describedby': 'desc-id',
+            'data-testid': 'searchbar',
+          } as any,
+          null,
+        ),
       );
 
       expect(getSearchBar()).toBeInTheDocument();
@@ -865,7 +1096,9 @@ describe('SearchBar', () => {
     });
 
     it('работает с минимальным набором пропсов', () => {
-      const { getSearchBar, getInput } = renderIsolated(<SearchBar />);
+      const { getSearchBar, getInput } = renderIsolated(
+        React.createElement(AnySearchBar, {} as any, null),
+      );
 
       expect(getSearchBar()).toBeInTheDocument();
       expect(getInput()).toBeInTheDocument();

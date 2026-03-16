@@ -11,6 +11,8 @@ import { Skeleton } from '@livai/ui-core';
 
 import '@testing-library/jest-dom/vitest';
 
+const AnySkeleton = Skeleton as any;
+
 // Полная очистка DOM между тестами
 afterEach(cleanup);
 
@@ -44,7 +46,7 @@ describe('Skeleton', () => {
   describe('4.1. Рендер без падений', () => {
     it('рендерится с обязательными пропсами', () => {
       const { container, getSkeleton } = renderIsolated(
-        <Skeleton visible={true} />,
+        React.createElement(AnySkeleton, { visible: true } as any, null),
       );
 
       expect(container).toBeInTheDocument();
@@ -53,7 +55,7 @@ describe('Skeleton', () => {
 
     it('создает div элемент с правильными атрибутами по умолчанию', () => {
       const { getSkeleton } = renderIsolated(
-        <Skeleton visible={true} />,
+        React.createElement(AnySkeleton, { visible: true } as any, null),
       );
 
       const skeleton = getSkeleton();
@@ -67,7 +69,7 @@ describe('Skeleton', () => {
 
     it('не рендерится когда visible=false', () => {
       const { queryByRole } = renderIsolated(
-        <Skeleton visible={false} />,
+        React.createElement(AnySkeleton, { visible: false } as any, null),
       );
 
       expect(queryByRole('presentation')).not.toBeInTheDocument();
@@ -75,7 +77,7 @@ describe('Skeleton', () => {
 
     it('рендерится когда visible не указан (по умолчанию true)', () => {
       const { getSkeleton } = renderIsolated(
-        <Skeleton />,
+        React.createElement(AnySkeleton, {} as any, null),
       );
 
       expect(getSkeleton()).toBeInTheDocument();
@@ -88,7 +90,7 @@ describe('Skeleton', () => {
     variants.forEach((variant) => {
       it(`применяет правильный data-variant="${variant}"`, () => {
         const { getSkeleton } = renderIsolated(
-          <Skeleton visible={true} variant={variant} />,
+          React.createElement(AnySkeleton, { visible: true, variant } as any, null),
         );
 
         expect(getSkeleton()).toHaveAttribute('data-variant', variant);
@@ -96,7 +98,7 @@ describe('Skeleton', () => {
 
       it(`применяет правильный border-radius для variant="${variant}"`, () => {
         const { getSkeleton } = renderIsolated(
-          <Skeleton visible={true} variant={variant} />,
+          React.createElement(AnySkeleton, { visible: true, variant } as any, null),
         );
 
         const skeleton = getSkeleton();
@@ -118,7 +120,7 @@ describe('Skeleton', () => {
 
     it('использует rect по умолчанию', () => {
       const { getSkeleton } = renderIsolated(
-        <Skeleton visible={true} />,
+        React.createElement(AnySkeleton, { visible: true } as any, null),
       );
 
       expect(getSkeleton()).toHaveAttribute('data-variant', 'rect');
@@ -128,7 +130,7 @@ describe('Skeleton', () => {
   describe('4.3. Размеры (width, height)', () => {
     it('применяет кастомную ширину', () => {
       const { getSkeleton } = renderIsolated(
-        <Skeleton visible={true} width='200px' />,
+        React.createElement(AnySkeleton, { visible: true, width: '200px' } as any, null),
       );
 
       const skeleton = getSkeleton();
@@ -139,7 +141,7 @@ describe('Skeleton', () => {
 
     it('применяет кастомную высоту', () => {
       const { getSkeleton } = renderIsolated(
-        <Skeleton visible={true} height='50px' />,
+        React.createElement(AnySkeleton, { visible: true, height: '50px' } as any, null),
       );
 
       const skeleton = getSkeleton();
@@ -150,7 +152,11 @@ describe('Skeleton', () => {
 
     it('применяет числовые размеры', () => {
       const { getSkeleton } = renderIsolated(
-        <Skeleton visible={true} width={300 as any} height={100 as any} />,
+        React.createElement(
+          AnySkeleton,
+          { visible: true, width: 300 as any, height: 100 as any } as any,
+          null,
+        ),
       );
 
       const skeleton = getSkeleton();
@@ -162,7 +168,7 @@ describe('Skeleton', () => {
 
     it('использует дефолтные размеры', () => {
       const { getSkeleton } = renderIsolated(
-        <Skeleton visible={true} />,
+        React.createElement(AnySkeleton, { visible: true } as any, null),
       );
 
       const skeleton = getSkeleton();
@@ -176,7 +182,7 @@ describe('Skeleton', () => {
   describe('4.4. Радиус скругления (radius)', () => {
     it('применяет кастомный radius', () => {
       const { getSkeleton } = renderIsolated(
-        <Skeleton visible={true} radius='12px' />,
+        React.createElement(AnySkeleton, { visible: true, radius: '12px' } as any, null),
       );
 
       const skeleton = getSkeleton();
@@ -187,7 +193,7 @@ describe('Skeleton', () => {
 
     it('применяет числовой radius', () => {
       const { getSkeleton } = renderIsolated(
-        <Skeleton visible={true} radius={20} />,
+        React.createElement(AnySkeleton, { visible: true, radius: 20 } as any, null),
       );
 
       const skeleton = getSkeleton();
@@ -198,7 +204,11 @@ describe('Skeleton', () => {
 
     it('radius переопределяет variant border-radius', () => {
       const { getSkeleton } = renderIsolated(
-        <Skeleton visible={true} variant='circle' radius='8px' />,
+        React.createElement(
+          AnySkeleton,
+          { visible: true, variant: 'circle', radius: '8px' } as any,
+          null,
+        ),
       );
 
       const skeleton = getSkeleton();
@@ -211,7 +221,7 @@ describe('Skeleton', () => {
   describe('4.5. Анимация (animated)', () => {
     it('применяет shimmer анимацию по умолчанию', () => {
       const { getSkeleton } = renderIsolated(
-        <Skeleton visible={true} />,
+        React.createElement(AnySkeleton, { visible: true } as any, null),
       );
 
       const skeleton = getSkeleton();
@@ -225,7 +235,7 @@ describe('Skeleton', () => {
 
     it('отключает анимацию когда animated=false', () => {
       const { getSkeleton } = renderIsolated(
-        <Skeleton visible={true} animated={false} />,
+        React.createElement(AnySkeleton, { visible: true, animated: false } as any, null),
       );
 
       const skeleton = getSkeleton();
@@ -236,7 +246,7 @@ describe('Skeleton', () => {
 
     it('включает анимацию когда animated=true', () => {
       const { getSkeleton } = renderIsolated(
-        <Skeleton visible={true} animated={true} />,
+        React.createElement(AnySkeleton, { visible: true, animated: true } as any, null),
       );
 
       const skeleton = getSkeleton();
@@ -249,7 +259,7 @@ describe('Skeleton', () => {
   describe('4.6. Стилизация', () => {
     it('применяет базовые стили', () => {
       const { getSkeleton } = renderIsolated(
-        <Skeleton visible={true} />,
+        React.createElement(AnySkeleton, { visible: true } as any, null),
       );
 
       const skeleton = getSkeleton();
@@ -264,7 +274,7 @@ describe('Skeleton', () => {
 
     it('применяет shimmer стили', () => {
       const { getSkeleton } = renderIsolated(
-        <Skeleton visible={true} />,
+        React.createElement(AnySkeleton, { visible: true } as any, null),
       );
 
       const skeleton = getSkeleton();
@@ -276,7 +286,7 @@ describe('Skeleton', () => {
 
     it('применяет кастомные стили через style проп', () => {
       const { getSkeleton } = renderIsolated(
-        <Skeleton visible={true} style={customStyle} />,
+        React.createElement(AnySkeleton, { visible: true, style: customStyle } as any, null),
       );
 
       const skeleton = getSkeleton();
@@ -288,7 +298,7 @@ describe('Skeleton', () => {
 
     it('кастомные стили переопределяют базовые', () => {
       const { getSkeleton } = renderIsolated(
-        <Skeleton visible={true} style={overrideStyle} />,
+        React.createElement(AnySkeleton, { visible: true, style: overrideStyle } as any, null),
       );
 
       const skeleton = getSkeleton();
@@ -302,7 +312,11 @@ describe('Skeleton', () => {
     it('применяет data-testid', () => {
       const testId = 'custom-skeleton';
       const { getByTestId } = renderIsolated(
-        <Skeleton visible={true} data-testid={testId} />,
+        React.createElement(
+          AnySkeleton,
+          { visible: true, 'data-testid': testId } as any,
+          null,
+        ),
       );
 
       expect(getByTestId(testId)).toBeInTheDocument();
@@ -311,7 +325,11 @@ describe('Skeleton', () => {
     it('применяет className', () => {
       const className = 'custom-skeleton-class';
       const { getSkeleton } = renderIsolated(
-        <Skeleton visible={true} className={className} />,
+        React.createElement(
+          AnySkeleton,
+          { visible: true, className } as any,
+          null,
+        ),
       );
 
       expect(getSkeleton()).toHaveClass(className);
@@ -319,7 +337,11 @@ describe('Skeleton', () => {
 
     it('прокидывает другие HTML атрибуты', () => {
       const { getSkeleton } = renderIsolated(
-        <Skeleton visible={true} id='skeleton-id' tabIndex={-1} />,
+        React.createElement(
+          AnySkeleton,
+          { visible: true, id: 'skeleton-id', tabIndex: -1 } as any,
+          null,
+        ),
       );
 
       const skeleton = getSkeleton();
@@ -332,7 +354,9 @@ describe('Skeleton', () => {
     it('поддерживает React.createRef', () => {
       const ref = React.createRef<HTMLDivElement>();
 
-      renderIsolated(<Skeleton visible={true} ref={ref} />);
+      renderIsolated(
+        React.createElement(AnySkeleton, { visible: true, ref } as any, null),
+      );
 
       expect(ref.current).toBeInstanceOf(HTMLDivElement);
       expect(ref.current).toHaveAttribute('data-component', 'CoreSkeleton');
@@ -341,7 +365,9 @@ describe('Skeleton', () => {
     it('поддерживает useRef-подобный объект', () => {
       const ref = createMockRef();
 
-      renderIsolated(<Skeleton visible={true} ref={ref} />);
+      renderIsolated(
+        React.createElement(AnySkeleton, { visible: true, ref } as any, null),
+      );
 
       expect(ref.current).toBeInstanceOf(HTMLDivElement);
       expect(ref.current).toHaveAttribute('data-component', 'CoreSkeleton');
@@ -354,25 +380,29 @@ describe('Skeleton', () => {
 
       const TestComponent = () => {
         renderCount++;
-        return <Skeleton visible={true} />;
+        return React.createElement(AnySkeleton, { visible: true } as any, null);
       };
 
-      const { rerender } = render(<TestComponent />);
+      const { rerender } = render(
+        React.createElement(TestComponent as any, {} as any, null),
+      );
 
       expect(renderCount).toBe(1);
 
-      rerender(<TestComponent />);
+      rerender(React.createElement(TestComponent as any, {} as any, null));
       expect(renderCount).toBe(2); // React.memo предотвращает лишние рендеры компонента
     });
 
     it('useMemo для borderRadius вызывается только при изменении зависимостей', () => {
       const { getSkeleton, rerender } = renderIsolated(
-        <Skeleton visible={true} variant='rect' />,
+        React.createElement(AnySkeleton, { visible: true, variant: 'rect' } as any, null),
       );
 
       const initialRadius = window.getComputedStyle(getSkeleton()).borderRadius;
 
-      rerender(<Skeleton visible={true} variant='text' />);
+      rerender(
+        React.createElement(AnySkeleton, { visible: true, variant: 'text' } as any, null),
+      );
 
       const newRadius = window.getComputedStyle(getSkeleton()).borderRadius;
 
@@ -382,18 +412,28 @@ describe('Skeleton', () => {
 
     it('useMemo для combinedStyle стабилен при одинаковых пропсах', () => {
       const { rerender } = renderIsolated(
-        <Skeleton visible={true} width='100px' height='20px' />,
+        React.createElement(
+          AnySkeleton,
+          { visible: true, width: '100px', height: '20px' } as any,
+          null,
+        ),
       );
 
       // Если useMemo работает правильно, перерендер не должен вызывать лишних вычислений
-      rerender(<Skeleton visible={true} width='100px' height='20px' />);
+      rerender(
+        React.createElement(
+          AnySkeleton,
+          { visible: true, width: '100px', height: '20px' } as any,
+          null,
+        ),
+      );
     });
   });
 
   describe('4.10. Edge cases', () => {
     it('работает с undefined width и height', () => {
       const { getSkeleton } = renderIsolated(
-        <Skeleton visible={true} {...({} as any)} />,
+        React.createElement(AnySkeleton, { visible: true } as any, null),
       );
 
       const skeleton = getSkeleton();
@@ -402,7 +442,7 @@ describe('Skeleton', () => {
 
     it('работает с undefined radius', () => {
       const { getSkeleton } = renderIsolated(
-        <Skeleton visible={true} {...({} as any)} />,
+        React.createElement(AnySkeleton, { visible: true } as any, null),
       );
 
       const skeleton = getSkeleton();
@@ -411,7 +451,7 @@ describe('Skeleton', () => {
 
     it('работает с undefined animated', () => {
       const { getSkeleton } = renderIsolated(
-        <Skeleton visible={true} {...({} as any)} />,
+        React.createElement(AnySkeleton, { visible: true } as any, null),
       );
 
       const skeleton = getSkeleton();
@@ -422,7 +462,7 @@ describe('Skeleton', () => {
 
     it('работает с null style', () => {
       const { getSkeleton } = renderIsolated(
-        <Skeleton visible={true} style={nullStyle} />,
+        React.createElement(AnySkeleton, { visible: true, style: nullStyle } as any, null),
       );
 
       expect(getSkeleton()).toBeInTheDocument();
@@ -430,7 +470,7 @@ describe('Skeleton', () => {
 
     it('работает с undefined style', () => {
       const { getSkeleton } = renderIsolated(
-        <Skeleton visible={true} style={undefined} />,
+        React.createElement(AnySkeleton, { visible: true, style: undefined } as any, null),
       );
 
       expect(getSkeleton()).toBeInTheDocument();
@@ -438,7 +478,11 @@ describe('Skeleton', () => {
 
     it('radius=0 переопределяет variant', () => {
       const { getSkeleton } = renderIsolated(
-        <Skeleton visible={true} variant='circle' radius={0} />,
+        React.createElement(
+          AnySkeleton,
+          { visible: true, variant: 'circle', radius: 0 } as any,
+          null,
+        ),
       );
 
       const skeleton = getSkeleton();
@@ -449,7 +493,7 @@ describe('Skeleton', () => {
 
     it('radius="" (пустая строка) работает', () => {
       const { getSkeleton } = renderIsolated(
-        <Skeleton visible={true} radius='' />,
+        React.createElement(AnySkeleton, { visible: true, radius: '' } as any, null),
       );
 
       const skeleton = getSkeleton();
@@ -462,7 +506,7 @@ describe('Skeleton', () => {
   describe('4.11. Accessibility', () => {
     it('имеет правильные ARIA атрибуты', () => {
       const { getSkeleton } = renderIsolated(
-        <Skeleton visible={true} />,
+        React.createElement(AnySkeleton, { visible: true } as any, null),
       );
 
       const skeleton = getSkeleton();
@@ -472,7 +516,7 @@ describe('Skeleton', () => {
 
     it('не входит в accessibility tree', () => {
       const { getSkeleton } = renderIsolated(
-        <Skeleton visible={true} />,
+        React.createElement(AnySkeleton, { visible: true } as any, null),
       );
 
       const skeleton = getSkeleton();

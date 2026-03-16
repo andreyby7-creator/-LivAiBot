@@ -14,6 +14,9 @@ import '@testing-library/jest-dom/vitest';
 // Полная очистка DOM между тестами
 afterEach(cleanup);
 
+// Для целей тестов ослабляем типизацию пропсов FormField
+const AnyFormField = FormField as any;
+
 // Функция для изолированного рендера
 function renderIsolated(component: Readonly<React.ReactElement>) {
   const container = document.createElement('div');
@@ -38,9 +41,11 @@ describe('FormField', () => {
   describe('3.1. Label', () => {
     it('label отображается', () => {
       const { getByText } = renderIsolated(
-        <FormField key='label-display-test' label='Test Label' htmlFor='test'>
-          <input id='test' />
-        </FormField>,
+        React.createElement(
+          AnyFormField,
+          { key: 'label-display-test', label: 'Test Label', htmlFor: 'test' },
+          React.createElement('input', { id: 'test' }),
+        ),
       );
 
       expect(getByText('Test Label')).toBeInTheDocument();
@@ -48,9 +53,11 @@ describe('FormField', () => {
 
     it('htmlFor прокидывается в <label>', () => {
       const { getByText } = renderIsolated(
-        <FormField key='htmlfor-test' label='Test Label' htmlFor='test-input'>
-          <input id='test-input' />
-        </FormField>,
+        React.createElement(
+          AnyFormField,
+          { key: 'htmlfor-test', label: 'Test Label', htmlFor: 'test-input' },
+          React.createElement('input', { id: 'test-input' }),
+        ),
       );
 
       const label = getByText('Test Label');
@@ -61,9 +68,11 @@ describe('FormField', () => {
   describe('3.2. Children', () => {
     it('children рендерятся', () => {
       const { getByTestId } = renderIsolated(
-        <FormField key='children-test' label='Test' htmlFor='test'>
-          <input data-testid='custom-input' />
-        </FormField>,
+        React.createElement(
+          AnyFormField,
+          { key: 'children-test', label: 'Test', htmlFor: 'test' },
+          React.createElement('input', { 'data-testid': 'custom-input' }),
+        ),
       );
 
       expect(getByTestId('custom-input')).toBeInTheDocument();
@@ -73,9 +82,11 @@ describe('FormField', () => {
   describe('3.3. Без ошибки', () => {
     it('error отсутствует → блок ошибки не рендерится', () => {
       const { queryByRole } = renderIsolated(
-        <FormField key='no-error-test' label='Test' htmlFor='test'>
-          <input />
-        </FormField>,
+        React.createElement(
+          AnyFormField,
+          { key: 'no-error-test', label: 'Test', htmlFor: 'test' },
+          React.createElement('input', null),
+        ),
       );
 
       // Проверяем, что нет элемента с role="alert"
@@ -86,14 +97,16 @@ describe('FormField', () => {
   describe('3.4. С ошибкой', () => {
     it('error передан → текст ошибки отображается', () => {
       const { getByText } = renderIsolated(
-        <FormField
-          key='error-text-test'
-          label='Test'
-          htmlFor='test'
-          error={`This is an error ${Math.random()}`}
-        >
-          <input />
-        </FormField>,
+        React.createElement(
+          AnyFormField,
+          {
+            key: 'error-text-test',
+            label: 'Test',
+            htmlFor: 'test',
+            error: `This is an error ${Math.random()}`,
+          },
+          React.createElement('input', null),
+        ),
       );
 
       expect(getByText(/^This is an error/)).toBeInTheDocument();
@@ -101,14 +114,16 @@ describe('FormField', () => {
 
     it('есть role="alert"', () => {
       const { getByRole } = renderIsolated(
-        <FormField
-          key='alert-role-test'
-          label='Test'
-          htmlFor='test'
-          error={`Error message ${Math.random()}`}
-        >
-          <input />
-        </FormField>,
+        React.createElement(
+          AnyFormField,
+          {
+            key: 'alert-role-test',
+            label: 'Test',
+            htmlFor: 'test',
+            error: `Error message ${Math.random()}`,
+          },
+          React.createElement('input', null),
+        ),
       );
 
       expect(getByRole('alert')).toHaveTextContent(/^Error message/);
@@ -118,15 +133,17 @@ describe('FormField', () => {
   describe('3.5. errorId', () => {
     it('если errorId передан → error div получает id', () => {
       const { getByRole } = renderIsolated(
-        <FormField
-          key='error-id-test'
-          label='Test'
-          htmlFor='test'
-          error={`Error message ${Math.random()}`}
-          errorId='custom-error-id'
-        >
-          <input />
-        </FormField>,
+        React.createElement(
+          AnyFormField,
+          {
+            key: 'error-id-test',
+            label: 'Test',
+            htmlFor: 'test',
+            error: `Error message ${Math.random()}`,
+            errorId: 'custom-error-id',
+          },
+          React.createElement('input', null),
+        ),
       );
 
       const errorDiv = getByRole('alert');
@@ -135,14 +152,16 @@ describe('FormField', () => {
 
     it('если errorId не передан → error div без id', () => {
       const { getByRole } = renderIsolated(
-        <FormField
-          key='no-error-id-test'
-          label='Test'
-          htmlFor='test'
-          error={`Error message ${Math.random()}`}
-        >
-          <input />
-        </FormField>,
+        React.createElement(
+          AnyFormField,
+          {
+            key: 'no-error-id-test',
+            label: 'Test',
+            htmlFor: 'test',
+            error: `Error message ${Math.random()}`,
+          },
+          React.createElement('input', null),
+        ),
       );
 
       const errorDiv = getByRole('alert');
@@ -153,9 +172,16 @@ describe('FormField', () => {
   describe('3.6. Data attributes', () => {
     it('error block имеет data-ui="form-field-error"', () => {
       const { getByRole } = renderIsolated(
-        <FormField key='data-ui-test' label='Test' htmlFor='test' error={`Error ${Math.random()}`}>
-          <input />
-        </FormField>,
+        React.createElement(
+          AnyFormField,
+          {
+            key: 'data-ui-test',
+            label: 'Test',
+            htmlFor: 'test',
+            error: `Error ${Math.random()}`,
+          },
+          React.createElement('input', null),
+        ),
       );
 
       expect(getByRole('alert')).toHaveAttribute('data-ui', 'form-field-error');

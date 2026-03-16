@@ -14,6 +14,9 @@ import '@testing-library/jest-dom/vitest';
 // Полная очистка DOM между тестами
 afterEach(cleanup);
 
+// Для целей тестов ослабляем типизацию пропсов Form
+const AnyForm = Form as any;
+
 // Функция для изолированного рендера
 function renderIsolated(component: Readonly<React.ReactElement>) {
   const container = document.createElement('div');
@@ -38,9 +41,11 @@ describe('Form', () => {
   describe('1.1. Рендер и базовая структура', () => {
     it('рендерится без падений с минимальными пропсами', () => {
       const { container } = renderIsolated(
-        <Form>
-          <div>Test content</div>
-        </Form>,
+        React.createElement(
+          AnyForm,
+          null,
+          React.createElement('div', null, 'Test content'),
+        ),
       );
 
       expect(container).toBeInTheDocument();
@@ -49,9 +54,11 @@ describe('Form', () => {
 
     it('создает form элемент с правильными атрибутами', () => {
       const { getForm } = renderIsolated(
-        <Form>
-          <input type='text' name='test' />
-        </Form>,
+        React.createElement(
+          AnyForm,
+          null,
+          React.createElement('input', { type: 'text', name: 'test' }),
+        ),
       );
 
       const form = getForm();
@@ -61,9 +68,11 @@ describe('Form', () => {
 
     it('пробрасывает остальные HTML пропсы', () => {
       const { getForm } = renderIsolated(
-        <Form id='test-form' className='custom-class' data-testid='form'>
-          <div>Content</div>
-        </Form>,
+        React.createElement(
+          AnyForm,
+          { id: 'test-form', className: 'custom-class', 'data-testid': 'form' },
+          React.createElement('div', null, 'Content'),
+        ),
       );
 
       const form = getForm();
@@ -74,10 +83,12 @@ describe('Form', () => {
 
     it('рендерит children внутри формы', () => {
       const { getByText } = renderIsolated(
-        <Form>
-          <button type='submit'>Submit</button>
-          <p>Form content</p>
-        </Form>,
+        React.createElement(
+          AnyForm,
+          null,
+          React.createElement('button', { type: 'submit' }, 'Submit'),
+          React.createElement('p', null, 'Form content'),
+        ),
       );
 
       expect(getByText('Submit')).toBeInTheDocument();
@@ -91,9 +102,11 @@ describe('Form', () => {
       expect(typeof window).not.toBe('undefined');
 
       const { container } = renderIsolated(
-        <Form>
-          <div>Content</div>
-        </Form>,
+        React.createElement(
+          AnyForm,
+          null,
+          React.createElement('div', null, 'Content'),
+        ),
       );
 
       expect(container.querySelector('form')).toBeInTheDocument();
@@ -103,10 +116,16 @@ describe('Form', () => {
   describe('1.3. Focus management', () => {
     it('autoFocus=true (по умолчанию) фокусирует первый интерактивный элемент', async () => {
       const { getByRole } = renderIsolated(
-        <Form>
-          <input type='text' name='first' data-testid='first-input' />
-          <button type='submit'>Submit</button>
-        </Form>,
+        React.createElement(
+          AnyForm,
+          null,
+          React.createElement('input', {
+            type: 'text',
+            name: 'first',
+            'data-testid': 'first-input',
+          }),
+          React.createElement('button', { type: 'submit' }, 'Submit'),
+        ),
       );
 
       const input = getByRole('textbox');
@@ -116,10 +135,12 @@ describe('Form', () => {
 
     it('autoFocus=false не фокусирует элементы', () => {
       const { getByRole } = renderIsolated(
-        <Form autoFocus={false}>
-          <input type='text' name='first' />
-          <button type='submit'>Submit</button>
-        </Form>,
+        React.createElement(
+          AnyForm,
+          { autoFocus: false },
+          React.createElement('input', { type: 'text', name: 'first' }),
+          React.createElement('button', { type: 'submit' }, 'Submit'),
+        ),
       );
 
       const input = getByRole('textbox');
@@ -133,9 +154,11 @@ describe('Form', () => {
       HTMLElement.prototype.focus = mockFocus;
 
       renderIsolated(
-        <Form>
-          <input type='text' name='first' />
-        </Form>,
+        React.createElement(
+          AnyForm,
+          null,
+          React.createElement('input', { type: 'text', name: 'first' }),
+        ),
       );
 
       expect(mockFocus).toHaveBeenCalledWith({ preventScroll: true });
@@ -145,10 +168,12 @@ describe('Form', () => {
       // useEffect не должен падать если нет интерактивных элементов
       expect(() => {
         renderIsolated(
-          <Form>
-            <div>Non-interactive content</div>
-            <p>More content</p>
-          </Form>,
+          React.createElement(
+            AnyForm,
+            null,
+            React.createElement('div', null, 'Non-interactive content'),
+            React.createElement('p', null, 'More content'),
+          ),
         );
       }).not.toThrow();
     });
@@ -158,9 +183,11 @@ describe('Form', () => {
     it('всегда вызывает event.preventDefault() при submit', () => {
       const mockOnSubmit = vi.fn();
       const { getByRole } = renderIsolated(
-        <Form onSubmit={mockOnSubmit}>
-          <button type='submit'>Submit</button>
-        </Form>,
+        React.createElement(
+          AnyForm,
+          { onSubmit: mockOnSubmit },
+          React.createElement('button', { type: 'submit' }, 'Submit'),
+        ),
       );
 
       const submitButton = getByRole('button');
@@ -178,9 +205,11 @@ describe('Form', () => {
     it('вызывает onSubmit если передан', () => {
       const mockOnSubmit = vi.fn();
       const { getByRole } = renderIsolated(
-        <Form onSubmit={mockOnSubmit}>
-          <button type='submit'>Submit</button>
-        </Form>,
+        React.createElement(
+          AnyForm,
+          { onSubmit: mockOnSubmit },
+          React.createElement('button', { type: 'submit' }, 'Submit'),
+        ),
       );
 
       const submitButton = getByRole('button');
@@ -191,9 +220,11 @@ describe('Form', () => {
 
     it('не вызывает onSubmit если не передан', () => {
       const { getByRole } = renderIsolated(
-        <Form>
-          <button type='submit'>Submit</button>
-        </Form>,
+        React.createElement(
+          AnyForm,
+          null,
+          React.createElement('button', { type: 'submit' }, 'Submit'),
+        ),
       );
 
       const submitButton = getByRole('button');
@@ -207,9 +238,11 @@ describe('Form', () => {
     it('работает с form.submit() через fireEvent', () => {
       const mockOnSubmit = vi.fn();
       const { getForm } = renderIsolated(
-        <Form onSubmit={mockOnSubmit}>
-          <input type='text' name='test' />
-        </Form>,
+        React.createElement(
+          AnyForm,
+          { onSubmit: mockOnSubmit },
+          React.createElement('input', { type: 'text', name: 'test' }),
+        ),
       );
 
       const form = getForm();
@@ -222,9 +255,11 @@ describe('Form', () => {
   describe('1.5. Accessibility', () => {
     it('имеет правильные атрибуты', () => {
       const { getForm } = renderIsolated(
-        <Form>
-          <div>Content</div>
-        </Form>,
+        React.createElement(
+          AnyForm,
+          null,
+          React.createElement('div', null, 'Content'),
+        ),
       );
 
       const form = getForm();

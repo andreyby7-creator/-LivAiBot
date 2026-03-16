@@ -14,6 +14,9 @@ import '@testing-library/jest-dom/vitest';
 // Полная очистка DOM между тестами
 afterEach(cleanup);
 
+// Для целей тестов ослабляем типизацию пропсов Divider
+const AnyDivider = Divider as any;
+
 // Функция для изолированного рендера
 function renderIsolated(component: Readonly<React.ReactElement>) {
   const container = document.createElement('div');
@@ -41,14 +44,18 @@ describe('Divider', () => {
 
   describe('4.1. Рендер без падений', () => {
     it('рендерится с обязательными пропсами', () => {
-      const { container, getDivider } = renderIsolated(<Divider />);
+      const { container, getDivider } = renderIsolated(
+        React.createElement(AnyDivider, null),
+      );
 
       expect(container).toBeInTheDocument();
       expect(getDivider()).toBeInTheDocument();
     });
 
     it('создает hr элемент с правильными атрибутами по умолчанию', () => {
-      const { getDivider } = renderIsolated(<Divider />);
+      const { getDivider } = renderIsolated(
+        React.createElement(AnyDivider, null),
+      );
 
       const divider = getDivider();
       expect(divider).toBeInTheDocument();
@@ -58,7 +65,9 @@ describe('Divider', () => {
 
     it('принимает ref с типобезопасностью', () => {
       const ref = React.createRef<HTMLElement>();
-      renderIsolated(<Divider ref={ref} />);
+      renderIsolated(
+        React.createElement(AnyDivider, { ref }, null),
+      );
 
       expect(ref.current).toBeInstanceOf(HTMLElement);
     });
@@ -66,7 +75,9 @@ describe('Divider', () => {
 
   describe('4.2. Ориентация (orientation)', () => {
     it('по умолчанию рендерится как horizontal (hr)', () => {
-      const { getDivider } = renderIsolated(<Divider />);
+      const { getDivider } = renderIsolated(
+        React.createElement(AnyDivider, null),
+      );
 
       const divider = getDivider();
       expect(divider.tagName).toBe('HR');
@@ -74,7 +85,9 @@ describe('Divider', () => {
     });
 
     it('с orientation="vertical" рендерится как div с role="separator"', () => {
-      const { getDivider } = renderIsolated(<Divider orientation='vertical' />);
+      const { getDivider } = renderIsolated(
+        React.createElement(AnyDivider, { orientation: 'vertical' }),
+      );
 
       const divider = getDivider();
       expect(divider.tagName).toBe('DIV');
@@ -82,8 +95,12 @@ describe('Divider', () => {
     });
 
     it('принимает только допустимые значения orientation', () => {
-      const { getDivider: getHorizontal } = renderIsolated(<Divider orientation='horizontal' />);
-      const { getDivider: getVertical } = renderIsolated(<Divider orientation='vertical' />);
+      const { getDivider: getHorizontal } = renderIsolated(
+        React.createElement(AnyDivider, { orientation: 'horizontal' }),
+      );
+      const { getDivider: getVertical } = renderIsolated(
+        React.createElement(AnyDivider, { orientation: 'vertical' }),
+      );
 
       expect(getHorizontal().tagName).toBe('HR');
       expect(getVertical().tagName).toBe('DIV');
@@ -93,7 +110,9 @@ describe('Divider', () => {
 
   describe('4.3. Стили (thickness, color, length)', () => {
     it('применяет дефолтные значения стилей', () => {
-      const { getDivider } = renderIsolated(<Divider />);
+      const { getDivider } = renderIsolated(
+        React.createElement(AnyDivider, null),
+      );
 
       const divider = getDivider();
       const computedStyle = window.getComputedStyle(divider);
@@ -106,35 +125,45 @@ describe('Divider', () => {
     });
 
     it('применяет кастомные значения thickness (number)', () => {
-      const { getDivider } = renderIsolated(<Divider thickness={5} />);
+      const { getDivider } = renderIsolated(
+        React.createElement(AnyDivider, { thickness: 5 }),
+      );
 
       const divider = getDivider();
       expect(window.getComputedStyle(divider).height).toBe('5px');
     });
 
     it('применяет кастомные значения thickness (string)', () => {
-      const { getDivider } = renderIsolated(<Divider thickness='2rem' />);
+      const { getDivider } = renderIsolated(
+        React.createElement(AnyDivider, { thickness: '2rem' }),
+      );
 
       const divider = getDivider();
       expect(window.getComputedStyle(divider).height).toBe('2rem');
     });
 
     it('применяет кастомные значения color', () => {
-      const { getDivider } = renderIsolated(<Divider color='red' />);
+      const { getDivider } = renderIsolated(
+        React.createElement(AnyDivider, { color: 'red' }),
+      );
 
       const divider = getDivider();
       expect(window.getComputedStyle(divider).backgroundColor).toBe('rgb(255, 0, 0)');
     });
 
     it('применяет кастомные значения length (number)', () => {
-      const { getDivider } = renderIsolated(<Divider length={200 as any} />);
+      const { getDivider } = renderIsolated(
+        React.createElement(AnyDivider, { length: 200 as any }),
+      );
 
       const divider = getDivider();
       expect(window.getComputedStyle(divider).width).toBe('200px');
     });
 
     it('применяет кастомные значения length (string)', () => {
-      const { getDivider } = renderIsolated(<Divider length='50%' />);
+      const { getDivider } = renderIsolated(
+        React.createElement(AnyDivider, { length: '50%' }),
+      );
 
       const divider = getDivider();
       expect(window.getComputedStyle(divider).width).toBe('50%');
@@ -142,7 +171,12 @@ describe('Divider', () => {
 
     it('правильно применяет вертикальные стили', () => {
       const { getDivider } = renderIsolated(
-        <Divider orientation='vertical' thickness={3} color='blue' length='100px' />,
+        React.createElement(AnyDivider, {
+          orientation: 'vertical',
+          thickness: 3,
+          color: 'blue',
+          length: '100px',
+        }),
       );
 
       const divider = getDivider();
@@ -156,20 +190,26 @@ describe('Divider', () => {
 
   describe('4.4. Props spreading и атрибуты', () => {
     it('принимает и применяет className', () => {
-      const { getDivider } = renderIsolated(<Divider className='custom-divider' />);
+      const { getDivider } = renderIsolated(
+        React.createElement(AnyDivider, { className: 'custom-divider' }),
+      );
 
       const divider = getDivider();
       expect(divider).toHaveClass('custom-divider');
     });
 
     it('принимает и применяет data-testid', () => {
-      const { getByTestId } = renderIsolated(<Divider data-testid='divider-test' />);
+      const { getByTestId } = renderIsolated(
+        React.createElement(AnyDivider, { 'data-testid': 'divider-test' }),
+      );
 
       expect(getByTestId('divider-test')).toBeInTheDocument();
     });
 
     it('принимает и применяет произвольные HTML атрибуты', () => {
-      const { getDivider } = renderIsolated(<Divider id='divider-id' title='Test divider' />);
+      const { getDivider } = renderIsolated(
+        React.createElement(AnyDivider, { id: 'divider-id', title: 'Test divider' }),
+      );
 
       const divider = getDivider();
       expect(divider).toHaveAttribute('id', 'divider-id');
@@ -177,7 +217,9 @@ describe('Divider', () => {
     });
 
     it('принимает и применяет кастомный style', () => {
-      const { getDivider } = renderIsolated(<Divider style={customStyle} />);
+      const { getDivider } = renderIsolated(
+        React.createElement(AnyDivider, { style: customStyle }),
+      );
 
       const divider = getDivider();
       const computedStyle = window.getComputedStyle(divider);
@@ -190,7 +232,9 @@ describe('Divider', () => {
   describe('4.5. Ref forwarding', () => {
     it('корректно форвардит ref для horizontal divider (hr)', () => {
       const ref = React.createRef<HTMLElement>();
-      renderIsolated(<Divider ref={ref} />);
+      renderIsolated(
+        React.createElement(AnyDivider, { ref }, null),
+      );
 
       expect(ref.current).toBeInstanceOf(HTMLHRElement);
       expect(ref.current?.tagName).toBe('HR');
@@ -198,7 +242,9 @@ describe('Divider', () => {
 
     it('корректно форвардит ref для vertical divider (div)', () => {
       const ref = React.createRef<HTMLElement>();
-      renderIsolated(<Divider orientation='vertical' ref={ref} />);
+      renderIsolated(
+        React.createElement(AnyDivider, { orientation: 'vertical', ref }, null),
+      );
 
       expect(ref.current).toBeInstanceOf(HTMLDivElement);
       expect(ref.current?.tagName).toBe('DIV');
@@ -207,29 +253,43 @@ describe('Divider', () => {
 
   describe('4.6. Memoization и производительность', () => {
     it('стабильно рендерится с одинаковыми пропсами (memo)', () => {
-      const { container: container1 } = renderIsolated(<Divider thickness={2} color='red' />);
-      const { container: container2 } = renderIsolated(<Divider thickness={2} color='red' />);
+      const { container: container1 } = renderIsolated(
+        React.createElement(AnyDivider, { thickness: 2, color: 'red' }),
+      );
+      const { container: container2 } = renderIsolated(
+        React.createElement(AnyDivider, { thickness: 2, color: 'red' }),
+      );
 
       expect(container1.innerHTML).toBe(container2.innerHTML);
     });
 
     it('перерендеривается при изменении пропсов', () => {
-      const { rerender, getDivider } = renderIsolated(<Divider thickness={1} />);
+      const { rerender, getDivider } = renderIsolated(
+        React.createElement(AnyDivider, { thickness: 1 }),
+      );
 
       expect(window.getComputedStyle(getDivider()).height).toBe('1px');
 
-      rerender(<Divider thickness={3} />);
+      rerender(
+        React.createElement(AnyDivider, { thickness: 3 }),
+      );
       expect(window.getComputedStyle(getDivider()).height).toBe('3px');
     });
   });
 
   describe('4.7. Edge cases', () => {
     it('обрабатывает пустые пропсы', () => {
-      expect(() => renderIsolated(<Divider />)).not.toThrow();
+      expect(() =>
+        renderIsolated(
+          React.createElement(AnyDivider, null),
+        )
+      ).not.toThrow();
     });
 
     it('работает без пропсов (использует дефолтные значения)', () => {
-      const { getDivider } = renderIsolated(<Divider />);
+      const { getDivider } = renderIsolated(
+        React.createElement(AnyDivider, null),
+      );
 
       const divider = getDivider();
       expect(divider).toBeInTheDocument();
@@ -238,7 +298,10 @@ describe('Divider', () => {
 
     it('применяет стили в правильном порядке (BASE_STYLE -> orientationStyle -> custom style)', () => {
       const { getDivider } = renderIsolated(
-        <Divider orientation='horizontal' thickness={2} style={overrideStyle} />,
+        React.createElement(
+          AnyDivider,
+          { orientation: 'horizontal', thickness: 2, style: overrideStyle },
+        ),
       );
 
       const divider = getDivider();

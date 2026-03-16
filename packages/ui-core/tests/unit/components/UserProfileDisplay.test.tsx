@@ -12,6 +12,8 @@ import { UserProfileDisplay } from '@livai/ui-core';
 
 import '@testing-library/jest-dom/vitest';
 
+const AnyUserProfileDisplay = UserProfileDisplay as any;
+
 // Полная очистка DOM между тестами
 afterEach(cleanup);
 
@@ -125,7 +127,7 @@ describe('UserProfileDisplay', () => {
   describe('4.1. Рендер без падений', () => {
     it('рендерится с обязательными пропсами', () => {
       const { container, getUserProfileDisplay } = renderIsolated(
-        <UserProfileDisplay profile={minimalProfile} />,
+        React.createElement(AnyUserProfileDisplay, { profile: minimalProfile } as any, null),
       );
 
       expect(container).toBeInTheDocument();
@@ -134,7 +136,7 @@ describe('UserProfileDisplay', () => {
 
     it('создает div элемент с правильными атрибутами по умолчанию', () => {
       const { getUserProfileDisplay } = renderIsolated(
-        <UserProfileDisplay profile={minimalProfile} />,
+        React.createElement(AnyUserProfileDisplay, { profile: minimalProfile } as any, null),
       );
 
       const component = getUserProfileDisplay();
@@ -149,7 +151,7 @@ describe('UserProfileDisplay', () => {
 
     it('рендерится с полным профилем', () => {
       const { getUserProfileDisplay } = renderIsolated(
-        <UserProfileDisplay profile={baseProfile} />,
+        React.createElement(AnyUserProfileDisplay, { profile: baseProfile } as any, null),
       );
 
       expect(getUserProfileDisplay()).toBeInTheDocument();
@@ -163,7 +165,11 @@ describe('UserProfileDisplay', () => {
       sizes.forEach((size) => {
         it(`применяет правильный data-size="${size}"`, () => {
           const { getUserProfileDisplay } = renderIsolated(
-            <UserProfileDisplay profile={minimalProfile} size={size} />,
+            React.createElement(
+              AnyUserProfileDisplay,
+              { profile: minimalProfile, size } as any,
+              null,
+            ),
           );
 
           expect(getUserProfileDisplay()).toHaveAttribute('data-size', size);
@@ -171,11 +177,11 @@ describe('UserProfileDisplay', () => {
 
         it(`применяет правильный размер аватара для size="${size}"`, () => {
           const { container } = renderIsolated(
-            <UserProfileDisplay
-              profile={minimalProfile}
-              size={size}
-              data-testid='profile'
-            />,
+            React.createElement(
+              AnyUserProfileDisplay,
+              { profile: minimalProfile, size, 'data-testid': 'profile' } as any,
+              null,
+            ),
           );
 
           const avatarWrapper = container.querySelector('[data-testid="profile-avatar-wrapper"]');
@@ -191,7 +197,7 @@ describe('UserProfileDisplay', () => {
 
       it('использует medium по умолчанию', () => {
         const { getUserProfileDisplay } = renderIsolated(
-          <UserProfileDisplay profile={minimalProfile} />,
+          React.createElement(AnyUserProfileDisplay, { profile: minimalProfile } as any, null),
         );
 
         expect(getUserProfileDisplay()).toHaveAttribute('data-size', 'medium');
@@ -204,7 +210,11 @@ describe('UserProfileDisplay', () => {
       variants.forEach((variant) => {
         it(`применяет правильный data-variant="${variant}"`, () => {
           const { getUserProfileDisplay } = renderIsolated(
-            <UserProfileDisplay profile={minimalProfile} variant={variant} />,
+            React.createElement(
+              AnyUserProfileDisplay,
+              { profile: minimalProfile, variant } as any,
+              null,
+            ),
           );
 
           expect(getUserProfileDisplay()).toHaveAttribute('data-variant', variant);
@@ -212,7 +222,11 @@ describe('UserProfileDisplay', () => {
 
         it(`применяет правильные стили контейнера для variant="${variant}"`, () => {
           const { getUserProfileDisplay } = renderIsolated(
-            <UserProfileDisplay profile={minimalProfile} variant={variant} />,
+            React.createElement(
+              AnyUserProfileDisplay,
+              { profile: minimalProfile, variant } as any,
+              null,
+            ),
           );
 
           const component = getUserProfileDisplay();
@@ -230,7 +244,7 @@ describe('UserProfileDisplay', () => {
 
       it('использует default по умолчанию', () => {
         const { getUserProfileDisplay } = renderIsolated(
-          <UserProfileDisplay profile={minimalProfile} />,
+          React.createElement(AnyUserProfileDisplay, { profile: minimalProfile } as any, null),
         );
 
         expect(getUserProfileDisplay()).toHaveAttribute('data-variant', 'default');
@@ -240,10 +254,11 @@ describe('UserProfileDisplay', () => {
     describe('showAvatar', () => {
       it('показывает аватар по умолчанию', () => {
         const { container } = renderIsolated(
-          <UserProfileDisplay
-            profile={profileWithName}
-            data-testid='profile'
-          />,
+          React.createElement(
+            AnyUserProfileDisplay,
+            { profile: profileWithName, 'data-testid': 'profile' } as any,
+            null,
+          ),
         );
 
         expect(container.querySelector('[data-testid="profile-avatar-wrapper"]'))
@@ -252,11 +267,11 @@ describe('UserProfileDisplay', () => {
 
       it('скрывает аватар когда showAvatar=false', () => {
         const { container } = renderIsolated(
-          <UserProfileDisplay
-            profile={profileWithName}
-            showAvatar={false}
-            data-testid='profile'
-          />,
+          React.createElement(
+            AnyUserProfileDisplay,
+            { profile: profileWithName, showAvatar: false, 'data-testid': 'profile' } as any,
+            null,
+          ),
         );
 
         expect(container.querySelector('[data-testid="profile-avatar-wrapper"]')).toBeNull();
@@ -264,11 +279,11 @@ describe('UserProfileDisplay', () => {
 
       it('показывает аватар когда showAvatar=true', () => {
         const { container } = renderIsolated(
-          <UserProfileDisplay
-            profile={profileWithName}
-            showAvatar={true}
-            data-testid='profile'
-          />,
+          React.createElement(
+            AnyUserProfileDisplay,
+            { profile: profileWithName, showAvatar: true, 'data-testid': 'profile' } as any,
+            null,
+          ),
         );
 
         expect(container.querySelector('[data-testid="profile-avatar-wrapper"]'))
@@ -279,10 +294,11 @@ describe('UserProfileDisplay', () => {
     describe('showName', () => {
       it('показывает имя по умолчанию', () => {
         const { container } = renderIsolated(
-          <UserProfileDisplay
-            profile={profileWithName}
-            data-testid='profile'
-          />,
+          React.createElement(
+            AnyUserProfileDisplay,
+            { profile: profileWithName, 'data-testid': 'profile' } as any,
+            null,
+          ),
         );
 
         expect(container.querySelector('[data-testid="profile-name"]')).toBeInTheDocument();
@@ -293,11 +309,11 @@ describe('UserProfileDisplay', () => {
 
       it('скрывает имя когда showName=false', () => {
         const { container } = renderIsolated(
-          <UserProfileDisplay
-            profile={profileWithName}
-            showName={false}
-            data-testid='profile'
-          />,
+          React.createElement(
+            AnyUserProfileDisplay,
+            { profile: profileWithName, showName: false, 'data-testid': 'profile' } as any,
+            null,
+          ),
         );
 
         expect(container.querySelector('[data-testid="profile-name"]')).toBeNull();
@@ -305,10 +321,11 @@ describe('UserProfileDisplay', () => {
 
       it('не показывает имя когда name=null', () => {
         const { container } = renderIsolated(
-          <UserProfileDisplay
-            profile={profileWithNullName}
-            data-testid='profile'
-          />,
+          React.createElement(
+            AnyUserProfileDisplay,
+            { profile: profileWithNullName, 'data-testid': 'profile' } as any,
+            null,
+          ),
         );
 
         expect(container.querySelector('[data-testid="profile-name"]')).toBeNull();
@@ -316,10 +333,11 @@ describe('UserProfileDisplay', () => {
 
       it('не показывает имя когда name=undefined', () => {
         const { container } = renderIsolated(
-          <UserProfileDisplay
-            profile={profileWithUndefinedName}
-            data-testid='profile'
-          />,
+          React.createElement(
+            AnyUserProfileDisplay,
+            { profile: profileWithUndefinedName, 'data-testid': 'profile' } as any,
+            null,
+          ),
         );
 
         expect(container.querySelector('[data-testid="profile-name"]')).toBeNull();
@@ -327,10 +345,11 @@ describe('UserProfileDisplay', () => {
 
       it('не показывает имя когда name=""', () => {
         const { container } = renderIsolated(
-          <UserProfileDisplay
-            profile={profileWithEmptyName}
-            data-testid='profile'
-          />,
+          React.createElement(
+            AnyUserProfileDisplay,
+            { profile: profileWithEmptyName, 'data-testid': 'profile' } as any,
+            null,
+          ),
         );
 
         expect(container.querySelector('[data-testid="profile-name"]')).toBeNull();
@@ -340,7 +359,11 @@ describe('UserProfileDisplay', () => {
     describe('showEmail', () => {
       it('показывает email по умолчанию', () => {
         const { container } = renderIsolated(
-          <UserProfileDisplay profile={minimalProfile} data-testid='profile' />,
+          React.createElement(
+            AnyUserProfileDisplay,
+            { profile: minimalProfile, 'data-testid': 'profile' } as any,
+            null,
+          ),
         );
 
         expect(container.querySelector('[data-testid="profile-email"]')).toBeInTheDocument();
@@ -351,11 +374,11 @@ describe('UserProfileDisplay', () => {
 
       it('скрывает email когда showEmail=false', () => {
         const { container } = renderIsolated(
-          <UserProfileDisplay
-            profile={minimalProfile}
-            showEmail={false}
-            data-testid='profile'
-          />,
+          React.createElement(
+            AnyUserProfileDisplay,
+            { profile: minimalProfile, showEmail: false, 'data-testid': 'profile' } as any,
+            null,
+          ),
         );
 
         expect(container.querySelector('[data-testid="profile-email"]')).toBeNull();
@@ -365,10 +388,11 @@ describe('UserProfileDisplay', () => {
     describe('showAdditionalInfo', () => {
       it('не показывает дополнительную информацию по умолчанию', () => {
         const { container } = renderIsolated(
-          <UserProfileDisplay
-            profile={profileWithAdditionalInfo}
-            data-testid='profile'
-          />,
+          React.createElement(
+            AnyUserProfileDisplay,
+            { profile: profileWithAdditionalInfo, 'data-testid': 'profile' } as any,
+            null,
+          ),
         );
 
         expect(container.querySelector('[data-testid="profile-additional-info"]')).toBeNull();
@@ -376,11 +400,15 @@ describe('UserProfileDisplay', () => {
 
       it('показывает дополнительную информацию когда showAdditionalInfo=true', () => {
         const { container } = renderIsolated(
-          <UserProfileDisplay
-            profile={profileWithAdditionalInfo}
-            showAdditionalInfo={true}
-            data-testid='profile'
-          />,
+          React.createElement(
+            AnyUserProfileDisplay,
+            {
+              profile: profileWithAdditionalInfo,
+              showAdditionalInfo: true,
+              'data-testid': 'profile',
+            } as any,
+            null,
+          ),
         );
 
         expect(container.querySelector('[data-testid="profile-additional-info"]'))
@@ -391,11 +419,15 @@ describe('UserProfileDisplay', () => {
 
       it('не показывает дополнительную информацию когда additionalInfo=null', () => {
         const { container } = renderIsolated(
-          <UserProfileDisplay
-            profile={profileWithNullAdditionalInfo}
-            showAdditionalInfo={true}
-            data-testid='profile'
-          />,
+          React.createElement(
+            AnyUserProfileDisplay,
+            {
+              profile: profileWithNullAdditionalInfo,
+              showAdditionalInfo: true,
+              'data-testid': 'profile',
+            } as any,
+            null,
+          ),
         );
 
         expect(container.querySelector('[data-testid="profile-additional-info"]')).toBeNull();
@@ -403,11 +435,15 @@ describe('UserProfileDisplay', () => {
 
       it('не показывает дополнительную информацию когда additionalInfo=undefined', () => {
         const { container } = renderIsolated(
-          <UserProfileDisplay
-            profile={profileWithUndefinedAdditionalInfo}
-            showAdditionalInfo={true}
-            data-testid='profile'
-          />,
+          React.createElement(
+            AnyUserProfileDisplay,
+            {
+              profile: profileWithUndefinedAdditionalInfo,
+              showAdditionalInfo: true,
+              'data-testid': 'profile',
+            } as any,
+            null,
+          ),
         );
 
         expect(container.querySelector('[data-testid="profile-additional-info"]')).toBeNull();
@@ -415,11 +451,15 @@ describe('UserProfileDisplay', () => {
 
       it('не показывает дополнительную информацию когда additionalInfo=""', () => {
         const { container } = renderIsolated(
-          <UserProfileDisplay
-            profile={profileWithEmptyAdditionalInfo}
-            showAdditionalInfo={true}
-            data-testid='profile'
-          />,
+          React.createElement(
+            AnyUserProfileDisplay,
+            {
+              profile: profileWithEmptyAdditionalInfo,
+              showAdditionalInfo: true,
+              'data-testid': 'profile',
+            } as any,
+            null,
+          ),
         );
 
         expect(container.querySelector('[data-testid="profile-additional-info"]')).toBeNull();
@@ -428,13 +468,21 @@ describe('UserProfileDisplay', () => {
 
     describe('customAvatar', () => {
       it('использует customAvatar когда передан', () => {
-        const customAvatar = <div data-testid='custom-avatar'>Custom</div>;
+        const customAvatar = React.createElement(
+          'div',
+          { 'data-testid': 'custom-avatar' } as any,
+          'Custom',
+        );
         const { getByTestId } = renderIsolated(
-          <UserProfileDisplay
-            profile={minimalProfile}
-            customAvatar={customAvatar}
-            data-testid='profile'
-          />,
+          React.createElement(
+            AnyUserProfileDisplay,
+            {
+              profile: minimalProfile,
+              customAvatar,
+              'data-testid': 'profile',
+            } as any,
+            null,
+          ),
         );
 
         expect(getByTestId('custom-avatar')).toBeInTheDocument();
@@ -443,10 +491,11 @@ describe('UserProfileDisplay', () => {
 
       it('не использует customAvatar когда не передан', () => {
         const { container } = renderIsolated(
-          <UserProfileDisplay
-            profile={profileWithAvatar}
-            data-testid='profile'
-          />,
+          React.createElement(
+            AnyUserProfileDisplay,
+            { profile: profileWithAvatar, 'data-testid': 'profile' } as any,
+            null,
+          ),
         );
 
         expect(container.querySelector('[data-testid="custom-avatar"]')).toBeNull();
@@ -457,7 +506,11 @@ describe('UserProfileDisplay', () => {
     describe('data-testid', () => {
       it('применяет data-testid', () => {
         const { getByTestId } = renderIsolated(
-          <UserProfileDisplay profile={minimalProfile} data-testid='custom-profile' />,
+          React.createElement(
+            AnyUserProfileDisplay,
+            { profile: minimalProfile, 'data-testid': 'custom-profile' } as any,
+            null,
+          ),
         );
 
         expect(getByTestId('custom-profile')).toBeInTheDocument();
@@ -465,7 +518,7 @@ describe('UserProfileDisplay', () => {
 
       it('не имеет data-testid по умолчанию', () => {
         const { getUserProfileDisplay } = renderIsolated(
-          <UserProfileDisplay profile={minimalProfile} />,
+          React.createElement(AnyUserProfileDisplay, { profile: minimalProfile } as any, null),
         );
 
         expect(getUserProfileDisplay()).not.toHaveAttribute('data-testid');
@@ -473,10 +526,11 @@ describe('UserProfileDisplay', () => {
 
       it('создает test IDs для дочерних элементов', () => {
         const { getByTestId } = renderIsolated(
-          <UserProfileDisplay
-            profile={profileWithName}
-            data-testid='profile'
-          />,
+          React.createElement(
+            AnyUserProfileDisplay,
+            { profile: profileWithName, 'data-testid': 'profile' } as any,
+            null,
+          ),
         );
 
         expect(getByTestId('profile-avatar-wrapper')).toBeInTheDocument();
@@ -487,7 +541,11 @@ describe('UserProfileDisplay', () => {
 
       it('не создает test IDs для дочерних элементов когда data-testid пустой', () => {
         const { container } = renderIsolated(
-          <UserProfileDisplay profile={profileWithName} data-testid='' />,
+          React.createElement(
+            AnyUserProfileDisplay,
+            { profile: profileWithName, 'data-testid': '' } as any,
+            null,
+          ),
         );
 
         expect(container.querySelector('[data-testid*="-avatar-wrapper"]')).toBeNull();
@@ -496,7 +554,11 @@ describe('UserProfileDisplay', () => {
 
       it('не создает test IDs для дочерних элементов когда data-testid не передан', () => {
         const { container } = renderIsolated(
-          <UserProfileDisplay profile={profileWithName} />,
+          React.createElement(
+            AnyUserProfileDisplay,
+            { profile: profileWithName } as any,
+            null,
+          ),
         );
 
         expect(container.querySelector('[data-testid*="-avatar-wrapper"]')).toBeNull();
@@ -507,10 +569,11 @@ describe('UserProfileDisplay', () => {
     describe('className и style', () => {
       it('применяет className', () => {
         const { getUserProfileDisplay } = renderIsolated(
-          <UserProfileDisplay
-            profile={minimalProfile}
-            className='custom-class'
-          />,
+          React.createElement(
+            AnyUserProfileDisplay,
+            { profile: minimalProfile, className: 'custom-class' } as any,
+            null,
+          ),
         );
 
         expect(getUserProfileDisplay()).toHaveClass('custom-class');
@@ -518,7 +581,11 @@ describe('UserProfileDisplay', () => {
 
       it('применяет style', () => {
         const { getUserProfileDisplay } = renderIsolated(
-          <UserProfileDisplay profile={minimalProfile} style={customStyle} />,
+          React.createElement(
+            AnyUserProfileDisplay,
+            { profile: minimalProfile, style: customStyle } as any,
+            null,
+          ),
         );
 
         const component = getUserProfileDisplay();
@@ -529,7 +596,11 @@ describe('UserProfileDisplay', () => {
 
       it('объединяет style с базовыми стилями', () => {
         const { getUserProfileDisplay } = renderIsolated(
-          <UserProfileDisplay profile={minimalProfile} style={customStyle} />,
+          React.createElement(
+            AnyUserProfileDisplay,
+            { profile: minimalProfile, style: customStyle } as any,
+            null,
+          ),
         );
 
         const component = getUserProfileDisplay();
@@ -542,12 +613,16 @@ describe('UserProfileDisplay', () => {
     describe('дополнительные HTML атрибуты', () => {
       it('прокидывает дополнительные HTML атрибуты', () => {
         const { getUserProfileDisplay } = renderIsolated(
-          <UserProfileDisplay
-            profile={minimalProfile}
-            id='profile-id'
-            title='Custom title'
-            data-custom='test-value'
-          />,
+          React.createElement(
+            AnyUserProfileDisplay,
+            {
+              profile: minimalProfile,
+              id: 'profile-id',
+              title: 'Custom title',
+              'data-custom': 'test-value',
+            } as any,
+            null,
+          ),
         );
 
         const component = getUserProfileDisplay();
@@ -562,10 +637,11 @@ describe('UserProfileDisplay', () => {
     describe('avatarUrl', () => {
       it('отображает изображение аватара когда avatarUrl передан', () => {
         const { container } = renderIsolated(
-          <UserProfileDisplay
-            profile={profileWithAvatar}
-            data-testid='profile'
-          />,
+          React.createElement(
+            AnyUserProfileDisplay,
+            { profile: profileWithAvatar, 'data-testid': 'profile' } as any,
+            null,
+          ),
         );
 
         const avatarImage = container.querySelector('[data-testid="profile-avatar-image"]');
@@ -576,10 +652,11 @@ describe('UserProfileDisplay', () => {
 
       it('использует name как alt для изображения аватара', () => {
         const { container } = renderIsolated(
-          <UserProfileDisplay
-            profile={profileWithNameAndAvatarUrl}
-            data-testid='profile'
-          />,
+          React.createElement(
+            AnyUserProfileDisplay,
+            { profile: profileWithNameAndAvatarUrl, 'data-testid': 'profile' } as any,
+            null,
+          ),
         );
 
         const avatarImage = container.querySelector('[data-testid="profile-avatar-image"]');
@@ -588,10 +665,11 @@ describe('UserProfileDisplay', () => {
 
       it('использует email как alt когда name отсутствует', () => {
         const { container } = renderIsolated(
-          <UserProfileDisplay
-            profile={profileWithAvatar}
-            data-testid='profile'
-          />,
+          React.createElement(
+            AnyUserProfileDisplay,
+            { profile: profileWithAvatar, 'data-testid': 'profile' } as any,
+            null,
+          ),
         );
 
         const avatarImage = container.querySelector('[data-testid="profile-avatar-image"]');
@@ -600,11 +678,15 @@ describe('UserProfileDisplay', () => {
 
       it('применяет правильные стили к изображению аватара', () => {
         const { container } = renderIsolated(
-          <UserProfileDisplay
-            profile={profileWithAvatar}
-            size='medium'
-            data-testid='profile'
-          />,
+          React.createElement(
+            AnyUserProfileDisplay,
+            {
+              profile: profileWithAvatar,
+              size: 'medium',
+              'data-testid': 'profile',
+            } as any,
+            null,
+          ),
         );
 
         const avatarImage = container.querySelector(
@@ -620,10 +702,11 @@ describe('UserProfileDisplay', () => {
 
       it('не показывает изображение когда avatarUrl=null', () => {
         const { container } = renderIsolated(
-          <UserProfileDisplay
-            profile={profileWithNullAvatar}
-            data-testid='profile'
-          />,
+          React.createElement(
+            AnyUserProfileDisplay,
+            { profile: profileWithNullAvatar, 'data-testid': 'profile' } as any,
+            null,
+          ),
         );
 
         expect(container.querySelector('[data-testid="profile-avatar-image"]')).toBeNull();
@@ -631,10 +714,11 @@ describe('UserProfileDisplay', () => {
 
       it('не показывает изображение когда avatarUrl=undefined', () => {
         const { container } = renderIsolated(
-          <UserProfileDisplay
-            profile={profileWithUndefinedAvatar}
-            data-testid='profile'
-          />,
+          React.createElement(
+            AnyUserProfileDisplay,
+            { profile: profileWithUndefinedAvatar, 'data-testid': 'profile' } as any,
+            null,
+          ),
         );
 
         expect(container.querySelector('[data-testid="profile-avatar-image"]')).toBeNull();
@@ -642,10 +726,11 @@ describe('UserProfileDisplay', () => {
 
       it('не показывает изображение когда avatarUrl=""', () => {
         const { container } = renderIsolated(
-          <UserProfileDisplay
-            profile={profileWithEmptyAvatar}
-            data-testid='profile'
-          />,
+          React.createElement(
+            AnyUserProfileDisplay,
+            { profile: profileWithEmptyAvatar, 'data-testid': 'profile' } as any,
+            null,
+          ),
         );
 
         expect(container.querySelector('[data-testid="profile-avatar-image"]')).toBeNull();
@@ -655,10 +740,11 @@ describe('UserProfileDisplay', () => {
     describe('fallback аватар с инициалами', () => {
       it('отображает инициалы из имени', () => {
         const { container } = renderIsolated(
-          <UserProfileDisplay
-            profile={profileWithIvanIvanov}
-            data-testid='profile'
-          />,
+          React.createElement(
+            AnyUserProfileDisplay,
+            { profile: profileWithIvanIvanov, 'data-testid': 'profile' } as any,
+            null,
+          ),
         );
 
         const fallbackAvatar = container.querySelector('[data-testid="profile-avatar-fallback"]');
@@ -668,10 +754,11 @@ describe('UserProfileDisplay', () => {
 
       it('отображает инициалы из двух слов', () => {
         const { container } = renderIsolated(
-          <UserProfileDisplay
-            profile={profileWithJohnDoe}
-            data-testid='profile'
-          />,
+          React.createElement(
+            AnyUserProfileDisplay,
+            { profile: profileWithJohnDoe, 'data-testid': 'profile' } as any,
+            null,
+          ),
         );
 
         const fallbackAvatar = container.querySelector('[data-testid="profile-avatar-fallback"]');
@@ -680,10 +767,11 @@ describe('UserProfileDisplay', () => {
 
       it('отображает инициал из одного слова', () => {
         const { container } = renderIsolated(
-          <UserProfileDisplay
-            profile={profileWithJohn}
-            data-testid='profile'
-          />,
+          React.createElement(
+            AnyUserProfileDisplay,
+            { profile: profileWithJohn, 'data-testid': 'profile' } as any,
+            null,
+          ),
         );
 
         const fallbackAvatar = container.querySelector('[data-testid="profile-avatar-fallback"]');
@@ -692,7 +780,11 @@ describe('UserProfileDisplay', () => {
 
       it('отображает инициал из email когда имя отсутствует', () => {
         const { container } = renderIsolated(
-          <UserProfileDisplay profile={minimalProfile} data-testid='profile' />,
+          React.createElement(
+            AnyUserProfileDisplay,
+            { profile: minimalProfile, 'data-testid': 'profile' } as any,
+            null,
+          ),
         );
 
         const fallbackAvatar = container.querySelector('[data-testid="profile-avatar-fallback"]');
@@ -702,10 +794,11 @@ describe('UserProfileDisplay', () => {
 
       it('отображает инициал из email когда name=null', () => {
         const { container } = renderIsolated(
-          <UserProfileDisplay
-            profile={profileWithNullName}
-            data-testid='profile'
-          />,
+          React.createElement(
+            AnyUserProfileDisplay,
+            { profile: profileWithNullName, 'data-testid': 'profile' } as any,
+            null,
+          ),
         );
 
         const fallbackAvatar = container.querySelector('[data-testid="profile-avatar-fallback"]');
@@ -714,10 +807,11 @@ describe('UserProfileDisplay', () => {
 
       it('отображает инициал из email когда name=undefined', () => {
         const { container } = renderIsolated(
-          <UserProfileDisplay
-            profile={profileWithUndefinedName}
-            data-testid='profile'
-          />,
+          React.createElement(
+            AnyUserProfileDisplay,
+            { profile: profileWithUndefinedName, 'data-testid': 'profile' } as any,
+            null,
+          ),
         );
 
         const fallbackAvatar = container.querySelector('[data-testid="profile-avatar-fallback"]');
@@ -726,10 +820,11 @@ describe('UserProfileDisplay', () => {
 
       it('отображает инициал из email когда name=""', () => {
         const { container } = renderIsolated(
-          <UserProfileDisplay
-            profile={profileWithEmptyName}
-            data-testid='profile'
-          />,
+          React.createElement(
+            AnyUserProfileDisplay,
+            { profile: profileWithEmptyName, 'data-testid': 'profile' } as any,
+            null,
+          ),
         );
 
         const fallbackAvatar = container.querySelector('[data-testid="profile-avatar-fallback"]');
@@ -738,10 +833,11 @@ describe('UserProfileDisplay', () => {
 
       it('обрабатывает имя с множественными пробелами', () => {
         const { container } = renderIsolated(
-          <UserProfileDisplay
-            profile={profileWithMultipleSpaces}
-            data-testid='profile'
-          />,
+          React.createElement(
+            AnyUserProfileDisplay,
+            { profile: profileWithMultipleSpaces, 'data-testid': 'profile' } as any,
+            null,
+          ),
         );
 
         const fallbackAvatar = container.querySelector('[data-testid="profile-avatar-fallback"]');
@@ -750,10 +846,11 @@ describe('UserProfileDisplay', () => {
 
       it('обрабатывает имя с пробелами в начале и конце', () => {
         const { container } = renderIsolated(
-          <UserProfileDisplay
-            profile={profileWithTrimmedSpaces}
-            data-testid='profile'
-          />,
+          React.createElement(
+            AnyUserProfileDisplay,
+            { profile: profileWithTrimmedSpaces, 'data-testid': 'profile' } as any,
+            null,
+          ),
         );
 
         const fallbackAvatar = container.querySelector('[data-testid="profile-avatar-fallback"]');
@@ -762,10 +859,11 @@ describe('UserProfileDisplay', () => {
 
       it('берет только первые два слова для инициалов', () => {
         const { container } = renderIsolated(
-          <UserProfileDisplay
-            profile={profileWithThreeWords}
-            data-testid='profile'
-          />,
+          React.createElement(
+            AnyUserProfileDisplay,
+            { profile: profileWithThreeWords, 'data-testid': 'profile' } as any,
+            null,
+          ),
         );
 
         const fallbackAvatar = container.querySelector('[data-testid="profile-avatar-fallback"]');
@@ -774,11 +872,11 @@ describe('UserProfileDisplay', () => {
 
       it('применяет правильные стили к fallback аватару', () => {
         const { container } = renderIsolated(
-          <UserProfileDisplay
-            profile={profileWithName}
-            size='medium'
-            data-testid='profile'
-          />,
+          React.createElement(
+            AnyUserProfileDisplay,
+            { profile: profileWithName, size: 'medium', 'data-testid': 'profile' } as any,
+            null,
+          ),
         );
 
         const fallbackAvatar = container.querySelector(
@@ -793,11 +891,11 @@ describe('UserProfileDisplay', () => {
 
       it('применяет правильный размер шрифта для fallback аватара', () => {
         const { container } = renderIsolated(
-          <UserProfileDisplay
-            profile={profileWithName}
-            size='small'
-            data-testid='profile'
-          />,
+          React.createElement(
+            AnyUserProfileDisplay,
+            { profile: profileWithName, size: 'small', 'data-testid': 'profile' } as any,
+            null,
+          ),
         );
 
         const fallbackAvatar = container.querySelector(
@@ -810,7 +908,11 @@ describe('UserProfileDisplay', () => {
 
       it('не показывает fallback аватар когда нет имени и email пустой', () => {
         const { container } = renderIsolated(
-          <UserProfileDisplay profile={profileWithEmptyEmail} data-testid='profile' />,
+          React.createElement(
+            AnyUserProfileDisplay,
+            { profile: profileWithEmptyEmail, 'data-testid': 'profile' } as any,
+            null,
+          ),
         );
 
         // Когда нет инициалов, аватар не должен рендериться
@@ -827,7 +929,11 @@ describe('UserProfileDisplay', () => {
     describe('стили контейнера', () => {
       it('применяет базовые стили для default variant', () => {
         const { getUserProfileDisplay } = renderIsolated(
-          <UserProfileDisplay profile={minimalProfile} variant='default' />,
+          React.createElement(
+            AnyUserProfileDisplay,
+            { profile: minimalProfile, variant: 'default' } as any,
+            null,
+          ),
         );
 
         const component = getUserProfileDisplay();
@@ -839,7 +945,11 @@ describe('UserProfileDisplay', () => {
 
       it('применяет стили для compact variant', () => {
         const { getUserProfileDisplay } = renderIsolated(
-          <UserProfileDisplay profile={minimalProfile} variant='compact' />,
+          React.createElement(
+            AnyUserProfileDisplay,
+            { profile: minimalProfile, variant: 'compact' } as any,
+            null,
+          ),
         );
 
         const component = getUserProfileDisplay();
@@ -851,7 +961,11 @@ describe('UserProfileDisplay', () => {
 
       it('применяет стили для detailed variant', () => {
         const { getUserProfileDisplay } = renderIsolated(
-          <UserProfileDisplay profile={minimalProfile} variant='detailed' />,
+          React.createElement(
+            AnyUserProfileDisplay,
+            { profile: minimalProfile, variant: 'detailed' } as any,
+            null,
+          ),
         );
 
         const component = getUserProfileDisplay();
@@ -865,11 +979,11 @@ describe('UserProfileDisplay', () => {
     describe('стили текста', () => {
       it('применяет правильные стили имени для small размера', () => {
         const { container } = renderIsolated(
-          <UserProfileDisplay
-            profile={profileWithName}
-            size='small'
-            data-testid='profile'
-          />,
+          React.createElement(
+            AnyUserProfileDisplay,
+            { profile: profileWithName, size: 'small', 'data-testid': 'profile' } as any,
+            null,
+          ),
         );
 
         const nameElement = container.querySelector('[data-testid="profile-name"]') as HTMLElement;
@@ -879,11 +993,11 @@ describe('UserProfileDisplay', () => {
 
       it('применяет правильные стили имени для medium размера', () => {
         const { container } = renderIsolated(
-          <UserProfileDisplay
-            profile={profileWithName}
-            size='medium'
-            data-testid='profile'
-          />,
+          React.createElement(
+            AnyUserProfileDisplay,
+            { profile: profileWithName, size: 'medium', 'data-testid': 'profile' } as any,
+            null,
+          ),
         );
 
         const nameElement = container.querySelector('[data-testid="profile-name"]') as HTMLElement;
@@ -893,11 +1007,11 @@ describe('UserProfileDisplay', () => {
 
       it('применяет правильные стили имени для large размера', () => {
         const { container } = renderIsolated(
-          <UserProfileDisplay
-            profile={profileWithName}
-            size='large'
-            data-testid='profile'
-          />,
+          React.createElement(
+            AnyUserProfileDisplay,
+            { profile: profileWithName, size: 'large', 'data-testid': 'profile' } as any,
+            null,
+          ),
         );
 
         const nameElement = container.querySelector('[data-testid="profile-name"]') as HTMLElement;
@@ -907,7 +1021,11 @@ describe('UserProfileDisplay', () => {
 
       it('применяет правильные стили email для small размера', () => {
         const { container } = renderIsolated(
-          <UserProfileDisplay profile={minimalProfile} size='small' data-testid='profile' />,
+          React.createElement(
+            AnyUserProfileDisplay,
+            { profile: minimalProfile, size: 'small', 'data-testid': 'profile' } as any,
+            null,
+          ),
         );
 
         const emailElement = container.querySelector(
@@ -919,7 +1037,11 @@ describe('UserProfileDisplay', () => {
 
       it('применяет правильные стили email для medium размера', () => {
         const { container } = renderIsolated(
-          <UserProfileDisplay profile={minimalProfile} size='medium' data-testid='profile' />,
+          React.createElement(
+            AnyUserProfileDisplay,
+            { profile: minimalProfile, size: 'medium', 'data-testid': 'profile' } as any,
+            null,
+          ),
         );
 
         const emailElement = container.querySelector(
@@ -931,7 +1053,11 @@ describe('UserProfileDisplay', () => {
 
       it('применяет правильные стили email для large размера', () => {
         const { container } = renderIsolated(
-          <UserProfileDisplay profile={minimalProfile} size='large' data-testid='profile' />,
+          React.createElement(
+            AnyUserProfileDisplay,
+            { profile: minimalProfile, size: 'large', 'data-testid': 'profile' } as any,
+            null,
+          ),
         );
 
         const emailElement = container.querySelector(
@@ -943,11 +1069,15 @@ describe('UserProfileDisplay', () => {
 
       it('применяет правильные стили дополнительной информации', () => {
         const { container } = renderIsolated(
-          <UserProfileDisplay
-            profile={profileWithAdditionalInfo}
-            showAdditionalInfo={true}
-            data-testid='profile'
-          />,
+          React.createElement(
+            AnyUserProfileDisplay,
+            {
+              profile: profileWithAdditionalInfo,
+              showAdditionalInfo: true,
+              'data-testid': 'profile',
+            } as any,
+            null,
+          ),
         );
 
         const additionalInfoElement = container.querySelector(
@@ -962,7 +1092,11 @@ describe('UserProfileDisplay', () => {
   describe('4.5. Доступность (A11y)', () => {
     it('имеет правильные ARIA атрибуты', () => {
       const { getUserProfileDisplay } = renderIsolated(
-        <UserProfileDisplay profile={profileWithName} />,
+        React.createElement(
+          AnyUserProfileDisplay,
+          { profile: profileWithName } as any,
+          null,
+        ),
       );
 
       const component = getUserProfileDisplay();
@@ -973,7 +1107,11 @@ describe('UserProfileDisplay', () => {
 
     it('использует email в aria-label когда name отсутствует', () => {
       const { getUserProfileDisplay } = renderIsolated(
-        <UserProfileDisplay profile={minimalProfile} />,
+        React.createElement(
+          AnyUserProfileDisplay,
+          { profile: minimalProfile } as any,
+          null,
+        ),
       );
 
       const component = getUserProfileDisplay();
@@ -982,10 +1120,11 @@ describe('UserProfileDisplay', () => {
 
     it('fallback аватар имеет aria-hidden="true"', () => {
       const { container } = renderIsolated(
-        <UserProfileDisplay
-          profile={profileWithName}
-          data-testid='profile'
-        />,
+        React.createElement(
+          AnyUserProfileDisplay,
+          { profile: profileWithName, 'data-testid': 'profile' } as any,
+          null,
+        ),
       );
 
       const fallbackAvatar = container.querySelector('[data-testid="profile-avatar-fallback"]');
@@ -997,7 +1136,9 @@ describe('UserProfileDisplay', () => {
     it('поддерживает React.createRef', () => {
       const ref = React.createRef<HTMLDivElement>();
 
-      renderIsolated(<UserProfileDisplay profile={minimalProfile} ref={ref} />);
+      renderIsolated(
+        React.createElement(AnyUserProfileDisplay, { profile: minimalProfile, ref } as any, null),
+      );
 
       expect(ref.current).toBeInstanceOf(HTMLDivElement);
       expect(ref.current).toHaveAttribute('data-component', 'CoreUserProfileDisplay');
@@ -1006,7 +1147,9 @@ describe('UserProfileDisplay', () => {
     it('поддерживает useRef-подобный объект', () => {
       const ref = createMockRef();
 
-      renderIsolated(<UserProfileDisplay profile={minimalProfile} ref={ref} />);
+      renderIsolated(
+        React.createElement(AnyUserProfileDisplay, { profile: minimalProfile, ref } as any, null),
+      );
 
       expect(ref.current).toBeInstanceOf(HTMLDivElement);
       expect(ref.current).toHaveAttribute('data-component', 'CoreUserProfileDisplay');
@@ -1019,25 +1162,41 @@ describe('UserProfileDisplay', () => {
 
       const TestComponent = () => {
         renderCount++;
-        return <UserProfileDisplay profile={profileWithName} />;
+        return React.createElement(
+          AnyUserProfileDisplay,
+          { profile: profileWithName } as any,
+          null,
+        );
       };
 
-      const { rerender } = render(<TestComponent />);
+      const { rerender } = render(
+        React.createElement(TestComponent as any, {} as any, null),
+      );
 
       expect(renderCount).toBe(1);
 
-      rerender(<TestComponent />);
+      rerender(React.createElement(TestComponent as any, {} as any, null));
       expect(renderCount).toBe(2); // React.memo предотвращает лишние рендеры компонента
     });
 
     it('useMemo для containerStyle вызывается только при изменении зависимостей', () => {
       const { getUserProfileDisplay, rerender } = renderIsolated(
-        <UserProfileDisplay profile={minimalProfile} variant='default' />,
+        React.createElement(
+          AnyUserProfileDisplay,
+          { profile: minimalProfile, variant: 'default' } as any,
+          null,
+        ),
       );
 
       const initialGap = window.getComputedStyle(getUserProfileDisplay()).gap;
 
-      rerender(<UserProfileDisplay profile={minimalProfile} variant='compact' />);
+      rerender(
+        React.createElement(
+          AnyUserProfileDisplay,
+          { profile: minimalProfile, variant: 'compact' } as any,
+          null,
+        ),
+      );
 
       const newGap = window.getComputedStyle(getUserProfileDisplay()).gap;
       expect(initialGap).not.toBe(newGap);
@@ -1045,20 +1204,22 @@ describe('UserProfileDisplay', () => {
 
     it('useMemo для initials вызывается только при изменении зависимостей', () => {
       const { container, rerender } = renderIsolated(
-        <UserProfileDisplay
-          profile={profileWithJohnDoe}
-          data-testid='profile'
-        />,
+        React.createElement(
+          AnyUserProfileDisplay,
+          { profile: profileWithJohnDoe, 'data-testid': 'profile' } as any,
+          null,
+        ),
       );
 
       const initialInitials = container.querySelector('[data-testid="profile-avatar-fallback"]')
         ?.textContent;
 
       rerender(
-        <UserProfileDisplay
-          profile={profileWithJaneSmith}
-          data-testid='profile'
-        />,
+        React.createElement(
+          AnyUserProfileDisplay,
+          { profile: profileWithJaneSmith, 'data-testid': 'profile' } as any,
+          null,
+        ),
       );
 
       const newInitials = container.querySelector('[data-testid="profile-avatar-fallback"]')
@@ -1070,7 +1231,7 @@ describe('UserProfileDisplay', () => {
   describe('4.8. Edge cases', () => {
     it('работает с минимальным профилем (только email)', () => {
       const { getUserProfileDisplay } = renderIsolated(
-        <UserProfileDisplay profile={minimalProfile} />,
+        React.createElement(AnyUserProfileDisplay, { profile: minimalProfile } as any, null),
       );
 
       expect(getUserProfileDisplay()).toBeInTheDocument();
@@ -1078,7 +1239,7 @@ describe('UserProfileDisplay', () => {
 
     it('работает с полным профилем', () => {
       const { getUserProfileDisplay } = renderIsolated(
-        <UserProfileDisplay profile={baseProfile} />,
+        React.createElement(AnyUserProfileDisplay, { profile: baseProfile } as any, null),
       );
 
       expect(getUserProfileDisplay()).toBeInTheDocument();
@@ -1086,7 +1247,11 @@ describe('UserProfileDisplay', () => {
 
     it('работает с undefined style', () => {
       const { getUserProfileDisplay } = renderIsolated(
-        <UserProfileDisplay profile={minimalProfile} style={undefined} />,
+        React.createElement(
+          AnyUserProfileDisplay,
+          { profile: minimalProfile, style: undefined } as any,
+          null,
+        ),
       );
 
       expect(getUserProfileDisplay()).toBeInTheDocument();
@@ -1094,7 +1259,11 @@ describe('UserProfileDisplay', () => {
 
     it('работает с пустым объектом style', () => {
       const { getUserProfileDisplay } = renderIsolated(
-        <UserProfileDisplay profile={minimalProfile} style={emptyStyle} />,
+        React.createElement(
+          AnyUserProfileDisplay,
+          { profile: minimalProfile, style: emptyStyle } as any,
+          null,
+        ),
       );
 
       expect(getUserProfileDisplay()).toBeInTheDocument();
@@ -1102,13 +1271,17 @@ describe('UserProfileDisplay', () => {
 
     it('работает когда все show* пропсы false', () => {
       const { getUserProfileDisplay } = renderIsolated(
-        <UserProfileDisplay
-          profile={profileWithName}
-          showAvatar={false}
-          showName={false}
-          showEmail={false}
-          showAdditionalInfo={false}
-        />,
+        React.createElement(
+          AnyUserProfileDisplay,
+          {
+            profile: profileWithName,
+            showAvatar: false,
+            showName: false,
+            showEmail: false,
+            showAdditionalInfo: false,
+          } as any,
+          null,
+        ),
       );
 
       expect(getUserProfileDisplay()).toBeInTheDocument();
@@ -1116,10 +1289,11 @@ describe('UserProfileDisplay', () => {
 
     it('работает с длинным именем', () => {
       const { container } = renderIsolated(
-        <UserProfileDisplay
-          profile={profileWithLongName}
-          data-testid='profile'
-        />,
+        React.createElement(
+          AnyUserProfileDisplay,
+          { profile: profileWithLongName, 'data-testid': 'profile' } as any,
+          null,
+        ),
       );
 
       const nameElement = container.querySelector('[data-testid="profile-name"]');
@@ -1133,7 +1307,11 @@ describe('UserProfileDisplay', () => {
 
     it('работает с длинным email', () => {
       const { container } = renderIsolated(
-        <UserProfileDisplay profile={profileWithLongEmail} data-testid='profile' />,
+        React.createElement(
+          AnyUserProfileDisplay,
+          { profile: profileWithLongEmail, 'data-testid': 'profile' } as any,
+          null,
+        ),
       );
 
       const emailElement = container.querySelector('[data-testid="profile-email"]');
@@ -1145,7 +1323,11 @@ describe('UserProfileDisplay', () => {
 
     it('работает с email без локальной части', () => {
       const { container } = renderIsolated(
-        <UserProfileDisplay profile={profileWithAtEmail} data-testid='profile' />,
+        React.createElement(
+          AnyUserProfileDisplay,
+          { profile: profileWithAtEmail, 'data-testid': 'profile' } as any,
+          null,
+        ),
       );
 
       // getInitialsFromEmail вернет пустую строку для '@example.com'
@@ -1155,7 +1337,11 @@ describe('UserProfileDisplay', () => {
 
     it('работает с email где локальная часть пустая', () => {
       const { container } = renderIsolated(
-        <UserProfileDisplay profile={profileWithAtEmail} data-testid='profile' />,
+        React.createElement(
+          AnyUserProfileDisplay,
+          { profile: profileWithAtEmail, 'data-testid': 'profile' } as any,
+          null,
+        ),
       );
 
       const fallbackAvatar = container.querySelector('[data-testid="profile-avatar-fallback"]');
@@ -1163,22 +1349,30 @@ describe('UserProfileDisplay', () => {
     });
 
     it('работает со всеми пропсами одновременно', () => {
-      const customAvatar = <div data-testid='custom-avatar'>Custom</div>;
+      const customAvatar = React.createElement(
+        'div',
+        { 'data-testid': 'custom-avatar' } as any,
+        'Custom',
+      );
       const { getUserProfileDisplay, getByTestId } = renderIsolated(
-        <UserProfileDisplay
-          profile={baseProfile}
-          size='large'
-          variant='detailed'
-          showAvatar={true}
-          showName={true}
-          showEmail={true}
-          showAdditionalInfo={true}
-          customAvatar={customAvatar}
-          className='custom-class'
-          style={customStyle}
-          data-testid='profile'
-          id='profile-id'
-        />,
+        React.createElement(
+          AnyUserProfileDisplay,
+          {
+            profile: baseProfile,
+            size: 'large',
+            variant: 'detailed',
+            showAvatar: true,
+            showName: true,
+            showEmail: true,
+            showAdditionalInfo: true,
+            customAvatar,
+            className: 'custom-class',
+            style: customStyle,
+            'data-testid': 'profile',
+            id: 'profile-id',
+          } as any,
+          null,
+        ),
       );
 
       expect(getUserProfileDisplay()).toBeInTheDocument();
@@ -1191,10 +1385,11 @@ describe('UserProfileDisplay', () => {
   describe('4.9. Генерация инициалов', () => {
     it('генерирует инициалы из имени с несколькими словами', () => {
       const { container } = renderIsolated(
-        <UserProfileDisplay
-          profile={profileWithJohnMichaelDoe}
-          data-testid='profile'
-        />,
+        React.createElement(
+          AnyUserProfileDisplay,
+          { profile: profileWithJohnMichaelDoe, 'data-testid': 'profile' } as any,
+          null,
+        ),
       );
 
       const fallbackAvatar = container.querySelector('[data-testid="profile-avatar-fallback"]');
@@ -1203,10 +1398,11 @@ describe('UserProfileDisplay', () => {
 
     it('генерирует инициал из одного слова', () => {
       const { container } = renderIsolated(
-        <UserProfileDisplay
-          profile={profileWithJohn}
-          data-testid='profile'
-        />,
+        React.createElement(
+          AnyUserProfileDisplay,
+          { profile: profileWithJohn, 'data-testid': 'profile' } as any,
+          null,
+        ),
       );
 
       const fallbackAvatar = container.querySelector('[data-testid="profile-avatar-fallback"]');
@@ -1215,7 +1411,11 @@ describe('UserProfileDisplay', () => {
 
     it('генерирует инициал из email', () => {
       const { container } = renderIsolated(
-        <UserProfileDisplay profile={profileWithTestEmail} data-testid='profile' />,
+        React.createElement(
+          AnyUserProfileDisplay,
+          { profile: profileWithTestEmail, 'data-testid': 'profile' } as any,
+          null,
+        ),
       );
 
       const fallbackAvatar = container.querySelector('[data-testid="profile-avatar-fallback"]');
@@ -1224,10 +1424,11 @@ describe('UserProfileDisplay', () => {
 
     it('обрабатывает имя с только пробелами', () => {
       const { container } = renderIsolated(
-        <UserProfileDisplay
-          profile={profileWithSpacesOnly}
-          data-testid='profile'
-        />,
+        React.createElement(
+          AnyUserProfileDisplay,
+          { profile: profileWithSpacesOnly, 'data-testid': 'profile' } as any,
+          null,
+        ),
       );
 
       const fallbackAvatar = container.querySelector('[data-testid="profile-avatar-fallback"]');
@@ -1236,7 +1437,11 @@ describe('UserProfileDisplay', () => {
 
     it('обрабатывает имя с пустой строкой', () => {
       const { container } = renderIsolated(
-        <UserProfileDisplay profile={profileWithEmptyName} data-testid='profile' />,
+        React.createElement(
+          AnyUserProfileDisplay,
+          { profile: profileWithEmptyName, 'data-testid': 'profile' } as any,
+          null,
+        ),
       );
 
       const fallbackAvatar = container.querySelector('[data-testid="profile-avatar-fallback"]');
@@ -1246,13 +1451,17 @@ describe('UserProfileDisplay', () => {
 
   describe('4.10. Приоритет отображения аватара', () => {
     it('использует customAvatar когда передан, даже если есть avatarUrl', () => {
-      const customAvatar = <div data-testid='custom-avatar'>Custom</div>;
+      const customAvatar = React.createElement(
+        'div',
+        { 'data-testid': 'custom-avatar' } as any,
+        'Custom',
+      );
       const { getByTestId, queryByTestId } = renderIsolated(
-        <UserProfileDisplay
-          profile={profileWithAvatar}
-          customAvatar={customAvatar}
-          data-testid='profile'
-        />,
+        React.createElement(
+          AnyUserProfileDisplay,
+          { profile: profileWithAvatar, customAvatar, 'data-testid': 'profile' } as any,
+          null,
+        ),
       );
 
       expect(getByTestId('custom-avatar')).toBeInTheDocument();
@@ -1261,10 +1470,11 @@ describe('UserProfileDisplay', () => {
 
     it('использует avatarUrl когда customAvatar не передан', () => {
       const { container } = renderIsolated(
-        <UserProfileDisplay
-          profile={profileWithAvatar}
-          data-testid='profile'
-        />,
+        React.createElement(
+          AnyUserProfileDisplay,
+          { profile: profileWithAvatar, 'data-testid': 'profile' } as any,
+          null,
+        ),
       );
 
       expect(container.querySelector('[data-testid="profile-avatar-image"]')).toBeInTheDocument();
@@ -1273,10 +1483,11 @@ describe('UserProfileDisplay', () => {
 
     it('использует fallback когда avatarUrl отсутствует', () => {
       const { container } = renderIsolated(
-        <UserProfileDisplay
-          profile={profileWithName}
-          data-testid='profile'
-        />,
+        React.createElement(
+          AnyUserProfileDisplay,
+          { profile: profileWithName, 'data-testid': 'profile' } as any,
+          null,
+        ),
       );
 
       expect(container.querySelector('[data-testid="profile-avatar-image"]')).toBeNull();
@@ -1286,7 +1497,11 @@ describe('UserProfileDisplay', () => {
 
     it('не показывает аватар когда нет инициалов и avatarUrl', () => {
       const { container } = renderIsolated(
-        <UserProfileDisplay profile={profileWithEmptyEmail} data-testid='profile' />,
+        React.createElement(
+          AnyUserProfileDisplay,
+          { profile: profileWithEmptyEmail, 'data-testid': 'profile' } as any,
+          null,
+        ),
       );
 
       // Когда email пустой, getInitialsFromEmail вернет пустую строку

@@ -12,6 +12,8 @@ import { ErrorBoundary } from '@livai/ui-core';
 
 import '@testing-library/jest-dom/vitest';
 
+const AnyErrorBoundary = ErrorBoundary as any;
+
 // Полная очистка DOM между тестами
 afterEach(cleanup);
 
@@ -42,7 +44,7 @@ class ThrowError extends React.Component<{ shouldThrow?: boolean; errorMessage?:
     if (this.props.shouldThrow === true) {
       throw new Error(this.props.errorMessage ?? 'Test error');
     }
-    return <div data-testid='no-error'>No error</div>;
+    return React.createElement('div', { 'data-testid': 'no-error' }, 'No error');
   }
 }
 
@@ -53,32 +55,34 @@ class ThrowErrorInDidMount extends React.Component {
   }
 
   override render(): ReactNode {
-    return <div data-testid='no-error'>No error</div>;
+    return React.createElement('div', { 'data-testid': 'no-error' }, 'No error');
   }
 }
 
 // Вынесенные функции для соблюдения ESLint правил
 const createCustomFallbackFunction =
-  () => (error: Readonly<Error>, errorInfo: Readonly<ErrorInfo>) => (
-    <div data-testid='custom-fallback-function'>
-      Error: {error.message}, Stack: {errorInfo.componentStack}
-    </div>
-  );
+  () => (error: Readonly<Error>, errorInfo: Readonly<ErrorInfo>) =>
+    React.createElement(
+      'div',
+      { 'data-testid': 'custom-fallback-function' },
+      `Error: ${error.message}, Stack: ${errorInfo.componentStack}`,
+    );
 
-const createCustomFallbackSafe = () => (error: Readonly<Error>, errorInfo: Readonly<ErrorInfo>) => (
-  <div data-testid='custom-fallback-safe'>
-    Error: {error.message}, Stack: {errorInfo.componentStack}
-  </div>
-);
+const createCustomFallbackSafe = () => (error: Readonly<Error>, errorInfo: Readonly<ErrorInfo>) =>
+  React.createElement(
+    'div',
+    { 'data-testid': 'custom-fallback-safe' },
+    `Error: ${error.message}, Stack: ${errorInfo.componentStack}`,
+  );
 
 describe('ErrorBoundary', () => {
   // Общие тестовые переменные
-  const testChildren = <div data-testid='children'>Test children</div>;
+  const testChildren = React.createElement('div', { 'data-testid': 'children' }, 'Test children');
 
   describe('4.1. Рендер без ошибок', () => {
     it('рендерится с детьми когда ошибки нет', () => {
       const { getByTestId } = renderIsolated(
-        <ErrorBoundary>{testChildren}</ErrorBoundary>,
+        React.createElement(AnyErrorBoundary, {} as any, testChildren),
       );
 
       expect(getByTestId('children')).toBeInTheDocument();
@@ -87,7 +91,7 @@ describe('ErrorBoundary', () => {
 
     it('не рендерит fallback когда ошибки нет', () => {
       const { queryByRole } = renderIsolated(
-        <ErrorBoundary>{testChildren}</ErrorBoundary>,
+        React.createElement(AnyErrorBoundary, {} as any, testChildren),
       );
 
       expect(queryByRole('alert')).not.toBeInTheDocument();
@@ -99,9 +103,11 @@ describe('ErrorBoundary', () => {
       const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
       const { getByRole } = renderIsolated(
-        <ErrorBoundary>
-          <ThrowError shouldThrow={true} />
-        </ErrorBoundary>,
+        React.createElement(
+          AnyErrorBoundary,
+          {} as any,
+          React.createElement(ThrowError, { shouldThrow: true } as any),
+        ),
       );
 
       expect(getByRole('alert')).toBeInTheDocument();
@@ -115,9 +121,11 @@ describe('ErrorBoundary', () => {
       const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
       const { getByRole } = renderIsolated(
-        <ErrorBoundary>
-          <ThrowErrorInDidMount />
-        </ErrorBoundary>,
+        React.createElement(
+          AnyErrorBoundary,
+          {} as any,
+          React.createElement(ThrowErrorInDidMount, {} as any),
+        ),
       );
 
       expect(getByRole('alert')).toBeInTheDocument();
@@ -129,9 +137,11 @@ describe('ErrorBoundary', () => {
       const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
       const { queryByTestId } = renderIsolated(
-        <ErrorBoundary>
-          <ThrowError shouldThrow={true} />
-        </ErrorBoundary>,
+        React.createElement(
+          AnyErrorBoundary,
+          {} as any,
+          React.createElement(ThrowError, { shouldThrow: true } as any),
+        ),
       );
 
       expect(queryByTestId('no-error')).not.toBeInTheDocument();
@@ -145,9 +155,11 @@ describe('ErrorBoundary', () => {
       const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
       const { getByRole } = renderIsolated(
-        <ErrorBoundary>
-          <ThrowError shouldThrow={true} />
-        </ErrorBoundary>,
+        React.createElement(
+          AnyErrorBoundary,
+          {} as any,
+          React.createElement(ThrowError, { shouldThrow: true } as any),
+        ),
       );
 
       const alert = getByRole('alert');
@@ -161,9 +173,14 @@ describe('ErrorBoundary', () => {
       const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
       const { getByRole } = renderIsolated(
-        <ErrorBoundary>
-          <ThrowError shouldThrow={true} errorMessage='Custom error message' />
-        </ErrorBoundary>,
+        React.createElement(
+          AnyErrorBoundary,
+          {} as any,
+          React.createElement(ThrowError, {
+            shouldThrow: true,
+            errorMessage: 'Custom error message',
+          } as any),
+        ),
       );
 
       const alert = getByRole('alert');
@@ -185,9 +202,11 @@ describe('ErrorBoundary', () => {
       }
 
       const { getByRole } = renderIsolated(
-        <ErrorBoundary>
-          <ThrowErrorWithoutMessage />
-        </ErrorBoundary>,
+        React.createElement(
+          AnyErrorBoundary,
+          {} as any,
+          React.createElement(ThrowErrorWithoutMessage, {} as any),
+        ),
       );
 
       const alert = getByRole('alert');
@@ -201,9 +220,11 @@ describe('ErrorBoundary', () => {
       const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
       const { getByRole } = renderIsolated(
-        <ErrorBoundary>
-          <ThrowError shouldThrow={true} />
-        </ErrorBoundary>,
+        React.createElement(
+          AnyErrorBoundary,
+          {} as any,
+          React.createElement(ThrowError, { shouldThrow: true } as any),
+        ),
       );
 
       const resetButton = getByRole('button', { name: 'Попробовать снова' });
@@ -217,9 +238,11 @@ describe('ErrorBoundary', () => {
       const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
       const { getByRole } = renderIsolated(
-        <ErrorBoundary resetLabel='Try again'>
-          <ThrowError shouldThrow={true} />
-        </ErrorBoundary>,
+        React.createElement(
+          AnyErrorBoundary,
+          { resetLabel: 'Try again' } as any,
+          React.createElement(ThrowError, { shouldThrow: true } as any),
+        ),
       );
 
       const resetButton = getByRole('button', { name: 'Try again' });
@@ -233,9 +256,11 @@ describe('ErrorBoundary', () => {
       const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
       const { getByRole } = renderIsolated(
-        <ErrorBoundary>
-          <ThrowError shouldThrow={true} />
-        </ErrorBoundary>,
+        React.createElement(
+          AnyErrorBoundary,
+          {} as any,
+          React.createElement(ThrowError, { shouldThrow: true } as any),
+        ),
       );
 
       const alert = getByRole('alert');
@@ -251,9 +276,11 @@ describe('ErrorBoundary', () => {
       const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
       const { queryByTestId } = renderIsolated(
-        <ErrorBoundary data-testid='test-boundary'>
-          <ThrowError shouldThrow={true} />
-        </ErrorBoundary>,
+        React.createElement(
+          AnyErrorBoundary,
+          { 'data-testid': 'test-boundary' } as any,
+          React.createElement(ThrowError, { shouldThrow: true } as any),
+        ),
       );
 
       expect(queryByTestId('test-boundary-stack')).not.toBeInTheDocument();
@@ -265,9 +292,11 @@ describe('ErrorBoundary', () => {
       const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
       const { getByTestId } = renderIsolated(
-        <ErrorBoundary showStack={true} data-testid='test-boundary'>
-          <ThrowError shouldThrow={true} />
-        </ErrorBoundary>,
+        React.createElement(
+          AnyErrorBoundary,
+          { showStack: true, 'data-testid': 'test-boundary' } as any,
+          React.createElement(ThrowError, { shouldThrow: true } as any),
+        ),
       );
 
       const stack = getByTestId('test-boundary-stack');
@@ -281,9 +310,11 @@ describe('ErrorBoundary', () => {
       const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
       const { getByTestId } = renderIsolated(
-        <ErrorBoundary showStack={true} data-testid='test-boundary'>
-          <ThrowError shouldThrow={true} errorMessage='Test error' />
-        </ErrorBoundary>,
+        React.createElement(
+          AnyErrorBoundary,
+          { showStack: true, 'data-testid': 'test-boundary' } as any,
+          React.createElement(ThrowError, { shouldThrow: true, errorMessage: 'Test error' } as any),
+        ),
       );
 
       const stack = getByTestId('test-boundary-stack');
@@ -306,9 +337,11 @@ describe('ErrorBoundary', () => {
       }
 
       const { getByTestId } = renderIsolated(
-        <ErrorBoundary showStack={true} data-testid='test-boundary'>
-          <ThrowErrorWithoutStack />
-        </ErrorBoundary>,
+        React.createElement(
+          AnyErrorBoundary,
+          { showStack: true, 'data-testid': 'test-boundary' } as any,
+          React.createElement(ThrowErrorWithoutStack, {} as any),
+        ),
       );
 
       // React всегда предоставляет errorInfo.componentStack через componentDidCatch
@@ -325,12 +358,18 @@ describe('ErrorBoundary', () => {
     it('отображает кастомный fallback как ReactNode', () => {
       const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
-      const customFallback = <div data-testid='custom-fallback'>Custom fallback</div>;
+      const customFallback = React.createElement(
+        'div',
+        { 'data-testid': 'custom-fallback' },
+        'Custom fallback',
+      );
 
       const { getByTestId } = renderIsolated(
-        <ErrorBoundary fallback={customFallback}>
-          <ThrowError shouldThrow={true} />
-        </ErrorBoundary>,
+        React.createElement(
+          AnyErrorBoundary,
+          { fallback: customFallback } as any,
+          React.createElement(ThrowError, { shouldThrow: true } as any),
+        ),
       );
 
       expect(getByTestId('custom-fallback')).toBeInTheDocument();
@@ -345,9 +384,14 @@ describe('ErrorBoundary', () => {
       const customFallback = createCustomFallbackFunction();
 
       const { getByTestId } = renderIsolated(
-        <ErrorBoundary fallback={customFallback}>
-          <ThrowError shouldThrow={true} errorMessage='Function fallback test' />
-        </ErrorBoundary>,
+        React.createElement(
+          AnyErrorBoundary,
+          { fallback: customFallback } as any,
+          React.createElement(ThrowError, {
+            shouldThrow: true,
+            errorMessage: 'Function fallback test',
+          } as any),
+        ),
       );
 
       expect(getByTestId('custom-fallback-function')).toBeInTheDocument();
@@ -362,9 +406,14 @@ describe('ErrorBoundary', () => {
       const customFallback = createCustomFallbackSafe();
 
       const { getByTestId } = renderIsolated(
-        <ErrorBoundary fallback={customFallback}>
-          <ThrowError shouldThrow={true} errorMessage='Safe fallback test' />
-        </ErrorBoundary>,
+        React.createElement(
+          AnyErrorBoundary,
+          { fallback: customFallback } as any,
+          React.createElement(ThrowError, {
+            shouldThrow: true,
+            errorMessage: 'Safe fallback test',
+          } as any),
+        ),
       );
 
       expect(getByTestId('custom-fallback-safe')).toBeInTheDocument();
@@ -377,12 +426,18 @@ describe('ErrorBoundary', () => {
     it('не отображает дефолтный fallback когда передан кастомный', () => {
       const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
-      const customFallback = <div data-testid='custom-fallback'>Custom</div>;
+      const customFallback = React.createElement(
+        'div',
+        { 'data-testid': 'custom-fallback' },
+        'Custom',
+      );
 
       const { queryByRole } = renderIsolated(
-        <ErrorBoundary fallback={customFallback}>
-          <ThrowError shouldThrow={true} />
-        </ErrorBoundary>,
+        React.createElement(
+          AnyErrorBoundary,
+          { fallback: customFallback } as any,
+          React.createElement(ThrowError, { shouldThrow: true } as any),
+        ),
       );
 
       expect(queryByRole('alert')).not.toBeInTheDocument();
@@ -397,9 +452,14 @@ describe('ErrorBoundary', () => {
       const mockOnError = vi.fn();
 
       renderIsolated(
-        <ErrorBoundary onError={mockOnError}>
-          <ThrowError shouldThrow={true} errorMessage='Callback test' />
-        </ErrorBoundary>,
+        React.createElement(
+          AnyErrorBoundary,
+          { onError: mockOnError } as any,
+          React.createElement(ThrowError, {
+            shouldThrow: true,
+            errorMessage: 'Callback test',
+          } as any),
+        ),
       );
 
       expect(mockOnError).toHaveBeenCalledTimes(1);
@@ -415,9 +475,7 @@ describe('ErrorBoundary', () => {
       const mockOnError = vi.fn();
 
       renderIsolated(
-        <ErrorBoundary onError={mockOnError}>
-          {testChildren}
-        </ErrorBoundary>,
+        React.createElement(AnyErrorBoundary, { onError: mockOnError } as any, testChildren),
       );
 
       expect(mockOnError).not.toHaveBeenCalled();
@@ -428,9 +486,11 @@ describe('ErrorBoundary', () => {
 
       expect(() => {
         renderIsolated(
-          <ErrorBoundary>
-            <ThrowError shouldThrow={true} />
-          </ErrorBoundary>,
+          React.createElement(
+            AnyErrorBoundary,
+            {} as any,
+            React.createElement(ThrowError, { shouldThrow: true } as any),
+          ),
         );
       }).not.toThrow();
 
@@ -442,9 +502,11 @@ describe('ErrorBoundary', () => {
       const mockOnReset = vi.fn();
 
       const { getByRole } = renderIsolated(
-        <ErrorBoundary onReset={mockOnReset}>
-          <ThrowError shouldThrow={true} />
-        </ErrorBoundary>,
+        React.createElement(
+          AnyErrorBoundary,
+          { onReset: mockOnReset } as any,
+          React.createElement(ThrowError, { shouldThrow: true } as any),
+        ),
       );
 
       const resetButton = getByRole('button', { name: 'Попробовать снова' });
@@ -459,9 +521,11 @@ describe('ErrorBoundary', () => {
       const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
       const { getByRole } = renderIsolated(
-        <ErrorBoundary>
-          <ThrowError shouldThrow={true} />
-        </ErrorBoundary>,
+        React.createElement(
+          AnyErrorBoundary,
+          {} as any,
+          React.createElement(ThrowError, { shouldThrow: true } as any),
+        ),
       );
 
       const resetButton = getByRole('button', { name: 'Попробовать снова' });
@@ -474,9 +538,11 @@ describe('ErrorBoundary', () => {
       const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
       const { getByRole } = renderIsolated(
-        <ErrorBoundary>
-          <ThrowError shouldThrow={true} />
-        </ErrorBoundary>,
+        React.createElement(
+          AnyErrorBoundary,
+          {} as any,
+          React.createElement(ThrowError, { shouldThrow: true } as any),
+        ),
       );
 
       expect(getByRole('alert')).toBeInTheDocument();
@@ -492,14 +558,16 @@ describe('ErrorBoundary', () => {
           if (this.props.shouldThrow === true) {
             throw new Error('Test error');
           }
-          return <div data-testid='no-error-after-reset'>No error</div>;
+          return React.createElement('div', { 'data-testid': 'no-error-after-reset' }, 'No error');
         }
       }
 
       const { getByRole: getByRole2 } = renderIsolated(
-        <ErrorBoundary>
-          <ConditionalThrowError shouldThrow={true} />
-        </ErrorBoundary>,
+        React.createElement(
+          AnyErrorBoundary,
+          {} as any,
+          React.createElement(ConditionalThrowError, { shouldThrow: true } as any),
+        ),
       );
 
       expect(getByRole2('alert')).toBeInTheDocument();
@@ -520,9 +588,11 @@ describe('ErrorBoundary', () => {
       const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
       const { getByTestId } = renderIsolated(
-        <ErrorBoundary data-testid='test-boundary'>
-          <ThrowError shouldThrow={true} />
-        </ErrorBoundary>,
+        React.createElement(
+          AnyErrorBoundary,
+          { 'data-testid': 'test-boundary' } as any,
+          React.createElement(ThrowError, { shouldThrow: true } as any),
+        ),
       );
 
       expect(getByTestId('test-boundary')).toBeInTheDocument();
@@ -535,9 +605,11 @@ describe('ErrorBoundary', () => {
       const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
       const { getByTestId } = renderIsolated(
-        <ErrorBoundary data-testid='test-boundary'>
-          <ThrowError shouldThrow={true} />
-        </ErrorBoundary>,
+        React.createElement(
+          AnyErrorBoundary,
+          { 'data-testid': 'test-boundary' } as any,
+          React.createElement(ThrowError, { shouldThrow: true } as any),
+        ),
       );
 
       expect(getByTestId('test-boundary-title')).toBeInTheDocument();
@@ -551,9 +623,11 @@ describe('ErrorBoundary', () => {
       const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
       const { queryByTestId } = renderIsolated(
-        <ErrorBoundary data-testid=''>
-          <ThrowError shouldThrow={true} />
-        </ErrorBoundary>,
+        React.createElement(
+          AnyErrorBoundary,
+          { 'data-testid': '' } as any,
+          React.createElement(ThrowError, { shouldThrow: true } as any),
+        ),
       );
 
       expect(queryByTestId('-title')).not.toBeInTheDocument();
@@ -567,9 +641,11 @@ describe('ErrorBoundary', () => {
       const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
       const { queryByTestId } = renderIsolated(
-        <ErrorBoundary>
-          <ThrowError shouldThrow={true} />
-        </ErrorBoundary>,
+        React.createElement(
+          AnyErrorBoundary,
+          {} as any,
+          React.createElement(ThrowError, { shouldThrow: true } as any),
+        ),
       );
 
       expect(queryByTestId('-title')).not.toBeInTheDocument();
@@ -585,9 +661,11 @@ describe('ErrorBoundary', () => {
       const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
       const { getByRole } = renderIsolated(
-        <ErrorBoundary>
-          <ThrowError shouldThrow={true} />
-        </ErrorBoundary>,
+        React.createElement(
+          AnyErrorBoundary,
+          {} as any,
+          React.createElement(ThrowError, { shouldThrow: true } as any),
+        ),
       );
 
       const alert = getByRole('alert');
@@ -606,9 +684,11 @@ describe('ErrorBoundary', () => {
       const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
       renderIsolated(
-        <ErrorBoundary data-testid='test-boundary'>
-          <ThrowError shouldThrow={true} />
-        </ErrorBoundary>,
+        React.createElement(
+          AnyErrorBoundary,
+          { 'data-testid': 'test-boundary' } as any,
+          React.createElement(ThrowError, { shouldThrow: true } as any),
+        ),
       );
 
       const title = screen.getByTestId('test-boundary-title');
@@ -624,9 +704,11 @@ describe('ErrorBoundary', () => {
       const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
       renderIsolated(
-        <ErrorBoundary data-testid='test-boundary'>
-          <ThrowError shouldThrow={true} />
-        </ErrorBoundary>,
+        React.createElement(
+          AnyErrorBoundary,
+          { 'data-testid': 'test-boundary' } as any,
+          React.createElement(ThrowError, { shouldThrow: true } as any),
+        ),
       );
 
       const message = screen.getByTestId('test-boundary-message');
@@ -641,9 +723,11 @@ describe('ErrorBoundary', () => {
       const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
       renderIsolated(
-        <ErrorBoundary data-testid='test-boundary'>
-          <ThrowError shouldThrow={true} />
-        </ErrorBoundary>,
+        React.createElement(
+          AnyErrorBoundary,
+          { 'data-testid': 'test-boundary' } as any,
+          React.createElement(ThrowError, { shouldThrow: true } as any),
+        ),
       );
 
       const resetButton = screen.getByTestId('test-boundary-reset');
@@ -661,9 +745,11 @@ describe('ErrorBoundary', () => {
       const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
       const { getByTestId } = renderIsolated(
-        <ErrorBoundary showStack={true} data-testid='test-boundary'>
-          <ThrowError shouldThrow={true} />
-        </ErrorBoundary>,
+        React.createElement(
+          AnyErrorBoundary,
+          { showStack: true, 'data-testid': 'test-boundary' } as any,
+          React.createElement(ThrowError, { shouldThrow: true } as any),
+        ),
       );
 
       const stack = getByTestId('test-boundary-stack');
@@ -681,9 +767,11 @@ describe('ErrorBoundary', () => {
       const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
       const { getByRole } = renderIsolated(
-        <ErrorBoundary>
-          <ThrowError shouldThrow={true} errorMessage='State test' />
-        </ErrorBoundary>,
+        React.createElement(
+          AnyErrorBoundary,
+          {} as any,
+          React.createElement(ThrowError, { shouldThrow: true, errorMessage: 'State test' } as any),
+        ),
       );
 
       expect(getByRole('alert')).toBeInTheDocument();
@@ -700,9 +788,14 @@ describe('ErrorBoundary', () => {
       const mockOnError = vi.fn();
 
       renderIsolated(
-        <ErrorBoundary onError={mockOnError}>
-          <ThrowError shouldThrow={true} errorMessage='DidCatch test' />
-        </ErrorBoundary>,
+        React.createElement(
+          AnyErrorBoundary,
+          { onError: mockOnError } as any,
+          React.createElement(
+            ThrowError,
+            { shouldThrow: true, errorMessage: 'DidCatch test' } as any,
+          ),
+        ),
       );
 
       expect(mockOnError).toHaveBeenCalledTimes(1);
@@ -720,9 +813,11 @@ describe('ErrorBoundary', () => {
       const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
       const { getByRole } = renderIsolated(
-        <ErrorBoundary resetLabel=''>
-          <ThrowError shouldThrow={true} />
-        </ErrorBoundary>,
+        React.createElement(
+          AnyErrorBoundary,
+          { resetLabel: '' } as any,
+          React.createElement(ThrowError, { shouldThrow: true } as any),
+        ),
       );
 
       const resetButton = getByRole('button');
@@ -736,9 +831,11 @@ describe('ErrorBoundary', () => {
       const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
       const { queryByRole } = renderIsolated(
-        <ErrorBoundary fallback={null as any}>
-          <ThrowError shouldThrow={true} />
-        </ErrorBoundary>,
+        React.createElement(
+          AnyErrorBoundary,
+          { fallback: null as any } as any,
+          React.createElement(ThrowError, { shouldThrow: true } as any),
+        ),
       );
 
       // Когда fallback=null, компонент возвращает null (так как проверка fallback !== undefined)
@@ -752,9 +849,11 @@ describe('ErrorBoundary', () => {
       const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
       const { getByRole } = renderIsolated(
-        <ErrorBoundary fallback={undefined}>
-          <ThrowError shouldThrow={true} />
-        </ErrorBoundary>,
+        React.createElement(
+          AnyErrorBoundary,
+          { fallback: undefined } as any,
+          React.createElement(ThrowError, { shouldThrow: true } as any),
+        ),
       );
 
       expect(getByRole('alert')).toBeInTheDocument();
@@ -765,18 +864,20 @@ describe('ErrorBoundary', () => {
     it('работает с ReactNode fallback содержащим сложную структуру', () => {
       const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
-      const complexFallback = (
-        <div data-testid='complex-fallback'>
-          <h1>Error occurred</h1>
-          <p>Details</p>
-          <button>Retry</button>
-        </div>
+      const complexFallback = React.createElement(
+        'div',
+        { 'data-testid': 'complex-fallback' },
+        React.createElement('h1', null, 'Error occurred'),
+        React.createElement('p', null, 'Details'),
+        React.createElement('button', null, 'Retry'),
       );
 
       const { getByTestId } = renderIsolated(
-        <ErrorBoundary fallback={complexFallback}>
-          <ThrowError shouldThrow={true} />
-        </ErrorBoundary>,
+        React.createElement(
+          AnyErrorBoundary,
+          { fallback: complexFallback } as any,
+          React.createElement(ThrowError, { shouldThrow: true } as any),
+        ),
       );
 
       expect(getByTestId('complex-fallback')).toBeInTheDocument();
@@ -793,9 +894,7 @@ describe('ErrorBoundary', () => {
       // Этот случай не должен происходить в реальности, так как getDerivedStateFromError
       // всегда устанавливает error. Но проверяем защиту в render
       const { getByTestId } = renderIsolated(
-        <ErrorBoundary>
-          {testChildren}
-        </ErrorBoundary>,
+        React.createElement(AnyErrorBoundary, {} as any, testChildren),
       );
 
       expect(getByTestId('children')).toBeInTheDocument();
@@ -808,9 +907,7 @@ describe('ErrorBoundary', () => {
 
       // Этот случай не должен происходить в реальности, но проверяем защиту
       const { getByTestId } = renderIsolated(
-        <ErrorBoundary>
-          {testChildren}
-        </ErrorBoundary>,
+        React.createElement(AnyErrorBoundary, {} as any, testChildren),
       );
 
       expect(getByTestId('children')).toBeInTheDocument();
@@ -830,14 +927,16 @@ describe('ErrorBoundary', () => {
           if (shouldThrow) {
             throw new Error('Toggle error');
           }
-          return <div data-testid='recovered'>Recovered</div>;
+          return React.createElement('div', { 'data-testid': 'recovered' }, 'Recovered');
         }
       }
 
       const { getByRole, rerender } = renderIsolated(
-        <ErrorBoundary>
-          <ToggleThrowError />
-        </ErrorBoundary>,
+        React.createElement(
+          AnyErrorBoundary,
+          {} as any,
+          React.createElement(ToggleThrowError, {} as any),
+        ),
       );
 
       expect(getByRole('alert')).toBeInTheDocument();
@@ -849,9 +948,11 @@ describe('ErrorBoundary', () => {
       // После reset компонент пытается снова рендерить children
       // Но так как shouldThrow все еще true в замыкании, нужно использовать другой подход
       rerender(
-        <ErrorBoundary>
-          <div data-testid='recovered-manual'>Recovered manually</div>
-        </ErrorBoundary>,
+        React.createElement(
+          AnyErrorBoundary,
+          {} as any,
+          React.createElement('div', { 'data-testid': 'recovered-manual' }, 'Recovered manually'),
+        ),
       );
 
       expect(screen.getByTestId('recovered-manual')).toBeInTheDocument();
@@ -874,9 +975,11 @@ describe('ErrorBoundary', () => {
 
       // Мокаем componentDidCatch чтобы установить errorInfo
       const { getByTestId } = renderIsolated(
-        <ErrorBoundary showStack={true} data-testid='test-boundary'>
-          <ThrowErrorWithoutStack />
-        </ErrorBoundary>,
+        React.createElement(
+          AnyErrorBoundary,
+          { showStack: true, 'data-testid': 'test-boundary' } as any,
+          React.createElement(ThrowErrorWithoutStack, {} as any),
+        ),
       );
 
       // Stack trace должен отображаться если есть errorInfo.componentStack

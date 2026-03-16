@@ -36,13 +36,17 @@ function renderIsolated(component: Readonly<React.ReactElement>) {
 describe('Button', () => {
   describe('1.1. Рендер без падений', () => {
     it('рендерится с текстом', () => {
-      const { getByRole } = renderIsolated(<Button>Hello World</Button>);
+      const { getByRole } = renderIsolated(
+        React.createElement(Button, null, 'Hello World'),
+      );
 
       expect(getByRole('button')).toHaveTextContent('Hello World');
     });
 
     it('по умолчанию type="button"', () => {
-      const { getByRole } = renderIsolated(<Button>Click me</Button>);
+      const { getByRole } = renderIsolated(
+        React.createElement(Button, null, 'Click me'),
+      );
 
       expect(getByRole('button')).toHaveAttribute('type', 'button');
     });
@@ -50,7 +54,9 @@ describe('Button', () => {
 
   describe('1.2. Variant', () => {
     it('primary → есть классы primary', () => {
-      const { getByRole } = renderIsolated(<Button variant='primary'>Primary</Button>);
+      const { getByRole } = renderIsolated(
+        React.createElement(Button, { variant: 'primary' }, 'Primary'),
+      );
 
       const button = getByRole('button');
       expect(button).toHaveClass('bg-blue-600', 'text-white');
@@ -58,7 +64,9 @@ describe('Button', () => {
     });
 
     it('secondary → есть классы secondary', () => {
-      const { getByRole } = renderIsolated(<Button variant='secondary'>Secondary</Button>);
+      const { getByRole } = renderIsolated(
+        React.createElement(Button, { variant: 'secondary' }, 'Secondary'),
+      );
 
       const button = getByRole('button');
       expect(button).toHaveClass('border-gray-300', 'bg-white', 'text-gray-900');
@@ -66,7 +74,9 @@ describe('Button', () => {
     });
 
     it('variant по умолчанию → primary классы', () => {
-      const { getByRole } = renderIsolated(<Button>Default</Button>);
+      const { getByRole } = renderIsolated(
+        React.createElement(Button, null, 'Default'),
+      );
 
       const button = getByRole('button');
       expect(button).toHaveClass('bg-blue-600', 'text-white');
@@ -76,19 +86,25 @@ describe('Button', () => {
 
   describe('1.3. Size', () => {
     it('sm → применён sm-класс', () => {
-      const { getByRole } = renderIsolated(<Button size='sm'>Small</Button>);
+      const { getByRole } = renderIsolated(
+        React.createElement(Button, { size: 'sm' }, 'Small'),
+      );
 
       expect(getByRole('button')).toHaveClass('px-2.5', 'py-1.5', 'text-sm');
     });
 
     it('md → применён md-класс', () => {
-      const { getByRole } = renderIsolated(<Button size='md'>Medium</Button>);
+      const { getByRole } = renderIsolated(
+        React.createElement(Button, { size: 'md' }, 'Medium'),
+      );
 
       expect(getByRole('button')).toHaveClass('px-3', 'py-2', 'text-sm');
     });
 
     it('lg → применён lg-класс', () => {
-      const { getByRole } = renderIsolated(<Button size='lg'>Large</Button>);
+      const { getByRole } = renderIsolated(
+        React.createElement(Button, { size: 'lg' }, 'Large'),
+      );
 
       expect(getByRole('button')).toHaveClass('px-4', 'py-2.5', 'text-base');
     });
@@ -96,7 +112,9 @@ describe('Button', () => {
 
   describe('1.4. Disabled', () => {
     it('disabled=true → атрибут disabled присутствует и применены disabled-классы', () => {
-      const { getByRole } = renderIsolated(<Button disabled>Disabled Button</Button>);
+      const { getByRole } = renderIsolated(
+        React.createElement(Button, { disabled: true }, 'Disabled Button'),
+      );
 
       const button = getByRole('button');
       expect(button).toBeDisabled();
@@ -105,7 +123,11 @@ describe('Button', () => {
 
     it('disabled primary → дополнительные классы для primary', () => {
       const { getByRole } = renderIsolated(
-        <Button variant='primary' disabled>Disabled Primary</Button>,
+        React.createElement(
+          Button,
+          { variant: 'primary', disabled: true },
+          'Disabled Primary',
+        ),
       );
 
       const button = getByRole('button');
@@ -115,13 +137,17 @@ describe('Button', () => {
 
   describe('1.5. Full width', () => {
     it('fullWidth=true → есть класс w-full', () => {
-      const { getByRole } = renderIsolated(<Button fullWidth>Full Width</Button>);
+      const { getByRole } = renderIsolated(
+        React.createElement(Button, { fullWidth: true }, 'Full Width'),
+      );
 
       expect(getByRole('button')).toHaveClass('w-full');
     });
 
     it('fullWidth=false или не указан → нет класса w-full', () => {
-      const { getByRole } = renderIsolated(<Button>Regular Width</Button>);
+      const { getByRole } = renderIsolated(
+        React.createElement(Button, null, 'Regular Width'),
+      );
 
       expect(getByRole('button')).not.toHaveClass('w-full');
     });
@@ -129,7 +155,9 @@ describe('Button', () => {
 
   describe('1.6. className пробрасывается', () => {
     it('переданный className добавляется, а не затирает базовые', () => {
-      const { getByRole } = renderIsolated(<Button className='custom-class'>Custom</Button>);
+      const { getByRole } = renderIsolated(
+        React.createElement(Button, { className: 'custom-class' }, 'Custom'),
+      );
 
       const button = getByRole('button');
       expect(button).toHaveClass('custom-class');

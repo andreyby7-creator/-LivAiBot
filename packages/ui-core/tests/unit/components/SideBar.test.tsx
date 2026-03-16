@@ -12,6 +12,8 @@ import { SideBar } from '@livai/ui-core';
 
 import '@testing-library/jest-dom/vitest';
 
+const AnySideBar = SideBar as any;
+
 // Полная очистка DOM между тестами
 afterEach(cleanup);
 
@@ -46,8 +48,16 @@ function renderIsolated(component: Readonly<React.ReactElement>) {
 describe('SideBar', () => {
   // Общие тестовые переменные
   const testItems: readonly SideBarItem[] = [
-    { id: 'item1', label: 'Item 1', icon: <span data-testid='icon1'>📁</span> },
-    { id: 'item2', label: 'Item 2', icon: <span data-testid='icon2'>📄</span> },
+    {
+      id: 'item1',
+      label: 'Item 1',
+      icon: React.createElement('span', { 'data-testid': 'icon1' }, '📁'),
+    },
+    {
+      id: 'item2',
+      label: 'Item 2',
+      icon: React.createElement('span', { 'data-testid': 'icon2' }, '📄'),
+    },
     { id: 'item3', label: 'Item 3' },
   ];
 
@@ -86,14 +96,18 @@ describe('SideBar', () => {
 
   describe('4.1. Рендер без падений', () => {
     it('рендерится с обязательными пропсами', () => {
-      const { container, getSideBar } = renderIsolated(<SideBar />);
+      const { container, getSideBar } = renderIsolated(
+        React.createElement(AnySideBar, {} as any, null),
+      );
 
       expect(container).toBeInTheDocument();
       expect(getSideBar()).toBeInTheDocument();
     });
 
     it('создает aside элемент с правильными атрибутами по умолчанию', () => {
-      const { getSideBar } = renderIsolated(<SideBar />);
+      const { getSideBar } = renderIsolated(
+        React.createElement(AnySideBar, {} as any, null),
+      );
 
       const sidebar = getSideBar();
       expect(sidebar).toBeInTheDocument();
@@ -106,14 +120,18 @@ describe('SideBar', () => {
     });
 
     it('рендерится с items', () => {
-      const { getItems } = renderIsolated(<SideBar items={testItems} />);
+      const { getItems } = renderIsolated(
+        React.createElement(AnySideBar, { items: testItems } as any, null),
+      );
 
       const items = getItems();
       expect(items).toHaveLength(3);
     });
 
     it('рендерится без items (пустой sidebar)', () => {
-      const { getItems, getContent } = renderIsolated(<SideBar />);
+      const { getItems, getContent } = renderIsolated(
+        React.createElement(AnySideBar, {} as any, null),
+      );
 
       const items = getItems();
       expect(items).toHaveLength(0);
@@ -123,33 +141,45 @@ describe('SideBar', () => {
 
   describe('4.2. Пропсы компонента', () => {
     it('применяет className к контейнеру', () => {
-      const { getSideBar } = renderIsolated(<SideBar className='custom-class' />);
+      const { getSideBar } = renderIsolated(
+        React.createElement(AnySideBar, { className: 'custom-class' } as any, null),
+      );
 
       expect(getSideBar()).toHaveClass('custom-class');
     });
 
     it('применяет style к контейнеру', () => {
-      const { getSideBar } = renderIsolated(<SideBar style={customStyle} />);
+      const { getSideBar } = renderIsolated(
+        React.createElement(AnySideBar, { style: customStyle } as any, null),
+      );
 
       const sidebar = getSideBar();
       expect(sidebar).toHaveStyle(customStyle);
     });
 
     it('применяет data-testid', () => {
-      const { getByTestId } = renderIsolated(<SideBar data-testid='custom-test-id' />);
+      const { getByTestId } = renderIsolated(
+        React.createElement(AnySideBar, { 'data-testid': 'custom-test-id' } as any, null),
+      );
 
       expect(getByTestId('custom-test-id')).toBeInTheDocument();
     });
 
     it('не имеет data-testid по умолчанию', () => {
-      const { getSideBar } = renderIsolated(<SideBar />);
+      const { getSideBar } = renderIsolated(
+        React.createElement(AnySideBar, {} as any, null),
+      );
 
       expect(getSideBar()).not.toHaveAttribute('data-testid');
     });
 
     it('прокидывает дополнительные HTML атрибуты', () => {
       const { getSideBar } = renderIsolated(
-        <SideBar id='sidebar-id' title='Custom title' data-custom='test-value' />,
+        React.createElement(
+          AnySideBar,
+          { id: 'sidebar-id', title: 'Custom title', 'data-custom': 'test-value' } as any,
+          null,
+        ),
       );
 
       const sidebar = getSideBar();
@@ -161,14 +191,18 @@ describe('SideBar', () => {
 
   describe('4.3. Состояние collapsed', () => {
     it('не свернут по умолчанию', () => {
-      const { getSideBar } = renderIsolated(<SideBar items={testItems} />);
+      const { getSideBar } = renderIsolated(
+        React.createElement(AnySideBar, { items: testItems } as any, null),
+      );
 
       const sidebar = getSideBar();
       expect(sidebar).not.toHaveAttribute('data-collapsed');
     });
 
     it('применяет collapsed состояние', () => {
-      const { getSideBar } = renderIsolated(<SideBar items={testItems} collapsed={true} />);
+      const { getSideBar } = renderIsolated(
+        React.createElement(AnySideBar, { items: testItems, collapsed: true } as any, null),
+      );
 
       const sidebar = getSideBar();
       expect(sidebar).toHaveAttribute('data-collapsed', 'true');
@@ -176,7 +210,11 @@ describe('SideBar', () => {
 
     it('применяет правильную ширину когда collapsed=false', () => {
       const { getSideBar } = renderIsolated(
-        <SideBar items={testItems} collapsed={false} width='300px' />,
+        React.createElement(
+          AnySideBar,
+          { items: testItems, collapsed: false, width: '300px' } as any,
+          null,
+        ),
       );
 
       const sidebar = getSideBar();
@@ -185,7 +223,11 @@ describe('SideBar', () => {
 
     it('применяет правильную ширину когда collapsed=true', () => {
       const { getSideBar } = renderIsolated(
-        <SideBar items={testItems} collapsed={true} collapsedWidth='80px' />,
+        React.createElement(
+          AnySideBar,
+          { items: testItems, collapsed: true, collapsedWidth: '80px' } as any,
+          null,
+        ),
       );
 
       const sidebar = getSideBar();
@@ -193,21 +235,27 @@ describe('SideBar', () => {
     });
 
     it('использует дефолтную ширину когда collapsed=false', () => {
-      const { getSideBar } = renderIsolated(<SideBar items={testItems} collapsed={false} />);
+      const { getSideBar } = renderIsolated(
+        React.createElement(AnySideBar, { items: testItems, collapsed: false } as any, null),
+      );
 
       const sidebar = getSideBar();
       expect(sidebar).toHaveStyle({ width: '280px' });
     });
 
     it('использует дефолтную ширину когда collapsed=true', () => {
-      const { getSideBar } = renderIsolated(<SideBar items={testItems} collapsed={true} />);
+      const { getSideBar } = renderIsolated(
+        React.createElement(AnySideBar, { items: testItems, collapsed: true } as any, null),
+      );
 
       const sidebar = getSideBar();
       expect(sidebar).toHaveStyle({ width: '64px' });
     });
 
     it('скрывает labels когда collapsed=true', () => {
-      const { getItems } = renderIsolated(<SideBar items={testItems} collapsed={true} />);
+      const { getItems } = renderIsolated(
+        React.createElement(AnySideBar, { items: testItems, collapsed: true } as any, null),
+      );
 
       const items = getItems();
       items.forEach((item) => {
@@ -217,7 +265,9 @@ describe('SideBar', () => {
     });
 
     it('показывает labels когда collapsed=false', () => {
-      const { getItems } = renderIsolated(<SideBar items={testItems} collapsed={false} />);
+      const { getItems } = renderIsolated(
+        React.createElement(AnySideBar, { items: testItems, collapsed: false } as any, null),
+      );
 
       const items = getItems();
       items.forEach((item, index) => {
@@ -236,7 +286,7 @@ describe('SideBar', () => {
 
     it('применяет правильные стили иконок когда collapsed=true', () => {
       const { getItems } = renderIsolated(
-        <SideBar items={testItems} collapsed={true} />,
+        React.createElement(AnySideBar, { items: testItems, collapsed: true } as any, null),
       );
 
       const items = getItems();
@@ -250,7 +300,7 @@ describe('SideBar', () => {
 
     it('применяет правильные стили иконок когда collapsed=false', () => {
       const { getItems } = renderIsolated(
-        <SideBar items={testItems} collapsed={false} />,
+        React.createElement(AnySideBar, { items: testItems, collapsed: false } as any, null),
       );
 
       const items = getItems();
@@ -265,13 +315,17 @@ describe('SideBar', () => {
 
   describe('4.4. Позиция (position)', () => {
     it('использует left по умолчанию', () => {
-      const { getSideBar } = renderIsolated(<SideBar />);
+      const { getSideBar } = renderIsolated(
+        React.createElement(AnySideBar, {} as any, null),
+      );
 
       expect(getSideBar()).toHaveAttribute('data-position', 'left');
     });
 
     it('применяет left позицию', () => {
-      const { getSideBar } = renderIsolated(<SideBar position='left' />);
+      const { getSideBar } = renderIsolated(
+        React.createElement(AnySideBar, { position: 'left' } as any, null),
+      );
 
       const sidebar = getSideBar();
       expect(sidebar).toHaveAttribute('data-position', 'left');
@@ -281,7 +335,9 @@ describe('SideBar', () => {
     });
 
     it('применяет right позицию', () => {
-      const { getSideBar } = renderIsolated(<SideBar position='right' />);
+      const { getSideBar } = renderIsolated(
+        React.createElement(AnySideBar, { position: 'right' } as any, null),
+      );
 
       const sidebar = getSideBar();
       expect(sidebar).toHaveAttribute('data-position', 'right');
@@ -295,15 +351,23 @@ describe('SideBar', () => {
 
   describe('4.5. Header и Footer', () => {
     it('не рендерит header когда не передан', () => {
-      const { getHeader } = renderIsolated(<SideBar />);
+      const { getHeader } = renderIsolated(
+        React.createElement(AnySideBar, {} as any, null),
+      );
 
       expect(getHeader()).toBeNull();
     });
 
     it('рендерит header когда передан', () => {
-      const headerContent = <div data-testid='header-content'>Header</div>;
       const { getHeader, getByTestId } = renderIsolated(
-        <SideBar header={headerContent} data-testid='sidebar' />,
+        React.createElement(
+          AnySideBar,
+          {
+            header: React.createElement('div', { 'data-testid': 'header-content' }, 'Header'),
+            'data-testid': 'sidebar',
+          } as any,
+          null,
+        ),
       );
 
       expect(getHeader()).toBeInTheDocument();
@@ -312,22 +376,34 @@ describe('SideBar', () => {
 
     it('применяет правильный data-testid для header', () => {
       const { getHeader } = renderIsolated(
-        <SideBar header='Header' data-testid='sidebar' />,
+        React.createElement(
+          AnySideBar,
+          { header: 'Header', 'data-testid': 'sidebar' } as any,
+          null,
+        ),
       );
 
       expect(getHeader()).toHaveAttribute('data-testid', 'sidebar-header');
     });
 
     it('не рендерит footer когда не передан', () => {
-      const { getFooter } = renderIsolated(<SideBar />);
+      const { getFooter } = renderIsolated(
+        React.createElement(AnySideBar, {} as any, null),
+      );
 
       expect(getFooter()).toBeNull();
     });
 
     it('рендерит footer когда передан', () => {
-      const footerContent = <div data-testid='footer-content'>Footer</div>;
       const { getFooter, getByTestId } = renderIsolated(
-        <SideBar footer={footerContent} data-testid='sidebar' />,
+        React.createElement(
+          AnySideBar,
+          {
+            footer: React.createElement('div', { 'data-testid': 'footer-content' }, 'Footer'),
+            'data-testid': 'sidebar',
+          } as any,
+          null,
+        ),
       );
 
       expect(getFooter()).toBeInTheDocument();
@@ -336,7 +412,11 @@ describe('SideBar', () => {
 
     it('применяет правильный data-testid для footer', () => {
       const { getFooter } = renderIsolated(
-        <SideBar footer='Footer' data-testid='sidebar' />,
+        React.createElement(
+          AnySideBar,
+          { footer: 'Footer', 'data-testid': 'sidebar' } as any,
+          null,
+        ),
       );
 
       expect(getFooter()).toHaveAttribute('data-testid', 'sidebar-footer');
@@ -344,7 +424,11 @@ describe('SideBar', () => {
 
     it('не применяет data-testid для footer когда testId пустой', () => {
       const { container } = renderIsolated(
-        <SideBar footer='Footer' data-testid='' />,
+        React.createElement(
+          AnySideBar,
+          { footer: 'Footer', 'data-testid': '' } as any,
+          null,
+        ),
       );
 
       // Ищем footer через его содержимое, так как data-testid не установлен
@@ -356,14 +440,18 @@ describe('SideBar', () => {
     });
 
     it('обновляет aria-label nav когда header присутствует', () => {
-      const { getContent } = renderIsolated(<SideBar header='Header' />);
+      const { getContent } = renderIsolated(
+        React.createElement(AnySideBar, { header: 'Header' } as any, null),
+      );
 
       const nav = getContent();
       expect(nav).toHaveAttribute('aria-label', 'Sidebar menu');
     });
 
     it('использует дефолтный aria-label nav когда header отсутствует', () => {
-      const { getContent } = renderIsolated(<SideBar />);
+      const { getContent } = renderIsolated(
+        React.createElement(AnySideBar, {} as any, null),
+      );
 
       const nav = getContent();
       expect(nav).toHaveAttribute('aria-label', 'Sidebar navigation');
@@ -372,13 +460,17 @@ describe('SideBar', () => {
 
   describe('4.6. Overlay', () => {
     it('не рендерит overlay по умолчанию', () => {
-      const { getOverlay } = renderIsolated(<SideBar />);
+      const { getOverlay } = renderIsolated(
+        React.createElement(AnySideBar, {} as any, null),
+      );
 
       expect(getOverlay()).toBeNull();
     });
 
     it('рендерит overlay когда showOverlay=true', () => {
-      const { getOverlay } = renderIsolated(<SideBar showOverlay={true} />);
+      const { getOverlay } = renderIsolated(
+        React.createElement(AnySideBar, { showOverlay: true } as any, null),
+      );
 
       const overlay = getOverlay();
       expect(overlay).toBeInTheDocument();
@@ -388,7 +480,9 @@ describe('SideBar', () => {
     });
 
     it('применяет правильные стили overlay', () => {
-      const { getOverlay } = renderIsolated(<SideBar showOverlay={true} />);
+      const { getOverlay } = renderIsolated(
+        React.createElement(AnySideBar, { showOverlay: true } as any, null),
+      );
 
       const overlay = getOverlay();
       expect(overlay).toHaveStyle({
@@ -400,7 +494,11 @@ describe('SideBar', () => {
 
     it('применяет правильный data-testid для overlay', () => {
       const { getOverlay } = renderIsolated(
-        <SideBar showOverlay={true} data-testid='sidebar' />,
+        React.createElement(
+          AnySideBar,
+          { showOverlay: true, 'data-testid': 'sidebar' } as any,
+          null,
+        ),
       );
 
       const overlay = getOverlay();
@@ -409,7 +507,11 @@ describe('SideBar', () => {
 
     it('не применяет data-testid для overlay когда testId пустой', () => {
       const { getOverlay } = renderIsolated(
-        <SideBar showOverlay={true} data-testid='' />,
+        React.createElement(
+          AnySideBar,
+          { showOverlay: true, 'data-testid': '' } as any,
+          null,
+        ),
       );
 
       const overlay = getOverlay();
@@ -419,7 +521,11 @@ describe('SideBar', () => {
     it('вызывает onOverlayClick при клике на overlay', () => {
       const mockOnOverlayClick = vi.fn();
       const { getOverlay } = renderIsolated(
-        <SideBar showOverlay={true} onOverlayClick={mockOnOverlayClick} />,
+        React.createElement(
+          AnySideBar,
+          { showOverlay: true, onOverlayClick: mockOnOverlayClick } as any,
+          null,
+        ),
       );
 
       const overlay = getOverlay();
@@ -429,7 +535,9 @@ describe('SideBar', () => {
     });
 
     it('не вызывает onOverlayClick если он не передан', () => {
-      const { getOverlay } = renderIsolated(<SideBar showOverlay={true} />);
+      const { getOverlay } = renderIsolated(
+        React.createElement(AnySideBar, { showOverlay: true } as any, null),
+      );
 
       const overlay = getOverlay();
       expect(() => fireEvent.click(overlay!)).not.toThrow();
@@ -438,7 +546,9 @@ describe('SideBar', () => {
 
   describe('4.7. Элементы навигации (items)', () => {
     it('рендерит все элементы с правильными атрибутами', () => {
-      const { getItems } = renderIsolated(<SideBar items={testItems} />);
+      const { getItems } = renderIsolated(
+        React.createElement(AnySideBar, { items: testItems } as any, null),
+      );
 
       const items = getItems();
       expect(items).toHaveLength(3);
@@ -453,7 +563,9 @@ describe('SideBar', () => {
     });
 
     it('отображает label элементов', () => {
-      const { getItems } = renderIsolated(<SideBar items={testItems} />);
+      const { getItems } = renderIsolated(
+        React.createElement(AnySideBar, { items: testItems } as any, null),
+      );
 
       const items = getItems();
       testItems.forEach((item, index) => {
@@ -463,14 +575,18 @@ describe('SideBar', () => {
     });
 
     it('отображает иконки элементов', () => {
-      const { getByTestId } = renderIsolated(<SideBar items={testItems} />);
+      const { getByTestId } = renderIsolated(
+        React.createElement(AnySideBar, { items: testItems } as any, null),
+      );
 
       expect(getByTestId('icon1')).toBeInTheDocument();
       expect(getByTestId('icon2')).toBeInTheDocument();
     });
 
     it('не рендерит иконку когда она не передана', () => {
-      const { getItems } = renderIsolated(<SideBar items={testItems} />);
+      const { getItems } = renderIsolated(
+        React.createElement(AnySideBar, { items: testItems } as any, null),
+      );
 
       const items = getItems();
       const itemWithoutIcon = items[2]!;
@@ -479,7 +595,9 @@ describe('SideBar', () => {
     });
 
     it('применяет правильные стили для активного элемента', () => {
-      const { getItems } = renderIsolated(<SideBar items={itemsWithActive} />);
+      const { getItems } = renderIsolated(
+        React.createElement(AnySideBar, { items: itemsWithActive } as any, null),
+      );
 
       const items = getItems();
       const activeItem = items[0]!;
@@ -489,7 +607,9 @@ describe('SideBar', () => {
     });
 
     it('не применяет активные стили для неактивного элемента', () => {
-      const { getItems } = renderIsolated(<SideBar items={itemsWithActive} />);
+      const { getItems } = renderIsolated(
+        React.createElement(AnySideBar, { items: itemsWithActive } as any, null),
+      );
 
       const items = getItems();
       const inactiveItem = items[1]!;
@@ -498,7 +618,9 @@ describe('SideBar', () => {
     });
 
     it('применяет правильные стили для disabled элемента', () => {
-      const { getItems } = renderIsolated(<SideBar items={itemsWithDisabled} />);
+      const { getItems } = renderIsolated(
+        React.createElement(AnySideBar, { items: itemsWithDisabled } as any, null),
+      );
 
       const items = getItems();
       const disabledItem = items[1]!;
@@ -509,7 +631,9 @@ describe('SideBar', () => {
     });
 
     it('применяет data атрибуты к элементам', () => {
-      const { getItems } = renderIsolated(<SideBar items={itemsWithData} />);
+      const { getItems } = renderIsolated(
+        React.createElement(AnySideBar, { items: itemsWithData } as any, null),
+      );
 
       const items = getItems();
       expect(items[0]).toHaveAttribute('data-custom', 'item1-value');
@@ -518,7 +642,9 @@ describe('SideBar', () => {
     });
 
     it('применяет aria-label когда collapsed=true', () => {
-      const { getItems } = renderIsolated(<SideBar items={testItems} collapsed={true} />);
+      const { getItems } = renderIsolated(
+        React.createElement(AnySideBar, { items: testItems, collapsed: true } as any, null),
+      );
 
       const items = getItems();
       testItems.forEach((item, index) => {
@@ -528,7 +654,9 @@ describe('SideBar', () => {
     });
 
     it('не применяет aria-label когда collapsed=false', () => {
-      const { getItems } = renderIsolated(<SideBar items={testItems} collapsed={false} />);
+      const { getItems } = renderIsolated(
+        React.createElement(AnySideBar, { items: testItems, collapsed: false } as any, null),
+      );
 
       const items = getItems();
       testItems.forEach((_item, index) => {
@@ -542,7 +670,11 @@ describe('SideBar', () => {
     it('вызывает onItemClick при клике на элемент', () => {
       const mockOnItemClick = vi.fn();
       const { getItems } = renderIsolated(
-        <SideBar items={testItems} onItemClick={mockOnItemClick} />,
+        React.createElement(
+          AnySideBar,
+          { items: testItems, onItemClick: mockOnItemClick } as any,
+          null,
+        ),
       );
 
       const items = getItems();
@@ -555,7 +687,11 @@ describe('SideBar', () => {
     it('вызывает onItemClick с правильным itemId', () => {
       const mockOnItemClick = vi.fn();
       const { getItems } = renderIsolated(
-        <SideBar items={testItems} onItemClick={mockOnItemClick} />,
+        React.createElement(
+          AnySideBar,
+          { items: testItems, onItemClick: mockOnItemClick } as any,
+          null,
+        ),
       );
 
       const items = getItems();
@@ -567,7 +703,11 @@ describe('SideBar', () => {
     it('не вызывает onItemClick для disabled элемента', () => {
       const mockOnItemClick = vi.fn();
       const { getItems } = renderIsolated(
-        <SideBar items={itemsWithDisabled} onItemClick={mockOnItemClick} />,
+        React.createElement(
+          AnySideBar,
+          { items: itemsWithDisabled, onItemClick: mockOnItemClick } as any,
+          null,
+        ),
       );
 
       const items = getItems();
@@ -577,7 +717,9 @@ describe('SideBar', () => {
     });
 
     it('не вызывает onItemClick если он не передан', () => {
-      const { getItems } = renderIsolated(<SideBar items={testItems} />);
+      const { getItems } = renderIsolated(
+        React.createElement(AnySideBar, { items: testItems } as any, null),
+      );
 
       const items = getItems();
       expect(() => fireEvent.click(items[0]!)).not.toThrow();
@@ -586,7 +728,11 @@ describe('SideBar', () => {
     it('не вызывает onItemClick если элемент disabled даже при наличии onItemClick', () => {
       const mockOnItemClick = vi.fn();
       const { getItems } = renderIsolated(
-        <SideBar items={itemsWithDisabled} onItemClick={mockOnItemClick} />,
+        React.createElement(
+          AnySideBar,
+          { items: itemsWithDisabled, onItemClick: mockOnItemClick } as any,
+          null,
+        ),
       );
 
       const items = getItems();
@@ -602,7 +748,7 @@ describe('SideBar', () => {
     it('передает ref к контейнеру', () => {
       const mockRef = createMockRef();
 
-      renderIsolated(<SideBar ref={mockRef} />);
+      renderIsolated(React.createElement(AnySideBar, { ref: mockRef } as any, null));
 
       expect(mockRef.current).toBeInstanceOf(HTMLElement);
       expect(mockRef.current?.tagName).toBe('ASIDE');
@@ -612,7 +758,7 @@ describe('SideBar', () => {
     it('поддерживает callback ref', () => {
       const refCallback = vi.fn();
 
-      renderIsolated(<SideBar ref={refCallback} />);
+      renderIsolated(React.createElement(AnySideBar, { ref: refCallback } as any, null));
 
       expect(refCallback).toHaveBeenCalledTimes(1);
       const refValue = refCallback.mock.calls[0]?.[0];
@@ -623,7 +769,9 @@ describe('SideBar', () => {
 
   describe('4.10. Edge cases', () => {
     it('работает с пустым массивом items', () => {
-      const { getItems, getContent } = renderIsolated(<SideBar items={emptyItems} />);
+      const { getItems, getContent } = renderIsolated(
+        React.createElement(AnySideBar, { items: emptyItems } as any, null),
+      );
 
       const items = getItems();
       expect(items).toHaveLength(0);
@@ -631,7 +779,9 @@ describe('SideBar', () => {
     });
 
     it('работает с одним элементом', () => {
-      const { getItems } = renderIsolated(<SideBar items={singleItem} />);
+      const { getItems } = renderIsolated(
+        React.createElement(AnySideBar, { items: singleItem } as any, null),
+      );
 
       const items = getItems();
       expect(items).toHaveLength(1);
@@ -639,56 +789,76 @@ describe('SideBar', () => {
     });
 
     it('работает с null header', () => {
-      const { getHeader } = renderIsolated(<SideBar header={null as any} />);
+      const { getHeader } = renderIsolated(
+        React.createElement(AnySideBar, { header: null as any } as any, null),
+      );
 
       expect(getHeader()).toBeNull();
     });
 
     it('работает с undefined header', () => {
-      const { getHeader } = renderIsolated(<SideBar header={undefined as any} />);
+      const { getHeader } = renderIsolated(
+        React.createElement(AnySideBar, { header: undefined as any } as any, null),
+      );
 
       expect(getHeader()).toBeNull();
     });
 
     it('работает с null footer', () => {
-      const { getFooter } = renderIsolated(<SideBar footer={null as any} />);
+      const { getFooter } = renderIsolated(
+        React.createElement(AnySideBar, { footer: null as any } as any, null),
+      );
 
       expect(getFooter()).toBeNull();
     });
 
     it('работает с undefined footer', () => {
-      const { getFooter } = renderIsolated(<SideBar footer={undefined as any} />);
+      const { getFooter } = renderIsolated(
+        React.createElement(AnySideBar, { footer: undefined as any } as any, null),
+      );
 
       expect(getFooter()).toBeNull();
     });
 
     it('работает с collapsed как false', () => {
-      const { getSideBar } = renderIsolated(<SideBar collapsed={false} />);
+      const { getSideBar } = renderIsolated(
+        React.createElement(AnySideBar, { collapsed: false } as any, null),
+      );
 
       expect(getSideBar()).not.toHaveAttribute('data-collapsed');
     });
 
     it('работает с collapsed как true', () => {
-      const { getSideBar } = renderIsolated(<SideBar collapsed={true} />);
+      const { getSideBar } = renderIsolated(
+        React.createElement(AnySideBar, { collapsed: true } as any, null),
+      );
 
       expect(getSideBar()).toHaveAttribute('data-collapsed', 'true');
     });
 
     it('работает с showOverlay как false', () => {
-      const { getOverlay } = renderIsolated(<SideBar showOverlay={false} />);
+      const { getOverlay } = renderIsolated(
+        React.createElement(AnySideBar, { showOverlay: false } as any, null),
+      );
 
       expect(getOverlay()).toBeNull();
     });
 
     it('работает с showOverlay как true', () => {
-      const { getOverlay } = renderIsolated(<SideBar showOverlay={true} />);
+      const { getOverlay } = renderIsolated(
+        React.createElement(AnySideBar, { showOverlay: true } as any, null),
+      );
 
       expect(getOverlay()).toBeInTheDocument();
     });
 
     it('работает с кастомными единицами измерения ширины', () => {
       const { getSideBar } = renderIsolated(
-        <SideBar width='20rem' collapsedWidth='5rem' />,
+        React.createElement(
+          AnySideBar,
+          { width: '20rem', collapsedWidth: '5rem' } as any,
+          null,
+        ),
       );
 
       const sidebar = getSideBar();
@@ -697,7 +867,14 @@ describe('SideBar', () => {
 
     it('работает с CSS переменными для ширины', () => {
       const { getSideBar } = renderIsolated(
-        <SideBar width='var(--sidebar-width)' collapsedWidth='var(--sidebar-collapsed-width)' />,
+        React.createElement(
+          AnySideBar,
+          {
+            width: 'var(--sidebar-width)',
+            collapsedWidth: 'var(--sidebar-collapsed-width)',
+          } as any,
+          null,
+        ),
       );
 
       const sidebar = getSideBar();
@@ -707,7 +884,9 @@ describe('SideBar', () => {
 
   describe('4.11. Стилизация', () => {
     it('применяет базовые стили sidebar', () => {
-      const { getSideBar } = renderIsolated(<SideBar />);
+      const { getSideBar } = renderIsolated(
+        React.createElement(AnySideBar, {} as any, null),
+      );
 
       const sidebar = getSideBar();
       expect(sidebar).toHaveStyle({
@@ -718,7 +897,9 @@ describe('SideBar', () => {
     });
 
     it('применяет правильные стили для collapsed состояния', () => {
-      const { getSideBar } = renderIsolated(<SideBar collapsed={true} />);
+      const { getSideBar } = renderIsolated(
+        React.createElement(AnySideBar, { collapsed: true } as any, null),
+      );
 
       const sidebar = getSideBar();
       const computedStyle = window.getComputedStyle(sidebar);
@@ -726,7 +907,9 @@ describe('SideBar', () => {
     });
 
     it('применяет правильные стили для expanded состояния', () => {
-      const { getSideBar } = renderIsolated(<SideBar collapsed={false} />);
+      const { getSideBar } = renderIsolated(
+        React.createElement(AnySideBar, { collapsed: false } as any, null),
+      );
 
       const sidebar = getSideBar();
       const computedStyle = window.getComputedStyle(sidebar);
@@ -735,7 +918,7 @@ describe('SideBar', () => {
 
     it('объединяет кастомные стили с базовыми', () => {
       const { getSideBar } = renderIsolated(
-        <SideBar style={customCombinedStyle} />,
+        React.createElement(AnySideBar, { style: customCombinedStyle } as any, null),
       );
 
       const sidebar = getSideBar();
@@ -745,7 +928,13 @@ describe('SideBar', () => {
     });
 
     it('применяет правильные стили для header', () => {
-      const { getHeader } = renderIsolated(<SideBar header='Header' data-testid='sidebar' />);
+      const { getHeader } = renderIsolated(
+        React.createElement(
+          AnySideBar,
+          { header: 'Header', 'data-testid': 'sidebar' } as any,
+          null,
+        ),
+      );
 
       const header = getHeader();
       expect(header).toHaveStyle({
@@ -757,7 +946,13 @@ describe('SideBar', () => {
     });
 
     it('применяет правильные стили для footer', () => {
-      const { getFooter } = renderIsolated(<SideBar footer='Footer' data-testid='sidebar' />);
+      const { getFooter } = renderIsolated(
+        React.createElement(
+          AnySideBar,
+          { footer: 'Footer', 'data-testid': 'sidebar' } as any,
+          null,
+        ),
+      );
 
       const footer = getFooter();
       expect(footer).toHaveStyle({
@@ -769,7 +964,9 @@ describe('SideBar', () => {
     });
 
     it('применяет правильные стили для content', () => {
-      const { getContent } = renderIsolated(<SideBar />);
+      const { getContent } = renderIsolated(
+        React.createElement(AnySideBar, {} as any, null),
+      );
 
       const content = getContent();
       expect(content).toHaveStyle({
@@ -783,21 +980,27 @@ describe('SideBar', () => {
 
   describe('4.12. Test IDs для вложенных элементов', () => {
     it('применяет правильный data-testid для content', () => {
-      const { getContent } = renderIsolated(<SideBar data-testid='sidebar' />);
+      const { getContent } = renderIsolated(
+        React.createElement(AnySideBar, { 'data-testid': 'sidebar' } as any, null),
+      );
 
       const content = getContent();
       expect(content).toHaveAttribute('data-testid', 'sidebar-content');
     });
 
     it('не применяет data-testid для content когда testId пустой', () => {
-      const { getContent } = renderIsolated(<SideBar data-testid='' />);
+      const { getContent } = renderIsolated(
+        React.createElement(AnySideBar, { 'data-testid': '' } as any, null),
+      );
 
       const content = getContent();
       expect(content).not.toHaveAttribute('data-testid');
     });
 
     it('не применяет data-testid для content когда testId не передан', () => {
-      const { getContent } = renderIsolated(<SideBar />);
+      const { getContent } = renderIsolated(
+        React.createElement(AnySideBar, {} as any, null),
+      );
 
       const content = getContent();
       expect(content).not.toHaveAttribute('data-testid');
@@ -806,11 +1009,13 @@ describe('SideBar', () => {
 
   describe('4.13. Memoization и производительность', () => {
     it('не перерендеривается при неизменных пропсах', () => {
-      const { rerender, getSideBar } = renderIsolated(<SideBar items={testItems} />);
+      const { rerender, getSideBar } = renderIsolated(
+        React.createElement(AnySideBar, { items: testItems } as any, null),
+      );
 
       const firstRender = getSideBar();
 
-      rerender(<SideBar items={testItems} />);
+      rerender(React.createElement(AnySideBar, { items: testItems } as any, null));
 
       const secondRender = getSideBar();
       // Проверяем что элементы те же (memo работает)
@@ -819,22 +1024,34 @@ describe('SideBar', () => {
 
     it('перерендеривается при изменении collapsed', () => {
       const { rerender, getSideBar } = renderIsolated(
-        <SideBar items={testItems} collapsed={false} />,
+        React.createElement(
+          AnySideBar,
+          { items: testItems, collapsed: false } as any,
+          null,
+        ),
       );
 
       expect(getSideBar()).not.toHaveAttribute('data-collapsed');
 
-      rerender(<SideBar items={testItems} collapsed={true} />);
+      rerender(
+        React.createElement(
+          AnySideBar,
+          { items: testItems, collapsed: true } as any,
+          null,
+        ),
+      );
 
       expect(getSideBar()).toHaveAttribute('data-collapsed', 'true');
     });
 
     it('перерендеривается при изменении items', () => {
-      const { rerender, getItems } = renderIsolated(<SideBar items={testItems} />);
+      const { rerender, getItems } = renderIsolated(
+        React.createElement(AnySideBar, { items: testItems } as any, null),
+      );
 
       expect(getItems()).toHaveLength(3);
 
-      rerender(<SideBar items={singleItem} />);
+      rerender(React.createElement(AnySideBar, { items: singleItem } as any, null));
 
       expect(getItems()).toHaveLength(1);
     });
@@ -842,7 +1059,9 @@ describe('SideBar', () => {
 
   describe('4.14. Доступность (A11y)', () => {
     it('имеет правильные ARIA атрибуты для navigation', () => {
-      const { getSideBar } = renderIsolated(<SideBar />);
+      const { getSideBar } = renderIsolated(
+        React.createElement(AnySideBar, {} as any, null),
+      );
 
       const sidebar = getSideBar();
       expect(sidebar).toHaveAttribute('role', 'navigation');
@@ -850,7 +1069,9 @@ describe('SideBar', () => {
     });
 
     it('имеет правильные ARIA атрибуты для menu', () => {
-      const { getContent } = renderIsolated(<SideBar />);
+      const { getContent } = renderIsolated(
+        React.createElement(AnySideBar, {} as any, null),
+      );
 
       const nav = getContent();
       expect(nav).toHaveAttribute('role', 'menu');
@@ -858,7 +1079,9 @@ describe('SideBar', () => {
     });
 
     it('имеет правильные ARIA атрибуты для menu items', () => {
-      const { getItems } = renderIsolated(<SideBar items={testItems} />);
+      const { getItems } = renderIsolated(
+        React.createElement(AnySideBar, { items: testItems } as any, null),
+      );
 
       const items = getItems();
       items.forEach((item) => {
@@ -868,7 +1091,9 @@ describe('SideBar', () => {
     });
 
     it('имеет правильные ARIA атрибуты для активного элемента', () => {
-      const { getItems } = renderIsolated(<SideBar items={itemsWithActive} />);
+      const { getItems } = renderIsolated(
+        React.createElement(AnySideBar, { items: itemsWithActive } as any, null),
+      );
 
       const items = getItems();
       const activeItem = items[0]!;
@@ -876,7 +1101,9 @@ describe('SideBar', () => {
     });
 
     it('имеет правильные ARIA атрибуты для disabled элемента', () => {
-      const { getItems } = renderIsolated(<SideBar items={itemsWithDisabled} />);
+      const { getItems } = renderIsolated(
+        React.createElement(AnySideBar, { items: itemsWithDisabled } as any, null),
+      );
 
       const items = getItems();
       const disabledItem = items[1]!;
@@ -885,7 +1112,9 @@ describe('SideBar', () => {
     });
 
     it('имеет правильные ARIA атрибуты для overlay', () => {
-      const { getOverlay } = renderIsolated(<SideBar showOverlay={true} />);
+      const { getOverlay } = renderIsolated(
+        React.createElement(AnySideBar, { showOverlay: true } as any, null),
+      );
 
       const overlay = getOverlay();
       expect(overlay).toHaveAttribute('role', 'presentation');

@@ -12,6 +12,8 @@ import { NavigationMenuItem } from '@livai/ui-core';
 
 import '@testing-library/jest-dom/vitest';
 
+const AnyNavigationMenuItem = NavigationMenuItem as any;
+
 // Полная очистка DOM между тестами
 afterEach(cleanup);
 
@@ -90,7 +92,7 @@ describe('NavigationMenuItem', () => {
   describe('4.1. Рендер без падений', () => {
     it('рендерится как ссылка с обязательными пропсами', () => {
       const { container, getNavigationMenuItem } = renderIsolated(
-        <NavigationMenuItem item={baseItem} />,
+        React.createElement(AnyNavigationMenuItem, { item: baseItem } as any, null),
       );
 
       expect(container).toBeInTheDocument();
@@ -101,7 +103,7 @@ describe('NavigationMenuItem', () => {
 
     it('рендерится как кнопка когда href отсутствует', () => {
       const { container, getNavigationMenuItem } = renderIsolated(
-        <NavigationMenuItem item={itemWithoutHref} />,
+        React.createElement(AnyNavigationMenuItem, { item: itemWithoutHref } as any, null),
       );
 
       expect(container).toBeInTheDocument();
@@ -112,7 +114,7 @@ describe('NavigationMenuItem', () => {
 
     it('рендерится как кнопка когда href пустой', () => {
       const { getNavigationMenuItem } = renderIsolated(
-        <NavigationMenuItem item={itemWithEmptyHref} />,
+        React.createElement(AnyNavigationMenuItem, { item: itemWithEmptyHref } as any, null),
       );
 
       expect(getNavigationMenuItem().tagName).toBe('BUTTON');
@@ -120,7 +122,7 @@ describe('NavigationMenuItem', () => {
 
     it('рендерится как кнопка когда href неопределен', () => {
       const { getNavigationMenuItem } = renderIsolated(
-        <NavigationMenuItem item={itemWithUndefinedHref} />,
+        React.createElement(AnyNavigationMenuItem, { item: itemWithUndefinedHref } as any, null),
       );
 
       expect(getNavigationMenuItem().tagName).toBe('BUTTON');
@@ -128,7 +130,7 @@ describe('NavigationMenuItem', () => {
 
     it('рендерится как кнопка когда элемент отключен', () => {
       const { getNavigationMenuItem } = renderIsolated(
-        <NavigationMenuItem item={disabledItem} />,
+        React.createElement(AnyNavigationMenuItem, { item: disabledItem } as any, null),
       );
 
       expect(getNavigationMenuItem().tagName).toBe('BUTTON');
@@ -139,7 +141,11 @@ describe('NavigationMenuItem', () => {
   describe('4.2. Пропсы и атрибуты', () => {
     it('применяет className к элементу', () => {
       const { getNavigationMenuItem } = renderIsolated(
-        <NavigationMenuItem item={baseItem} className='custom-class' />,
+        React.createElement(
+          AnyNavigationMenuItem,
+          { item: baseItem, className: 'custom-class' } as any,
+          null,
+        ),
       );
 
       expect(getNavigationMenuItem()).toHaveClass('custom-class');
@@ -147,7 +153,11 @@ describe('NavigationMenuItem', () => {
 
     it('применяет style к элементу', () => {
       const { getNavigationMenuItem } = renderIsolated(
-        <NavigationMenuItem item={baseItem} style={customStyle} />,
+        React.createElement(
+          AnyNavigationMenuItem,
+          { item: baseItem, style: customStyle } as any,
+          null,
+        ),
       );
 
       const item = getNavigationMenuItem();
@@ -156,7 +166,11 @@ describe('NavigationMenuItem', () => {
 
     it('применяет data-testid', () => {
       const { getByTestId } = renderIsolated(
-        <NavigationMenuItem item={baseItem} data-testid='custom-test-id' />,
+        React.createElement(
+          AnyNavigationMenuItem,
+          { item: baseItem, 'data-testid': 'custom-test-id' } as any,
+          null,
+        ),
       );
 
       expect(getByTestId('custom-test-id')).toBeInTheDocument();
@@ -164,12 +178,16 @@ describe('NavigationMenuItem', () => {
 
     it('прокидывает дополнительные HTML атрибуты', () => {
       const { getNavigationMenuItem } = renderIsolated(
-        <NavigationMenuItem
-          item={baseItem}
-          id='menu-item-1'
-          title='Главная страница'
-          data-custom='value'
-        />,
+        React.createElement(
+          AnyNavigationMenuItem,
+          {
+            item: baseItem,
+            id: 'menu-item-1',
+            title: 'Главная страница',
+            'data-custom': 'value',
+          } as any,
+          null,
+        ),
       );
 
       const item = getNavigationMenuItem();
@@ -185,7 +203,11 @@ describe('NavigationMenuItem', () => {
     sizes.forEach((size) => {
       it(`применяет правильный data-size="${size}"`, () => {
         const { getNavigationMenuItem } = renderIsolated(
-          <NavigationMenuItem item={baseItem} size={size} />,
+          React.createElement(
+            AnyNavigationMenuItem,
+            { item: baseItem, size } as any,
+            null,
+          ),
         );
 
         expect(getNavigationMenuItem()).toHaveAttribute('data-size', size);
@@ -193,7 +215,11 @@ describe('NavigationMenuItem', () => {
 
       it(`применяет правильные стили для размера "${size}"`, () => {
         const { getNavigationMenuItem } = renderIsolated(
-          <NavigationMenuItem item={baseItem} size={size} />,
+          React.createElement(
+            AnyNavigationMenuItem,
+            { item: baseItem, size } as any,
+            null,
+          ),
         );
 
         const item = getNavigationMenuItem();
@@ -221,7 +247,7 @@ describe('NavigationMenuItem', () => {
 
     it('использует medium по умолчанию', () => {
       const { getNavigationMenuItem } = renderIsolated(
-        <NavigationMenuItem item={baseItem} />,
+        React.createElement(AnyNavigationMenuItem, { item: baseItem } as any, null),
       );
 
       expect(getNavigationMenuItem()).toHaveAttribute('data-size', 'medium');
@@ -234,7 +260,11 @@ describe('NavigationMenuItem', () => {
     variants.forEach((variant) => {
       it(`применяет правильный data-variant="${variant}"`, () => {
         const { getNavigationMenuItem } = renderIsolated(
-          <NavigationMenuItem item={baseItem} variant={variant} />,
+          React.createElement(
+            AnyNavigationMenuItem,
+            { item: baseItem, variant } as any,
+            null,
+          ),
         );
 
         expect(getNavigationMenuItem()).toHaveAttribute('data-variant', variant);
@@ -242,7 +272,11 @@ describe('NavigationMenuItem', () => {
 
       it(`применяет правильные стили для варианта "${variant}"`, () => {
         const { getNavigationMenuItem } = renderIsolated(
-          <NavigationMenuItem item={baseItem} variant={variant} />,
+          React.createElement(
+            AnyNavigationMenuItem,
+            { item: baseItem, variant } as any,
+            null,
+          ),
         );
 
         const item = getNavigationMenuItem();
@@ -264,7 +298,7 @@ describe('NavigationMenuItem', () => {
 
     it('использует default по умолчанию', () => {
       const { getNavigationMenuItem } = renderIsolated(
-        <NavigationMenuItem item={baseItem} />,
+        React.createElement(AnyNavigationMenuItem, { item: baseItem } as any, null),
       );
 
       expect(getNavigationMenuItem()).toHaveAttribute('data-variant', 'default');
@@ -274,7 +308,7 @@ describe('NavigationMenuItem', () => {
   describe('4.5. Состояния элементов', () => {
     it('применяет активное состояние', () => {
       const { getNavigationMenuItem } = renderIsolated(
-        <NavigationMenuItem item={activeItem} />,
+        React.createElement(AnyNavigationMenuItem, { item: activeItem } as any, null),
       );
 
       const item = getNavigationMenuItem();
@@ -287,7 +321,7 @@ describe('NavigationMenuItem', () => {
 
     it('применяет отключенное состояние', () => {
       const { getNavigationMenuItem } = renderIsolated(
-        <NavigationMenuItem item={disabledItem} />,
+        React.createElement(AnyNavigationMenuItem, { item: disabledItem } as any, null),
       );
 
       const item = getNavigationMenuItem();
@@ -300,7 +334,7 @@ describe('NavigationMenuItem', () => {
 
     it('отключенное состояние имеет приоритет над активным', () => {
       const { getNavigationMenuItem } = renderIsolated(
-        <NavigationMenuItem item={disabledActiveItem} />,
+        React.createElement(AnyNavigationMenuItem, { item: disabledActiveItem } as any, null),
       );
 
       const item = getNavigationMenuItem();
@@ -316,7 +350,11 @@ describe('NavigationMenuItem', () => {
   describe('4.6. Отображение иконки', () => {
     it('показывает иконку по умолчанию', () => {
       const { getIcon } = renderIsolated(
-        <NavigationMenuItem item={baseItem} data-testid='menu-item' />,
+        React.createElement(
+          AnyNavigationMenuItem,
+          { item: baseItem, 'data-testid': 'menu-item' } as any,
+          null,
+        ),
       );
 
       const icon = getIcon();
@@ -326,7 +364,11 @@ describe('NavigationMenuItem', () => {
 
     it('скрывает иконку когда showIcon=false', () => {
       const { container } = renderIsolated(
-        <NavigationMenuItem item={baseItem} showIcon={false} data-testid='menu-item' />,
+        React.createElement(
+          AnyNavigationMenuItem,
+          { item: baseItem, showIcon: false, 'data-testid': 'menu-item' } as any,
+          null,
+        ),
       );
 
       expect(container.querySelector('[data-testid*="icon"]')).toBeNull();
@@ -334,7 +376,11 @@ describe('NavigationMenuItem', () => {
 
     it('не показывает иконку когда icon отсутствует', () => {
       const { container } = renderIsolated(
-        <NavigationMenuItem item={itemWithoutIcon} data-testid='menu-item' />,
+        React.createElement(
+          AnyNavigationMenuItem,
+          { item: itemWithoutIcon, 'data-testid': 'menu-item' } as any,
+          null,
+        ),
       );
 
       expect(container.querySelector('[data-testid*="icon"]')).toBeNull();
@@ -342,7 +388,11 @@ describe('NavigationMenuItem', () => {
 
     it('применяет правильные стили к иконке', () => {
       const { getIcon } = renderIsolated(
-        <NavigationMenuItem item={baseItem} data-testid='menu-item' />,
+        React.createElement(
+          AnyNavigationMenuItem,
+          { item: baseItem, 'data-testid': 'menu-item' } as any,
+          null,
+        ),
       );
 
       const icon = getIcon() as HTMLElement;
@@ -358,7 +408,11 @@ describe('NavigationMenuItem', () => {
   describe('4.7. Отображение текста', () => {
     it('показывает текст по умолчанию', () => {
       const { getLabel } = renderIsolated(
-        <NavigationMenuItem item={baseItem} data-testid='menu-item' />,
+        React.createElement(
+          AnyNavigationMenuItem,
+          { item: baseItem, 'data-testid': 'menu-item' } as any,
+          null,
+        ),
       );
 
       const label = getLabel();
@@ -368,7 +422,11 @@ describe('NavigationMenuItem', () => {
 
     it('скрывает текст когда showLabel=false', () => {
       const { container } = renderIsolated(
-        <NavigationMenuItem item={baseItem} showLabel={false} data-testid='menu-item' />,
+        React.createElement(
+          AnyNavigationMenuItem,
+          { item: baseItem, showLabel: false, 'data-testid': 'menu-item' } as any,
+          null,
+        ),
       );
 
       expect(container.querySelector('[data-testid*="label"]')).toBeNull();
@@ -376,7 +434,11 @@ describe('NavigationMenuItem', () => {
 
     it('применяет правильные стили к тексту', () => {
       const { getLabel } = renderIsolated(
-        <NavigationMenuItem item={baseItem} data-testid='menu-item' />,
+        React.createElement(
+          AnyNavigationMenuItem,
+          { item: baseItem, 'data-testid': 'menu-item' } as any,
+          null,
+        ),
       );
 
       const label = getLabel() as HTMLElement;
@@ -391,13 +453,16 @@ describe('NavigationMenuItem', () => {
 
   describe('4.8. Кастомная иконка', () => {
     it('использует customIcon когда передан', () => {
-      const customIcon = <span data-testid='custom-icon'>★</span>;
       const { getByTestId } = renderIsolated(
-        <NavigationMenuItem
-          item={itemWithCustomIcon}
-          customIcon={customIcon}
-          data-testid='menu-item'
-        />,
+        React.createElement(
+          AnyNavigationMenuItem,
+          {
+            item: itemWithCustomIcon,
+            customIcon: React.createElement('span', { 'data-testid': 'custom-icon' }, '★'),
+            'data-testid': 'menu-item',
+          } as any,
+          null,
+        ),
       );
 
       expect(getByTestId('custom-icon')).toBeInTheDocument();
@@ -405,13 +470,16 @@ describe('NavigationMenuItem', () => {
     });
 
     it('customIcon имеет приоритет над item.icon', () => {
-      const customIcon = <span data-testid='custom-icon'>★</span>;
       const { getByTestId, container } = renderIsolated(
-        <NavigationMenuItem
-          item={itemWithCustomIcon}
-          customIcon={customIcon}
-          data-testid='menu-item'
-        />,
+        React.createElement(
+          AnyNavigationMenuItem,
+          {
+            item: itemWithCustomIcon,
+            customIcon: React.createElement('span', { 'data-testid': 'custom-icon' }, '★'),
+            'data-testid': 'menu-item',
+          } as any,
+          null,
+        ),
       );
 
       expect(getByTestId('custom-icon')).toBeInTheDocument();
@@ -422,7 +490,7 @@ describe('NavigationMenuItem', () => {
   describe('4.9. Доступность (A11y)', () => {
     it('активный элемент имеет aria-current="page"', () => {
       const { getNavigationMenuItem } = renderIsolated(
-        <NavigationMenuItem item={activeItem} />,
+        React.createElement(AnyNavigationMenuItem, { item: activeItem } as any, null),
       );
 
       expect(getNavigationMenuItem()).toHaveAttribute('aria-current', 'page');
@@ -430,7 +498,7 @@ describe('NavigationMenuItem', () => {
 
     it('неактивный элемент не имеет aria-current', () => {
       const { getNavigationMenuItem } = renderIsolated(
-        <NavigationMenuItem item={baseItem} />,
+        React.createElement(AnyNavigationMenuItem, { item: baseItem } as any, null),
       );
 
       expect(getNavigationMenuItem()).not.toHaveAttribute('aria-current');
@@ -438,7 +506,7 @@ describe('NavigationMenuItem', () => {
 
     it('ссылка имеет href атрибут', () => {
       const { getNavigationMenuItem } = renderIsolated(
-        <NavigationMenuItem item={baseItem} />,
+        React.createElement(AnyNavigationMenuItem, { item: baseItem } as any, null),
       );
 
       const item = getNavigationMenuItem();
@@ -448,7 +516,7 @@ describe('NavigationMenuItem', () => {
 
     it('кнопка имеет type="button"', () => {
       const { getNavigationMenuItem } = renderIsolated(
-        <NavigationMenuItem item={itemWithoutHref} />,
+        React.createElement(AnyNavigationMenuItem, { item: itemWithoutHref } as any, null),
       );
 
       const item = getNavigationMenuItem();
@@ -458,7 +526,7 @@ describe('NavigationMenuItem', () => {
 
     it('отключенная кнопка имеет disabled атрибут', () => {
       const { getNavigationMenuItem } = renderIsolated(
-        <NavigationMenuItem item={disabledItem} />,
+        React.createElement(AnyNavigationMenuItem, { item: disabledItem } as any, null),
       );
 
       const item = getNavigationMenuItem();
@@ -471,7 +539,7 @@ describe('NavigationMenuItem', () => {
     it('поддерживает ref forwarding для ссылки', () => {
       const ref = createMockRef();
 
-      render(<NavigationMenuItem ref={ref} item={baseItem} />);
+      render(React.createElement(AnyNavigationMenuItem, { ref, item: baseItem } as any, null));
 
       expect(ref.current).toBeInstanceOf(HTMLAnchorElement);
       expect(ref.current).toHaveAttribute('data-component', 'CoreNavigationMenuItem');
@@ -480,7 +548,9 @@ describe('NavigationMenuItem', () => {
     it('поддерживает ref forwarding для кнопки', () => {
       const ref = createMockRef();
 
-      render(<NavigationMenuItem ref={ref} item={itemWithoutHref} />);
+      render(
+        React.createElement(AnyNavigationMenuItem, { ref, item: itemWithoutHref } as any, null),
+      );
 
       expect(ref.current).toBeInstanceOf(HTMLButtonElement);
       expect(ref.current).toHaveAttribute('data-component', 'CoreNavigationMenuItem');
@@ -490,12 +560,22 @@ describe('NavigationMenuItem', () => {
   describe('4.11. Render stability', () => {
     it('не пересчитывает стили при одинаковых пропсах', () => {
       const { rerender, getNavigationMenuItem } = renderIsolated(
-        <NavigationMenuItem item={baseItem} size='medium' variant='default' />,
+        React.createElement(
+          AnyNavigationMenuItem,
+          { item: baseItem, size: 'medium', variant: 'default' } as any,
+          null,
+        ),
       );
 
       const item1 = getNavigationMenuItem();
 
-      rerender(<NavigationMenuItem item={baseItem} size='medium' variant='default' />);
+      rerender(
+        React.createElement(
+          AnyNavigationMenuItem,
+          { item: baseItem, size: 'medium', variant: 'default' } as any,
+          null,
+        ),
+      );
 
       const item2 = getNavigationMenuItem();
 
@@ -504,13 +584,23 @@ describe('NavigationMenuItem', () => {
 
     it('обновляет стили при изменении пропсов', () => {
       const { rerender, getNavigationMenuItem } = renderIsolated(
-        <NavigationMenuItem item={baseItem} size='medium' />,
+        React.createElement(
+          AnyNavigationMenuItem,
+          { item: baseItem, size: 'medium' } as any,
+          null,
+        ),
       );
 
       const itemBefore = getNavigationMenuItem();
       expect(itemBefore).toHaveAttribute('data-size', 'medium');
 
-      rerender(<NavigationMenuItem item={baseItem} size='large' />);
+      rerender(
+        React.createElement(
+          AnyNavigationMenuItem,
+          { item: baseItem, size: 'large' } as any,
+          null,
+        ),
+      );
 
       const itemAfter = getNavigationMenuItem();
       expect(itemAfter).toHaveAttribute('data-size', 'large');
@@ -520,7 +610,11 @@ describe('NavigationMenuItem', () => {
   describe('4.12. Edge cases', () => {
     it('работает с undefined style', () => {
       const { getNavigationMenuItem } = renderIsolated(
-        <NavigationMenuItem item={baseItem} style={undefined} />,
+        React.createElement(
+          AnyNavigationMenuItem,
+          { item: baseItem, style: undefined } as any,
+          null,
+        ),
       );
 
       expect(getNavigationMenuItem()).toBeInTheDocument();
@@ -528,7 +622,11 @@ describe('NavigationMenuItem', () => {
 
     it('работает с пустым объектом style', () => {
       const { getNavigationMenuItem } = renderIsolated(
-        <NavigationMenuItem item={baseItem} style={emptyStyle} />,
+        React.createElement(
+          AnyNavigationMenuItem,
+          { item: baseItem, style: emptyStyle } as any,
+          null,
+        ),
       );
 
       expect(getNavigationMenuItem()).toBeInTheDocument();
@@ -555,7 +653,11 @@ describe('NavigationMenuItem', () => {
 
     it('работает с длинным текстом (ellipsis)', () => {
       const { getLabel } = renderIsolated(
-        <NavigationMenuItem item={itemWithLongLabel} data-testid='menu-item' />,
+        React.createElement(
+          AnyNavigationMenuItem,
+          { item: itemWithLongLabel, 'data-testid': 'menu-item' } as any,
+          null,
+        ),
       );
 
       const label = getLabel() as HTMLElement;
@@ -569,7 +671,11 @@ describe('NavigationMenuItem', () => {
 
     it('работает с null значениями в item', () => {
       const { getNavigationMenuItem, container } = renderIsolated(
-        <NavigationMenuItem item={itemWithNulls} data-testid='menu-item' />,
+        React.createElement(
+          AnyNavigationMenuItem,
+          { item: itemWithNulls, 'data-testid': 'menu-item' } as any,
+          null,
+        ),
       );
 
       const item = getNavigationMenuItem();
@@ -581,7 +687,11 @@ describe('NavigationMenuItem', () => {
 
     it('работает с отсутствующими свойствами в item', () => {
       const { getNavigationMenuItem, container } = renderIsolated(
-        <NavigationMenuItem item={itemWithUndefined} data-testid='menu-item' />,
+        React.createElement(
+          AnyNavigationMenuItem,
+          { item: itemWithUndefined, 'data-testid': 'menu-item' } as any,
+          null,
+        ),
       );
 
       const item = getNavigationMenuItem();
@@ -592,20 +702,23 @@ describe('NavigationMenuItem', () => {
     });
 
     it('работает со всеми пропсами одновременно', () => {
-      const customIcon = <span data-testid='custom-icon'>★</span>;
       const { getByTestId, getNavigationMenuItem, getIcon, getLabel } = renderIsolated(
-        <NavigationMenuItem
-          item={activeItem}
-          size='large'
-          variant='compact'
-          showIcon={true}
-          showLabel={true}
-          customIcon={customIcon}
-          className='custom-class'
-          style={customStyle}
-          data-testid='menu-item'
-          id='test-id'
-        />,
+        React.createElement(
+          AnyNavigationMenuItem,
+          {
+            item: activeItem,
+            size: 'large',
+            variant: 'compact',
+            showIcon: true,
+            showLabel: true,
+            customIcon: React.createElement('span', { 'data-testid': 'custom-icon' }, '★'),
+            className: 'custom-class',
+            style: customStyle,
+            'data-testid': 'menu-item',
+            id: 'test-id',
+          } as any,
+          null,
+        ),
       );
 
       const item = getNavigationMenuItem();

@@ -14,6 +14,9 @@ import '@testing-library/jest-dom/vitest';
 // Полная очистка DOM между тестами
 afterEach(cleanup);
 
+// Для целей тестов ослабляем типизацию пропсов Icon
+const AnyIcon = Icon as any;
+
 // Функция для изолированного рендера
 function renderIsolated(component: Readonly<React.ReactElement>) {
   const container = document.createElement('div');
@@ -37,14 +40,18 @@ function renderIsolated(component: Readonly<React.ReactElement>) {
 describe('Icon', () => {
   describe('1.1. Рендер без падений', () => {
     it('рендерится с обязательным пропсом name', () => {
-      const { container, getIcon } = renderIsolated(<Icon name='test-icon' />);
+      const { container, getIcon } = renderIsolated(
+        React.createElement(AnyIcon, { name: 'test-icon' }),
+      );
 
       expect(container).toBeInTheDocument();
       expect(getIcon()).toBeInTheDocument();
     });
 
     it('создает i элемент с правильными атрибутами по умолчанию', () => {
-      const { getIcon } = renderIsolated(<Icon name='test-icon' />);
+      const { getIcon } = renderIsolated(
+        React.createElement(AnyIcon, { name: 'test-icon' }),
+      );
 
       const icon = getIcon();
       expect(icon).toBeInTheDocument();
@@ -56,7 +63,9 @@ describe('Icon', () => {
 
   describe('1.2. Size пропс', () => {
     it('по умолчанию size=16px', () => {
-      const { getIcon } = renderIsolated(<Icon name='test-icon' />);
+      const { getIcon } = renderIsolated(
+        React.createElement(AnyIcon, { name: 'test-icon' }),
+      );
 
       const icon = getIcon();
       expect(icon).toHaveStyle({
@@ -66,7 +75,9 @@ describe('Icon', () => {
     });
 
     it('size как число конвертируется в px', () => {
-      const { getIcon } = renderIsolated(<Icon name='test-icon' size={24 as any} />);
+      const { getIcon } = renderIsolated(
+        React.createElement(AnyIcon, { name: 'test-icon', size: 24 as any }),
+      );
 
       const icon = getIcon();
       expect(icon).toHaveStyle({
@@ -76,7 +87,9 @@ describe('Icon', () => {
     });
 
     it('size как строка пробрасывается напрямую', () => {
-      const { getIcon } = renderIsolated(<Icon name='test-icon' size='2rem' />);
+      const { getIcon } = renderIsolated(
+        React.createElement(AnyIcon, { name: 'test-icon', size: '2rem' }),
+      );
 
       const icon = getIcon();
       expect(icon).toHaveStyle({
@@ -88,7 +101,9 @@ describe('Icon', () => {
 
   describe('1.3. Color пропс', () => {
     it('по умолчанию color="currentColor"', () => {
-      const { getIcon } = renderIsolated(<Icon name='test-icon' />);
+      const { getIcon } = renderIsolated(
+        React.createElement(AnyIcon, { name: 'test-icon' }),
+      );
 
       const icon = getIcon();
       expect(icon).toHaveStyle({
@@ -98,7 +113,9 @@ describe('Icon', () => {
     });
 
     it('color пробрасывается в CSS variable', () => {
-      const { getIcon } = renderIsolated(<Icon name='test-icon' color='red' />);
+      const { getIcon } = renderIsolated(
+        React.createElement(AnyIcon, { name: 'test-icon', color: 'red' }),
+      );
 
       const icon = getIcon();
       expect(icon).toHaveStyle({
@@ -110,7 +127,9 @@ describe('Icon', () => {
 
   describe('1.4. Accessibility - decorative', () => {
     it('decorative=false (по умолчанию) создает семантическую иконку', () => {
-      const { getByRole } = renderIsolated(<Icon name='test-icon' />);
+      const { getByRole } = renderIsolated(
+        React.createElement(AnyIcon, { name: 'test-icon' }),
+      );
 
       const icon = getByRole('img');
       expect(icon).toHaveAttribute('role', 'img');
@@ -119,7 +138,9 @@ describe('Icon', () => {
     });
 
     it('decorative=true создает декоративную иконку', () => {
-      const { getIcon, queryByRole } = renderIsolated(<Icon name='test-icon' decorative />);
+      const { getIcon, queryByRole } = renderIsolated(
+        React.createElement(AnyIcon, { name: 'test-icon', decorative: true }),
+      );
 
       const icon = getIcon();
       expect(icon).toHaveAttribute('aria-hidden');
@@ -129,14 +150,22 @@ describe('Icon', () => {
     });
 
     it('ariaLabel переопределяет name для семантических иконок', () => {
-      const { getByRole } = renderIsolated(<Icon name='test-icon' ariaLabel='Custom label' />);
+      const { getByRole } = renderIsolated(
+        React.createElement(AnyIcon, { name: 'test-icon', ariaLabel: 'Custom label' }),
+      );
 
       const icon = getByRole('img');
       expect(icon).toHaveAttribute('aria-label', 'Custom label');
     });
 
     it('ariaLabel игнорируется для decorative иконок', () => {
-      const { getIcon } = renderIsolated(<Icon name='test-icon' decorative ariaLabel='Ignored' />);
+      const { getIcon } = renderIsolated(
+        React.createElement(AnyIcon, {
+          name: 'test-icon',
+          decorative: true,
+          ariaLabel: 'Ignored',
+        }),
+      );
 
       const icon = getIcon();
       expect(icon).toHaveAttribute('aria-hidden');
@@ -148,7 +177,9 @@ describe('Icon', () => {
     it('forwardRef работает для внешнего доступа к DOM элементу', () => {
       const ref = React.createRef<HTMLElement>();
 
-      const { getIcon } = renderIsolated(<Icon name='test-icon' ref={ref} />);
+      const { getIcon } = renderIsolated(
+        React.createElement(AnyIcon, { name: 'test-icon', ref }, null),
+      );
 
       const icon = getIcon();
       expect(ref.current).toBe(icon);
@@ -157,7 +188,9 @@ describe('Icon', () => {
     it('ref возвращает HTMLElement', () => {
       const ref = React.createRef<HTMLElement>();
 
-      renderIsolated(<Icon name='test-icon' ref={ref} />);
+      renderIsolated(
+        React.createElement(AnyIcon, { name: 'test-icon', ref }, null),
+      );
 
       expect(ref.current).toBeInstanceOf(HTMLElement);
       expect(ref.current?.tagName).toBe('I');
@@ -167,13 +200,13 @@ describe('Icon', () => {
   describe('1.6. HTML атрибуты пробрасываются', () => {
     it('стандартные HTML атрибуты пробрасываются корректно', () => {
       const { getIcon } = renderIsolated(
-        <Icon
-          name='test-icon'
-          id='test-id'
-          className='test-class'
-          title='Test title'
-          data-testid='test-icon'
-        />,
+        React.createElement(AnyIcon, {
+          name: 'test-icon',
+          id: 'test-id',
+          className: 'test-class',
+          title: 'Test title',
+          'data-testid': 'test-icon',
+        }),
       );
 
       const icon = getIcon();
@@ -187,12 +220,16 @@ describe('Icon', () => {
   describe('1.7. Стабильность рендера', () => {
     it('рендер стабилен при одинаковых пропсах', () => {
       const { container, rerender } = renderIsolated(
-        <Icon name='stable-icon' size={20 as any} color='blue' />,
+        React.createElement(AnyIcon, { name: 'stable-icon', size: 20 as any, color: 'blue' }),
       );
 
       const firstRender = container.innerHTML;
 
-      rerender(<Icon name='stable-icon' size={20 as any} color='blue' />);
+      rerender(React.createElement(AnyIcon, {
+        name: 'stable-icon',
+        size: 20 as any,
+        color: 'blue',
+      }));
 
       expect(container.innerHTML).toBe(firstRender);
     });
@@ -202,14 +239,14 @@ describe('Icon', () => {
 
       const TestComponent = React.memo(() => {
         renderCount++;
-        return <Icon name='memo-test' />;
+        return React.createElement(AnyIcon, { name: 'memo-test' });
       });
 
-      const { rerender } = render(<TestComponent />);
+      const { rerender } = render(React.createElement(TestComponent));
 
       expect(renderCount).toBe(1);
 
-      rerender(<TestComponent />);
+      rerender(React.createElement(TestComponent));
 
       expect(renderCount).toBe(1);
     });
@@ -218,7 +255,11 @@ describe('Icon', () => {
   describe('1.8. CSS Variables', () => {
     it('всегда устанавливает CSS variables для size и color', () => {
       const { getIcon } = renderIsolated(
-        <Icon name='test-icon' size={32 as any} color='#ff0000' />,
+        React.createElement(AnyIcon, {
+          name: 'test-icon',
+          size: 32 as any,
+          color: '#ff0000',
+        }),
       );
 
       const icon = getIcon();
@@ -234,14 +275,22 @@ describe('Icon', () => {
 
     it('CSS variables обновляются при изменении пропсов', () => {
       const { getIcon, rerender } = renderIsolated(
-        <Icon name='test-icon' size={16 as any} color='black' />,
+        React.createElement(AnyIcon, {
+          name: 'test-icon',
+          size: 16 as any,
+          color: 'black',
+        }),
       );
 
       const icon = getIcon();
       expect(icon.style.getPropertyValue('--icon-size')).toBe('16px');
       expect(icon.style.getPropertyValue('--icon-color')).toBe('black');
 
-      rerender(<Icon name='test-icon' size={48 as any} color='white' />);
+      rerender(React.createElement(AnyIcon, {
+        name: 'test-icon',
+        size: 48 as any,
+        color: 'white',
+      }));
 
       expect(icon.style.getPropertyValue('--icon-size')).toBe('48px');
       expect(icon.style.getPropertyValue('--icon-color')).toBe('white');
@@ -250,7 +299,9 @@ describe('Icon', () => {
 
   describe('1.9. Edge cases', () => {
     it('работает с отсутствующими пропсами', () => {
-      const { getIcon } = renderIsolated(<Icon name='test-icon' />);
+      const { getIcon } = renderIsolated(
+        React.createElement(AnyIcon, { name: 'test-icon' }),
+      );
 
       const icon = getIcon();
       expect(icon).toBeInTheDocument();
@@ -260,14 +311,18 @@ describe('Icon', () => {
     });
 
     it('работает с пустой строкой ariaLabel', () => {
-      const { getByRole } = renderIsolated(<Icon name='test-icon' ariaLabel='' />);
+      const { getByRole } = renderIsolated(
+        React.createElement(AnyIcon, { name: 'test-icon', ariaLabel: '' }),
+      );
 
       const icon = getByRole('img');
       expect(icon).toHaveAttribute('aria-label', '');
     });
 
     it('размер 0 работает корректно', () => {
-      const { getIcon } = renderIsolated(<Icon name='test-icon' size={0 as any} />);
+      const { getIcon } = renderIsolated(
+        React.createElement(AnyIcon, { name: 'test-icon', size: 0 as any }),
+      );
 
       const icon = getIcon();
       expect(icon).toHaveStyle('--icon-size: 0px');

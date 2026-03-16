@@ -23,6 +23,9 @@ afterEach(() => {
   window.HTMLElement.prototype.focus = originalFocus;
 });
 
+// Для целей тестов снимаем строгие ограничения с пропсов Checkbox
+const AnyCheckbox = Checkbox as any;
+
 // Функция для изолированного рендера
 function renderIsolated(component: Readonly<React.ReactElement>) {
   const testContainer = document.createElement('div');
@@ -45,14 +48,18 @@ function renderIsolated(component: Readonly<React.ReactElement>) {
 describe('Checkbox', () => {
   describe('4.1. Рендер и базовая структура', () => {
     it('checkbox рендерится без падений с минимальными пропсами', () => {
-      const { container, getCheckbox } = renderIsolated(<Checkbox />);
+      const { container, getCheckbox } = renderIsolated(
+        React.createElement(AnyCheckbox, null),
+      );
 
       expect(container).toBeInTheDocument();
       expect(getCheckbox()).toBeInTheDocument();
     });
 
     it('создает input элемент с правильными атрибутами по умолчанию', () => {
-      const { getCheckbox } = renderIsolated(<Checkbox />);
+      const { getCheckbox } = renderIsolated(
+        React.createElement(AnyCheckbox, null),
+      );
 
       const checkbox = getCheckbox();
       expect(checkbox).toBeInTheDocument();
@@ -62,13 +69,17 @@ describe('Checkbox', () => {
     });
 
     it('checkbox имеет правильный role', () => {
-      const { getByRole } = renderIsolated(<Checkbox />);
+      const { getByRole } = renderIsolated(
+        React.createElement(AnyCheckbox, null),
+      );
 
       expect(getByRole('checkbox')).toBeInTheDocument();
     });
 
     it('aria-checked=false по умолчанию для неконтролируемого checkbox', () => {
-      const { getCheckbox } = renderIsolated(<Checkbox />);
+      const { getCheckbox } = renderIsolated(
+        React.createElement(AnyCheckbox, null),
+      );
 
       const checkbox = getCheckbox();
       expect(checkbox).toHaveAttribute('aria-checked', 'false');
@@ -76,7 +87,9 @@ describe('Checkbox', () => {
 
     it('aria-checked=true когда checked=true', () => {
       const onChange = vi.fn();
-      const { getCheckbox } = renderIsolated(<Checkbox checked onChange={onChange} />);
+      const { getCheckbox } = renderIsolated(
+        React.createElement(AnyCheckbox, { checked: true, onChange }),
+      );
 
       const checkbox = getCheckbox();
       expect(checkbox).toHaveAttribute('aria-checked', 'true');
@@ -84,7 +97,9 @@ describe('Checkbox', () => {
 
     it('aria-checked=false когда checked=false', () => {
       const onChange = vi.fn();
-      const { getCheckbox } = renderIsolated(<Checkbox checked={false} onChange={onChange} />);
+      const { getCheckbox } = renderIsolated(
+        React.createElement(AnyCheckbox, { checked: false, onChange }),
+      );
 
       const checkbox = getCheckbox();
       expect(checkbox).toHaveAttribute('aria-checked', 'false');
@@ -95,7 +110,9 @@ describe('Checkbox', () => {
     it('forwardRef работает для внешнего доступа к DOM элементу', () => {
       const ref = React.createRef<HTMLInputElement>();
 
-      const { getCheckbox } = renderIsolated(<Checkbox ref={ref} />);
+      const { getCheckbox } = renderIsolated(
+        React.createElement(AnyCheckbox, { ref }, null),
+      );
 
       const checkbox = getCheckbox();
       expect(ref.current).toBe(checkbox);
@@ -104,7 +121,7 @@ describe('Checkbox', () => {
     it('useImperativeHandle возвращает правильный элемент', () => {
       const ref = React.createRef<HTMLInputElement>();
 
-      renderIsolated(<Checkbox ref={ref} />);
+      renderIsolated(React.createElement(AnyCheckbox, { ref }, null));
 
       expect(ref.current).toBeInstanceOf(HTMLInputElement);
       expect(ref.current?.tagName).toBe('INPUT');
@@ -118,7 +135,7 @@ describe('Checkbox', () => {
       const originalUseRef = React.useRef;
       React.useRef = vi.fn(() => ({ current: null }));
 
-      renderIsolated(<Checkbox ref={ref} />);
+      renderIsolated(React.createElement(AnyCheckbox, { ref }, null));
 
       // Должен вернуть HTMLElement (document.createElement('input'))
       expect(ref.current).toBeInstanceOf(HTMLElement);
@@ -132,16 +149,16 @@ describe('Checkbox', () => {
     it('стандартные HTML пропсы пробрасываются корректно', () => {
       const onChange = vi.fn();
       const { getCheckbox } = renderIsolated(
-        <Checkbox
-          id='test-checkbox'
-          name='testName'
-          className='test-class'
-          disabled
-          required
-          checked
-          value='test-value'
-          onChange={onChange}
-        />,
+        React.createElement(AnyCheckbox, {
+          id: 'test-checkbox',
+          name: 'testName',
+          className: 'test-class',
+          disabled: true,
+          required: true,
+          checked: true,
+          value: 'test-value',
+          onChange,
+        }),
       );
 
       const checkbox = getCheckbox();
@@ -155,41 +172,53 @@ describe('Checkbox', () => {
     });
 
     it('autoFocus пропс не пробрасывается в DOM (reserved)', () => {
-      const { getCheckbox } = renderIsolated(<Checkbox autoFocus />);
+      const { getCheckbox } = renderIsolated(
+        React.createElement(AnyCheckbox, { autoFocus: true }, null),
+      );
 
       const checkbox = getCheckbox();
       expect(checkbox).not.toHaveAttribute('autoFocus');
     });
 
     it('indeterminate пропс не пробрасывается в DOM (reserved)', () => {
-      const { getCheckbox } = renderIsolated(<Checkbox indeterminate />);
+      const { getCheckbox } = renderIsolated(
+        React.createElement(AnyCheckbox, { indeterminate: true }, null),
+      );
 
       const checkbox = getCheckbox();
       expect(checkbox).not.toHaveAttribute('indeterminate');
     });
 
     it('data-component всегда присутствует', () => {
-      const { getCheckbox } = renderIsolated(<Checkbox />);
+      const { getCheckbox } = renderIsolated(
+        React.createElement(AnyCheckbox, null),
+      );
 
       expect(getCheckbox()).toHaveAttribute('data-component', 'CoreCheckbox');
     });
 
     it('aria-busy=true когда aria-busy=true передан явно', () => {
-      const { getCheckbox } = renderIsolated(<Checkbox aria-busy />);
+      const { getCheckbox } = renderIsolated(
+        React.createElement(AnyCheckbox, { 'aria-busy': true }, null),
+      );
 
       const checkbox = getCheckbox();
       expect(checkbox).toHaveAttribute('aria-busy', 'true');
     });
 
     it('aria-busy отсутствует когда disabled=true но aria-busy не передан', () => {
-      const { getCheckbox } = renderIsolated(<Checkbox disabled />);
+      const { getCheckbox } = renderIsolated(
+        React.createElement(AnyCheckbox, { disabled: true }, null),
+      );
 
       const checkbox = getCheckbox();
       expect(checkbox).not.toHaveAttribute('aria-busy');
     });
 
     it('aria-busy отсутствует когда disabled=false или undefined', () => {
-      const { getCheckbox } = renderIsolated(<Checkbox />);
+      const { getCheckbox } = renderIsolated(
+        React.createElement(AnyCheckbox, null),
+      );
 
       const checkbox = getCheckbox();
       expect(checkbox).not.toHaveAttribute('aria-busy');
@@ -203,7 +232,9 @@ describe('Checkbox', () => {
     });
 
     it('autoFocus=true фокусирует checkbox один раз с preventScroll', () => {
-      const { rerender } = renderIsolated(<Checkbox autoFocus />);
+      const { rerender } = renderIsolated(
+        React.createElement(AnyCheckbox, { autoFocus: true }, null),
+      );
 
       vi.runAllTimers();
 
@@ -211,26 +242,28 @@ describe('Checkbox', () => {
       expect(mockFocus).toHaveBeenCalledWith({ preventScroll: true });
 
       // Повторный рендер не вызывает focus снова
-      rerender(<Checkbox autoFocus />);
+      rerender(React.createElement(AnyCheckbox, { autoFocus: true }, null));
       vi.runAllTimers();
       expect(mockFocus).toHaveBeenCalledTimes(1);
     });
 
     it('autoFocus=false (по умолчанию) не фокусирует', () => {
-      renderIsolated(<Checkbox />);
+      renderIsolated(React.createElement(AnyCheckbox, null));
       vi.runAllTimers();
 
       expect(mockFocus).not.toHaveBeenCalled();
     });
 
     it('autoFocus блокируется hasFocusedRef в StrictMode (покрытие ветки)', () => {
-      const { rerender } = renderIsolated(<Checkbox autoFocus />);
+      const { rerender } = renderIsolated(
+        React.createElement(AnyCheckbox, { autoFocus: true }, null),
+      );
 
       vi.runAllTimers();
       expect(mockFocus).toHaveBeenCalledTimes(1);
 
       // Симуляция StrictMode поведения
-      rerender(<Checkbox autoFocus />);
+      rerender(React.createElement(AnyCheckbox, { autoFocus: true }, null));
       vi.runAllTimers();
       expect(mockFocus).toHaveBeenCalledTimes(1);
     });
@@ -242,7 +275,7 @@ describe('Checkbox', () => {
       React.useRef = mockUseRef;
 
       expect(() => {
-        renderIsolated(<Checkbox autoFocus />);
+        renderIsolated(React.createElement(AnyCheckbox, { autoFocus: true }, null));
         vi.runAllTimers();
       }).not.toThrow();
 
@@ -252,7 +285,9 @@ describe('Checkbox', () => {
     it('autoFocus очищает timeout при unmount', () => {
       const clearTimeoutSpy = vi.spyOn(window, 'clearTimeout');
 
-      const { unmount } = renderIsolated(<Checkbox autoFocus />);
+      const { unmount } = renderIsolated(
+        React.createElement(AnyCheckbox, { autoFocus: true }, null),
+      );
 
       unmount();
 
@@ -262,52 +297,68 @@ describe('Checkbox', () => {
 
   describe('4.5. indeterminate поведение', () => {
     it('indeterminate=false (по умолчанию) не устанавливает indeterminate', () => {
-      const { getCheckbox } = renderIsolated(<Checkbox />);
+      const { getCheckbox } = renderIsolated(
+        React.createElement(AnyCheckbox, null),
+      );
 
       const checkbox = getCheckbox();
       expect(checkbox.indeterminate).toBe(false);
     });
 
     it('indeterminate=true устанавливает indeterminate на DOM элементе', () => {
-      const { getCheckbox } = renderIsolated(<Checkbox indeterminate />);
+      const { getCheckbox } = renderIsolated(
+        React.createElement(AnyCheckbox, { indeterminate: true }, null),
+      );
 
       const checkbox = getCheckbox();
       expect(checkbox.indeterminate).toBe(true);
     });
 
     it('indeterminate изменяется динамически', () => {
-      const { getCheckbox, rerender } = renderIsolated(<Checkbox indeterminate />);
+      const { getCheckbox, rerender } = renderIsolated(
+        React.createElement(AnyCheckbox, { indeterminate: true }, null),
+      );
 
       const checkbox = getCheckbox();
       expect(checkbox.indeterminate).toBe(true);
 
-      rerender(<Checkbox indeterminate={false} />);
+      rerender(React.createElement(AnyCheckbox, { indeterminate: false }, null));
       expect(checkbox.indeterminate).toBe(false);
 
-      rerender(<Checkbox indeterminate />);
+      rerender(React.createElement(AnyCheckbox, { indeterminate: true }, null));
       expect(checkbox.indeterminate).toBe(true);
     });
 
     it('indeterminate работает с Boolean конверсией', () => {
-      const { getCheckbox, rerender } = renderIsolated(<Checkbox />);
+      const { getCheckbox, rerender } = renderIsolated(
+        React.createElement(AnyCheckbox, null),
+      );
 
       const checkbox = getCheckbox();
       expect(checkbox.indeterminate).toBe(false);
 
-      rerender(<Checkbox indeterminate={false} />);
+      rerender(React.createElement(AnyCheckbox, { indeterminate: false }, null));
       expect(checkbox.indeterminate).toBe(false);
     });
 
     it('indeterminate не падает если DOM не поддерживает indeterminate', () => {
-      // Mock для случая когда indeterminate не поддерживается
-      const originalHasOwnProperty = Object.prototype.hasOwnProperty;
-      Object.prototype.hasOwnProperty = vi.fn((key) => key !== 'indeterminate');
+      // Симулируем отсутствие свойства "indeterminate" в прототипе input
+      const proto = HTMLInputElement.prototype as any;
+      const originalDescriptor = Object.getOwnPropertyDescriptor(proto, 'indeterminate');
 
-      expect(() => {
-        renderIsolated(<Checkbox indeterminate />);
-      }).not.toThrow();
+      try {
+        // Удаляем свойство из прототипа, чтобы `'indeterminate' in element` вернул false
+        delete proto.indeterminate;
 
-      Object.prototype.hasOwnProperty = originalHasOwnProperty;
+        expect(() => {
+          renderIsolated(React.createElement(AnyCheckbox, { indeterminate: true }, null));
+        }).not.toThrow();
+      } finally {
+        // Возвращаем исходный дескриптор, чтобы не ломать другие тесты
+        if (originalDescriptor) {
+          Object.defineProperty(proto, 'indeterminate', originalDescriptor);
+        }
+      }
     });
   });
 
@@ -315,25 +366,25 @@ describe('Checkbox', () => {
     it('рендер стабилен при одинаковых пропсах', () => {
       const onChange = vi.fn();
       const { container, rerender } = renderIsolated(
-        <Checkbox id='stable' checked onChange={onChange} />,
+        React.createElement(AnyCheckbox, { id: 'stable', checked: true, onChange }, null),
       );
 
       const firstRender = container.innerHTML;
 
-      rerender(<Checkbox id='stable' checked onChange={onChange} />);
+      rerender(React.createElement(AnyCheckbox, { id: 'stable', checked: true, onChange }, null));
 
       expect(container.innerHTML).toBe(firstRender);
     });
 
     it('memo предотвращает ненужные ре-рендеры', () => {
-      const renderSpy = vi.fn(() => <Checkbox />);
+      const renderSpy = vi.fn(() => React.createElement(AnyCheckbox, null));
       const Component = React.memo(renderSpy);
 
-      const { rerender } = render(<Component />);
+      const { rerender } = render(React.createElement(Component, null));
 
       expect(renderSpy).toHaveBeenCalledTimes(1);
 
-      rerender(<Component />);
+      rerender(React.createElement(Component, null));
 
       expect(renderSpy).toHaveBeenCalledTimes(1);
     });
@@ -346,7 +397,7 @@ describe('Checkbox', () => {
       const onBlur = vi.fn();
 
       const { getCheckbox } = renderIsolated(
-        <Checkbox onChange={onChange} onFocus={onFocus} onBlur={onBlur} />,
+        React.createElement(AnyCheckbox, { onChange, onFocus, onBlur }, null),
       );
 
       const checkbox = getCheckbox();
@@ -364,7 +415,9 @@ describe('Checkbox', () => {
     it('onChange получает event с правильными данными', () => {
       const onChange = vi.fn();
 
-      const { getCheckbox } = renderIsolated(<Checkbox onChange={onChange} />);
+      const { getCheckbox } = renderIsolated(
+        React.createElement(AnyCheckbox, { onChange }, null),
+      );
 
       const checkbox = getCheckbox();
       fireEvent.click(checkbox);
@@ -379,12 +432,12 @@ describe('Checkbox', () => {
   describe('4.8. Edge cases', () => {
     it('работает с undefined пропсами', () => {
       const { getCheckbox } = renderIsolated(
-        <Checkbox
-          title={undefined}
-          disabled={undefined}
-          checked={undefined}
-          autoFocus={false}
-        />,
+        React.createElement(AnyCheckbox, {
+          title: undefined,
+          disabled: undefined,
+          checked: undefined,
+          autoFocus: false,
+        }),
       );
 
       const checkbox = getCheckbox();
@@ -395,7 +448,9 @@ describe('Checkbox', () => {
     });
 
     it('работает с отсутствующими пропсами', () => {
-      const { getCheckbox } = renderIsolated(<Checkbox />);
+      const { getCheckbox } = renderIsolated(
+        React.createElement(AnyCheckbox, null),
+      );
 
       const checkbox = getCheckbox();
       expect(checkbox).toBeInTheDocument();
@@ -408,13 +463,13 @@ describe('Checkbox', () => {
       const onChange = vi.fn();
 
       const { getCheckbox } = renderIsolated(
-        <Checkbox
-          onChange={onChange}
-          defaultChecked
-          form='test-form'
-          tabIndex={1}
-          aria-label='Test checkbox'
-        />,
+        React.createElement(AnyCheckbox, {
+          onChange,
+          defaultChecked: true,
+          form: 'test-form',
+          tabIndex: 1,
+          'aria-label': 'Test checkbox',
+        }),
       );
 
       const checkbox = getCheckbox();
@@ -425,15 +480,17 @@ describe('Checkbox', () => {
 
     it('checked состояние синхронизируется с DOM', () => {
       const onChange = vi.fn();
-      const { getCheckbox, rerender } = renderIsolated(<Checkbox checked onChange={onChange} />);
+      const { getCheckbox, rerender } = renderIsolated(
+        React.createElement(AnyCheckbox, { checked: true, onChange }, null),
+      );
 
       const checkbox = getCheckbox();
       expect(checkbox).toBeChecked();
 
-      rerender(<Checkbox checked={false} onChange={onChange} />);
+      rerender(React.createElement(AnyCheckbox, { checked: false, onChange }, null));
       expect(checkbox).not.toBeChecked();
 
-      rerender(<Checkbox checked onChange={onChange} />);
+      rerender(React.createElement(AnyCheckbox, { checked: true, onChange }, null));
       expect(checkbox).toBeChecked();
     });
   });

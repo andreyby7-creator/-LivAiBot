@@ -15,6 +15,9 @@ import '@testing-library/jest-dom/vitest';
 // Полная очистка DOM между тестами
 afterEach(cleanup);
 
+// Для целей тестов ослабляем типизацию пропсов Dropdown
+const AnyDropdown = Dropdown as any;
+
 // Функция для изолированного рендера
 function renderIsolated(component: Readonly<React.ReactElement>) {
   const container = document.createElement('div');
@@ -94,7 +97,7 @@ describe('Dropdown', () => {
     padding: '5px',
   };
 
-  const reactLabel = <span data-testid='react-label'>React Label</span>;
+  const reactLabel = React.createElement('span', { 'data-testid': 'react-label' }, 'React Label');
   const itemsWithReactLabel: readonly DropdownItem[] = [
     {
       id: 'item1',
@@ -106,7 +109,7 @@ describe('Dropdown', () => {
   describe('1.1. Рендер без падений', () => {
     it('рендерится с обязательными пропсами', () => {
       const { container, getDropdown } = renderIsolated(
-        <Dropdown items={testItems} trigger='Open Menu' />,
+        React.createElement(AnyDropdown, { items: testItems, trigger: 'Open Menu' }),
       );
 
       expect(container).toBeInTheDocument();
@@ -115,7 +118,7 @@ describe('Dropdown', () => {
 
     it('создает div элемент с правильными атрибутами по умолчанию', () => {
       const { getDropdown, getTriggerButton } = renderIsolated(
-        <Dropdown items={testItems} trigger='Open Menu' />,
+        React.createElement(AnyDropdown, { items: testItems, trigger: 'Open Menu' }),
       );
 
       const dropdown = getDropdown();
@@ -135,7 +138,7 @@ describe('Dropdown', () => {
   describe('1.2. Открытость меню (isOpen)', () => {
     it('по умолчанию isOpen=false, меню скрыто', () => {
       const { queryByRole } = renderIsolated(
-        <Dropdown items={testItems} trigger='Open Menu' />,
+        React.createElement(AnyDropdown, { items: testItems, trigger: 'Open Menu' }),
       );
 
       expect(queryByRole('menu')).not.toBeInTheDocument();
@@ -143,7 +146,11 @@ describe('Dropdown', () => {
 
     it('isOpen=true рендерит меню', () => {
       const { getMenu } = renderIsolated(
-        <Dropdown items={testItems} trigger='Open Menu' isOpen />,
+        React.createElement(AnyDropdown, {
+          items: testItems,
+          trigger: 'Open Menu',
+          isOpen: true,
+        }),
       );
 
       expect(getMenu()).toBeInTheDocument();
@@ -151,7 +158,11 @@ describe('Dropdown', () => {
 
     it('isOpen=false скрывает меню', () => {
       const { queryByRole } = renderIsolated(
-        <Dropdown items={testItems} trigger='Open Menu' isOpen={false} />,
+        React.createElement(AnyDropdown, {
+          items: testItems,
+          trigger: 'Open Menu',
+          isOpen: false,
+        }),
       );
 
       expect(queryByRole('menu')).not.toBeInTheDocument();
@@ -159,24 +170,40 @@ describe('Dropdown', () => {
 
     it('aria-expanded обновляется при изменении isOpen', () => {
       const { getTriggerButton, rerender } = renderIsolated(
-        <Dropdown items={testItems} trigger='Open Menu' isOpen={false} />,
+        React.createElement(AnyDropdown, {
+          items: testItems,
+          trigger: 'Open Menu',
+          isOpen: false,
+        }),
       );
 
       expect(getTriggerButton()).toHaveAttribute('aria-expanded', 'false');
 
-      rerender(<Dropdown items={testItems} trigger='Open Menu' isOpen />);
+      rerender(React.createElement(AnyDropdown, {
+        items: testItems,
+        trigger: 'Open Menu',
+        isOpen: true,
+      }));
       expect(getTriggerButton()).toHaveAttribute('aria-expanded', 'true');
     });
 
     it('aria-controls устанавливается только когда меню открыто', () => {
       const { getTriggerButton, rerender } = renderIsolated(
-        <Dropdown items={testItems} trigger='Open Menu' isOpen={false} />,
+        React.createElement(AnyDropdown, {
+          items: testItems,
+          trigger: 'Open Menu',
+          isOpen: false,
+        }),
       );
 
       const button = getTriggerButton();
       expect(button).not.toHaveAttribute('aria-controls');
 
-      rerender(<Dropdown items={testItems} trigger='Open Menu' isOpen />);
+      rerender(React.createElement(AnyDropdown, {
+        items: testItems,
+        trigger: 'Open Menu',
+        isOpen: true,
+      }));
       const updatedButton = getTriggerButton();
       const menuId = updatedButton.getAttribute('aria-controls');
       expect(menuId).not.toBeNull();
@@ -189,7 +216,11 @@ describe('Dropdown', () => {
   describe('1.3. Элементы меню (items)', () => {
     it('рендерит все элементы меню', () => {
       const { getMenuItems } = renderIsolated(
-        <Dropdown items={testItems} trigger='Open Menu' isOpen />,
+        React.createElement(AnyDropdown, {
+          items: testItems,
+          trigger: 'Open Menu',
+          isOpen: true,
+        }),
       );
 
       const items = getMenuItems();
@@ -201,7 +232,11 @@ describe('Dropdown', () => {
 
     it('обрабатывает пустой массив items', () => {
       const { getMenuItems } = renderIsolated(
-        <Dropdown items={emptyItems} trigger='Open Menu' isOpen />,
+        React.createElement(AnyDropdown, {
+          items: emptyItems,
+          trigger: 'Open Menu',
+          isOpen: true,
+        }),
       );
 
       expect(getMenuItems()).toHaveLength(0);
@@ -209,7 +244,11 @@ describe('Dropdown', () => {
 
     it('обрабатывает один элемент', () => {
       const { getMenuItems } = renderIsolated(
-        <Dropdown items={singleItem} trigger='Open Menu' isOpen />,
+        React.createElement(AnyDropdown, {
+          items: singleItem,
+          trigger: 'Open Menu',
+          isOpen: true,
+        }),
       );
 
       expect(getMenuItems()).toHaveLength(1);
@@ -218,7 +257,11 @@ describe('Dropdown', () => {
 
     it('рендерит ReactNode в label', () => {
       const { getByTestId } = renderIsolated(
-        <Dropdown items={itemsWithReactLabel} trigger='Open Menu' isOpen />,
+        React.createElement(AnyDropdown, {
+          items: itemsWithReactLabel,
+          trigger: 'Open Menu',
+          isOpen: true,
+        }),
       );
 
       expect(getByTestId('react-label')).toBeInTheDocument();
@@ -226,7 +269,11 @@ describe('Dropdown', () => {
 
     it('каждый элемент имеет уникальный id', () => {
       const { getMenuItems } = renderIsolated(
-        <Dropdown items={testItems} trigger='Open Menu' isOpen />,
+        React.createElement(AnyDropdown, {
+          items: testItems,
+          trigger: 'Open Menu',
+          isOpen: true,
+        }),
       );
 
       const items = getMenuItems();
@@ -237,7 +284,11 @@ describe('Dropdown', () => {
 
     it('каждый элемент имеет data-item-id атрибут', () => {
       const { getMenuItems } = renderIsolated(
-        <Dropdown items={testItems} trigger='Open Menu' isOpen />,
+        React.createElement(AnyDropdown, {
+          items: testItems,
+          trigger: 'Open Menu',
+          isOpen: true,
+        }),
       );
 
       const items = getMenuItems();
@@ -250,7 +301,11 @@ describe('Dropdown', () => {
   describe('1.4. Disabled элементы', () => {
     it('disabled элементы имеют aria-disabled="true"', () => {
       const { getMenuItems } = renderIsolated(
-        <Dropdown items={itemsWithDisabled} trigger='Open Menu' isOpen />,
+        React.createElement(AnyDropdown, {
+          items: itemsWithDisabled,
+          trigger: 'Open Menu',
+          isOpen: true,
+        }),
       );
 
       const items = getMenuItems();
@@ -261,7 +316,11 @@ describe('Dropdown', () => {
 
     it('disabled элементы имеют tabIndex={-1}', () => {
       const { getMenuItems } = renderIsolated(
-        <Dropdown items={itemsWithDisabled} trigger='Open Menu' isOpen />,
+        React.createElement(AnyDropdown, {
+          items: itemsWithDisabled,
+          trigger: 'Open Menu',
+          isOpen: true,
+        }),
       );
 
       const items = getMenuItems();
@@ -272,7 +331,12 @@ describe('Dropdown', () => {
     it('disabled элементы не реагируют на клик', () => {
       const onSelect = vi.fn();
       const { getMenuItems } = renderIsolated(
-        <Dropdown items={itemsWithDisabled} trigger='Open Menu' isOpen onSelect={onSelect} />,
+        React.createElement(AnyDropdown, {
+          items: itemsWithDisabled,
+          trigger: 'Open Menu',
+          isOpen: true,
+          onSelect,
+        }),
       );
 
       const items = Array.from(getMenuItems());
@@ -286,7 +350,12 @@ describe('Dropdown', () => {
     it('disabled элементы не реагируют на клавиатуру', () => {
       const onSelect = vi.fn();
       const { getMenuItems } = renderIsolated(
-        <Dropdown items={itemsWithDisabled} trigger='Open Menu' isOpen onSelect={onSelect} />,
+        React.createElement(AnyDropdown, {
+          items: itemsWithDisabled,
+          trigger: 'Open Menu',
+          isOpen: true,
+          onSelect,
+        }),
       );
 
       const items = Array.from(getMenuItems());
@@ -301,7 +370,11 @@ describe('Dropdown', () => {
   describe('1.5. Разделители (dividers)', () => {
     it('рендерит разделители с role="separator"', () => {
       const { getMenuSeparators } = renderIsolated(
-        <Dropdown items={itemsWithDividers} trigger='Open Menu' isOpen />,
+        React.createElement(AnyDropdown, {
+          items: itemsWithDividers,
+          trigger: 'Open Menu',
+          isOpen: true,
+        }),
       );
 
       const separators = getMenuSeparators();
@@ -314,7 +387,11 @@ describe('Dropdown', () => {
 
     it('разделители не считаются элементами меню', () => {
       const { getMenuItems, getMenuSeparators } = renderIsolated(
-        <Dropdown items={itemsWithDividers} trigger='Open Menu' isOpen />,
+        React.createElement(AnyDropdown, {
+          items: itemsWithDividers,
+          trigger: 'Open Menu',
+          isOpen: true,
+        }),
       );
 
       expect(getMenuItems()).toHaveLength(3);
@@ -325,7 +402,11 @@ describe('Dropdown', () => {
   describe('1.6. Data атрибуты элементов', () => {
     it('прокидывает data атрибуты из item.data', () => {
       const { getMenuItems } = renderIsolated(
-        <Dropdown items={itemsWithData} trigger='Open Menu' isOpen />,
+        React.createElement(AnyDropdown, {
+          items: itemsWithData,
+          trigger: 'Open Menu',
+          isOpen: true,
+        }),
       );
 
       const item = getMenuItems()[0];
@@ -336,7 +417,7 @@ describe('Dropdown', () => {
   describe('1.7. Placement', () => {
     it('по умолчанию placement="bottom"', () => {
       const { getDropdown } = renderIsolated(
-        <Dropdown items={testItems} trigger='Open Menu' />,
+        React.createElement(AnyDropdown, { items: testItems, trigger: 'Open Menu' }),
       );
 
       expect(getDropdown()).toHaveAttribute('data-placement', 'bottom');
@@ -344,7 +425,11 @@ describe('Dropdown', () => {
 
     it('placement="top" устанавливает правильный атрибут', () => {
       const { getDropdown } = renderIsolated(
-        <Dropdown items={testItems} trigger='Open Menu' placement='top' />,
+        React.createElement(AnyDropdown, {
+          items: testItems,
+          trigger: 'Open Menu',
+          placement: 'top',
+        }),
       );
 
       expect(getDropdown()).toHaveAttribute('data-placement', 'top');
@@ -352,7 +437,11 @@ describe('Dropdown', () => {
 
     it('placement="left" устанавливает правильный атрибут', () => {
       const { getDropdown } = renderIsolated(
-        <Dropdown items={testItems} trigger='Open Menu' placement='left' />,
+        React.createElement(AnyDropdown, {
+          items: testItems,
+          trigger: 'Open Menu',
+          placement: 'left',
+        }),
       );
 
       expect(getDropdown()).toHaveAttribute('data-placement', 'left');
@@ -360,7 +449,11 @@ describe('Dropdown', () => {
 
     it('placement="right" устанавливает правильный атрибут', () => {
       const { getDropdown } = renderIsolated(
-        <Dropdown items={testItems} trigger='Open Menu' placement='right' />,
+        React.createElement(AnyDropdown, {
+          items: testItems,
+          trigger: 'Open Menu',
+          placement: 'right',
+        }),
       );
 
       expect(getDropdown()).toHaveAttribute('data-placement', 'right');
@@ -370,7 +463,11 @@ describe('Dropdown', () => {
   describe('1.8. ARIA атрибуты', () => {
     it('триггер имеет правильные ARIA атрибуты', () => {
       const { getTriggerButton } = renderIsolated(
-        <Dropdown items={testItems} trigger='Open Menu' isOpen />,
+        React.createElement(AnyDropdown, {
+          items: testItems,
+          trigger: 'Open Menu',
+          isOpen: true,
+        }),
       );
 
       const button = getTriggerButton();
@@ -381,7 +478,11 @@ describe('Dropdown', () => {
 
     it('меню имеет правильные ARIA атрибуты', () => {
       const { getMenu, getTriggerButton } = renderIsolated(
-        <Dropdown items={testItems} trigger='Open Menu' isOpen />,
+        React.createElement(AnyDropdown, {
+          items: testItems,
+          trigger: 'Open Menu',
+          isOpen: true,
+        }),
       );
 
       const menu = getMenu();
@@ -392,7 +493,11 @@ describe('Dropdown', () => {
 
     it('элементы меню имеют правильные ARIA атрибуты', () => {
       const { getMenuItems } = renderIsolated(
-        <Dropdown items={testItems} trigger='Open Menu' isOpen />,
+        React.createElement(AnyDropdown, {
+          items: testItems,
+          trigger: 'Open Menu',
+          isOpen: true,
+        }),
       );
 
       const items = getMenuItems();
@@ -403,7 +508,11 @@ describe('Dropdown', () => {
 
     it('кастомный aria-label переопределяет дефолтный', () => {
       const { getDropdown } = renderIsolated(
-        <Dropdown items={testItems} trigger='Open Menu' aria-label='Custom label' />,
+        React.createElement(AnyDropdown, {
+          items: testItems,
+          trigger: 'Open Menu',
+          'aria-label': 'Custom label',
+        }),
       );
 
       expect(getDropdown()).toHaveAttribute('aria-label', 'Custom label');
@@ -413,7 +522,11 @@ describe('Dropdown', () => {
   describe('1.9. Test ID', () => {
     it('data-testid устанавливается корректно', () => {
       const { getDropdown } = renderIsolated(
-        <Dropdown items={testItems} trigger='Open Menu' data-testid='test-dropdown' />,
+        React.createElement(AnyDropdown, {
+          items: testItems,
+          trigger: 'Open Menu',
+          'data-testid': 'test-dropdown',
+        }),
       );
 
       expect(getDropdown()).toHaveAttribute('data-testid', 'test-dropdown');
@@ -423,7 +536,11 @@ describe('Dropdown', () => {
   describe('1.10. Component ID', () => {
     it('data-component-id устанавливается корректно', () => {
       const { getDropdown } = renderIsolated(
-        <Dropdown items={testItems} trigger='Open Menu' data-component-id='custom-id' />,
+        React.createElement(AnyDropdown, {
+          items: testItems,
+          trigger: 'Open Menu',
+          'data-component-id': 'custom-id',
+        }),
       );
 
       const dropdown = getDropdown();
@@ -441,7 +558,11 @@ describe('Dropdown', () => {
   describe('1.11. HTML атрибуты', () => {
     it('прокидывает className', () => {
       const { getDropdown } = renderIsolated(
-        <Dropdown items={testItems} trigger='Open Menu' className='custom-class' />,
+        React.createElement(AnyDropdown, {
+          items: testItems,
+          trigger: 'Open Menu',
+          className: 'custom-class',
+        }),
       );
 
       expect(getDropdown()).toHaveClass('custom-class');
@@ -449,7 +570,11 @@ describe('Dropdown', () => {
 
     it('прокидывает style', () => {
       const { getDropdown } = renderIsolated(
-        <Dropdown items={testItems} trigger='Open Menu' style={customStyle} />,
+        React.createElement(AnyDropdown, {
+          items: testItems,
+          trigger: 'Open Menu',
+          style: customStyle,
+        }),
       );
 
       const dropdown = getDropdown();
@@ -458,7 +583,12 @@ describe('Dropdown', () => {
 
     it('прокидывает другие HTML атрибуты', () => {
       const { getDropdown } = renderIsolated(
-        <Dropdown items={testItems} trigger='Open Menu' id='custom-id' title='Custom title' />,
+        React.createElement(AnyDropdown, {
+          items: testItems,
+          trigger: 'Open Menu',
+          id: 'custom-id',
+          title: 'Custom title',
+        }),
       );
 
       const dropdown = getDropdown();
@@ -471,7 +601,12 @@ describe('Dropdown', () => {
     it('onToggle вызывается при клике на триггер', () => {
       const onToggle = vi.fn();
       const { getTriggerButton } = renderIsolated(
-        <Dropdown items={testItems} trigger='Open Menu' isOpen={false} onToggle={onToggle} />,
+        React.createElement(AnyDropdown, {
+          items: testItems,
+          trigger: 'Open Menu',
+          isOpen: false,
+          onToggle,
+        }),
       );
 
       fireEvent.click(getTriggerButton());
@@ -482,7 +617,12 @@ describe('Dropdown', () => {
     it('onToggle вызывается с правильным isOpen при закрытом меню', () => {
       const onToggle = vi.fn();
       const { getTriggerButton } = renderIsolated(
-        <Dropdown items={testItems} trigger='Open Menu' isOpen={false} onToggle={onToggle} />,
+        React.createElement(AnyDropdown, {
+          items: testItems,
+          trigger: 'Open Menu',
+          isOpen: false,
+          onToggle,
+        }),
       );
 
       fireEvent.click(getTriggerButton());
@@ -492,7 +632,12 @@ describe('Dropdown', () => {
     it('onToggle вызывается с правильным isOpen при открытом меню', () => {
       const onToggle = vi.fn();
       const { getTriggerButton } = renderIsolated(
-        <Dropdown items={testItems} trigger='Open Menu' isOpen onToggle={onToggle} />,
+        React.createElement(AnyDropdown, {
+          items: testItems,
+          trigger: 'Open Menu',
+          isOpen: true,
+          onToggle,
+        }),
       );
 
       fireEvent.click(getTriggerButton());
@@ -504,7 +649,12 @@ describe('Dropdown', () => {
     it('Enter открывает меню', () => {
       const onToggle = vi.fn();
       const { getTriggerButton } = renderIsolated(
-        <Dropdown items={testItems} trigger='Open Menu' isOpen={false} onToggle={onToggle} />,
+        React.createElement(AnyDropdown, {
+          items: testItems,
+          trigger: 'Open Menu',
+          isOpen: false,
+          onToggle,
+        }),
       );
 
       fireEvent.keyDown(getTriggerButton(), { key: 'Enter' });
@@ -514,7 +664,12 @@ describe('Dropdown', () => {
     it('Space открывает меню', () => {
       const onToggle = vi.fn();
       const { getTriggerButton } = renderIsolated(
-        <Dropdown items={testItems} trigger='Open Menu' isOpen={false} onToggle={onToggle} />,
+        React.createElement(AnyDropdown, {
+          items: testItems,
+          trigger: 'Open Menu',
+          isOpen: false,
+          onToggle,
+        }),
       );
 
       fireEvent.keyDown(getTriggerButton(), { key: ' ' });
@@ -524,7 +679,12 @@ describe('Dropdown', () => {
     it('ArrowDown открывает меню', () => {
       const onToggle = vi.fn();
       const { getTriggerButton } = renderIsolated(
-        <Dropdown items={testItems} trigger='Open Menu' isOpen={false} onToggle={onToggle} />,
+        React.createElement(AnyDropdown, {
+          items: testItems,
+          trigger: 'Open Menu',
+          isOpen: false,
+          onToggle,
+        }),
       );
 
       fireEvent.keyDown(getTriggerButton(), { key: 'ArrowDown' });
@@ -534,7 +694,12 @@ describe('Dropdown', () => {
     it('Escape закрывает меню', () => {
       const onToggle = vi.fn();
       const { getTriggerButton } = renderIsolated(
-        <Dropdown items={testItems} trigger='Open Menu' isOpen onToggle={onToggle} />,
+        React.createElement(AnyDropdown, {
+          items: testItems,
+          trigger: 'Open Menu',
+          isOpen: true,
+          onToggle,
+        }),
       );
 
       fireEvent.keyDown(getTriggerButton(), { key: 'Escape' });
@@ -544,7 +709,12 @@ describe('Dropdown', () => {
     it('Escape не закрывает меню если оно уже закрыто', () => {
       const onToggle = vi.fn();
       const { getTriggerButton } = renderIsolated(
-        <Dropdown items={testItems} trigger='Open Menu' isOpen={false} onToggle={onToggle} />,
+        React.createElement(AnyDropdown, {
+          items: testItems,
+          trigger: 'Open Menu',
+          isOpen: false,
+          onToggle,
+        }),
       );
 
       fireEvent.keyDown(getTriggerButton(), { key: 'Escape' });
@@ -554,7 +724,12 @@ describe('Dropdown', () => {
     it('другие клавиши не вызывают onToggle', () => {
       const onToggle = vi.fn();
       const { getTriggerButton } = renderIsolated(
-        <Dropdown items={testItems} trigger='Open Menu' isOpen={false} onToggle={onToggle} />,
+        React.createElement(AnyDropdown, {
+          items: testItems,
+          trigger: 'Open Menu',
+          isOpen: false,
+          onToggle,
+        }),
       );
 
       fireEvent.keyDown(getTriggerButton(), { key: 'Tab' });
@@ -567,7 +742,12 @@ describe('Dropdown', () => {
     it('onSelect вызывается при клике на элемент', () => {
       const onSelect = vi.fn();
       const { getMenuItems } = renderIsolated(
-        <Dropdown items={testItems} trigger='Open Menu' isOpen onSelect={onSelect} />,
+        React.createElement(AnyDropdown, {
+          items: testItems,
+          trigger: 'Open Menu',
+          isOpen: true,
+          onSelect,
+        }),
       );
 
       const items = Array.from(getMenuItems());
@@ -582,7 +762,12 @@ describe('Dropdown', () => {
     it('onSelect вызывается с правильным itemId', () => {
       const onSelect = vi.fn();
       const { getMenuItems } = renderIsolated(
-        <Dropdown items={testItems} trigger='Open Menu' isOpen onSelect={onSelect} />,
+        React.createElement(AnyDropdown, {
+          items: testItems,
+          trigger: 'Open Menu',
+          isOpen: true,
+          onSelect,
+        }),
       );
 
       const items = Array.from(getMenuItems());
@@ -596,13 +781,13 @@ describe('Dropdown', () => {
     it('onClose вызывается после выбора элемента', () => {
       const onClose = vi.fn();
       const { getMenuItems } = renderIsolated(
-        <Dropdown
-          items={testItems}
-          trigger='Open Menu'
-          isOpen
-          onSelect={vi.fn()}
-          onClose={onClose}
-        />,
+        React.createElement(AnyDropdown, {
+          items: testItems,
+          trigger: 'Open Menu',
+          isOpen: true,
+          onSelect: vi.fn(),
+          onClose,
+        }),
       );
 
       const items = Array.from(getMenuItems());
@@ -618,7 +803,12 @@ describe('Dropdown', () => {
     it('Enter вызывает onSelect', () => {
       const onSelect = vi.fn();
       const { getMenuItems } = renderIsolated(
-        <Dropdown items={testItems} trigger='Open Menu' isOpen onSelect={onSelect} />,
+        React.createElement(AnyDropdown, {
+          items: testItems,
+          trigger: 'Open Menu',
+          isOpen: true,
+          onSelect,
+        }),
       );
 
       const items = Array.from(getMenuItems());
@@ -632,7 +822,12 @@ describe('Dropdown', () => {
     it('Space вызывает onSelect', () => {
       const onSelect = vi.fn();
       const { getMenuItems } = renderIsolated(
-        <Dropdown items={testItems} trigger='Open Menu' isOpen onSelect={onSelect} />,
+        React.createElement(AnyDropdown, {
+          items: testItems,
+          trigger: 'Open Menu',
+          isOpen: true,
+          onSelect,
+        }),
       );
 
       const items = Array.from(getMenuItems());
@@ -646,7 +841,12 @@ describe('Dropdown', () => {
     it('Escape вызывает onClose', () => {
       const onClose = vi.fn();
       const { getMenuItems } = renderIsolated(
-        <Dropdown items={testItems} trigger='Open Menu' isOpen onClose={onClose} />,
+        React.createElement(AnyDropdown, {
+          items: testItems,
+          trigger: 'Open Menu',
+          isOpen: true,
+          onClose,
+        }),
       );
 
       const items = Array.from(getMenuItems());
@@ -659,7 +859,11 @@ describe('Dropdown', () => {
 
     it('ArrowDown перемещает фокус на следующий элемент', () => {
       const { getMenuItems } = renderIsolated(
-        <Dropdown items={testItems} trigger='Open Menu' isOpen />,
+        React.createElement(AnyDropdown, {
+          items: testItems,
+          trigger: 'Open Menu',
+          isOpen: true,
+        }),
       );
 
       const items = Array.from(getMenuItems()) as HTMLLIElement[];
@@ -675,7 +879,11 @@ describe('Dropdown', () => {
 
     it('ArrowDown на последнем элементе перемещает фокус на первый', () => {
       const { getMenuItems } = renderIsolated(
-        <Dropdown items={testItems} trigger='Open Menu' isOpen />,
+        React.createElement(AnyDropdown, {
+          items: testItems,
+          trigger: 'Open Menu',
+          isOpen: true,
+        }),
       );
 
       const items = Array.from(getMenuItems()) as HTMLLIElement[];
@@ -691,7 +899,11 @@ describe('Dropdown', () => {
 
     it('ArrowUp перемещает фокус на предыдущий элемент', () => {
       const { getMenuItems } = renderIsolated(
-        <Dropdown items={testItems} trigger='Open Menu' isOpen />,
+        React.createElement(AnyDropdown, {
+          items: testItems,
+          trigger: 'Open Menu',
+          isOpen: true,
+        }),
       );
 
       const items = Array.from(getMenuItems()) as HTMLLIElement[];
@@ -707,7 +919,11 @@ describe('Dropdown', () => {
 
     it('ArrowUp на первом элементе перемещает фокус на последний', () => {
       const { getMenuItems } = renderIsolated(
-        <Dropdown items={testItems} trigger='Open Menu' isOpen />,
+        React.createElement(AnyDropdown, {
+          items: testItems,
+          trigger: 'Open Menu',
+          isOpen: true,
+        }),
       );
 
       const items = Array.from(getMenuItems()) as HTMLLIElement[];
@@ -723,7 +939,11 @@ describe('Dropdown', () => {
 
     it('ArrowDown/ArrowUp пропускают disabled элементы', () => {
       const { getMenuItems } = renderIsolated(
-        <Dropdown items={itemsWithDisabled} trigger='Open Menu' isOpen />,
+        React.createElement(AnyDropdown, {
+          items: itemsWithDisabled,
+          trigger: 'Open Menu',
+          isOpen: true,
+        }),
       );
 
       const items = Array.from(getMenuItems()) as HTMLLIElement[];
@@ -740,7 +960,11 @@ describe('Dropdown', () => {
 
     it('ArrowDown не работает если нет доступных элементов (все disabled)', () => {
       const { getMenuItems } = renderIsolated(
-        <Dropdown items={allDisabledItems} trigger='Open Menu' isOpen />,
+        React.createElement(AnyDropdown, {
+          items: allDisabledItems,
+          trigger: 'Open Menu',
+          isOpen: true,
+        }),
       );
 
       const items = Array.from(getMenuItems()) as HTMLLIElement[];
@@ -756,7 +980,11 @@ describe('Dropdown', () => {
 
     it('navigateMenu не работает если элемент не найден в списке', () => {
       const { getMenuItems } = renderIsolated(
-        <Dropdown items={testItems} trigger='Open Menu' isOpen />,
+        React.createElement(AnyDropdown, {
+          items: testItems,
+          trigger: 'Open Menu',
+          isOpen: true,
+        }),
       );
 
       const items = Array.from(getMenuItems()) as HTMLLIElement[];
@@ -779,7 +1007,11 @@ describe('Dropdown', () => {
 
     it('navigateMenu не работает если список элементов пуст', () => {
       const { getMenuItems } = renderIsolated(
-        <Dropdown items={emptyItems} trigger='Open Menu' isOpen />,
+        React.createElement(AnyDropdown, {
+          items: emptyItems,
+          trigger: 'Open Menu',
+          isOpen: true,
+        }),
       );
 
       // Меню пустое, поэтому getFocusableMenuItems вернет пустой массив
@@ -793,7 +1025,12 @@ describe('Dropdown', () => {
     it('другие клавиши не вызывают onSelect', () => {
       const onSelect = vi.fn();
       const { getMenuItems } = renderIsolated(
-        <Dropdown items={testItems} trigger='Open Menu' isOpen onSelect={onSelect} />,
+        React.createElement(AnyDropdown, {
+          items: testItems,
+          trigger: 'Open Menu',
+          isOpen: true,
+          onSelect,
+        }),
       );
 
       const items = Array.from(getMenuItems());
@@ -809,10 +1046,18 @@ describe('Dropdown', () => {
   describe('2.5. Фокус на первый элемент при открытии', () => {
     it('фокус устанавливается на первый элемент при открытии меню', async () => {
       const { getMenuItems, rerender } = renderIsolated(
-        <Dropdown items={testItems} trigger='Open Menu' isOpen={false} />,
+        React.createElement(AnyDropdown, {
+          items: testItems,
+          trigger: 'Open Menu',
+          isOpen: false,
+        }),
       );
 
-      rerender(<Dropdown items={testItems} trigger='Open Menu' isOpen />);
+      rerender(React.createElement(AnyDropdown, {
+        items: testItems,
+        trigger: 'Open Menu',
+        isOpen: true,
+      }));
 
       // Используем requestAnimationFrame для проверки после рендера
       await new Promise<void>((resolve) => {
@@ -830,7 +1075,11 @@ describe('Dropdown', () => {
 
     it('фокус не устанавливается если меню закрыто', () => {
       const { getMenuItems } = renderIsolated(
-        <Dropdown items={testItems} trigger='Open Menu' isOpen={false} />,
+        React.createElement(AnyDropdown, {
+          items: testItems,
+          trigger: 'Open Menu',
+          isOpen: false,
+        }),
       );
 
       expect(getMenuItems()).toHaveLength(0);
@@ -838,10 +1087,18 @@ describe('Dropdown', () => {
 
     it('фокус не устанавливается если меню пустое', async () => {
       const { getMenuItems, rerender } = renderIsolated(
-        <Dropdown items={emptyItems} trigger='Open Menu' isOpen={false} />,
+        React.createElement(AnyDropdown, {
+          items: emptyItems,
+          trigger: 'Open Menu',
+          isOpen: false,
+        }),
       );
 
-      rerender(<Dropdown items={emptyItems} trigger='Open Menu' isOpen />);
+      rerender(React.createElement(AnyDropdown, {
+        items: emptyItems,
+        trigger: 'Open Menu',
+        isOpen: true,
+      }));
 
       await new Promise<void>((resolve) => {
         requestAnimationFrame(() => {
@@ -857,7 +1114,11 @@ describe('Dropdown', () => {
     it('ref прокидывается на корневой элемент', () => {
       const ref = React.createRef<HTMLDivElement>();
       const { getDropdown } = renderIsolated(
-        <Dropdown items={testItems} trigger='Open Menu' ref={ref} />,
+        React.createElement(AnyDropdown, {
+          items: testItems,
+          trigger: 'Open Menu',
+          ref,
+        }),
       );
 
       expect(ref.current).toBe(getDropdown());
@@ -866,12 +1127,20 @@ describe('Dropdown', () => {
     it('ref обновляется при изменении компонента', () => {
       const ref = React.createRef<HTMLDivElement>();
       const { getDropdown, rerender } = renderIsolated(
-        <Dropdown items={testItems} trigger='Open Menu' ref={ref} />,
+        React.createElement(AnyDropdown, {
+          items: testItems,
+          trigger: 'Open Menu',
+          ref,
+        }),
       );
 
       expect(ref.current).toBe(getDropdown());
 
-      rerender(<Dropdown items={testItems} trigger='New Trigger' ref={ref} />);
+      rerender(React.createElement(AnyDropdown, {
+        items: testItems,
+        trigger: 'New Trigger',
+        ref,
+      }));
       expect(ref.current).toBe(getDropdown());
     });
   });
@@ -887,7 +1156,7 @@ describe('Dropdown', () => {
   describe('3.3. Edge cases', () => {
     it('обрабатывает undefined onToggle', () => {
       const { getTriggerButton } = renderIsolated(
-        <Dropdown items={testItems} trigger='Open Menu' />,
+        React.createElement(AnyDropdown, { items: testItems, trigger: 'Open Menu' }),
       );
 
       expect(() => {
@@ -897,7 +1166,11 @@ describe('Dropdown', () => {
 
     it('обрабатывает undefined onSelect', () => {
       const { getMenuItems } = renderIsolated(
-        <Dropdown items={testItems} trigger='Open Menu' isOpen />,
+        React.createElement(AnyDropdown, {
+          items: testItems,
+          trigger: 'Open Menu',
+          isOpen: true,
+        }),
       );
 
       const items = Array.from(getMenuItems());
@@ -911,7 +1184,12 @@ describe('Dropdown', () => {
 
     it('обрабатывает undefined onClose', () => {
       const { getMenuItems } = renderIsolated(
-        <Dropdown items={testItems} trigger='Open Menu' isOpen onSelect={vi.fn()} />,
+        React.createElement(AnyDropdown, {
+          items: testItems,
+          trigger: 'Open Menu',
+          isOpen: true,
+          onSelect: vi.fn(),
+        }),
       );
 
       const items = Array.from(getMenuItems());
@@ -925,7 +1203,11 @@ describe('Dropdown', () => {
 
     it('обрабатывает меню с только disabled элементами', () => {
       const { getMenuItems } = renderIsolated(
-        <Dropdown items={allDisabledItems} trigger='Open Menu' isOpen />,
+        React.createElement(AnyDropdown, {
+          items: allDisabledItems,
+          trigger: 'Open Menu',
+          isOpen: true,
+        }),
       );
 
       const items = getMenuItems();
@@ -938,7 +1220,11 @@ describe('Dropdown', () => {
 
     it('обрабатывает меню с только разделителями', () => {
       const { getMenuItems, getMenuSeparators } = renderIsolated(
-        <Dropdown items={onlyDividersItems} trigger='Open Menu' isOpen />,
+        React.createElement(AnyDropdown, {
+          items: onlyDividersItems,
+          trigger: 'Open Menu',
+          isOpen: true,
+        }),
       );
 
       const menuItems = getMenuItems();
@@ -953,7 +1239,11 @@ describe('Dropdown', () => {
   describe('3.4. Стрелка триггера', () => {
     it('отображает стрелку вниз когда меню закрыто', () => {
       const { getTriggerButton } = renderIsolated(
-        <Dropdown items={testItems} trigger='Open Menu' isOpen={false} />,
+        React.createElement(AnyDropdown, {
+          items: testItems,
+          trigger: 'Open Menu',
+          isOpen: false,
+        }),
       );
 
       const button = getTriggerButton();
@@ -966,7 +1256,11 @@ describe('Dropdown', () => {
 
     it('отображает стрелку вверх когда меню открыто', () => {
       const { getTriggerButton } = renderIsolated(
-        <Dropdown items={testItems} trigger='Open Menu' isOpen />,
+        React.createElement(AnyDropdown, {
+          items: testItems,
+          trigger: 'Open Menu',
+          isOpen: true,
+        }),
       );
 
       const button = getTriggerButton();

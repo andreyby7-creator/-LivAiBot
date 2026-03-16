@@ -11,6 +11,8 @@ import { ConfirmDialog } from '@livai/ui-core';
 
 import '@testing-library/jest-dom/vitest';
 
+const AnyConfirmDialog = ConfirmDialog as any;
+
 // Полная очистка DOM между тестами
 afterEach(cleanup);
 
@@ -51,7 +53,7 @@ describe('ConfirmDialog', () => {
   describe('4.1. Рендер без падений', () => {
     it('рендерится с обязательными пропсами', () => {
       const { getByRole } = renderIsolated(
-        <ConfirmDialog visible={true} message={testMessage} />,
+        React.createElement(AnyConfirmDialog, { visible: true, message: testMessage } as any, null),
       );
 
       expect(getByRole('dialog')).toBeInTheDocument();
@@ -59,7 +61,7 @@ describe('ConfirmDialog', () => {
 
     it('не рендерится когда visible=false', () => {
       const { getModal } = renderIsolated(
-        <ConfirmDialog visible={false} />,
+        React.createElement(AnyConfirmDialog, { visible: false } as any, null),
       );
 
       expect(getModal()).toBeNull();
@@ -67,7 +69,11 @@ describe('ConfirmDialog', () => {
 
     it('рендерится с title', () => {
       const { getByText } = renderIsolated(
-        <ConfirmDialog visible={true} title={testTitle} message={testMessage} />,
+        React.createElement(
+          AnyConfirmDialog,
+          { visible: true, title: testTitle, message: testMessage } as any,
+          null,
+        ),
       );
 
       expect(getByText(testTitle)).toBeInTheDocument();
@@ -75,7 +81,7 @@ describe('ConfirmDialog', () => {
 
     it('рендерится без title', () => {
       const { container } = renderIsolated(
-        <ConfirmDialog visible={true} message={testMessage} />,
+        React.createElement(AnyConfirmDialog, { visible: true, message: testMessage } as any, null),
       );
 
       expect(container.querySelector('h2')).toBeNull();
@@ -83,7 +89,11 @@ describe('ConfirmDialog', () => {
 
     it('рендерится с message', () => {
       const { getByTestId } = renderIsolated(
-        <ConfirmDialog visible={true} message={testMessage} data-testid='test-dialog' />,
+        React.createElement(
+          AnyConfirmDialog,
+          { visible: true, message: testMessage, 'data-testid': 'test-dialog' } as any,
+          null,
+        ),
       );
 
       expect(getByTestId('test-dialog-message')).toHaveTextContent(testMessage);
@@ -91,7 +101,11 @@ describe('ConfirmDialog', () => {
 
     it('не рендерит message когда message=null', () => {
       const { queryByTestId } = renderIsolated(
-        <ConfirmDialog visible={true} message={null as any} data-testid='test-dialog' />,
+        React.createElement(
+          AnyConfirmDialog,
+          { visible: true, message: null as any, 'data-testid': 'test-dialog' } as any,
+          null,
+        ),
       );
 
       expect(queryByTestId('test-dialog-message')).toBeNull();
@@ -99,16 +113,28 @@ describe('ConfirmDialog', () => {
 
     it('не рендерит message когда message=undefined', () => {
       const { queryByTestId } = renderIsolated(
-        <ConfirmDialog visible={true} message={undefined} data-testid='test-dialog' />,
+        React.createElement(
+          AnyConfirmDialog,
+          { visible: true, message: undefined, 'data-testid': 'test-dialog' } as any,
+          null,
+        ),
       );
 
       expect(queryByTestId('test-dialog-message')).toBeNull();
     });
 
     it('рендерит ReactNode как message', () => {
-      const reactMessage = <span data-testid='react-message'>React Message</span>;
+      const reactMessage = React.createElement(
+        'span',
+        { 'data-testid': 'react-message' },
+        'React Message',
+      );
       const { getByTestId } = renderIsolated(
-        <ConfirmDialog visible={true} message={reactMessage} data-testid='test-dialog' />,
+        React.createElement(
+          AnyConfirmDialog,
+          { visible: true, message: reactMessage, 'data-testid': 'test-dialog' } as any,
+          null,
+        ),
       );
 
       expect(getByTestId('react-message')).toBeInTheDocument();
@@ -120,7 +146,11 @@ describe('ConfirmDialog', () => {
     describe('variant', () => {
       it('применяет default variant по умолчанию', () => {
         const { getByRole } = renderIsolated(
-          <ConfirmDialog visible={true} message={testMessage} />,
+          React.createElement(
+            AnyConfirmDialog,
+            { visible: true, message: testMessage } as any,
+            null,
+          ),
         );
 
         const modal = getByRole('dialog');
@@ -129,7 +159,11 @@ describe('ConfirmDialog', () => {
 
       it('применяет warning variant', () => {
         const { getByRole } = renderIsolated(
-          <ConfirmDialog visible={true} variant='warning' message={testMessage} />,
+          React.createElement(
+            AnyConfirmDialog,
+            { visible: true, variant: 'warning', message: testMessage } as any,
+            null,
+          ),
         );
 
         const modal = getByRole('dialog');
@@ -138,7 +172,11 @@ describe('ConfirmDialog', () => {
 
       it('применяет error variant', () => {
         const { getByRole } = renderIsolated(
-          <ConfirmDialog visible={true} variant='error' message={testMessage} />,
+          React.createElement(
+            AnyConfirmDialog,
+            { visible: true, variant: 'error', message: testMessage } as any,
+            null,
+          ),
         );
 
         const modal = getByRole('dialog');
@@ -147,7 +185,11 @@ describe('ConfirmDialog', () => {
 
       it('применяет success variant', () => {
         const { getByRole } = renderIsolated(
-          <ConfirmDialog visible={true} variant='success' message={testMessage} />,
+          React.createElement(
+            AnyConfirmDialog,
+            { visible: true, variant: 'success', message: testMessage } as any,
+            null,
+          ),
         );
 
         const modal = getByRole('dialog');
@@ -156,7 +198,11 @@ describe('ConfirmDialog', () => {
 
       it('применяет info variant', () => {
         const { getByRole } = renderIsolated(
-          <ConfirmDialog visible={true} variant='info' message={testMessage} />,
+          React.createElement(
+            AnyConfirmDialog,
+            { visible: true, variant: 'info', message: testMessage } as any,
+            null,
+          ),
         );
 
         const modal = getByRole('dialog');
@@ -167,7 +213,11 @@ describe('ConfirmDialog', () => {
     describe('width', () => {
       it('применяет default width (400px)', () => {
         const { getByRole } = renderIsolated(
-          <ConfirmDialog visible={true} message={testMessage} />,
+          React.createElement(
+            AnyConfirmDialog,
+            { visible: true, message: testMessage } as any,
+            null,
+          ),
         );
 
         expect(getByRole('dialog')).toBeInTheDocument();
@@ -175,7 +225,11 @@ describe('ConfirmDialog', () => {
 
       it('применяет custom width', () => {
         const { getByRole } = renderIsolated(
-          <ConfirmDialog visible={true} width='500px' message={testMessage} />,
+          React.createElement(
+            AnyConfirmDialog,
+            { visible: true, width: '500px', message: testMessage } as any,
+            null,
+          ),
         );
 
         expect(getByRole('dialog')).toBeInTheDocument();
@@ -185,7 +239,11 @@ describe('ConfirmDialog', () => {
     describe('disabled', () => {
       it('не имеет data-disabled по умолчанию', () => {
         const { getByRole } = renderIsolated(
-          <ConfirmDialog visible={true} message={testMessage} />,
+          React.createElement(
+            AnyConfirmDialog,
+            { visible: true, message: testMessage } as any,
+            null,
+          ),
         );
 
         const modal = getByRole('dialog');
@@ -194,7 +252,11 @@ describe('ConfirmDialog', () => {
 
       it('применяет data-disabled когда disabled=true', () => {
         const { getByRole } = renderIsolated(
-          <ConfirmDialog visible={true} disabled={true} message={testMessage} />,
+          React.createElement(
+            AnyConfirmDialog,
+            { visible: true, disabled: true, message: testMessage } as any,
+            null,
+          ),
         );
 
         const modal = getByRole('dialog');
@@ -203,7 +265,11 @@ describe('ConfirmDialog', () => {
 
       it('блокирует кнопки когда disabled=true', () => {
         const { getByTestId } = renderIsolated(
-          <ConfirmDialog visible={true} disabled={true} data-testid='test-dialog' />,
+          React.createElement(
+            AnyConfirmDialog,
+            { visible: true, disabled: true, 'data-testid': 'test-dialog' } as any,
+            null,
+          ),
         );
 
         const confirmButton = getByTestId('test-dialog-confirm') as HTMLButtonElement;
@@ -215,7 +281,11 @@ describe('ConfirmDialog', () => {
 
       it('не блокирует кнопки когда disabled=false', () => {
         const { getByTestId } = renderIsolated(
-          <ConfirmDialog visible={true} disabled={false} data-testid='test-dialog' />,
+          React.createElement(
+            AnyConfirmDialog,
+            { visible: true, disabled: false, 'data-testid': 'test-dialog' } as any,
+            null,
+          ),
         );
 
         const confirmButton = getByTestId('test-dialog-confirm') as HTMLButtonElement;
@@ -229,7 +299,11 @@ describe('ConfirmDialog', () => {
     describe('data-testid', () => {
       it('применяет data-testid к Modal', () => {
         const { getByTestId } = renderIsolated(
-          <ConfirmDialog visible={true} data-testid='custom-dialog' />,
+          React.createElement(
+            AnyConfirmDialog,
+            { visible: true, 'data-testid': 'custom-dialog' } as any,
+            null,
+          ),
         );
 
         expect(getByTestId('custom-dialog')).toBeInTheDocument();
@@ -237,7 +311,11 @@ describe('ConfirmDialog', () => {
 
       it('не имеет data-testid по умолчанию', () => {
         const { getByRole } = renderIsolated(
-          <ConfirmDialog visible={true} message={testMessage} />,
+          React.createElement(
+            AnyConfirmDialog,
+            { visible: true, message: testMessage } as any,
+            null,
+          ),
         );
 
         const modal = getByRole('dialog');
@@ -246,7 +324,11 @@ describe('ConfirmDialog', () => {
 
       it('создает test IDs для дочерних элементов', () => {
         const { getByTestId } = renderIsolated(
-          <ConfirmDialog visible={true} message={testMessage} data-testid='test-dialog' />,
+          React.createElement(
+            AnyConfirmDialog,
+            { visible: true, message: testMessage, 'data-testid': 'test-dialog' } as any,
+            null,
+          ),
         );
 
         expect(getByTestId('test-dialog-content')).toBeInTheDocument();
@@ -258,7 +340,11 @@ describe('ConfirmDialog', () => {
 
       it('не создает test IDs для дочерних элементов когда data-testid пустой', () => {
         const { queryByTestId } = renderIsolated(
-          <ConfirmDialog visible={true} message={testMessage} data-testid='' />,
+          React.createElement(
+            AnyConfirmDialog,
+            { visible: true, message: testMessage, 'data-testid': '' } as any,
+            null,
+          ),
         );
 
         expect(queryByTestId('-content')).toBeNull();
@@ -270,7 +356,11 @@ describe('ConfirmDialog', () => {
 
       it('не создает test IDs для дочерних элементов когда data-testid=undefined', () => {
         const { queryByTestId } = renderIsolated(
-          <ConfirmDialog visible={true} message={testMessage} />,
+          React.createElement(
+            AnyConfirmDialog,
+            { visible: true, message: testMessage } as any,
+            null,
+          ),
         );
 
         expect(queryByTestId('-content')).toBeNull();
@@ -284,7 +374,11 @@ describe('ConfirmDialog', () => {
     describe('data-state', () => {
       it('применяет data-state="visible" когда visible=true', () => {
         const { getByRole } = renderIsolated(
-          <ConfirmDialog visible={true} message={testMessage} />,
+          React.createElement(
+            AnyConfirmDialog,
+            { visible: true, message: testMessage } as any,
+            null,
+          ),
         );
 
         const modal = getByRole('dialog');
@@ -293,7 +387,7 @@ describe('ConfirmDialog', () => {
 
       it('не применяет data-state="visible" когда visible=false', () => {
         const { getModal } = renderIsolated(
-          <ConfirmDialog visible={false} />,
+          React.createElement(AnyConfirmDialog, { visible: false } as any, null),
         );
 
         expect(getModal()).toBeNull();
@@ -303,7 +397,11 @@ describe('ConfirmDialog', () => {
     describe('data-component', () => {
       it('применяет data-component="CoreConfirmDialog"', () => {
         const { getByRole } = renderIsolated(
-          <ConfirmDialog visible={true} message={testMessage} />,
+          React.createElement(
+            AnyConfirmDialog,
+            { visible: true, message: testMessage } as any,
+            null,
+          ),
         );
 
         const modal = getByRole('dialog');
@@ -314,7 +412,11 @@ describe('ConfirmDialog', () => {
     describe('className', () => {
       it('применяет className к Modal', () => {
         const { getByRole } = renderIsolated(
-          <ConfirmDialog visible={true} className='custom-class' message={testMessage} />,
+          React.createElement(
+            AnyConfirmDialog,
+            { visible: true, className: 'custom-class', message: testMessage } as any,
+            null,
+          ),
         );
 
         const modal = getByRole('dialog');
@@ -324,7 +426,11 @@ describe('ConfirmDialog', () => {
 
       it('не применяет className когда className=undefined', () => {
         const { getByRole } = renderIsolated(
-          <ConfirmDialog visible={true} message={testMessage} />,
+          React.createElement(
+            AnyConfirmDialog,
+            { visible: true, message: testMessage } as any,
+            null,
+          ),
         );
 
         const modal = getByRole('dialog');
@@ -336,12 +442,16 @@ describe('ConfirmDialog', () => {
     describe('дополнительные HTML атрибуты', () => {
       it('прокидывает дополнительные HTML атрибуты', () => {
         const { getByRole } = renderIsolated(
-          <ConfirmDialog
-            visible={true}
-            id='dialog-id'
-            data-custom='test-value'
-            message={testMessage}
-          />,
+          React.createElement(
+            AnyConfirmDialog,
+            {
+              visible: true,
+              id: 'dialog-id',
+              'data-custom': 'test-value',
+              message: testMessage,
+            } as any,
+            null,
+          ),
         );
 
         const modal = getByRole('dialog');
@@ -355,7 +465,11 @@ describe('ConfirmDialog', () => {
     describe('confirmLabel', () => {
       it('использует "Подтвердить" по умолчанию', () => {
         const { getByRole } = renderIsolated(
-          <ConfirmDialog visible={true} message={testMessage} />,
+          React.createElement(
+            AnyConfirmDialog,
+            { visible: true, message: testMessage } as any,
+            null,
+          ),
         );
 
         const buttons = getByRole('button', { name: 'Подтвердить' });
@@ -364,7 +478,11 @@ describe('ConfirmDialog', () => {
 
       it('применяет custom confirmLabel', () => {
         const { getByRole } = renderIsolated(
-          <ConfirmDialog visible={true} confirmLabel='Yes' />,
+          React.createElement(
+            AnyConfirmDialog,
+            { visible: true, confirmLabel: 'Yes' } as any,
+            null,
+          ),
         );
 
         const buttons = getByRole('button', { name: 'Yes' });
@@ -375,7 +493,11 @@ describe('ConfirmDialog', () => {
     describe('cancelLabel', () => {
       it('использует "Отменить" по умолчанию', () => {
         const { getByRole } = renderIsolated(
-          <ConfirmDialog visible={true} message={testMessage} />,
+          React.createElement(
+            AnyConfirmDialog,
+            { visible: true, message: testMessage } as any,
+            null,
+          ),
         );
 
         const buttons = getByRole('button', { name: 'Отменить' });
@@ -384,7 +506,11 @@ describe('ConfirmDialog', () => {
 
       it('применяет custom cancelLabel', () => {
         const { getByRole } = renderIsolated(
-          <ConfirmDialog visible={true} cancelLabel='No' />,
+          React.createElement(
+            AnyConfirmDialog,
+            { visible: true, cancelLabel: 'No' } as any,
+            null,
+          ),
         );
 
         const buttons = getByRole('button', { name: 'No' });
@@ -395,7 +521,11 @@ describe('ConfirmDialog', () => {
     describe('порядок кнопок', () => {
       it('отображает кнопку отмены перед кнопкой подтверждения', () => {
         const { getByTestId } = renderIsolated(
-          <ConfirmDialog visible={true} data-testid='test-dialog' />,
+          React.createElement(
+            AnyConfirmDialog,
+            { visible: true, 'data-testid': 'test-dialog' } as any,
+            null,
+          ),
         );
 
         const actions = getByTestId('test-dialog-actions');
@@ -412,7 +542,11 @@ describe('ConfirmDialog', () => {
       it('вызывает onConfirm при клике на кнопку подтверждения', () => {
         const mockOnConfirm = vi.fn();
         const { getByTestId } = renderIsolated(
-          <ConfirmDialog visible={true} onConfirm={mockOnConfirm} data-testid='test-dialog' />,
+          React.createElement(
+            AnyConfirmDialog,
+            { visible: true, onConfirm: mockOnConfirm, 'data-testid': 'test-dialog' } as any,
+            null,
+          ),
         );
 
         const confirmButton = getByTestId('test-dialog-confirm');
@@ -424,12 +558,16 @@ describe('ConfirmDialog', () => {
       it('не вызывает onConfirm когда disabled=true', () => {
         const mockOnConfirm = vi.fn();
         const { getByTestId } = renderIsolated(
-          <ConfirmDialog
-            visible={true}
-            onConfirm={mockOnConfirm}
-            disabled={true}
-            data-testid='test-dialog'
-          />,
+          React.createElement(
+            AnyConfirmDialog,
+            {
+              visible: true,
+              onConfirm: mockOnConfirm,
+              disabled: true,
+              'data-testid': 'test-dialog',
+            } as any,
+            null,
+          ),
         );
 
         const confirmButton = getByTestId('test-dialog-confirm');
@@ -440,7 +578,11 @@ describe('ConfirmDialog', () => {
 
       it('не вызывает onConfirm когда onConfirm=undefined', () => {
         const { getByTestId } = renderIsolated(
-          <ConfirmDialog visible={true} data-testid='test-dialog' />,
+          React.createElement(
+            AnyConfirmDialog,
+            { visible: true, 'data-testid': 'test-dialog' } as any,
+            null,
+          ),
         );
 
         const confirmButton = getByTestId('test-dialog-confirm');
@@ -452,7 +594,11 @@ describe('ConfirmDialog', () => {
       it('вызывает onCancel при клике на кнопку отмены', () => {
         const mockOnCancel = vi.fn();
         const { getByTestId } = renderIsolated(
-          <ConfirmDialog visible={true} onCancel={mockOnCancel} data-testid='test-dialog' />,
+          React.createElement(
+            AnyConfirmDialog,
+            { visible: true, onCancel: mockOnCancel, 'data-testid': 'test-dialog' } as any,
+            null,
+          ),
         );
 
         const cancelButton = getByTestId('test-dialog-cancel');
@@ -464,12 +610,16 @@ describe('ConfirmDialog', () => {
       it('не вызывает onCancel когда disabled=true', () => {
         const mockOnCancel = vi.fn();
         const { getByTestId } = renderIsolated(
-          <ConfirmDialog
-            visible={true}
-            onCancel={mockOnCancel}
-            disabled={true}
-            data-testid='test-dialog'
-          />,
+          React.createElement(
+            AnyConfirmDialog,
+            {
+              visible: true,
+              onCancel: mockOnCancel,
+              disabled: true,
+              'data-testid': 'test-dialog',
+            } as any,
+            null,
+          ),
         );
 
         const cancelButton = getByTestId('test-dialog-cancel');
@@ -480,7 +630,11 @@ describe('ConfirmDialog', () => {
 
       it('не вызывает onCancel когда onCancel=undefined', () => {
         const { getByTestId } = renderIsolated(
-          <ConfirmDialog visible={true} data-testid='test-dialog' />,
+          React.createElement(
+            AnyConfirmDialog,
+            { visible: true, 'data-testid': 'test-dialog' } as any,
+            null,
+          ),
         );
 
         const cancelButton = getByTestId('test-dialog-cancel');
@@ -492,7 +646,11 @@ describe('ConfirmDialog', () => {
   describe('4.5. Стилизация', () => {
     it('применяет базовые стили к content', () => {
       const { getByTestId } = renderIsolated(
-        <ConfirmDialog visible={true} message={testMessage} data-testid='test-dialog' />,
+        React.createElement(
+          AnyConfirmDialog,
+          { visible: true, message: testMessage, 'data-testid': 'test-dialog' } as any,
+          null,
+        ),
       );
 
       const content = getByTestId('test-dialog-content');
@@ -505,12 +663,16 @@ describe('ConfirmDialog', () => {
 
     it('применяет кастомные стили через style проп', () => {
       const { getByTestId } = renderIsolated(
-        <ConfirmDialog
-          visible={true}
-          message={testMessage}
-          style={customStyle}
-          data-testid='test-dialog'
-        />,
+        React.createElement(
+          AnyConfirmDialog,
+          {
+            visible: true,
+            message: testMessage,
+            style: customStyle,
+            'data-testid': 'test-dialog',
+          } as any,
+          null,
+        ),
       );
 
       const content = getByTestId('test-dialog-content');
@@ -522,7 +684,11 @@ describe('ConfirmDialog', () => {
 
     it('применяет базовые стили к message', () => {
       const { getByTestId } = renderIsolated(
-        <ConfirmDialog visible={true} message={testMessage} data-testid='test-dialog' />,
+        React.createElement(
+          AnyConfirmDialog,
+          { visible: true, message: testMessage, 'data-testid': 'test-dialog' } as any,
+          null,
+        ),
       );
 
       const message = getByTestId('test-dialog-message');
@@ -535,7 +701,11 @@ describe('ConfirmDialog', () => {
 
     it('применяет базовые стили к actions', () => {
       const { getByTestId } = renderIsolated(
-        <ConfirmDialog visible={true} data-testid='test-dialog' />,
+        React.createElement(
+          AnyConfirmDialog,
+          { visible: true, 'data-testid': 'test-dialog' } as any,
+          null,
+        ),
       );
 
       const actions = getByTestId('test-dialog-actions');
@@ -549,7 +719,11 @@ describe('ConfirmDialog', () => {
 
     it('применяет базовые стили к кнопке подтверждения', () => {
       const { getByTestId } = renderIsolated(
-        <ConfirmDialog visible={true} data-testid='test-dialog' />,
+        React.createElement(
+          AnyConfirmDialog,
+          { visible: true, 'data-testid': 'test-dialog' } as any,
+          null,
+        ),
       );
 
       const confirmButton = getByTestId('test-dialog-confirm');
@@ -564,7 +738,11 @@ describe('ConfirmDialog', () => {
 
     it('применяет disabled стили к кнопке подтверждения когда disabled=true', () => {
       const { getByTestId } = renderIsolated(
-        <ConfirmDialog visible={true} disabled={true} data-testid='test-dialog' />,
+        React.createElement(
+          AnyConfirmDialog,
+          { visible: true, disabled: true, 'data-testid': 'test-dialog' } as any,
+          null,
+        ),
       );
 
       const confirmButton = getByTestId('test-dialog-confirm');
@@ -576,7 +754,11 @@ describe('ConfirmDialog', () => {
 
     it('применяет базовые стили к кнопке отмены', () => {
       const { getByTestId } = renderIsolated(
-        <ConfirmDialog visible={true} data-testid='test-dialog' />,
+        React.createElement(
+          AnyConfirmDialog,
+          { visible: true, 'data-testid': 'test-dialog' } as any,
+          null,
+        ),
       );
 
       const cancelButton = getByTestId('test-dialog-cancel');
@@ -591,7 +773,11 @@ describe('ConfirmDialog', () => {
 
     it('применяет disabled стили к кнопке отмены когда disabled=true', () => {
       const { getByTestId } = renderIsolated(
-        <ConfirmDialog visible={true} disabled={true} data-testid='test-dialog' />,
+        React.createElement(
+          AnyConfirmDialog,
+          { visible: true, disabled: true, 'data-testid': 'test-dialog' } as any,
+          null,
+        ),
       );
 
       const cancelButton = getByTestId('test-dialog-cancel');
@@ -606,7 +792,11 @@ describe('ConfirmDialog', () => {
     it('передает ref в Modal', () => {
       const mockRef = createMockRef();
       renderIsolated(
-        <ConfirmDialog visible={true} message={testMessage} ref={mockRef} />,
+        React.createElement(
+          AnyConfirmDialog,
+          { visible: true, message: testMessage, ref: mockRef } as any,
+          null,
+        ),
       );
 
       // Ref должен указывать на внутренний div Modal (тот, что с className)
@@ -617,7 +807,7 @@ describe('ConfirmDialog', () => {
     it('поддерживает React.createRef', () => {
       const ref = React.createRef<HTMLDivElement>();
 
-      renderIsolated(<ConfirmDialog visible={true} ref={ref} />);
+      renderIsolated(React.createElement(AnyConfirmDialog, { visible: true, ref } as any, null));
 
       expect(ref.current).toBeInstanceOf(HTMLDivElement);
     });
@@ -629,37 +819,65 @@ describe('ConfirmDialog', () => {
 
       const TestComponent = ({ visible }: Readonly<{ visible: boolean; }>) => {
         renderCount++;
-        return <ConfirmDialog visible={visible} message={testMessage} />;
+        return React.createElement(
+          AnyConfirmDialog,
+          { visible, message: testMessage } as any,
+          null,
+        );
       };
 
-      const { rerender } = render(<TestComponent visible={true} />);
+      const AnyTestComponent = TestComponent as any;
+
+      const { rerender } = render(
+        React.createElement(AnyTestComponent, { visible: true } as any, null),
+      );
 
       expect(renderCount).toBe(1);
 
-      rerender(<TestComponent visible={true} />);
+      rerender(React.createElement(AnyTestComponent, { visible: true } as any, null));
       expect(renderCount).toBe(2); // React.memo предотвращает лишние рендеры компонента
     });
 
     it('перерендеривается при изменении visible', () => {
       const { getByRole, queryByRole, rerender } = renderIsolated(
-        <ConfirmDialog visible={true} message={testMessage} />,
+        React.createElement(
+          AnyConfirmDialog,
+          { visible: true, message: testMessage } as any,
+          null,
+        ),
       );
 
       expect(getByRole('dialog')).toBeInTheDocument();
 
-      rerender(<ConfirmDialog visible={false} message={testMessage} />);
+      rerender(
+        React.createElement(
+          AnyConfirmDialog,
+          { visible: false, message: testMessage } as any,
+          null,
+        ),
+      );
 
       expect(queryByRole('dialog')).toBeNull();
     });
 
     it('useMemo для confirmButtonStyle вызывается только при изменении disabled', () => {
       const { getByTestId, rerender } = renderIsolated(
-        <ConfirmDialog visible={true} disabled={false} data-testid='test-dialog' />,
+        React.createElement(
+          AnyConfirmDialog,
+          { visible: true, disabled: false, 'data-testid': 'test-dialog' } as any,
+          null,
+        ),
       );
 
       const initialOpacity = window.getComputedStyle(getByTestId('test-dialog-confirm')).opacity;
 
-      rerender(<ConfirmDialog visible={true} disabled={true} data-testid='test-dialog' />);
+      rerender(
+        React.createElement(
+          AnyConfirmDialog,
+          { visible: true, disabled: true, 'data-testid': 'test-dialog' } as any,
+          null,
+        ),
+      );
 
       const newOpacity = window.getComputedStyle(getByTestId('test-dialog-confirm')).opacity;
 
@@ -668,12 +886,22 @@ describe('ConfirmDialog', () => {
 
     it('useMemo для cancelButtonStyle вызывается только при изменении disabled', () => {
       const { getByTestId, rerender } = renderIsolated(
-        <ConfirmDialog visible={true} disabled={false} data-testid='test-dialog' />,
+        React.createElement(
+          AnyConfirmDialog,
+          { visible: true, disabled: false, 'data-testid': 'test-dialog' } as any,
+          null,
+        ),
       );
 
       const initialOpacity = window.getComputedStyle(getByTestId('test-dialog-cancel')).opacity;
 
-      rerender(<ConfirmDialog visible={true} disabled={true} data-testid='test-dialog' />);
+      rerender(
+        React.createElement(
+          AnyConfirmDialog,
+          { visible: true, disabled: true, 'data-testid': 'test-dialog' } as any,
+          null,
+        ),
+      );
 
       const newOpacity = window.getComputedStyle(getByTestId('test-dialog-cancel')).opacity;
 
@@ -684,12 +912,22 @@ describe('ConfirmDialog', () => {
       const style1 = { padding: '10px' } as const;
       const style2 = { padding: '20px' } as const;
       const { getByTestId, rerender } = renderIsolated(
-        <ConfirmDialog visible={true} style={style1} data-testid='test-dialog' />,
+        React.createElement(
+          AnyConfirmDialog,
+          { visible: true, style: style1, 'data-testid': 'test-dialog' } as any,
+          null,
+        ),
       );
 
       const initialPadding = window.getComputedStyle(getByTestId('test-dialog-content')).padding;
 
-      rerender(<ConfirmDialog visible={true} style={style2} data-testid='test-dialog' />);
+      rerender(
+        React.createElement(
+          AnyConfirmDialog,
+          { visible: true, style: style2, 'data-testid': 'test-dialog' } as any,
+          null,
+        ),
+      );
 
       const newPadding = window.getComputedStyle(getByTestId('test-dialog-content')).padding;
 
@@ -700,7 +938,11 @@ describe('ConfirmDialog', () => {
   describe('4.8. Edge cases', () => {
     it('работает с пустой строкой message', () => {
       const { getByTestId } = renderIsolated(
-        <ConfirmDialog visible={true} message='' data-testid='test-dialog' />,
+        React.createElement(
+          AnyConfirmDialog,
+          { visible: true, message: '', 'data-testid': 'test-dialog' } as any,
+          null,
+        ),
       );
 
       expect(getByTestId('test-dialog-message')).toHaveTextContent('');
@@ -708,7 +950,7 @@ describe('ConfirmDialog', () => {
 
     it('работает с пустой строкой title', () => {
       const { container } = renderIsolated(
-        <ConfirmDialog visible={true} title='' />,
+        React.createElement(AnyConfirmDialog, { visible: true, title: '' } as any, null),
       );
 
       // Modal не рендерит title если он пустая строка
@@ -717,7 +959,11 @@ describe('ConfirmDialog', () => {
 
     it('работает с пустой строкой confirmLabel', () => {
       const { getByTestId } = renderIsolated(
-        <ConfirmDialog visible={true} confirmLabel='' data-testid='test-dialog' />,
+        React.createElement(
+          AnyConfirmDialog,
+          { visible: true, confirmLabel: '', 'data-testid': 'test-dialog' } as any,
+          null,
+        ),
       );
 
       expect(getByTestId('test-dialog-confirm')).toHaveTextContent('');
@@ -725,7 +971,11 @@ describe('ConfirmDialog', () => {
 
     it('работает с пустой строкой cancelLabel', () => {
       const { getByTestId } = renderIsolated(
-        <ConfirmDialog visible={true} cancelLabel='' data-testid='test-dialog' />,
+        React.createElement(
+          AnyConfirmDialog,
+          { visible: true, cancelLabel: '', 'data-testid': 'test-dialog' } as any,
+          null,
+        ),
       );
 
       expect(getByTestId('test-dialog-cancel')).toHaveTextContent('');
@@ -733,7 +983,11 @@ describe('ConfirmDialog', () => {
 
     it('работает с undefined style', () => {
       const { getByTestId } = renderIsolated(
-        <ConfirmDialog visible={true} style={undefined} data-testid='test-dialog' />,
+        React.createElement(
+          AnyConfirmDialog,
+          { visible: true, style: undefined, 'data-testid': 'test-dialog' } as any,
+          null,
+        ),
       );
 
       expect(getByTestId('test-dialog-content')).toBeInTheDocument();
@@ -741,7 +995,11 @@ describe('ConfirmDialog', () => {
 
     it('работает с пустым объектом style', () => {
       const { getByTestId } = renderIsolated(
-        <ConfirmDialog visible={true} style={emptyStyle} data-testid='test-dialog' />,
+        React.createElement(
+          AnyConfirmDialog,
+          { visible: true, style: emptyStyle, 'data-testid': 'test-dialog' } as any,
+          null,
+        ),
       );
 
       expect(getByTestId('test-dialog-content')).toBeInTheDocument();
@@ -749,7 +1007,11 @@ describe('ConfirmDialog', () => {
 
     it('работает без всех опциональных пропсов', () => {
       const { getByRole } = renderIsolated(
-        <ConfirmDialog visible={true} message={testMessage} />,
+        React.createElement(
+          AnyConfirmDialog,
+          { visible: true, message: testMessage } as any,
+          null,
+        ),
       );
 
       // Modal должен рендериться с role="dialog"
@@ -760,21 +1022,25 @@ describe('ConfirmDialog', () => {
       const mockOnConfirm = vi.fn();
       const mockOnCancel = vi.fn();
       const { getByTestId } = renderIsolated(
-        <ConfirmDialog
-          visible={true}
-          title={testTitle}
-          message={testMessage}
-          confirmLabel='Yes'
-          cancelLabel='No'
-          variant='error'
-          disabled={false}
-          width='500px'
-          onConfirm={mockOnConfirm}
-          onCancel={mockOnCancel}
-          style={customStyle}
-          className='custom-class'
-          data-testid='test-dialog'
-        />,
+        React.createElement(
+          AnyConfirmDialog,
+          {
+            visible: true,
+            title: testTitle,
+            message: testMessage,
+            confirmLabel: 'Yes',
+            cancelLabel: 'No',
+            variant: 'error',
+            disabled: false,
+            width: '500px',
+            onConfirm: mockOnConfirm,
+            onCancel: mockOnCancel,
+            style: customStyle,
+            className: 'custom-class',
+            'data-testid': 'test-dialog',
+          } as any,
+          null,
+        ),
       );
 
       expect(getByTestId('test-dialog')).toBeInTheDocument();
@@ -788,12 +1054,16 @@ describe('ConfirmDialog', () => {
     it('handleConfirm стабилен при одинаковых зависимостях', () => {
       const mockOnConfirm = vi.fn();
       const { getByTestId, rerender } = renderIsolated(
-        <ConfirmDialog
-          visible={true}
-          onConfirm={mockOnConfirm}
-          disabled={false}
-          data-testid='test-dialog'
-        />,
+        React.createElement(
+          AnyConfirmDialog,
+          {
+            visible: true,
+            onConfirm: mockOnConfirm,
+            disabled: false,
+            'data-testid': 'test-dialog',
+          } as any,
+          null,
+        ),
       );
 
       const confirmButton = getByTestId('test-dialog-confirm');
@@ -804,12 +1074,16 @@ describe('ConfirmDialog', () => {
 
       // Перерендер с теми же зависимостями
       rerender(
-        <ConfirmDialog
-          visible={true}
-          onConfirm={mockOnConfirm}
-          disabled={false}
-          data-testid='test-dialog'
-        />,
+        React.createElement(
+          AnyConfirmDialog,
+          {
+            visible: true,
+            onConfirm: mockOnConfirm,
+            disabled: false,
+            'data-testid': 'test-dialog',
+          } as any,
+          null,
+        ),
       );
 
       const confirmButton2 = getByTestId('test-dialog-confirm');
@@ -820,12 +1094,16 @@ describe('ConfirmDialog', () => {
     it('handleCancel стабилен при одинаковых зависимостях', () => {
       const mockOnCancel = vi.fn();
       const { getByTestId, rerender } = renderIsolated(
-        <ConfirmDialog
-          visible={true}
-          onCancel={mockOnCancel}
-          disabled={false}
-          data-testid='test-dialog'
-        />,
+        React.createElement(
+          AnyConfirmDialog,
+          {
+            visible: true,
+            onCancel: mockOnCancel,
+            disabled: false,
+            'data-testid': 'test-dialog',
+          } as any,
+          null,
+        ),
       );
 
       const cancelButton = getByTestId('test-dialog-cancel');
@@ -834,12 +1112,16 @@ describe('ConfirmDialog', () => {
 
       // Перерендер с теми же зависимостями
       rerender(
-        <ConfirmDialog
-          visible={true}
-          onCancel={mockOnCancel}
-          disabled={false}
-          data-testid='test-dialog'
-        />,
+        React.createElement(
+          AnyConfirmDialog,
+          {
+            visible: true,
+            onCancel: mockOnCancel,
+            disabled: false,
+            'data-testid': 'test-dialog',
+          } as any,
+          null,
+        ),
       );
 
       const cancelButton2 = getByTestId('test-dialog-cancel');

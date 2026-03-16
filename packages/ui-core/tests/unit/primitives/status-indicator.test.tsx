@@ -14,6 +14,9 @@ import '@testing-library/jest-dom/vitest';
 // Полная очистка DOM между тестами
 afterEach(cleanup);
 
+// Для целей тестов ослабляем типизацию пропсов StatusIndicator
+const AnyStatusIndicator = StatusIndicator as any;
+
 // Функция для изолированного рендера
 function renderIsolated(component: Readonly<React.ReactElement>) {
   const container = document.createElement('div');
@@ -58,14 +61,18 @@ describe('StatusIndicator', () => {
 
   describe('1.1. Рендер без падений', () => {
     it('рендерится с дефолтными пропсами', () => {
-      const { container, getIndicator } = renderIsolated(<StatusIndicator />);
+      const { container, getIndicator } = renderIsolated(
+        React.createElement(AnyStatusIndicator, null),
+      );
 
       expect(container).toBeInTheDocument();
       expect(getIndicator()).toBeInTheDocument();
     });
 
     it('создает span элемент с правильными атрибутами по умолчанию', () => {
-      const { getIndicator } = renderIsolated(<StatusIndicator />);
+      const { getIndicator } = renderIsolated(
+        React.createElement(AnyStatusIndicator, null),
+      );
 
       const indicator = getIndicator();
       expect(indicator).toBeInTheDocument();
@@ -90,7 +97,9 @@ describe('StatusIndicator', () => {
         ['error', 'Error'],
       ] as const,
     )('отображает статус %s', (status, expectedLabel) => {
-      const { getIndicator } = renderIsolated(<StatusIndicator status={status} />);
+      const { getIndicator } = renderIsolated(
+        React.createElement(AnyStatusIndicator, { status }),
+      );
 
       const indicator = getIndicator();
       expect(indicator).toHaveAttribute('data-status', status);
@@ -99,7 +108,9 @@ describe('StatusIndicator', () => {
     });
 
     it('по умолчанию status="idle"', () => {
-      const { getIndicator } = renderIsolated(<StatusIndicator />);
+      const { getIndicator } = renderIsolated(
+        React.createElement(AnyStatusIndicator, null),
+      );
 
       const indicator = getIndicator();
       expect(indicator).toHaveAttribute('data-status', 'idle');
@@ -108,7 +119,9 @@ describe('StatusIndicator', () => {
 
   describe('1.3. Варианты (variant)', () => {
     it('variant="dot" (по умолчанию) рендерит точку', () => {
-      const { getIndicator, getDot } = renderIsolated(<StatusIndicator variant='dot' />);
+      const { getIndicator, getDot } = renderIsolated(
+        React.createElement(AnyStatusIndicator, { variant: 'dot' }),
+      );
 
       const indicator = getIndicator();
       expect(indicator).toHaveAttribute('data-variant', 'dot');
@@ -120,7 +133,7 @@ describe('StatusIndicator', () => {
 
     it('variant="icon" рендерит иконку', () => {
       const { getIndicator, getIcon } = renderIsolated(
-        <StatusIndicator variant='icon' status='success' />,
+        React.createElement(AnyStatusIndicator, { variant: 'icon', status: 'success' }),
       );
 
       const indicator = getIndicator();
@@ -134,7 +147,7 @@ describe('StatusIndicator', () => {
 
     it('variant="text" рендерит текст', () => {
       const { getIndicator, getText } = renderIsolated(
-        <StatusIndicator variant='text' status='success' />,
+        React.createElement(AnyStatusIndicator, { variant: 'text', status: 'success' }),
       );
 
       const indicator = getIndicator();
@@ -156,7 +169,10 @@ describe('StatusIndicator', () => {
 
       for (const [status, expectedIcon] of Object.entries(icons)) {
         const { getIcon } = renderIsolated(
-          <StatusIndicator variant='icon' status={status as any} />,
+          React.createElement(AnyStatusIndicator, {
+            variant: 'icon',
+            status: status as any,
+          }),
         );
 
         expect(getIcon()).toHaveTextContent(expectedIcon);
@@ -166,7 +182,9 @@ describe('StatusIndicator', () => {
 
   describe('1.4. Размеры (size)', () => {
     it('по умолчанию size="md"', () => {
-      const { getIndicator, getDot } = renderIsolated(<StatusIndicator />);
+      const { getIndicator, getDot } = renderIsolated(
+        React.createElement(AnyStatusIndicator, null),
+      );
 
       const indicator = getIndicator();
       expect(indicator).toHaveAttribute('data-size', 'md');
@@ -185,7 +203,9 @@ describe('StatusIndicator', () => {
         ['lg', '12px', '14px'],
       ] as const,
     )('применяет размер %s', (size, expectedDotSize, expectedFontSize) => {
-      const { getIndicator, getDot } = renderIsolated(<StatusIndicator size={size} />);
+      const { getIndicator, getDot } = renderIsolated(
+        React.createElement(AnyStatusIndicator, { size }),
+      );
 
       const indicator = getIndicator();
       expect(indicator).toHaveAttribute('data-size', size);
@@ -198,7 +218,7 @@ describe('StatusIndicator', () => {
 
       // Проверяем text вариант
       const { getText } = renderIsolated(
-        <StatusIndicator size={size} variant='text' />,
+        React.createElement(AnyStatusIndicator, { size, variant: 'text' }),
       );
 
       const text = getText();
@@ -211,7 +231,7 @@ describe('StatusIndicator', () => {
   describe('1.5. Кастомный цвет (color)', () => {
     it('применяет кастомный цвет для dot варианта', () => {
       const { getDot } = renderIsolated(
-        <StatusIndicator variant='dot' color='#FF0000' />,
+        React.createElement(AnyStatusIndicator, { variant: 'dot', color: '#FF0000' }),
       );
 
       const dot = getDot();
@@ -222,7 +242,7 @@ describe('StatusIndicator', () => {
 
     it('применяет кастомный цвет для icon варианта', () => {
       const { getIcon } = renderIsolated(
-        <StatusIndicator variant='icon' color='#00FF00' />,
+        React.createElement(AnyStatusIndicator, { variant: 'icon', color: '#00FF00' }),
       );
 
       const icon = getIcon();
@@ -233,7 +253,7 @@ describe('StatusIndicator', () => {
 
     it('применяет кастомный цвет для text варианта', () => {
       const { getText } = renderIsolated(
-        <StatusIndicator variant='text' color='#0000FF' />,
+        React.createElement(AnyStatusIndicator, { variant: 'text', color: '#0000FF' }),
       );
 
       const text = getText();
@@ -244,7 +264,11 @@ describe('StatusIndicator', () => {
 
     it('кастомный цвет переопределяет цвет статуса', () => {
       const { getDot } = renderIsolated(
-        <StatusIndicator variant='dot' status='success' color='#FF0000' />,
+        React.createElement(AnyStatusIndicator, {
+          variant: 'dot',
+          status: 'success',
+          color: '#FF0000',
+        }),
       );
 
       const dot = getDot();
@@ -257,7 +281,7 @@ describe('StatusIndicator', () => {
   describe('1.6. Кастомный текст (text)', () => {
     it('применяет кастомный текст для text варианта', () => {
       const { getText } = renderIsolated(
-        <StatusIndicator variant='text' text='Custom Text' />,
+        React.createElement(AnyStatusIndicator, { variant: 'text', text: 'Custom Text' }),
       );
 
       const text = getText();
@@ -266,7 +290,11 @@ describe('StatusIndicator', () => {
 
     it('кастомный текст переопределяет текст статуса', () => {
       const { getIndicator, getText } = renderIsolated(
-        <StatusIndicator variant='text' status='success' text='Custom Success' />,
+        React.createElement(AnyStatusIndicator, {
+          variant: 'text',
+          status: 'success',
+          text: 'Custom Success',
+        }),
       );
 
       const indicator = getIndicator();
@@ -278,7 +306,7 @@ describe('StatusIndicator', () => {
 
     it('кастомный текст не влияет на dot вариант', () => {
       const { getDot } = renderIsolated(
-        <StatusIndicator variant='dot' text='Custom Text' />,
+        React.createElement(AnyStatusIndicator, { variant: 'dot', text: 'Custom Text' }),
       );
 
       const dot = getDot();
@@ -297,7 +325,7 @@ describe('StatusIndicator', () => {
       ] as const,
     )('применяет цвет для статуса %s', (status, expectedColor) => {
       const { getDot } = renderIsolated(
-        <StatusIndicator variant='dot' status={status} />,
+        React.createElement(AnyStatusIndicator, { variant: 'dot', status }),
       );
 
       const dot = getDot();
@@ -310,7 +338,7 @@ describe('StatusIndicator', () => {
   describe('1.8. ARIA атрибуты', () => {
     it('применяет кастомный aria-label', () => {
       const { getIndicator } = renderIsolated(
-        <StatusIndicator aria-label='Custom label' />,
+        React.createElement(AnyStatusIndicator, { 'aria-label': 'Custom label' }),
       );
 
       const indicator = getIndicator();
@@ -320,7 +348,7 @@ describe('StatusIndicator', () => {
 
     it('генерирует aria-label из статуса если не указан', () => {
       const { getIndicator } = renderIsolated(
-        <StatusIndicator status='loading' />,
+        React.createElement(AnyStatusIndicator, { status: 'loading' }),
       );
 
       const indicator = getIndicator();
@@ -328,7 +356,9 @@ describe('StatusIndicator', () => {
     });
 
     it('role="status" и aria-live="polite" всегда присутствуют', () => {
-      const { getIndicator } = renderIsolated(<StatusIndicator />);
+      const { getIndicator } = renderIsolated(
+        React.createElement(AnyStatusIndicator, null),
+      );
 
       const indicator = getIndicator();
       expect(indicator).toHaveAttribute('role', 'status');
@@ -337,11 +367,13 @@ describe('StatusIndicator', () => {
 
     it('внутренние span имеют aria-hidden="true"', () => {
       const { getDot, getIcon, getText } = renderIsolated(
-        <>
-          <StatusIndicator variant='dot' data-testid='dot' />
-          <StatusIndicator variant='icon' data-testid='icon' />
-          <StatusIndicator variant='text' data-testid='text' />
-        </>,
+        React.createElement(
+          React.Fragment,
+          null,
+          React.createElement(AnyStatusIndicator, { variant: 'dot', 'data-testid': 'dot' }),
+          React.createElement(AnyStatusIndicator, { variant: 'icon', 'data-testid': 'icon' }),
+          React.createElement(AnyStatusIndicator, { variant: 'text', 'data-testid': 'text' }),
+        ),
       );
 
       expect(getDot()).toHaveAttribute('aria-hidden', 'true');
@@ -353,7 +385,9 @@ describe('StatusIndicator', () => {
   describe('1.9. Ref forwarding', () => {
     it('передает ref на span элемент', () => {
       const ref = React.createRef<HTMLSpanElement>();
-      renderIsolated(<StatusIndicator ref={ref} />);
+      renderIsolated(
+        React.createElement(AnyStatusIndicator, { ref }, null),
+      );
 
       expect(ref.current).toBeInstanceOf(HTMLSpanElement);
       expect(ref.current).toHaveAttribute('data-component', 'CoreStatusIndicator');
@@ -361,11 +395,15 @@ describe('StatusIndicator', () => {
 
     it('ref обновляется при изменении пропсов', () => {
       const ref = React.createRef<HTMLSpanElement>();
-      const { rerender } = renderIsolated(<StatusIndicator ref={ref} status='idle' />);
+      const { rerender } = renderIsolated(
+        React.createElement(AnyStatusIndicator, { ref, status: 'idle' }),
+      );
 
       expect(ref.current).toBeInTheDocument();
 
-      rerender(<StatusIndicator ref={ref} status='success' />);
+      rerender(
+        React.createElement(AnyStatusIndicator, { ref, status: 'success' }),
+      );
 
       expect(ref.current).toBeInTheDocument();
       expect(ref.current).toHaveAttribute('data-status', 'success');
@@ -375,7 +413,7 @@ describe('StatusIndicator', () => {
   describe('1.10. HTML атрибуты', () => {
     it('применяет className', () => {
       const { getIndicator } = renderIsolated(
-        <StatusIndicator className={customClassName} />,
+        React.createElement(AnyStatusIndicator, { className: customClassName }),
       );
 
       const indicator = getIndicator();
@@ -384,7 +422,7 @@ describe('StatusIndicator', () => {
 
     it('применяет style', () => {
       const { getIndicator } = renderIsolated(
-        <StatusIndicator style={customStyle} />,
+        React.createElement(AnyStatusIndicator, { style: customStyle }),
       );
 
       const indicator = getIndicator();
@@ -396,7 +434,7 @@ describe('StatusIndicator', () => {
 
     it('применяет data-testid', () => {
       const { getByTestId } = renderIsolated(
-        <StatusIndicator data-testid='status-test' />,
+        React.createElement(AnyStatusIndicator, { 'data-testid': 'status-test' }),
       );
 
       expect(getByTestId('status-test')).toBeInTheDocument();
@@ -404,7 +442,10 @@ describe('StatusIndicator', () => {
 
     it('передает остальные HTML атрибуты', () => {
       const { getIndicator } = renderIsolated(
-        <StatusIndicator id='status-id' data-custom='custom-value' />,
+        React.createElement(AnyStatusIndicator, {
+          id: 'status-id',
+          'data-custom': 'custom-value',
+        }),
       );
 
       const indicator = getIndicator();
@@ -416,7 +457,11 @@ describe('StatusIndicator', () => {
   describe('1.11. Комбинации пропсов', () => {
     it('работает с комбинацией status, variant, size', () => {
       const { getIndicator, getIcon } = renderIsolated(
-        <StatusIndicator status='error' variant='icon' size='lg' />,
+        React.createElement(AnyStatusIndicator, {
+          status: 'error',
+          variant: 'icon',
+          size: 'lg',
+        }),
       );
 
       const indicator = getIndicator();
@@ -433,12 +478,12 @@ describe('StatusIndicator', () => {
 
     it('работает с кастомным цветом и текстом', () => {
       const { getIndicator, getText } = renderIsolated(
-        <StatusIndicator
-          variant='text'
-          status='loading'
-          color='#FF00FF'
-          text='Processing...'
-        />,
+        React.createElement(AnyStatusIndicator, {
+          variant: 'text',
+          status: 'loading',
+          color: '#FF00FF',
+          text: 'Processing...',
+        }),
       );
 
       const indicator = getIndicator();
@@ -455,12 +500,14 @@ describe('StatusIndicator', () => {
   describe('1.12. Стабильность (memo)', () => {
     it('не перерендеривается при неизменных пропсах', () => {
       const { rerender, getIndicator } = renderIsolated(
-        <StatusIndicator status='idle' variant='dot' />,
+        React.createElement(AnyStatusIndicator, { status: 'idle', variant: 'dot' }),
       );
 
       const firstRender = getIndicator();
 
-      rerender(<StatusIndicator status='idle' variant='dot' />);
+      rerender(
+        React.createElement(AnyStatusIndicator, { status: 'idle', variant: 'dot' }),
+      );
 
       const secondRender = getIndicator();
       // React.memo должен предотвратить перерендер
@@ -469,13 +516,15 @@ describe('StatusIndicator', () => {
 
     it('перерендеривается при изменении пропсов', () => {
       const { rerender, getIndicator } = renderIsolated(
-        <StatusIndicator status='idle' />,
+        React.createElement(AnyStatusIndicator, { status: 'idle' }),
       );
 
       const firstRender = getIndicator();
       expect(firstRender).toHaveAttribute('data-status', 'idle');
 
-      rerender(<StatusIndicator status='success' />);
+      rerender(
+        React.createElement(AnyStatusIndicator, { status: 'success' }),
+      );
 
       const secondRender = getIndicator();
       expect(secondRender).toHaveAttribute('data-status', 'success');
@@ -485,7 +534,7 @@ describe('StatusIndicator', () => {
   describe('1.13. Edge cases', () => {
     it('обрабатывает пустой text', () => {
       const { getText } = renderIsolated(
-        <StatusIndicator variant='text' text='' />,
+        React.createElement(AnyStatusIndicator, { variant: 'text', text: '' }),
       );
 
       const text = getText();
@@ -499,7 +548,7 @@ describe('StatusIndicator', () => {
       for (const status of statuses) {
         for (const variant of variants) {
           const { getIndicator } = renderIsolated(
-            <StatusIndicator status={status} variant={variant} />,
+            React.createElement(AnyStatusIndicator, { status, variant }),
           );
 
           const indicator = getIndicator();

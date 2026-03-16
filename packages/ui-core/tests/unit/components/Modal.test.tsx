@@ -11,6 +11,8 @@ import { Modal } from '@livai/ui-core';
 
 import '@testing-library/jest-dom/vitest';
 
+const AnyModal = Modal as any;
+
 // Полная очистка DOM между тестами
 afterEach(cleanup);
 
@@ -39,7 +41,7 @@ describe('Modal', () => {
   describe('4.1. Рендер без падений', () => {
     it('рендерится с обязательными пропсами', () => {
       const { container } = renderIsolated(
-        <Modal visible={true}>{testContent}</Modal>,
+        React.createElement(AnyModal, { visible: true } as any, testContent),
       );
 
       expect(container).toBeInTheDocument();
@@ -48,7 +50,7 @@ describe('Modal', () => {
 
     it('не рендерится когда visible=false', () => {
       const { container } = renderIsolated(
-        <Modal visible={false}>{testContent}</Modal>,
+        React.createElement(AnyModal, { visible: false } as any, testContent),
       );
 
       expect(container).toBeInTheDocument();
@@ -57,9 +59,7 @@ describe('Modal', () => {
 
     it('рендерится с title', () => {
       const { container } = renderIsolated(
-        <Modal visible={true} title={testTitle}>
-          {testContent}
-        </Modal>,
+        React.createElement(AnyModal, { visible: true, title: testTitle } as any, testContent),
       );
 
       expect(container).toBeInTheDocument();
@@ -69,7 +69,7 @@ describe('Modal', () => {
 
     it('рендерится без title', () => {
       const { container } = renderIsolated(
-        <Modal visible={true}>{testContent}</Modal>,
+        React.createElement(AnyModal, { visible: true } as any, testContent),
       );
 
       expect(container).toBeInTheDocument();
@@ -82,7 +82,7 @@ describe('Modal', () => {
     describe('variant', () => {
       it('применяет default variant по умолчанию', () => {
         const { container } = renderIsolated(
-          <Modal visible={true}>{testContent}</Modal>,
+          React.createElement(AnyModal, { visible: true } as any, testContent),
         );
 
         expect(container.querySelector('div[data-component="CoreModal"]')!).toHaveAttribute(
@@ -93,9 +93,7 @@ describe('Modal', () => {
 
       it('применяет warning variant', () => {
         const { container } = renderIsolated(
-          <Modal visible={true} variant='warning'>
-            {testContent}
-          </Modal>,
+          React.createElement(AnyModal, { visible: true, variant: 'warning' } as any, testContent),
         );
 
         expect(container.querySelector('div[data-component="CoreModal"]')!).toHaveAttribute(
@@ -106,9 +104,7 @@ describe('Modal', () => {
 
       it('применяет error variant', () => {
         const { container } = renderIsolated(
-          <Modal visible={true} variant='error'>
-            {testContent}
-          </Modal>,
+          React.createElement(AnyModal, { visible: true, variant: 'error' } as any, testContent),
         );
 
         expect(container.querySelector('div[data-component="CoreModal"]')!).toHaveAttribute(
@@ -119,9 +115,7 @@ describe('Modal', () => {
 
       it('применяет success variant', () => {
         const { container } = renderIsolated(
-          <Modal visible={true} variant='success'>
-            {testContent}
-          </Modal>,
+          React.createElement(AnyModal, { visible: true, variant: 'success' } as any, testContent),
         );
 
         expect(container.querySelector('div[data-component="CoreModal"]')!).toHaveAttribute(
@@ -134,9 +128,11 @@ describe('Modal', () => {
     describe('width и height', () => {
       it('принимает width и height пропсы', () => {
         const { container } = renderIsolated(
-          <Modal visible={true} width='400px' height='300px'>
-            {testContent}
-          </Modal>,
+          React.createElement(
+            AnyModal,
+            { visible: true, width: '400px', height: '300px' } as any,
+            testContent,
+          ),
         );
 
         const modalDiv = container.querySelector('div[role="dialog"]')!;
@@ -145,9 +141,11 @@ describe('Modal', () => {
 
       it('принимает width и height как числа', () => {
         const { container } = renderIsolated(
-          <Modal visible={true} width={500 as any} height={400 as any}>
-            {testContent}
-          </Modal>,
+          React.createElement(
+            AnyModal,
+            { visible: true, width: 500 as any, height: 400 as any } as any,
+            testContent,
+          ),
         );
 
         const modalDiv = container.querySelector('div[role="dialog"]')!;
@@ -156,7 +154,7 @@ describe('Modal', () => {
 
       it('работает без width и height', () => {
         const { container } = renderIsolated(
-          <Modal visible={true}>{testContent}</Modal>,
+          React.createElement(AnyModal, { visible: true } as any, testContent),
         );
 
         const modalDiv = container.querySelector('div[role="dialog"]')!;
@@ -167,7 +165,7 @@ describe('Modal', () => {
     describe('overlayZIndex', () => {
       it('применяет default z-index', () => {
         const { container } = renderIsolated(
-          <Modal visible={true}>{testContent}</Modal>,
+          React.createElement(AnyModal, { visible: true } as any, testContent),
         );
 
         expect(container.querySelector('div[data-component="CoreModal"]')!).toHaveStyle({
@@ -177,9 +175,11 @@ describe('Modal', () => {
 
       it('применяет custom z-index', () => {
         const { container } = renderIsolated(
-          <Modal visible={true} overlayZIndex={1234}>
-            {testContent}
-          </Modal>,
+          React.createElement(
+            AnyModal,
+            { visible: true, overlayZIndex: 1234 } as any,
+            testContent,
+          ),
         );
 
         expect(container.querySelector('div[data-component="CoreModal"]')!).toHaveStyle({
@@ -191,9 +191,11 @@ describe('Modal', () => {
     describe('data-testid', () => {
       it('применяет data-testid', () => {
         const { getByTestId } = renderIsolated(
-          <Modal visible={true} data-testid='custom-modal'>
-            {testContent}
-          </Modal>,
+          React.createElement(
+            AnyModal,
+            { visible: true, 'data-testid': 'custom-modal' } as any,
+            testContent,
+          ),
         );
 
         expect(getByTestId('custom-modal')).toBeInTheDocument();
@@ -201,7 +203,7 @@ describe('Modal', () => {
 
       it('не имеет data-testid по умолчанию', () => {
         const { container } = renderIsolated(
-          <Modal visible={true}>{testContent}</Modal>,
+          React.createElement(AnyModal, { visible: true } as any, testContent),
         );
 
         expect(container.querySelector('[data-testid]')).toBeNull();
@@ -212,9 +214,11 @@ describe('Modal', () => {
   describe('4.3. Стилизация', () => {
     it('применяет className к modal container', () => {
       const { container } = renderIsolated(
-        <Modal visible={true} className='custom-class'>
-          {testContent}
-        </Modal>,
+        React.createElement(
+          AnyModal,
+          { visible: true, className: 'custom-class' } as any,
+          testContent,
+        ),
       );
 
       const modalDiv = container.querySelector('div[role="dialog"] > div')!;
@@ -223,7 +227,7 @@ describe('Modal', () => {
 
     it('применяет базовые стили overlay', () => {
       const { container } = renderIsolated(
-        <Modal visible={true}>{testContent}</Modal>,
+        React.createElement(AnyModal, { visible: true } as any, testContent),
       );
 
       const overlay = container.querySelector('div[data-component="CoreModal"]')!;
@@ -237,7 +241,7 @@ describe('Modal', () => {
 
     it('применяет базовые стили modal', () => {
       const { container } = renderIsolated(
-        <Modal visible={true}>{testContent}</Modal>,
+        React.createElement(AnyModal, { visible: true } as any, testContent),
       );
 
       const modalDiv = container.querySelector('div[role="dialog"]')!;
@@ -249,7 +253,7 @@ describe('Modal', () => {
   describe('4.4. Доступность (A11y)', () => {
     it('имеет правильные ARIA атрибуты по умолчанию', () => {
       const { container } = renderIsolated(
-        <Modal visible={true}>{testContent}</Modal>,
+        React.createElement(AnyModal, { visible: true } as any, testContent),
       );
 
       expect(container.querySelector('div[data-component="CoreModal"]')!).toHaveAttribute(
@@ -272,9 +276,11 @@ describe('Modal', () => {
 
     it('применяет aria-label', () => {
       const { container } = renderIsolated(
-        <Modal visible={true} aria-label='Custom label'>
-          {testContent}
-        </Modal>,
+        React.createElement(
+          AnyModal,
+          { visible: true, 'aria-label': 'Custom label' } as any,
+          testContent,
+        ),
       );
 
       expect(container.querySelector('div[data-component="CoreModal"]')!).toHaveAttribute(
@@ -285,9 +291,11 @@ describe('Modal', () => {
 
     it('применяет aria-labelledby', () => {
       const { container } = renderIsolated(
-        <Modal visible={true} aria-labelledby='title-id'>
-          {testContent}
-        </Modal>,
+        React.createElement(
+          AnyModal,
+          { visible: true, 'aria-labelledby': 'title-id' } as any,
+          testContent,
+        ),
       );
 
       expect(container.querySelector('div[data-component="CoreModal"]')!).toHaveAttribute(
@@ -298,9 +306,7 @@ describe('Modal', () => {
 
     it('title имеет правильные стили', () => {
       const { container } = renderIsolated(
-        <Modal visible={true} title={testTitle}>
-          {testContent}
-        </Modal>,
+        React.createElement(AnyModal, { visible: true, title: testTitle } as any, testContent),
       );
 
       const titleElement = container.querySelector('h2')!;
@@ -314,9 +320,7 @@ describe('Modal', () => {
     it('передает ref в modal container', () => {
       const mockRef = createMockRef();
       const { container } = renderIsolated(
-        <Modal visible={true} ref={mockRef}>
-          {testContent}
-        </Modal>,
+        React.createElement(AnyModal, { visible: true, ref: mockRef } as any, testContent),
       );
 
       const modalDiv = container.querySelector('div[data-component="CoreModal"] > div')!;
@@ -327,9 +331,11 @@ describe('Modal', () => {
   describe('4.6. Children', () => {
     it('рендерит children', () => {
       const { container } = renderIsolated(
-        <Modal visible={true}>
-          <div data-testid='modal-content'>{testContent}</div>
-        </Modal>,
+        React.createElement(
+          AnyModal,
+          { visible: true } as any,
+          React.createElement('div', { 'data-testid': 'modal-content' }, testContent),
+        ),
       );
 
       expect(container.querySelector('[data-testid="modal-content"]')).toHaveTextContent(
@@ -338,16 +344,18 @@ describe('Modal', () => {
     });
 
     it('рендерит сложные children', () => {
-      const complexChildren = (
-        <div>
-          <p>Paragraph 1</p>
-          <button>Action Button</button>
-          <span>Some text</span>
-        </div>
-      );
-
       const { container } = renderIsolated(
-        <Modal visible={true}>{complexChildren}</Modal>,
+        React.createElement(
+          AnyModal,
+          { visible: true } as any,
+          React.createElement(
+            'div',
+            null,
+            React.createElement('p', null, 'Paragraph 1'),
+            React.createElement('button', null, 'Action Button'),
+            React.createElement('span', null, 'Some text'),
+          ),
+        ),
       );
 
       expect(container.querySelector('p')).toHaveTextContent('Paragraph 1');
@@ -359,7 +367,7 @@ describe('Modal', () => {
   describe('4.7. Edge cases', () => {
     it('работает с пустыми children', () => {
       const { container } = renderIsolated(
-        <Modal visible={true}>{null}</Modal>,
+        React.createElement(AnyModal, { visible: true } as any, null),
       );
 
       expect(container).toBeInTheDocument();
@@ -368,9 +376,11 @@ describe('Modal', () => {
 
     it('работает с null title', () => {
       const { container } = renderIsolated(
-        <Modal visible={true} title={null as any}>
-          {testContent}
-        </Modal>,
+        React.createElement(
+          AnyModal,
+          { visible: true, title: null as any } as any,
+          testContent,
+        ),
       );
 
       expect(container.querySelector('h2')).toBeNull();
@@ -378,9 +388,11 @@ describe('Modal', () => {
 
     it('работает с undefined title', () => {
       const { container } = renderIsolated(
-        <Modal visible={true} title={undefined as any}>
-          {testContent}
-        </Modal>,
+        React.createElement(
+          AnyModal,
+          { visible: true, title: undefined as any } as any,
+          testContent,
+        ),
       );
 
       expect(container.querySelector('h2')).toBeNull();
@@ -388,9 +400,7 @@ describe('Modal', () => {
 
     it('работает с пустой строкой title', () => {
       const { container } = renderIsolated(
-        <Modal visible={true} title=''>
-          {testContent}
-        </Modal>,
+        React.createElement(AnyModal, { visible: true, title: '' } as any, testContent),
       );
 
       expect(container.querySelector('h2')).toBeNull();
@@ -400,24 +410,24 @@ describe('Modal', () => {
   describe('4.8. Мемоизация и производительность', () => {
     it('стабильно рендерится с одинаковыми пропсами', () => {
       const { container: container1, rerender } = render(
-        <Modal visible={true}>{testContent}</Modal>,
+        React.createElement(AnyModal, { visible: true } as any, testContent),
       );
 
       const initialHtml = container1.innerHTML;
 
-      rerender(<Modal visible={true}>{testContent}</Modal>);
+      rerender(React.createElement(AnyModal, { visible: true } as any, testContent));
 
       expect(container1.innerHTML).toBe(initialHtml);
     });
 
     it('перерендеривается при изменении visible', () => {
       const { container, rerender } = render(
-        <Modal visible={true}>{testContent}</Modal>,
+        React.createElement(AnyModal, { visible: true } as any, testContent),
       );
 
       expect(container.querySelector('[data-component="CoreModal"]')).toBeInTheDocument();
 
-      rerender(<Modal visible={false}>{testContent}</Modal>);
+      rerender(React.createElement(AnyModal, { visible: false } as any, testContent));
 
       expect(container.querySelector('[data-component="CoreModal"]')).toBeNull();
     });

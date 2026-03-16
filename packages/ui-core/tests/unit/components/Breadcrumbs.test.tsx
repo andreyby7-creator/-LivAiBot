@@ -11,6 +11,8 @@ import { Breadcrumbs } from '@livai/ui-core';
 
 import '@testing-library/jest-dom/vitest';
 
+const AnyBreadcrumbs = Breadcrumbs as any;
+
 // Полная очистка DOM между тестами
 afterEach(cleanup);
 
@@ -96,7 +98,7 @@ describe('Breadcrumbs', () => {
   describe('4.1. Рендер без падений', () => {
     it('рендерится с обязательными пропсами', () => {
       const { container, getBreadcrumbs } = renderIsolated(
-        <Breadcrumbs items={testItems} />,
+        React.createElement(AnyBreadcrumbs, { items: testItems } as any, null),
       );
 
       expect(container).toBeInTheDocument();
@@ -105,7 +107,7 @@ describe('Breadcrumbs', () => {
 
     it('создает nav элемент с правильными атрибутами по умолчанию', () => {
       const { getBreadcrumbs, getOrderedList } = renderIsolated(
-        <Breadcrumbs items={testItems} />,
+        React.createElement(AnyBreadcrumbs, { items: testItems } as any, null),
       );
 
       const nav = getBreadcrumbs();
@@ -121,7 +123,7 @@ describe('Breadcrumbs', () => {
 
     it('рендерит правильное количество элементов', () => {
       const { getBreadcrumbItems } = renderIsolated(
-        <Breadcrumbs items={testItems} />,
+        React.createElement(AnyBreadcrumbs, { items: testItems } as any, null),
       );
 
       const items = getBreadcrumbItems();
@@ -132,7 +134,11 @@ describe('Breadcrumbs', () => {
   describe('4.2. Пропсы компонента', () => {
     it('применяет className к nav элементу', () => {
       const { getBreadcrumbs } = renderIsolated(
-        <Breadcrumbs items={testItems} className='custom-class' />,
+        React.createElement(
+          AnyBreadcrumbs,
+          { items: testItems, className: 'custom-class' } as any,
+          null,
+        ),
       );
 
       expect(getBreadcrumbs()).toHaveClass('custom-class');
@@ -140,7 +146,11 @@ describe('Breadcrumbs', () => {
 
     it('применяет style к nav элементу', () => {
       const { getBreadcrumbs } = renderIsolated(
-        <Breadcrumbs items={testItems} style={customStyle} />,
+        React.createElement(
+          AnyBreadcrumbs,
+          { items: testItems, style: customStyle } as any,
+          null,
+        ),
       );
 
       const nav = getBreadcrumbs();
@@ -149,7 +159,11 @@ describe('Breadcrumbs', () => {
 
     it('применяет data-testid', () => {
       const { getByTestId } = renderIsolated(
-        <Breadcrumbs items={testItems} data-testid='custom-test-id' />,
+        React.createElement(
+          AnyBreadcrumbs,
+          { items: testItems, 'data-testid': 'custom-test-id' } as any,
+          null,
+        ),
       );
 
       expect(getByTestId('custom-test-id')).toBeInTheDocument();
@@ -157,7 +171,11 @@ describe('Breadcrumbs', () => {
 
     it('поддерживает кастомный aria-label', () => {
       const { getBreadcrumbs } = renderIsolated(
-        <Breadcrumbs items={testItems} aria-label='Custom navigation' />,
+        React.createElement(
+          AnyBreadcrumbs,
+          { items: testItems, 'aria-label': 'Custom navigation' } as any,
+          null,
+        ),
       );
 
       expect(getBreadcrumbs()).toHaveAttribute('aria-label', 'Custom navigation');
@@ -165,11 +183,15 @@ describe('Breadcrumbs', () => {
 
     it('поддерживает aria-labelledby с приоритетом над aria-label', () => {
       const { getBreadcrumbs } = renderIsolated(
-        <Breadcrumbs
-          items={testItems}
-          aria-label='Custom navigation'
-          aria-labelledby='nav-heading'
-        />,
+        React.createElement(
+          AnyBreadcrumbs,
+          {
+            items: testItems,
+            'aria-label': 'Custom navigation',
+            'aria-labelledby': 'nav-heading',
+          } as any,
+          null,
+        ),
       );
 
       const nav = getBreadcrumbs();
@@ -181,7 +203,7 @@ describe('Breadcrumbs', () => {
   describe('4.3. Items рендеринг', () => {
     it('рендерит элементы как ссылки с href', () => {
       const { getBreadcrumbLinks } = renderIsolated(
-        <Breadcrumbs items={testItems} />,
+        React.createElement(AnyBreadcrumbs, { items: testItems } as any, null),
       );
 
       const links = getBreadcrumbLinks();
@@ -196,7 +218,7 @@ describe('Breadcrumbs', () => {
 
     it('рендерит элементы как span без href', () => {
       const { getBreadcrumbSpans, getBreadcrumbLinks } = renderIsolated(
-        <Breadcrumbs items={itemsWithoutHref} />,
+        React.createElement(AnyBreadcrumbs, { items: itemsWithoutHref } as any, null),
       );
 
       const spans = getBreadcrumbSpans();
@@ -212,7 +234,7 @@ describe('Breadcrumbs', () => {
 
     it('рендерит disabled элементы без onClick', () => {
       const { getBreadcrumbLinks } = renderIsolated(
-        <Breadcrumbs items={itemsWithDisabled} />,
+        React.createElement(AnyBreadcrumbs, { items: itemsWithDisabled } as any, null),
       );
 
       const links = getBreadcrumbLinks();
@@ -221,7 +243,7 @@ describe('Breadcrumbs', () => {
 
     it('применяет data-index к каждому li элементу', () => {
       const { getBreadcrumbItems } = renderIsolated(
-        <Breadcrumbs items={testItems} />,
+        React.createElement(AnyBreadcrumbs, { items: testItems } as any, null),
       );
 
       const items = getBreadcrumbItems();
@@ -234,7 +256,7 @@ describe('Breadcrumbs', () => {
   describe('4.4. Separator', () => {
     it('использует дефолтный separator (›)', () => {
       const { container } = renderIsolated(
-        <Breadcrumbs items={testItems} />,
+        React.createElement(AnyBreadcrumbs, { items: testItems } as any, null),
       );
 
       const separators = container.querySelectorAll('span[aria-hidden="true"]');
@@ -247,7 +269,11 @@ describe('Breadcrumbs', () => {
 
     it('использует строковый separator', () => {
       const { container } = renderIsolated(
-        <Breadcrumbs items={testItems} separator='•' />,
+        React.createElement(
+          AnyBreadcrumbs,
+          { items: testItems, separator: '•' } as any,
+          null,
+        ),
       );
 
       const separators = container.querySelectorAll('span[aria-hidden="true"]');
@@ -259,10 +285,18 @@ describe('Breadcrumbs', () => {
     });
 
     it('использует JSX separator без обертки', () => {
-      const customSeparator = <span data-testid='custom-separator'>→</span>;
+      const customSeparator = React.createElement(
+        'span',
+        { 'data-testid': 'custom-separator' },
+        '→',
+      );
 
       const { container } = renderIsolated(
-        <Breadcrumbs items={testItems} separator={customSeparator} />,
+        React.createElement(
+          AnyBreadcrumbs,
+          { items: testItems, separator: customSeparator } as any,
+          null,
+        ),
       );
 
       const separators = container.querySelectorAll('[data-testid="custom-separator"]');
@@ -275,7 +309,11 @@ describe('Breadcrumbs', () => {
 
     it('применяет SEPARATOR_STYLE к строковым разделителям', () => {
       const { container } = renderIsolated(
-        <Breadcrumbs items={testItems} separator='•' />,
+        React.createElement(
+          AnyBreadcrumbs,
+          { items: testItems, separator: '•' } as any,
+          null,
+        ),
       );
 
       const separators = container.querySelectorAll('span[aria-hidden="true"]');
@@ -291,7 +329,7 @@ describe('Breadcrumbs', () => {
   describe('4.5. Accessibility', () => {
     it('добавляет aria-current="page" только к последнему элементу', () => {
       const { getBreadcrumbLinks } = renderIsolated(
-        <Breadcrumbs items={testItems} />,
+        React.createElement(AnyBreadcrumbs, { items: testItems } as any, null),
       );
 
       const links = getBreadcrumbLinks();
@@ -307,7 +345,7 @@ describe('Breadcrumbs', () => {
 
     it('добавляет aria-current="page" к последнему span элементу', () => {
       const { getBreadcrumbSpans } = renderIsolated(
-        <Breadcrumbs items={itemsWithoutHref} />,
+        React.createElement(AnyBreadcrumbs, { items: itemsWithoutHref } as any, null),
       );
 
       const spans = getBreadcrumbSpans();
@@ -323,7 +361,7 @@ describe('Breadcrumbs', () => {
 
     it('применяет aria-hidden к разделителям', () => {
       const { container } = renderIsolated(
-        <Breadcrumbs items={testItems} />,
+        React.createElement(AnyBreadcrumbs, { items: testItems } as any, null),
       );
 
       const separators = container.querySelectorAll('span[aria-hidden="true"]');
@@ -341,7 +379,7 @@ describe('Breadcrumbs', () => {
       itemsWithClicks[1]!.onClick = mockOnClick2;
 
       const { getBreadcrumbLinks } = renderIsolated(
-        <Breadcrumbs items={itemsWithClicks} />,
+        React.createElement(AnyBreadcrumbs, { items: itemsWithClicks } as any, null),
       );
 
       const links = getBreadcrumbLinks();
@@ -368,7 +406,7 @@ describe('Breadcrumbs', () => {
       }));
 
       const { getBreadcrumbSpans } = renderIsolated(
-        <Breadcrumbs items={itemsWithDisabled} />,
+        React.createElement(AnyBreadcrumbs, { items: itemsWithDisabled } as any, null),
       );
 
       const spans = getBreadcrumbSpans();
@@ -383,7 +421,7 @@ describe('Breadcrumbs', () => {
   describe('4.7. Data attributes', () => {
     it('применяет custom data attributes к элементам', () => {
       const { getBreadcrumbLinks } = renderIsolated(
-        <Breadcrumbs items={itemsWithData} />,
+        React.createElement(AnyBreadcrumbs, { items: itemsWithData } as any, null),
       );
 
       const links = getBreadcrumbLinks();
@@ -397,7 +435,7 @@ describe('Breadcrumbs', () => {
       const mockRef = createMockRef();
 
       renderIsolated(
-        <Breadcrumbs ref={mockRef} items={testItems} />,
+        React.createElement(AnyBreadcrumbs, { ref: mockRef, items: testItems } as any, null),
       );
 
       expect(mockRef.current).toBeInstanceOf(HTMLElement);
@@ -408,7 +446,7 @@ describe('Breadcrumbs', () => {
   describe('4.9. Edge cases', () => {
     it('работает с пустым массивом items', () => {
       const { getOrderedList } = renderIsolated(
-        <Breadcrumbs items={emptyItems} />,
+        React.createElement(AnyBreadcrumbs, { items: emptyItems } as any, null),
       );
 
       const ol = getOrderedList();
@@ -417,7 +455,7 @@ describe('Breadcrumbs', () => {
 
     it('работает с одним элементом (без разделителей)', () => {
       const { container } = renderIsolated(
-        <Breadcrumbs items={singleItem} />,
+        React.createElement(AnyBreadcrumbs, { items: singleItem } as any, null),
       );
 
       const separators = container.querySelectorAll('span[aria-hidden="true"]');
@@ -426,7 +464,7 @@ describe('Breadcrumbs', () => {
 
     it('работает с элементами без id (использует label + index)', () => {
       const { getBreadcrumbItems } = renderIsolated(
-        <Breadcrumbs items={testItems} />,
+        React.createElement(AnyBreadcrumbs, { items: testItems } as any, null),
       );
 
       const items = getBreadcrumbItems();
@@ -437,7 +475,7 @@ describe('Breadcrumbs', () => {
 
     it('работает с элементами с id', () => {
       const { getBreadcrumbItems } = renderIsolated(
-        <Breadcrumbs items={itemsWithId} />,
+        React.createElement(AnyBreadcrumbs, { items: itemsWithId } as any, null),
       );
 
       const items = getBreadcrumbItems();
@@ -447,7 +485,7 @@ describe('Breadcrumbs', () => {
 
     it('не ломает навигацию при клике по элементам без onClick', () => {
       const { getBreadcrumbLinks } = renderIsolated(
-        <Breadcrumbs items={testItems} />,
+        React.createElement(AnyBreadcrumbs, { items: testItems } as any, null),
       );
 
       const links = getBreadcrumbLinks();
@@ -462,11 +500,15 @@ describe('Breadcrumbs', () => {
   describe('4.10. Style и className inheritance', () => {
     it('передает дополнительные пропсы к nav элементу', () => {
       const { getBreadcrumbs } = renderIsolated(
-        <Breadcrumbs
-          items={testItems}
-          data-custom='test-value'
-          title='Custom title'
-        />,
+        React.createElement(
+          AnyBreadcrumbs,
+          {
+            items: testItems,
+            'data-custom': 'test-value',
+            title: 'Custom title',
+          } as any,
+          null,
+        ),
       );
 
       const nav = getBreadcrumbs();
@@ -476,10 +518,14 @@ describe('Breadcrumbs', () => {
 
     it('объединяет стили правильно', () => {
       const { getBreadcrumbs } = renderIsolated(
-        <Breadcrumbs
-          items={testItems}
-          style={combinedStyle}
-        />,
+        React.createElement(
+          AnyBreadcrumbs,
+          {
+            items: testItems,
+            style: combinedStyle,
+          } as any,
+          null,
+        ),
       );
 
       const nav = getBreadcrumbs();

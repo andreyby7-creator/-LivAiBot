@@ -2680,3 +2680,18 @@ $(date -Iseconds) - Проверка консистентности конфиг
 2026-03-16T11:17:19+03:00 | deps: обновлены zustand->^5.0.12, eslint-plugin-boundaries->^6.0.0, dprint->^0.53.0 | quality:local не прошёл из-за типов в @vitest/runner (TS2430), код проекта не ломали
 [2026-03-16T11:39:30+03:00] Fixed unused TYPE_EXEMPTIONS import in config/eslint/master.config.mjs and verified via pnpm lint (ESLint).
 2026-03-16T12:08:45+03:00	TASK=profile-summary	STATUS=ok
+[toggle] vitest --coverage packages/ui-core/tests/unit/primitives/toggle.test.tsx: OK (33 tests, toggle.tsx 95.65% stmts / 85.71% branches / 100% funcs / 100% lines)
+[tooltip] vitest --coverage packages/ui-core/tests/unit/primitives/tooltip.test.tsx: OK (31 tests, tooltip.tsx 100% stmts/branches/funcs/lines)
+[Accordion] vitest --coverage packages/ui-core/tests/unit/components/Accordion.test.tsx: OK (46 tests, Accordion.tsx 100% stmts / 96.87% branches / 100% funcs / 100% lines; uncovered: line 180 only)
+[Breadcrumbs] vitest --coverage packages/ui-core/tests/unit/components/Breadcrumbs.test.tsx: OK (30 tests, Breadcrumbs.tsx 100% stmts/branches/funcs/lines)
+[ConfirmDialog] vitest --coverage packages/ui-core/tests/unit/components/ConfirmDialog.test.tsx: OK (66 tests, ConfirmDialog.tsx 93.1% stmts / 93.1% branches / 100% funcs / 100% lines; uncovered lines 155-161)
+[DatePicker] vitest --coverage packages/ui-core/tests/unit/components/DatePicker.test.tsx: OK (70 tests, DatePicker.tsx 100% stmts / 98.83% branches / 100% funcs / 100% lines; uncovered branch line 355 only)
+[ui-core ErrorBoundary tests] 2026-03-16T16:03:47+03:00 exit=1 (coverage parser PARSE_ERROR, tests themselves ok)
+[ui-core ErrorBoundary coverage] 2026-03-16T16:07:39+03:00 exit=1 (vite import-analysis: invalid JS syntax in JSX, tests themselves converted to AnyErrorBoundary pattern)
+[ui-core ErrorBoundary coverage] 2026-03-16T16:10:17+03:00 exit=0 (44 tests passed, CoreErrorBoundary.tsx 100% covered)
+[ui-core] UserProfileDisplay.test.tsx coverage run: OK
+[ui-core] Skeleton.test.tsx coverage run: OK
+[ui-core] SupportButton.test.tsx coverage run: OK
+[ui-core] Tabs.test.tsx coverage run: OK
+[ui-core] Toast.test.tsx coverage run: OK
+[deps] jsdom 29.0.0, esbuild 0.27.4, lru-cache 11.2.7 bumped; @livai/ui-core tests: FAIL (missing @testing-library/jest-dom/vitest)

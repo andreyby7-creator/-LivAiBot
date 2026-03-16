@@ -12,6 +12,8 @@ import { Tabs } from '@livai/ui-core';
 
 import '@testing-library/jest-dom/vitest';
 
+const AnyTabs = Tabs as any;
+
 // Полная очистка DOM между тестами
 afterEach(cleanup);
 
@@ -64,7 +66,15 @@ describe('Tabs', () => {
   ];
 
   const itemsWithReactContent: readonly TabItem[] = [
-    { id: 'tab1', label: 'Tab 1', content: <span data-testid='react-content'>React Content</span> },
+    {
+      id: 'tab1',
+      label: 'Tab 1',
+      content: React.createElement(
+        'span',
+        { 'data-testid': 'react-content' } as any,
+        'React Content',
+      ),
+    },
     { id: 'tab2', label: 'Tab 2', content: 'String Content' },
   ];
 
@@ -85,7 +95,7 @@ describe('Tabs', () => {
   describe('4.1. Рендер без падений', () => {
     it('рендерится с обязательными пропсами', () => {
       const { container, getTabs } = renderIsolated(
-        <Tabs items={testItems} />,
+        React.createElement(AnyTabs, { items: testItems } as any, null),
       );
 
       expect(container).toBeInTheDocument();
@@ -94,7 +104,7 @@ describe('Tabs', () => {
 
     it('создает div элемент с правильными атрибутами по умолчанию', () => {
       const { getTabs, getTabList } = renderIsolated(
-        <Tabs items={testItems} />,
+        React.createElement(AnyTabs, { items: testItems } as any, null),
       );
 
       const tabs = getTabs();
@@ -113,7 +123,7 @@ describe('Tabs', () => {
 
     it('рендерит правильное количество табов', () => {
       const { getTabButtons } = renderIsolated(
-        <Tabs items={testItems} />,
+        React.createElement(AnyTabs, { items: testItems } as any, null),
       );
 
       const buttons = getTabButtons();
@@ -122,7 +132,7 @@ describe('Tabs', () => {
 
     it('рендерит контент активного таба', () => {
       const { getTabPanel } = renderIsolated(
-        <Tabs items={testItems} activeTabId='tab1' />,
+        React.createElement(AnyTabs, { items: testItems, activeTabId: 'tab1' } as any, null),
       );
 
       const panel = getTabPanel();
@@ -134,7 +144,11 @@ describe('Tabs', () => {
   describe('4.2. Пропсы компонента', () => {
     it('применяет className к контейнеру', () => {
       const { getTabs } = renderIsolated(
-        <Tabs items={testItems} className='custom-class' />,
+        React.createElement(
+          AnyTabs,
+          { items: testItems, className: 'custom-class' } as any,
+          null,
+        ),
       );
 
       expect(getTabs()).toHaveClass('custom-class');
@@ -142,7 +156,7 @@ describe('Tabs', () => {
 
     it('применяет style к контейнеру', () => {
       const { getTabs } = renderIsolated(
-        <Tabs items={testItems} style={customStyle} />,
+        React.createElement(AnyTabs, { items: testItems, style: customStyle } as any, null),
       );
 
       const tabs = getTabs();
@@ -151,7 +165,11 @@ describe('Tabs', () => {
 
     it('применяет data-testid', () => {
       const { getByTestId } = renderIsolated(
-        <Tabs items={testItems} data-testid='custom-test-id' />,
+        React.createElement(
+          AnyTabs,
+          { items: testItems, 'data-testid': 'custom-test-id' } as any,
+          null,
+        ),
       );
 
       expect(getByTestId('custom-test-id')).toBeInTheDocument();
@@ -159,7 +177,11 @@ describe('Tabs', () => {
 
     it('поддерживает кастомный aria-label', () => {
       const { getTabs } = renderIsolated(
-        <Tabs items={testItems} aria-label='Custom tabs' />,
+        React.createElement(
+          AnyTabs,
+          { items: testItems, 'aria-label': 'Custom tabs' } as any,
+          null,
+        ),
       );
 
       expect(getTabs()).toHaveAttribute('aria-label', 'Custom tabs');
@@ -167,11 +189,15 @@ describe('Tabs', () => {
 
     it('поддерживает aria-labelledby с приоритетом над aria-label', () => {
       const { getTabs } = renderIsolated(
-        <Tabs
-          items={testItems}
-          aria-label='Custom tabs'
-          aria-labelledby='tabs-heading'
-        />,
+        React.createElement(
+          AnyTabs,
+          {
+            items: testItems,
+            'aria-label': 'Custom tabs',
+            'aria-labelledby': 'tabs-heading',
+          } as any,
+          null,
+        ),
       );
 
       const tabs = getTabs();
@@ -181,7 +207,7 @@ describe('Tabs', () => {
 
     it('использует дефолтный aria-label когда не указаны aria-label и aria-labelledby', () => {
       const { getTabs } = renderIsolated(
-        <Tabs items={testItems} />,
+        React.createElement(AnyTabs, { items: testItems } as any, null),
       );
 
       expect(getTabs()).toHaveAttribute('aria-label', 'Tabs');
@@ -191,7 +217,7 @@ describe('Tabs', () => {
   describe('4.3. Ориентация', () => {
     it('применяет horizontal ориентацию по умолчанию', () => {
       const { getTabs, getTabList } = renderIsolated(
-        <Tabs items={testItems} />,
+        React.createElement(AnyTabs, { items: testItems } as any, null),
       );
 
       expect(getTabs()).toHaveAttribute('data-orientation', 'horizontal');
@@ -200,7 +226,11 @@ describe('Tabs', () => {
 
     it('применяет vertical ориентацию', () => {
       const { getTabs, getTabList } = renderIsolated(
-        <Tabs items={testItems} orientation='vertical' />,
+        React.createElement(
+          AnyTabs,
+          { items: testItems, orientation: 'vertical' } as any,
+          null,
+        ),
       );
 
       expect(getTabs()).toHaveAttribute('data-orientation', 'vertical');
@@ -209,7 +239,11 @@ describe('Tabs', () => {
 
     it('применяет правильные стили для vertical ориентации', () => {
       const { getTabList, getTabPanel } = renderIsolated(
-        <Tabs items={testItems} orientation='vertical' activeTabId='tab1' />,
+        React.createElement(
+          AnyTabs,
+          { items: testItems, orientation: 'vertical', activeTabId: 'tab1' } as any,
+          null,
+        ),
       );
 
       const tabList = getTabList();
@@ -224,7 +258,7 @@ describe('Tabs', () => {
   describe('4.4. Активный таб', () => {
     it('использует первый таб как активный по умолчанию', () => {
       const { getTabButtons, getTabPanel } = renderIsolated(
-        <Tabs items={testItems} />,
+        React.createElement(AnyTabs, { items: testItems } as any, null),
       );
 
       const buttons = getTabButtons();
@@ -238,7 +272,7 @@ describe('Tabs', () => {
 
     it('использует указанный activeTabId', () => {
       const { getTabButtons, getTabPanel } = renderIsolated(
-        <Tabs items={testItems} activeTabId='tab2' />,
+        React.createElement(AnyTabs, { items: testItems, activeTabId: 'tab2' } as any, null),
       );
 
       const buttons = getTabButtons();
@@ -252,7 +286,11 @@ describe('Tabs', () => {
 
     it('использует первый таб если activeTabId не найден', () => {
       const { getTabButtons, getTabPanel } = renderIsolated(
-        <Tabs items={testItems} activeTabId='nonexistent' />,
+        React.createElement(
+          AnyTabs,
+          { items: testItems, activeTabId: 'nonexistent' } as any,
+          null,
+        ),
       );
 
       const buttons = getTabButtons();
@@ -264,7 +302,11 @@ describe('Tabs', () => {
 
     it('не рендерит панель если контент null', () => {
       const { getTabPanel } = renderIsolated(
-        <Tabs items={itemsWithNullContent} activeTabId='tab1' />,
+        React.createElement(
+          AnyTabs,
+          { items: itemsWithNullContent, activeTabId: 'tab1' } as any,
+          null,
+        ),
       );
 
       expect(getTabPanel()).toBeNull();
@@ -274,7 +316,11 @@ describe('Tabs', () => {
   describe('4.5. Табы рендеринг', () => {
     it('рендерит все табы с правильными атрибутами', () => {
       const { getTabButtons } = renderIsolated(
-        <Tabs items={testItems} activeTabId='tab1' />,
+        React.createElement(
+          AnyTabs,
+          { items: testItems, activeTabId: 'tab1' } as any,
+          null,
+        ),
       );
 
       const buttons = getTabButtons();
@@ -293,7 +339,11 @@ describe('Tabs', () => {
 
     it('рендерит disabled табы с правильными атрибутами', () => {
       const { getTabButtons } = renderIsolated(
-        <Tabs items={itemsWithDisabled} activeTabId='tab1' />,
+        React.createElement(
+          AnyTabs,
+          { items: itemsWithDisabled, activeTabId: 'tab1' } as any,
+          null,
+        ),
       );
 
       const buttons = getTabButtons();
@@ -307,7 +357,7 @@ describe('Tabs', () => {
 
     it('применяет data атрибуты к табам', () => {
       const { getTabButtons } = renderIsolated(
-        <Tabs items={itemsWithData} />,
+        React.createElement(AnyTabs, { items: itemsWithData } as any, null),
       );
 
       const buttons = getTabButtons();
@@ -317,7 +367,7 @@ describe('Tabs', () => {
 
     it('рендерит табы внутри li элементов с role="presentation"', () => {
       const { container } = renderIsolated(
-        <Tabs items={testItems} />,
+        React.createElement(AnyTabs, { items: testItems } as any, null),
       );
 
       const listItems = container.querySelectorAll('li[role="presentation"]');
@@ -328,7 +378,11 @@ describe('Tabs', () => {
   describe('4.6. Контент таба', () => {
     it('отображает строковый контент', () => {
       const { getTabPanel } = renderIsolated(
-        <Tabs items={testItems} activeTabId='tab1' />,
+        React.createElement(
+          AnyTabs,
+          { items: testItems, activeTabId: 'tab1' } as any,
+          null,
+        ),
       );
 
       const panel = getTabPanel();
@@ -337,7 +391,11 @@ describe('Tabs', () => {
 
     it('отображает React элемент как контент', () => {
       const { getByTestId } = renderIsolated(
-        <Tabs items={itemsWithReactContent} activeTabId='tab1' />,
+        React.createElement(
+          AnyTabs,
+          { items: itemsWithReactContent, activeTabId: 'tab1' } as any,
+          null,
+        ),
       );
 
       expect(getByTestId('react-content')).toBeInTheDocument();
@@ -346,19 +404,33 @@ describe('Tabs', () => {
 
     it('обновляет контент при смене активного таба', () => {
       const { getTabPanel, rerender } = renderIsolated(
-        <Tabs items={testItems} activeTabId='tab1' />,
+        React.createElement(
+          AnyTabs,
+          { items: testItems, activeTabId: 'tab1' } as any,
+          null,
+        ),
       );
 
       expect(getTabPanel()).toHaveTextContent('Content 1');
 
-      rerender(<Tabs items={testItems} activeTabId='tab2' />);
+      rerender(
+        React.createElement(
+          AnyTabs,
+          { items: testItems, activeTabId: 'tab2' } as any,
+          null,
+        ),
+      );
 
       expect(getTabPanel()).toHaveTextContent('Content 2');
     });
 
     it('рендерит панель с правильными ARIA атрибутами', () => {
       const { getTabPanel } = renderIsolated(
-        <Tabs items={testItems} activeTabId='tab1' />,
+        React.createElement(
+          AnyTabs,
+          { items: testItems, activeTabId: 'tab1' } as any,
+          null,
+        ),
       );
 
       const panel = getTabPanel();
@@ -372,7 +444,11 @@ describe('Tabs', () => {
     it('вызывает onChange при клике на таб', () => {
       const mockOnChange = vi.fn();
       const { getTabButtons } = renderIsolated(
-        <Tabs items={testItems} onChange={mockOnChange} />,
+        React.createElement(
+          AnyTabs,
+          { items: testItems, onChange: mockOnChange } as any,
+          null,
+        ),
       );
 
       const buttons = getTabButtons();
@@ -385,7 +461,11 @@ describe('Tabs', () => {
     it('не вызывает onChange для disabled табов', () => {
       const mockOnChange = vi.fn();
       const { getTabButtons } = renderIsolated(
-        <Tabs items={itemsWithDisabled} onChange={mockOnChange} activeTabId='tab1' />,
+        React.createElement(
+          AnyTabs,
+          { items: itemsWithDisabled, onChange: mockOnChange, activeTabId: 'tab1' } as any,
+          null,
+        ),
       );
 
       const buttons = getTabButtons();
@@ -396,7 +476,7 @@ describe('Tabs', () => {
 
     it('не вызывает onChange если onChange не передан', () => {
       const { getTabButtons } = renderIsolated(
-        <Tabs items={testItems} />,
+        React.createElement(AnyTabs, { items: testItems } as any, null),
       );
 
       const buttons = getTabButtons();
@@ -406,7 +486,11 @@ describe('Tabs', () => {
     it('читает tabId из data-tab-id атрибута', () => {
       const mockOnChange = vi.fn();
       const { getTabButtons } = renderIsolated(
-        <Tabs items={testItems} onChange={mockOnChange} />,
+        React.createElement(
+          AnyTabs,
+          { items: testItems, onChange: mockOnChange } as any,
+          null,
+        ),
       );
 
       const buttons = getTabButtons();
@@ -418,7 +502,11 @@ describe('Tabs', () => {
     it('не вызывает onChange если data-tab-id отсутствует', () => {
       const mockOnChange = vi.fn();
       const { getTabButtons } = renderIsolated(
-        <Tabs items={testItems} onChange={mockOnChange} />,
+        React.createElement(
+          AnyTabs,
+          { items: testItems, onChange: mockOnChange } as any,
+          null,
+        ),
       );
 
       const buttons = getTabButtons();
@@ -436,7 +524,7 @@ describe('Tabs', () => {
       const mockRef = createMockRef();
 
       renderIsolated(
-        <Tabs ref={mockRef} items={testItems} />,
+        React.createElement(AnyTabs, { ref: mockRef, items: testItems } as any, null),
       );
 
       expect(mockRef.current).toBeInstanceOf(HTMLDivElement);
@@ -448,7 +536,7 @@ describe('Tabs', () => {
       const refCallback = vi.fn();
 
       renderIsolated(
-        <Tabs ref={refCallback} items={testItems} />,
+        React.createElement(AnyTabs, { ref: refCallback, items: testItems } as any, null),
       );
 
       expect(refCallback).toHaveBeenCalledTimes(1);
@@ -459,7 +547,7 @@ describe('Tabs', () => {
   describe('4.9. Edge cases', () => {
     it('работает с пустым массивом items', () => {
       const { getTabList, getTabPanel } = renderIsolated(
-        <Tabs items={emptyItems} />,
+        React.createElement(AnyTabs, { items: emptyItems } as any, null),
       );
 
       const tabList = getTabList();
@@ -470,7 +558,7 @@ describe('Tabs', () => {
 
     it('работает с одним табом', () => {
       const { getTabButtons, getTabPanel } = renderIsolated(
-        <Tabs items={singleItem} />,
+        React.createElement(AnyTabs, { items: singleItem } as any, null),
       );
 
       const buttons = getTabButtons();
@@ -483,7 +571,7 @@ describe('Tabs', () => {
 
     it('работает когда activeTabId не указан', () => {
       const { getTabButtons, getTabPanel } = renderIsolated(
-        <Tabs items={testItems} />,
+        React.createElement(AnyTabs, { items: testItems } as any, null),
       );
 
       const buttons = getTabButtons();
@@ -495,7 +583,7 @@ describe('Tabs', () => {
 
     it('работает когда items пустой и activeTabId указан', () => {
       const { getTabPanel } = renderIsolated(
-        <Tabs items={emptyItems} activeTabId='tab1' />,
+        React.createElement(AnyTabs, { items: emptyItems, activeTabId: 'tab1' } as any, null),
       );
 
       expect(getTabPanel()).toBeNull();
@@ -505,11 +593,11 @@ describe('Tabs', () => {
   describe('4.10. Style и className inheritance', () => {
     it('передает дополнительные пропсы к контейнеру', () => {
       const { getTabs } = renderIsolated(
-        <Tabs
-          items={testItems}
-          data-custom='test-value'
-          title='Custom title'
-        />,
+        React.createElement(
+          AnyTabs,
+          { items: testItems, 'data-custom': 'test-value', title: 'Custom title' } as any,
+          null,
+        ),
       );
 
       const tabs = getTabs();
@@ -519,10 +607,11 @@ describe('Tabs', () => {
 
     it('объединяет стили правильно', () => {
       const { getTabs } = renderIsolated(
-        <Tabs
-          items={testItems}
-          style={combinedStyle}
-        />,
+        React.createElement(
+          AnyTabs,
+          { items: testItems, style: combinedStyle } as any,
+          null,
+        ),
       );
 
       const tabs = getTabs();
@@ -531,7 +620,11 @@ describe('Tabs', () => {
 
     it('применяет правильные стили для активного таба', () => {
       const { getTabButtons } = renderIsolated(
-        <Tabs items={testItems} activeTabId='tab1' />,
+        React.createElement(
+          AnyTabs,
+          { items: testItems, activeTabId: 'tab1' } as any,
+          null,
+        ),
       );
 
       const buttons = getTabButtons();
@@ -545,7 +638,11 @@ describe('Tabs', () => {
 
     it('применяет правильные стили для disabled таба', () => {
       const { getTabButtons } = renderIsolated(
-        <Tabs items={itemsWithDisabled} activeTabId='tab1' />,
+        React.createElement(
+          AnyTabs,
+          { items: itemsWithDisabled, activeTabId: 'tab1' } as any,
+          null,
+        ),
       );
 
       const buttons = getTabButtons();
@@ -560,12 +657,22 @@ describe('Tabs', () => {
   describe('4.11. Memoization', () => {
     it('не перерендеривается при неизменных пропсах', () => {
       const { rerender, getTabButtons } = renderIsolated(
-        <Tabs items={testItems} activeTabId='tab1' />,
+        React.createElement(
+          AnyTabs,
+          { items: testItems, activeTabId: 'tab1' } as any,
+          null,
+        ),
       );
 
       const firstRenderButtons = getTabButtons();
 
-      rerender(<Tabs items={testItems} activeTabId='tab1' />);
+      rerender(
+        React.createElement(
+          AnyTabs,
+          { items: testItems, activeTabId: 'tab1' } as any,
+          null,
+        ),
+      );
 
       const secondRenderButtons = getTabButtons();
       // Проверяем что элементы те же (memo работает)
@@ -574,13 +681,23 @@ describe('Tabs', () => {
 
     it('перерендеривается при изменении activeTabId', () => {
       const { rerender, getTabButtons } = renderIsolated(
-        <Tabs items={testItems} activeTabId='tab1' />,
+        React.createElement(
+          AnyTabs,
+          { items: testItems, activeTabId: 'tab1' } as any,
+          null,
+        ),
       );
 
       const firstRenderButtons = getTabButtons();
       expect(firstRenderButtons[0]).toHaveAttribute('aria-selected', 'true');
 
-      rerender(<Tabs items={testItems} activeTabId='tab2' />);
+      rerender(
+        React.createElement(
+          AnyTabs,
+          { items: testItems, activeTabId: 'tab2' } as any,
+          null,
+        ),
+      );
 
       const secondRenderButtons = getTabButtons();
       expect(secondRenderButtons[0]).toHaveAttribute('aria-selected', 'false');

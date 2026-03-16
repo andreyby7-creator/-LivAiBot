@@ -40,14 +40,18 @@ function renderIsolated(component: Readonly<React.ReactElement>) {
 describe('Avatar', () => {
   describe('1.1. Рендер без падений', () => {
     it('рендерится с обязательными пропсами', () => {
-      const { container, getAvatar } = renderIsolated(<Avatar alt='Test User' />);
+      const { container, getAvatar } = renderIsolated(
+        React.createElement(Avatar, { alt: 'Test User' }),
+      );
 
       expect(container).toBeInTheDocument();
       expect(getAvatar()).toBeInTheDocument();
     });
 
     it('создает div элемент с правильными атрибутами по умолчанию', () => {
-      const { getAvatar } = renderIsolated(<Avatar alt='Test User' />);
+      const { getAvatar } = renderIsolated(
+        React.createElement(Avatar, { alt: 'Test User' }),
+      );
 
       const avatar = getAvatar();
       expect(avatar).toBeInTheDocument();
@@ -61,7 +65,9 @@ describe('Avatar', () => {
 
   describe('1.2. Src и изображение', () => {
     it('рендерит img элемент когда src передан', () => {
-      const { getImage } = renderIsolated(<Avatar src='/test.jpg' alt='Test User' />);
+      const { getImage } = renderIsolated(
+        React.createElement(Avatar, { src: '/test.jpg', alt: 'Test User' }),
+      );
 
       const img = getImage();
       expect(img).toBeInTheDocument();
@@ -71,15 +77,53 @@ describe('Avatar', () => {
       expect(img).toHaveAttribute('decoding', 'async');
     });
 
+    it('применяет числовые размеры imageWidth и imageHeight в px', () => {
+      const { getImage } = renderIsolated(
+        React.createElement(Avatar, {
+          src: '/test.jpg',
+          alt: 'Test User',
+          imageWidth: 80,
+          imageHeight: 40,
+        }),
+      );
+
+      const img = getImage();
+      expect(img).toBeInTheDocument();
+      expect(img?.style.width).toBe('80px');
+      expect(img?.style.height).toBe('40px');
+    });
+
+    it('применяет строковые размеры imageWidth и imageHeight как есть', () => {
+      const { getImage } = renderIsolated(
+        React.createElement(Avatar, {
+          src: '/test.jpg',
+          alt: 'Test User',
+          imageWidth: '50%',
+          imageHeight: 'auto',
+        }),
+      );
+
+      const img = getImage();
+      expect(img).toBeInTheDocument();
+      expect(img?.style.width).toBe('50%');
+      expect(img?.style.height).toBe('auto');
+    });
+
     it('не рендерит img элемент когда src не передан', () => {
-      const { getImage } = renderIsolated(<Avatar alt='Test User' />);
+      const { getImage } = renderIsolated(
+        React.createElement(Avatar, { alt: 'Test User' }),
+      );
 
       expect(getImage()).not.toBeInTheDocument();
     });
 
     it('применяет objectFit к img', () => {
       const { getImage } = renderIsolated(
-        <Avatar src='/test.jpg' alt='Test User' objectFit='contain' />,
+        React.createElement(Avatar, {
+          src: '/test.jpg',
+          alt: 'Test User',
+          objectFit: 'contain',
+        }),
       );
 
       const img = getImage();
@@ -90,7 +134,9 @@ describe('Avatar', () => {
 
   describe('1.3. Размеры (size)', () => {
     it('применяет размер по умолчанию', () => {
-      const { getAvatar } = renderIsolated(<Avatar alt='Test User' />);
+      const { getAvatar } = renderIsolated(
+        React.createElement(Avatar, { alt: 'Test User' }),
+      );
 
       const avatar = getAvatar();
       // @ts-expect-error - DOM element has style property
@@ -105,7 +151,9 @@ describe('Avatar', () => {
       [48, '48px'],
       [64, '64px'],
     ])('применяет типизированный размер %ipx', (size, expected) => {
-      const { getAvatar } = renderIsolated(<Avatar alt='Test User' size={size as AvatarSize} />);
+      const { getAvatar } = renderIsolated(
+        React.createElement(Avatar, { alt: 'Test User', size: size as AvatarSize }),
+      );
 
       const avatar = getAvatar();
       expect((avatar as HTMLElement).style.width).toBe(expected);
@@ -113,7 +161,9 @@ describe('Avatar', () => {
     });
 
     it('использует размер по умолчанию для невалидного size', () => {
-      const { getAvatar } = renderIsolated(<Avatar alt='Test User' size={999 as any} />);
+      const { getAvatar } = renderIsolated(
+        React.createElement(Avatar, { alt: 'Test User', size: 999 as any }),
+      );
 
       const avatar = getAvatar();
       // @ts-expect-error - DOM element has style property
@@ -125,7 +175,9 @@ describe('Avatar', () => {
 
   describe('1.4. Цвета и стили', () => {
     it('применяет bgColor когда src не передан', () => {
-      const { getAvatar } = renderIsolated(<Avatar alt='Test User' bgColor='#FF0000' />);
+      const { getAvatar } = renderIsolated(
+        React.createElement(Avatar, { alt: 'Test User', bgColor: '#FF0000' }),
+      );
 
       const avatar = getAvatar();
       expect((avatar as HTMLElement).style.backgroundColor).toBe('rgb(255, 0, 0)');
@@ -133,7 +185,11 @@ describe('Avatar', () => {
 
     it('не применяет bgColor когда src передан', () => {
       const { getAvatar } = renderIsolated(
-        <Avatar src='/test.jpg' alt='Test User' bgColor='#FF0000' />,
+        React.createElement(Avatar, {
+          src: '/test.jpg',
+          alt: 'Test User',
+          bgColor: '#FF0000',
+        }),
       );
 
       const avatar = getAvatar();
@@ -141,14 +197,18 @@ describe('Avatar', () => {
     });
 
     it('применяет theme token по умолчанию для bgColor', () => {
-      const { getAvatar } = renderIsolated(<Avatar alt='Test User' />);
+      const { getAvatar } = renderIsolated(
+        React.createElement(Avatar, { alt: 'Test User' }),
+      );
 
       const avatar = getAvatar();
       expect((avatar as HTMLElement).style.backgroundColor).toBe('var(--avatar-bg, #E5E7EB)');
     });
 
     it('применяет fallbackTextColor по умолчанию', () => {
-      const { getFallbackSpan } = renderIsolated(<Avatar alt='Test User' />);
+      const { getFallbackSpan } = renderIsolated(
+        React.createElement(Avatar, { alt: 'Test User' }),
+      );
 
       const span = getFallbackSpan();
       expect(span).toBeInTheDocument();
@@ -158,7 +218,10 @@ describe('Avatar', () => {
 
     it('применяет кастомный fallbackTextColor', () => {
       const { getFallbackSpan } = renderIsolated(
-        <Avatar alt='Test User' fallbackTextColor='#000000' />,
+        React.createElement(Avatar, {
+          alt: 'Test User',
+          fallbackTextColor: '#000000',
+        }),
       );
 
       const span = getFallbackSpan();
@@ -170,7 +233,9 @@ describe('Avatar', () => {
 
   describe('1.5. Fallback инициалы', () => {
     it('генерирует инициалы из alt по умолчанию', () => {
-      const { getFallbackSpan } = renderIsolated(<Avatar alt='John Doe' />);
+      const { getFallbackSpan } = renderIsolated(
+        React.createElement(Avatar, { alt: 'John Doe' }),
+      );
 
       const span = getFallbackSpan();
       expect(span).toBeInTheDocument();
@@ -178,7 +243,9 @@ describe('Avatar', () => {
     });
 
     it('использует fallbackText вместо генерации из alt', () => {
-      const { getFallbackSpan } = renderIsolated(<Avatar alt='John Doe' fallbackText='XX' />);
+      const { getFallbackSpan } = renderIsolated(
+        React.createElement(Avatar, { alt: 'John Doe', fallbackText: 'XX' }),
+      );
 
       const span = getFallbackSpan();
       expect(span).toBeInTheDocument();
@@ -186,13 +253,17 @@ describe('Avatar', () => {
     });
 
     it('не рендерит fallback когда src передан', () => {
-      const { getFallbackSpan } = renderIsolated(<Avatar src='/test.jpg' alt='Test User' />);
+      const { getFallbackSpan } = renderIsolated(
+        React.createElement(Avatar, { src: '/test.jpg', alt: 'Test User' }),
+      );
 
       expect(getFallbackSpan()).not.toBeInTheDocument();
     });
 
     it('генерирует инициалы из многословного имени', () => {
-      const { getFallbackSpan } = renderIsolated(<Avatar alt='John Michael Doe' />);
+      const { getFallbackSpan } = renderIsolated(
+        React.createElement(Avatar, { alt: 'John Michael Doe' }),
+      );
 
       const span = getFallbackSpan();
       expect(span).toBeInTheDocument();
@@ -200,7 +271,9 @@ describe('Avatar', () => {
     });
 
     it('генерирует инициалы из односимвольного имени', () => {
-      const { getFallbackSpan } = renderIsolated(<Avatar alt='A' />);
+      const { getFallbackSpan } = renderIsolated(
+        React.createElement(Avatar, { alt: 'A' }),
+      );
 
       const span = getFallbackSpan();
       expect(span).toBeInTheDocument();
@@ -208,7 +281,9 @@ describe('Avatar', () => {
     });
 
     it('не рендерит fallback для пустого alt', () => {
-      const { getFallbackSpan } = renderIsolated(<Avatar alt='' />);
+      const { getFallbackSpan } = renderIsolated(
+        React.createElement(Avatar, { alt: '' }),
+      );
 
       expect(getFallbackSpan()).not.toBeInTheDocument();
     });
@@ -216,21 +291,27 @@ describe('Avatar', () => {
 
   describe('1.6. Accessibility', () => {
     it('применяет aria-label из alt', () => {
-      const { getAvatar } = renderIsolated(<Avatar alt='John Doe' />);
+      const { getAvatar } = renderIsolated(
+        React.createElement(Avatar, { alt: 'John Doe' }),
+      );
 
       const avatar = getAvatar();
       expect(avatar).toHaveAttribute('aria-label', 'John Doe');
     });
 
     it('применяет title из alt для tooltip', () => {
-      const { getAvatar } = renderIsolated(<Avatar alt='John Doe' />);
+      const { getAvatar } = renderIsolated(
+        React.createElement(Avatar, { alt: 'John Doe' }),
+      );
 
       const avatar = getAvatar();
       expect(avatar).toHaveAttribute('title', 'John Doe');
     });
 
     it('fallback span имеет aria-hidden', () => {
-      const { getFallbackSpan } = renderIsolated(<Avatar alt='Test User' />);
+      const { getFallbackSpan } = renderIsolated(
+        React.createElement(Avatar, { alt: 'Test User' }),
+      );
 
       const span = getFallbackSpan();
       expect(span).toHaveAttribute('aria-hidden', 'true');
@@ -239,21 +320,30 @@ describe('Avatar', () => {
 
   describe('1.7. Проп forwarding', () => {
     it('передает className', () => {
-      const { getAvatar } = renderIsolated(<Avatar alt='Test User' className='custom-class' />);
+      const { getAvatar } = renderIsolated(
+        React.createElement(Avatar, { alt: 'Test User', className: 'custom-class' }),
+      );
 
       const avatar = getAvatar();
       expect(avatar).toHaveClass('custom-class');
     });
 
     it('передает data-testid', () => {
-      const { getAvatar } = renderIsolated(<Avatar alt='Test User' data-testid='avatar-test' />);
+      const { getAvatar } = renderIsolated(
+        React.createElement(Avatar, {
+          alt: 'Test User',
+          'data-testid': 'avatar-test',
+        }),
+      );
 
       const avatar = getAvatar();
       expect(avatar).toHaveAttribute('data-testid', 'avatar-test');
     });
 
     it('передает другие HTML атрибуты', () => {
-      const { getAvatar } = renderIsolated(<Avatar alt='Test User' id='test-id' />);
+      const { getAvatar } = renderIsolated(
+        React.createElement(Avatar, { alt: 'Test User', id: 'test-id' }),
+      );
 
       const avatar = getAvatar();
       expect(avatar).toHaveAttribute('id', 'test-id');
@@ -262,7 +352,9 @@ describe('Avatar', () => {
 
   describe('1.8. Font size расчет', () => {
     it('рассчитывает fontSize для разных размеров', () => {
-      const { getFallbackSpan } = renderIsolated(<Avatar alt='Test User' size={48} />);
+      const { getFallbackSpan } = renderIsolated(
+        React.createElement(Avatar, { alt: 'Test User', size: 48 }),
+      );
 
       const span = getFallbackSpan();
       expect(span).toBeInTheDocument();
@@ -272,7 +364,9 @@ describe('Avatar', () => {
     });
 
     it('применяет MIN_FONT_SIZE для маленьких аватаров', () => {
-      const { getFallbackSpan } = renderIsolated(<Avatar alt='Test User' size={24} />);
+      const { getFallbackSpan } = renderIsolated(
+        React.createElement(Avatar, { alt: 'Test User', size: 24 }),
+      );
 
       const span = getFallbackSpan();
       expect(span).toBeInTheDocument();
@@ -284,7 +378,9 @@ describe('Avatar', () => {
 
   describe('1.9. Position relative', () => {
     it('применяет position relative для корректного позиционирования fallback', () => {
-      const { getAvatar } = renderIsolated(<Avatar alt='Test User' />);
+      const { getAvatar } = renderIsolated(
+        React.createElement(Avatar, { alt: 'Test User' }),
+      );
 
       const avatar = getAvatar();
       expect((avatar as HTMLElement).style.position).toBe('relative');
@@ -293,7 +389,9 @@ describe('Avatar', () => {
 
   describe('1.10. Edge cases', () => {
     it('работает с null alt', () => {
-      const { getAvatar, getFallbackSpan } = renderIsolated(<Avatar alt={null} />);
+      const { getAvatar, getFallbackSpan } = renderIsolated(
+        React.createElement(Avatar, { alt: null }),
+      );
 
       const avatar = getAvatar();
       expect(avatar).toHaveAttribute('aria-label', 'avatar');
@@ -304,7 +402,9 @@ describe('Avatar', () => {
     });
 
     it('работает с undefined alt', () => {
-      const { getAvatar, getFallbackSpan } = renderIsolated(<Avatar />);
+      const { getAvatar, getFallbackSpan } = renderIsolated(
+        React.createElement(Avatar, {}),
+      );
 
       const avatar = getAvatar();
       expect(avatar).toHaveAttribute('aria-label', 'avatar');
@@ -315,7 +415,12 @@ describe('Avatar', () => {
     });
 
     it('fallbackText переопределяет генерацию из alt', () => {
-      const { getFallbackSpan } = renderIsolated(<Avatar alt='John Doe' fallbackText='CUSTOM' />);
+      const { getFallbackSpan } = renderIsolated(
+        React.createElement(Avatar, {
+          alt: 'John Doe',
+          fallbackText: 'CUSTOM',
+        }),
+      );
 
       const span = getFallbackSpan();
       expect(span).toBeInTheDocument();
@@ -325,20 +430,24 @@ describe('Avatar', () => {
 
   describe('1.11. Render stability', () => {
     it('компонент стабилен при перерендере', () => {
-      const { rerender, container } = render(<Avatar alt='Test User' />);
+      const { rerender, container } = render(
+        React.createElement(Avatar, { alt: 'Test User' }),
+      );
       const avatar1 = container.querySelector('div[data-component="CoreAvatar"]');
 
-      rerender(<Avatar alt='Test User' />);
+      rerender(React.createElement(Avatar, { alt: 'Test User' }));
       const avatar2 = container.querySelector('div[data-component="CoreAvatar"]');
 
       expect(avatar1).toBe(avatar2);
     });
 
     it('стили стабильны при перерендере', () => {
-      const { rerender, container } = render(<Avatar alt='Test User' size={48} />);
+      const { rerender, container } = render(
+        React.createElement(Avatar, { alt: 'Test User', size: 48 }),
+      );
       const avatar1 = container.querySelector('div[data-component="CoreAvatar"]')!;
 
-      rerender(<Avatar alt='Test User' size={48} />);
+      rerender(React.createElement(Avatar, { alt: 'Test User', size: 48 }));
       const avatar2 = container.querySelector('div[data-component="CoreAvatar"]')!;
 
       expect((avatar1 as HTMLElement).style.width).toBe((avatar2 as HTMLElement).style.width);

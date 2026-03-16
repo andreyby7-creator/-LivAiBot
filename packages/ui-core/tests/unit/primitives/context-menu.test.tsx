@@ -15,6 +15,9 @@ import '@testing-library/jest-dom/vitest';
 // Полная очистка DOM между тестами
 afterEach(cleanup);
 
+// Для целей тестов ослабляем типизацию пропсов ContextMenu
+const AnyContextMenu = ContextMenu as any;
+
 // Функция для изолированного рендера
 function renderIsolated(component: Readonly<React.ReactElement>) {
   const container = document.createElement('div');
@@ -93,7 +96,7 @@ describe('ContextMenu', () => {
     padding: '5px',
   };
 
-  const reactLabel = <span data-testid='react-label'>React Label</span>;
+  const reactLabel = React.createElement('span', { 'data-testid': 'react-label' }, 'React Label');
   const itemsWithReactLabel: readonly ContextMenuItem[] = [
     {
       id: 'item1',
@@ -131,7 +134,7 @@ describe('ContextMenu', () => {
   describe('1.1. Рендер без падений', () => {
     it('рендерится с обязательными пропсами', () => {
       const { container, getContextMenu } = renderIsolated(
-        <ContextMenu items={testItems} />,
+        React.createElement(AnyContextMenu, { items: testItems }),
       );
 
       expect(container).toBeInTheDocument();
@@ -140,7 +143,7 @@ describe('ContextMenu', () => {
 
     it('создает div элемент с правильными атрибутами по умолчанию', () => {
       const { getContextMenu, getMenu } = renderIsolated(
-        <ContextMenu items={testItems} />,
+        React.createElement(AnyContextMenu, { items: testItems }),
       );
 
       const contextMenu = getContextMenu();
@@ -161,7 +164,7 @@ describe('ContextMenu', () => {
   describe('1.2. Открытость меню (isOpen)', () => {
     it('по умолчанию isOpen=false, aria-hidden=true', () => {
       const { getContextMenu } = renderIsolated(
-        <ContextMenu items={testItems} />,
+        React.createElement(AnyContextMenu, { items: testItems }),
       );
 
       const contextMenu = getContextMenu();
@@ -172,7 +175,7 @@ describe('ContextMenu', () => {
 
     it('isOpen=true устанавливает aria-hidden=false и aria-expanded=true', () => {
       const { getContextMenu } = renderIsolated(
-        <ContextMenu items={testItems} isOpen />,
+        React.createElement(AnyContextMenu, { items: testItems, isOpen: true }),
       );
 
       const contextMenu = getContextMenu();
@@ -183,7 +186,7 @@ describe('ContextMenu', () => {
 
     it('isOpen=false устанавливает aria-hidden=true и aria-expanded=false', () => {
       const { getContextMenu } = renderIsolated(
-        <ContextMenu items={testItems} isOpen={false} />,
+        React.createElement(AnyContextMenu, { items: testItems, isOpen: false }),
       );
 
       const contextMenu = getContextMenu();
@@ -194,7 +197,7 @@ describe('ContextMenu', () => {
 
     it('aria-controls устанавливается корректно', () => {
       const { getContextMenu, getMenu } = renderIsolated(
-        <ContextMenu items={testItems} isOpen />,
+        React.createElement(AnyContextMenu, { items: testItems, isOpen: true }),
       );
 
       const contextMenu = getContextMenu();
@@ -205,13 +208,13 @@ describe('ContextMenu', () => {
 
     it('aria-controls обновляется при изменении isOpen', () => {
       const { getContextMenu, getMenu, rerender } = renderIsolated(
-        <ContextMenu items={testItems} isOpen={false} />,
+        React.createElement(AnyContextMenu, { items: testItems, isOpen: false }),
       );
 
       const menu = getMenu();
       const menuId = menu.id;
 
-      rerender(<ContextMenu items={testItems} isOpen />);
+      rerender(React.createElement(AnyContextMenu, { items: testItems, isOpen: true }));
       const updatedContextMenu = getContextMenu();
       expect(updatedContextMenu).toHaveAttribute('aria-controls', menuId);
     });
@@ -220,7 +223,7 @@ describe('ContextMenu', () => {
   describe('1.3. Элементы меню (items)', () => {
     it('рендерит все элементы меню', () => {
       const { getMenuItems } = renderIsolated(
-        <ContextMenu items={testItems} isOpen />,
+        React.createElement(AnyContextMenu, { items: testItems, isOpen: true }),
       );
 
       const items = getMenuItems();
@@ -232,7 +235,7 @@ describe('ContextMenu', () => {
 
     it('обрабатывает пустой массив items', () => {
       const { getMenuItems } = renderIsolated(
-        <ContextMenu items={emptyItems} isOpen />,
+        React.createElement(AnyContextMenu, { items: emptyItems, isOpen: true }),
       );
 
       expect(getMenuItems()).toHaveLength(0);
@@ -240,7 +243,7 @@ describe('ContextMenu', () => {
 
     it('обрабатывает один элемент', () => {
       const { getMenuItems } = renderIsolated(
-        <ContextMenu items={singleItem} isOpen />,
+        React.createElement(AnyContextMenu, { items: singleItem, isOpen: true }),
       );
 
       expect(getMenuItems()).toHaveLength(1);
@@ -249,7 +252,7 @@ describe('ContextMenu', () => {
 
     it('рендерит ReactNode в label', () => {
       const { getByTestId } = renderIsolated(
-        <ContextMenu items={itemsWithReactLabel} isOpen />,
+        React.createElement(AnyContextMenu, { items: itemsWithReactLabel, isOpen: true }),
       );
 
       expect(getByTestId('react-label')).toBeInTheDocument();
@@ -257,7 +260,7 @@ describe('ContextMenu', () => {
 
     it('каждый элемент имеет уникальный id', () => {
       const { getMenuItems } = renderIsolated(
-        <ContextMenu items={testItems} isOpen />,
+        React.createElement(AnyContextMenu, { items: testItems, isOpen: true }),
       );
 
       const items = getMenuItems();
@@ -268,7 +271,7 @@ describe('ContextMenu', () => {
 
     it('каждый элемент имеет data-item-id атрибут', () => {
       const { getMenuItems } = renderIsolated(
-        <ContextMenu items={testItems} isOpen />,
+        React.createElement(AnyContextMenu, { items: testItems, isOpen: true }),
       );
 
       const items = getMenuItems();
@@ -281,7 +284,7 @@ describe('ContextMenu', () => {
   describe('1.4. Disabled элементы', () => {
     it('disabled элементы имеют aria-disabled="true"', () => {
       const { getMenuItems } = renderIsolated(
-        <ContextMenu items={itemsWithDisabled} isOpen />,
+        React.createElement(AnyContextMenu, { items: itemsWithDisabled, isOpen: true }),
       );
 
       const items = getMenuItems();
@@ -292,7 +295,7 @@ describe('ContextMenu', () => {
 
     it('disabled элементы имеют tabIndex=-1', () => {
       const { getMenuItems } = renderIsolated(
-        <ContextMenu items={itemsWithDisabled} isOpen />,
+        React.createElement(AnyContextMenu, { items: itemsWithDisabled, isOpen: true }),
       );
 
       const items = getMenuItems();
@@ -303,7 +306,7 @@ describe('ContextMenu', () => {
 
     it('disabled элементы не имеют onClick handler', () => {
       const { getMenuItems } = renderIsolated(
-        <ContextMenu items={itemsWithDisabled} isOpen />,
+        React.createElement(AnyContextMenu, { items: itemsWithDisabled, isOpen: true }),
       );
 
       const items = Array.from(getMenuItems());
@@ -316,7 +319,7 @@ describe('ContextMenu', () => {
 
     it('disabled элементы не имеют onKeyDown handler', () => {
       const { getMenuItems } = renderIsolated(
-        <ContextMenu items={itemsWithDisabled} isOpen />,
+        React.createElement(AnyContextMenu, { items: itemsWithDisabled, isOpen: true }),
       );
 
       const items = Array.from(getMenuItems());
@@ -329,7 +332,7 @@ describe('ContextMenu', () => {
 
     it('обрабатывает все disabled элементы', () => {
       const { getMenuItems } = renderIsolated(
-        <ContextMenu items={allDisabledItems} isOpen />,
+        React.createElement(AnyContextMenu, { items: allDisabledItems, isOpen: true }),
       );
 
       const items = getMenuItems();
@@ -342,7 +345,7 @@ describe('ContextMenu', () => {
   describe('1.5. Dividers', () => {
     it('рендерит dividers как separators', () => {
       const { getMenuSeparators } = renderIsolated(
-        <ContextMenu items={itemsWithDividers} isOpen />,
+        React.createElement(AnyContextMenu, { items: itemsWithDividers, isOpen: true }),
       );
 
       const separators = getMenuSeparators();
@@ -353,7 +356,7 @@ describe('ContextMenu', () => {
 
     it('dividers имеют aria-orientation="horizontal"', () => {
       const { getMenuSeparators } = renderIsolated(
-        <ContextMenu items={itemsWithDividers} isOpen />,
+        React.createElement(AnyContextMenu, { items: itemsWithDividers, isOpen: true }),
       );
 
       const separators = getMenuSeparators();
@@ -363,7 +366,7 @@ describe('ContextMenu', () => {
 
     it('обрабатывает только dividers', () => {
       const { getMenuItems, getMenuSeparators } = renderIsolated(
-        <ContextMenu items={onlyDividersItems} isOpen />,
+        React.createElement(AnyContextMenu, { items: onlyDividersItems, isOpen: true }),
       );
 
       expect(getMenuItems()).toHaveLength(0);
@@ -374,7 +377,7 @@ describe('ContextMenu', () => {
   describe('1.6. Data атрибуты элементов', () => {
     it('прокидывает data атрибуты из item.data', () => {
       const { getMenuItems } = renderIsolated(
-        <ContextMenu items={itemsWithData} isOpen />,
+        React.createElement(AnyContextMenu, { items: itemsWithData, isOpen: true }),
       );
 
       const items = getMenuItems();
@@ -386,7 +389,11 @@ describe('ContextMenu', () => {
   describe('1.7. Component ID', () => {
     it('data-component-id используется для генерации menuId', () => {
       const { getMenu } = renderIsolated(
-        <ContextMenu items={testItems} isOpen data-component-id='custom-id' />,
+        React.createElement(AnyContextMenu, {
+          items: testItems,
+          isOpen: true,
+          'data-component-id': 'custom-id',
+        }),
       );
 
       const menu = getMenu();
@@ -395,7 +402,7 @@ describe('ContextMenu', () => {
 
     it('menuId генерируется автоматически если data-component-id не указан', () => {
       const { getMenu } = renderIsolated(
-        <ContextMenu items={testItems} isOpen />,
+        React.createElement(AnyContextMenu, { items: testItems, isOpen: true }),
       );
 
       const menu = getMenu();
@@ -405,7 +412,11 @@ describe('ContextMenu', () => {
 
     it('aria-labelledby устанавливается если data-component-id указан', () => {
       const { getMenu } = renderIsolated(
-        <ContextMenu items={testItems} isOpen data-component-id='custom-id' />,
+        React.createElement(AnyContextMenu, {
+          items: testItems,
+          isOpen: true,
+          'data-component-id': 'custom-id',
+        }),
       );
 
       const menu = getMenu();
@@ -414,7 +425,7 @@ describe('ContextMenu', () => {
 
     it('aria-labelledby не устанавливается если data-component-id не указан', () => {
       const { getMenu } = renderIsolated(
-        <ContextMenu items={testItems} isOpen />,
+        React.createElement(AnyContextMenu, { items: testItems, isOpen: true }),
       );
 
       const menu = getMenu();
@@ -425,7 +436,10 @@ describe('ContextMenu', () => {
   describe('1.8. Test ID', () => {
     it('data-testid устанавливается корректно', () => {
       const { getContextMenu } = renderIsolated(
-        <ContextMenu items={testItems} data-testid='test-context-menu' />,
+        React.createElement(
+          AnyContextMenu,
+          { items: testItems, 'data-testid': 'test-context-menu' },
+        ),
       );
 
       expect(getContextMenu()).toHaveAttribute('data-testid', 'test-context-menu');
@@ -435,7 +449,7 @@ describe('ContextMenu', () => {
   describe('1.9. HTML атрибуты', () => {
     it('прокидывает className', () => {
       const { getContextMenu } = renderIsolated(
-        <ContextMenu items={testItems} className='custom-class' />,
+        React.createElement(AnyContextMenu, { items: testItems, className: 'custom-class' }),
       );
 
       expect(getContextMenu()).toHaveClass('custom-class');
@@ -443,7 +457,7 @@ describe('ContextMenu', () => {
 
     it('прокидывает style', () => {
       const { getContextMenu } = renderIsolated(
-        <ContextMenu items={testItems} style={customStyle} />,
+        React.createElement(AnyContextMenu, { items: testItems, style: customStyle }),
       );
 
       const contextMenu = getContextMenu();
@@ -452,7 +466,10 @@ describe('ContextMenu', () => {
 
     it('прокидывает другие HTML атрибуты', () => {
       const { getContextMenu } = renderIsolated(
-        <ContextMenu items={testItems} id='custom-id' title='Custom title' />,
+        React.createElement(
+          AnyContextMenu,
+          { items: testItems, id: 'custom-id', title: 'Custom title' },
+        ),
       );
 
       const contextMenu = getContextMenu();
@@ -465,7 +482,7 @@ describe('ContextMenu', () => {
     it('onSelect вызывается при клике на элемент', () => {
       const onSelect = vi.fn();
       const { getMenuItems } = renderIsolated(
-        <ContextMenu items={testItems} isOpen onSelect={onSelect} />,
+        React.createElement(AnyContextMenu, { items: testItems, isOpen: true, onSelect }),
       );
 
       const items = Array.from(getMenuItems());
@@ -480,7 +497,7 @@ describe('ContextMenu', () => {
     it('onSelect вызывается с правильным itemId', () => {
       const onSelect = vi.fn();
       const { getMenuItems } = renderIsolated(
-        <ContextMenu items={testItems} isOpen onSelect={onSelect} />,
+        React.createElement(AnyContextMenu, { items: testItems, isOpen: true, onSelect }),
       );
 
       const items = Array.from(getMenuItems());
@@ -494,7 +511,11 @@ describe('ContextMenu', () => {
     it('onSelect не вызывается для disabled элементов', () => {
       const onSelect = vi.fn();
       const { getMenuItems } = renderIsolated(
-        <ContextMenu items={itemsWithDisabled} isOpen onSelect={onSelect} />,
+        React.createElement(AnyContextMenu, {
+          items: itemsWithDisabled,
+          isOpen: true,
+          onSelect,
+        }),
       );
 
       const items = Array.from(getMenuItems());
@@ -508,7 +529,7 @@ describe('ContextMenu', () => {
     it('preventDefault и stopPropagation вызываются при клике', () => {
       const onSelect = vi.fn();
       const { getMenuItems } = renderIsolated(
-        <ContextMenu items={testItems} isOpen onSelect={onSelect} />,
+        React.createElement(AnyContextMenu, { items: testItems, isOpen: true, onSelect }),
       );
 
       const items = Array.from(getMenuItems());
@@ -532,7 +553,7 @@ describe('ContextMenu', () => {
     it('Enter вызывает onSelect', () => {
       const onSelect = vi.fn();
       const { getMenuItems } = renderIsolated(
-        <ContextMenu items={testItems} isOpen onSelect={onSelect} />,
+        React.createElement(AnyContextMenu, { items: testItems, isOpen: true, onSelect }),
       );
 
       const items = Array.from(getMenuItems());
@@ -547,7 +568,7 @@ describe('ContextMenu', () => {
     it('Space вызывает onSelect', () => {
       const onSelect = vi.fn();
       const { getMenuItems } = renderIsolated(
-        <ContextMenu items={testItems} isOpen onSelect={onSelect} />,
+        React.createElement(AnyContextMenu, { items: testItems, isOpen: true, onSelect }),
       );
 
       const items = Array.from(getMenuItems());
@@ -562,7 +583,7 @@ describe('ContextMenu', () => {
     it('Escape вызывает onEscape', () => {
       const onEscape = vi.fn();
       const { getMenuItems } = renderIsolated(
-        <ContextMenu items={testItems} isOpen onEscape={onEscape} />,
+        React.createElement(AnyContextMenu, { items: testItems, isOpen: true, onEscape }),
       );
 
       const items = Array.from(getMenuItems());
@@ -577,7 +598,11 @@ describe('ContextMenu', () => {
     it('ArrowDown вызывает onArrowNavigation с direction="down"', () => {
       const onArrowNavigation = vi.fn();
       const { getMenuItems } = renderIsolated(
-        <ContextMenu items={testItems} isOpen onArrowNavigation={onArrowNavigation} />,
+        React.createElement(AnyContextMenu, {
+          items: testItems,
+          isOpen: true,
+          onArrowNavigation,
+        }),
       );
 
       const items = Array.from(getMenuItems());
@@ -592,7 +617,11 @@ describe('ContextMenu', () => {
     it('ArrowUp вызывает onArrowNavigation с direction="up"', () => {
       const onArrowNavigation = vi.fn();
       const { getMenuItems } = renderIsolated(
-        <ContextMenu items={testItems} isOpen onArrowNavigation={onArrowNavigation} />,
+        React.createElement(AnyContextMenu, {
+          items: testItems,
+          isOpen: true,
+          onArrowNavigation,
+        }),
       );
 
       const items = Array.from(getMenuItems());
@@ -608,7 +637,12 @@ describe('ContextMenu', () => {
       const onSelect = vi.fn();
       const onEscape = vi.fn();
       const { getMenuItems } = renderIsolated(
-        <ContextMenu items={testItems} isOpen onSelect={onSelect} onEscape={onEscape} />,
+        React.createElement(AnyContextMenu, {
+          items: testItems,
+          isOpen: true,
+          onSelect,
+          onEscape,
+        }),
       );
 
       const items = Array.from(getMenuItems());
@@ -649,13 +683,13 @@ describe('ContextMenu', () => {
       const onEscape = vi.fn();
       const onArrowNavigation = vi.fn();
       const { getMenuItems } = renderIsolated(
-        <ContextMenu
-          items={testItems}
-          isOpen
-          onSelect={onSelect}
-          onEscape={onEscape}
-          onArrowNavigation={onArrowNavigation}
-        />,
+        React.createElement(AnyContextMenu, {
+          items: testItems,
+          isOpen: true,
+          onSelect,
+          onEscape,
+          onArrowNavigation,
+        }),
       );
 
       const items = Array.from(getMenuItems());
@@ -686,7 +720,11 @@ describe('ContextMenu', () => {
     it('preventDefault НЕ вызывается для ArrowUp/ArrowDown', () => {
       const onArrowNavigation = vi.fn();
       const { getMenuItems } = renderIsolated(
-        <ContextMenu items={testItems} isOpen onArrowNavigation={onArrowNavigation} />,
+        React.createElement(AnyContextMenu, {
+          items: testItems,
+          isOpen: true,
+          onArrowNavigation,
+        }),
       );
 
       const items = Array.from(getMenuItems());
@@ -719,13 +757,13 @@ describe('ContextMenu', () => {
       const onEscape = vi.fn();
       const onArrowNavigation = vi.fn();
       const { getMenuItems } = renderIsolated(
-        <ContextMenu
-          items={testItems}
-          isOpen
-          onSelect={onSelect}
-          onEscape={onEscape}
-          onArrowNavigation={onArrowNavigation}
-        />,
+        React.createElement(AnyContextMenu, {
+          items: testItems,
+          isOpen: true,
+          onSelect,
+          onEscape,
+          onArrowNavigation,
+        }),
       );
 
       const items = Array.from(getMenuItems());
@@ -743,7 +781,11 @@ describe('ContextMenu', () => {
     it('onSelect не вызывается для disabled элементов при Enter/Space', () => {
       const onSelect = vi.fn();
       const { getMenuItems } = renderIsolated(
-        <ContextMenu items={itemsWithDisabled} isOpen onSelect={onSelect} />,
+        React.createElement(AnyContextMenu, {
+          items: itemsWithDisabled,
+          isOpen: true,
+          onSelect,
+        }),
       );
 
       const items = Array.from(getMenuItems());
@@ -757,7 +799,7 @@ describe('ContextMenu', () => {
 
     it('не падает если onSelect не определен при клике', () => {
       const { getMenuItems } = renderIsolated(
-        <ContextMenu items={testItems} isOpen />,
+        React.createElement(AnyContextMenu, { items: testItems, isOpen: true }),
       );
 
       const items = Array.from(getMenuItems());
@@ -771,7 +813,7 @@ describe('ContextMenu', () => {
 
     it('не падает если onSelect не определен при Enter/Space', () => {
       const { getMenuItems } = renderIsolated(
-        <ContextMenu items={testItems} isOpen />,
+        React.createElement(AnyContextMenu, { items: testItems, isOpen: true }),
       );
 
       const items = Array.from(getMenuItems());
@@ -786,7 +828,7 @@ describe('ContextMenu', () => {
 
     it('не падает если onEscape не определен при Escape', () => {
       const { getMenuItems } = renderIsolated(
-        <ContextMenu items={testItems} isOpen />,
+        React.createElement(AnyContextMenu, { items: testItems, isOpen: true }),
       );
 
       const items = Array.from(getMenuItems());
@@ -800,7 +842,7 @@ describe('ContextMenu', () => {
 
     it('не падает если onArrowNavigation не определен при ArrowUp/ArrowDown', () => {
       const { getMenuItems } = renderIsolated(
-        <ContextMenu items={testItems} isOpen />,
+        React.createElement(AnyContextMenu, { items: testItems, isOpen: true }),
       );
 
       const items = Array.from(getMenuItems());
@@ -818,7 +860,7 @@ describe('ContextMenu', () => {
     it('menuRef обновляется с объектом ContextMenuRef', async () => {
       const menuRef = React.createRef<ContextMenuRef>();
       renderIsolated(
-        <ContextMenu items={testItems} isOpen menuRef={menuRef} />,
+        React.createElement(AnyContextMenu, { items: testItems, isOpen: true, menuRef }),
       );
 
       await waitFor(() => {
@@ -833,7 +875,11 @@ describe('ContextMenu', () => {
     it('menuRef.items содержит только доступные элементы (без disabled)', async () => {
       const menuRef = React.createRef<ContextMenuRef>();
       renderIsolated(
-        <ContextMenu items={itemsWithDisabled} isOpen menuRef={menuRef} />,
+        React.createElement(AnyContextMenu, {
+          items: itemsWithDisabled,
+          isOpen: true,
+          menuRef,
+        }),
       );
 
       await waitFor(() => {
@@ -850,7 +896,11 @@ describe('ContextMenu', () => {
     it('menuRef.items не содержит dividers', async () => {
       const menuRef = React.createRef<ContextMenuRef>();
       renderIsolated(
-        <ContextMenu items={itemsWithDividers} isOpen menuRef={menuRef} />,
+        React.createElement(AnyContextMenu, {
+          items: itemsWithDividers,
+          isOpen: true,
+          menuRef,
+        }),
       );
 
       await waitFor(() => {
@@ -865,7 +915,7 @@ describe('ContextMenu', () => {
     it('menuRef обновляется при изменении items', async () => {
       const menuRef = React.createRef<ContextMenuRef>();
       const { rerender } = renderIsolated(
-        <ContextMenu items={testItems} isOpen menuRef={menuRef} />,
+        React.createElement(AnyContextMenu, { items: testItems, isOpen: true, menuRef }),
       );
 
       await waitFor(() => {
@@ -875,7 +925,11 @@ describe('ContextMenu', () => {
         }
       });
 
-      rerender(<ContextMenu items={singleItem} isOpen menuRef={menuRef} />);
+      rerender(React.createElement(AnyContextMenu, {
+        items: singleItem,
+        isOpen: true,
+        menuRef,
+      }));
 
       await waitFor(() => {
         expect(menuRef.current).not.toBeNull();
@@ -888,7 +942,11 @@ describe('ContextMenu', () => {
     it('menuRef работает с callback ref', async () => {
       menuRefCallbackValue = null;
       renderIsolated(
-        <ContextMenu items={testItems} isOpen menuRef={menuRefCallback} />,
+        React.createElement(AnyContextMenu, {
+          items: testItems,
+          isOpen: true,
+          menuRef: menuRefCallback,
+        }),
       );
 
       await waitFor(() => {
@@ -902,7 +960,7 @@ describe('ContextMenu', () => {
 
     it('menuRef не обновляется если menuRef не передан', () => {
       renderIsolated(
-        <ContextMenu items={testItems} isOpen />,
+        React.createElement(AnyContextMenu, { items: testItems, isOpen: true }),
       );
 
       // Не должно быть ошибок
@@ -912,7 +970,11 @@ describe('ContextMenu', () => {
     it('menuRef обновляется даже при isOpen=false (ul всегда в DOM)', async () => {
       const menuRef = React.createRef<ContextMenuRef>();
       renderIsolated(
-        <ContextMenu items={testItems} isOpen={false} menuRef={menuRef} />,
+        React.createElement(AnyContextMenu, {
+          items: testItems,
+          isOpen: false,
+          menuRef,
+        }),
       );
 
       // ul всегда рендерится, просто с aria-hidden
@@ -925,7 +987,7 @@ describe('ContextMenu', () => {
     it('menuRef обновляется через объект ref (createRef)', async () => {
       const menuRef = React.createRef<ContextMenuRef>();
       renderIsolated(
-        <ContextMenu items={testItems} isOpen menuRef={menuRef} />,
+        React.createElement(AnyContextMenu, { items: testItems, isOpen: true, menuRef }),
       );
 
       await waitFor(() => {
@@ -942,7 +1004,7 @@ describe('ContextMenu', () => {
     it('ref прокидывается на div элемент', () => {
       const ref = React.createRef<HTMLDivElement>();
       const { getContextMenu } = renderIsolated(
-        <ContextMenu items={testItems} ref={ref} />,
+        React.createElement(AnyContextMenu, { items: testItems, ref }, null),
       );
 
       expect(ref.current).not.toBeNull();
@@ -952,7 +1014,7 @@ describe('ContextMenu', () => {
     it('ref работает с callback ref', () => {
       refCallbackValue = null;
       const { getContextMenu } = renderIsolated(
-        <ContextMenu items={testItems} ref={refCallback} />,
+        React.createElement(AnyContextMenu, { items: testItems, ref: refCallback }, null),
       );
 
       expect(refCallbackValue).not.toBeNull();
@@ -978,7 +1040,7 @@ describe('ContextMenu', () => {
       }));
 
       const { getMenuItems } = renderIsolated(
-        <ContextMenu items={manyItems} isOpen />,
+        React.createElement(AnyContextMenu, { items: manyItems, isOpen: true }),
       );
 
       expect(getMenuItems()).toHaveLength(100);
@@ -986,7 +1048,7 @@ describe('ContextMenu', () => {
 
     it('обрабатывает элементы с пустым label', () => {
       const { getMenuItems } = renderIsolated(
-        <ContextMenu items={itemsWithEmptyLabel} isOpen />,
+        React.createElement(AnyContextMenu, { items: itemsWithEmptyLabel, isOpen: true }),
       );
 
       const items = getMenuItems();
@@ -998,7 +1060,7 @@ describe('ContextMenu', () => {
     it('обрабатывает элементы с одинаковыми id (не должно быть, но компонент должен не упасть)', () => {
       // Используем React.createElement чтобы избежать React warning о duplicate keys
       expect(() => {
-        React.createElement(ContextMenu, {
+        React.createElement(AnyContextMenu, {
           items: itemsWithDuplicateIds,
           isOpen: true,
         });
@@ -1007,29 +1069,29 @@ describe('ContextMenu', () => {
 
     it('обрабатывает быстрое изменение isOpen', () => {
       const { rerender, getContextMenu } = renderIsolated(
-        <ContextMenu items={testItems} isOpen={false} />,
+        React.createElement(AnyContextMenu, { items: testItems, isOpen: false }),
       );
 
       expect(getContextMenu()).toHaveAttribute('aria-hidden', 'true');
 
-      rerender(<ContextMenu items={testItems} isOpen />);
+      rerender(React.createElement(AnyContextMenu, { items: testItems, isOpen: true }));
       expect(getContextMenu()).toHaveAttribute('aria-hidden', 'false');
 
-      rerender(<ContextMenu items={testItems} isOpen={false} />);
+      rerender(React.createElement(AnyContextMenu, { items: testItems, isOpen: false }));
       expect(getContextMenu()).toHaveAttribute('aria-hidden', 'true');
     });
 
     it('обрабатывает быстрое изменение items', () => {
       const { rerender, getMenuItems } = renderIsolated(
-        <ContextMenu items={testItems} isOpen />,
+        React.createElement(AnyContextMenu, { items: testItems, isOpen: true }),
       );
 
       expect(getMenuItems()).toHaveLength(3);
 
-      rerender(<ContextMenu items={singleItem} isOpen />);
+      rerender(React.createElement(AnyContextMenu, { items: singleItem, isOpen: true }));
       expect(getMenuItems()).toHaveLength(1);
 
-      rerender(<ContextMenu items={testItems} isOpen />);
+      rerender(React.createElement(AnyContextMenu, { items: testItems, isOpen: true }));
       expect(getMenuItems()).toHaveLength(3);
     });
   });
@@ -1037,7 +1099,7 @@ describe('ContextMenu', () => {
   describe('7.1. Стили', () => {
     it('применяет базовые стили контейнера', () => {
       const { getContextMenu } = renderIsolated(
-        <ContextMenu items={testItems} />,
+        React.createElement(AnyContextMenu, { items: testItems }),
       );
 
       const contextMenu = getContextMenu();
@@ -1048,7 +1110,7 @@ describe('ContextMenu', () => {
 
     it('применяет кастомные стили через style prop', () => {
       const { getContextMenu } = renderIsolated(
-        <ContextMenu items={testItems} style={customStyle} />,
+        React.createElement(AnyContextMenu, { items: testItems, style: customStyle }),
       );
 
       const contextMenu = getContextMenu();
@@ -1057,7 +1119,7 @@ describe('ContextMenu', () => {
 
     it('кастомные стили переопределяют базовые', () => {
       const { getContextMenu } = renderIsolated(
-        <ContextMenu items={testItems} style={overrideStyle} />,
+        React.createElement(AnyContextMenu, { items: testItems, style: overrideStyle }),
       );
 
       const contextMenu = getContextMenu();

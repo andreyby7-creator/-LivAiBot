@@ -11,6 +11,8 @@ import { Toast } from '@livai/ui-core';
 
 import '@testing-library/jest-dom/vitest';
 
+const AnyToast = Toast as any;
+
 // Полная очистка DOM между тестами
 afterEach(cleanup);
 
@@ -47,7 +49,11 @@ describe('Toast', () => {
   describe('4.1. Рендер без падений', () => {
     it('рендерится с обязательными пропсами', () => {
       const { container, getToast } = renderIsolated(
-        <Toast content={testContent} visible={true} />,
+        React.createElement(
+          AnyToast,
+          { content: testContent, visible: true } as any,
+          null,
+        ),
       );
 
       expect(container).toBeInTheDocument();
@@ -56,7 +62,11 @@ describe('Toast', () => {
 
     it('создает div элемент с правильными атрибутами по умолчанию', () => {
       const { getToast } = renderIsolated(
-        <Toast content={testContent} visible={true} />,
+        React.createElement(
+          AnyToast,
+          { content: testContent, visible: true } as any,
+          null,
+        ),
       );
 
       const toast = getToast();
@@ -71,7 +81,11 @@ describe('Toast', () => {
 
     it('не рендерится когда visible=false', () => {
       const { queryByRole } = renderIsolated(
-        <Toast content={testContent} visible={false} />,
+        React.createElement(
+          AnyToast,
+          { content: testContent, visible: false } as any,
+          null,
+        ),
       );
 
       expect(queryByRole('status')).not.toBeInTheDocument();
@@ -79,7 +93,11 @@ describe('Toast', () => {
 
     it('не рендерится когда content=null', () => {
       const { queryByRole } = renderIsolated(
-        <Toast content={null as any} visible={true} />,
+        React.createElement(
+          AnyToast,
+          { content: null as any, visible: true } as any,
+          null,
+        ),
       );
 
       expect(queryByRole('status')).not.toBeInTheDocument();
@@ -87,7 +105,11 @@ describe('Toast', () => {
 
     it('не рендерится когда content=undefined', () => {
       const { queryByRole } = renderIsolated(
-        <Toast content={undefined as any} visible={true} />,
+        React.createElement(
+          AnyToast,
+          { content: undefined as any, visible: true } as any,
+          null,
+        ),
       );
 
       expect(queryByRole('status')).not.toBeInTheDocument();
@@ -95,7 +117,11 @@ describe('Toast', () => {
 
     it('рендерится с пустой строкой content', () => {
       const { getToast } = renderIsolated(
-        <Toast content='' visible={true} />,
+        React.createElement(
+          AnyToast,
+          { content: '', visible: true } as any,
+          null,
+        ),
       );
 
       expect(getToast()).toBeInTheDocument();
@@ -108,7 +134,11 @@ describe('Toast', () => {
     variants.forEach((variant) => {
       it(`применяет правильный data-variant="${variant}"`, () => {
         const { getToast } = renderIsolated(
-          <Toast content={testContent} visible={true} variant={variant} />,
+          React.createElement(
+            AnyToast,
+            { content: testContent, visible: true, variant } as any,
+            null,
+          ),
         );
 
         expect(getToast()).toHaveAttribute('data-variant', variant);
@@ -116,7 +146,11 @@ describe('Toast', () => {
 
       it(`применяет правильный цвет фона для variant="${variant}"`, () => {
         const { getToast } = renderIsolated(
-          <Toast content={testContent} visible={true} variant={variant} />,
+          React.createElement(
+            AnyToast,
+            { content: testContent, visible: true, variant } as any,
+            null,
+          ),
         );
 
         const toast = getToast();
@@ -130,7 +164,11 @@ describe('Toast', () => {
 
     it('использует info по умолчанию', () => {
       const { getToast } = renderIsolated(
-        <Toast content={testContent} visible={true} />,
+        React.createElement(
+          AnyToast,
+          { content: testContent, visible: true } as any,
+          null,
+        ),
       );
 
       expect(getToast()).toHaveAttribute('data-variant', 'info');
@@ -140,16 +178,28 @@ describe('Toast', () => {
   describe('4.3. Контент (content)', () => {
     it('отображает текстовый контент', () => {
       const { getToast } = renderIsolated(
-        <Toast content={testContent} visible={true} />,
+        React.createElement(
+          AnyToast,
+          { content: testContent, visible: true } as any,
+          null,
+        ),
       );
 
       expect(getToast()).toHaveTextContent(testContent);
     });
 
     it('отображает React элемент как контент', () => {
-      const customContent = <span data-testid='custom-content'>Custom content</span>;
+      const customContent = React.createElement(
+        'span',
+        { 'data-testid': 'custom-content' } as any,
+        'Custom content',
+      );
       const { getByTestId } = renderIsolated(
-        <Toast content={customContent as any} visible={true} />,
+        React.createElement(
+          AnyToast,
+          { content: customContent as any, visible: true } as any,
+          null,
+        ),
       );
 
       expect(getByTestId('custom-content')).toBeInTheDocument();
@@ -157,7 +207,11 @@ describe('Toast', () => {
 
     it('отображает число как контент', () => {
       const { getToast } = renderIsolated(
-        <Toast content={42 as any} visible={true} />,
+        React.createElement(
+          AnyToast,
+          { content: 42 as any, visible: true } as any,
+          null,
+        ),
       );
 
       expect(getToast()).toHaveTextContent('42');
@@ -167,7 +221,11 @@ describe('Toast', () => {
   describe('4.4. Стилизация', () => {
     it('применяет базовые стили', () => {
       const { getToast } = renderIsolated(
-        <Toast content={testContent} visible={true} />,
+        React.createElement(
+          AnyToast,
+          { content: testContent, visible: true } as any,
+          null,
+        ),
       );
 
       const toast = getToast();
@@ -188,7 +246,11 @@ describe('Toast', () => {
 
     it('применяет кастомные стили через style проп', () => {
       const { getToast } = renderIsolated(
-        <Toast content={testContent} visible={true} style={customStyle} />,
+        React.createElement(
+          AnyToast,
+          { content: testContent, visible: true, style: customStyle } as any,
+          null,
+        ),
       );
 
       const toast = getToast();
@@ -200,7 +262,11 @@ describe('Toast', () => {
 
     it('кастомные стили переопределяют базовые', () => {
       const { getToast } = renderIsolated(
-        <Toast content={testContent} visible={true} style={overrideStyle} />,
+        React.createElement(
+          AnyToast,
+          { content: testContent, visible: true, style: overrideStyle } as any,
+          null,
+        ),
       );
 
       const toast = getToast();
@@ -214,7 +280,11 @@ describe('Toast', () => {
     it('применяет data-testid', () => {
       const testId = 'custom-toast';
       const { getByTestId } = renderIsolated(
-        <Toast content={testContent} visible={true} data-testid={testId} />,
+        React.createElement(
+          AnyToast,
+          { content: testContent, visible: true, 'data-testid': testId } as any,
+          null,
+        ),
       );
 
       expect(getByTestId(testId)).toBeInTheDocument();
@@ -223,7 +293,11 @@ describe('Toast', () => {
     it('применяет className', () => {
       const className = 'custom-toast-class';
       const { getToast } = renderIsolated(
-        <Toast content={testContent} visible={true} className={className} />,
+        React.createElement(
+          AnyToast,
+          { content: testContent, visible: true, className } as any,
+          null,
+        ),
       );
 
       expect(getToast()).toHaveClass(className);
@@ -231,7 +305,11 @@ describe('Toast', () => {
 
     it('прокидывает другие HTML атрибуты', () => {
       const { getToast } = renderIsolated(
-        <Toast content={testContent} visible={true} id='toast-id' tabIndex={0} />,
+        React.createElement(
+          AnyToast,
+          { content: testContent, visible: true, id: 'toast-id', tabIndex: 0 } as any,
+          null,
+        ),
       );
 
       const toast = getToast();
@@ -244,7 +322,13 @@ describe('Toast', () => {
     it('поддерживает React.createRef', () => {
       const ref = React.createRef<HTMLDivElement>();
 
-      renderIsolated(<Toast content={testContent} visible={true} ref={ref} />);
+      renderIsolated(
+        React.createElement(
+          AnyToast,
+          { content: testContent, visible: true, ref } as any,
+          null,
+        ),
+      );
 
       expect(ref.current).toBeInstanceOf(HTMLDivElement);
       expect(ref.current).toHaveAttribute('data-component', 'CoreToast');
@@ -253,7 +337,13 @@ describe('Toast', () => {
     it('поддерживает useRef-подобный объект', () => {
       const ref = createMockRef();
 
-      renderIsolated(<Toast content={testContent} visible={true} ref={ref} />);
+      renderIsolated(
+        React.createElement(
+          AnyToast,
+          { content: testContent, visible: true, ref } as any,
+          null,
+        ),
+      );
 
       expect(ref.current).toBeInstanceOf(HTMLDivElement);
       expect(ref.current).toHaveAttribute('data-component', 'CoreToast');
@@ -266,14 +356,20 @@ describe('Toast', () => {
 
       const TestComponent = () => {
         renderCount++;
-        return <Toast content={testContent} visible={true} />;
+        return React.createElement(
+          AnyToast,
+          { content: testContent, visible: true } as any,
+          null,
+        );
       };
 
-      const { rerender } = render(<TestComponent />);
+      const { rerender } = render(
+        React.createElement(TestComponent as any, {} as any, null),
+      );
 
       expect(renderCount).toBe(1);
 
-      rerender(<TestComponent />);
+      rerender(React.createElement(TestComponent as any, {} as any, null));
       expect(renderCount).toBe(2); // React.memo предотвращает лишние рендеры компонента
     });
 
@@ -281,12 +377,22 @@ describe('Toast', () => {
       // Этот тест проверяет что useMemo работает корректно
       // путем проверки что стили применяются правильно
       const { getToast, rerender } = renderIsolated(
-        <Toast content={testContent} visible={true} variant='info' />,
+        React.createElement(
+          AnyToast,
+          { content: testContent, visible: true, variant: 'info' } as any,
+          null,
+        ),
       );
 
       const initialBackground = window.getComputedStyle(getToast()).backgroundColor;
 
-      rerender(<Toast content={testContent} visible={true} variant='success' />);
+      rerender(
+        React.createElement(
+          AnyToast,
+          { content: testContent, visible: true, variant: 'success' } as any,
+          null,
+        ),
+      );
 
       const newBackground = window.getComputedStyle(getToast()).backgroundColor;
 
@@ -297,7 +403,11 @@ describe('Toast', () => {
   describe('4.8. Edge cases', () => {
     it('работает с boolean visible', () => {
       const { queryByRole } = renderIsolated(
-        <Toast content={testContent} visible={true} />,
+        React.createElement(
+          AnyToast,
+          { content: testContent, visible: true } as any,
+          null,
+        ),
       );
 
       expect(queryByRole('status')).toBeInTheDocument();
@@ -305,7 +415,11 @@ describe('Toast', () => {
 
     it('работает с undefined visible (defaults to false)', () => {
       const { queryByRole } = renderIsolated(
-        <Toast content={testContent} />,
+        React.createElement(
+          AnyToast,
+          { content: testContent } as any,
+          null,
+        ),
       );
 
       expect(queryByRole('status')).not.toBeInTheDocument();
@@ -313,7 +427,11 @@ describe('Toast', () => {
 
     it('работает с пустым объектом style', () => {
       const { getToast } = renderIsolated(
-        <Toast content={testContent} visible={true} style={emptyStyle} />,
+        React.createElement(
+          AnyToast,
+          { content: testContent, visible: true, style: emptyStyle } as any,
+          null,
+        ),
       );
 
       expect(getToast()).toBeInTheDocument();
@@ -321,7 +439,11 @@ describe('Toast', () => {
 
     it('работает с undefined style', () => {
       const { getToast } = renderIsolated(
-        <Toast content={testContent} visible={true} style={undefined} />,
+        React.createElement(
+          AnyToast,
+          { content: testContent, visible: true, style: undefined } as any,
+          null,
+        ),
       );
 
       expect(getToast()).toBeInTheDocument();

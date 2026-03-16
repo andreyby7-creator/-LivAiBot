@@ -23,6 +23,9 @@ afterEach(() => {
   window.HTMLElement.prototype.focus = originalFocus;
 });
 
+// Для целей тестов ослабляем типизацию пропсов Radio
+const AnyRadio = Radio as any;
+
 // Функция для изолированного рендера
 function renderIsolated(component: Readonly<React.ReactElement>) {
   const testContainer = document.createElement('div');
@@ -45,14 +48,18 @@ function renderIsolated(component: Readonly<React.ReactElement>) {
 describe('Radio', () => {
   describe('4.1. Рендер и базовая структура', () => {
     it('radio рендерится без падений с минимальными пропсами', () => {
-      const { container, getRadio } = renderIsolated(<Radio />);
+      const { container, getRadio } = renderIsolated(
+        React.createElement(AnyRadio, null),
+      );
 
       expect(container).toBeInTheDocument();
       expect(getRadio()).toBeInTheDocument();
     });
 
     it('создает input элемент с правильными атрибутами по умолчанию', () => {
-      const { getRadio } = renderIsolated(<Radio />);
+      const { getRadio } = renderIsolated(
+        React.createElement(AnyRadio, null),
+      );
 
       const radio = getRadio();
       expect(radio).toBeInTheDocument();
@@ -62,13 +69,17 @@ describe('Radio', () => {
     });
 
     it('radio имеет правильный role', () => {
-      const { getByRole } = renderIsolated(<Radio />);
+      const { getByRole } = renderIsolated(
+        React.createElement(AnyRadio, null),
+      );
 
       expect(getByRole('radio')).toBeInTheDocument();
     });
 
     it('aria-checked=false по умолчанию для неконтролируемого radio', () => {
-      const { getRadio } = renderIsolated(<Radio />);
+      const { getRadio } = renderIsolated(
+        React.createElement(AnyRadio, null),
+      );
 
       const radio = getRadio();
       expect(radio).toHaveAttribute('aria-checked', 'false');
@@ -76,7 +87,9 @@ describe('Radio', () => {
 
     it('aria-checked=true когда checked=true', () => {
       const onChange = vi.fn();
-      const { getRadio } = renderIsolated(<Radio checked onChange={onChange} />);
+      const { getRadio } = renderIsolated(
+        React.createElement(AnyRadio, { checked: true, onChange }),
+      );
 
       const radio = getRadio();
       expect(radio).toHaveAttribute('aria-checked', 'true');
@@ -84,7 +97,9 @@ describe('Radio', () => {
 
     it('aria-checked=false когда checked=false', () => {
       const onChange = vi.fn();
-      const { getRadio } = renderIsolated(<Radio checked={false} onChange={onChange} />);
+      const { getRadio } = renderIsolated(
+        React.createElement(AnyRadio, { checked: false, onChange }),
+      );
 
       const radio = getRadio();
       expect(radio).toHaveAttribute('aria-checked', 'false');
@@ -95,7 +110,9 @@ describe('Radio', () => {
     it('forwardRef работает для внешнего доступа к DOM элементу', () => {
       const ref = React.createRef<HTMLInputElement>();
 
-      const { getRadio } = renderIsolated(<Radio ref={ref} />);
+      const { getRadio } = renderIsolated(
+        React.createElement(AnyRadio, { ref }, null),
+      );
 
       const radio = getRadio();
       expect(ref.current).toBe(radio);
@@ -104,7 +121,9 @@ describe('Radio', () => {
     it('useImperativeHandle возвращает правильный элемент', () => {
       const ref = React.createRef<HTMLInputElement>();
 
-      renderIsolated(<Radio ref={ref} />);
+      renderIsolated(
+        React.createElement(AnyRadio, { ref }, null),
+      );
 
       expect(ref.current).toBeInstanceOf(HTMLInputElement);
       expect(ref.current?.tagName).toBe('INPUT');
@@ -118,7 +137,9 @@ describe('Radio', () => {
       const originalUseRef = React.useRef;
       React.useRef = vi.fn(() => ({ current: null }));
 
-      renderIsolated(<Radio ref={ref} />);
+      renderIsolated(
+        React.createElement(AnyRadio, { ref }, null),
+      );
 
       // Должен вернуть HTMLElement (document.createElement('input'))
       expect(ref.current).toBeInstanceOf(HTMLElement);
@@ -131,15 +152,15 @@ describe('Radio', () => {
   describe('4.3. Пропсы пробрасываются', () => {
     it('стандартные HTML пропсы пробрасываются корректно', () => {
       const { getRadio } = renderIsolated(
-        <Radio
-          id='test-radio'
-          name='testName'
-          className='test-class'
-          disabled
-          required
-          checked
-          value='test-value'
-        />,
+        React.createElement(AnyRadio, {
+          id: 'test-radio',
+          name: 'testName',
+          className: 'test-class',
+          disabled: true,
+          required: true,
+          checked: true,
+          value: 'test-value',
+        }),
       );
 
       const radio = getRadio();
@@ -153,27 +174,35 @@ describe('Radio', () => {
     });
 
     it('autoFocus пропс не пробрасывается в DOM (reserved)', () => {
-      const { getRadio } = renderIsolated(<Radio autoFocus />);
+      const { getRadio } = renderIsolated(
+        React.createElement(AnyRadio, { autoFocus: true }),
+      );
 
       const radio = getRadio();
       expect(radio).not.toHaveAttribute('autoFocus');
     });
 
     it('data-component всегда присутствует', () => {
-      const { getRadio } = renderIsolated(<Radio />);
+      const { getRadio } = renderIsolated(
+        React.createElement(AnyRadio, null),
+      );
 
       expect(getRadio()).toHaveAttribute('data-component', 'CoreRadio');
     });
 
     it('aria-busy=true когда disabled=true', () => {
-      const { getRadio } = renderIsolated(<Radio disabled />);
+      const { getRadio } = renderIsolated(
+        React.createElement(AnyRadio, { disabled: true }),
+      );
 
       const radio = getRadio();
       expect(radio).toHaveAttribute('aria-busy', 'true');
     });
 
     it('aria-busy отсутствует когда disabled=false или undefined', () => {
-      const { getRadio } = renderIsolated(<Radio />);
+      const { getRadio } = renderIsolated(
+        React.createElement(AnyRadio, null),
+      );
 
       const radio = getRadio();
       expect(radio).not.toHaveAttribute('aria-busy');
@@ -187,7 +216,9 @@ describe('Radio', () => {
     });
 
     it('autoFocus=true фокусирует radio один раз с preventScroll', () => {
-      const { rerender } = renderIsolated(<Radio autoFocus />);
+      const { rerender } = renderIsolated(
+        React.createElement(AnyRadio, { autoFocus: true }),
+      );
 
       vi.runAllTimers();
 
@@ -195,26 +226,34 @@ describe('Radio', () => {
       expect(mockFocus).toHaveBeenCalledWith({ preventScroll: true });
 
       // Повторный рендер не вызывает focus снова
-      rerender(<Radio autoFocus />);
+      rerender(
+        React.createElement(AnyRadio, { autoFocus: true }),
+      );
       vi.runAllTimers();
       expect(mockFocus).toHaveBeenCalledTimes(1);
     });
 
     it('autoFocus=false (по умолчанию) не фокусирует', () => {
-      renderIsolated(<Radio />);
+      renderIsolated(
+        React.createElement(AnyRadio, null),
+      );
       vi.runAllTimers();
 
       expect(mockFocus).not.toHaveBeenCalled();
     });
 
     it('autoFocus блокируется hasFocusedRef в StrictMode (покрытие ветки)', () => {
-      const { rerender } = renderIsolated(<Radio autoFocus />);
+      const { rerender } = renderIsolated(
+        React.createElement(AnyRadio, { autoFocus: true }),
+      );
 
       vi.runAllTimers();
       expect(mockFocus).toHaveBeenCalledTimes(1);
 
       // Симуляция StrictMode поведения
-      rerender(<Radio autoFocus />);
+      rerender(
+        React.createElement(AnyRadio, { autoFocus: true }),
+      );
       vi.runAllTimers();
       expect(mockFocus).toHaveBeenCalledTimes(1);
     });
@@ -226,7 +265,9 @@ describe('Radio', () => {
       React.useRef = mockUseRef;
 
       expect(() => {
-        renderIsolated(<Radio autoFocus />);
+        renderIsolated(
+          React.createElement(AnyRadio, { autoFocus: true }),
+        );
         vi.runAllTimers();
       }).not.toThrow();
 
@@ -236,7 +277,9 @@ describe('Radio', () => {
     it('autoFocus очищает timeout при unmount', () => {
       const clearTimeoutSpy = vi.spyOn(window, 'clearTimeout');
 
-      const { unmount } = renderIsolated(<Radio autoFocus />);
+      const { unmount } = renderIsolated(
+        React.createElement(AnyRadio, { autoFocus: true }),
+      );
 
       unmount();
 
@@ -248,25 +291,27 @@ describe('Radio', () => {
     it('рендер стабилен при одинаковых пропсах', () => {
       const onChange = vi.fn();
       const { container, rerender } = renderIsolated(
-        <Radio id='stable' checked onChange={onChange} />,
+        React.createElement(AnyRadio, { id: 'stable', checked: true, onChange }),
       );
 
       const firstRender = container.innerHTML;
 
-      rerender(<Radio id='stable' checked onChange={onChange} />);
+      rerender(
+        React.createElement(AnyRadio, { id: 'stable', checked: true, onChange }),
+      );
 
       expect(container.innerHTML).toBe(firstRender);
     });
 
     it('memo предотвращает ненужные ре-рендеры', () => {
-      const renderSpy = vi.fn(() => <Radio />);
+      const renderSpy = vi.fn(() => React.createElement(AnyRadio, null));
       const Component = React.memo(renderSpy);
 
-      const { rerender } = render(<Component />);
+      const { rerender } = render(React.createElement(Component));
 
       expect(renderSpy).toHaveBeenCalledTimes(1);
 
-      rerender(<Component />);
+      rerender(React.createElement(Component));
 
       expect(renderSpy).toHaveBeenCalledTimes(1);
     });
@@ -279,7 +324,7 @@ describe('Radio', () => {
       const onBlur = vi.fn();
 
       const { getRadio } = renderIsolated(
-        <Radio onChange={onChange} onFocus={onFocus} onBlur={onBlur} />,
+        React.createElement(AnyRadio, { onChange, onFocus, onBlur }),
       );
 
       const radio = getRadio();
@@ -297,7 +342,9 @@ describe('Radio', () => {
     it('onChange получает event с правильными данными', () => {
       const onChange = vi.fn();
 
-      const { getRadio } = renderIsolated(<Radio onChange={onChange} />);
+      const { getRadio } = renderIsolated(
+        React.createElement(AnyRadio, { onChange }),
+      );
 
       const radio = getRadio();
       fireEvent.click(radio);
@@ -309,12 +356,12 @@ describe('Radio', () => {
   describe('4.7. Edge cases', () => {
     it('работает с undefined пропсами', () => {
       const { getRadio } = renderIsolated(
-        <Radio
-          title={undefined}
-          disabled={undefined}
-          checked={undefined}
-          autoFocus={false}
-        />,
+        React.createElement(AnyRadio, {
+          title: undefined,
+          disabled: undefined,
+          checked: undefined,
+          autoFocus: false,
+        }),
       );
 
       const radio = getRadio();
@@ -324,7 +371,9 @@ describe('Radio', () => {
     });
 
     it('работает с отсутствующими пропсами', () => {
-      const { getRadio } = renderIsolated(<Radio />);
+      const { getRadio } = renderIsolated(
+        React.createElement(AnyRadio, null),
+      );
 
       const radio = getRadio();
       expect(radio).toBeInTheDocument();
@@ -336,13 +385,13 @@ describe('Radio', () => {
       const onChange = vi.fn();
 
       const { getRadio } = renderIsolated(
-        <Radio
-          onChange={onChange}
-          defaultChecked
-          form='test-form'
-          tabIndex={1}
-          aria-label='Test radio'
-        />,
+        React.createElement(AnyRadio, {
+          onChange,
+          defaultChecked: true,
+          form: 'test-form',
+          tabIndex: 1,
+          'aria-label': 'Test radio',
+        }),
       );
 
       const radio = getRadio();
@@ -353,15 +402,21 @@ describe('Radio', () => {
 
     it('checked состояние синхронизируется с DOM', () => {
       const onChange = vi.fn();
-      const { getRadio, rerender } = renderIsolated(<Radio checked onChange={onChange} />);
+      const { getRadio, rerender } = renderIsolated(
+        React.createElement(AnyRadio, { checked: true, onChange }),
+      );
 
       const radio = getRadio();
       expect(radio).toBeChecked();
 
-      rerender(<Radio checked={false} onChange={onChange} />);
+      rerender(
+        React.createElement(AnyRadio, { checked: false, onChange }),
+      );
       expect(radio).not.toBeChecked();
 
-      rerender(<Radio checked onChange={onChange} />);
+      rerender(
+        React.createElement(AnyRadio, { checked: true, onChange }),
+      );
       expect(radio).toBeChecked();
     });
   });
