@@ -33,7 +33,6 @@
       "@livai/feature-auth": ["../../packages/feature-auth"],
       "@livai/feature-auth/*": ["../../packages/feature-auth/*"],
       "@livai/ui-core": ["../../packages/ui-core"],
-      "@livai/ui-core/*": ["../../packages/ui-core/*"],
       "@livai/ui-features": ["../../packages/ui-features"],
       "@livai/ui-features/*": ["../../packages/ui-features/*"],
       "@livai/ui-shared": ["../../packages/ui-shared"],

@@ -26,8 +26,6 @@ const TokenPairResponse = z
 export const TokenPairResponseSchema = TokenPairResponse;
 const ValidationError = z
   .object({
-    ctx: z.object({}).partial().passthrough().optional(),
-    input: z.unknown().optional(),
     loc: z.array(z.union([z.string(), z.number()])),
     msg: z.string(),
     type: z.string(),
@@ -59,10 +57,6 @@ const RegisterRequest = z
   })
   .passthrough();
 export const RegisterRequestSchema = RegisterRequest;
-
-/* ============================================================================
- * 📦 SCHEMAS EXPORT — ALL SCHEMAS REGISTRY
- * ========================================================================== */
 
 export const schemas = {
   LoginRequest: LoginRequestSchema,

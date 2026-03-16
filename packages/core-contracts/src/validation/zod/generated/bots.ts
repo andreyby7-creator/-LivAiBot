@@ -36,8 +36,6 @@ const X_Operation_Id = z.union([z.string(), z.null()]).optional();
 export const X_Operation_IdSchema = X_Operation_Id;
 const ValidationError = z
   .object({
-    ctx: z.object({}).partial().passthrough().optional(),
-    input: z.unknown().optional(),
     loc: z.array(z.union([z.string(), z.number()])),
     msg: z.string(),
     type: z.string(),
@@ -56,10 +54,6 @@ const UpdateInstructionRequest = z
   })
   .passthrough();
 export const UpdateInstructionRequestSchema = UpdateInstructionRequest;
-
-/* ============================================================================
- * 📦 SCHEMAS EXPORT — ALL SCHEMAS REGISTRY
- * ========================================================================== */
 
 export const schemas = {
   BotResponse: BotResponseSchema,
