@@ -27,10 +27,6 @@
       "@livai/feature-voice": ["../../packages/feature-voice"],
       "@livai/feature-voice/*": ["../../packages/feature-voice/*"],
       "@livai/ui-core": ["../../packages/ui-core"],
-      // ⚠️ ВАЖНО: wildcard для ui-core должен указывать на dist/**, чтобы
-      // Turbopack/Next использовали package.json \"exports\", а не src/**.
-      // Иначе import '@livai/ui-core/primitives/button' будет резолвиться
-      // в packages/ui-core/primitives/button (не существует) вместо dist/primitives/button.*
       "@livai/ui-core/*": ["../../packages/ui-core/dist/*"],
       "@livai/ui-features": ["../../packages/ui-features"],
       "@livai/ui-features/*": ["../../packages/ui-features/*"],
