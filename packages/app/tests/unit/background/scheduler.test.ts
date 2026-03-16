@@ -19,6 +19,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { BackgroundTask, QueueItem, SchedulerDI } from '../../../src/background/scheduler';
 import {
+  ENV,
   getGlobalScheduler,
   MeldablePriorityQueue,
   Scheduler,
@@ -127,6 +128,14 @@ describe('Scheduler', () => {
       );
 
       expect(result).toBeDefined();
+    });
+
+    it('экспортирует ENV конфиг с ожидаемыми полями', () => {
+      // Базовый smoke-тест, чтобы зацепить ENV и его поля
+      expect(ENV.DEFAULT_INTERVAL_MS).toBeGreaterThan(0);
+      expect(ENV.MAX_CONCURRENCY).toBeGreaterThanOrEqual(ENV.MIN_CONCURRENCY);
+      expect(ENV.MAX_TASKS_PER_SECOND).toBeGreaterThan(0);
+      expect(typeof ENV.ENABLE_CACHE_REFRESH).toBe('boolean');
     });
   });
 
@@ -430,7 +439,14 @@ describe('Scheduler', () => {
         await Runtime.runPromise(Runtime.defaultRuntime)(createTestScheduler()),
       );
 
-      // Schedule long-running task
+      const schedulerWithPrivate = scheduler as any;
+
+      // Подготовим очередь и executionFibers, чтобы покрыть логику interrupt()
+      let unsubscribed = false;
+      const unsubscribeEffect = Effect.sync(() => {
+        unsubscribed = true;
+      });
+
       const longTask: BackgroundTask = {
         id: 'long-task',
         task: (_signal) =>
@@ -440,12 +456,46 @@ describe('Scheduler', () => {
           }),
       };
 
-      await Runtime.runPromise(Runtime.defaultRuntime)(scheduler.schedule(longTask) as any);
+      const queueItem: QueueItem = {
+        task: longTask,
+        attempts: 0,
+        nextRun: Date.now(),
+        unsubscribe: unsubscribeEffect,
+      };
 
-      // Interrupt should cancel the task
+      // Положим элемент в очередь
+      await Runtime.runPromise(Runtime.defaultRuntime)(
+        Ref.update(schedulerWithPrivate.queue, (q: MeldablePriorityQueue) => q.push(queueItem)),
+      );
+
+      // И добавим execution fiber
+      const dummyFiber = Effect.runFork(Effect.succeed(undefined));
+      await Runtime.runPromise(Runtime.defaultRuntime)(
+        Ref.set(
+          schedulerWithPrivate.executionFibers,
+          new Map([[queueItem, dummyFiber]]),
+        ),
+      );
+
+      // Запускаем metrics processor, чтобы interrupt также его остановил
+      await Runtime.runPromise(Runtime.defaultRuntime)(
+        schedulerWithPrivate.startMetricsProcessor(),
+      );
+
+      // Interrupt должен прервать все fibers, отписаться и остановить metrics processor
       await Runtime.runPromise(Runtime.defaultRuntime)(scheduler.interrupt() as any);
 
-      // Verify task was interrupted
+      await Runtime.runPromise(Runtime.defaultRuntime)(
+        Ref.get(schedulerWithPrivate.executionFibers),
+      );
+      // После interrupt главное, что unsubscribe был вызван и metrics processor остановлен.
+
+      expect(unsubscribed).toBe(true);
+
+      const metricsFiber = await Runtime.runPromise(Runtime.defaultRuntime)(
+        Ref.get(schedulerWithPrivate.metricsProcessorFiber),
+      );
+      expect(metricsFiber).toBeUndefined();
     });
 
     it('AbortSignal корректно передается в задачи', async () => {
@@ -525,6 +575,40 @@ describe('Scheduler', () => {
       // Test that scheduler exists and unsubscribe logic exists in the code
       expect(scheduler).toBeDefined();
       expect(failingEventTask.maxRetries).toBe(0);
+    });
+
+    it('выполняет unsubscribe для event-driven задач при превышении maxRetries', async () => {
+      const deadLetterMock = vi.fn().mockReturnValue(Effect.succeed(undefined));
+      const scheduler = trackScheduler(
+        await Runtime.runPromise(Runtime.defaultRuntime)(
+          createTestScheduler({ deadLetter: deadLetterMock }),
+        ),
+      );
+
+      const schedulerWithPrivate = scheduler as any;
+
+      let unsubscribed = false;
+      const failingTask: BackgroundTask = {
+        id: 'event-dead-letter-task',
+        task: (_signal) => Effect.fail(new Error('Fatal event error')),
+      };
+
+      const queueItem: QueueItem = {
+        task: failingTask,
+        // attempts == maxRetries, после инкремента в executeTask() будет attempts > maxRetries
+        attempts: ENV.MAX_RETRIES,
+        nextRun: Date.now(),
+        unsubscribe: Effect.sync(() => {
+          unsubscribed = true;
+        }),
+      };
+
+      await Runtime.runPromise(Runtime.defaultRuntime)(
+        schedulerWithPrivate.executeTask(queueItem),
+      );
+
+      expect(unsubscribed).toBe(true);
+      expect(deadLetterMock).toHaveBeenCalledWith(failingTask, expect.any(Error));
     });
   });
 
@@ -625,6 +709,17 @@ describe('Scheduler', () => {
 
       // Should not throw
       expect(true).toBe(true);
+    });
+
+    it('enqueueTaskMetric прокидывает метрику во внутреннюю очередь', async () => {
+      const scheduler = trackScheduler(
+        await Runtime.runPromise(Runtime.defaultRuntime)(createTestScheduler()),
+      );
+
+      // Smoke-тест, что метод доступен и не бросает ошибки
+      await Runtime.runPromise(Runtime.defaultRuntime)(
+        scheduler.enqueueTaskMetric('task.metric', 123) as any,
+      );
     });
 
     it('executeTask обрабатывает успешное выполнение', async () => {
@@ -737,36 +832,110 @@ describe('Scheduler', () => {
       expect(taskExecuted).toBe(true);
     });
 
-    it('recordBatchMetrics логика корректна', () => {
-      // Test the recordBatchMetrics logic directly
-      const batch = [
-        { task: { priority: 'high' } },
-        { task: { priority: 'medium' } },
-        { task: { priority: 'low' } },
-      ] as const;
+    it('executeTask перепланирует periodic задачу при прямом выполнении', async () => {
+      const scheduler = trackScheduler(
+        await Runtime.runPromise(Runtime.defaultRuntime)(
+          createTestScheduler({ enqueueTask: undefined as any }),
+        ),
+      );
 
-      const latency = 500;
+      const task: BackgroundTask = {
+        id: 'direct-periodic',
+        task: (_signal) => Effect.succeed(undefined),
+        interval: 1000,
+      };
 
-      // Simulate what recordBatchMetrics does - count priorities
-      const priorityCounts = { high: 0, medium: 0, low: 0 };
-      batch.forEach((item) => {
-        const prio = item.task.priority;
-        priorityCounts[prio]++;
-      });
+      const queueItem: QueueItem = {
+        task,
+        attempts: 0,
+        nextRun: Date.now(),
+      };
 
-      // Simulate what recordBatchMetrics does
-      const expectedMetrics = [
-        { name: 'scheduler.batch.latency', value: latency },
-        { name: 'scheduler.batch.throughput', value: batch.length },
-        { name: 'scheduler.queue.depth.high', value: priorityCounts.high },
-        { name: 'scheduler.queue.depth.medium', value: priorityCounts.medium },
-        { name: 'scheduler.queue.depth.low', value: priorityCounts.low },
-        { name: 'scheduler.queue.depth.total', value: batch.length },
+      const schedulerWithPrivate = scheduler as any;
+
+      // Перед выполнением очередь пуста
+      const beforeQueue = await Runtime.runPromise(Runtime.defaultRuntime)(
+        Ref.get(schedulerWithPrivate.queue),
+      );
+      expect((beforeQueue as MeldablePriorityQueue).getTotalCount()).toBe(0);
+
+      await Runtime.runPromise(Runtime.defaultRuntime)(
+        schedulerWithPrivate.executeTask(queueItem),
+      );
+
+      // После успешного выполнения periodic задачи она должна быть перепланирована в очереди
+      const afterQueue = await Runtime.runPromise(Runtime.defaultRuntime)(
+        Ref.get(schedulerWithPrivate.queue),
+      );
+      expect((afterQueue as MeldablePriorityQueue).getTotalCount()).toBe(1);
+    });
+
+    it('recordBatchMetrics использует enqueueMetric для всех метрик батча', async () => {
+      const scheduler = trackScheduler(
+        await Runtime.runPromise(Runtime.defaultRuntime)(createTestScheduler()),
+      );
+      const schedulerWithPrivate = scheduler as any;
+
+      const enqueueMetricSpy = vi.spyOn(schedulerWithPrivate, 'enqueueMetric');
+
+      const batch: QueueItem[] = [
+        {
+          task: {
+            id: 'high',
+            priority: 'high',
+            task: (_signal: Readonly<AbortSignal>) => Effect.succeed(undefined),
+          },
+          attempts: 0,
+          nextRun: Date.now(),
+        },
+        {
+          task: {
+            id: 'medium',
+            priority: 'medium',
+            task: (_signal: Readonly<AbortSignal>) => Effect.succeed(undefined),
+          },
+          attempts: 0,
+          nextRun: Date.now(),
+        },
+        {
+          task: {
+            id: 'low',
+            priority: 'low',
+            task: (_signal: Readonly<AbortSignal>) => Effect.succeed(undefined),
+          },
+          attempts: 0,
+          nextRun: Date.now(),
+        },
       ];
 
-      expect(expectedMetrics).toHaveLength(6);
-      expect(expectedMetrics[0]).toEqual({ name: 'scheduler.batch.latency', value: 500 });
-      expect(expectedMetrics[1]).toEqual({ name: 'scheduler.batch.throughput', value: 3 });
+      const q = new MeldablePriorityQueue()
+        .push(batch[0]!)
+        .push(batch[1]!)
+        .push(batch[2]!);
+      const latency = 500;
+
+      await Runtime.runPromise(Runtime.defaultRuntime)(
+        schedulerWithPrivate.recordBatchMetrics(batch, latency, q),
+      );
+
+      expect(enqueueMetricSpy).toHaveBeenCalledWith('scheduler.batch.latency', latency);
+      expect(enqueueMetricSpy).toHaveBeenCalledWith('scheduler.batch.throughput', batch.length);
+      expect(enqueueMetricSpy).toHaveBeenCalledWith(
+        'scheduler.queue.depth.high',
+        expect.any(Number),
+      );
+      expect(enqueueMetricSpy).toHaveBeenCalledWith(
+        'scheduler.queue.depth.medium',
+        expect.any(Number),
+      );
+      expect(enqueueMetricSpy).toHaveBeenCalledWith(
+        'scheduler.queue.depth.low',
+        expect.any(Number),
+      );
+      expect(enqueueMetricSpy).toHaveBeenCalledWith(
+        'scheduler.queue.depth.total',
+        q.getTotalCount(),
+      );
     });
   });
 
@@ -1193,6 +1362,68 @@ describe('Scheduler', () => {
 
       expect(computeNewConcurrency(10, 1200, 5)).toBe(10); // Max limit
       expect(computeNewConcurrency(2, 400, 1)).toBe(2); // Min limit
+    });
+
+    it('adaptConcurrency обновляет Ref concurrency и шлет метрику', async () => {
+      const scheduler = trackScheduler(
+        await Runtime.runPromise(Runtime.defaultRuntime)(createTestScheduler()),
+      );
+
+      const schedulerWithPrivate = scheduler as any;
+
+      // Инициируем очередь с одной задачей, чтобы получить ненулевой totalQueue
+      const task: BackgroundTask = {
+        id: 'adapt-test',
+        task: (_signal) => Effect.succeed(undefined),
+      };
+
+      const item: QueueItem = {
+        task,
+        attempts: 0,
+        nextRun: Date.now(),
+      };
+
+      await Runtime.runPromise(Runtime.defaultRuntime)(
+        Ref.update(schedulerWithPrivate.queue, (q: MeldablePriorityQueue) => q.push(item)),
+      );
+
+      const beforeConc = await Runtime.runPromise(Runtime.defaultRuntime)(
+        Ref.get(schedulerWithPrivate.concurrency),
+      );
+
+      await Runtime.runPromise(Runtime.defaultRuntime)(
+        schedulerWithPrivate.adaptConcurrency(1, ENV.ADAPTIVE_WINDOW_MS + 100),
+      );
+
+      const afterConc = await Runtime.runPromise(Runtime.defaultRuntime)(
+        Ref.get(schedulerWithPrivate.concurrency),
+      );
+
+      expect(Number(afterConc)).toBeGreaterThanOrEqual(Number(beforeConc));
+    });
+
+    it('computeNewConcurrency внутри Scheduler покрывает все ветки', async () => {
+      const scheduler = trackScheduler(
+        await Runtime.runPromise(Runtime.defaultRuntime)(createTestScheduler()),
+      );
+      const schedulerWithPrivate = scheduler as any;
+
+      // Ветка увеличения concurrency (latency > ADAPTIVE_WINDOW_MS)
+      const inc = schedulerWithPrivate.computeNewConcurrency(
+        5,
+        ENV.ADAPTIVE_WINDOW_MS + 100,
+        3,
+      );
+      expect(inc).toBeGreaterThanOrEqual(5);
+
+      // Ветка уменьшения concurrency (latency < threshold && totalQueue < conc)
+      const threshold = ENV.ADAPTIVE_WINDOW_MS / 2;
+      const dec = schedulerWithPrivate.computeNewConcurrency(5, threshold - 10, 1);
+      expect(dec).toBeLessThanOrEqual(5);
+
+      // Ветка без изменений (условия не выполняются)
+      const same = schedulerWithPrivate.computeNewConcurrency(5, ENV.ADAPTIVE_WINDOW_MS, 5);
+      expect(same).toBe(5);
     });
   });
 

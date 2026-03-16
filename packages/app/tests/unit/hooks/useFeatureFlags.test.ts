@@ -4,6 +4,7 @@
  */
 
 import { renderHook } from '@testing-library/react';
+import { useSyncExternalStore } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 // Mock useSyncExternalStore to avoid infinite loops
@@ -211,5 +212,30 @@ describe('useFeatureFlags hook', () => {
     expect(firstRender.setOverride).toBe(secondRender.setOverride);
     expect(firstRender.clearOverrides).toBe(secondRender.clearOverrides);
     expect(firstRender.toggle).toBe(secondRender.toggle);
+  });
+
+  it('использует SSR fallback snapshot когда вызывается getServerSnapshot', () => {
+    // Подменяем поведение useSyncExternalStore так, чтобы вызывался третий аргумент (getServerSnapshot)
+    const mock = useSyncExternalStore as unknown as { mockImplementation: unknown; };
+    const originalImpl = (mock as any).mockImplementation;
+    (mock as any).mockImplementation(
+      (_subscribe: unknown, _getSnapshot: () => unknown, getServerSnapshot: () => unknown) =>
+        getServerSnapshot(),
+    );
+
+    try {
+      Object.assign(storeState, {
+        flags: {},
+        overrides: {},
+      });
+
+      const { result } = renderHook(() => useFeatureFlags());
+
+      // SSR fallback должен вернуть пустой объект (EMPTY_FLAGS)
+      expect(result.current.flags).toEqual({});
+    } finally {
+      // Восстанавливаем исходный mockImplementation
+      (mock as any).mockImplementation = originalImpl;
+    }
   });
 });

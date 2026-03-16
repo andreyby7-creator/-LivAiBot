@@ -2718,3 +2718,9 @@ $(date -Iseconds) - Проверка консистентности конфиг
 [test-unit] Fixed unused isAllMode in checkCoverageThresholds and moved env loading after ROOT initialization to avoid ReferenceError. pnpm test now passes again.
 [test-unit] Updated header sections list to match actual section order after reordering; ensured ROOT is initialized before env loading to avoid ReferenceError. pnpm test passes with all 12871 tests green.
 [test-unit] Moved СТАТИСТИКА ТЕСТОВ section below ЗАПУСК (runCLI), keeping УТИЛИТАРНЫЕ ФУНКЦИИ в самом низу; updated header sections list accordingly. pnpm test still passes with all tests green.
+[scheduler] vitest run --coverage packages/app/tests/unit/background/scheduler.test.ts : OK (scheduler.ts stmts 72.87% branches 72.13% funcs 77.04% lines 74.24%)
+[scheduler] vitest run --coverage packages/app/tests/unit/background/scheduler.test.ts : OK (scheduler.ts stmts 75.3% branches 77.86% funcs 78.68% lines 76.39%)
+[app-lifecycle-events] vitest run --coverage app/tests/unit/events/app-lifecycle-events.test.ts : OK (app-lifecycle-events.ts stmts 100% branches 90.47% funcs 100% lines 100%)
+[event-bus] vitest run --coverage app/tests/unit/events/event-bus.test.ts : OK (event-bus.ts stmts 98.11% branches 94.11% funcs 87.87% lines 98.98%)
+[useOfflineCache] vitest run --coverage app/tests/unit/hooks/useOfflineCache.test.ts : OK (useOfflineCache.ts stmts 96.73% branches 90.29% funcs 85.71% lines 99.28% uncovered: 421)
+[lint] fixed app-lifecycle-events.test.ts & useOfflineCache.test.ts ESLint warnings (no-unnecessary-type-assertion, strict-boolean-expressions)

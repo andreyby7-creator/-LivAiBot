@@ -305,6 +305,33 @@ describe('Deep freeze защита API', () => {
   });
 });
 
+describe('Deep freeze реализация', () => {
+  it('должен глубоко фризить appLifecycleEvents в dev режиме', async () => {
+    const prevEnv = process.env;
+    try {
+      process.env = { ...prevEnv, NODE_ENV: 'development' };
+      vi.resetModules();
+
+      const mod = await import('../../../src/events/app-lifecycle-events.js');
+      const devInstance = mod.appLifecycleEvents;
+
+      // Сам инстанс должен быть заморожен
+      expect(Object.isFrozen(devInstance)).toBe(true);
+
+      // И все вложенные объекты, до которых добирается deepFreeze
+      const entries = Object.entries(devInstance as unknown as Record<string, unknown>);
+      for (const [, value] of entries) {
+        if (value != null && typeof value === 'object') {
+          expect(Object.isFrozen(value)).toBe(true);
+        }
+      }
+    } finally {
+      process.env = prevEnv;
+      vi.resetModules();
+    }
+  });
+});
+
 /* ========================================================================== */
 /* 🌍 ГЛОБАЛЬНЫЙ ИНСТАНС */
 /* ========================================================================== */

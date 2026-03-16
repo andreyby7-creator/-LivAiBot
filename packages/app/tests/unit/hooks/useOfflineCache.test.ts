@@ -207,6 +207,12 @@ describe('useOfflineCache hook', () => {
     expect(() => result.current.cancel()).not.toThrow();
   });
 
+  it('cancel без параметров не бросает при отсутствии активных запросов', () => {
+    const { result } = renderHook(() => useOfflineCache(mockStore, mockKey, mockFetcher));
+
+    expect(() => result.current.cancel()).not.toThrow();
+  });
+
   it('update определен', () => {
     const { result } = renderHook(() => useOfflineCache(mockStore, mockKey, mockFetcher));
 
@@ -254,6 +260,22 @@ describe('useOfflineCache hook', () => {
     });
 
     expect(result.current.update).toBeDefined();
+  });
+
+  it('mergePartialData корректно сливает массивы', () => {
+    const initialData = { items: [1, 2] };
+    const { result } = renderHook(() =>
+      useOfflineCache(mockStore, mockKey, mockFetcher, {
+        initialData: initialData as any,
+        mergePartial: true,
+      })
+    );
+
+    act(() => {
+      result.current.update({ items: [3, 4] });
+    });
+
+    expect(result.current.data.items).toEqual([1, 2, 3, 4]);
   });
 
   it('mergePartialData правильно заменяет данные без merge', () => {
@@ -399,6 +421,48 @@ describe('useOfflineCache hook', () => {
     });
 
     expect(result.current.update).toBeDefined();
+  });
+
+  it('deepMerge корректно сливает массивы из broadcast сообщений', () => {
+    const mockBcInstance = new MockBroadcastChannel('offline-cache');
+    let messageHandler: any;
+
+    mockBcInstance.addEventListener.mockImplementation((event, handler) => {
+      if (event === 'message') {
+        messageHandler = handler;
+      }
+    });
+
+    const originalBroadcastChannel = global.BroadcastChannel;
+    global.BroadcastChannel = function() {
+      return mockBcInstance;
+    } as any;
+
+    const initialData = [1, 2];
+
+    const { result } = renderHook(() =>
+      useOfflineCache(mockStore, mockKey, mockFetcher, {
+        initialData: initialData as any,
+        enableBroadcast: true,
+        mergePartial: true,
+      })
+    );
+
+    act(() => {
+      if (messageHandler !== undefined) {
+        messageHandler({
+          data: {
+            key: mockKey,
+            value: [3, 4],
+            version: undefined,
+          },
+        });
+      }
+    });
+
+    expect(result.current.data).toEqual([1, 2, 3, 4]);
+
+    global.BroadcastChannel = originalBroadcastChannel;
   });
 
   it('TTL параметры передаются в cache', () => {
@@ -639,6 +703,48 @@ describe('useOfflineCache hook', () => {
     });
 
     expect(result.current.update).toBeDefined();
+  });
+
+  it('deepMerge возвращает next для примитивов из broadcast', () => {
+    const mockBcInstance = new MockBroadcastChannel('offline-cache');
+    let messageHandler: any;
+
+    mockBcInstance.addEventListener.mockImplementation((event, handler) => {
+      if (event === 'message') {
+        messageHandler = handler;
+      }
+    });
+
+    const originalBroadcastChannel = global.BroadcastChannel;
+    global.BroadcastChannel = function() {
+      return mockBcInstance;
+    } as any;
+
+    const initialData = 1;
+
+    const { result } = renderHook(() =>
+      useOfflineCache(mockStore, mockKey, mockFetcher, {
+        initialData: initialData as any,
+        enableBroadcast: true,
+        mergePartial: true,
+      })
+    );
+
+    act(() => {
+      if (messageHandler !== undefined) {
+        messageHandler({
+          data: {
+            key: mockKey,
+            value: 2,
+            version: undefined,
+          },
+        });
+      }
+    });
+
+    expect(result.current.data).toBe(2);
+
+    global.BroadcastChannel = originalBroadcastChannel;
   });
 
   it('deepMerge обрабатывает undefined значения', () => {

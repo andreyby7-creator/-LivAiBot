@@ -14,6 +14,7 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vites
 
 import { AppEventType, createLogoutEvent } from '../../../src/events/app-events.js';
 import {
+  ConsoleLogger,
   EventBus,
   eventBus,
   flushEventBatch,
@@ -85,6 +86,16 @@ afterAll(() => {
 /* ========================================================================== */
 /* 📊 CONSTANTS & CONFIG */
 /* ========================================================================== */
+
+describe('ConsoleLogger', () => {
+  it('логирует info/warn/error без контекста', () => {
+    const logger = new ConsoleLogger();
+    // smoke-тест что методы существуют и могут вызываться без ошибок
+    logger.info('msg');
+    logger.warn('msg');
+    logger.error('msg');
+  });
+});
 
 /* ========================================================================== */
 /* 🏭 EVENT BUS CONSTRUCTOR */
@@ -451,6 +462,46 @@ describe('Batch логика', () => {
 
       // Таймер должен остаться тем же (не переустановлен)
       expect((bus as any).currentBatch.timeoutId).toBe(firstTimeoutId);
+    });
+
+    it('логирует ошибку при падении processBatch из таймера', async () => {
+      const mockLogger = {
+        info: vi.fn(),
+        warn: vi.fn(),
+        error: vi.fn(),
+      };
+
+      bus = new EventBus(mockRedis, mockLogger);
+
+      const event = await createLogoutEvent({
+        payloadVersion: 1,
+        userId: 'user-err',
+        roles: [UserRoles.USER],
+        reason: 'manual',
+      });
+
+      // Подменяем processBatch так, чтобы вызов из setTimeout приводил к reject
+      const originalProcessBatch = (bus as any).processBatch.bind(bus as any);
+      const processBatchSpy = vi
+        .spyOn(bus as any, 'processBatch')
+        .mockImplementation(async () => {
+          throw new Error('Batch processing failed');
+        });
+
+      await (bus as any).addToBatch(event);
+
+      // Прокручиваем таймер до срабатывания BATCH_TIMEOUT_MS
+      await vi.runOnlyPendingTimersAsync();
+
+      expect(processBatchSpy).toHaveBeenCalled();
+      expect(mockLogger.error).toHaveBeenCalledWith(
+        'Batch processing failed',
+        expect.objectContaining({ error: expect.any(Error) }),
+      );
+
+      // Восстанавливаем оригинальную реализацию на всякий случай
+      processBatchSpy.mockRestore();
+      (bus as any).processBatch = originalProcessBatch;
     });
   });
 
