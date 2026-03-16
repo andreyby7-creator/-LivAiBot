@@ -10,7 +10,15 @@
  * - Локальные логи и временные файлы
  * - IDE и OS специфичные файлы
  * - Effect-TS/FP/Prisma/GraphQL генерируемые файлы
+ *
+ * ⚠️ ВАЖНО:
+ * - сами rule-конфиги (config/eslint/rules/*.mjs) и master.config.mjs ДОЛЖНЫ быть в репозитории,
+ *   поэтому их нужно явно разигнорить ниже.
  */
+
+# По умолчанию игнорируем всё содержимое config/eslint,
+# а затем точечно разигнорим необходимые конфиги.
+/**
 
 # ==================== CACHE FILES ====================
 # Автогенерируемые кеши ESLint (создаются автоматически при работе)
@@ -113,3 +121,23 @@ config.local.*
 # Vim swap файлы
 *.swp
 *.swo
+
+# ==================== CONFIG THAT MUST BE VERSIONED ====================
+# Разрешаем сами eslint-конфиги и rule-модули (используются в CI).
+!master.config.mjs
+!constants.mjs
+!architectural-boundaries.mjs
+!boundaries-exports.mjs
+!naming-conventions.mjs
+!modes/
+!modes/*.mjs
+!plugins/
+!plugins/**/*.mjs
+!rules/
+!rules/*.mjs
+!shared/
+!shared/**/*.mjs
+!utils/
+!utils/**/*.mjs
+!PLUGINS.md
+!README.md

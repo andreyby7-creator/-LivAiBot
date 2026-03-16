@@ -131,3 +131,9 @@ package-lock.json
 # Sentry
 .sentryclirc
 config/playwright/node_modules/
+
+# ESLint config rules (should be versioned)
+!.gitignore
+!config/eslint/
+!config/eslint/rules/
+!config/eslint/rules/*.mjs
