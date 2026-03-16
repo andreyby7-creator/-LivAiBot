@@ -79,6 +79,27 @@ def _normalize_openapi(openapi: dict[str, Any]) -> dict[str, Any]:
     в зависимости от версии/окружения. Сейчас `json.dumps(..., sort_keys=True)`
     достаточно, но этот хук оставляем для будущей стабилизации.
     """
+    # NOTE(contracts): FastAPI/Pydantic могут менять структуру `ValidationError`
+    # между версиями (например, добавляя `ctx` и `input`). Эти поля являются
+    # диагностическими деталями рантайма, а не частью стабильного API-контракта,
+    # поэтому удаляем их, чтобы генерация OpenAPI/Zod была воспроизводимой
+    # в локальной среде и CI при фиксированных зависимостях.
+    try:
+        schemas = openapi.get("components", {}).get("schemas", {})
+        validation_error = schemas.get("ValidationError")
+        if isinstance(validation_error, dict):
+            props = validation_error.get("properties")
+            if isinstance(props, dict):
+                props.pop("ctx", None)
+                props.pop("input", None)
+
+            required = validation_error.get("required")
+            if isinstance(required, list):
+                validation_error["required"] = [x for x in required if x not in ("ctx", "input")]
+    except Exception:
+        # Best-effort normalization: никогда не должна ломать генерацию.
+        pass
+
     return openapi
 
 
