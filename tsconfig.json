@@ -24,7 +24,7 @@
       "@livai/feature-voice": ["packages/feature-voice"],
       "@livai/feature-voice/*": ["packages/feature-voice/*"],
       "@livai/ui-core": ["packages/ui-core"],
-      "@livai/ui-core/*": ["packages/ui-core/*"],
+      "@livai/ui-core/*": ["packages/ui-core/dist/*"],
       "@livai/ui-features": ["packages/ui-features"],
       "@livai/ui-features/*": ["packages/ui-features/*"],
       "@livai/ui-shared": ["packages/ui-shared"],
