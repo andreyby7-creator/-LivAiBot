@@ -2674,3 +2674,4 @@ $(date -Iseconds) - Проверка консистентности конфиг
 2026-03-16T11:12:07+03:00 | chore(core-contracts): синхронизированы сгенерированные Zod-схемы с OpenAPI | Коммит: d31e8663 | Файлы: auth.ts, bots.ts, conversations.ts (generated), openapi.json (3 сервиса), apps/web/tsconfig.json | check:contracts проходит
 2026-03-16T11:17:19+03:00 | deps: обновлены zustand->^5.0.12, eslint-plugin-boundaries->^6.0.0, dprint->^0.53.0 | quality:local не прошёл из-за типов в @vitest/runner (TS2430), код проекта не ломали
 [2026-03-16T11:39:30+03:00] Fixed unused TYPE_EXEMPTIONS import in config/eslint/master.config.mjs and verified via pnpm lint (ESLint).
+2026-03-16T12:08:45+03:00	TASK=profile-summary	STATUS=ok
