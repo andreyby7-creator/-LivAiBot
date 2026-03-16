@@ -3,7 +3,19 @@ import { defineConfig } from 'tsup';
 export default defineConfig({
   target: 'es2024', // Совпадает с target в tsconfig для избежания лишних трансформаций
   platform: 'browser', // Базовые UI компоненты
-  entry: ['src/index.ts'],
+  // ВАЖНО: ui-core публикует public subpath exports (см. package.json "exports"),
+  // поэтому в dist должны существовать реальные файлы:
+  // - dist/primitives/*.js  (например dist/primitives/button.js)
+  // - dist/components/*.js  (например dist/components/Accordion.js)
+  // Локально это могло "случайно" работать из-за старых артефактов в dist/,
+  // но в CI checkout всегда чистый, поэтому entrypoints должны генерить эти модули.
+  entry: [
+    'src/index.ts',
+    'src/primitives/index.ts',
+    'src/primitives/*.tsx',
+    'src/components/index.ts',
+    'src/components/*.tsx',
+  ],
   format: ['esm'],
   outDir: 'dist',
   dts: false,

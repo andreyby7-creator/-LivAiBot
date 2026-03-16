@@ -6,6 +6,9 @@
     "rootDir": "./src",
     "composite": true,
     "incremental": true,
+    // ВАЖНО: build-info кладём в dist/, чтобы "чистая" сборка (CI/локально после rm -rf dist)
+    // не могла случайно пропустить генерацию .d.ts из-за stale *.tsbuildinfo.
+    "tsBuildInfoFile": "./dist/tsconfig.build.tsbuildinfo",
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
     "resolveJsonModule": false,
