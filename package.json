@@ -131,12 +131,12 @@
     "detective-postcss": "^7.0.1",
     "dotenv": "^17.3.1",
     "dotenv-expand": "^12.0.3",
-    "dprint": "^0.52.0",
+    "dprint": "^0.53.0",
     "eslint": "9.39.4",
     "eslint-formatter-compact": "^9.0.1",
     "eslint-formatter-pretty": "^7.0.0",
     "eslint-import-resolver-typescript": "^4.4.4",
-    "eslint-plugin-boundaries": "^5.4.0",
+    "eslint-plugin-boundaries": "^6.0.0",
     "eslint-plugin-eslint-comments": "^3.2.0",
     "eslint-plugin-fp": "^2.3.0",
     "eslint-plugin-functional": "^9.0.4",
@@ -188,7 +188,7 @@
     "next": "^16.1.6",
     "react": "19.2.4",
     "react-dom": "19.2.4",
-    "zustand": "^5.0.11"
+    "zustand": "^5.0.12"
   },
   "pnpm": {
     "overrides": {

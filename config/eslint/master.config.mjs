@@ -25,10 +25,11 @@ import {
 } from './constants.mjs';
 
 import { applySeverity, applySeverityAwareRules, QUALITY_WITH_SEVERITY, DEV_EXTRA_RULES, CANARY_EXTRA_RULES } from './shared/rules.mjs';
-import { TYPE_EXEMPTIONS, FLATTENED_TYPE_EXEMPTIONS } from './shared/tez.config.mjs';
+import { FLATTENED_TYPE_EXEMPTIONS } from './shared/tez.config.mjs';
 import { EXPECTED_ZONES, PACKAGE_ZONE_MAPPING } from './utils/check-zones.mjs';
 import { effectFpNamingRules } from './rules/naming-conventions.mjs';
 import architecturalBoundariesConfig from './rules/architectural-boundaries.mjs';
+import boundariesExportsConfig from './rules/boundaries-exports.mjs';
 
 // ==================== DEBUG ====================
 const DEBUG_ESLINT_CONFIG = process.env.DEBUG_ESLINT_CONFIG === '1' || false;
@@ -605,6 +606,7 @@ export default [
     },
     plugins: { '@typescript-eslint': PLUGINS['@typescript-eslint'] },
     settings: {
+      // Zone-aware boundaries (используются для архитектурных зон через boundaries/elements)
       boundaries: { elements: globalBoundaries },
     },
   },
@@ -623,10 +625,13 @@ export default [
   // 3. Архитектурные границы импортов (из architectural-boundaries.mjs)
   ...architecturalBoundariesConfig,
 
-  // 4. Domain-specific зоны (динамически генерированные)
+  // 4. Boundaries для public API и private-модулей (eslint-plugin-boundaries)
+  ...boundariesExportsConfig,
+
+  // 5. Domain-specific зоны (динамически генерированные)
   ...Object.values(dynamicZones).sort((a,b)=>(b.settings?.priority||0)-(a.settings?.priority||0)),
 
-  // 5. Специфические overrides для конкретных пакетов
+  // 6. Специфические overrides для конкретных пакетов
   // Observability - browser globals для веб/мобильных клиентов
   {
     files: [
@@ -665,10 +670,10 @@ export default [
     },
   },
 
-  // 6. Effect-TS / FP правила именования (применяются к foundation зонам)
+  // 7. Effect-TS / FP правила именования (применяются к foundation зонам)
   ...effectFpNamingRules,
 
-  // 7. Переопределения для тестовых файлов
+  // 8. Переопределения для тестовых файлов
   ...testFilesOverrides,
   // 8. Отключаем prefer-readonly-parameter-types для тестов (упрощает helper-функции)
   {

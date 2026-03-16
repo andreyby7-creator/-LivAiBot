@@ -62,6 +62,15 @@
 
 `eslint-plugin-boundaries` | Архитектурные границы | ✅
 
+> **Связка package exports + boundaries + zone firewall:**
+>
+> - **package.json `"exports"`** в пакетах (`@livai/ui-core`, `feature-*`) задают единственный легальный public API (dist/**).
+> - **`boundaries/dependencies`** физически запрещает обход этого API:
+>   - нельзя импортировать `@livai/*/src/*` или произвольные файлы из `dist/**`,
+>   - `feature-*/src/internal/**` считается приватным и недоступен снаружи.
+> - **Zone firewall (`architectural-boundaries.mjs` + `no-restricted-imports`)** контролирует, какие зоны (`foundation`, `aiExecution`, `ui`, `apps`, `infrastructure`) вообще могут зависеть друг от друга.\
+>   В итоге: package exports определяют public surface, boundaries закрепляет его на уровне файлов, а zone firewall защищает межслоевые зависимости.
+
 ### Документация
 
 `eslint-plugin-tsdoc` (0.5.2) | TSDoc комментарии | ✅ | ✅ ESLint 10 ready
