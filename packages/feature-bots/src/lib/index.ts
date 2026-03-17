@@ -23,3 +23,14 @@ export {
   type MappingRule,
   type MatchFn,
 } from './error-mapper.js';
+
+/**
+ * Bot Errors: канонические метаданные кодов и фабрики/нормализация `BotErrorResponse`.
+ * @public
+ */
+export {
+  botErrorMetaByCode,
+  createBotErrorResponse,
+  type CreateBotErrorResponseInput,
+  normalizeBotErrorResponse,
+} from './bot-errors.js';

@@ -517,8 +517,8 @@ Toast / UI feedback
 
 ### **Feature-bots / lib** ⚪
 
-- ⚪ `error-mapper.ts` — ts — deps: @livai/core, domain/BotErrorResponse, types/bots, domain/BotRetry — маппинг transport/domain ошибок в нормализованный BotError и UI-дружественные коды с использованием централизованной retry-политики
-- ⚪ `bot-errors.ts` — ts — deps: domain/BotErrorResponse, types/bots, domain/BotRetry — константы кодов ошибок, категоризация ошибок (validation, policy, permission, channel, webhook, parsing, integration) и специфичная логика маппинга сложных ошибок с опорой на BotRetryPolicy
+- 🟢 `error-mapper.ts` — ts — deps: contracts/BotErrorResponse, types/bots, domain/BotRetry — детерминированный DI rule-engine: boundary/unknown → `BotError`, retryable строго из BotRetryPolicy
+- 🟢 `bot-errors.ts` — ts — deps: contracts/BotErrorResponse, types/bots, domain/BotRetry — канонические метаданные `BotErrorCode` + фабрики/нормализация `BotErrorResponse` (anti-drift), retryable строго из BotRetryPolicy
 - ⚪ `policy-adapter.ts` — ts — deps: @livai/core/policies/BotPolicy, @livai/core/policies/BotPermissions, types/bots — адаптер между core/policies и feature-bots (BotMode → BotStatus, BotPolicyAction → BotCommand)
 - ⚪ `instruction-builder.ts` — ts — deps: domain/Prompt, domain/BotSettings — построитель полной инструкции из prompt-блоков и настроек
 - ⚪ `multi-agent-validator.ts` — ts — deps: domain/MultiAgentSchema — валидатор мультиагентных схем (проверка циклов через DFS, недостижимых узлов через BFS, дубликатов, guardrails, валидация agent IDs для agent isolation) + assertMultiAgentSchemaInvariant(schema) для проверки инвариантов на границах (transport/DB mapping, тесты, policy-слой). Поддержка custom rule plugins для будущих сценариев. Архитектура: domain содержит только типы и error types, вся валидация и assert в lib для соблюдения направленности зависимостей (lib → domain, не наоборот)

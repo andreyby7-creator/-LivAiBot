@@ -52,6 +52,8 @@ export type BotErrorType =
   | 'multi_agent_schema_invalid'
   | 'prompt_invalid'
   | 'workspace_id_invalid'
+  // Channel errors (coarse-grained)
+  | 'channel_error'
   // Policy errors
   | 'policy_error'
   | 'policy_action_denied'
@@ -67,6 +69,12 @@ export type BotErrorType =
   | 'permission_execute_denied'
   | 'permission_delete_denied'
   | 'workspace_access_denied'
+  // Webhook errors (coarse-grained)
+  | 'webhook_error'
+  // Parsing errors (coarse-grained)
+  | 'parsing_error'
+  // Integration errors (coarse-grained)
+  | 'integration_error'
   // Not found errors
   | 'not_found'
   | 'bot_not_found'

@@ -112,6 +112,20 @@ describe('BotErrorType', () => {
     expect(unknownType).toBe('unknown_error');
   });
 
+  it('поддерживает coarse-grained типы ошибок для channel/webhook/parsing/integration', () => {
+    const coarseTypes: BotErrorType[] = [
+      'channel_error',
+      'webhook_error',
+      'parsing_error',
+      'integration_error',
+    ];
+
+    expect(coarseTypes).toHaveLength(4);
+    coarseTypes.forEach((type) => {
+      expect(typeof type).toBe('string');
+    });
+  });
+
   it('поддерживает все типы ошибок', () => {
     const allTypes: BotErrorType[] = [
       // Validation errors
@@ -128,6 +142,8 @@ describe('BotErrorType', () => {
       'multi_agent_schema_invalid',
       'prompt_invalid',
       'workspace_id_invalid',
+      // Channel errors (coarse-grained)
+      'channel_error',
       // Policy errors
       'policy_error',
       'policy_action_denied',
@@ -143,6 +159,10 @@ describe('BotErrorType', () => {
       'permission_execute_denied',
       'permission_delete_denied',
       'workspace_access_denied',
+      // Webhook/Parsing/Integration errors (coarse-grained)
+      'webhook_error',
+      'parsing_error',
+      'integration_error',
       // Not found errors
       'not_found',
       'bot_not_found',
@@ -152,7 +172,7 @@ describe('BotErrorType', () => {
       'unknown_error',
     ];
 
-    expect(allTypes).toHaveLength(31);
+    expect(allTypes).toHaveLength(35);
   });
 });
 
