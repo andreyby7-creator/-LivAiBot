@@ -218,17 +218,17 @@ type OperationKey =
   | 'delete';
 ```
 
-1. 🟡 Удалить:
+3.1 🟡 Удалить:
 
 - 🟡 `Object.freeze`
 - 🟡 `toIdle` / `toLoading`
 - 🟡 `IDLE` singleton
 
-2. 🟡 Заменить OperationState:
+3.2 🟡 Заменить OperationState:
 
 - 🟡 `BotOperationState` → `OperationState<T, BotCommandType, BotError>` (перейти на `core/state-kit/operation`)
 
-3. 🟡 Зафиксировать структуру state и типы entities/operations (без `unknown`):
+3.3 🟡 Зафиксировать структуру state и типы entities/operations (без `unknown`):
 
 ```ts
 type BotId = string;
@@ -245,14 +245,14 @@ type BotsOperations = {
 };
 ```
 
-4. 🟡 Унифицировать операции:
+3.4 🟡 Унифицировать операции:
 
 - `operation.idle()`
 - `operation.loading(op)`
 - `operation.success(data)`
 - `operation.error(err)`
 
-5. 🟡 Убрать boilerplate (типобезопасно связать key/value):
+3.5 🟡 Убрать boilerplate (типобезопасно связать key/value):
 
 ```ts
 const setOperation = <K extends keyof BotsOperations>(
@@ -271,11 +271,11 @@ const setOperation = <K extends keyof BotsOperations>(
 - `OperationKey` — единственный source of truth для ключей `BotsOperations`; маппинг обязан использовать `OperationKey`, без дублирующих string-литералов.
 - `setOperation` выносится в shared helper внутри `feature-bots` (например, `src/stores/helpers/operations.ts`), локальные operation-helpers в `bots.ts` запрещены.
 
-7. 🟡 ESLint:
+3.6 🟡 ESLint:
 
 - custom rule: запрет inline `set({})` с autofix, где возможно (оборачивать в updater `state => ({ ...state, ... })`)
 
-6. 🟡 Запрет inline `set`:
+3.7 🟡 Запрет inline `set`:
 
 - 🟡 ❌ нельзя: `set({ ... })` (сейчас есть)
 - 🟡 ✅ только: `set(setOperation(...))`
@@ -298,7 +298,7 @@ const setOperation = <K extends keyof BotsOperations>(
 ### Checkpoint 4 — Refactor app/store
 
 **Действия**
-4.0 🟡 Strict persist contract:
+4.1 🟡 Strict persist contract:
 
 ```ts
 type PersistedAppState = Pick<
@@ -307,7 +307,7 @@ type PersistedAppState = Pick<
 >;
 ```
 
-4.1 🟡 Merge:
+4.2 🟡 Merge:
 
 ```ts
 merge: ((persisted, current) => {
