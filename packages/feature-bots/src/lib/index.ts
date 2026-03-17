@@ -34,3 +34,20 @@ export {
   type CreateBotErrorResponseInput,
   normalizeBotErrorResponse,
 } from './bot-errors.js';
+
+/**
+ * Policy Adapter: преобразование core policy типов в feature-bots типы.
+ * @public
+ */
+export {
+  adaptBotModeToBotStatus,
+  type AdaptBotModeToStatusInput,
+  adaptBotPolicyActionToBotCommandType,
+  type AdaptBotPolicyActionToCommandOptions,
+  AllBotPolicyActions,
+  type BotPolicyActionResolverContext,
+  isBotMode,
+  isBotPolicyAction,
+  parseBotMode,
+  parseBotPolicyAction,
+} from './policy-adapter.js';

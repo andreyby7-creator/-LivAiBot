@@ -519,7 +519,7 @@ Toast / UI feedback
 
 - 🟢 `error-mapper.ts` — ts — deps: contracts/BotErrorResponse, types/bots, domain/BotRetry — детерминированный DI rule-engine: boundary/unknown → `BotError`, retryable строго из BotRetryPolicy
 - 🟢 `bot-errors.ts` — ts — deps: contracts/BotErrorResponse, types/bots, domain/BotRetry — канонические метаданные `BotErrorCode` + фабрики/нормализация `BotErrorResponse` (anti-drift), retryable строго из BotRetryPolicy
-- ⚪ `policy-adapter.ts` — ts — deps: @livai/core/policies/BotPolicy, @livai/core/policies/BotPermissions, types/bots — адаптер между core/policies и feature-bots (BotMode → BotStatus, BotPolicyAction → BotCommand)
+- 🟢 `policy-adapter.ts` — ts — deps: @livai/core, @livai/core-contracts, types/bots, types/bot-commands, types/bot-lifecycle — адаптер core policy → feature-bots (BotMode → BotStatus, BotPolicyAction → BotCommandType) + guards/parsers для boundary
 - ⚪ `instruction-builder.ts` — ts — deps: domain/Prompt, domain/BotSettings — построитель полной инструкции из prompt-блоков и настроек
 - ⚪ `multi-agent-validator.ts` — ts — deps: domain/MultiAgentSchema — валидатор мультиагентных схем (проверка циклов через DFS, недостижимых узлов через BFS, дубликатов, guardrails, валидация agent IDs для agent isolation) + assertMultiAgentSchemaInvariant(schema) для проверки инвариантов на границах (transport/DB mapping, тесты, policy-слой). Поддержка custom rule plugins для будущих сценариев. Архитектура: domain содержит только типы и error types, вся валидация и assert в lib для соблюдения направленности зависимостей (lib → domain, не наоборот)
 - ⚪ `version-manager.ts` — ts — deps: domain/Bot, domain/BotVersion, types/bots — domain-pure менеджер версий ботов (создание версий, rollback, immutable гарантии)
