@@ -80,3 +80,20 @@ export {
   createRollbackBotVersion,
   type CreateRollbackBotVersionInput,
 } from './version-manager.js';
+
+/**
+ * Bot Audit: runtime validation/normalization и DI emit для SIEM/логов.
+ * @public
+ */
+export {
+  type BotAuditSink,
+  emitBotAuditEvent,
+  type EmitBotAuditEventOptions,
+  type EmitBotAuditEventResult,
+  isBotAuditEventValues,
+  normalizeBotAuditEventValues,
+  type ParseBotAuditEventError,
+  type ParseBotAuditEventErrorCode,
+  parseBotAuditEventValues,
+  toBotAuditEventValues,
+} from './bot-audit.js';
