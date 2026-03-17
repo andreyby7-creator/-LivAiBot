@@ -51,3 +51,20 @@ export {
   parseBotMode,
   parseBotPolicyAction,
 } from './policy-adapter.js';
+
+/**
+ * Multi-Agent Validator: инварианты MultiAgentSchema (graph/rules/guardrails) + boundary limits.
+ * @public
+ */
+export {
+  assertMultiAgentSchemaInvariant,
+  type MultiAgentInvariantCode,
+  type MultiAgentInvariantIssue,
+  type MultiAgentSchemaValidationFail,
+  type MultiAgentSchemaValidationOk,
+  type MultiAgentSchemaValidationResult,
+  type MultiAgentValidationContext,
+  type MultiAgentValidationRule,
+  validateMultiAgentSchema,
+  type ValidateMultiAgentSchemaOptions,
+} from './multi-agent-validator.js';
