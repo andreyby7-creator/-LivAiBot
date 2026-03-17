@@ -72,3 +72,14 @@ export * from './schemas/index.js';
  * @public
  */
 export * from './lib/index.js';
+
+/* ============================================================================
+ * 🗃️ STORES — ZUSTAND STORE (STATE ONLY)
+ * ========================================================================== */
+
+/**
+ * Stores подпакет: Zustand store состояния ботов без side-effects.
+ * Effects взаимодействуют через порт (Port pattern).
+ * @public
+ */
+export * from './stores/index.js';

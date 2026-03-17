@@ -219,3 +219,19 @@ export * as performance from './performance/index.js';
  * @public
  */
 export * as accessControl from './access-control/index.js';
+
+/* ============================================================================
+ * 🧱 STATE-KIT — STORE/STATE PRIMITIVES (FRAMEWORK-AGNOSTIC)
+ * ========================================================================== */
+/**
+ * State Kit подпакет: минимальные framework-agnostic примитивы для store/state.
+ * Включает persist helpers (merge + storage), operation state constructors, updater helpers и version checks.
+ *
+ * Доступен как через subpath `@livai/core/state-kit`,
+ * так и через главный индекс `@livai/core` (реэкспорт для удобства и tree-shakeable usage).
+ *
+ * Контракт: `state-kit` не имеет зависимостей от runtime/framework (React/Zustand/Next),
+ * и может использоваться в SSR и unit-тестах.
+ * @public
+ */
+export * from './state-kit/index.js';

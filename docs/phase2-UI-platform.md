@@ -196,6 +196,13 @@ Toast / UI feedback
 - 🟢 `confidence.ts` — ts — deps: — уровни уверенности (confidence) для оценок/предсказаний
 - 🟢 `evaluation-level.ts` — ts — deps: — уровни оценивания качества (evaluation levels)
 
+### **Core / state-kit** ✅
+
+- 🟢 `persist.ts` — ts — deps: — persist helpers (`mergePreservingActions`, `createNoopStorage`)
+- 🟢 `operation.ts` — ts — deps: — `OperationState` (idle/loading/success/error) + конструкторы и type guards
+- 🟢 `updater.ts` — ts — deps: — `applyUpdater` (чистое функциональное обновление state с referential equality)
+- 🟢 `version.ts` — ts — deps: — helpers для версий (`compareVersion`, `assertVersionEqual`, `isVersionMismatch`)
+
 ### **Core / aggregation** ✅
 
 - 🟢 `reducer.ts` — ts — deps: — базовые редьюсеры для агрегирования результатов и метрик
@@ -529,7 +536,7 @@ Toast / UI feedback
 
 ### **Feature-bots / stores** ✅
 
-- ⚪ `bots.ts` — ts — deps: zustand, types/bots — централизованный Zustand-store состояния ботов (список, текущий бот, UI-состояние, draft-состояния) без side-effects (effects используют store только через порты из effects/shared/bots-store.port.ts)
+- 🟢 `bots.ts` — ts — deps: zustand, types/bots — чистый Zustand-store `BotState` (state + sync transitions) без side-effects; SSR-safe factory `createBotsStore`, initial state helpers и typed actions
 
 ### **Feature-bots / effects** ⚪
 

@@ -628,6 +628,19 @@ export default [
   // 4. Boundaries для public API и private-модулей (eslint-plugin-boundaries)
   ...boundariesExportsConfig,
 
+  // 4.1 Store guardrails (selectors/actions invariants)
+  {
+    files: [
+      'packages/feature-*/src/stores/**/*.{ts,tsx}',
+      'packages/feature-*/src/selectors/**/*.{ts,tsx}',
+      'packages/app/src/state/**/*.{ts,tsx}',
+    ],
+    rules: {
+      '@livai/store-guards/selectors-no-actions': 'error',
+      '@livai/store-guards/no-state-mutation': 'error',
+    },
+  },
+
   // 5. Domain-specific зоны (динамически генерированные)
   ...Object.values(dynamicZones).sort((a,b)=>(b.settings?.priority||0)-(a.settings?.priority||0)),
 

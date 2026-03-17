@@ -249,6 +249,81 @@ export const globalSecurityRules = {
 };
 
 /**
+ * Feature API boundaries:
+ * - Запрещает импорт feature-пакетов по корневому имени (например, @livai/feature-bots)
+ * - Разрешает только явные public subpath-и (например, @livai/feature-bots/public)
+ */
+export const featureApiImportRules = {
+  files: [
+    'packages/**/*.{ts,tsx}',
+    'apps/**/*.{ts,tsx}',
+  ],
+  ignores: [
+    '**/*.test.{ts,tsx,js,jsx}',
+    '**/*.spec.{ts,tsx,js,jsx}',
+    '**/__tests__/**',
+    '**/test/**',
+    '**/tests/**',
+  ],
+  rules: {
+    'no-restricted-imports': [
+      'error',
+      {
+        paths: [
+          {
+            name: '@livai/feature-auth',
+            message: 'Импорт feature-auth разрешён только через @livai/feature-auth/public (feature→feature imports запрещены).',
+          },
+          {
+            name: '@livai/feature-bots',
+            message: 'Импорт feature-bots разрешён только через @livai/feature-bots/public (feature→feature imports запрещены).',
+          },
+          {
+            name: '@livai/feature-chat',
+            message: 'Импорт feature-chat разрешён только через @livai/feature-chat/public (feature→feature imports запрещены).',
+          },
+          {
+            name: '@livai/feature-voice',
+            message: 'Импорт feature-voice разрешён только через @livai/feature-voice/public (feature→feature imports запрещены).',
+          },
+        ],
+      },
+    ],
+  },
+};
+
+/**
+ * Runtime-free core/state-kit:
+ * - Запрещает прямой импорт zustand и других store runtime в core/state-kit
+ * - Гарантирует, что state-kit остаётся framework-agnostic
+ */
+export const stateKitRuntimeFreeRules = {
+  files: [
+    'packages/core/src/state-kit/**/*.{ts,tsx}',
+  ],
+  ignores: [
+    '**/*.test.{ts,tsx}',
+    '**/*.spec.{ts,tsx}',
+    '**/__tests__/**',
+    '**/test/**',
+    '**/tests/**',
+  ],
+  rules: {
+    'no-restricted-imports': [
+      'error',
+      {
+        paths: [
+          {
+            name: 'zustand',
+            message: 'core/state-kit должен быть runtime-agnostic. Запрещён прямой импорт zustand в state-kit.',
+          },
+        ],
+      },
+    ],
+  },
+};
+
+/**
  * Устаревшие импорты - предупреждения о deprecated пакетах
  * Помогает поддерживать актуальный технологический стек
  */
@@ -339,6 +414,12 @@ export default [
 
   // Глобальные правила безопасности
   globalSecurityRules,
+
+  // Feature API boundaries (feature→feature imports только через public)
+  featureApiImportRules,
+
+  // Core/state-kit: жёсткий запрет runtime-зависимостей (zustand, и т.п.)
+  stateKitRuntimeFreeRules,
 
   // Security Pipeline boundaries (запрет прямых импортов внутренних модулей)
   securityPipelineBoundaries,

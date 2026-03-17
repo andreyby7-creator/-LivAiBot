@@ -97,6 +97,8 @@ const [livAiRagPlugin, livAiMultiagentPlugin] = await Promise.all([
   tryImport('./plugins/multiagent/index.js'),
 ]);
 
+const livAiStoreGuardsPlugin = await tryImport('./plugins/store-guards/index.js');
+
 // ==================== Объект всех плагинов ====================
 // AI-Governed Platform: AI плагины как core-подсистема, не дополнение
 
@@ -130,6 +132,7 @@ export const PLUGINS = {
   // AI Core (ядро AI-first платформы)
   '@livai/rag': livAiRagPlugin || {},
   '@livai/multiagent': livAiMultiagentPlugin || {},
+  '@livai/store-guards': livAiStoreGuardsPlugin || {},
 
   // Quality & Documentation
   sonarjs: sonarjsPlugin || {},
