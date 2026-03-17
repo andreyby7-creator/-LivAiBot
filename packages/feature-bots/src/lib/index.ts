@@ -97,3 +97,35 @@ export {
   parseBotAuditEventValues,
   toBotAuditEventValues,
 } from './bot-audit.js';
+
+/**
+ * Bot Telemetry: pure builders метрик и DI emit sink.
+ * @public
+ */
+export {
+  type BotTelemetryEntityRef,
+  type BotTelemetryError,
+  type BotTelemetryErrorCode,
+  type BotTelemetryEvent,
+  type BotTelemetryMetadata,
+  type BotTelemetryMetricName,
+  BotTelemetryMetricNames,
+  type BotTelemetrySink,
+  type BotTelemetrySinkLike,
+  createBotTelemetryEvent,
+  createBotTelemetrySinkAdapter,
+  type CreateBotTelemetrySinkAdapterInput,
+  createConversationsStartedTelemetryEvent,
+  type CreateConversationsStartedTelemetryInput,
+  createIntegrationCallTelemetryEvent,
+  type CreateIntegrationCallTelemetryInput,
+  createLlmTokensTelemetryEvent,
+  type CreateLlmTokensTelemetryInput,
+  createMessagesProcessedTelemetryEvent,
+  type CreateMessagesProcessedTelemetryInput,
+  createWebhookTelemetryEvent,
+  type CreateWebhookTelemetryInput,
+  emitBotTelemetryEvent,
+  type EmitBotTelemetryEventOptions,
+  type EmitBotTelemetryEventResult,
+} from './bot-telemetry.js';

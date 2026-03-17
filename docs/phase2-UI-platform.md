@@ -524,7 +524,7 @@ Toast / UI feedback
 - 🟢 `multi-agent-validator.ts` — ts — deps: domain/MultiAgentSchema — детерминированный валидатор инвариантов `MultiAgentSchema` (agent isolation, size limits, граф: reachability + cycle detection, rules/guardrails, DI custom plugins) + `assertMultiAgentSchemaInvariant` для boundary (transport/DB mapping, тесты, policy-слой)
 - 🟢 `version-manager.ts` — ts — deps: domain/Bot, domain/BotVersion, types/bot-commands — domain-pure version manager: next/rollback `BotVersionAggregate` + applyVersionToBot (детерминированно, без now(), immutable)
 - 🟢 `bot-audit.ts` — ts — deps: domain/BotAuditEvent, schemas/index, types/bots — хелперы аудита: runtime validation/normalization (anti-drift), лимит размера payload, structured parsing error + DI emit sink и `onInvalid` hook
-- ⚪ `bot-telemetry.ts` — ts — deps: types/bots, @livai/core-contracts/telemetry — telemetry hooks для метрик ботов (llm_tokens, conversations_started, messages_processed, webhook_events, integration_calls, метрики производительности, конверсия, расход токенов)
+- 🟢 `bot-telemetry.ts` — ts — deps: types/bots, @livai/core-contracts — telemetry hooks: pure builders событий метрик (SSOT metric names + allow-listed primitive metadata) + DI sink emit без `Date.now()`
 - ⚪ `bot-pipeline.ts` — ts — deps: types/bot-commands, types/bot-events, lib/bot-audit — описание и обработка pipeline-триггеров (автоматические действия при создании/публикации бота, обработка webhook-событий, триггеры уведомлений, автоматические подтверждения, hook points для future events: beforePublish, afterRollback, onCommandExecuted для расширяемости без изменения структуры)
 
 ### **Feature-bots / stores** ⚪
