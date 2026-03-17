@@ -515,7 +515,7 @@ Toast / UI feedback
 
 - 🟢 `schemas.ts` — ts — deps: zod — Zod-схемы и inferred-типы для bot DTO (create/update/publish/test), multi-agent, template, audit-события; structural refinements (граф, лимиты, уникальность приоритетов)
 
-### **Feature-bots / lib** ⚪
+### **Feature-bots / lib** ✅
 
 - 🟢 `error-mapper.ts` — ts — deps: contracts/BotErrorResponse, types/bots, domain/BotRetry — детерминированный DI rule-engine: boundary/unknown → `BotError`, retryable строго из BotRetryPolicy
 - 🟢 `bot-errors.ts` — ts — deps: contracts/BotErrorResponse, types/bots, domain/BotRetry — канонические метаданные `BotErrorCode` + фабрики/нормализация `BotErrorResponse` (anti-drift), retryable строго из BotRetryPolicy
@@ -525,9 +525,9 @@ Toast / UI feedback
 - 🟢 `version-manager.ts` — ts — deps: domain/Bot, domain/BotVersion, types/bot-commands — domain-pure version manager: next/rollback `BotVersionAggregate` + applyVersionToBot (детерминированно, без now(), immutable)
 - 🟢 `bot-audit.ts` — ts — deps: domain/BotAuditEvent, schemas/index, types/bots — хелперы аудита: runtime validation/normalization (anti-drift), лимит размера payload, structured parsing error + DI emit sink и `onInvalid` hook
 - 🟢 `bot-telemetry.ts` — ts — deps: types/bots, @livai/core-contracts — telemetry hooks: pure builders событий метрик (SSOT metric names + allow-listed primitive metadata) + DI sink emit без `Date.now()`
-- ⚪ `bot-pipeline.ts` — ts — deps: types/bot-commands, types/bot-events, lib/bot-audit — описание и обработка pipeline-триггеров (автоматические действия при создании/публикации бота, обработка webhook-событий, триггеры уведомлений, автоматические подтверждения, hook points для future events: beforePublish, afterRollback, onCommandExecuted для расширяемости без изменения структуры)
+- 🟢 `bot-pipeline.ts` — ts — deps: types/bot-commands, types/bot-events, lib/bot-audit — детерминированный runner pipeline-триггеров (command/event) + DI hooks (`beforePublish`, `afterRollback`, `onCommandExecuted`) + расширение через `rules` и опциональный audit emit
 
-### **Feature-bots / stores** ⚪
+### **Feature-bots / stores** ✅
 
 - ⚪ `bots.ts` — ts — deps: zustand, types/bots — централизованный Zustand-store состояния ботов (список, текущий бот, UI-состояние, draft-состояния) без side-effects (effects используют store только через порты из effects/shared/bots-store.port.ts)
 

@@ -129,3 +129,26 @@ export {
   type EmitBotTelemetryEventOptions,
   type EmitBotTelemetryEventResult,
 } from './bot-telemetry.js';
+
+/**
+ * Bot Pipeline: обработка pipeline-триггеров + hook points (DI) и опциональный audit.
+ * @public
+ */
+export {
+  type BotPipelineAuditEmitter,
+  type BotPipelineAuditMapper,
+  type BotPipelineError,
+  type BotPipelineErrorCode,
+  type BotPipelineHookContext,
+  type BotPipelineHooks,
+  type BotPipelineResult,
+  type BotPipelineRule,
+  type BotPipelineRuleContext,
+  type BotPipelineStepFailure,
+  type BotPipelineStepId,
+  type BotPipelineStepResult,
+  type BotPipelineTrigger,
+  emitBotPipelineAuditEvents,
+  runBotPipeline,
+  type RunBotPipelineOptions,
+} from './bot-pipeline.js';
