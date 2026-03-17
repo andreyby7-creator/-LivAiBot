@@ -68,3 +68,15 @@ export {
   validateMultiAgentSchema,
   type ValidateMultiAgentSchemaOptions,
 } from './multi-agent-validator.js';
+
+/**
+ * Version Manager: pure операции управления версиями конфигурации бота.
+ * @public
+ */
+export {
+  applyVersionToBot,
+  createNextBotVersion,
+  type CreateNextBotVersionInput,
+  createRollbackBotVersion,
+  type CreateRollbackBotVersionInput,
+} from './version-manager.js';
