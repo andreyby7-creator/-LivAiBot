@@ -61,3 +61,14 @@ export * from './dto/index.js';
  * @public
  */
 export * from './schemas/index.js';
+
+/* ============================================================================
+ * 🧰 LIB — УТИЛИТЫ И RULE-ENGINE
+ * ========================================================================== */
+
+/**
+ * Lib подпакет: pure утилиты и rule-engine адаптеры поверх domain/types/contracts.
+ * Включает маппер ошибок `mapBotErrorToUI` и типы для конфигурации rule-engine.
+ * @public
+ */
+export * from './lib/index.js';
