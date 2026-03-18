@@ -168,6 +168,11 @@ export const botErrorMetaByCode: Readonly<Record<BotErrorCode, BotErrorMeta>> = 
     severity: 'medium',
     statusCode: 404,
   },
+  BOT_REQUEST_ABORTED: {
+    error: 'channel_error',
+    category: 'channel',
+    severity: 'low',
+  },
   BOT_CHANNEL_INVALID: { ...channelBase, severity: 'medium', statusCode: 400 },
   BOT_CHANNEL_DISABLED: { ...channelBase, severity: 'medium', statusCode: 409 },
   BOT_CHANNEL_CONNECTION_FAILED: { ...channelBase, severity: 'high' },

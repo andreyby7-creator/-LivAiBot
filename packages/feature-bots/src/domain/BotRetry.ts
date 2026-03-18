@@ -81,6 +81,7 @@ const RawBotRetryPolicy = {
   BOT_CHANNEL_DISABLED: false,
   BOT_CHANNEL_CONNECTION_FAILED: true,
   BOT_CHANNEL_RATE_LIMIT_EXCEEDED: true,
+  BOT_REQUEST_ABORTED: false,
 
   // Webhook
   BOT_WEBHOOK_URL_INVALID: false,

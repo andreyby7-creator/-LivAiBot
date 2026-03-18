@@ -83,3 +83,13 @@ export * from './lib/index.js';
  * @public
  */
 export * from './stores/index.js';
+
+/* ============================================================================
+ * ⚡ EFFECTS — EFFECT-BASED ORCHESTRATION (Promise → Effect)
+ * ========================================================================== */
+
+/**
+ * Effects подпакет: Effect-based orchestration и shared adapters (Promise → Effect).
+ * @public
+ */
+export * from './effects/index.js';

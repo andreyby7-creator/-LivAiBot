@@ -163,7 +163,8 @@ export type BotChannelErrorCode =
   | 'BOT_CHANNEL_INVALID'
   | 'BOT_CHANNEL_DISABLED'
   | 'BOT_CHANNEL_CONNECTION_FAILED'
-  | 'BOT_CHANNEL_RATE_LIMIT_EXCEEDED';
+  | 'BOT_CHANNEL_RATE_LIMIT_EXCEEDED'
+  | 'BOT_REQUEST_ABORTED';
 
 /**
  * Коды ошибок webhook ботов.

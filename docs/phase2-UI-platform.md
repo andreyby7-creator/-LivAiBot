@@ -541,7 +541,7 @@ Toast / UI feedback
 
 ### **Feature-bots / effects** ⚪
 
-- ⚪ `shared/api-client.adapter.ts` — ts+effect — deps: lib/*, stores/bots, schemas/index — адаптер HTTP-клиента под Effect-пайплайны и bot-схемы
+- 🟢 `shared/api-client.adapter.ts` — ts+effect — deps: contracts/BotErrorResponse, lib/bot-errors, domain/BotRetry, types/bots, @livai/core-contracts/validation/zod — адаптер legacy HTTP-клиента под Effect-пайплайны: Zod-валидация + детерминированная нормализация transport-ошибок в `BotErrorResponse`
 - ⚪ `shared/api-client.port.ts` — ts+effect — deps: lib/*, stores/bots, schemas/index — портовый контракт BotApiClientPort для DI (CRUD, publish, test)
 - ⚪ `shared/bots-api.mappers.ts` — ts+effect — deps: lib/*, stores/bots, schemas/index — мапперы HTTP-ответов backend → domain/feature-уровень (Bot/BotList/BotError)
 - ⚪ `shared/bots-store.port.ts` — ts — deps: stores/bots, types/bots — портовый контракт доступа к bots-store из эффектов (Port pattern для изоляции effects от реализации store)
