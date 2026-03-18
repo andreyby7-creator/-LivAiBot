@@ -490,9 +490,9 @@ Toast / UI feedback
 
 - 🟢 `bot-lifecycle.ts` — ts — deps: none — атомарные lifecycle-контракты (BotPauseReason, BotEnforcementReason)
 - 🟢 `bot-commands.ts` — ts — deps: @livai/core-contracts, types/bot-lifecycle — типы и константы команд ботов (BotCommandTypes/BotCommandType/AllBotCommandTypes, BotCommand discriminated union + строгие payload'ы для: create_bot_from_template, create_custom_bot, update_instruction, manage_multi_agent, publish_bot, pause_bot, resume_bot, archive_bot, delete_bot, simulate_bot_message)
-- 🟢 `bots.ts` — ts — deps: @livai/core-contracts, @livai/core, types/bot-commands, types/bot-lifecycle — агрегирующие типы состояния и операций ботов для store/effects/UI (BotState, BotStatus с 7 вариантами и причинами приостановки, BotError с 7 категориями и severity для telemetry/alerts, exhaustive union BotErrorCode, BotErrorMappingRegistry с retryable: boolean для rule-engine, BotOperationState, BotInfo)
+- 🟢 `bots.ts` — ts — deps: @livai/core-contracts, @livai/core, types/bot-lifecycle — агрегирующие типы для store/effects/UI (BotStatus с 7 вариантами и причинами приостановки, BotError с 7 категориями и severity для telemetry/alerts, exhaustive union BotErrorCode, BotErrorMappingRegistry для rule-engine, BotInfo, store-форма `BotsState` = `{ entities, operations }`, операции `BotsOperations` на базе `OperationState` из core/state-kit с ключами `OperationKey` = create/update/delete)
 - 🟢 `bot-events.ts` — ts — deps: @livai/core-contracts, domain/*, types/bots, types/bot-lifecycle — типы и константы domain events ботов для store/effects/UI/event-bus (Single Source of Truth: BotEventPayloadMap → auto-generated BotEventType → discriminated union BotEvent; rule-engine ready: aggregateId/aggregateType для routing; event versioning: schemaVersion в BotEventMeta; 10 событий lifecycle: bot_created/published/updated/deleted, instruction_updated, multi_agent_updated, bot_paused/resumed/archived, config_changed; type guards isBotEvent/isBotEventOfType)
-- 🟢 `bots-initial.ts` — ts — deps: types/bots, domain/BotAuditEvent, types/bot-events — канонические начальные состояния Bot для reset-операций в store/effects (initialBotState, initialBotListState, initialBotOperationState), шаблоны для audit-событий (BotAuditEventTemplateMap auto-generated через satisfies, createBotAuditEventTemplate), pipeline-hooks (BotPipelineHookMap с приоритетами, registerBotPipelineHook для immutable registration) для автоматических действий при lifecycle-событиях
+- 🟢 `bots-initial.ts` — ts — deps: @livai/core (types), types/bots, domain/BotAuditEvent, types/bot-events — канонические начальные структуры для store/effects (initialBotsState: `{ entities: {}, operations: idle }`), шаблоны для audit-событий (BotAuditEventTemplateMap auto-generated через satisfies, createBotAuditEventTemplate), pipeline-hooks (initialBotPipelineHookMap, BotPipelineHookMap с приоритетами, registerBotPipelineHook для immutable registration) для автоматических действий при lifecycle-событиях
 
 ### **Feature-bots / domain** ✅
 
@@ -536,7 +536,8 @@ Toast / UI feedback
 
 ### **Feature-bots / stores** ✅
 
-- 🟢 `bots.ts` — ts — deps: zustand, types/bots — чистый Zustand-store `BotState` (state + sync transitions) без side-effects; SSR-safe factory `createBotsStore`, initial state helpers и typed actions
+- 🟢 `helpers/operations.ts` — ts — deps: types/bots — store helper `setOperation` для типобезопасного обновления `bots.operations` без мутаций (key/value связаны через `BotsOperations`)
+- 🟢 `bots.ts` — ts — deps: zustand, @livai/core, types/bots, stores/helpers/operations — чистый Zustand-store `BotsStore` (state + sync transitions) без side-effects; SSR-safe factory `createBotsStore`, `createInitialBotsStoreState` и typed actions для обновления `bots.entities`/`bots.operations`
 
 ### **Feature-bots / effects** ⚪
 

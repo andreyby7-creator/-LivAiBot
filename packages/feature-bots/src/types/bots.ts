@@ -5,29 +5,29 @@
  * ============================================================================
  *
  * Архитектурная роль:
- * - Агрегирующие типы состояния и операций ботов для store/effects/UI
+ * - Агрегирующие типы для UI/effects/store (без runtime-зависимостей)
  * - Типы статусов ботов (BotStatus: draft, active, paused, archived, deleted, suspended, deprecated)
  *   с причинами паузы/ограничений (BotPauseReason, BotEnforcementReason)
  * - Система ошибок с категоризацией (7 категорий: validation, policy, permission, channel, webhook, parsing, integration),
  *   severity (low/medium/high/critical), exhaustive union кодов ошибок и контекстом (BotError, BotErrorContext, BotField)
  * - Структура error-mapping для rule-engine (BotErrorMappingConfig, BotErrorMappingRegistry)
- * - Состояния операций для store (BotState, BotListState, BotOperationState: idle/loading/success/error)
- * - Базовая информация о боте (BotInfo) и тип команд (BotCommandType)
+ * - Контракт операций для store: `OperationState` из core/state-kit; операции живут только в `state.operations`
+ * - Store-форма состояния: `BotsState` (entities + operations), без side-effects и без UI-логики
+ * - Базовая информация о боте для UI/store (BotInfo)
  * - BotPauseReason/BotEnforcementReason — атомарные lifecycle-контракты в `types/bot-lifecycle.ts` (единый source-of-truth, без drift/циклов)
  *
  * Принципы:
  * - ❌ Нет бизнес-логики, нет локализации (message генерируется в UI через i18n)
- * - ✅ Exhaustive unions (без string и Record в domain), discriminated unions для состояний и ошибок
- * - ✅ Immutable / readonly, domain-pure (без transport leakage, без side-effects)
+ * - ✅ Exhaustive unions (без unbounded string/Record в domain-типах), discriminated unions для статусов/ошибок
+ * - ✅ Immutable / readonly: типы описывают данные, а не поведение (без side-effects)
  * - ✅ Разделение ответственности: статус описывает состояние (без ID), ID в BotInfo
  * - ✅ Scalable rule-engine через registry pattern
  * - ✅ Microservice-ready, vendor-agnostic
  */
 
-import type { BotPolicyAction, BotPolicyDeniedReason } from '@livai/core';
+import type { BotPolicyAction, BotPolicyDeniedReason, OperationState } from '@livai/core';
 import type { ID, ISODateString, JsonObject, TraceId } from '@livai/core-contracts';
 
-import type { BotCommandType } from './bot-commands.js';
 import type { BotEnforcementReason, BotPauseReason } from './bot-lifecycle.js';
 
 /* ============================================================================
@@ -342,84 +342,44 @@ export type BotInfo = Readonly<{
   readonly updatedAt?: ISODateString;
 }>;
 
-/** Состояние ожидания операций с ботами. */
-export type BotIdle = Readonly<{
-  readonly status: 'idle';
-}>;
-
-/** Состояние загрузки операций с ботами. */
-export type BotLoading = Readonly<{
-  readonly status: 'loading';
-  /** Тип операции */
-  readonly operation: BotCommandType;
-}>;
-
-/** Состояние успешного выполнения операций с ботами. */
-export type BotSuccess<T = BotInfo> = Readonly<{
-  readonly status: 'success';
-  /** Данные результата */
-  readonly data: T;
-}>;
-
-/** Состояние ошибки операций с ботами. */
-export type BotErrorState = Readonly<{
-  readonly status: 'error';
-  /** Ошибка бота */
-  readonly error: BotError;
-}>;
-
-/**
- * Универсальное состояние операций с ботами.
- * Discriminated union для type-safe обработки состояний.
- */
-export type BotOperationState<T = BotInfo> =
-  | BotIdle
-  | BotLoading
-  | BotSuccess<T>
-  | BotErrorState;
-
-/**
- * Состояние списка ботов для store.
- * Используется в Zustand store для управления состоянием ботов.
- */
-export type BotListState = Readonly<{
-  /** Список ботов */
-  readonly bots: readonly BotInfo[];
-  /** Идентификатор текущего выбранного бота */
-  readonly currentBotId: ID<'Bot'> | null;
-  /** Состояние загрузки списка */
-  readonly listState: BotOperationState<readonly BotInfo[]>;
-  /** Состояние текущего бота */
-  readonly currentBotState: BotOperationState<BotInfo>;
-}>;
-
-/**
- * Полное состояние ботов для store/effects/UI.
- * Агрегирует все состояния операций с ботами.
- */
-export type BotState = Readonly<{
-  /** Состояние списка ботов */
-  readonly list: BotListState;
-  /** Состояние создания бота */
-  readonly create: BotOperationState<BotInfo>;
-  /** Состояние обновления бота */
-  readonly update: BotOperationState<BotInfo>;
-  /** Состояние удаления бота */
-  readonly delete: BotOperationState<void>;
-  /** Состояние публикации бота */
-  readonly publish: BotOperationState<BotInfo>;
-  /** Состояние приостановки бота */
-  readonly pause: BotOperationState<BotInfo>;
-  /** Состояние возобновления бота */
-  readonly resume: BotOperationState<BotInfo>;
-  /** Состояние архивации бота */
-  readonly archive: BotOperationState<BotInfo>;
-}>;
-
 /* ============================================================================
- * 🔧 UTILITY TYPES
+ * 🔁 OPERATIONS — core/state-kit (feature-bots)
  * ============================================================================
  */
 
-/** Тип-хелпер для извлечения типа данных из BotOperationState. */
-export type BotOperationData<T> = T extends BotSuccess<infer D> ? D : never;
+/**
+ * Единый source of truth для ключей операций.
+ * Нельзя дублировать эти строки в store: только через OperationKey.
+ */
+export type OperationKey =
+  | 'create'
+  | 'update'
+  | 'delete';
+
+/**
+ * Состояние операции для store/effects/UI.
+ * @remarks
+ * Это `core/state-kit` (единый контракт операций во всём проекте).
+ */
+// NOTE: намеренно НЕ вводим alias `BotOperationState`, чтобы не создавать второй уровень абстракции и drift.
+
+type OperationResultByKey<K extends OperationKey> = K extends 'create' ? BotInfo
+  : K extends 'update' ? BotInfo
+  : K extends 'delete' ? void
+  : never;
+
+export type BotsOperations = Readonly<
+  {
+    readonly [K in OperationKey]: OperationState<OperationResultByKey<K>, K, BotError>;
+  }
+>;
+
+export type BotsState = Readonly<{
+  /**
+   * Нормализованное хранилище entities для store-слоя.
+   * @remarks
+   * `Record` допустим здесь (store layer), но не должен использоваться как domain-модель.
+   */
+  readonly entities: Readonly<Record<ID<'Bot'>, BotInfo>>;
+  readonly operations: BotsOperations;
+}>;

@@ -209,7 +209,7 @@ type OperationState<T, Op extends string, E> =
 ### Checkpoint 3 — Refactor feature-bots
 
 **Действия**
-0) 🟡 Добавить `OperationKey`:
+3.0 🟢 Добавить `OperationKey`:
 
 ```ts
 type OperationKey =
@@ -218,48 +218,56 @@ type OperationKey =
   | 'delete';
 ```
 
-3.1 🟡 Удалить:
+3.1 🟢 Удалить:
 
-- 🟡 `Object.freeze`
-- 🟡 `toIdle` / `toLoading`
-- 🟡 `IDLE` singleton
+- 🟢 `Object.freeze`
+- 🟢 `toIdle` / `toLoading`
+- 🟢 `IDLE` singleton
 
-3.2 🟡 Заменить OperationState:
+> Примечание: допускается `Object.freeze` для dev-only guardrails (например, защитить store от случайных мутаций входных объектов),
+> но `freeze` не используется как “модель данных” store (нет заморозки initial state / singleton’ов ради архитектуры).
 
-- 🟡 `BotOperationState` → `OperationState<T, BotCommandType, BotError>` (перейти на `core/state-kit/operation`)
+3.2 🟢 Заменить OperationState:
 
-3.3 🟡 Зафиксировать структуру state и типы entities/operations (без `unknown`):
+- 🟢 legacy `BotOperationState` → `OperationState<T, OperationKey, BotError>` (перейти на `core/state-kit/operation`)
+
+3.3 🟢 Зафиксировать структуру state и типы entities/operations (без `unknown`):
 
 ```ts
-type BotId = string;
+type BotId = ID<'Bot'>;
 
 type BotsState = {
-  entities: Readonly<Record<BotId, Bot>>;
-  operations: BotsOperations;
+  entities: Readonly<Record<BotId, BotInfo>>;
+  operations: Readonly<BotsOperations>;
 };
 
 type BotsOperations = {
-  create: OperationState<CreateBotResult, 'create', BotError>;
-  update: OperationState<UpdateBotResult, 'update', BotError>;
-  delete: OperationState<DeleteBotResult, 'delete', BotError>;
+  [K in OperationKey]: OperationState<
+    K extends 'create' ? BotInfo :
+      K extends 'update' ? BotInfo :
+        K extends 'delete' ? void :
+          never,
+    K,
+    BotError
+  >;
 };
 ```
 
-3.4 🟡 Унифицировать операции:
+3.4 🟢 Унифицировать операции:
 
-- `operation.idle()`
-- `operation.loading(op)`
-- `operation.success(data)`
-- `operation.error(err)`
+- `idle()`
+- `loading(op)`
+- `success(data)`
+- `failure(err)`
 
-3.5 🟡 Убрать boilerplate (типобезопасно связать key/value):
+3.5 🟢 Убрать boilerplate (типобезопасно связать key/value):
 
 ```ts
 const setOperation = <K extends keyof BotsOperations>(
   key: K,
   value: BotsOperations[K],
 ) =>
-(state: BotsStoreState): BotsStoreState => ({
+(state: BotsState): BotsState => ({
   ...state,
   operations: {
     ...state.operations,
@@ -275,23 +283,23 @@ const setOperation = <K extends keyof BotsOperations>(
 
 - custom rule: запрет inline `set({})` с autofix, где возможно (оборачивать в updater `state => ({ ...state, ... })`)
 
-3.7 🟡 Запрет inline `set`:
+3.7 🟢 Запрет inline `set`:
 
-- 🟡 ❌ нельзя: `set({ ... })` (сейчас есть)
-- 🟡 ✅ только: `set(setOperation(...))`
+- 🟢 ❌ нельзя: `set({ ... })`
+- 🟢 ✅ только: `set(setOperation(...))`
 
 **Files**
 
-- 🟡 `packages/feature-bots/src/stores/bots.ts` — ts — deps: zustand, types/bots — store runtime (нужно перевести на `core/state-kit`)
-- 🟡 `packages/feature-bots/src/types/bots.ts` — ts — deps: types-only — типы операций (нужно перевести на `core/state-kit`)
+- 🟢 `packages/feature-bots/src/stores/bots.ts` — ts — deps: zustand, types/bots — store runtime: операции вынесены в `state.operations`, без freeze, без локальных helpers
+- 🟢 `packages/feature-bots/src/types/bots.ts` — ts — deps: core(state-kit types) — `OperationKey`, `BotsState/BotsOperations`, `OperationState` (без локальных дублей)
 
 **DoD**
 
-- ⚪ нет локальных operation helpers
-- ⚪ нет freeze
-- ⚪ нет дублирования `setState` логики
-- ⚪ все operations лежат в `state.operations`
-- ⚪ нет операций вне `state.operations`
+- 🟢 нет локальных operation helpers
+- 🟢 нет freeze
+- 🟢 нет дублирования `setState` логики
+- 🟢 все operations лежат в `state.operations`
+- 🟢 нет операций вне `state.operations`
 
 ---
 

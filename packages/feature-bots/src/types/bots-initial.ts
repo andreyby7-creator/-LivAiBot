@@ -5,69 +5,63 @@
  * ============================================================================
  *
  * Архитектурная роль:
- * - Канонические начальные состояния Bot для reset-операций в store/effects
+ * - Канонические начальные состояния `BotsState` для reset-операций в store/effects
  * - Шаблоны для audit-событий (BotAuditEventTemplateMap) — фабрики для создания audit-событий
  * - Pipeline hooks (BotPipelineHookMap) с приоритетами для автоматических действий при lifecycle-событиях
  * - Immutable registration API (registerBotPipelineHook) для расширения hooks без мутации
  *
  * Принципы:
  * - ✅ SRP: только константы и pure функции, без бизнес-логики
- * - ✅ Immutable: Object.freeze для всех объектов, immutable registration для hooks
- * - ✅ Type-safe: соответствуют типам из types/bots.ts, domain/BotAuditEvent.ts, types/bot-events.ts
+ * - ✅ Immutable: Object.freeze для констант/реестров; factories возвращают plain object + Readonly типы
+ * - ✅ Type-safe: соответствуют типам из `types/bots.ts`, `domain/BotAuditEvent.ts`, `types/bot-events.ts`
  * - ✅ Zero duplication: BotAuditEventTemplateMap auto-generated через satisfies
- * - ✅ Domain-pure: не зависит от store/effects/transport (чистые константы/функции)
+ * - ✅ Runtime-agnostic: не зависит от zustand/React/Next; годится для SSR и unit-тестов
  *
  * ⚠️ Runtime validation:
  * Функции (createBotAuditEventTemplate) только создают структуру без валидации.
  * Полная schema validation должна быть в boundary layer (schemas/bot-events.ts) через zod/valibot/arktype.
  */
 
+import type { OperationState } from '@livai/core';
+
+import type { BotId, BotUserId, BotWorkspaceId } from '../domain/Bot.js';
 import type {
   BotAuditEvent,
   BotAuditEventContextMap,
   BotAuditEventType,
 } from '../domain/BotAuditEvent.js';
 import type { BotEvent, BotEventByType, BotEventType } from './bot-events.js';
-import type { BotIdle, BotListState, BotState } from './bots.js';
+import type { BotError, BotInfo, BotsState } from './bots.js';
 
 /* ============================================================================
  * 🎯 CANONICAL INITIAL STATES
  * ============================================================================
  */
 
-/**
- * Начальное состояние операции с ботом (idle).
- * @note Единый источник истины для reset операций.
- */
-export const initialBotOperationState: Readonly<BotIdle> = Object.freeze({
-  status: 'idle',
-});
+/* eslint-disable functional/prefer-immutable-types -- В этом файле используются branded primitive ID-типы (string & brand), которые иммутабельны по конструкции. Плагин eslint-plugin-functional иногда ошибочно классифицирует такие типы как ReadonlyDeep и требует Immutable, поэтому правило отключено локально для этого файла. */
 
 /**
- * Начальное состояние списка ботов.
- * @note Единый источник истины для reset операций.
+ * Локальный runtime helper для `idle`-состояния.
+ *
+ * ⚠️ ВАЖНО:
+ * Это локальная минимальная реализация idle-состояния.
+ * Должна соответствовать контракту `OperationState` из `core/state-kit`.
+ * При изменении core — синхронизировать.
  */
-export const initialBotListState: Readonly<BotListState> = Object.freeze({
-  bots: Object.freeze([]),
-  currentBotId: null,
-  listState: initialBotOperationState,
-  currentBotState: initialBotOperationState,
-});
+const idle = <T, Op extends string, E>(): OperationState<T, Op, E> => ({ status: 'idle' });
 
 /**
  * Начальное состояние ботов для store.
  * @note Единый источник истины для reset операций.
  */
-export const initialBotState: Readonly<BotState> = Object.freeze({
-  list: initialBotListState,
-  create: initialBotOperationState,
-  update: initialBotOperationState,
-  delete: initialBotOperationState,
-  publish: initialBotOperationState,
-  pause: initialBotOperationState,
-  resume: initialBotOperationState,
-  archive: initialBotOperationState,
-});
+export const initialBotsState = Object.freeze({
+  entities: Object.freeze({}),
+  operations: Object.freeze({
+    create: idle<BotInfo, 'create', BotError>(),
+    update: idle<BotInfo, 'update', BotError>(),
+    delete: idle<void, 'delete', BotError>(),
+  }),
+}) satisfies Readonly<BotsState>;
 
 /* ============================================================================
  * 📋 AUDIT EVENT TEMPLATES
@@ -82,18 +76,18 @@ export const initialBotState: Readonly<BotState> = Object.freeze({
  */
 export function createBotAuditEventTemplate<TType extends BotAuditEventType>(
   eventType: TType, // Тип audit-события
-  botId: string, // Идентификатор бота
-  workspaceId: string, // Идентификатор рабочего пространства
-  userId?: string, // Идентификатор пользователя (опционально)
+  botId: BotId, // Идентификатор бота
+  workspaceId: BotWorkspaceId, // Идентификатор рабочего пространства
+  userId?: BotUserId, // Идентификатор пользователя (опционально)
   context?: BotAuditEventContextMap[TType], // Контекст события (опционально, type-safe в зависимости от eventType)
 ): Readonly<Omit<BotAuditEvent<TType>, 'eventId' | 'timestamp'>> { // Шаблон audit-события с заполненными полями (eventId и timestamp должны быть добавлены при создании)
-  return Object.freeze({
+  return {
     type: eventType,
-    botId: botId as BotAuditEvent<TType>['botId'],
-    workspaceId: workspaceId as BotAuditEvent<TType>['workspaceId'],
-    ...(userId !== undefined && { userId: userId as BotAuditEvent<TType>['userId'] }),
+    botId,
+    workspaceId,
+    ...(userId !== undefined && { userId }),
     ...(context !== undefined && { context }),
-  }) as Readonly<Omit<BotAuditEvent<TType>, 'eventId' | 'timestamp'>>;
+  };
 }
 
 /**
@@ -105,58 +99,58 @@ export function createBotAuditEventTemplate<TType extends BotAuditEventType>(
 export const BotAuditEventTemplateMap = Object.freeze(
   {
     bot_created: (
-      botId: string,
-      workspaceId: string,
-      userId?: string,
+      botId: BotId,
+      workspaceId: BotWorkspaceId,
+      userId?: BotUserId,
       context?: BotAuditEventContextMap['bot_created'],
     ) => createBotAuditEventTemplate('bot_created', botId, workspaceId, userId, context),
     bot_published: (
-      botId: string,
-      workspaceId: string,
-      userId?: string,
+      botId: BotId,
+      workspaceId: BotWorkspaceId,
+      userId?: BotUserId,
       context?: BotAuditEventContextMap['bot_published'],
     ) => createBotAuditEventTemplate('bot_published', botId, workspaceId, userId, context),
     bot_updated: (
-      botId: string,
-      workspaceId: string,
-      userId?: string,
+      botId: BotId,
+      workspaceId: BotWorkspaceId,
+      userId?: BotUserId,
       context?: BotAuditEventContextMap['bot_updated'],
     ) => createBotAuditEventTemplate('bot_updated', botId, workspaceId, userId, context),
     bot_deleted: (
-      botId: string,
-      workspaceId: string,
-      userId?: string,
+      botId: BotId,
+      workspaceId: BotWorkspaceId,
+      userId?: BotUserId,
       context?: BotAuditEventContextMap['bot_deleted'],
     ) => createBotAuditEventTemplate('bot_deleted', botId, workspaceId, userId, context),
     instruction_updated: (
-      botId: string,
-      workspaceId: string,
-      userId?: string,
+      botId: BotId,
+      workspaceId: BotWorkspaceId,
+      userId?: BotUserId,
       context?: BotAuditEventContextMap['instruction_updated'],
     ) => createBotAuditEventTemplate('instruction_updated', botId, workspaceId, userId, context),
     multi_agent_updated: (
-      botId: string,
-      workspaceId: string,
-      userId?: string,
+      botId: BotId,
+      workspaceId: BotWorkspaceId,
+      userId?: BotUserId,
       context?: BotAuditEventContextMap['multi_agent_updated'],
     ) => createBotAuditEventTemplate('multi_agent_updated', botId, workspaceId, userId, context),
     config_changed: (
-      botId: string,
-      workspaceId: string,
-      userId?: string,
+      botId: BotId,
+      workspaceId: BotWorkspaceId,
+      userId?: BotUserId,
       context?: BotAuditEventContextMap['config_changed'],
     ) => createBotAuditEventTemplate('config_changed', botId, workspaceId, userId, context),
     policy_violation: (
-      botId: string,
-      workspaceId: string,
-      userId?: string,
+      botId: BotId,
+      workspaceId: BotWorkspaceId,
+      userId?: BotUserId,
       context?: BotAuditEventContextMap['policy_violation'],
     ) => createBotAuditEventTemplate('policy_violation', botId, workspaceId, userId, context),
   } as const satisfies {
     readonly [K in BotAuditEventType]: (
-      botId: string,
-      workspaceId: string,
-      userId?: string,
+      botId: BotId,
+      workspaceId: BotWorkspaceId,
+      userId?: BotUserId,
       context?: BotAuditEventContextMap[K],
     ) => Readonly<Omit<BotAuditEvent<K>, 'eventId' | 'timestamp'>>;
   },
@@ -186,7 +180,6 @@ export type HookPriority = number;
  */
 export type BotPipelineHookFunction<TEvent extends BotEvent = BotEvent> = (
   event: TEvent, // Domain event бота
-  // eslint-disable-next-line functional/prefer-immutable-types -- void и Promise не могут быть Immutable
 ) => void | Promise<void>; // Результат обработки (может быть void, Promise, или Effect)
 
 /**
@@ -222,27 +215,30 @@ export type BotPipelineHookMap = Readonly<
   }
 >;
 
+const EMPTY_HOOKS: readonly BotPipelineHookWithPriority<BotEvent>[] = Object.freeze([]);
+
 /**
  * Пустой шаблон pipeline hooks для инициализации.
  * Используется для инициализации hooks в effects/pipeline слое.
  */
-export const initialBotPipelineHookMap: Readonly<BotPipelineHookMap> = Object.freeze({});
+export const initialBotPipelineHookMap = Object.freeze({}) satisfies Readonly<BotPipelineHookMap>;
 
 /**
  * Immutable registration API для добавления hooks.
  * Создает новый map с добавленным hook, не мутируя исходный.
+ * @note Предполагается, что регистрация происходит на этапе инициализации (не в hot-path).
  * @note Упорядочивание по приоритету должно выполняться в lib/bot-pipeline.ts при выполнении.
  */
 export function registerBotPipelineHook<TType extends BotEventType>(
   map: Readonly<BotPipelineHookMap>, // Текущий map hooks
   eventType: TType, // Тип события для регистрации hook
   hook: BotPipelineHookFunction<BotEventByType<TType>>, // Hook для регистрации
-  priority?: HookPriority, // Приоритет hook (по умолчанию 0)
+  priority?: HookPriority, // Приоритет hook (@default 0)
 ): Readonly<BotPipelineHookMap> { // Новый map с добавленным hook
-  // eslint-disable-next-line functional/prefer-immutable-types -- объект создается и сразу замораживается
   const existingHooks: readonly BotPipelineHookWithPriority<BotEventByType<TType>>[] =
     // eslint-disable-next-line security/detect-object-injection -- eventType валидирован через generic constraint TType extends BotEventType
-    map[eventType] ?? Object.freeze([]);
+    map[eventType]
+      ?? (EMPTY_HOOKS as readonly BotPipelineHookWithPriority<BotEventByType<TType>>[]);
   const newHook: Readonly<BotPipelineHookWithPriority<BotEventByType<TType>>> = Object.freeze({
     hook,
     ...(priority !== undefined && { priority }),
@@ -253,5 +249,7 @@ export function registerBotPipelineHook<TType extends BotEventType>(
     [eventType]: Object.freeze([...existingHooks, newHook]),
   });
 
-  return updatedMap as Readonly<BotPipelineHookMap>;
+  return updatedMap;
 }
+
+/* eslint-enable functional/prefer-immutable-types */

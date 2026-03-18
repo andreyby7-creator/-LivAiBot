@@ -13,14 +13,34 @@
  * - ❌ Нет async / side-effects
  * - ❌ Нет доменной оркестрации
  * - ✅ Детерминированные синхронные transitions
- * - ✅ Строгие типы (BotState/BotOperationState из `types/bots.ts`)
+ * - ✅ Строгие типы (BotsState/BotsOperations из `types/bots.ts`)
  * - ✅ SSR-safe через factory `createBotsStore`
  */
 import type { StoreApi, UseBoundStore } from 'zustand';
 import { create } from 'zustand';
 
-import type { BotCommandType } from '../types/bot-commands.js';
-import type { BotInfo, BotOperationState, BotState } from '../types/bots.js';
+import type { OperationState } from '@livai/core';
+
+import type { BotInfo, BotsState, OperationKey } from '../types/bots.js';
+import { setOperation } from './helpers/operations.js';
+
+/* ============================================================================
+ * 🧩 LOCAL OPERATION HELPERS
+ * ========================================================================== */
+
+/**
+ * ⚠️ ВАЖНО:
+ * Это локальные минимальные реализации состояний операции.
+ * Должны соответствовать контракту `OperationState` из `core/state-kit`.
+ * При изменении core — синхронизировать.
+ */
+const idle = <T, Op extends string, E>(): OperationState<T, Op, E> => ({ status: 'idle' });
+const loading = <Op extends string>(operation: Op): OperationState<never, Op, never> => ({
+  status: 'loading',
+  operation,
+});
+const success = <T>(data: T): OperationState<T, string, never> => ({ status: 'success', data });
+const failure = <E>(err: E): OperationState<never, string, E> => ({ status: 'error', error: err });
 
 /* ============================================================================
  * 🧩 STORE VERSIONING
@@ -36,7 +56,7 @@ export type BotsStoreState = Readonly<{
   /** Версия store (для future persistence/migrations). */
   readonly version: number;
   /** Полное состояние ботов для UI/effects. */
-  readonly bots: BotState;
+  readonly bots: BotsState;
 }>;
 
 export type BotsStoreActions = Readonly<{
@@ -45,40 +65,29 @@ export type BotsStoreActions = Readonly<{
 
   /** Устанавливает список ботов целиком (обычно после fetch). */
   readonly setBotsList: (bots: readonly BotInfo[]) => void;
-  /** Устанавливает выбранного бота (или null). */
-  readonly setCurrentBotId: (botId: BotInfo['id'] | null) => void;
-
-  /** Устанавливает состояние операции загрузки списка ботов. */
-  readonly setListState: (state: BotOperationState<readonly BotInfo[]>) => void;
-  /** Устанавливает состояние операции загрузки текущего бота. */
-  readonly setCurrentBotState: (state: BotOperationState<BotInfo>) => void;
 
   /** Устанавливает состояние операции create. */
-  readonly setCreateState: (state: BotOperationState<BotInfo>) => void;
+  readonly setCreateState: (state: BotsState['operations']['create']) => void;
   /** Устанавливает состояние операции update. */
-  readonly setUpdateState: (state: BotOperationState<BotInfo>) => void;
+  readonly setUpdateState: (state: BotsState['operations']['update']) => void;
   /** Устанавливает состояние операции delete. */
-  readonly setDeleteState: (state: BotOperationState<void>) => void;
-  /** Устанавливает состояние операции publish. */
-  readonly setPublishState: (state: BotOperationState<BotInfo>) => void;
-  /** Устанавливает состояние операции pause. */
-  readonly setPauseState: (state: BotOperationState<BotInfo>) => void;
-  /** Устанавливает состояние операции resume. */
-  readonly setResumeState: (state: BotOperationState<BotInfo>) => void;
-  /** Устанавливает состояние операции archive. */
-  readonly setArchiveState: (state: BotOperationState<BotInfo>) => void;
+  readonly setDeleteState: (state: BotsState['operations']['delete']) => void;
 
   /**
-   * Утилита: переводит состояние операции в loading с конкретным operation type.
+   * Утилита: переводит состояние операции в loading по ключу операции.
    *
    * @remarks
-   * Удобно для эффектов, чтобы единообразно выставлять loading.
+   * Удобно для effects/port-слоя, чтобы единообразно выставлять loading.
    */
   readonly toLoading: (
-    operation: BotCommandType,
-  ) => Readonly<{ readonly status: 'loading'; readonly operation: BotCommandType; }>;
-  /** Утилита: канонический idle state. */
-  readonly toIdle: () => Readonly<{ readonly status: 'idle'; }>;
+    operation: OperationKey,
+  ) => ReturnType<typeof loading>;
+
+  /** Утилита: success state. */
+  readonly toSuccess: <T>(data: T) => ReturnType<typeof success<T>>;
+
+  /** Утилита: error state. */
+  readonly toError: <E>(err: E) => ReturnType<typeof failure<E>>;
 }>;
 
 export type BotsStore = BotsStoreState & Readonly<{ readonly actions: BotsStoreActions; }>;
@@ -87,30 +96,20 @@ export type BotsStore = BotsStoreState & Readonly<{ readonly actions: BotsStoreA
  * 🏗️ INITIAL STATE
  * ========================================================================== */
 
-const IDLE = Object.freeze({ status: 'idle' as const });
-
-const createInitialBotState = (): BotState =>
-  Object.freeze({
-    list: Object.freeze({
-      bots: Object.freeze([] as const),
-      currentBotId: null,
-      listState: IDLE,
-      currentBotState: IDLE,
-    }),
-    create: IDLE,
-    update: IDLE,
-    delete: IDLE,
-    publish: IDLE,
-    pause: IDLE,
-    resume: IDLE,
-    archive: IDLE,
-  });
+const createInitialBotsState = (): BotsState => ({
+  entities: {},
+  operations: {
+    create: idle(),
+    update: idle(),
+    delete: idle(),
+  },
+});
 
 export function createInitialBotsStoreState(): BotsStoreState {
-  return Object.freeze({
+  return {
     version: botsStoreVersion,
-    bots: createInitialBotState(),
-  });
+    bots: createInitialBotsState(),
+  };
 }
 
 /* ============================================================================
@@ -122,7 +121,7 @@ export type CreateBotsStoreConfig = Readonly<{
   readonly initialState?: BotsStoreState;
 }>;
 
-const EMPTY_CONFIG: CreateBotsStoreConfig = Object.freeze({});
+const EMPTY_CONFIG: CreateBotsStoreConfig = {};
 
 /**
  * Создаёт Zustand store для ботов.
@@ -133,85 +132,57 @@ const EMPTY_CONFIG: CreateBotsStoreConfig = Object.freeze({});
 export function createBotsStore(
   config: CreateBotsStoreConfig = EMPTY_CONFIG,
 ): UseBoundStore<StoreApi<BotsStore>> {
-  const initial = config.initialState ?? createInitialBotsStoreState();
+  const getInitial = (): BotsStoreState => {
+    const base = config.initialState ?? createInitialBotsStoreState();
+
+    // Reset/SSR safety: возвращаем fresh snapshot, чтобы не разделять references между вызовами reset().
+    return {
+      ...base,
+      bots: {
+        ...base.bots,
+        entities: { ...base.bots.entities },
+        operations: { ...base.bots.operations },
+      },
+    };
+  };
+
+  const initial = getInitial();
 
   return create<BotsStore>((set) => {
     const actions: BotsStoreActions = {
       reset: () => {
-        set(() => initial);
+        set(() => getInitial());
       },
       setBotsList: (bots) => {
-        set((state) => ({
-          ...state,
-          bots: {
-            ...state.bots,
-            list: {
-              ...state.bots.list,
-              bots,
+        set((state) => {
+          const entities: Record<BotInfo['id'], BotInfo> = {};
+          const isDev = process.env['NODE_ENV'] !== 'production';
+          for (const bot of bots) {
+            // Dev-only: защищаем store от случайных мутаций входных объектов (BotInfo трактуется как immutable).
+            entities[bot.id] = isDev ? Object.freeze(bot) : bot;
+          }
+
+          return {
+            ...state,
+            bots: {
+              ...state.bots,
+              entities,
             },
-          },
-        }));
-      },
-      setCurrentBotId: (botId) => {
-        set((state) => ({
-          ...state,
-          bots: {
-            ...state.bots,
-            list: {
-              ...state.bots.list,
-              currentBotId: botId,
-            },
-          },
-        }));
-      },
-      setListState: (listState) => {
-        set((state) => ({
-          ...state,
-          bots: {
-            ...state.bots,
-            list: {
-              ...state.bots.list,
-              listState,
-            },
-          },
-        }));
-      },
-      setCurrentBotState: (currentBotState) => {
-        set((state) => ({
-          ...state,
-          bots: {
-            ...state.bots,
-            list: {
-              ...state.bots.list,
-              currentBotState,
-            },
-          },
-        }));
+          };
+        });
       },
       setCreateState: (createState) => {
-        set((state) => ({ ...state, bots: { ...state.bots, create: createState } }));
+        set((state) => ({ ...state, bots: setOperation('create', createState)(state.bots) }));
       },
       setUpdateState: (updateState) => {
-        set((state) => ({ ...state, bots: { ...state.bots, update: updateState } }));
+        set((state) => ({ ...state, bots: setOperation('update', updateState)(state.bots) }));
       },
       setDeleteState: (deleteState) => {
-        set((state) => ({ ...state, bots: { ...state.bots, delete: deleteState } }));
+        set((state) => ({ ...state, bots: setOperation('delete', deleteState)(state.bots) }));
       },
-      setPublishState: (publishState) => {
-        set((state) => ({ ...state, bots: { ...state.bots, publish: publishState } }));
-      },
-      setPauseState: (pauseState) => {
-        set((state) => ({ ...state, bots: { ...state.bots, pause: pauseState } }));
-      },
-      setResumeState: (resumeState) => {
-        set((state) => ({ ...state, bots: { ...state.bots, resume: resumeState } }));
-      },
-      setArchiveState: (archiveState) => {
-        set((state) => ({ ...state, bots: { ...state.bots, archive: archiveState } }));
-      },
-      toLoading: (operation: BotCommandType) =>
-        Object.freeze({ status: 'loading' as const, operation }),
-      toIdle: () => IDLE,
+      toLoading: (operationName: OperationKey) => loading(operationName),
+      toSuccess: <T>(data: T) => success<T>(data),
+      toError: <E>(err: E) => failure<E>(err),
     };
 
     return {
