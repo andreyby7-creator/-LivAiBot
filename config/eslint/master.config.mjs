@@ -641,6 +641,25 @@ export default [
     },
   },
 
+  // 4.2 App store guardrail: запрет useAppStore.getState() вне store.ts
+  {
+    files: [
+      'packages/app/src/**/*.{ts,tsx}',
+    ],
+    ignores: [
+      'packages/app/src/state/store.ts',
+    ],
+    rules: {
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector: "CallExpression[callee.type='MemberExpression'][callee.object.name='useAppStore'][callee.property.name='getState']",
+          message: 'Запрещено вызывать useAppStore.getState() вне store.ts. Используй публичные helpers из store.ts (например, getAppStoreActions/getAppStoreState) или прокидывай зависимости через ports/effects.',
+        },
+      ],
+    },
+  },
+
   // 5. Domain-specific зоны (динамически генерированные)
   ...Object.values(dynamicZones).sort((a,b)=>(b.settings?.priority||0)-(a.settings?.priority||0)),
 

@@ -779,14 +779,14 @@ Toast / UI feedback
 
 ### **App / state** ✅
 
-- 🟢 `store.ts` — ts+zustand — deps: types/common — глобальный Zustand store состояния приложения (AppStore, AppStoreState, AppStoreActions, AppUser, UserStatus, ThemeMode, useAppStore, createInitialState, getCurrentTime, getInitialOnlineStatus, registerNetworkStatusListener, storeMerge, storePartialize, appStoreSelectors, appStoreDerivedSelectors)
-- 🟢 `store-utils.ts` — ts — deps: state/store — утилиты для store (storeMerge, storePartialize, селекторы)
+- 🟢 `store.ts` — ts+zustand — deps: types/common — глобальный Zustand store состояния приложения (AppStore, AppStoreState, AppStoreActions, PersistedAppState, AppUser, UserStatus, ThemeMode, useAppStore, createInitialState, getCurrentTime, getInitialOnlineStatus, registerNetworkStatusListener, storeMerge, storePartialize, appStoreSelectors, appStoreDerivedSelectors, getAppStoreActions, getAppStoreState, setAppStoreState)
+- 🟢 `store-utils.ts` — ts — deps: state/store — утилиты безопасного обновления store (safeSet, SafeSetOptions, isStoreLocked, setStoreLocked; последовательные обновления через очередь, guardrail при logout)
 - 🟢 `query/query-client.ts` — ts+react — deps: lib/telemetry-runtime — query client (React Query клиент с настройками по умолчанию, интеграция с telemetry)
-- 🟢 `reset.ts` — ts — deps: events/app-lifecycle-events, state/store, state/store-utils — утилиты для сброса состояния store
+- 🟢 `reset.ts` — ts — deps: events/app-lifecycle-events, state/store, state/store-utils — сброс UI-state при logout/force-reset (policy: soft/full, store lock guardrail, dev visibility)
 
 ### **App / providers** ✅
 
-- 🟢 `AppProviders.tsx` — ts+react — deps: @livai/core/access-control, @livai/core-contracts, hooks/useAuth-provider, lib/auth-hook-deps, providers/FeatureFlagsProvider, providers/intl-provider, providers/QueryClientProvider, providers/TelemetryProvider, providers/ToastProvider, providers/UnifiedUIProvider, state/store, types/ui-contracts — корневой провайдер приложения (композиция всех провайдеров: FeatureFlags → Telemetry → QueryClient → Toast → UnifiedUI → AuthHookProvider → AuthGuard, SSR-safe, AppProvidersProps, AuthGuardBridge)
+- 🟢 `AppProviders.tsx` — ts+react — deps: @livai/core/access-control, @livai/core-contracts, hooks/useAuth-provider, lib/auth-hook-deps, providers/FeatureFlagsProvider, providers/intl-provider, providers/QueryClientProvider, providers/TelemetryProvider, providers/ToastProvider, providers/UnifiedUIProvider, state/store, types/ui-contracts — корневой провайдер приложения (композиция: FeatureFlags → Telemetry → QueryClient → Toast → UnifiedUI → AuthHookProvider → AuthGuard; SSR-safe; AuthGuardBridge строит AuthGuardContext из userId (store selector) + tokens + requestId + optional userAgent)
 - 🟢 `FeatureFlagsProvider.tsx` — ts+zustand — deps: @livai/core/feature-flags, types/common, types/ui-contracts — провайдер feature flags (управление feature flags через Zustand, FeatureFlagsProviderProps, FeatureFlagsState, FeatureFlagsActions, FeatureFlagsStore, featureFlagsStore, useFeatureFlags, UiFeatureFlagsAlias)
 - 🟢 `intl-provider.tsx` — ts+react — deps: next-intl — провайдер интернационализации (IntlProvider, IntlProviderProps, интеграция с next-intl)
 - 🟢 `QueryClientProvider.tsx` — ts+react — deps: state/query/query-client, types/ui-contracts — провайдер query client (AppQueryClientProvider, AppQueryClientProviderProps, QueryComponentState, React Query провайдер с настройками по умолчанию)

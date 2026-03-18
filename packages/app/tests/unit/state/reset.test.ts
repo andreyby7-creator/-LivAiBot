@@ -243,6 +243,85 @@ describe('Integration behavior', () => {
       }
     }).not.toThrow();
   });
+
+  it('soft reset fallback: если resetSoft отсутствует, в dev логирует и делает full reset', async () => {
+    // Важно: IS_DEV вычисляется при импорте reset.ts, поэтому импортируем модуль после stubEnv.
+    vi.stubEnv('NODE_ENV', 'development');
+    try {
+      vi.resetModules();
+
+      const resetSpy = vi.fn();
+      const setStoreLockedSpy = vi.fn();
+      const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+      // Локальный event bus (не заморожен) — чтобы избежать ре-энтранса при emit внутри reset.
+      const listeners = new Map<string, Set<() => void>>();
+      const on = (event: string, cb: () => void): () => void => {
+        const set = listeners.get(event) ?? new Set<() => void>();
+        set.add(cb);
+        listeners.set(event, set);
+        return () => set.delete(cb);
+      };
+      const clear = (): void => {
+        listeners.clear();
+      };
+      let isEmitting = false;
+      const emit = (event: string): void => {
+        if (isEmitting) return;
+        const set = listeners.get(event);
+        if (!set) return;
+        isEmitting = true;
+        try {
+          // копия, чтобы избежать эффектов при unsubscribe во время итерации
+          [...set].forEach((cb) => cb());
+        } finally {
+          isEmitting = false;
+        }
+      };
+
+      vi.doMock('../../../src/events/app-lifecycle-events.js', () => ({
+        AppLifecycleEvent: {
+          USER_LOGOUT: 'USER_LOGOUT',
+          APP_RESET: 'APP_RESET',
+        },
+        appLifecycleEvents: { on, emit, clear },
+      }));
+
+      vi.doMock('../../../src/state/store.js', () => ({
+        getAppStoreActions: () => ({
+          reset: resetSpy,
+          // resetSoft отсутствует специально: должен сработать fallback
+        }),
+      }));
+
+      vi.doMock('../../../src/state/store-utils.js', () => ({
+        setStoreLocked: setStoreLockedSpy,
+      }));
+
+      const {
+        __resetAppStateResetRegistration: resetReg,
+        registerAppStateReset: register,
+      } = await import('../../../src/state/reset.js');
+
+      resetReg();
+      clear();
+
+      register();
+      emit('APP_RESET');
+
+      expect(resetSpy).toHaveBeenCalledTimes(1);
+      expect(warnSpy).toHaveBeenCalledWith(
+        '[reset] soft reset requested, but resetSoft is not implemented; falling back to full reset',
+        { reason: 'force-reset' },
+      );
+      expect(setStoreLockedSpy).toHaveBeenCalledWith(true);
+      expect(setStoreLockedSpy).toHaveBeenCalledWith(false);
+
+      warnSpy.mockRestore();
+    } finally {
+      vi.unstubAllEnvs();
+    }
+  });
 });
 
 /* ============================================================================

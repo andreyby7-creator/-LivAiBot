@@ -30,6 +30,16 @@ const createStorageMock = () => {
   };
 };
 
+// `store.ts` uses `mergePreservingActions` from `@livai/core`.
+// In this workspace build it may be type-only, so we mock it for runtime tests.
+vi.mock('@livai/core', () => ({
+  mergePreservingActions: (persisted: any, current: any) => ({
+    ...current,
+    ...persisted,
+    actions: current.actions,
+  }),
+}));
+
 // Import everything
 import type {
   AppStore,
@@ -43,9 +53,12 @@ import {
   appStoreDerivedSelectors,
   appStoreSelectors,
   createInitialState,
+  getAppStoreActions,
+  getAppStoreState,
   getCurrentTime,
   getInitialOnlineStatus,
   registerNetworkStatusListener,
+  setAppStoreState,
   storeMerge,
   storePartialize,
   useAppStore,
@@ -74,6 +87,7 @@ function createMockUser(overrides: Partial<AppUser> = {}): AppUser {
  */
 function createMockStoreState(overrides: Partial<AppStoreState> = {}): AppStoreState {
   return {
+    version: 1,
     user: null,
     userStatus: 'anonymous',
     theme: 'light',
@@ -477,6 +491,7 @@ describe('useAppStore - Integration Tests (Persistence)', () => {
 
       const user = createMockUser();
       const stateWithUser: AppStoreState = {
+        version: 1,
         user,
         userStatus: 'authenticated',
         theme: 'light',
@@ -488,6 +503,7 @@ describe('useAppStore - Integration Tests (Persistence)', () => {
 
       // Test merge restores user from persisted userId
       const currentState: AppStore = {
+        version: 1,
         user: null, // No current user
         userStatus: 'anonymous',
         theme: 'light',
@@ -513,6 +529,7 @@ describe('useAppStore - Integration Tests (Persistence)', () => {
     it('storePartialize function persists theme and userId', () => {
       const user = createMockUser();
       const fullState: AppStoreState = {
+        version: 1,
         user,
         userStatus: 'authenticated',
         theme: 'dark',
@@ -521,6 +538,7 @@ describe('useAppStore - Integration Tests (Persistence)', () => {
 
       const persisted = storePartialize(fullState);
       expect(persisted).toEqual({
+        version: 1,
         theme: 'dark',
         userId: user.id,
       });
@@ -531,6 +549,7 @@ describe('useAppStore - Integration Tests (Persistence)', () => {
 
     it('storePartialize function handles null user', () => {
       const fullState: AppStoreState = {
+        version: 1,
         user: null,
         userStatus: 'anonymous',
         theme: 'light',
@@ -547,6 +566,7 @@ describe('useAppStore - Integration Tests (Persistence)', () => {
         userId: 'user-123' as any,
       };
       const currentStore: AppStore = {
+        version: 1,
         user: null,
         userStatus: 'anonymous',
         theme: 'light',
@@ -568,6 +588,7 @@ describe('useAppStore - Integration Tests (Persistence)', () => {
         userId: 'persisted-user' as any,
       };
       const currentStore: AppStore = {
+        version: 1,
         user: createMockUser(), // Existing user
         userStatus: 'authenticated',
         theme: 'light',
@@ -579,8 +600,33 @@ describe('useAppStore - Integration Tests (Persistence)', () => {
       expect(result.user).toBe(currentStore.user); // Existing user preserved
     });
 
+    it('storeMerge restores userId without freezing in production', () => {
+      vi.stubEnv('NODE_ENV', 'production');
+      try {
+        const persistedData = {
+          theme: 'dark',
+          userId: 'user-123' as any,
+        };
+        const currentStore: AppStore = {
+          version: 1,
+          user: null,
+          userStatus: 'anonymous',
+          theme: 'light',
+          isOnline: true,
+          actions: createMockStoreActions(),
+        };
+
+        const result = storeMerge(persistedData, currentStore);
+        expect(result.user?.id).toBe('user-123');
+        expect(Object.isFrozen(result.user!)).toBe(false);
+      } finally {
+        vi.unstubAllEnvs();
+      }
+    });
+
     it('storeMerge function returns current store when persisted is null', () => {
       const currentStore: AppStore = {
+        version: 1,
         user: createMockUser(),
         userStatus: 'authenticated',
         theme: 'dark',
@@ -594,6 +640,7 @@ describe('useAppStore - Integration Tests (Persistence)', () => {
 
     it('storeMerge function returns current store when persisted is undefined', () => {
       const currentStore: AppStore = {
+        version: 1,
         user: createMockUser(),
         userStatus: 'authenticated',
         theme: 'dark',
@@ -607,6 +654,7 @@ describe('useAppStore - Integration Tests (Persistence)', () => {
 
     it('storeMerge function returns current store when persisted is not an object', () => {
       const currentStore: AppStore = {
+        version: 1,
         user: createMockUser(),
         userStatus: 'authenticated',
         theme: 'dark',
@@ -636,6 +684,30 @@ describe('useAppStore - Integration Tests (Persistence)', () => {
       useAppStore.getState().actions.reset();
       expect(useAppStore.getState().user).toBe(null);
       expect(useAppStore.getState().theme).toBe('light');
+    });
+  });
+
+  // ==========================================================================
+  // Test exports helpers
+  // ==========================================================================
+
+  describe('test exports helpers', () => {
+    it('getAppStoreActions возвращает actions текущего store', () => {
+      const a1 = getAppStoreActions();
+      const a2 = useAppStore.getState().actions;
+      expect(a1).toBe(a2);
+    });
+
+    it('getAppStoreState возвращает текущее состояние store', () => {
+      const s1 = getAppStoreState();
+      const s2 = useAppStore.getState();
+      expect(s1).toBe(s2);
+    });
+
+    it('setAppStoreState применяет partial update через Zustand setState', () => {
+      // меняем тему через helper
+      setAppStoreState({ theme: 'dark' });
+      expect(useAppStore.getState().theme).toBe('dark');
     });
   });
 });

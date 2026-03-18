@@ -3,28 +3,27 @@
  * ============================================================================
  * 🛡️ STORE UTILS — БЕЗОПАСНЫЕ ОБНОВЛЕНИЯ STORE С ЗАЩИТОЙ ОТ RACE CONDITIONS
  * ============================================================================
- * Минимальный, чистый boundary-модуль для безопасных обновлений store
- * с защитой от race conditions.
+ *
+ * Минимальный boundary-модуль для безопасных обновлений Zustand store.
  * Архитектурная роль:
- * - Thread-safe обновления через atomic операции (локальный lock)
- * - Блокировка update при logout — безопасность
- * - Atomic updates — все обновления атомарны, исключают race conditions полностью
+ * - Последовательные обновления через очередь (атомарный `setState`)
+ * - Глобальная блокировка обновлений на время logout (security guardrail)
+ *
  * Принципы:
  * - Zero business logic
  * - Zero telemetry (telemetry → observability layer)
  * - Zero state validation (state validation → validation layer)
  * - Zero state transformation (state transformation → business logic layer)
  * - Zero store initialization (store initialization → store layer)
- * - Детерминированное поведение
- * - Полная thread-safety
- * ⚠️ Важно: Atomic операции
- * - safeSet должен быть atomic: локальный lock предотвращает параллельные обновления
- * - Atomic merge — обновление состояния происходит атомарно
- * - Thread-safe — безопасно для concurrent обновлений
+ * - Детерминированное поведение (один порядок применения обновлений)
+ *
+ * Контракт:
+ * - `safeSet()` применяет обновления последовательно в рамках одного JS event-loop.
+ * - Если появится async middleware/transport для `setState`, эту реализацию нужно пересмотреть.
  */
 
 import type { AppStore, AppStoreState } from './store.js';
-import { useAppStore } from './store.js';
+import { getAppStoreState, setAppStoreState } from './store.js';
 
 /* ============================================================================
  * 🔢 КОНСТАНТЫ
@@ -36,13 +35,14 @@ import { useAppStore } from './store.js';
  */
 let isStoreLockedFlag = false;
 
+/** Dev-only guardrails без влияния на prod-перфоманс/поведение. */
+const IS_DEV = process.env['NODE_ENV'] !== 'production';
+
 /* ============================================================================
  * 🧩 ТИПЫ
  * ========================================================================== */
 
-/**
- * Конфигурация для безопасного обновления store.
- */
+/** Конфигурация для безопасного обновления store. */
 export type SafeSetOptions = {
   /** Опциональный тег для идентификации обновления в логах и телеметрии */
   readonly label?: string | undefined;
@@ -93,8 +93,7 @@ function canUpdateStore(currentState: AppStore): boolean {
     return false;
   }
 
-  // Если пользователь не аутентифицирован, нельзя обновлять auth-связанное состояние
-  // Это защита от обновлений после logout
+  // После logout запрещаем любые обновления (грубый security guardrail).
   if (currentState.userStatus === 'anonymous') {
     return false;
   }
@@ -103,12 +102,10 @@ function canUpdateStore(currentState: AppStore): boolean {
 }
 
 /* ============================================================================
- * 🔒 LOCK MECHANISM
+ * 🔒 UPDATE QUEUE (SEQUENTIAL APPLY)
  * ========================================================================== */
 
-/**
- * Тип операции обновления store.
- */
+/** Тип операции обновления store. */
 type UpdateOperation = {
   readonly partialState: Partial<AppStoreState>;
   readonly label?: string | undefined;
@@ -120,22 +117,32 @@ type UpdateOperation = {
  * Используется для последовательной обработки обновлений и предотвращения race conditions.
  */
 const updateQueue: UpdateOperation[] = [];
+/** Индекс "головы" очереди: заменяет `shift()` (O(n)) на O(1) инкремент. */
+let updateQueueHead = 0;
 
-/**
- * Флаг, указывающий, обрабатывается ли очередь в данный момент.
- */
+/** Флаг, указывающий, обрабатывается ли очередь в данный момент. */
 let isProcessingQueue = false;
 
 /**
- * Логирует предупреждение о блокировке обновления store.
- * @param label - опциональный тег операции
+ * Формирует единое сообщение об отказе обновления (для исключения дублирования строк).
  */
+function createBlockedUpdateMessage(
+  phase: 'precheck' | 'post-queue',
+  label: string | undefined,
+): string {
+  const base = phase === 'precheck'
+    ? 'Store update blocked'
+    : 'Store update blocked after queue';
+
+  return label != null
+    ? `${base} (label: ${label}): store is locked or user is not authenticated`
+    : `${base}: store is locked or user is not authenticated`;
+}
+
 function logBlockedUpdate(label: string | undefined): void {
-  const errorMessage = label != null
-    ? `Store update blocked after queue (label: ${label}): store is locked or user is not authenticated`
-    : 'Store update blocked after queue: store is locked or user is not authenticated';
+  const errorMessage = createBlockedUpdateMessage('post-queue', label);
   // В development режиме логируем предупреждение
-  if (process.env['NODE_ENV'] === 'development') {
+  if (IS_DEV) {
     // eslint-disable-next-line no-console
     console.warn(`[store-utils] ${errorMessage}`);
   }
@@ -147,13 +154,18 @@ function logBlockedUpdate(label: string | undefined): void {
  * @param onUpdate - callback для вызова
  */
 function invokeUpdateCallback(onUpdate: (newState: AppStoreState) => void): void {
-  const newState = useAppStore.getState();
+  const newState = getAppStoreState();
+  const snapshot = IS_DEV
+    ? Object.freeze({ ...newState })
+    : newState;
   try {
-    onUpdate(newState);
+    // ⚠️ Контракт: callback НЕ должен мутировать store и не должен вызывать `safeSet/setState`
+    // (иначе возможна рекурсия, неожиданный порядок применения и трудноотслеживаемые эффекты).
+    onUpdate(snapshot);
   } catch (error: unknown) {
     // Игнорируем ошибки в callback, чтобы не нарушать основной flow обновления
     // В development режиме логируем предупреждение
-    if (process.env['NODE_ENV'] === 'development') {
+    if (IS_DEV) {
       // eslint-disable-next-line no-console
       console.warn('[store-utils] Error in onUpdate callback:', error);
     }
@@ -169,7 +181,7 @@ function processUpdateOperation(operation: UpdateOperation): boolean {
   const { partialState, label, onUpdate } = operation;
 
   // Повторная проверка после получения из очереди (double-check pattern)
-  const currentState = useAppStore.getState();
+  const currentState = getAppStoreState();
   if (!canUpdateStore(currentState)) {
     logBlockedUpdate(label);
     return false;
@@ -177,7 +189,8 @@ function processUpdateOperation(operation: UpdateOperation): boolean {
 
   // Атомарное обновление через Zustand setState
   // Zustand гарантирует атомарность обновления
-  useAppStore.setState(partialState);
+  // @note Контракт: setState синхронен (см. описание файла).
+  setAppStoreState(partialState);
 
   // Вызываем callback после успешного обновления для observability
   // Это позволяет внешнему слою отслеживать изменения без нарушения SRP
@@ -190,8 +203,7 @@ function processUpdateOperation(operation: UpdateOperation): boolean {
 
 /**
  * Обрабатывает очередь операций обновления store последовательно.
- * Гарантирует, что только одна операция обновления выполняется одновременно.
- * Это обеспечивает thread-safety и atomic операции.
+ * Гарантирует, что обработка очереди не реентерабельна.
  */
 function processUpdateQueue(): void {
   // Если очередь уже обрабатывается, ничего не делаем
@@ -203,13 +215,20 @@ function processUpdateQueue(): void {
 
   try {
     // Обрабатываем все операции в очереди последовательно
-    while (updateQueue.length > 0) {
-      const operation = updateQueue.shift();
+    while (updateQueueHead < updateQueue.length) {
+      const operation = updateQueue[updateQueueHead];
+      updateQueueHead += 1;
+
       if (operation === undefined) {
         break;
       }
 
       processUpdateOperation(operation);
+    }
+    // Компактим массив, чтобы не накапливать "хвост" после многих операций.
+    if (updateQueueHead > 0) {
+      updateQueue.splice(0, updateQueueHead);
+      updateQueueHead = 0;
     }
   } finally {
     isProcessingQueue = false;
@@ -222,37 +241,18 @@ function processUpdateQueue(): void {
 
 /**
  * Безопасно обновляет store с защитой от race conditions и блокировкой при logout.
- * Обеспечивает:
- * - 🛡️ Защита от race conditions — thread-safe обновления через atomic операции (локальный lock)
- * - 🚫 Блокировка update при logout — безопасность
- * - 🔒 Atomic updates — все обновления атомарны, исключают race conditions полностью
+ *
+ * Гарантии:
+ * - Обновления применяются последовательно (queue) и атомарно (Zustand `setState`)
+ * - Обновления запрещены при logout/anonymous (guardrail)
  * @param partialState - частичное состояние для обновления (merge с текущим состоянием)
  * @param options - опции обновления (опционально)
  * @throws {Error} Если store заблокирован или пользователь не аутентифицирован
  *
  * @example
  * ```ts
- * // Базовое использование
- * safeSet({ user: newUser }, { label: 'user-update' });
- * // Обновление auth токенов
- * safeSet({
- *   auth: {
- *     accessToken: 'token',
- *     refreshToken: 'refresh',
- *     expiresAt: Date.now() + 3600000,
- *   },
- * }, { label: 'auth-tokens-update' });
- * // С callback для observability
- * safeSet(
- *   { user: newUser },
- *   {
- *     label: 'user-update',
- *     onUpdate: (newState) => {
- *       // Логирование, телеметрия и т.д. в observability layer
- *       telemetry.log('user-updated', { userId: newState.user?.id });
- *     },
- *   },
- * );
+ * // Базовое использование: частичное обновление AppStoreState
+ * safeSet({ userStatus: 'loading' }, { label: 'user-status-loading' });
  * ```
  */
 export function safeSet(
@@ -262,20 +262,14 @@ export function safeSet(
   const { label, onUpdate } = options ?? {};
 
   // Синхронная проверка блокировки для раннего обнаружения проблем
-  const currentState = useAppStore.getState();
+  const currentState = getAppStoreState();
 
   if (!canUpdateStore(currentState)) {
-    const errorMessage = label != null
-      ? `Store update blocked (label: ${label}): store is locked or user is not authenticated`
-      : 'Store update blocked: store is locked or user is not authenticated';
-    throw new Error(errorMessage);
+    throw new Error(createBlockedUpdateMessage('precheck', label));
   }
 
-  // Добавляем операцию в очередь для последовательной обработки
-  // Это обеспечивает thread-safety и предотвращает race conditions
+  // Добавляем операцию в очередь и сразу синхронно прогоняем обработчик.
   updateQueue.push({ partialState, label, onUpdate });
 
-  // Запускаем обработку очереди синхронно
-  // Это гарантирует, что операции выполняются последовательно
   processUpdateQueue();
 }

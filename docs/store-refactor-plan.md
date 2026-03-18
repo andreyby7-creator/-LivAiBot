@@ -243,10 +243,10 @@ type BotsState = {
 
 type BotsOperations = {
   [K in OperationKey]: OperationState<
-    K extends 'create' ? BotInfo :
-      K extends 'update' ? BotInfo :
-        K extends 'delete' ? void :
-          never,
+    K extends 'create' ? BotInfo
+      : K extends 'update' ? BotInfo
+      : K extends 'delete' ? void
+      : never,
     K,
     BotError
   >;
@@ -306,16 +306,16 @@ const setOperation = <K extends keyof BotsOperations>(
 ### Checkpoint 4 — Refactor app/store
 
 **Действия**
-4.1 🟡 Strict persist contract:
+4.1 🟢 Strict persist contract:
 
 ```ts
 type PersistedAppState = Pick<
   AppStoreState,
-  'userId' | 'version'
+  'theme' | 'version'
 >;
 ```
 
-4.2 🟡 Merge:
+4.2 🟢 Merge:
 
 ```ts
 merge: ((persisted, current) => {
@@ -337,16 +337,16 @@ partialize(...)
 4.4 🟡 Запрет:
 
 - 🟡 ❌ нельзя читать `store.getState()` вне actions/effects (сейчас есть `useAppStore.getState()` в infra)
-  - ⚪ ESLint custom rule: запрет `*.getState()` в `packages/app/src/**`, кроме whitelist-мест внутри store-фабрики
+  - 🟢 ESLint rule: запрет `useAppStore.getState()` в `packages/app/src/**`, кроме whitelist-мест внутри `packages/app/src/state/store.ts`
 
 **Files**
 
-- 🟡 `packages/app/src/state/store.ts` — ts — deps: zustand — app UI meta store (нужно перевести на `core/state-kit`)
+- 🟡 `packages/app/src/state/store.ts` — ts — deps: zustand, core(state-kit/persist) — app UI meta store (persist contract + mergePreservingActions)
 
 **DoD**
 
-- 🟡 merge не replace (уже не replace, но без `mergePreservingActions`)
-- 🟡 partialize документирован
+- 🟢 merge не replace (используется `mergePreservingActions`)
+- 🟢 partialize документирован
 
 ---
 

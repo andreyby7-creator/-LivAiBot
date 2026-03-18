@@ -3,10 +3,12 @@
  * ============================================================================
  * 🔴 GLOBAL STATE RESET — СБРОС СОСТОЯНИЯ ПРИ LOGOUT
  * ============================================================================
+ *
  * Архитектурная роль:
  * - Централизованная точка сброса UI-состояния приложения
  * - Реакция на доменно-нейтральные app-события (logout, force-reset, etc.)
  * - Изолирован от auth / api / react
+ *
  * Принципы:
  * - ❌ Нет бизнес-логики
  * - ❌ Нет async / side-effects
@@ -14,14 +16,18 @@
  * - ✅ Реактивность через events
  * - ✅ SSR-safe
  * - ✅ Микросервисно-нейтральный дизайн
+ *
  * Использование:
  * - Импортируется и инициализируется в bootstrap-слое приложения
  * - Возвращает cleanup-функцию
  */
 
 import { AppLifecycleEvent, appLifecycleEvents } from '../events/app-lifecycle-events.js';
-import { useAppStore } from './store.js';
+import { getAppStoreActions } from './store.js';
 import { setStoreLocked } from './store-utils.js';
+
+/** Dev-only visibility/guardrails. */
+const IS_DEV = process.env['NODE_ENV'] !== 'production';
 
 /* ========================================================================== */
 /* 🧠 ARCHITECTURAL IDEA
@@ -48,9 +54,7 @@ export type AppResetReason =
   | 'session-expired'
   | 'force-reset';
 
-/**
- * Mapping внутренних причин reset к lifecycle событиям.
- */
+/** Mapping внутренних причин reset к lifecycle событиям. */
 const RESET_REASON_TO_EVENT: Record<AppResetReason, AppLifecycleEvent> = {
   'logout': AppLifecycleEvent.USER_LOGOUT,
   'session-expired': AppLifecycleEvent.APP_RESET,
@@ -77,6 +81,10 @@ export type AppResetPolicy = 'full' | 'soft';
  * @note
  * Store блокируется перед reset и разблокируется после для предотвращения
  * обновлений во время процесса сброса состояния.
+ * @note
+ * Ограничение: lock — это локальный guardrail для слоёв, которые обновляют store через
+ * `safeSet` (см. `store-utils`). Любые прямые `setState`/обходные обновления вне этого
+ * boundary могут обойти блокировку — это осознанный контракт архитектуры.
  */
 function resetAppState(
   reason: AppResetReason,
@@ -86,7 +94,7 @@ function resetAppState(
   setStoreLocked(true);
 
   try {
-    const { reset, resetSoft } = useAppStore.getState().actions;
+    const { reset, resetSoft } = getAppStoreActions();
 
     if (policy === 'full') {
       reset(); // полный сброс UI state
@@ -95,11 +103,22 @@ function resetAppState(
       resetSoft();
     } else {
       // fallback на full reset, если soft не реализован
+      if (IS_DEV) {
+        // eslint-disable-next-line no-console
+        console.warn(
+          '[reset] soft reset requested, but resetSoft is not implemented; falling back to full reset',
+          { reason },
+        );
+      }
       reset();
     }
 
     // Отправляем lifecycle событие
     const lifecycleEvent = RESET_REASON_TO_EVENT[reason];
+    if (IS_DEV) {
+      // eslint-disable-next-line no-console
+      console.warn('[reset] app state reset', { reason, policy, lifecycleEvent });
+    }
     appLifecycleEvents.emit(lifecycleEvent);
   } finally {
     // Разблокируем store после reset (гарантируется даже при ошибке)
@@ -124,11 +143,14 @@ export function registerAppStateReset(): () => void {
 
   isRegistered = true;
 
-  const unsubscribeUserLogout = appLifecycleEvents.on(AppLifecycleEvent.USER_LOGOUT, () => {
-    resetAppState('logout', 'full');
-  });
+  const unsubscribeUserLogout: () => void = appLifecycleEvents.on(
+    AppLifecycleEvent.USER_LOGOUT,
+    () => {
+      resetAppState('logout', 'full');
+    },
+  );
 
-  const unsubscribeAppReset = appLifecycleEvents.on(AppLifecycleEvent.APP_RESET, () => {
+  const unsubscribeAppReset: () => void = appLifecycleEvents.on(AppLifecycleEvent.APP_RESET, () => {
     resetAppState('force-reset', 'soft');
   });
 

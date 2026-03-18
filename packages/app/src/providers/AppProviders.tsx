@@ -24,8 +24,8 @@ import type { AnyRole } from '@livai/core-contracts';
 
 import { AuthHookProvider, useAuth } from '../hooks/useAuth-provider.js';
 import type { AuthHookDepsConfig } from '../lib/auth-hook-deps.js';
-import type { AppStore } from '../state/store.js';
-import { useAppStore } from '../state/store.js';
+import type { AppUser } from '../state/store.js';
+import { getAppStoreActions, useAppStore } from '../state/store.js';
 import type { UiAuthContext } from '../types/ui-contracts.js';
 import type { FeatureFlagsProviderProps } from './FeatureFlagsProvider.js';
 import { FeatureFlagsProvider } from './FeatureFlagsProvider.js';
@@ -68,10 +68,11 @@ const REQUEST_ID_RADIX = 36;
 
 /**
  * Строит AuthGuardContext из состояния AppStore и токенов из useAuth.
- * @param store - Состояние приложения из Zustand store.
+ * @param userId - Идентификатор пользователя из store (если известен).
  * @param accessToken - Access token из feature-auth (может быть null).
  * @param refreshToken - Refresh token из feature-auth (опционально).
- * @param requestId - Уникальный идентификатор запроса (мемоизирован на сессию).
+ * @param requestId - Уникальный идентификатор запроса (мемоизирован на время жизни компонента).
+ * @param userAgent - Опциональный клиентский userAgent (на сервере отсутствует).
  * @param options - Опциональные параметры контекста (роли, разрешения, future: MFA/SSO/risk).
  * @returns AuthGuardContext для использования в guard'ах и авторизационных проверках.
  * @remarks
@@ -80,10 +81,11 @@ const REQUEST_ID_RADIX = 36;
  * - Extensible: новые поля можно добавлять через options без изменения сигнатуры.
  */
 const buildAuthGuardContext = (
-  store: AppStore,
+  userId: AppUser['id'] | undefined,
   accessToken: string | null,
   refreshToken: string | null | undefined,
   requestId: string,
+  userAgent: string | undefined,
   options?: AuthGuardContextOptions,
 ): AuthGuardContext => {
   const roles = options?.roles ?? new Set<AnyRole>();
@@ -91,8 +93,8 @@ const buildAuthGuardContext = (
 
   const baseContext = {
     requestId,
-    ...(typeof navigator !== 'undefined' && { userAgent: navigator.userAgent }),
-    ...(store.user?.id ? { userId: store.user.id } : {}),
+    ...(userAgent != null ? { userAgent } : {}),
+    ...(userId != null ? { userId } : {}),
     roles,
     permissions,
   };
@@ -123,7 +125,7 @@ const buildAuthGuardContext = (
 export const AuthGuardBridge: React.FC<{
   children: React.ReactNode;
 }> = ({ children }) => {
-  const store = useAppStore();
+  const userId = useAppStore((s) => s.user?.id);
   const { authState } = useAuth();
 
   // Извлекаем токены из feature-auth AuthState
@@ -147,9 +149,13 @@ export const AuthGuardBridge: React.FC<{
     [],
   );
 
+  const userAgent = typeof navigator !== 'undefined'
+    ? navigator.userAgent
+    : undefined;
+
   const authGuardContext = useMemo(
-    () => buildAuthGuardContext(store, accessToken, refreshToken, requestId),
-    [store, accessToken, refreshToken, requestId],
+    () => buildAuthGuardContext(userId, accessToken, refreshToken, requestId, userAgent),
+    [userId, accessToken, refreshToken, requestId, userAgent],
   );
 
   return React.createElement(AuthGuardProvider, { value: authGuardContext, children });
@@ -200,11 +206,11 @@ function useAppStoreInit(): void {
       return;
     }
 
-    // Синхронное получение состояния при монтировании
-    useAppStore.getState();
-    // Инициализация подписки на изменения userStatus только на клиенте
-    const unsubscribe = useAppStore.subscribe((state) => state.userStatus);
-    return unsubscribe;
+    // Синхронная инициализация store на клиенте (не читаем raw getState вне store.ts)
+    getAppStoreActions();
+    // Здесь намеренно нет подписок: инициализация должна быть "тихой" и без лишних источников
+    // side-effects. Подписки (observability / реакция на state) — в своих специализированных модулях.
+    return undefined;
   }, []);
 }
 

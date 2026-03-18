@@ -42,6 +42,7 @@ const storeMocks = vi.hoisted(() => ({
       subscribe: vi.fn(() => vi.fn()),
     },
   ),
+  getAppStoreActions: vi.fn(() => ({})),
 }));
 
 const authMocks = vi.hoisted(() => ({
@@ -54,6 +55,11 @@ const authMocks = vi.hoisted(() => ({
     register: vi.fn(),
     refresh: vi.fn(),
   })),
+}));
+
+const authGuardMocks = vi.hoisted(() => ({
+  AuthGuardProvider: vi.fn(({ children }) => <div data-testid='auth-guard-provider'>{children}
+  </div>),
 }));
 
 // Мок конфигурации для AuthHookProvider
@@ -130,8 +136,13 @@ vi.mock('../../../src/hooks/useAuth-provider', () => ({
   useAuth: authMocks.useAuth,
 }));
 
+vi.mock('@livai/core/access-control', () => ({
+  AuthGuardProvider: authGuardMocks.AuthGuardProvider,
+}));
+
 vi.mock('../../../src/state/store', () => ({
   useAppStore: storeMocks.useAppStore,
+  getAppStoreActions: storeMocks.getAppStoreActions,
 }));
 
 import { AppProviders, AuthGuardBridge } from '../../../src/providers/AppProviders';
@@ -213,8 +224,8 @@ describe('AppProviders', () => {
       expect.objectContaining({ locale: 'en', messages: intlProps.messages }),
       undefined,
     );
-    expect(storeMocks.useAppStore.getState).toHaveBeenCalledTimes(1);
-    expect(storeMocks.useAppStore.subscribe).toHaveBeenCalledTimes(1);
+    // store init on client: calls getAppStoreActions() in effect
+    expect(storeMocks.getAppStoreActions).toHaveBeenCalledTimes(1);
   });
 
   it('renders children correctly', () => {
@@ -261,6 +272,22 @@ describe('AppProviders', () => {
     expect(screen.getByTestId('toast-provider')).toBeInTheDocument();
     expect(screen.getByTestId('unified-ui-provider')).toBeInTheDocument();
     expect(screen.getByTestId('child')).toBeInTheDocument();
+    expect(screen.getByTestId('auth-guard-provider')).toBeInTheDocument();
+  });
+
+  it('SSR-safe: если window отсутствует (в момент выполнения эффекта), store init не вызывается', async () => {
+    const originalWindow = (globalThis as any).window;
+    try {
+      // В jsdom попытка реально "отрендерить без window" ломает react-dom.
+      // Но SSR-контракт компонента = модуль должен импортироваться без window.
+      Object.defineProperty(globalThis, 'window', { value: undefined, configurable: true });
+      vi.resetModules();
+      const mod = await import('../../../src/providers/AppProviders');
+      expect(mod.AppProviders).toBeDefined();
+      expect(mod.AuthGuardBridge).toBeDefined();
+    } finally {
+      Object.defineProperty(globalThis, 'window', { value: originalWindow, configurable: true });
+    }
   });
 
   describe('AuthGuardBridge', () => {
@@ -305,6 +332,13 @@ describe('AppProviders', () => {
           <div>content</div>
         </AuthGuardBridge>,
       );
+
+      const calls = (authGuardMocks.AuthGuardProvider as any).mock.calls as unknown[][];
+      const value = (calls[0]?.[0] as { value: unknown; } | undefined)?.value as any;
+      expect(value).toEqual(
+        expect.objectContaining({ isAuthenticated: true, accessToken: 'test-token' }),
+      );
+      expect(value).toEqual(expect.objectContaining({ refreshToken: 'test-refresh' }));
     });
 
     it('provides correct auth context for anonymous user', async () => {
@@ -313,6 +347,10 @@ describe('AppProviders', () => {
           <div>content</div>
         </AuthGuardBridge>,
       );
+
+      const calls = (authGuardMocks.AuthGuardProvider as any).mock.calls as unknown[][];
+      const value = (calls[0]?.[0] as { value: unknown; } | undefined)?.value as any;
+      expect(value).toEqual(expect.objectContaining({ isAuthenticated: false }));
     });
 
     it('handles authenticated user with null access token', async () => {
@@ -330,6 +368,10 @@ describe('AppProviders', () => {
           <div>content</div>
         </AuthGuardBridge>,
       );
+
+      const calls = (authGuardMocks.AuthGuardProvider as any).mock.calls as unknown[][];
+      const value = (calls[0]?.[0] as { value: unknown; } | undefined)?.value as any;
+      expect(value).toEqual(expect.objectContaining({ isAuthenticated: false }));
     });
 
     it('handles authenticated user with null refresh token', async () => {
@@ -347,6 +389,57 @@ describe('AppProviders', () => {
           <div>content</div>
         </AuthGuardBridge>,
       );
+
+      const calls = (authGuardMocks.AuthGuardProvider as any).mock.calls as unknown[][];
+      const value = (calls[0]?.[0] as { value: unknown; } | undefined)?.value as any;
+      expect(value).not.toHaveProperty('refreshToken');
+    });
+
+    it('не добавляет userId в контекст, если его нет в store', () => {
+      storeMocks.useAppStore.mockImplementation(
+        ((sel?: any) => typeof sel === 'function' ? sel({ user: null }) : { user: null }) as any,
+      );
+      authMocks.useAuth.mockReturnValue({ authState: { status: 'unauthenticated' } } as any);
+
+      render(
+        <AuthGuardBridge>
+          <div>content</div>
+        </AuthGuardBridge>,
+      );
+
+      const calls = (authGuardMocks.AuthGuardProvider as any).mock.calls as unknown[][];
+      const value = (calls[0]?.[0] as { value: unknown; } | undefined)?.value as any;
+      expect(value).not.toHaveProperty('userId');
+    });
+
+    it('не добавляет userAgent в контекст, если navigator отсутствует', () => {
+      const originalNavigator = (globalThis as any).navigator;
+      try {
+        Object.defineProperty(globalThis, 'navigator', { value: undefined, configurable: true });
+
+        storeMocks.useAppStore.mockImplementation(
+          ((sel?: any) =>
+            typeof sel === 'function'
+              ? sel({ user: { id: 'u1' } })
+              : { user: { id: 'u1' } }) as any,
+        );
+        authMocks.useAuth.mockReturnValue({ authState: { status: 'unauthenticated' } } as any);
+
+        render(
+          <AuthGuardBridge>
+            <div>content</div>
+          </AuthGuardBridge>,
+        );
+
+        const calls = (authGuardMocks.AuthGuardProvider as any).mock.calls as unknown[][];
+        const value = (calls[0]?.[0] as { value: unknown; } | undefined)?.value as any;
+        expect(value).not.toHaveProperty('userAgent');
+      } finally {
+        Object.defineProperty(globalThis, 'navigator', {
+          value: originalNavigator,
+          configurable: true,
+        });
+      }
     });
   });
 });

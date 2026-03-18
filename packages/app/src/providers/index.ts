@@ -108,6 +108,7 @@ export {
  * @public
  */
 export {
+  type EvaluationContext,
   UnifiedUIContext,
   type UnifiedUIContextType,
   type UnifiedUiFeatureFlagsApi,

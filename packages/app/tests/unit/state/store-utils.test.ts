@@ -342,7 +342,7 @@ describe('store-utils', () => {
       vi.unstubAllEnvs();
     });
 
-    it('не должен логировать ошибки callback в production режиме', () => {
+    it('логирует ошибки callback, если NODE_ENV изменён после импорта модуля', () => {
       vi.stubEnv('NODE_ENV', 'production');
       const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
 
@@ -352,8 +352,11 @@ describe('store-utils', () => {
 
       safeSet({ theme: 'dark' }, { onUpdate });
 
-      // Не должно быть предупреждений в production
-      expect(consoleWarnSpy).not.toHaveBeenCalled();
+      // IS_DEV вычисляется на этапе импорта store-utils, поэтому смена NODE_ENV в рантайме не меняет поведение
+      expect(consoleWarnSpy).toHaveBeenCalledWith(
+        expect.stringContaining('[store-utils] Error in onUpdate callback:'),
+        expect.any(Error),
+      );
 
       consoleWarnSpy.mockRestore();
       vi.unstubAllEnvs();
