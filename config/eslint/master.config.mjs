@@ -660,6 +660,133 @@ export default [
     },
   },
 
+  // 4.3 Feature-auth guardrail: invariant engine / transaction — только внутри feature-auth
+  // Цель: не допустить копипасты "complex store" механик в другие feature.
+  {
+    files: [
+      'packages/**/*.{ts,tsx}',
+    ],
+    ignores: [
+      'packages/feature-auth/src/**/*.{ts,tsx}',
+      'packages/feature-auth/tests/**/*.{ts,tsx}',
+    ],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          paths: [
+            {
+              name: '@livai/feature-auth',
+              importNames: [
+                'enforceInvariants',
+                'InvariantRule',
+                'InvariantRuleApply',
+              ],
+              message: 'Invariant engine feature-auth нельзя импортировать вне feature-auth. Используй только публичные ports/effects/hooks, либо добавь новый публичный фасад в feature-auth.',
+            },
+          ],
+          patterns: [
+            {
+              group: [
+                '**/feature-auth/src/stores/auth.*',
+                '**/packages/feature-auth/src/stores/auth.*',
+              ],
+              message: 'Запрещён deep import в feature-auth store. Импортируй только из public API пакета (@livai/feature-auth) и не выноси invariant engine/transaction наружу.',
+            },
+          ],
+        },
+      ],
+    },
+  },
+
+  // 4.4 Imports hygiene: запрет parent-relative импортов выше модуля (../.. и глубже)
+  // Цель: закрепить "package boundary" и не допустить хрупких путей.
+  {
+    files: [
+      'packages/**/src/**/*.{ts,tsx}',
+    ],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: ['../..*'],
+              message: 'Запрещены parent-relative импорты выше модуля (../.. и глубже). Используй публичные entrypoints пакета или локальные алиасы/индексы.',
+            },
+          ],
+        },
+      ],
+    },
+  },
+
+  // 4.5 Core state-kit: запрет deep-import'ов (только публичный API)
+  // Используем no-restricted-imports (стабильнее, чем import/no-internal-modules в flat-config).
+  {
+    files: [
+      'packages/**/src/**/*.{ts,tsx}',
+    ],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: [
+                'packages/core/src/state-kit/*',
+                'packages/core/src/state-kit/*/*',
+                '@livai/core/state-kit/*',
+                '@livai/core/state-kit/*/*',
+              ],
+              message: 'Запрещены deep-imports в state-kit. Используй только публичные entrypoints: `@livai/core` или `@livai/core/state-kit`.',
+            },
+          ],
+        },
+      ],
+    },
+  },
+
+  // 4.6 Core guardrail: zustand не должен попадать в core (app/feature уровень)
+  {
+    files: [
+      'packages/core/src/**/*.{ts,tsx}',
+    ],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          paths: [
+            { name: 'zustand', message: 'core не должен зависеть от zustand. Store живёт на feature/app уровне.' },
+            { name: 'zustand/middleware', message: 'core не должен зависеть от zustand. Store живёт на feature/app уровне.' },
+          ],
+        },
+      ],
+    },
+  },
+
+  // 4.7 Store actions guardrails: запрещены async actions и inline set({ ... })
+  {
+    files: [
+      'packages/feature-*/src/stores/**/*.{ts,tsx}',
+      'packages/app/src/state/**/*.{ts,tsx}',
+    ],
+    rules: {
+      'no-restricted-syntax': [
+        'error',
+        // Запрещаем set({ ... }) — только updater function: set((s) => ({ ...s, ... }))
+        {
+          selector: "CallExpression[callee.name='set'] > ObjectExpression",
+          message: 'Запрещено вызывать set({ ... }). Используй updater-function: set((state) => ({ ...state, ... })).',
+        },
+        // Запрещаем async в store (actions должны быть sync; async — только в effects)
+        {
+          selector: 'MethodDefinition[async=true], ArrowFunctionExpression[async=true], FunctionDeclaration[async=true]',
+          message: 'Store actions должны быть синхронными. Вынеси async в effects.',
+        },
+      ],
+    },
+  },
+
   // 5. Domain-specific зоны (динамически генерированные)
   ...Object.values(dynamicZones).sort((a,b)=>(b.settings?.priority||0)-(a.settings?.priority||0)),
 

@@ -634,7 +634,8 @@ Toast / UI feedback
 
 ### **Feature-chat / stores** ⚪
 
-- ⚪ `chat.ts` — ts — deps: zustand, types/chat — централизованный Zustand-store состояния чата (текущий разговор, список сообщений, состояние real-time подключения, UI-состояние) без side-effects (effects используют store только через порты из effects/shared/chat-store.port.ts)
+- ⚪ `helpers/operations.ts` — ts — deps: types/chat, @livai/core/state-kit — store helper для типобезопасного обновления `chat.operations` (единый паттерн setOperation для OperationState без мутаций)
+- ⚪ `chat.ts` — ts — deps: zustand, @livai/core/state-kit, types/chat, stores/helpers/operations — централизованный Zustand-store состояния чата (entities + operations через OperationState из state-kit; только sync transitions, без async/side-effects; effects работают со store только через ports из `effects/shared/chat-store.port.ts`)
 
 ### **Feature-chat / effects** ⚪
 
