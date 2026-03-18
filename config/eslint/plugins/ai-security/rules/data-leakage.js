@@ -1,6 +1,10 @@
 /**
- * @fileoverview Detect potential data leakage in AI pipelines
- * @author LivAi Team
+ * @file config/eslint/plugins/ai-security/rules/data-leakage.js
+ * @fileoverview AI Security guardrail: обнаружение потенциальных утечек данных в AI пайплайнах
+ *
+ * Принцип:
+ * - Эвристика (guardrail): подсвечивает риск утечки training/validation данных
+ * - Срабатывания требуют проверки человеком и контекста
  */
 
 export default {

@@ -1,6 +1,16 @@
 /**
- * ESLint Plugin for RAG Systems
- * @fileoverview Rules for RAG (Retrieval-Augmented Generation) systems safety
+ * @file config/eslint/plugins/rag/index.js
+ * ============================================================================
+ * 🛡️ ESLINT PLUGIN — RAG GUARDS (LIVAI)
+ * ============================================================================
+ *
+ * Назначение:
+ * - Локальный ESLint-плагин guardrails для RAG (Retrieval-Augmented Generation)
+ * - Проверяет изоляцию контекста, лимиты токенов и требования к цитированию источников
+ *
+ * Подключение:
+ * - Загружается из `config/eslint/constants.mjs` через `tryImport('./plugins/rag/index.js')`
+ * - Используется как `@livai/rag/*` в `config/eslint/master.config.mjs`
  */
 
 import contextLeakage from './rules/context-leakage.js';

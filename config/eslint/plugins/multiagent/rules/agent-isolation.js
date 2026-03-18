@@ -1,6 +1,10 @@
 /**
- * @fileoverview Ensure proper agent isolation in multi-agent systems
- * @author LivAi Team
+ * @file config/eslint/plugins/multiagent/rules/agent-isolation.js
+ * @fileoverview Multiagent guardrail: изоляция агентов и запрет “общего состояния”
+ *
+ * Принцип:
+ * - Эвристика (guardrail): подсвечивает доступ к shared/global state и межагентную коммуникацию
+ * - Оркестрация должна быть централизована, агенты — изолированы
  */
 
 export default {

@@ -1,6 +1,10 @@
 /**
- * @fileoverview Detect potential API token leakage in AI code
- * @author LivAi Team
+ * @file config/eslint/plugins/ai-security/rules/token-leakage.js
+ * @fileoverview AI Security guardrail: обнаружение утечек API токенов/ключей в коде
+ *
+ * Принцип:
+ * - Эвристика (guardrail): ловит “похожие на секреты” строки
+ * - Срабатывания требуют проверки человеком (возможны false-positive)
  */
 
 export default {

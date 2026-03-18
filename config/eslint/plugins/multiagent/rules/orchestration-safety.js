@@ -1,6 +1,10 @@
 /**
- * @fileoverview Ensure safe orchestration in multi-agent systems
- * @author LivAi Team
+ * @file config/eslint/plugins/multiagent/rules/orchestration-safety.js
+ * @fileoverview Multiagent guardrail: безопасность оркестрации (timeouts/изоляция/ошибки)
+ *
+ * Принцип:
+ * - Эвристика (guardrail): подсвечивает рискованные паттерны orchestration без защит
+ * - Цель — предотвратить каскадные сбои и “повисшие” операции
  */
 
 export default {

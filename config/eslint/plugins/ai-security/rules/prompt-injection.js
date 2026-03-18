@@ -1,6 +1,10 @@
 /**
- * @fileoverview Detect potential prompt injection vulnerabilities
- * @author LivAi Team
+ * @file config/eslint/plugins/ai-security/rules/prompt-injection.js
+ * @fileoverview AI Security guardrail: обнаружение потенциальных prompt injection уязвимостей
+ *
+ * Принцип:
+ * - Эвристика (guardrail): подсвечивает рискованные паттерны сборки промпта
+ * - Не заменяет санитизацию/валидацию, но помогает ловить ошибки на ревью/CI
  */
 
 export default {

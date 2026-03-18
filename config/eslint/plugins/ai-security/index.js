@@ -1,6 +1,16 @@
 /**
- * ESLint Plugin for AI Security
- * @fileoverview Rules for AI security compliance and safety
+ * @file config/eslint/plugins/ai-security/index.js
+ * ============================================================================
+ * 🛡️ ESLINT PLUGIN — AI SECURITY (LIVAI)
+ * ============================================================================
+ *
+ * Назначение:
+ * - Локальный ESLint-плагин для AI Security guardrails
+ * - Ищет потенциальные утечки/инъекции/PII в коде, где есть AI-контексты
+ *
+ * Подключение:
+ * - Загружается из `config/eslint/constants.mjs` через `tryImport('./plugins/ai-security/index.js')`
+ * - Используется как `ai-security/*` в `config/eslint/master.config.mjs`
  */
 
 import piiDetection from './rules/pii-detection.js';

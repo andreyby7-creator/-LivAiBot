@@ -1,6 +1,10 @@
 /**
- * @fileoverview Ensure proper source citation in RAG systems
- * @author LivAi Team
+ * @file config/eslint/plugins/rag/rules/source-citation.js
+ * @fileoverview RAG guardrail: требование цитирования источников в RAG-ответах
+ *
+ * Принцип:
+ * - Эвристика (guardrail): подсвечивает места без ссылок на источники
+ * - Конкретный формат ссылок определяется продуктовым контрактом
  */
 
 export default {

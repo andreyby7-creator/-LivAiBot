@@ -1,6 +1,10 @@
 /**
- * @fileoverview Detect potential token limit issues in RAG systems
- * @author LivAi Team
+ * @file config/eslint/plugins/rag/rules/token-limits.js
+ * @fileoverview RAG guardrail: обнаружение проблем с token budgeting/лимитами
+ *
+ * Принцип:
+ * - Эвристика (guardrail): подсвечивает отсутствие проверок лимитов/оценки токенов
+ * - Нужна ручная проверка (контекст зависит от конкретного клиента/модели)
  */
 
 export default {

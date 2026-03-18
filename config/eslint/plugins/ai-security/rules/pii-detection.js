@@ -1,6 +1,10 @@
 /**
- * @fileoverview Detect potential PII (Personally Identifiable Information) in AI contexts
- * @author LivAi Team
+ * @file config/eslint/plugins/ai-security/rules/pii-detection.js
+ * @fileoverview AI Security guardrail: обнаружение потенциальных PII в строковых литералах
+ *
+ * Принцип:
+ * - Это эвристика (guardrail), а не идеальный детектор
+ * - Цель — предотвратить случайную отправку PII в AI/LLM контексты
  */
 
 export default {

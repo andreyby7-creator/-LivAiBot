@@ -1,6 +1,10 @@
 /**
- * @fileoverview Detect potential model poisoning vulnerabilities
- * @author LivAi Team
+ * @file config/eslint/plugins/ai-security/rules/model-poisoning.js
+ * @fileoverview AI Security guardrail: обнаружение потенциальных уязвимостей model poisoning
+ *
+ * Принцип:
+ * - Эвристика (guardrail): подсвечивает риск обновлений/обучения без валидации источника/данных
+ * - Срабатывания требуют проверки человеком и контекста
  */
 
 export default {

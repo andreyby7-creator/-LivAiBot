@@ -1,6 +1,10 @@
 /**
- * @fileoverview Detect potential context leakage in RAG systems
- * @author LivAi Team
+ * @file config/eslint/plugins/rag/rules/context-leakage.js
+ * @fileoverview RAG guardrail: обнаружение потенциальной утечки контекста между пользователями/сессиями
+ *
+ * Принцип:
+ * - Эвристика (guardrail): подсвечивает хранение контекста в глобалах/общих переменных
+ * - Срабатывания требуют проверки человеком (возможны false-positive)
  */
 
 export default {
