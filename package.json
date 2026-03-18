@@ -205,7 +205,7 @@
   },
   "lint-staged": {
     "{packages,config,scripts,apps}/**/*.{js,ts,json,md}": [
-      "dprint fmt"
+      "dprint fmt --allow-no-files"
     ],
     "{packages,config,scripts,apps}/**/*.{js,ts,tsx}": [
       "bash -c 'ESLINT_MODE=canary eslint --fix --max-warnings 0'"

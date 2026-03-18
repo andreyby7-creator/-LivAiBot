@@ -1,0 +1,7 @@
+{
+  "name": "@livai/eslint-plugin-store-guards-local",
+  "private": true,
+  "type": "module",
+  "version": "1.0.0"
+}
+

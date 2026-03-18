@@ -133,6 +133,7 @@ config.local.*
 !modes/*.mjs
 !plugins/
 !plugins/**/*.mjs
+!plugins/**/*.js
 !rules/
 !rules/*.mjs
 !shared/
