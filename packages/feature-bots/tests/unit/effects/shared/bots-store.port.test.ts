@@ -6,7 +6,7 @@ import { describe, expect, it, vi } from 'vitest';
 
 import {
   createBotsStorePortAdapter,
-  isBatchUpdateOfType,
+  isBotsStoreBatchUpdateOfType,
   withStoreLock,
 } from '../../../../src/effects/shared/bots-store.port.js';
 
@@ -15,13 +15,14 @@ type AnyStore = any;
 const createStoreMock = (): AnyStore => {
   const actions = {
     reset: vi.fn(),
+    // В портовых тестах важен факт прокидывания `updates` в store.actions.applyBatchUpdate.
+    // Внутреннюю валидацию делаем не здесь (и избегаем `for/switch`, запрещённых ESLint функциональными правилами).
+    applyBatchUpdate: vi.fn(),
     setBotsList: vi.fn(),
+    upsertBot: vi.fn(),
     setCreateState: vi.fn(),
     setUpdateState: vi.fn(),
     setDeleteState: vi.fn(),
-    toLoading: vi.fn((op: unknown) => ({ status: 'loading', op })),
-    toSuccess: vi.fn((data: unknown) => ({ status: 'success', data })),
-    toError: vi.fn((err: unknown) => ({ status: 'error', err })),
   };
 
   return {
@@ -39,10 +40,10 @@ const createStoreMock = (): AnyStore => {
 };
 
 describe('bots-store.port', () => {
-  it('isBatchUpdateOfType: корректно сужает тип по discriminator', () => {
+  it('isBotsStoreBatchUpdateOfType: корректно сужает тип по discriminator', () => {
     const update = { type: 'setBotsList', bots: [] } as const;
-    expect(isBatchUpdateOfType(update as any, 'setBotsList')).toBe(true);
-    expect(isBatchUpdateOfType(update as any, 'reset')).toBe(false);
+    expect(isBotsStoreBatchUpdateOfType(update as any, 'setBotsList')).toBe(true);
+    expect(isBotsStoreBatchUpdateOfType(update as any, 'reset')).toBe(false);
   });
 
   it('withStoreLock: выставляет lock true и снимает после успеха', () => {
@@ -70,14 +71,14 @@ describe('bots-store.port', () => {
     const store = createStoreMock();
     const port = createBotsStorePortAdapter(store);
 
-    expect(port.toLoading('create' as any)).toEqual({ status: 'loading', op: 'create' });
-    expect(store.actions.toLoading).toHaveBeenCalledWith('create');
+    expect(port.toLoading('create' as any)).toEqual({ status: 'loading', operation: 'create' });
 
-    expect(port.toSuccess({ ok: true })).toEqual({ status: 'success', data: { ok: true } });
-    expect(store.actions.toSuccess).toHaveBeenCalledWith({ ok: true });
+    expect(port.toSuccess({ ok: true })).toEqual({
+      status: 'success',
+      data: { ok: true },
+    });
 
-    expect(port.toError('e')).toEqual({ status: 'error', err: 'e' });
-    expect(store.actions.toError).toHaveBeenCalledWith('e');
+    expect(port.toError('e')).toEqual({ status: 'error', error: 'e' });
 
     const s1 = port.getState();
     const s2 = port.getState();
@@ -95,6 +96,20 @@ describe('bots-store.port', () => {
 
     port.setStoreLocked(true);
     expect(() => port.setBotsList([])).toThrow('[BotsStorePort] Store is locked.');
+    expect(() =>
+      port.upsertBot(
+        {
+          id: 'b1',
+          name: 'x',
+          status: { type: 'draft' },
+          workspaceId: 'ws' as any,
+          currentVersion: 1,
+          createdAt: '2020-01-01T00:00:00.000Z' as any,
+        } as any,
+      )
+    ).toThrow(
+      '[BotsStorePort] Store is locked.',
+    );
     expect(() => port.setCreateState({ status: 'idle' } as any)).toThrow(
       '[BotsStorePort] Store is locked.',
     );
@@ -124,19 +139,40 @@ describe('bots-store.port', () => {
       { type: 'setDeleteState', state: d },
     ]);
 
-    expect(store.actions.reset).toHaveBeenCalledTimes(1);
-    expect(store.actions.setBotsList).toHaveBeenCalledWith(bots);
-    expect(store.actions.setCreateState).toHaveBeenCalledWith(c);
-    expect(store.actions.setUpdateState).toHaveBeenCalledWith(u);
-    expect(store.actions.setDeleteState).toHaveBeenCalledWith(d);
+    expect(store.actions.applyBatchUpdate).toHaveBeenCalledTimes(1);
+    expect(store.actions.applyBatchUpdate).toHaveBeenCalledWith([
+      { type: 'reset' },
+      { type: 'setBotsList', bots },
+      { type: 'setCreateState', state: c },
+      { type: 'setUpdateState', state: u },
+      { type: 'setDeleteState', state: d },
+    ]);
   });
 
-  it('batchUpdate: default ветка (exhaustive) кидает ошибку на неизвестный type', () => {
+  it('upsertBot: проксирует вызов в store.actions.upsertBot и работает только когда store не locked', () => {
     const store = createStoreMock();
     const port = createBotsStorePortAdapter(store);
 
-    expect(() => port.batchUpdate([{ type: 'nope' } as any])).toThrow(
-      '[BotsStorePort] Unsupported batch update:',
-    );
+    const bot = {
+      id: 'b1',
+      name: 'x',
+      status: { type: 'draft' },
+      workspaceId: 'ws' as any,
+      currentVersion: 1,
+      createdAt: '2020-01-01T00:00:00.000Z' as any,
+    } as any;
+    port.upsertBot(bot);
+
+    expect(store.actions.upsertBot).toHaveBeenCalledWith(bot);
+  });
+
+  it('batchUpdate: прокидывает unknown type в store.actions.applyBatchUpdate без валидации порта', () => {
+    const store = createStoreMock();
+    const port = createBotsStorePortAdapter(store);
+
+    const updates = [{ type: 'nope' } as any];
+    port.batchUpdate(updates as any);
+
+    expect(store.actions.applyBatchUpdate).toHaveBeenCalledWith(updates);
   });
 });

@@ -13,6 +13,21 @@
  */
 export { setOperation } from './helpers/operations.js';
 
+/**
+ * Pure batch reducers: единый SSOT для `applyBatchUpdate` и unit-тестов без Zustand.
+ * @public
+ */
+export {
+  type ApplyBotsStoreBatchContext,
+  applyBotsStoreBatchUpdates,
+  applyBotsStoreSetBotsList,
+  applyBotsStoreSetCreateState,
+  applyBotsStoreSetDeleteState,
+  applyBotsStoreSetUpdateState,
+  applyBotsStoreUpsertBot,
+  type BotsStoreBaseState,
+} from './helpers/batch-update.js';
+
 /* ============================================================================
  * 🗃️ STORE — BOTS ZUSTAND STORE (STATE ONLY)
  * ========================================================================== */

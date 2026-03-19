@@ -10,18 +10,16 @@
  * Архитектурные решения:
  * - Port pattern: эффекты работают через интерфейс, не знают про Zustand
  * - Batch updates: `batchUpdate` применяет обновления синхронно и в фиксированном порядке
- * - Type safety: обновления описаны как discriminated union (`BatchUpdate`)
+ * - Type safety: обновления описаны как discriminated union (`BotsStoreBatchUpdate`)
  *
  * Инварианты:
  * - Этот порт **синхронный**: он не делает IO и не скрывает async/side-effects.
  * - Store-updater'ы в эффектах должны предпочитать `batchUpdate`, чтобы не разводить промежуточные состояния.
- * - `setStoreLocked` / `withStoreLock` — это НЕ настоящий concurrency-lock между эффектами.
- *   Это *re-entrancy guard* в рамках одного adapter instance (защита от повторных/вложенных обновлений).
+ * - `setStoreLocked` / `withStoreLock` — guard re-entrancy внутри одного adapter instance (меж-эффектного lock нет).
  * - `getState` возвращает copy-on-write snapshot: consumers не получают ссылок на `entities/operations`.
  */
 
-import type { OperationState } from '@livai/core';
-
+import type { BotsStoreBatchUpdate } from '../../contracts/BotsStoreContract.js';
 import type { BotsStore, BotsStoreState } from '../../stores/bots.js';
 import type { BotInfo, BotsState, OperationKey } from '../../types/bots.js';
 
@@ -30,21 +28,12 @@ import type { BotInfo, BotsState, OperationKey } from '../../types/bots.js';
  * ============================================================================
  */
 
-/**
- * Тип обновления стора для batchUpdate.
- * Discriminated union для type-safe обновлений.
- */
-export type BatchUpdate =
-  | { readonly type: 'reset'; }
-  | { readonly type: 'setBotsList'; readonly bots: readonly BotInfo[]; }
-  | { readonly type: 'setCreateState'; readonly state: BotsState['operations']['create']; }
-  | { readonly type: 'setUpdateState'; readonly state: BotsState['operations']['update']; }
-  | { readonly type: 'setDeleteState'; readonly state: BotsState['operations']['delete']; };
+export type { BotsStoreBatchUpdate };
 
-export function isBatchUpdateOfType<T extends BatchUpdate['type']>(
-  update: BatchUpdate,
+export function isBotsStoreBatchUpdateOfType<T extends BotsStoreBatchUpdate['type']>(
+  update: BotsStoreBatchUpdate,
   type: T,
-): update is Extract<BatchUpdate, { readonly type: T; }> {
+): update is Extract<BotsStoreBatchUpdate, { readonly type: T; }> {
   return update.type === type;
 }
 
@@ -52,7 +41,10 @@ export function isBatchUpdateOfType<T extends BatchUpdate['type']>(
  * Единый контракт стора для всех bot-эффектов.
  *
  * @remarks
- * Методы намеренно минимальны и маппятся 1:1 на `BotsStore.actions`.
+ * Port-методы намеренно минимальны:
+ * - мутации идут через `batchUpdate`, `set*`, `upsert`
+ * - lifecycle-конструкторы (toLoading/toSuccess/toError) реализуются в port,
+ *   чтобы store оставался только state + sync transitions.
  */
 export type BotsStorePort = Readonly<{
   /**
@@ -64,12 +56,17 @@ export type BotsStorePort = Readonly<{
 
   /**
    * Применяет пачку обновлений синхронно и в фиксированном порядке.
-   * @remarks Не является truly-atomic: обновления выполняются последовательно, подписчики могут увидеть промежуточные состояния.
+   * @remarks
+   * Должна применяться атомарно в смысле наблюдаемости: подписчики не должны
+   * видеть промежуточные состояния между апдейтами одной logical-operation.
    */
-  readonly batchUpdate: (updates: readonly BatchUpdate[]) => void;
+  readonly batchUpdate: (updates: readonly BotsStoreBatchUpdate[]) => void;
 
   /** Устанавливает список ботов целиком (обычно после fetch). */
   readonly setBotsList: (bots: readonly BotInfo[]) => void;
+
+  /** Upsert одного бота в `bots.entities` без потери остальных entities. */
+  readonly upsertBot: (bot: BotInfo) => void;
 
   /** Устанавливает состояние операции create. */
   readonly setCreateState: (state: BotsState['operations']['create']) => void;
@@ -89,9 +86,11 @@ export type BotsStorePort = Readonly<{
   readonly getState: () => BotsStoreState;
 }>;
 
-export type LoadingState = OperationState<never, string, never>;
-export type SuccessState<T> = OperationState<T, string, never>;
-export type ErrorState<E> = OperationState<never, string, E>;
+export type LoadingState = Readonly<
+  { readonly status: 'loading'; readonly operation: OperationKey; }
+>;
+export type SuccessState<T> = Readonly<{ readonly status: 'success'; readonly data: T; }>;
+export type ErrorState<E> = Readonly<{ readonly status: 'error'; readonly error: E; }>;
 
 /* ============================================================================
  * 🔒 LOCK UTILITY — Re-entrancy guard helper
@@ -114,6 +113,25 @@ export function withStoreLock<T>(storePort: BotsStorePort, operation: () => T): 
 
 const STORE_LOCKED_ERROR = '[BotsStorePort] Store is locked. Cannot update state.' as const;
 
+/**
+ * @internal Helpers to keep discriminant literals (`status`) stable
+ * and return frozen (immutable) state objects.
+ */
+const freezeLoadingState = (operation: OperationKey): LoadingState =>
+  Object.freeze({ status: 'loading' as const, operation });
+
+const freezeSuccessState = <T>(data: T): SuccessState<T> =>
+  Object.freeze({ status: 'success' as const, data });
+
+const freezeErrorState = <E>(error: E): ErrorState<E> =>
+  Object.freeze({ status: 'error' as const, error });
+
+/**
+ * Адаптер `BotsStore` (zustand store) -> `BotsStorePort` (effects API).
+ *
+ * @remarks
+ * Адаптер добавляет re-entrancy guard и гарантирует наблюдаемую атомарность для `batchUpdate`.
+ */
 export function createBotsStorePortAdapter(store: BotsStore): BotsStorePort {
   let isLocked = false;
 
@@ -123,66 +141,44 @@ export function createBotsStorePortAdapter(store: BotsStore): BotsStorePort {
     }
   };
 
-  return Object.freeze({
+  const adapter: BotsStorePort = Object.freeze({
     setStoreLocked: (locked: boolean) => {
       isLocked = locked;
     },
 
-    batchUpdate: (updates: readonly BatchUpdate[]) => {
+    batchUpdate: (updates: readonly BotsStoreBatchUpdate[]) => {
       assertUnlocked();
-
-      for (const update of updates) {
-        switch (update.type) {
-          case 'reset': {
-            store.actions.reset();
-            break;
-          }
-          case 'setBotsList': {
-            store.actions.setBotsList(update.bots);
-            break;
-          }
-          case 'setCreateState': {
-            store.actions.setCreateState(update.state);
-            break;
-          }
-          case 'setUpdateState': {
-            store.actions.setUpdateState(update.state);
-            break;
-          }
-          case 'setDeleteState': {
-            store.actions.setDeleteState(update.state);
-            break;
-          }
-          default: {
-            const _exhaustive: never = update;
-            throw new Error(`[BotsStorePort] Unsupported batch update: ${String(_exhaustive)}`);
-          }
-        }
-      }
+      // Атомарное применение выполняется одним `set` внутри zustand store (`applyBatchUpdate`),
+      // чтобы подписчики не видели промежуточные состояния между шагами одной logical-operation.
+      store.actions.applyBatchUpdate(updates);
     },
 
-    setBotsList: (bots) => {
+    setBotsList: (bots: readonly BotInfo[]) => {
       assertUnlocked();
       store.actions.setBotsList(bots);
     },
-    setCreateState: (state) => {
+    upsertBot: (bot: BotInfo) => {
+      assertUnlocked();
+      store.actions.upsertBot(bot);
+    },
+    setCreateState: (state: BotsState['operations']['create']) => {
       assertUnlocked();
       store.actions.setCreateState(state);
     },
-    setUpdateState: (state) => {
+    setUpdateState: (state: BotsState['operations']['update']) => {
       assertUnlocked();
       store.actions.setUpdateState(state);
     },
-    setDeleteState: (state) => {
+    setDeleteState: (state: BotsState['operations']['delete']) => {
       assertUnlocked();
       store.actions.setDeleteState(state);
     },
 
-    toLoading: (operation) => store.actions.toLoading(operation),
-    toSuccess: (data) => store.actions.toSuccess(data),
-    toError: (err) => store.actions.toError(err),
+    toLoading: (operation: OperationKey): LoadingState => freezeLoadingState(operation),
+    toSuccess: <T>(data: T): SuccessState<T> => freezeSuccessState(data),
+    toError: <E>(err: E): ErrorState<E> => freezeErrorState(err),
 
-    getState: () => ({
+    getState: (): BotsStoreState => ({
       version: store.version,
       bots: {
         ...store.bots,
@@ -191,4 +187,6 @@ export function createBotsStorePortAdapter(store: BotsStore): BotsStorePort {
       },
     }),
   });
+
+  return adapter;
 }

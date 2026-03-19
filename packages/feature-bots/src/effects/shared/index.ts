@@ -55,10 +55,10 @@ export { mapperErrorCodeParsingJsonInvalid, type ParseIssue } from './mapper.con
  * Bots Store Port: контракт доступа к bots-store из эффектов без зависимости от Zustand реализации.
  * @public
  */
-export type { BatchUpdate, BotsStorePort } from './bots-store.port.js';
+export type { BotsStoreBatchUpdate, BotsStorePort } from './bots-store.port.js';
 export {
   createBotsStorePortAdapter,
-  isBatchUpdateOfType,
+  isBotsStoreBatchUpdateOfType,
   withStoreLock,
 } from './bots-store.port.js';
 

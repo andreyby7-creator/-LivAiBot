@@ -112,13 +112,13 @@ describe('createBotsStore', () => {
   it('setCreateState / setUpdateState / setDeleteState обновляют operations через helper', () => {
     const useStore = createBotsStore();
 
-    const createState = useStore.getState().actions.toLoading('create');
-    const updateState = useStore.getState().actions.toLoading('update');
-    const deleteState = useStore.getState().actions.toLoading('delete');
+    const createState = { status: 'loading', operation: 'create' } as any;
+    const updateState = { status: 'loading', operation: 'update' } as any;
+    const deleteState = { status: 'loading', operation: 'delete' } as any;
 
-    useStore.getState().actions.setCreateState(createState as any);
-    useStore.getState().actions.setUpdateState(updateState as any);
-    useStore.getState().actions.setDeleteState(deleteState as any);
+    useStore.getState().actions.setCreateState(createState);
+    useStore.getState().actions.setUpdateState(updateState);
+    useStore.getState().actions.setDeleteState(deleteState);
 
     const s = useStore.getState();
     expect(s.bots.operations.create).toEqual(createState);
@@ -126,12 +126,73 @@ describe('createBotsStore', () => {
     expect(s.bots.operations.delete).toEqual(deleteState);
   });
 
-  it('toLoading/toSuccess/toError возвращают ожидаемую форму', () => {
-    const useStore = createBotsStore();
-    const a = useStore.getState().actions;
+  it('upsertBot: в development замораживает bot в entities', () => {
+    vi.stubEnv('NODE_ENV', 'development');
+    try {
+      const useStore = createBotsStore();
+      const b1 = botInfo(1);
 
-    expect(a.toLoading('create')).toEqual({ status: 'loading', operation: 'create' });
-    expect(a.toSuccess({ ok: true })).toEqual({ status: 'success', data: { ok: true } });
-    expect(a.toError({ message: 'x' })).toEqual({ status: 'error', error: { message: 'x' } });
+      useStore.getState().actions.upsertBot(b1);
+      const stored = useStore.getState().bots.entities[botId(1)]!;
+
+      expect(stored).toBe(b1);
+      expect(Object.isFrozen(stored)).toBe(true);
+    } finally {
+      vi.unstubAllEnvs();
+    }
+  });
+
+  it('upsertBot: в production не замораживает bot в entities', () => {
+    vi.stubEnv('NODE_ENV', 'production');
+    try {
+      const useStore = createBotsStore();
+      const b1 = botInfo(1);
+
+      useStore.getState().actions.upsertBot(b1);
+      const stored = useStore.getState().bots.entities[botId(1)]!;
+
+      expect(stored).toBe(b1);
+      expect(Object.isFrozen(stored)).toBe(false);
+    } finally {
+      vi.unstubAllEnvs();
+    }
+  });
+
+  it('applyBatchUpdate: применяет reset/setBotsList/upsertBot и устанавливает operations', () => {
+    vi.stubEnv('NODE_ENV', 'development');
+    try {
+      const useStore = createBotsStore();
+
+      // Подготовим состояние, чтобы reset внутри applyBatchUpdate реально что-то вернул.
+      const oldBot = botInfo(99);
+      useStore.getState().actions.setBotsList([oldBot]);
+      expect(Object.keys(useStore.getState().bots.entities)).toEqual([botId(99)]);
+
+      const b1 = botInfo(1);
+      const b2 = botInfo(2, { status: { type: 'active', publishedAt: iso() } });
+
+      const createState = { status: 'loading', operation: 'create' } as any;
+      const updateState = { status: 'success', data: b2 } as any;
+      const deleteState = { status: 'loading', operation: 'delete' } as any;
+
+      useStore.getState().actions.applyBatchUpdate([
+        { type: 'reset' },
+        { type: 'setBotsList', bots: [b1] },
+        { type: 'upsertBot', bot: b2 },
+        { type: 'setCreateState', state: createState },
+        { type: 'setUpdateState', state: updateState },
+        { type: 'setDeleteState', state: deleteState },
+      ] as any);
+
+      const state = useStore.getState();
+      expect(Object.keys(state.bots.entities)).toEqual([botId(1), botId(2)]);
+      expect(Object.isFrozen(state.bots.entities[botId(2)]!)).toBe(true);
+
+      expect(state.bots.operations.create).toEqual(createState);
+      expect(state.bots.operations.update).toEqual(updateState);
+      expect(state.bots.operations.delete).toEqual(deleteState);
+    } finally {
+      vi.unstubAllEnvs();
+    }
   });
 });

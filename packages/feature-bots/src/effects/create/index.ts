@@ -26,3 +26,13 @@ export {
   mapCreateBotEffectInputToApiInput,
   mapCreateBotResponseToBotInfo,
 } from './create-bot-api.mapper.js';
+
+/* ============================================================================
+ * 🗃️ CREATE STORE UPDATER — SUCCESS TRANSITION
+ * ========================================================================== */
+
+/**
+ * Create Bot Store Updater: атомарное обновление bots-store после success-create.
+ * @public
+ */
+export { updateCreateBotState } from './create-bot-store-updater.js';

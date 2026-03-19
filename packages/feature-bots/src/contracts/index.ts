@@ -13,3 +13,20 @@
  * @public
  */
 export { type BotErrorResponse, type BotErrorType } from './BotErrorResponse.js';
+
+/**
+ * OperationState contracts: generic lifecycle state (loading/success/error).
+ * @public
+ */
+export {
+  type OperationError,
+  type OperationLoading,
+  type OperationState,
+  type OperationSuccess,
+} from './OperationState.js';
+
+/**
+ * Bots store contracts: batch intents + contract version.
+ * @public
+ */
+export { type BotsStoreBatchUpdate, botsStoreContractVersion } from './BotsStoreContract.js';
