@@ -53,6 +53,17 @@ export {
 } from './bots-store.port.js';
 
 /* ============================================================================
+ * 🧾 AUDIT PORT — НАБЛЮДАЕМОСТЬ ДЛЯ EFFECTS
+ * ========================================================================== */
+
+/**
+ * Audit Port: DI-контракт эмита audit/telemetry событий для bot-эффектов.
+ * @public
+ */
+export type { BotAuditPort } from './audit.port.js';
+export { createBotAuditPortAdapter, createNoopBotAuditPort } from './audit.port.js';
+
+/* ============================================================================
  * 🔧 API CLIENT ADAPTER — АДАПТАЦИЯ PROMISE → EFFECT
  * ========================================================================== */
 
