@@ -64,6 +64,23 @@ export type { BotAuditPort } from './audit.port.js';
 export { createBotAuditPortAdapter, createNoopBotAuditPort } from './audit.port.js';
 
 /* ============================================================================
+ * 🔁 OPERATION LIFECYCLE HELPER — LOADING/RUN/SUCCESS/FAILURE
+ * ========================================================================== */
+
+/**
+ * Operation Lifecycle Helper: DI-helper для композиции lifecycle шагов
+ * (store transitions + error mapping + audit hooks) в orchestrator.
+ * @public
+ */
+export type {
+  OperationLifecycleHelper,
+  OperationLifecycleHelperConfig,
+  OperationLifecycleOperationHandler,
+  RunOperationLifecycleInput,
+} from './operation-lifecycle.helper.js';
+export { createOperationLifecycleHelper } from './operation-lifecycle.helper.js';
+
+/* ============================================================================
  * 🔧 API CLIENT ADAPTER — АДАПТАЦИЯ PROMISE → EFFECT
  * ========================================================================== */
 
