@@ -71,6 +71,14 @@ export type { ISODateString, Json, JsonArray, JsonObject, JsonPrimitive, JsonVal
 export type TraceId = string & { readonly __brand: 'TraceId'; };
 
 /**
+ * Branded request-id для корреляции внутри одного запроса.
+ * @remarks
+ * В отличие от traceId, requestId можно использовать для корреляции
+ * на одном hop (frontend ↔ gateway ↔ service), не смешивая семантику distributed tracing.
+ */
+export type RequestId = string & { readonly __brand: 'RequestId'; };
+
+/**
  * Branded-тип для ключа идемпотентности.
  * Используется только для критичных write-операций.
  */
@@ -130,6 +138,9 @@ export type KnownErrorTag =
 export interface ApiRequestContext {
   /** Уникальный trace-id запроса (для distributed tracing) */
   readonly traceId?: TraceId;
+
+  /** Идентификатор запроса (для корреляции на одном hop), опционально */
+  readonly requestId?: RequestId;
 
   /** Текущий пользователь/сессия */
   readonly authToken?: string;

@@ -153,13 +153,9 @@ describe('createBotApiClientPortAdapter', () => {
     get.mockResolvedValue({ bots: [] });
 
     const api = createBotApiClientPortAdapter(client);
-    const res = await api.listBots({ workspaceId: 'ws1' as any }, {
-      headers: {
-        [mocks.HEADERS.OPERATION_ID]: 'op1',
-        [mocks.HEADERS.WORKSPACE_ID]: 'evil',
-        'X-Other': 'nope',
-      },
-    })(undefined);
+    const res = await api.listBots({ workspaceId: 'ws1' as any }, { operationId: 'op1' as any })(
+      undefined,
+    );
 
     expect(res).toEqual({ bots: [] });
     expect(get).toHaveBeenCalledWith('/v1/bots', {
@@ -170,7 +166,7 @@ describe('createBotApiClientPortAdapter', () => {
     });
   });
 
-  it('createBot: input.operationId имеет приоритет над options.headers', async () => {
+  it('createBot: input.operationId имеет приоритет над context.operationId', async () => {
     const { client, post } = createLegacyClient();
     post.mockResolvedValue({ ok: true });
 
@@ -182,7 +178,7 @@ describe('createBotApiClientPortAdapter', () => {
         body: { valid: true } as any,
       },
       {
-        headers: { [mocks.HEADERS.OPERATION_ID]: 'op-options' },
+        operationId: 'op-options' as any,
       },
     )(undefined);
 

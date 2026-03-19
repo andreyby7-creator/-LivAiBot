@@ -29,6 +29,7 @@ export * from './common.js';
  * @public
  */
 export * from './app-effects.js';
+export type { RequestId } from './app-effects.js';
 
 /* ============================================================================
  * 🔐 ТИПЫ — AUTH DOMAIN TYPES

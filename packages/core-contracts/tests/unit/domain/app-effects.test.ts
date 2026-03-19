@@ -28,6 +28,7 @@ import type {
   IsErrorOfType,
   KnownErrorTag,
   NetworkError,
+  RequestId,
   SanitizedJson,
   ServerError,
   TraceId,
@@ -84,10 +85,12 @@ describe('ERROR_TAGS', () => {
 });
 
 describe('ApiRequestContext', () => {
-  it('поддерживает branded TraceId и IdempotencyKey', () => {
+  it('поддерживает branded TraceId/RequestId и IdempotencyKey', () => {
     const traceId = 'trace-123' as TraceId;
+    const requestId = 'req-123' as RequestId;
     const context: ApiRequestContext = {
       traceId,
+      requestId,
       authToken: 'token',
       locale: 'ru-RU',
       platform: 'web',
@@ -95,6 +98,7 @@ describe('ApiRequestContext', () => {
     };
 
     expect(context.traceId).toBe(traceId);
+    expect(context.requestId).toBe(requestId);
     expect(context.platform).toBe('web');
   });
 });

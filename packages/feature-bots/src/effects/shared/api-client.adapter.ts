@@ -12,6 +12,8 @@
  * - Детерминированная нормализация transport-ошибок в `BotErrorResponse`,
  *   чтобы существующий `feature-bots/src/lib/error-mapper.ts` мог маппить errors
  *   без знания транспортного формата.
+ * - Соблюдает Port/Adapter split: контракт (`RequestContext`, `BotApiClientPort`, inputs)
+ *   определён в `./api-client.port.ts`, а здесь — только реализация adapter'а.
  *
  * Принципы:
  * - ✅ SRP: только адаптация Promise → Effect + валидация/нормализация boundary ошибок.
@@ -36,28 +38,30 @@ import { HEADERS } from '@livai/core-contracts';
 import { generatedBots } from '@livai/core-contracts/validation/zod';
 
 import type { BotErrorResponse as BotErrorResponseContract } from '../../contracts/BotErrorResponse.js';
-import type { BotId, BotWorkspaceId } from '../../domain/Bot.js';
 import { getBotRetryable } from '../../domain/BotRetry.js';
 import { botErrorMetaByCode, createBotErrorResponse } from '../../lib/bot-errors.js';
-import type { OperationId } from '../../types/bot-commands.js';
 import type { BotErrorCode, BotErrorContext, BotParsingErrorCode } from '../../types/bots.js';
+import type {
+  BotApiClientPort,
+  BotApiCreateBotInput,
+  BotApiGetBotInput,
+  BotApiListBotsInput,
+  BotApiUpdateInstructionInput,
+  RequestContext,
+} from './api-client.port.js';
 
 /* ============================================================================
  * 🧭 TYPES — PROMISE LEGACY HTTP
  * ============================================================================
  */
 
-export type ApiRequestOptions = Readonly<{
-  /**
-   * Явные HTTP-заголовки.
-   * @note Для bots-service обязательно присутствие `X-Workspace-Id`.
-   *       Этот заголовок формируется adapter'ом из `workspaceId` входа.
-   */
-  readonly headers?: Readonly<Record<string, string>>;
+type TransportRequestOptions = Readonly<{
+  /** Канонические HTTP headers, сформированные adapter'ом. */
+  readonly headers: Readonly<Record<string, string>>;
 }>;
 
-type ApiRequestOptionsWithSignal =
-  & ApiRequestOptions
+type TransportRequestOptionsWithSignal =
+  & TransportRequestOptions
   & Readonly<{
     readonly signal?: AbortSignal;
   }>;
@@ -72,19 +76,19 @@ type ApiRequestOptionsWithSignal =
 export type LegacyApiClient = Readonly<{
   readonly get: <T>(
     url: string,
-    options?: ApiRequestOptions & { signal?: AbortSignal; },
+    options?: TransportRequestOptionsWithSignal,
   ) => Promise<T>;
 
   readonly post: <T>(
     url: string,
     body: unknown,
-    options?: ApiRequestOptions & { signal?: AbortSignal; },
+    options?: TransportRequestOptionsWithSignal,
   ) => Promise<T>;
 
   readonly put: <T>(
     url: string,
     body: unknown,
-    options?: ApiRequestOptions & { signal?: AbortSignal; },
+    options?: TransportRequestOptionsWithSignal,
   ) => Promise<T>;
 }>;
 
@@ -93,61 +97,10 @@ export type LegacyApiClient = Readonly<{
  * ============================================================================
  */
 
+// Response-shapes остаются локально: adapter валидирует transport-ответы и возвращает их как данные порта.
+// Request-shapes и inputs определены в `api-client.port.ts` (SSOT контракта порта).
 type BotResponseTransport = z.infer<typeof generatedBots.BotResponseSchema>;
 type BotsListResponseTransport = z.infer<typeof generatedBots.BotsListResponseSchema>;
-type BotCreateRequestTransport = z.infer<typeof generatedBots.BotCreateRequestSchema>;
-type UpdateInstructionRequestTransport = z.infer<
-  typeof generatedBots.UpdateInstructionRequestSchema
->;
-
-/* ============================================================================
- * 🧭 TYPES — PORT (Effect-based)
- * ============================================================================
- */
-
-export type BotApiListBotsInput = Readonly<{
-  readonly workspaceId: BotWorkspaceId;
-}>;
-
-export type BotApiCreateBotInput = Readonly<{
-  readonly workspaceId: BotWorkspaceId;
-  readonly operationId?: OperationId;
-  readonly body: BotCreateRequestTransport;
-}>;
-
-export type BotApiGetBotInput = Readonly<{
-  readonly workspaceId: BotWorkspaceId;
-  readonly botId: BotId;
-}>;
-
-export type BotApiUpdateInstructionInput = Readonly<{
-  readonly workspaceId: BotWorkspaceId;
-  readonly operationId?: OperationId;
-  readonly botId: BotId;
-  readonly body: UpdateInstructionRequestTransport;
-}>;
-
-export type BotApiClientPort = Readonly<{
-  readonly listBots: (
-    input: BotApiListBotsInput,
-    options?: ApiRequestOptions,
-  ) => Effect<BotsListResponseTransport>;
-
-  readonly createBot: (
-    input: BotApiCreateBotInput,
-    options?: ApiRequestOptions,
-  ) => Effect<BotResponseTransport>;
-
-  readonly getBot: (
-    input: BotApiGetBotInput,
-    options?: ApiRequestOptions,
-  ) => Effect<BotResponseTransport>;
-
-  readonly updateInstruction: (
-    input: BotApiUpdateInstructionInput,
-    options?: ApiRequestOptions,
-  ) => Effect<BotResponseTransport>;
-}>;
 
 /* ============================================================================
  * 🎛️ CONSTANTS — deterministic error codes
@@ -168,20 +121,6 @@ function isObject(value: unknown): value is Readonly<Record<string, unknown>> {
 function isBotErrorCode(value: unknown): value is BotErrorCode {
   if (typeof value !== 'string') return false;
   return Object.prototype.hasOwnProperty.call(botErrorMetaByCode, value);
-}
-
-function toHeaderRecord(
-  headers?: Readonly<Record<string, string>>,
-): Readonly<Record<string, string>> {
-  return headers === undefined ? {} : { ...headers };
-}
-
-function mergeHeaders(
-  base: Readonly<Record<string, string>>,
-  override: Readonly<Record<string, string>>,
-): Readonly<Record<string, string>> {
-  // Детерминированность: порядок merge фиксирован.
-  return { ...base, ...override };
 }
 
 const BOT_ID_PATH_PARAM = '{bot_id}' as const;
@@ -212,17 +151,9 @@ function interpolateBotPath(pathTemplate: string, botId?: string): string {
 }
 
 /* ============================================================================
- * 🔒 SECURITY HELPERS — headers/message sanitization
+ * 🔒 SECURITY HELPERS — message sanitization
  * ============================================================================
  */
-
-function filterAllowedHeaders(
-  headers: Readonly<Record<string, string>>,
-): Readonly<Record<string, string>> {
-  // Deterministic: строго allow-list только для X-Operation-Id.
-  const operationId = headers[HEADERS.OPERATION_ID];
-  return operationId !== undefined ? { [HEADERS.OPERATION_ID]: operationId } : {};
-}
 
 const MAX_TRANSPORT_MESSAGE_LENGTH = 200;
 const SENSITIVE_MESSAGE_PATTERNS: readonly RegExp[] = [
@@ -561,7 +492,6 @@ const BOT_API_OPERATION_DEFS: Readonly<{ [K in BotApiOperationName]: BotApiOpera
     responseSchema: generatedBots.BotResponseSchema,
     buildHeaders: (input: BotApiOperationInputMap['createBot']) => ({
       [HEADERS.WORKSPACE_ID]: input.workspaceId,
-      ...(input.operationId !== undefined ? { [HEADERS.OPERATION_ID]: input.operationId } : {}),
     }),
     buildBody: (input: BotApiOperationInputMap['createBot']) => input.body,
   },
@@ -584,7 +514,6 @@ const BOT_API_OPERATION_DEFS: Readonly<{ [K in BotApiOperationName]: BotApiOpera
     responseSchema: generatedBots.BotResponseSchema,
     buildHeaders: (input: BotApiOperationInputMap['updateInstruction']) => ({
       [HEADERS.WORKSPACE_ID]: input.workspaceId,
-      ...(input.operationId !== undefined ? { [HEADERS.OPERATION_ID]: input.operationId } : {}),
     }),
     buildBody: (input: BotApiOperationInputMap['updateInstruction']) => input.body,
   },
@@ -640,14 +569,15 @@ function wrapLegacyCallWithEffect(
   method: 'GET' | 'POST' | 'PUT',
   url: string,
   body: unknown,
-  requestOptions: ApiRequestOptionsWithSignal,
+  requestOptions: TransportRequestOptionsWithSignal,
   rules: readonly BotErrorNormalizationRule[],
 ): Effect<unknown> {
   const caller = {
-    GET: (opts?: ApiRequestOptionsWithSignal): Promise<unknown> => legacyClient.get(url, opts),
-    POST: (opts?: ApiRequestOptionsWithSignal): Promise<unknown> =>
+    GET: (opts?: TransportRequestOptionsWithSignal): Promise<unknown> =>
+      legacyClient.get(url, opts),
+    POST: (opts?: TransportRequestOptionsWithSignal): Promise<unknown> =>
       legacyClient.post(url, body, opts),
-    PUT: (opts?: ApiRequestOptionsWithSignal): Promise<unknown> =>
+    PUT: (opts?: TransportRequestOptionsWithSignal): Promise<unknown> =>
       legacyClient.put(url, body, opts),
   } as const;
 
@@ -716,7 +646,7 @@ export function createBotApiClientPortAdapter(
   const executeOperation = async <Op extends BotApiOperationName>(
     operation: Op,
     input: BotApiOperationInputMap[Op],
-    options: ApiRequestOptions | undefined,
+    context: RequestContext | undefined,
     requestSignal: AbortSignal | undefined,
   ): Promise<BotApiOperationOutputMap[Op]> => {
     const def = getOperationDef(operation);
@@ -725,18 +655,15 @@ export function createBotApiClientPortAdapter(
     const botId: string | undefined = 'botId' in input ? input.botId : undefined;
     const url = interpolateBotPath(def.pathTemplate, botId);
 
-    const headersFromInput = toHeaderRecord(def.buildHeaders(input));
-    const headersFromOptions = toHeaderRecord(options?.headers);
+    const headersFromInput = def.buildHeaders(input);
+    const contextOperationId = ('operationId' in input ? input.operationId : undefined)
+      ?? context?.operationId;
+    const mergedHeaders: Readonly<Record<string, string>> = Object.freeze({
+      ...headersFromInput,
+      ...(contextOperationId !== undefined ? { [HEADERS.OPERATION_ID]: contextOperationId } : {}),
+    });
 
-    // Детерминированность: заголовки adapter'а имеют приоритет над options.headers.
-    // Политика merge:
-    // - headersFromInput (adapter-auth) — всегда authoritative (override).
-    // - headersFromOptions — фильтруются allow-list'ом, чтобы пользователь не мог
-    //   подсунуть tenant headers или другие запрещённые сервисные заголовки.
-    const safeOptionsHeaders = filterAllowedHeaders(headersFromOptions);
-    const mergedHeaders = mergeHeaders(safeOptionsHeaders, headersFromInput);
-
-    const requestOptions: ApiRequestOptionsWithSignal = {
+    const requestOptions: TransportRequestOptionsWithSignal = {
       headers: mergedHeaders,
       ...(requestSignal !== undefined ? { signal: requestSignal } : {}),
     };
@@ -801,12 +728,12 @@ export function createBotApiClientPortAdapter(
   const executeEffect = <Op extends BotApiOperationName>(
     operation: Op,
     input: BotApiOperationInputMap[Op],
-    options?: ApiRequestOptions,
+    context?: RequestContext,
   ): Effect<BotApiOperationOutputMap[Op]> => {
     return async (signal?: AbortSignal): Promise<BotApiOperationOutputMap[Op]> => {
       // Все потенциально-throwing вычисления (buildRequest/validate/parse)
       // происходят внутри async-Effect (bulletproof lazy invariant).
-      return executeOperation(operation, input, options, signal);
+      return executeOperation(operation, input, context, signal);
     };
   };
 

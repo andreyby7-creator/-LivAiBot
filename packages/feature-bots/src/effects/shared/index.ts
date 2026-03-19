@@ -13,7 +13,18 @@
  * Обеспечивает единую async-модель в orchestrator.
  * @public
  */
-export type { ApiRequestOptions, BotApiClientPort } from './api-client.adapter.js';
+export type {
+  BotApiClientPort,
+  BotApiCreateBotInput,
+  BotApiGetBotInput,
+  BotApiListBotsInput,
+  BotApiUpdateInstructionInput,
+  BotCreateRequestTransport,
+  BotResponseTransport,
+  BotsListResponseTransport,
+  RequestContext,
+  UpdateInstructionRequestTransport,
+} from './api-client.port.js';
 
 /* ============================================================================
  * 🔧 API CLIENT ADAPTER — АДАПТАЦИЯ PROMISE → EFFECT
@@ -26,10 +37,6 @@ export type { ApiRequestOptions, BotApiClientPort } from './api-client.adapter.j
  */
 export type {
   BotApiClientPortAdapterConfig,
-  BotApiCreateBotInput,
-  BotApiGetBotInput,
-  BotApiListBotsInput,
-  BotApiUpdateInstructionInput,
   BotErrorNormalizationRule,
   LegacyApiClient,
 } from './api-client.adapter.js';
