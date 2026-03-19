@@ -38,6 +38,16 @@ export type {
 export { mapBotResponseToBotInfo, mapBotsListResponseToBotInfos } from './bots-api.mappers.js';
 
 /* ============================================================================
+ * 🧱 MAPPER CONTRACTS — ОБЩИЕ КОНТРАКТЫ ДЛЯ API МАППЕРОВ
+ * ========================================================================== */
+
+/**
+ * Shared mapper types: единые типы ошибок/issue для boundary мапперов.
+ * @public
+ */
+export { mapperErrorCodeParsingJsonInvalid, type ParseIssue } from './mapper.contracts.js';
+
+/* ============================================================================
  * 🗃️ STORE PORT — ДОСТУП К BOTS STORE ИЗ EFFECTS
  * ========================================================================== */
 
