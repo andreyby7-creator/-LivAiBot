@@ -38,6 +38,21 @@ export type {
 export { mapBotResponseToBotInfo, mapBotsListResponseToBotInfos } from './bots-api.mappers.js';
 
 /* ============================================================================
+ * 🗃️ STORE PORT — ДОСТУП К BOTS STORE ИЗ EFFECTS
+ * ========================================================================== */
+
+/**
+ * Bots Store Port: контракт доступа к bots-store из эффектов без зависимости от Zustand реализации.
+ * @public
+ */
+export type { BatchUpdate, BotsStorePort } from './bots-store.port.js';
+export {
+  createBotsStorePortAdapter,
+  isBatchUpdateOfType,
+  withStoreLock,
+} from './bots-store.port.js';
+
+/* ============================================================================
  * 🔧 API CLIENT ADAPTER — АДАПТАЦИЯ PROMISE → EFFECT
  * ========================================================================== */
 
