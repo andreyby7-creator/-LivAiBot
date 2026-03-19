@@ -27,6 +27,17 @@ export type {
 } from './api-client.port.js';
 
 /* ============================================================================
+ * 🧩 API MAPPERS — TRANSPORT DTO → FEATURE/STORE
+ * ========================================================================== */
+
+/**
+ * Bots API Mappers: чистые мапперы validated transport DTO → feature-level типы для store/effects/UI.
+ * Используются для консистентного преобразования ответов `bots-service` без утечки transport деталей.
+ * @public
+ */
+export { mapBotResponseToBotInfo, mapBotsListResponseToBotInfos } from './bots-api.mappers.js';
+
+/* ============================================================================
  * 🔧 API CLIENT ADAPTER — АДАПТАЦИЯ PROMISE → EFFECT
  * ========================================================================== */
 

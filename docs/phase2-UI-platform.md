@@ -541,9 +541,9 @@ Toast / UI feedback
 
 ### **Feature-bots / effects** ⚪
 
-- 🟢 `shared/api-client.adapter.ts` — ts+effect — deps: contracts/BotErrorResponse, lib/bot-errors, domain/BotRetry, types/bots, @livai/core-contracts/validation/zod — адаптер legacy HTTP-клиента под Effect-пайплайны: Zod-валидация + детерминированная нормализация transport-ошибок в `BotErrorResponse`
-- ⚪ `shared/api-client.port.ts` — ts+effect — deps: lib/*, stores/bots, schemas/index — портовый контракт BotApiClientPort для DI (CRUD, publish, test)
-- ⚪ `shared/bots-api.mappers.ts` — ts+effect — deps: lib/*, stores/bots, schemas/index — мапперы HTTP-ответов backend → domain/feature-уровень (Bot/BotList/BotError)
+- 🟢 `shared/api-client.port.ts` — ts+effect — deps: @livai/core/effect, @livai/core-contracts/validation/zod, domain/Bot, types/bot-commands — port-контракт `BotApiClientPort` (Effect-based) + `RequestContext` + validated transport DTO shapes для boundary effects/transport
+- 🟢 `shared/api-client.adapter.ts` — ts+effect — deps: shared/api-client.port, contracts/BotErrorResponse, lib/bot-errors, domain/BotRetry, types/bots, @livai/core-contracts/validation/zod — адаптер legacy HTTP-клиента под `BotApiClientPort`: Zod-валидация + детерминированная нормализация transport-ошибок в `BotErrorResponse` + политика заголовков (`X-Workspace-Id`, `X-Operation-Id`)
+- 🟢 `shared/bots-api.mappers.ts` — ts — deps: shared/api-client.port, contracts/BotErrorResponse, lib/bot-errors, types/bots, types/bot-lifecycle — pure мапперы validated transport DTO (`bots-service`) → feature/store модели (`BotInfo`, `BotStatus`); fail-closed на неконсистентных status passthrough-полях
 - ⚪ `shared/bots-store.port.ts` — ts — deps: stores/bots, types/bots — портовый контракт доступа к bots-store из эффектов (Port pattern для изоляции effects от реализации store)
 - ⚪ `create/create-bot-effect.types.ts` — ts — deps: shared/bots-store.port, shared/api-client.port, @livai/core/policies/BotPolicy, @livai/core/policies/BotPermissions, types/bots, lib/error-mapper — DI-контракты и конфигурация create-bot-effect
 - ⚪ `create/create-bot-api.mapper.ts` — ts — deps: domain/CreateBotRequest, domain/Bot, schemas/index, shared/bots-api.mappers — маппинг запроса/ответа create-bot API
