@@ -29,6 +29,14 @@ export default {
     time: 10000, // 10 секунд максимум на bench
   },
 
+  // NOTE: Vitest 4: `test.poolOptions` deprecated/удалён.
+  // Вся настройка pool'ов должна быть top-level.
+  poolOptions: {
+    threads: {
+      singleThread: true, // Однопоточный режим для bench
+    },
+  },
+
   test: {
     // Bench использует явные импорты (describe, bench из 'vitest')
     globals: false,
@@ -38,11 +46,6 @@ export default {
 
     // Pool threads вместо forks (forks могут вызывать зависания)
     pool: 'threads',
-    poolOptions: {
-      threads: {
-        singleThread: true, // Однопоточный режим для bench
-      },
-    },
 
     // Таймауты для bench (меньше для быстрого завершения)
     testTimeout: 30_000,
