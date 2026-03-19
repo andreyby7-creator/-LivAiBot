@@ -36,3 +36,19 @@ export {
  * @public
  */
 export { updateCreateBotState } from './create-bot-store-updater.js';
+
+/* ============================================================================
+ * 🗃️ CREATE BOT AUDIT MAPPER — AUDIT EVENT VALUES
+ * ============================================================================
+ */
+
+/**
+ * Create Bot Audit Mapper: success/failure create-flow → `BotAuditEventValues`.
+ * @public
+ */
+export {
+  type CreateBotFailureAuditContext,
+  type CreateBotSuccessAuditContext,
+  mapCreateBotErrorToAuditEvent,
+  mapCreateBotResultToAuditEvent,
+} from './create-bot-audit.mapper.js';
