@@ -12,7 +12,13 @@
  * Create Bot Effect: вход и DI-конфигурация create-flow.
  * @public
  */
-export type { CreateBotEffectConfig, CreateBotEffectInput } from './create-bot-effect.types.js';
+export type {
+  CreateBotEffectConfig,
+  CreateBotEffectConfigTypes,
+  CreateBotEffectInput,
+  CreateBotEffectInputTypes,
+  OperationEffectTypes,
+} from './create-bot-effect.types.js';
 
 /* ============================================================================
  * 🔁 CREATE API MAPPER — EFFECT INPUT ↔ API TRANSPORT
@@ -52,3 +58,20 @@ export {
   mapCreateBotErrorToAuditEvent,
   mapCreateBotResultToAuditEvent,
 } from './create-bot-audit.mapper.js';
+
+/* ============================================================================
+ * 🧩 CREATE HELPERS — PURE CREATE-LIKE BUILDERS/CHECKS
+ * ============================================================================
+ */
+
+/**
+ * Create Helpers: pure/deterministic builders и pre-check helpers для create-flow.
+ * @public
+ */
+export {
+  buildActorUserContext,
+  buildCreateBotRequestBody,
+  buildDraftBotId,
+  checkCreatePermissionsOrThrow,
+  checkCreatePolicyOrThrow,
+} from './create-bot.helpers.js';

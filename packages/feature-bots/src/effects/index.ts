@@ -19,7 +19,24 @@ export * from './shared/index.js';
  * ========================================================================== */
 
 /**
- * Create Effects: DI-контракты и типы для create-bot orchestrator'ов.
+ * Create Effects: DI-контракты и типы для create-bot оркестраторов.
  * @public
  */
 export * from './create/index.js';
+
+/* ============================================================================
+ * ➕ ORCHESTRATORS — CREATE BOT FLOWS
+ * ============================================================================
+ */
+
+/**
+ * Оркестратор create-flow: создание бота из шаблона.
+ * @public
+ */
+export type {
+  ClockPort,
+  CreateBotFromTemplateDeps,
+  CreateBotFromTemplateRequest,
+  EventIdGeneratorPort,
+} from './create-bot-from-template.js';
+export { createBotFromTemplateEffect } from './create-bot-from-template.js';

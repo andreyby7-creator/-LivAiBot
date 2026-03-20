@@ -34,7 +34,7 @@ import type { BotsStorePort } from '../shared/bots-store.port.js';
 import type {
   OperationLifecycleHelper,
   OperationLifecycleOperationHandler,
-} from '../shared/operation-lifecycle.helper.js';
+} from '../shared/operation-lifecycle.js';
 
 /* ============================================================================
  * 🧭 TYPES — SHARED OPERATION TEMPLATE (DRY для create/update/delete/...)

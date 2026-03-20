@@ -11,6 +11,7 @@ import type { BotErrorResponse } from '../../../src/contracts/BotErrorResponse.j
 import { getBotRetryable } from '../../../src/domain/BotRetry.js';
 import {
   botErrorMetaByCode,
+  createBotErrorFromCode,
   createBotErrorResponse,
   normalizeBotErrorResponse,
 } from '../../../src/lib/bot-errors.js';
@@ -163,5 +164,223 @@ describe('normalizeBotErrorResponse', () => {
 
     const normalized = normalizeBotErrorResponse(response);
     expect('statusCode' in normalized).toBe(false);
+  });
+});
+
+describe('createBotErrorFromCode', () => {
+  it('создаёт BotError без context, если context не передан и options.cause не задан', () => {
+    const err = createBotErrorFromCode('BOT_POLICY_ACTION_DENIED');
+    expect(err.category).toBe(botErrorMetaByCode.BOT_POLICY_ACTION_DENIED.category);
+    expect(err.code).toBe('BOT_POLICY_ACTION_DENIED');
+    expect(err.severity).toBe(botErrorMetaByCode.BOT_POLICY_ACTION_DENIED.severity);
+    expect(err.retryable).toBe(getBotRetryable('BOT_POLICY_ACTION_DENIED'));
+    expect('context' in err).toBe(false);
+    expect(Object.isFrozen(err)).toBe(true);
+  });
+
+  it('options.cause может быть явно undefined: context не меняется (safeCause undefined)', () => {
+    const context: BotErrorContext = { field: 'name', value: 'x' };
+    const err = createBotErrorFromCode(
+      'BOT_POLICY_ACTION_DENIED',
+      context,
+      { cause: undefined } as any,
+    );
+    expect(err.context).toBe(context);
+    expect(Object.isFrozen(err.context!)).toBe(false); // входной context не замораживается на уровне createBotErrorFromCode
+  });
+
+  it('options.cause: null → в details.cause ставится null', () => {
+    const err = createBotErrorFromCode(
+      'BOT_CHANNEL_CONNECTION_FAILED',
+      undefined,
+      { cause: null } as any,
+    );
+    expect(Object.isFrozen(err.context)).toBe(true);
+    expect(Object.isFrozen(err.context!.details)).toBe(true);
+    expect((err.context!.details as any).cause).toBe(null);
+  });
+
+  it('cause: Error-like объект (name string) → безопасная строка details.cause', () => {
+    const err = createBotErrorFromCode(
+      'BOT_CHANNEL_CONNECTION_FAILED',
+      undefined,
+      { cause: { name: 'MyErr', message: 'boom' } } as any,
+    );
+    expect((err.context!.details as any).cause).toBe('[MyErr] boom');
+  });
+
+  it('cause: Error (нативный) → безопасная строка details.cause', () => {
+    const err = createBotErrorFromCode(
+      'BOT_CHANNEL_CONNECTION_FAILED',
+      undefined,
+      { cause: new Error('boom') } as any,
+    );
+    expect((err.context!.details as any).cause).toBe('[Error] boom');
+  });
+
+  it('cause: Error-like объект (name undefined) → использует "Error"', () => {
+    const err = createBotErrorFromCode(
+      'BOT_CHANNEL_CONNECTION_FAILED',
+      undefined,
+      { cause: { message: 'boom' } } as any,
+    );
+    expect((err.context!.details as any).cause).toBe('[Error] boom');
+  });
+
+  it('cause: string / number / boolean сохраняются как есть', () => {
+    const e1 = createBotErrorFromCode(
+      'BOT_CHANNEL_CONNECTION_FAILED',
+      undefined,
+      { cause: 's1' } as any,
+    );
+    const e2 = createBotErrorFromCode(
+      'BOT_CHANNEL_CONNECTION_FAILED',
+      undefined,
+      { cause: 123 } as any,
+    );
+    const e3 = createBotErrorFromCode(
+      'BOT_CHANNEL_CONNECTION_FAILED',
+      undefined,
+      { cause: true } as any,
+    );
+
+    expect((e1.context!.details as any).cause).toBe('s1');
+    expect((e2.context!.details as any).cause).toBe(123);
+    expect((e3.context!.details as any).cause).toBe(true);
+  });
+
+  it('cause: object / array / circular reference → превращаются в строку и не бросают', () => {
+    const obj = Object.freeze({ a: 1 });
+    const arr = Object.freeze([1, 2, 3]);
+    const circular: any = (() => {
+      const o: any = { a: 1 };
+      Object.defineProperty(o, 'self', { value: o, enumerable: true });
+      return o;
+    })();
+
+    const eObj = createBotErrorFromCode(
+      'BOT_CHANNEL_CONNECTION_FAILED',
+      undefined,
+      { cause: obj } as any,
+    );
+    const eArr = createBotErrorFromCode(
+      'BOT_CHANNEL_CONNECTION_FAILED',
+      undefined,
+      { cause: arr } as any,
+    );
+    const eCirc = createBotErrorFromCode(
+      'BOT_CHANNEL_CONNECTION_FAILED',
+      undefined,
+      { cause: circular } as any,
+    );
+
+    expect(typeof (eObj.context!.details as any).cause).toBe('string');
+    expect((eArr.context!.details as any).cause).toBe('1,2,3');
+    expect(typeof (eCirc.context!.details as any).cause).toBe('string');
+  });
+
+  it('cause: объект с toString, который кидает, → возвращает "[UnserializableCause]"', () => {
+    const bad = {
+      toString: () => {
+        throw new Error('x');
+      },
+    };
+    const err = createBotErrorFromCode(
+      'BOT_CHANNEL_CONNECTION_FAILED',
+      undefined,
+      { cause: bad } as any,
+    );
+    expect((err.context!.details as any).cause).toBe('[UnserializableCause]');
+  });
+
+  it('mergedContext: context+cause merge (details перезаписывается cause и сохраняет остальные поля)', () => {
+    const context: BotErrorContext = {
+      field: 'name',
+      value: 'x',
+      details: { before: 'y' } as any,
+    };
+
+    const err = createBotErrorFromCode(
+      'BOT_CHANNEL_CONNECTION_FAILED',
+      context,
+      { cause: 'after' } as any,
+    );
+
+    expect(Object.isFrozen(err.context)).toBe(true);
+    expect(Object.isFrozen(err.context!.details)).toBe(true);
+    expect(err.context!.field).toBe('name');
+    expect(err.context!.value).toBe('x');
+    expect((err.context!.details as any).before).toBe('y');
+    expect((err.context!.details as any).cause).toBe('after');
+  });
+
+  it('mergedContext: context+cause merge (когда у context нет details) → details.cause берётся из safeCause', () => {
+    const context: BotErrorContext = {
+      field: 'name',
+      value: 'x',
+    };
+
+    const err = createBotErrorFromCode(
+      'BOT_CHANNEL_CONNECTION_FAILED',
+      context,
+      { cause: 'after' } as any,
+    );
+
+    expect(Object.isFrozen(err.context)).toBe(true);
+    expect(Object.isFrozen(err.context!.details)).toBe(true);
+    expect((err.context!.details as any).cause).toBe('after');
+  });
+
+  it('isErrorLike: выполняет ветку "value не объект" (пример: Symbol)', () => {
+    const s = Symbol('x');
+    const err = createBotErrorFromCode(
+      'BOT_CHANNEL_CONNECTION_FAILED',
+      undefined,
+      { cause: s } as any,
+    );
+    expect((err.context!.details as any).cause).toBe('Symbol(x)');
+  });
+
+  it('safeSerializeCauseForDetails: покрывает v.message ?? "" (message становится nullish на втором чтении)', () => {
+    const state = { step: 0 };
+    const cause = {
+      name: 'MyErr',
+      // eslint-disable-next-line fp/no-get-set -- в тесте нужен геттер, чтобы имитировать 2 чтения message
+      get message() {
+        // eslint-disable-next-line fp/no-mutation
+        state.step += 1;
+        return state.step === 1 ? 'boom' : undefined;
+      },
+    };
+
+    const err = createBotErrorFromCode(
+      'BOT_CHANNEL_CONNECTION_FAILED',
+      undefined,
+      { cause } as any,
+    );
+
+    // Первое чтение проходит isErrorLike (typeof message === "string"),
+    // второе чтение в шаблоне делает message nullish → берётся "".
+    expect((err.context!.details as any).cause).toBe('[MyErr] ');
+  });
+});
+
+describe('createBotErrorResponse: statusCode override mismatch edge-cases', () => {
+  it('в production не вызывает hook и использует requested statusCode, если у кода нет canonical statusCode', () => {
+    try {
+      vi.stubEnv('NODE_ENV', 'production');
+
+      const onMismatch = vi.fn();
+      const res = createBotErrorResponse({
+        code: 'BOT_CHANNEL_CONNECTION_FAILED',
+        statusCode: 503,
+        onStatusCodeOverrideMismatch: onMismatch,
+      });
+
+      expect(onMismatch).toHaveBeenCalledTimes(0);
+      expect(res.statusCode).toBe(503);
+    } finally {
+      vi.unstubAllEnvs();
+    }
   });
 });

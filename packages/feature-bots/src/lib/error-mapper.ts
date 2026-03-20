@@ -8,7 +8,9 @@
  * - Lib-слой feature-bots: преобразует boundary-ошибки (например `BotErrorResponse`) и `unknown`
  *   в доменно-стабильный `BotError` для effects/store/UI.
  * - Rule-engine с приоритетами: правила инъектируются через config (DI) и сортируются по `priority`.
- * - Детерминизм: вход + config → один и тот же результат, без скрытого состояния и side-effects.
+ * - Детерминизм: вход + config → один и тот же результат.
+ *   В модуле используются только внутренние memoization-кэши (`WeakMap`) для производительности;
+ *   они не меняют результат и не создают внешних side-effects.
  * - Microservice-ready: не зависит от HTTP/DB и не протаскивает transport/raw данные в доменные типы.
  *
  * Принципы:
@@ -31,6 +33,7 @@ import type {
   BotErrorContext,
   BotErrorSeverity,
 } from '../types/bots.js';
+import { botErrorMetaByCode } from './bot-errors.js';
 
 /* ============================================================================
  * 🧭 TYPES
@@ -80,7 +83,7 @@ type MapBotErrorConfigBase = {
    * @remarks
    * - DI делает маппер truly extensible: можно внедрять feature/app-specific rules, A/B поведение,
    *   и тестировать engine изолированно.
-   * - Порядок не важен: правила сортируются по `priority` на каждом вызове.
+   * - Порядок не важен: правила сортируются по `priority` и кэшируются для immutable/frozen массивов.
    */
   readonly rules?: readonly MappingRule[] | undefined;
 };
@@ -96,7 +99,7 @@ type MapBotErrorConfigHooks = {
 export type MapBotErrorConfig = Readonly<MapBotErrorConfigBase & MapBotErrorConfigHooks>;
 
 /** Входные данные для маппинга (API ошибка или unknown). */
-export type BotErrorInput = BotErrorResponse | Error | string | UnknownObject;
+export type BotErrorInput = BotError | BotErrorResponse | Error | string | UnknownObject;
 
 /* ============================================================================
  * 🔍 TYPE GUARDS
@@ -109,6 +112,20 @@ function isBotErrorResponse(value: unknown): value is BotErrorResponse {
 
   return typeof v['error'] === 'string'
     && typeof v['code'] === 'string'
+    && isBotErrorCategory(v['category'])
+    && isBotErrorSeverity(v['severity'])
+    && typeof v['retryable'] === 'boolean';
+}
+
+function isBotError(value: unknown): value is BotError {
+  if (value === null || typeof value !== 'object') return false;
+
+  const v = value as Record<string, unknown>;
+
+  // BotErrorResponse включает поле `error` (coarse boundary discriminator).
+  if (typeof v['error'] === 'string') return false;
+
+  return typeof v['code'] === 'string'
     && isBotErrorCategory(v['category'])
     && isBotErrorSeverity(v['severity'])
     && typeof v['retryable'] === 'boolean';
@@ -164,6 +181,56 @@ function normalizeFallback(fallback: BotError): BotError {
     code: fallback.code,
     severity: fallback.severity,
     ...(fallback.context !== undefined ? { context: fallback.context } : {}),
+  });
+}
+
+const normalizedFallbackCache = new WeakMap<BotError, BotError>();
+
+function getNormalizedFallback(fallback: BotError): BotError {
+  // Lazy-нормализация fallback:
+  // - fast-path: если fallback уже каноничен (frozen + retryable согласован с BotRetryPolicy), возвращаем его сразу (без WeakMap).
+  // - если fallback не frozen — нормализуем без кэша;
+  // - если fallback frozen, но "грязный" — нормализуем один раз и кешируем.
+  if (Object.isFrozen(fallback) && fallback.retryable === getBotRetryable(fallback.code)) {
+    return fallback;
+  }
+
+  if (!Object.isFrozen(fallback)) return normalizeFallback(fallback);
+
+  const cached = normalizedFallbackCache.get(fallback);
+  if (cached !== undefined) return cached;
+
+  const normalized = normalizeFallback(fallback);
+  normalizedFallbackCache.set(fallback, normalized);
+  return normalized;
+}
+
+/**
+ * Нормализует `BotError` в канонический вид по `BotErrorCode`.
+ *
+ * Важно: при входе в `BotErrorInput` через lifecycle/pipeline всегда делаем нормализацию,
+ * а не пасс-through, чтобы избежать дрейфа severity/category/retryable.
+ */
+export function normalizeBotError(input: BotError): BotError {
+  const meta = botErrorMetaByCode[input.code];
+  const retryable = getBotRetryable(input.code);
+
+  // Если уже канонично — возвращаем как есть.
+  if (
+    Object.isFrozen(input)
+    && input.category === meta.category
+    && input.severity === meta.severity
+    && input.retryable === retryable
+  ) {
+    return input;
+  }
+
+  return Object.freeze({
+    category: meta.category,
+    code: input.code,
+    severity: meta.severity,
+    retryable,
+    ...(input.context !== undefined ? { context: input.context } : {}),
   });
 }
 
@@ -266,15 +333,84 @@ const jsErrorRule: MappingRule = {
   },
 } as const;
 
+/**
+ * Правило: `string` → fallback с `context.details.cause`, чтобы не терять семантику.
+ *
+ * @remarks
+ * Мы не выдумываем `code/category/severity`: берем canonical-метаданные из fallback.
+ */
+const stringErrorRule: MappingRule = {
+  priority: 80,
+  match: (input) => typeof input === 'string',
+  map: (input, config) => {
+    /* istanbul ignore next */
+    if (typeof input !== 'string') {
+      return config.fallback;
+    }
+
+    const existingContext = config.fallback.context;
+    const existingDetails = existingContext?.details;
+
+    const cause = Object.freeze({
+      name: 'StringError',
+      message: input,
+    });
+
+    const enrichedContext: BotErrorContext = {
+      ...(existingContext ?? {}),
+      details: Object.freeze({
+        ...(existingDetails ?? {}),
+        cause,
+      }),
+    };
+
+    /* eslint-disable @livai/rag/context-leakage -- domain BotErrorContext (не runtime/global context) */
+    return createBotError({
+      category: config.fallback.category,
+      code: config.fallback.code,
+      severity: config.fallback.severity,
+      context: enrichedContext,
+    });
+    /* eslint-enable @livai/rag/context-leakage -- domain BotErrorContext (не runtime/global context) */
+  },
+} as const;
+
 const DEFAULT_RULES: readonly MappingRule[] = [
   botErrorResponseRule,
+  stringErrorRule,
   jsErrorRule,
 ] as const satisfies readonly MappingRule[];
 
+/**
+ * Порядок приоритетов rules (меньше `priority` = выше приоритет):
+ * - `botErrorResponseRule` (10): самый конкретный boundary тип (`BotErrorResponse`).
+ *   Мы извлекаем `code/category/severity` из payload и всегда канонизируем `retryable` по доменной политике.
+ * - `stringErrorRule` (80): для `string`-входа сохраняем семантику в `context.details.cause`,
+ *   но метаданные `code/category/severity` берем из `fallback` (чтобы не выдумывать доменные коды).
+ * - `jsErrorRule` (90): реальный runtime `Error` — обогащаем `context.details.cause` и возвращаем доменный `BotError` на основе fallback.
+ *
+ * Такой порядок защищает от "перепутывания" типов и гарантирует, что структурированные boundary-пейлоады
+ * имеют приоритет над универсальными fallback-ветками.
+ */
+
+const sortedRulesCache = new WeakMap<readonly MappingRule[], readonly MappingRule[]>();
+
 function getSortedRules(config: MapBotErrorConfig): readonly MappingRule[] {
-  // DEFAULT_RULES уже отсортирован и не требует аллокаций/сортировки на каждом вызове
+  // DEFAULT_RULES уже отсортирован и не требует аллокаций/сортировки.
   if (config.rules === undefined) return DEFAULT_RULES;
-  return [...config.rules].sort((a, b) => a.priority - b.priority);
+
+  const rules = config.rules;
+  if (Object.isFrozen(rules)) {
+    const cached = sortedRulesCache.get(rules);
+    if (cached !== undefined) return cached;
+  }
+
+  const sorted = [...rules].sort((a, b) => a.priority - b.priority);
+
+  // Кэшируем только для immutable массивов (frozen) — иначе кэш может стать устаревшим.
+  if (Object.isFrozen(rules)) sortedRulesCache.set(rules, sorted);
+
+  return sorted;
 }
 
 /**
@@ -335,10 +471,14 @@ function applyMappingRules(input: BotErrorInput, config: MapBotErrorConfig): Bot
  * Трансформирует входную ошибку в UI-friendly `BotError`.
  * Pure функция: детерминированна и не имеет side-effects.
  *
- * @param input - `BotErrorResponse` с API boundary или неизвестная ошибка.
+ * @param input - Ошибка boundary/unknown (`BotErrorResponse`, `string`, JS `Error` и т.п.).
  * @param config - Конфигурация маппинга (обязательный fallback).
  */
 export function mapBotErrorToUI(input: BotErrorInput, config: MapBotErrorConfig): BotError {
-  // Нормализуем fallback один раз на вызов (idempotent-guard внутри `normalizeFallback`).
-  return applyMappingRules(input, { ...config, fallback: normalizeFallback(config.fallback) });
+  if (isBotError(input)) {
+    return normalizeBotError(input);
+  }
+
+  // Нормализуем fallback без лишних аллокаций и по возможности — один раз для одного объекта fallback.
+  return applyMappingRules(input, { ...config, fallback: getNormalizedFallback(config.fallback) });
 }

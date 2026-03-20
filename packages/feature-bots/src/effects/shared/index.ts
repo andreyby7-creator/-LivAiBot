@@ -87,8 +87,8 @@ export type {
   OperationLifecycleHelperConfig,
   OperationLifecycleOperationHandler,
   RunOperationLifecycleInput,
-} from './operation-lifecycle.helper.js';
-export { createOperationLifecycleHelper } from './operation-lifecycle.helper.js';
+} from './operation-lifecycle.js';
+export { createOperationLifecycleHelper } from './operation-lifecycle.js';
 
 /* ============================================================================
  * 🔧 API CLIENT ADAPTER — АДАПТАЦИЯ PROMISE → EFFECT

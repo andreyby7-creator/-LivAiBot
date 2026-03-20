@@ -7,7 +7,9 @@
  * Архитектурная роль:
  * - Lib-слой feature-bots: единый registry метаданных для `BotErrorCode`
  *   (category/severity + coarse boundary discriminator `error`).
- * - Детерминированные фабрики и нормализация `BotErrorResponse` для API boundary (frontend/SDK).
+ * - Слой Error normalization:
+ *   - детерминированная фабрика доменной ошибки `BotError` по `BotErrorCode`;
+ *   - нормализация `BotErrorResponse` на boundary (frontend/SDK) без дрейфа метаданных.
  * - Anti-corruption слой против drift: canonical metadata по `code` + retryable строго из `domain/BotRetryPolicy`.
  *
  * Принципы:
@@ -21,9 +23,12 @@
  * - `context` обязан быть **уже санитизирован** на boundary (без PII/secrets/stack/internal ids).
  */
 
+import type { JsonValue } from '@livai/core-contracts';
+
 import type { BotErrorResponse, BotErrorType } from '../contracts/BotErrorResponse.js';
 import { getBotRetryable } from '../domain/BotRetry.js';
 import type {
+  BotError,
   BotErrorCategory,
   BotErrorCode,
   BotErrorContext,
@@ -207,6 +212,24 @@ export const botErrorMetaByCode: Readonly<Record<BotErrorCode, BotErrorMeta>> = 
   BOT_INTEGRATION_QUOTA_EXCEEDED: { ...integrationBase, severity: 'medium', statusCode: 402 },
 } as const satisfies Readonly<Record<BotErrorCode, BotErrorMeta>>;
 
+function getBotErrorResponseBase(code: BotErrorCode): Readonly<{
+  readonly error: BotErrorType;
+  readonly code: BotErrorCode;
+  readonly category: BotErrorCategory;
+  readonly severity: BotErrorSeverity;
+  readonly retryable: boolean;
+}> {
+  // eslint-disable-next-line security/detect-object-injection -- `code` ограничен union BotErrorCode; mapping exhaustively typed
+  const meta = botErrorMetaByCode[code];
+  return Object.freeze({
+    error: meta.error,
+    code,
+    category: meta.category,
+    severity: meta.severity,
+    retryable: getBotRetryable(code),
+  });
+}
+
 /* ============================================================================
  * 🏭 FACTORIES — BotErrorResponse
  * ========================================================================== */
@@ -253,8 +276,8 @@ export type CreateBotErrorResponseInput = Readonly<
  * - `statusCode` можно переопределить параметром; по умолчанию берётся из метаданных (если задан).
  */
 export function createBotErrorResponse(input: CreateBotErrorResponseInput): BotErrorResponse {
+  const base = getBotErrorResponseBase(input.code);
   const meta = botErrorMetaByCode[input.code];
-  const retryable = getBotRetryable(input.code);
 
   const metaStatus = meta.statusCode;
   const requestedStatus = input.statusCode;
@@ -281,11 +304,7 @@ export function createBotErrorResponse(input: CreateBotErrorResponseInput): BotE
 
   // Если у кода есть canonical статус — он всегда приоритетнее (anti-drift).
   return Object.freeze({
-    error: meta.error,
-    code: input.code,
-    category: meta.category,
-    severity: meta.severity,
-    retryable,
+    ...base,
     ...(input.message !== undefined ? { message: input.message } : {}),
     ...(metaStatus !== undefined
       ? { statusCode: metaStatus }
@@ -305,16 +324,12 @@ export function createBotErrorResponse(input: CreateBotErrorResponseInput): BotE
  * Полезно на границах (API/client), если источник ошибок может прислать неконсистентный payload.
  */
 export function normalizeBotErrorResponse(response: BotErrorResponse): BotErrorResponse {
+  const base = getBotErrorResponseBase(response.code);
   const meta = botErrorMetaByCode[response.code];
-  const retryable = getBotRetryable(response.code);
 
   // Whitelist-подход: не протаскиваем случайные/будущие поля из boundary.
   return Object.freeze({
-    error: meta.error,
-    code: response.code,
-    category: meta.category,
-    severity: meta.severity,
-    retryable,
+    ...base,
     ...(response.message !== undefined ? { message: response.message } : {}),
     ...(response.statusCode !== undefined
       ? { statusCode: response.statusCode }
@@ -324,5 +339,98 @@ export function normalizeBotErrorResponse(response: BotErrorResponse): BotErrorR
     ...(response.context !== undefined ? { context: response.context } : {}),
     ...(response.traceId !== undefined ? { traceId: response.traceId } : {}),
     ...(response.timestamp !== undefined ? { timestamp: response.timestamp } : {}),
+  });
+}
+
+/* ============================================================================
+ * 🏭 FACTORY — BotError (domain error)
+ * ============================================================================
+ */
+
+type CreateBotErrorFromCodeOptions = Readonly<{
+  /**
+   * Опциональная причина ошибки для контекста.
+   *
+   * @remarks
+   * Причина может быть `unknown`, поэтому требуется минимальная “JSON-safe” нормализация.
+   * Upstream обязан передавать только безопасные значения (без PII/секретов).
+   */
+  readonly cause?: unknown;
+}>;
+
+function isErrorLike(
+  value: unknown,
+): value is Readonly<{ readonly name?: string; readonly message?: string; }> {
+  if (value === null || typeof value !== 'object') return false;
+  const v = value as Readonly<Record<string, unknown>>;
+  return typeof v['message'] === 'string'
+    && (typeof v['name'] === 'string' || v['name'] === undefined);
+}
+
+function safeSerializeCauseForDetails(cause: unknown): JsonValue {
+  try {
+    if (cause === null) return null;
+    if (typeof cause === 'string' || typeof cause === 'number' || typeof cause === 'boolean') {
+      return cause;
+    }
+
+    if (isErrorLike(cause)) {
+      const v = cause as Readonly<{ readonly name?: string; readonly message?: string; }>;
+      return `[${v.name ?? 'Error'}] ${v.message ?? ''}`;
+    }
+
+    // Для сложных объектов/массивов: избегаем вложенных структур и не-JSON типов.
+    // Важно: String(cause) может бросить исключение (например, если value.toString мутирует или падает),
+    // поэтому оборачиваем в try/catch.
+    return String(cause);
+  } catch {
+    return '[UnserializableCause]';
+  }
+}
+
+/**
+ * Создаёт доменный `BotError` по `BotErrorCode`.
+ *
+ * @remarks
+ * - `retryable` вычисляется строго через `getBotRetryable(code)`.
+ * - `BotError` возвращается как immutable (shallow) объект.
+ */
+export function createBotErrorFromCode(
+  code: BotErrorCode,
+  context?: BotErrorContext | undefined,
+  options?: CreateBotErrorFromCodeOptions | undefined,
+): BotError {
+  // eslint-disable-next-line security/detect-object-injection -- `code` ограничен union BotErrorCode; mapping exhaustively typed
+  const meta = botErrorMetaByCode[code];
+  const retryable = getBotRetryable(code);
+
+  const safeCause = options?.cause !== undefined
+    ? safeSerializeCauseForDetails(options.cause)
+    : undefined;
+
+  const mergedContext: BotErrorContext | undefined = safeCause === undefined
+    ? context
+    : Object.freeze(
+      context === undefined
+        ? {
+          details: Object.freeze({
+            cause: safeCause,
+          }),
+        }
+        : {
+          ...context,
+          details: Object.freeze({
+            ...(context.details ?? {}),
+            cause: safeCause,
+          }),
+        },
+    );
+
+  return Object.freeze({
+    category: meta.category,
+    code,
+    severity: meta.severity,
+    retryable,
+    ...(mergedContext !== undefined ? { context: mergedContext } : {}),
   });
 }

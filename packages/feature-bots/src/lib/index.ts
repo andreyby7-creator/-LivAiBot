@@ -3,14 +3,13 @@
  * Публичный API lib-слоя feature-bots.
  *
  * @remarks
- * Lib-слой содержит pure утилиты и rule-engine адаптеры поверх domain/types/contracts,
- * не добавляя transport деталей в домен.
+ * Lib-слой содержит contracts-first rule-engine адаптеры и pure утилиты
+ * (включая фабрики/нормализацию `BotError`), не добавляя transport/IO детали в домен.
  */
 
 /* ============================================================================
- * 🧰 LIB — УТИЛИТЫ И RULE-ENGINE
+ * 🧭 ERROR MAPPER — преобразование boundary/unknown → `BotError`
  * ========================================================================== */
-
 /**
  * Error Mapper: production-grade rule-engine для преобразования boundary/unknown ошибок в `BotError`.
  * @public
@@ -22,19 +21,27 @@ export {
   type MapFn,
   type MappingRule,
   type MatchFn,
+  normalizeBotError,
 } from './error-mapper.js';
 
+/* ============================================================================
+ * 🧩 BOT ERRORS — `BotError` / `BotErrorResponse` без дрейфа метаданных
+ * ========================================================================== */
 /**
- * Bot Errors: канонические метаданные кодов и фабрики/нормализация `BotErrorResponse`.
+ * Bot Errors: канонические метаданные кодов и фабрики `BotError` / `BotErrorResponse` (без дрейфа retryable/category/severity).
  * @public
  */
 export {
   botErrorMetaByCode,
+  createBotErrorFromCode,
   createBotErrorResponse,
   type CreateBotErrorResponseInput,
   normalizeBotErrorResponse,
 } from './bot-errors.js';
 
+/* ============================================================================
+ * 🧠 POLICY ADAPTER — адаптация core policy типажей
+ * ========================================================================== */
 /**
  * Policy Adapter: преобразование core policy типов в feature-bots типы.
  * @public
@@ -52,6 +59,9 @@ export {
   parseBotPolicyAction,
 } from './policy-adapter.js';
 
+/* ============================================================================
+ * 🧾 MULTI-AGENT VALIDATOR — валидация схем и инвариантов
+ * ========================================================================== */
 /**
  * Multi-Agent Validator: инварианты MultiAgentSchema (graph/rules/guardrails) + boundary limits.
  * @public
@@ -69,6 +79,9 @@ export {
   type ValidateMultiAgentSchemaOptions,
 } from './multi-agent-validator.js';
 
+/* ============================================================================
+ * 🗓️ VERSION MANAGER — чистое управление версиями бота
+ * ========================================================================== */
 /**
  * Version Manager: pure операции управления версиями конфигурации бота.
  * @public
@@ -81,6 +94,9 @@ export {
   type CreateRollbackBotVersionInput,
 } from './version-manager.js';
 
+/* ============================================================================
+ * 🔎 BOT AUDIT — нормализация и DI emit audit-ивентов
+ * ========================================================================== */
 /**
  * Bot Audit: runtime validation/normalization и DI emit для SIEM/логов.
  * @public
@@ -98,6 +114,9 @@ export {
   toBotAuditEventValues,
 } from './bot-audit.js';
 
+/* ============================================================================
+ * 📈 BOT TELEMETRY — телеметрия и DI emit sink
+ * ========================================================================== */
 /**
  * Bot Telemetry: pure builders метрик и DI emit sink.
  * @public
@@ -130,6 +149,9 @@ export {
   type EmitBotTelemetryEventResult,
 } from './bot-telemetry.js';
 
+/* ============================================================================
+ * 🔁 BOT PIPELINE — pipeline composition и rule-engine
+ * ========================================================================== */
 /**
  * Bot Pipeline: обработка pipeline-триггеров + hook points (DI) и опциональный audit.
  * @public
