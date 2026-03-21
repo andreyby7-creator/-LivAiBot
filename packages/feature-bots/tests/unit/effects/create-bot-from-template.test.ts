@@ -181,7 +181,7 @@ describe('create-bot-from-template.ts', () => {
     const effectFactory = createBotFromTemplateEffect(
       {
         clock: { now: () => 1000 },
-        eventIdGenerator: { generate: () => 'evt-1' },
+        eventIdGenerator: { next: () => 'evt-1' },
       },
       {
         lifecycleHelper: { runOperation } as any,
@@ -218,7 +218,7 @@ describe('create-bot-from-template.ts', () => {
     const effectFactory = createBotFromTemplateEffect(
       {
         clock: { now: () => 1000 },
-        eventIdGenerator: { generate: () => 'evt-1' },
+        eventIdGenerator: { next: () => 'evt-1' },
       },
       {
         lifecycleHelper: { runOperation } as any,
@@ -252,7 +252,7 @@ describe('create-bot-from-template.ts', () => {
     const effectFactory = createBotFromTemplateEffect(
       {
         clock: { now: () => 1000 },
-        eventIdGenerator: { generate: () => 'evt-1' },
+        eventIdGenerator: { next: () => 'evt-1' },
       },
       {
         lifecycleHelper: { runOperation } as any,
@@ -280,7 +280,7 @@ describe('create-bot-from-template.ts', () => {
     const effectFactory = createBotFromTemplateEffect(
       {
         clock: { now: () => 1000 },
-        eventIdGenerator: { generate: () => 'evt-1' },
+        eventIdGenerator: { next: () => 'evt-1' },
       },
       {
         lifecycleHelper: { runOperation } as any,
@@ -380,7 +380,7 @@ describe('create-bot-from-template.ts', () => {
     const effectFactory = createBotFromTemplateEffect(
       {
         clock: { now: () => 1000 },
-        eventIdGenerator: { generate: () => 'evt-1' },
+        eventIdGenerator: { next: () => 'evt-1' },
       },
       {
         lifecycleHelper: { runOperation } as any,
@@ -427,7 +427,7 @@ describe('create-bot-from-template.ts', () => {
     const effectFactory = createBotFromTemplateEffect(
       {
         clock: { now: () => 5000 },
-        eventIdGenerator: { generate: () => 'evt-5000' },
+        eventIdGenerator: { next: () => 'evt-5000' },
       },
       {
         lifecycleHelper: { runOperation } as any,
@@ -464,7 +464,7 @@ describe('create-bot-from-template.ts', () => {
     const failingEffectFactory = createBotFromTemplateEffect(
       {
         clock: { now: () => 6000 },
-        eventIdGenerator: { generate: () => 'evt-6000' },
+        eventIdGenerator: { next: () => 'evt-6000' },
       },
       {
         lifecycleHelper: { runOperation: failingRunOperation } as any,
@@ -494,7 +494,7 @@ describe('create-bot-from-template.ts', () => {
     const effectFactory = createBotFromTemplateEffect(
       {
         clock: { now: () => 7000 },
-        eventIdGenerator: { generate: () => 'evt-fixed' },
+        eventIdGenerator: { next: () => 'evt-fixed' },
       },
       {
         lifecycleHelper: { runOperation } as any,
@@ -584,7 +584,7 @@ describe('create-bot-from-template.ts', () => {
     const effectFactory = createBotFromTemplateEffect(
       {
         clock: { now: () => 8000 },
-        eventIdGenerator: { generate: () => 'evt-8000' },
+        eventIdGenerator: { next: () => 'evt-8000' },
       },
       {
         lifecycleHelper: { runOperation } as any,
@@ -621,7 +621,7 @@ describe('create-bot-from-template.ts', () => {
     const effectFactory = createBotFromTemplateEffect(
       {
         clock: { now: () => 9000 },
-        eventIdGenerator: { generate: () => 'evt-9000' },
+        eventIdGenerator: { next: () => 'evt-9000' },
       },
       {
         lifecycleHelper: { runOperation } as any,

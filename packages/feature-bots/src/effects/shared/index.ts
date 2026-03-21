@@ -94,6 +94,23 @@ export {
 } from './operation-id-fingerprint.js';
 
 /* ============================================================================
+ * 🎛️ ORCHESTRATOR RUNTIME — CLOCK / EVENT ID / AUDIT META / BEST-EFFORT HOOKS
+ * ========================================================================== */
+
+/**
+ * Общий runtime-слой для bot-оркестраторов: порты времени и генерации `eventId`,
+ * фабрика пары `(eventId, timestamp)` для audit, обёртка hooks без проброса ошибок.
+ * @public
+ */
+export type {
+  AuditMetaPort,
+  ClockPort,
+  EventIdGeneratorPort,
+  WrapBestEffortHookOptions,
+} from './orchestrator-runtime.js';
+export { createAuditMetaPort, wrapBestEffortHook } from './orchestrator-runtime.js';
+
+/* ============================================================================
  * 🛡️ PURE GUARDS — PERMISSION / POLICY (SHARED)
  * ========================================================================== */
 

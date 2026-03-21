@@ -7,8 +7,11 @@
  * Архитектурная роль:
  * - Оркестратор create-flow из доменного `BotTemplate`.
  * - SRP: только оркестрация, без HTTP/IO внутри (IO выполняется через DI-порты в Effect).
- * - Детерминированность по стандарту проекта: время/идентификаторы берутся из DI (clock/eventIdGenerator),
- *   а не из `Date.now()` внутри.
+ * - Детерминированность: `clock` / `eventIdGenerator`, пары `(eventId, timestamp)` для audit и best-effort `hooks` —
+ *   через `shared/orchestrator-runtime` (`createAuditMetaPort`, `wrapBestEffortHook`); без `Date.now()` и random внутри оркестратора.
+ * - Детерминированный `operationId` (если не передан явно): `operationIdSalt.createBotFromTemplate` + `buildOperationIdSource`
+ *   в `shared/operation-id-fingerprint` (сегменты workspace / template / name; последний — `stableJsonFingerprint` для
+ *   `instructionOverride`, не сырая строка — v2 соли, см. реестр в fingerprint-модуле).
  * - Расширяемость: pre-flight проверки вынесены в `prepareBotCreationContext(...)`,
  *   а audit-context/mapping делегированы специализированным helper/mapper модулям.
  * - Публичный контракт входа: `userId` + `actorRole` обязательны в типе `CreateBotFromTemplateRequest`
@@ -59,37 +62,14 @@ import type { BotResponseTransport } from './shared/api-client.port.js';
 import {
   buildOperationIdSource,
   operationIdSalt,
+  stableJsonFingerprint,
   toDeterministicOperationId,
 } from './shared/operation-id-fingerprint.js';
+import type { ClockPort, EventIdGeneratorPort } from './shared/orchestrator-runtime.js';
+import { createAuditMetaPort, wrapBestEffortHook } from './shared/orchestrator-runtime.js';
 import { buildActorUserContext } from './shared/pure-guards.js';
 
-/* ============================================================================
- * 🧭 PORTS — time/id generators
- * ============================================================================
- */
-
-/**
- * Порт времени (единственный источник timestamp для audit).
- *
- * @remarks
- * Нужен для детерминизма и unit-тестируемости: время инжектируется извне.
- */
-export type ClockPort = Readonly<{
-  /** Epoch-millis в миллисекундах. */
-  readonly now: () => number;
-}>;
-
-/**
- * Порт генерации `eventId` для audit-событий.
- *
- * @remarks
- * В production-реализация может использовать crypto/UUID или инкрементальные счётчики.
- * Для unit-тестов можно подменять детерминированным генератором.
- */
-export type EventIdGeneratorPort = Readonly<{
-  /** Генерирует unique eventId для audit-события. */
-  readonly generate: () => string;
-}>;
+export type { ClockPort, EventIdGeneratorPort } from './shared/orchestrator-runtime.js';
 
 /* ============================================================================
  * 🎯 PUBLIC TYPES — request/deps/config
@@ -180,29 +160,16 @@ function resolveDeterministicOperationId(
     readonly instructionOverride?: string | undefined;
   }>,
 ): OperationId {
-  const overrideHashSource = input.instructionOverride ?? '';
-  // Salt снижает риск простого dictionary matching по типовым фрагментам instruction в логах/telemetry.
-  // Для строгих требований к секретности предпочтителен HMAC с секретным ключом из DI.
+  // Последний сегмент — canonical JSON для строки (как для прочих fingerprint payload): единые правила для пробелов,
+  // экранирования и будущих расширений; смена соли v1→v2 зафиксирована в `operationIdSalt.createBotFromTemplate`.
+  const overrideFingerprint = stableJsonFingerprint(input.instructionOverride ?? '');
   const source = buildOperationIdSource(operationIdSalt.createBotFromTemplate, [
     input.workspaceId,
     input.templateId,
     input.name,
-    overrideHashSource,
+    overrideFingerprint,
   ]);
   return toDeterministicOperationId(source);
-}
-
-function wrapBestEffortHook<T>(
-  hook?: ((value: T) => void) | undefined,
-): ((value: T) => void) | undefined {
-  if (hook === undefined) return undefined;
-  return (value: T): void => {
-    try {
-      hook(value);
-    } catch {
-      // Hooks best-effort: не ломаем основной flow.
-    }
-  };
 }
 
 type PrepareBotCreationContextInput = Readonly<{
@@ -213,14 +180,9 @@ type PrepareBotCreationContextInput = Readonly<{
   readonly createBotLikeHelpers: CreateBotLikeHelpers;
 }>;
 
-type PreparedBotCreationContext = Readonly<{
-  readonly draftBotId: BotId;
-  readonly policyBotState: BotState;
-}>;
-
 function prepareBotCreationContext(
   input: PrepareBotCreationContextInput,
-): PreparedBotCreationContext {
+): void {
   const actorUser = buildActorUserContext({
     userId: input.request.userId,
     actorRole: input.request.actorRole,
@@ -253,30 +215,7 @@ function prepareBotCreationContext(
     actorUser,
     action: 'configure',
   });
-
-  return Object.freeze({
-    draftBotId,
-    policyBotState,
-  });
-}
-
-type AuditMetaPort = Readonly<{
-  readonly next: () => Readonly<{ readonly eventId: string; readonly timestamp: number; }>;
-}>;
-
-function createAuditMetaPort(
-  deps: Readonly<{
-    readonly clock: ClockPort;
-    readonly eventIdGenerator: EventIdGeneratorPort;
-  }>,
-): AuditMetaPort {
-  return Object.freeze({
-    next: (): Readonly<{ readonly eventId: string; readonly timestamp: number; }> =>
-      Object.freeze({
-        eventId: deps.eventIdGenerator.generate(),
-        timestamp: deps.clock.now(),
-      }),
-  });
+  // `draftBotId` / `policyBotState` нужны только для проверок выше (side-effects); наружу не возвращаем.
 }
 
 /* ============================================================================
@@ -322,7 +261,7 @@ export function createBotFromTemplateEffect(
     const safeOnErrorHook = wrapBestEffortHook(rawOnErrorHook);
 
     const buildSuccessAuditCtx = (): CreateBotSuccessAuditContext => {
-      const meta = auditMetaPort.next();
+      const meta = auditMetaPort.nextAuditMeta();
       return Object.freeze({
         eventId: meta.eventId,
         timestamp: meta.timestamp,
@@ -332,7 +271,7 @@ export function createBotFromTemplateEffect(
     };
 
     const mapFailureAuditEvent = (error: BotError): BotAuditEventValues => {
-      const meta = auditMetaPort.next();
+      const meta = auditMetaPort.nextAuditMeta();
       const failureCtx: CreateBotFailureAuditContext = Object.freeze({
         eventId: meta.eventId,
         timestamp: meta.timestamp,

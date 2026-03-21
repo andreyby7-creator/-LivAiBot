@@ -1,18 +1,38 @@
 /**
  * @file packages/feature-bots/src/effects/shared/operation-id-fingerprint.ts
  * ============================================================================
- * Deterministic `operationId` material (FNV-1a + canonical JSON)
+ * 🤖 FEATURE-BOTS — Deterministic Operation ID (FNV-1a + canonical JSON)
  * ============================================================================
  *
+ * SSOT для материала детерминированных `operationId` (`op_<hex>`) в bot-эффектах:
+ * хэш FNV-1a, канонический JSON, реестр солей. Тип {@link OperationId} — в `types/bot-commands`;
+ * здесь — только генерация строки id и вспомогательные утилиты (в т.ч. audit surrogate).
+ */
+
+import stableStringify from 'fast-json-stable-stringify';
+
+import type { OperationId } from '../../types/bot-commands.js';
+
+/* ============================================================================
+ * 📌 ИНВАРИАНТЫ — НАЗНАЧЕНИЕ, КОНТРАКТ, БЕЗОПАСНОСТЬ
+ * ============================================================================
+ */
+
+/*
  * Назначение:
  * - Единый SSOT для построения детерминированных `operationId` (`op_<hex>`) в bot-эффектах.
- * - Для вложенных объектов в fingerprint используйте канонический JSON из этого модуля, не «сырой» JSON.stringify:
- *   порядок ключей в plain objects не гарантирован между источниками; stable stringify канонизирует.
+ * - Для вложенных объектов в fingerprint используйте канонический JSON из этого модуля, не «сырой»
+ *   `JSON.stringify`: порядок ключей в plain objects не гарантирован между источниками; stable stringify
+ *   канонизирует.
+ * - Склейка: {@link buildOperationIdSource} — только строковые сегменты (при необходимости каждый сегмент —
+ *   результат {@link stableJsonFingerprint} для строки/примитива/`null`). Отдельный builder в секции «SOURCE BUILDERS»
+ *   ниже — когда **последний** вклад в source — целый JSON-serializable **объект** (например `BotSettings`): canonical JSON
+ *   последним сегментом после `stringSegments`.
  *
  * Контракт:
  * - В функцию склейки строки `source` передавайте только **строковые сегменты** (и соль), плюс при необходимости
- *   один сегмент как результат канонического JSON (см. экспорт ниже) для **небольшого JSON-serializable domain-объекта**
- *   (например `BotSettings`). Не передавайте сюда произвольные большие графы, бинарные буферы и не-domain данные —
+ *   один сегмент как результат канонического JSON для **небольшого JSON-serializable domain-объекта**
+ *   (например `BotSettings`). Не передавайте произвольные большие графы, бинарные буферы и не-domain данные —
  *   это не контент-хранилище, а материал для idempotency-ключа.
  * - Любое изменение формулы (алгоритм FNV, разделитель, stable JSON, порядок сегментов) требует **новой соли**
  *   для затронутого эффекта — иначе ломается изоляция idempotency-ключей.
@@ -25,28 +45,26 @@
  *   детерминированных идентификаторов idempotency / нечувствительных surrogate-строк (например redacted id в audit).
  * - Не вкладывайте в fingerprint сырой секретный материал: при компрометации `source` возможен offline перебор
  *   только для слабых входов — проектируйте входы как публичные/конфигурационные domain-поля.
- * - Если понадобится collision-resistant или криптостойкий хэш — введите **отдельную** функцию/модуль (например SHA-256 + HMAC),
- *   не расширяя смысл этих утилит.
- *
- * Тип {@link OperationId} определён в `types/bot-commands`; здесь только генерация строки id.
+ * - Если понадобится collision-resistant или криптостойкий хэш — введите **отдельную** функцию/модуль
+ *   (например SHA-256 + HMAC), не расширяя смысл этих утилит.
  */
 
-import stableStringify from 'fast-json-stable-stringify';
-
-import type { OperationId } from '../../types/bot-commands.js';
-
 /* ============================================================================
- * Соли по эффектам — изоляция idempotency (не одна глобальная соль на пакет)
- *
- * Реестр (добавляйте новые эффекты сюда + новая строка при смене формулы fingerprint):
- * - `createBotFromTemplate` — create-bot-from-template (`create-bot-operation-v1`)
- * - `createCustomBot` — create-custom-bot (`create-custom-bot-operation-v2`, stable JSON для settings)
- * ========================================================================== */
+ * 🧂 SALTS — РЕЕСТР (изоляция idempotency по эффектам)
+ * ============================================================================
+ */
 
-/** Соли для детерминированного `operationId` по видам create-flow / будущим эффектам. */
+/**
+ * Соли для детерминированного `operationId` по видам create-flow / будущим эффектам.
+ *
+ * @remarks
+ * При добавлении оркестратора — новый ключ здесь + новая строка при смене формулы fingerprint:
+ * - `createBotFromTemplate` — create-bot-from-template (`create-bot-operation-v2`, последний сегмент — stable JSON строки `instructionOverride`)
+ * - `createCustomBot` — create-custom-bot (`create-custom-bot-operation-v3`, stable JSON для instruction/templateId/optional `null` + объект settings)
+ */
 export const operationIdSalt = {
-  createBotFromTemplate: 'create-bot-operation-v1',
-  createCustomBot: 'create-custom-bot-operation-v2',
+  createBotFromTemplate: 'create-bot-operation-v2',
+  createCustomBot: 'create-custom-bot-operation-v3',
 } as const;
 
 /** Ключи {@link operationIdSalt} — для типизации новых оркестраторов. */
@@ -69,10 +87,15 @@ function assertSaltAndStringSegments(salt: string, segments: readonly string[]):
   }
 }
 
+/* ============================================================================
+ * 🔢 HASH — FNV-1a 32-bit
+ * ============================================================================
+ */
+
 /**
  * FNV-1a 32-bit — детерминированный хэш строки (`operationId`, audit redaction surrogate и т.д.).
  *
- * @remarks Не криптографический; см. security в файловом докблоке.
+ * @remarks Не криптографический; см. security в секции «Инварианты» в начале файла.
  */
 export function fnv1a32(input: string): number {
   let hash = 0x811c9dc5;
@@ -86,6 +109,11 @@ export function fnv1a32(input: string): number {
   return hash >>> 0;
 }
 
+/* ============================================================================
+ * 📦 STABLE JSON — КАНОНИЧЕСКИЙ FINGERPRINT
+ * ============================================================================
+ */
+
 /**
  * Каноническая JSON-строка для fingerprint (сортировка ключей на всех уровнях).
  * Используйте для **небольших** JSON-serializable domain-структур (DTO/settings), не для произвольных больших payload.
@@ -93,6 +121,11 @@ export function fnv1a32(input: string): number {
 export function stableJsonFingerprint(value: unknown): string {
   return stableStringify(value);
 }
+
+/* ============================================================================
+ * 🧱 SOURCE BUILDERS — СКЛЕЙКА `source` ДЛЯ `op_*`
+ * ============================================================================
+ */
 
 /**
  * Склеивает соль и сегменты через `:` — единый формат источника для {@link toDeterministicOperationId}.
@@ -104,7 +137,13 @@ export function buildOperationIdSource(salt: string, segments: readonly string[]
 }
 
 /**
- * Удобная сборка, когда JSON-serializable domain-объект — **последний** сегмент (например `settings` в create-custom-bot).
+ * Сборка `source`, когда последний материал — **целый JSON-serializable объект** (DTO), например `BotSettings` в create-custom-bot.
+ * Строковые поля с префикса оркестратора кладите в `stringSegments` как отдельные сегменты; при необходимости канонизируйте
+ * каждую строку через {@link stableJsonFingerprint} (как для `instruction`), чтобы не смешивать с «сырым» текстом в hash.
+ *
+ * @remarks
+ * Не используйте этот хелпер «просто ради строки» — для одной строки достаточно {@link stableJsonFingerprint} внутри
+ * {@link buildOperationIdSource} (см. докблок «Инварианты»).
  */
 export function buildOperationIdSourceWithStableJson(
   salt: string,
@@ -116,6 +155,11 @@ export function buildOperationIdSourceWithStableJson(
     stableJsonFingerprint(domainJsonPayload),
   ]);
 }
+
+/* ============================================================================
+ * 🆔 OPERATION ID — `op_<hex>`
+ * ============================================================================
+ */
 
 /**
  * Детерминированный `operationId`: префикс `op_` + hex от {@link fnv1a32} по полной строке `source`.

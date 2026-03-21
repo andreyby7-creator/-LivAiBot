@@ -32,23 +32,28 @@ describe('operation-id-fingerprint', () => {
   });
 
   describe('golden toDeterministicOperationId', () => {
-    it('from-template salt v1: бит-в-бит с прежней склейкой', () => {
+    it('from-template salt v2: последний сегмент — stable JSON строки instructionOverride', () => {
       const source = buildOperationIdSource(operationIdSalt.createBotFromTemplate, [
         'ws1',
         'tpl1',
         'BotName',
-        'override',
+        stableJsonFingerprint('override'),
       ]);
-      expect(toDeterministicOperationId(source)).toBe('op_85d61ea3');
+      expect(toDeterministicOperationId(source)).toBe('op_c84b2ea');
     });
 
-    it('custom-bot salt v2: соль + сегменты + stable JSON settings', () => {
+    it('custom-bot salt v3: сегменты + stable JSON instruction/templateId + settings object', () => {
       const source = buildOperationIdSourceWithStableJson(
         operationIdSalt.createCustomBot,
-        ['ws1', 'MyBot', 'do things', ''],
+        [
+          'ws1',
+          'MyBot',
+          stableJsonFingerprint('do things'),
+          stableJsonFingerprint(null),
+        ],
         { foo: 1 },
       );
-      expect(toDeterministicOperationId(source)).toBe('op_5ddfb22d');
+      expect(toDeterministicOperationId(source)).toBe('op_d3e52189');
     });
   });
 

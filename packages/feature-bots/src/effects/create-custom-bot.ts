@@ -7,8 +7,11 @@
  * Архитектурная роль:
  * - Оркестратор create-flow **без** доменного `BotTemplate` (кастомные name/instruction/settings).
  * - SRP: только оркестрация, без HTTP/IO внутри (IO выполняется через DI-порты в Effect).
- * - Детерминированность по стандарту проекта: время/идентификаторы берутся из DI (clock/eventIdGenerator),
- *   а не из `Date.now()` внутри.
+ * - Детерминированность: `clock` / `eventIdGenerator`, пары `(eventId, timestamp)` для audit и best-effort `hooks` —
+ *   через `shared/orchestrator-runtime` (`createAuditMetaPort`, `wrapBestEffortHook`); без `Date.now()` и random внутри оркестратора.
+ * - Детерминированный `operationId` (если не передан явно): соль `operationIdSalt.createCustomBot`, правила сборки source в
+ *   `shared/operation-id-fingerprint` (сегменты `workspaceId` / `name`, fingerprint для `instruction` и опционального `templateId`,
+ *   объект `settings` последним сегментом — см. реестр солей и секцию builders в том модуле).
  * - Pre-flight: `prepareCustomBotCreationContext(...)` (permissions `create` + policy `create_custom` на синтетическом draft).
  * - Публичный контракт входа: `userId` + `actorRole` обязательны в типе `CreateCustomBotRequest`
  *   (канонический actor для guards).
@@ -22,8 +25,6 @@
  *   (`toBotIdFromErrorOrFallback`), с {@link customBotCreateSourceId} как техническим `templateId` для хэша.
  * - Паритет с `create-bot-from-template.ts`: тот же `CreateBotEffectConfig`, `lifecycleHelper.runOperation`, те же порты времени/id
  *   (`CreateBotFromTemplateDeps`), отличается входом и policy action (`create_custom` vs `configure` + `BotTemplate`).
- * - Детерминированный `operationId`: соль `create-custom-bot-operation-v2` + stable JSON для `settings` (осознанный
- *   breaking change относительно прежнего `JSON.stringify` + `create-custom-bot-operation-v1` — idempotency-ключи сменились).
  */
 
 import type { BotRole, BotState } from '@livai/core';
@@ -58,21 +59,20 @@ import type {
   CreateBotEffectInput,
 } from './create/create-bot-effect.types.js';
 import { updateCreateBotState } from './create/create-bot-store-updater.js';
-import type {
-  ClockPort,
-  CreateBotFromTemplateDeps,
-  EventIdGeneratorPort,
-} from './create-bot-from-template.js';
+import type { ClockPort, CreateBotFromTemplateDeps } from './create-bot-from-template.js';
 import type { BotResponseTransport } from './shared/api-client.port.js';
 import {
   buildOperationIdSourceWithStableJson,
   operationIdSalt,
+  stableJsonFingerprint,
   toDeterministicOperationId,
 } from './shared/operation-id-fingerprint.js';
+import { createAuditMetaPort, wrapBestEffortHook } from './shared/orchestrator-runtime.js';
 import { buildActorUserContext } from './shared/pure-guards.js';
 
 /* ============================================================================
- * 🎯 PUBLIC TYPES — request / deps (clock+eventId — SSOT в create-bot-from-template.ts)
+ * 🎯 PUBLIC TYPES — request / deps (clock+eventId — типы реэкспортируются из create-bot-from-template,
+ *   SSOT контракта — shared/orchestrator-runtime.ts)
  * ============================================================================
  */
 
@@ -153,26 +153,15 @@ function resolveDeterministicOperationId(
     readonly templateId?: string | undefined;
   }>,
 ): OperationId {
-  const templatePart = input.templateId ?? '';
+  const instructionFingerprint = stableJsonFingerprint(input.instruction);
+  // `undefined` (поле не задано) и `''` дают разные JSON-сегменты (`null` vs `""`).
+  const templateFingerprint = stableJsonFingerprint(input.templateId ?? null);
   const source = buildOperationIdSourceWithStableJson(
     operationIdSalt.createCustomBot,
-    [input.workspaceId, input.name, input.instruction, templatePart],
+    [input.workspaceId, input.name, instructionFingerprint, templateFingerprint],
     input.settings,
   );
   return toDeterministicOperationId(source);
-}
-
-function wrapBestEffortHook<T>(
-  hook?: ((value: T) => void) | undefined,
-): ((value: T) => void) | undefined {
-  if (hook === undefined) return undefined;
-  return (value: T): void => {
-    try {
-      hook(value);
-    } catch {
-      // Hooks best-effort: не ломаем основной flow.
-    }
-  };
 }
 
 type PrepareCustomBotCreationContextInput = Readonly<{
@@ -215,25 +204,6 @@ function prepareCustomBotCreationContext(
     policyBotState,
     actorUser,
     action: 'create_custom',
-  });
-}
-
-type AuditMetaPort = Readonly<{
-  readonly next: () => Readonly<{ readonly eventId: string; readonly timestamp: number; }>;
-}>;
-
-function createAuditMetaPort(
-  deps: Readonly<{
-    readonly clock: ClockPort;
-    readonly eventIdGenerator: EventIdGeneratorPort;
-  }>,
-): AuditMetaPort {
-  return Object.freeze({
-    next: (): Readonly<{ readonly eventId: string; readonly timestamp: number; }> =>
-      Object.freeze({
-        eventId: deps.eventIdGenerator.generate(),
-        timestamp: deps.clock.now(),
-      }),
   });
 }
 
@@ -281,7 +251,7 @@ export function createCustomBotEffect(
     const safeOnErrorHook = wrapBestEffortHook(rawOnErrorHook);
 
     const buildSuccessAuditCtx = (): CreateBotSuccessAuditContext => {
-      const meta = auditMetaPort.next();
+      const meta = auditMetaPort.nextAuditMeta();
       return Object.freeze({
         eventId: meta.eventId,
         timestamp: meta.timestamp,
@@ -291,7 +261,7 @@ export function createCustomBotEffect(
     };
 
     const mapFailureAuditEvent = (error: BotError): BotAuditEventValues => {
-      const meta = auditMetaPort.next();
+      const meta = auditMetaPort.nextAuditMeta();
       const failureCtx: CreateBotFailureAuditContext = Object.freeze({
         eventId: meta.eventId,
         timestamp: meta.timestamp,

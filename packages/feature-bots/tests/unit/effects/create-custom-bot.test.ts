@@ -169,7 +169,7 @@ describe('create-custom-bot.ts', () => {
     const effectFactory = createCustomBotEffect(
       {
         clock: { now: () => 1000 },
-        eventIdGenerator: { generate: () => 'evt-1' },
+        eventIdGenerator: { next: () => 'evt-1' },
       },
       mkEffectConfig({
         lifecycleHelper: { runOperation } as any,
@@ -206,7 +206,7 @@ describe('create-custom-bot.ts', () => {
     });
 
     const effectFactory = createCustomBotEffect(
-      { clock: { now: () => 1000 }, eventIdGenerator: { generate: () => 'evt-1' } },
+      { clock: { now: () => 1000 }, eventIdGenerator: { next: () => 'evt-1' } },
       mkEffectConfig({ lifecycleHelper: { runOperation } as any }),
     );
 
@@ -228,7 +228,7 @@ describe('create-custom-bot.ts', () => {
     });
 
     const effectFactory = createCustomBotEffect(
-      { clock: { now: () => 1000 }, eventIdGenerator: { generate: () => 'evt-1' } },
+      { clock: { now: () => 1000 }, eventIdGenerator: { next: () => 'evt-1' } },
       mkEffectConfig({ lifecycleHelper: { runOperation } as any }),
     );
 
@@ -313,7 +313,7 @@ describe('create-custom-bot.ts', () => {
       (async (signal?: AbortSignal) => params.run(signal)) as any
     );
     const effectFactory = createCustomBotEffect(
-      { clock: { now: () => 1000 }, eventIdGenerator: { generate: () => 'evt-1' } },
+      { clock: { now: () => 1000 }, eventIdGenerator: { next: () => 'evt-1' } },
       mkEffectConfig({
         lifecycleHelper: { runOperation } as any,
         apiClient: { createBot: apiCreateBot } as any,
@@ -351,7 +351,7 @@ describe('create-custom-bot.ts', () => {
     });
 
     const effectFactory = createCustomBotEffect(
-      { clock: { now: () => 5000 }, eventIdGenerator: { generate: () => 'evt-5000' } },
+      { clock: { now: () => 5000 }, eventIdGenerator: { next: () => 'evt-5000' } },
       mkEffectConfig({
         lifecycleHelper: { runOperation } as any,
         apiClient: { createBot: apiCreateBot } as any,
@@ -379,7 +379,7 @@ describe('create-custom-bot.ts', () => {
     );
 
     const failingEffectFactory = createCustomBotEffect(
-      { clock: { now: () => 6000 }, eventIdGenerator: { generate: () => 'evt-6000' } },
+      { clock: { now: () => 6000 }, eventIdGenerator: { next: () => 'evt-6000' } },
       mkEffectConfig({ lifecycleHelper: { runOperation: failingRunOperation } as any }),
     );
 
@@ -397,7 +397,7 @@ describe('create-custom-bot.ts', () => {
     });
 
     const effectFactory = createCustomBotEffect(
-      { clock: { now: () => 7000 }, eventIdGenerator: { generate: () => 'evt-fixed' } },
+      { clock: { now: () => 7000 }, eventIdGenerator: { next: () => 'evt-fixed' } },
       mkEffectConfig({ lifecycleHelper: { runOperation } as any }),
     );
 
@@ -459,7 +459,7 @@ describe('create-custom-bot.ts', () => {
     });
 
     const effectFactory = createCustomBotEffect(
-      { clock: { now: () => 7100 }, eventIdGenerator: { generate: () => 'evt-nb' } },
+      { clock: { now: () => 7100 }, eventIdGenerator: { next: () => 'evt-nb' } },
       mkEffectConfig({ lifecycleHelper: { runOperation } as any }),
     );
 
@@ -501,7 +501,7 @@ describe('create-custom-bot.ts', () => {
     );
 
     const effectFactory = createCustomBotEffect(
-      { clock: { now: () => 8000 }, eventIdGenerator: { generate: () => 'evt-8000' } },
+      { clock: { now: () => 8000 }, eventIdGenerator: { next: () => 'evt-8000' } },
       mkEffectConfig({ lifecycleHelper: { runOperation } as any }),
     );
 
@@ -526,7 +526,7 @@ describe('create-custom-bot.ts', () => {
     });
 
     const effectFactory = createCustomBotEffect(
-      { clock: { now: () => 9000 }, eventIdGenerator: { generate: () => 'evt-9000' } },
+      { clock: { now: () => 9000 }, eventIdGenerator: { next: () => 'evt-9000' } },
       mkEffectConfig({ lifecycleHelper: { runOperation } as any }),
     );
 
