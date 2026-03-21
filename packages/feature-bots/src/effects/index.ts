@@ -40,3 +40,10 @@ export type {
   EventIdGeneratorPort,
 } from './create-bot-from-template.js';
 export { createBotFromTemplateEffect } from './create-bot-from-template.js';
+
+/**
+ * Оркестратор create-flow: кастомный бот (без шаблона).
+ * @public
+ */
+export type { CreateCustomBotDeps, CreateCustomBotRequest } from './create-custom-bot.js';
+export { createCustomBotEffect } from './create-custom-bot.js';

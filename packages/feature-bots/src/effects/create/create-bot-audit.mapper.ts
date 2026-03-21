@@ -21,6 +21,7 @@ import type { BotAuditEventValues } from '../../schemas/index.js';
 import { botAuditEventSchema } from '../../schemas/index.js';
 import type { BotError, BotInfo } from '../../types/bots.js';
 import { createBotAuditEventTemplate } from '../../types/bots-initial.js';
+import { fnv1a32 } from '../shared/operation-id-fingerprint.js';
 
 /* ============================================================================
  * 🧭 CONTEXT TYPES
@@ -91,21 +92,10 @@ type ScalarAuditCtx = Readonly<Record<string, string | number | boolean>>;
  * Примечание: `traceId` не редактируется в этом mapper'е. Он используется как correlation/trace ID
  * и должен быть безопасным по policy на стороне upstream'а.
  *
- * Реализация: deterministic hash (FNV-1a 32bit) + префикс.
+ * Реализация: тот же FNV-1a 32bit, что и в `operation-id-fingerprint` (не криптографический surrogate).
  * На уровне runtime это строка, которая проходит schema validation
  * (trim/length/структура).
  */
-
-const fnv1a32 = (input: string): number => {
-  let hash = 0x811c9dc5;
-  const FNV_PRIME = 0x01000193;
-  for (let i = 0; i < input.length; i += 1) {
-    hash ^= input.charCodeAt(i);
-    hash = Math.imul(hash, FNV_PRIME);
-  }
-  // Deterministic: один и тот же вход всегда даёт один и тот же “заменитель” строки.
-  return hash >>> 0;
-};
 
 const REDACTION_HASH_BASE = 16;
 const redactId = (id: string): string => `redacted_${fnv1a32(id).toString(REDACTION_HASH_BASE)}`;

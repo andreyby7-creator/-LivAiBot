@@ -49,13 +49,13 @@ const MOCK_BOT_PERMISSIONS_CONFIG: BotPermissionsConfig = {
 
 const MOCK_BOT_POLICY_CONFIG: BotPolicyConfig = {
   roleActions: {
-    owner: ['configure', 'publish', 'pause', 'resume', 'execute', 'archive'],
-    admin: ['configure', 'publish', 'pause', 'resume', 'execute'],
-    editor: ['configure', 'execute'],
+    owner: ['configure', 'create_custom', 'publish', 'pause', 'resume', 'execute', 'archive'],
+    admin: ['configure', 'create_custom', 'publish', 'pause', 'resume', 'execute'],
+    editor: ['configure', 'create_custom', 'execute'],
     viewer: ['execute'],
   },
   modeActions: {
-    draft: ['configure', 'publish'],
+    draft: ['configure', 'create_custom', 'publish'],
     active: ['configure', 'pause', 'execute', 'archive'],
     paused: ['configure', 'resume', 'execute', 'archive'],
     archived: ['archive'],

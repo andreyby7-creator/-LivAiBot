@@ -76,6 +76,9 @@ describe('adapt policy action to command type', () => {
     expect(adaptBotPolicyActionToBotCommandType('configure')).toBe(
       BotCommandTypes.UPDATE_INSTRUCTION,
     );
+    expect(adaptBotPolicyActionToBotCommandType('create_custom')).toBe(
+      BotCommandTypes.CREATE_CUSTOM_BOT,
+    );
     expect(adaptBotPolicyActionToBotCommandType('publish')).toBe(BotCommandTypes.PUBLISH_BOT);
     expect(adaptBotPolicyActionToBotCommandType('pause')).toBe(BotCommandTypes.PAUSE_BOT);
     expect(adaptBotPolicyActionToBotCommandType('resume')).toBe(BotCommandTypes.RESUME_BOT);
@@ -94,6 +97,7 @@ describe('AllBotPolicyActions / guards / parse', () => {
   it('AllBotPolicyActions содержит все ожидаемые значения', () => {
     expect(AllBotPolicyActions).toEqual([
       'configure',
+      'create_custom',
       'publish',
       'pause',
       'resume',

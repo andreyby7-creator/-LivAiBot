@@ -74,6 +74,26 @@ export type { BotAuditPort } from './audit.port.js';
 export { createBotAuditPortAdapter, createNoopBotAuditPort } from './audit.port.js';
 
 /* ============================================================================
+ * 🔑 OPERATION ID FINGERPRINT — DETERMINISTIC op_* (FNV + STABLE JSON)
+ * ========================================================================== */
+
+/**
+ * Детерминированные `operationId` для idempotency: FNV-1a, канонический JSON, склейка source, реестр солей
+ * (`operationIdSalt`). Не смешивать с «сырым» JSON.stringify для domain-объектов в fingerprint.
+ * См. security-докблок в модуле.
+ * @public
+ */
+export type { OperationIdSaltKey } from './operation-id-fingerprint.js';
+export {
+  buildOperationIdSource,
+  buildOperationIdSourceWithStableJson,
+  fnv1a32,
+  operationIdSalt,
+  stableJsonFingerprint,
+  toDeterministicOperationId,
+} from './operation-id-fingerprint.js';
+
+/* ============================================================================
  * 🛡️ PURE GUARDS — PERMISSION / POLICY (SHARED)
  * ========================================================================== */
 

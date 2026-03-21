@@ -26,6 +26,7 @@ import type {
 } from '@livai/core';
 
 import type { BotId, BotUserId } from '../../domain/Bot.js';
+import type { BotSettings } from '../../domain/BotSettings.js';
 import type { BotTemplate } from '../../domain/BotTemplate.js';
 import { createBotErrorResponse } from '../../lib/bot-errors.js';
 import type { BotCreateRequestTransport } from '../shared/api-client.port.js';
@@ -177,6 +178,35 @@ export function buildCreateBotRequestBody(
     instruction: resolvedInstruction,
     settings: Object.freeze({ ...input.template.defaultSettings }),
     templateId: input.template.id,
+  });
+}
+
+/**
+ * Стабильный идентификатор «источника» для draft/fallback id и детерминированного operationId
+ * в кастомном create-flow (не из каталога шаблонов).
+ */
+/** Стабильный ключ источника для draft/fallback id в кастомном create-flow. */
+export const customBotCreateSourceId = 'custom_bot' as const;
+
+/**
+ * Transport body для создания бота без шаблона (кастомные instruction/settings).
+ *
+ * @remarks
+ * `templateId` опционален: если не задан, upstream не привязывает создание к записи каталога.
+ */
+export function buildCustomCreateBotRequestBody(
+  input: Readonly<{
+    readonly name: string;
+    readonly instruction: string;
+    readonly settings: BotSettings;
+    readonly templateId?: string | undefined;
+  }>,
+): BotCreateRequestTransport {
+  return Object.freeze({
+    name: input.name,
+    instruction: input.instruction,
+    settings: Object.freeze({ ...input.settings }),
+    ...(input.templateId !== undefined ? { templateId: input.templateId } : {}),
   });
 }
 

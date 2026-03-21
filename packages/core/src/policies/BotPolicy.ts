@@ -45,6 +45,8 @@ export type BotMode =
 /** Доменные действия над ботом */
 export type BotPolicyAction =
   | 'configure'
+  /** Создание бота без каталога шаблона (кастомный create-flow); проверяется на синтетическом `draft`. */
+  | 'create_custom'
   | 'publish'
   | 'pause'
   | 'resume'

@@ -1,18 +1,17 @@
 /**
- * @file packages/feature-bots/src/effects/create-bot-from-template.ts
+ * @file packages/feature-bots/src/effects/create-custom-bot.ts
  * ============================================================================
- * 🤖 FEATURE-BOTS — Create Bot From Template (Effect Orchestrator)
+ * 🤖 FEATURE-BOTS — Create Custom Bot (Effect Orchestrator)
  * ============================================================================
  *
  * Архитектурная роль:
- * - Оркестратор create-flow из доменного `BotTemplate`.
+ * - Оркестратор create-flow **без** доменного `BotTemplate` (кастомные name/instruction/settings).
  * - SRP: только оркестрация, без HTTP/IO внутри (IO выполняется через DI-порты в Effect).
  * - Детерминированность по стандарту проекта: время/идентификаторы берутся из DI (clock/eventIdGenerator),
  *   а не из `Date.now()` внутри.
- * - Расширяемость: pre-flight проверки вынесены в `prepareBotCreationContext(...)`,
- *   а audit-context/mapping делегированы специализированным helper/mapper модулям.
- * - Публичный контракт входа: `userId` + `actorRole` обязательны в типе `CreateBotFromTemplateRequest`
- *   (канонический actor для guards; дублирующая runtime-проверка не нужна — контракт на уровне TypeScript).
+ * - Pre-flight: `prepareCustomBotCreationContext(...)` (permissions `create` + policy `create_custom` на синтетическом draft).
+ * - Публичный контракт входа: `userId` + `actorRole` обязательны в типе `CreateCustomBotRequest`
+ *   (канонический actor для guards).
  *
  * Инварианты:
  * - Любые ошибки внутри run-ветки прокидываются наружу через shared lifecycle (`operation-lifecycle`):
@@ -20,23 +19,27 @@
  * - Создание audit payload выполняется через существующий `create-bot-audit.mapper.ts`
  *   (fail-closed schema validation внутри mapper).
  * - Fallback botId для failure-audit строится детерминированно через {@link buildFallbackBotId}
- *   (`toBotIdFromErrorOrFallback`), чтобы исключить “пропуск” audit события при отсутствии botId в error.context.
+ *   (`toBotIdFromErrorOrFallback`), с {@link customBotCreateSourceId} как техническим `templateId` для хэша.
+ * - Паритет с `create-bot-from-template.ts`: тот же `CreateBotEffectConfig`, `lifecycleHelper.runOperation`, те же порты времени/id
+ *   (`CreateBotFromTemplateDeps`), отличается входом и policy action (`create_custom` vs `configure` + `BotTemplate`).
+ * - Детерминированный `operationId`: соль `create-custom-bot-operation-v2` + stable JSON для `settings` (осознанный
+ *   breaking change относительно прежнего `JSON.stringify` + `create-custom-bot-operation-v1` — idempotency-ключи сменились).
  */
 
 import type { BotRole, BotState } from '@livai/core';
 import type { Effect } from '@livai/core/effect';
 
 import type { BotId, BotUserId, BotWorkspaceId } from '../domain/Bot.js';
-import type { BotTemplate } from '../domain/BotTemplate.js';
-import { assertBotTemplateInvariant } from '../domain/BotTemplate.js';
+import type { BotSettings } from '../domain/BotSettings.js';
 import type { BotAuditEventValues } from '../schemas/index.js';
 import type { OperationId } from '../types/bot-commands.js';
 import type { BotError, BotInfo } from '../types/bots.js';
 import type { CreateBotLikeHelpers } from './create/create-bot.helpers.js';
 import {
-  buildCreateBotRequestBody,
+  buildCustomCreateBotRequestBody,
   buildDraftBotId,
   buildFallbackBotId,
+  customBotCreateSourceId,
 } from './create/create-bot.helpers.js';
 import {
   mapCreateBotEffectInputToApiInput,
@@ -55,60 +58,36 @@ import type {
   CreateBotEffectInput,
 } from './create/create-bot-effect.types.js';
 import { updateCreateBotState } from './create/create-bot-store-updater.js';
+import type {
+  ClockPort,
+  CreateBotFromTemplateDeps,
+  EventIdGeneratorPort,
+} from './create-bot-from-template.js';
 import type { BotResponseTransport } from './shared/api-client.port.js';
 import {
-  buildOperationIdSource,
+  buildOperationIdSourceWithStableJson,
   operationIdSalt,
   toDeterministicOperationId,
 } from './shared/operation-id-fingerprint.js';
 import { buildActorUserContext } from './shared/pure-guards.js';
 
 /* ============================================================================
- * 🧭 PORTS — time/id generators
+ * 🎯 PUBLIC TYPES — request / deps (clock+eventId — SSOT в create-bot-from-template.ts)
  * ============================================================================
  */
 
-/**
- * Порт времени (единственный источник timestamp для audit).
- *
- * @remarks
- * Нужен для детерминизма и unit-тестируемости: время инжектируется извне.
- */
-export type ClockPort = Readonly<{
-  /** Epoch-millis в миллисекундах. */
-  readonly now: () => number;
-}>;
+/** DI-зависимости: те же `clock` + `eventIdGenerator`, что у `create-bot-from-template`. */
+export type CreateCustomBotDeps = CreateBotFromTemplateDeps;
 
-/**
- * Порт генерации `eventId` для audit-событий.
- *
- * @remarks
- * В production-реализация может использовать crypto/UUID или инкрементальные счётчики.
- * Для unit-тестов можно подменять детерминированным генератором.
- */
-export type EventIdGeneratorPort = Readonly<{
-  /** Генерирует unique eventId для audit-события. */
-  readonly generate: () => string;
-}>;
-
-/* ============================================================================
- * 🎯 PUBLIC TYPES — request/deps/config
- * ============================================================================
- */
-
-/** Вход create-flow из шаблона. */
-export type CreateBotFromTemplateRequest = {
+/** Вход create-flow: кастомный бот (без шаблона). */
+export type CreateCustomBotRequest = {
   readonly workspaceId: BotWorkspaceId;
-  readonly template: BotTemplate;
-
-  /** Имя создаваемого бота (может переопределять template.name). */
   readonly name: string;
+  readonly instruction: string;
+  readonly settings: BotSettings;
 
-  /**
-   * Опциональная кастомизация инструкции.
-   * Если не задано — применяется `template.defaultInstruction`.
-   */
-  readonly instructionOverride?: string;
+  /** Опциональная привязка к каталогу (если UI выбрал базовый шаблон как стартовую точку). */
+  readonly templateId?: string;
 
   /** Идентификатор операции (idem-potency и correlated tracing). */
   readonly operationId?: OperationId;
@@ -127,7 +106,7 @@ export type CreateBotFromTemplateRequest = {
   readonly actorRole: BotRole;
 
   /**
-   * Пакет hooks для `best-effort` (лучшее из возможного) наблюдаемости/интеграции без IO.
+   * Пакет hooks для `best-effort` наблюдаемости/интеграции без IO.
    *
    * @remarks
    * Вынесен в отдельный тип, чтобы избежать `functional/no-mixed-types`:
@@ -142,14 +121,8 @@ export type CreateBotFromTemplateRequest = {
   }>;
 };
 
-/** DI-зависимости для create-bot-from-template оркестратора. */
-export type CreateBotFromTemplateDeps = {
-  readonly clock: ClockPort;
-  readonly eventIdGenerator: EventIdGeneratorPort;
-};
-
 /* ============================================================================
- * 🔁 INTERNAL HELPERS — deterministic operation id + fallback botId
+ * 🔁 INTERNAL HELPERS — deterministic operation id + fallback botId + pre-flight
  * ============================================================================
  */
 
@@ -157,7 +130,6 @@ function toBotIdFromErrorOrFallback(
   input: Readonly<{
     readonly error: BotError;
     readonly workspaceId: BotWorkspaceId;
-    readonly templateId: string;
     readonly name: string;
   }>,
 ): BotId {
@@ -167,7 +139,7 @@ function toBotIdFromErrorOrFallback(
   }
   return buildFallbackBotId({
     workspaceId: input.workspaceId,
-    templateId: input.templateId,
+    templateId: customBotCreateSourceId,
     name: input.name,
   });
 }
@@ -175,20 +147,18 @@ function toBotIdFromErrorOrFallback(
 function resolveDeterministicOperationId(
   input: Readonly<{
     readonly workspaceId: BotWorkspaceId;
-    readonly templateId: string;
     readonly name: string;
-    readonly instructionOverride?: string | undefined;
+    readonly instruction: string;
+    readonly settings: BotSettings;
+    readonly templateId?: string | undefined;
   }>,
 ): OperationId {
-  const overrideHashSource = input.instructionOverride ?? '';
-  // Salt снижает риск простого dictionary matching по типовым фрагментам instruction в логах/telemetry.
-  // Для строгих требований к секретности предпочтителен HMAC с секретным ключом из DI.
-  const source = buildOperationIdSource(operationIdSalt.createBotFromTemplate, [
-    input.workspaceId,
-    input.templateId,
-    input.name,
-    overrideHashSource,
-  ]);
+  const templatePart = input.templateId ?? '';
+  const source = buildOperationIdSourceWithStableJson(
+    operationIdSalt.createCustomBot,
+    [input.workspaceId, input.name, input.instruction, templatePart],
+    input.settings,
+  );
   return toDeterministicOperationId(source);
 }
 
@@ -205,22 +175,17 @@ function wrapBestEffortHook<T>(
   };
 }
 
-type PrepareBotCreationContextInput = Readonly<{
-  readonly request: CreateBotFromTemplateRequest;
+type PrepareCustomBotCreationContextInput = Readonly<{
+  readonly request: CreateCustomBotRequest;
   readonly botPermissions: CreateBotEffectConfig['botPermissions'];
   readonly botPolicy: CreateBotEffectConfig['botPolicy'];
   readonly clock: ClockPort;
   readonly createBotLikeHelpers: CreateBotLikeHelpers;
 }>;
 
-type PreparedBotCreationContext = Readonly<{
-  readonly draftBotId: BotId;
-  readonly policyBotState: BotState;
-}>;
-
-function prepareBotCreationContext(
-  input: PrepareBotCreationContextInput,
-): PreparedBotCreationContext {
+function prepareCustomBotCreationContext(
+  input: PrepareCustomBotCreationContextInput,
+): void {
   const actorUser = buildActorUserContext({
     userId: input.request.userId,
     actorRole: input.request.actorRole,
@@ -234,13 +199,11 @@ function prepareBotCreationContext(
 
   const draftBotId = buildDraftBotId({
     workspaceId: input.request.workspaceId,
-    templateId: input.request.template.id,
+    templateId: customBotCreateSourceId,
     name: input.request.name,
   });
 
   const policyBotState: BotState = Object.freeze({
-    // `botId` нужен BotPolicy как строковый идентификатор entity.
-    // Это draft-id для policy checks (не финальный persisted botId).
     botId: draftBotId as unknown as string,
     mode: 'draft',
     createdAt: input.clock.now(),
@@ -251,12 +214,7 @@ function prepareBotCreationContext(
     botPolicy: input.botPolicy,
     policyBotState,
     actorUser,
-    action: 'configure',
-  });
-
-  return Object.freeze({
-    draftBotId,
-    policyBotState,
+    action: 'create_custom',
   });
 }
 
@@ -285,17 +243,17 @@ function createAuditMetaPort(
  */
 
 /**
- * Создаёт Effect-оркестратор `create-bot-from-template`.
+ * Создаёт Effect-оркестратор `create-custom-bot`.
  *
  * @remarks
  * - store transition + audit emission делегируются shared lifecycle (`operation-lifecycle` + pipeline/error layers).
  * - business pre-checks выполняются детерминированно и синхронно внутри `run` ветки,
- *   чтобы errors были обработаны lifecycle helper'ом единообразно.
+ *   чтобы errors были обработаны lifecycle helper'ом единообразно (как в `createBotFromTemplateEffect`).
  */
-export function createBotFromTemplateEffect(
-  deps: CreateBotFromTemplateDeps,
+export function createCustomBotEffect(
+  deps: CreateCustomBotDeps,
   createConfig: CreateBotEffectConfig,
-): (request: CreateBotFromTemplateRequest) => Effect<BotInfo> {
+): (request: CreateCustomBotRequest) => Effect<BotInfo> {
   const {
     lifecycleHelper,
     apiClient,
@@ -304,16 +262,17 @@ export function createBotFromTemplateEffect(
     createBotLikeHelpers,
   } = createConfig;
 
-  return (request: CreateBotFromTemplateRequest): Effect<BotInfo> => {
+  return (request: CreateCustomBotRequest): Effect<BotInfo> => {
     const traceId = request.traceId;
     const rawOnSuccessHook = request.hooks?.onSuccess;
     const rawOnErrorHook = request.hooks?.onError;
 
     const resolvedOperationId = request.operationId ?? resolveDeterministicOperationId({
       workspaceId: request.workspaceId,
-      templateId: request.template.id,
       name: request.name,
-      instructionOverride: request.instructionOverride,
+      instruction: request.instruction,
+      settings: request.settings,
+      templateId: request.templateId,
     });
 
     const auditMetaPort = createAuditMetaPort(deps);
@@ -339,7 +298,6 @@ export function createBotFromTemplateEffect(
         botId: toBotIdFromErrorOrFallback({
           error,
           workspaceId: request.workspaceId,
-          templateId: request.template.id,
           name: request.name,
         }),
         workspaceId: request.workspaceId,
@@ -351,11 +309,7 @@ export function createBotFromTemplateEffect(
     };
 
     const run: Effect<BotInfo> = async (signal?: AbortSignal): Promise<BotInfo> => {
-      // Инварианты домена проверяем здесь (fail-closed).
-      assertBotTemplateInvariant(request.template);
-
-      // 1) Permission/policy pre-flight в одном deterministic helper.
-      prepareBotCreationContext({
+      prepareCustomBotCreationContext({
         request,
         botPermissions,
         botPolicy,
@@ -363,11 +317,11 @@ export function createBotFromTemplateEffect(
         createBotLikeHelpers,
       });
 
-      // 2) Payload create-запроса из шаблона (+ overrides)
-      const requestBody = buildCreateBotRequestBody({
+      const requestBody = buildCustomCreateBotRequestBody({
         name: request.name,
-        template: request.template,
-        instructionOverride: request.instructionOverride,
+        instruction: request.instruction,
+        settings: request.settings,
+        templateId: request.templateId,
       });
 
       const createInput: CreateBotEffectInput = Object.freeze({
@@ -380,7 +334,6 @@ export function createBotFromTemplateEffect(
       // eslint-disable-next-line @livai/multiagent/orchestration-safety -- слой bot-pipeline обеспечивает таймаут/abort
       const transportDto: BotResponseTransport = await apiClient.createBot(apiInput)(signal);
 
-      // 3) DTO boundary → модель feature/store.
       return mapCreateBotResponseToBotInfo(transportDto);
     };
 

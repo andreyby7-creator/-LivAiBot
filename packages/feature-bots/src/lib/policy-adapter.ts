@@ -100,6 +100,7 @@ export function adaptBotModeToBotStatus(input: AdaptBotModeToStatusInput): BotSt
  */
 export const AllBotPolicyActions = [
   'configure',
+  'create_custom',
   'publish',
   'pause',
   'resume',
@@ -161,6 +162,8 @@ export function adaptBotPolicyActionToBotCommandType(
   switch (action) {
     case 'configure':
       return BotCommandTypes.UPDATE_INSTRUCTION;
+    case 'create_custom':
+      return BotCommandTypes.CREATE_CUSTOM_BOT;
     case 'publish':
       return BotCommandTypes.PUBLISH_BOT;
     case 'pause':

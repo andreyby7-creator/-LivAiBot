@@ -18,13 +18,13 @@ import { BotPolicy } from '../../src/policies/BotPolicy.js';
 // Mock данные для тестирования
 const MOCK_CONFIG: BotPolicyConfig = {
   roleActions: {
-    owner: ['configure', 'publish', 'pause', 'resume', 'execute', 'archive'],
-    admin: ['configure', 'publish', 'pause', 'resume', 'execute'],
-    editor: ['configure', 'execute'],
+    owner: ['configure', 'create_custom', 'publish', 'pause', 'resume', 'execute', 'archive'],
+    admin: ['configure', 'create_custom', 'publish', 'pause', 'resume', 'execute'],
+    editor: ['configure', 'create_custom', 'execute'],
     viewer: ['execute'],
   },
   modeActions: {
-    draft: ['configure', 'publish'],
+    draft: ['configure', 'create_custom', 'publish'],
     active: ['configure', 'pause', 'execute', 'archive'],
     paused: ['configure', 'resume', 'execute', 'archive'],
     archived: ['archive'],
@@ -123,8 +123,8 @@ describe('BotPolicy', () => {
           isSystemBot: false,
         };
 
-        it('разрешает действия draft: configure, publish', () => {
-          const allowedActions: BotPolicyAction[] = ['configure', 'publish'];
+        it('разрешает действия draft: configure, create_custom, publish', () => {
+          const allowedActions: BotPolicyAction[] = ['configure', 'create_custom', 'publish'];
 
           allowedActions.forEach((action) => {
             const result = policy.canPerform(action, draftBot, ownerActor);

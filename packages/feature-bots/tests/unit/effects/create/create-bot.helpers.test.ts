@@ -9,12 +9,15 @@ import type {
   BotState,
 } from '@livai/core';
 
+import type { BotSettings } from '../../../../src/domain/BotSettings.js';
 import type { BotTemplate } from '../../../../src/domain/BotTemplate.js';
 import {
   buildCreateBotRequestBody,
+  buildCustomCreateBotRequestBody,
   buildDraftBotId,
   buildFallbackBotId,
   createCreateHelpers,
+  customBotCreateSourceId,
 } from '../../../../src/effects/create/create-bot.helpers.js';
 import {
   buildActorUserContext,
@@ -38,6 +41,23 @@ function captureThrown(fn: () => void): unknown {
   } catch (error) {
     return error;
   }
+}
+
+function mkMinimalSettings(): BotSettings {
+  return Object.freeze({
+    temperature: 0 as never,
+    contextWindow: 0 as never,
+    piiMasking: false,
+    imageRecognition: false,
+    unrecognizedMessage: Object.freeze({
+      message: 'fallback',
+      showSupportHint: false,
+    }),
+    interruptionRules: Object.freeze({
+      allowUserInterruption: true,
+      maxConcurrentSessions: 1,
+    }),
+  }) as BotSettings;
 }
 
 function mkTemplate() {
@@ -215,6 +235,47 @@ describe('create-bot.helpers', () => {
     });
   });
 
+  describe('buildCustomCreateBotRequestBody', () => {
+    it('без templateId не добавляет поле templateId (ветка ??)', () => {
+      const settings = mkMinimalSettings();
+      const body = buildCustomCreateBotRequestBody({
+        name: 'Custom',
+        instruction: 'Say hi',
+        settings,
+      });
+
+      expect(body.name).toBe('Custom');
+      expect(body.instruction).toBe('Say hi');
+      expect(body.settings).toEqual(settings);
+      expect('templateId' in body).toBe(false);
+      expect(Object.isFrozen(body)).toBe(true);
+      expect(Object.isFrozen(body.settings)).toBe(true);
+    });
+
+    it('с templateId добавляет поле (spread-ветка)', () => {
+      const settings = mkMinimalSettings();
+      const body = buildCustomCreateBotRequestBody({
+        name: 'Custom',
+        instruction: 'Go',
+        settings,
+        templateId: 'tpl_catalog_1',
+      });
+
+      expect(body).toMatchObject({
+        name: 'Custom',
+        instruction: 'Go',
+        templateId: 'tpl_catalog_1',
+      });
+      expect(body.settings).toEqual(settings);
+    });
+  });
+
+  describe('customBotCreateSourceId', () => {
+    it('литерал-источник для кастомного create-flow', () => {
+      expect(customBotCreateSourceId).toBe('custom_bot');
+    });
+  });
+
   describe('buildActorUserContext (shared/pure-guards)', () => {
     it('нормализует undefined userId в null и не добавляет role', () => {
       const actor = buildActorUserContext({
@@ -351,6 +412,35 @@ describe('create-bot.helpers', () => {
       expect(canPerform).toHaveBeenCalledWith('configure', state, {
         userId: 'u_7',
         role: 'admin',
+      });
+    });
+
+    it('checkCreatePolicyOrThrow: при переданном actorUser не собирает контекст из userId/role', () => {
+      const canPerform = vi.fn(
+        (): PolicyDecision =>
+          Object.freeze({
+            allow: true,
+          }),
+      );
+      const botPolicy = Object.freeze({ canPerform });
+      const state = mkPolicyState();
+      const action: BotPolicyAction = 'create_custom';
+      const actorUser = Object.freeze({
+        userId: 'u_explicit' as never,
+        role: 'owner' as BotRole,
+      });
+
+      expect(() =>
+        defaultCreateHelpers.checkCreatePolicyOrThrow({
+          botPolicy: botPolicy as never,
+          actorUser,
+          policyBotState: state,
+          action,
+        })
+      ).not.toThrow();
+      expect(canPerform).toHaveBeenCalledWith('create_custom', state, {
+        userId: 'u_explicit',
+        role: 'owner',
       });
     });
 

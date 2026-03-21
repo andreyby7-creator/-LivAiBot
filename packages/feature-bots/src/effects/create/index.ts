@@ -71,7 +71,9 @@ export {
 export type { CreateBotLikeHelpers } from './create-bot.helpers.js';
 export {
   buildCreateBotRequestBody,
+  buildCustomCreateBotRequestBody,
   buildDraftBotId,
   buildFallbackBotId,
   createCreateHelpers,
+  customBotCreateSourceId,
 } from './create-bot.helpers.js';
