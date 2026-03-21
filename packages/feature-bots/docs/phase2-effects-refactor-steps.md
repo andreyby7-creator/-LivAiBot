@@ -100,7 +100,7 @@ input → operation-lifecycle → error → pipeline → persist → finalize �
    **Definition of done:**
    - create-flow следует новому контракту pipeline без дублирования логики идемпотентности/порядка.
 
-9. `packages/feature-bots/src/effects/shared/index.ts` и/или `packages/feature-bots/src/effects/index.ts`
+9. `packages/feature-bots/src/effects/shared/index.ts` и/или `packages/feature-bots/src/effects/index.ts` ✅
 
    **Что:**
    - обновить экспорты так, чтобы orchestrators могли импортировать нужные lifecycle-компоненты (обычно внутренние, без раздувания public API effects).

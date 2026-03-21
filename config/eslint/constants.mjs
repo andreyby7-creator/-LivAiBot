@@ -80,7 +80,9 @@ const boundariesPlugin = await tryImport('eslint-plugin-boundaries');
 const tsdocPlugin = await tryImport('eslint-plugin-tsdoc');
 const reactPerfPlugin = await tryImport('eslint-plugin-react-perf');
 const nextPlugin = await tryImport('@next/eslint-plugin-next');
-const eslintCommentsPlugin = await tryImport('eslint-plugin-eslint-comments');
+const eslintCommentsPlugin = await tryImport(
+  '@eslint-community/eslint-plugin-eslint-comments',
+);
 
 // AI Security - first-class citizen
 const aiSecurityPlugin = await tryImport('./plugins/ai-security/index.js');

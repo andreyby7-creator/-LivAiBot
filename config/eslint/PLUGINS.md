@@ -4,16 +4,17 @@
 
 Этот документ содержит полный список всех ESLint плагинов, используемых в системе LivAi. Здесь перечислены как установленные (обязательные), так и опциональные плагины с подробными описаниями их назначения.
 
-**ESLint 10 будет установлен когда для плагинов будут обновления для совместимости:**
+**ESLint 10:** переход возможен, когда сняты блокеры ниже (или заменены эквивалентами).
 
-**❌ Еще не готовы (ESLint 10):**
+**`eslint-plugin-import` (2.32.0) — блокер для ESLint 10**
 
-- `eslint-plugin-import` (2.32.0): Импорт-правила (`import/no-unresolved`, `import/no-cycle`, `import/no-default-export`, и др.) | ❌ Помечен в `eslint.config.mjs` как несовместимый с ESLint 10.0.0 | ❌ peerDependencies: `eslint ^2-^9` (не включает ^10) | ❌ Проверено в npm registry: версия 2.32.0 не поддерживает ESLint 10 | Требуется обновление под новую архитектуру ESLint
+- В npm `peerDependencies`: `eslint` только до **^9** (^10 не входит). Мейнтейнеры [import-js/eslint-plugin-import](https://github.com/import-js/eslint-plugin-import) на момент проверки прямо указывают, что **совместимости с ESLint 10 ещё нет**; релиз 2.32.0 ориентирован на линейку до v9, отдельного релиза под v10 пока нет.
+- **Возможная замена по экосистеме:** `eslint-plugin-import-x` (например 4.x) — в npm в `peerDependencies` объявлены **`eslint ^8.57.0 || ^9 || ^10`**. Это отдельный пакет (не drop-in по имени), миграция правил и резолверов требует отдельной оценки.
 
-**⚠️ Требуют проверки реальной совместимости (peerDependencies допускают ESLint 10, но реальная совместимость не подтверждена):**
+**`eslint-plugin-no-secrets` (2.3.3) — не формальный блокер по peer, но слабый сигнал под v10**
 
-- `eslint-plugin-no-secrets` (2.3.3): peerDependencies: `eslint >=5` | ✅ В devDependencies есть `eslint10@^10.0.0` (плагин тестируется с ESLint 10) | ⚠️ Но реальная совместимость в production не подтверждена
-- `eslint-plugin-eslint-comments` (3.2.0): peerDependencies: `eslint >=4.19.1` | ❌ Открыт GitHub issue #82 про совместимость с ESLint v9 и flat configs (с августа 2024) | ❌ В devDependencies нет упоминания ESLint 10 | ⚠️ Вероятно несовместим с ESLint 10
+- `peerDependencies`: `eslint >=5` — диапазон слишком широкий, **не подтверждает** целевую поддержку ESLint 10.
+- Релизы ещё выходят (например 2.3.3), но публичного roadmap именно под ESLint 10 нет; перед апгрейдом ESLint — **обязательный прогон** линта или **дублирование** поиска секретов в CI (например gitleaks), т.к. ESLint core этого не делает.
 
 ✅ УСТАНОВЛЕН
 ❌ НЕ УСТАНОВЛЕН
@@ -62,6 +63,8 @@
 
 `eslint-plugin-boundaries` | Архитектурные границы | ✅
 
+**Зависимость в npm без подключения в ESLint:** в корневом `package.json` есть `eslint-plugin-prefer-arrow`, но плагин **не импортируется** в `config/eslint/constants.mjs` и правила из него **не используются** — в список активных плагинов выше не входит.
+
 > **Связка package exports + boundaries + zone firewall:**
 >
 > - **package.json `"exports"`** в пакетах (`@livai/ui-core`, `feature-*`) задают единственный легальный public API (dist/**).
@@ -73,7 +76,7 @@
 
 ### Документация
 
-`eslint-plugin-tsdoc` (0.5.2) | TSDoc комментарии | ✅ | ✅ ESLint 10 ready
+`eslint-plugin-tsdoc` (0.5.2) | TSDoc комментарии | ✅ ESLint 10 ready (peer)
 
 ## Опциональные плагины (graceful degradation)
 
@@ -81,17 +84,22 @@
 
 ### ESLint мета-правила
 
-`eslint-plugin-eslint-comments` | Контроль отключений ESLint (// eslint-disable) | ✅
+`@eslint-community/eslint-plugin-eslint-comments` | Контроль отключений ESLint (`// eslint-disable`) | ✅
 
 ### Производительность
 
 `eslint-plugin-react-perf` | Производительность React | ✅
 
-### AI-специфичные (кастомные)
+### AI-специфичные (кастомные, `config/eslint/plugins/*`)
 
-`eslint-plugin-ai-security` | AI безопасность | ✅
-`@livai/eslint-plugin-rag` | RAG системы | ✅
-`@livai/eslint-plugin-multiagent` | Multi-agent системы | ✅
+Локальные пакеты; в `constants.mjs` зарегистрированы под префиксами правил **`@livai/...`** (см. `master.config.mjs`).
+
+| Пакет (`package.json` `name`)             | Назначение                                           | В конфиге как         |
+| ----------------------------------------- | ---------------------------------------------------- | --------------------- |
+| `eslint-plugin-ai-security`               | AI security (PII, токены, prompt injection и др.)    | `ai-security`         |
+| `eslint-plugin-rag`                       | RAG guardrails                                       | `@livai/rag`          |
+| `eslint-plugin-multiagent`                | Multi-agent изоляция / оркестрация                   | `@livai/multiagent`   |
+| `@livai/eslint-plugin-store-guards-local` | Store: селекторы без side-effects, мутации состояния | `@livai/store-guards` |
 
 ## Установка новых плагинов
 

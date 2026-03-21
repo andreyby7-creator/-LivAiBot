@@ -64,7 +64,7 @@
     "foundation"
   ],
   "peerDependencies": {
-    "effect": "^3.20.0",
+    "effect": "^3.21.0",
     "typescript": "5.9.3"
   },
   "peerDependenciesMeta": {},
@@ -116,7 +116,7 @@
     "@effect/workflow": "^0.16.0",
     "@livai/core": "workspace:*",
     "@livai/core-contracts": "workspace:*",
-    "effect": "^3.20.0",
+    "effect": "^3.21.0",
     "zod": "^4.3.6",
     "zustand": "^5.0.12"
   },
