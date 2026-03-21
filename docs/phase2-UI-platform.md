@@ -271,10 +271,10 @@ Toast / UI feedback
 
 - 🟢 `AuthPolicy.ts` — ts — deps: core-contracts — политика доступа для auth-домена
 - 🟢 `BillingPolicy.ts` — ts — deps: core-contracts — политика биллинга
-- 🟢 `BotPolicy.ts` — ts — deps: core-contracts — политика управления ботами
+- 🟢 `BotPolicy.ts` — ts — deps: core-contracts — политика управления ботами: `canPerform` (ядро в `canPerformInternal`), `canCreateFromTemplate` (pure/deterministic: `makeSyntheticDraftForTemplate` + gate `configure` для draft, denylist `templateId`, segment-gate `PolicyMeta` — пересечение `templateTags` и `segments`; `workspaceId` в `BotTemplateCreateContext` пока не ветвит решение — задел под будущие инварианты без IO)
 - 🟢 `ChatPolicy.ts` — ts — deps: core-contracts — политика для чата и диалогов
 - 🟢 `BotPermissions.ts` — ts — deps: core-contracts, policies/BotPolicy — низкоуровневые разрешения для ботов
-- 🟢 `ComposedPolicy.ts` — ts — deps: core-contracts, policies/AuthPolicy, policies/BillingPolicy, policies/BotPermissions, policies/BotPolicy, policies/ChatPolicy — композиция нескольких политик в единый объект
+- 🟢 `ComposedPolicy.ts` — ts — deps: core-contracts, policies/AuthPolicy, policies/BillingPolicy, policies/BotPermissions, policies/BotPolicy, policies/ChatPolicy — композиция политик; `canCreateFromTemplate` — first-deny-wins: `BotPermissions` (`create`) → опционально `BillingPolicy` (`create_bot`, `options.billing`) → `BotPolicy.canCreateFromTemplate`; invariant `assertBotCreateFromTemplateDecision` (fail-closed при `undefined`/битой форме); audit hooks без IO в core: `options.audit.onDeny` / `onAllow` (с `policyTrace`) / `onDecision` (единый поток allow|deny); типы `ComposedCreateFromTemplate*` / `ComposedCanCreateFromTemplateOptions`
 
 ### **Core / input boundary** ✅
 

@@ -2,7 +2,7 @@
  * @file Unit тесты для ComposedPolicy
  * Полное покрытие всех методов и веток исполнения
  */
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 import type {
   AuthPolicyConfig,
@@ -16,13 +16,17 @@ import type {
 } from '../../src/policies/BillingPolicy.js';
 import type { BotPermissionsConfig, BotUserContext } from '../../src/policies/BotPermissions.js';
 import type { BotActorContext, BotPolicyConfig, BotState } from '../../src/policies/BotPolicy.js';
+import { BotPolicy } from '../../src/policies/BotPolicy.js';
 import type {
   ChatActorContext,
   ChatMessageContext,
   ChatPolicyConfig,
   ChatState,
 } from '../../src/policies/ChatPolicy.js';
-import type { ComposedPolicyConfig } from '../../src/policies/ComposedPolicy.js';
+import type {
+  ComposedCanCreateFromTemplateOptions,
+  ComposedPolicyConfig,
+} from '../../src/policies/ComposedPolicy.js';
 import { ComposedPolicy } from '../../src/policies/ComposedPolicy.js';
 
 // Mock данные для тестирования
@@ -384,6 +388,202 @@ describe('ComposedPolicy', () => {
 
         const result = getPolicy().canPerformBotPolicy('configure', archivedBot, mockBotActor);
         expect(result.allow).toBe(false);
+      });
+    });
+
+    describe('canCreateFromTemplate', () => {
+      const ownerActor: BotActorContext = { userId: 'user-1', role: 'owner' };
+      const viewerActor: BotActorContext = { userId: 'user-2', role: 'viewer' };
+      const template = { templateId: 'tpl_compose', templateTags: ['standard'] as const };
+
+      const blockedBillingSubject: BillingSubjectState = {
+        subjectId: 'sub-1',
+        type: 'user',
+        plan: 'free',
+        isBlocked: true,
+      };
+
+      const okBillingSubject: BillingSubjectState = {
+        subjectId: 'sub-ok',
+        type: 'user',
+        plan: 'free',
+        isBlocked: false,
+      };
+
+      it('после успешного create в BotPermissions делегирует в BotPolicy (единый allow)', () => {
+        const result = getPolicy().canCreateFromTemplate(ownerActor, template);
+        expect(result).toEqual({
+          allow: true,
+          reason: 'CREATE_FROM_TEMPLATE_ALLOWED',
+          source: 'bot_policy:create_from_template',
+          ruleId: 'create_from_template:allowed',
+        });
+      });
+
+      it('first-deny: нет права create в BotPermissions → bot_permissions:create_gate', () => {
+        const result = getPolicy().canCreateFromTemplate(viewerActor, template);
+        expect(result.allow).toBe(false);
+        if (!result.allow) {
+          expect(result.source).toBe('bot_permissions:create_gate');
+          expect(result.reason).toBe('insufficient_role');
+          expect(result.ruleId).toBe('composed:create_from_template:bot_permissions_denied');
+        }
+      });
+
+      it('first-deny: billing create_bot до BotPolicy (isBlocked)', () => {
+        const result = getPolicy().canCreateFromTemplate(ownerActor, template, {
+          billing: { subject: blockedBillingSubject },
+        });
+        expect(result.allow).toBe(false);
+        if (!result.allow) {
+          expect(result.source).toBe('billing_policy:create_bot');
+          expect(result.reason).toBe('billing_blocked');
+          expect(result.ruleId).toBe('composed:create_from_template:billing_denied');
+        }
+      });
+
+      it('пробрасывает отказ BotPolicy с source (segment gate)', () => {
+        const result = getPolicy().canCreateFromTemplate(ownerActor, template, {
+          meta: {
+            flags: { requireTemplateSegmentMatch: true },
+            segments: ['enterprise_only'],
+          },
+        });
+        expect(result.allow).toBe(false);
+        if (!result.allow) {
+          expect(result.source).toBe('bot_policy:segment_gate');
+        }
+      });
+
+      it.each([
+        {
+          matrixKey: 1,
+          actor: viewerActor,
+          opts: undefined as ComposedCanCreateFromTemplateOptions | undefined,
+          expectAllow: false,
+          expectSource: 'bot_permissions:create_gate' as const,
+          expectLayer: 'bot_permissions' as const,
+        },
+        {
+          matrixKey: 2,
+          actor: ownerActor,
+          opts: {
+            billing: { subject: blockedBillingSubject },
+          } satisfies ComposedCanCreateFromTemplateOptions,
+          expectAllow: false,
+          expectSource: 'billing_policy:create_bot' as const,
+          expectLayer: 'billing_policy' as const,
+        },
+        {
+          matrixKey: 3,
+          actor: ownerActor,
+          opts: {
+            billing: { subject: okBillingSubject },
+            meta: {
+              flags: { requireTemplateSegmentMatch: true },
+              segments: ['enterprise_only'],
+            },
+          } satisfies ComposedCanCreateFromTemplateOptions,
+          expectAllow: false,
+          expectSource: 'bot_policy:segment_gate' as const,
+          expectLayer: 'bot_policy' as const,
+        },
+        {
+          matrixKey: 4,
+          actor: ownerActor,
+          opts: {
+            billing: { subject: okBillingSubject },
+          } satisfies ComposedCanCreateFromTemplateOptions,
+          expectAllow: true,
+          expectSource: 'bot_policy:create_from_template' as const,
+          expectLayer: null,
+        },
+      ])(
+        'first-deny matrix: $matrixKey',
+        ({ actor, opts, expectAllow, expectSource, expectLayer }) => {
+          const onDeny = vi.fn();
+          const onAllow = vi.fn();
+          const onDecision = vi.fn();
+          const result = getPolicy().canCreateFromTemplate(actor, template, {
+            ...opts,
+            audit: { onDeny, onAllow, onDecision },
+          });
+
+          expect(result.allow).toBe(expectAllow);
+          expect(result.source).toBe(expectSource);
+
+          expect(onDecision).toHaveBeenCalledTimes(1);
+          const decisionEvent = onDecision.mock.calls[0]![0];
+          expect(decisionEvent.templateId).toBe(template.templateId);
+          expect(decisionEvent.actorUserId).toBe(actor.userId);
+
+          if (expectAllow) {
+            expect(onDeny).not.toHaveBeenCalled();
+            expect(onAllow).toHaveBeenCalledTimes(1);
+            expect(decisionEvent.outcome).toBe('allow');
+            expect(onAllow.mock.calls[0]![0].policyTrace).toEqual({
+              botPermissions: 'passed',
+              billingPolicy: 'passed',
+              botPolicy: 'passed',
+            });
+          } else {
+            expect(onDeny).toHaveBeenCalledTimes(1);
+            expect(onAllow).not.toHaveBeenCalled();
+            expect(decisionEvent.outcome).toBe('deny');
+            if (decisionEvent.outcome === 'deny') {
+              expect(decisionEvent.layer).toBe(expectLayer);
+            }
+            const firstCall = onDeny.mock.calls[0];
+            expect(firstCall).toBeDefined();
+            expect(firstCall![0]).toMatchObject({
+              layer: expectLayer,
+              templateId: template.templateId,
+              actorUserId: actor.userId,
+            });
+          }
+        },
+      );
+
+      it('audit: onAllow / onDecision при allow; billingPolicy skipped без options.billing', () => {
+        const onDeny = vi.fn();
+        const onAllow = vi.fn();
+        const onDecision = vi.fn();
+        getPolicy().canCreateFromTemplate(ownerActor, template, {
+          audit: { onDeny, onAllow, onDecision },
+        });
+        expect(onDeny).not.toHaveBeenCalled();
+        expect(onAllow).toHaveBeenCalledTimes(1);
+        expect(onDecision).toHaveBeenCalledTimes(1);
+        expect(onAllow.mock.calls[0]![0].policyTrace.billingPolicy).toBe('skipped');
+        expect(onDecision.mock.calls[0]![0].outcome).toBe('allow');
+      });
+
+      /* eslint-disable ai-security/token-leakage -- unit tests reference ComposedPolicy static invariant; no secrets */
+      it('invariant: undefined/null decision → throw', () => {
+        const assertCft = ComposedPolicy['assertBotCreateFromTemplateDecision'].bind(
+          ComposedPolicy,
+        );
+        expect(() => assertCft(undefined)).toThrow(/undefined or null/);
+        expect(() => assertCft(null)).toThrow(/undefined or null/);
+      });
+
+      it('invariant: malformed decision object → throw', () => {
+        const assertCft = ComposedPolicy['assertBotCreateFromTemplateDecision'].bind(
+          ComposedPolicy,
+        );
+        expect(() => assertCft({})).toThrow(/unexpected shape/);
+        expect(() => assertCft({ allow: 'yes' })).toThrow(/allow is not boolean/);
+      });
+      /* eslint-enable ai-security/token-leakage */
+
+      it('invariant: BotPolicy.canCreateFromTemplate вернул undefined → throw из ComposedPolicy', () => {
+        const spy = vi.spyOn(BotPolicy.prototype, 'canCreateFromTemplate').mockReturnValue(
+          undefined as never,
+        );
+        expect(() => getPolicy().canCreateFromTemplate(ownerActor, template)).toThrow(
+          /undefined or null/,
+        );
+        spy.mockRestore();
       });
     });
   });

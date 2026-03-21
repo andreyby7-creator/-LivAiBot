@@ -58,6 +58,10 @@ export {
  */
 export {
   type BotActorContext,
+  type BotCreateFromTemplateDecision,
+  type BotCreateFromTemplateDeniedReason,
+  type BotCreateFromTemplatePolicyConfig,
+  type BotCreateFromTemplatePolicySource,
   type BotMode,
   BotPolicy,
   type BotPolicyAction,
@@ -65,6 +69,9 @@ export {
   type BotPolicyDecision,
   type BotPolicyDeniedReason,
   type BotState,
+  type BotTemplateCreateContext,
+  type CanCreateFromTemplateOptions,
+  type PolicyMeta,
 } from './BotPolicy.js';
 
 /* ============================================================================
@@ -124,4 +131,17 @@ export {
  * Используется для комплексной авторизации операций.
  * @public
  */
-export { ComposedPolicy, type ComposedPolicyConfig } from './ComposedPolicy.js';
+export {
+  type ComposedCanCreateFromTemplateOptions,
+  type ComposedCreateFromTemplateAllowAuditEvent,
+  type ComposedCreateFromTemplateAuditHooks,
+  type ComposedCreateFromTemplateDecision,
+  type ComposedCreateFromTemplateDecisionAuditEvent,
+  type ComposedCreateFromTemplateDeniedReason,
+  type ComposedCreateFromTemplateDenyAuditEvent,
+  type ComposedCreateFromTemplateDenyLayer,
+  type ComposedCreateFromTemplatePolicySource,
+  type ComposedCreateFromTemplatePolicyTrace,
+  ComposedPolicy,
+  type ComposedPolicyConfig,
+} from './ComposedPolicy.js';

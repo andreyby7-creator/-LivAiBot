@@ -11,6 +11,7 @@ import type {
   BotPolicyConfig,
   BotRole,
   BotState,
+  BotTemplateCreateContext,
 } from '../../src/policies/BotPolicy.js';
 import { BotPolicy } from '../../src/policies/BotPolicy.js';
 
@@ -664,6 +665,106 @@ describe('BotPolicy', () => {
       expect(result1).toEqual(result2);
       expect(result1.allow).toBe(true);
       expect(result2.allow).toBe(true);
+    });
+  });
+
+  describe('canCreateFromTemplate', () => {
+    const ownerActor: BotActorContext = { userId: 'u1', role: 'owner' };
+    const viewerActor: BotActorContext = { userId: 'u2', role: 'viewer' };
+    const baseTemplate: BotTemplateCreateContext = {
+      templateId: 'tpl_1',
+      workspaceId: 'ws_1',
+      templateTags: ['standard'],
+    };
+
+    it('разрешает owner: эквивалентно configure в draft', () => {
+      const result = policy.canCreateFromTemplate(ownerActor, baseTemplate);
+      expect(result).toEqual({
+        allow: true,
+        reason: 'CREATE_FROM_TEMPLATE_ALLOWED',
+        source: 'bot_policy:create_from_template',
+        ruleId: 'create_from_template:allowed',
+      });
+    });
+
+    it('запрещает viewer: configure_gate (недостаточно прав для configure в draft)', () => {
+      const result = policy.canCreateFromTemplate(viewerActor, baseTemplate);
+      expect(result.allow).toBe(false);
+      if (!result.allow) {
+        expect(result.reason).toBe('insufficient_role');
+        expect(result.source).toBe('bot_policy:configure_gate');
+        expect(result.ruleId).toBe('create_from_template:configure_draft_denied');
+      }
+    });
+
+    it('denylist templateId в конфиге → template_block', () => {
+      const cfg: BotPolicyConfig = {
+        ...MOCK_CONFIG,
+        createFromTemplate: { blockedTemplateIds: ['tpl_blocked'] },
+      };
+      const p = new BotPolicy(cfg);
+      const result = p.canCreateFromTemplate(ownerActor, {
+        templateId: 'tpl_blocked',
+      });
+      expect(result).toEqual({
+        allow: false,
+        reason: 'template_blocked',
+        source: 'bot_policy:template_block',
+        ruleId: 'create_from_template:blocked_template_id',
+      });
+    });
+
+    it('segment gate: requireTemplateSegmentMatch + пересечение тегов → allow', () => {
+      const result = policy.canCreateFromTemplate(ownerActor, baseTemplate, {
+        meta: {
+          flags: { requireTemplateSegmentMatch: true },
+          segments: ['standard', 'enterprise'],
+        },
+      });
+      expect(result).toEqual({
+        allow: true,
+        reason: 'CREATE_FROM_TEMPLATE_ALLOWED',
+        source: 'bot_policy:create_from_template',
+        ruleId: 'create_from_template:allowed',
+      });
+    });
+
+    it('segment gate: без templateTags (undefined) — пустой tagSet, нет пересечения → segment_mismatch', () => {
+      const result = policy.canCreateFromTemplate(
+        ownerActor,
+        { templateId: 'tpl_no_tags' },
+        {
+          meta: {
+            flags: { requireTemplateSegmentMatch: true },
+            segments: ['standard'],
+          },
+        },
+      );
+      expect(result.allow).toBe(false);
+      if (!result.allow) {
+        expect(result.reason).toBe('segment_mismatch');
+        expect(result.source).toBe('bot_policy:segment_gate');
+      }
+    });
+
+    it('segment gate: нет пересечения → segment_mismatch', () => {
+      const result = policy.canCreateFromTemplate(ownerActor, baseTemplate, {
+        meta: {
+          flags: { requireTemplateSegmentMatch: true },
+          segments: ['enterprise_only'],
+        },
+      });
+      expect(result.allow).toBe(false);
+      if (!result.allow) {
+        expect(result.reason).toBe('segment_mismatch');
+        expect(result.source).toBe('bot_policy:segment_gate');
+      }
+    });
+
+    it('детерминированность: одинаковые входы → одинаковый результат', () => {
+      const a = policy.canCreateFromTemplate(ownerActor, baseTemplate);
+      const b = policy.canCreateFromTemplate(ownerActor, baseTemplate);
+      expect(a).toEqual(b);
     });
   });
 });
