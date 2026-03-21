@@ -129,7 +129,8 @@ export type BotValidationErrorCode =
   | 'BOT_VERSION_INVALID'
   | 'BOT_MULTI_AGENT_SCHEMA_INVALID'
   | 'BOT_PROMPT_INVALID'
-  | 'BOT_WORKSPACE_ID_INVALID';
+  | 'BOT_WORKSPACE_ID_INVALID'
+  | 'BOT_DRAFT_ID_INVALID';
 
 /**
  * Коды ошибок политики ботов.
@@ -140,7 +141,9 @@ export type BotPolicyErrorCode =
   | 'BOT_POLICY_MODE_INVALID'
   | 'BOT_POLICY_ROLE_INSUFFICIENT'
   | 'BOT_POLICY_ARCHIVED'
-  | 'BOT_POLICY_SYSTEM_BOT_RESTRICTED';
+  | 'BOT_POLICY_SYSTEM_BOT_RESTRICTED'
+  | 'BOT_POLICY_CONTEXT_INVALID'
+  | 'BOT_POLICY_ACTOR_CONTEXT_MISSING';
 
 /**
  * Коды ошибок прав доступа ботов.
@@ -200,7 +203,8 @@ export type BotIntegrationErrorCode =
   | 'BOT_INTEGRATION_AUTH_FAILED'
   | 'BOT_INTEGRATION_TIMEOUT'
   | 'BOT_INTEGRATION_RATE_LIMIT_EXCEEDED'
-  | 'BOT_INTEGRATION_QUOTA_EXCEEDED';
+  | 'BOT_INTEGRATION_QUOTA_EXCEEDED'
+  | 'BOT_GUARD_INVARIANT_VIOLATION';
 
 /**
  * Объединённый тип всех кодов ошибок ботов.

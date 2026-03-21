@@ -58,17 +58,31 @@ const mocked = vi.hoisted(() => ({
   updateCreateBotState: vi.fn(),
 }));
 
+function mkCreateBotLikeHelpers() {
+  return Object.freeze({
+    checkCreatePermissionsOrThrow: mocked.checkCreatePermissionsOrThrow,
+    checkCreatePolicyOrThrow: mocked.checkCreatePolicyOrThrow,
+  });
+}
+
 vi.mock('../../../src/domain/BotTemplate.js', () => ({
   assertBotTemplateInvariant: mocked.assertBotTemplateInvariant,
 }));
 
-vi.mock('../../../src/effects/create/create-bot.helpers.js', () => ({
+vi.mock('../../../src/effects/shared/pure-guards.js', () => ({
   buildActorUserContext: mocked.buildActorUserContext,
-  buildCreateBotRequestBody: mocked.buildCreateBotRequestBody,
-  buildDraftBotId: mocked.buildDraftBotId,
-  checkCreatePermissionsOrThrow: mocked.checkCreatePermissionsOrThrow,
-  checkCreatePolicyOrThrow: mocked.checkCreatePolicyOrThrow,
 }));
+
+vi.mock('../../../src/effects/create/create-bot.helpers.js', async (importOriginal) => {
+  const actual = await importOriginal<
+    typeof import('../../../src/effects/create/create-bot.helpers.js')
+  >();
+  return {
+    ...actual,
+    buildCreateBotRequestBody: mocked.buildCreateBotRequestBody,
+    buildDraftBotId: mocked.buildDraftBotId,
+  };
+});
 
 vi.mock('../../../src/effects/create/create-bot-audit.mapper.js', () => ({
   mapCreateBotErrorToAuditEvent: mocked.mapCreateBotErrorToAuditEvent,
@@ -177,6 +191,7 @@ describe('create-bot-from-template.ts', () => {
         auditPort: {} as any,
         storePort: {} as any,
         mapErrorConfig: { source: 'test' } as any,
+        createBotLikeHelpers: mkCreateBotLikeHelpers(),
       },
     );
 
@@ -184,32 +199,6 @@ describe('create-bot-from-template.ts', () => {
     expect(result).toMatchObject({ id: 'bot_1', workspaceId: 'ws_1' });
     expect(mocked.checkCreatePermissionsOrThrow).toHaveBeenCalledTimes(1);
     expect(mocked.checkCreatePolicyOrThrow).toHaveBeenCalledTimes(1);
-  });
-
-  it('pre-flight fail-closed: при undefined userId/actorRole кидает BOT_PERMISSION_DENIED', async () => {
-    const runOperation = vi.fn((params: any) =>
-      (async (signal?: AbortSignal) => params.run(signal)) as any
-    );
-    const effectFactory = createBotFromTemplateEffect(
-      {
-        clock: { now: () => 1000 },
-        eventIdGenerator: { generate: () => 'evt-1' },
-      },
-      {
-        lifecycleHelper: { runOperation } as any,
-        apiClient: { createBot: vi.fn() } as any,
-        botPolicy: {} as any,
-        botPermissions: {} as any,
-        auditPort: {} as any,
-        storePort: {} as any,
-        mapErrorConfig: { source: 'test' } as any,
-      },
-    );
-
-    await expect(effectFactory(mkRequest({ userId: undefined, actorRole: undefined }))()).rejects
-      .toMatchObject({
-        code: 'BOT_PERMISSION_DENIED',
-      });
   });
 
   it('permission denied: пробрасывает соответствующую ошибку', async () => {
@@ -239,6 +228,7 @@ describe('create-bot-from-template.ts', () => {
         auditPort: {} as any,
         storePort: {} as any,
         mapErrorConfig: { source: 'test' } as any,
+        createBotLikeHelpers: mkCreateBotLikeHelpers(),
       },
     );
 
@@ -272,6 +262,7 @@ describe('create-bot-from-template.ts', () => {
         auditPort: {} as any,
         storePort: {} as any,
         mapErrorConfig: { source: 'test' } as any,
+        createBotLikeHelpers: mkCreateBotLikeHelpers(),
       },
     );
 
@@ -299,6 +290,7 @@ describe('create-bot-from-template.ts', () => {
         auditPort: {} as any,
         storePort: {} as any,
         mapErrorConfig: { source: 'test' } as any,
+        createBotLikeHelpers: mkCreateBotLikeHelpers(),
       },
     );
 
@@ -398,6 +390,7 @@ describe('create-bot-from-template.ts', () => {
         auditPort: {} as any,
         storePort: {} as any,
         mapErrorConfig: { source: 'test' } as any,
+        createBotLikeHelpers: mkCreateBotLikeHelpers(),
       },
     );
 
@@ -444,6 +437,7 @@ describe('create-bot-from-template.ts', () => {
         auditPort: {} as any,
         storePort: {} as any,
         mapErrorConfig: { source: 'test' } as any,
+        createBotLikeHelpers: mkCreateBotLikeHelpers(),
       },
     );
 
@@ -480,6 +474,7 @@ describe('create-bot-from-template.ts', () => {
         auditPort: {} as any,
         storePort: {} as any,
         mapErrorConfig: { source: 'test' } as any,
+        createBotLikeHelpers: mkCreateBotLikeHelpers(),
       },
     );
 
@@ -509,6 +504,7 @@ describe('create-bot-from-template.ts', () => {
         auditPort: {} as any,
         storePort: {} as any,
         mapErrorConfig: { source: 'test' } as any,
+        createBotLikeHelpers: mkCreateBotLikeHelpers(),
       },
     );
 
@@ -598,6 +594,7 @@ describe('create-bot-from-template.ts', () => {
         auditPort: {} as any,
         storePort: {} as any,
         mapErrorConfig: { source: 'test' } as any,
+        createBotLikeHelpers: mkCreateBotLikeHelpers(),
       },
     );
 
@@ -634,6 +631,7 @@ describe('create-bot-from-template.ts', () => {
         auditPort: {} as any,
         storePort: {} as any,
         mapErrorConfig: { source: 'test' } as any,
+        createBotLikeHelpers: mkCreateBotLikeHelpers(),
       },
     );
 
@@ -644,7 +642,6 @@ describe('create-bot-from-template.ts', () => {
         operationId: undefined,
         instructionOverride: undefined,
         traceId: undefined,
-        userId: undefined,
       }),
     );
 
@@ -661,7 +658,7 @@ describe('create-bot-from-template.ts', () => {
     });
     const successEventNoOptional = captured[2].mapSuccessAuditEvent(mkBotInfo());
     expect(successEventNoOptional.traceId).toBeUndefined();
-    expect(successEventNoOptional.userId).toBeUndefined();
+    expect(successEventNoOptional.userId).toBe('u_1');
     const failureEventNoOptional = captured[2].mapFailureAuditEvent({
       code: 'BOT_POLICY_ACTION_DENIED',
       category: 'policy',
@@ -670,7 +667,7 @@ describe('create-bot-from-template.ts', () => {
       context: {},
     });
     expect(failureEventNoOptional.traceId).toBeUndefined();
-    expect(failureEventNoOptional.userId).toBeUndefined();
+    expect(failureEventNoOptional.userId).toBe('u_1');
   });
 });
 

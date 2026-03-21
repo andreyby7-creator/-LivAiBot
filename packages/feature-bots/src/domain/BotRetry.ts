@@ -59,6 +59,7 @@ const RawBotRetryPolicy = {
   BOT_MULTI_AGENT_SCHEMA_INVALID: false,
   BOT_PROMPT_INVALID: false,
   BOT_WORKSPACE_ID_INVALID: false,
+  BOT_DRAFT_ID_INVALID: false,
 
   // Policy
   BOT_POLICY_ACTION_DENIED: false,
@@ -66,6 +67,10 @@ const RawBotRetryPolicy = {
   BOT_POLICY_ROLE_INSUFFICIENT: false,
   BOT_POLICY_ARCHIVED: false,
   BOT_POLICY_SYSTEM_BOT_RESTRICTED: false,
+  // eslint-disable-next-line @livai/rag/context-leakage -- ключ BotErrorCode (политика), не runtime/global user context
+  BOT_POLICY_CONTEXT_INVALID: false,
+  // eslint-disable-next-line @livai/rag/context-leakage -- ключ BotErrorCode (политика), не runtime/global user context
+  BOT_POLICY_ACTOR_CONTEXT_MISSING: false,
 
   // Permission
   BOT_PERMISSION_DENIED: false,
@@ -105,6 +110,7 @@ const RawBotRetryPolicy = {
   BOT_INTEGRATION_TIMEOUT: true,
   BOT_INTEGRATION_RATE_LIMIT_EXCEEDED: true,
   BOT_INTEGRATION_QUOTA_EXCEEDED: false,
+  BOT_GUARD_INVARIANT_VIOLATION: false,
 } as const satisfies RetryPolicy<BotRetryKey>;
 
 export const BotRetryPolicy: RetryPolicy<BotRetryKey> = createRetryPolicy<BotRetryKey>(

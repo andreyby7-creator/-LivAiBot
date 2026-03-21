@@ -95,6 +95,12 @@ export const botErrorMetaByCode: Readonly<Record<BotErrorCode, BotErrorMeta>> = 
     category: 'validation',
     severity: 'medium',
   },
+  BOT_DRAFT_ID_INVALID: {
+    error: 'draft_id_invalid',
+    category: 'validation',
+    severity: 'medium',
+    statusCode: 400,
+  },
 
   // Policy
   BOT_POLICY_ACTION_DENIED: {
@@ -126,6 +132,20 @@ export const botErrorMetaByCode: Readonly<Record<BotErrorCode, BotErrorMeta>> = 
     category: 'policy',
     severity: 'high',
     statusCode: 403,
+  },
+  // eslint-disable-next-line @livai/rag/context-leakage -- доменный код ошибки / UI discriminator, не user/session context
+  BOT_POLICY_CONTEXT_INVALID: {
+    error: 'policy_context_invalid',
+    category: 'policy',
+    severity: 'high',
+    statusCode: 400,
+  },
+  // eslint-disable-next-line @livai/rag/context-leakage -- доменный код ошибки (actor для policy), не user/session context
+  BOT_POLICY_ACTOR_CONTEXT_MISSING: {
+    error: 'policy_actor_context_missing',
+    category: 'policy',
+    severity: 'high',
+    statusCode: 400,
   },
 
   // Permission
@@ -210,6 +230,12 @@ export const botErrorMetaByCode: Readonly<Record<BotErrorCode, BotErrorMeta>> = 
   BOT_INTEGRATION_TIMEOUT: { ...integrationBase, severity: 'high', statusCode: 504 },
   BOT_INTEGRATION_RATE_LIMIT_EXCEEDED: { ...integrationBase, severity: 'medium', statusCode: 429 },
   BOT_INTEGRATION_QUOTA_EXCEEDED: { ...integrationBase, severity: 'medium', statusCode: 402 },
+  BOT_GUARD_INVARIANT_VIOLATION: {
+    error: 'guard_invariant_violation',
+    category: 'integration',
+    severity: 'critical',
+    statusCode: 500,
+  },
 } as const satisfies Readonly<Record<BotErrorCode, BotErrorMeta>>;
 
 function getBotErrorResponseBase(code: BotErrorCode): Readonly<{

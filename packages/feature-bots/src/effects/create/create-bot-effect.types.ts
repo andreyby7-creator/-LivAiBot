@@ -35,6 +35,7 @@ import type {
   OperationLifecycleHelper,
   OperationLifecycleOperationHandler,
 } from '../shared/operation-lifecycle.js';
+import type { CreateBotLikeHelpers } from './create-bot.helpers.js';
 
 /* ============================================================================
  * 🧭 TYPES — SHARED OPERATION TEMPLATE (DRY для create/update/delete/...)
@@ -109,16 +110,23 @@ type CreateBotEffectOverrides = Readonly<{
   readonly operationHandlers?: Partial<Record<'create', OperationLifecycleOperationHandler>>;
 }>;
 
+/** Pre-check create-like helpers, собранные на composition root (`createCreateHelpers` + `PureGuardsBundle`). */
+type CreateBotEffectCreateHelpers = Readonly<{
+  readonly createBotLikeHelpers: CreateBotLikeHelpers;
+}>;
+
 /** Группа типов DI-конфигурации create-flow. */
 export type CreateBotEffectConfigTypes = Readonly<{
   readonly ports: CreateBotEffectPorts;
   readonly policies: CreateBotEffectPolicies;
   readonly errorHandling: CreateBotEffectErrorHandling;
   readonly overrides: CreateBotEffectOverrides;
+  readonly createHelpers: CreateBotEffectCreateHelpers;
 }>;
 
 export type CreateBotEffectConfig =
   & CreateBotEffectPorts
   & CreateBotEffectPolicies
   & CreateBotEffectErrorHandling
-  & CreateBotEffectOverrides;
+  & CreateBotEffectOverrides
+  & CreateBotEffectCreateHelpers;

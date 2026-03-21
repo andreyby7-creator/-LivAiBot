@@ -74,6 +74,46 @@ export type { BotAuditPort } from './audit.port.js';
 export { createBotAuditPortAdapter, createNoopBotAuditPort } from './audit.port.js';
 
 /* ============================================================================
+ * 🛡️ PURE GUARDS — PERMISSION / POLICY (SHARED)
+ * ========================================================================== */
+
+/**
+ * Pure guards: единые маппинги deny → `BotErrorResponse`, actor-контекст и pre-check’и для всех эффектов.
+ * @public
+ */
+export type {
+  ActorUserContext,
+  CheckPolicyOrThrowInput,
+  CreatePureGuardsInput,
+  ExtendedPolicyReason,
+  GuardErrorDetails,
+  GuardPermissionErrorDetails,
+  GuardPolicyErrorDetails,
+  PermissionErrorCodeResolver,
+  PolicyActorUserContext,
+  PolicyErrorCodeResolver,
+  PureGuardsBundle,
+} from './pure-guards.js';
+export {
+  assertActorContextForPolicyOrThrow,
+  buildActorUserContext,
+  buildGuardErrorContext,
+  checkPermissionsOrThrow,
+  checkPolicyOrThrow,
+  createPermissionDeniedErrorResponse,
+  createPermissionErrorCodeResolver,
+  createPolicyDeniedErrorResponse,
+  createPolicyErrorCodeResolver,
+  createPureGuards,
+  createPureGuardsMappingInvariantBotErrorResponse,
+  defaultPermissionErrorCodeResolver,
+  defaultPolicyErrorCodeResolver,
+  evaluatePolicyDecision,
+  isCompleteActorForPolicy,
+  throwPolicyDeniedOrReturn,
+} from './pure-guards.js';
+
+/* ============================================================================
  * 🔁 OPERATION LIFECYCLE HELPER — LOADING/RUN/SUCCESS/FAILURE
  * ========================================================================== */
 

@@ -11,12 +11,17 @@ import type {
 
 import type { BotTemplate } from '../../../../src/domain/BotTemplate.js';
 import {
-  buildActorUserContext,
   buildCreateBotRequestBody,
   buildDraftBotId,
-  checkCreatePermissionsOrThrow,
-  checkCreatePolicyOrThrow,
+  buildFallbackBotId,
+  createCreateHelpers,
 } from '../../../../src/effects/create/create-bot.helpers.js';
+import {
+  buildActorUserContext,
+  createPureGuards,
+  defaultPermissionErrorCodeResolver,
+  defaultPolicyErrorCodeResolver,
+} from '../../../../src/effects/shared/pure-guards.js';
 
 type PermissionDecision =
   | Readonly<{ readonly allow: true; }>
@@ -66,6 +71,13 @@ function mkPolicyState(): BotState {
   }) as unknown as BotState;
 }
 
+const defaultCreateHelpers = createCreateHelpers(
+  createPureGuards({
+    permissionResolver: defaultPermissionErrorCodeResolver,
+    policyResolver: defaultPolicyErrorCodeResolver,
+  }),
+);
+
 describe('create-bot.helpers', () => {
   describe('buildDraftBotId', () => {
     it('детерминированный id при одинаковом входе', () => {
@@ -96,18 +108,80 @@ describe('create-bot.helpers', () => {
       expect(String(b)).toMatch(/^bot_draft_[0-9a-f]{16}$/);
     });
 
-    it('пробрасывает ошибку валидации draft-id при невалидном формате', () => {
+    it('пробрасывает BotErrorResponse при невалидном формате draft-id', () => {
       const testSpy = vi.spyOn(RegExp.prototype, 'test').mockReturnValueOnce(false);
 
-      expect(() =>
+      const thrown = captureThrown(() =>
         buildDraftBotId({
           workspaceId: 'ws_1',
           templateId: 'tpl_1',
           name: 'bad',
         })
-      ).toThrow(/Invalid draft BotId format/);
+      );
 
       testSpy.mockRestore();
+
+      expect(thrown).toMatchObject({
+        code: 'BOT_DRAFT_ID_INVALID',
+        context: {
+          details: {
+            type: 'draft_bot_id',
+            reason: 'format_mismatch',
+          },
+        },
+      });
+    });
+  });
+
+  describe('buildFallbackBotId', () => {
+    it('детерминированный id при одинаковом входе (FNV-64 + bot_fallback_ + 16 hex)', () => {
+      const input = Object.freeze({
+        workspaceId: 'ws_1',
+        templateId: 'tpl_1',
+        name: 'Мой бот',
+      });
+
+      const a = buildFallbackBotId(input);
+      const b = buildFallbackBotId(input);
+
+      expect(a).toBe(b);
+      expect(String(a)).toMatch(/^bot_fallback_[0-9a-f]{16}$/);
+    });
+
+    it('отличается от draft-id при том же входе (иной salt/prefix)', () => {
+      const input = Object.freeze({
+        workspaceId: 'ws_1',
+        templateId: 'tpl_1',
+        name: 'Same',
+      });
+
+      expect(buildDraftBotId(input)).not.toBe(buildFallbackBotId(input));
+      expect(String(buildDraftBotId(input))).toMatch(/^bot_draft_/);
+      expect(String(buildFallbackBotId(input))).toMatch(/^bot_fallback_/);
+    });
+
+    it('пробрасывает BotErrorResponse при невалидном формате fallback-id', () => {
+      const testSpy = vi.spyOn(RegExp.prototype, 'test').mockReturnValueOnce(false);
+
+      const thrown = captureThrown(() =>
+        buildFallbackBotId({
+          workspaceId: 'ws_1',
+          templateId: 'tpl_1',
+          name: 'bad',
+        })
+      );
+
+      testSpy.mockRestore();
+
+      expect(thrown).toMatchObject({
+        code: 'BOT_DRAFT_ID_INVALID',
+        context: {
+          details: {
+            type: 'fallback_bot_id',
+            reason: 'format_mismatch',
+          },
+        },
+      });
     });
   });
 
@@ -127,6 +201,7 @@ describe('create-bot.helpers', () => {
         templateId: template.id,
       });
       expect(Object.isFrozen(body)).toBe(true);
+      expect(Object.isFrozen(body.settings)).toBe(true);
     });
 
     it('использует defaultInstruction, если override отсутствует', () => {
@@ -140,7 +215,7 @@ describe('create-bot.helpers', () => {
     });
   });
 
-  describe('buildActorUserContext', () => {
+  describe('buildActorUserContext (shared/pure-guards)', () => {
     it('нормализует undefined userId в null и не добавляет role', () => {
       const actor = buildActorUserContext({
         userId: undefined,
@@ -165,8 +240,8 @@ describe('create-bot.helpers', () => {
     });
   });
 
-  describe('checkCreatePermissionsOrThrow', () => {
-    it('не кидает при allow=true (default action=create)', () => {
+  describe('createCreateHelpers + default guards', () => {
+    it('checkCreatePermissionsOrThrow: не кидает при allow=true (action=create)', () => {
       const canPerform = vi.fn(
         (): PermissionDecision =>
           Object.freeze({
@@ -176,9 +251,10 @@ describe('create-bot.helpers', () => {
       const botPermissions = Object.freeze({ canPerform });
 
       expect(() =>
-        checkCreatePermissionsOrThrow({
+        defaultCreateHelpers.checkCreatePermissionsOrThrow({
           botPermissions: botPermissions as never,
           actorUser: Object.freeze({ userId: 'u_1', role: 'editor' }) as never,
+          action: 'create',
         })
       ).not.toThrow();
       expect(canPerform).toHaveBeenCalledWith('create', {
@@ -187,7 +263,7 @@ describe('create-bot.helpers', () => {
       });
     });
 
-    it('кидает canonical error при deny (custom action)', () => {
+    it('checkCreatePermissionsOrThrow: кидает canonical error при deny (custom action)', () => {
       const canPerform = vi.fn(
         (): PermissionDecision =>
           Object.freeze({
@@ -199,7 +275,7 @@ describe('create-bot.helpers', () => {
       const action: BotAction = 'read';
 
       const thrown = captureThrown(() =>
-        checkCreatePermissionsOrThrow({
+        defaultCreateHelpers.checkCreatePermissionsOrThrow({
           botPermissions: botPermissions as never,
           actorUser: Object.freeze({ userId: 'u_2', role: 'viewer' }) as never,
           action,
@@ -218,10 +294,8 @@ describe('create-bot.helpers', () => {
         },
       });
     });
-  });
 
-  describe('checkCreatePolicyOrThrow', () => {
-    it('fail-closed при отсутствии actor context', () => {
+    it('checkCreatePolicyOrThrow: fail-closed при отсутствии actor context', () => {
       const canPerform = vi.fn(
         (): PolicyDecision =>
           Object.freeze({
@@ -231,17 +305,18 @@ describe('create-bot.helpers', () => {
       const botPolicy = Object.freeze({ canPerform });
 
       const thrown = captureThrown(() =>
-        checkCreatePolicyOrThrow({
+        defaultCreateHelpers.checkCreatePolicyOrThrow({
           botPolicy: botPolicy as never,
           userId: undefined,
           actorRole: undefined,
           policyBotState: mkPolicyState(),
+          action: 'configure',
         })
       );
 
       expect(thrown).toBeDefined();
       expect(thrown).toMatchObject({
-        code: 'BOT_POLICY_ACTION_DENIED',
+        code: 'BOT_POLICY_ACTOR_CONTEXT_MISSING',
         context: {
           details: {
             type: 'policy',
@@ -253,7 +328,7 @@ describe('create-bot.helpers', () => {
       expect(canPerform).not.toHaveBeenCalled();
     });
 
-    it('вызывает policy.canPerform и не кидает при allow=true', () => {
+    it('checkCreatePolicyOrThrow: вызывает policy.canPerform и не кидает при allow=true', () => {
       const canPerform = vi.fn(
         (): PolicyDecision =>
           Object.freeze({
@@ -265,7 +340,7 @@ describe('create-bot.helpers', () => {
       const action: BotPolicyAction = 'configure';
 
       expect(() =>
-        checkCreatePolicyOrThrow({
+        defaultCreateHelpers.checkCreatePolicyOrThrow({
           botPolicy: botPolicy as never,
           userId: 'u_7' as never,
           actorRole: 'admin' as BotRole,
@@ -279,7 +354,7 @@ describe('create-bot.helpers', () => {
       });
     });
 
-    it('кидает canonical error при deny от policy', () => {
+    it('checkCreatePolicyOrThrow: кидает canonical error при deny от policy', () => {
       const canPerform = vi.fn(
         (): PolicyDecision =>
           Object.freeze({
@@ -290,7 +365,7 @@ describe('create-bot.helpers', () => {
       const botPolicy = Object.freeze({ canPerform });
 
       const thrown = captureThrown(() =>
-        checkCreatePolicyOrThrow({
+        defaultCreateHelpers.checkCreatePolicyOrThrow({
           botPolicy: botPolicy as never,
           userId: 'u_8' as never,
           actorRole: 'editor' as BotRole,

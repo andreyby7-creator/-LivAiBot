@@ -65,13 +65,13 @@ export {
  */
 
 /**
- * Create Helpers: pure/deterministic builders и pre-check helpers для create-flow.
+ * Create Helpers: pure/deterministic builders и фабрика pre-check’ов (`createCreateHelpers` + `PureGuardsBundle`).
  * @public
  */
+export type { CreateBotLikeHelpers } from './create-bot.helpers.js';
 export {
-  buildActorUserContext,
   buildCreateBotRequestBody,
   buildDraftBotId,
-  checkCreatePermissionsOrThrow,
-  checkCreatePolicyOrThrow,
+  buildFallbackBotId,
+  createCreateHelpers,
 } from './create-bot.helpers.js';

@@ -52,6 +52,7 @@ export type BotErrorType =
   | 'multi_agent_schema_invalid'
   | 'prompt_invalid'
   | 'workspace_id_invalid'
+  | 'draft_id_invalid'
   // Channel errors (coarse-grained)
   | 'channel_error'
   // Policy errors
@@ -61,6 +62,8 @@ export type BotErrorType =
   | 'policy_role_insufficient'
   | 'policy_archived'
   | 'policy_system_bot_restricted'
+  | 'policy_context_invalid'
+  | 'policy_actor_context_missing'
   // Permission errors
   | 'permission_error'
   | 'permission_denied'
@@ -75,6 +78,7 @@ export type BotErrorType =
   | 'parsing_error'
   // Integration errors (coarse-grained)
   | 'integration_error'
+  | 'guard_invariant_violation'
   // Not found errors
   | 'not_found'
   | 'bot_not_found'

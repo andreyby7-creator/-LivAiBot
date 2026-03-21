@@ -28,6 +28,7 @@ describe('BotRetryPolicy', () => {
       'BOT_MULTI_AGENT_SCHEMA_INVALID',
       'BOT_PROMPT_INVALID',
       'BOT_WORKSPACE_ID_INVALID',
+      'BOT_DRAFT_ID_INVALID',
 
       // Policy
       'BOT_POLICY_ACTION_DENIED',
@@ -35,6 +36,8 @@ describe('BotRetryPolicy', () => {
       'BOT_POLICY_ROLE_INSUFFICIENT',
       'BOT_POLICY_ARCHIVED',
       'BOT_POLICY_SYSTEM_BOT_RESTRICTED',
+      'BOT_POLICY_CONTEXT_INVALID',
+      'BOT_POLICY_ACTOR_CONTEXT_MISSING',
 
       // Permission
       'BOT_PERMISSION_DENIED',
@@ -73,6 +76,7 @@ describe('BotRetryPolicy', () => {
       'BOT_INTEGRATION_TIMEOUT',
       'BOT_INTEGRATION_RATE_LIMIT_EXCEEDED',
       'BOT_INTEGRATION_QUOTA_EXCEEDED',
+      'BOT_GUARD_INVARIANT_VIOLATION',
     ];
 
     allBotKeys.forEach((code) => {

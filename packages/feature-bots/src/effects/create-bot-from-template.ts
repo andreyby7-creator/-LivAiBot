@@ -11,13 +11,15 @@
  *   а не из `Date.now()` внутри.
  * - Расширяемость: pre-flight проверки вынесены в `prepareBotCreationContext(...)`,
  *   а audit-context/mapping делегированы специализированным helper/mapper модулям.
+ * - Публичный контракт входа: `userId` + `actorRole` обязательны в типе `CreateBotFromTemplateRequest`
+ *   (канонический actor для guards; дублирующая runtime-проверка не нужна — контракт на уровне TypeScript).
  *
  * Инварианты:
  * - Любые ошибки внутри run-ветки прокидываются наружу через shared lifecycle (`operation-lifecycle`):
  *   layer `error.ts` нормализует их в `BotError`, а pipeline/lifecycle выполняет error/success side-effects.
  * - Создание audit payload выполняется через существующий `create-bot-audit.mapper.ts`
  *   (fail-closed schema validation внутри mapper).
- * - Fallback botId для failure-audit строится детерминированно локальным helper-ом
+ * - Fallback botId для failure-audit строится детерминированно через {@link buildFallbackBotId}
  *   (`toBotIdFromErrorOrFallback`), чтобы исключить “пропуск” audit события при отсутствии botId в error.context.
  */
 
@@ -27,16 +29,14 @@ import type { Effect } from '@livai/core/effect';
 import type { BotId, BotUserId, BotWorkspaceId } from '../domain/Bot.js';
 import type { BotTemplate } from '../domain/BotTemplate.js';
 import { assertBotTemplateInvariant } from '../domain/BotTemplate.js';
-import { createBotErrorResponse } from '../lib/bot-errors.js';
 import type { BotAuditEventValues } from '../schemas/index.js';
 import type { OperationId } from '../types/bot-commands.js';
 import type { BotError, BotInfo } from '../types/bots.js';
+import type { CreateBotLikeHelpers } from './create/create-bot.helpers.js';
 import {
-  buildActorUserContext,
   buildCreateBotRequestBody,
   buildDraftBotId,
-  checkCreatePermissionsOrThrow,
-  checkCreatePolicyOrThrow,
+  buildFallbackBotId,
 } from './create/create-bot.helpers.js';
 import {
   mapCreateBotEffectInputToApiInput,
@@ -56,6 +56,7 @@ import type {
 } from './create/create-bot-effect.types.js';
 import { updateCreateBotState } from './create/create-bot-store-updater.js';
 import type { BotResponseTransport } from './shared/api-client.port.js';
+import { buildActorUserContext } from './shared/pure-guards.js';
 
 /* ============================================================================
  * 🧭 PORTS — time/id generators
@@ -110,16 +111,15 @@ export type CreateBotFromTemplateRequest = {
   /** Correlation traceId для audit (опционально). */
   readonly traceId?: string;
 
-  /** Инициатор (опционально). */
-  readonly userId?: BotUserId;
+  /** Инициатор (обязателен для permission/policy pre-check). */
+  readonly userId: BotUserId;
 
   /**
    * Роль инициатора для policy/permissions pre-check.
    * @remarks
-   * Permissions могут работать с `role?: undefined`, policy требует роль как union и
-   * применяется только после успешной permission-check.
+   * Вместе с `userId` задаёт канонический `ActorUserContext` для guards (без смешанного режима).
    */
-  readonly actorRole?: BotRole;
+  readonly actorRole: BotRole;
 
   /**
    * Пакет hooks для `best-effort` (лучшее из возможного) наблюдаемости/интеграции без IO.
@@ -144,11 +144,11 @@ export type CreateBotFromTemplateDeps = {
 };
 
 /* ============================================================================
- * 🔁 INTERNAL HELPERS — deterministic fallback ids
+ * 🔁 INTERNAL HELPERS — deterministic operation id + fallback botId
  * ============================================================================
  */
 
-// FNV-1a 32bit (детерминированная функция для псевдонимных fallback-идентификаторов)
+// FNV-1a 32bit — детерминированный `operationId`, если caller не передал явный.
 function fnv1a32(input: string): number {
   let hash = 0x811c9dc5;
   const FNV_PRIME = 0x01000193;
@@ -164,19 +164,6 @@ function fnv1a32(input: string): number {
 const ID_HASH_HEX_BASE = 16;
 const OPERATION_ID_SALT = 'create-bot-operation-v1' as const;
 
-function buildDeterministicFallbackBotId(
-  input: Readonly<{
-    readonly workspaceId: BotWorkspaceId;
-    readonly templateId: string;
-    readonly name: string;
-  }>,
-): BotId {
-  const source = `audit-fallback:${input.workspaceId}:${input.templateId}:${input.name}`;
-  const hashHex = fnv1a32(source).toString(ID_HASH_HEX_BASE);
-  // Минимум: непустая строка, максимум: схемы ограничены 128 символов.
-  return (`bot_fallback_${hashHex}` as unknown) as BotId;
-}
-
 function toBotIdFromErrorOrFallback(
   input: Readonly<{
     readonly error: BotError;
@@ -189,7 +176,7 @@ function toBotIdFromErrorOrFallback(
   if (fromError !== undefined && fromError.toString().trim().length > 0) {
     return fromError;
   }
-  return buildDeterministicFallbackBotId({
+  return buildFallbackBotId({
     workspaceId: input.workspaceId,
     templateId: input.templateId,
     name: input.name,
@@ -232,6 +219,7 @@ type PrepareBotCreationContextInput = Readonly<{
   readonly botPermissions: CreateBotEffectConfig['botPermissions'];
   readonly botPolicy: CreateBotEffectConfig['botPolicy'];
   readonly clock: ClockPort;
+  readonly createBotLikeHelpers: CreateBotLikeHelpers;
 }>;
 
 type PreparedBotCreationContext = Readonly<{
@@ -247,20 +235,11 @@ function prepareBotCreationContext(
     actorRole: input.request.actorRole,
   });
 
-  checkCreatePermissionsOrThrow({
+  input.createBotLikeHelpers.checkCreatePermissionsOrThrow({
     botPermissions: input.botPermissions,
     actorUser,
+    action: 'create',
   });
-
-  if (input.request.userId === undefined || input.request.actorRole === undefined) {
-    // Должно быть недостижимо после permission-check, но оставляем fail-closed.
-    throw createBotErrorResponse({
-      code: 'BOT_PERMISSION_DENIED',
-      context: Object.freeze({
-        details: Object.freeze({ reason: 'actor_role_or_userid_missing' }),
-      }),
-    });
-  }
 
   const draftBotId = buildDraftBotId({
     workspaceId: input.request.workspaceId,
@@ -277,11 +256,11 @@ function prepareBotCreationContext(
     isSystemBot: false,
   });
 
-  checkCreatePolicyOrThrow({
+  input.createBotLikeHelpers.checkCreatePolicyOrThrow({
     botPolicy: input.botPolicy,
-    userId: input.request.userId,
-    actorRole: input.request.actorRole,
     policyBotState,
+    actorUser,
+    action: 'configure',
   });
 
   return Object.freeze({
@@ -331,11 +310,11 @@ export function createBotFromTemplateEffect(
     apiClient,
     botPolicy,
     botPermissions,
+    createBotLikeHelpers,
   } = createConfig;
 
   return (request: CreateBotFromTemplateRequest): Effect<BotInfo> => {
     const traceId = request.traceId;
-    const userId = request.userId;
     const rawOnSuccessHook = request.hooks?.onSuccess;
     const rawOnErrorHook = request.hooks?.onError;
 
@@ -356,8 +335,8 @@ export function createBotFromTemplateEffect(
       return Object.freeze({
         eventId: meta.eventId,
         timestamp: meta.timestamp,
+        userId: request.userId,
         ...(traceId !== undefined ? { traceId } : {}),
-        ...(userId !== undefined ? { userId } : {}),
       });
     };
 
@@ -373,8 +352,8 @@ export function createBotFromTemplateEffect(
           name: request.name,
         }),
         workspaceId: request.workspaceId,
+        userId: request.userId,
         ...(traceId !== undefined ? { traceId } : {}),
-        ...(userId !== undefined ? { userId } : {}),
       });
 
       return mapCreateBotErrorToAuditEvent(error, failureCtx);
@@ -390,6 +369,7 @@ export function createBotFromTemplateEffect(
         botPermissions,
         botPolicy,
         clock: deps.clock,
+        createBotLikeHelpers,
       });
 
       // 2) Payload create-запроса из шаблона (+ overrides)
